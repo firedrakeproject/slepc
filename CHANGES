@@ -1,2 +1,11 @@
-Added STSinvertSetMatStructure
+Changes in SLEPc 2.2.0
+----------------------
+
+* General
+
+* EPS
+
+* ST
+  - Added STSinvertSetMatStructure to optimize performance of MatAXPY in
+    shift-and-invert transformation.
 
