@@ -92,15 +92,12 @@ int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,i
           eigi[permout[i]] < 0.0) {
         int tmp;
         SWAP(permout[i], permout[i+1], tmp);
-        printf("i = %i\n",i);
       }
     i++;
     }
   }
 #endif
 
-  for (i=0; i<nev; i++) printf("permout[%i] = %i\n", i, permout[i]);
-  
   ierr = PetscFree(values);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
