@@ -60,9 +60,8 @@ int EPSSetDefaults(EPS eps)
 #define __FUNCT__ "EPSSetUp"
 /*@
    EPSSetUp - Sets up all the internal data structures necessary for the
-   application of the eigensolver. The operations carried out depend on
-   the solver: factorization of a preconditioning matrix or simply the
-   allocation of necessary space.
+   execution of the eigensolver. Then calls STSetUp() for any set-up
+   operations associated to the ST object.
 
    Collective on EPS
 
@@ -73,12 +72,12 @@ int EPSSetDefaults(EPS eps)
 
    Notes:
    This function need not be called explicitly in most cases, since EPSSolve()
-   calls it. It can be useful when one want to measure the set-up time 
+   calls it. It can be useful when one wants to measure the set-up time 
    separately from the solve time.
 
    This function sets a random initial vector if none has been provided.
 
-.seealso: EPSCreate(), EPSSolve(), EPSDestroy()
+.seealso: EPSCreate(), EPSSolve(), EPSDestroy(), STSetUp()
 @*/
 int EPSSetUp(EPS eps)
 {
@@ -387,14 +386,14 @@ int EPSGetDimensions(EPS eps,int *nev,int *ncv)
 -  ncv - the maximum dimension of the subspace to be used by the solver
 
    Options Database Keys:
-+  -eps_nev <nev> - Sets nev
--  -eps_ncv <ncv> - Sets ncv
++  -eps_nev <nev> - Sets the number of eigenvalues
+-  -eps_ncv <ncv> - Sets the dimension of the subspace
 
    Notes:
    Use PETSC_DEFAULT to retain the previous value of any parameter.
 
    Use PETSC_DECIDE for ncv to assign a reasonably good value, which is 
-   dependent of the solution method.
+   dependent on the solution method.
 
    Level: intermediate
 
@@ -428,7 +427,7 @@ int EPSSetDimensions(EPS eps,int nev,int ncv)
 .  eps - the eigensolver context
   
    Output Parameter:
-.  nconv - number of converged eigenvalues 
+.  nconv - number of converged eigenpairs 
 
    Note:
    This function should be called after EPSSolve() has finished.
@@ -454,9 +453,9 @@ int EPSGetConverged(EPS eps,int *nconv)
 
    Not Collective
 
-   Input Parameter:
-.  eps - eigensolver context obtained from EPSCreate()
-.  i   - index of solution
+   Input Parameters:
++  eps - eigensolver context 
+-  i   - index of the solution
 
    Output Parameters:
 +  eigr - real part of eigenvalue
@@ -465,7 +464,7 @@ int EPSGetConverged(EPS eps,int *nconv)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
-   If the eigenvalue is real, then eigi and Vi are set to zero.  In the 
+   If the eigenvalue is real, then eigi and Vi are set to zero. In the 
    complex case (e.g. with BOPT=O_complex) the eigenvalue is stored 
    directly in eigr (eigi is set to zero) and the eigenvector Vr (Vi is 
    set to zero).
@@ -476,7 +475,7 @@ int EPSGetConverged(EPS eps,int *nconv)
 
    Level: beginner
 
-.seealso: EPSSolve(), EPSGetConverged()
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
 @*/
 int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
@@ -505,10 +504,10 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 #else
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = eps->eigi[k];
-  if (eps->eigi[k] > 0) { /* first conjugate eigenvalue */
+  if (eps->eigi[k] > 0) { /* first value of conjugate pair */
     if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
     if (Vi) { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
-  } else if (eps->eigi[k] < 0) { /* second conjugate eigenvalue */
+  } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
     if (Vr) { ierr = VecCopy(eps->V[k-1], Vr); CHKERRQ(ierr); }
     if (Vi) { 
       ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
@@ -532,7 +531,7 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
    Not Collective
 
    Input Parameter:
-.  eps - eigensolver context obtained from EPSCreate()
+.  eps - eigensolver context 
 
    Output Parameter:
 .  errest - the error estimates
@@ -835,7 +834,7 @@ int EPSSetInitialVector(EPS eps,Vec vec)
    Not collective, but vector is shared by all processors that share the EPS
 
    Input Parameter:
-.  eps - the eigensolve context
+.  eps - the eigensolver context
 
    Output Parameter:
 .  vec - the vector
@@ -886,15 +885,15 @@ int EPSGetInitialVector(EPS eps,Vec *vec)
 -   -eps_smallest_imaginary - Sets smallest imaginary parts in magnitude
 
     Notes:
-    No all eigensolvers implemented in EPS account for all the possible values
+    Not all eigensolvers implemented in EPS account for all the possible values
     stated above. Also, some values make sense only for certain types of 
     problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
-    and EPS_SMALLEST_IMAGINARY use the absolute imaginary part for eigenvalue
-    selection.     
+    and EPS_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
+    for eigenvalue selection.     
     
     Level: intermediate
 
-.seealso: EPSGetWhichEigenpairs()
+.seealso: EPSGetWhichEigenpairs(), EPSSortEigenvalues()
 @*/
 int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
@@ -918,15 +917,8 @@ int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
     Output Parameter:
 .   which - the portion of the spectrum to be sought
 
-    Possible values:
-    The parameter 'which' can have one of these values:
-    
-+     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
-.     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
-.     EPS_LARGEST_REAL - largest real parts
-.     EPS_SMALLEST_REAL - smallest real parts
-.     EPS_LARGEST_IMAGINARY - largest imaginary parts
--     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
+    Notes:
+    See EPSSetWhichEigenpairs() for possible values of which
 
     Level: intermediate
 
@@ -952,7 +944,7 @@ int EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 .   eps - the eigenvalue solver context
 
     Output Parameter:
-.   mat - the explict operator
+.   mat - the explicit operator
 
     Notes:
     This routine builds a matrix containing the explicit operator. For 
@@ -967,7 +959,8 @@ int EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
     and is recommended for use only with relatively small systems.
 
     Level: advanced
-   
+
+.seealso: STApply()   
 @*/
 int EPSComputeExplicitOperator(EPS eps,Mat *mat)
 {
@@ -1060,23 +1053,28 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeResidualNorm"
 /*@
-   EPSComputeResidualNorm - Computes the residual norm associated with each of
-   the converged approximate eigenpairs.
+   EPSComputeResidualNorm - Computes the residual norm associated with 
+   the i-th converged approximate eigenpair.
 
    Collective on EPS
 
    Input Parameter:
 .  eps - the eigensolver context
-.  i   - the solution
+.  i   - the solution index
 
    Output Parameter:
 .  norm - the residual norm, computed as ||Ax-kBx|| where k is the 
    eigenvalue and x is the eigenvector. 
-   If k=0 the residual norm is computed as ||Ax||.
+   If k=0 then the residual norm is computed as ||Ax||.
+
+   Notes:
+   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   Eigenpairs are indexed according to the ordering criterion established 
+   with EPSSetWhichEigenpairs().
 
    Level: beginner
 
-.seealso: EPSSolve()
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
 @*/
 int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 {
@@ -1142,14 +1140,14 @@ int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeRelativeError"
 /*@
-   EPSComputeRelativeError - Computes the actual relative error associated with each of
-   the converged approximate eigenpairs.
+   EPSComputeRelativeError - Computes the actual relative error associated 
+   with the i-th converged approximate eigenpair.
 
    Collective on EPS
 
    Input Parameter:
 .  eps - the eigensolver context
-.  i   - the solution number
+.  i   - the solution index
 
    Output Parameter:
 .  error - the relative error, computed as ||Ax-kBx||/||kx|| where k is the 
@@ -1158,7 +1156,7 @@ int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 
    Level: beginner
 
-.seealso: EPSSolve()
+.seealso: EPSSolve(), EPSComputeResidualNorm()
 @*/
 int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 {
@@ -1220,7 +1218,7 @@ int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 -  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
     
    Note:  
-   Normally, the user need not set the EPS type, since it can be set from
+   Normally, the user need not set the EPS type, since it can be determined from
    the information given in the EPSSetOperators call. This routine is reserved
    for special cases such as when a nonsymmetric solver wants to be 
    used in a symmetric problem. 
@@ -1386,10 +1384,14 @@ int EPSIsHermitian(EPS eps,PetscTruth* is)
 
    Collective on EPS
 
-   Input Parameter:
+   Input Parameters:
 +  eps - the eigenproblem solver context
 .  m - starting column
--  n - ending column
+.  n - ending column
+-  ldr - leading dimension of R
+
+   Output Parameter:
+.  R  - triangular matrix of QR factorization
 
    Level: developer
 
@@ -1531,22 +1533,27 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
    Collective on EPS
 
    Input Parameters:
-+  eps        - the eigensolver context obtained from EPSCreate
++  eps        - the eigensolver context 
 .  type       - a known type of orthogonalization
 .  refinement - type of refinement
 -  eta        - parameter for dynamic refinement
 
    Options Database Keys:
-.  -eps_orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt
++  -eps_orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt
                               orthogonalization (default)
                               or mgs for Modified Gram-Schmidt orthogonalization
+.  -eps_orthog_refinement <type> -  Where <type> is one of never, ifneeded
+                              (default) or always 
+-  -eps_orthog_eta <eta> -  For setting the value of eta (or PETSC_DEFAULT)
     
    Notes:  
-   The default orthogonalization technique
+   The value of eta is used only when refinement type is "ifneeded". 
+
+   The default orthogonalization technique 
    works well for most problems. MGS is numerically more robust than CGS,
    but CGS may give better scalability.
 
- Level: intermediate
+   Level: intermediate
 
 .seealso: EPSGetOrthogonalization()
 @*/

@@ -11,7 +11,7 @@
 #define __FUNCT__ "EPSSortEigenvalues"
 /*@
    EPSSortEigenvalues - Sorts a list of eigenvalues according to a certain
-   criterium.
+   criterion.
 
    Not Collective
 
@@ -19,7 +19,7 @@
 +  n     - dimension of the eigenproblem
 .  eig   - pointer to the array containing the eigenvalues
 .  eigi  - imaginary part of the eigenvalues (only when using real numbers)
-.  which - sorting criterium
+.  which - sorting criterion
 -  nev   - number of wanted eigenvalues
 
    Output Parameter:
@@ -28,7 +28,7 @@
    Notes:
    The result is a list of indices in the original eigenvalue array 
    corresponding to the first nev eigenvalues sorted in the specified
-   criterium
+   criterion
 
    Level: developer
 

@@ -193,7 +193,7 @@ which can also be specified at the command line. Note that not all these possibi
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
 \end{table}
 
-\footnotetext{If \slepc is compiled with complex numbers, the absolute value of imaginary part is used for eigenvalue selection and sorting.}
+\footnotetext{If \slepc is compiled for real numbers (\Verb!BOPT=O!), then the absolute value of the imaginary part,$|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
 
 	Another option for specifying the problem is when the user is only interested in the eigenvalues but does not care about eigenvectors. In this case the user can choose not to compute the eigenvectors (this can reduce the amount of computation in some cases), with the command
 	\findex{EPSSetDropEigenvectors}
