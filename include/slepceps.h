@@ -117,6 +117,7 @@ extern int EPSComputeExplicitOperator(EPS,Mat*);
 extern int EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,int,int*);
 extern int EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 extern int EPSDenseNHEPSorted(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,EPSWhich);
+extern int EPSDenseSchur(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,int);
 extern int EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 extern int EPSReverseProjection(EPS,Vec*,PetscScalar*,int,int,Vec*);
 extern int EPSSwapEigenpairs(EPS,int,int);

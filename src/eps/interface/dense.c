@@ -272,3 +272,66 @@ int EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,Petsc
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDenseSchur"
+int EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
+{
+  int         ierr,i,j,ilo,ifst,ilst,lwork,maxpos;
+  PetscScalar *work;
+  PetscReal   max,m;
+  
+  PetscFunctionBegin;
+
+  lwork = n;
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ilo = k+1;
+#if !defined(PETSC_USE_COMPLEX)
+  LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,wi,Z,&n,work,&lwork,&ierr,1,1);
+#else
+  LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,Z,&n,work,&lwork,&ierr,1,1);
+#endif
+  if (ierr) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %i",ierr);
+
+
+  for (i=k;i<n-1;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (wi[i] != 0) max = LAlapy2_(&wr[i],&wi[j]); else 
+#endif
+    max = PetscAbsScalar(wr[i]);
+    maxpos = 0;
+    for (j=i+1;j<n;j++) {
+#if !defined(PETSC_USE_COMPLEX)
+      if (wi[j] != 0) m = LAlapy2_(&wr[j],&wi[j]); else
+#endif
+      m = PetscAbsScalar(wr[j]);
+      if (m > max) {
+        max = m;
+        maxpos = j;
+      }
+#if !defined(PETSC_USE_COMPLEX)
+      if (wi[j] != 0) j++;
+#endif
+    }
+    if (maxpos) {
+      ifst = maxpos + 1;
+      ilst = i + 1;
+#if !defined(PETSC_USE_COMPLEX)
+      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,work,&ierr,1);
+#else
+      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,&ierr,1);
+#endif
+      if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xTREXC");
+      for (j=i;j<n;j++) {
+        wr[j] = H[j*(n+1)];
+#if !defined(PETSC_USE_COMPLEX)
+#endif
+      }
+    }
+#if !defined(PETSC_USE_COMPLEX)
+   if (wi[i] != 0) i++;
+#endif
+  }
+  
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
