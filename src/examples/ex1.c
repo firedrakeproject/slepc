@@ -14,6 +14,7 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error, tol,re, im;
   PetscScalar kr, ki;
+  Vec         xr, xi;
   int         n=30, nev, ierr, maxit, i, its, nconv, 
               col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
   PetscScalar value[3];
@@ -50,6 +51,9 @@ int main( int argc, char **argv )
 
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+
+  ierr = MatGetVecs(A,PETSC_NULL,&xr);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,PETSC_NULL,&xi);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and set various options
@@ -116,7 +120,7 @@ int main( int argc, char **argv )
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
-      ierr = EPSGetEigenpair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
       /*
          Compute the relative error associated to each eigenpair
       */
@@ -143,6 +147,8 @@ int main( int argc, char **argv )
   */
   ierr = EPSDestroy(eps);CHKERRQ(ierr);
   ierr = MatDestroy(A);CHKERRQ(ierr);
+  ierr = VecDestroy(xr);CHKERRQ(ierr);
+  ierr = VecDestroy(xi);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }
