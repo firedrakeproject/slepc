@@ -331,7 +331,7 @@ static int EPSSolve_SRRIT(EPS eps)
       for (i=eps->nconv;i<ncv;i++) {
         /* v = repgs(V(:,1:j-1),V(:,j))
            V(:,j) = v/norm(v) */
-        ierr = (*eps->orthog)(eps,i,eps->V,eps->V[i],PETSC_NULL,&norm);CHKERRQ(ierr);
+        ierr = (*eps->orthog)(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm);CHKERRQ(ierr);
         if (norm < 1e-8) { SETERRQ(1,"Norm is zero"); }
         norm = 1 / norm;
         ierr = VecScale(&norm,eps->V[i]);CHKERRQ(ierr);
