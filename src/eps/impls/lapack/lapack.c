@@ -53,11 +53,15 @@ static int EPSSetDefaults_LAPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  eps->ncv = eps->nev;
+  if (eps->nev<1 || eps->nev>N) SETERRQ(1,"Wrong value of nev");  
+  if (eps->ncv) {
+    if (eps->ncv<=eps->nev) SETERRQ(1,"Wrong value of ncv");    
 #ifndef PETSC_USE_COMPLEX
-  if (!eps->ishermitian && (eps->nev & 1)) eps->ncv++;
+  } else eps->ncv = PetscMin(eps->nev + 1, N);
+#else
+  } else eps->ncv = eps->nev;
 #endif
-  if (eps->ncv<1 || eps->ncv>N) SETERRQ(1,"Wrong value of nev");
+
   PetscFunctionReturn(0);
 }
 
@@ -104,9 +108,12 @@ static int  EPSSolve_LAPACK(EPS eps)
   }
 
   eps->nconv = eps->ncv;
-  eps->its   = 1;
-  
+  eps->its   = 1;  
   eps->reason = EPS_CONVERGED_TOL;
+  
+#ifndef PETSC_USE_COMPLEX
+  if (eps->eigi[eps->nconv - 1] >= 0.0) eps->nconv--;
+#endif
 
   PetscFunctionReturn(0);
 }
