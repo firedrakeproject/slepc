@@ -294,11 +294,6 @@ int STGetShift(ST st,PetscScalar* shift)
    Output Parameter:
 .  nshifts - the number of shifts
 
-   Note:
-   Currently, the returned value will always be either 1 (for STSHIFT 
-   and STSINV). Future versions of SLEPc may provide other ST which 
-   requires more than one shift.
-
    Level: advanced
 
 @*/
