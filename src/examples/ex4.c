@@ -1,5 +1,5 @@
 
-static char help[] = "Solves an eigensystem loaded from a file.\n\n"
+static char help[] = "Solves an standard eigensystem Ax=kx with the matrix loaded from a file.\n\n"
   "This example works for both real and complex numbers.\n\n"
   "The command line options are:\n\n"
   "  -file <filename>, where <filename> = matrix file in PETSc binary form.\n\n";
