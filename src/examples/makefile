@@ -103,25 +103,25 @@ runex4_1:
 	   ${RM} -f ex4_1.tmp
 
 runex5_1:
-	-@${MPIRUN} -np 1 ex5 -st_type shift > ex5_1.tmp 2>&1;	  \
+	-@${MPIRUN} -np 1 ex5 -st_shift 1 > ex5_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex5_1.out ex5_1.tmp) then true; \
 	   else echo "Possible problem with ex5_1, diffs above"; fi; \
 	   ${RM} -f ex5_1.tmp
 
 runex5_2:
-	-@${MPIRUN} -np 2 ex5 -st_type shift > ex5_2.tmp 2>&1;	  \
+	-@${MPIRUN} -np 2 ex5 -st_shift 1 > ex5_2.tmp 2>&1;	  \
 	   if (${DIFF} output/ex5_1.out ex5_2.tmp) then true; \
 	   else echo "Possible problem with ex5_2, diffs above"; fi; \
 	   ${RM} -f ex5_2.tmp
 
 runex6f_1:
-	-@${MPIRUN} -np 1 ex6f -st_type shift > ex6f_1.tmp 2>&1;	  \
+	-@${MPIRUN} -np 1 ex6f -st_shift 1 > ex6f_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp) then true; \
 	   else echo "Possible problem with ex6f_1, diffs above"; fi; \
 	   ${RM} -f ex6f_1.tmp
 
 runex7_1:
-	-@${MPIRUN} -np 1 ex7 -f1 ${SLEPC_DIR}/src/mat/examples/odep400a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/odep400b.petsc -st_type sinvert -st_shift -1e18 > ex7_1.tmp 2>&1;	  \
+	-@${MPIRUN} -np 1 ex7 -f1 ${SLEPC_DIR}/src/mat/examples/odep400a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/odep400b.petsc -st_type sinvert -st_shift -1e18 -st_sinvert_matmode shell > ex7_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp
