@@ -7,7 +7,8 @@
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
-  int  (*solve)(EPS);                   /* actual solver */
+  int  (*solve)(EPS);            /* one-sided solver */
+  int  (*solvets)(EPS);          /* two-sided solver */
   int  (*setup)(EPS);
   int  (*setfromoptions)(EPS);
   int  (*publishoptions)(EPS);
@@ -35,24 +36,29 @@ struct _p_EPS {
              nds;               /* number of basis vectors of deflation space */
   PetscReal  tol;               /* tolerance */
   EPSWhich   which;             /* which part of the spectrum to be sought */
-  PetscTruth evecsavailable;   /* computed eigenvectors */
+  PetscTruth evecsavailable;    /* computed eigenvectors */
   EPSProblemType problem_type;  /* which kind of problem to be solved */
+  EPSClass   solverclass;       /* whether the selected solver is one- or two-sided */
 
   /*------------------------- Working data --------------------------*/
-  Vec         vec_initial;      /* initial vector for iterative methods */
-  Vec         *V,               /* set of basis vectors */
-              *AV,              /* computed eigen vectors */
+  Vec         vec_initial,      /* initial vector */
+              vec_initial_left, /* left initial vector for two-sided solvers */
+              *V,               /* set of basis vectors */
+              *AV,              /* computed eigenvectors */
+              *W,               /* set of left basis vectors */
+              *AW,              /* computed left eigenvectors */
               *DS,              /* deflation space */
               *DSV;             /* deflation space and basis vectors*/
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
-              *T;
-  PetscReal  *errest;           /* error estimates */
-  ST         OP;                /* spectral transformation object */
-  void       *data;             /* holder for misc stuff associated 
+              *T, *Tl;          /* projected matrices */
+  PetscReal   *errest,          /* error estimates */
+              *errest_left;     /* left error estimates */
+  ST          OP;               /* spectral transformation object */
+  void        *data;            /* placeholder for misc stuff associated 
                                    with a particular solver */
-  int        nconv,             /* number of converged eigenvalues */
-             its;               /* number of iterations so far computed */
-  int        *perm;             /* permutation for eigenvalue ordering */
+  int         nconv,            /* number of converged eigenvalues */
+              its,              /* number of iterations so far computed */
+              *perm;            /* permutation for eigenvalue ordering */
 
   /* ---------------- Default work-area and status vars -------------------- */
   int        nwork;
@@ -61,7 +67,8 @@ struct _p_EPS {
   int        setupcalled;
   PetscTruth isgeneralized,
              ishermitian,
-             vec_initial_set;
+             vec_initial_set,
+             vec_initial_left_set;
   EPSConvergedReason reason;     
 
   int        (*monitor[MAXEPSMONITORS])(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*); 

@@ -23,6 +23,25 @@ PetscErrorCode STApply_Sinvert(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STApplyTranspose_Sinvert"
+PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->B) {
+    /* generalized eigenproblem: y = B^T (A - sB)^-T x */
+    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->B,st->w,y);CHKERRQ(ierr);
+  }
+  else {
+    /* standard eigenproblem: y = (A - sI)^-T x */
+    ierr = STAssociatedKSPSolveTranspose(st,x,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STApplyNoB_Sinvert"
 PetscErrorCode STApplyNoB_Sinvert(ST st,Vec x,Vec y)
 {
@@ -195,6 +214,7 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->apply          = STApply_Sinvert;
   st->ops->applyB         = STApplyB_Sinvert;
   st->ops->applynoB       = STApplyNoB_Sinvert;
+  st->ops->applytrans     = STApplyTranspose_Sinvert;
   st->ops->postsolve      = STPost_Sinvert;
   st->ops->backtr         = STBackTransform_Sinvert;
   st->ops->setup          = STSetUp_Sinvert;

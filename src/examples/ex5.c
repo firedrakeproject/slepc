@@ -1,6 +1,6 @@
 
 static char help[] = "Eigenvalue problem associated with a Markov model of a random walk on a triangular grid. "
-  "It is a standard symmetric eigenproblem and the rightmost eigenvalue is known to be 1.\n\n"
+  "It is a standard nonsymmetric eigenproblem with real eigenvalues and the rightmost eigenvalue is known to be 1.\n\n"
   "This example illustrates how the user can set the initial vector.\n\n"
   "The command line options are:\n\n"
   "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
@@ -94,8 +94,7 @@ int main( int argc, char **argv )
      Get number of converged approximate eigenpairs
   */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);
-         CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
     /*
@@ -179,38 +178,32 @@ int MatMarkovModel( int m, Mat A )
         pd = cst*(PetscReal)(i+j-1);
         /* north */
         if( i==1 ) { 
-          ierr = MatSetValue( A, ix-1, ix, 2*pd, INSERT_VALUES );
-          CHKERRQ(ierr);
+          ierr = MatSetValue( A, ix-1, ix, 2*pd, INSERT_VALUES );CHKERRQ(ierr);
         }
 	else {
-          ierr = MatSetValue( A, ix-1, ix, pd, INSERT_VALUES );
-          CHKERRQ(ierr);
+          ierr = MatSetValue( A, ix-1, ix, pd, INSERT_VALUES );CHKERRQ(ierr);
         }
         /* east */
         if( j==1 ) { 
-          ierr = MatSetValue( A, ix-1, ix+jmax-1, 2*pd, INSERT_VALUES ); 
-          CHKERRQ(ierr);
+          ierr = MatSetValue( A, ix-1, ix+jmax-1, 2*pd, INSERT_VALUES );CHKERRQ(ierr);
         }
 	else {
-          ierr = MatSetValue( A, ix-1, ix+jmax-1, pd, INSERT_VALUES );
-          CHKERRQ(ierr);
+          ierr = MatSetValue( A, ix-1, ix+jmax-1, pd, INSERT_VALUES );CHKERRQ(ierr);
         }
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
       if( j>1 ) {
-        ierr = MatSetValue( A, ix-1, ix-2, pu, INSERT_VALUES );
-        CHKERRQ(ierr);
+        ierr = MatSetValue( A, ix-1, ix-2, pu, INSERT_VALUES );CHKERRQ(ierr);
       }
       /* west */
       if( i>1 ) {
-        ierr = MatSetValue( A, ix-1, ix-jmax-2, pu, INSERT_VALUES );
-        CHKERRQ(ierr);
+        ierr = MatSetValue( A, ix-1, ix-jmax-2, pu, INSERT_VALUES );CHKERRQ(ierr);
       }
     }
   }
-  ierr = MatAssemblyBegin( A, MAT_FINAL_ASSEMBLY ); CHKERRQ(ierr);
-  ierr = MatAssemblyEnd( A, MAT_FINAL_ASSEMBLY ); CHKERRQ(ierr);
+  ierr = MatAssemblyBegin( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
+  ierr = MatAssemblyEnd( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
   return 0;
 }
 

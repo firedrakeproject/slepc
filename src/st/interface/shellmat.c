@@ -32,6 +32,31 @@ PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STMatShellMultTranspose"
+PetscErrorCode STMatShellMultTranspose(Mat A,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             ctx;
+  PetscScalar    alpha;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+
+  ierr = MatMultTranspose(ctx->A,x,y);CHKERRQ(ierr);
+  if (ctx->sigma != 0.0) { 
+    alpha = -ctx->sigma;
+    if (ctx->B) {  /* y = (A - sB) x */
+      ierr = MatMultTranspose(ctx->B,x,ctx->w);CHKERRQ(ierr);
+      ierr = VecAXPY(&alpha,ctx->w,y);CHKERRQ(ierr); 
+    }
+    else {    /* y = (A - sI) x */
+    ierr = VecAXPY(&alpha,x,y);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STMatShellGetDiagonal"
 PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 {
@@ -72,6 +97,7 @@ PetscErrorCode STMatShellCreate(ST st,Mat *mat)
   ierr = MatGetLocalSize(st->A,&m,&n);CHKERRQ(ierr);  
   ierr = MatCreateShell(st->comm,m,n,M,N,(void*)st,mat);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))STMatShellMult);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))STMatShellMultTranspose);CHKERRQ(ierr);
 
   ierr = MatHasOperation(st->A,MATOP_GET_DIAGONAL,&hasA);CHKERRQ(ierr);
   if (st->B) { ierr = MatHasOperation(st->B,MATOP_GET_DIAGONAL,&hasB);CHKERRQ(ierr); }

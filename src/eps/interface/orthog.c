@@ -75,7 +75,7 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSClassicalGramSchmidtOrthogonalization"
-static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
+static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
 {
   PetscErrorCode ierr;
   int            j;
@@ -85,6 +85,8 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
 
   PetscFunctionBegin;
 
+  if (!W) W=V;
+
   /* Don't allocate small arrays */
   if (n<=100) lhh = shh;
   else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
@@ -92,9 +94,9 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   
   /*** First orthogonalization ***/
 
-  /* h = V^* v */
+  /* h = W^* v */
   /* q = v - V h */
-  ierr = STMInnerProduct(eps->OP,n,v,V,H);CHKERRQ(ierr);
+  ierr = STMInnerProduct(eps->OP,n,v,W,H);CHKERRQ(ierr);
   ierr = VecSet(&zero,w);CHKERRQ(ierr);
   ierr = VecMAXPY(n,H,w,V);CHKERRQ(ierr);
   ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
@@ -122,9 +124,9 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
     PetscLogInfo(eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0);
     countreorthog++;
 
-    /* s = V^* q */
+    /* s = W^* q */
     /* q = q - V s  ;  h = h + s */
-    ierr = STMInnerProduct(eps->OP,n,v,V,lhh);CHKERRQ(ierr);
+    ierr = STMInnerProduct(eps->OP,n,v,W,lhh);CHKERRQ(ierr);
     for (j=0;j<n;j++) {
       H[j] += lhh[j];
     }
@@ -148,7 +150,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSModifiedGramSchmidtOrthogonalization"
-PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
+PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
 {
   PetscErrorCode ierr;
   int            j;
@@ -156,11 +158,13 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   
   PetscFunctionBegin;
   
+  if (!W) W=V;
+
   /*** First orthogonalization ***/
 
   for (j=0; j<n; j++) {
     /* alpha = ( v, v_j ) */
-    ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
+    ierr = STInnerProduct(eps->OP,v,W[j],&alpha);CHKERRQ(ierr);
     /* store coefficients if requested */
     H[j] = alpha;
     /* v <- v - alpha v_j */
@@ -192,7 +196,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
     countreorthog++;
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
-      ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
+      ierr = STInnerProduct(eps->OP,v,W[j],&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
       H[j] += alpha;
       /* v <- v - alpha v_j */
@@ -262,13 +266,16 @@ PetscErrorCode EPSPurge(EPS eps,Vec v)
    of orthogonalization
 
    Notes:
+   This function applies an orthogonal projector to project vector v onto the
+   orthogonal complement of the span of the columns of V.
+
    On exit, v0 = [V v]*H, where v0 is the original vector v.
 
    This routine does not normalize the resulting vector.
 
    Level: developer
 
-.seealso: EPSSetOrthogonalization()
+.seealso: EPSSetOrthogonalization(), EPSBiOrthogonalize()
 @*/
 PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
 {
@@ -305,10 +312,10 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
     countorthog++;
     switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
-        ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,v,h,hnrm,nrm);CHKERRQ(ierr);
+        ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,PETSC_NULL,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       case EPS_MGS_ORTH:
-        ierr = EPSModifiedGramSchmidtOrthogonalization(eps,n,V,v,h,hnrm,nrm);CHKERRQ(ierr);
+        ierr = EPSModifiedGramSchmidtOrthogonalization(eps,n,V,PETSC_NULL,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       default:
         SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
@@ -318,6 +325,88 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
     if (lindep) {
       if (*nrm < eps->orthog_eta * *hnrm) *lindep = PETSC_TRUE;
       else *lindep = PETSC_FALSE;
+    }
+    
+    if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
+    
+    ierr = PetscLogEventEnd(EPS_Orthogonalize,eps,0,0,0);CHKERRQ(ierr);
+  } 
+  PetscFunctionReturn(0);
+}
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBiOrthogonalize"
+/*@
+   EPSBiOrthogonalize - Bi-orthogonalize a vector with respect to a set of vectors.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+.  n - number of columns of V
+.  V - set of vectors
+-  W - set of vectors
+
+   Input/Output Parameter:
+.  v - vector to be orthogonalized
+
+   Output Parameter:
++  H  - coefficients computed during orthogonalization
+-  norm - norm of the vector ofter being orthogonalized
+
+   Notes:
+   This function applies an oblique projector to project vector v onto the
+   span of the columns of V along the orthogonal complement of the column
+   space of W. 
+
+   On exit, v0 = [V v]*H, where v0 is the original vector v.
+
+   This routine does not normalize the resulting vector.
+
+   Level: developer
+
+.seealso: EPSSetOrthogonalization(), EPSOrthogonalize()
+@*/
+PetscErrorCode EPSBiOrthogonalize(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    lh[100],*h;
+  PetscTruth     allocated = PETSC_FALSE;
+  PetscReal      lhnrm,*hnrm,lnrm,*nrm;
+  PetscFunctionBegin;
+  if (n==0) {
+    if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
+  } else {
+    ierr = PetscLogEventBegin(EPS_Orthogonalize,eps,0,0,0);CHKERRQ(ierr);
+    
+    /* allocate H if needed */
+    if (!H) {
+      if (n<=100) h = lh;
+      else {
+        ierr = PetscMalloc(n*sizeof(PetscScalar),&h);CHKERRQ(ierr);
+        allocated = PETSC_TRUE;
+      }
+    } else h = H;
+    
+    /* retrieve hnrm and nrm for linear dependence check or conditional refinement */
+    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
+      hnrm = &lhnrm;
+      if (norm) nrm = norm;
+      else nrm = &lnrm;
+    } else {
+      hnrm = PETSC_NULL;
+      nrm = norm;
+    }
+    
+    countorthog++;
+    switch (eps->orthog_type) {
+      case EPS_CGS_ORTH:
+        ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
+        break;
+      case EPS_MGS_ORTH:
+        ierr = EPSModifiedGramSchmidtOrthogonalization(eps,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
+        break;
+      default:
+        SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
     
     if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }

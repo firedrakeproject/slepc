@@ -49,11 +49,27 @@ PetscErrorCode EPSSolve(EPS eps)
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   ierr = STResetNumberLinearIterations(eps->OP);
   eps->evecsavailable = PETSC_FALSE;
+
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
   ierr = STPreSolve(eps->OP,eps);CHKERRQ(ierr);
-  ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
+
+  switch (eps->solverclass) {
+    case EPS_ONE_SIDE:
+      ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr); break;
+    case EPS_TWO_SIDE:
+      if (eps->ops->solvets) {
+        ierr = (*eps->ops->solvets)(eps);CHKERRQ(ierr); break;
+      } else {
+        PetscLogInfo(eps,"STSolve: Warning, two-sided version unavailable for this solver, using one-sided version instead\n");
+        ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr); break;
+      }
+    default:
+      SETERRQ(1,"Wrong value of eps->solverclass");
+  }
+
   ierr = STPostSolve(eps->OP,eps);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
+
   if (!eps->reason) {
     SETERRQ(1,"Internal error, solver returned without setting converged reason");
   }
@@ -276,7 +292,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 
    Level: intermediate
 
-.seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve()
+.seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve(), EPSGetLeftInvariantSubspace()
 @*/
 PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 {
@@ -285,7 +301,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidHeaderSpecific(v,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(*v,VEC_COOKIE,2);
   if (!eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -296,11 +312,62 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSGetLeftInvariantSubspace" 
+/*@
+   EPSGetLeftInvariantSubspace - Gets an orthonormal basis of the computed left
+   invariant subspace (only available in two-sided eigensolvers).
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+  
+   Output Parameter:
+.  v - an array of vectors
+
+   Notes:
+   This function should be called after EPSSolve() has finished.
+
+   The user should provide in v an array of nconv vectors, where nconv is
+   the value returned by EPSGetConverged().
+
+   The first k vectors returned in v span a left invariant subspace associated 
+   with the first k computed eigenvalues (note that this is not true if the 
+   k-th eigenvalue is complex and matrix A is real; in this case the first 
+   k+1 vectors should be used). A left invariant subspace Y of A satisfies y'A 
+   in Y for all y in Y (a similar definition applies for generalized 
+   eigenproblems). 
+
+   Level: intermediate
+
+.seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve(), EPSGetInvariantSubspace
+@*/
+PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
+{
+  PetscErrorCode ierr;
+  int            i;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(*v,VEC_COOKIE,2);
+  if (!eps->W) { 
+    if (eps->solverclass!=EPS_TWO_SIDE) {
+      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
+    } else {
+      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
+    } 
+  }
+  for (i=0;i<eps->nconv;i++) {
+    ierr = VecCopy(eps->W[i],v[i]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSGetEigenpair" 
 /*@
-   EPSGetEigenpair - Gets the i-th solution of the eigenproblem 
-   as computed by EPSSolve(). The solution consists in both the eigenvalue
-   and the eigenvector.
+   EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
+   EPSSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
    Not Collective
 
@@ -326,10 +393,112 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 
    Level: beginner
 
-.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
-          EPSGetInvariantSubspace()
+.seealso: EPSGetValue(), EPSGetRightVector(), EPSGetLeftVector(), EPSSolve(), 
+          EPSGetConverged(), EPSSetWhichEigenpairs(), EPSGetInvariantSubspace()
 @*/
 PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!eps->eigr || !eps->eigi || !eps->V) { 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+  }
+  if (i<0 || i>=eps->nconv) { 
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+  }
+  ierr = EPSGetValue(eps,i,eigr,eigi);CHKERRQ(ierr);
+  ierr = EPSGetRightVector(eps,i,Vr,Vi);CHKERRQ(ierr);
+  
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetValue" 
+/*@
+   EPSGetValue - Gets the i-th eigenvalue as computed by EPSSolve(). 
+
+   Not Collective
+
+   Input Parameters:
++  eps - eigensolver context 
+-  i   - index of the solution
+
+   Output Parameters:
++  eigr - real part of eigenvalue
+-  eigi - imaginary part of eigenvalue
+
+   Notes:
+   If the eigenvalue is real, then eigi is set to zero. In the 
+   complex case (e.g. with BOPT=O_complex) the eigenvalue is stored 
+   directly in eigr (eigi is set to zero).
+
+   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   Eigenpairs are indexed according to the ordering criterion established 
+   with EPSSetWhichEigenpairs().
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
+          EPSGetEigenpair()
+@*/
+PetscErrorCode EPSGetValue(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi)
+{
+  int            k;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!eps->eigr || !eps->eigi) { 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+  }
+  if (i<0 || i>=eps->nconv) { 
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+  }
+
+  if (!eps->perm) k = i;
+  else k = eps->perm[i];
+#ifdef PETSC_USE_COMPLEX
+  if (eigr) *eigr = eps->eigr[k];
+  if (eigi) *eigi = 0;
+#else
+  if (eigr) *eigr = eps->eigr[k];
+  if (eigi) *eigi = eps->eigi[k];
+#endif
+  
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetRightVector" 
+/*@
+   EPSGetRightVector - Gets the i-th right eigenvector as computed by EPSSolve(). 
+
+   Not Collective
+
+   Input Parameters:
++  eps - eigensolver context 
+-  i   - index of the solution
+
+   Output Parameters:
++  Vr   - real part of eigenvector
+-  Vi   - imaginary part of eigenvector
+
+   Notes:
+   If the corresponding eigenvalue is real, then Vi is set to zero. In the 
+   complex case (e.g. with BOPT=O_complex) the eigenvector is stored 
+   directly in Vr (Vi is set to zero).
+
+   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   Eigenpairs are indexed according to the ordering criterion established 
+   with EPSSetWhichEigenpairs().
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
+          EPSGetEigenpair(), EPSGetLeftVector()
+@*/
+PetscErrorCode EPSGetRightVector(EPS eps, int i, Vec Vr, Vec Vi)
 {
   PetscErrorCode ierr;
   int            k;
@@ -340,7 +509,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!eps->eigr || !eps->eigi || !eps->V) { 
+  if (!eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
@@ -353,13 +522,9 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #ifdef PETSC_USE_COMPLEX
-  if (eigr) *eigr = eps->eigr[k];
-  if (eigi) *eigi = 0;
   if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
 #else
-  if (eigr) *eigr = eps->eigr[k];
-  if (eigi) *eigi = eps->eigi[k];
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
     if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
     if (Vi) { ierr = VecCopy(eps->AV[k+1], Vi); CHKERRQ(ierr); }
@@ -372,6 +537,85 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
   } else { /* real eigenvalue */
     if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
+  }
+#endif
+  
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetLeftVector" 
+/*@
+   EPSGetLeftVector - Gets the i-th left eigenvector as computed by EPSSolve() 
+   (only available in two-sided eigensolvers). 
+
+   Not Collective
+
+   Input Parameters:
++  eps - eigensolver context 
+-  i   - index of the solution
+
+   Output Parameters:
++  Wr   - real part of eigenvector
+-  Wi   - imaginary part of eigenvector
+
+   Notes:
+   If the corresponding eigenvalue is real, then Wi is set to zero. In the 
+   complex case (e.g. with BOPT=O_complex) the eigenvector is stored 
+   directly in Wr (Wi is set to zero).
+
+   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   Eigenpairs are indexed according to the ordering criterion established 
+   with EPSSetWhichEigenpairs().
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
+          EPSGetEigenpair(), EPSGetLeftVector()
+@*/
+PetscErrorCode EPSGetLeftVector(EPS eps, int i, Vec Wr, Vec Wi)
+{
+  PetscErrorCode ierr;
+  int            k;
+  PetscScalar    zero = 0.0;
+#ifndef PETSC_USE_COMPLEX
+  PetscScalar    minus = -1.0;
+#endif
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!eps->W) { 
+    if (eps->solverclass!=EPS_TWO_SIDE) {
+      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
+    } else {
+      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
+    } 
+  }
+  if (i<0 || i>=eps->nconv) { 
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+  }
+  if (!eps->evecsavailable && (Wr || Wi) ) { 
+    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
+  }  
+
+  if (!eps->perm) k = i;
+  else k = eps->perm[i];
+#ifdef PETSC_USE_COMPLEX
+  if (Wr) { ierr = VecCopy(eps->AW[k], Wr); CHKERRQ(ierr); }
+  if (Wi) { ierr = VecSet(&zero, Wi); CHKERRQ(ierr); }
+#else
+  if (eps->eigi[k] > 0) { /* first value of conjugate pair */
+    if (Wr) { ierr = VecCopy(eps->AW[k], Wr); CHKERRQ(ierr); }
+    if (Wi) { ierr = VecCopy(eps->AW[k+1], Wi); CHKERRQ(ierr); }
+  } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
+    if (Wr) { ierr = VecCopy(eps->AW[k-1], Wr); CHKERRQ(ierr); }
+    if (Wi) { 
+      ierr = VecCopy(eps->AW[k], Wi); CHKERRQ(ierr); 
+      ierr = VecScale(&minus, Wi); CHKERRQ(ierr); 
+    }
+  } else { /* real eigenvalue */
+    if (Wr) { ierr = VecCopy(eps->AW[k], Wr); CHKERRQ(ierr); }
+    if (Wi) { ierr = VecSet(&zero, Wi); CHKERRQ(ierr); }
   }
 #endif
   
@@ -417,6 +661,47 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetErrorEstimateLeft" 
+/*@
+   EPSGetErrorEstimateLeft - Returns the left error estimate associated to the i-th 
+   computed eigenpair (only available in two-sided eigensolvers).
+
+   Not Collective
+
+   Input Parameter:
++  eps - eigensolver context 
+-  i   - index of eigenpair
+
+   Output Parameter:
+.  errest - the left error estimate
+
+   Notes:
+   This is the error estimate used internally by the eigensolver. The actual
+   error bound can be computed with EPSComputeRelativeErrorLeft(). See also the user's
+   manual for details.
+
+   Level: advanced
+
+.seealso: EPSComputeRelativeErrorLeft()
+@*/
+PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, int i, PetscReal *errest)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!eps->eigr || !eps->eigi) { 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+  }
+  if (eps->solverclass!=EPS_TWO_SIDE) {
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
+  }
+  if (i<0 || i>=eps->nconv) { 
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+  }
+  if (eps->perm) i = eps->perm[i];  
+  if (errest) *errest = eps->errest_left[i];
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeResidualNorm"
@@ -507,6 +792,95 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSComputeResidualNormLeft"
+/*@
+   EPSComputeResidualNorm - Computes the norm of the residual vector associated with 
+   the i-th computed left eigenvector (only available in two-sided eigensolvers).
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - the eigensolver context
+.  i   - the solution index
+
+   Output Parameter:
+.  norm - the residual norm, computed as ||y'A-ky'B||_2 where k is the 
+   eigenvalue and y is the left eigenvector. 
+   If k=0 then the residual norm is computed as ||y'A||_2.
+
+   Notes:
+   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   Eigenpairs are indexed according to the ordering criterion established 
+   with EPSSetWhichEigenpairs().
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
+@*/
+PetscErrorCode EPSComputeResidualNormLeft(EPS eps, int i, PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  Vec            u, v, w, xr, xi;
+  Mat            A, B;
+  PetscScalar    alpha, kr, ki;
+#ifndef PETSC_USE_COMPLEX
+  PetscReal      ni, nr;
+#endif
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial_left,&u); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial_left,&v); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial_left,&w); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial_left,&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial_left,&xi); CHKERRQ(ierr);
+  ierr = EPSGetValue(eps,i,&kr,&ki); CHKERRQ(ierr);
+  ierr = EPSGetLeftVector(eps,i,xr,xi); CHKERRQ(ierr);
+
+#ifndef PETSC_USE_COMPLEX
+  if (ki == 0 || 
+    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+#endif
+    ierr = MatMultTranspose( A, xr, u ); CHKERRQ(ierr); /* u=A'*x */
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+      if (eps->isgeneralized) { ierr = MatMultTranspose( B, xr, w ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( xr, w ); CHKERRQ(ierr); } /* w=B'*x */
+      alpha = -kr; 
+      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr); /* u=A'*x-k*B'*x */
+    }
+    ierr = VecNorm( u, NORM_2, norm); CHKERRQ(ierr);  
+#ifndef PETSC_USE_COMPLEX
+  } else {
+    ierr = MatMultTranspose( A, xr, u ); CHKERRQ(ierr); /* u=A'*xr */
+    if (eps->isgeneralized) { ierr = MatMultTranspose( B, xr, v ); CHKERRQ(ierr); }
+    else { ierr = VecCopy( xr, v ); CHKERRQ(ierr); } /* v=B'*xr */
+    alpha = -kr;
+    ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr); /* u=A'*xr-kr*B'*xr */
+    if (eps->isgeneralized) { ierr = MatMultTranspose( B, xi, w ); CHKERRQ(ierr); }
+    else { ierr = VecCopy( xi, w ); CHKERRQ(ierr); } /* w=B'*xi */
+    alpha = ki;
+    ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr); /* u=A'*xr-kr*B'*xr+ki*B'*xi */
+    ierr = VecNorm( u, NORM_2, &nr ); CHKERRQ(ierr);
+    ierr = MatMultTranspose( A, xi, u ); CHKERRQ(ierr); /* u=A'*xi */
+    alpha = -kr;
+    ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr); /* u=A'*xi-kr*B'*xi */
+    alpha = -ki;
+    ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr); /* u=A'*xi-kr*B'*xi-ki*B'*xr */
+    ierr = VecNorm( u, NORM_2, &ni ); CHKERRQ(ierr);
+    *norm = SlepcAbsEigenvalue( nr, ni );
+  }
+#endif
+
+  ierr = VecDestroy(w); CHKERRQ(ierr);
+  ierr = VecDestroy(v); CHKERRQ(ierr);
+  ierr = VecDestroy(u); CHKERRQ(ierr);
+  ierr = VecDestroy(xr); CHKERRQ(ierr);
+  ierr = VecDestroy(xi); CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSComputeRelativeError"
 /*@
    EPSComputeRelativeError - Computes the relative error bound associated 
@@ -545,6 +919,76 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
   ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
+
+#ifndef PETSC_USE_COMPLEX
+  if (ki == 0 || 
+    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+#endif
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+      ierr = VecScale(&kr, xr); CHKERRQ(ierr);
+    }
+    ierr = VecNorm(xr, NORM_2, &er); CHKERRQ(ierr);
+    *error = norm / er; 
+#ifndef PETSC_USE_COMPLEX
+  } else {
+    ierr = VecDuplicate(xi, &u); CHKERRQ(ierr);  
+    ierr = VecCopy(xi, u); CHKERRQ(ierr);  
+    alpha = -ki;
+    ierr = VecAXPBY(&kr, &alpha, xr, u); CHKERRQ(ierr);   
+    ierr = VecNorm(u, NORM_2, &er); CHKERRQ(ierr);  
+    ierr = VecAXPBY(&kr, &ki, xr, xi);  CHKERRQ(ierr);      
+    ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
+    ierr = VecDestroy(u); CHKERRQ(ierr);  
+    *error = norm / SlepcAbsEigenvalue(er, ei);
+  }
+#endif    
+  
+  ierr = VecDestroy(xr); CHKERRQ(ierr);
+  ierr = VecDestroy(xi); CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeRelativeErrorLeft"
+/*@
+   EPSComputeRelativeErrorLeft - Computes the relative error bound associated 
+   with the i-th computed eigenvalue and left eigenvector (only available in
+   two-sided eigensolvers).
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - the eigensolver context
+.  i   - the solution index
+
+   Output Parameter:
+.  error - the relative error bound, computed as ||y'A-ky'B||_2/||ky||_2 where 
+   k is the eigenvalue and y is the left eigenvector. 
+   If k=0 the relative error is computed as ||y'A||_2/||y||_2.
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSComputeResidualNormLeft(), EPSGetErrorEstimateLeft()
+@*/
+PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
+{
+  PetscErrorCode ierr;
+  Vec            xr, xi;  
+  PetscScalar    kr, ki;  
+  PetscReal      norm, er;
+#ifndef PETSC_USE_COMPLEX
+  Vec            u;
+  PetscScalar    alpha;
+  PetscReal      ei;
+#endif
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
+  ierr = EPSComputeResidualNormLeft(eps,i,&norm); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial_left,&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial_left,&xi); CHKERRQ(ierr);
+  ierr = EPSGetValue(eps,i,&kr,&ki); CHKERRQ(ierr);
+  ierr = EPSGetLeftVector(eps,i,xr,xi); CHKERRQ(ierr);
 
 #ifndef PETSC_USE_COMPLEX
   if (ki == 0 || 
@@ -720,11 +1164,8 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
 +  eps - the eigensolver context
 -  i   - index of the Arnoldi/Lanczos step
 
-   Input/Output Parameter:
+   Output Parameter:
 .  vec - the start vector
-
-   Input/Output Parameter:
-.  norm - the start vector
 
    Notes:
    The start vector is computed from another vector: for the first step (i=0),
@@ -769,6 +1210,74 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec)
   if (breakdown) {
     if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); }
     else { SETERRQ(1,"Unable to generate more start vectors"); }
+  }
+  t = 1 / norm;
+  ierr = VecScale(&t,vec);CHKERRQ(ierr);
+
+  if (i!=0) {
+    ierr = VecDestroy(w);CHKERRQ(ierr);
+  }
+
+  PetscFunctionReturn(0);
+}
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetLeftStartVector"
+/*@
+   EPSGetLeftStartVector - Gets a vector to be used as the starting vector
+   in the left recurrence of a two-sided eigensolver.
+
+   Collective on EPS and Vec
+
+   Input Parameters:
++  eps - the eigensolver context
+-  i   - index of the Arnoldi/Lanczos step
+
+   Output Parameter:
+.  vec - the start vector
+
+   Notes:
+   The start vector is computed from another vector: for the first step (i=0),
+   the left initial vector is used (see EPSGetLeftInitialVector()); otherwise 
+   a random vector is created. Then this vector is forced to be in the range 
+   of OP' and orthonormalized with respect to all W-vectors up to i-1.
+
+   The caller must pass a vector already allocated with dimensions conforming
+   to the left initial vector. This vector is overwritten.
+
+   Level: developer
+
+.seealso: EPSGetLeftInitialVector()
+
+@*/
+PetscErrorCode EPSGetLeftStartVector(EPS eps,int i,Vec vec)
+{
+  PetscErrorCode ierr;
+  PetscTruth     breakdown;
+  PetscScalar    t;
+  PetscReal      norm;
+  Vec            w;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(vec,VEC_COOKIE,3);
+
+  /* For the first step, use the initial vector, otherwise a random one */
+  if (i==0) {
+    w = eps->vec_initial_left;
+  }
+  else {
+    ierr = VecDuplicate(eps->vec_initial_left,&w);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(w);CHKERRQ(ierr);
+  }
+
+  /* Force the vector to be in the range of OP */
+  ierr = STApplyTranspose(eps->OP,w,vec);CHKERRQ(ierr);
+
+  /* Orthonormalize the vector with respect to previous vectors */
+  ierr = EPSOrthogonalize(eps,i+eps->nds,eps->W,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+  if (breakdown) {
+    if (i==0) { SETERRQ(1,"Left initial vector is zero"); }
+    else { SETERRQ(1,"Unable to generate more left start vectors"); }
   }
   t = 1 / norm;
   ierr = VecScale(&t,vec);CHKERRQ(ierr);

@@ -21,10 +21,12 @@
    Output Parameters:
 +  w  - pointer to the array to store the computed eigenvalues
 .  wi - imaginary part of the eigenvalues (only when using real numbers)
--  V  - pointer to the array to store the eigenvectors
+.  V  - pointer to the array to store right eigenvectors
+-  W  - pointer to the array to store left eigenvectors
 
    Notes:
-   If V is PETSC_NULL then the eigenvectors are not computed.
+   If either V or W are PETSC_NULL then the corresponding eigenvectors are 
+   not computed.
 
    Matrix A is overwritten.
    
@@ -34,13 +36,13 @@
 
 .seealso: EPSDenseGNHEP(), EPSDenseHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V)
+PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
 {
   PetscErrorCode ierr;
   PetscReal      abnrm,*scale;
   PetscScalar    *work;
   int            ilo,ihi,lwork = 4*n,info;
-  char           *jobvr;
+  char           *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif 
@@ -52,15 +54,17 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 
   if (V) jobvr = "V";
   else jobvr = "N";
+  if (W) jobvl = "V";
+  else jobvl = "N";
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr  = PetscMalloc(n*sizeof(PetscReal),&scale);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(2*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAgeevx_("B","N",jobvr,"N",&n,A,&n,w,PETSC_NULL,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,&info,1,1,1,1);
+  LAgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,&info,1,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGEEVX %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAgeevx_("B","N",jobvr,"N",&n,A,&n,w,wi,PETSC_NULL,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,&info,1,1,1,1);
+  LAgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,wi,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,&info,1,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGEEVX %d",info);
 #endif 
   ierr = PetscFree(work);CHKERRQ(ierr);
@@ -83,10 +87,12 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
    Output Parameters:
 +  w  - pointer to the array to store the computed eigenvalues
 .  wi - imaginary part of the eigenvalues (only when using real numbers)
--  V  - pointer to the array to store the eigenvectors
+.  V  - pointer to the array to store right eigenvectors
+-  W  - pointer to the array to store left eigenvectors
 
    Notes:
-   If V is PETSC_NULL then the eigenvectors are not computed.
+   If either V or W are PETSC_NULL then the corresponding eigenvectors are 
+   not computed.
 
    Matrices A and B are overwritten.
    
@@ -96,13 +102,13 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 
 .seealso: EPSDenseNHEP(), EPSDenseHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,PetscScalar *wi,PetscScalar *V)
+PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
 {
   PetscErrorCode ierr;
   PetscReal      *rscale,*lscale,abnrm,bbnrm;
   PetscScalar    *alpha,*beta,*work;
   int            i,ilo,ihi,info;
-  char           *jobvr;
+  char           *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
   int            lwork = 2*n;
@@ -118,6 +124,8 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
 
   if (V) jobvr = "V";
   else jobvr = "N";
+  if (W) jobvl = "V";
+  else jobvl = "N";
   ierr  = PetscMalloc(n*sizeof(PetscScalar),&alpha);CHKERRQ(ierr);
   ierr  = PetscMalloc(n*sizeof(PetscScalar),&beta);CHKERRQ(ierr);
   ierr  = PetscMalloc(n*sizeof(PetscReal),&rscale);CHKERRQ(ierr);
@@ -125,7 +133,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(6*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAggevx_("B","N",jobvr,"N",&n,A,&n,B,&n,alpha,beta,PETSC_NULL,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
+  LAggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,beta,W,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGGEVX %d",info);
   for (i=0;i<n;i++) {
     w[i] = alpha[i]/beta[i];
@@ -133,7 +141,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
   ierr  = PetscMalloc(n*sizeof(PetscReal),&alphai);CHKERRQ(ierr);
-  LAggevx_("B","N",jobvr,"N",&n,A,&n,B,&n,alpha,alphai,beta,PETSC_NULL,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
+  LAggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,alphai,beta,W,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGGEVX %d",info);
   for (i=0;i<n;i++) {
     w[i] = alpha[i]/beta[i];

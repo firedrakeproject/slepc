@@ -130,6 +130,44 @@ PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STApplyTranspose"
+/*@
+   STApplyTranspose - Applies the transpose of the operator to a vector, for
+   instance B^T(A - sB)^-T in the case of the shift-and-invert tranformation
+   and generalized eigenproblem.
+
+   Collective on ST and Vec
+
+   Input Parameters:
++  st - the spectral transformation context
+-  x  - input vector
+
+   Output Parameter:
+.  y - output vector
+
+   Level: developer
+
+.seealso: STApply()
+@*/
+PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+
+  if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
+
+  ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STComputeExplicitOperator"
 /*@
     STComputeExplicitOperator - Computes the explicit operator associated
@@ -418,7 +456,7 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
+/*PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
 PetscErrorCode VecMDotEnd(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
 
 #undef __FUNCT__  
@@ -452,7 +490,7 @@ PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscSc
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-    /* ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr); */
+    // ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
@@ -480,12 +518,13 @@ PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScal
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-    /* ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr); */
+    // ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr); 
     break;
   }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "STInnerProductBegin"

@@ -27,6 +27,28 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STApplyTranspose_Shift"
+PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->B) {
+    /* generalized eigenproblem: y = (A^T B^-T + sI) x */
+    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
+  }
+  else {
+    /* standard eigenproblem: y = (A^T + sI) x */
+    ierr = MatMultTranspose(st->A,x,y);CHKERRQ(ierr);
+  }
+  if (st->sigma != 0.0) {
+    ierr = VecAXPY(&st->sigma,x,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STApplyB_Shift"
 PetscErrorCode STApplyB_Shift(ST st,Vec x,Vec y)
 {
@@ -60,7 +82,6 @@ PetscErrorCode STSetUp_Shift(ST st)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "STView_Shift"
 PetscErrorCode STView_Shift(ST st,PetscViewer viewer)
@@ -83,6 +104,7 @@ PetscErrorCode STCreate_Shift(ST st)
   st->ops->apply       = STApply_Shift;
   st->ops->applyB      = STApplyB_Shift;
   st->ops->applynoB    = STApply_Shift;
+  st->ops->applytrans  = STApplyTranspose_Shift;
   st->ops->backtr      = STBackTransform_Shift;
   st->ops->setup       = STSetUp_Shift;
   st->ops->view        = STView_Shift;

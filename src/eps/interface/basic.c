@@ -66,7 +66,14 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
     if (type) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s\n",type);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s",type);CHKERRQ(ierr);
+      switch (eps->solverclass) {
+        case EPS_ONE_SIDE: 
+          ierr = PetscViewerASCIIPrintf(viewer,"\n",type);CHKERRQ(ierr); break;
+        case EPS_TWO_SIDE: 
+          ierr = PetscViewerASCIIPrintf(viewer," (two-sided)\n",type);CHKERRQ(ierr); break;
+        default: SETERRQ(1,"Wrong value of eps->solverclass");
+      }
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  method: not yet set\n");CHKERRQ(ierr);
     }
@@ -182,17 +189,22 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->which           = EPS_LARGEST_MAGNITUDE;
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
+  eps->solverclass     = (EPSClass)0;
 
   eps->vec_initial     = 0;
   eps->vec_initial_set = PETSC_FALSE;
+  eps->vec_initial_left= 0;
   eps->V               = 0;
   eps->AV              = 0;
+  eps->W               = 0;
+  eps->AW              = 0;
   eps->T               = 0;
   eps->DS              = 0;
   eps->ds_ortho        = PETSC_TRUE;
   eps->eigr            = 0;
   eps->eigi            = 0;
   eps->errest          = 0;
+  eps->errest_left     = 0;
   eps->OP              = 0;
   eps->data            = 0;
   eps->nconv           = 0;
@@ -426,6 +438,10 @@ PetscErrorCode EPSDestroy(EPS eps)
 
   if (eps->vec_initial) {
     ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+  }
+
+  if (eps->vec_initial_left) {
+    ierr = VecDestroy(eps->vec_initial_left);CHKERRQ(ierr);
   }
 
   if (eps->nds > 0) {

@@ -31,6 +31,7 @@ EXTERN PetscErrorCode STView(ST,PetscViewer);
 EXTERN PetscErrorCode STApply(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyB(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyNoB(ST,Vec,Vec);
+EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 
 extern PetscFList STList;
@@ -82,6 +83,7 @@ EXTERN PetscErrorCode STNormEnd(ST st,Vec,PetscReal*);
 /* --------- options specific to particular spectral transformations-------- */
 
 EXTERN PetscErrorCode STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);
+EXTERN PetscErrorCode STShellSetApplyTranspose(ST, int (*)(void*,Vec,Vec), void*);
 EXTERN PetscErrorCode STShellSetBackTransform(ST, int (*)(void*,PetscScalar*,PetscScalar*));
 EXTERN PetscErrorCode STShellSetName(ST,char*);
 EXTERN PetscErrorCode STShellGetName(ST,char**);

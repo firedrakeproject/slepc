@@ -11,6 +11,7 @@ struct _STOps {
   int          (*apply)(ST,Vec,Vec);
   int          (*applyB)(ST,Vec,Vec);
   int          (*applynoB)(ST,Vec,Vec);
+  int          (*applytrans)(ST,Vec,Vec);
   int          (*setshift)(ST,PetscScalar);
   int          (*setfromoptions)(ST);
   int          (*presolve)(ST);  
@@ -47,6 +48,7 @@ struct _p_ST {
 EXTERN PetscErrorCode STApplyB_Default(ST,Vec,Vec);
 EXTERN PetscErrorCode STView_Default(ST,PetscViewer);
 EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
+EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
 EXTERN PetscErrorCode STCheckNullSpace_Default(ST,int,Vec*);
 EXTERN PetscErrorCode STMatShellCreate(ST st,Mat *mat);
 

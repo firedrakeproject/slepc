@@ -39,6 +39,8 @@ typedef char * EPSType;
 typedef enum { EPS_HEP=1,  EPS_GHEP,
                EPS_NHEP,   EPS_GNHEP } EPSProblemType;
 
+typedef enum { EPS_ONE_SIDE, EPS_TWO_SIDE } EPSClass;
+
 typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
                EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
@@ -53,6 +55,8 @@ EXTERN PetscErrorCode EPSSetType(EPS,EPSType);
 EXTERN PetscErrorCode EPSGetType(EPS,EPSType*);
 EXTERN PetscErrorCode EPSSetProblemType(EPS,EPSProblemType);
 EXTERN PetscErrorCode EPSGetProblemType(EPS,EPSProblemType*);
+EXTERN PetscErrorCode EPSSetClass(EPS,EPSClass);
+EXTERN PetscErrorCode EPSGetClass(EPS,EPSClass*);
 EXTERN PetscErrorCode EPSSetOperators(EPS,Mat,Mat);
 EXTERN PetscErrorCode EPSSetFromOptions(EPS);
 EXTERN PetscErrorCode EPSSetUp(EPS);
@@ -78,10 +82,17 @@ EXTERN PetscErrorCode EPSGetDimensions(EPS,int*,int*);
 
 EXTERN PetscErrorCode EPSGetConverged(EPS,int*);
 EXTERN PetscErrorCode EPSGetEigenpair(EPS,int,PetscScalar*,PetscScalar*,Vec,Vec);
+EXTERN PetscErrorCode EPSGetValue(EPS,int,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSGetRightVector(EPS,int,Vec,Vec);
+EXTERN PetscErrorCode EPSGetLeftVector(EPS,int,Vec,Vec);
 EXTERN PetscErrorCode EPSComputeRelativeError(EPS,int,PetscReal*);
+EXTERN PetscErrorCode EPSComputeRelativeErrorLeft(EPS,int,PetscReal*);
 EXTERN PetscErrorCode EPSComputeResidualNorm(EPS,int,PetscReal*);
+EXTERN PetscErrorCode EPSComputeResidualNormLeft(EPS,int,PetscReal*);
 EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec*);
+EXTERN PetscErrorCode EPSGetLeftInvariantSubspace(EPS,Vec*);
 EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,int,PetscReal*);
+EXTERN PetscErrorCode EPSGetErrorEstimateLeft(EPS,int,PetscReal*);
 
 EXTERN PetscErrorCode EPSSetMonitor(EPS,int (*)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),void*);
 EXTERN PetscErrorCode EPSClearMonitor(EPS);
@@ -91,6 +102,8 @@ EXTERN PetscErrorCode EPSGetNumberLinearIterations(EPS eps,int*);
 
 EXTERN PetscErrorCode EPSSetInitialVector(EPS,Vec);
 EXTERN PetscErrorCode EPSGetInitialVector(EPS,Vec*);
+EXTERN PetscErrorCode EPSSetLeftInitialVector(EPS,Vec);
+EXTERN PetscErrorCode EPSGetLeftInitialVector(EPS,Vec*);
 EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 EXTERN PetscErrorCode EPSSetOrthogonalization(EPS,EPSOrthogonalizationType,EPSOrthogonalizationRefinementType,PetscReal);
@@ -100,6 +113,9 @@ EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);
 
 EXTERN PetscErrorCode EPSDefaultMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
 EXTERN PetscErrorCode EPSLGMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
+
+EXTERN PetscErrorCode EPSAttachDeflationSpace(EPS,int,Vec*,PetscTruth);
+EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
 
 EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,char*);
 EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,char*);
@@ -116,8 +132,8 @@ typedef enum {/* converged */
 EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
 EXTERN PetscErrorCode EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,int,int*);
-EXTERN PetscErrorCode EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
-EXTERN PetscErrorCode EPSDenseGNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSDenseGNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseHEP(int,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseGHEP(int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseSchur(int,int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
@@ -125,15 +141,14 @@ EXTERN PetscErrorCode EPSSortDenseSchur(int,int,PetscScalar*,PetscScalar*,PetscS
 
 EXTERN PetscErrorCode EPSPurge(EPS,Vec);
 EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode EPSBiOrthogonalize(EPS,int,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 EXTERN PetscErrorCode EPSReverseProjection(EPS,Vec*,PetscScalar*,int,int,Vec*);
 EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec);
+EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,int,Vec);
 
 EXTERN PetscErrorCode STPreSolve(ST,EPS);
 EXTERN PetscErrorCode STPostSolve(ST,EPS);
-
-EXTERN PetscErrorCode EPSAttachDeflationSpace(EPS,int,Vec*,PetscTruth);
-EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
 
 /* --------- options specific to particular eigensolvers -------- */
 

@@ -4,13 +4,14 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/examples/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.c
 EXAMPLESCH = 
 EXAMPLESF  = ex1f.F ex6f.F mvmisg.f
 
 TESTEXAMPLES_1  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
                   ex4.PETSc runex4_1 ex4.rm ex5.PETSc runex5_1 runex5_2 ex5.rm \
-                  ex7.PETSc runex7_1 ex7.rm ex10.PETSc runex10_1 ex10.rm
+                  ex7.PETSc runex7_1 ex7.rm ex10.PETSc runex10_1 ex10.rm \
+                  ex11.PETSc runex11_1 ex11.rm ex12.PETSc runex12_1 ex12.rm \
 TESTEXAMPLES_2  = 
 TESTEXAMPLES_3  = ex1f.PETSc runex1f_1 ex1f.rm
 TESTEXAMPLES_9  = ex6f.PETSc runex6f_1 ex6f.rm
@@ -71,6 +72,10 @@ ex10: ex10.o slepc_chkopts
 ex11: ex11.o slepc_chkopts
 	-${CLINKER} -o ex11 ex11.o ${SLEPC_LIB}
 	${RM} ex11.o
+
+ex12: ex12.o slepc_chkopts
+	-${CLINKER} -o ex12 ex12.o ${SLEPC_LIB}
+	${RM} ex12.o
 
 #------------------------------------------------------------------------------------
 
@@ -145,4 +150,16 @@ runex10_1:
 	   if (${DIFF} output/ex10_1.out ex10_1.tmp) then true; \
 	   else echo "Possible problem with ex10_1, diffs above"; fi; \
 	   ${RM} -f ex10_1.tmp
+
+runex11_1:
+	-@${MPIRUN} -np 1 ex11 > ex11_1.tmp 2>&1;	  \
+	   if (${DIFF} output/ex11_1.out ex11_1.tmp) then true; \
+	   else echo "Possible problem with ex11_1, diffs above"; fi; \
+	   ${RM} -f ex11_1.tmp
+
+runex12_1:
+	-@${MPIRUN} -np 1 ex12 > ex12_1.tmp 2>&1;	  \
+	   if (${DIFF} output/ex12_1.out ex12_1.tmp) then true; \
+	   else echo "Possible problem with ex12_1, diffs above"; fi; \
+	   ${RM} -f ex12_1.tmp
 

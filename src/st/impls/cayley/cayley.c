@@ -37,6 +37,33 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STApplyTranspose_Cayley"
+PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  PetscScalar    tau = ctx->tau;
+  
+  PetscFunctionBegin;
+  if (st->shift_matrix == STMATMODE_INPLACE) { tau = tau + st->sigma; };
+
+  if (st->B) {
+    /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
+    ierr = STAssociatedKSPSolve(st,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = MatMult(st->B,st->w,ctx->w2);CHKERRQ(ierr);
+    ierr = VecAXPY(&tau,ctx->w2,y);CHKERRQ(ierr);    
+  }
+  else {
+    /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
+    ierr = STAssociatedKSPSolve(st,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = VecAXPY(&tau,st->w,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STApplyNoB_Cayley"
 PetscErrorCode STApplyNoB_Cayley(ST st,Vec x,Vec y)
 {
@@ -340,6 +367,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->apply          = STApply_Cayley;
   st->ops->applyB         = STApplyB_Cayley;
   st->ops->applynoB       = STApplyNoB_Cayley;
+  st->ops->applytrans     = STApplyTranspose_Cayley;
   st->ops->postsolve      = STPost_Cayley;
   st->ops->backtr         = STBackTransform_Cayley;
   st->ops->setfromoptions = STSetFromOptions_Cayley;

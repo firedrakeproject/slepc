@@ -50,6 +50,9 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
   PetscFunctionBegin;
   for (i=0;i<eps->nconv;i++) {
     ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);
+    if (eps->solverclass == EPS_TWO_SIDE) {
+      ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
+    }
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -62,14 +65,15 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
   provided by the eigensolver. This version is intended for solvers 
   that provide Schur vectors. Given the partial Schur decomposition
   OP*V=V*T, the following steps are performed:
-      1) compute eigenvectors of T: T*Y=Y*D
-      2) compute eigenvectors of OP: X=V*Y
+      1) compute eigenvectors of T: T*Z=Z*D
+      2) compute eigenvectors of OP: X=V*Z
+  If left eigenvectors are required then also do Z'*Tl=D*Z', Y=W*Z
  */
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;
   int            i,mout,info,ncv=eps->ncv;
-  PetscScalar    *Y,*work;
+  PetscScalar    *Z,*work;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
@@ -84,25 +88,41 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #endif 
 
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
 #endif
 
+  /* right eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
-  LAtrevc_("R","A",PETSC_NULL,&ncv,eps->T,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
+  LAtrevc_("R","A",PETSC_NULL,&ncv,eps->T,&ncv,PETSC_NULL,&ncv,Z,&ncv,&ncv,&mout,work,&info,1,1);
 #else
-  LAtrevc_("R","A",PETSC_NULL,&ncv,eps->T,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+  LAtrevc_("R","A",PETSC_NULL,&ncv,eps->T,&ncv,PETSC_NULL,&ncv,Z,&ncv,&ncv,&mout,work,rwork,&info,1,1);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
   for (i=0;i<eps->nconv;i++) {
     ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);
   }
-  ierr = EPSReverseProjection(eps,eps->AV,Y,0,ncv,eps->work);CHKERRQ(ierr);
+  ierr = EPSReverseProjection(eps,eps->AV,Z,0,ncv,eps->work);CHKERRQ(ierr);
    
-  ierr = PetscFree(Y);CHKERRQ(ierr);
+  /* left eigenvectors */
+  if (eps->solverclass == EPS_TWO_SIDE) {
+#if !defined(PETSC_USE_COMPLEX)
+    LAtrevc_("L","A",PETSC_NULL,&ncv,eps->Tl,&ncv,PETSC_NULL,&ncv,Z,&ncv,&ncv,&mout,work,&info,1,1);
+#else
+    LAtrevc_("L","A",PETSC_NULL,&ncv,eps->Tl,&ncv,PETSC_NULL,&ncv,Z,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+#endif
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
+    }
+    ierr = EPSReverseProjection(eps,eps->AW,Z,0,ncv,eps->work);CHKERRQ(ierr);
+  }
+   
+  ierr = PetscFree(Z);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);

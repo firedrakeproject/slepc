@@ -63,7 +63,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
   int            n,size,i,low,high;
-  PetscScalar    *array,*arrayb,*pV;
+  PetscScalar    *array,*arrayb,*pV,*pW;
   PetscReal      *w;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
   MPI_Comm       comm = eps->comm;
@@ -78,10 +78,18 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   } else {
     ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&pV);CHKERRQ(ierr);
   }
+  if (eps->solverclass == EPS_TWO_SIDE && (la->OP || !eps->ishermitian)) {
+    if (size == 1) {
+      ierr = VecGetArray(eps->W[0],&pW);CHKERRQ(ierr);
+    } else {
+      ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&pW);CHKERRQ(ierr);
+    }
+  } else pW = PETSC_NULL;
+  
   
   if (la->OP) {
     ierr = MatGetArray(la->OP,&array);CHKERRQ(ierr);
-    ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV);CHKERRQ(ierr);  
+    ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV,pW);CHKERRQ(ierr);  
     ierr = MatRestoreArray(la->OP,&array);CHKERRQ(ierr);
   } else if (eps->ishermitian) {
 #if defined(PETSC_USE_COMPLEX)
@@ -108,10 +116,10 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   } else {
     ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
     if (!eps->isgeneralized) {
-      ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV);CHKERRQ(ierr);
+      ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV,pW);CHKERRQ(ierr);
     } else {
       ierr = MatGetArray(la->B,&arrayb);CHKERRQ(ierr);
-      ierr = EPSDenseGNHEP(n,array,arrayb,eps->eigr,eps->eigi,pV);CHKERRQ(ierr);  
+      ierr = EPSDenseGNHEP(n,array,arrayb,eps->eigr,eps->eigi,pV,pW);CHKERRQ(ierr);  
       ierr = MatRestoreArray(la->B,&arrayb);CHKERRQ(ierr);
     }
     ierr = MatRestoreArray(la->A,&array);CHKERRQ(ierr);
@@ -127,6 +135,19 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
       ierr = VecRestoreArray(eps->V[i], &array);CHKERRQ(ierr);
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
+  }
+  if (pW) {
+    if (size == 1) {
+      ierr = VecRestoreArray(eps->W[0],&pW);CHKERRQ(ierr);
+    } else {
+      for (i=0; i<eps->ncv; i++) {
+        ierr = VecGetOwnershipRange(eps->W[i], &low, &high);CHKERRQ(ierr);
+        ierr = VecGetArray(eps->W[i], &array);CHKERRQ(ierr);
+        ierr = PetscMemcpy(array, pW+i*n+low, (high-low)*sizeof(PetscScalar));
+        ierr = VecRestoreArray(eps->W[i], &array);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(pW);CHKERRQ(ierr);
+    }
   }
 
   eps->nconv = eps->ncv;
@@ -167,6 +188,7 @@ PetscErrorCode EPSCreate_LAPACK(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_LAPACK));
   eps->data                      = (void *) la;
   eps->ops->solve                = EPSSolve_LAPACK;
+  eps->ops->solvets              = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;

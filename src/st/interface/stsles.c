@@ -40,6 +40,39 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STAssociatedKSPSolveTranspose"
+/*
+   STAssociatedKSPSolveTranspose - Solves the transpose of the linear 
+   system of equations associated to the spectral transformation.
+
+   Input Parameters:
+.  st - the spectral transformation context
+.  b  - right hand side vector
+
+   Output  Parameter:
+.  x - computed solution
+*/
+PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+  int            its;
+  KSPConvergedReason reason;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(b,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
+  ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
+  ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
+  if (reason<0) { SETERRQ1(0,"Warning: KSP did not converge (%d)",reason); }
+  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+  st->lineariterations += its;
+  PetscLogInfo(st,"ST: linear solve iterations=%d\n",its);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STSetKSP"
 /*@
    STSetKSP - Sets the KSP object associated with the spectral 

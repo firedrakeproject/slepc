@@ -65,6 +65,11 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       }      
     }
 
+    ierr = PetscOptionsLogicalGroupBegin("-eps_oneside","one-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetClass(eps,EPS_ONE_SIDE);CHKERRQ(ierr);}
+    ierr = PetscOptionsLogicalGroupEnd("-eps_twoside","two-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetClass(eps,EPS_TWO_SIDE);CHKERRQ(ierr);}
+
     orth_type = eps->orthog_type;
     ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,2,orth_list[orth_type],(int*)&orth_type,&flg);CHKERRQ(ierr);
     ref_type = eps->orthog_ref;
@@ -456,6 +461,73 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   *type = eps->problem_type;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetClass"
+/*@
+   EPSSetClass - Specifies the eigensolver class: either one-sided or two-sided.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps      - the eigensolver context
+-  class    - the class of solver
+
+   Options Database Keys:
++  -eps_oneside - one-sided solver
+-  -eps_twoside - two-sided solver
+    
+   Note:  
+   Allowed solver classes are: one-sided (EPS_ONE_SIDE) and two-sided (EPS_TWO_SIDE).
+   One-sided eigensolvers are the standard ones, which allow the computation of
+   eigenvalues and (right) eigenvectors, whereas two-sided eigensolvers compute
+   left eigenvectors as well.
+
+   Level: beginner
+
+.seealso: EPSGetLeftVector(), EPSComputeRelativeErrorLeft(), EPSSetLeftInitialVector(),
+   EPSClass
+@*/
+PetscErrorCode EPSSetClass(EPS eps,EPSClass class)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+
+  if (class!=EPS_ONE_SIDE && class!=EPS_TWO_SIDE) SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigensolver class");
+  if (eps->solverclass!=class) {
+    if (eps->solverclass == EPS_TWO_SIDE) { ierr = EPSFreeSolution(eps);CHKERRQ(ierr); }
+    eps->solverclass = class;
+  }
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetClass"
+/*@C
+   EPSGetClass - Gets the eigensolver class from the EPS object.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context 
+
+   Output Parameter:
+.  class - class of EPS solver (either one-sided or two-sided)
+
+   Level: intermediate
+
+.seealso: EPSSetClass()
+@*/
+PetscErrorCode EPSGetClass(EPS eps,EPSClass *class)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  *class = eps->solverclass;
   PetscFunctionReturn(0);
 }
 
