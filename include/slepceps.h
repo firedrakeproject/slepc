@@ -78,7 +78,7 @@ extern int EPSGetConverged(EPS,int*);
 extern int EPSGetEigenpair(EPS,int,PetscScalar*,PetscScalar*,Vec,Vec);
 extern int EPSComputeRelativeError(EPS,int,PetscReal*);
 extern int EPSComputeResidualNorm(EPS,int,PetscReal*);
-extern int EPSGetSchurVectors(EPS,Vec*);
+extern int EPSGetInvariantSubspace(EPS,Vec*);
 extern int EPSGetErrorEstimate(EPS,int,PetscReal*);
 
 extern int EPSSetMonitor(EPS,int (*)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),void*);

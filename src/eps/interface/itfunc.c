@@ -425,8 +425,8 @@ int EPSGetConverged(EPS eps,int *nconv)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetSchurVectors" 
-int EPSGetSchurVectors(EPS eps, Vec *v)
+#define __FUNCT__ "EPSGetInvariantSubspace" 
+int EPSGetInvariantSubspace(EPS eps, Vec *v)
 {
   int ierr,i;
 
