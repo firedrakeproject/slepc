@@ -101,7 +101,7 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,
     if (breakdown) {
       T[m*j+j+1] = 0;
       printf("Breakdown in Lanczos method (norm=%g)\n",norm);
-      PetscLogInfo(eps,"Breakdown in Lanczos method (norm=%g)\n",norm);
+      PetscLogInfo((eps,"Breakdown in Lanczos method (norm=%g)\n",norm));
       ierr = EPSGetStartVector(eps,j+1,V[j+1]);CHKERRQ(ierr);
     } else {
       T[m*j+j+1] = norm;
@@ -147,7 +147,7 @@ static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M
     T[m*j+j+1] = norm;
     if (breakdown) {
       printf("Breakdown in Lanczos method (its=%i,k=%i,j=%i,norm=%g)\n",eps->its,k,j,norm);
-      PetscLogInfo(eps,"Breakdown in Lanczos method (norm=%g)\n",norm);
+      PetscLogInfo((eps,"Breakdown in Lanczos method (norm=%g)\n",norm));
       ierr = EPSGetStartVector(eps,j+1,V[j+1]);CHKERRQ(ierr);
     } else {
       t = 1 / norm;
@@ -222,7 +222,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
     if (breakdown) {
 /*      T[m*j+j+1] = 0; */
       printf("Breakdown in Lanczos method (its=%i,k=%i,j=%i,norm=%g)\n",eps->its,k,j,*beta);
-      PetscLogInfo(eps,"Breakdown in Lanczos method (norm=%g)\n",*beta);
+      PetscLogInfo((eps,"Breakdown in Lanczos method (norm=%g)\n",*beta));
       ierr = EPSGetStartVector(eps,j+1,V[j+1]);CHKERRQ(ierr);
 /*      *M = j;
       PetscFunctionReturn(0); */
@@ -245,7 +245,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
     } */
     n = j-k;
     if (n>0) {
-    LAsteqr_("I",&n,a,b,Y,&n,work,&info,1);
+    LAPACKsteqr_("I",&n,a,b,Y,&n,work,&info,1);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
     for (i=0;i<n;i++) {
       if ((*beta*PetscAbsScalar(Y[i*n+n-1])/PetscAbsScalar(a[i]))<eps->tol) {
@@ -321,7 +321,7 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
     if (breakdown || norm < PETSC_MACHINE_EPSILON) {
       T[m*j+j+1] = 0;
       printf("Breakdown in Lanczos method (norm=%g)\n",norm);
-      PetscLogInfo(eps,"Breakdown in Lanczos method (norm=%g)\n",norm);
+      PetscLogInfo((eps,"Breakdown in Lanczos method (norm=%g)\n",norm));
       ierr = SlepcVecSetRandom(V[j+1]);CHKERRQ(ierr);
       ierr = STNorm(eps->OP,V[j+1],&norm);CHKERRQ(ierr);
     } else {
@@ -492,7 +492,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     }
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
-    LAsteqr_("I",&n,ritz,E,Y,&n,work,&info,1);
+    LAPACKsteqr_("I",&n,ritz,E,Y,&n,work,&info,1);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
@@ -516,7 +516,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       D[i] = PetscRealPart(T[(i+nconv+1)*(ncv+1)]);
       E[i] = PetscRealPart(T[(i+nconv+1)*(ncv+1)+1]);
     }
-    LAsteqr_("N",&m,D,E,PETSC_NULL,&m,work,&info,1);
+    LAPACKsteqr_("N",&m,D,E,PETSC_NULL,&m,work,&info,1);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
 
     k = nconv;

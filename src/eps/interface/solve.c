@@ -60,7 +60,7 @@ PetscErrorCode EPSSolve(EPS eps)
       if (eps->ops->solvets) {
         ierr = (*eps->ops->solvets)(eps);CHKERRQ(ierr); break;
       } else {
-        PetscLogInfo(eps,"STSolve: Warning, two-sided version unavailable for this solver, using one-sided version instead\n");
+        PetscLogInfo((eps,"STSolve: Warning, two-sided version unavailable for this solver, using one-sided version instead\n"));
         ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr); break;
       }
     default:

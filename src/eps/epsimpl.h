@@ -27,7 +27,7 @@ struct _EPSOps {
    Defines the EPS data structure.
 */
 struct _p_EPS {
-  PETSCHEADER(struct _EPSOps)
+  PETSCHEADER(struct _EPSOps);
   /*------------------------- User parameters --------------------------*/
   int        max_it,            /* maximum number of iterations */
              nev,               /* number of eigenvalues to compute */

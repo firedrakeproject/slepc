@@ -22,7 +22,7 @@ struct _STOps {
 };
 
 struct _p_ST {
-  PETSCHEADER(struct _STOps)
+  PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
   Mat            A,B;              /* Matrices which define the eigensystem */
   PetscScalar    sigma;            /* Value of the shift */

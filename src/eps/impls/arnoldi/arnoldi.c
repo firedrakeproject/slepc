@@ -87,7 +87,7 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (breakdown) {
-      PetscLogInfo(eps,"Breakdown in Arnoldi method (norm=%g)\n",norm);
+      PetscLogInfo((eps,"Breakdown in Arnoldi method (norm=%g)\n",norm));
       ierr = EPSGetStartVector(eps,j,V[j+1]);CHKERRQ(ierr);
     }
     else {
@@ -162,9 +162,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Compute eigenvectors Y of H */
     ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
+    LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
 #else
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+    LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 

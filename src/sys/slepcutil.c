@@ -205,11 +205,11 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     /* convert matrix to MatSeqDense */
     ierr = PetscTypeCompare((PetscObject)*newmat,MATSEQDENSE,&flg); CHKERRQ(ierr);
     if (!flg) {
-      ierr = MatConvert(*newmat,MATSEQDENSE,newmat);CHKERRQ(ierr);
+      ierr = MatConvert(*newmat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
     } 
   } else {
     /* convert matrix to MatSeqDense */
-    ierr = MatConvert(mat,MATSEQDENSE,newmat);CHKERRQ(ierr);
+    ierr = MatConvert(mat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);  

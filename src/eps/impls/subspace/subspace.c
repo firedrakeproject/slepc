@@ -84,12 +84,12 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
-  hn = LAlanhs_("I",&n,H,&n,rwork,1);
-  LAgetrf_(&n,&n,H,&n,ipiv,&info);
+  hn = LAPACKlanhs_("I",&n,H,&n,rwork,1);
+  LAPACKgetrf_(&n,&n,H,&n,ipiv,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
-  LAgetri_(&n,H,&n,ipiv,work,&lwork,&info);
+  LAPACKgetri_(&n,H,&n,ipiv,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
-  hin = LAlange_("I",&n,&n,H,&n,rwork,1);
+  hin = LAPACKlange_("I",&n,&n,H,&n,rwork,1);
   *cond = hn * hin;
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
@@ -259,7 +259,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 
     /* 3. Reduce projected matrix to Hessenberg form: [U,T] = hess(T) */
     ilo = eps->nconv + 1;
-    LAgehrd_(&ncv,&ilo,&ncv,T,&ncv,tau,work,&lwork,&info);
+    LAPACKgehrd_(&ncv,&ilo,&ncv,T,&ncv,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
     for (j=0;j<ncv-1;j++) {
       for (i=j+2;i<ncv;i++) {
@@ -267,7 +267,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
         T[i+j*ncv] = 0.0;
       }      
     }
-    LAorghr_(&ncv,&ilo,&ncv,U,&ncv,tau,work,&lwork,&info);
+    LAPACKorghr_(&ncv,&ilo,&ncv,U,&ncv,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
     
     /* 4. Reduce T to quasi-triangular (Schur) form */

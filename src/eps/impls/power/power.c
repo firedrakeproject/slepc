@@ -114,7 +114,7 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift
     alpha2 = alpha2 / (beta1 * beta1);
 
     /* choose the eigenvalue of [alfa1 beta1; beta1 alfa2] closest to alpha1 */
-    LAlaev2_(&alpha1,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
+    LAPACKlaev2_(&alpha1,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
     if (PetscAbsScalar(rt1-alpha1) < PetscAbsScalar(rt2-alpha1)) {
       *shift = rt1;
     } else {
