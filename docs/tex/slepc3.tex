@@ -185,7 +185,12 @@ specifies some additional options for the solution of this linear system. In par
 
 	The user must consider which one of the two approaches is the most appropriate for the particular application. The two options have advantatges and drawbacks. The first approach is the simplest one but severely restricts the number of possibilities available for solving the system, in particular most of the \petsc{} preconditioners would not be available. The only preconditioners that can be used in this case are Jacobi (only if matrices $A$ and $B$ have the operation \ident{MATOP\_GET\_DIAGONAL}) or a user-defined one.
 	
-	The second approach (compute the coefficient matrix explicitly) can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} can be very inefficient.
+	The second approach (compute the coefficient matrix explicitly) can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} can be very inefficient. 
+If the user knows that the pattern is the same, then this can be specified with the function
+	\findex{STSinvertSetMatStructure}
+	\begin{Verbatim}[fontsize=\small]
+	STSinvertSetMatStructure(ST st);
+	\end{Verbatim}
 	
 	Note that when the value of the shift $\sigma$ is very close to an eigenvalue, then the linear system will be ill-conditioned and using iterative methods may be problematic. On the other hand, in symmetric definite problems, the coefficient matrix will be indefinite whenever $\sigma$ is a point in the interior of the spectrum and in that case it is not possible to use a symmetric definite factorization (\texttt{cholesky} or \texttt{icc}).
 
