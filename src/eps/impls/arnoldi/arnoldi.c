@@ -97,6 +97,8 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   PetscFunctionReturn(0);
 }
 
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
@@ -104,8 +106,8 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   PetscErrorCode ierr;
   int            i,k,mout,info,ifst,ilst,ncv=eps->ncv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *H=eps->T,*U,*Y,*work,t;
-  PetscReal      norm,beta;
+  PetscScalar    *H=eps->T,*U,*Y,*work,ts;
+  PetscReal      norm,beta,tr;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
@@ -125,8 +127,8 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   /* The first Arnoldi vector is the normalized initial vector */
   ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr);
   ierr = STNorm(eps->OP,eps->V[0],&norm);CHKERRQ(ierr);
-  t = 1 / norm;
-  ierr = VecScale(&t,eps->V[0]);CHKERRQ(ierr);
+  ts = 1 / norm;
+  ierr = VecScale(&ts,eps->V[0]);CHKERRQ(ierr);
   
   eps->nconv = 0;
   eps->its = 0;
@@ -154,6 +156,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
     ierr = EPSDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
+    /* Sort the remaining columns of the Schur form  */
+    ierr = EPSSortDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+
     /* Compute eigenvectors Y of H */
     ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -178,16 +183,19 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
         ilst = k + 1;
 #if !defined(PETSC_USE_COMPLEX)
         LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
-        eps->eigr[k] = eps->eigr[i];
-        eps->eigi[k] = eps->eigi[i];
+        SWAP(eps->eigr[k],eps->eigr[i],ts);
+        SWAP(eps->eigi[k],eps->eigi[i],ts);
+        SWAP(eps->errest[k],eps->errest[i],tr);
         if (eps->eigi[i] != 0) {
-          eps->eigr[k+1] = eps->eigr[i+1];
-          eps->eigi[k+1] = eps->eigi[i+1];
+          SWAP(eps->eigr[k+1],eps->eigr[i+1],ts);
+          SWAP(eps->eigi[k+1],eps->eigi[i+1],ts);
+          SWAP(eps->errest[k+1],eps->errest[i+1],tr);
           k++;       
         }
 #else
         LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,&info,1);
-        eps->eigr[k] = eps->eigr[i];
+        SWAP(eps->eigr[k],eps->eigr[i],ts);
+        SWAP(eps->errest[k],eps->errest[i],tr);
 #endif
         if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
         k++;
@@ -195,10 +203,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0) i++;
 #endif
-    } 
-
-    /* Sort the remaining columns of the Schur form  */
-    ierr = EPSSortDenseSchur(ncv,k,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    }
 
     /* Update V(:,idx) = V*U(:,idx) */
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
