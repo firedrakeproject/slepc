@@ -165,11 +165,11 @@ PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
   
   ierr = STInnerProduct(st,x,x,&p);CHKERRQ(ierr);
 
-  if (p==0.0)
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
     PetscLogInfo(st,"STNorm: Zero norm, either the vector is zero or a semi-inner product is being used\n" );
 
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscRealPart(p)<0.0 || PetscImaginaryPart(p)>PETSC_MACHINE_EPSILON) 
+  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
      SETERRQ(1,"STNorm: The inner product is not well defined");
   *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
