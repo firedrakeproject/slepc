@@ -269,7 +269,9 @@ int EPSDestroy(EPS eps)
     ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(eps->V);CHKERRQ(ierr);
   }
-  ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+  if (eps->vec_initial) {
+    ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+  }
 
   PetscLogObjectDestroy(eps);
   PetscHeaderDestroy(eps);
@@ -528,11 +530,15 @@ int EPSGetErrorEstimates(EPS eps, PetscReal **errest)
 @*/
 int EPSSetST(EPS eps,ST st)
 {
+  int ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(st,ST_COOKIE,2);
   PetscCheckSameComm(eps,1,st,2);
+  ierr = STDestroy(eps->OP); CHKERRQ(ierr);
   eps->OP = st;
+  PetscObjectReference((PetscObject)eps->OP);
   PetscFunctionReturn(0);
 }
 
@@ -764,11 +770,17 @@ int EPSGetValuesMonitorContext(EPS eps, void **ctx)
 @*/
 int EPSSetInitialVector(EPS eps,Vec vec)
 {
+  int ierr;
+  
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
   PetscCheckSameComm(eps,1,vec,2);
+  if (eps->vec_initial) {
+    ierr = VecDestroy(eps->vec_initial); CHKERRQ(ierr);
+  }
   eps->vec_initial = vec;
+  PetscObjectReference((PetscObject)eps->vec_initial);
   PetscFunctionReturn(0);
 }
 
