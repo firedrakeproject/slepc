@@ -84,7 +84,9 @@ static int STSetUp_Sinvert(ST st)
     alpha = -st->sigma;
     if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,ctx->str);CHKERRQ(ierr); }
     else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
-    ierr = SLESSetOperators(st->sles,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
+     * improve performance when solving a number of related eigenproblems */
+    ierr = SLESSetOperators(st->sles,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   else {
     ierr = MatCreateMatSinvert(st,&ctx->mat);CHKERRQ(ierr);
