@@ -133,32 +133,49 @@ chk_slepc_dir:
 	  echo "Aborting build"; \
 	  false; fi
 
+
 # ------------------------------------------------------------------
 #
 # All remaining actions are intended for SLEPc developers only.
 # SLEPc users should not generally need to use these commands.
 #
 
+chk_loc:
+	@if [ ${LOC}foo = foo ] ; then \
+	  echo "*********************** ERROR ************************" ; \
+	  echo " Please specify LOC variable for eg: make allmanualpages LOC=/sandbox/petsc"; \
+	  echo "******************************************************";  false; fi
+
+chk_concepts_dir: chk_loc
+	@if [ ! -d "${LOC}/docs/manualpages/concepts" ]; then \
+	  echo Making directory ${LOC}/docs/manualpages/concepts for library; ${MKDIR} ${LOC}/docs/manualpages/concepts; fi
+
 # Builds all the documentation
-slepc_alldoc: slepc_allmanpages
-	cd docs/tex; ${OMAKE} ps  
+slepc_alldoc: slepc_allmanualpages
+#	cd docs/tex; ${OMAKE} ps  
 
 # Deletes man pages (HTML version)
 slepc_deletemanualpages:
-	${RM} -f ${SLEPC_DIR}/docs/manualpages/*/*.html \
-                 ${SLEPC_DIR}/docs/manualpages/manualpages.cit 
+	find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \;
+	${RM} ${LOC}/docs/tex/exampleconcepts
+	${RM} ${LOC}/docs/tex/manconcepts
+	${RM} ${LOC}/docs/manualpages/manualpages.cit
+#	-${PETSC_DIR}/maint/update-docs.py ${LOC} clean
 
 # Builds all versions of the man pages
-slepc_allmanualpages: slepc_deletemanualpages
-	-LOCDIR=${SLEPC_DIR}
-	-${OMAKE} ACTION=slepc_manualpages_buildcite tree LOC=${SLEPC_DIR}/${LOC}
-	-${OMAKE} ACTION=slepc_manualpages tree LOC=${SLEPC_DIR}/${LOC}
-	-maint/wwwindex.py ${SLEPC_DIR} ${SLEPC_DIR}
-	-${OMAKE} ACTION=slepc_manexamples tree  LOCDIR=${SLEPC_DIR}/${LOC}
-#	-${OMAKE} slepc_manconcepts  LOC=${SLEPC_DIR}/${LOC}
-#	-${OMAKE} ACTION=slepc_getexlist tree LOC=${SLEPC_DIR}/${LOC}
-#	-${OMAKE} ACTION=slepc_exampleconcepts tree LOC=${SLEPC_DIR}/${LOC}
-#	-maint/helpindex.py ${SLEPC_DIR} ${SLEPC_DIR}/${LOC}
+slepc_allmanualpages: chk_loc slepc_deletemanualpages chk_concepts_dir
+	-${OMAKE} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
+	-${OMAKE} ACTION=manualpages tree_basic LOC=${LOC}
+	-${PETSC_DIR}/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
+	-${OMAKE} ACTION=manexamples tree LOC=${LOC}
+	-${OMAKE} manconcepts LOC=${LOC}
+	-${OMAKE} ACTION=getexlist tree LOC=${LOC}
+	-${OMAKE} ACTION=exampleconcepts tree LOC=${LOC}
+	touch ${LOC}/docs/tex/exampleconcepts
+	-${PETSC_DIR}/maint/helpindex.py ${SLEPC_DIR} ${LOC}
+	-${OMAKE} ACTION=slepc_html alltree LOC=${LOC}
+#	-${PETSC_DIR}/maint/update-docs.py ${LOC}
+	cp ${LOC}/docs/index.htm ${LOC}/docs/index.html
 
 # Builds Fortran stub files
 slepc_allfortranstubs:
