@@ -8,13 +8,13 @@
 #undef __FUNCT__  
 #define __FUNCT__ "EPSQRDecomposition"
 /*@
-   EPSQRDecomposition - Compute the QR factorization of the basis vectors.
+   EPSQRDecomposition - Compute the QR factorization of a set of vectors.
 
    Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
-.  V - basis vectors
+.  V - set of vectors
 .  m - starting column
 .  n - ending column
 -  ldr - leading dimension of R
@@ -295,18 +295,31 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAttachDeflationSpace"
 /*@
-   EPSAttachDeflationSpace - add vectors to the deflation space
+   EPSAttachDeflationSpace - Add vectors to the basis of the deflation space.
 
    Not Collective
 
    Input Parameter:
-+  eps   - Eigensolver context 
-.  n     - size of deflation space
-.  ds    - components of deflation space
--  ortho - PETSC_TRUE if components of deflation space are orthonormal
++  eps   - the eigenproblem solver context
+.  n     - number of vectors to add
+.  ds    - set of basis vectors of the deflation space
+-  ortho - PETSC_TRUE if basis vectors of deflation space are orthonormal
+
+   Notes:
+   When a deflation space is given, the eigensolver seeks the eigensolution
+   in the restriction of the problem to the orthogonal complement of this
+   space. This can be used for instance in the case that an invariant 
+   subspace is known beforehand (such as the nullspace of the matrix).
+
+   The basis vectors can be provided all at once or incrementally with
+   several calls to EPSAttachDeflationSpace().
+
+   Use a value of PETSC_TRUE for parameter ortho if all the vectors passed
+   in are known to be mutually orthonormal.
 
    Level: intermediate
 
+.seealso: EPSRemoveDeflationSpace()
 @*/
 int EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
 {
@@ -336,15 +349,16 @@ int EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRemoveDeflationSpace"
 /*@
-   EPSRemoveDeflationSpace - removes the deflation space
+   EPSRemoveDeflationSpace - Removes the deflation space.
 
    Not Collective
 
    Input Parameter:
-+  eps   - Eigensolver context 
+.  eps   - the eigenproblem solver context
 
    Level: intermediate
 
+.seealso: EPSAttachDeflationSpace()
 @*/
 int EPSRemoveDeflationSpace(EPS eps)
 {
@@ -359,3 +373,4 @@ int EPSRemoveDeflationSpace(EPS eps)
   eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
+
