@@ -3,7 +3,7 @@
        This implements the power iteration for finding the eigenpair
        corresponding to the eigenvalue with largest magnitude.
 */
-#include "src/eps/epsimpl.h"
+#include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
 typedef struct {
