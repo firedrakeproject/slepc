@@ -219,7 +219,7 @@ int EPSSolve(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy"
-/*@C
+/*@
    EPSDestroy - Destroys the EPS context.
 
    Collective on EPS
@@ -262,6 +262,9 @@ int EPSDestroy(EPS eps)
   if (eps->vec_initial) {
     ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
   }
+  if (eps->perm) {
+    ierr = PetscFree(eps->perm);CHKERRQ(ierr);
+  }
 
   PetscLogObjectDestroy(eps);
   PetscHeaderDestroy(eps);
@@ -270,7 +273,7 @@ int EPSDestroy(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetTolerances"
-/*@C
+/*@
    EPSGetTolerances - Gets the tolerance and maximum
    iteration count used by the default EPS convergence tests. 
 
@@ -418,27 +421,46 @@ int EPSSetDimensions(EPS eps,int nev,int ncv)
 .  eps - the eigensolver context
   
    Output Parameter:
-.  nconv - number of converged eigenvalues 
+.  nconv - number of converged real eigenvalues 
+.  nconvi - number of converged complex eigenvalues 
 
    Note:
    This function should be called after EPSSolve() has finished.
+   The total number of converged eigenpairs is nconv+2*nconvi 
+   (conjugated complex eigenvalues count as one).
 
    Level: beginner
 
 .seealso: EPSSetDimensions()
 @*/
-int EPSGetConverged(EPS eps,int *nconv)
+int EPSGetConverged(EPS eps,int *nconv, int *nconvi)
 {
+  int i, nr, ni;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (nconv)   *nconv = eps->nconv;
+  nr = 0;
+  ni = 0;
+  for (i = 0; i < eps->nconv; i++) {
+#ifdef PETSC_USE_COMPLEX
+    if (PetscImaginaryPart(eps->eigr[i]) == 0) {
+#else
+    if (eps->eigi[i] == 0) {
+#endif
+      nr++;
+    } else {
+      ni++; i++;
+    }
+  }
+  if (nconv) *nconv = nr;
+  if (nconvi) *nconvi = ni;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetSolution" 
-/*@C
-   EPSGetSolution - Gets the location of the solution of the
+#define __FUNCT__ "EPSGetEigenpair" 
+/*@
+   EPSGetEigenpair - Gets the i-th solution of the
    eigenproblem which has already been solved. The solution consists 
    in both the eigenvalues and the eigenvectors (if available).
 
@@ -446,29 +468,68 @@ int EPSGetConverged(EPS eps,int *nconv)
 
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
+.  i   - number of solution
 
    Output Parameters:
-+  eigr - real part of eigenvalues
-.  eigi - imaginary part of eigenvalues
--  V    - eigenvectors
++  eigr - real part of eigenvalue
+.  eigi - imaginary part of eigenvalue
+.  Vr   - real part of eigenvector
+-  Vi   - imaginary part of eigenvector
 
    Notes:
-   In the complex case (PETSC_USE_COMPLEX) the eigenvalues are stored in eigr
-   and eigi is set to zero.
-
-   In the real case, complex eigenvectors are stored in two consecutive vectors
-   of V containing the real and imaginary parts, respectively.
+   In the complex case (PETSC_USE_COMPLEX) the eigenvalue is stored in eigr
+   and eigi is set to zero. Also the eigenvector is stored in Vr and 
+   Vi is set to zero.
 
    Level: beginner
 
 @*/
-int EPSGetSolution(EPS eps, PetscScalar **eigr, PetscScalar **eigi, Vec **V)
+int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
+  int         ierr, k, j, c;
+  PetscTruth  found;
+  PetscScalar zero = 0.0;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (eigr) *eigr = eps->eigr;
-  if (eigi) *eigi = eps->eigi;
-  if (V)    *V    = eps->V;
+  if (!eps->eigr || !eps->eigi || !eps->V) { 
+     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+  }
+
+#ifdef PETSC_USE_COMPLEX
+  if (i<0 || i>=eps->nconv) { SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); }
+  if (!eps->perm) k = i;
+  else k = eps->perm[i];
+  if (eigr) *eigr = eps->eigr[k];
+  if (eigi) *eigi = 0;
+  if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+  if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
+#else
+  else {
+    c = 0;
+    j = 0;
+    found = PETSC_FALSE;
+    while (j < eps->nconv && !found) {
+      if (!eps->perm) k = j;
+      else k = eps->perm[j];
+      if (i == c) found = PETSC_TRUE;
+      else {
+        if (eps->eigi[k] == 0) j++;
+        else j+=2;
+        c++;
+      }
+    }
+    if (!found) { SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); }
+  }
+  if (eigr) *eigr = eps->eigr[k];
+  if (eigi) *eigi = eps->eigi[k];
+  if (Vr) VecCopy(eps->V[k], Vr);
+  if (Vi) {
+    if (eps->eigi[k] == 0) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
+    else { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
+  }
+#endif
+  
   PetscFunctionReturn(0);
 }
 
@@ -534,7 +595,7 @@ int EPSSetST(EPS eps,ST st)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetST"
-/*@C
+/*@
    EPSGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
 
@@ -821,24 +882,18 @@ int EPSGetInitialVector(EPS eps,Vec *vec)
     
 +     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
-.     EPS_LARGEST_ALGEBRAIC - largest (algebraic) eigenvalues
-.     EPS_SMALLEST_ALGEBRAIC - smallest (algebraic) eigenvalues
 .     EPS_LARGEST_REAL - largest real parts
 .     EPS_SMALLEST_REAL - smallest real parts
-.     EPS_LARGEST_IMAGINARY - largest imaginary parts
-.     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
--     EPS_BOTH_ENDS - eigenvalues from both ends of the spectrum (Hermitian case)
+.     EPS_LARGEST_IMAGINARY - largest imaginary parts in magnitude
+-     EPS_SMALLEST_IMAGINARY - smallest imaginary parts in magnitude
 
     Options Database Keys:
 +   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
 .   -eps_smallest_magnitude - Sets smallest eigenvalues in magnitude
-.   -eps_largest_algebraic - Sets largest (algebraic) eigenvalues
-.   -eps_smallest_algebraic - Sets smallest (algebraic) eigenvalues
 .   -eps_largest_real - Sets largest real parts
 .   -eps_smallest_real - Sets smallest real parts
-.   -eps_largest_imaginary - Sets largest imaginary parts
-.   -eps_smallest_imaginary - Sets smallest imaginary parts
--   -eps_both_ends - Sets both ends
+.   -eps_largest_imaginary - Sets largest imaginary parts in magnitude
+-   -eps_smallest_imaginary - Sets smallest imaginary parts in magnitude
 
     Notes:
     No all eigensolvers implemented in EPS account for all the possible values
@@ -859,7 +914,7 @@ int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetWhichEigenpairs"
-/*@C
+/*@
     EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be 
     sought.
 
@@ -876,13 +931,10 @@ int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
     
 +     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
-.     EPS_LARGEST_ALGEBRAIC - largest (algebraic) eigenvalues
-.     EPS_SMALLEST_ALGEBRAIC - smallest (algebraic) eigenvalues
 .     EPS_LARGEST_REAL - largest real parts
 .     EPS_SMALLEST_REAL - smallest real parts
-.     EPS_LARGEST_IMAGINARY - largest imaginary parts
-.     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
--     EPS_BOTH_ENDS - eigenvalues from both ends of the spectrum (Hermitian case)
+.     EPS_LARGEST_IMAGINARY - largest imaginary parts in magnitude
+-     EPS_SMALLEST_IMAGINARY - smallest imaginary parts in magnitude
 
     Level: intermediate
 
@@ -1014,100 +1066,153 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSComputeError"
-/*@C
-   EPSComputeError - Computes the actual relative error associated with each of
+#define __FUNCT__ "EPSComputeResidualNorm"
+/*@
+   EPSComputeResidualNorm - Computes the residual norm associated with each of
    the converged approximate eigenpairs.
 
    Collective on EPS
 
    Input Parameter:
 .  eps - the eigensolver context
+.  i   - the solution
 
    Output Parameter:
-.  error - the relative error, computed as ||Ax-kBx||/||kx|| where k is the 
+.  norm - the residual norm, computed as ||Ax-kBx|| where k is the 
    eigenvalue and x is the eigenvector. 
-   If k=0 the relative error is computed as ||Ax||.
+   If k=0 the residual norm is computed as ||Ax||.
 
    Level: beginner
 
 .seealso: EPSSolve()
 @*/
-int EPSComputeError(EPS eps,PetscReal *error)
+int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 {
-  Vec         u, v, w;
+  Vec         u, v, w, xr, xi;
   Mat         A, B;
-  int         i, first=1, ierr;
-  PetscScalar alpha;
-  PetscReal   norm;
+  int         ierr;
+  PetscScalar alpha, kr, ki;
+  PetscReal   ni, nr;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (eps->dropvectors || !eps->V) { 
-    SETERRQ(1, "Eigenvectors are not avaliable"); 
-  }
-  ierr = STGetOperators(eps->OP,&A,&B);
-
+  if (eps->dropvectors || !eps->V) { SETERRQ(1, "Eigenvectors are not available"); }  
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&u); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&v); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&w); CHKERRQ(ierr);
-  for (i=0;i<eps->nconv;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if( eps->eigi[i] == 0.0 || 
-      PetscAbsScalar(eps->eigi[i]) < PetscAbsScalar(eps->eigr[i]*PETSC_MACHINE_EPSILON)) {
+  ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
+  ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
+
+#ifndef PETSC_USE_COMPLEX
+  if (ki == 0 || 
+    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-      ierr = MatMult( A, eps->V[i], u ); CHKERRQ(ierr);
-      if (PetscAbsScalar(eps->eigr[i]) < PETSC_MACHINE_EPSILON) {
-        ierr = VecNorm( u, NORM_2, &error[i]); CHKERRQ(ierr);
-        ierr = VecNorm(eps->V[i], NORM_2, &norm);CHKERRQ(ierr);
-        error[i] /= norm;
-      } else {
-        if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
-        else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
-        alpha = -eps->eigr[i];
-        ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
-        ierr = VecNorm( u, NORM_2, &error[i]); CHKERRQ(ierr);
-        ierr = VecNorm(eps->V[i], NORM_2, &norm);CHKERRQ(ierr);
-        error[i] /= norm * PetscAbsScalar(eps->eigr[i]);
-      }
-#if !defined(PETSC_USE_COMPLEX)
+    ierr = MatMult( A, xr, u ); CHKERRQ(ierr); /* u=A*x */
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+      if (eps->isgeneralized) { ierr = MatMult( B, xr, w ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( xr, w ); CHKERRQ(ierr); } /* w=B*x */
+      alpha = -kr; 
+      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr); /* u=A*x-k*B*x */
     }
-    else if( first ) {
-      ierr = MatMult( A, eps->V[i], u ); CHKERRQ(ierr);
-      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], v ); CHKERRQ(ierr); }
-      else { ierr = VecCopy( eps->V[i], v ); CHKERRQ(ierr); }
-      alpha = -eps->eigr[i];
-      ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr);
-      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i+1], w ); CHKERRQ(ierr); }
-      else { ierr = VecCopy( eps->V[i+1], w ); CHKERRQ(ierr); }
-      alpha = eps->eigi[i];
-      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
-      ierr = VecNorm( u, NORM_2, &error[i] ); CHKERRQ(ierr);
-      ierr = MatMult( A, eps->V[i+1], u ); CHKERRQ(ierr);
-      alpha = -eps->eigr[i];
-      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
-      alpha = -eps->eigi[i];
-      ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr);
-      ierr = VecNorm( u, NORM_2, &error[i+1] ); CHKERRQ(ierr);
-      error[i] = LAlapy2_( &error[i], &error[i+1] );
-      ierr = VecNorm(eps->V[i], NORM_2, &norm);CHKERRQ(ierr);
-      error[i] /= norm * LAlapy2_( &eps->eigr[i], &eps->eigi[i] );
-      error[i+1] = error[i];
-      first = 0;
-    }
-    else first = 1;
-#endif
+    ierr = VecNorm( u, NORM_2, norm); CHKERRQ(ierr);  
+#ifndef PETSC_USE_COMPLEX
+  } else {
+    ierr = MatMult( A, xr, u ); CHKERRQ(ierr); /* u=A*xr */
+    if (eps->isgeneralized) { ierr = MatMult( B, xr, v ); CHKERRQ(ierr); }
+    else { ierr = VecCopy( xr, v ); CHKERRQ(ierr); } /* v=B*xr */
+    alpha = -kr;
+    ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr); /* u=A*xr-kr*B*xr */
+    if (eps->isgeneralized) { ierr = MatMult( B, xi, w ); CHKERRQ(ierr); }
+    else { ierr = VecCopy( xi, w ); CHKERRQ(ierr); } /* w=B*xi */
+    alpha = ki;
+    ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr); /* u=A*xr-kr*B*xr+ki*B*xi */
+    ierr = VecNorm( u, NORM_2, &nr ); CHKERRQ(ierr);
+    ierr = MatMult( A, xi, u ); CHKERRQ(ierr); /* u=A*xi */
+    alpha = -kr;
+    ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr); /* u=A*xi-kr*B*xi */
+    alpha = -ki;
+    ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr); /* u=A*xi-kr*B*xi-ki*B*xr */
+    ierr = VecNorm( u, NORM_2, &ni ); CHKERRQ(ierr);
+    *norm = LAlapy2_( &nr, &ni );
   }
+#endif
+
   ierr = VecDestroy(w); CHKERRQ(ierr);
   ierr = VecDestroy(v); CHKERRQ(ierr);
   ierr = VecDestroy(u); CHKERRQ(ierr);
+  ierr = VecDestroy(xr); CHKERRQ(ierr);
+  ierr = VecDestroy(xi); CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeRelativeError"
+/*@
+   EPSComputeRelativeError - Computes the actual relative error associated with each of
+   the converged approximate eigenpairs.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - the eigensolver context
+.  i   - the solution number
+
+   Output Parameter:
+.  error - the relative error, computed as ||Ax-kBx||/||kx|| where k is the 
+   eigenvalue and x is the eigenvector. 
+   If k=0 the relative error is computed as ||Ax||/||x||.
+
+   Level: beginner
+
+.seealso: EPSSolve()
+@*/
+int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
+{
+  Vec         xr, xi, u;
+  int         ierr;
+  PetscScalar kr, ki, alpha;
+  PetscReal   norm, er, ei;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
+  ierr = EPSComputeResidualNorm(eps,i,&norm); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
+  ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
+
+#ifndef PETSC_USE_COMPLEX
+  if (ki == 0 || 
+    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+#endif
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+      ierr = VecScale(&kr, xr); CHKERRQ(ierr);
+    }
+    ierr = VecNorm(xr, NORM_2, &er); CHKERRQ(ierr);
+    *error = norm / er; 
+#ifndef PETSC_USE_COMPLEX
+  } else {
+    ierr = VecDuplicate(xi, &u); CHKERRQ(ierr);  
+    ierr = VecCopy(xi, u); CHKERRQ(ierr);  
+    alpha = -ki;
+    ierr = VecAXPBY(&kr, &alpha, xr, u); CHKERRQ(ierr);   
+    ierr = VecNorm(u, NORM_2, &er); CHKERRQ(ierr);  
+    ierr = VecAXPBY(&kr, &ki, xr, xi);  CHKERRQ(ierr);      
+    ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
+    ierr = VecDestroy(u); CHKERRQ(ierr);  
+    *error = norm / LAlapy2_(&er, &ei);
+  }
+#endif    
+  
+  ierr = VecDestroy(xr); CHKERRQ(ierr);
+  ierr = VecDestroy(xi); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetProblemType"
-/*@C
+/*@
    EPSSetProblemType - Specifies the type of the eigenvalue problem.
 
    Collective on EPS
@@ -1198,7 +1303,7 @@ int EPSSetProblemType(EPS eps,EPSProblemType type)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetProblemType"
-/*@C
+/*@
    EPSGetProblemType - Gets the problem type from the EPS object.
 
    Not Collective
@@ -1428,7 +1533,7 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetOrthogonalization"
-/*@C
+/*@
    EPSSetOrthogonalization - Specifies the type of orthogonalization technique
    to be used inside the eigensolver.
 
@@ -1477,7 +1582,7 @@ int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetOrthogonalization"
-/*@C
+/*@
    EPSGetOrthogonalization - Gets the orthogonalization type from the 
    EPS object.
 
@@ -1503,7 +1608,7 @@ int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBackTransform"
-/*@C
+/*@
    EPSBackTransform - Transforms all the computed eigenvalues back to
    the solution of the original problem.
 
@@ -1519,19 +1624,14 @@ int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type)
 int EPSBackTransform(EPS eps)
 {
   ST          st;
-  PetscScalar *eigr,*eigi;
-  int         ierr,i,nconv;
+  int         ierr,i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = EPSGetSolution(eps,&eigr,&eigi,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  for (i=0;i<nconv;i++) {
-    ierr = STBackTransform(st,&eigr[i],&eigi[i]);CHKERRQ(ierr);
+  for (i=0;i<eps->nconv;i++) {
+    ierr = STBackTransform(st,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);
 }
-
-
