@@ -69,31 +69,36 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
    is the m-th vector of the canonical basis. On exit, beta contains the
    B-norm of f.
 */
-static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
+static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *mout,Vec f,PetscReal *beta)
 {
   PetscErrorCode ierr;
-  int            j;
+  int            j,m;
   PetscReal      norm;
   PetscScalar    t;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
-  for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
+  m = *mout;
+  breakdown = PETSC_FALSE;
+  for (j=k;j<m && !breakdown;j++) {
+    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,j+1,V,f,H+m*j,beta,&breakdown);CHKERRQ(ierr);
     if (breakdown) {
-      ierr = SlepcVecSetRandom(V[j+1]);CHKERRQ(ierr);
-      ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);  
+      PetscLogInfo(eps,"Breakdown in Arnoldi method (norm=%g)",*beta);
+      printf("Breakdown norm=%g j=%i\n",*beta,j);
+      *mout = j;
+      ierr = SlepcVecSetRandom(f);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,f,&norm);CHKERRQ(ierr);
+    } else {
+      norm = *beta;
     }
-    H[(m+1)*j+1] = norm;
     t = 1 / norm;
-    ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+    ierr = VecScale(&t,f);CHKERRQ(ierr);
+    if (j<m-1) { 
+      H[(m+1)*j+1] = norm;
+      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
+    }
   }
-  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
-  ierr = EPSOrthogonalize(eps,m,V,f,H+m*(m-1),beta,&breakdown);CHKERRQ(ierr);
-  if (breakdown) SETERRQ1(1,"Breakdown in Arnoldi method (norm=%g)",*beta);
-  t = 1 / *beta;
-  ierr = VecScale(&t,f);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -102,7 +107,7 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,mout,info,ifst,ilst,ncv=eps->ncv;
+  int            i,k,mout,info,ifst,ilst,ncv=eps->ncv,m;
   Vec            f=eps->work[ncv];
   PetscScalar    *H=eps->T,*U,*Y,*work,t;
   PetscReal      norm,beta;
@@ -132,12 +137,12 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   eps->its = 0;
   /* Restart loop */
   while (eps->its<eps->max_it) {
-
+    m = ncv;
     /* Compute an ncv-step Arnoldi factorization */
-    ierr = EPSBasicArnoldi(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
-    eps->its = eps->its + ncv - eps->nconv;
+    ierr = EPSBasicArnoldi(eps,H,eps->V,eps->nconv,&m,f,&beta);CHKERRQ(ierr);
+    eps->its = eps->its + m - eps->nconv;
 
-    eps->its = eps->its + ncv - eps->nconv;
+    eps->its = eps->its + m - eps->nconv;
 
     /* At this point, H has the following structure
 
@@ -160,22 +165,22 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Compute eigenvectors Y of H */
     ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
+    LAtrevc_("R","B",PETSC_NULL,&m,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
 #else
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+    LAtrevc_("R","B",PETSC_NULL,&m,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
-    for (i=eps->nconv;i<ncv;i++) { 
+    for (i=eps->nconv;i<m;i++) { 
       eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]);
     }  
 
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */
     k = eps->nconv;
-    while (k<ncv && eps->errest[k]<eps->tol) { k++; }
-    for (i=k;i<ncv;i++) {
+    while (k<m && eps->errest[k]<eps->tol) { k++; }
+    for (i=k;i<m;i++) {
       if (eps->errest[i]<eps->tol) {
         ifst = i + 1;
         ilst = k + 1;
