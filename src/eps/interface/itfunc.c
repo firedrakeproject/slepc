@@ -475,7 +475,7 @@ int EPSGetConverged(EPS eps,int *nconv)
 
    Level: beginner
 
-.seealse: EPSSolve(), EPSGetConverged()
+.seealso: EPSSolve(), EPSGetConverged()
 @*/
 int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
@@ -873,8 +873,8 @@ int EPSGetInitialVector(EPS eps,Vec *vec)
 .     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
 .     EPS_LARGEST_REAL - largest real parts
 .     EPS_SMALLEST_REAL - smallest real parts
-.     EPS_LARGEST_IMAGINARY - largest imaginary parts in magnitude
--     EPS_SMALLEST_IMAGINARY - smallest imaginary parts in magnitude
+.     EPS_LARGEST_IMAGINARY - largest imaginary parts
+-     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
 
     Options Database Keys:
 +   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -887,7 +887,9 @@ int EPSGetInitialVector(EPS eps,Vec *vec)
     Notes:
     No all eigensolvers implemented in EPS account for all the possible values
     stated above. Also, some values make sense only for certain types of 
-    problems.
+    problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
+    and EPS_SMALLEST_IMAGINARY use the absolute imaginary part for eigenvalue
+    selection.     
     
     Level: intermediate
 
@@ -922,8 +924,8 @@ int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 .     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
 .     EPS_LARGEST_REAL - largest real parts
 .     EPS_SMALLEST_REAL - smallest real parts
-.     EPS_LARGEST_IMAGINARY - largest imaginary parts in magnitude
--     EPS_SMALLEST_IMAGINARY - smallest imaginary parts in magnitude
+.     EPS_LARGEST_IMAGINARY - largest imaginary parts
+-     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
 
     Level: intermediate
 
