@@ -150,6 +150,7 @@ int STSetFromOptions(ST st)
   PetscTruth flg;
   const char *mode_list[3] = { "copy", "inplace", "shell" };
   const char *structure_list[3] = { "same", "different", "subset" };
+  PC         pc;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -172,21 +173,26 @@ int STSetFromOptions(ST st)
     }
 
     ierr = PetscOptionsEList("-st_matmode", "Shift matrix mode","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = STSetMatMode(st, (STMatMode)i);CHKERRQ(ierr);
-    }
+    if (flg) { st->shift_matrix = (STMatMode)i; }
 
     ierr = PetscOptionsEList("-st_matstructure", "Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = STSetMatStructure(st, (MatStructure)i);CHKERRQ(ierr);
-    }
+    if (flg) { st->str = (MatStructure)i; }
     
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
     }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-  if (st->ksp) { ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr); }
+
+  if (st->ksp) {   
+    if (mode == STMATMODE_SHELL) {
+      /* if shift_mat is set then the default preconditioner is ILU,
+         otherwise set Jacobi as the default */
+      ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+    }
+    ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr); 
+  }
 
   PetscFunctionReturn(0);
 }
@@ -272,17 +278,9 @@ int STSetMatStructure(ST st,MatStructure str)
 @*/
 int STSetMatMode(ST st,STMatMode mode)
 {
-  int        ierr;
-  PC         pc;
-
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   st->shift_matrix = mode;
-  if (mode == STMATMODE_SHELL) {
-    /* if shift_mat is set then the default preconditioner is ILU,
-       otherwise set Jacobi as the default */
-    ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
