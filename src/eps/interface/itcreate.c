@@ -153,7 +153,6 @@ static int EPSPublish_Petsc(PetscObject object)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate"
 /*@C
@@ -190,6 +189,7 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ops->solve          = 0;
   eps->ops->setup          = 0;
   eps->ops->destroy        = 0;
+  eps->ops->backtransform  = 0;
 
   eps->type            = -1;
   eps->max_it          = 0;

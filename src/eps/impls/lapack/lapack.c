@@ -152,6 +152,7 @@ int EPSCreate_LAPACK(EPS eps)
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;
   eps->ops->view                 = 0;
+  eps->ops->backtransform        = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -138,6 +138,7 @@ int EPSCreate_PLANSO(EPS eps)
   eps->ops->solve                = EPSSolve_PLANSO;
   eps->ops->destroy              = EPSDestroy_PLANSO;
   eps->ops->view                 = 0;
+  eps->ops->backtransform        = EPSBackTransform_Default;
   eps->which = EPS_LARGEST_REAL;
   PetscFunctionReturn(0);
 }
