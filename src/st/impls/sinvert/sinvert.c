@@ -46,9 +46,21 @@ static int STApplyNoB_Sinvert(ST st,Vec x,Vec y)
 #define __FUNCT__ "STBackTransform_Sinvert"
 int STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
+  PetscScalar t;
   PetscFunctionBegin;
-  /* Note that this is not correct in the case of the RQI solver */
-  if (eigr) *eigr = 1.0 / *eigr + st->sigma;
+#ifndef PETSC_USE_COMPLEX
+  PetscValidPointer(eigr,2);
+  PetscValidPointer(eigi,3);
+  if (*eigi == 0) *eigr = 1.0 / *eigr + st->sigma;
+  else {
+    t = *eigr * *eigr + *eigi * *eigi;
+    *eigr = *eigr / t + st->sigma;
+    *eigi = - *eigi / t;
+  }
+#else
+  PetscValidPointer(eigr,2);
+  *eigr = 1.0 / *eigr + st->sigma;
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -394,8 +406,8 @@ int STCreate_Sinvert(ST st)
   ctx->shift_matrix = STSINVERT_MATMODE_COPY;
   ctx->str          = DIFFERENT_NONZERO_PATTERN;
 
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STSinvertSetShiftMat_C","STSinvertSetShiftMat_Sinvert",
-                    STSinvertSetShiftMat_Sinvert);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STSinvertSetMatMode_C","STSinvertSetMatMode_Sinvert",
+                    STSinvertSetMatMode_Sinvert);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STSinvertSetMatStructure_C","STSinvertSetMatStructure_Sinvert",
                     STSinvertSetMatStructure_Sinvert);CHKERRQ(ierr);
 
