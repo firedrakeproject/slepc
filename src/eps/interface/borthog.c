@@ -168,6 +168,19 @@ int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonal
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSPurge"
+int EPSPurge(EPS eps,Vec v)
+{
+  int ierr;
+
+  PetscFunctionBegin;
+  if (eps->nds+eps->nconv>0) {
+    ierr = (*eps->orthog)(eps,eps->nds+eps->nconv,eps->DSV,v,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  } 
+  PetscFunctionReturn(0);
+}
+
 /*
     Orthogonalization routine using classical Gram-Schmidt with refinement.
  */
