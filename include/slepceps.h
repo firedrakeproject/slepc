@@ -21,7 +21,6 @@ S*/
 typedef struct _p_EPS* EPS;
 
 #define EPSPOWER     "power"
-#define EPSRQI       "rqi"
 #define EPSSUBSPACE  "subspace"
 #define EPSARNOLDI   "arnoldi"
 #define EPSSRRIT     "srrit"

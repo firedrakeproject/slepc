@@ -10,7 +10,6 @@
 #define EPSConvergedReason integer
 
 #define EPSPOWER     'power'
-#define EPSRQI       'rqi'
 #define EPSSUBSPACE  'subspace'
 #define EPSARNOLDI   'arnoldi'
 #define EPSLAPACK    'lapack'

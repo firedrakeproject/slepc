@@ -4,7 +4,6 @@
 EXTERN_C_BEGIN
 extern int EPSCreate_PREONLY(EPS);
 extern int EPSCreate_POWER(EPS);
-extern int EPSCreate_RQI(EPS);
 extern int EPSCreate_SUBSPACE(EPS);
 extern int EPSCreate_ARNOLDI(EPS);
 extern int EPSCreate_SRRIT(EPS);
@@ -50,8 +49,6 @@ int EPSRegisterAll(char *path)
 
   ierr = EPSRegisterDynamic(EPSPOWER, path,"EPSCreate_POWER", 
 		  EPSCreate_POWER);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSRQI, path,"EPSCreate_RQI", 
-		  EPSCreate_RQI);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSSUBSPACE, path,"EPSCreate_SUBSPACE", 
 		  EPSCreate_SUBSPACE);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSARNOLDI, path,"EPSCreate_ARNOLDI", 
