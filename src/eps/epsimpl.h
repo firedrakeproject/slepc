@@ -44,7 +44,8 @@ struct _p_EPS {
               *AV,              /* computed eigen vectors */
               *DS,              /* deflation space */
               *DSV;             /* deflation space and basis vectors*/
-  PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
+  PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
+              *T;
   PetscReal  *errest;           /* error estimates */
   ST         OP;                /* spectral transformation object */
   void       *data;             /* holder for misc stuff associated 
@@ -92,5 +93,6 @@ EXTERN PetscErrorCode EPSAllocateSolutionContiguous(EPS);
 EXTERN PetscErrorCode EPSFreeSolutionContiguous(EPS);
 EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
+EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 
 #endif

@@ -186,6 +186,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->vec_initial     = 0;
   eps->vec_initial_set = PETSC_FALSE;
   eps->V               = 0;
+  eps->AV              = 0;
+  eps->T               = 0;
   eps->DS              = 0;
   eps->ds_ortho        = PETSC_TRUE;
   eps->eigr            = 0;

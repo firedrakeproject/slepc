@@ -21,6 +21,8 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
+  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,eps->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -141,7 +143,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   PetscErrorCode ierr;
   int            i,j,ilo,lwork,info,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
-  PetscScalar    *T,*U,*tau,*work,t;
+  PetscScalar    *T=eps->T,*U,*tau,*work,t;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsdold,norm,tcond;
   /* Parameters */
   int            init = 5;
@@ -158,7 +160,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 #endif 
   eps->its = 0;
   eps->nconv = 0;
-  ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&T);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsdold);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv,&tau);CHKERRQ(ierr);
@@ -296,7 +297,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     } while (eps->its<nxtsrr);
   }
 
-  ierr = PetscFree(T);CHKERRQ(ierr);
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(rsdold);CHKERRQ(ierr);
   ierr = PetscFree(tau);CHKERRQ(ierr);
@@ -311,16 +311,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "EPSComputeVectors_SUBSPACE"
-PetscErrorCode EPSComputeVectors_SUBSPACE(EPS eps)
-{
-  PetscErrorCode ierr;
-  PetscFunctionBegin;
-  ierr = EPSComputeVectors_Default(eps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_SUBSPACE"
@@ -331,7 +321,7 @@ PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
   eps->ops->setup                = EPSSetUp_SUBSPACE;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_SUBSPACE;
+  eps->ops->computevectors       = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -23,6 +23,8 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   if (!eps->tol) eps->tol = 1.e-7;
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
+  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,eps->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -62,7 +64,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   PetscErrorCode ierr;
   int            i,mout,info,ncv=eps->ncv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *H,*U,*work,t;
+  PetscScalar    *H=eps->T,*U,*work,t;
   PetscReal      norm,beta;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -72,13 +74,10 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
   SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #endif 
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&H);CHKERRQ(ierr);
   ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-#else
-  ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
 #endif
 
@@ -122,7 +121,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 #endif
 
-  ierr = PetscFree(H);CHKERRQ(ierr);
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -142,7 +140,7 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
   eps->ops->setup                = EPSSetUp_ARNOLDI;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
