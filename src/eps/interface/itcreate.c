@@ -80,13 +80,10 @@ int EPSView(EPS eps,PetscViewer viewer)
     switch (eps->which) {
       case EPS_LARGEST_MAGNITUDE:  which = "largest eigenvalues in magnitude"; break;
       case EPS_SMALLEST_MAGNITUDE: which = "smallest eigenvalues in magnitude"; break;
-      case EPS_LARGEST_ALGEBRAIC:  which = "largest (algebraic) eigenvalues"; break;
-      case EPS_SMALLEST_ALGEBRAIC: which = "smallest (algebraic) eigenvalues"; break;
       case EPS_LARGEST_REAL:       which = "largest real parts"; break;
       case EPS_SMALLEST_REAL:      which = "smallest real parts"; break;
-      case EPS_LARGEST_IMAGINARY:  which = "largest imaginary parts"; break;
-      case EPS_SMALLEST_IMAGINARY: which = "smallest imaginary parts"; break;
-      case EPS_BOTH_ENDS:          which = "eigenvalues from both ends of the spectrum"; break;
+      case EPS_LARGEST_IMAGINARY:  which = "largest imaginary parts in magnitude"; break;
+      case EPS_SMALLEST_IMAGINARY: which = "smallest imaginary parts in magnitude"; break;
       default: SETERRQ(1,"Wrong value of eps->which");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: %s\n",which);CHKERRQ(ierr);
@@ -214,6 +211,7 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->data            = 0;
   eps->nconv           = 0;
   eps->its             = 0;
+  eps->perm            = PETSC_NULL;
 
   eps->nwork           = 0;
   eps->work            = 0;
@@ -439,20 +437,14 @@ int EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);}
     ierr = PetscOptionsLogicalGroup("-eps_smallest_magnitude","compute smallest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);}
-    ierr = PetscOptionsLogicalGroup("-eps_largest_algebraic","compute largest (algebraic) eigenvalues","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_ALGEBRAIC);CHKERRQ(ierr);}
-    ierr = PetscOptionsLogicalGroup("-eps_smallest_algebraic","compute smallest (algebraic) eigenvalues","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_ALGEBRAIC);CHKERRQ(ierr);}
     ierr = PetscOptionsLogicalGroup("-eps_largest_real","compute largest real parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);}
     ierr = PetscOptionsLogicalGroup("-eps_smallest_real","compute smallest real parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);}
     ierr = PetscOptionsLogicalGroup("-eps_largest_imaginary","compute largest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_IMAGINARY);CHKERRQ(ierr);}
-    ierr = PetscOptionsLogicalGroup("-eps_smallest_imaginary","compute smallest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsLogicalGroupEnd("-eps_smallest_imaginary","compute smallest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
-    ierr = PetscOptionsLogicalGroupEnd("-eps_both_ends","compute eigenvalues from both ends of the spectrum","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_BOTH_ENDS);CHKERRQ(ierr);}
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_binary","Saves the matrices associated to the eigenproblem","EPSSetFromOptions",0);CHKERRQ(ierr);
