@@ -146,9 +146,10 @@ int main( int argc, char **argv )
   */
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSSetType(eps,EPSARPACK);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(eps,PETSC_DEFAULT,12);CHKERRQ(ierr);
+#else
+  ierr = EPSSetType(eps, EPSLAPACK);CHKERRQ(ierr);
 #endif
+  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
 
   /*
      Set other solver options at runtime
