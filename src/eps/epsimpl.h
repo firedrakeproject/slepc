@@ -14,6 +14,7 @@ struct _EPSOps {
   int  (*destroy)(EPS);
   int  (*view)(EPS,PetscViewer);
   int  (*backtransform)(EPS);
+  int  (*computevectors)(EPS);
 };
 
 /*
@@ -66,8 +67,6 @@ struct _p_EPS {
   int        (*monitordestroy[MAXEPSMONITORS])(void*);
   void       *monitorcontext[MAXEPSMONITORS];
   int        numbermonitors; 
-
-  int        (*computevectors)(EPS);
 
   /* --------------- Orthogonalization --------------------- */
   EPSOrthogonalizationType           orthog_type; /* which orthogonalization to use */

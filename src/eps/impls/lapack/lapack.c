@@ -138,13 +138,11 @@ PetscErrorCode EPSCreate_LAPACK(EPS eps)
   PetscMemzero(la,sizeof(EPS_LAPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_LAPACK));
   eps->data                      = (void *) la;
-  eps->ops->setfromoptions       = 0;
-  eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->solve                = EPSSolve_LAPACK;
+  eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;
-  eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->computevectors            = EPSComputeVectors_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

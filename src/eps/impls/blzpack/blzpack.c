@@ -489,13 +489,13 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   PetscMemzero(blzpack,sizeof(EPS_BLZPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_BLZPACK));
   eps->data                      = (void *) blzpack;
-  eps->ops->setup                = EPSSetUp_BLZPACK;
   eps->ops->solve                = EPSSolve_BLZPACK;
-  eps->ops->destroy              = EPSDestroy_BLZPACK;
+  eps->ops->setup                = EPSSetUp_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
+  eps->ops->destroy              = EPSDestroy_BLZPACK;
   eps->ops->view                 = EPSView_BLZPACK;
   eps->ops->backtransform        = EPSBackTransform_BLZPACK;
-  eps->computevectors            = EPSComputeVectors_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
 
   blzpack->block_size = 3;
   blzpack->initial = 0.0;

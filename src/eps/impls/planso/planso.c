@@ -134,13 +134,11 @@ PetscErrorCode EPSCreate_PLANSO(EPS eps)
   PetscMemzero(planso,sizeof(EPS_PLANSO));
   PetscLogObjectMemory(eps,sizeof(EPS_PLANSO));
   eps->data                      = (void *) planso;
-  eps->ops->setfromoptions       = 0;
-  eps->ops->setup                = EPSSetUp_PLANSO;
   eps->ops->solve                = EPSSolve_PLANSO;
+  eps->ops->setup                = EPSSetUp_PLANSO;
   eps->ops->destroy              = EPSDestroy_PLANSO;
-  eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->computevectors            = EPSComputeVectors_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   eps->which = EPS_LARGEST_REAL;
   PetscFunctionReturn(0);
 }

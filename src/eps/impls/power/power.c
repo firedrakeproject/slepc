@@ -333,13 +333,13 @@ PetscErrorCode EPSCreate_POWER(EPS eps)
   PetscMemzero(power,sizeof(EPS_POWER));
   PetscLogObjectMemory(eps,sizeof(EPS_POWER));
   eps->data                      = (void *) power;
-  eps->ops->setfromoptions       = EPSSetFromOptions_POWER;
-  eps->ops->setup                = EPSSetUp_POWER;
   eps->ops->solve                = EPSSolve_POWER;
+  eps->ops->setup                = EPSSetUp_POWER;
+  eps->ops->setfromoptions       = EPSSetFromOptions_POWER;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->view                 = EPSView_POWER;
   eps->ops->backtransform        = EPSBackTransform_POWER;
-  eps->computevectors            = EPSComputeVectors_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   power->shift_type              = EPSPOWER_SHIFT_CONSTANT;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","EPSPowerSetShiftType_POWER",EPSPowerSetShiftType_POWER);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_POWER",EPSPowerGetShiftType_POWER);CHKERRQ(ierr);

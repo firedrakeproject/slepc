@@ -295,13 +295,11 @@ PetscErrorCode EPSCreate_ARPACK(EPS eps)
   PetscMemzero(arpack,sizeof(EPS_ARPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_ARPACK));
   eps->data                      = (void *) arpack;
-  eps->ops->setfromoptions       = 0;
-  eps->ops->setup                = EPSSetUp_ARPACK;
   eps->ops->solve                = EPSSolve_ARPACK;
+  eps->ops->setup                = EPSSetUp_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
-  eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_ARPACK;
-  eps->computevectors            = EPSComputeVectors_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

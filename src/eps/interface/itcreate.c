@@ -169,7 +169,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscLogObjectCreate(eps);
   *outeps = eps;
 
-  eps->bops->publish       = EPSPublish_Petsc;
+  eps->bops->publish   = EPSPublish_Petsc;
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
 
   eps->type            = -1;
@@ -180,8 +180,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nds             = 0;
   eps->tol             = 0.0;
   eps->which           = EPS_LARGEST_MAGNITUDE;
-  eps->evecsavailable = PETSC_FALSE;
-  eps->computevectors  = PETSC_NULL;
+  eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
 
   eps->vec_initial     = 0;

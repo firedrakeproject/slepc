@@ -138,12 +138,11 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                      = (void *) 0;
-  eps->ops->setfromoptions       = 0;
-  eps->ops->setup                = EPSSetUp_ARNOLDI;
   eps->ops->solve                = EPSSolve_ARNOLDI;
+  eps->ops->setup                = EPSSetUp_ARNOLDI;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->computevectors            = EPSComputeVectors_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
