@@ -187,11 +187,7 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   *outeps = eps;
 
   eps->bops->publish       = EPSPublish_Petsc;
-  eps->ops->setfromoptions = 0;
-  eps->ops->solve          = 0;
-  eps->ops->setup          = 0;
-  eps->ops->destroy        = 0;
-  eps->ops->backtransform  = 0;
+  ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
 
   eps->type            = -1;
   eps->max_it          = 0;
@@ -292,6 +288,7 @@ int EPSSetType(EPS eps,EPSType type)
   if (!r) SETERRQ1(1,"Unknown EPS type given: %s",type);
 
   eps->setupcalled = 0;
+  ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
   ierr = (*r)(eps); CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)eps,type);CHKERRQ(ierr);
