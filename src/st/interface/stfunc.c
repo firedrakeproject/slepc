@@ -97,7 +97,7 @@ int STCreate(MPI_Comm comm,ST *newst)
 
   st->A                   = 0;
   st->B                   = 0;
-  st->sigma               = 1.0;
+  st->sigma               = 0.0;
   st->vec                 = 0;
   st->ksp                 = 0;
   st->data                = 0;
@@ -295,7 +295,7 @@ int STGetShift(ST st,PetscScalar* shift)
 .  nshifts - the number of shifts
 
    Note:
-   The returned value will be either 0 (for STNONE and STSHELL) 
+   The returned value will be either 0 (for STSHELL) 
    or 1 (for STSHIFT and STSINV). Future versions of SLEPc may
    provide other ST which requires more than one shift.
 
