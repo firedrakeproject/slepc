@@ -219,20 +219,42 @@ Each of these components consists of an abstract interface (simply a set of call
 \chapter{Catalog of Solvers}
 \label{cap:meth}
 
-	This appendix provides a short description of all the eigenvalue solvers which are available in \slepc, including the interfaces to external libraries. In the case of ``native'' methods, that is, those methods that are implemented directly in \slepc, the description includes a sketch of the algorithm which is actually implemented.
+	This appendix provides a short description of all the eigensolvers which are available in \slepc, including the interfaces to external libraries. In the case of ``native'' methods, that is, those methods that are implemented directly in \slepc, the description includes a sketch of the algorithm which is actually implemented. A short description of wrappers to external libraries is provided in section \ref{sec:wrap} of this appendix, including pointers to the respective websites from which the software can be downloaded. In both cases, the description may also include method-specific parameters, that can be set n the same way as other \slepc options, either procedurally or via the command-line.
 
-	Table \ref{tab:defaults} summarizes the available native methods and shows the default values for some of their parameters.
-\begin{table}[ht]
+	Table \ref{tab:defaults} summarizes all eigensolvers available in \slepc, both native and external. This table shows the default values for some of the parameters that the user can adjust.
+\begin{table}
 \centering
 \begin{tabular}{cccc} \hline
 Method   & \texttt{ncv} & \texttt{max\_it} & \texttt{tol} \\ \hline
-\texttt{power}    &  1 & $\max(2000,100N)$ & $10^{-7}$ \\ 
-\texttt{subspace} &  $\max(2\cdot nev,nev+8)$ & $\max(100,N)$ & $10^{-7}$ \\ 
-\texttt{arnoldi}  &  $\max(2\cdot nev,nev+10)$ & $\max(100,N)$ & $10^{-7}$ \\ 
-%\texttt{lanczos}  &  1 & $\max(2000,1000N)$ & $10^{-7}$ \\ 
+\texttt{power}    &  $nev$ & $\max(2000,100N)$ & $10^{-7}$ \\ 
+\texttt{subspace} &  $\max(2\cdot nev,nev+15)$ & $\max(100,N)$ & $10^{-7}$ \\ 
+\texttt{arnoldi}  &  $\max(2\cdot nev,nev+10)$ & $\max(100,N\cdot ncv)$ & $10^{-7}$ \\ 
 \hline
+\texttt{lapack}   &  $nev$ &         -          &    -      \\ 
+\texttt{arpack}   &  $\min(\max(20,2\!\cdot\!nev\!+\!\!1),N)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $10^{-7}$ \\ 
+\texttt{blzpack}  &  $\min(nev\!+\!\!10,2\!\cdot\!nev)$ & $\max(100,N)$ & $10^{-7}$ \\ 
+\texttt{planso}   &  $nev$ & $\max(100,N)$ & $10^{-7}$ \\ 
+\texttt{trlan}    &  $nev$ & $\max(100,N)$ & $10^{-7}$ \\ \hline
 \end{tabular}
-\caption{\label{tab:defaults}Default parameter values for native algorithms available in \slepc.}
+\caption{\label{tab:defaults}Default parameter values for all eigensolvers available in \slepc.}
+\end{table}
+
+	Table \ref{tab:support} summarizes the scope of each eigensolver by listing which portion of the spectrum can be selected (as defined in table \ref{tab:portion}), which problem types are supported (as defined in table \ref{tab:ptype}) and whether they are available or not in the complex version of \slepc. 
+\begin{table}
+\centering
+\begin{tabular}{ccccc} \hline
+Method   &  Portion of spectrum & Problem type & Complex \\ \hline
+\texttt{power}    &  Largest $|\lambda|$ & all & yes \\ 
+\texttt{subspace} &  Largest $|\lambda|$ & all & yes \\ 
+\texttt{arnoldi}  &  Largest $|\lambda|$ & all & yes \\ 
+\hline
+\texttt{lapack}   &  all &  all & yes \\ 
+\texttt{arpack}   &  all &  all & yes \\ 
+\texttt{blzpack}  &  Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & no \\ 
+\texttt{planso}   &  Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\ 
+\texttt{trlan}    &  Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\ \hline
+\end{tabular}
+\caption{\label{tab:support}Supported problem types for all eigesolvers available in \slepc.}
 \end{table}
 
 
@@ -388,21 +410,6 @@ SLEPC_HAVE_ARPACK = -DSLEPC_HAVE_ARPACK
 	\end{enumerate}
 
 	An exception to the above is \lapack, which should be already available in the \petsc{} installation.
-
-	Table \ref{tab:defaults-ext} shows the default values for several parameters in each of the wrappers. Also, some of the interfaces can provide method-specific parameters.
-\begin{table}[ht]
-\centering
-\begin{tabular}{ccccc} \hline
-Method   &  \texttt{ncv} & \texttt{max\_it} & \texttt{tol} \\ \hline
-\texttt{lapack}   &  - &         -          &    -      \\ 
-\texttt{arpack}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $10^{-7}$ \\ 
-\texttt{blzpack}  &  $\min(nev\!+\!\!10,2\!\cdot\!nev)$ & $\max(100,N)$ & $10^{-7}$ \\ 
-\texttt{planso}   &  $nev$ & $\max(100,N)$ & $10^{-7}$ \\ 
-\texttt{trlan}    &  $nev$ & $\max(100,N)$ & $10^{-7}$ \\ \hline
-\end{tabular}
-\caption{\label{tab:defaults-ext}Default values for wrappers to external
-libraries.}
-\end{table}
 
 \section*{\underline{\lapack}}
 	\begin{description}
