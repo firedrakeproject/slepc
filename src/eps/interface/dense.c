@@ -37,6 +37,7 @@ int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,i
   int       ierr,i,*perm;
   PetscReal *values;
 
+  PetscFunctionBegin;
   ierr = PetscMalloc(n*sizeof(int),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscReal),&values);CHKERRQ(ierr);
   for (i=0; i<n; i++) { perm[i] = i;}
@@ -228,7 +229,7 @@ int EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,Petsc
   }
   if (V) {
     ierr   = PetscMalloc(n*n*sizeof(PetscScalar),&vectors);CHKERRQ(ierr);
-  }
+  } else vectors = PETSC_NULL;
 
   ierr = EPSDenseNHEP(n,A,realpart,imagpart,vectors);CHKERRQ(ierr);
 
