@@ -57,7 +57,6 @@ int STSetType(ST st,STType type)
   ierr = PetscFListDestroy(&st->qlist);CHKERRQ(ierr);
   st->data        = 0;
   st->setupcalled = 0;
-  st->ksp         = 0;
 
   /* Get the function pointers for the method requested */
   if (!STRegisterAllCalled) {ierr = STRegisterAll(0); CHKERRQ(ierr);}

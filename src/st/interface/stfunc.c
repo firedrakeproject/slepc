@@ -81,6 +81,7 @@ int STCreate(MPI_Comm comm,ST *newst)
 {
   ST      st;
   int     ierr;
+  char*   prefix;
 
   PetscFunctionBegin;
   *newst = 0;
@@ -99,9 +100,14 @@ int STCreate(MPI_Comm comm,ST *newst)
   st->B                   = 0;
   st->sigma               = 0.0;
   st->vec                 = 0;
-  st->ksp                 = 0;
   st->data                = 0;
   st->setupcalled         = 0;
+  
+  ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);
+  ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
+  ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
+  ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
+  
   *newst                  = st;
   ierr = PetscPublishAll(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);

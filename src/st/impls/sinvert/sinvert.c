@@ -379,7 +379,6 @@ EXTERN_C_BEGIN
 int STCreate_Sinvert(ST st)
 {
   int       ierr;
-  char      *prefix;
   ST_SINV   *ctx;
 
   PetscFunctionBegin;
@@ -399,10 +398,6 @@ int STCreate_Sinvert(ST st)
   st->ops->setfromoptions = STSetFromOptions_Sinvert;
   st->ops->view           = STView_Sinvert;
 
-  ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);
-  ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
-  ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
   ctx->shift_matrix = STSINVERT_MATMODE_COPY;
   ctx->str          = DIFFERENT_NONZERO_PATTERN;
 

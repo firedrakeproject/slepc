@@ -45,9 +45,10 @@ static int STSetUp_Shift(ST st)
   Vec     w;
 
   PetscFunctionBegin;
-  if (st->ksp) {
+  if (st->B) {
     ierr = VecDuplicate(st->vec,&w);CHKERRQ(ierr);
     st->data = (void *) w;
+    ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   } 
   PetscFunctionReturn(0);
@@ -73,24 +74,12 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STCreate_Shift"
 int STCreate_Shift(ST st)
 {
-  int     ierr;
-  char    *prefix;
-
   PetscFunctionBegin;
   st->numberofshifts   = 1;
   st->ops->apply       = STApply_Shift;
   st->ops->backtr      = STBackTransform_Shift;
   st->ops->destroy     = STDestroy_Shift;
   st->ops->setup       = STSetUp_Shift;
-
-  if (st->B) {
-    ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);
-    ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
-    ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
-    ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  }
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

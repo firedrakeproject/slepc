@@ -61,11 +61,16 @@ int STAssociatedKSPSolve(ST st,Vec b,Vec x)
 @*/
 int STSetKSP(ST st,KSP ksp)
 {
+  int   ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(ksp,KSP_COOKIE,2);
   PetscCheckSameComm(st,1,ksp,2);
+  if (st->ksp) {
+    ierr = KSPDestroy(st->ksp);CHKERRQ(ierr);
+  }
   st->ksp = ksp;
+  PetscObjectReference((PetscObject)st->ksp);
   PetscFunctionReturn(0);
 }
 
