@@ -33,7 +33,6 @@ int EPSSetUp(EPS eps)
   int         i,ierr;
   Vec         v0;
   Mat         A,B;
-  PetscTruth  Ah,Bh;
   PetscReal   norm;
   
   PetscFunctionBegin;
@@ -51,15 +50,11 @@ int EPSSetUp(EPS eps)
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   /* Set default problem type */
   if (!eps->problem_type) {
-    ierr = SlepcIsHermitian(A,&Ah);CHKERRQ(ierr);
     if (B==PETSC_NULL) {
-      if (Ah) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
-      else    { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
+      ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
     }
     else {
-      ierr = SlepcIsHermitian(B,&Bh);CHKERRQ(ierr);
-      if (Ah && Bh) { ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr); }
-      else          { ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr); }
+      ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
     }
   }
   
@@ -949,12 +944,21 @@ int EPSComputeExplicitOperator(EPS eps,Mat *mat)
 @*/
 int EPSSetOperators(EPS eps,Mat A,Mat B)
 {
-  int ierr;
+  int m,n,ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(A,MAT_COOKIE,2);
   if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
+
+  /* Check for square matrices */
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  if (m!=n) { SETERRQ(1,"A is a non-square matrix"); }
+  if (B) { 
+    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
+    if (m!=n) { SETERRQ(1,"B is a non-square matrix"); }
+  }
+
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
   eps->setupcalled = 0;  /* so that next solve call will call setup */
   if (!eps->vec_initial_set && eps->vec_initial) {
@@ -1156,64 +1160,53 @@ int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 @*/
 int EPSSetProblemType(EPS eps,EPSProblemType type)
 {
-  int        n,m,ierr;
+  int        ierr;
   Mat        A,B;
-  PetscTruth Ah,Bh,inconsistent=PETSC_FALSE;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
 
-  if (type!=EPS_HEP && type!=EPS_GHEP && type!=EPS_NHEP && type!=EPS_GNHEP ) { SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type"); }
-
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   if (!A) { SETERRQ(1,"Must call EPSSetOperators() first"); }
 
-  /* Check for square matrices */
-  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  if (m!=n) { SETERRQ(1,"A is a non-square matrix"); }
-  if (B) { 
-    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
-    if (m!=n) { SETERRQ(1,"B is a non-square matrix"); }
-  }
-
-  eps->problem_type = type;
-
-  ierr = SlepcIsHermitian(A,&Ah);CHKERRQ(ierr);
-  if (B) { ierr = SlepcIsHermitian(B,&Bh);CHKERRQ(ierr); }
-
-  if (!B) {
-    eps->isgeneralized = PETSC_FALSE;
-    if (Ah) eps->ishermitian = PETSC_TRUE;
-    else    eps->ishermitian = PETSC_FALSE;
-  }
-  else {
-    eps->isgeneralized = PETSC_TRUE;
-    if (Ah && Bh) eps->ishermitian = PETSC_TRUE;
-    else          eps->ishermitian = PETSC_FALSE;
-  }
- 
   switch (type) {
     case EPS_HEP:
-      if (eps->isgeneralized || !eps->ishermitian) inconsistent=PETSC_TRUE;
+      eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_TRUE;
+      ierr = STSetBilinearForm(eps->OP,STINNER_HERMITIAN);CHKERRQ(ierr);
+      break;      
+    case EPS_NHEP:
+      eps->isgeneralized = PETSC_FALSE;
+      eps->ishermitian = PETSC_FALSE;
+      ierr = STSetBilinearForm(eps->OP,STINNER_HERMITIAN);CHKERRQ(ierr);
       break;
     case EPS_GHEP:
-      /* Note that here we do not consider the case in which A and B are 
-         non-hermitian but there exists a linear combination of them which is */
-      if (!eps->isgeneralized || !eps->ishermitian) inconsistent=PETSC_TRUE;
-      break;
-    case EPS_NHEP:
-      if (eps->isgeneralized) inconsistent=PETSC_TRUE;
-      eps->ishermitian = PETSC_FALSE;
+      eps->isgeneralized = PETSC_TRUE;
+      eps->ishermitian = PETSC_TRUE;
+      ierr = STSetBilinearForm(eps->OP,STINNER_B_HERMITIAN);CHKERRQ(ierr);
       break;
     case EPS_GNHEP:
-      /* If matrix B is not given then an error is issued. An alternative 
-         would be to generate an identity matrix. Also in EPS_GHEP above */
-      if (!eps->isgeneralized) inconsistent=PETSC_TRUE;
+      eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
+      ierr = STSetBilinearForm(eps->OP,STINNER_HERMITIAN);CHKERRQ(ierr);
       break;
+/*
+    case EPS_CSEP: 
+      eps->isgeneralized = PETSC_FALSE;
+      eps->ishermitian = PETSC_FALSE;
+      ierr = STSetBilinearForm(eps->OP,STINNER_SYMMETRIC);CHKERRQ(ierr);
+      break;
+    case EPS_GCSEP:
+      eps->isgeneralized = PETSC_TRUE;
+      eps->ishermitian = PETSC_FALSE;
+      ierr = STSetBilinearForm(eps->OP,STINNER_B_SYMMETRIC);CHKERRQ(ierr);
+      break;
+*/
+    default:
+      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   }
-  if (inconsistent) { SETERRQ(0,"Warning: Inconsistent EPS state"); }
+  eps->problem_type = type;
+  if (eps->isgeneralized != (PetscTruth)B) { SETERRQ(0,"Warning: Inconsistent EPS state"); }
 
   PetscFunctionReturn(0);
 }
