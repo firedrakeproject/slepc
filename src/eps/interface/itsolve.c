@@ -341,7 +341,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   if (!eps->evecsavailable && (Vr || Vi) ) { 
-    ierr = (*eps->computevectors)(eps);CHKERRQ(ierr);
+    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
 
   if (!eps->perm) k = i;
@@ -483,7 +483,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
     alpha = -ki;
     ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr); /* u=A*xi-kr*B*xi-ki*B*xr */
     ierr = VecNorm( u, NORM_2, &ni ); CHKERRQ(ierr);
-    *norm = LAlapy2_( &nr, &ni );
+    *norm = SlepcAbsEigenvalue( nr, ni );
   }
 #endif
 
@@ -554,7 +554,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
     ierr = VecAXPBY(&kr, &ki, xr, xi);  CHKERRQ(ierr);      
     ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
     ierr = VecDestroy(u); CHKERRQ(ierr);  
-    *error = norm / LAlapy2_(&er, &ei);
+    *error = norm / SlepcAbsEigenvalue(er, ei);
   }
 #endif    
   
