@@ -181,12 +181,14 @@ int EPSAllocateSolution(EPS eps)
       ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
       ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
       ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
-      ierr = VecDestroyVecs(eps->V,eps->allocated_ncv); CHKERRQ(ierr);
+      ierr = VecDestroyVecs(eps->V,eps->allocated_ncv);CHKERRQ(ierr);
+      ierr = VecDestroyVecs(eps->AV,eps->allocated_ncv);CHKERRQ(ierr);
     }
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->V); CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->V);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AV);CHKERRQ(ierr);
     eps->allocated_ncv = eps->ncv;
   }
   PetscFunctionReturn(0);
@@ -204,7 +206,8 @@ int EPSFreeSolution(EPS eps)
     ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
     ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
     ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
-    ierr = VecDestroyVecs(eps->V,eps->allocated_ncv); CHKERRQ(ierr);
+    ierr = VecDestroyVecs(eps->V,eps->allocated_ncv);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(eps->AV,eps->allocated_ncv);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -228,6 +231,12 @@ int EPSAllocateSolutionContiguous(EPS eps)
       }
       ierr = PetscFree(pV);CHKERRQ(ierr);
       ierr = PetscFree(eps->V);CHKERRQ(ierr);
+      ierr = VecGetArray(eps->AV[0],&pV);CHKERRQ(ierr);
+      for (i=0;i<eps->allocated_ncv;i++) {
+        ierr = VecDestroy(eps->AV[i]);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(pV);CHKERRQ(ierr);
+      ierr = PetscFree(eps->AV);CHKERRQ(ierr);
     }
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
@@ -237,6 +246,11 @@ int EPSAllocateSolutionContiguous(EPS eps)
     ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
     for (i=0;i<eps->ncv;i++) {
       ierr = VecCreateMPIWithArray(eps->comm,nloc,PETSC_DECIDE,pV+i*nloc,&eps->V[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->AV);CHKERRQ(ierr);
+    ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+    for (i=0;i<eps->ncv;i++) {
+      ierr = VecCreateMPIWithArray(eps->comm,nloc,PETSC_DECIDE,pV+i*nloc,&eps->AV[i]);CHKERRQ(ierr);
     }
     eps->allocated_ncv = eps->ncv;
   }
@@ -262,6 +276,12 @@ int EPSFreeSolutionContiguous(EPS eps)
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(eps->V);CHKERRQ(ierr);
+    ierr = VecGetArray(eps->AV[0],&pV);CHKERRQ(ierr);
+    for (i=0;i<eps->allocated_ncv;i++) {
+      ierr = VecDestroy(eps->AV[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
+    ierr = PetscFree(eps->AV);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

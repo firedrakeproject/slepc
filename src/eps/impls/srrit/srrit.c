@@ -17,17 +17,11 @@ extern int dlaqr3_(logical *wantt, logical *wantz, integer *n,
 extern doublereal dcond_(integer *m, doublereal *h__, integer *ldh, integer *ipvt, 
 	doublereal *mult, integer *info);
 
-typedef struct {
-  Vec *AV;
-  int nav;
-} EPS_SRRIT;
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_SRRIT"
 static int EPSSetUp_SRRIT(EPS eps)
 {
   int       ierr, N;
-  EPS_SRRIT *srrit = (EPS_SRRIT *)eps->data;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -42,9 +36,6 @@ static int EPSSetUp_SRRIT(EPS eps)
     SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,eps->ncv);CHKERRQ(ierr);
-  if (srrit->AV) { ierr = VecDestroyVecs(srrit->AV,srrit->nav);CHKERRQ(ierr); }
-  srrit->nav = eps->ncv;
-  ierr = VecDuplicateVecs(eps->vec_initial,srrit->nav,&srrit->AV);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -167,7 +158,6 @@ static int EPSSolve_SRRIT(EPS eps)
   int         ierr,i,j,N,info,ilo,lwork,ngrp,nogrp,*itrsd,*itrsdold,
               nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv,one = 1;
   PetscTruth  true = PETSC_TRUE;
-  EPS_SRRIT   *srrit = (EPS_SRRIT *)eps->data;
   PetscScalar *T,*U,*tau,*work,zero = 0.0,
               ctr,ae,arsd,octr,oae,oarsd,tcond;
   PetscReal   *rsdold,norm;
@@ -209,12 +199,12 @@ static int EPSSolve_SRRIT(EPS eps)
 
     /* AV(:,idx) = stapply(st,V(:,idx)) */
     for (i=eps->nconv;i<ncv;i++) {
-      ierr = STApply(eps->OP,eps->V[i],srrit->AV[i]);CHKERRQ(ierr);
+      ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
     }
 
     /* T(:,idx) = V'*AV(:,idx) */
     for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecMDot(ncv,srrit->AV[i],eps->V,T+i*ncv);CHKERRQ(ierr);
+      ierr = VecMDot(ncv,eps->AV[i],eps->V,T+i*ncv);CHKERRQ(ierr);
     }
 
     /* [U,H] = hess(T) */
@@ -234,10 +224,10 @@ static int EPSSolve_SRRIT(EPS eps)
     /* AV(:,idx) = AV*U(:,idx) */
     for (i=eps->nconv;i<ncv;i++) {
       ierr = VecSet(&zero,eps->work[i]);CHKERRQ(ierr);
-      ierr = VecMAXPY(ncv,U+ncv*i,eps->work[i],srrit->AV);CHKERRQ(ierr);
+      ierr = VecMAXPY(ncv,U+ncv*i,eps->work[i],eps->AV);CHKERRQ(ierr);
     }    
     for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecCopy(eps->work[i],srrit->AV[i]);CHKERRQ(ierr);
+      ierr = VecCopy(eps->work[i],eps->AV[i]);CHKERRQ(ierr);
     }    
     
     /* V(:,idx) = V*U(:,idx) */
@@ -253,7 +243,7 @@ static int EPSSolve_SRRIT(EPS eps)
     for (i=0;i<ncv;i++) { rsdold[i] = eps->errest[i]; }
 
     /* rsd(idx) = SchurResidualNorms(V,AV,T,nconv,ncv) */
-    EPSSchurResidualNorms(eps,eps->V,srrit->AV,T,eps->nconv,ncv,ncv,eps->errest);
+    EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,ncv,ncv,eps->errest);
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv); 
   
@@ -316,7 +306,7 @@ static int EPSSolve_SRRIT(EPS eps)
 
     /* V(:,idx) = AV(:,idx) */
     for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecCopy(srrit->AV[i],eps->V[i]);CHKERRQ(ierr);
+      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     eps->its++;
 
@@ -325,12 +315,12 @@ static int EPSSolve_SRRIT(EPS eps)
       
         /* AV(:,idx) = stapply(st,V(:,idx)) */
         for (i=eps->nconv;i<ncv;i++) {
-          ierr = STApply(eps->OP,eps->V[i],srrit->AV[i]);CHKERRQ(ierr);
+          ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
         }
         
         /* V(:,idx) = AV(:,idx)/norm(AV(:,idx),inf) */
         for (i=eps->nconv;i<ncv;i++) {
-          ierr = VecCopy(srrit->AV[i],eps->V[i]);CHKERRQ(ierr);
+          ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
           ierr = VecNorm(eps->V[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
           norm = 1 / norm;
           ierr = VecScale(&norm,eps->V[i]);CHKERRQ(ierr);
@@ -365,37 +355,16 @@ static int EPSSolve_SRRIT(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_SRRIT"
-static int EPSDestroy_SRRIT(EPS eps)
-{
-  int       ierr;
-  EPS_SRRIT *srrit = (EPS_SRRIT *)eps->data;
-  
-  PetscFunctionBegin;
-  if (srrit->AV) { ierr = VecDestroyVecs(srrit->AV,srrit->nav); CHKERRQ(ierr); }
-  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_SRRIT"
 int EPSCreate_SRRIT(EPS eps)
 {
-  EPS_SRRIT *srrit;
-  int       ierr;
-
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_SRRIT,&srrit);CHKERRQ(ierr);
-  PetscMemzero(srrit,sizeof(EPS_SRRIT));
-  PetscLogObjectMemory(eps,sizeof(EPS_SRRIT));
-  eps->data                      = (void *) srrit;
   eps->ops->setup                = EPSSetUp_SRRIT;
   eps->ops->solve                = EPSSolve_SRRIT;
-  eps->ops->destroy              = EPSDestroy_SRRIT;
+  eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

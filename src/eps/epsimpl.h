@@ -40,6 +40,7 @@ struct _p_EPS {
   /*------------------------- Working data --------------------------*/
   Vec         vec_initial;      /* initial vector for iterative methods */
   Vec         *V,               /* set of basis vectors */
+              *AV,              /* eigen vectors */
               *DS,              /* deflation space */
               *DSV;             /* deflation space and basis vectors*/
   PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
