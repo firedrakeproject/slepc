@@ -35,20 +35,21 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   int            j;
   PetscReal      norm;
   PetscScalar    t;
+  PetscTruth     breakdown;
 
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = (*eps->orthog)(eps,j+1,V,f,H+m*j,&norm);CHKERRQ(ierr);
-    if (norm<1e-8) SETERRQ(1,"Breakdown in Arnoldi method");
+    ierr = EPSOrthogonalize(eps,j+1,V,f,H+m*j,&norm,&breakdown);CHKERRQ(ierr);
+    if (breakdown) SETERRQ(1,"Breakdown in Arnoldi method");
     H[(m+1)*j+1] = norm;
     t = 1 / norm;
     ierr = VecScale(&t,f);CHKERRQ(ierr);
     ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
   }
   ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-  ierr = (*eps->orthog)(eps,j+1,V,f,H+m*j,beta);CHKERRQ(ierr);
-  if (norm<1e-8) SETERRQ(1,"Breakdown in Arnoldi method");
+  ierr = EPSOrthogonalize(eps,j+1,V,f,H+m*j,beta,&breakdown);CHKERRQ(ierr);
+  if (breakdown) SETERRQ(1,"Breakdown in Arnoldi method");
   t = 1 / *beta;
   ierr = VecScale(&t,f);CHKERRQ(ierr);
   PetscFunctionReturn(0);
