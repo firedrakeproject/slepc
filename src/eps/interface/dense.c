@@ -4,105 +4,10 @@
 #include "slepceps.h" /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSortEigenvalues"
-/*@
-   EPSSortEigenvalues - Sorts a list of eigenvalues according to a certain
-   criterion.
-
-   Not Collective
-
-   Input Parameters:
-+  n     - number of eigenvalue in the list
-.  eig   - pointer to the array containing the eigenvalues
-.  eigi  - imaginary part of the eigenvalues (only when using real numbers)
-.  which - sorting criterion
--  nev   - number of wanted eigenvalues
-
-   Output Parameter:
-.  permout - resulting permutation
-
-   Notes:
-   The result is a list of indices in the original eigenvalue array 
-   corresponding to the first nev eigenvalues sorted in the specified
-   criterion
-
-   Level: developer
-
-.seealso: EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
-@*/
-PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
-{
-  PetscErrorCode ierr;
-  int            i,*perm;
-  PetscReal      *values;
-
-  PetscFunctionBegin;
-  ierr = PetscMalloc(n*sizeof(int),&perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscReal),&values);CHKERRQ(ierr);
-  for (i=0; i<n; i++) { perm[i] = i;}
-
-  switch(which) {
-    case EPS_LARGEST_MAGNITUDE:
-    case EPS_SMALLEST_MAGNITUDE:
-      for (i=0; i<n; i++) { values[i] = SlepcAbsEigenvalue(eig[i],eigi[i]); }
-      break;
-    case EPS_LARGEST_REAL:
-    case EPS_SMALLEST_REAL:
-      for (i=0; i<n; i++) { values[i] = PetscRealPart(eig[i]); }
-      break;
-    case EPS_LARGEST_IMAGINARY:
-    case EPS_SMALLEST_IMAGINARY:
-#if defined(PETSC_USE_COMPLEX)
-      for (i=0; i<n; i++) { values[i] = PetscImaginaryPart(eig[i]); }
-#else
-      for (i=0; i<n; i++) { values[i] = PetscAbsReal(eigi[i]); }
-#endif
-      break;
-    default: SETERRQ(1,"Wrong value of which");
-  }
-
-  ierr = PetscSortRealWithPermutation(n,values,perm);CHKERRQ(ierr);
-
-  switch(which) {
-    case EPS_LARGEST_MAGNITUDE:
-    case EPS_LARGEST_REAL:
-    case EPS_LARGEST_IMAGINARY:
-      for (i=0; i<nev; i++) { permout[i] = perm[n-1-i]; }
-      break;
-    case EPS_SMALLEST_MAGNITUDE:
-    case EPS_SMALLEST_REAL:
-    case EPS_SMALLEST_IMAGINARY: 
-      for (i=0; i<nev; i++) { permout[i] = perm[i]; }
-      break;
-    default: SETERRQ(1,"Wrong value of which");
-  }
-
-#if !defined(PETSC_USE_COMPLEX)
-  for (i=0; i<nev-1; i++) {
-    if (eigi[permout[i]] != 0.0) {
-      if (eig[permout[i]] == eig[permout[i+1]] &&
-          eigi[permout[i]] == -eigi[permout[i+1]] &&
-          eigi[permout[i]] < 0.0) {
-        int tmp;
-        SWAP(permout[i], permout[i+1], tmp);
-      }
-    i++;
-    }
-  }
-#endif
-
-  ierr = PetscFree(values);CHKERRQ(ierr);
-  ierr = PetscFree(perm);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDenseNHEP"
 /*@
-   EPSDenseNHEP - Solves a dense non-Hermitian Eigenvalue Problem.
+   EPSDenseNHEP - Solves a dense non-Hermitian standard Eigenvalue Problem.
 
    Not Collective
 
@@ -120,100 +25,57 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
 
    Matrix A is overwritten.
    
-   This routine uses LAPACK routines xGEEV.
+   This routine uses LAPACK routines xGEEVX.
 
    Level: developer
 
-.seealso: EPSDenseNHEPSorted()
+.seealso: EPSDenseGNHEP(), EPSDenseHEP(), EPSDenseGHEP()
 @*/
 PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V)
 {
   PetscErrorCode ierr;
-  
-#if defined(PETSC_HAVE_ESSL)
-
-  /* ESSL has a different calling sequence for dgeev() and zgeev() than 
-     standard LAPACK */
-  PetscScalar *cwork;
-  PetscReal   *work;
-  int         i,clen,idummy,lwork,iopt;
-
-  PetscFunctionBegin;
-#if !defined(PETSC_USE_COMPLEX)
-  clen = n;
-#else
-  clen = 2*n;
-#endif
-  ierr   = PetscMalloc(clen*sizeof(PetscScalar),&cwork);CHKERRQ(ierr);
-  idummy = n;
-  lwork  = 3*n;
-  ierr   = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
-  if (V) iopt = 1;
-  else iopt = 0;
-  LAgeev_(&iopt,A,&n,cwork,V,&n,&idummy,&n,work,&lwork);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  for (i=0; i<n; i++) {
-    w[i]  = cwork[2*i];
-    wi[i] = cwork[2*i+1];
-  }
-#else
-  for (i=0; i<n; i++) w[i] = cwork[i];
-#endif
-  ierr = PetscFree(cwork);CHKERRQ(ierr);
-
-#elif !defined(PETSC_USE_COMPLEX)
-
-  PetscScalar *work,sdummy;
-  int         lwork,info;
-  char        *jobvr;
-
-  PetscFunctionBegin;
-  lwork    = 5*n;
-  ierr     = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  if (V) jobvr = "V";
-  else jobvr = "N";
-  LAgeev_("N",jobvr,&n,A,&n,w,wi,&sdummy,&n,V,&n,work,&lwork,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEEV %d",info);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-
-#else
-
-  PetscScalar *work,sdummy;
-  PetscReal   *rwork;
-  int         lwork,info;
-  char        *jobvr;
-
-  PetscFunctionBegin;
-#if defined(PETSC_MISSING_LAPACK_GEEV)
-  SETERRQ(PETSC_ERR_SUP,"GEEV - Lapack routine is unavailable.");
+  PetscReal      abnrm,*scale;
+  PetscScalar    *work;
+  int            ilo,ihi,lwork = 4*n,info;
+  char           *jobvr;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
 #endif 
-  lwork    = 5*n;
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+
+  PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
+  SETERRQ(PETSC_ERR_SUP,"GEEVX - Lapack routine is unavailable.");
+#endif 
+
   if (V) jobvr = "V";
   else jobvr = "N";
-  LAgeev_("N",jobvr,&n,A,&n,w,&sdummy,&n,V,&n,work,&lwork,rwork,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEEV %d",info);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr  = PetscMalloc(n*sizeof(PetscReal),&scale);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr  = PetscMalloc(2*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  LAgeevx_("B","N",jobvr,"N",&n,A,&n,w,PETSC_NULL,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGEEVX %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
-
+#else
+  LAgeevx_("B","N",jobvr,"N",&n,A,&n,w,wi,PETSC_NULL,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGEEVX %d",info);
 #endif 
-
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(scale);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDenseNHEPSorted"
+#define __FUNCT__ "EPSDenseGNHEP"
 /*@
-   EPSDenseNHEPSorted - Solves a dense non-Hermitian Eigenvalue Problem and 
-   then sorts the computed eigenpairs.
+   EPSDenseGNHEP - Solves a dense non-Hermitian generalized Eigenvalue Problem.
 
    Not Collective
 
    Input Parameters:
 +  n  - dimension of the eigenproblem
--  A  - pointer to the array containing the matrix values
+.  A  - pointer to the array containing the matrix values for A
+-  B  - pointer to the array containing the matrix values for B
 
    Output Parameters:
 +  w  - pointer to the array to store the computed eigenvalues
@@ -223,52 +85,197 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
    Notes:
    If V is PETSC_NULL then the eigenvectors are not computed.
 
-   Matrix A is overwritten.
+   Matrix A and B are overwritten.
+   
+   This routine uses LAPACK routines xGGEVX.
 
    Level: developer
 
-.seealso: EPSDenseNHEP(), EPSSortEigenvalues()
+.seealso: EPSDenseNHEP(), EPSDenseHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V,int m,EPSWhich which)
+PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,PetscScalar *wi,PetscScalar *V)
 {
   PetscErrorCode ierr;
-  int            i,*perm,iwork[100];
-  PetscScalar    *realpart,*imagpart,*vectors,work[200];
+  PetscReal      *rscale,*lscale,abnrm,bbnrm;
+  PetscScalar    *alpha,*beta,*work;
+  int            i,ilo,ihi,info;
+  char           *jobvr;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+  int            lwork = 2*n;
+#else
+  PetscReal      *alphai;
+  int            lwork = 6*n;
+#endif 
 
   PetscFunctionBegin;
-  if (m<=100) perm = iwork;
-  else { ierr = PetscMalloc(m*sizeof(int),&perm);CHKERRQ(ierr); }
-  if (n<=100) { realpart = work; imagpart = work+100; }
-  else { 
-    ierr = PetscMalloc(n*sizeof(PetscScalar),&realpart);CHKERRQ(ierr);
-    ierr = PetscMalloc(n*sizeof(PetscScalar),&imagpart);CHKERRQ(ierr);
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY) || defined(PETSC_BLASLAPACK_F2C)
+  SETERRQ(PETSC_ERR_SUP,"GGEVX - Lapack routine is unavailable.");
+#endif 
+
+  if (V) jobvr = "V";
+  else jobvr = "N";
+  ierr  = PetscMalloc(n*sizeof(PetscScalar),&alpha);CHKERRQ(ierr);
+  ierr  = PetscMalloc(n*sizeof(PetscScalar),&beta);CHKERRQ(ierr);
+  ierr  = PetscMalloc(n*sizeof(PetscReal),&rscale);CHKERRQ(ierr);
+  ierr  = PetscMalloc(n*sizeof(PetscReal),&lscale);CHKERRQ(ierr);
+  ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr  = PetscMalloc(6*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  LAggevx_("B","N",jobvr,"N",&n,A,&n,B,&n,alpha,beta,PETSC_NULL,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGGEVX %d",info);
+  for (i=0;i<n;i++) {
+    w[i] = alpha[i]/beta[i];
   }
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#else
+  ierr  = PetscMalloc(n*sizeof(PetscReal),&alphai);CHKERRQ(ierr);
+  LAggevx_("B","N",jobvr,"N",&n,A,&n,B,&n,alpha,alphai,beta,PETSC_NULL,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGGEVX %d",info);
+  for (i=0;i<n;i++) {
+    w[i] = alpha[i]/beta[i];
+    wi[i] = alphai[i]/beta[i];
+  }
+  ierr = PetscFree(alphai);CHKERRQ(ierr);
+#endif 
+  ierr = PetscFree(alpha);CHKERRQ(ierr);
+  ierr = PetscFree(beta);CHKERRQ(ierr);
+  ierr = PetscFree(rscale);CHKERRQ(ierr);
+  ierr = PetscFree(lscale);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDenseHEP"
+/*@
+   EPSDenseNHEP - Solves a dense Hermitian standard Eigenvalue Problem.
+
+   Not Collective
+
+   Input Parameters:
++  n  - dimension of the eigenproblem
+-  A  - pointer to the array containing the matrix values
+
+   Output Parameters:
++  w  - pointer to the array to store the computed eigenvalues
+-  V  - pointer to the array to store the eigenvectors
+
+   Notes:
+   If V is PETSC_NULL then the eigenvectors are not computed.
+
+   Matrix A is overwritten.
+   
+   This routine uses LAPACK routines DSYEVR or ZHEEVR.
+
+   Level: developer
+
+.seealso: EPSDenseNHEP(), EPSDenseGNHEP(), EPSDenseGHEP()
+@*/
+PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
+{
+  PetscErrorCode ierr;
+  PetscReal      abstol = 0.0,dummy;
+  PetscScalar    *work;
+  int            m,*isuppz,*iwork,liwork = 10*n,info;
+  char           *jobz;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+  int            lwork = 2*n,lrwork = 24*n;
+#else
+  int            lwork = 26*n;
+#endif 
+
+  PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY) || defined(PETSC_BLASLAPACK_F2C)
+  SETERRQ(PETSC_ERR_SUP,"DSYEVR/ZHEEVR - Lapack routine is unavailable.");
+#endif 
+
+  if (V) jobz = "V";
+  else jobz = "N";
+  ierr  = PetscMalloc(2*n*sizeof(int),&isuppz);CHKERRQ(ierr);
+  ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr  = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  LAsyevr_(jobz,"A","U",&n,A,&n,&dummy,&dummy,PETSC_NULL,PETSC_NULL,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZHEEVR %d",info);
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#else
+  LAsyevr_(jobz,"A","U",&n,A,&n,&dummy,&dummy,PETSC_NULL,PETSC_NULL,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSYEVR %d",info);
+#endif 
+  ierr = PetscFree(isuppz);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(iwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDenseGHEP"
+/*@
+   EPSDenseGHEP - Solves a dense Hermitian generalized Eigenvalue Problem.
+
+   Not Collective
+
+   Input Parameters:
++  n  - dimension of the eigenproblem
+.  A  - pointer to the array containing the matrix values for A
+-  B  - pointer to the array containing the matrix values for B
+
+   Output Parameters:
++  w  - pointer to the array to store the computed eigenvalues
+-  V  - pointer to the array to store the eigenvectors
+
+   Notes:
+   If V is PETSC_NULL then the eigenvectors are not computed.
+
+   Matrix A and B are overwritten.
+   
+   This routine uses LAPACK routines DSYGVD or ZHEGVD.
+
+   Level: developer
+
+.seealso: EPSDenseNHEP(), EPSDenseGNHEP(), EPSDenseHEP()
+@*/
+PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,PetscScalar *V)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *work;
+  int            itype = 1,*iwork,info,
+                 liwork = V ? 5*n+3 : 1;
+  char           *jobz;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+  int            lwork  = V ? n*n+2*n     : n+1,
+                 lrwork = V ? 2*n*n+5*n+1 : n;
+#else
+  int            lwork  = V ? 2*n*n+6*n+1 : 2*n+1;
+#endif 
+
+  PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY) || defined(PETSC_BLASLAPACK_F2C)
+  SETERRQ(PETSC_ERR_SUP,"DSYEVR/ZHEEVR - Lapack routine is unavailable.");
+#endif 
+
+  if (V) jobz = "V";
+  else jobz = "N";   
+  ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr  = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  LAsygvd_(&itype,jobz,"U",&n,A,&n,B,&n,w,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZHEEVR %d",info);
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#else
+  LAsygvd_(&itype,jobz,"U",&n,A,&n,B,&n,w,work,&lwork,iwork,&liwork,&info,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSYEVR %d",info);
+#endif 
   if (V) {
-    ierr   = PetscMalloc(n*n*sizeof(PetscScalar),&vectors);CHKERRQ(ierr);
-  } else vectors = PETSC_NULL;
-
-  ierr = EPSDenseNHEP(n,A,realpart,imagpart,vectors);CHKERRQ(ierr);
-
-  ierr = EPSSortEigenvalues(n,realpart,imagpart,which,m,perm);CHKERRQ(ierr);
-  for (i=0; i<m; i++) {
-    w[i]  = realpart[perm[i]];
-#if !defined(PETSC_USE_COMPLEX)
-    wi[i] = imagpart[perm[i]];
-#endif
-    if (V) {
-      ierr = PetscMemcpy(V+i*n,vectors+perm[i]*n,n*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
+    ierr = PetscMemcpy(V,A,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
   }
-
-  if (m>100) { ierr = PetscFree(perm);CHKERRQ(ierr); }
-  if (n>100) {
-    ierr = PetscFree(realpart);CHKERRQ(ierr);
-    ierr = PetscFree(imagpart);CHKERRQ(ierr);
-  }
-  if (V) {
-    ierr = PetscFree(vectors);CHKERRQ(ierr);
-  }
-
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
