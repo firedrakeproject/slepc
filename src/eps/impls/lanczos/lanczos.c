@@ -164,6 +164,104 @@ static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSUpdateOmega"
+static PetscErrorCode EPSUpdateOmega(int j,PetscReal *alpha,PetscReal* beta,PetscReal psi,PetscReal theta,PetscReal *omega,PetscReal *oldomega)
+{
+  int k;
+  PetscReal t;
+  PetscFunctionBegin;
+  alpha--; beta-=2; omega--; oldomega--;
+  if (j>1) {
+    t = beta[2]*omega[2]+(alpha[1]-alpha[j])*omega[1]-beta[j]*oldomega[1];
+    if (t>0) oldomega[1] = (t + theta)/beta[j+1];
+    else oldomega[1] = (t - theta)/beta[j+1];
+    for (k=2;k<j;k++) {
+      t = beta[k+1]*omega[k+1]+(alpha[k]-alpha[j])*omega[k]+
+          beta[k]*omega[k-1]-beta[j]*oldomega[k];
+      if (t>0) oldomega[k] = (t + theta)/beta[j+1];
+      else oldomega[k] = (t - theta)/beta[j+1];
+    }
+  }
+  oldomega[j] = psi;
+  /* SWAP(oldomega,omega) */
+  for (k=0;k<=j;k++) {
+    t = oldomega[k];
+    oldomega[k] = omega[k];
+    omega[k] = t;
+  }
+  PetscFunctionReturn(0);
+}
+
+int orthog_count = 0;
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSPeriodicLanczos"
+static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,Vec f,PetscReal *beta)
+{
+  PetscErrorCode ierr;
+  int            i,j,l,n;
+  PetscReal      norm,*omega,*oldomega,*a,*b,delta,eps1;
+  PetscScalar    *H,t;
+  PetscTruth     breakdown,reorthog;
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc(m*sizeof(PetscScalar),&H);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*sizeof(PetscReal),&a);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*sizeof(PetscReal),&b);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*sizeof(PetscReal),&omega);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*sizeof(PetscReal),&oldomega);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
+  eps1 = PETSC_MACHINE_EPSILON * sqrt(n);
+  delta = sqrt(PETSC_MACHINE_EPSILON / eps->ncv);
+  reorthog = PETSC_FALSE;
+  
+  for (j=k;j<m-1;j++) {
+    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    eps->its++;
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,k,V,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    if (j==k) {
+      ierr = EPSOrthogonalize(eps,1,V+j,V[j+1],H+j,&norm,&breakdown);CHKERRQ(ierr);
+    } else {
+      ierr = EPSOrthogonalize(eps,2,V+j-1,V[j+1],H+j-1,&norm,&breakdown);CHKERRQ(ierr);
+    }
+    a[j-k] = T[j*m+j] = H[j];
+    b[j-k] = T[j*m+j+1] = norm;
+    ierr = EPSUpdateOmega(j-k+1,a,b,eps1,eps1,omega,oldomega);CHKERRQ(ierr);
+    for (i=k;i<=j;i++) {
+      if (PetscAbsReal(omega[i-k]) > delta || reorthog) {
+        ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        for (l=0;l<=j;l++) omega[l] = eps1;
+	if (reorthog) reorthog = PETSC_FALSE;
+	else reorthog = PETSC_TRUE;
+        break;
+      }
+    }
+    if (breakdown || norm < PETSC_MACHINE_EPSILON) {
+      T[m*j+j+1] = 0;
+      printf("Breakdown in Lanczos method (norm=%g)\n",norm);
+      PetscLogInfo(eps,"Breakdown in Lanczos method (norm=%g)\n",norm);
+      ierr = SlepcVecSetRandom(V[j+1]);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,V[j+1],&norm);CHKERRQ(ierr);
+    } else {
+      T[m*j+j+1] = norm;
+      t = 1 / norm;
+      ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+    }
+  }
+  
+  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
+  eps->its++;
+  ierr = EPSOrthogonalize(eps,2,V+m-2,f,T+m*m-2,beta,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscFree(H);CHKERRQ(ierr);
+  ierr = PetscFree(a);CHKERRQ(ierr);
+  ierr = PetscFree(b);CHKERRQ(ierr);
+  ierr = PetscFree(omega);CHKERRQ(ierr);
+  ierr = PetscFree(oldomega);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSBasicLanczos"
 /*
    EPSBasicLanczos - Computes an m-step Lanczos factorization. The first k
@@ -194,6 +292,9 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,
       break;
     case EPSLANCZOS_ORTHOG_FULL:
       ierr = EPSFullLanczos(eps,T,V,k,m,f,beta);CHKERRQ(ierr);
+      break;
+    case EPSLANCZOS_ORTHOG_PERIODIC:
+      ierr = EPSPeriodicLanczos(eps,T,V,k,m,f,beta);CHKERRQ(ierr);
       break;
   }
   PetscFunctionReturn(0);
@@ -248,13 +349,11 @@ PetscErrorCode RefineBounds(int n,PetscReal *ritz,PetscReal *bnd,PetscReal eps,P
 PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  int            nconv,i,j,n,m,*isuppz,*iwork,info,N,*perm,
-                 ncv=eps->ncv,
-                 lwork=18*ncv,
-                 liwork=10*ncv;
+  int            nconv,i,j,n,info,N,*perm,
+                 ncv=eps->ncv;
   Vec            f=eps->work[ncv];
   PetscScalar    *T=eps->T,*Y,*W,ts;
-  PetscReal      *ritz,*bnd,*D,*E,*work,norm,anorm,beta,abstol;
+  PetscReal      *ritz,*bnd,*E,*work,norm,anorm,beta;
 
   PetscFunctionBegin;
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
@@ -264,11 +363,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&W);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&D);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&E);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*ncv*sizeof(int),&isuppz);CHKERRQ(ierr);
-  ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(2*ncv*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
@@ -305,22 +401,13 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
        and the off-diagonal elements in E  */
     n = ncv - nconv;
     for (i=0;i<n;i++) {
-      D[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
+      ritz[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
       E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
     }
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
-    abstol = 0.0;
-    LAstegr_("V","A",&n,D,E,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,
-             &abstol,&m,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
-    if (info) { /* Use the symmetric QR iteration if RRR fails */
-       for (i=0;i<n;i++) {
-         ritz[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
-         E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
-       }
-       LAsteqr_("V",&n,ritz,E,Y,&n,work,&info,1);
-       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
-    }
+    LAsteqr_("I",&n,ritz,E,Y,&n,work,&info,1);
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     anorm = 0;
@@ -366,11 +453,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(bnd);CHKERRQ(ierr);
   ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(W);CHKERRQ(ierr);
-  ierr = PetscFree(D);CHKERRQ(ierr);
   ierr = PetscFree(E);CHKERRQ(ierr);
-  ierr = PetscFree(isuppz);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(iwork);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -382,11 +466,11 @@ PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
   PetscErrorCode ierr;
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscTruth     flg;
-  const char     *list[2] = { "none", "full" };
+  const char     *list[4] = { "none", "full" , "periodic", "partial" };
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("LANCZOS options");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-eps_lanczos_orthog","Reorthogonalization type","EPSLanczosSetOrthog",list,2,list[lanczos->reorthog],(int*)&lanczos->reorthog,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-eps_lanczos_orthog","Reorthogonalization type","EPSLanczosSetOrthog",list,4,list[lanczos->reorthog],(int*)&lanczos->reorthog,&flg);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -402,6 +486,8 @@ PetscErrorCode EPSLanczosSetOrthog_LANCZOS(EPS eps,EPSLanczosOrthogType reorthog
   switch (reorthog) {
     case EPSLANCZOS_ORTHOG_NONE:
     case EPSLANCZOS_ORTHOG_FULL:
+    case EPSLANCZOS_ORTHOG_PERIODIC:
+    case EPSLANCZOS_ORTHOG_PARTIAL:
       lanczos->reorthog = reorthog;
       break;
     default:
@@ -494,7 +580,7 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscTruth     isascii;
-  const char     *list[2] = { "none", "full" };
+  const char     *list[4] = { "none", "full" , "periodic", "partial" };
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
