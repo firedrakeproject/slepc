@@ -76,7 +76,7 @@ def checkFortranLib(conf,name,dirs,libs,functions,callbacks = []):
   if not mangling:
     print
     print '*'*80
-    sys.exit('ERROR: ' + name + ' library was not found')
+    sys.exit('ERROR: Unable to link with library ' + name)
 
   conf.write('SLEPC_HAVE_' + name + ' = -DSLEPC_HAVE_' + name + ' -DSLEPC_' + name + '_HAVE_'+mangling+'\n')
   conf.write(name + '_LIB = '+str.join(' ',flags)+'\n')
