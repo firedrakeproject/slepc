@@ -89,9 +89,7 @@ static int  EPSSolve_SUBSPACE(EPS eps)
     /* compute the projected matrix, H = V^* A V */
     for (j=i;j<ncv;j++) {
       ierr = STApply(eps->OP,eps->V[j],w);CHKERRQ(ierr);
-      for (k=i;k<ncv;k++) {
-        ierr = VecDot(w,eps->V[k],H+(k-i)+(ncv-i)*(j-i));CHKERRQ(ierr);
-      }
+      ierr = VecMDot(ncv-i,w,eps->V+i,H+(ncv-i)*(j-i));CHKERRQ(ierr);
     }
 
     /* solve the reduced problem, compute the 
