@@ -170,7 +170,7 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nds             = 0;
   eps->tol             = 0.0;
   eps->which           = EPS_LARGEST_MAGNITUDE;
-  eps->computedvectors = PETSC_FALSE;
+  eps->evecsavailable = PETSC_FALSE;
   eps->computevectors  = PETSC_NULL;
   eps->problem_type    = (EPSProblemType)0;
 

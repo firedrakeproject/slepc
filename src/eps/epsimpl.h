@@ -34,7 +34,7 @@ struct _p_EPS {
              nds;               /* number of basis vectors of deflation space */
   PetscReal  tol;               /* tolerance */
   EPSWhich   which;             /* which part of the spectrum to be sought */
-  PetscTruth computedvectors;   /* computed eigenvectors */
+  PetscTruth evecsavailable;   /* computed eigenvectors */
   EPSProblemType problem_type;  /* which kind of problem to be solved */
 
   /*------------------------- Working data --------------------------*/

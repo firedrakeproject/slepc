@@ -518,7 +518,7 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
   if (i<0 || i>=eps->nconv) { 
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
-  if (!eps->computedvectors && (Vr || Vi) ) { 
+  if (!eps->evecsavailable && (Vr || Vi) ) { 
     ierr = (*eps->computevectors)(eps);CHKERRQ(ierr);
   }  
 
