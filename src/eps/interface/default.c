@@ -71,6 +71,9 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
  */
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
   PetscErrorCode ierr;
   int            i,mout,info,ncv=eps->ncv;
   PetscScalar    *Z,*work;
@@ -83,10 +86,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = EPSComputeVectors_Default(eps);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-
-#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
-  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
-#endif 
 
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
@@ -129,6 +128,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #endif
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
+#endif 
 }
 
 #undef __FUNCT__  

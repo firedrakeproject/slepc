@@ -8,61 +8,48 @@
 #include "petscblaslapack.h"
 PETSC_EXTERN_CXX_BEGIN
 
-#define SLEPC_CONCAT(a,b) a##b
-#define SLEPC_CONCAT3(a,b,c) a##b##c
-
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define SLEPC_FORTRAN(lcase,ucase) SLEPC_CONCAT(lcase,_)
+#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACK(lcase,ucase) c##lcase##_
+#else
+#define SLEPC_BLASLAPACK(lcase,ucase) z##lcase##_
+#endif
+#else
+#if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACK(lcase,ucase) s##lcase##_
+#else
+#define SLEPC_BLASLAPACK(lcase,ucase) d##lcase##_
+#endif
+#endif
 #elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define SLEPC_FORTRAN(lcase,ucase) ucase
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACK(lcase,ucase) C##ucase
 #else
-#define SLEPC_FORTRAN(lcase,ucase) lcase
-#endif
-
-#if defined(PETSC_BLASLAPACK_UNDERSCORE)
-
-#if !defined(PETSC_USE_COMPLEX)
-/* real numbers */
-#if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
-/* single precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(s,lcase,_)
-#else
-/* double precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(d,lcase,_)
+#define SLEPC_BLASLAPACK(lcase,ucase) Z##ucase
 #endif
 #else
-/* complex numbers */
-#if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
-/* single precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(c,lcase,_)
+#if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACK(lcase,ucase) S##ucase
 #else
-/* double precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(z,lcase,_)
+#define SLEPC_BLASLAPACK(lcase,ucase) D##ucase
 #endif
 #endif
-
 #else
-
-#if !defined(PETSC_USE_COMPLEX)
-/* real numbers */
-#if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
-/* single precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(s,lcase),SLEPC_CONCAT(S,ucase))
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACK(lcase,ucase) c##lcase
 #else
-/* double precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(d,lcase),SLEPC_CONCAT(D,ucase))
+#define SLEPC_BLASLAPACK(lcase,ucase) z##lcase
 #endif
 #else
-/* complex numbers */
-#if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
-/* single precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(c,lcase),SLEPC_CONCAT(C,ucase))
+#if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACK(lcase,ucase) s##lcase
 #else
-/* double precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(z,lcase),SLEPC_CONCAT(Z,ucase))
+#define SLEPC_BLASLAPACK(lcase,ucase) d##lcase
 #endif
 #endif
-
 #endif
 
 #define LAPACKlaev2_ SLEPC_BLASLAPACK(laev2,LAEV2)

@@ -23,32 +23,38 @@ typedef struct {
    Definition of routines from the BLZPACK package
 */
 
-#include "slepcblaslapack.h"
+#if defined(SLEPC_BLZPACK_HAVE_UNDERSCORE)
+#define SLEPC_BLZPACK(lcase,ucase) lcase##_
+#elif defined(SLEPC_BLZPACK_HAVE_CAPS)
+#define SLEPC_BLZPACK(lcase,ucase) ucase
+#else
+#define SLEPC_BLZPACK(lcase,ucase) lcase
+#endif
 
 /*
     These are real case, current version of BLZPACK only supports real
     matrices
 */
 
-#if defined(PETSC_USES_FORTRAN_SINGLE) 
+#if defined(PETSC_USE_SINGLE) 
 /*
    For these machines we must call the single precision Fortran version
 */
-#define BLZpack_ SLEPC_FORTRAN(blzdrs,BLZDRS)
+#define BLZpack_ SLEPC_BLZPACK(blzdrs,BLZDRS)
 #else 
-#define BLZpack_ SLEPC_FORTRAN(blzdrd,BLZDRD)
+#define BLZpack_ SLEPC_BLZPACK(blzdrd,BLZDRD)
 #endif
 
-#define BLZistorr_ SLEPC_FORTRAN(istorr,ISTORR)
-#define BLZrstorr_ SLEPC_FORTRAN(rstorr,RSTORR)
+#define BLZistorr_ SLEPC_BLZPACK(istorr,ISTORR)
+#define BLZrstorr_ SLEPC_BLZPACK(rstorr,RSTORR)
 
 EXTERN_C_BEGIN
 
-extern void      BLZpack_(int*,PetscReal*,PetscScalar*,int*,PetscScalar*,
-		          PetscScalar*,int*,int*,PetscScalar*,PetscScalar*);
+EXTERN void	 BLZpack_(int*,PetscReal*,PetscScalar*,int*,PetscScalar*,
+        		  PetscScalar*,int*,int*,PetscScalar*,PetscScalar*);
 
-extern int       BLZistorr_(int*,char*,int);
-extern PetscReal BLZrstorr_(PetscReal*,char*,int);
+EXTERN int	 BLZistorr_(int*,char*,int);
+EXTERN PetscReal BLZrstorr_(PetscReal*,char*,int);
 
 EXTERN_C_END
 

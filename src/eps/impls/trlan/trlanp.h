@@ -16,15 +16,16 @@ typedef struct {
 
 /*
    Definition of routines from the TRLAN package
+   These are real case. TRLAN currently only has DOUBLE PRECISION version
 */
 
-#include "slepcblaslapack.h"
-
-/*
-    These are real case. TRLAN currently only has DOUBLE PRECISION version
-*/
-
-#define TRLan_     SLEPC_FORTRAN(trlan77,TRLAN77)
+#if defined(SLEPC_TRLAN_HAVE_UNDERSCORE)
+#define TRLan_ trlan77_
+#elif defined(SLEPC_TRLAN_HAVE_CAPS)
+#define TRLan_ TRLAN77
+#else
+#define TRLan_ trlan77
+#endif
 
 EXTERN_C_BEGIN
 

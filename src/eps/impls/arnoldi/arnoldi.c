@@ -105,6 +105,9 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
   PetscErrorCode ierr;
   int            i,k,mout,info,ncv=eps->ncv;
   Vec            f=eps->work[ncv];
@@ -115,9 +118,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #endif
 
   PetscFunctionBegin;
-#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
-  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
-#endif 
   ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
@@ -210,6 +210,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
+#endif
 }
 
 EXTERN_C_BEGIN

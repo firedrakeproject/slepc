@@ -71,15 +71,15 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 */
 static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
 {
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
+  SETERRQ(PETSC_ERR_SUP,"GETRF,GETRI - Lapack routines are unavailable.");
+#else
   PetscErrorCode ierr;
   int            *ipiv,lwork,info;
   PetscScalar    *work;
   PetscReal      hn,hin,*rwork;
   
   PetscFunctionBegin;
-#if defined(PETSC_MISSING_LAPACK_GETRF)
-  SETERRQ(PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable.");
-#endif 
   ierr = PetscMalloc(sizeof(int)*n,&ipiv);CHKERRQ(ierr);
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
@@ -95,6 +95,7 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
@@ -197,6 +198,9 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 #define __FUNCT__ "EPSSolve_SUBSPACE"
 PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
+#if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(SLEPC_MISSING_LAPACK_UNGHR)
+  SETERRQ(PETSC_ERR_SUP,"GEHRD,ORGHR/UNGHR - Lapack routines are unavailable.");
+#else
   PetscErrorCode ierr;
   int            i,j,ilo,lwork,info,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
@@ -214,9 +218,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
                                      can be tolerated in orthogonalization */
 
   PetscFunctionBegin;
-#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
-  SETERRQ(PETSC_ERR_SUP,"GEHRD,ORGHR - Lapack routines are unavailable.");
-#endif 
   eps->its = 0;
   eps->nconv = 0;
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
@@ -378,6 +379,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   else eps->reason = EPS_DIVERGED_ITS;
 
   PetscFunctionReturn(0);
+#endif 
 }
 
 EXTERN_C_BEGIN

@@ -434,6 +434,9 @@ static PetscErrorCode RefineBounds(int n,PetscReal *ritz,PetscReal *bnd,PetscRea
 #define __FUNCT__ "EPSSolve_LANCZOS"
 PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
+#if defined(SLEPC_MISSING_LAPACK_STEQR)
+  SETERRQ(PETSC_ERR_SUP,"STEQR - Lapack routine is unavailable.");
+#else
   PetscErrorCode ierr;
   int            nconv,i,j,n,m,info,N,*perm,
                  ncv=eps->ncv;
@@ -442,9 +445,6 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   PetscReal      *ritz,*bnd,*E,*work,norm,anorm,beta;
 
   PetscFunctionBegin;
-#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
-  SETERRQ(PETSC_ERR_SUP,"xSTEGR - Lapack routine is unavailable.");
-#endif 
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
@@ -585,6 +585,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif 
 }
 
 #undef __FUNCT__  

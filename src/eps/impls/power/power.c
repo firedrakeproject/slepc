@@ -99,9 +99,9 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift
 
   /* in the case of Wilkinson the shift is improved */
   if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
-#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
+#if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
     SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
-#endif 
+#else
     /* beta1 is the norm of the residual associated to R(v) */
     alpha = -alpha1;
     ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
@@ -120,6 +120,7 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift
     } else {
       *shift = rt2;
     }
+#endif 
   }
   else *shift = alpha1;
 
