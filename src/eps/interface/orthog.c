@@ -159,12 +159,10 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
 {
   PetscErrorCode ierr;
   int            j;
-  PetscScalar    alpha,
-                 zero = 0.0,minus = -1.0;
+  PetscScalar    alpha;
   PetscTruth     allocated;
   PetscScalar    lh[100],*h;
   PetscReal      hnorm = 0,lnorm;
-  Vec            w;
   
   PetscFunctionBegin;
   
@@ -178,18 +176,16 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   } else h = H;
   
   if (!norm) { norm = &lnorm; }
-  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
 
-  ierr = VecSet(&zero,w);CHKERRQ(ierr);
   for (j=0; j<n; j++) {
     /* alpha = ( v, v_j ) */
     ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
     /* store coefficients if requested */
     h[j] = alpha;
     /* v <- v - alpha v_j */
-    ierr = VecAXPY(&alpha,V[j],w);CHKERRQ(ierr);
+    alpha = -alpha;
+    ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
   }
-  ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
   ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
 
   if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED || breakdown) {
@@ -204,16 +200,15 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
      (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED &&
       *norm < eps->orthog_eta * hnorm)) {
     PetscLogInfo(eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,hnorm);
-    ierr = VecSet(&zero,w);CHKERRQ(ierr);
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
       ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
       h[j] += alpha;
       /* v <- v - alpha v_j */
-      ierr = VecAXPY(&alpha,V[j],w);CHKERRQ(ierr);
+      alpha = -alpha;
+      ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
     }
-    ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
     hnorm = *norm;
     ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
   }
@@ -227,7 +222,6 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   if (allocated) {
     ierr = PetscFree(h);CHKERRQ(ierr);
   }
-  ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
