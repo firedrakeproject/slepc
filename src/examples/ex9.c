@@ -256,7 +256,7 @@ int MatBrussel_Mult(Mat A,Vec x,Vec y)
 
   ierr = MatMult(ctx->T,ctx->x1,ctx->y1);CHKERRQ(ierr);
   ierr = VecScale(&ctx->tau1,ctx->y1);CHKERRQ(ierr);
-  alpha = ctx->beta - 1.0 - ctx->sigma;
+  alpha = ctx->beta - 1.0 + ctx->sigma;
   ierr = VecAXPY(&alpha,ctx->x1,ctx->y1);CHKERRQ(ierr);
   alpha = ctx->alpha * ctx->alpha;
   ierr = VecAXPY(&alpha,ctx->x2,ctx->y1);CHKERRQ(ierr);
@@ -265,7 +265,7 @@ int MatBrussel_Mult(Mat A,Vec x,Vec y)
   ierr = VecScale(&ctx->tau2,ctx->y2);CHKERRQ(ierr);
   alpha = -ctx->beta;
   ierr = VecAXPY(&alpha,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  alpha = -ctx->alpha * ctx->alpha - ctx->sigma;
+  alpha = -ctx->alpha * ctx->alpha + ctx->sigma;
   ierr = VecAXPY(&alpha,ctx->x2,ctx->y2);CHKERRQ(ierr);
 
   ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
@@ -303,9 +303,9 @@ int MatBrussel_GetDiagonal(Mat A,Vec diag)
   ierr = VecCreateMPIWithArray(comm,n,PETSC_DECIDE,pd,&d1);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(comm,n,PETSC_DECIDE,pd+n,&d2);CHKERRQ(ierr);
 
-  alpha = -2.0*ctx->tau1 + ctx->beta - 1.0 - ctx->sigma;
+  alpha = -2.0*ctx->tau1 + ctx->beta - 1.0 + ctx->sigma;
   ierr = VecSet(&alpha,d1);CHKERRQ(ierr);
-  alpha = -2.0*ctx->tau2 - ctx->alpha*ctx->alpha - ctx->sigma;
+  alpha = -2.0*ctx->tau2 - ctx->alpha*ctx->alpha + ctx->sigma;
   ierr = VecSet(&alpha,d2);CHKERRQ(ierr);
 
   ierr = VecDestroy(d1);CHKERRQ(ierr);

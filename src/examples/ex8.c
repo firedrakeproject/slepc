@@ -34,16 +34,10 @@ int MatSVD_Mult(Mat H,Vec x,Vec y)
 {
   Mat      A;
   Vec      w;
-  int      n, m, N, M, ierr;
-  MPI_Comm comm;
+  int      ierr;
 
   ierr = MatShellGetContext(H,(void**)&A);CHKERRQ(ierr);
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&n,&m);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&N,&M);CHKERRQ(ierr);
-  ierr = VecCreate(comm,&w);CHKERRQ(ierr);
-  ierr = VecSetSizes(w,n,N);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(w);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,PETSC_NULL,&w);CHKERRQ(ierr);
   ierr = MatMult(A,x,w);CHKERRQ(ierr);
   ierr = MatMultTranspose(A,w,y);CHKERRQ(ierr);
   ierr = VecDestroy(w);CHKERRQ(ierr);

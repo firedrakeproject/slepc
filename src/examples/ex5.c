@@ -22,7 +22,7 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
-  int         N, M, m=15, nev, ierr, maxit, i, its, nconv;
+  int         N, m=15, nev, ierr, maxit, i, its, nconv;
   PetscScalar alpha;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -63,10 +63,7 @@ int main( int argc, char **argv )
      Set the initial vector. This is optional, if not done the initial
      vector is set to random values
   */
-  ierr = MatGetLocalSize(A,PETSC_NULL,&M);CHKERRQ(ierr);
-  ierr = VecCreate(PETSC_COMM_WORLD,&v0);CHKERRQ(ierr);
-  ierr = VecSetSizes(v0,M,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(v0);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
   alpha = 1.0;
   ierr = VecSet(&alpha,v0);CHKERRQ(ierr);
   ierr = EPSSetInitialVector(eps,v0);CHKERRQ(ierr);
