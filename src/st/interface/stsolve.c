@@ -73,16 +73,18 @@ PetscErrorCode STApplyB(ST st,Vec x,Vec y)
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
-  if (x == st->x && x->state == st->xstate) {
+  /*
+  if (x->id == st->xid && x->state == st->xstate) {
     ierr = VecCopy(st->Bx, y);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
+  */
 
   ierr = PetscLogEventBegin(ST_ApplyB,st,x,y,0);CHKERRQ(ierr);
   ierr = (*st->ops->applyB)(st,x,y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_ApplyB,st,x,y,0);CHKERRQ(ierr);
   
-  st->x = x;
+  st->xid = x->id;
   st->xstate = x->state;
   ierr = VecCopy(y,st->Bx);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
@@ -338,7 +340,7 @@ PetscErrorCode STSetUp(ST st)
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); }
   if (st->Bx) { ierr = VecDestroy(st->Bx);CHKERRQ(ierr); }
   ierr = MatGetVecs(st->A,&st->w,&st->Bx);CHKERRQ(ierr);
-  st->x = PETSC_NULL; 
+  st->xid = 0; 
   if (st->ops->setup) {
     ierr = (*st->ops->setup)(st); CHKERRQ(ierr);
   }
