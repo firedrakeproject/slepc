@@ -138,6 +138,27 @@ int STGetType(ST st,STType *meth)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STSetFromOptionsKSP"
+/*@
+   STSetFromOptionsKSP is called from STSetFromOptions
+@*/
+int STSetFromOptionsKSP(ST st)
+{
+  int        ierr;
+  char       type[256];
+  PetscTruth flg;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE);
+
+  ierr = PetscOptionsHead("Associated Linear Solver options ------------");CHKERRQ(ierr);
+  ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STSetFromOptions"
 /*@
    STSetFromOptions - Sets ST options from the options database.
@@ -183,11 +204,7 @@ int STSetFromOptions(ST st)
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
     }
-    if (st->ksp) {
-      ierr = PetscOptionsHead("Associated Linear Solver options ------------");CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
-      ierr = PetscOptionsTail();CHKERRQ(ierr);
-    }
+    if (st->ksp) { ierr = STSetFromOptionsKSP(st);CHKERRQ(ierr); }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
