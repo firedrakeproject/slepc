@@ -382,6 +382,8 @@ int EPSCreate_BLZPACK(EPS eps)
   blzpack->final = 0.0;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","EPSBlzpackSetInterval_BLZPACK",EPSBlzpackSetInterval_BLZPACK);CHKERRQ(ierr);
 
+  eps->which = EPS_SMALLEST_REAL;
+
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

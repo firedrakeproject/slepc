@@ -165,6 +165,7 @@ int EPSCreate_TRLAN(EPS eps)
   eps->ops->solve                = EPSSolve_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->view                 = 0;
+  eps->which = EPS_LARGEST_REAL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
