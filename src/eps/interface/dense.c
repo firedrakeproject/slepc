@@ -295,7 +295,7 @@ int EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,
 
   for (i=k;i<n-1;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (wi[i] != 0) max = LAlapy2_(&wr[i],&wi[j]); else 
+    if (wi[i] != 0) max = LAlapy2_(&wr[i],&wi[i]); else 
 #endif
     max = PetscAbsScalar(wr[i]);
     maxpos = 0;
