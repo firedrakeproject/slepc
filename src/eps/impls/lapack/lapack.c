@@ -120,12 +120,6 @@ static int  EPSSolve_LAPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_LAPACK"
-/*
-  EPSDestroy_LAPACK - Destroys the context variable for LAPACK.
-
-  Input Parameter: 
-. eps - the iterative context
-*/
 int EPSDestroy_LAPACK(EPS eps)
 {
   int         ierr,size;

@@ -228,12 +228,6 @@ static int  EPSSolve_BLZPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_BLZPACK"
-/*
-  EPSDestroy_BLZPACK - Destroys the context variable for BLZPACK.
-
-  Input Parameter: 
-. eps - the iterative context
-*/
 int EPSDestroy_BLZPACK(EPS eps)
 {
   EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;

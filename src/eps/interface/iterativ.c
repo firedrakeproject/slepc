@@ -8,21 +8,22 @@
 #define __FUNCT__ "EPSGetIterationNumber"
 /*@
    EPSGetIterationNumber - Gets the current iteration number. If the 
-         EPSSolve() is complete, returns the number of iterations used.
+   call to EPSSolve() is complete, then it returns the number of iterations 
+   carried out by the solution method.
  
    Not Collective
 
-   Input Parameters:
+   Input Parameter:
 .  eps - the eigensolver context
 
-   Output Parameters:
+   Output Parameter:
 .  its - number of iterations
 
    Level: intermediate
 
    Notes:
-      During the i-th iteration this call returns i-1. If the 
-      EPSSolve() is complete, the parameter "its" contains either the iteration number at
+      During the i-th iteration this call returns i-1. If EPSSolve() is 
+      complete, then parameter "its" contains either the iteration number at
       which convergence was successfully reached, or failure was detected.  
       Call EPSGetConvergedReason() to determine if the solver converged or 
       failed and why.
@@ -40,8 +41,9 @@ int EPSGetIterationNumber(EPS eps,int *its)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetNumberLinearIterations"
 /*@
-   EPSGetNumberLinearIterations - Gets the total number of linear iterations
-   used by the ST object.
+   EPSGetNumberLinearIterations - Gets the total number of iterations
+   required by the linear solves associated to the ST object during the 
+   last EPSSolve() call.
 
    Not Collective
 
@@ -52,7 +54,12 @@ int EPSGetIterationNumber(EPS eps,int *its)
 .  lits - number of linear iterations
 
    Notes:
-   This counter is reset to zero for each successive call to EPSSolve().
+   When the eigensolver algorithm invokes STApply() then a linear system 
+   must be solved (except in the case of standard eigenproblems and shift
+   transformation). The number of iterations required in this solve is
+   accumulated into a counter whose value is returned by this function.
+
+   The iteration counter is reset to zero at each successive call to EPSSolve().
 
    Level: intermediate
 
@@ -120,7 +127,7 @@ int EPSDefaultEstimatesMonitor(EPS eps,int its,int nconv,PetscReal *errest,int n
 
    Level: intermediate
 
-.seealso: EPSSetEstimatesMonitor()
+.seealso: EPSSetValuesMonitor()
 @*/
 int EPSDefaultValuesMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,int neig,void *dummy)
 {
@@ -148,11 +155,11 @@ int EPSDefaultValuesMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
   EPSDefaultGetWork - Gets a number of work vectors.
 
   Input Parameters:
-. eps  - eigensolver context
-. nw   - number of work vectors to allocate
++ eps  - eigensolver context
+- nw   - number of work vectors to allocate
 
   Notes:
-  Call this only if no work vectors have been allocated 
+  Call this only if no work vectors have been allocated.
 
  */
 int  EPSDefaultGetWork(EPS eps, int nw)
@@ -213,7 +220,8 @@ int EPSDefaultDestroy(EPS eps)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetConvergedReason"
 /*@C
-   EPSGetConvergedReason - Gets the reason the EPS iteration was stopped.
+   EPSGetConvergedReason - Gets the reason why the EPSSolve() iteration was 
+   stopped.
 
    Not Collective
 
@@ -221,7 +229,8 @@ int EPSDefaultDestroy(EPS eps)
 .  eps - the eigensolver context
 
    Output Parameter:
-.  reason - negative value indicates diverged, positive value converged, see EPSConvergedReason
+.  reason - negative value indicates diverged, positive value converged
+   (see EPSConvergedReason)
 
    Possible values for reason:
 +  EPS_CONVERGED_TOL - converged up to tolerance
@@ -231,9 +240,9 @@ int EPSDefaultDestroy(EPS eps)
 
    Level: intermediate
 
-   Notes: Can only be called after the call the EPSSolve() is complete.
+   Notes: Can only be called after the call to EPSSolve() is complete.
 
-.seealso: EPSSetTolerances(), EPSConvergedReason
+.seealso: EPSSetTolerances(), EPSSolve(), EPSConvergedReason
 @*/
 int EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 {

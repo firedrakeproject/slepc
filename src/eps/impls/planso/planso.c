@@ -108,12 +108,6 @@ static int  EPSSolve_PLANSO(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_PLANSO"
-/*
-  EPSDestroy_PLANSO - Destroys the context variable for PLANSO.
-
-  Input Parameter: 
-. eps - the iterative context
-*/
 int EPSDestroy_PLANSO(EPS eps)
 {
   EPS_PLANSO *pl = (EPS_PLANSO *)eps->data;

@@ -124,12 +124,6 @@ static int  EPSSolve_TRLAN(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_TRLAN"
-/*
-  EPSDestroy_TRLAN - Destroys the context variable for TRLAN.
-
-  Input Parameter: 
-. eps - the iterative context
-*/
 int EPSDestroy_TRLAN(EPS eps)
 {
   EPS_TRLAN *tr = (EPS_TRLAN *)eps->data;

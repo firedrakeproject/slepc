@@ -9,7 +9,7 @@
 #undef __FUNCT__  
 #define __FUNCT__ "STAssociatedKSPSolve"
 /*@C
-   STAssociatedKSPSolve - Solve the linear system of equations associated
+   STAssociatedKSPSolve - Solves the linear system of equations associated
    to the spectral transformation.
 
    Collective on ST
@@ -110,7 +110,7 @@ int STGetKSP(ST st,KSP* ksp)
    Not Collective
 
    Input Parameter:
-.  st - ST context
+.  st - the spectral transformation context
 
    Output Parameter:
 .  lits - number of linear iterations
@@ -137,7 +137,7 @@ int STGetNumberLinearIterations(ST st,int* lits)
    Collective on ST
 
    Input Parameter:
-.  st - ST context
+.  st - the spectral transformation context
 
    Level: intermediate
 

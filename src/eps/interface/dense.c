@@ -16,7 +16,7 @@
    Not Collective
 
    Input Parameters:
-+  n     - dimension of the eigenproblem
++  n     - number of eigenvalue in the list
 .  eig   - pointer to the array containing the eigenvalues
 .  eigi  - imaginary part of the eigenvalues (only when using real numbers)
 .  which - sorting criterion
@@ -32,7 +32,7 @@
 
    Level: developer
 
-.seealso: EPSDenseNHEPSorted()
+.seealso: EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
 @*/
 int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
 {
@@ -120,7 +120,7 @@ int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,i
 -  V  - pointer to the array to store the eigenvectors
 
    Notes:
-   If w is PETSC_NULL then the eigenvectors are not computed.
+   If V is PETSC_NULL then the eigenvectors are not computed.
 
    Matrix A is overwritten.
    
@@ -222,7 +222,7 @@ int EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar
 -  V  - pointer to the array to store the eigenvectors
 
    Notes:
-   If w is PETSC_NULL then the eigenvectors are not computed.
+   If V is PETSC_NULL then the eigenvectors are not computed.
 
    Matrix A is overwritten.
 

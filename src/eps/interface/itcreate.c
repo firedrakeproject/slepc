@@ -2,8 +2,6 @@
      The basic EPS routines, Create, View, etc. are here.
 */
 #include "src/eps/epsimpl.h"      /*I "slepceps.h" I*/
-#include "slepcblaslapack.h" 
-#include "petscsys.h"
 
 PetscTruth EPSRegisterAllCalled = PETSC_FALSE;
 PetscFList EPSList = 0;

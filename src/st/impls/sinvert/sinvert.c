@@ -5,7 +5,7 @@
 #include "sinvert.h"             
 
 typedef struct {
-  STSinvertMatMode    shift_matrix; /* shift matrix rather than use shell mat */
+  STSinvertMatMode    shift_matrix;
   MatStructure str;          /* whether matrices have the same pattern or not */
   Mat          mat;
   Vec          w;
@@ -255,30 +255,41 @@ EXTERN_C_END
 #define __FUNCT__ "STSinvertSetMatMode"
 /*@
    STSinvertSetMatMode - Sets a flag to indicate how the matrix is
-   being shifted.
+   being shifted in the shift-and-invert spectral transformation.
 
    Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
--  mode - the mode flags, one of STSINVERT_MATMODE_COPY, 
+-  mode - the mode flag, one of STSINVERT_MATMODE_COPY, 
           STSINVERT_MATMODE_INPLACE or STSINVERT_MATMODE_SHELL
 
    Options Database Key:
 .  -st_sinvert_matmode <mode> - Activates STSinvertSetMatMode()
 
    Note:
-   By default (STSINVERT_MATMODE_COPY), a copy of the matrix is shifted explicitly. 
-   Instead with STSINVERT_MATMODE_INPLACE, the matrix is shifted being shifted at 
-   STSetUp() and unshifted at the end of the computations.
-   With STSINVERT_MATMODE_SHELL, the solver
-   works with an implicit shell matrix that represents the shifted matrix, 
-   in which case only the Jacobi preconditioning is available for the linear
-   solves performed in each iteration of the eigensolver.
+   By default (STSINVERT_MATMODE_COPY), a copy of matrix A is made and then 
+   this copy is shifted explicitly, e.g. A <- (A - s B). 
+
+   With STSINVERT_MATMODE_INPLACE, the original matrix A is shifted at 
+   STSetUp() and unshifted at the end of the computations. With respect to
+   the previous one, this mode avoids a copy of matrix A. However, a
+   backdraw is that the recovered matrix might be slightly different 
+   from the original one (due to roundoff).
+
+   With STSINVERT_MATMODE_SHELL, the solver works with an implicit shell 
+   matrix that represents the shifted matrix. This mode is the most efficient 
+   in creating the shifted matrix but it places serious limitations to the 
+   linear solves performed in each iteration of the eigensolver (typically,
+   only interative solvers with Jacobi preconditioning can be used).
    
+   In the case of generalized problems, in the two first modes the matrix
+   A - s B has to be computed explicitly. The efficiency of this computation 
+   can be controlled with STSinvertSetMatStructure().
+
    Level: intermediate
 
-.seealso: STSetOperators()
+.seealso: STSetOperators(), STSinvertSetMatStructure()
 @*/
 int STSinvertSetMatMode(ST st, STSinvertMatMode mode)
 {
@@ -329,11 +340,11 @@ EXTERN_C_END
    Note:
    By default, the sparsity patterns are assumed to be different. If the
    patterns are equal or a subset then it is recommended to set this attribute
-   for efficiency reasons (in particular, for internal MatAXPY operations).
+   for efficiency reasons (in particular, for internal MatAXPY() operations).
    
    Level: advanced
 
-.seealso: STSetOperators()
+.seealso: STSetOperators(), MatAXPY()
 @*/
 int STSinvertSetMatStructure(ST st,MatStructure str)
 {

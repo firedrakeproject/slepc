@@ -8,7 +8,7 @@ EXTERN_C_BEGIN
   PetscDLLibraryRegister - This function is called when the dynamic library 
   it is in is opened.
 
-  This one registers all the EPS and ST methods in libpetsceps
+  This one registers all the EPS and ST methods in the libslepc.a
   library.
 
   Input Parameter:

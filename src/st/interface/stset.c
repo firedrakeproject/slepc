@@ -26,10 +26,10 @@ PetscFList STList = 0;
    Options Database Key:
 .  -st_type <type> - Sets ST type
 
-   Use -help for a list of available methods
+   Use -help for a list of available transformations
 
    Notes:
-   See "slepc/include/slepcst.h" for available methods 
+   See "slepc/include/slepcst.h" for available transformations 
 
    Normally, it is best to use the EPSSetFromOptions() command and
    then set the ST type from the options database rather than by using
@@ -114,8 +114,7 @@ int STRegisterDestroy(void)
 #undef __FUNCT__  
 #define __FUNCT__ "STGetType"
 /*@C
-   STGetType - Gets the ST method type and name (as a string) from the ST
-   context.
+   STGetType - Gets the ST type name (as a string) from the ST context.
 
    Not Collective
 
