@@ -90,6 +90,8 @@ EXTERN PetscErrorCode STShellGetName(ST,char**);
 
 EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
+EXTERN PetscErrorCode STFoldSetLeftSide(ST st,PetscTruth left);
+
 PETSC_EXTERN_CXX_END
 #endif
 
