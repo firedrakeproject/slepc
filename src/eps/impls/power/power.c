@@ -79,7 +79,7 @@ static int  EPSSolve_POWER(EPS eps)
 
       /* deflation of converged eigenvectors */
       if (eps->nconv>0) {
-        ierr = (*eps->orthog)(eps,eps->nconv,y,PETSC_NULL,&norm);CHKERRQ(ierr);
+        ierr = (*eps->orthog)(eps,eps->nds+eps->nconv,eps->DSV,y,PETSC_NULL,&norm);CHKERRQ(ierr);
       }
 
       /* theta = w^* y */
@@ -97,7 +97,7 @@ static int  EPSSolve_POWER(EPS eps)
 
       /* deflation of converged eigenvectors */
       if (eps->nconv>0) {
-        ierr = (*eps->orthog)(eps,eps->nconv,y,PETSC_NULL,&norm);CHKERRQ(ierr);
+        ierr = (*eps->orthog)(eps,eps->nds+eps->nconv,eps->DSV,y,PETSC_NULL,&norm);CHKERRQ(ierr);
       }
 
       /* theta = v^* y */

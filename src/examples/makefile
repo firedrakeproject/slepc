@@ -4,7 +4,7 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/examples/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c
 EXAMPLESCH = 
 EXAMPLESF  = ex1f.F ex6f.F mvmisg.f
 
@@ -69,6 +69,10 @@ ex9: ex9.o slepc_chkopts
 ex10: ex10.o slepc_chkopts
 	-${CLINKER} -o ex10 ex10.o ${SLEPC_LIB}
 	${RM} ex10.o
+
+ex11: ex11.o slepc_chkopts
+	-${CLINKER} -o ex11 ex11.o ${SLEPC_LIB}
+	${RM} ex11.o
 
 #------------------------------------------------------------------------------------
 

@@ -58,7 +58,7 @@ static int  EPSSolve_SUBSPACE(EPS eps)
     ierr = STApply(eps->OP,eps->V[k-1],eps->V[k]); CHKERRQ(ierr);
   }
   /* QR-Factorize V R = Z */
-  ierr = EPSQRDecomposition(eps,0,ncv,PETSC_NULL,ncv);CHKERRQ(ierr);
+  ierr = EPSQRDecomposition(eps,eps->DSV,eps->nds,eps->nds+ncv,PETSC_NULL,eps->nds+ncv);CHKERRQ(ierr);
 
   i = 0;
   eps->its = 0;
@@ -76,7 +76,7 @@ static int  EPSSolve_SUBSPACE(EPS eps)
     }
 
     /* QR-Factorize V R = Y */
-    ierr = EPSQRDecomposition(eps,i,ncv,PETSC_NULL,ncv);CHKERRQ(ierr);
+    ierr = EPSQRDecomposition(eps,eps->DSV,eps->nds+i,eps->nds+ncv,PETSC_NULL,eps->nds+ncv);CHKERRQ(ierr);
   
     /* compute the projected matrix, H = V^* A V */
     for (j=i;j<ncv;j++) {

@@ -30,7 +30,8 @@ struct _p_EPS {
   int        max_it,            /* maximum number of iterations */
              nev,               /* number of eigenvalues to compute */
              ncv,               /* number of basis vectors */
-             allocated_ncv;     /* number of basis vectors allocated */
+             allocated_ncv,     /* number of basis vectors allocated */
+             nds;               /* size of deflation space */
   PetscReal  tol;               /* tolerance */
   EPSWhich   which;             /* which part of the spectrum to be sought */
   PetscTruth dropvectors;       /* do not compute eigenvectors */
@@ -38,7 +39,9 @@ struct _p_EPS {
 
   /*------------------------- Working data --------------------------*/
   Vec         vec_initial;      /* initial vector for iterative methods */
-  Vec         *V;               /* set of basis vectors */
+  Vec         *V,               /* set of basis vectors */
+              *DS,              /* deflation space */
+              *DSV;             /* deflation space and basis vectors*/
   PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
   PetscReal  *errest;           /* error estimates */
   ST         OP;                /* spectral transformation object */
@@ -63,8 +66,9 @@ struct _p_EPS {
   int        numbermonitors; 
 
   /* --------------- Orthogonalization --------------------- */
-  int        (*orthog)(EPS,int,Vec,PetscScalar*,PetscReal*);
+  int        (*orthog)(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
   PetscReal  orth_eta;
+  PetscTruth ds_ortho;
   EPSOrthogonalizationType orth_type;   /* which orthogonalization to use */
   
 };
@@ -84,8 +88,8 @@ extern int EPSAllocateSolution(EPS);
 extern int EPSFreeSolution(EPS);
 extern int EPSAllocateSolutionContiguous(EPS);
 extern int EPSFreeSolutionContiguous(EPS);
-extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec,PetscScalar*,PetscReal*);
-extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec,PetscScalar*,PetscReal*);
+extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
+extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
 extern int EPSBackTransform_Default(EPS);
 
 #endif

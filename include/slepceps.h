@@ -116,13 +116,14 @@ extern int EPSComputeExplicitOperator(EPS,Mat*);
 extern int EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,int,int*);
 extern int EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 extern int EPSDenseNHEPSorted(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,EPSWhich);
-extern int EPSQRDecomposition(EPS,int,int,PetscScalar*,int);
+extern int EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 extern int EPSReverseProjection(EPS,int,int,PetscScalar*);
 extern int EPSSwapEigenpairs(EPS,int,int);
 
 extern int STPreSolve(ST,EPS);
 extern int STPostSolve(ST,EPS);
-extern int EPSSetDefaults(EPS eps);
+
+extern int EPSAttachDeflationSpace(EPS,int,Vec*,PetscTruth);
 
 /* --------- options specific to particular eigensolvers -------- */
 

@@ -30,7 +30,7 @@
 @*/
 int EPSSetUp(EPS eps)
 {
-  int         ierr;
+  int         i,ierr;
   Vec         v0;
   Mat         A,B;
   PetscTruth  Ah,Bh;
@@ -72,7 +72,18 @@ int EPSSetUp(EPS eps)
   ierr = STSetVector(eps->OP,v0); CHKERRQ(ierr);
 
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
+
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
+ 
+  if (eps->DSV) { ierr = PetscFree(eps->DSV);CHKERRQ(ierr); }
+  ierr = PetscMalloc((eps->ncv+eps->nds)*sizeof(Vec),&eps->DSV);CHKERRQ(ierr);    
+  for (i = 0; i < eps->nds; i++) eps->DSV[i] = eps->DS[i];
+  for (i = 0; i < eps->ncv; i++) eps->DSV[i+eps->nds] = eps->V[i];
+  
+  if (!eps->ds_ortho && eps->nds > 0) {
+    ierr = EPSQRDecomposition(eps,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
+  }
+    
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
   eps->setupcalled = 1;
   PetscFunctionReturn(0);
@@ -153,6 +164,7 @@ int EPSSolve(EPS eps)
   /* sort eigenvalues according to eps->which parameter */
   if (eps->perm) {
     ierr = PetscFree(eps->perm); CHKERRQ(ierr);
+    eps->perm = PETSC_NULL;
   }
   if (eps->nconv > 0) {
     ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
@@ -223,6 +235,14 @@ int EPSDestroy(EPS eps)
 
   if (eps->vec_initial) {
     ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+  }
+
+  if (eps->nds > 0) {
+    ierr = VecDestroyVecs(eps->DS, eps->nds);
+  }
+  
+  if (eps->DSV) {
+    ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
   }
 
   PetscLogObjectDestroy(eps);
@@ -1338,13 +1358,11 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
 {
   PetscScalar tscalar;
   PetscReal   treal;
-  Vec         tvec;
+  int         ierr;
   
   PetscFunctionBegin;
   if (i!=j) {
-    tvec = eps->V[i];
-    eps->V[i] = eps->V[j];
-    eps->V[j] = tvec;
+    ierr = VecSwap(eps->V[i],eps->V[j]);CHKERRQ(ierr);
     tscalar = eps->eigr[i];
     eps->eigr[i] = eps->eigr[j];
     eps->eigr[j] = tscalar;

@@ -14,6 +14,7 @@
 
    Input Parameters:
 +  eps - the eigenproblem solver context
+.  V - basis vectors
 .  m - starting column
 .  n - ending column
 -  ldr - leading dimension of R
@@ -28,7 +29,7 @@
    Level: developer
 
 @*/
-int EPSQRDecomposition(EPS eps,int m,int n,PetscScalar *R,int ldr)
+int EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
 {
   int         ierr,k;
   PetscScalar alpha;
@@ -41,19 +42,19 @@ int EPSQRDecomposition(EPS eps,int m,int n,PetscScalar *R,int ldr)
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
     if (k>0) {
       ierr = PetscLogEventBegin(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
-      if (R) { ierr = (*eps->orthog)(eps,k,eps->V[k],&R[0+ldr*k],&norm);CHKERRQ(ierr); }
-      else   { ierr = (*eps->orthog)(eps,k,eps->V[k],PETSC_NULL,&norm);CHKERRQ(ierr); }
+      if (R) { ierr = (*eps->orthog)(eps,k,V,V[k],&R[0+ldr*k],&norm);CHKERRQ(ierr); }
+      else   { ierr = (*eps->orthog)(eps,k,V,V[k],PETSC_NULL,&norm);CHKERRQ(ierr); }
       ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
     }
     else {
-      ierr = VecNorm(eps->V[0],NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(V[0],NORM_2,&norm);CHKERRQ(ierr);
     }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (R) { R[k+ldr*k] = norm; }
     if (norm==0.0) SETERRQ( 1,"Zero vector in QR decomposition" );
     alpha = 1.0/norm;
-    ierr = VecScale(&alpha,eps->V[k]);CHKERRQ(ierr);
+    ierr = VecScale(&alpha,V[k]);CHKERRQ(ierr);
 
   }
 
@@ -168,7 +169,7 @@ int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonal
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSClassicalGramSchmidtOrthogonalization"
-int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec v,PetscScalar *H,PetscReal *norm)
+int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm)
 {
   int         ierr,j;
   PetscScalar shh[100],shh2[100],*lhh;
@@ -190,14 +191,14 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec v,PetscScalar *H,
   /*** First orthogonalization ***/
 
   /* h = V^* v */
-  ierr = VecMDot(n,v,eps->V,lhh);CHKERRQ(ierr);
+  ierr = VecMDot(n,v,V,lhh);CHKERRQ(ierr);
 
   /* q = v - V h */
   for (j=0;j<n;j++) {
     H[j] = lhh[j];
     lhh[j] = -lhh[j];    
   }
-  ierr = VecMAXPY(n,lhh,v,eps->V);CHKERRQ(ierr);
+  ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
   
   ierr = VecNorm(v, NORM_2, norm);CHKERRQ(ierr);
 
@@ -214,14 +215,14 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec v,PetscScalar *H,
       PetscLogInfo(eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,hnorm);
       
       /* s = V^* q */
-      ierr = VecMDot(n,v,eps->V,lhh);CHKERRQ(ierr); 
+      ierr = VecMDot(n,v,V,lhh);CHKERRQ(ierr); 
 
       /* q = q - V s  ;  h = h + s */
       for (j=0;j<n;j++) {
         H[j] += lhh[j];
         lhh[j] = -lhh[j];    
       }
-      ierr = VecMAXPY(n,lhh,v,eps->V);CHKERRQ(ierr);
+      ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
 
       ierr = VecNorm(v, NORM_2, norm);CHKERRQ(ierr);
     }
@@ -237,7 +238,7 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec v,PetscScalar *H,
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSModifiedGramSchmidtOrthogonalization"
-int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec v,PetscScalar *H,PetscReal *norm)
+int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm)
 {
   int         ierr,j;
   PetscScalar alpha;
@@ -263,12 +264,12 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec v,PetscScalar *H,P
   do {
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
-      ierr = VecDot(v,eps->V[j],&alpha);CHKERRQ(ierr);
+      ierr = VecDot(v,V[j],&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
       h[j] += alpha;
       /* v <- v - alpha v_j */
       alpha = -alpha;
-      ierr = VecAXPY(&alpha,eps->V[j],v);CHKERRQ(ierr);
+      ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
     }
     ierr = VecNorm(v, NORM_2, norm);CHKERRQ(ierr);
     if (refinement) refinement = PETSC_FALSE;
@@ -291,3 +292,70 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec v,PetscScalar *H,P
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSAttachDeflationSpace"
+/*@
+   EPSAttachDeflationSpace - add vectors to the deflation space
+
+   Not Collective
+
+   Input Parameter:
++  eps   - Eigensolver context 
+.  n     - size of deflation space
+.  ds    - components of deflation space
+-  ortho - PETSC_TRUE if components of deflation space are orthonormal
+
+   Level: intermediate
+
+@*/
+int EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
+{
+  int ierr, i;
+  Vec *tvec;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  tvec = eps->DS;
+  if (n+eps->nds > 0) {
+     ierr = PetscMalloc((n+eps->nds)*sizeof(Vec), &eps->DS);CHKERRQ(ierr);
+  }
+  if (eps->nds > 0) {
+    for (i=0; i<eps->nds; i++) eps->DS[i] = tvec[i];
+    ierr = PetscFree(tvec);CHKERRQ(ierr);
+  }
+  for (i=0; i<n; i++) {
+    ierr = VecDuplicate(ds[i],&eps->DS[i + eps->nds]);CHKERRQ(ierr);
+    ierr = VecCopy(ds[i],eps->DS[i + eps->nds]);CHKERRQ(ierr);
+  }
+  eps->nds += n;
+  if (!ortho) eps->ds_ortho = PETSC_FALSE;
+  eps->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSRemoveDeflationSpace"
+/*@
+   EPSRemoveDeflationSpace - removes the deflation space
+
+   Not Collective
+
+   Input Parameter:
++  eps   - Eigensolver context 
+
+   Level: intermediate
+
+@*/
+int EPSRemoveDeflationSpace(EPS eps)
+{
+  int ierr;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (eps->nds > 0) {
+    ierr = VecDestroyVecs(eps->DS, eps->nds);CHKERRQ(ierr);
+  }
+  eps->ds_ortho = PETSC_TRUE;
+  eps->setupcalled = 0;
+  PetscFunctionReturn(0);
+}

@@ -198,6 +198,7 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nev             = 1;
   eps->ncv             = 0;
   eps->allocated_ncv   = 0;
+  eps->nds             = 0;
   eps->tol             = 0.0;
   eps->which           = EPS_LARGEST_MAGNITUDE;
   eps->dropvectors     = PETSC_FALSE;
@@ -205,6 +206,8 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->vec_initial     = 0;
   eps->V               = 0;
+  eps->DS              = 0;
+  eps->ds_ortho        = PETSC_TRUE;
   eps->eigr            = 0;
   eps->eigi            = 0;
   eps->errest          = 0;
