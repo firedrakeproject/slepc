@@ -1,7 +1,6 @@
 /*
-    Routines related to orthogonalization.
-
-    See the SLEPc users manual for a detailed explanation.
+     EPS routines related to orthogonalization.
+     See the SLEPc users manual for a detailed explanation.
 */
 #include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
 
@@ -23,11 +22,19 @@
 .  R  - triangular matrix of QR factorization
 
    Notes:
-   Assumes that the first m columns (from 0 to m-1) are already orthonormal
-   to working precision.
+   This routine orthonormalizes the columns of V so that V'*V=I up to 
+   working precision. It assumes that the first m columns (from 0 to m-1) 
+   are already orthonormal. The coefficients of the orthogonalization are
+   stored in R so that V*R is equal to the original V.
+
+   In some cases, this routine makes V B-orthonormal, that is, V'*B*V=I.
+
+   If one of the vectors is linearly dependent wrt the rest (at working
+   precision) then it is replaced by a random vector.
 
    Level: developer
 
+.seealso: EPSOrthogonalize(), STNorm(), STInnerProduct().
 @*/
 PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
 {
@@ -221,6 +228,28 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPurge"
+/*@
+   EPSOrthogonalize - Purge a vector of all converged vectors.
+
+   Collective on EPS
+
+   Input Parameters:
+.  eps - the eigenproblem solver context
+
+   Input/Output Parameter:
+.  v - vector to be purged
+
+   Notes:
+   On exit, v is orthogonal to all the basis vectors of the currently
+   converged invariant subspace as well as all the deflation vectors
+   provided by the user.
+
+   This routine does not normalize the resulting vector.
+
+   Level: developer
+
+.seealso: EPSOrthogonalize(), EPSAttachDeflationSpace()
+@*/
 PetscErrorCode EPSPurge(EPS eps,Vec v)
 {
   PetscErrorCode ierr;
@@ -231,6 +260,34 @@ PetscErrorCode EPSPurge(EPS eps,Vec v)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSOrthogonalize"
+/*@
+   EPSOrthogonalize - Orthogonalize a vector with respect to a set of vectors.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+.  n - number of columns of V
+-  V - set of vectors
+
+   Input/Output Parameter:
+.  v - vector to be orthogonalized
+
+   Output Parameter:
++  H  - coefficients computed during orthogonalization
+.  norm - norm of the vector ofter being orthogonalized
+-  breakdown - flag indicating that refinement did not improve the quality
+   of orthogonalization
+
+   Notes:
+   On exit, v0 = [V v]*H, where v0 is the original vector v.
+
+   This routine does not normalize the resulting vector.
+
+   Level: developer
+
+.seealso: EPSSetOrthogonalization()
+@*/
 PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;

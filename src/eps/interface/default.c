@@ -1,7 +1,6 @@
-
 /*
-   This file contains some simple default routines.  
- */
+     This file contains some simple default routines for common operations.  
+*/
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
@@ -38,6 +37,11 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_Default"
+/*
+  EPSComputeVectors_Default - Compute eigenvectors from the vectors
+  provided by the eigensolver. This version just copies the vectors
+  and is intended for solvers such as power that provide the eigenvector.
+ */
 PetscErrorCode EPSComputeVectors_Default(EPS eps)
 {
   PetscErrorCode ierr;
@@ -53,6 +57,14 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_Schur"
+/*
+  EPSComputeVectors_Schur - Compute eigenvectors from the vectors
+  provided by the eigensolver. This version is intended for solvers 
+  that provide Schur vectors. Given the partial Schur decomposition
+  OP*V=V*T, the following steps are performed:
+      1) compute eigenvectors of T: T*Y=Y*D
+      2) compute eigenvectors of OP: X=V*Y
+ */
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;

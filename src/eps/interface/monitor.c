@@ -1,7 +1,6 @@
 /*
-      Interface EPS routines that the user calls.
+      EPS routines related to monitors.
 */
-
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  

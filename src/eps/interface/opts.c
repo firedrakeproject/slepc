@@ -1,3 +1,7 @@
+/*
+      EPS routines related to options that can be set via the command-line 
+      or procedurally.
+*/
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
 EXTERN PetscTruth EPSRegisterAllCalled;
@@ -477,7 +481,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 
    Level: intermediate
 
-.seealso: EPSGetOrthogonalization()
+.seealso: EPSOrthogonalize(), EPSGetOrthogonalization()
 @*/
 PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EPSOrthogonalizationRefinementType refinement, PetscReal eta)
 {

@@ -1,3 +1,6 @@
+/*
+      EPS routines related to the solution process.
+*/
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  

@@ -1,6 +1,5 @@
-
 /*                       
-       This file implements interfaces to direct solvers in LAPACK
+     This file contains routines for handling small size dense problems.
 */
 #include "slepceps.h" /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
@@ -107,7 +106,7 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
 
    Not Collective
 
-   Input Parameter:
+   Input Parameters:
 +  n  - dimension of the eigenproblem
 -  A  - pointer to the array containing the matrix values
 
@@ -212,7 +211,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 
    Not Collective
 
-   Input Parameter:
+   Input Parameters:
 +  n  - dimension of the eigenproblem
 -  A  - pointer to the array containing the matrix values
 
@@ -275,6 +274,44 @@ PetscErrorCode EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScala
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDenseSchur"
+/*@
+   EPSDenseSchur - Computes the upper (quasi-)triangular form of a dense 
+   upper Hessenberg matrix.
+
+   Not Collective
+
+   Input Parameters:
++  n  - dimension of the matrix 
+-  k  - first active column
+
+   Input/Output Parameters:
++  H  - on entry, the upper Hessenber matrix; on exit, the upper 
+        (quasi-)triangular matrix (T)
+-  Z  - on entry, initial transformation matrix; on exit, orthogonal
+        matrix of Schur vectors
+
+   Output Parameters:
++  wr - pointer to the array to store the computed eigenvalues
+-  wi - imaginary part of the eigenvalues (only when using real numbers)
+
+   Notes:
+   This function computes the (real) Schur decomposition of an upper
+   Hessenberg matrix H: H*Z = Z*T,  where T is an upper (quasi-)triangular 
+   matrix (returned in H), and Z is the orthogonal matrix of Schur vectors.
+   Eigenvalues are extracted from the diagonal blocks of T and returned in
+   wr,wi. Transformations are accumulated in Z so that on entry it can 
+   contain the transformation matrix associated to the Hessenberg reduction.
+
+   Only active columns (from k to n) are computed. 
+
+   Both H and Z are overwritten.
+   
+   This routine uses LAPACK routines xHSEQR.
+
+   Level: developer
+
+.seealso: EPSSortDenseSchur()
+@*/
 PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
 {
   PetscErrorCode ierr;
@@ -302,7 +339,39 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSortDenseSchur"
-PetscErrorCode EPSSortDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
+/*@
+   EPSSortDenseSchur - Reorders the Schur decomposition computed by
+   EPSDenseSchur().
+
+   Not Collective
+
+   Input Parameters:
++  n  - dimension of the matrix 
+-  k  - first active column
+
+   Input/Output Parameters:
++  T  - the upper (quasi-)triangular matrix
+-  Z  - the orthogonal matrix of Schur vectors
+
+   Output Parameters:
++  wr - pointer to the array to store the computed eigenvalues
+-  wi - imaginary part of the eigenvalues (only when using real numbers)
+
+   Notes:
+   This function reorders the eigenvalues in wr,wi located in positions k
+   to n in ascending order of magnitude. The Schur decomposition Z*T*Z^T,
+   is also reordered by means of rotations so that eigenvalues in the
+   diagonal blocks of T follow the same order.
+
+   Both T and Z are overwritten.
+   
+   This routine uses LAPACK routines xTREXC.
+
+   Level: developer
+
+.seealso: EPSDenseSchur()
+@*/
+PetscErrorCode EPSSortDenseSchur(PetscScalar *T,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
 {
   int i,j,ifst,ilst,info,maxpos;
 #if !defined(PETSC_USE_COMPLEX)
@@ -336,35 +405,35 @@ PetscErrorCode EPSSortDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,P
       ifst = maxpos + 1;
       ilst = i + 1;
 #if !defined(PETSC_USE_COMPLEX)
-      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,work,&info,1);
+      LAtrexc_("V",&n,T,&n,Z,&n,&ifst,&ilst,work,&info,1);
 #else
-      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,&info,1);
+      LAtrexc_("V",&n,T,&n,Z,&n,&ifst,&ilst,&info,1);
 #endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
 
 #if !defined(PETSC_USE_COMPLEX)
-     for (j=k;j<n;j++) {
-       if (j==n-1 || H[j*n+j+1] == 0.0) { 
-         /* real eigenvalue */
-         wr[j] = H[j*n+j];
-         wi[j] = 0.0;
-       } else {
-         /* complex eigenvalue */
-         wr[j] = H[j*n+j];
-         wr[j+1] = H[j*n+j];
-         wi[j] = sqrt(PetscAbsReal(H[j*n+j+1])) *
-                 sqrt(PetscAbsReal(H[(j+1)*n+j]));
-         j++;
-       }
-     }
+      for (j=k;j<n;j++) {
+        if (j==n-1 || T[j*n+j+1] == 0.0) { 
+          /* real eigenvalue */
+          wr[j] = T[j*n+j];
+          wi[j] = 0.0;
+        } else {
+          /* complex eigenvalue */
+          wr[j] = T[j*n+j];
+          wr[j+1] = T[j*n+j];
+          wi[j] = sqrt(PetscAbsReal(T[j*n+j+1])) *
+                  sqrt(PetscAbsReal(T[(j+1)*n+j]));
+          j++;
+        }
+      }
 #else
-     for (j=k;j<n;j++) {
-       wr[j] = H[j*(n+1)];
-     }
+      for (j=k;j<n;j++) {
+        wr[j] = T[j*(n+1)];
+      }
 #endif
-   }
+    }
 #if !defined(PETSC_USE_COMPLEX)
-   if (wi[i] != 0) i++;
+    if (wi[i] != 0) i++;
 #endif
   }
   

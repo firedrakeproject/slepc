@@ -1,7 +1,14 @@
+/*
+      EPS routines related to memory management.
+*/
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAllocateSolution"
+/*
+  EPSAllocateSolution - Allocate memory storage for common variables such
+  as eigenvalues and eigenvectors.
+*/
 PetscErrorCode EPSAllocateSolution(EPS eps)
 {
   PetscErrorCode ierr;
@@ -28,6 +35,10 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFreeSolution"
+/*
+  EPSFreeSolution - Free memory storage. This routine is related to 
+  EPSAllocateSolution().
+*/
 PetscErrorCode EPSFreeSolution(EPS eps)
 {
   PetscErrorCode ierr;
@@ -46,6 +57,12 @@ PetscErrorCode EPSFreeSolution(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAllocateSolutionContiguous"
+/*
+  EPSAllocateSolutionContiguous - Allocate memory storage for common 
+  variables such as eigenvalues and eigenvectors. In this version, all
+  vectors in V (and AV) share a contiguous chunk of memory. This is 
+  necessary for external packages such as Arpack.
+*/
 PetscErrorCode EPSAllocateSolutionContiguous(EPS eps)
 {
   PetscErrorCode ierr;
@@ -92,6 +109,10 @@ PetscErrorCode EPSAllocateSolutionContiguous(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFreeSolutionContiguous"
+/*
+  EPSFreeSolution - Free memory storage. This routine is related to 
+  EPSAllocateSolutionContiguous().
+*/
 PetscErrorCode EPSFreeSolutionContiguous(EPS eps)
 {
   PetscErrorCode ierr;
