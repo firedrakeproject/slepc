@@ -4,6 +4,9 @@
 */
 #include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
 
+int countorthog = 0;
+int countreorthog = 0;
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSQRDecomposition"
 /*@
@@ -72,29 +75,19 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSClassicalGramSchmidtOrthogonalization"
-static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *breakdown)
+static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
 {
   PetscErrorCode ierr;
   int            j;
-  PetscScalar    shh[100],shh2[100],*lhh,
+  PetscScalar    shh[100],*lhh,
                  zero = 0.0,minus = -1.0;
-  PetscTruth     alloc = PETSC_FALSE;
-  PetscReal      hnorm = 0,lnorm;
   Vec            w;
 
   PetscFunctionBegin;
 
-  if (!H) {
-    if (n<=100) H = shh2;   /* Don't allocate small arrays */
-    else { 
-      ierr = PetscMalloc(n*sizeof(PetscScalar),&H);CHKERRQ(ierr);
-      alloc = PETSC_TRUE;
-    }
-  }
   /* Don't allocate small arrays */
   if (n<=100) lhh = shh;
   else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
-  if (!norm) { norm = &lnorm; }
   ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
   
   /*** First orthogonalization ***/
@@ -105,24 +98,29 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   ierr = VecSet(&zero,w);CHKERRQ(ierr);
   ierr = VecMAXPY(n,H,w,V);CHKERRQ(ierr);
   ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
-  ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
-
+  
   /* compute hnorm */
-  if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED || breakdown) {
-    hnorm = 0.0;
+  if (hnorm) {
+    *hnorm = 0.0;
     for (j=0; j<n; j++) {
-      hnorm  +=  PetscRealPart(H[j] * PetscConj(H[j]));
+      *hnorm += PetscRealPart(H[j] * PetscConj(H[j]));
     }
-    hnorm = sqrt(hnorm);
+    *hnorm = sqrt(*hnorm);
   }
   
+  /* compute norm of v for refinement or breakdown checking */
+  if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED ||
+      (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS && hnorm) ) {
+    ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);  
+  }
+
   /*** Second orthogonalization if necessary ***/
   
   /* if ||q|| < eta ||h|| */
-  if (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS || 
-     (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && 
-      *norm < eps->orthog_eta * hnorm)) {
-    PetscLogInfo(eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,hnorm);
+  if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
+      eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
+    PetscLogInfo(eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm,hnorm);
+    countreorthog++;
 
     /* s = V^* q */
     /* q = q - V s  ;  h = h + s */
@@ -134,18 +132,13 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
     ierr = VecMAXPY(n,lhh,w,V);CHKERRQ(ierr);
     ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
 
-    hnorm = *norm;
-    ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
+    if (hnorm) *hnorm = *norm;
   }
   
-  /* check breakdown */
-  if (breakdown) {
-    if (*norm < eps->orthog_eta * hnorm) *breakdown = PETSC_TRUE;
-    else *breakdown = PETSC_FALSE;
-  }
-
+  /* compute norm of v */
+  if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
+  
   if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  if (alloc) { ierr = PetscFree(H);CHKERRQ(ierr); }
   ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -155,73 +148,63 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSModifiedGramSchmidtOrthogonalization"
-PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *breakdown)
+PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
 {
   PetscErrorCode ierr;
   int            j;
   PetscScalar    alpha;
-  PetscTruth     allocated;
-  PetscScalar    lh[100],*h;
-  PetscReal      hnorm = 0,lnorm;
   
   PetscFunctionBegin;
   
-  allocated = PETSC_FALSE;
-  if (!H) {
-    if (n<=100) h = lh;
-    else {
-      ierr = PetscMalloc(n*sizeof(PetscScalar),&h);CHKERRQ(ierr);
-      allocated = PETSC_TRUE;
-    }
-  } else h = H;
-  
-  if (!norm) { norm = &lnorm; }
+  /*** First orthogonalization ***/
 
   for (j=0; j<n; j++) {
     /* alpha = ( v, v_j ) */
     ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
     /* store coefficients if requested */
-    h[j] = alpha;
+    H[j] = alpha;
     /* v <- v - alpha v_j */
     alpha = -alpha;
     ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
   }
-  ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
-
-  if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED || breakdown) {
-    hnorm = 0.0;
-    for (j=0; j<n; j++) {
-      hnorm += PetscRealPart(h[j] * PetscConj(h[j]));
-    }
-    hnorm = sqrt(hnorm);
-  }
   
-  if (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS || 
-     (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED &&
-      *norm < eps->orthog_eta * hnorm)) {
-    PetscLogInfo(eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,hnorm);
+  /* compute hnorm */
+  if (hnorm) {
+    *hnorm = 0.0;
+    for (j=0; j<n; j++) {
+      *hnorm += PetscRealPart(H[j] * PetscConj(H[j]));
+    }
+    *hnorm = sqrt(*hnorm);
+  }
+    
+  /* compute norm of v for refinement or breakdown checking */
+  if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED ||
+      (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS && hnorm) ) {
+    ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);  
+  }
+
+  /*** Second orthogonalization if necessary ***/
+
+  /* if ||q|| < eta ||h|| */
+  if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
+      eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
+    PetscLogInfo(eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,*hnorm);
+    countreorthog++;
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
       ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
-      h[j] += alpha;
+      H[j] += alpha;
       /* v <- v - alpha v_j */
       alpha = -alpha;
       ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
     }
-    hnorm = *norm;
-    ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
+    if (hnorm) *hnorm = *norm;
   }
 
-  /* check breakdown */
-  if (breakdown) {
-    if (*norm < eps->orthog_eta * hnorm) *breakdown = PETSC_TRUE;
-    else *breakdown = PETSC_FALSE;
-  }
-  
-  if (allocated) {
-    ierr = PetscFree(h);CHKERRQ(ierr);
-  }
+  /* compute norm of v */
+  if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
+
   PetscFunctionReturn(0);
 }
 
@@ -290,23 +273,56 @@ PetscErrorCode EPSPurge(EPS eps,Vec v)
 PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
+  PetscScalar    lh[100],*h;
+  PetscTruth     allocated = PETSC_FALSE;
+  PetscReal      lhnrm,*hnrm,lnrm,*nrm;
   PetscFunctionBegin;
   if (n==0) {
     if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
     if (breakdown) *breakdown = PETSC_FALSE;
   } else {
-    ierr = PetscLogEventBegin(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(EPS_Orthogonalize,eps,0,0,0);CHKERRQ(ierr);
+    
+    /* allocate H if needed */
+    if (!H) {
+      if (n<=100) h = lh;
+      else {
+        ierr = PetscMalloc(n*sizeof(PetscScalar),&h);CHKERRQ(ierr);
+        allocated = PETSC_TRUE;
+      }
+    } else h = H;
+    
+    /* retrieve hnrm and nrm for breakdown check or conditional refinement */
+    if (breakdown || eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
+      hnrm = &lhnrm;
+      if (norm) nrm = norm;
+      else nrm = &lnrm;
+    } else {
+      hnrm = PETSC_NULL;
+      nrm = norm;
+    }
+    
+    countorthog++;
     switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
-        ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,v,H,norm,breakdown);CHKERRQ(ierr);
+        ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       case EPS_MGS_ORTH:
-        ierr = EPSModifiedGramSchmidtOrthogonalization(eps,n,V,v,H,norm,breakdown);CHKERRQ(ierr);
+        ierr = EPSModifiedGramSchmidtOrthogonalization(eps,n,V,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       default:
         SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
-    ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
+    
+    /* check breakdown */
+    if (breakdown) {
+      if (*nrm < eps->orthog_eta * *hnrm) *breakdown = PETSC_TRUE;
+      else *breakdown = PETSC_FALSE;
+    }
+    
+    if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
+    
+    ierr = PetscLogEventEnd(EPS_Orthogonalize,eps,0,0,0);CHKERRQ(ierr);
   } 
   PetscFunctionReturn(0);
 }
