@@ -23,7 +23,7 @@ static int EPSSetUp_POWER(EPS eps)
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -31,19 +31,15 @@ static int EPSSetUp_POWER(EPS eps)
 #define __FUNCT__ "EPSSolve_POWER"
 static int  EPSSolve_POWER(EPS eps)
 {
-  int         ierr, i, maxit=eps->max_it;
-  Vec         v, w, y, e;
-  PetscReal   relerr, norm, tol=eps->tol;
-  PetscScalar theta, alpha, eta;
-  PetscTruth  isSinv;
+  int         ierr, i;
+  Vec         v, y, e;
+  PetscReal   relerr, norm;
+  PetscScalar theta, alpha;
 
   PetscFunctionBegin;
   v = eps->V[0];
-  y = eps->work[0];
-  w = eps->work[1];
-  e = eps->work[2];
-
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+  y = eps->AV[0];
+  e = eps->work[0];
 
   ierr = VecCopy(eps->vec_initial,y);CHKERRQ(ierr);
 
@@ -52,53 +48,24 @@ static int  EPSSolve_POWER(EPS eps)
 
   for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
 
-  while (eps->its<maxit) {
+  while (eps->its<eps->max_it) {
 
     eps->its = eps->its + 1;
 
-    if (isSinv && eps->isgeneralized) {
-      /* w = B y */
-      ierr = STApplyB(eps->OP,y,w);CHKERRQ(ierr);
+    /* v = y/||y||_B */
+    ierr = VecCopy(y,v);CHKERRQ(ierr);
+    ierr = STNorm(eps->OP,y,&norm);CHKERRQ(ierr);
+    alpha = 1.0/norm;
+    ierr = VecScale(&alpha,v);CHKERRQ(ierr);
 
-      /* eta = ||y||_B */
-      ierr = VecDot(w,y,&eta);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-      if (eta<0.0) SETERRQ(1,"Negative value of eta");
-#endif
-      eta = PetscSqrtScalar(eta);
+    /* y = OP v */
+    ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
 
-      /* normalize y and w */
-      ierr = VecCopy(y,v);CHKERRQ(ierr);
-      if (eta==0.0) SETERRQ(1,"Zero value of eta");
-      alpha = 1.0/eta;
-      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-      ierr = VecScale(&alpha,w);CHKERRQ(ierr);
+    /* theta = v^* y */
+    ierr = STInnerProduct(eps->OP,y,v,&theta);CHKERRQ(ierr);
 
-      /* y = OP w */
-      ierr = STApplyNoB(eps->OP,w,y);CHKERRQ(ierr);
-
-      /* deflation of converged eigenvectors */
-      ierr = EPSPurge(eps,y);
-
-      /* theta = w^* y */
-      ierr = VecDot(y,w,&theta);CHKERRQ(ierr);
-    }
-    else {
-      /* v = y/||y||_2 */
-      ierr = VecCopy(y,v);CHKERRQ(ierr);
-      ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-      alpha = 1.0/norm;
-      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-
-      /* y = OP v */
-      ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
-
-      /* deflation of converged eigenvectors */
-      ierr = EPSPurge(eps,y);
-
-      /* theta = v^* y */
-      ierr = VecDot(y,v,&theta);CHKERRQ(ierr);
-    }
+    /* deflation of converged eigenvectors */
+    ierr = EPSPurge(eps,y);
 
     /* if ||y-theta v||_2 / |theta| < tol, accept */
     ierr = VecCopy(y,e);CHKERRQ(ierr);
@@ -109,9 +76,7 @@ static int  EPSSolve_POWER(EPS eps)
     eps->errest[eps->nconv] = relerr;
     eps->eigr[eps->nconv] = theta;
 
-    if (relerr<tol) {
-      alpha = 1.0/norm;
-      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+    if (relerr<eps->tol) {
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) break;
       v = eps->V[eps->nconv];
