@@ -29,7 +29,7 @@ struct _p_ST {
 
   /*------------------------- Misc data --------------------------*/
   Vec          vec;
-  SLES         sles;
+  KSP          ksp;
   void         *data;
   int          setupcalled;
   int          numberofshifts;
