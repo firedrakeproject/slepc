@@ -250,7 +250,8 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetInvariantSubspace" 
 /*@
-   EPSGetInvariantSubspace - Gets a basis of the computed invariant subspace.
+   EPSGetInvariantSubspace - Gets an orthonormal basis of the computed invariant 
+   subspace.
 
    Not Collective
 
@@ -266,8 +267,10 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
    The user should provide in v an array of nconv vectors, where nconv is
    the value returned by EPSGetConverged().
 
-   The vectors returned in v span an invariant subspace associated with the
-   (nconv) computed eigenvalues. An invariant subspace X of A satisfies Ax 
+   The first k vectors returned in v span an invariant subspace associated 
+   with the first k computed eigenvalues (note that this is not true if the 
+   k-th eigenvalue is complex and matrix A is real; in this case the first 
+   k+1 vectors should be used). An invariant subspace X of A satisfies Ax 
    in X for all x in X (a similar definition applies for generalized 
    eigenproblems). 
 
@@ -297,7 +300,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 /*@
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem 
    as computed by EPSSolve(). The solution consists in both the eigenvalue
-   and the eigenvector (if available).
+   and the eigenvector.
 
    Not Collective
 
@@ -314,7 +317,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
    Notes:
    If the eigenvalue is real, then eigi and Vi are set to zero. In the 
    complex case (e.g. with BOPT=O_complex) the eigenvalue is stored 
-   directly in eigr (eigi is set to zero) and the eigenvector Vr (Vi is 
+   directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is 
    set to zero).
 
    The index i should be a value between 0 and nconv (see EPSGetConverged()).
@@ -378,8 +381,8 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetErrorEstimate" 
 /*@
-   EPSGetErrorEstimate - Returns the relative error bound associated to the i-th 
-   approximate eigenpair.
+   EPSGetErrorEstimate - Returns the error estimate associated to the i-th 
+   computed eigenpair.
 
    Not Collective
 
@@ -389,6 +392,11 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
 
    Output Parameter:
 .  errest - the error estimate
+
+   Notes:
+   This is the error estimate used internally by the eigensolver. The actual
+   error bound can be computed with EPSComputeRelativeError(). See also the user's
+   manual for details.
 
    Level: advanced
 
@@ -413,8 +421,8 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeResidualNorm"
 /*@
-   EPSComputeResidualNorm - Computes the residual norm associated with 
-   the i-th converged approximate eigenpair.
+   EPSComputeResidualNorm - Computes the norm of the residual vector associated with 
+   the i-th computed eigenpair.
 
    Collective on EPS
 
@@ -423,9 +431,9 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
 .  i   - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||Ax-kBx|| where k is the 
+.  norm - the residual norm, computed as ||Ax-kBx||_2 where k is the 
    eigenvalue and x is the eigenvector. 
-   If k=0 then the residual norm is computed as ||Ax||.
+   If k=0 then the residual norm is computed as ||Ax||_2.
 
    Notes:
    The index i should be a value between 0 and nconv (see EPSGetConverged()).
@@ -501,8 +509,8 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeRelativeError"
 /*@
-   EPSComputeRelativeError - Computes the actual relative error associated 
-   with the i-th converged approximate eigenpair.
+   EPSComputeRelativeError - Computes the relative error bound associated 
+   with the i-th computed eigenpair.
 
    Collective on EPS
 
@@ -511,13 +519,13 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 .  i   - the solution index
 
    Output Parameter:
-.  error - the relative error, computed as ||Ax-kBx||/||kx|| where k is the 
-   eigenvalue and x is the eigenvector. 
-   If k=0 the relative error is computed as ||Ax||/||x||.
+.  error - the relative error bound, computed as ||Ax-kBx||_2/||kx||_2 where 
+   k is the eigenvalue and x is the eigenvector. 
+   If k=0 the relative error is computed as ||Ax||_2/||x||_2.
 
    Level: beginner
 
-.seealso: EPSSolve(), EPSComputeResidualNorm()
+.seealso: EPSSolve(), EPSComputeResidualNorm(), EPSGetErrorEstimate()
 @*/
 PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 {

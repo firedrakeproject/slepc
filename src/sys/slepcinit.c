@@ -20,7 +20,7 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 ------------------------------\n"); CHKERRQ(info);
   info = (*PetscHelpPrintf)(comm,"\t   %s\n",SLEPC_VERSION_NUMBER); CHKERRQ(info);
   info = (*PetscHelpPrintf)(comm,"%s",SLEPC_AUTHOR_INFO); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,"See docs/index.html for help. \n"); CHKERRQ(info);
+  info = (*PetscHelpPrintf)(comm,"See docs/manual.html for help. \n"); CHKERRQ(info);
 #if !defined(PARCH_win32)
   info = (*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR); CHKERRQ(info);
 #endif
