@@ -50,6 +50,46 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STApplyTranspose_Fold"
+PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  PetscScalar    alpha;
+  ST_FOLD        *ctx = (ST_FOLD *) st->data;
+
+  PetscFunctionBegin;
+  if (st->B) {
+    /* generalized eigenproblem: y = (A^T B^-T + sI)^2 x */
+    if (st->sigma != 0.0) {
+      alpha = - st->sigma;
+      ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+      ierr = MatMult(st->A,st->w,ctx->w2);CHKERRQ(ierr);
+      ierr = VecAXPY(&alpha,x,ctx->w2);CHKERRQ(ierr);
+      ierr = STAssociatedKSPSolveTranspose(st,ctx->w2,st->w);CHKERRQ(ierr);
+      ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+      ierr = VecAXPY(&alpha,ctx->w2,y);CHKERRQ(ierr);
+    } else {
+      ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+      ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+      ierr = STAssociatedKSPSolveTranspose(st,y,st->w);CHKERRQ(ierr);
+      ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+    }
+  } else {
+    /* standard eigenproblem: y = (A^T + sI)^2 x */
+    ierr = MatMultTranspose(st->A,x,st->w);CHKERRQ(ierr);
+    alpha = - st->sigma;
+    if (st->sigma != 0.0) {
+      ierr = VecAXPY(&alpha,x,st->w);CHKERRQ(ierr);
+    }
+    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
+    if (st->sigma != 0.0) {
+      ierr = VecAXPY(&alpha,st->w,y);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STApplyB_Fold"
 PetscErrorCode STApplyB_Fold(ST st,Vec x,Vec y)
 {
@@ -215,6 +255,7 @@ PetscErrorCode STCreate_Fold(ST st)
   st->ops->apply	  = STApply_Fold;
   st->ops->applyB	  = STApplyB_Fold;
   st->ops->applynoB	  = STApply_Fold;
+  st->ops->applytrans     = STApplyTranspose_Fold;
   st->ops->backtr	  = STBackTransform_Fold;
   st->ops->setup	  = STSetUp_Fold;
   st->ops->view 	  = STView_Fold;
