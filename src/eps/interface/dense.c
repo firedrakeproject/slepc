@@ -278,13 +278,12 @@ PetscErrorCode EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScala
 PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
 {
   PetscErrorCode ierr;
-  int i,j,ilo,ifst,ilst,lwork,info,maxpos;
+  int ilo,lwork,info;
   PetscScalar *work;
-  PetscReal   max,m;
   
   PetscFunctionBegin;
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
-  SETERRQ(PETSC_ERR_SUP,"HSEQR,TREXC - Lapack routines are unavailable.");
+  SETERRQ(PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable.");
 #endif 
 
   lwork = n;
@@ -296,6 +295,29 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
   LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,Z,&n,work,&lwork,&info,1,1);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
+
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSortDenseSchur"
+PetscErrorCode EPSSortDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
+{
+  int i,j,ifst,ilst,info,maxpos;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar *work;
+  PetscErrorCode ierr;
+#endif
+  PetscReal   max,m;
+  
+  PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
+  SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
+#endif 
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#endif
 
   for (i=k;i<n-1;i++) {
     max = SlepcAbsEigenvalue(wr[i],wi[i]);
@@ -346,6 +368,8 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
 #endif
   }
   
+#if !defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(work);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }

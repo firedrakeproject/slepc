@@ -119,6 +119,7 @@ EXTERN PetscErrorCode EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,
 EXTERN PetscErrorCode EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseNHEPSorted(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,EPSWhich);
 EXTERN PetscErrorCode EPSDenseSchur(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,int);
+EXTERN PetscErrorCode EPSSortDenseSchur(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,int);
 EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 EXTERN PetscErrorCode EPSReverseProjection(EPS,Vec*,PetscScalar*,int,int,Vec*);
 EXTERN PetscErrorCode EPSSwapEigenpairs(EPS,int,int);

@@ -207,6 +207,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     
     /* [T,wr,wi,U] = laqr3(H,U) */
     ierr = EPSDenseSchur(T,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(T,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
     
     /* AV(:,idx) = AV*U(:,idx) */
     ierr = EPSReverseProjection(eps,eps->AV,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
