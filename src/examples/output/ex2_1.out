@@ -1,11 +1,11 @@
 
 2-D Laplacian Eigenproblem, N=100 (10x10 grid)
 
- Number of iterations of the method: 509
- Solution method: power
+ Number of iterations of the method: 64
+ Solution method: arnoldi
 
  Number of requested eigenvalues: 1
- Stopping condition: tol=1e-07, maxit=10000
+ Stopping condition: tol=1e-07, maxit=100
  Number of converged approximate eigenpairs: 1
 
            k          ||Ax-kx||/||kx||

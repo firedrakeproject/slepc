@@ -2,8 +2,8 @@
 Generalized eigenproblem stored in file.
 
  Reading REAL matrices from binary files...
- Number of iterations of the method: 77
- Number of linear iterations of the method: 385
+ Number of iterations of the method: 64
+ Number of linear iterations of the method: 320
  Solution method: arnoldi
 
  Number of requested eigenvalues: 1

@@ -1,11 +1,11 @@
 
 Markov Model, N=120 (m=15)
 
- Number of iterations of the method: 275
- Solution method: power
+ Number of iterations of the method: 48
+ Solution method: arnoldi
 
  Number of requested eigenvalues: 1
- Stopping condition: tol=1e-07, maxit=12000
+ Stopping condition: tol=1e-07, maxit=120
  Number of converged approximate eigenpairs: 1
 
            k          ||Ax-kx||/||kx||

@@ -1,14 +1,8 @@
 
-Ising Model Eigenproblem, m =    30, (N=2*m)
+Ising Model Eigenproblem, m=    30, (N=2*m)
 
-
- Number of iterations of the method: 4150
- Solution method: power
+ Number of iterations of the method:  112
+ Solution method: arnoldi                                                                         
  Number of requested eigenvalues: 1
- Stopping condition: tol=3.3328E+02, maxit=  6000
- Number of converged approximate eigenpairs: 1
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-     1.0000E+00         1.9946E-07
-
+ Stopping condition: tol=1.0000E-07, maxit=   100
+ Number of converged eigenpairs: 0

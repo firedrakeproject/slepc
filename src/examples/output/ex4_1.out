@@ -2,11 +2,11 @@
 Eigenproblem stored in file.
 
  Reading REAL matrix from a binary file...
- Number of iterations of the method: 536
- Solution method: power
+ Number of iterations of the method: 80
+ Solution method: arnoldi
 
  Number of requested eigenvalues: 1
- Stopping condition: tol=1e-07, maxit=20000
+ Stopping condition: tol=1e-07, maxit=200
  Number of converged approximate eigenpairs: 1
 
            k             ||Ax-kx||/||kx||
