@@ -48,7 +48,7 @@
 \left[\begin{array}{cc}A & C\\C^H & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]
 =\lambda\left[\begin{array}{cc}B & 0\\0 & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]\;\;,
 \end{equation}
-where $x$ and $p$ denote the velocity and pressure fields. Similar formulations also appear in many other situations, such as the quadratic eigenvalue problem (see equation (\ref{eq:quad}) or the singular value decomposition (\ref{eq:svd2})).
+where $x$ and $p$ denote the velocity and pressure fields. Similar formulations also appear in many other situations, such as the quadratic eigenvalue problem, see equation (\ref{eq:quad}), or the singular value decomposition (\ref{eq:svd2}).
 
 	Many of these problems can be solved by reformulating them as a reduced-order standard or generalized eigensystem, in which the matrices are equal to certain operations of the blocks. These matrices are not computed explicitly to avoid losing sparsity.
 
@@ -84,8 +84,6 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \label{sec:fortran}
 
 	\slepc provides an interface for Fortran 77 programmers, very much like \petsc. As in the case of \petsc, there are slight differences between the C and Fortran \slepc interfaces, due to differences in Fortran syntax. For instance, the error checking variable is the final argument of all the routines in the Fortran interface, in contrast to the C convention of providing the error variable as the routine's return value.
-
-	Apart from the comments included in the \petsc{} documentation, the most remarkable difference in the Fortran interface is that \texttt{kr}, \texttt{ki} and \texttt{x} must be declared as arrays instead of pointers. 
 
 	The following code is a sample program written in Fortran 77. It is the Fortran equivalent of the program given in section \ref{sec:simpleex} and can be found in \Verb!${SLEPC_DIR}/src/examples/ex1f.F!.
 \MyVerbatimInput{${SLEPC_DIR}/src/examples/ex1f.F}

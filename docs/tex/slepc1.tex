@@ -242,7 +242,8 @@ with the following sequence of commands:
 	EPSSolve(EPS eps);
 	EPSGetIterationNumber(EPS eps,int *its);
 	EPSGetConverged(EPS eps, int *nconv);
-	EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,Vec xi,Vec xr);
+	EPSGetEigenpair(EPS eps,int i,PetscScalar *kr,PetscScalar *ki,
+               Vec xr,Vec xi);
 	EPSDestroy(EPS eps);
 	\end{Verbatim}
 The user first creates the \ident{EPS} context and sets the operators

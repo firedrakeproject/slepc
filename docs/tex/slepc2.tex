@@ -90,7 +90,7 @@ EPSDestroy( eps );
 	\findex{EPSGetEigenpair}
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetEigenpair(EPS eps,int j,PetscScalar *kr,PetscScalar *ki,
-               Vec xi, Vec xr);
+               Vec xr, Vec xi);
 	\end{Verbatim}
 	\label{GetEigenpair}
 	This function returns the $j$-th solution of the eigenproblem. \texttt{kr} and \texttt{ki} receive the real and imaginary parts of the eigenvalue, while \texttt{xi} and \texttt{xr} receive the real and imaginary parts of the associated eigenvector. Therefore, the $j$-th eigenvalue is \texttt{kr}$+\,i\cdot$\texttt{ki} and the $j$-th eigenvector is stored in the \texttt{Vec} objects \texttt{xr} and \texttt{xi}. 
@@ -306,10 +306,10 @@ This can be useful when the eigenvalue calculation is one of a sequence of close
 Input: Vector $v$ to orthogonalize against the $m$ columns of $Q$ \\
 Output: Orthogonalized vector $q$ \\
 xxxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
-\> $h=Q^*v$\\
+\> $h=Q^Hv$\\
 \> $\tilde{q}=v-Qh$\\
 \> If $||\tilde{q}||_2<\eta||h||_2$\\
-\> \> $s=Q^*\tilde{q}$\\
+\> \> $s=Q^H\tilde{q}$\\
 \> \> $\tilde{q}=\tilde{q}-Qs$\\
 \> \> $h=h+s$\\
 \> end \\
@@ -324,12 +324,12 @@ Output: Orthogonalized vector $q$ \\
 xxxx\=xxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
 \> $\tilde{q}=v$\\
 \> For $i=1,\ldots,m$\\
-\> \> $h_i=q_i^*\tilde{q}$\\
+\> \> $h_i=q_i^H\tilde{q}$\\
 \> \> $\tilde{q}=\tilde{q}-q_ih_i$\\
 \> End\\
 \> If $||\tilde{q}||_2<\eta||h||_2$\\
 \> \> For $i=1,\ldots,m$\\
-\> \> \> $s_i=q_i^*\tilde{q}$\\
+\> \> \> $s_i=q_i^H\tilde{q}$\\
 \> \> \> $\tilde{q}=\tilde{q}-q_is_i$\\
 \> \> End\\
 \> \> $h=h+s$\\

@@ -85,7 +85,7 @@ The above algorithm uses the classical Gram-Schmidt orthogonalization scheme whe
 
 	The aim of these transformations is twofold. On one hand, they allow to obtain eigenvalues other than those lying in the boundary of the spectrum. On the other hand, the eigenvalues of interest are well separated in the transformed spectrum thus leading to fast convergence. Sometimes, the transformation can also be constructed to explicitly damp unwanted eigenvalues.
 
-	The simplest transformation is to use the shifted matrix $A-\sigma I$. Other transforms are shift-and-invert $(A-\sigma I)^{-1}$, Cayley $(A-\sigma I)^{-1}(A+\sigma I)$ and, in general, polynomial $p(A)$ or even rational $p(A)q(A)^{-1}$ transformations. The most commonly used one is the shift-and-invert transformation, which allows to compute the eigenvalues closest to $\sigma$ with very good separation properties. When using this approach, a linear system of equations, $(A-\sigma I)y=x$, must be solved in each iteration of the eigenvalue process.
+	The simplest transformation is to use the shifted matrix $A+\sigma I$. Other transforms are shift-and-invert $(A-\sigma I)^{-1}$, Cayley $(A-\sigma I)^{-1}(A+\sigma I)$ and, in general, polynomial $p(A)$ or even rational $p(A)q(A)^{-1}$ transformations. The most commonly used one is the shift-and-invert transformation, which allows to compute the eigenvalues closest to $\sigma$ with very good separation properties. When using this approach, a linear system of equations, $(A-\sigma I)y=x$, must be solved in each iteration of the eigenvalue process.
 
 \subsection{Non-standard Problems}
 \label{sec:nonstd}
@@ -99,7 +99,7 @@ If $B$ is singular or ill-conditioned, the roles of $A$ and $B$ can be reversed.
 \begin{equation}
 L^{-1}A L^{-T}y=\lambda y\;\;,
 \end{equation}
-where $y=L^Tx$ and $L$ is the Cholesky factor of $B$. 
+where $y=L^Tx$ and $L$ is lower triangular such that $B=LL^T$. 
 
 	In any case, a system of linear equations must be solved in each iteration of the eigensolver. For this reason, using the shift-and-invert technique does not add extra complexity. In this case, after solving the transformed problem
 \begin{equation}
