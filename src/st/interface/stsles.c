@@ -42,6 +42,7 @@ int STAssociatedKSPSolve(ST st,Vec b,Vec x)
   if (reason<0) { SETERRQ1(0,"Warning: KSP did not converge (%d)",reason); }
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
+  PetscLogInfo(st,"ST: linear solve iterations=%d\n",its);
   PetscFunctionReturn(0);
 }
 
