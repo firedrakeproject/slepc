@@ -197,6 +197,7 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->max_it          = 0;
   eps->nev             = 1;
   eps->ncv             = 0;
+  eps->allocated_ncv   = 0;
   eps->tol             = 0.0;
   eps->which           = EPS_LARGEST_MAGNITUDE;
   eps->dropvectors     = PETSC_FALSE;

@@ -29,7 +29,8 @@ struct _p_EPS {
   /*------------------------- User parameters --------------------------*/
   int        max_it,            /* maximum number of iterations */
              nev,               /* number of eigenvalues to compute */
-             ncv;               /* number of basis vectors */
+             ncv,               /* number of basis vectors */
+             allocated_ncv;     /* number of basis vectors allocated */
   PetscReal  tol;               /* tolerance */
   EPSWhich   which;             /* which part of the spectrum to be sought */
   PetscTruth dropvectors;       /* do not compute eigenvectors */

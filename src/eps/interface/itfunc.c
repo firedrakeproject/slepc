@@ -151,6 +151,9 @@ int EPSSolve(EPS eps)
 #endif
 
   /* sort eigenvalues according to eps->which parameter */
+  if (eps->perm) {
+    ierr = PetscFree(eps->perm); CHKERRQ(ierr);
+  }
   if (eps->nconv > 0) {
     ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
     ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
@@ -357,11 +360,15 @@ int EPSSetDimensions(EPS eps,int nev,int ncv)
   if( nev != PETSC_DEFAULT ) {
     if (nev<1) SETERRQ(1,"Illegal value of nev. Must be > 0");
     eps->nev = nev;
+    eps->setupcalled = 0;
   }
-  if( ncv == PETSC_DECIDE ) eps->ncv = 0;
-  else if( ncv != PETSC_DEFAULT ) {
-    if (ncv<1) SETERRQ(1,"Illegal value of ncv. Must be > 0");
-    eps->ncv = ncv;
+  if( ncv != PETSC_DEFAULT ) {
+    if( ncv == PETSC_DECIDE ) eps->ncv = 0;
+    else { 
+      if (ncv<1) SETERRQ(1,"Illegal value of ncv. Must be > 0");
+      eps->ncv = ncv;
+    }
+    eps->setupcalled = 0;
   }
   PetscFunctionReturn(0);
 }
