@@ -34,4 +34,14 @@
       parameter (EPS_DIVERGED_NONSYMMETRIC  = -5)
       parameter (EPS_CONVERGED_ITERATING    =  0)
 
+      integer EPS_HEP
+      integer EPS_GHEP
+      integer EPS_NHEP
+      integer EPS_GNHEP
+
+      parameter (EPS_HEP                    =  1)
+      parameter (EPS_GHEP                   =  2)
+      parameter (EPS_NHEP                   =  3)
+      parameter (EPS_GNHEP                  =  4)
+
 #endif
