@@ -1439,8 +1439,8 @@ int EPSQRDecomposition(EPS eps,int m,int n,PetscScalar *R,int ldr)
 
    Input Parameter:
 +  eps - the eigenproblem solver context
-.  m - starting column
-.  k - dimension of matrix S
+.  k - starting column
+.  m - dimension of matrix S
 -  S - pointer to the values of matrix S
 
    Level: developer
