@@ -1410,12 +1410,11 @@ int EPSQRDecomposition(EPS eps,int m,int n,PetscScalar *R,int ldr)
 
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
     ierr = PetscLogEventBegin(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
-    if (R) { ierr = (*eps->orthog)(eps,k-1,&R[0+ldr*k]);CHKERRQ(ierr); }
-    else   { ierr = (*eps->orthog)(eps,k-1,PETSC_NULL);CHKERRQ(ierr); }
+    if (R) { ierr = (*eps->orthog)(eps,k-1,&R[0+ldr*k],&norm);CHKERRQ(ierr); }
+    else   { ierr = (*eps->orthog)(eps,k-1,PETSC_NULL,&norm);CHKERRQ(ierr); }
     ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
-    ierr = VecNorm(eps->V[k],NORM_2,&norm); CHKERRQ(ierr);
     if (R) { R[k+ldr*k] = norm; }
     if (norm==0.0) SETERRQ( 1,"Zero vector in QR decomposition" );
     alpha = 1.0/norm;
@@ -1530,15 +1529,17 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
 
    Input Parameters:
 +  eps      - the eigensolver context obtained from EPSCreate
--  type     - a known type of orthogonalization
+.  type     - a known type of orthogonalization
+-  eta      - parameter for CGS refinement
 
    Options Database Keys:
-+  -eps_ir_orth - Activates Iterative Refinement (IR) orthogonalization (default)
-.  -eps_mgs_orth - Activates Modified Gram-Schmidt (MGS) orthogonalization
--  -eps_cgs_orth - Activates Classical Gram-Schmidt (CGS) orthogonalization
++  -eps_orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt orthogonalization (default)
+                              or mgs for Modified Gram-Schmidt orthogonalization
+
+-  -eps_orthog_eta <real>   - Value for eta parameter.
     
    Notes:  
-   The default orthogonalization technique (IR, an iterative variant of CGS)
+   The default orthogonalization technique
    works well for most problems. MGS is numerically more robust than CGS,
    but CGS may give better scalability.
 
@@ -1546,25 +1547,23 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
 
 .seealso: EPSGetOrthogonalization()
 @*/
-int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type)
+int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type,PetscScalar eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
 
-  if (type!=EPS_MGS_ORTH && type!=EPS_CGS_ORTH && type!=EPS_IR_ORTH ) { SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type"); }
-
   switch (type) {
     case EPS_CGS_ORTH:
-      eps->orthog = EPSUnmodifiedGramSchmidtOrthogonalization;
+      eps->orthog = EPSClassicalGramSchmidtOrthogonalization;
       break;
     case EPS_MGS_ORTH:
       eps->orthog = EPSModifiedGramSchmidtOrthogonalization;
       break;
-    case EPS_IR_ORTH:
-      eps->orthog = EPSIROrthogonalization;
-      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
   }
   eps->orth_type = type;
+  eps->orth_eta = eta;
 
   PetscFunctionReturn(0);
 }
@@ -1581,17 +1580,19 @@ int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type)
 .  eps - Eigensolver context 
 
    Output Parameter:
-.  type - type of orthogonalization technique
++  type - type of orthogonalization technique
+-  eta      - parameter for CGS refinement
 
    Level: intermediate
 
 .seealso: EPSSetOrthogonalization()
 @*/
-int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type)
+int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,PetscReal *eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  *type = eps->orth_type;
+  if (type) *type = eps->orth_type;
+  if (eta) *eta = eps->orth_eta;
   PetscFunctionReturn(0);
 }
 

@@ -223,7 +223,9 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->numbermonitors  = 0;
   eps->numbervmonitors = 0;
 
-  eps->orthog          = EPSIROrthogonalization;
+  eps->orthog          = EPSClassicalGramSchmidtOrthogonalization;
+  eps->orth_type       = EPS_CGS_ORTH;
+  eps->orth_eta        = 0.7;
 
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
   PetscLogObjectParent(eps,eps->OP);
@@ -363,9 +365,10 @@ int EPSGetType(EPS eps,EPSType *type)
 @*/
 int EPSSetFromOptions(EPS eps)
 {
-  int        ierr;
+  int        ierr,i;
   char       type[256];
   PetscTruth flg;
+  const char* orth_list[2] = { "mgs" , "cgs" };
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -391,12 +394,9 @@ int EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsLogicalGroupEnd("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
 
-    ierr = PetscOptionsLogicalGroupBegin("-eps_mgs_orth","Modified Gram-Schmidt orthogonalization","EPSSetOrthogonalization",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetOrthogonalization(eps,EPS_MGS_ORTH);CHKERRQ(ierr);}
-    ierr = PetscOptionsLogicalGroup("-eps_cgs_orth","Classical Gram-Schmidt orthogonalization","EPSSetOrthogonalization",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetOrthogonalization(eps,EPS_CGS_ORTH);CHKERRQ(ierr);}
-    ierr = PetscOptionsLogicalGroupEnd("-eps_ir_orth","Iterative refinement orthogonalization","EPSSetOrthogonalization",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetOrthogonalization(eps,EPS_IR_ORTH);CHKERRQ(ierr);}
+    ierr = PetscOptionsEList("-eps_orthog_type","type of orthogonalization","EPSSetOrthogonalization",orth_list,2,orth_list[eps->orth_type],&i,&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetOrthogonalization(eps,i,eps->orth_eta);CHKERRQ(ierr);}
+    ierr = PetscOptionsReal("-eps_orthog_eta","eta","EPSSetOrthogonalization",eps->orth_eta,&eps->orth_eta,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&eps->max_it,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_tol","Tolerance","KSPSetTolerances",eps->tol,&eps->tol,PETSC_NULL);CHKERRQ(ierr);

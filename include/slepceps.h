@@ -40,8 +40,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
                EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
 
-typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH,
-               EPS_IR_ORTH } EPSOrthogonalizationType;
+typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH } EPSOrthogonalizationType;
 
 extern int EPSCreate(MPI_Comm,EPS *);
 extern int EPSDestroy(EPS);
@@ -89,8 +88,8 @@ extern int EPSGetInitialVector(EPS,Vec*);
 extern int EPSSetDropEigenvectors(EPS);
 extern int EPSSetWhichEigenpairs(EPS,EPSWhich);
 extern int EPSGetWhichEigenpairs(EPS,EPSWhich*);
-extern int EPSSetOrthogonalization(EPS,EPSOrthogonalizationType);
-extern int EPSGetOrthogonalization(EPS,EPSOrthogonalizationType*);
+extern int EPSSetOrthogonalization(EPS,EPSOrthogonalizationType,PetscReal);
+extern int EPSGetOrthogonalization(EPS,EPSOrthogonalizationType*,PetscReal*);
 
 extern int EPSIsGeneralized(EPS,PetscTruth*);
 extern int EPSIsHermitian(EPS,PetscTruth*);

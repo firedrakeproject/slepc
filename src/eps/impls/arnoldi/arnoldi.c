@@ -73,10 +73,9 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
       ierr = STApply(eps->OP,eps->V[j],eps->V[j+1]);CHKERRQ(ierr);
 
       /* orthogonalize wrt previous vectors */
-      ierr = (*eps->orthog)(eps,j,&H[0+ncv*j]);CHKERRQ(ierr);
+      ierr = (*eps->orthog)(eps,j,&H[0+ncv*j],&norm);CHKERRQ(ierr);
 
       /* h_{j+1,j} = ||w||_2 */
-      ierr = VecNorm(eps->V[j+1],NORM_2,&norm); CHKERRQ(ierr);
       if (norm==0.0) SETERRQ( 1,"Breakdown in Arnoldi method" );
       H[j+1+ncv*j] = norm;
       alpha = 1.0/norm;
@@ -132,8 +131,7 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
         if (j>k) {
           ierr = EPSSwapEigenpairs(eps,k,j);CHKERRQ(ierr);
         }
-        ierr = (*eps->orthog)(eps,k-1,PETSC_NULL);CHKERRQ(ierr);
-        ierr = VecNorm(eps->V[k],NORM_2,&norm); CHKERRQ(ierr);
+        ierr = (*eps->orthog)(eps,k-1,PETSC_NULL,&norm);CHKERRQ(ierr);
         if (norm==0.0) SETERRQ( 1,"Breakdown in Arnoldi method" );
         alpha = 1.0/norm;
         ierr = VecScale(&alpha,eps->V[k]);CHKERRQ(ierr);
@@ -153,10 +151,9 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
     ierr = EPSSwapEigenpairs(eps,k,k+i);CHKERRQ(ierr);
 
     /* orthogonalize u_k wrt previous vectors */
-    ierr = (*eps->orthog)(eps,k-1,PETSC_NULL);CHKERRQ(ierr);
+    ierr = (*eps->orthog)(eps,k-1,PETSC_NULL,&norm);CHKERRQ(ierr);
 
     /* normalize new initial vector */
-    ierr = VecNorm(eps->V[k],NORM_2,&norm); CHKERRQ(ierr);
     if (norm==0.0) SETERRQ( 1,"Breakdown in Arnoldi method" );
     alpha = 1.0/norm;
     ierr = VecScale(&alpha,eps->V[k]);CHKERRQ(ierr);
