@@ -34,7 +34,6 @@ struct _p_ST {
   Vec          w;
   void         *data;
   int          setupcalled;
-  int          numberofshifts;
   int          lineariterations;
   int          (*checknullspace)(ST,int,Vec*);
 };

@@ -217,31 +217,6 @@ int STGetShift(ST st,PetscScalar* shift)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STGetNumberOfShifts"
-/*@
-   STGetNumberOfShifts - Returns the number of shifts used in this
-   spectral transformation type.
-
-   Not collective
-
-   Input Parameter:
-.  st - the spectral transformation context
-
-   Output Parameter:
-.  nshifts - the number of shifts
-
-   Level: advanced
-
-@*/
-int STGetNumberOfShifts(ST st,int* nshifts)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  if (nshifts)  *nshifts = st->numberofshifts;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STSetOptionsPrefix"
 /*@C
    STSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -385,13 +360,11 @@ int STView(ST st,PetscViewer viewer)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  type: not yet set\n");CHKERRQ(ierr);
     }
-    if (st->numberofshifts>0) {
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g\n",st->sigma);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g\n",st->sigma);CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g+%g i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g+%g i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
 #endif
-    }
     switch (st->shift_matrix) {
     case STMATMODE_COPY:
       break;

@@ -301,7 +301,6 @@ int STCreate_Shell(ST st)
 
   st->data           = (void *) shell;
   st->name           = 0;
-  st->numberofshifts = 0;
 
   st->ops->apply     = STApply_Shell;
   st->ops->backtr    = STBackTransform_Shell;

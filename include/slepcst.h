@@ -44,7 +44,6 @@ extern int STSetKSP(ST,KSP);
 extern int STGetKSP(ST,KSP*);
 extern int STSetShift(ST,PetscScalar);
 extern int STGetShift(ST,PetscScalar*);
-extern int STGetNumberOfShifts(ST,int*);
 
 extern int STSetOptionsPrefix(ST,char*);
 extern int STAppendOptionsPrefix(ST,char*);
