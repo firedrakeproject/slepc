@@ -202,6 +202,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
                  nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
   PetscScalar    *T=eps->T,*U,*tau,*work,t;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsdold,norm,tcond;
+  PetscTruth     breakdown;
   /* Parameters */
   int            init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5,    /* Max num of iter before next SRR step */
@@ -348,8 +349,11 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       }
       /* Orthonormalize vectors */
       for (i=eps->nconv;i<ncv;i++) {
-        ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
-        if (norm < 1e-8) { SETERRQ(1,"Norm is zero"); }
+        ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        if (breakdown) {
+          ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
+          ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        }
         t = 1 / norm;
         ierr = VecScale(&t,eps->V[i]);CHKERRQ(ierr);
       }
