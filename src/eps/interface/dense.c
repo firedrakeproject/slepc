@@ -48,11 +48,7 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
   switch(which) {
     case EPS_LARGEST_MAGNITUDE:
     case EPS_SMALLEST_MAGNITUDE:
-#if defined(PETSC_USE_COMPLEX)
-      for (i=0; i<n; i++) { values[i] = PetscAbsScalar(eig[i]); }
-#else
-      for (i=0; i<n; i++) { values[i] = LAlapy2_(&eig[i],&eigi[i]); }
-#endif
+      for (i=0; i<n; i++) { values[i] = SlepcAbsEigenvalue(eig[i],eigi[i]); }
       break;
     case EPS_LARGEST_REAL:
     case EPS_SMALLEST_REAL:
@@ -301,18 +297,11 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
 
-
   for (i=k;i<n-1;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (wi[i] != 0) max = LAlapy2_(&wr[i],&wi[i]); else 
-#endif
-    max = PetscAbsScalar(wr[i]);
+    max = SlepcAbsEigenvalue(wr[i],wi[i]);
     maxpos = 0;
     for (j=i+1;j<n;j++) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (wi[j] != 0) m = LAlapy2_(&wr[j],&wi[j]); else
-#endif
-      m = PetscAbsScalar(wr[j]);
+      m = SlepcAbsEigenvalue(wr[j],wi[j]);
       if (m > max) {
         max = m;
         maxpos = j;
@@ -330,12 +319,28 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
       LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,&info,1);
 #endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-      for (j=i;j<n;j++) {
-        wr[j] = H[j*(n+1)];
+
 #if !defined(PETSC_USE_COMPLEX)
+     for (j=k;j<n;j++) {
+       if (j==n-1 || H[j*n+j+1] == 0.0) { 
+         /* real eigenvalue */
+         wr[j] = H[j*n+j];
+         wi[j] = 0.0;
+       } else {
+         /* complex eigenvalue */
+         wr[j] = H[j*n+j];
+         wr[j+1] = H[j*n+j];
+         wi[j] = sqrt(PetscAbsScalar(H[j*n+j+1])) *
+                 sqrt(PetscAbsScalar(H[(j+1)*n+j]));
+         j++;
+       }
+     }
+#else
+     for (j=k;j<n;j++) {
+       wr[j] = H[j*(n+1)];
+     }
 #endif
-      }
-    }
+   }
 #if !defined(PETSC_USE_COMPLEX)
    if (wi[i] != 0) i++;
 #endif

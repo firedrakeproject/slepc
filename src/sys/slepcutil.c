@@ -116,23 +116,21 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
   PetscFunctionReturn(0);
 }
 
-#ifdef PETSC_BLASLAPACK_ESSL_ONLY
+#if !defined(PETSC_USE_COMPLEX)
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "LAlapy2_"
-PetscReal LAlapy2_(PetscReal *x,PetscReal *y)
+#define __FUNCT__ "SlepcAbsEigenvalue"
+PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 {
-  PetscReal xabs,yabs,w,z,r;
+  PetscReal xabs,yabs,w,z,t;
   PetscFunctionBegin;
-  xabs = PetscAbsReal(*x);
-  yabs = PetscAbsReal(*y);
+  xabs = PetscAbsReal(x);
+  yabs = PetscAbsReal(y);
   w = PetscMax(xabs,yabs);
   z = PetscMin(xabs,yabs);
-  if (z == 0.0) r = w;
-  else r = w*sqrt(1.0+(z/w)*(z/w));
-  PetscFunctionReturn(r);  
+  if (z == 0.0) PetscFunctionReturn(w);
+  t = z/w;
+  PetscFunctionReturn(w*sqrt(1.0+t*t));  
 }
-EXTERN_C_END
 
 #endif

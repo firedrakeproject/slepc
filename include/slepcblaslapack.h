@@ -26,22 +26,18 @@ PETSC_EXTERN_CXX_BEGIN
 #if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
 /* single precision */
 #define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(s,lcase,_)
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_CONCAT3(s,lcase,_)
 #else
 /* double precision */
 #define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(d,lcase,_)
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_CONCAT3(d,lcase,_)
 #endif
 #else
 /* complex numbers */
 #if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
 /* single precision */
 #define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(c,lcase,_)
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_CONCAT3(s,lcase,_)
 #else
 /* double precision */
 #define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_CONCAT3(z,lcase,_)
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_CONCAT3(d,lcase,_)
 #endif
 #endif
 
@@ -52,30 +48,23 @@ PETSC_EXTERN_CXX_BEGIN
 #if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
 /* single precision */
 #define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(s,lcase),SLEPC_CONCAT(S,ucase))
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(s,lcase),SLEPC_CONCAT(S,ucase))
 #else
 /* double precision */
 #define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(d,lcase),SLEPC_CONCAT(D,ucase))
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(d,lcase),SLEPC_CONCAT(D,ucase))
 #endif
 #else
 /* complex numbers */
 #if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
 /* single precision */
-#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(c,lcase,C,ucase))
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(s,lcase),SLEPC_CONCAT(S,ucase))
+#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(c,lcase),SLEPC_CONCAT(C,ucase))
 #else
 /* double precision */
 #define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(z,lcase),SLEPC_CONCAT(Z,ucase))
-#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(d,lcase),SLEPC_CONCAT(D,ucase))
 #endif
 #endif
 
 #endif
 
-#if !defined(PETSC_BLASLAPACK_ESSL_ONLY)
-#define LAlapy2_ SLEPC_BLASLAPACK_REAL(lapy2,LAPY2)
-#endif
 #define LAlaev2_ SLEPC_BLASLAPACK(laev2,LAEV2)
 #define LAgehrd_ SLEPC_BLASLAPACK(gehrd,GEHRD)
 #if !defined(PETSC_USE_COMPLEX)
@@ -92,7 +81,6 @@ PETSC_EXTERN_CXX_BEGIN
 
 EXTERN_C_BEGIN
 
-EXTERN PetscReal LAlapy2_(PetscReal*,PetscReal*);
 EXTERN void      LAlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 EXTERN void      LAgehrd_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 EXTERN void      LAorghr_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
