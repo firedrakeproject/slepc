@@ -283,6 +283,16 @@ int STSetMatMode(ST st,STMatMode mode)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STGetMatMode"
+int STGetMatMode(ST st,STMatMode *mode)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  *mode = st->shift_matrix;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STSetBilinearForm"
 int STSetBilinearForm(ST st,STBilinearForm form)
 {

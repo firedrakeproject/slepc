@@ -59,6 +59,7 @@ extern int STResetNumberLinearIterations(ST);
 typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
                STMATMODE_SHELL } STMatMode;
 extern int STSetMatMode(ST,STMatMode);
+extern int STGetMatMode(ST,STMatMode*);
 extern int STSetMatStructure(ST,MatStructure);
 
 typedef enum { STINNER_HERMITIAN, STINNER_SYMMETRIC,

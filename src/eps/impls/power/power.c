@@ -4,12 +4,20 @@
        corresponding to the eigenvalue with largest magnitude.
 */
 #include "src/eps/epsimpl.h"
+#include "slepcblaslapack.h"
+
+typedef struct {
+  EPSPowerShiftType shift_type;
+} EPS_POWER;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_POWER"
 static int EPSSetUp_POWER(EPS eps)
 {
-  int      ierr, N;
+  EPS_POWER  *power = (EPS_POWER *)eps->data;
+  int        ierr, N;
+  PetscTruth flg;
+  STMatMode  mode;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -19,11 +27,18 @@ static int EPSSetUp_POWER(EPS eps)
   else eps->ncv = eps->nev;
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*N);
   if (!eps->tol) eps->tol = 1.e-7;
-
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
+  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
+    if (flg) 
+      SETERRQ(PETSC_ERR_SUP,"Shift spectral transformation does not work with variable shifts");
+    ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
+    if (mode == STMATMODE_INPLACE)
+      SETERRQ(PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
+  }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -31,20 +46,24 @@ static int EPSSetUp_POWER(EPS eps)
 #define __FUNCT__ "EPSSolve_POWER"
 static int  EPSSolve_POWER(EPS eps)
 {
+  EPS_POWER   *power = (EPS_POWER *)eps->data;
   int         ierr, i;
-  Vec         v, y, e;
-  PetscReal   relerr, norm;
-  PetscScalar theta, alpha;
+  Vec         v, y, e, w;
+  Mat         A;
+  PetscReal   relerr, norm, rt1, rt2, cs1;
+  PetscScalar theta, alpha, rho, alpha1, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
   v = eps->V[0];
   y = eps->AV[0];
   e = eps->work[0];
+  w = eps->work[1];
 
   ierr = VecCopy(eps->vec_initial,y);CHKERRQ(ierr);
 
   eps->nconv = 0;
   eps->its = 0;
+  ierr = STGetShift(eps->OP,&rho);CHKERRQ(ierr);
 
   for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
 
@@ -61,11 +80,11 @@ static int  EPSSolve_POWER(EPS eps)
     /* y = OP v */
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
 
-    /* theta = v^* y */
-    ierr = STInnerProduct(eps->OP,y,v,&theta);CHKERRQ(ierr);
-
     /* deflation of converged eigenvectors */
     ierr = EPSPurge(eps,y);
+
+    /* theta = v^* y */
+    ierr = STInnerProduct(eps->OP,y,v,&theta);CHKERRQ(ierr);
 
     /* if ||y-theta v||_2 / |theta| < tol, accept */
     ierr = VecCopy(y,e);CHKERRQ(ierr);
@@ -74,7 +93,35 @@ static int  EPSSolve_POWER(EPS eps)
     ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
     relerr = relerr / PetscAbsScalar(theta);
     eps->errest[eps->nconv] = relerr;
-    eps->eigr[eps->nconv] = theta;
+
+    if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+      ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatMult(A,v,e);CHKERRQ(ierr);
+      ierr = VecDot(v,e,&alpha1);CHKERRQ(ierr);
+      if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
+        alpha = -alpha1;
+        ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+        ierr = VecNorm(e,NORM_1,&norm);CHKERRQ(ierr);
+        beta1 = norm;
+        ierr = MatMult(A,e,w);CHKERRQ(ierr);
+        ierr = VecDot(e,w,&alpha2);CHKERRQ(ierr);
+        alpha2 = alpha2 / (beta1 * beta1);
+        LAlaev2_(&alpha1,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
+        if (PetscAbsScalar(rt1-alpha1) < PetscAbsScalar(rt2-alpha1)) {
+          alpha1 = rt1;
+        } else {
+          alpha1 = rt2;
+        }
+      }
+      if (PetscAbsScalar((alpha1-rho)/rho) > 0.001) {
+        rho = alpha1;
+        printf("[%i] nconv = %i rho = %g\n",eps->its,eps->nconv,rho);
+        ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+      }
+      eps->eigr[eps->nconv] = alpha1;
+    } else {
+      eps->eigr[eps->nconv] = theta;
+    }
 
     if (relerr<eps->tol) {
       eps->nconv = eps->nconv + 1;
@@ -91,20 +138,125 @@ static int  EPSSolve_POWER(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBackTransform_POWER"
+int EPSBackTransform_POWER(EPS eps)
+{
+  EPS_POWER *power = (EPS_POWER *)eps->data;
+  int       ierr;
+
+  PetscFunctionBegin;
+  if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) {
+    ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetFromOptions_POWER"
+static int EPSSetFromOptions_POWER(EPS eps)
+{
+  EPS_POWER  *power = (EPS_POWER *)eps->data;
+  int        ierr;
+  PetscTruth flg;
+  const char *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("POWER options");CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",shift_list,3,shift_list[power->shift_type],(int*)&power->shift_type,&flg);CHKERRQ(ierr);
+  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+    ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSPowerSetShiftType_POWER"
+int EPSPowerSetShiftType_POWER(EPS eps,EPSPowerShiftType shift)
+{
+  EPS_POWER  *power = (EPS_POWER *)eps->data;
+
+  PetscFunctionBegin;
+  switch (shift) {
+    case EPSPOWER_SHIFT_CONSTANT:
+    case EPSPOWER_SHIFT_RAYLEIGH:
+    case EPSPOWER_SHIFT_WILKINSON:
+      power->shift_type = shift;
+      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid shift type");
+  }
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSPowerSetShiftType"
+int EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
+{
+  int ierr, (*f)(EPS,EPSPowerShiftType);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPowerSetShiftType_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(eps,shift);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSPowerGetShiftType_POWER"
+int EPSPowerGetShiftType_POWER(EPS eps,EPSPowerShiftType *shift)
+{
+  EPS_POWER  *power = (EPS_POWER *)eps->data;
+  PetscFunctionBegin;
+  *shift = power->shift_type;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSPowerGetShiftType"
+int EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
+{
+  int ierr, (*f)(EPS,EPSPowerShiftType*);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPowerGetShiftType_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(eps,shift);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_POWER"
 int EPSCreate_POWER(EPS eps)
 {
+  EPS_POWER   *power;
+  int         ierr;
+
   PetscFunctionBegin;
-  eps->data                      = (void *) 0;
-  eps->ops->setfromoptions       = 0;
+  ierr = PetscNew(EPS_POWER,&power);CHKERRQ(ierr);
+  PetscMemzero(power,sizeof(EPS_POWER));
+  PetscLogObjectMemory(eps,sizeof(EPS_POWER));
+  eps->data                      = (void *) power;
+  eps->ops->setfromoptions       = EPSSetFromOptions_POWER;
   eps->ops->setup                = EPSSetUp_POWER;
   eps->ops->solve                = EPSSolve_POWER;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->view                 = 0;
-  eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->ops->backtransform        = EPSBackTransform_POWER;
   eps->computevectors            = EPSComputeVectors_Default;
+  power->shift_type              = EPSPOWER_SHIFT_CONSTANT;
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","EPSPowerSetShiftType_POWER",EPSPowerSetShiftType_POWER);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_POWER",EPSPowerGetShiftType_POWER);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

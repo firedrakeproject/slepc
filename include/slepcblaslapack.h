@@ -19,6 +19,7 @@
 */
 #define DLARNV   SLARNV
 #define DLAPY2   SLAPY2
+#define DLAEV2   SLAEV2
 #define DGELQF   SGELQF
 #define DORMLQ   SORMLQ
 #define DHSEQR   SHSEQR
@@ -31,6 +32,7 @@
 #if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
 #define LArnv_   dlarnv_
 #define LAlapy2_ dlapy2_
+#define LAlaev2_ dlaev2_
 #define LAgelqf_ dgelqf_
 #define LAormlq_ dormlq_
 #define LAhseqr_ dhseqr_
@@ -41,6 +43,7 @@
 #elif defined(PETSC_HAVE_FORTRAN_CAPS)
 #define LArnv_   DLARNV
 #define LAlapy2_ DLAPY2
+#define LAlaev2_ DLAEV2
 #define LAgelqf_ DGELQF
 #define LAormlq_ DORMLQ
 #define LAhseqr_ DHSEQR
@@ -51,6 +54,7 @@
 #else
 #define LArnv_   dlarnv
 #define LAlapy2_ dlapy2
+#define LAlaev2_ dlaev2
 #define LAgelqf_ dgelqf
 #define LAormlq_ dormlq
 #define LAhseqr_ dhseqr
@@ -77,6 +81,7 @@
 
 #if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
 #define LArnv_   zlarnv_
+#define LAlaev2_ zlaev2_
 #define LAgelqf_ zgelqf_
 #define LAormlq_ zunmlq_
 #define LAhseqr_ zhseqr_
@@ -86,6 +91,7 @@
 #define LAgees_  zgees_ 
 #elif defined(PETSC_HAVE_FORTRAN_CAPS)
 #define LArnv_   ZLARNV
+#define LAlaev2_ ZLAEV2
 #define LAgelqf_ ZGELQF
 #define LAormlq_ ZUNMLQ
 #define LAhseqr_ ZHSEQR
@@ -95,6 +101,7 @@
 #define LAgees_  ZGEES 
 #else
 #define LArnv_   zlarnv
+#define LAlaev2_ zlaev2
 #define LAgelqf_ zgelqf
 #define LAormlq_ zunmlq
 #define LAhseqr_ zhseqr
@@ -110,6 +117,7 @@ EXTERN_C_BEGIN
 
 extern void   LArnv_(int*,int*,int*,PetscScalar*);
 extern double LAlapy2_(double*,double*);
+extern void   LAlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 extern void   LAgelqf_(int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 extern void   LAormlq_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgehrd_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);

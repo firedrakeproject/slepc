@@ -130,6 +130,12 @@ extern int EPSRemoveDeflationSpace(EPS);
 
 /* --------- options specific to particular eigensolvers -------- */
 
+typedef enum { EPSPOWER_SHIFT_CONSTANT, EPSPOWER_SHIFT_RAYLEIGH,
+               EPSPOWER_SHIFT_WILKINSON } EPSPowerShiftType;
+
+extern int EPSPowerSetShiftType(EPS,EPSPowerShiftType);
+extern int EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
+
 extern int EPSSubspaceSetInner(EPS,int);
 
 extern int EPSBlzpackSetBlockSize(EPS,int);

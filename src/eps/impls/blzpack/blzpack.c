@@ -299,30 +299,30 @@ static int EPSSetFromOptions_BLZPACK(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("BLZPACK options");CHKERRQ(ierr);
 
-    bs = blz->block_size;
-    ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr);}
+  bs = blz->block_size;
+  ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr);}
 
-    n = blz->nsteps;
-    ierr = PetscOptionsInt("-eps_blzpack_nsteps","Number of steps","EPSBlzpackSetNSteps",n,&n,&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr);}
+  n = blz->nsteps;
+  ierr = PetscOptionsInt("-eps_blzpack_nsteps","Number of steps","EPSBlzpackSetNSteps",n,&n,&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr);}
 
-    interval[0] = blz->initial;
-    interval[1] = blz->final;
-    n = 2;
-    ierr = PetscOptionsRealArray("-eps_blzpack_interval","Computational interval","EPSBlzpackSetInterval",interval,&n,&flg);CHKERRQ(ierr);
-    if (flg) {
-      if (n==1) interval[1]=interval[0];
-      ierr = EPSBlzpackSetInterval(eps,interval[0],interval[1]);CHKERRQ(ierr);
-    }
-    
-    if (blz->slice) {
-      ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
-      ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
-      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
-    }
+  interval[0] = blz->initial;
+  interval[1] = blz->final;
+  n = 2;
+  ierr = PetscOptionsRealArray("-eps_blzpack_interval","Computational interval","EPSBlzpackSetInterval",interval,&n,&flg);CHKERRQ(ierr);
+  if (flg) {
+    if (n==1) interval[1]=interval[0];
+    ierr = EPSBlzpackSetInterval(eps,interval[0],interval[1]);CHKERRQ(ierr);
+  }
+
+  if (blz->slice) {
+    ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
+  }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
