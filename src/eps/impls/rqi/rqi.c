@@ -113,9 +113,7 @@ static int  EPSSolve_RQI(EPS eps)
   eps->its = i+1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-#if defined(PETSC_USE_COMPLEX)
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
-#endif
 
   PetscFunctionReturn(0);
 }
