@@ -66,7 +66,7 @@ int STSetType(ST st,STType type)
   if (!r) SETERRQ1(1,"Unable to find requested ST type %s",type);
   if (st->data) {ierr = PetscFree(st->data);CHKERRQ(ierr);}
 
-  ierr = PetscMemzero(st->ops,sizeof(_STOps));CHKERRQ(ierr);
+  ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
   st->ops->applyB         = STDefaultApplyB;
 
   /* Call the STCreateXXX routine for this particular type */

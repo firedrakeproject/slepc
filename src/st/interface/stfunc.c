@@ -75,7 +75,7 @@ int STCreate(MPI_Comm comm,ST *newst)
   PetscHeaderCreate(st,_p_ST,struct _STOps,ST_COOKIE,-1,"ST",comm,STDestroy,STView);
   PetscLogObjectCreate(st);
   st->bops->publish       = STPublish_Petsc;
-  ierr = PetscMemzero(st->ops,sizeof(_STOps));CHKERRQ(ierr);
+  ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
   st->ops->applyB         = STDefaultApplyB;
 
   st->A                   = 0;
