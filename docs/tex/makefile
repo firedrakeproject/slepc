@@ -37,10 +37,10 @@ DOC_EPS	= \
 
 OTHER	= slepc.cls engnat.bst srcltx.sty
 
-DOC_SRC	= $(DOC_TEX) $(DOC_GPL) $(DOC_FIG) $(DOC_MP) $(DOC_BIB) \
+DOC_SRC	= $(DOC_TEX) $(DOC_GPL) $(DOC_FIG) $(DOC_MP) \
           $(DOC_EPS) $(OTHER)
 DOC_DEP	= $(DOC_TEX) $(DOC_GPL) $(subst .fig,.tex,$(DOC_FIG)) \
-	  $(subst .mp,.mpx,$(DOC_MP)) $(DOC_BIB)
+	  $(subst .mp,.mpx,$(DOC_MP)) 
 DOC_GEN	= $(subst .tex,.aux,$(DOC_TEX)) \
 	  $(subst .fig,.tex,$(DOC_FIG)) \
 	  $(subst .fig,.eps,$(DOC_FIG)) \
