@@ -80,7 +80,7 @@ int main( int argc, char **argv )
      Set operators. In this case, it is a standard eigenvalue problem
   */
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);
+  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime

@@ -92,7 +92,7 @@
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
       call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
-      call EPSSetProblemType(eps,EPS_HEP,ierr)
+      call EPSSetProblemType(eps,EPS_NHEP,ierr)
 
 !     ** Set solver parameters at runtime
       call EPSSetFromOptions(eps,ierr)
