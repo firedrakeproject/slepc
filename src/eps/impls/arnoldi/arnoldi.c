@@ -80,6 +80,7 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (breakdown) {
