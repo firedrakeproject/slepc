@@ -16,29 +16,11 @@ TODO
   b. Añadir flop_count en todas las rutinas que llaman a alguna función de
      lapack.
 
-(03) Desplazamientos variables
-
-  a. Implementar la infraestructura en ST para almacenar un valor inicial
-     del desplazamiento y el valor actualizado en cada momento.
-
-  b. Posibilidad para especificar la forma de calcular los desplazamientos:
-     -st_shift_type {constant,rayleigh,wilkinson}. Para permitir esto
-     habría que tener una función virtual STUpdateShift(v,&w) que calculara
-     el nuevo shift. Con esto, el método RQI desaparecería como tal y se
-     integraría en POWER.
-
-  c. Probar Cayley con desplazamientos variables (sería una implementación del
-     método RKS de Ruhe). 
-
 (04) Interfaces a paquetes externos
-
-  a. Testear la opción de intervalo en Blzpack.
 
   b. Integrar Hlzpack en el mismo interfaz de Blzpack.
 
 (06) Nuevos EPS
-
-  a. Iteración del Subespacio: Implementar el método SRRIT (Bai y Stewart).
 
   b. Lanczos: versión básica simétrica. Posteriormente versiones con diferentes
      técnicas de reortogonalización (parcial, selectiva, mixta). Revisar
@@ -78,16 +60,6 @@ TODO
   b. Rutinas del tipo SetConvergenceTest/DefaultConverged: analizar si podrían
      ser de interés para los solvers de valores propios.
 
-(10) Producto interior
-
-  a. Función STInnerProduct(x,y) que calcule (x,y) o (x,y)_B según sea un
-     problema estándar o generalizado. Con ella se simplificaría el método
-     POWER, pero habría que ver cómo encajaría esto con el resto de solvers.
-
-  b. Permitir al usuario definir la función STInnerProduct, por ejemplo para
-     definir un producto indefinido (con VecTDot) para problemas complejos
-     simétricos.
-
 (11) Métodos directos para los sistemas lineales
 
   a. Alternativa 1: Nuevo ST Cholesky, con OP=L^-1AL^T y BackTransform=L^Tx.
@@ -123,26 +95,6 @@ TODO
 BUGS
 ----
 
-[01] POWER
-
-  a. La deflación no funciona con O_complex. A partir del segundo par propio
-     el valor lo calcula bien pero el vector no.
-
-[02] ARNOLDI
-
-  a. Sólo converge un valor propio. Hay una versión implementada por Yunkai
-     que corrige esto, pero aún no la hemos analizado.
-
-[03] RQI
-
-  a. No funciona al usarlo con SINVERT, porque BackTransform no usa el
-     shift original. Para arreglar esto habría que implementar primero los
-     desplazamientos variables (03).
-
-[04] BLZPACK
-
-  a. Se ejecuta la parte lflag==3 (actualizar el desplazamiento). Se supone
-     que esto sólo debería hacerlo cuando se especifica un intervalo (?).
 
 
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -151,4 +103,8 @@ DOCUMENTACION
 -------------
 
 ** Comentar cambio de los monitores.
+
+** Descripción de los métodos en el manual.
+
+** Cabeceras de las rutinas nuevas.
 
