@@ -101,17 +101,15 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   PetscFunctionReturn(0);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,mout,info,ifst,ilst,ncv=eps->ncv;
+  int            i,k,mout,info,ncv=eps->ncv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *H=eps->T,*U,*Y,*work,ts;
-  PetscReal      beta,tr;
+  PetscScalar    *H=eps->T,*U,*Y,*work;
+  PetscReal      beta;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
@@ -190,43 +188,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 	if (eps->errest[k]<eps->tol) k++;
 	else break;
       }
-    }
-    
-    for (i=k;i<ncv;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[i] != 0 && i<ncv-1) {
-        if (eps->errest[i]<eps->tol && eps->errest[i+1]<eps->tol) {
-          ifst = i + 1;
-          ilst = k + 1;
-          LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
-          SWAP(eps->eigr[k],eps->eigr[i],ts);
-          SWAP(eps->eigi[k],eps->eigi[i],ts);
-          SWAP(eps->errest[k],eps->errest[i],tr);
-          SWAP(eps->eigr[k+1],eps->eigr[i+1],ts);
-          SWAP(eps->eigi[k+1],eps->eigi[i+1],ts);
-          SWAP(eps->errest[k+1],eps->errest[i+1],tr);
-          if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-          k += 2;       
-	}
-	i++;
-      } else 
-#endif
-      {
-	if (eps->errest[i]<eps->tol) {
-          ifst = i + 1;
-          ilst = k + 1;
-#if !defined(PETSC_USE_COMPLEX)
-          LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
-          SWAP(eps->eigr[k],eps->eigr[i],ts);
-#else
-          LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,&info,1);
-#endif
-          SWAP(eps->eigr[k],eps->eigr[i],ts);
-          SWAP(eps->errest[k],eps->errest[i],tr);
-          if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-          k++;
-	}
-      }    
     }
 
     /* Update V(:,idx) = V*U(:,idx) */
