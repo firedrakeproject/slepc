@@ -142,7 +142,7 @@ static int EPSPublish_Petsc(PetscObject object)
 .  eps - location to put the EPS context
 
    Note:
-   The default EPS type is EPSPOWER
+   The default EPS type is EPSARNOLDI
 
    Level: beginner
 
@@ -353,7 +353,7 @@ int EPSSetFromOptions(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (!EPSRegisterAllCalled) {ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);}
   ierr = PetscOptionsBegin(eps->comm,eps->prefix,"Eigenproblem Solver (EPS) Options","EPS");CHKERRQ(ierr);
-    ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(eps->type_name?eps->type_name:EPSPOWER),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(eps->type_name?eps->type_name:EPSARNOLDI),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSSetType(eps,type);CHKERRQ(ierr);
     }
@@ -361,7 +361,7 @@ int EPSSetFromOptions(EPS eps)
       Set the type if it was never set.
     */
     if (!eps->type_name) {
-      ierr = EPSSetType(eps,EPSPOWER);CHKERRQ(ierr);
+      ierr = EPSSetType(eps,EPSARNOLDI);CHKERRQ(ierr);
     }
 
     ierr = PetscOptionsLogicalGroupBegin("-eps_hermitian","hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
