@@ -31,7 +31,7 @@ struct _p_EPS {
              nev,               /* number of eigenvalues to compute */
              ncv,               /* number of basis vectors */
              allocated_ncv,     /* number of basis vectors allocated */
-             nds;               /* size of deflation space */
+             nds;               /* number of basis vectors of deflation space */
   PetscReal  tol;               /* tolerance */
   EPSWhich   which;             /* which part of the spectrum to be sought */
   PetscTruth dropvectors;       /* do not compute eigenvectors */
@@ -69,7 +69,7 @@ struct _p_EPS {
   /* --------------- Orthogonalization --------------------- */
   int        (*orthog)(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
   PetscReal  orth_eta;
-  PetscTruth ds_ortho;
+  PetscTruth ds_ortho;     /* if vectors in DS have to be orthonormalized */
   EPSOrthogonalizationType orth_type;   /* which orthogonalization to use */
   
 };

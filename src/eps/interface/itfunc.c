@@ -75,11 +75,13 @@ int EPSSetUp(EPS eps)
 
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
  
+  /* DSV is equal to the columns of DS followed by the ones in V */
   if (eps->DSV) { ierr = PetscFree(eps->DSV);CHKERRQ(ierr); }
   ierr = PetscMalloc((eps->ncv+eps->nds)*sizeof(Vec),&eps->DSV);CHKERRQ(ierr);    
   for (i = 0; i < eps->nds; i++) eps->DSV[i] = eps->DS[i];
   for (i = 0; i < eps->ncv; i++) eps->DSV[i+eps->nds] = eps->V[i];
   
+  /* orthonormalize vectors in DS if necessary */
   if (!eps->ds_ortho && eps->nds > 0) {
     ierr = EPSQRDecomposition(eps,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
   }
