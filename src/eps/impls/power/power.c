@@ -56,7 +56,7 @@ static int  EPSSolve_POWER(EPS eps)
 
     eps->its = eps->its + 1;
 
-    if (isSinv) {
+    if (isSinv && eps->isgeneralized) {
       /* w = B y */
       ierr = STApplyB(eps->OP,y,w);CHKERRQ(ierr);
 
@@ -114,11 +114,8 @@ static int  EPSSolve_POWER(EPS eps)
     eps->eigr[eps->nconv] = theta;
 
     if (relerr<tol) {
-      if(isSinv) {
-        ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-        alpha = 1.0/norm;
-        ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-      }
+      alpha = 1.0/norm;
+      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) break;
       v = eps->V[eps->nconv];
