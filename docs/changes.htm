@@ -84,11 +84,11 @@
 <ul>
   <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSSolve does not return the number of iterations. Use EPSGetIterationNumber for this purpose.</font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSGetSolution has been replaced by EPSGetEigenpair with a cleaner interface.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSComputeError has been replaced by EPSComputeRelativeError and EPSComputeResidualNorm with better error computing for zero eigenvalues.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSSetWhichEigenpairs has fewer options.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSComputeError has been replaced by EPSComputeRelativeError and EPSComputeResidualNorm with better error computing for zero eigenvalues. These functions now are oriented to single eigenpairs, as well as EPSGetErrorEstimate.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> The possibilities of EPSSetWhichEigenpairs have been reduced and now are more coherent across problem types.</font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif"> Removed STNONE spectral transformation. The default of STSHIFT with 0 shift is equivalent.</font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif"> Added STSinvertSetMatStructure to optimize performance of MatAXPY in shift-and-invert transformation.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Classical and modified Gram-Schmidt orthogonalization uses refinement, with user options for parameter adjustment.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options for parameter adjustment.</font></li>
   </ul>
 <p><font size="2" face="Arial, Helvetica, sans-serif"><b><font size="3"><br>
   Changes in Version 2.1.5</font></b></font></p>
