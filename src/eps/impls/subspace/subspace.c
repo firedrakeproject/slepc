@@ -169,9 +169,10 @@ static int EPSSetFromOptions_SUBSPACE(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("SUBSPACE options");CHKERRQ(ierr);
     val = subspace->inner;
-    if (val <= 0) 
+    if (val <= 0) {
       if (eps->ishermitian) val = 10;
       else                  val = 4;
+    }
     ierr = PetscOptionsInt("-eps_subspace_inner","Number of inner iterations","EPSSubspaceSetInner",val,&val,&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSubspaceSetInner(eps,val);CHKERRQ(ierr);}
   ierr = PetscOptionsTail();CHKERRQ(ierr);
