@@ -106,7 +106,6 @@ static int  EPSSolve_BLZPACK(EPS eps)
   PetscScalar  sigma,*pV;
   PetscTruth   isSinv;
   Mat          A;
-  PetscReal    norm;
   
   PetscFunctionBegin;
 
@@ -160,7 +159,7 @@ static int  EPSSolve_BLZPACK(EPS eps)
           ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
 	}
         if (eps->nds>0) {
-          ierr = (*eps->orthog)(eps,eps->nds,eps->DS,y,PETSC_NULL,&norm);CHKERRQ(ierr);
+          ierr = (*eps->orthog)(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         }
       }
     }
