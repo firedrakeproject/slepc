@@ -43,10 +43,10 @@ int main( int argc, char **argv )
   for( I=Istart; I<Iend; I++ ) { 
     v = -1.0; i = I/n; j = I-i*n;
     w = 0.0;
-    if(i>0) { J=I-n; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w++; }
-    if(i<m-1) { J=I+n; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w++; }
-    if(j>0) { J=I-1; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w++; }
-    if(j<n-1) { J=I+1; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w++; }
+    if(i>0) { J=I-n; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
+    if(i<m-1) { J=I+n; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
+    if(j>0) { J=I-1; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
+    if(j<n-1) { J=I+1; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
     MatSetValues(A,1,&I,1,&I,&w,INSERT_VALUES);CHKERRQ(ierr);
   }
 

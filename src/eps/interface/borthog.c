@@ -282,7 +282,7 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
     }
     ierr = STApplyB(eps->OP,v,w);CHKERRQ(ierr);
     ierr = VecDot(w,v,&alpha);CHKERRQ(ierr);
-    *norm = PetscSqrtScalar(alpha);
+    *norm = PetscSqrtScalar(PetscRealPart(alpha));
     if (refinement) refinement = PETSC_FALSE;
     else if (eps->orth_eta != 0.0) {
       hnorm = 0.0;
