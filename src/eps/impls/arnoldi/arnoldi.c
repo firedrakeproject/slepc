@@ -10,17 +10,6 @@
 #define __FUNCT__ "EPSSetUp_ARNOLDI"
 static int EPSSetUp_ARNOLDI(EPS eps)
 {
-  int      ierr;
-  
-  PetscFunctionBegin;
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_ARNOLDI"
-static int EPSSetDefaults_ARNOLDI(EPS eps)
-{
   int         ierr, N;
 
   PetscFunctionBegin;
@@ -31,6 +20,9 @@ static int EPSSetDefaults_ARNOLDI(EPS eps)
   else eps->ncv = PetscMax(2*eps->nev,eps->nev+8);
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
+
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -197,9 +189,8 @@ int EPSCreate_ARNOLDI(EPS eps)
   PetscFunctionBegin;
   eps->data                      = (void *) 0;
   eps->ops->setup                = EPSSetUp_ARNOLDI;
-  eps->ops->setdefaults          = EPSSetDefaults_ARNOLDI;
   eps->ops->solve                = EPSSolve_ARNOLDI;
-  eps->ops->destroy              = EPSDefaultDestroy;
+  eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }

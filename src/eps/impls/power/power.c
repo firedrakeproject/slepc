@@ -9,19 +9,6 @@
 #define __FUNCT__ "EPSSetUp_POWER"
 static int EPSSetUp_POWER(EPS eps)
 {
-  int      ierr;
-  
-  PetscFunctionBegin;
-  if (eps->which!=EPS_LARGEST_MAGNITUDE)
-    SETERRQ(1,"Wrong value of eps->which");
-  ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_POWER"
-static int EPSSetDefaults_POWER(EPS eps)
-{
   int      ierr, N;
 
   PetscFunctionBegin;
@@ -32,6 +19,11 @@ static int EPSSetDefaults_POWER(EPS eps)
   else eps->ncv = eps->nev;
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*N);
   if (!eps->tol) eps->tol = 1.e-7;
+
+  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+    SETERRQ(1,"Wrong value of eps->which");
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -149,9 +141,8 @@ int EPSCreate_POWER(EPS eps)
   PetscFunctionBegin;
   eps->data                      = (void *) 0;
   eps->ops->setup                = EPSSetUp_POWER;
-  eps->ops->setdefaults          = EPSSetDefaults_POWER;
   eps->ops->solve                = EPSSolve_POWER;
-  eps->ops->destroy              = EPSDefaultDestroy;
+  eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_Default;
   PetscFunctionReturn(0);

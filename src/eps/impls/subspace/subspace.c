@@ -13,19 +13,6 @@ typedef struct {
 #define __FUNCT__ "EPSSetUp_SUBSPACE"
 static int EPSSetUp_SUBSPACE(EPS eps)
 {
-  int      ierr;
-  
-  PetscFunctionBegin;
-  if (eps->which!=EPS_LARGEST_MAGNITUDE)
-    SETERRQ(1,"Wrong value of eps->which");
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_SUBSPACE"
-static int EPSSetDefaults_SUBSPACE(EPS eps)
-{
   int          ierr, N;
   EPS_SUBSPACE *subspace = (EPS_SUBSPACE *)eps->data;
 
@@ -42,6 +29,11 @@ static int EPSSetDefaults_SUBSPACE(EPS eps)
     else                  subspace->inner = 4;
   }
   if (!eps->tol) eps->tol = 1.e-7;
+
+  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+    SETERRQ(1,"Wrong value of eps->which");
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -242,9 +234,8 @@ int EPSCreate_SUBSPACE(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_SUBSPACE));
   eps->data                      = (void *) subspace;
   eps->ops->setup                = EPSSetUp_SUBSPACE;
-  eps->ops->setdefaults          = EPSSetDefaults_SUBSPACE;
   eps->ops->solve                = EPSSolve_SUBSPACE;
-  eps->ops->destroy              = EPSDefaultDestroy;
+  eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->setfromoptions       = EPSSetFromOptions_SUBSPACE;
   eps->ops->view                 = EPSView_SUBSPACE;
   eps->ops->backtransform        = EPSBackTransform_Default;
