@@ -538,9 +538,9 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetErrorEstimates" 
+#define __FUNCT__ "EPSGetErrorEstimate" 
 /*@
-   EPSGetErrorEstimates - Returns the error bound associated to the i-th 
+   EPSGetErrorEstimate - Returns the error bound associated to the i-th 
    approximate eigenpair.
 
    Not Collective
@@ -556,7 +556,7 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 
 .seealso: EPSComputeRelativeError()
 @*/
-int EPSGetErrorEstimates(EPS eps, int i, PetscReal *errest)
+int EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);

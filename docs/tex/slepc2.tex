@@ -271,9 +271,9 @@ This can be useful when the eigenvalue calculation is one of a sequence of close
 	The third parameter of this function allows the programmer to modify the maximum number of iterations permitted to the solution algorithm, which can also be set via \Verb!-eps_max_it <its>!. Note that the default values for these and other parameters can be algorithm dependent. See appendix \ref{cap:meth} for reference.
 
 	At the end of the solution process, error estimates are available via
-	\findex{EPSGetErrorEstimates}
+	\findex{EPSGetErrorEstimate}
 	\begin{Verbatim}[fontsize=\small]
-	EPSGetErrorEstimates(EPS eps,int,j,PetscReal *errest);
+	EPSGetErrorEstimate(EPS eps,int,j,PetscReal *errest);
 	\end{Verbatim}
 
 	Error estimates can also be displayed during execution of the solution algorithm, as a way of monitoring convergence. The user can activate this feature by using \Verb!-eps_monitor! within the options database. By default, the solvers run silently without displaying information about the iteration. \slepc also provides a different kind of convergence monitor which displays the value of the approximate eigenvalues instead of the error estimates. This is done with \Verb!-eps_monitor_values!. Both types of monitors are compatible and can be used at the same time if desired.
