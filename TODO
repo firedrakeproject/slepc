@@ -50,7 +50,7 @@ TODO
      igual a la de Cayley generalizado con el shift del numerador igual a 0.
 
   c. En todas las transformaciones, considerar el caso en que el shift sea 0
-     para hacer menos operaciones (por ejemplo, el MatAXPY no hacerlo).
+     para hacer menos operaciones (por ejemplo, el MatAXPY no hacerlo). [HECHO]
 
 (06) Nuevos EPS
 
@@ -75,7 +75,7 @@ TODO
 (07) Gestión de vectores de trabajo
 
   a. Implementar EPSAttachDeflationSpace y adaptar solvers para que trabajen
-     teniendo en cuenta este subespacio.
+     teniendo en cuenta este subespacio. [MEDIO HECHO :-)]
 
 (08) Utilidades
 
