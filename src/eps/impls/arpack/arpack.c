@@ -56,7 +56,7 @@ static int EPSSetDefaults_ARPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARPACK"
-static int  EPSSolve_ARPACK(EPS eps,int *its)
+static int  EPSSolve_ARPACK(EPS eps)
 {
   EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
   char        bmat[1], *which, howmny[] = "A";
@@ -180,7 +180,6 @@ static int  EPSSolve_ARPACK(EPS eps,int *its)
 
   eps->nconv = iparam[4];
   eps->its   = iparam[2];
-  *its       = eps->its;
   
   if (info==1) { SETERRQ(0,"Exceeded maximum number of iterations in xxAUPD"); }
   else if(info==3) { SETERRQ(1,"No shift could be applied in xxAUPD.\n"

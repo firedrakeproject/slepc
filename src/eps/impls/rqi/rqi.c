@@ -37,7 +37,7 @@ static int EPSSetDefaults_RQI(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_RQI"
-static int  EPSSolve_RQI(EPS eps,int *its)
+static int  EPSSolve_RQI(EPS eps)
 {
   int         ierr, i, maxit=eps->max_it;
   Vec         v, w, y, e;
@@ -68,6 +68,7 @@ static int  EPSSolve_RQI(EPS eps,int *its)
   ierr = VecScale(&alpha,w);CHKERRQ(ierr);
 
   for (i=0;i<maxit;i++) {
+    eps->its = i;
 
     /* y = OP w */
     ierr = STApplyNoB(eps->OP,w,y);CHKERRQ(ierr);
@@ -109,8 +110,7 @@ static int  EPSSolve_RQI(EPS eps,int *its)
   }
 
   if( i==maxit ) i--;
-  *its = i+1;
-  eps->its = *its;
+  eps->its = i+1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 #if defined(PETSC_USE_COMPLEX)

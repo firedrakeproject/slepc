@@ -104,7 +104,8 @@
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSSolve(eps,its,ierr) 
+      call EPSSolve(eps,ierr) 
+      call EPSGetIterationNumber(eps,its,ierr)
       if (rank .eq. 0) then
         write(6,*)
         write(6,140) its

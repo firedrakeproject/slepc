@@ -67,7 +67,7 @@ static int EPSSetDefaults_BLZPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_BLZPACK"
-static int  EPSSolve_BLZPACK(EPS eps,int *its)
+static int  EPSSolve_BLZPACK(EPS eps)
 {
   EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
   int          i, n, nneig, lflag, nvopu, ierr;
@@ -108,14 +108,14 @@ static int  EPSSolve_BLZPACK(EPS eps,int *its)
   blz->rstor[2]  = eps->tol;     /* threshold for convergence */
 
   lflag = 0;           /* reverse communication interface flag */
-  *its  = 0;
+  eps->its  = 0;
 
   for(;;) {
 
     BLZpack_( blz->istor, blz->rstor, &sigma, &nneig, blz->u, blz->v, 
               &lflag, &nvopu, blz->eig, pV );
 
-    *its = *its + 1;
+    eps->its = eps->its + 1;
 
     if( lflag == 1 ) {
       /* compute v = OP u */
@@ -154,7 +154,6 @@ static int  EPSSolve_BLZPACK(EPS eps,int *its)
   ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);
 
   eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
-  eps->its    = *its;
   eps->reason = EPS_CONVERGED_TOL;
 
   for (i=0;i<eps->nconv;i++) {

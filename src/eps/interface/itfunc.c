@@ -165,9 +165,9 @@ int EPSSetUp(EPS eps)
 
 .seealso: EPSCreate(), EPSSetUp(), EPSDestroy(), EPSSetTolerances() 
 @*/
-int EPSSolve(EPS eps,int *its) 
+int EPSSolve(EPS eps) 
 {
-  int         i,ierr,nits;
+  int         i,ierr;
   PetscReal   re,im;
   PetscTruth  flg;
   PetscViewer viewer;
@@ -188,13 +188,12 @@ int EPSSolve(EPS eps,int *its)
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
   ierr = STPreSolve(eps->OP,eps);CHKERRQ(ierr);
-  ierr = (*eps->ops->solve)(eps,&nits);CHKERRQ(ierr);
+  ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
   ierr = STPostSolve(eps->OP,eps);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
   if (!eps->reason) {
     SETERRQ(1,"Internal error, solver returned without setting converged reason");
   }
-  if (its) *its = nits;
 
   /* Map eigenvalues back to the original problem, necessary in some 
   * spectral transformations */

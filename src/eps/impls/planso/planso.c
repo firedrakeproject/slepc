@@ -75,7 +75,7 @@ int  PLANopm_(int *n,PetscReal *q, PetscReal *s)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_PLANSO"
-static int  EPSSolve_PLANSO(EPS eps,int *its)
+static int  EPSSolve_PLANSO(EPS eps)
 {
   int        i, n, msglvl, lohi, ierr;
   PetscReal  condm;
@@ -98,7 +98,6 @@ static int  EPSSolve_PLANSO(EPS eps,int *its)
             eps->eigr, eps->eigi, pl->work, &pl->lwork, &ierr, &msglvl, &fcomm );
 
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
-  *its       = eps->its;
   eps->reason = EPS_CONVERGED_TOL;
   
   if (ierr!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in PLANSO (code=%d)",ierr);}

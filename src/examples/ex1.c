@@ -77,7 +77,8 @@ int main( int argc, char **argv )
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps,&its);CHKERRQ(ierr); 
+  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);
          CHKERRQ(ierr);
   /*

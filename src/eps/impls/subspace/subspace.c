@@ -44,7 +44,7 @@ static int EPSSetDefaults_SUBSPACE(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_SUBSPACE"
-static int  EPSSolve_SUBSPACE(EPS eps,int *its)
+static int  EPSSolve_SUBSPACE(EPS eps)
 {
   int          ierr, i, j, k, maxit=eps->max_it, ncv = eps->ncv;
   Vec          w;
@@ -66,9 +66,9 @@ static int  EPSSolve_SUBSPACE(EPS eps,int *its)
   ierr = EPSQRDecomposition(eps,0,ncv,PETSC_NULL,ncv);CHKERRQ(ierr);
 
   i = 0;
-  *its = 0;
+  eps->its = 0;
 
-  while (*its<maxit) {
+  while (eps->its<maxit) {
 
     /* Y = OP^inner V */
     for (k=i;k<ncv;k++) {
@@ -117,9 +117,9 @@ static int  EPSSolve_SUBSPACE(EPS eps,int *its)
     }
     i = eps->nconv;
 
-    *its = *its + 1;
-    EPSMonitorEstimates(eps,*its,eps->nconv,eps->errest,ncv); 
-    EPSMonitorValues(eps,*its,eps->nconv,eps->eigr,PETSC_NULL,ncv); 
+    EPSMonitorEstimates(eps,eps->its + 1,eps->nconv,eps->errest,ncv); 
+    EPSMonitorValues(eps,eps->its + 1,eps->nconv,eps->eigr,PETSC_NULL,ncv); 
+    eps->its = eps->its + 1;
 
     if (eps->nconv>=eps->nev) break;
 
@@ -128,8 +128,7 @@ static int  EPSSolve_SUBSPACE(EPS eps,int *its)
   ierr = PetscFree(H);CHKERRQ(ierr);
   ierr = PetscFree(S);CHKERRQ(ierr);
 
-  if( *its==maxit ) *its = *its - 1;
-  eps->its = *its;
+  if( eps->its==maxit ) eps->its = eps->its - 1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 #if defined(PETSC_USE_COMPLEX)

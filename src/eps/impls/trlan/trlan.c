@@ -71,7 +71,7 @@ static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,i
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_TRLAN"
-static int  EPSSolve_TRLAN(EPS eps,int *its)
+static int  EPSSolve_TRLAN(EPS eps)
 {
   int         ipar[32], i, n, lohi, stat, ierr;
   EPS_TRLAN   *tr = (EPS_TRLAN *)eps->data;
@@ -114,7 +114,6 @@ static int  EPSSolve_TRLAN(EPS eps,int *its)
   stat        = ipar[0];
   eps->nconv  = ipar[3];
   eps->its    = ipar[25];
-  *its        = eps->its;
   eps->reason = EPS_CONVERGED_TOL;
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
   

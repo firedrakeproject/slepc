@@ -36,7 +36,7 @@ static int EPSSetDefaults_ARNOLDI(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARNOLDI"
-static int  EPSSolve_ARNOLDI(EPS eps,int *its)
+static int  EPSSolve_ARNOLDI(EPS eps)
 {
   int         ierr, i, j, k, m, maxit=eps->max_it, ncv = eps->ncv;
   int         lwork, ilo, mout;
@@ -59,12 +59,12 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
   alpha = 1.0/norm;
   ierr = VecScale(&alpha,eps->V[0]);CHKERRQ(ierr);
 
-  *its = 0;
+  eps->its = 0;
   m = ncv-1; /* m is the number of Arnoldi vectors, one less than
                 the available vectors because one is needed for v_{m+1} */
   k = 0;     /* k is the number of locked vectors */
 
-  while (*its<maxit) {
+  while (eps->its<maxit) {
 
     /* compute the projected matrix, H, with the basic Arnoldi method */
     for (j=k;j<m;j++) {
@@ -161,9 +161,9 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
     alpha = 1.0/norm;
     ierr = VecScale(&alpha,eps->V[k]);CHKERRQ(ierr);
 
-    *its = *its + 1;
-    EPSMonitorEstimates(eps,*its,eps->nconv,eps->errest,m); 
-    EPSMonitorValues(eps,*its,eps->nconv,eps->eigr,eps->eigi,m); 
+    EPSMonitorEstimates(eps,eps->its + 1,eps->nconv,eps->errest,m); 
+    EPSMonitorValues(eps,eps->its + 1,eps->nconv,eps->eigr,eps->eigi,m); 
+    eps->its = eps->its + 1;
 
     if (eps->nconv>=eps->nev) break;
 
@@ -173,8 +173,7 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
   ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(S);CHKERRQ(ierr);
 
-  if( *its==maxit ) *its = *its - 1;
-  eps->its = *its;
+  if( eps->its==maxit ) eps->its = eps->its - 1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 #if defined(PETSC_USE_COMPLEX)

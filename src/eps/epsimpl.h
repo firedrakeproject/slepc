@@ -7,7 +7,7 @@
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
-  int  (*solve)(EPS,int*);                   /* actual solver */
+  int  (*solve)(EPS);                   /* actual solver */
   int  (*setup)(EPS);
   int  (*setdefaults)(EPS);
   int  (*setfromoptions)(EPS);

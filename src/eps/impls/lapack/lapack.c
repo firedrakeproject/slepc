@@ -62,7 +62,7 @@ static int EPSSetDefaults_LAPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_LAPACK"
-static int  EPSSolve_LAPACK(EPS eps,int *its)
+static int  EPSSolve_LAPACK(EPS eps)
 {
   int         ierr,n,size,rank,i,low,high;
   PetscScalar *array,*pV;
@@ -104,7 +104,6 @@ static int  EPSSolve_LAPACK(EPS eps,int *its)
 
   eps->nconv = eps->ncv;
   eps->its   = 1;
-  *its       = eps->its;
   
   eps->reason = EPS_CONVERGED_TOL;
 

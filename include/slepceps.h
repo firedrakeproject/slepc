@@ -54,7 +54,7 @@ extern int EPSGetProblemType(EPS,EPSProblemType*);
 extern int EPSSetOperators(EPS,Mat,Mat);
 extern int EPSSetFromOptions(EPS);
 extern int EPSSetUp(EPS);
-extern int EPSSolve(EPS,int*);
+extern int EPSSolve(EPS);
 extern int EPSView(EPS,PetscViewer);
 
 extern PetscFList EPSList;

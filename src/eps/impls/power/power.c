@@ -35,7 +35,7 @@ static int EPSSetDefaults_POWER(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_POWER"
-static int  EPSSolve_POWER(EPS eps,int *its)
+static int  EPSSolve_POWER(EPS eps)
 {
   int         ierr, i, k, maxit=eps->max_it;
   Vec         v, w, y, e;
@@ -55,6 +55,7 @@ static int  EPSSolve_POWER(EPS eps,int *its)
   ierr = VecCopy(eps->vec_initial,y);CHKERRQ(ierr);
 
   for (i=0;i<maxit;i++) {
+    eps->its = i;
 
     if (isSinv) {
       /* w = B y */
@@ -132,8 +133,7 @@ static int  EPSSolve_POWER(EPS eps,int *its)
   }
 
   if( i==maxit ) i--;
-  *its = i+1;
-  eps->its = *its;
+  eps->its = i + 1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
