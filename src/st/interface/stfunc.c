@@ -33,6 +33,7 @@ int STDestroy(ST st)
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPDestroy(st->ksp);CHKERRQ(ierr); } 
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); } 
+  if (st->Bx) { ierr = VecDestroy(st->Bx);CHKERRQ(ierr); } 
   if (st->shift_matrix != STMATMODE_INPLACE && st->mat) { 
     ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
   }
