@@ -1,56 +1,56 @@
 
 /*                       
        This file implements a wrapper to the LAPACK eigenvalue subroutines.
-       Currently, only LAPACK routines for standard problems are used.
-       Generalized problems are transformed to standard ones.
+       Generalized problems are transformed to standard ones only if necessary.
 */
-#include "src/eps/impls/lapack/lapackp.h"
+#include "src/eps/epsimpl.h"
 #include "slepcblaslapack.h"
+
+typedef struct {
+  Mat OP,A,B;
+} EPS_LAPACK;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_LAPACK"
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  int            size,rank,n,N;
+  int            N;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  MPI_Comm       comm = eps->comm;
-  Mat            *T;
-  IS             isrow, iscol;
   PetscTruth     flg;
-
+  Mat            A,B;
+  PetscScalar    shift;
+  
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->nev<1 || eps->nev>N) SETERRQ(1,"Wrong value of nev");  
-  if (eps->ncv) {
-    if (eps->ncv<=eps->nev) SETERRQ(1,"Wrong value of ncv");    
-#ifndef PETSC_USE_COMPLEX
-  } else eps->ncv = PetscMin(eps->nev + 1, N);
-#else
-  } else eps->ncv = eps->nev;
-#endif
+  if (eps->nev<1 || eps->nev>N) SETERRQ(1,"Wrong value of nev");
+  eps->ncv = N;
 
-  if (la->BA) { ierr = MatDestroy(la->BA);CHKERRQ(ierr); }
-  ierr = EPSComputeExplicitOperator(eps,&la->BA);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
-  
-  if (size > 1) {
-    /* assemble full matrix on every processor */
-    ierr = MatGetSize(la->BA,&n,&n);CHKERRQ(ierr);
-    ierr = ISCreateStride(PETSC_COMM_SELF, n, 0, 1, &isrow);CHKERRQ(ierr);
-    ierr = ISCreateStride(PETSC_COMM_SELF, n, 0, 1, &iscol);CHKERRQ(ierr);
-    ierr = MatGetSubMatrices(la->BA, 1, &isrow, &iscol, MAT_INITIAL_MATRIX, &T);CHKERRQ(ierr);
-    ierr = ISDestroy(isrow);CHKERRQ(ierr);
-    ierr = ISDestroy(iscol);CHKERRQ(ierr);
-    ierr = MatDestroy(la->BA);CHKERRQ(ierr);
-    la->BA = *T;
-  }
-  
-  ierr = PetscTypeCompare((PetscObject)la->BA, MATSEQDENSE, &flg); CHKERRQ(ierr);
-  if (!flg) {
-    /* convert matrix to MatSeqDense */
-    ierr = MatConvert(la->BA, MATSEQDENSE, &la->BA);CHKERRQ(ierr);
+  if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
+  if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
+  if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }
+
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
+  if (flg) {
+    la->OP = PETSC_NULL;
+    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+    ierr = SlepcMatConvertSeqDense(A,&la->A);CHKERRQ(ierr);
+    if (eps->isgeneralized) {
+      ierr = SlepcMatConvertSeqDense(B,&la->B);CHKERRQ(ierr);
+    } else la->B = PETSC_NULL;
+    ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
+    if (shift != 0.0) {
+      ierr = MatShift(&shift,la->A);CHKERRQ(ierr);
+    }
+  } else {
+    PetscLogInfo(eps,"EPSSetup_LAPACK: Using slow explicit operator\n");
+    la->A = PETSC_NULL;
+    la->B = PETSC_NULL;
+    ierr = STComputeExplicitOperator(eps->OP,&la->OP);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)la->OP,MATSEQDENSE,&flg);CHKERRQ(ierr);
+    if (!flg) {
+      ierr = SlepcMatConvertSeqDense(la->OP,&la->OP);CHKERRQ(ierr);
+    }
   }
 
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
@@ -62,27 +62,59 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  int            n,size,rank,i,low,high;
-  PetscScalar    *array,*pV;
+  int            n,size,i,low,high;
+  PetscScalar    *array,*arrayb,*pV;
+  PetscReal      *w;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
   MPI_Comm       comm = eps->comm;
   
   PetscFunctionBegin;
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
   
-  ierr = MatGetArray(la->BA,&array);CHKERRQ(ierr);
-  ierr = MatGetSize(la->BA,&n,&n);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
 
   if (size == 1) {
     ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   } else {
-    ierr = PetscMalloc(sizeof(PetscScalar)*n,&pV);CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&pV);CHKERRQ(ierr);
   }
   
-  ierr = EPSDenseNHEPSorted(n,array,eps->eigr,eps->eigi,pV,eps->ncv,eps->which);CHKERRQ(ierr);
-  
-  ierr = MatRestoreArray(la->BA,&array);CHKERRQ(ierr);
+  if (la->OP) {
+    ierr = MatGetArray(la->OP,&array);CHKERRQ(ierr);
+    ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV);CHKERRQ(ierr);  
+    ierr = MatRestoreArray(la->OP,&array);CHKERRQ(ierr);
+  } else if (eps->ishermitian) {
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc(n*sizeof(PetscReal),&w);CHKERRQ(ierr);
+#else
+    w = eps->eigr;
+#endif
+    ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
+    if (!eps->isgeneralized) {
+      ierr = EPSDenseHEP(n,array,w,pV);CHKERRQ(ierr);
+    } else {
+      ierr = MatGetArray(la->B,&arrayb);CHKERRQ(ierr);
+      ierr = EPSDenseGHEP(n,array,arrayb,w,pV);CHKERRQ(ierr);  
+      ierr = MatRestoreArray(la->B,&arrayb);CHKERRQ(ierr);
+    } 
+    ierr = MatRestoreArray(la->A,&array);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    for (i=0;i<n;i++) {
+      eps->eigr[i] = w[i];
+    }
+    ierr = PetscFree(w);CHKERRQ(ierr);
+#endif    
+  } else {
+    ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
+    if (!eps->isgeneralized) {
+      ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV);CHKERRQ(ierr);
+    } else {
+      ierr = MatGetArray(la->B,&arrayb);CHKERRQ(ierr);
+      ierr = EPSDenseGNHEP(n,array,arrayb,eps->eigr,eps->eigi,pV);CHKERRQ(ierr);  
+      ierr = MatRestoreArray(la->B,&arrayb);CHKERRQ(ierr);
+    }
+    ierr = MatRestoreArray(la->A,&array);CHKERRQ(ierr);
+  }
 
   if (size == 1) {
     ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
@@ -100,10 +132,6 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   eps->its   = 1;  
   eps->reason = EPS_CONVERGED_TOL;
   
-#ifndef PETSC_USE_COMPLEX
-  if (eps->eigi[eps->nconv - 1] >= 0.0 && eps->nconv != n) eps->nconv--;
-#endif
-
   PetscFunctionReturn(0);
 }
 
@@ -112,15 +140,14 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 PetscErrorCode EPSDestroy_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  int            size;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  MPI_Comm       comm = eps->comm;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  if (la->BA) { ierr = MatDestroy(la->BA);CHKERRQ(ierr); }
-  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
+  if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
+  if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }
+  if (eps->data) { ierr = PetscFree(eps->data);CHKERRQ(ierr); }
   ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
