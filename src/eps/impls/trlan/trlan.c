@@ -81,9 +81,9 @@ static int  EPSSolve_TRLAN(EPS eps)
 
   ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
   
-  lohi = 0;
-  if (eps->which==EPS_LARGEST_MAGNITUDE) lohi = 1;
-  else if (eps->which==EPS_SMALLEST_MAGNITUDE) lohi = -1;
+  if (eps->which==EPS_LARGEST_REAL) lohi = 1;
+  else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
+  else SETERRQ(1,"Wrong value of eps->which");
 
   globaleps = eps;
 
@@ -118,6 +118,11 @@ static int  EPSSolve_TRLAN(EPS eps)
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
   
   if (stat!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);}
+
+  if (eps->nconv > 0) {
+    ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
+    ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
+  }
 
   PetscFunctionReturn(0);
 }

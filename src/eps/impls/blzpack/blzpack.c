@@ -18,7 +18,7 @@ static int EPSSetUp_BLZPACK(EPS eps)
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
-  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+  if (eps->which!=EPS_SMALLEST_REAL)
     SETERRQ(1,"Wrong value of eps->which");
 
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
