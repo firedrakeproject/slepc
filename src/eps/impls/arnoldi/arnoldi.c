@@ -44,7 +44,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = PetscMax(2*eps->nev,eps->nev+8);
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
+  if (!eps->max_it) eps->max_it = PetscMax(100,N*eps->ncv);
   if (!eps->tol) eps->tol = 1.e-7;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
@@ -81,14 +81,17 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
-    if (breakdown) SETERRQ(1,"Breakdown in Arnoldi method");
+    if (breakdown) {
+      ierr = SlepcVecSetRandom(V[j+1]);CHKERRQ(ierr);
+      ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);  
+    }
     H[(m+1)*j+1] = norm;
     t = 1 / norm;
     ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = EPSOrthogonalize(eps,m,V,f,H+m*(m-1),beta,&breakdown);CHKERRQ(ierr);
-  if (breakdown) SETERRQ(1,"Breakdown in Arnoldi method");
+  if (breakdown) SETERRQ1(1,"Breakdown in Arnoldi method (norm=%g)",*beta);
   t = 1 / *beta;
   ierr = VecScale(&t,f);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -127,12 +130,13 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   
   eps->nconv = 0;
   eps->its = 0;
-
   /* Restart loop */
   while (eps->its<eps->max_it) {
 
     /* Compute an ncv-step Arnoldi factorization */
     ierr = EPSBasicArnoldi(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+    eps->its = eps->its + ncv - eps->nconv;
+
     eps->its = eps->its + ncv - eps->nconv;
 
     /* At this point, H has the following structure
@@ -164,21 +168,29 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
-      eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]); 
+      eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]);
     }  
 
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */
     k = eps->nconv;
-    while (k<ncv && eps->errest[k]<eps->tol) k++;
-    for (i=k+1;i<ncv;i++) {
+    while (k<ncv && eps->errest[k]<eps->tol) { k++; }
+    for (i=k;i<ncv;i++) {
       if (eps->errest[i]<eps->tol) {
         ifst = i + 1;
         ilst = k + 1;
 #if !defined(PETSC_USE_COMPLEX)
         LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
+        eps->eigr[k] = eps->eigr[i];
+        eps->eigi[k] = eps->eigi[i];
+        if (eps->eigi[i] != 0) {
+          eps->eigr[k+1] = eps->eigr[i+1];
+          eps->eigi[k+1] = eps->eigi[i+1];
+          k++;       
+        }
 #else
         LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,&info,1);
+        eps->eigr[k] = eps->eigr[i];
 #endif
         if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
         k++;
