@@ -5,75 +5,6 @@
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetIterationNumber"
-/*@
-   EPSGetIterationNumber - Gets the current iteration number. If the 
-   call to EPSSolve() is complete, then it returns the number of iterations 
-   carried out by the solution method.
- 
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigensolver context
-
-   Output Parameter:
-.  its - number of iterations
-
-   Level: intermediate
-
-   Notes:
-      During the i-th iteration this call returns i-1. If EPSSolve() is 
-      complete, then parameter "its" contains either the iteration number at
-      which convergence was successfully reached, or failure was detected.  
-      Call EPSGetConvergedReason() to determine if the solver converged or 
-      failed and why.
-
-@*/
-PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidIntPointer(its,2);
-  *its = eps->its;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSGetNumberLinearIterations"
-/*@
-   EPSGetNumberLinearIterations - Gets the total number of iterations
-   required by the linear solves associated to the ST object during the 
-   last EPSSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - EPS context
-
-   Output Parameter:
-.  lits - number of linear iterations
-
-   Notes:
-   When the eigensolver algorithm invokes STApply() then a linear system 
-   must be solved (except in the case of standard eigenproblems and shift
-   transformation). The number of iterations required in this solve is
-   accumulated into a counter whose value is returned by this function.
-
-   The iteration counter is reset to zero at each successive call to EPSSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode EPSGetNumberLinearIterations(EPS eps,int* lits)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidIntPointer(lits,2);
-  STGetNumberLinearIterations(eps->OP, lits);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSDefaultMonitor"
 /*@C
    EPSDefaultEstimatesMonitor - Print the current approximate values and 
@@ -306,39 +237,31 @@ PetscErrorCode EPSDestroy_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-
-
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetConvergedReason"
-/*@C
-   EPSGetConvergedReason - Gets the reason why the EPSSolve() iteration was 
-   stopped.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigensolver context
-
-   Output Parameter:
-.  reason - negative value indicates diverged, positive value converged
-   (see EPSConvergedReason)
-
-   Possible values for reason:
-+  EPS_CONVERGED_TOL - converged up to tolerance
-.  EPS_DIVERGED_ITS - required more than its to reach convergence
-.  EPS_DIVERGED_BREAKDOWN - generic breakdown in method
--  EPS_DIVERGED_NONSYMMETRIC - The operator is nonsymmetric
-
-   Level: intermediate
-
-   Notes: Can only be called after the call to EPSSolve() is complete.
-
-.seealso: EPSSetTolerances(), EPSSolve(), EPSConvergedReason
-@*/
-PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
+#define __FUNCT__ "EPSBackTransform_Default"
+PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
+  PetscErrorCode ierr;
+  int            i;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  *reason = eps->reason;
+  for (i=0;i<eps->nconv;i++) {
+    ierr = STBackTransform(eps->OP,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeVectors_Default"
+PetscErrorCode EPSComputeVectors_Default(EPS eps)
+{
+  PetscErrorCode ierr;
+  int            i;
+
+  PetscFunctionBegin;
+  for (i=0;i<eps->nconv;i++) {
+    ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }

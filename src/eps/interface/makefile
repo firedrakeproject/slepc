@@ -3,10 +3,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dlregis.c itcl.c itfunc.c itcreate.c iterativ.c itregis.c borthog.c dense.c
+SOURCEC  = dlregis.c itcl.c itfunc.c itcreate.c iterativ.c itregis.c itopts.c itsetup.c itsolve.c borthog.c dense.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = dlregis.o itcl.o itfunc.o itcreate.o iterativ.o itregis.o borthog.o dense.o
+OBJSC    = dlregis.o itcl.o itfunc.o itcreate.o iterativ.o itregis.o itopts.o itsetup.o itsolve.o borthog.o dense.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
