@@ -213,3 +213,10 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscFunctionReturn(0);  
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcQuietErrorHandler"
+PetscErrorCode SlepcQuietErrorHandler(int line,const char *fun,const char* file,const char *dir,PetscErrorCode n,int p,const char *mess,void *ctx)
+{
+  PetscFunctionBegin;
+  PetscFunctionReturn(n);
+}
