@@ -1401,10 +1401,13 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
   int         ierr;
   PetscScalar tscalar;
   PetscReal   treal;
+  Vec         tvec;
   
   PetscFunctionBegin;
   if (i!=j) {
-    ierr = VecSwap(eps->V[i],eps->V[j]);CHKERRQ(ierr);
+    tvec = eps->V[i];
+    eps->V[i] = eps->V[j];
+    eps->V[j] = tvec;
     tscalar = eps->eigr[i];
     eps->eigr[i] = eps->eigr[j];
     eps->eigr[j] = tscalar;
