@@ -30,6 +30,7 @@ typedef struct _p_EPS* EPS;
 #define EPSBLZPACK   "blzpack"
 #define EPSPLANSO    "planso"
 #define EPSTRLAN     "trlan"
+#define EPSLOBPCG    "lobpcg"
 
 typedef char * EPSType;
 
