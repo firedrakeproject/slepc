@@ -6,16 +6,6 @@
 #include "src/eps/epsimpl.h"
 #include "slepcblaslapack.h"
 
-typedef PetscTruth logical;
-typedef PetscBLASInt integer;
-typedef PetscScalar doublereal;
-typedef PetscBLASInt ftnlen;
-
-extern int dlaqr3_(logical *wantt, logical *wantz, integer *n, 
-	integer *ilo, integer *ihi, doublereal *h__, integer *ldh, doublereal 
-	*wr, doublereal *wi, integer *iloz, integer *ihiz, doublereal *z__, 
-	integer *ldz, doublereal *work, integer *info);
-        
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_ARNOLDI"
 static int EPSSetUp_ARNOLDI(EPS eps)
@@ -66,8 +56,7 @@ int  EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 static int  EPSSolve_ARNOLDI(EPS eps)
 {
-  int         ierr,i,ilo,info,mout,ncv=eps->ncv,int_one=1;
-  PetscTruth  bool_true = PETSC_TRUE;
+  int         ierr,i,mout,ncv=eps->ncv;
   Vec         f=eps->work[ncv];
   PetscScalar *H,*U,*work,t;
   PetscReal   norm,beta;
@@ -101,8 +90,7 @@ static int  EPSSolve_ARNOLDI(EPS eps)
     ierr = PetscMemzero(U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
   /* [T,wr0,wi0,U] = laqr3(H,U,nconv+1,ncv) */
-    ilo = eps->nconv+1;
-    dlaqr3_(&bool_true,&bool_true,&ncv,&ilo,&ncv,H,&ncv,eps->eigr,eps->eigi,&int_one,&ncv,U,&ncv,work,&info);
+    ierr = EPSDenseSchur(H,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
   /* V(:,idx) = V*U(:,idx) */
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
   /* [Y,dummy] = eig(H) */
@@ -111,6 +99,7 @@ static int  EPSSolve_ARNOLDI(EPS eps)
 #else
     LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,U,&ncv,&ncv,&mout,work,rwork,&ierr,1,1);
 #endif
+    if (ierr) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",ierr);
   /* rsd = beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
       eps->errest[i] = beta*PetscAbsScalar(U[i*ncv+ncv-1]); 
