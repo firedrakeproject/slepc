@@ -94,9 +94,6 @@ EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 EXTERN PetscErrorCode EPSSetOrthogonalization(EPS,EPSOrthogonalizationType,EPSOrthogonalizationRefinementType,PetscReal);
 EXTERN PetscErrorCode EPSGetOrthogonalization(EPS,EPSOrthogonalizationType*,EPSOrthogonalizationRefinementType*,PetscReal*);
-EXTERN PetscErrorCode EPSPurge(EPS,Vec);
-EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
-
 EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
 EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);
 
@@ -117,15 +114,18 @@ typedef enum {/* converged */
 
 EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
-EXTERN PetscErrorCode EPSComputeExplicitOperator(EPS,Mat*);
 EXTERN PetscErrorCode EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,int,int*);
 EXTERN PetscErrorCode EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
-EXTERN PetscErrorCode EPSDenseNHEPSorted(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,EPSWhich);
+EXTERN PetscErrorCode EPSDenseGNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSDenseHEP(int,PetscScalar*,PetscReal*,PetscScalar*);
+EXTERN PetscErrorCode EPSDenseGHEP(int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseSchur(int,int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSSortDenseSchur(int,int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+
+EXTERN PetscErrorCode EPSPurge(EPS,Vec);
+EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 EXTERN PetscErrorCode EPSReverseProjection(EPS,Vec*,PetscScalar*,int,int,Vec*);
-EXTERN PetscErrorCode EPSSwapEigenpairs(EPS,int,int);
 
 EXTERN PetscErrorCode STPreSolve(ST,EPS);
 EXTERN PetscErrorCode STPostSolve(ST,EPS);
