@@ -135,7 +135,7 @@ void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,in
 
 void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  char *tname;
+  const char *tname;
 
   *ierr = EPSGetOptionsPrefix(*eps,&tname);
 #if defined(PETSC_USES_CPTOFCD)

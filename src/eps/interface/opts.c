@@ -711,7 +711,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,char *prefix)
 
 .seealso: EPSSetOptionsPrefix(), EPSAppendOptionsPrefix()
 @*/
-PetscErrorCode EPSGetOptionsPrefix(EPS eps,char **prefix)
+PetscErrorCode EPSGetOptionsPrefix(EPS eps,const char *prefix[])
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;

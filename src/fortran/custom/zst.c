@@ -100,7 +100,7 @@ void PETSC_STDCALL stappendoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len
 void PETSC_STDCALL stgetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
                                        PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  char *tname;
+  const char *tname;
 
   *ierr = STGetOptionsPrefix(*st,&tname);
 #if defined(PETSC_USES_CPTOFCD)

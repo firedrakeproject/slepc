@@ -72,7 +72,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 {
   PetscErrorCode ierr;
   ST             st;
-  char*          prefix;
+  const char     *prefix;
 
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
@@ -305,7 +305,7 @@ PetscErrorCode STAppendOptionsPrefix(ST st,char *prefix)
 
 .seealso: STSetOptionsPrefix(), STAppendOptionsPrefix()
 @*/
-PetscErrorCode STGetOptionsPrefix(ST st,char **prefix)
+PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 {
   PetscErrorCode ierr;
 

@@ -119,7 +119,7 @@ EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
 
 EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,char*);
 EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,char*);
-EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,char**);
+EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
 
 typedef enum {/* converged */
               EPS_CONVERGED_TOL                =  2,

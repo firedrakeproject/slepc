@@ -51,7 +51,7 @@ EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 
 EXTERN PetscErrorCode STSetOptionsPrefix(ST,char*);
 EXTERN PetscErrorCode STAppendOptionsPrefix(ST,char*);
-EXTERN PetscErrorCode STGetOptionsPrefix(ST,char**);
+EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
 EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);
 
