@@ -175,7 +175,7 @@ slepc_allmanualpages: chk_loc slepc_deletemanualpages chk_concepts_dir
 	-${PETSC_DIR}/maint/helpindex.py ${SLEPC_DIR} ${LOC}
 	-${OMAKE} ACTION=slepc_html alltree LOC=${LOC}
 #	-${PETSC_DIR}/maint/update-docs.py ${LOC}
-	cp ${LOC}/docs/index.htm ${LOC}/docs/index.html
+	cp ${LOC}/docs/manual.htm ${LOC}/docs/index.html
 
 # Builds Fortran stub files
 slepc_allfortranstubs:
