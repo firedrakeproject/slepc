@@ -17,7 +17,6 @@
 #define epssetvaluesmonitor_        EPSSETVALUESMONITOR
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                    epsview
-#define epssetoptionsprefix_        ekepsview
 #define epssetoptionsprefix_        epssetoptionsprefix
 #define epsappendoptionsprefix_     epsappendoptionsprefix
 #define epsgetoptionsprefix_        epsgetoptionsprefix
