@@ -8,7 +8,7 @@
  Stopping condition: tol=1e-07, maxit=10000
  Number of converged approximate eigenpairs: 1
 
-           k           ||Ax-kx||/|k|
-   ----------------- -----------------
+           k          ||Ax-kx||/||kx||
+   ----------------- ------------------
        7.837972           0.000000
 

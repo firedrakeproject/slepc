@@ -9,7 +9,7 @@ Eigenproblem stored in file.
  Stopping condition: tol=1e-07, maxit=20000
  Number of converged approximate eigenpairs: 1
 
-           k              ||Ax-kx||/|k|
-  --------------------- -----------------
+           k             ||Ax-kx||/||kx||
+  --------------------- ------------------
        -35.007519           0.000000
 
