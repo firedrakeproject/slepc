@@ -51,10 +51,14 @@ int EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
     }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
-    if (R) { R[k+ldr*k] = norm; }
-    if (norm==0.0) SETERRQ( 1,"Zero vector in QR decomposition" );
+    if (norm==0.0) { 
+      PetscLogInfo(eps,"EPSQRDecomposition: Zero vector found, generating a new random vector\n" );
+      ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
+      ierr = VecNorm(V[k],NORM_2,&norm);CHKERRQ(ierr);
+    }
     alpha = 1.0/norm;
     ierr = VecScale(&alpha,V[k]);CHKERRQ(ierr);
+    if (R) R[k+ldr*k] = norm;
 
   }
 
