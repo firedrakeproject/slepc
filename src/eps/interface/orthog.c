@@ -76,9 +76,11 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
 {
   PetscErrorCode ierr;
   int            j;
-  PetscScalar    shh[100],shh2[100],*lhh;
+  PetscScalar    shh[100],shh2[100],*lhh,
+                 zero = 0.0,minus = -1.0;
   PetscTruth     alloc = PETSC_FALSE;
   PetscReal      hnorm = 0,lnorm;
+  Vec            w;
 
   PetscFunctionBegin;
 
@@ -93,6 +95,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   if (n<=100) lhh = shh;
   else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
   if (!norm) { norm = &lnorm; }
+  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
   
   /*** First orthogonalization ***/
 
@@ -100,9 +103,10 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   /* q = v - V h */
   for (j=0;j<n;j++) {
     ierr = STInnerProduct(eps->OP,v,V[j],&H[j]);
-    lhh[j] = -H[j];    
-  }  
-  ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
+  }
+  ierr = VecSet(&zero,w);CHKERRQ(ierr);
+  ierr = VecMAXPY(n,H,w,V);CHKERRQ(ierr);
+  ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
   ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
 
   /* compute hnorm */
@@ -127,9 +131,10 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
     for (j=0;j<n;j++) {
       ierr = STInnerProduct(eps->OP,v,V[j],&lhh[j]);
       H[j] += lhh[j];
-      lhh[j] = -lhh[j];    
     }
-    ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
+    ierr = VecSet(&zero,w);CHKERRQ(ierr);
+    ierr = VecMAXPY(n,lhh,w,V);CHKERRQ(ierr);
+    ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
 
     hnorm = *norm;
     ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
@@ -143,6 +148,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
 
   if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   if (alloc) { ierr = PetscFree(H);CHKERRQ(ierr); }
+  ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -155,10 +161,12 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
 {
   PetscErrorCode ierr;
   int            j;
-  PetscScalar    alpha;
+  PetscScalar    alpha,
+                 zero = 0.0,minus = -1.0;
   PetscTruth     allocated;
   PetscScalar    lh[100],*h;
   PetscReal      hnorm = 0,lnorm;
+  Vec            w;
   
   PetscFunctionBegin;
   
@@ -172,16 +180,18 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   } else h = H;
   
   if (!norm) { norm = &lnorm; }
+  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
 
+  ierr = VecSet(&zero,w);CHKERRQ(ierr);
   for (j=0; j<n; j++) {
     /* alpha = ( v, v_j ) */
     ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
     /* store coefficients if requested */
     h[j] = alpha;
     /* v <- v - alpha v_j */
-    alpha = -alpha;
-    ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
+    ierr = VecAXPY(&alpha,V[j],w);CHKERRQ(ierr);
   }
+  ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
   ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
 
   if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED || breakdown) {
@@ -196,15 +206,16 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
      (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED &&
       *norm < eps->orthog_eta * hnorm)) {
     PetscLogInfo(eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,hnorm);
+    ierr = VecSet(&zero,w);CHKERRQ(ierr);
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
       ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
       h[j] += alpha;
       /* v <- v - alpha v_j */
-      alpha = -alpha;
-      ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
+      ierr = VecAXPY(&alpha,V[j],w);CHKERRQ(ierr);
     }
+    ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
     hnorm = *norm;
     ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
   }
@@ -218,6 +229,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   if (allocated) {
     ierr = PetscFree(h);CHKERRQ(ierr);
   }
+  ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
