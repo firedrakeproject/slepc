@@ -245,11 +245,6 @@ static int  EPSSolve_ARPACK(EPS eps)
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
 
-  if (eps->nconv > 0) {
-    ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
-    ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
-  }
-
   PetscFunctionReturn(0);
 }
 

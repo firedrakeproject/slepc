@@ -190,6 +190,12 @@ int EPSSolve(EPS eps)
   * spectral transformations */
   ierr = EPSBackTransform(eps);CHKERRQ(ierr);
 
+  /* sort eigenvalues according to eps->which parameter */
+  if (eps->nconv > 0) {
+    ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
+    ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
+  }
+
   ierr = PetscOptionsHasName(eps->prefix,"-eps_view",&flg);CHKERRQ(ierr); 
   if (flg && !PetscPreLoadingOn) { ierr = EPSView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
 

@@ -119,11 +119,6 @@ static int  EPSSolve_TRLAN(EPS eps)
   
   if (stat!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);}
 
-  if (eps->nconv > 0) {
-    ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
-    ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
-  }
-
   PetscFunctionReturn(0);
 }
 

@@ -103,11 +103,6 @@ static int  EPSSolve_PLANSO(EPS eps)
   
   if (ierr!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in PLANSO (code=%d)",ierr);}
 
-  if (eps->nconv > 0) {
-    ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
-    ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
-  }
-
   PetscFunctionReturn(0);
 }
 
