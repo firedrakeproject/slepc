@@ -118,8 +118,10 @@ extern PetscDLLibraryList DLLibrariesLoaded;
 int SlepcInitialize(int *argc,char ***args,char file[],const char help[])
 {
   int        ierr,info=0;
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   char       libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
   PetscTruth found;
+#endif
 
   PetscFunctionBegin;
 
