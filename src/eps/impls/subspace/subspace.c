@@ -3,7 +3,7 @@
        This implements the subspace iteration method for finding the 
        eigenpairs associtated to the eigenvalues with largest magnitude.
 */
-#include "src/eps/epsimpl.h"
+#include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 
 typedef struct {
   int        inner;

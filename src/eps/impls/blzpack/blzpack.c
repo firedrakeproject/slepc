@@ -2,7 +2,7 @@
 /*                       
        This file implements a wrapper to the BLZPACK package
 */
-#include "src/eps/impls/blzpack/blzpackp.h"
+#include "src/eps/impls/blzpack/blzpackp.h"   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_BLZPACK"
