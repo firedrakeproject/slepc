@@ -5,7 +5,7 @@ ALL: lib
 #requiresprecision double
 #requiresscalar    real
 
-CFLAGS   =
+CFLAGS   = ${HYPRE_INCLUDE}
 FFLAGS   =
 SOURCEC  = lobpcg.c
 SOURCEF  = 
