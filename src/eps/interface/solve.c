@@ -756,6 +756,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec)
 
   /* Orthonormalize the vector with respect to previous vectors */
   ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+  if (breakdown) { SETERRQ(1,"Illegal start vector"); }
   t = 1 / norm;
   ierr = VecScale(&t,vec);CHKERRQ(ierr);
 
