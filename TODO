@@ -40,8 +40,6 @@ TODO
 
 (07) Gestión de vectores de trabajo
 
-  a. Adaptar Arnoldi para que trabaje teniendo en cuenta el deflation space.
-
   b. Ahorrar vectores de trabajo en EPSReverseProjection haciendo primero
      la descomposición QR.
 
