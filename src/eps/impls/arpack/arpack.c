@@ -181,7 +181,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 	ierr = STGetOperators(eps->OP,PETSC_NULL,&B); CHKERRQ(ierr);
 	ierr = MatMult(B,x,y); CHKERRQ(ierr); 
       }
-    } else {
+    } else if (ido != 99) {
       SETERRQ1(1,"Internal error in ARPACK reverse comunication interface (ido=%i)\n",ido);
     }
     
@@ -243,13 +243,15 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscTruth     isSinv;
+  PetscTruth     isShift,isSinv;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
-  if (!isSinv) {
-    ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
+  if (eps->ishermitian && eps->isgeneralized) {
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+    if (isSinv || isShift) PetscFunctionReturn(0);
   }
+  ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
