@@ -8,11 +8,9 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "STAssociatedKSPSolve"
-/*@C
+/*
    STAssociatedKSPSolve - Solves the linear system of equations associated
    to the spectral transformation.
-
-   Collective on ST
 
    Input Parameters:
 .  st - the spectral transformation context
@@ -20,11 +18,7 @@
 
    Output  Parameter:
 .  x - computed solution
-
-   Level: developer
-
-.seealso: STGetKSP(), KSPSolve()
-@*/
+*/
 int STAssociatedKSPSolve(ST st,Vec b,Vec x)
 {
   int   ierr,its;
@@ -193,6 +187,26 @@ int STCheckNullSpace_Default(ST st,int n,Vec* V)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace"
+/*@C
+   STCheckNullSpace - Given a set of vectors, this function test each of
+   them to be a nullspace vector of the coefficient matrix of the associated
+   KSP object. All these nullspace vectors are passed to the KSP object.
+
+   Collective on ST
+
+   Input Parameters:
++  st - the spectral transformation context
+.  n  - number of vectors
+-  V  - vectors to be checked
+
+   Note:
+   This function allows to handle singular pencils and to solve some problems
+   in which the nullspace is important (see the users guide for details).
+   
+   Level: developer
+
+.seealso: EPSAttachDeflationSpace()
+@*/
 int STCheckNullSpace(ST st,int n,Vec* V)
 {
   int ierr;

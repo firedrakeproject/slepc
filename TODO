@@ -168,7 +168,7 @@ BUGS
 DOCUMENTACION
 -------------
 
-** Añadir EPSSetDeflationSpace en el manual y en changes.
+** Añadir EPSSetDeflationSpace y STCheckNullSpace en el manual y en changes.
 
 
 
