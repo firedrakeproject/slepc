@@ -67,17 +67,19 @@ PETSC_EXTERN_CXX_BEGIN
 
 #define LAlaev2_ SLEPC_BLASLAPACK(laev2,LAEV2)
 #define LAgehrd_ SLEPC_BLASLAPACK(gehrd,GEHRD)
-#if !defined(PETSC_USE_COMPLEX)
-#define LAorghr_ SLEPC_BLASLAPACK(orghr,ORGHR)
-#else
-#define LAorghr_ SLEPC_BLASLAPACK(unghr,UNGHR)
-#endif
 #define LAlanhs_ SLEPC_BLASLAPACK(lanhs,LANHS)
 #define LAlange_ SLEPC_BLASLAPACK(lange,LANGE)
 #define LAgetri_ SLEPC_BLASLAPACK(getri,GETRI)
 #define LAhseqr_ SLEPC_BLASLAPACK(hseqr,HSEQR)
 #define LAtrexc_ SLEPC_BLASLAPACK(trexc,TREXC)
 #define LAtrevc_ SLEPC_BLASLAPACK(trevc,TREVC)
+
+#if !defined(PETSC_USE_COMPLEX)
+#define LAorghr_ SLEPC_BLASLAPACK(orghr,ORGHR)
+#define LAstev_  SLEPC_BLASLAPACK(stev,TSEV)
+#else
+#define LAorghr_ SLEPC_BLASLAPACK(unghr,UNGHR)
+#endif
 
 EXTERN_C_BEGIN
 
@@ -92,6 +94,7 @@ EXTERN void      LAgetri_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*
 EXTERN void      LAhseqr_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 EXTERN void      LAtrexc_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt);
 EXTERN void      LAtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+EXTERN void      LAstev_(const char*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt);
 #else
 EXTERN void      LAhseqr_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 EXTERN void      LAtrexc_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt);
