@@ -37,6 +37,11 @@ struct _p_ST {
   int          setupcalled;
   int          lineariterations;
   int          (*checknullspace)(ST,int,Vec*);
+  
+  /*------------------------- Cache Bx product -------------------*/
+  Vec          x;
+  int          xstate;
+  Vec          Bx;
 };
 
 extern int STApplyB_Default(ST,Vec,Vec);

@@ -27,6 +27,17 @@ int STApply_Shift(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STApplyB_Shift"
+int STApplyB_Shift(ST st,Vec x,Vec y)
+{
+  int        ierr;
+
+  PetscFunctionBegin;
+  ierr = VecCopy( x, y ); CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Shift"
 int STBackTransform_Shift(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -43,10 +54,6 @@ static int STSetUp_Shift(ST st)
 
   PetscFunctionBegin;
   if (st->B) {
-    if (st->w) {
-      ierr = VecDestroy(st->w);CHKERRQ(ierr);
-    } 
-    ierr = MatGetVecs(st->B,&st->w,PETSC_NULL);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   } 
@@ -60,7 +67,8 @@ int STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
   st->ops->apply       = STApply_Shift;
-  st->ops->applyB      = STApplyB_Default;
+  st->ops->applyB      = STApplyB_Shift;
+  st->ops->applynoB    = STApply_Shift;
   st->ops->backtr      = STBackTransform_Shift;
   st->ops->setup       = STSetUp_Shift;
   st->checknullspace   = 0;

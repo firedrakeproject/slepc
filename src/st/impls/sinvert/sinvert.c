@@ -34,6 +34,22 @@ static int STApplyNoB_Sinvert(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STApplyB_Sinvert"
+int STApplyB_Sinvert(ST st,Vec x,Vec y)
+{
+  int        ierr;
+
+  PetscFunctionBegin;
+  if( st->B ) {
+    ierr = MatMult( st->B, x, y ); CHKERRQ(ierr);
+  }
+  else {
+    ierr = VecCopy( x, y ); CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Sinvert"
 int STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -117,10 +133,6 @@ static int STSetUp_Sinvert(ST st)
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
-  if (st->B) { 
-    if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); }
-    ierr = MatGetVecs(st->B,&st->w,PETSC_NULL);CHKERRQ(ierr); 
-  } 
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -181,7 +193,7 @@ int STCreate_Sinvert(ST st)
   st->data                = 0;
 
   st->ops->apply          = STApply_Sinvert;
-  st->ops->applyB         = STApplyB_Default;
+  st->ops->applyB         = STApplyB_Sinvert;
   st->ops->applynoB       = STApplyNoB_Sinvert;
   st->ops->postsolve      = STPost_Sinvert;
   st->ops->backtr         = STBackTransform_Sinvert;
