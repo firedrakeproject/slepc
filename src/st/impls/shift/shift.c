@@ -60,6 +60,20 @@ static int STSetUp_Shift(ST st)
   PetscFunctionReturn(0);
 }
 
+
+#undef __FUNCT__  
+#define __FUNCT__ "STView_Shift"
+static int STView_Shift(ST st,PetscViewer viewer)
+{
+  int     ierr;
+
+  PetscFunctionBegin;
+  if (st->B) {
+    ierr = STView_Default(st,viewer);CHKERRQ(ierr);
+  } 
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STCreate_Shift"
@@ -71,6 +85,7 @@ int STCreate_Shift(ST st)
   st->ops->applynoB    = STApply_Shift;
   st->ops->backtr      = STBackTransform_Shift;
   st->ops->setup       = STSetUp_Shift;
+  st->ops->view        = STView_Shift;
   st->checknullspace   = 0;
   PetscFunctionReturn(0);
 }

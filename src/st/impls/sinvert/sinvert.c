@@ -199,6 +199,7 @@ int STCreate_Sinvert(ST st)
   st->ops->backtr         = STBackTransform_Sinvert;
   st->ops->setup          = STSetUp_Sinvert;
   st->ops->setshift       = STSetShift_Sinvert;
+  st->ops->view           = STView_Default;
   
   st->checknullspace      = STCheckNullSpace_Default;
 

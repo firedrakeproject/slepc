@@ -391,21 +391,35 @@ int STView(ST st,PetscViewer viewer)
       ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    if (st->ksp) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"Associated KSP object\n");CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
-      ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
-    if (st->ksp) {ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);}
     if (st->ops->view) {ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);}
   } else {
     SETERRQ1(1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STView_Default"
+int STView_Default(ST st,PetscViewer viewer) 
+{
+  int        ierr;
+  PetscTruth isascii,isstring;
+
+  PetscFunctionBegin;
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_STRING,&isstring);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"Associated KSP object\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
+    ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  } else if (isstring) {
+    ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -45,6 +45,7 @@ struct _p_ST {
 };
 
 extern int STApplyB_Default(ST,Vec,Vec);
+extern int STView_Default(ST,PetscViewer);
 extern int STAssociatedKSPSolve(ST,Vec,Vec);
 extern int STCheckNullSpace_Default(ST,int,Vec*);
 extern int STMatShellCreate(ST st,Mat *mat);

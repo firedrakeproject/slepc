@@ -283,6 +283,7 @@ static int STView_Cayley(ST st,PetscViewer viewer)
 #else
   ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g+%g i\n",PetscRealPart(ctx->tau),PetscImaginaryPart(ctx->tau));CHKERRQ(ierr);
 #endif
+  ierr = STView_Default(st,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
