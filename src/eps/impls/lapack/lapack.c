@@ -53,10 +53,11 @@ static int EPSSetDefaults_LAPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->ncv) {
-    if (eps->ncv<1 || eps->ncv>N) SETERRQ(1,"Wrong value of ncv"); 
-  }
-  else eps->ncv = eps->nev;
+  eps->ncv = eps->nev;
+#ifndef PETSC_USE_COMPLEX
+  if (!eps->ishermitian && (eps->nev & 1)) eps->ncv++;
+#endif
+  if (eps->ncv<1 || eps->ncv>N) SETERRQ(1,"Wrong value of nev");
   PetscFunctionReturn(0);
 }
 
@@ -127,7 +128,7 @@ int EPSDestroy_LAPACK(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  ierr = MatDestroy(la->BA);CHKERRQ(ierr);
+  if (la->BA) { ierr = MatDestroy(la->BA);CHKERRQ(ierr); }
   ierr = EPSDefaultDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
