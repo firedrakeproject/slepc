@@ -45,18 +45,18 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
   int            k;
   PetscScalar    alpha;
   PetscReal      norm;
-  PetscTruth     breakdown;
+  PetscTruth     lindep;
   
   PetscFunctionBegin;
 
   for (k=m; k<n; k++) {
 
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
-    if (R) { ierr = EPSOrthogonalize(eps,k,V,V[k],&R[0+ldr*k],&norm,&breakdown);CHKERRQ(ierr); }
-    else   { ierr = EPSOrthogonalize(eps,k,V,V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr); }
+    if (R) { ierr = EPSOrthogonalize(eps,k,V,V[k],&R[0+ldr*k],&norm,&lindep);CHKERRQ(ierr); }
+    else   { ierr = EPSOrthogonalize(eps,k,V,V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
-    if (norm==0.0 || breakdown) { 
+    if (norm==0.0 || lindep) { 
       PetscLogInfo(eps,"EPSQRDecomposition: Linearly dependent vector found, generating a new random vector\n" );
       ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
       ierr = STNorm(eps->OP,V[k],&norm);CHKERRQ(ierr);
@@ -108,7 +108,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
     *hnorm = sqrt(*hnorm);
   }
   
-  /* compute norm of v for refinement or breakdown checking */
+  /* compute norm of v for refinement or linear dependence checking */
   if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED ||
       (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS && hnorm) ) {
     ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);  
@@ -177,7 +177,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
     *hnorm = sqrt(*hnorm);
   }
     
-  /* compute norm of v for refinement or breakdown checking */
+  /* compute norm of v for refinement or linear dependence checking */
   if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED ||
       (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS && hnorm) ) {
     ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);  
@@ -258,7 +258,7 @@ PetscErrorCode EPSPurge(EPS eps,Vec v)
    Output Parameter:
 +  H  - coefficients computed during orthogonalization
 .  norm - norm of the vector ofter being orthogonalized
--  breakdown - flag indicating that refinement did not improve the quality
+-  lindep - flag indicating that refinement did not improve the quality
    of orthogonalization
 
    Notes:
@@ -270,7 +270,7 @@ PetscErrorCode EPSPurge(EPS eps,Vec v)
 
 .seealso: EPSSetOrthogonalization()
 @*/
-PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *breakdown)
+PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h;
@@ -279,7 +279,7 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
   PetscFunctionBegin;
   if (n==0) {
     if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
-    if (breakdown) *breakdown = PETSC_FALSE;
+    if (lindep) *lindep = PETSC_FALSE;
   } else {
     ierr = PetscLogEventBegin(EPS_Orthogonalize,eps,0,0,0);CHKERRQ(ierr);
     
@@ -292,8 +292,8 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
       }
     } else h = H;
     
-    /* retrieve hnrm and nrm for breakdown check or conditional refinement */
-    if (breakdown || eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
+    /* retrieve hnrm and nrm for linear dependence check or conditional refinement */
+    if (lindep || eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
       hnrm = &lhnrm;
       if (norm) nrm = norm;
       else nrm = &lnrm;
@@ -314,10 +314,10 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
         SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
     
-    /* check breakdown */
-    if (breakdown) {
-      if (*nrm < eps->orthog_eta * *hnrm) *breakdown = PETSC_TRUE;
-      else *breakdown = PETSC_FALSE;
+    /* check linear dependence */
+    if (lindep) {
+      if (*nrm < eps->orthog_eta * *hnrm) *lindep = PETSC_TRUE;
+      else *lindep = PETSC_FALSE;
     }
     
     if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
