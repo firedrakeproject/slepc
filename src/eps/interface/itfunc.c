@@ -539,14 +539,15 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetErrorEstimates" 
-/*@C
+/*@
    EPSGetErrorEstimates - Returns the error bounds associated to each of
    the approximate eigenpairs.
 
    Not Collective
 
    Input Parameter:
-.  eps - eigensolver context 
++  eps - eigensolver context 
+-  i   - index of eigenpair
 
    Output Parameter:
 .  errest - the error estimates
@@ -555,11 +556,12 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 
 .seealso: EPSGetSolution(), EPSComputeRelativeError()
 @*/
-int EPSGetErrorEstimates(EPS eps, PetscReal **errest)
+int EPSGetErrorEstimates(EPS eps, int i, PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  *errest = eps->errest;
+  if (eps->perm) i = eps->perm[i];  
+  if (errest) *errest = eps->errest[i];
   PetscFunctionReturn(0);
 }
 
