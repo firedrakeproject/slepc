@@ -119,7 +119,7 @@ extern int EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,int,int*);
 extern int EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 extern int EPSDenseNHEPSorted(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,int,EPSWhich);
 extern int EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
-extern int EPSReverseProjection(EPS,int,int,PetscScalar*);
+extern int EPSReverseProjection(EPS,Vec*,PetscScalar*,int,int,Vec*);
 extern int EPSSwapEigenpairs(EPS,int,int);
 
 extern int STPreSolve(ST,EPS);
