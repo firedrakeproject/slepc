@@ -1,8 +1,9 @@
 
 ALL: lib
 
-#requirespackage  'SLEPC_HAVE_TRLAN'
-#requiresscalar   real
+#requirespackage   'SLEPC_HAVE_TRLAN'
+#requiresprecision double
+#requiresscalar    real
 
 CFLAGS   =
 FFLAGS   =
