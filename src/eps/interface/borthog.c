@@ -21,6 +21,10 @@
    Output Parameter:
 .  R  - triangular matrix of QR factorization
 
+   Notes:
+   Assumes that the first m columns (from 0 to m-1) are already orthonormal
+   to working precision.
+
    Level: developer
 
 @*/
@@ -32,20 +36,18 @@ int EPSQRDecomposition(EPS eps,int m,int n,PetscScalar *R,int ldr)
   
   PetscFunctionBegin;
 
-  /* normalize v_m: r_{m,m} = ||v_m||_2; v_m = v_m/r_{m,m} */
-  ierr = VecNorm(eps->V[m],NORM_2,&norm);CHKERRQ(ierr);
-  if (R) { R[m+ldr*m] = norm; }
-  if (norm==0.0) SETERRQ( 1,"Zero vector in QR decomposition" );
-  alpha = 1.0/norm; 
-  ierr = VecScale(&alpha,eps->V[m]);CHKERRQ(ierr);
-
-  for (k=m+1; k<n; k++) {
+  for (k=m; k<n; k++) {
 
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
-    ierr = PetscLogEventBegin(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
-    if (R) { ierr = (*eps->orthog)(eps,k-1,&R[0+ldr*k],&norm);CHKERRQ(ierr); }
-    else   { ierr = (*eps->orthog)(eps,k-1,PETSC_NULL,&norm);CHKERRQ(ierr); }
-    ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
+    if (k>0) {
+      ierr = PetscLogEventBegin(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
+      if (R) { ierr = (*eps->orthog)(eps,k-1,&R[0+ldr*k],&norm);CHKERRQ(ierr); }
+      else   { ierr = (*eps->orthog)(eps,k-1,PETSC_NULL,&norm);CHKERRQ(ierr); }
+      ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
+    }
+    else {
+      ierr = VecNorm(eps->V[0],NORM_2,&norm);CHKERRQ(ierr);
+    }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (R) { R[k+ldr*k] = norm; }
