@@ -58,9 +58,9 @@ int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,i
     case EPS_LARGEST_IMAGINARY:
     case EPS_SMALLEST_IMAGINARY:
 #if defined(PETSC_USE_COMPLEX)
-      for (i=0; i<n; i++) { values[i] = PetscImaginaryPart(eig[i]); }
+      for (i=0; i<n; i++) { values[i] = PetscAbsReal(PetscImaginaryPart(eig[i])); }
 #else
-      for (i=0; i<n; i++) { values[i] = eigi[i]; }
+      for (i=0; i<n; i++) { values[i] = PetscAbsReal(eigi[i]); }
 #endif
       break;
     default: SETERRQ(1,"Wrong value of which");
