@@ -44,8 +44,11 @@ const char* blzpack_error[33] = {
 #define __FUNCT__ "EPSSetUp_BLZPACK"
 static int EPSSetUp_BLZPACK(EPS eps)
 {
-  int          ierr, listor, lrstor, ncuv, N, n, k1, k2, k3, k4;
+  int         ierr, listor, lrstor, ncuv, N, n, k1, k2, k3, k4;
   EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
+  PetscTruth  flg;
+  KSP         ksp;
+  PC          pc;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -63,7 +66,19 @@ static int EPSSetUp_BLZPACK(EPS eps)
 #endif
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
-
+  if (blz->slice) {
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&flg);CHKERRQ(ierr);
+    if (!flg)
+      SETERRQ(PETSC_ERR_SUP,"Shift-and-invert ST is needed for spectrum slicing");
+    ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+    if (!flg)
+      SETERRQ(PETSC_ERR_SUP,"Preonly KSP is needed for spectrum slicing");
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)pc,PCCHOLESKY,&flg);CHKERRQ(ierr);
+    if (!flg)
+      SETERRQ(PETSC_ERR_SUP,"Cholesky PC is needed for spectrum slicing");
+  }
   if (eps->which!=EPS_SMALLEST_REAL)
     SETERRQ(1,"Wrong value of eps->which");
 
@@ -77,7 +92,7 @@ static int EPSSetUp_BLZPACK(EPS eps)
   ierr = PetscMalloc((17+listor)*sizeof(int),&blz->istor);CHKERRQ(ierr);
   blz->istor[14] = listor;
 
-  if( eps->isgeneralized ) lrstor = n*(k2*4+k1*2+k4)+k3;
+  if (blz->slice) lrstor = n*(k2*4+k1*2+k4)+k3;
   else lrstor = n*(k2*4+k1)+k3;
   if (blz->rstor) { ierr = PetscFree(blz->rstor);CHKERRQ(ierr); }
   ierr = PetscMalloc((4+lrstor)*sizeof(PetscReal),&blz->rstor);CHKERRQ(ierr);
@@ -104,8 +119,9 @@ static int  EPSSolve_BLZPACK(EPS eps)
   int          i, n, nneig, lflag, nvopu, ierr;
   Vec          x, y;
   PetscScalar  sigma,*pV;
-  PetscTruth   isSinv;
   Mat          A;
+  KSP          ksp;
+  PC           pc;
   
   PetscFunctionBegin;
 
@@ -114,6 +130,10 @@ static int  EPSSolve_BLZPACK(EPS eps)
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
+  if (blz->slice) { ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr); }
+  else sigma = 0.0;              /* shift of origin */
+  nneig = 0;                     /* no. of eigs less than sigma */
+
   blz->istor[0]  = n;            /* number of rows of U, V, X*/
   blz->istor[1]  = n;            /* leading dimension of U, V, X */
   blz->istor[2]  = eps->nev;     /* number of required eigenpairs */
@@ -122,17 +142,12 @@ static int  EPSSolve_BLZPACK(EPS eps)
   blz->istor[5]  = 0;            /* maximun number of steps per run */
   blz->istor[6]  = 1;            /* number of starting vectors as input */
   blz->istor[7]  = 0;            /* number of eigenpairs given as input */
-  blz->istor[8]  = eps->isgeneralized? 1: 0;     /* problem type */
-  blz->istor[9]  = (blz->initial == blz->final) ? 0 : 1;   /* spectrum slicing */
+  blz->istor[8]  = blz->slice;   /* problem type */
+  blz->istor[9]  = blz->slice;   /* spectrum slicing */
   blz->istor[10] = 0;            /* solutions refinement */
-  blz->istor[11] = 3;            /* level of printing */
+  blz->istor[11] = 0;            /* level of printing */
   blz->istor[12] = 6;            /* file unit for output */
   blz->istor[13] = MPI_Comm_c2f(eps->comm);    /* communicator */
-
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
-  if(isSinv) { ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr); }
-  else sigma = 0.0;              /* shift of origin */
-  nneig = 0;                     /* no. of eigs less than sigma */
 
   blz->rstor[0]  = blz->initial; /* lower limit of eigenvalue interval */
   blz->rstor[1]  = blz->final;   /* upper limit of eigenvalue interval */
@@ -153,7 +168,7 @@ static int  EPSSolve_BLZPACK(EPS eps)
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
         ierr = VecPlaceArray( y, blz->v+i*n );CHKERRQ(ierr);
-        if (isSinv && eps->isgeneralized) { 
+        if (blz->slice) { 
           ierr = STApplyNoB( eps->OP, x, y ); CHKERRQ(ierr);
 	} else {
           ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
@@ -172,22 +187,12 @@ static int  EPSSolve_BLZPACK(EPS eps)
       }
     }
     else if( lflag == 3 ) {
-      Mat B;
-      IS  is;
-      int n;
-      MatFactorInfo info;
       /* update shift */
-      ierr = STSetShift( eps->OP, sigma );CHKERRQ(ierr);
-      ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
-      ierr = MatDuplicate(A, MAT_COPY_VALUES, &B);CHKERRQ(ierr);
-      ierr = MatGetSize(A, &n, PETSC_NULL);CHKERRQ(ierr);
-      ierr = ISCreateStride(eps->comm, n, 0, 1, &is);CHKERRQ(ierr);
-      ierr = PetscMemzero(&info,sizeof(MatFactorInfo));CHKERRQ(ierr);
-      info.fill = 1.0;
-      ierr = MatCholeskyFactor(B,is,&info);CHKERRQ(ierr);
-      ierr = MatGetInertia(B,&nneig,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      ierr = MatDestroy(B);CHKERRQ(ierr);
-      ierr = ISDestroy(is);CHKERRQ(ierr);
+      ierr = STSetShift(eps->OP,sigma);CHKERRQ(ierr);
+      ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PCGetFactoredMatrix(pc,&A);CHKERRQ(ierr);
+      ierr = MatGetInertia(A,&nneig,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }
     else if( lflag == 4 ) {
       /* copy the initial vector */
@@ -207,10 +212,6 @@ static int  EPSSolve_BLZPACK(EPS eps)
     eps->eigi[i]=0.0;
   }
 
-  if(isSinv) {
-    for( i=0; i<eps->nconv; i++ ) 
-	    eps->eigr[i] = 1.0 / (eps->eigr[i] - sigma);
-  }
   if (lflag!=0) { 
     char msg[2048] = "";
     for (i = 0; i < 33; i++) {
@@ -220,6 +221,23 @@ static int  EPSSolve_BLZPACK(EPS eps)
   }
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBackTransform_BLZPACK"
+int EPSBackTransform_BLZPACK(EPS eps)
+{
+  int         ierr,i;
+  EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!blz->slice)
+    for (i=0;i<eps->nconv;i++) {
+      ierr = STBackTransform(eps->OP,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
+    }
 
   PetscFunctionReturn(0);
 }
@@ -269,6 +287,8 @@ static int EPSSetFromOptions_BLZPACK(EPS eps)
   int         ierr,bs,n;
   PetscReal   interval[2];
   PetscTruth  flg;
+  KSP         ksp;
+  PC          pc;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("BLZPACK options");CHKERRQ(ierr);
@@ -284,6 +304,13 @@ static int EPSSetFromOptions_BLZPACK(EPS eps)
     if (flg) {
       if (n==1) interval[1]=interval[0];
       ierr = EPSBlzpackSetInterval(eps,interval[0],interval[1]);CHKERRQ(ierr);
+    }
+    if (blz->slice) {
+      ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
+      ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
     }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
@@ -349,6 +376,7 @@ int EPSBlzpackSetInterval_BLZPACK(EPS eps,PetscReal initial,PetscReal final)
   blz             = (EPS_BLZPACK *) eps->data;
   blz->initial    = initial;
   blz->final      = final;
+  blz->slice      = 1;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -412,13 +440,14 @@ int EPSCreate_BLZPACK(EPS eps)
   eps->ops->destroy              = EPSDestroy_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
   eps->ops->view                 = EPSView_BLZPACK;
-  eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->ops->backtransform        = EPSBackTransform_BLZPACK;
   eps->computevectors            = EPSComputeVectors_Default;
 
   blzpack->block_size = 3;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   blzpack->initial = 0.0;
   blzpack->final = 0.0;
+  blzpack->slice = 0;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","EPSBlzpackSetInterval_BLZPACK",EPSBlzpackSetInterval_BLZPACK);CHKERRQ(ierr);
 
   eps->which = EPS_SMALLEST_REAL;
