@@ -87,11 +87,12 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
     H[(m+1)*j+1] = norm;
     if (breakdown) {
       PetscLogInfo(eps,"Breakdown in Arnoldi method (norm=%g)\n",norm);
-      ierr = SlepcVecSetRandom(V[j+1]);CHKERRQ(ierr);
-      ierr = STNorm(eps->OP,V[j+1],&norm);CHKERRQ(ierr);
+      ierr = EPSGetStartVector(eps,j,V[j+1]);CHKERRQ(ierr);
     }
-    t = 1 / norm;
-    ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+    else {
+      t = 1 / norm;
+      ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+    }
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = EPSOrthogonalize(eps,m,V,f,H+m*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
@@ -108,7 +109,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   int            i,k,mout,info,ifst,ilst,ncv=eps->ncv;
   Vec            f=eps->work[ncv];
   PetscScalar    *H=eps->T,*U,*Y,*work,ts;
-  PetscReal      norm,beta,tr;
+  PetscReal      beta,tr;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
@@ -125,14 +126,12 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
 #endif
 
-  /* The first Arnoldi vector is the normalized initial vector */
-  ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr);
-  ierr = STNorm(eps->OP,eps->V[0],&norm);CHKERRQ(ierr);
-  ts = 1 / norm;
-  ierr = VecScale(&ts,eps->V[0]);CHKERRQ(ierr);
-  
   eps->nconv = 0;
   eps->its = 0;
+
+  /* Get the starting Arnoldi vector */
+  ierr = EPSGetStartVector(eps,eps->its,eps->V[0]);CHKERRQ(ierr);
+  
   /* Restart loop */
   while (eps->its<eps->max_it) {
     /* Compute an ncv-step Arnoldi factorization */

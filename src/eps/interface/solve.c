@@ -697,3 +697,72 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
   ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetStartVector"
+/*@
+   EPSGetStartVector - Gets a vector to be used as the starting vector
+   in an Arnoldi or Lanczos reduction.
+
+   Collective on EPS and Vec
+
+   Input Parameters:
++  eps - the eigensolver context
+-  i   - index of the Arnoldi/Lanczos step
+
+   Input/Output Parameter:
+.  vec - the start vector
+
+   Input/Output Parameter:
+.  norm - the start vector
+
+   Notes:
+   The start vector is computed from another vector: for the first step (i=0),
+   the initial vector is used (see EPSGetInitialVector()); otherwise a random
+   vector is created. Then this vector is forced to be in the range of OP and
+   orthonormalized with respect to all V-vectors up to i-1.
+
+   The caller must pass a vector already allocated with dimensions conforming
+   to the initial vector. This vector is overwritten.
+
+   Level: developer
+
+.seealso: EPSGetInitialVector()
+
+@*/
+PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec)
+{
+  PetscErrorCode ierr;
+  PetscTruth     breakdown;
+  PetscScalar    t;
+  PetscReal      norm;
+  Vec            w;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(vec,VEC_COOKIE,3);
+
+  /* For the first step, use the initial vector, otherwise a random one */
+  if (i==0) {
+    w = eps->vec_initial;
+  }
+  else {
+    ierr = VecDuplicate(eps->vec_initial,&w);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(w);CHKERRQ(ierr);
+  }
+
+  /* Force the vector to be in the range of OP */
+  ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
+
+  /* Orthonormalize the vector with respect to previous vectors */
+  ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+  t = 1 / norm;
+  ierr = VecScale(&t,vec);CHKERRQ(ierr);
+
+  if (i!=0) {
+    ierr = VecDestroy(w);CHKERRQ(ierr);
+  }
+
+  PetscFunctionReturn(0);
+}
+

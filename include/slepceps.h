@@ -126,6 +126,7 @@ EXTERN PetscErrorCode EPSPurge(EPS,Vec);
 EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 EXTERN PetscErrorCode EPSReverseProjection(EPS,Vec*,PetscScalar*,int,int,Vec*);
+EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec);
 
 EXTERN PetscErrorCode STPreSolve(ST,EPS);
 EXTERN PetscErrorCode STPostSolve(ST,EPS);
