@@ -82,31 +82,32 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int m,
 PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,j,n,m,*iwork,*ifail,info,ncv=eps->ncv,nconv;
+  int            nconv,i,j,n,m,*isuppz,*iwork,info,
+                 ncv=eps->ncv,
+                 lwork=18*ncv,
+                 liwork=10*ncv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *T=eps->T,*D,*E,*Y,*W,*work,ts;
-  PetscReal      norm,beta,abstol;
+  PetscScalar    *T=eps->T,*Y,ts;
+  PetscReal      *D,*E,*W,*work,norm,beta,abstol=0;
 
   PetscFunctionBegin;
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
   SETERRQ(PETSC_ERR_SUP,"xSTEVX - Lapack routine is unavailable.");
 #endif 
   ierr = PetscMemzero(T,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&D);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&E);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&W);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
-  ierr = PetscMalloc(5*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(5*ncv*sizeof(PetscScalar),&iwork);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&ifail);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscReal),&D);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscReal),&E);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscReal),&W);CHKERRQ(ierr);
+  ierr = PetscMalloc(2*ncv*sizeof(int),&isuppz);CHKERRQ(ierr);
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
 
   /* The first vector is the normalized initial vector */
   ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr);
   ierr = STNorm(eps->OP,eps->V[0],&norm);CHKERRQ(ierr);
   ts = 1 / norm;
   ierr = VecScale(&ts,eps->V[0]);CHKERRQ(ierr);
-  
-  abstol = 2*LAlamch_("S",1);
   
   eps->nconv = nconv = 0;
   eps->its = 0;
@@ -115,10 +116,10 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 
     n = ncv - nconv;
     for (i=0;i<n;i++) {
-      D[i] = T[(i+nconv)*(ncv+1)];
-      E[i] = T[(i+nconv)*(ncv+1)+1];
+      D[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
+      E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
     }
-    LAstevx_("V","A",&n,D,E,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&abstol,&m,W,Y,&n,work,iwork,ifail,&info,1,1);
+    LAstegr_("V","A",&n,D,E,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&abstol,&m,W,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEVX %i",info);
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
@@ -144,17 +145,15 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   
   if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-#if defined(PETSC_USE_COMPLEX)
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
-#endif
 
   ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(D);CHKERRQ(ierr);
   ierr = PetscFree(E);CHKERRQ(ierr);
   ierr = PetscFree(W);CHKERRQ(ierr);
+  ierr = PetscFree(isuppz);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
-  ierr = PetscFree(ifail);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -169,7 +168,7 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   eps->ops->setup                = EPSSetUp_LANCZOS;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Schur;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -1,8 +1,6 @@
 
 ALL: lib
 
-#requiresscalar   real
-
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = lanczos.c
