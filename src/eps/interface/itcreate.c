@@ -108,6 +108,7 @@ int EPSView(EPS eps,PetscViewer viewer)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %f)\n",eps->orth_eta);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
