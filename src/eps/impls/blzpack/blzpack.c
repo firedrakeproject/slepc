@@ -92,7 +92,7 @@ static int  EPSSolve_BLZPACK(EPS eps)
   blz->istor[6]  = 1;            /* number of starting vectors as input */
   blz->istor[7]  = 0;            /* number of eigenpairs given as input */
   blz->istor[8]  = eps->isgeneralized? 1: 0;     /* problem type */
-  blz->istor[9]  = 0;            /* spectrum slicing */
+  blz->istor[9]  = (blz->initial == blz->final) ? 0 : 1;   /* spectrum slicing */
   blz->istor[10] = 0;            /* solutions refinement */
   blz->istor[11] = 3;            /* level of printing */
   blz->istor[12] = 6;            /* file unit for output */
@@ -138,10 +138,22 @@ static int  EPSSolve_BLZPACK(EPS eps)
       }
     }
     else if( lflag == 3 ) {
+      Mat B;
+      IS  is;
+      int n;
+      MatFactorInfo info;
       /* update shift */
       ierr = STSetShift( eps->OP, sigma );CHKERRQ(ierr);
       ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
-      ierr = MatGetInertia(A,&nneig,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatDuplicate(A, MAT_COPY_VALUES, &B);CHKERRQ(ierr);
+      ierr = MatGetSize(A, &n, PETSC_NULL);CHKERRQ(ierr);
+      ierr = ISCreateStride(eps->comm, n, 0, 1, &is);CHKERRQ(ierr);
+      ierr = PetscMemzero(&info,sizeof(MatFactorInfo));CHKERRQ(ierr);
+      info.fill = 1.0;
+      ierr = MatCholeskyFactor(B,is,&info);CHKERRQ(ierr);
+      ierr = MatGetInertia(B,&nneig,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatDestroy(B);CHKERRQ(ierr);
+      ierr = ISDestroy(is);CHKERRQ(ierr);
     }
     else if( lflag == 4 ) {
       /* copy the initial vector */
@@ -230,6 +242,8 @@ static int EPSSetFromOptions_BLZPACK(EPS eps)
     ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr);}
 
+    interval[0] = blz->initial;
+    interval[1] = blz->final;
     n = 2;
     ierr = PetscOptionsRealArray("-eps_blzpack_interval","Computational interval","EPSBlzpackSetInterval",interval,&n,&flg);CHKERRQ(ierr);
     if (flg) {
