@@ -82,6 +82,7 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
@@ -95,6 +96,7 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
     }
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
+  eps->its++;
   ierr = EPSOrthogonalize(eps,m,V,f,H+m*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -128,6 +130,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
   eps->nconv = 0;
   eps->its = 0;
+  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,eps->its,eps->V[0]);CHKERRQ(ierr);
@@ -209,7 +212,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
     eps->nconv = k;
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
-    eps->its = eps->its + ncv - eps->nconv;
     if (eps->nconv >= eps->nev) break;
   }
   
