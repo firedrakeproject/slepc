@@ -35,6 +35,7 @@ static int EPSSetDefaults_SUBSPACE(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = PetscMin(2*eps->nev,eps->nev+8);
+  eps->ncv = PetscMin(eps->ncv,N);
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!subspace->inner) {
     if (eps->ishermitian) subspace->inner = 10;
@@ -92,7 +93,7 @@ static int  EPSSolve_SUBSPACE(EPS eps)
     }
 
     /* solve the reduced problem, compute the 
-       eigendecomposition H = S Theta S^* */
+       eigendecomposition H = S Theta S^{-1} */
     ierr = EPSDenseNHEP(ncv-i,H,eps->eigr+i,eps->eigi+i,S);CHKERRQ(ierr);
 
     /* update V = V S */

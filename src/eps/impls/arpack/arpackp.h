@@ -22,7 +22,6 @@ typedef struct {
 /*
    Definition of routines from the ARPACK package
 */
-#include "petsc.h"
 
 /*
    This include file on the Cray T3D/T3E defines the interface between 
@@ -141,8 +140,8 @@ typedef struct {
 #define ARnaupd__ ZNAUPD
 #define ARneupd__ ZNEUPD
 #else
-#define ARnaupd__ pznaupd
-#define ARneupd__ pzneupd
+#define ARnaupd__ znaupd
+#define ARneupd__ zneupd
 #endif
 
 #endif
