@@ -49,7 +49,7 @@ int main( int argc, char **argv )
   }
 
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,PETSC_FILE_RDONLY,&viewer);CHKERRQ(ierr);
-  ierr = MatLoad(viewer,PETSC_NULL,&B);CHKERRQ(ierr);
+  ierr = MatLoad(viewer,MATAIJ,&B);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
