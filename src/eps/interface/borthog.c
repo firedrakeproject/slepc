@@ -17,18 +17,53 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int it,PetscScalar *H,PetscR
 {
   int         ierr,j;
   PetscScalar alpha;
-
+  PetscTruth  refinement,allocated;
+  PetscScalar lh[100],*h;
+  PetscReal   hnorm;
+  
   PetscFunctionBegin;
+  
+  allocated = PETSC_FALSE;
+  if (!H) {
+    if (it<100) h = lh;
+    else {
+      ierr = PetscMalloc((it+1)*sizeof(PetscScalar),&h);CHKERRQ(ierr);
+      allocated = PETSC_TRUE;
+    }
+  } else h = H;
+  
   for (j=0; j<=it; j++) {
-    /* alpha = ( v_{it+1}, v_j ) */
-    ierr = VecDot(eps->V[it+1],eps->V[j],&alpha);CHKERRQ(ierr);
-    /* store coefficients if requested */
-    if (H) *H++ = alpha;
-    /* v_{it+1} <- v_{it+1} - alpha v_j */
-    alpha = -alpha;
-    ierr = VecAXPY(&alpha,eps->V[j],eps->V[it+1]);CHKERRQ(ierr);
+    h[j] = 0;
   }
-  ierr = VecNorm(eps->V[it+1], NORM_2, norm);CHKERRQ(ierr);
+  refinement = PETSC_FALSE;
+  do {
+    for (j=0; j<=it; j++) {
+      /* alpha = ( v_{it+1}, v_j ) */
+      ierr = VecDot(eps->V[it+1],eps->V[j],&alpha);CHKERRQ(ierr);
+      /* store coefficients if requested */
+      h[j] += alpha;
+      /* v_{it+1} <- v_{it+1} - alpha v_j */
+      alpha = -alpha;
+      ierr = VecAXPY(&alpha,eps->V[j],eps->V[it+1]);CHKERRQ(ierr);
+    }
+    ierr = VecNorm(eps->V[it+1], NORM_2, norm);CHKERRQ(ierr);
+    if (refinement) refinement = PETSC_FALSE;
+    else if (eps->orth_eta != 0.0) {
+      hnorm = 0.0;
+      for (j=0; j<=it; j++) {
+        hnorm += PetscRealPart(h[j] * PetscConj(h[j]));
+      }
+      hnorm = sqrt(hnorm);
+      if (eps->orth_eta < 0.0 || *norm < eps->orth_eta * hnorm) {
+        PetscLogInfo(eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,hnorm);
+        refinement = PETSC_TRUE;
+      }
+    }
+  } while (refinement);
+  
+  if (allocated) {
+    ierr = PetscFree(h);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
