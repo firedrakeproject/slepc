@@ -52,8 +52,8 @@ static int EPSdcond(PetscScalar* H,int n, PetscReal* cond)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSdgroup"
-static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscScalar *rsd,PetscScalar grptol,
-  int *ngrp,PetscScalar *ctr,PetscScalar *ae,PetscScalar *arsd)
+static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,
+  PetscReal grptol,int *ngrp,PetscReal *ctr,PetscReal *ae,PetscReal *arsd)
 {
   int       i;
   PetscReal rmod,rmod1;
@@ -62,10 +62,18 @@ static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscScalar *rs
   *ngrp = 0;
   *ctr = 0;
       
+#if !defined(PETSC_USE_COMPLEX)
   rmod = LAlapy2_(wr+l,wi+l);
+#else 
+  rmod = PetscAbsScalar(wr[l]);
+#endif
 
   for (i=l;i<m;) {
+#if !defined(PETSC_USE_COMPLEX)
     rmod1 = LAlapy2_(wr+i,wi+i);
+#else 
+    rmod1 = PetscAbsScalar(wr[i]);
+#endif
     if (PetscAbsReal(rmod-rmod1) > grptol*(rmod+rmod1)) break;
     *ctr = (rmod+rmod1)/2.0;
     if (wi[i] != 0.0) {
@@ -82,7 +90,7 @@ static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscScalar *rs
 
   if (*ngrp) {
     for (i=l;i<l+*ngrp;i++) {
-      (*ae) += wr[i];
+      (*ae) += PetscRealPart(wr[i]);
       (*arsd) += rsd[i]*rsd[i];
     }
     *ae = *ae / *ngrp;
@@ -93,26 +101,34 @@ static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscScalar *rs
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSchurResidualNorms"
-static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int m,int ldt,PetscScalar *rsd)
+static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int m,int ldt,PetscReal *rsd)
 {
   int         ierr,i;
   PetscScalar zero = 0.0,minus = -1.0;
-    
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar t;
+#endif
+
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
     ierr = VecSet(&zero,eps->work[0]);CHKERRQ(ierr);
     ierr = VecMAXPY(m,T+ldt*i,eps->work[0],V);CHKERRQ(ierr);
     ierr = VecWAXPY(&minus,eps->work[0],AV[i],eps->work[1]);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
     ierr = VecDot(eps->work[1],eps->work[1],rsd+i);CHKERRQ(ierr);
+#else
+    ierr = VecDot(eps->work[1],eps->work[1],&t);CHKERRQ(ierr);
+    rsd[i] = PetscRealPart(t);
+#endif    
   }
 
   for (i=l;i<m;i++) {
     if (i == m-1) {
-      rsd[i] = PetscSqrtScalar(rsd[i]);  
+      rsd[i] = sqrt(rsd[i]);  
     } else if (T[i+1+(ldt*i)]==0.0) {
-      rsd[i] = PetscSqrtScalar(rsd[i]);
+      rsd[i] = sqrt(rsd[i]);
     } else {
-      rsd[i] = PetscSqrtScalar(rsd[i]+rsd[i+1])/2.0;
+      rsd[i] = sqrt(rsd[i]+rsd[i+1])/2.0;
       rsd[i+1] = rsd[i];
       i++;
     }
@@ -126,12 +142,11 @@ static int EPSSolve_SRRIT(EPS eps)
 {
   int         ierr,i,j,ilo,lwork,ngrp,nogrp,*itrsd,*itrsdold,
               nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
-  PetscScalar *T,*U,*tau,*work,
-              ctr,ae,arsd,octr,oae,oarsd,tcond;
-  PetscReal   *rsdold,norm;
+  PetscScalar *T,*U,*tau,*work,t;
+  PetscReal   arsd,oarsd,ctr,octr,ae,oae,*rsdold,norm,tcond;
   /* Parameters */
   int         init = 5;
-  PetscScalar stpfac = 1.5,
+  PetscReal   stpfac = 1.5,
               alpha = 1.0,
               beta = 1.1,
               grptol = 1e-8,
@@ -261,8 +276,8 @@ static int EPSSolve_SRRIT(EPS eps)
         for (i=eps->nconv;i<ncv;i++) {
           ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
           ierr = VecNorm(eps->V[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
-          norm = 1 / norm;
-          ierr = VecScale(&norm,eps->V[i]);CHKERRQ(ierr);
+          t = 1 / norm;
+          ierr = VecScale(&t,eps->V[i]);CHKERRQ(ierr);
         }
       
         eps->its++;
@@ -272,8 +287,8 @@ static int EPSSolve_SRRIT(EPS eps)
            V(:,j) = v/norm(v) */
         ierr = (*eps->orthog)(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm);CHKERRQ(ierr);
         if (norm < 1e-8) { SETERRQ(1,"Norm is zero"); }
-        norm = 1 / norm;
-        ierr = VecScale(&norm,eps->V[i]);CHKERRQ(ierr);
+        t = 1 / norm;
+        ierr = VecScale(&t,eps->V[i]);CHKERRQ(ierr);
       }
       nxtort = PetscMin(eps->its+idort,nxtsrr);
     } while (eps->its<nxtsrr);
