@@ -65,9 +65,10 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
                     OP * V - V * H = f * e_m^T
 
    where the columns of V are the Arnoldi vectors (which are B-orthonormal),
-   H is an upper Hessenberg matrix, f is the next vector (v_{m+1}) and e_m
-   is the m-th vector of the canonical basis. On exit, beta contains the
-   B-norm of f.
+   H is an upper Hessenberg matrix, f is the residual vector and e_m is
+   the m-th vector of the canonical basis. The vector f is B-orthogonal to
+   the columns of V. On exit, beta contains the B-norm of f and the next 
+   Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
 static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
 {
@@ -93,8 +94,6 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = EPSOrthogonalize(eps,m,V,f,H+m*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
-  t = 1 / *beta;
-  ierr = VecScale(&t,f);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

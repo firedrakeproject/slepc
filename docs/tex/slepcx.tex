@@ -355,7 +355,7 @@ xxxx\=xxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
 \begin{algorithm}[Basic Arnoldi Factorization\label{alg:basicarn}]~\rm
 \begin{tabbing}
 Input: Operator $O\!P$, number of steps $m$, and $V_k$, $H_k$ with $k<m$  \\
-Output: $(V_m,H_m,f_m,\beta)$ so that $O\!P\,V_m-V_mH_m=f_me_m^T$, $\beta=\|f\|_B$ \\
+Output: $(V_m,H_m,f,\beta)$ so that $O\!P\,V_m-V_mH_m=fe_m^T$, $\beta=\|f\|_B$ \\
 xxxx\=xxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
 \> For $j=k+1,\ldots,m-1$\\
 \> \> $w=O\!Pv_j$ \\
@@ -366,7 +366,6 @@ xxxx\=xxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
 \> $f=O\!Pv_m$ \\
 \> Orthogonalize $f$ with respect to $V_m$ (obtaining $h_{1:m,m}$) \\
 \> $\beta=\|f\|_B$ \\
-\> $f=f/\beta$ \\
 \end{tabbing}
 \end{algorithm}
 
