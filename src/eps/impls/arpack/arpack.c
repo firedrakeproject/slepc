@@ -256,19 +256,14 @@ static int  EPSSolve_ARPACK(EPS eps)
 #define __FUNCT__ "EPSBackTransform_ARPACK"
 int EPSBackTransform_ARPACK(EPS eps)
 {
-  ST          st;
-  int         ierr,i;
+  int         ierr;
   PetscTruth  isSinv;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)st,STSINV,&isSinv);CHKERRQ(ierr);
-  if (!isSinv)
-    for (i=0;i<eps->nconv;i++) {
-      ierr = STBackTransform(st,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
-    }
-
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+  if (!isSinv) {
+    ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

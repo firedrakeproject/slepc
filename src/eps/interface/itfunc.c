@@ -1453,7 +1453,6 @@ int EPSBackTransform_Default(EPS eps)
   for (i=0;i<eps->nconv;i++) {
     ierr = STBackTransform(st,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
 }
 

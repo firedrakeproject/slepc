@@ -238,16 +238,13 @@ static int  EPSSolve_BLZPACK(EPS eps)
 #define __FUNCT__ "EPSBackTransform_BLZPACK"
 int EPSBackTransform_BLZPACK(EPS eps)
 {
-  int         ierr,i;
+  int         ierr;
   EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!blz->slice)
-    for (i=0;i<eps->nconv;i++) {
-      ierr = STBackTransform(eps->OP,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
-    }
-
+  if (!blz->slice) {
+    ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
