@@ -96,13 +96,14 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi
 PetscErrorCode STPost_Sinvert(ST st)
 {
   PetscErrorCode ierr;
-  PetscScalar    alpha;
 
   PetscFunctionBegin;
   if (st->shift_matrix == STMATMODE_INPLACE) {
-    alpha = st->sigma;
-    if( st->B ) { ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); }
-    else { ierr = MatShift( &alpha, st->A ); CHKERRQ(ierr); }
+    if( st->B ) {
+      ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
+    } else {
+      ierr = MatShift(st->A,st->sigma); CHKERRQ(ierr);
+    }
     st->setupcalled = 0;
   }
   PetscFunctionReturn(0);
@@ -113,7 +114,6 @@ PetscErrorCode STPost_Sinvert(ST st)
 PetscErrorCode STSetUp_Sinvert(ST st)
 {
   PetscErrorCode ierr;
-  PetscScalar    alpha;
 
   PetscFunctionBegin;
   
@@ -123,11 +123,10 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   case STMATMODE_INPLACE:
     st->mat = PETSC_NULL;
     if (st->sigma != 0.0) {
-      alpha = -st->sigma;
       if (st->B) { 
-        ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); 
+        ierr = MatAXPY(st->A,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
       } else { 
-        ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); 
+        ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
       }
     }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
@@ -141,11 +140,10 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   default:
     ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
-      alpha = -st->sigma;
       if (st->B) { 
-        ierr = MatAXPY(&alpha,st->B,st->mat,st->str);CHKERRQ(ierr); 
+        ierr = MatAXPY(st->mat,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
       } else { 
-        ierr = MatShift(&alpha,st->mat);CHKERRQ(ierr); 
+        ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
       }
     }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
@@ -161,7 +159,6 @@ PetscErrorCode STSetUp_Sinvert(ST st)
 PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
-  PetscScalar    alpha;
 
   PetscFunctionBegin;
 
@@ -172,15 +169,19 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   case STMATMODE_INPLACE:
     /* Undo previous operations */
     if (st->sigma != 0.0) {
-      alpha = st->sigma;
-      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+      if (st->B) {
+        ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);
+      }
     }
     /* Apply new shift */
     if (newshift != 0.0) {
-      alpha = -newshift;
-      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+      if (st->B) {
+        ierr = MatAXPY(st->A,-newshift,st->B,st->str);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(st->A,-newshift);CHKERRQ(ierr);
+      }
     }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
@@ -190,9 +191,11 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   default:
     ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN); CHKERRQ(ierr);
     if (newshift != 0.0) {   
-      alpha = -newshift;
-      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->mat,st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(&alpha,st->mat);CHKERRQ(ierr); }
+      if (st->B) {
+        ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr);
+      }
     }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
      * improve performance when solving a number of related eigenproblems */

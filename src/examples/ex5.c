@@ -23,7 +23,6 @@ int main( int argc, char **argv )
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
   int         N, m=15, nev, ierr, maxit, i, its, nconv;
-  PetscScalar alpha;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -35,7 +34,8 @@ int main( int argc, char **argv )
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,&A);CHKERRQ(ierr);
+  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
+  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   ierr = MatMarkovModel( m, A );CHKERRQ(ierr);
 
@@ -64,8 +64,7 @@ int main( int argc, char **argv )
      vector is set to random values
   */
   ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
-  alpha = 1.0;
-  ierr = VecSet(&alpha,v0);CHKERRQ(ierr);
+  ierr = VecSet(v0,1.0);CHKERRQ(ierr);
   ierr = EPSSetInitialVector(eps,v0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

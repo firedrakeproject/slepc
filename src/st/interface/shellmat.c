@@ -12,20 +12,17 @@ PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST             ctx;
-  PetscScalar    alpha;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
 
   ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
   if (ctx->sigma != 0.0) { 
-    alpha = -ctx->sigma;
     if (ctx->B) {  /* y = (A - sB) x */
       ierr = MatMult(ctx->B,x,ctx->w);CHKERRQ(ierr);
-      ierr = VecAXPY(&alpha,ctx->w,y);CHKERRQ(ierr); 
-    }
-    else {    /* y = (A - sI) x */
-    ierr = VecAXPY(&alpha,x,y);CHKERRQ(ierr);
+      ierr = VecAXPY(y,-ctx->sigma,ctx->w);CHKERRQ(ierr); 
+    } else {    /* y = (A - sI) x */
+      ierr = VecAXPY(y,-ctx->sigma,x);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -37,20 +34,17 @@ PetscErrorCode STMatShellMultTranspose(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST             ctx;
-  PetscScalar    alpha;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
 
   ierr = MatMultTranspose(ctx->A,x,y);CHKERRQ(ierr);
   if (ctx->sigma != 0.0) { 
-    alpha = -ctx->sigma;
     if (ctx->B) {  /* y = (A - sB) x */
       ierr = MatMultTranspose(ctx->B,x,ctx->w);CHKERRQ(ierr);
-      ierr = VecAXPY(&alpha,ctx->w,y);CHKERRQ(ierr); 
-    }
-    else {    /* y = (A - sI) x */
-    ierr = VecAXPY(&alpha,x,y);CHKERRQ(ierr);
+      ierr = VecAXPY(y,-ctx->sigma,ctx->w);CHKERRQ(ierr); 
+    } else {    /* y = (A - sI) x */
+      ierr = VecAXPY(y,-ctx->sigma,x);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -62,7 +56,6 @@ PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
   ST             ctx;
-  PetscScalar    alpha;
   Vec            diagb;
 
   PetscFunctionBegin;
@@ -70,15 +63,13 @@ PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 
   ierr = MatGetDiagonal(ctx->A,diag);CHKERRQ(ierr);
   if (ctx->sigma != 0.0) { 
-    alpha = -ctx->sigma;
     if (ctx->B) {
       ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
       ierr = MatGetDiagonal(ctx->B,diagb);CHKERRQ(ierr);
-      ierr = VecAXPY(&alpha,diagb,diag);CHKERRQ(ierr);
+      ierr = VecAXPY(diag,-ctx->sigma,diagb);CHKERRQ(ierr);
       ierr = VecDestroy(diagb);CHKERRQ(ierr);
-    }
-    else {
-      ierr = VecShift(&alpha,diag);CHKERRQ(ierr);
+    } else {
+      ierr = VecShift(diag,-ctx->sigma);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

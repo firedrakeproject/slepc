@@ -62,8 +62,8 @@
 !     Compute the operator matrix that defines the eigensystem, Ax=kx
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call MatCreate(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,A,
-     &               ierr)
+      call MatCreate(PETSC_COMM_WORLD,A,ierr)
+      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
       call MatSetFromOptions(A,ierr)
 
       call MatGetOwnershipRange(A,Istart,Iend,ierr)

@@ -163,16 +163,15 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 {
   PetscErrorCode ierr;
   int            i;
-  PetscScalar    zero = 0.0,minus = -1.0;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    t;
 #endif
 
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
-    ierr = VecSet(&zero,eps->work[0]);CHKERRQ(ierr);
-    ierr = VecMAXPY(m,T+ldt*i,eps->work[0],V);CHKERRQ(ierr);
-    ierr = VecWAXPY(&minus,eps->work[0],AV[i],eps->work[1]);CHKERRQ(ierr);
+    ierr = VecSet(eps->work[0],0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(eps->work[0],m,T+ldt*i,V);CHKERRQ(ierr);
+    ierr = VecWAXPY(eps->work[1],-1.0,eps->work[0],AV[i]);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     ierr = VecDot(eps->work[1],eps->work[1],rsd+i);CHKERRQ(ierr);
 #else
@@ -205,7 +204,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   PetscErrorCode ierr;
   int            i,j,ilo,lwork,info,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
-  PetscScalar    *T=eps->T,*U,*tau,*work,t;
+  PetscScalar    *T=eps->T,*U,*tau,*work;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond;
   PetscTruth     breakdown;
   /* Parameters */
@@ -347,8 +346,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
         for (i=eps->nconv;i<ncv;i++) {
           ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
           ierr = VecNorm(eps->V[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
-          t = 1 / norm;
-          ierr = VecScale(&t,eps->V[i]);CHKERRQ(ierr);
+          ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
         }
       
         eps->its++;
@@ -360,8 +358,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
           ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
           ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         }
-        t = 1 / norm;
-        ierr = VecScale(&t,eps->V[i]);CHKERRQ(ierr);
+        ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
       }
       nxtort = PetscMin(eps->its+idort,nxtsrr);
     } while (eps->its<nxtsrr);

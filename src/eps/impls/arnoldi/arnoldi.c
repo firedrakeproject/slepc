@@ -76,7 +76,6 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   PetscErrorCode ierr;
   int            j;
   PetscReal      norm;
-  PetscScalar    t;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
@@ -89,10 +88,8 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
     if (breakdown) {
       PetscLogInfo((eps,"Breakdown in Arnoldi method (norm=%g)\n",norm));
       ierr = EPSGetStartVector(eps,j,V[j+1]);CHKERRQ(ierr);
-    }
-    else {
-      t = 1 / norm;
-      ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+    } else {
+      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
     }
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);

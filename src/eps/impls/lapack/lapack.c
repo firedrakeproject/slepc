@@ -40,7 +40,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     } else la->B = PETSC_NULL;
     ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
     if (shift != 0.0) {
-      ierr = MatShift(&shift,la->A);CHKERRQ(ierr);
+      ierr = MatShift(la->A,shift);CHKERRQ(ierr);
     }
   } else {
     PetscLogInfo((eps,"EPSSetup_LAPACK: Using slow explicit operator\n"));

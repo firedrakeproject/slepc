@@ -75,7 +75,6 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
   PetscErrorCode ierr;
   int            M,N,m,n;
   Vec            x,w1,w2;
-  PetscScalar    alpha;
   MPI_Comm       comm;
   PetscReal      norm;
   PetscTruth     has;
@@ -108,8 +107,7 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
   ierr = MatMult(A,x,w1);CHKERRQ(ierr);
   ierr = MatMultTranspose(A,x,w2);CHKERRQ(ierr);
   ierr = VecConjugate(w2);CHKERRQ(ierr);
-  alpha = -1.0;
-  ierr = VecAXPY(&alpha,w1,w2);CHKERRQ(ierr);
+  ierr = VecAXPY(w2,-1.0,w1);CHKERRQ(ierr);
   ierr = VecNorm(w2,NORM_2,&norm);CHKERRQ(ierr);
   if (norm<1.0e-6) *is = PETSC_TRUE;
   ierr = VecDestroy(x);CHKERRQ(ierr);

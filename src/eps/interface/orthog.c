@@ -43,7 +43,6 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
 {
   PetscErrorCode ierr;
   int            k;
-  PetscScalar    alpha;
   PetscReal      norm;
   PetscTruth     lindep;
   
@@ -61,8 +60,7 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
       ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
       ierr = STNorm(eps->OP,V[k],&norm);CHKERRQ(ierr);
     }
-    alpha = 1.0/norm;
-    ierr = VecScale(&alpha,V[k]);CHKERRQ(ierr);
+    ierr = VecScale(V[k],1.0/norm);CHKERRQ(ierr);
     if (R) R[k+ldr*k] = norm;
 
   }
@@ -79,8 +77,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
 {
   PetscErrorCode ierr;
   int            j;
-  PetscScalar    shh[100],*lhh,
-                 zero = 0.0,minus = -1.0;
+  PetscScalar    shh[100],*lhh;
   Vec            w;
 
   PetscFunctionBegin;
@@ -97,9 +94,9 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   /* h = W^* v */
   /* q = v - V h */
   ierr = STMInnerProduct(eps->OP,n,v,W,H);CHKERRQ(ierr);
-  ierr = VecSet(&zero,w);CHKERRQ(ierr);
-  ierr = VecMAXPY(n,H,w,V);CHKERRQ(ierr);
-  ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);
+  ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
   
   /* compute hnorm */
   if (hnorm) {
@@ -130,9 +127,9 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
     for (j=0;j<n;j++) {
       H[j] += lhh[j];
     }
-    ierr = VecSet(&zero,w);CHKERRQ(ierr);
-    ierr = VecMAXPY(n,lhh,w,V);CHKERRQ(ierr);
-    ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,n,lhh,V);CHKERRQ(ierr);
+    ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
 
     if (hnorm) *hnorm = *norm;
   }
@@ -168,8 +165,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
     /* store coefficients if requested */
     H[j] = alpha;
     /* v <- v - alpha v_j */
-    alpha = -alpha;
-    ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
+    ierr = VecAXPY(v,-alpha,V[j]);CHKERRQ(ierr);
   }
   
   /* compute hnorm */
@@ -200,8 +196,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
       /* store coefficients if requested */
       H[j] += alpha;
       /* v <- v - alpha v_j */
-      alpha = -alpha;
-      ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
+      ierr = VecAXPY(v,-alpha,V[j]);CHKERRQ(ierr);
     }
     if (hnorm) *hnorm = *norm;
   }

@@ -86,7 +86,7 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift
   Vec            e, z;
   Mat            A;
   PetscReal      norm, rt1, rt2, cs1;
-  PetscScalar    alpha, alpha1, alpha2, beta1, sn1;
+  PetscScalar    alpha1, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
   e = eps->work[0];
@@ -103,8 +103,7 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift
     SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
     /* beta1 is the norm of the residual associated to R(v) */
-    alpha = -alpha1;
-    ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+    ierr = VecAXPY(e,-alpha1,v);CHKERRQ(ierr);
     ierr = STNorm(eps->OP,e,&norm);CHKERRQ(ierr);
     beta1 = norm;
     
@@ -137,7 +136,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   Vec            v, y, e, *SV;
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1, anorm;
-  PetscScalar    theta, alpha, rho, delta, sigma, alpha2, beta1, sn1;
+  PetscScalar    theta, rho, delta, sigma, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -177,8 +176,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
       /* compute relative error as ||y-theta v||_2/|theta| */
       ierr = VecCopy(y,e);CHKERRQ(ierr);
-      alpha = -theta;
-      ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+      ierr = VecAXPY(e,-theta,v);CHKERRQ(ierr);
       ierr = VecNorm(e,NORM_2,&norm);CHKERRQ(ierr);
       relerr = norm / PetscAbsScalar(theta);
 
@@ -203,10 +201,8 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
           SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
           /* beta1 is the norm of the residual associated to R(v) */
-          alpha = -theta/(delta*delta);
-          ierr = VecAXPY(&alpha,y,v);CHKERRQ(ierr);
-          alpha = 1.0/delta;
-          ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+          ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
+          ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
           ierr = STNorm(eps->OP,v,&norm);CHKERRQ(ierr);
           beta1 = norm;
     
@@ -245,8 +241,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
     /* v = y/||y||_B */
     ierr = VecCopy(y,v);CHKERRQ(ierr);
-    alpha = 1.0/norm;
-    ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+    ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
 
     /* if relerr<tol, accept eigenpair */
     if (relerr<eps->tol) {
@@ -316,14 +311,12 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 
       /* compute relative errors (right and left) */
       ierr = VecCopy(y,e);CHKERRQ(ierr);
-      alpha = -theta;
-      ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+      ierr = VecAXPY(e,-theta,v);CHKERRQ(ierr);
       ierr = VecNorm(e,NORM_2,&norm);CHKERRQ(ierr);
       relerr = norm / PetscAbsScalar(theta);
       eps->errest[eps->nconv] = relerr;
       ierr = VecCopy(z,e);CHKERRQ(ierr);
-      alpha = -theta;
-      ierr = VecAXPY(&alpha,w,e);CHKERRQ(ierr);
+      ierr = VecAXPY(e,-theta,w);CHKERRQ(ierr);
       ierr = VecNorm(e,NORM_2,&norm);CHKERRQ(ierr);
       relerr = norm / PetscAbsScalar(theta);
       eps->errest_left[eps->nconv] = relerr;
@@ -353,10 +346,8 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
           SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
           /* beta1 is the norm of the residual associated to R(v,w) */
-          alpha = -theta/(delta*delta);
-          ierr = VecAXPY(&alpha,y,v);CHKERRQ(ierr);
-          alpha = 1.0/delta;
-          ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+          ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
+          ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
           ierr = STNorm(eps->OP,v,&norm);CHKERRQ(ierr);
           beta1 = norm;
     
@@ -392,13 +383,12 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
     if (alpha>0.0) {
       alpha = 1.0/PetscSqrtScalar(alpha);
-      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-      ierr = VecScale(&alpha,w);CHKERRQ(ierr);
+      ierr = VecScale(v,alpha);CHKERRQ(ierr);
+      ierr = VecScale(w,alpha);CHKERRQ(ierr);
     } else {
       alpha = 1.0/PetscSqrtScalar(-alpha);
-      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-      alpha = -alpha;
-      ierr = VecScale(&alpha,w);CHKERRQ(ierr);
+      ierr = VecScale(v,alpha);CHKERRQ(ierr);
+      ierr = VecScale(w,-alpha);CHKERRQ(ierr);
     }
 
     /* if relerr<tol (both right and left), accept eigenpair */
@@ -459,13 +449,12 @@ PetscErrorCode EPSSolve_TS_POWER_OLD(EPS eps)
     if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
     if (alpha>0.0) {
       alpha = 1.0/PetscSqrtScalar(alpha);
-      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-      ierr = VecScale(&alpha,w);CHKERRQ(ierr);
+      ierr = VecScale(v,alpha);CHKERRQ(ierr);
+      ierr = VecScale(w,alpha);CHKERRQ(ierr);
     } else {
       alpha = 1.0/PetscSqrtScalar(-alpha);
-      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-      alpha = -alpha;
-      ierr = VecScale(&alpha,w);CHKERRQ(ierr);
+      ierr = VecScale(v,alpha);CHKERRQ(ierr);
+      ierr = VecScale(w,-alpha);CHKERRQ(ierr);
     }
 
     /* y = OP v */
@@ -477,14 +466,12 @@ PetscErrorCode EPSSolve_TS_POWER_OLD(EPS eps)
 
     /* compute residual norm */
     ierr = VecCopy(y,e);CHKERRQ(ierr);
-    alpha = -theta;
-    ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+    ierr = VecAXPY(e,-theta,v);CHKERRQ(ierr);
     ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
     relerr = relerr / PetscAbsScalar(theta);
     eps->errest[eps->nconv] = relerr;
     ierr = VecCopy(z,e);CHKERRQ(ierr);
-    alpha = -theta;
-    ierr = VecAXPY(&alpha,w,e);CHKERRQ(ierr);
+    ierr = VecAXPY(e,-theta,w);CHKERRQ(ierr);
     ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
     relerr = relerr / PetscAbsScalar(theta);
     eps->errest_left[eps->nconv] = relerr;

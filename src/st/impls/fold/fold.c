@@ -14,36 +14,30 @@ typedef struct {
 PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  PetscScalar    alpha;
   ST_FOLD        *ctx = (ST_FOLD *) st->data;
 
   PetscFunctionBegin;
   if (st->B) {
     /* generalized eigenproblem: y = (B^-1 A + sI)^2 x */
+    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolve(st,st->w,ctx->w2);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
-      alpha = - st->sigma;
-      ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
-      ierr = STAssociatedKSPSolve(st,st->w,ctx->w2);CHKERRQ(ierr);
-      ierr = VecAXPY(&alpha,x,ctx->w2);CHKERRQ(ierr);
-      ierr = MatMult(st->A,ctx->w2,st->w);CHKERRQ(ierr);
-      ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
-      ierr = VecAXPY(&alpha,ctx->w2,y);CHKERRQ(ierr);
-    } else {
-      ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
-      ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
-      ierr = MatMult(st->A,y,st->w);CHKERRQ(ierr);
-      ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
+      ierr = VecAXPY(ctx->w2,-st->sigma,x);CHKERRQ(ierr);
+    }
+    ierr = MatMult(st->A,ctx->w2,st->w);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
+    if (st->sigma != 0.0) {
+      ierr = VecAXPY(y,-st->sigma,ctx->w2);CHKERRQ(ierr);
     }
   } else {
     /* standard eigenproblem: y = (A + sI)^2 x */
     ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
-    alpha = - st->sigma;
     if (st->sigma != 0.0) {
-      ierr = VecAXPY(&alpha,x,st->w);CHKERRQ(ierr);
+      ierr = VecAXPY(st->w,-st->sigma,x);CHKERRQ(ierr);
     }
     ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
-      ierr = VecAXPY(&alpha,st->w,y);CHKERRQ(ierr);
+      ierr = VecAXPY(y,-st->sigma,st->w);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -54,36 +48,30 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  PetscScalar    alpha;
   ST_FOLD        *ctx = (ST_FOLD *) st->data;
 
   PetscFunctionBegin;
   if (st->B) {
     /* generalized eigenproblem: y = (A^T B^-T + sI)^2 x */
+    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A,st->w,ctx->w2);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
-      alpha = - st->sigma;
-      ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-      ierr = MatMult(st->A,st->w,ctx->w2);CHKERRQ(ierr);
-      ierr = VecAXPY(&alpha,x,ctx->w2);CHKERRQ(ierr);
-      ierr = STAssociatedKSPSolveTranspose(st,ctx->w2,st->w);CHKERRQ(ierr);
-      ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
-      ierr = VecAXPY(&alpha,ctx->w2,y);CHKERRQ(ierr);
-    } else {
-      ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-      ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
-      ierr = STAssociatedKSPSolveTranspose(st,y,st->w);CHKERRQ(ierr);
-      ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+      ierr = VecAXPY(ctx->w2,-st->sigma,x);CHKERRQ(ierr);
+    }
+    ierr = STAssociatedKSPSolveTranspose(st,ctx->w2,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+    if (st->sigma != 0.0) {
+      ierr = VecAXPY(y,-st->sigma,ctx->w2);CHKERRQ(ierr);
     }
   } else {
     /* standard eigenproblem: y = (A^T + sI)^2 x */
     ierr = MatMultTranspose(st->A,x,st->w);CHKERRQ(ierr);
-    alpha = - st->sigma;
     if (st->sigma != 0.0) {
-      ierr = VecAXPY(&alpha,x,st->w);CHKERRQ(ierr);
+      ierr = VecAXPY(st->w,-st->sigma,x);CHKERRQ(ierr);
     }
     ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
-      ierr = VecAXPY(&alpha,st->w,y);CHKERRQ(ierr);
+      ierr = VecAXPY(y,-st->sigma,st->w);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

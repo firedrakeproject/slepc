@@ -81,7 +81,8 @@ int main( int argc, char **argv )
   /* 
      Create matrix T
   */
-  ierr = MatCreate(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,&ctx->T);CHKERRQ(ierr);
+  ierr = MatCreate(PETSC_COMM_WORLD,&ctx->T);CHKERRQ(ierr);
+  ierr = MatSetSizes(ctx->T,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(ctx->T);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(ctx->T,&Istart,&Iend);CHKERRQ(ierr);
@@ -240,7 +241,7 @@ int main( int argc, char **argv )
 int MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
   int         n, ierr;
-  PetscScalar alpha, *px, *py;
+  PetscScalar *px, *py;
   MPI_Comm    comm;
   CTX_BRUSSEL *ctx;
 
@@ -255,18 +256,14 @@ int MatBrussel_Mult(Mat A,Vec x,Vec y)
   ierr = VecPlaceArray(ctx->y2,py+n);CHKERRQ(ierr);
 
   ierr = MatMult(ctx->T,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(&ctx->tau1,ctx->y1);CHKERRQ(ierr);
-  alpha = ctx->beta - 1.0 + ctx->sigma;
-  ierr = VecAXPY(&alpha,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  alpha = ctx->alpha * ctx->alpha;
-  ierr = VecAXPY(&alpha,ctx->x2,ctx->y1);CHKERRQ(ierr);
+  ierr = VecScale(ctx->y1,ctx->tau1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y1,ctx->beta - 1.0 + ctx->sigma,ctx->x1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y1,ctx->alpha * ctx->alpha,ctx->x2);CHKERRQ(ierr);
 
   ierr = MatMult(ctx->T,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(&ctx->tau2,ctx->y2);CHKERRQ(ierr);
-  alpha = -ctx->beta;
-  ierr = VecAXPY(&alpha,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  alpha = -ctx->alpha * ctx->alpha + ctx->sigma;
-  ierr = VecAXPY(&alpha,ctx->x2,ctx->y2);CHKERRQ(ierr);
+  ierr = VecScale(ctx->y2,ctx->tau2);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y2,-ctx->beta,ctx->x1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y2,-ctx->alpha * ctx->alpha + ctx->sigma,ctx->x2);CHKERRQ(ierr);
 
   ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
@@ -292,7 +289,7 @@ int MatBrussel_GetDiagonal(Mat A,Vec diag)
 {
   Vec         d1, d2;
   int         n, ierr;
-  PetscScalar alpha, *pd;
+  PetscScalar *pd;
   MPI_Comm    comm;
   CTX_BRUSSEL *ctx;
 
@@ -303,10 +300,8 @@ int MatBrussel_GetDiagonal(Mat A,Vec diag)
   ierr = VecCreateMPIWithArray(comm,n,PETSC_DECIDE,pd,&d1);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(comm,n,PETSC_DECIDE,pd+n,&d2);CHKERRQ(ierr);
 
-  alpha = -2.0*ctx->tau1 + ctx->beta - 1.0 + ctx->sigma;
-  ierr = VecSet(&alpha,d1);CHKERRQ(ierr);
-  alpha = -2.0*ctx->tau2 - ctx->alpha*ctx->alpha + ctx->sigma;
-  ierr = VecSet(&alpha,d2);CHKERRQ(ierr);
+  ierr = VecSet(d1,-2.0*ctx->tau1 + ctx->beta - 1.0 + ctx->sigma);CHKERRQ(ierr);
+  ierr = VecSet(d2,-2.0*ctx->tau2 - ctx->alpha*ctx->alpha + ctx->sigma);CHKERRQ(ierr);
 
   ierr = VecDestroy(d1);CHKERRQ(ierr);
   ierr = VecDestroy(d2);CHKERRQ(ierr);

@@ -21,7 +21,7 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
   }
   if (st->sigma != 0.0) {
-    ierr = VecAXPY(&st->sigma,x,y);CHKERRQ(ierr);
+    ierr = VecAXPY(y,st->sigma,x);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -43,7 +43,7 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
     ierr = MatMultTranspose(st->A,x,y);CHKERRQ(ierr);
   }
   if (st->sigma != 0.0) {
-    ierr = VecAXPY(&st->sigma,x,y);CHKERRQ(ierr);
+    ierr = VecAXPY(y,st->sigma,x);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

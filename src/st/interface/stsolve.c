@@ -196,7 +196,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscErrorCode ierr;
   Vec            in,out;
   int            i,M,m,*rows,start,end;
-  PetscScalar    *array,zero = 0.0,one = 1.0;
+  PetscScalar    *array,one = 1.0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -212,7 +212,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   ierr = MatCreateMPIDense(st->comm,m,m,M,M,PETSC_NULL,mat);CHKERRQ(ierr);
 
   for (i=0; i<M; i++) {
-    ierr = VecSet(&zero,in);CHKERRQ(ierr);
+    ierr = VecSet(in,0.0);CHKERRQ(ierr);
     ierr = VecSetValues(in,1,&i,&one,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecAssemblyBegin(in);CHKERRQ(ierr);
     ierr = VecAssemblyEnd(in);CHKERRQ(ierr);

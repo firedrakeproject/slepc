@@ -19,7 +19,7 @@ int main( int argc, char **argv )
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
   int         N, n=10, m, nev, ierr, maxit, i, j, I, J, its, nconv, Istart, Iend;
-  PetscScalar v, w, one = 1.0;
+  PetscScalar v, w;
   PetscTruth  flag;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -36,7 +36,8 @@ int main( int argc, char **argv )
      Lii = degree of node i, Lij = -1 if edge (i,j) exists in G
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,&A);CHKERRQ(ierr);
+  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
+  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
@@ -86,7 +87,7 @@ int main( int argc, char **argv )
      nullspace, [1 1 ... 1]^T is the eigenvector of the zero eigenvalue
   */
   ierr = MatGetVecs(A,&x,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecSet(&one,x);CHKERRQ(ierr);
+  ierr = VecSet(x,1.0);CHKERRQ(ierr);
   ierr = EPSAttachDeflationSpace(eps,1,&x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = VecDestroy(x);
 

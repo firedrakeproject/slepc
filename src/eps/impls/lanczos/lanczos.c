@@ -89,7 +89,6 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,
   PetscErrorCode ierr;
   int            j,m = *M;
   PetscReal      norm;
-  PetscScalar    t;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
@@ -105,8 +104,7 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,
       ierr = EPSGetStartVector(eps,j+1,V[j+1]);CHKERRQ(ierr);
     } else {
       T[m*j+j+1] = norm;
-      t = 1 / norm;
-      ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
     }
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
@@ -131,7 +129,6 @@ static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M
   PetscErrorCode ierr;
   int            j,m = *M;
   PetscReal      norm;
-  PetscScalar    t;
   PetscTruth     breakdown = PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -150,8 +147,7 @@ static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M
       PetscLogInfo((eps,"Breakdown in Lanczos method (norm=%g)\n",norm));
       ierr = EPSGetStartVector(eps,j+1,V[j+1]);CHKERRQ(ierr);
     } else {
-      t = 1 / norm;
-      ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
     }
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
@@ -196,7 +192,6 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
   PetscErrorCode ierr;
   int            i,j,n,m = *M,info;
   PetscReal      *omega,*oldomega,*a,*b,delta,eps1,*Y,*work;
-  PetscScalar    t;
   PetscTruth     breakdown = PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -259,9 +254,8 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
       }
     }
     }
-    t = 1 / *beta;
     ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
-    ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+    ierr = VecScale(V[j+1],1 / *beta);CHKERRQ(ierr);
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   eps->its++;
@@ -280,7 +274,7 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
   PetscErrorCode ierr;
   int            i,j,l,n,m = *M;
   PetscReal      norm,*omega,*oldomega,*a,*b,delta,eps1;
-  PetscScalar    *H,t;
+  PetscScalar    *H;
   PetscTruth     breakdown,reorthog;
 
   PetscFunctionBegin;
@@ -326,8 +320,7 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
       ierr = STNorm(eps->OP,V[j+1],&norm);CHKERRQ(ierr);
     } else {
       T[m*j+j+1] = norm;
-      t = 1 / norm;
-      ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
     }
   }
   
@@ -442,7 +435,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   int            nconv,i,j,n,m,info,N,*perm,
                  ncv=eps->ncv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *T=eps->T,*Y,*W,ts;
+  PetscScalar    *T=eps->T,*Y,*W;
   PetscReal      *ritz,*bnd,*E,*work,norm,anorm,beta;
 
   PetscFunctionBegin;
@@ -564,8 +557,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       ierr = STNorm(eps->OP,eps->V[nconv],&norm);CHKERRQ(ierr);
       eps->errest[nconv] = eps->errest[nconv] / norm;
       if (eps->errest[nconv]<eps->tol) {
-        ts = 1 / norm;
-        ierr = VecScale(&ts,eps->V[nconv]);CHKERRQ(ierr);
+        ierr = VecScale(eps->V[nconv],1/norm);CHKERRQ(ierr);
         nconv++;
       }
     }

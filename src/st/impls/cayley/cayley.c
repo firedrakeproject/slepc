@@ -24,13 +24,13 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
     /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
     ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
     ierr = MatMult(st->B,x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,ctx->w2,st->w);CHKERRQ(ierr);    
+    ierr = VecAXPY(st->w,tau,ctx->w2);CHKERRQ(ierr);    
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
     ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,x,st->w);CHKERRQ(ierr);
+    ierr = VecAXPY(st->w,tau,x);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -52,13 +52,13 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
     ierr = STAssociatedKSPSolve(st,x,st->w);CHKERRQ(ierr);
     ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
     ierr = MatMult(st->B,st->w,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,ctx->w2,y);CHKERRQ(ierr);    
+    ierr = VecAXPY(y,tau,ctx->w2);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
     ierr = STAssociatedKSPSolve(st,x,st->w);CHKERRQ(ierr);
     ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,st->w,y);CHKERRQ(ierr);
+    ierr = VecAXPY(y,tau,st->w);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -89,12 +89,12 @@ PetscErrorCode STApplyB_Cayley(ST st,Vec x,Vec y)
     /* generalized eigenproblem: y = (A + tB)x */
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
     ierr = MatMult(st->B,x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,ctx->w2,y);CHKERRQ(ierr);    
+    ierr = VecAXPY(y,tau,ctx->w2);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y = (A + tI)x */
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,x,y);CHKERRQ(ierr);
+    ierr = VecAXPY(y,tau,x);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -132,13 +132,14 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscScalar *eigr,PetscScalar *eigi)
 PetscErrorCode STPost_Cayley(ST st)
 {
   PetscErrorCode ierr;
-  PetscScalar    alpha;
 
   PetscFunctionBegin;
   if (st->shift_matrix == STMATMODE_INPLACE) {
-    alpha = st->sigma;
-    if( st->B ) { ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); }
-    else { ierr = MatShift(&alpha, st->A); CHKERRQ(ierr); }
+    if (st->B) {
+      ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
+    } else { 
+      ierr = MatShift(st->A,st->sigma); CHKERRQ(ierr); 
+    }
     st->setupcalled = 0;
   }
   PetscFunctionReturn(0);
@@ -150,7 +151,6 @@ PetscErrorCode STSetUp_Cayley(ST st)
 {
   PetscErrorCode ierr;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
-  PetscScalar    alpha;
 
   PetscFunctionBegin;
 
@@ -164,11 +164,10 @@ PetscErrorCode STSetUp_Cayley(ST st)
   case STMATMODE_INPLACE:
     st->mat = PETSC_NULL;
     if (st->sigma != 0.0) {
-      alpha = -st->sigma;
       if (st->B) { 
-        ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); 
+        ierr = MatAXPY(st->A,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
       } else { 
-        ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); 
+        ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
       }
     }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
@@ -182,11 +181,10 @@ PetscErrorCode STSetUp_Cayley(ST st)
   default:
     ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
-      alpha = -st->sigma;
       if (st->B) { 
-        ierr = MatAXPY(&alpha,st->B,st->mat,st->str);CHKERRQ(ierr); 
+        ierr = MatAXPY(st->mat,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
       } else { 
-        ierr = MatShift(&alpha,st->mat);CHKERRQ(ierr); 
+        ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
       }
     }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
@@ -206,7 +204,6 @@ PetscErrorCode STSetUp_Cayley(ST st)
 PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
-  PetscScalar    alpha;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
 
   PetscFunctionBegin;
@@ -218,15 +215,19 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   case STMATMODE_INPLACE:
     /* Undo previous operations */
     if (st->sigma != 0.0) {
-      alpha = st->sigma;
-      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+      if (st->B) { 
+        ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);
+      }
     }
     /* Apply new shift */
     if (newshift != 0.0) {
-      alpha = -newshift;
-      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+      if (st->B) { 
+        ierr = MatAXPY(st->A,-newshift,st->B,st->str);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(st->A,-newshift);CHKERRQ(ierr);
+      }
     }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
@@ -236,9 +237,8 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   default:
     ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN); CHKERRQ(ierr);
     if (newshift != 0.0) {   
-      alpha = -newshift;
-      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->mat,st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(&alpha,st->mat);CHKERRQ(ierr); }
+      if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
+      else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
     }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
      * improve performance when solving a number of related eigenproblems */
