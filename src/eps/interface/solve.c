@@ -794,7 +794,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeResidualNormLeft"
 /*@
-   EPSComputeResidualNorm - Computes the norm of the residual vector associated with 
+   EPSComputeResidualNormLeft - Computes the norm of the residual vector associated with 
    the i-th computed left eigenvector (only available in two-sided eigensolvers).
 
    Collective on EPS

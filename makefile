@@ -203,43 +203,31 @@ slepc_allmanualpages: chk_loc slepc_deletemanualpages chk_concepts_dir
 	cp ${LOC}/docs/manual.htm ${LOC}/docs/index.html
 
 # Builds Fortran stub files
-slepc_allfortranstubs:
-#	-@${RM} -f src/fortran/auto/*.c
-#	-${OMAKE} ACTION=slepc_fortranstubs tree
-#	-@cd src/fortran/auto; ${OMAKE} -f makefile slepc_fixfortran
-	-@which ${BFORT} > /dev/null 2>&1;  \
-        if [ "$$?" != "0" ]; then \
-          echo "No bfort available, skipping building Fortran stubs";\
-        else \
-          ${RM} -f ${SLEPC_DIR}/src/fortran/auto/*.c ;\
-	  touch ${SLEPC_DIR}/src/fortran/auto/makefile.src ;\
-	  ${OMAKE} ACTION=slepc_fortranstubs tree_basic ;\
-	  cd ${SLEPC_DIR}/src/fortran/auto; ${RM} makefile.src; echo SOURCEC = ` ls *.c | tr -s '\n' ' '` > makefile.src ;\
-	  cd ${SLEPC_DIR}/src/fortran/auto; ${OMAKE} fixfortran ;\
-        fi
+allfortranstubs:
+	-@${PETSC_DIR}/maint/generatefortranstubs.py ${BFORT}
 
 # -------------------------------------------------------------------------------
 #
 # Some macros to check if the fortran interface is up-to-date.
 #
-slepc_countfortranfunctions: 
+countfortranfunctions: 
 	-@cd ${SLEPC_DIR}/src/fortran; egrep '^void' custom/*.c auto/*.c | \
-	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f2 | uniq | egrep -v "(^$$|Tao)" | \
+	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f2 | uniq | egrep -v "(^$$|Petsc)" | \
 	sed "s/_$$//" | sort > /tmp/countfortranfunctions
 
-slepc_countcfunctions:
-	-@ grep -s extern ${SLEPC_DIR}/include/*.h *.h | grep "(" | tr -s ' ' | \
+countcfunctions:
+	-@ grep extern ${SLEPC_DIR}/include/*.h *.h | grep "(" | tr -s ' ' | \
 	cut -d'(' -f1 | cut -d' ' -f3 | grep -v "\*" | tr -s '\012' |  \
 	tr 'A-Z' 'a-z' |  sort > /tmp/countcfunctions
 
-slepc_difffortranfunctions: slepc_countfortranfunctions slepc_countcfunctions
-	-@echo -------------- Functions missing in the Fortran interface ---------------------
-	-@diff /tmp/countcfunctions /tmp/countfortranfunctions | grep "^<" | cut -d' ' -f2
+difffortranfunctions: countfortranfunctions countcfunctions
+	-@echo -------------- Functions missing in the fortran interface ---------------------
+	-@${DIFF} /tmp/countcfunctions /tmp/countfortranfunctions | grep "^<" | cut -d' ' -f2
 	-@echo ----------------- Functions missing in the C interface ------------------------
-	-@diff /tmp/countcfunctions /tmp/countfortranfunctions | grep "^>" | cut -d' ' -f2
+	-@${DIFF} /tmp/countcfunctions /tmp/countfortranfunctions | grep "^>" | cut -d' ' -f2
 	-@${RM}  /tmp/countcfunctions /tmp/countfortranfunctions
 
-slepc_checkbadfortranstubs:
+checkbadfortranstubs:
 	-@echo "========================================="
 	-@echo "Functions with MPI_Comm as an Argument"
 	-@echo "========================================="
@@ -251,7 +239,7 @@ slepc_checkbadfortranstubs:
 	-@cd ${SLEPC_DIR}/src/fortran/auto; grep '^void' *.c | grep 'char \*' | \
 	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3
 	-@echo "========================================="
-	-@echo "Functions with Pointers to SLEPc Objects as Argument"
+	-@echo "Functions with Pointers to PETSc Objects as Argument"
 	-@echo "========================================="
 	-@cd ${SLEPC_DIR}/src/fortran/auto; \
 	_p_OBJ=`grep _p_ ${SLEPC_DIR}/include/*.h | tr -s ' ' | \
