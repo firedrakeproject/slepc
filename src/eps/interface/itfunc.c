@@ -427,7 +427,7 @@ int EPSSetDimensions(EPS eps,int nev,int ncv)
 .  eps - the eigensolver context
   
    Output Parameter:
-.  nconv - number of converged real eigenvalues 
+.  nconv - number of converged eigenvalues 
 
    Note:
    This function should be called after EPSSolve() has finished.
@@ -447,9 +447,9 @@ int EPSGetConverged(EPS eps,int *nconv)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetEigenpair" 
 /*@
-   EPSGetEigenpair - Gets the i-th solution of the
-   eigenproblem which has already been solved. The solution consists 
-   in both the eigenvalues and the eigenvectors (if available).
+   EPSGetEigenpair - Gets the i-th solution of the eigenproblem 
+   as computed by EPSSolve(). The solution consists in both the eigenvalue
+   and the eigenvector (if available).
 
    Not Collective
 
@@ -464,12 +464,18 @@ int EPSGetConverged(EPS eps,int *nconv)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
-   In the complex case (PETSC_USE_COMPLEX) the eigenvalue is stored in eigr
-   and eigi is set to zero. Also the eigenvector is stored in Vr and 
-   Vi is set to zero.
+   If the eigenvalue is real, then eigi and Vi are set to zero.  In the 
+   complex case (e.g. with BOPT=O_complex) the eigenvalue is stored 
+   directly in eigr (eigi is set to zero) and the eigenvector Vr (Vi is 
+   set to zero).
+
+   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   Eigenpairs are indexed according to the ordering criterion established 
+   with EPSSetWhichEigenpairs().
 
    Level: beginner
 
+.seealse: EPSSolve(), EPSGetConverged()
 @*/
 int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {

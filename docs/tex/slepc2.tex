@@ -4,7 +4,7 @@
 \chapter{\label{cap:eps}EPS: Eigenvalue Problem Solver}
 %-------------------------------------------------------
 
-\noindent The Eigenvalue Problem Solver (\ident{EPS}) is the main object provided by \slepc. It is used to specify an eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the eigensolvers included in the package. Conceptually, the level of abstraction occupied by \ident{EPS} is similar to other solvers in \petsc\ such as \ident{SLES} for solving linear systems of equations.
+\noindent The Eigenvalue Problem Solver (\ident{EPS}) is the main object provided by \slepc. It is used to specify an eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the eigensolvers included in the package. Conceptually, the level of abstraction occupied by \ident{EPS} is similar to other solvers in \petsc\ such as \ident{KSP} for solving linear systems of equations.
 	
 \section{General Description}
 
@@ -22,7 +22,7 @@ where $B\in\Co^{n\times n}$.
 %---------------------------------------------------
 \section{Basic Usage}
 
-	The \ident{EPS} module is used in a similar way as other \petsc\ modules such as \ident{SLES}. All the information related to an eigenvalue problem is handled via a context variable. The usual object management functions are available (\ident{EPSCreate}, \ident{EPSDestroy}, \ident{EPSView}, \ident{EPSSetFromOptions}). In addition, the \ident{EPS} object provides functions for setting several parameters such as the number of eigenvalues to compute, the dimension of the subspace, the requested tolerance and the maximum number of iterations allowed. The user can also specify other things such as the orthogonalization technique or the portion of the spectrum of interest.
+	The \ident{EPS} module is used in a similar way as other \petsc\ modules such as \ident{KSP}. All the information related to an eigenvalue problem is handled via a context variable. The usual object management functions are available (\ident{EPSCreate}, \ident{EPSDestroy}, \ident{EPSView}, \ident{EPSSetFromOptions}). In addition, the \ident{EPS} object provides functions for setting several parameters such as the number of eigenvalues to compute, the dimension of the subspace, the requested tolerance and the maximum number of iterations allowed. The user can also specify other things such as the orthogonalization technique or the portion of the spectrum of interest.
 
 	The solution of the problem is obtained in several steps. First of all, the matrices associated to the eigenproblem are specified via \ident{EPSSetOperators}. Then, a call to \ident{EPSSolve} is done which invokes the subroutine for the selected eigensolver. \ident{EPSGetConverged} can be used afterwards to determine how many of the requested eigenpairs have converged to working precision. \ident{EPSGetEigenpair} is finally used to retrieve the eigenvalues and eigenvectors. 
 
@@ -43,7 +43,7 @@ EPSSetFromOptions( eps );
 EPSSolve( eps );
 EPSGetIterationNumber( eps, &its );
 EPSGetConverged( eps, &nconv );
-EPSGetEigenpair( eps, 0, &kr, &ki, xr, xi );
+EPSGetEigenpair( eps, j, &kr, &ki, xr, xi );
 PetscMalloc( nconv*sizeof(PetscReal), &error );
 EPSComputeError( eps, error );
 EPSDestroy( eps );
@@ -87,19 +87,19 @@ EPSDestroy( eps );
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetConverged(EPS eps,int *nconv);
 	\end{Verbatim}
-	queries how many eigenpairs have converged to working precision. The solution of the eigenproblem is retrieved in line 14 with a call to the following function
+	queries how many eigenpairs have converged to working precision. The solution of the eigenproblem is retrieved in line 14 with one or serveral calls to the following function
 	\findex{EPSGetEigenpair}
 	\begin{Verbatim}[fontsize=\small]
-	EPSGetEigenpair(EPS eps,PetscScalar *kr,PetscScalar *ki,Vec xi, Vec xr);
+	EPSGetEigenpair(EPS eps,int j,PetscScalar *kr,PetscScalar *ki,Vec xi, Vec xr);
 	\end{Verbatim}
 	\label{GetEigenpair}
-	This function returns the solution of the problem. \texttt{kr} and \texttt{ki} receive the real and imaginary parts of the eigenvalues, while \texttt{xi} and \texttt{xr} receive the real and imaginary parts of the associated eigenvectors. Therefore, the $j$-th eigenvalue is \texttt{kr]}$+\,i\cdot$\texttt{ki} and the $j$-th eigenvector is stored in the \texttt{Vec} objects \texttt{xr} and \texttt{xi}. 
+	This function returns the $j$-th solution of the eigenproblem problem. \texttt{kr} and \texttt{ki} receive the real and imaginary parts of the eigenvalue, while \texttt{xi} and \texttt{xr} receive the real and imaginary parts of the associated eigenvector. Therefore, the $j$-th eigenvalue is \texttt{kr}$+\,i\cdot$\texttt{ki} and the $j$-th eigenvector is stored in the \texttt{Vec} objects \texttt{xr} and \texttt{xi}. 
 	[Note: see section \ref{sec:complex} for a detailed discussion of this issue.] 
 	
 	In line 16 of the example the relative residual error $\|Ax_j\!-\!\lambda_jBx_j\|/\|\lambda_jx_j\|$ associated to each eigenpair is computed with a call to
 	\findex{EPSComputeRelativeError}
 	\begin{Verbatim}[fontsize=\small]
-	EPSComputeRelativeError(EPS eps,int i, PetscReal *error);
+	EPSComputeRelativeError(EPS eps,int j,PetscReal *error);
 	\end{Verbatim}
 
 	Once the \ident{EPS} context is no longer needed, it should be destroyed with the command
@@ -109,7 +109,7 @@ EPSDestroy( eps );
 	\end{Verbatim}
 %	Note that this will also release the storage allocated for the solution (eigenvalues and eigenvectors).
 
-	The above procedure is sufficient for general use of the \ident{EPS} package. As in the case of the \ident{SLES} solver, the user can optionally explicitly call 
+	The above procedure is sufficient for general use of the \ident{EPS} package. As in the case of the \ident{KSP} solver, the user can optionally explicitly call 
 	\findex{EPSSetUp}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetUp(EPS eps);
