@@ -34,7 +34,13 @@ PetscErrorCode SlepcVecSetRandom(Vec x)
   ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
   ierr = VecGetArray(x,&px);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
+#if defined(PETSC_HAVE_DRAND48)
     t = erand48(seed);
+#elif defined(PETSC_HAVE_RAND)
+    t = rand()/(double)((unsigned int)RAND_MAX+1);
+#else
+    t = 0.5;
+#endif
     if (i>=low && i<high) px[i-low] = t;
   }
   ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
