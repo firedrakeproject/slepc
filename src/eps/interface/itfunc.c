@@ -34,6 +34,7 @@ int EPSSetUp(EPS eps)
   Vec         v0;
   Mat         A,B;
   PetscTruth  Ah,Bh;
+  PetscReal   norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -79,11 +80,14 @@ int EPSSetUp(EPS eps)
   for (i = 0; i < eps->nds; i++) eps->DSV[i] = eps->DS[i];
   for (i = 0; i < eps->ncv; i++) eps->DSV[i+eps->nds] = eps->V[i];
   
-  /* orthonormalize vectors in DS if necessary */
-  if (!eps->ds_ortho && eps->nds > 0) {
-    ierr = EPSQRDecomposition(eps,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
+  if (eps->nds>0) {
+    if (!eps->ds_ortho) {
+      /* orthonormalize vectors in DS if necessary */
+      ierr = EPSQRDecomposition(eps,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
+    }
+    ierr = (*eps->orthog)(eps,eps->nds,eps->DS,eps->vec_initial,PETSC_NULL,&norm);CHKERRQ(ierr); 
   }
-  
+
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);
     
