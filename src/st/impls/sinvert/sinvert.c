@@ -151,9 +151,10 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   case STMATMODE_SHELL:
+    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
     break;
   default:
-    ierr = MatCopy(st->A, st->mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+    ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN); CHKERRQ(ierr);
     if (newshift != 0.0) {   
       alpha = -newshift;
       if (st->B) { ierr = MatAXPY(&alpha,st->B,st->mat,st->str);CHKERRQ(ierr); }

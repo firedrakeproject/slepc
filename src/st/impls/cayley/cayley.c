@@ -1,5 +1,5 @@
 /*
-      Implements the shift-and-invert technique for eigenvalue problems.
+      Implements the Cayley spectral transform.
 */
 #include "src/st/stimpl.h"          /*I "slepcst.h" I*/
 
@@ -16,9 +16,9 @@ static int STApply_Cayley(ST st,Vec x,Vec y)
   ST_CAYLEY   *ctx = (ST_CAYLEY *) st->data;
   PetscScalar tau = ctx->tau;
   
+  PetscFunctionBegin;
   if (st->shift_matrix == STMATMODE_INPLACE) { tau = tau + st->sigma; };
 
-  PetscFunctionBegin;
   if (st->B) {
     /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
     ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
@@ -54,19 +54,19 @@ static int STApplyB_Cayley(ST st,Vec x,Vec y)
   ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
   PetscScalar tau = ctx->tau;
   
+  PetscFunctionBegin;
   if (st->shift_matrix == STMATMODE_INPLACE) { tau = tau + st->sigma; };
 
-  PetscFunctionBegin;
   if (st->B) {
     /* generalized eigenproblem: y = (A + tB)x */
-    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
     ierr = MatMult(st->B,x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,ctx->w2,st->w);CHKERRQ(ierr);    
+    ierr = VecAXPY(&tau,ctx->w2,y);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y = (A + tI)x */
-    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
-    ierr = VecAXPY(&tau,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
+    ierr = VecAXPY(&tau,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -81,7 +81,7 @@ int STBackTransform_Cayley(ST st,PetscScalar *eigr,PetscScalar *eigi)
   PetscFunctionBegin;
   PetscValidPointer(eigr,2);
   PetscValidPointer(eigi,3);
-  if (*eigi == 0) *eigr = (ctx->tau + *eigr * st->sigma) / (*eigr - 1.0);
+  if (*eigi == 0.0) *eigr = (ctx->tau + *eigr * st->sigma) / (*eigr - 1.0);
   else {
     r = *eigr;
     i = *eigi;
@@ -210,9 +210,10 @@ static int STSetShift_Cayley(ST st,PetscScalar newshift)
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   case STMATMODE_SHELL:
+    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
     break;
   default:
-    ierr = MatCopy(st->A, st->mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+    ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN); CHKERRQ(ierr);
     if (newshift != 0.0) {   
       alpha = -newshift;
       if (st->B) { ierr = MatAXPY(&alpha,st->B,st->mat,st->str);CHKERRQ(ierr); }

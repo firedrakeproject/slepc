@@ -207,9 +207,10 @@ int STSetFromOptions(ST st)
          SUBSET_NONZERO_PATTERN
 
    Options Database Key:
-+  -st_sinvert_same_pattern - Indicates A and B have the same nonzero pattern
-.  -st_sinvert_different_pattern - Indicates A and B have different nonzero pattern
--  -st_sinvert_subset_pattern - Indicates B's nonzero pattern is a subset of B's
+.  -st_matstructure <str> - Indicates the structure flag, where <str> is one
+         of 'same' (A and B have the same nonzero pattern), 'different' (A 
+	 and B have different nonzero pattern) or 'subset' (B's nonzero 
+	 pattern is a subset of A's).
 
    Note:
    By default, the sparsity patterns are assumed to be different. If the
@@ -242,9 +243,10 @@ int STSetMatStructure(ST st,MatStructure str)
           STMATMODE_INPLACE or STMATMODE_SHELL
 
    Options Database Key:
-.  -st_sinvert_matmode <mode> - Activates STSinvertSetMatMode()
+.  -st_matmode <mode> - Indicates the mode flag, where <mode> is one of
+          'copy', 'inplace' or 'shell' (see explanation below).
 
-   Note:
+   Notes:
    By default (STMATMODE_COPY), a copy of matrix A is made and then 
    this copy is shifted explicitly, e.g. A <- (A - s B). 
 
@@ -262,7 +264,7 @@ int STSetMatStructure(ST st,MatStructure str)
    
    In the case of generalized problems, in the two first modes the matrix
    A - s B has to be computed explicitly. The efficiency of this computation 
-   can be controlled with STSinvertSetMatStructure().
+   can be controlled with STSetMatStructure().
 
    Level: intermediate
 
