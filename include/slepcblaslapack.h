@@ -73,7 +73,6 @@ PETSC_EXTERN_CXX_BEGIN
 #define LAhseqr_ SLEPC_BLASLAPACK(hseqr,HSEQR)
 #define LAtrexc_ SLEPC_BLASLAPACK(trexc,TREXC)
 #define LAtrevc_ SLEPC_BLASLAPACK(trevc,TREVC)
-#define LAstegr_ SLEPC_BLASLAPACK(stegr,STEGR)
 #define LAsteqr_ SLEPC_BLASLAPACK(steqr,STEQR)
 #define LAgeevx_ SLEPC_BLASLAPACK(geevx,GEEVX)
 #define LAggevx_ SLEPC_BLASLAPACK(ggevx,GEEVX)
