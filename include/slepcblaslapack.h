@@ -8,116 +8,74 @@
 #include "petscblaslapack.h"
 PETSC_EXTERN_CXX_BEGIN
 
+#define SLEPC_CONCAT(a,b) a##b
+
+#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
+#define SLEPC_FORTRAN(lcase,ucase) SLEPC_CONCAT(lcase,_)
+#elif defined(PETSC_HAVE_FORTRAN_CAPS)
+#define SLEPC_FORTRAN(lcase,ucase) ucase
+#else
+#define SLEPC_FORTRAN(lcase,ucase) lcase
+#endif
+
 #if !defined(PETSC_USE_COMPLEX)
 
-/*
-    These are real case with no character string arguments
-*/
+/* real numbers */
 
-#if defined(PETSC_USES_FORTRAN_SINGLE) 
-/*
-   For these machines we must call the single precision Fortran version
-*/
-#define LAlapy2_ SLAPY2
-#define LAlaev2_ SLAEV2
-#define LAgehrd_ SGEHRD
-#define LAorghr_ SORGHR
-#define LAlanhs_ SLANHS
-#define LAlange_ SLANGE
-#define LAgetri_ SGETRI
-#define LAhseqr_ SHSEQR
-#define LAtrexc_ STREXC
-#define LAtrevc_ STREVC
-#endif
+#if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
 
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
-#define LAlapy2_ dlapy2_
-#define LAlaev2_ dlaev2_
-#define LAgehrd_ dgehrd_
-#define LAorghr_ dorghr_
-#define LAlanhs_ dlanhs_
-#define LAlange_ dlange_
-#define LAgetri_ dgetri_
-#define LAhseqr_ dhseqr_
-#define LAtrexc_ dtrexc_
-#define LAtrevc_ dtrevc_
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define LAlapy2_ DLAPY2
-#define LAlaev2_ DLAEV2
-#define LAgehrd_ DGEHRD
-#define LAorghr_ DORGHR
-#define LAlanhs_ DLANHS
-#define LAlange_ DLANGE
-#define LAgetri_ DGETRI
-#define LAhseqr_ DHSEQR
-#define LAtrexc_ DTREXC
-#define LAtrevc_ DTREVC
+/* single precision */
+
+#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(s,lcase),SLEPC_CONCAT(S,ucase))
+#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(s,lcase),SLEPC_CONCAT(S,ucase))
+
 #else
-#define LAlapy2_ dlapy2
-#define LAlaev2_ dlaev2
-#define LAgehrd_ dgehrd
-#define LAorghr_ dorghr
-#define LAlanhs_ dlanhs
-#define LAlange_ dlange
-#define LAgetri_ dgetri
-#define LAhseqr_ dhseqr
-#define LAtrexc_ dtrexc
-#define LAtrevc_ dtrevc
+
+/* double precision */
+
+#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(d,lcase),SLEPC_CONCAT(D,ucase))
+#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(d,lcase),SLEPC_CONCAT(D,ucase))
+
 #endif
 
 #else
-/*
-  Complex
-*/
-#if defined(PETSC_USES_FORTRAN_SINGLE)
-#define DLAPY2   DLAPY2
-#define ZLAEV2   CLAEV2
-#define ZGEHRD   CGEHRD
-#define ZUNGHR   CUNGHR
-#define ZLANHS   CLANHS
-#define ZLANGE   CLANGE
-#define ZGETRI   CGETRI
-#define ZHSEQR   CHSEQR
-#define ZTREXC   CTREXC
-#define ZTREVC   CTREVC
-#endif
 
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
-#define LAlapy2_ dlapy2_
-#define LAlaev2_ zlaev2_
-#define LAgehrd_ zgehrd_
-#define LAorghr_ zunghr_
-#define LAlanhs_ zlanhs_
-#define LAlange_ zlange_
-#define LAgetri_ zgetri_
-#define LAhseqr_ zhseqr_
-#define LAtrexc_ ztrexc_
-#define LAtrevc_ ztrevc_
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define LAlapy2_ DLAPY2
-#define LAlaev2_ ZLAEV2
-#define LAgehrd_ ZGEHRD
-#define LAorghr_ ZUNGHR
-#define LAlanhs_ ZLANHS
-#define LAlange_ ZLANGE
-#define LAgetri_ ZGETRI
-#define LAhseqr_ ZHSEQR
-#define LAtrexc_ ZTREXC
-#define LAtrevc_ ZTREVC
+/* complex numbers */
+
+#if defined(PETSC_USES_FORTRAN_SINGLE) || defined(PETSC_USE_SINGLE)
+
+/* single precision */
+
+#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(c,lcase,C,ucase))
+#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(s,lcase),SLEPC_CONCAT(S,ucase))
+
 #else
-#define LAlapy2_ dlapy2
-#define LAlaev2_ zlaev2
-#define LAgehrd_ zgehrd
-#define LAorghr_ zunghr
-#define LAlanhs_ zlanhs
-#define LAlange_ zlange
-#define LAgetri_ zgetri
-#define LAhseqr_ zhseqr
-#define LAtrexc_ ztrexc
-#define LAtrevc_ ztrevc
+
+/* double precision */
+
+#define SLEPC_BLASLAPACK(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(z,lcase),SLEPC_CONCAT(Z,ucase))
+#define SLEPC_BLASLAPACK_REAL(lcase,ucase) SLEPC_FORTRAN(SLEPC_CONCAT(d,lcase),SLEPC_CONCAT(D,ucase))
+
 #endif
 
 #endif
+
+#if !defined(PETSC_BLASLAPACK_ESSL_ONLY)
+#define LAlapy2_ SLEPC_BLASLAPACK_REAL(lapy2,LAPY2)
+#endif
+#define LAlaev2_ SLEPC_BLASLAPACK(laev2,LAEV2)
+#define LAgehrd_ SLEPC_BLASLAPACK(gehrd,GEHRD)
+#if !defined(PETSC_USE_COMPLEX)
+#define LAorghr_ SLEPC_BLASLAPACK(orghr,ORGHR)
+#else
+#define LAorghr_ SLEPC_BLASLAPACK(unghr,UNGHR)
+#endif
+#define LAlanhs_ SLEPC_BLASLAPACK(lanhs,LANHS)
+#define LAlange_ SLEPC_BLASLAPACK(lange,LANGE)
+#define LAgetri_ SLEPC_BLASLAPACK(getri,GETRI)
+#define LAhseqr_ SLEPC_BLASLAPACK(hseqr,HSEQR)
+#define LAtrexc_ SLEPC_BLASLAPACK(trexc,TREXC)
+#define LAtrevc_ SLEPC_BLASLAPACK(trevc,TREVC)
 
 EXTERN_C_BEGIN
 
@@ -143,4 +101,3 @@ EXTERN_C_END
 
 PETSC_EXTERN_CXX_END
 #endif
-
