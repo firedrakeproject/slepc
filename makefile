@@ -179,9 +179,19 @@ slepc_allmanualpages: chk_loc slepc_deletemanualpages chk_concepts_dir
 
 # Builds Fortran stub files
 slepc_allfortranstubs:
-	-@${RM} -f src/fortran/auto/*.c
-	-${OMAKE} ACTION=slepc_fortranstubs tree
-	-@cd src/fortran/auto; ${OMAKE} -f makefile slepc_fixfortran
+#	-@${RM} -f src/fortran/auto/*.c
+#	-${OMAKE} ACTION=slepc_fortranstubs tree
+#	-@cd src/fortran/auto; ${OMAKE} -f makefile slepc_fixfortran
+	-@which ${BFORT} > /dev/null 2>&1;  \
+        if [ "$$?" != "0" ]; then \
+          echo "No bfort available, skipping building Fortran stubs";\
+        else \
+          ${RM} -f ${SLEPC_DIR}/src/fortran/auto/*.c ;\
+	  touch ${SLEPC_DIR}/src/fortran/auto/makefile.src ;\
+	  ${OMAKE} ACTION=slepc_fortranstubs tree_basic ;\
+	  cd ${SLEPC_DIR}/src/fortran/auto; ${RM} makefile.src; echo SOURCEC = ` ls *.c | tr -s '\n' ' '` > makefile.src ;\
+	  cd ${SLEPC_DIR}/src/fortran/auto; ${OMAKE} slepc_fixfortran ;\
+        fi
 
 # -------------------------------------------------------------------------------
 #
