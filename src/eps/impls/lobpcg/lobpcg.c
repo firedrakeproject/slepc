@@ -6,7 +6,7 @@
 EXTERN_C_BEGIN
 #include "HYPRE.h"
 #include "HYPRE_parcsr_mv.h"
-#include "HYPRE_lobpcg.h"
+#include "lobpcg.h"
 #include "IJ_mv.h"
 EXTERN_C_END
 
@@ -139,16 +139,17 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscFunctionBegin;
   globaleps = eps;
   HYPRE_LobpcgSolve(lobpcg->data,EPSFunctA,lobpcg->eigenvector,&lobpcg->eigval);
+  HYPRE_LobpcgGetIterations(lobpcg->data,&eps->its);
+  eps->nconv = lobpcg->bsize;
+  eps->reason = EPS_CONVERGED_TOL;
   HYPRE_IJVectorGetObject(lobpcg->ijx,(void**)&px);
   for (i=0;i<lobpcg->bsize;i++) { 
-    eps->eigr[i] = lobpcg->eigval[i]; 
+    /* eps->eigr[i] = lobpcg->eigval[i]; */
+    eps->eigr[i] = ((hypre_LobpcgData*)lobpcg->data)->eigvalhistory[i][(eps->its)-1]; 
     eps->eigi[i] = 0;
     HYPRE_ParVectorCopy(lobpcg->eigenvector[i],px);
     ierr = VecHYPRE_IJVectorCopyFrom(lobpcg->ijx,eps->V[i]);CHKERRQ(ierr);
   }
-  eps->nconv = lobpcg->bsize;
-  eps->reason = EPS_CONVERGED_TOL;
-  HYPRE_LobpcgGetIterations(lobpcg->data,&eps->its);
   PetscFunctionReturn(0);
 }
 
