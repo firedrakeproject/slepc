@@ -207,7 +207,7 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("ST Fold Options");CHKERRQ(ierr);
-  ierr = PetscOptionsLogical("-st_fold_leftside","Compute eigenvalues on left side of shift","STFoldSetLeftSide",ctx->left,&ctx->left,PETSC_NULL); CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-st_fold_leftside","Compute eigenvalues on left side of shift","STFoldSetLeftSide",ctx->left,&ctx->left,PETSC_NULL); CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
