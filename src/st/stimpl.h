@@ -33,6 +33,7 @@ struct _p_ST {
   void         *data;
   int          setupcalled;
   int          numberofshifts;
+  int          lineariterations;
 };
 
 extern int STDefaultApplyB( ST, Vec, Vec );

@@ -5,7 +5,7 @@
 #include "sinvert.h"             
 
 typedef struct {
-  PetscTruth   shift_matrix; /* shift matrix rather than use shell mat */
+  STSinvertMatMode    shift_matrix; /* shift matrix rather than use shell mat */
   MatStructure str;          /* whether matrices have the same pattern or not */
   Mat          mat;
   Vec          w;
@@ -61,7 +61,7 @@ int STPost_Sinvert(ST st)
   int          ierr;
 
   PetscFunctionBegin;
-  if( ctx->shift_matrix ) {
+  if (ctx->shift_matrix == STSINVERT_MATMODE_INPLACE) {
     alpha = st->sigma;
     if( st->B ) { ierr = MatAXPY(&alpha,st->B,st->A,ctx->str);CHKERRQ(ierr); }
     else { ierr = MatShift( &alpha, st->A ); CHKERRQ(ierr); }
@@ -80,17 +80,27 @@ static int STSetUp_Sinvert(ST st)
 
   PetscFunctionBegin;
 
-  if (ctx->shift_matrix) {
+  switch (ctx->shift_matrix) {
+  case STSINVERT_MATMODE_INPLACE:
     alpha = -st->sigma;
     if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,ctx->str);CHKERRQ(ierr); }
     else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-  }
-  else {
+    break;
+  case STSINVERT_MATMODE_SHELL:
     ierr = MatCreateMatSinvert(st,&ctx->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,ctx->mat,ctx->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    break;
+  default:
+    ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&ctx->mat);CHKERRQ(ierr);
+    alpha = -st->sigma;
+    if (st->B) { ierr = MatAXPY(&alpha,st->B,ctx->mat,ctx->str);CHKERRQ(ierr); }
+    else { ierr = MatShift(&alpha,ctx->mat);CHKERRQ(ierr); }
+    /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
+     * improve performance when solving a number of related eigenproblems */
+    ierr = KSPSetOperators(st->ksp,ctx->mat,ctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   if (st->B && !ctx->w) { ierr = VecDuplicate(st->vec,&ctx->w);CHKERRQ(ierr); } 
   ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
@@ -112,7 +122,8 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
 
-  if (stctx->shift_matrix) {
+  switch (stctx->shift_matrix) {
+  case STSINVERT_MATMODE_INPLACE:
     /* Undo previous operations */
     alpha = st->sigma;
     if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,stctx->str);CHKERRQ(ierr); }
@@ -122,11 +133,20 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
     if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,stctx->str);CHKERRQ(ierr); }
     else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-  }
-  else {
+    break;
+  case STSINVERT_MATMODE_SHELL:
     ierr = MatShellGetContext(stctx->mat,(void**)&ctx);CHKERRQ(ierr);
     ctx->sigma = newshift;
     ierr = KSPSetOperators(st->ksp,stctx->mat,stctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    break;
+  default:
+    ierr = MatCopy(st->A, stctx->mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+    alpha = -st->sigma;
+    if (st->B) { ierr = MatAXPY(&alpha,st->B,stctx->mat,stctx->str);CHKERRQ(ierr); }
+    else { ierr = MatShift(&alpha,stctx->mat);CHKERRQ(ierr); }
+    /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
+     * improve performance when solving a number of related eigenproblems */
+    ierr = KSPSetOperators(st->ksp,stctx->mat,stctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
   }
   ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
@@ -141,7 +161,9 @@ static int STDestroy_Sinvert(ST st)
   int      ierr;
 
   PetscFunctionBegin;
-  if (!ctx->shift_matrix) { ierr = MatDestroy(ctx->mat);CHKERRQ(ierr); }
+  if (ctx->shift_matrix != STSINVERT_MATMODE_INPLACE && ctx->mat) { 
+    ierr = MatDestroy(ctx->mat);CHKERRQ(ierr); 
+  }
   if (st->B) { ierr = VecDestroy(ctx->w);CHKERRQ(ierr); }
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -161,16 +183,21 @@ static int STView_Sinvert(ST st,PetscViewer viewer)
   if (!isascii) {
     SETERRQ1(1,"Viewer type %s not supported for STSINV",((PetscObject)viewer)->type_name);
   }
-  if (ctx->shift_matrix) {
+  switch (ctx->shift_matrix) {
+  case STSINVERT_MATMODE_INPLACE:
     ierr = PetscViewerASCIIPrintf(viewer,"Shifting the matrix and unshifting at exit\n");CHKERRQ(ierr);
-    if (st->B) { 
-      switch (ctx->str) {
-        case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
-        case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
-        case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"Matrices A and B have %s\n",str);CHKERRQ(ierr);
+    break;
+  case STSINVERT_MATMODE_SHELL:
+    ierr = PetscViewerASCIIPrintf(viewer,"Using a shell matrix\n");CHKERRQ(ierr);
+    break;
+  }
+  if (st->B && ctx->shift_matrix != STSINVERT_MATMODE_SHELL) { 
+    switch (ctx->str) {
+      case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
+      case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
+      case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"Matrices A and B have %s\n",str);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -179,22 +206,18 @@ static int STView_Sinvert(ST st,PetscViewer viewer)
 #define __FUNCT__ "STSetFromOptions_Sinvert"
 static int STSetFromOptions_Sinvert(ST st)
 {
-  int        ierr;
+  int        i,ierr;
   PetscTruth flg;
   PC         pc;
+  const char *mode_list[3] = { "copy", "inplace", "shell" };
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("ST Shift-and-invert Options");CHKERRQ(ierr);
-    ierr = PetscOptionsName("-st_sinvert_shift_mat","Shift matrix explicitly","STSinvertSetShiftMat",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-st_sinvert_matmode", "Shift matrix mode","STSinvertSetMatMode",mode_list,3,mode_list[0],&i,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = STSinvertSetShiftMat(st);CHKERRQ(ierr);
+      ierr = STSinvertSetMatMode(st, (STSinvertMatMode)i);CHKERRQ(ierr);
     }
-    else {
-      /* if shift_mat is set then the default preconditioner is ILU,
-         otherwise set Jacobi as the default */
-      ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-    }
+    
     ierr = PetscOptionsLogicalGroupBegin("-st_sinvert_same_pattern","same nonzero pattern","STSinvertSetMatStructure",&flg);CHKERRQ(ierr);
     if (flg) {ierr = STSinvertSetMatStructure(st,SAME_NONZERO_PATTERN);CHKERRQ(ierr);}
     ierr = PetscOptionsLogicalGroup("-st_sinvert_different_pattern","different nonzero pattern","STSinvertSetMatStructure",&flg);CHKERRQ(ierr);
@@ -209,33 +232,46 @@ static int STSetFromOptions_Sinvert(ST st)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "STSinvertSetShiftMat_Sinvert"
-int STSinvertSetShiftMat_Sinvert(ST st)
+#define __FUNCT__ "STSinvertSetMatMode_Sinvert"
+int STSinvertSetMatMode_Sinvert(ST st,STSinvertMatMode mode)
 {
+  int        ierr;
+  PC         pc;
   ST_SINV    *ctx = (ST_SINV *) st->data;
 
   PetscFunctionBegin;
-  ctx->shift_matrix = PETSC_TRUE;
+  ctx->shift_matrix = mode;
+  if (mode == STSINVERT_MATMODE_SHELL) {
+    /* if shift_mat is set then the default preconditioner is ILU,
+       otherwise set Jacobi as the default */
+    ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
 
 #undef __FUNCT__  
-#define __FUNCT__ "STSinvertSetShiftMat"
+#define __FUNCT__ "STSinvertSetMatMode"
 /*@
-   STSinvertSetShiftMat - Sets a flag to indicate that the matrix is
-   being shifted at STSetUp() and unshifted at the end of the computations.
+   STSinvertSetMatMode - Sets a flag to indicate how the matrix is
+   being shifted.
 
    Collective on ST
 
    Input Parameters:
-.  st - the spectral transformation context
++  st - the spectral transformation context
+-  mode - the mode flags, one of STSINVERT_MATMODE_COPY, 
+          STSINVERT_MATMODE_INPLACE or STSINVERT_MATMODE_SHELL
 
    Options Database Key:
-.  -st_sinvert_shift_mat - Activates STSinvertSetShiftMat()
+.  -st_sinvert_matmode <mode> - Activates STSinvertSetMatMode()
 
    Note:
-   By default, the matrix is not shifted explicitly. Instead, the solver
+   By default (STSINVERT_MATMODE_COPY), a copy of the matrix is shifted explicitly. 
+   Instead with STSINVERT_MATMODE_INPLACE, the matrix is shifted being shifted at 
+   STSetUp() and unshifted at the end of the computations.
+   With STSINVERT_MATMODE_SHELL, the solver
    works with an implicit shell matrix that represents the shifted matrix, 
    in which case only the Jacobi preconditioning is available for the linear
    solves performed in each iteration of the eigensolver.
@@ -244,15 +280,15 @@ EXTERN_C_END
 
 .seealso: STSetOperators()
 @*/
-int STSinvertSetShiftMat(ST st)
+int STSinvertSetMatMode(ST st, STSinvertMatMode mode)
 {
-  int ierr, (*f)(ST);
+  int ierr, (*f)(ST,STSinvertMatMode);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STSinvertSetShiftMat_C",(void (**)(void))&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)st,"STSinvertSetMatMode_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
-    ierr = (*f)(st);CHKERRQ(ierr);
+    ierr = (*f)(st,mode);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -344,7 +380,7 @@ int STCreate_Sinvert(ST st)
   ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
-  ctx->shift_matrix = PETSC_FALSE;
+  ctx->shift_matrix = STSINVERT_MATMODE_COPY;
   ctx->str          = DIFFERENT_NONZERO_PATTERN;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STSinvertSetShiftMat_C","STSinvertSetShiftMat_Sinvert",

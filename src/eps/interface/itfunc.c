@@ -177,6 +177,7 @@ int EPSSolve(EPS eps)
   }
 
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
+  ierr = STResetNumberLinearIterations(eps->OP);
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
   ierr = STPreSolve(eps->OP,eps);CHKERRQ(ierr);
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
@@ -1530,15 +1531,15 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
    Collective on EPS
 
    Input Parameters:
-+  eps      - the eigensolver context obtained from EPSCreate
-.  type     - a known type of orthogonalization
--  eta      - parameter for CGS refinement
++  eps        - the eigensolver context obtained from EPSCreate
+.  type       - a known type of orthogonalization
+.  refinement - type of refinement
+-  eta        - parameter for dynamic refinement
 
    Options Database Keys:
-+  -eps_orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt orthogonalization (default)
+.  -eps_orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt
+                              orthogonalization (default)
                               or mgs for Modified Gram-Schmidt orthogonalization
-
--  -eps_orthog_eta <real>   - Value for eta parameter.
     
    Notes:  
    The default orthogonalization technique
@@ -1549,7 +1550,7 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
 
 .seealso: EPSGetOrthogonalization()
 @*/
-int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type,PetscReal eta)
+int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EPSOrthogonalizationRefinementType refinement, PetscReal eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1565,8 +1566,21 @@ int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type,PetscReal eta)
       SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
   }
   eps->orth_type = type;
-  eps->orth_eta = eta;
-
+  switch (refinement) {
+  case EPS_ORTH_REFINE_NEVER:
+    eps->orth_eta = 0;
+    break;
+  case EPS_ORTH_REFINE_IFNEEDED:
+    if (eta == PETSC_DEFAULT) eps->orth_eta = 0.7071;
+    else eps->orth_eta = eta;
+    break;
+  case EPS_ORTH_REFINE_ALWAYS:
+    eps->orth_eta = -1;
+    break;
+  default:
+    SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown refinement type");
+  }
+  
   PetscFunctionReturn(0);
 }
 
@@ -1582,19 +1596,27 @@ int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type,PetscReal eta)
 .  eps - Eigensolver context 
 
    Output Parameter:
-+  type - type of orthogonalization technique
--  eta      - parameter for CGS refinement
++  type       - type of orthogonalization technique
+.  refinement - type of refinement
+-  eta        - parameter for dynamic refinement
 
    Level: intermediate
 
 .seealso: EPSSetOrthogonalization()
 @*/
-int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,PetscReal *eta)
+int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement, PetscReal *eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (type) *type = eps->orth_type;
-  if (eta) *eta = eps->orth_eta;
+  if (eps->orth_eta == 0) {
+    if (refinement) *refinement = EPS_ORTH_REFINE_NEVER;
+  } else if (eps->orth_eta < 0) {
+    if (refinement) *refinement = EPS_ORTH_REFINE_ALWAYS;
+  } else {
+    if (refinement) *refinement = EPS_ORTH_REFINE_IFNEEDED;
+    if (eta) *eta = eps->orth_eta;
+  }
   PetscFunctionReturn(0);
 }
 

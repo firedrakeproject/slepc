@@ -55,9 +55,15 @@ extern int STGetOptionsPrefix(ST,char**);
 extern int STBackTransform(ST,PetscScalar*,PetscScalar*);
 extern int STAssociatedKSPSolve(ST,Vec,Vec);
 
+extern int STGetNumberLinearIterations(ST,int*);
+extern int STResetNumberLinearIterations(ST);
+
 /* --------- options specific to particular spectral transformations-------- */
 
-extern int STSinvertSetShiftMat(ST);
+typedef enum { STSINVERT_MATMODE_COPY, STSINVERT_MATMODE_INPLACE, 
+               STSINVERT_MATMODE_SHELL } STSinvertMatMode;
+
+extern int STSinvertSetMatMode(ST,STSinvertMatMode);
 extern int STSinvertSetMatStructure(ST,MatStructure);
 
 extern int STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);

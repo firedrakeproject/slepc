@@ -368,7 +368,11 @@ int EPSSetFromOptions(EPS eps)
   int        ierr,i;
   char       type[256];
   PetscTruth flg;
-  const char* orth_list[2] = { "mgs" , "cgs" };
+  const char *orth_list[2] = { "mgs" , "cgs" };
+  const char *ref_list[3] = { "never" , "ifneeded", "always" };
+  EPSOrthogonalizationType orth_type;
+  EPSOrthogonalizationRefinementType ref_type;
+  PetscReal  eta;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -394,9 +398,13 @@ int EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsLogicalGroupEnd("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
 
-    ierr = PetscOptionsEList("-eps_orthog_type","type of orthogonalization","EPSSetOrthogonalization",orth_list,2,orth_list[eps->orth_type],&i,&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetOrthogonalization(eps,(EPSOrthogonalizationType)i,eps->orth_eta);CHKERRQ(ierr);}
-    ierr = PetscOptionsReal("-eps_orthog_eta","eta","EPSSetOrthogonalization",eps->orth_eta,&eps->orth_eta,PETSC_NULL);CHKERRQ(ierr);
+    orth_type = eps->orth_type;
+    ierr = PetscOptionsEList("-eps_orthog_type","type of orthogonalization","EPSSetOrthogonalization",orth_list,2,orth_list[orth_type],(int*)&orth_type,PETSC_NULL);CHKERRQ(ierr);
+    ref_type = EPS_ORTH_REFINE_IFNEEDED;
+    ierr = PetscOptionsEList("-eps_orthog_refinement","type of refinement","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[ref_type],(int*)&ref_type,PETSC_NULL);CHKERRQ(ierr);
+    eta = eps->orth_eta;
+    ierr = PetscOptionsReal("-eps_orthog_eta","eta","EPSSetOrthogonalizationRefinement",eta,&eta,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetOrthogonalization(eps,orth_type,ref_type,eta);CHKERRQ(ierr);
 
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&eps->max_it,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_tol","Tolerance","KSPSetTolerances",eps->tol,&eps->tol,PETSC_NULL);CHKERRQ(ierr);

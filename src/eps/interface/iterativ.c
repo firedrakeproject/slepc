@@ -32,7 +32,37 @@ int EPSGetIterationNumber(EPS eps,int *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidIntPointer(its,2);
   *its = eps->its;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetNumberLinearIterations"
+/*@
+   EPSGetNumberLinearIterations - Gets the total number of linear iterations
+   used by the ST object.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - EPS context
+
+   Output Parameter:
+.  lits - number of linear iterations
+
+   Notes:
+   This counter is reset to zero for each successive call to EPSSolve().
+
+   Level: intermediate
+
+@*/
+int EPSGetNumberLinearIterations(EPS eps,int* lits)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidIntPointer(lits,2);
+  STGetNumberLinearIterations(eps->OP, lits);
   PetscFunctionReturn(0);
 }
 

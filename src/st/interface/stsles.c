@@ -27,7 +27,7 @@
 @*/
 int STAssociatedKSPSolve(ST st,Vec b,Vec x)
 {
-  int   ierr;
+  int   ierr,its;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
@@ -40,7 +40,8 @@ int STAssociatedKSPSolve(ST st,Vec b,Vec x)
   ierr = KSPSolve(st->ksp);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) { SETERRQ1(0,"Warning: KSP did not converge (%d)",reason); }
-
+  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+  st->lineariterations += its;
   PetscFunctionReturn(0);
 }
 
@@ -97,6 +98,56 @@ int STGetKSP(ST st,KSP* ksp)
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (!st->type_name) { SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
   if (ksp)  *ksp = st->ksp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STGetNumberLinearIterations"
+/*@
+   STGetNumberLinearIterations - Gets the total number of linear iterations
+   used by the ST object.
+
+   Not Collective
+
+   Input Parameter:
+.  st - ST context
+
+   Output Parameter:
+.  lits - number of linear iterations
+
+   Level: intermediate
+
+.seealso: STResetNumberLinearIterations()
+@*/
+int STGetNumberLinearIterations(ST st,int* lits)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidIntPointer(lits,2);
+  *lits = st->lineariterations;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STResetNumberLinearIterations"
+/*@
+   STResetNumberLinearIterations - Resets the counter for total number of 
+   linear iterations used by the ST object.
+
+   Collective on ST
+
+   Input Parameter:
+.  st - ST context
+
+   Level: intermediate
+
+.seealso: STGetNumberLinearIterations()
+@*/
+int STResetNumberLinearIterations(ST st)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  st->lineariterations = 0;
   PetscFunctionReturn(0);
 }
 

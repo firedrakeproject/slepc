@@ -48,7 +48,7 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int it,PetscScalar *H,Petsc
 
   PetscFunctionBegin;
   if (!H) {
-    if (it<10) H = shh2;   /* Don't allocate small arrays */
+    if (it<100) H = shh2;   /* Don't allocate small arrays */
     else { 
       ierr = PetscMalloc((it+1)*sizeof(PetscScalar),&H);CHKERRQ(ierr);
       alloc = PETSC_TRUE;
