@@ -32,6 +32,10 @@ int STDestroy(ST st)
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPDestroy(st->ksp);CHKERRQ(ierr); } 
+  if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); } 
+  if (st->shift_matrix != STMATMODE_INPLACE && st->mat) { 
+    ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
+  }
 
   PetscLogObjectDestroy(st);
   PetscHeaderDestroy(st);
@@ -76,13 +80,15 @@ int STCreate(MPI_Comm comm,ST *newst)
   PetscLogObjectCreate(st);
   st->bops->publish       = STPublish_Petsc;
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
-  st->ops->applyB         = STDefaultApplyB;
 
   st->A                   = 0;
   st->B                   = 0;
   st->sigma               = 0.0;
   st->data                = 0;
   st->setupcalled         = 0;
+  st->w                   = 0;
+  st->shift_matrix        = STMATMODE_COPY;
+  st->str                 = DIFFERENT_NONZERO_PATTERN;
   
   ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);
   ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
@@ -357,6 +363,7 @@ int STGetOptionsPrefix(ST st,char **prefix)
 int STView(ST st,PetscViewer viewer)
 {
   STType            cstr;
+  char*             str;
   int               ierr;
   PetscTruth        isascii,isstring;
   PetscViewerFormat format;
@@ -384,6 +391,25 @@ int STView(ST st,PetscViewer viewer)
 #else
       ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g+%g i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
 #endif
+    }
+    switch (st->shift_matrix) {
+    case STMATMODE_COPY:
+      break;
+    case STMATMODE_INPLACE:
+      ierr = PetscViewerASCIIPrintf(viewer,"Shifting the matrix and unshifting at exit\n");CHKERRQ(ierr);
+      break;
+    case STMATMODE_SHELL:
+      ierr = PetscViewerASCIIPrintf(viewer,"Using a shell matrix\n");CHKERRQ(ierr);
+      break;
+    }
+    if (st->B && st->shift_matrix != STMATMODE_SHELL) { 
+      switch (st->str) {
+        case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
+        case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
+        case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
+        default:                        SETERRQ(1,"Wrong structure flag");break;
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"Matrices A and B have %s\n",str);CHKERRQ(ierr);
     }
     if (st->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);

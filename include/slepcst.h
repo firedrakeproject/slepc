@@ -13,6 +13,7 @@ typedef struct _p_ST* ST;
 #define STSHELL     "shell"
 #define STSHIFT     "shift"
 #define STSINV      "sinvert"
+#define STCAYLEY    "cayley"
 typedef char *STType;
 
 extern int STCreate(MPI_Comm,ST*);
@@ -58,16 +59,18 @@ extern int STResetNumberLinearIterations(ST);
 
 /* --------- options specific to particular spectral transformations-------- */
 
-typedef enum { STSINVERT_MATMODE_COPY, STSINVERT_MATMODE_INPLACE, 
-               STSINVERT_MATMODE_SHELL } STSinvertMatMode;
+typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
+               STMATMODE_SHELL } STMatMode;
 
-extern int STSinvertSetMatMode(ST,STSinvertMatMode);
-extern int STSinvertSetMatStructure(ST,MatStructure);
+extern int STSetMatMode(ST,STMatMode);
+extern int STSetMatStructure(ST,MatStructure);
 
 extern int STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);
 extern int STShellSetBackTransform(ST, int (*)(void*,PetscScalar*,PetscScalar*));
 extern int STShellSetName(ST,char*);
 extern int STShellGetName(ST,char**);
+
+extern int STCayleySetAntishift(ST,PetscScalar);
 
 #endif
 

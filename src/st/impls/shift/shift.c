@@ -9,14 +9,12 @@
 int STApply_Shift(ST st,Vec x,Vec y)
 {
   int    ierr;
-  Vec    w;
 
   PetscFunctionBegin;
   if (st->B) {
     /* generalized eigenproblem: y = (B^-1 A + sI) x */
-    w = (Vec) st->data;
-    ierr = MatMult(st->A,x,w);CHKERRQ(ierr);
-    ierr = STAssociatedKSPSolve(st,w,y);CHKERRQ(ierr);
+    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A + sI) x */
@@ -42,33 +40,15 @@ int STBackTransform_Shift(ST st,PetscScalar *eigr,PetscScalar *eigi)
 static int STSetUp_Shift(ST st)
 {
   int     ierr;
-  Vec     w;
 
   PetscFunctionBegin;
   if (st->B) {
-    if (st->data) {
-      w = (Vec) st->data;
-      ierr = VecDestroy(w);CHKERRQ(ierr);
+    if (st->w) {
+      ierr = VecDestroy(st->w);CHKERRQ(ierr);
     } 
-    ierr = MatGetVecs(st->B,&w,PETSC_NULL);CHKERRQ(ierr);
-    st->data = (void *) w;
+    ierr = MatGetVecs(st->B,&st->w,PETSC_NULL);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-  } 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STDestroy_Shift"
-static int STDestroy_Shift(ST st)
-{
-  int      ierr;
-  Vec      w;
-
-  PetscFunctionBegin;
-  if (st->data) {
-    w = (Vec) st->data;
-    ierr = VecDestroy(w);CHKERRQ(ierr);
   } 
   PetscFunctionReturn(0);
 }
@@ -81,8 +61,8 @@ int STCreate_Shift(ST st)
   PetscFunctionBegin;
   st->numberofshifts   = 1;
   st->ops->apply       = STApply_Shift;
+  st->ops->applyB      = STApplyB_Default;
   st->ops->backtr      = STBackTransform_Shift;
-  st->ops->destroy     = STDestroy_Shift;
   st->ops->setup       = STSetUp_Shift;
   st->checknullspace   = 0;
   PetscFunctionReturn(0);

@@ -5,6 +5,7 @@ EXTERN_C_BEGIN
 extern int STCreate_Shell(ST);
 extern int STCreate_Shift(ST);
 extern int STCreate_Sinvert(ST);
+extern int STCreate_Cayley(ST);
 EXTERN_C_END
 
 extern PetscTruth STRegisterAllCalled;
@@ -30,9 +31,10 @@ int STRegisterAll(char *path)
   PetscFunctionBegin;
   STRegisterAllCalled = PETSC_TRUE;
 
-  ierr = STRegisterDynamic(STSHELL ,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STSHIFT ,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STSINV  ,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
+  ierr = STRegisterDynamic(STSHELL  ,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
+  ierr = STRegisterDynamic(STSHIFT  ,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
+  ierr = STRegisterDynamic(STSINV   ,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
+  ierr = STRegisterDynamic(STCAYLEY ,path,"STCreate_Cayley",STCreate_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -25,9 +25,13 @@ struct _p_ST {
   /*------------------------- User parameters --------------------------*/
   Mat          A,B;              /* Matrices which define the eigensystem */
   PetscScalar  sigma;            /* Value of the shift */
+  STMatMode    shift_matrix;
+  MatStructure str;          /* whether matrices have the same pattern or not */
+  Mat          mat;
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
+  Vec          w;
   void         *data;
   int          setupcalled;
   int          numberofshifts;
@@ -35,9 +39,10 @@ struct _p_ST {
   int          (*checknullspace)(ST,int,Vec*);
 };
 
-extern int STDefaultApplyB( ST, Vec, Vec );
+extern int STApplyB_Default(ST,Vec,Vec);
 extern int STAssociatedKSPSolve(ST,Vec,Vec);
 extern int STCheckNullSpace_Default(ST,int,Vec*);
+extern int STMatShellCreate(ST st,Mat *mat);
 
 #endif
 

@@ -254,8 +254,8 @@ int STBackTransform(ST st,PetscScalar* eigr,PetscScalar* eigi)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STDefaultApplyB"
-int STDefaultApplyB(ST st,Vec x,Vec y)
+#define __FUNCT__ "STApplyB_Default"
+int STApplyB_Default(ST st,Vec x,Vec y)
 {
   int        ierr;
 

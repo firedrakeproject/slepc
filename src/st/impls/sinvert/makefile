@@ -3,10 +3,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = sinvert.c shellmat.c
+SOURCEC  = sinvert.c
 SOURCEF  = 
-SOURCEH  = sinvert.h
-OBJSC    = sinvert.o shellmat.o
+SOURCEH  = 
+OBJSC    = sinvert.o 
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = ST
