@@ -147,19 +147,10 @@ int EPSSetUp(EPS eps)
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
 
-   Output Parameter:
-.  its - number of iterations performed by the solver
-
    Options Database:
 +   -eps_view - print information about the solver used
 .   -eps_view_binary - save the matrices to the default binary file
 -   -eps_plot_eigs - plot computed eigenvalues
-
-   Notes:
-   On return, the parameter "its" contains either the iteration number at
-   which convergence was successfully reached, or failure was detected.  
-   Call EPSGetConvergedReason() to determine if the solver converged or 
-   failed and why.
 
    Level: beginner
 
@@ -1034,7 +1025,7 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
 .  eps - the eigensolver context
 
    Output Parameter:
-.  error - the relative error, computed as ||Ax-kBx||/|kx| where k is the 
+.  error - the relative error, computed as ||Ax-kBx||/||kx|| where k is the 
    eigenvalue and x is the eigenvector. 
    If k=0 the relative error is computed as ||Ax||.
 

@@ -237,8 +237,9 @@ with the following sequence of commands:
 	EPSCreate(MPI_Comm comm,EPS *eps);
 	EPSSetOperators(EPS eps,Mat A,Mat B);
 	EPSSetFromOptions(EPS eps);
-	EPSSolve(EPS eps,int *its);
-	EPSGetCoverged(EPS eps, int *nconv);
+	EPSSolve(EPS eps);
+	EPSGetIterationNumber(EPS eps,int *its);
+	EPSGetConverged(EPS eps, int *nconv);
 	EPSGetSolution(EPS eps,PetscScalar **kr,PetscScalar **ki,Vec **x);
 	EPSDestroy(EPS eps);
 	\end{Verbatim}

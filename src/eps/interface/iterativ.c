@@ -20,8 +20,12 @@
 
    Level: intermediate
 
-   Note:
-      During the i-th iteration this call returns i-1
+   Notes:
+      During the i-th iteration this call returns i-1. If the 
+      EPSSolve() is complete, the parameter "its" contains either the iteration number at
+      which convergence was successfully reached, or failure was detected.  
+      Call EPSGetConvergedReason() to determine if the solver converged or 
+      failed and why.
 
 @*/
 int EPSGetIterationNumber(EPS eps,int *its)

@@ -40,7 +40,8 @@ int         its, nconv;
 EPSCreate( PETSC_COMM_WORLD, &eps );
 EPSSetOperators( eps, A, PETSC_NULL );
 EPSSetFromOptions( eps );
-EPSSolve( eps, &its );
+EPSSolve( eps );
+EPSGetIterationNumber( eps, &its );
 EPSGetConverged( eps, &nconv );
 EPSGetSolution( eps, &kr, &ki, &x );
 PetscMalloc( nconv*sizeof(PetscReal), &error );
@@ -72,16 +73,21 @@ EPSDestroy( eps );
 	Line 11 launches the solution algorithm, simply with the command
 	\findex{EPSSolve}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSolve(EPS eps,int *its);
+	EPSSolve(EPS eps);
 	\end{Verbatim}
-	The subroutine which is actually invoked depends on which solver has been selected by the user. On return, the parameter \texttt{its} contains either the iteration number at which convergence was successfully reached, or the \emph{negative} of the iteration at which a problem was detected. 
-	
-	All the data associated to the solution of the eigenproblem is kept internally. The function
+	The subroutine which is actually invoked depends on which solver has been selected by the user. 
+        
+        All the data associated to the solution of the eigenproblem is kept internally. The function
+	\findex{EPSGetIterationNumber}
+	\begin{Verbatim}[fontsize=\small]
+        EPSGetIterationNumber(EPS eps,int *its);
+	\end{Verbatim}
+        retrieves in the parameter \texttt{its} either the iteration number at which convergence was successfully reached, or the \emph{negative} of the iteration at which a problem was detected. And the function
 	\findex{EPSGetConverged}
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetConverged(EPS eps,int *nconv);
 	\end{Verbatim}
-	queries how many eigenpairs have converged to working precision. The solution of the eigenproblem is retrieved in line 13 with a call to the following function
+	queries how many eigenpairs have converged to working precision. The solution of the eigenproblem is retrieved in line 14 with a call to the following function
 	\findex{EPSGetSolution}
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetSolution(EPS eps,PetscScalar **kr,PetscScalar **ki,Vec **x);
@@ -92,7 +98,7 @@ EPSDestroy( eps );
 	
 	The reason why the user does not need to allocate memory for the solution of the eigenproblem is that the amount of required storage usually depends on the number of basis vectors and the number of requested eigenvalues, which are parameters typically specified at run time. The implemented solution automatically allocates the necessary memory space and returns a pointer to this space. The user is warned not to use these objects after the \ident{EPS} object has been destroyed (see below).
 	
-	In line 15 of the example the relative residual error $\|Ax_j\!-\!\lambda_jBx_j\|/|\lambda_j|$ associated to each eigenpair is computed with a call to
+	In line 16 of the example the relative residual error $\|Ax_j\!-\!\lambda_jBx_j\|/|\lambda_jx_j|$ associated to each eigenpair is computed with a call to
 	\findex{EPSComputeError}
 	\begin{Verbatim}[fontsize=\small]
 	EPSComputeError(EPS eps,PetscReal *error);
