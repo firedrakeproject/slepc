@@ -78,7 +78,7 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell} \\\hline
 	\caption{\label{tab:op}Operators used in each spectral transformation mode.}
 	\end{table}
 
-	The expressions shown in table \ref{tab:op} are not built explicitly. Instead, the appropriate operations are carried out when applying the operator to a certain vector. The inverses imply the solution of a linear system of equations which is managed by setting up an associated \ident{SLES} object. The user can control the behavior of this object by adjusting the appropriate options, as will be illustrated with examples in section \ref{sec:lin}.
+	The expressions shown in table \ref{tab:op} are not built explicitly. Instead, the appropriate operations are carried out when applying the operator to a certain vector. The inverses imply the solution of a linear system of equations which is managed by setting up an associated \ident{KSP} object. The user can control the behavior of this object by adjusting the appropriate options, as will be illustrated with examples in section \ref{sec:lin}.
 
 	In the table, the value $\sigma$ in both shift of origin (\texttt{shift}) and shift-and-invert (\texttt{sinvert}) transformations, represents the value of the shift. As explained above, this value can be specified via the \ident{STSetShift} function or in the command line.
 
@@ -120,15 +120,15 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 \subsection{Solution of Linear Systems}
 \label{sec:lin}
 
-	In many of the cases shown in table \ref{tab:op}, the operator contains an inverted matrix which means that a linear system of equations must be solved whenever the application of the operator to a vector is required. These cases are handled internally by means of a \ident{SLES} object.
+	In many of the cases shown in table \ref{tab:op}, the operator contains an inverted matrix which means that a linear system of equations must be solved whenever the application of the operator to a vector is required. These cases are handled internally by means of a \ident{KSP} object.
 
 	In the simplest case, a generalized problem is to be solved with no spectral transformation. A sample command line could be
 \begin{Verbatim}[fontsize=\small]
 	$ program -eps_type subspace -eps_tol 1e-6 -eps_monitor
 \end{Verbatim}
-In this case, assuming that the program solves a generalized problem, the \ident{ST} object associated to the \ident{EPS} solver creates a \ident{SLES} object whose coefficient matrix is $B$. This \ident{SLES} object will be set with the default values, that is, GMRES with ILU preconditioning (see the \petsc{} documentation for details).
+In this case, assuming that the program solves a generalized problem, the \ident{ST} object associated to the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. This \ident{KSP} object will be set with the default values, that is, GMRES with ILU preconditioning (see the \petsc{} documentation for details).
 
-	The default values corresponding to the \ident{SLES} object can be modified via the command line. For instance,
+	The default values corresponding to the \ident{KSP} object can be modified via the command line. For instance,
 \begin{Verbatim}[fontsize=\small]
 	$ program -eps_type subspace -eps_tol 1e-6 -eps_monitor
 	          -st_ksp_type cg -st_pc_type jacobi -st_ksp_rtol 1e-5
@@ -137,13 +137,13 @@ specifies some additional options for the solution of this linear system. In par
 
 	If an iterative method is used for the linear system solves, usually a slightly more stringent tolerance must be required of the linear solves relative to the desired accuracy of the eigenvalue calculation. It is also possible to select any of the direct linear solvers available in \petsc. In this case, the factorization is only carried out at the beginning of the eigenvalue calculation and this cost is amortized in each subsequent application of the operator. This is also the case for iterative methods with preconditioners with high-cost set-up such as ILU.
 
-	The application programmer is able to set the desired linear systems solver options also from within the code. In order to do this, first the context of the \ident{SLES} object must be retrieved with the following function
-	\findex{STGetSLES}
+	The application programmer is able to set the desired linear systems solver options also from within the code. In order to do this, first the context of the \ident{KSP} object must be retrieved with the following function
+	\findex{STGetKSP}
 	\begin{Verbatim}[fontsize=\small]
-	STGetSLES(ST st,SLES *sles);
+	STGetKSP(ST st,KSP *ksp);
 	\end{Verbatim}
 	
-	The above functionality is also applicable to the other spectral transformations. In the case of shift from origin, again the \ident{SLES} object will be set only in generalized problems, and with $B$ as the coefficient matrix. In this other example, the spectrum is shifted by $\sigma=0.5$ and several options are specified for the linear systems
+	The above functionality is also applicable to the other spectral transformations. In the case of shift from origin, again the \ident{KSP} object will be set only in generalized problems, and with $B$ as the coefficient matrix. In this other example, the spectrum is shifted by $\sigma=0.5$ and several options are specified for the linear systems
 \begin{Verbatim}[fontsize=\small]
 	$ program -st_type shift -st_shift 0.5 -st_ksp_type cgs 
 		  -st_pc_ilu_levels 1
