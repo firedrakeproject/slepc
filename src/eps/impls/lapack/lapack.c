@@ -122,7 +122,7 @@ int EPSDestroy_LAPACK(EPS eps)
   MPI_Comm    comm = eps->comm;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   if (size > 1) {
     ierr = MatDestroy(la->A);CHKERRQ(ierr);

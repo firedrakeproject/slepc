@@ -37,7 +37,7 @@ int EPSSetOptionsPrefix(EPS eps,char *prefix)
 {
   int ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
@@ -67,7 +67,7 @@ int EPSAppendOptionsPrefix(EPS eps,char *prefix)
 {
   int ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STAppendOptionsPrefix(eps->OP,prefix); CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -98,7 +98,7 @@ int EPSGetOptionsPrefix(EPS eps,char **prefix)
 {
   int ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectGetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

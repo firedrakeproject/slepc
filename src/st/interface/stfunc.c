@@ -24,7 +24,7 @@ int STDestroy(ST st)
   int ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (--st->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
@@ -130,9 +130,9 @@ int STCreate(MPI_Comm comm,ST *newst)
 int STSetOperators(ST st,Mat A,Mat B)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
-  PetscValidHeaderSpecific(A,MAT_COOKIE);
-  if (B) PetscValidHeaderSpecific(B,MAT_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(A,MAT_COOKIE,2);
+  if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
   st->A = A;
   st->B = B;
   st->setupcalled = 0;
@@ -160,7 +160,7 @@ int STSetOperators(ST st,Mat A,Mat B)
 int STGetOperators(ST st,Mat *A,Mat *B)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (A) *A = st->A;
   if (B) *B = st->B;
   PetscFunctionReturn(0);
@@ -189,9 +189,9 @@ int STGetOperators(ST st,Mat *A,Mat *B)
 int STSetVector(ST st,Vec vec)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
-  PetscValidHeaderSpecific(vec,VEC_COOKIE);
-  PetscCheckSameComm(st,vec);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
+  PetscCheckSameComm(st,1,vec,2);
   st->vec = vec;
   PetscFunctionReturn(0);
 }
@@ -218,7 +218,7 @@ int STSetVector(ST st,Vec vec)
 int STGetVector(ST st,Vec *vec)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   *vec = st->vec;
   PetscFunctionReturn(0);
 }
@@ -246,7 +246,7 @@ int STSetShift(ST st,PetscScalar shift)
   int         ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift); CHKERRQ(ierr);
@@ -275,7 +275,7 @@ int STSetShift(ST st,PetscScalar shift)
 int STGetShift(ST st,PetscScalar* shift)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (shift)  *shift = st->sigma;
   PetscFunctionReturn(0);
 }
@@ -305,7 +305,7 @@ int STGetShift(ST st,PetscScalar* shift)
 int STGetNumberOfShifts(ST st,int* nshifts)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (nshifts)  *nshifts = st->numberofshifts;
   PetscFunctionReturn(0);
 }
@@ -336,7 +336,7 @@ int STSetOptionsPrefix(ST st,char *prefix)
   int ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -367,7 +367,7 @@ int STAppendOptionsPrefix(ST st,char *prefix)
   int ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -398,7 +398,7 @@ int STGetOptionsPrefix(ST st,char **prefix)
   int ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectGetOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -437,10 +437,10 @@ int STView(ST st,PetscViewer viewer)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(st->comm);
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE); 
-  PetscCheckSameComm(st,viewer);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2); 
+  PetscCheckSameComm(st,1,viewer,2);
 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_STRING,&isstring);CHKERRQ(ierr);

@@ -163,7 +163,7 @@ int STShellSetApply(ST st, int (*apply)(void*,Vec,Vec),void *ptr)
   int ierr, (*f)(ST,int (*)(void*,Vec,Vec),void *);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetApply_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,apply,ptr);CHKERRQ(ierr);
@@ -202,7 +202,7 @@ int STShellSetBackTransform(ST st, int (*backtr)(void*,PetscScalar*,PetscScalar*
   int ierr, (*f)(ST,int (*)(void*,PetscScalar*,PetscScalar*));
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetBackTransform_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,(int (*)(void*,PetscScalar*,PetscScalar*))backtr);CHKERRQ(ierr);
@@ -231,7 +231,7 @@ int STShellSetName(ST st,char *name)
   int ierr, (*f)(ST,char *);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetName_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,name);CHKERRQ(ierr);
@@ -262,7 +262,7 @@ int STShellGetName(ST st,char **name)
   int ierr, (*f)(ST,char **);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellGetName_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,name);CHKERRQ(ierr);

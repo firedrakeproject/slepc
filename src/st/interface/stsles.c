@@ -31,9 +31,9 @@ int STAssociatedKSPSolve(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
-  PetscValidHeaderSpecific(b,VEC_COOKIE);
-  PetscValidHeaderSpecific(x,VEC_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(b,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
   if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
   ierr = KSPSetRhs(st->ksp,b);CHKERRQ(ierr);
   ierr = KSPSetSolution(st->ksp,x);CHKERRQ(ierr);
@@ -62,9 +62,9 @@ int STAssociatedKSPSolve(ST st,Vec b,Vec x)
 int STSetKSP(ST st,KSP ksp)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
-  PetscValidHeaderSpecific(ksp,KSP_COOKIE);
-  PetscCheckSameComm(st,ksp);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(ksp,KSP_COOKIE,2);
+  PetscCheckSameComm(st,1,ksp,2);
   st->ksp = ksp;
   PetscFunctionReturn(0);
 }
@@ -94,7 +94,7 @@ int STSetKSP(ST st,KSP ksp)
 int STGetKSP(ST st,KSP* ksp)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (!st->type_name) { SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
   if (ksp)  *ksp = st->ksp;
   PetscFunctionReturn(0);

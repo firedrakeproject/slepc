@@ -47,8 +47,8 @@ int STSetType(ST st,STType type)
   PetscTruth match;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
-  PetscValidCharPointer(type);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidCharPointer(type,2);
 
   ierr = PetscTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
@@ -149,7 +149,7 @@ int STSetFromOptionsKSP(ST st)
   PetscTruth flg;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
 
   ierr = PetscOptionsHead("Associated Linear Solver options ------------");CHKERRQ(ierr);
   ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
@@ -182,7 +182,7 @@ int STSetFromOptions(ST st)
   PetscTruth flg;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
 
   if (!STRegisterAllCalled) {ierr = STRegisterAll(PETSC_NULL);CHKERRQ(ierr);}
   ierr = PetscOptionsBegin(st->comm,st->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);

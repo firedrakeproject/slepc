@@ -137,7 +137,7 @@ int EPSDestroy_TRLAN(EPS eps)
   int         ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (tr->work)  { ierr = PetscFree(tr->work);CHKERRQ(ierr); }
   if (eps->data) { ierr = PetscFree(eps->data);CHKERRQ(ierr); }
   PetscFunctionReturn(0);

@@ -27,7 +27,7 @@
 int EPSGetIterationNumber(EPS eps,int *its)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   *its = eps->its;
   PetscFunctionReturn(0);
 }
@@ -142,11 +142,11 @@ int  EPSDefaultGetWork(EPS eps, int nw)
 . eps  - eigensolver context
 
  */
-int EPSDefaultFreeWork( EPS eps )
+int EPSDefaultFreeWork(EPS eps)
 {
   int ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->work)  {
     ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
   }
@@ -168,7 +168,7 @@ int EPSDefaultDestroy(EPS eps)
   int ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
 
   /* free work vectors */
@@ -204,7 +204,7 @@ int EPSDefaultDestroy(EPS eps)
 int EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   *reason = eps->reason;
   PetscFunctionReturn(0);
 }

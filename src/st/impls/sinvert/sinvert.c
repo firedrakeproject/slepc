@@ -249,7 +249,7 @@ int STSinvertSetShiftMat(ST st)
   int ierr, (*f)(ST);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STSinvertSetShiftMat_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st);CHKERRQ(ierr);
@@ -304,7 +304,7 @@ int STSinvertSetMatStructure(ST st,MatStructure str)
   int ierr, (*f)(ST,MatStructure);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STSinvertSetMatStructure_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,str);CHKERRQ(ierr);

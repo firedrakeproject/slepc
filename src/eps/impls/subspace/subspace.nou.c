@@ -168,7 +168,7 @@ int EPSDestroy_SUBSPACE(EPS eps)
   int          ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->data)  { ierr = PetscFree(eps->data);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
@@ -243,7 +243,7 @@ int EPSSubspaceSetInner(EPS eps,int val)
   int ierr, (*f)(EPS,int);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSSubspaceSetInner_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,val);CHKERRQ(ierr);

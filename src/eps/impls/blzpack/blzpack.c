@@ -187,7 +187,7 @@ int EPSDestroy_BLZPACK(EPS eps)
   int          ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (blz->istor) { ierr = PetscFree(blz->istor);CHKERRQ(ierr); }
   if (blz->rstor) { ierr = PetscFree(blz->rstor);CHKERRQ(ierr); }
   if (blz->u)     { ierr = PetscFree(blz->u);CHKERRQ(ierr); }
@@ -279,7 +279,7 @@ int EPSBlzpackSetBlockSize(EPS eps,int bs)
   int ierr, (*f)(EPS,int);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,bs);CHKERRQ(ierr);
@@ -335,7 +335,7 @@ int EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
   int ierr, (*f)(EPS,PetscReal,PetscReal);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSBlzpackSetInterval_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,initial,final);CHKERRQ(ierr);

@@ -120,7 +120,7 @@ int EPSDestroy_PLANSO(EPS eps)
   int         ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (pl->work)  { ierr = PetscFree(pl->work);CHKERRQ(ierr); }
   if (eps->data) { ierr = PetscFree(eps->data);CHKERRQ(ierr); }
   PetscFunctionReturn(0);

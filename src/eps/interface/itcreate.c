@@ -44,10 +44,10 @@ int EPSView(EPS eps,PetscViewer viewer)
   PetscTruth  isascii;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(eps->comm);
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE);
-  PetscCheckSameComm(eps,viewer);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
+  PetscCheckSameComm(eps,1,viewer,2);
 
 #if defined(PETSC_USE_COMPLEX)
 #define HERM "hermitian"
@@ -129,7 +129,7 @@ int EPSView(EPS eps,PetscViewer viewer)
 int EPSSetDropEigenvectors(EPS eps)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   eps->dropvectors = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -269,8 +269,8 @@ int EPSSetType(EPS eps,EPSType type)
   PetscTruth match;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
-  PetscValidCharPointer(type);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidCharPointer(type,2);
 
   ierr = PetscTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
@@ -339,7 +339,7 @@ int EPSRegisterDestroy(void)
 int EPSGetType(EPS eps,EPSType *type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   *type = eps->type_name;
   PetscFunctionReturn(0);
 }
@@ -370,7 +370,7 @@ int EPSSetFromOptions(EPS eps)
   PetscTruth flg;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (!EPSRegisterAllCalled) {ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);}
   ierr = PetscOptionsBegin(eps->comm,eps->prefix,"Eigenproblem Solver (EPS) Options","EPS");CHKERRQ(ierr);
     ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(eps->type_name?eps->type_name:EPSPOWER),type,256,&flg);CHKERRQ(ierr);

@@ -216,7 +216,7 @@ int EPSSubspaceSetInner(EPS eps,int val)
   int ierr, (*f)(EPS,int);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSSubspaceSetInner_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,val);CHKERRQ(ierr);
