@@ -128,6 +128,72 @@ PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STComputeExplicitOperator"
+/*@
+    STComputeExplicitOperator - Computes the explicit operator associated
+    to the eigenvalue problem with the specified spectral transformation.  
+
+    Collective on EPS
+
+    Input Parameter:
+.   eps - the eigenvalue solver context
+
+    Output Parameter:
+.   mat - the explicit operator
+
+    Notes:
+    This routine builds a matrix containing the explicit operator. For 
+    example, in generalized problems with shift-and-invert spectral
+    transformation the result would be matrix (A - s B)^-1 B.
+    
+    This computation is done by applying the operator to columns of the 
+    identity matrix.
+
+    Level: advanced
+
+.seealso: STApply()   
+@*/
+PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
+{
+  PetscErrorCode ierr;
+  Vec            in,out;
+  int            i,M,m,*rows,start,end;
+  PetscScalar    *array,zero = 0.0,one = 1.0;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidPointer(mat,2);
+
+  ierr = MatGetVecs(st->A,&in,&out);CHKERRQ(ierr);
+  ierr = VecGetSize(out,&M);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(out,&start,&end);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*sizeof(int),&rows);CHKERRQ(ierr);
+  for (i=0; i<m; i++) rows[i] = start + i;
+
+  ierr = MatCreateMPIDense(st->comm,m,m,M,M,PETSC_NULL,mat);CHKERRQ(ierr);
+
+  for (i=0; i<M; i++) {
+    ierr = VecSet(&zero,in);CHKERRQ(ierr);
+    ierr = VecSetValues(in,1,&i,&one,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(in);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(in);CHKERRQ(ierr);
+
+    ierr = STApply(st,in,out); CHKERRQ(ierr);
+    
+    ierr = VecGetArray(out,&array);CHKERRQ(ierr);
+    ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr); 
+    ierr = VecRestoreArray(out,&array);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(rows);CHKERRQ(ierr);
+  ierr = VecDestroy(in);CHKERRQ(ierr);
+  ierr = VecDestroy(out);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STNorm"
 /*@
    STNorm - Computes de norm of a vector as the square root of the inner 

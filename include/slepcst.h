@@ -30,6 +30,7 @@ EXTERN PetscErrorCode STView(ST,PetscViewer);
 EXTERN PetscErrorCode STApply(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyB(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyNoB(ST,Vec,Vec);
+EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 
 extern PetscFList STList;
 EXTERN PetscErrorCode STRegisterAll(char*);

@@ -603,83 +603,97 @@ PetscErrorCode EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Ve
   PetscFunctionReturn(0);
 }
 
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
 #undef __FUNCT__  
-#define __FUNCT__ "EPSComputeExplicitOperator"
+#define __FUNCT__ "EPSSortEigenvalues"
 /*@
-    EPSComputeExplicitOperator - Computes the explicit operator associated
-    to the eigenvalue problem with the specified spectral transformation.  
+   EPSSortEigenvalues - Sorts a list of eigenvalues according to a certain
+   criterion.
 
-    Collective on EPS
+   Not Collective
 
-    Input Parameter:
-.   eps - the eigenvalue solver context
+   Input Parameters:
++  n     - number of eigenvalue in the list
+.  eig   - pointer to the array containing the eigenvalues
+.  eigi  - imaginary part of the eigenvalues (only when using real numbers)
+.  which - sorting criterion
+-  nev   - number of wanted eigenvalues
 
-    Output Parameter:
-.   mat - the explicit operator
+   Output Parameter:
+.  permout - resulting permutation
 
-    Notes:
-    This routine builds a matrix containing the explicit operator. For 
-    example, in generalized problems with shift-and-invert spectral
-    transformation the result would be matrix (A - s B)^-1 B.
-    
-    This computation is done by applying the operator to columns of the 
-    identity matrix.
+   Notes:
+   The result is a list of indices in the original eigenvalue array 
+   corresponding to the first nev eigenvalues sorted in the specified
+   criterion
 
-    Currently, this routine uses a dense matrix format when 1 processor
-    is used and a sparse format otherwise.  This routine is costly in general,
-    and is recommended for use only with relatively small systems.
+   Level: developer
 
-    Level: advanced
-
-.seealso: STApply()   
+.seealso: EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSComputeExplicitOperator(EPS eps,Mat *mat)
+PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
 {
   PetscErrorCode ierr;
-  Vec            in,out;
-  int            i,M,m,size,*rows,start,end;
-  MPI_Comm       comm;
-  PetscScalar    *array,zero = 0.0,one = 1.0;
+  int            i,*perm;
+  PetscReal      *values;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(mat,2);
-  comm = eps->comm;
+  ierr = PetscMalloc(n*sizeof(int),&perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(PetscReal),&values);CHKERRQ(ierr);
+  for (i=0; i<n; i++) { perm[i] = i;}
 
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-
-  ierr = VecDuplicate(eps->vec_initial,&in);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&out);CHKERRQ(ierr);
-  ierr = VecGetSize(in,&M);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(in,&m);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(in,&start,&end);CHKERRQ(ierr);
-  ierr = PetscMalloc((m+1)*sizeof(int),&rows);CHKERRQ(ierr);
-  for (i=0; i<m; i++) {rows[i] = start + i;}
-
-  if (size == 1) {
-    ierr = MatCreateSeqDense(comm,M,M,PETSC_NULL,mat);CHKERRQ(ierr);
-  } else {
-    ierr = MatCreateMPIAIJ(comm,m,m,M,M,0,0,0,0,mat);CHKERRQ(ierr);
+  switch(which) {
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_SMALLEST_MAGNITUDE:
+      for (i=0; i<n; i++) { values[i] = SlepcAbsEigenvalue(eig[i],eigi[i]); }
+      break;
+    case EPS_LARGEST_REAL:
+    case EPS_SMALLEST_REAL:
+      for (i=0; i<n; i++) { values[i] = PetscRealPart(eig[i]); }
+      break;
+    case EPS_LARGEST_IMAGINARY:
+    case EPS_SMALLEST_IMAGINARY:
+#if defined(PETSC_USE_COMPLEX)
+      for (i=0; i<n; i++) { values[i] = PetscImaginaryPart(eig[i]); }
+#else
+      for (i=0; i<n; i++) { values[i] = PetscAbsReal(eigi[i]); }
+#endif
+      break;
+    default: SETERRQ(1,"Wrong value of which");
   }
-  
-  for (i=0; i<M; i++) {
 
-    ierr = VecSet(&zero,in);CHKERRQ(ierr);
-    ierr = VecSetValues(in,1,&i,&one,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(in);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(in);CHKERRQ(ierr);
+  ierr = PetscSortRealWithPermutation(n,values,perm);CHKERRQ(ierr);
 
-    ierr = STApply(eps->OP,in,out); CHKERRQ(ierr);
-    
-    ierr = VecGetArray(out,&array);CHKERRQ(ierr);
-    ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr); 
-    ierr = VecRestoreArray(out,&array);CHKERRQ(ierr);
-
+  switch(which) {
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_LARGEST_REAL:
+    case EPS_LARGEST_IMAGINARY:
+      for (i=0; i<nev; i++) { permout[i] = perm[n-1-i]; }
+      break;
+    case EPS_SMALLEST_MAGNITUDE:
+    case EPS_SMALLEST_REAL:
+    case EPS_SMALLEST_IMAGINARY: 
+      for (i=0; i<nev; i++) { permout[i] = perm[i]; }
+      break;
+    default: SETERRQ(1,"Wrong value of which");
   }
-  ierr = PetscFree(rows);CHKERRQ(ierr);
-  ierr = VecDestroy(in);CHKERRQ(ierr);
-  ierr = VecDestroy(out);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+
+#if !defined(PETSC_USE_COMPLEX)
+  for (i=0; i<nev-1; i++) {
+    if (eigi[permout[i]] != 0.0) {
+      if (eig[permout[i]] == eig[permout[i+1]] &&
+          eigi[permout[i]] == -eigi[permout[i+1]] &&
+          eigi[permout[i]] < 0.0) {
+        int tmp;
+        SWAP(permout[i], permout[i+1], tmp);
+      }
+    i++;
+    }
+  }
+#endif
+
+  ierr = PetscFree(values);CHKERRQ(ierr);
+  ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
