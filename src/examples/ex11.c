@@ -15,8 +15,6 @@ int main( int argc, char **argv )
   Vec         x;
   EPS         eps;             /* eigenproblem solver context */
   ST          st;
-  KSP         ksp;
-  PC          pc;
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
@@ -73,14 +71,9 @@ int main( int argc, char **argv )
      Specify some options: use shift-and-invert to compute eigenpairs
      close to the origin
   */
-  ierr = EPSSetType(eps,EPSSUBSPACE);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINV);CHKERRQ(ierr);
-  ierr = STSetShift(st,1e-3);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCLU);CHKERRQ(ierr); 
+  ierr = STSetShift(st,0);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
