@@ -102,7 +102,7 @@ static int  EPSSolve_LAPACK(EPS eps)
   eps->reason = EPS_CONVERGED_TOL;
   
 #ifndef PETSC_USE_COMPLEX
-  if (eps->eigi[eps->nconv - 1] >= 0.0) eps->nconv--;
+  if (eps->eigi[eps->nconv - 1] >= 0.0 && eps->nconv != n) eps->nconv--;
 #endif
 
   PetscFunctionReturn(0);
