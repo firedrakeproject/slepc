@@ -268,9 +268,7 @@ int SampleShellSTApply(void *ctx,Vec x,Vec y)
   SampleShellST *shell = (SampleShellST*)ctx;
   int           ierr;
 
-  ierr = KSPSetRhs(shell->ksp,x);CHKERRQ(ierr);
-  ierr = KSPSetSolution(shell->ksp,y);CHKERRQ(ierr);
-  ierr = KSPSolve(shell->ksp);CHKERRQ(ierr);
+  ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
 
   return 0;
 }

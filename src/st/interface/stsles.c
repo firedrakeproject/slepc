@@ -35,9 +35,7 @@ int STAssociatedKSPSolve(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(b,VEC_COOKIE,2);
   PetscValidHeaderSpecific(x,VEC_COOKIE,3);
   if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
-  ierr = KSPSetRhs(st->ksp,b);CHKERRQ(ierr);
-  ierr = KSPSetSolution(st->ksp,x);CHKERRQ(ierr);
-  ierr = KSPSolve(st->ksp);CHKERRQ(ierr);
+  ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) { SETERRQ1(0,"Warning: KSP did not converge (%d)",reason); }
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  

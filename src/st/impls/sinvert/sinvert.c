@@ -115,7 +115,6 @@ static int STSetUp_Sinvert(ST st)
     ierr = KSPSetOperators(st->ksp,ctx->mat,ctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   if (st->B && !ctx->w) { ierr = VecDuplicate(st->vec,&ctx->w);CHKERRQ(ierr); } 
-  ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -160,7 +159,6 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,stctx->mat,stctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
   }
-  ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

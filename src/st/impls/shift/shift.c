@@ -48,7 +48,6 @@ static int STSetUp_Shift(ST st)
   if (st->ksp) {
     ierr = VecDuplicate(st->vec,&w);CHKERRQ(ierr);
     st->data = (void *) w;
-    ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   } 
   PetscFunctionReturn(0);
