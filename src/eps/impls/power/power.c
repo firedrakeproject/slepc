@@ -12,6 +12,8 @@ static int EPSSetUp_POWER(EPS eps)
   int      ierr;
   
   PetscFunctionBegin;
+  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+    SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

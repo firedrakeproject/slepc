@@ -16,6 +16,8 @@ static int EPSSetUp_SUBSPACE(EPS eps)
   int      ierr;
   
   PetscFunctionBegin;
+  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+    SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
