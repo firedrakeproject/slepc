@@ -35,6 +35,9 @@ static PetscErrorCode EPSdcond(PetscScalar* H,int n, PetscReal* cond)
   PetscReal      hn,hin,*rwork;
   
   PetscFunctionBegin;
+#if defined(PETSC_MISSING_LAPACK_GETRF)
+  SETERRQ(PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable.");
+#endif 
   ierr = PetscMalloc(sizeof(int)*n,&ipiv);CHKERRQ(ierr);
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
@@ -158,6 +161,9 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   int            orttol = 2;
 
   PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
+  SETERRQ(PETSC_ERR_SUP,"GEHRD,ORGHR - Lapack routines are unavailable.");
+#endif 
   eps->its = 0;
   eps->nconv = 0;
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&T);CHKERRQ(ierr);

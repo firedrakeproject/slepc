@@ -69,6 +69,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #endif
 
   PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
+  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#endif 
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&H);CHKERRQ(ierr);
   ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);

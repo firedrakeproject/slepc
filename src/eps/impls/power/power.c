@@ -55,6 +55,9 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,PetscScalar* shift)
   PetscScalar    alpha, alpha1, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
+  SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+#else 
   e = eps->work[0];
   w = eps->work[1];
   ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);

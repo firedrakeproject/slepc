@@ -190,6 +190,9 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
   char        *jobvr;
 
   PetscFunctionBegin;
+#if defined(PETSC_MISSING_LAPACK_GEEV)
+  SETERRQ(PETSC_ERR_SUP,"GEEV - Lapack routine is unavailable.");
+#endif 
   lwork    = 5*n;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(2*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
@@ -284,6 +287,9 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
   PetscReal   max,m;
   
   PetscFunctionBegin;
+#if defined(PETSC_BLASLAPACK_ESSL_ONLY)
+  SETERRQ(PETSC_ERR_SUP,"HSEQR,TREXC - Lapack routines are unavailable.");
+#endif 
 
   lwork = n;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
