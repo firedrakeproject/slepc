@@ -155,10 +155,10 @@ static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int
 #define __FUNCT__ "EPSSolve_SRRIT"
 static int EPSSolve_SRRIT(EPS eps)
 {
-  int         ierr,i,j,N,info,ilo,lwork,ngrp,nogrp,*itrsd,*itrsdold,
+  int         ierr,i,j,info,ilo,lwork,ngrp,nogrp,*itrsd,*itrsdold,
               nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv,one = 1;
   PetscTruth  true = PETSC_TRUE;
-  PetscScalar *T,*U,*tau,*work,zero = 0.0,
+  PetscScalar *T,*U,*tau,*work,
               ctr,ae,arsd,octr,oae,oarsd,tcond;
   PetscReal   *rsdold,norm;
   /* Parameters */
@@ -171,7 +171,6 @@ static int EPSSolve_SRRIT(EPS eps)
   int         orttol = 2;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   eps->its = 0;
   eps->nconv = 0;
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&T);CHKERRQ(ierr);
@@ -222,22 +221,10 @@ static int EPSSolve_SRRIT(EPS eps)
     dlaqr3_(&true,&true,&ncv,&ilo,&ncv,T,&ncv,eps->eigr,eps->eigi,&one,&ncv,U,&ncv,work,&info);
     
     /* AV(:,idx) = AV*U(:,idx) */
-    for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecSet(&zero,eps->work[i]);CHKERRQ(ierr);
-      ierr = VecMAXPY(ncv,U+ncv*i,eps->work[i],eps->AV);CHKERRQ(ierr);
-    }    
-    for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecCopy(eps->work[i],eps->AV[i]);CHKERRQ(ierr);
-    }    
+    ierr = EPSReverseProjection(eps,eps->AV,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
     
     /* V(:,idx) = V*U(:,idx) */
-    for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecSet(&zero,eps->work[i]);CHKERRQ(ierr);
-      ierr = VecMAXPY(ncv,U+ncv*i,eps->work[i],eps->V);CHKERRQ(ierr);
-    }    
-    for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecCopy(eps->work[i],eps->V[i]);CHKERRQ(ierr);
-    }    
+    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
     
     /* rsdold = rsd */
     for (i=0;i<ncv;i++) { rsdold[i] = eps->errest[i]; }

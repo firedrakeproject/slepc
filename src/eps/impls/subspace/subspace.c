@@ -33,7 +33,7 @@ static int EPSSetUp_SUBSPACE(EPS eps)
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,eps->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -89,7 +89,7 @@ static int  EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSDenseNHEP(ncv-i,H,eps->eigr+i,eps->eigi+i,S);CHKERRQ(ierr);
 
     /* update V = V S */
-    ierr = EPSReverseProjection(eps,i,ncv-i,S);CHKERRQ(ierr);
+    ierr = EPSReverseProjection(eps,eps->V,S,i,ncv-i,eps->work);CHKERRQ(ierr);
 
     /* check eigenvalue convergence */
     for (j=i;j<ncv;j++) {
