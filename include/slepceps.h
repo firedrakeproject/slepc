@@ -142,7 +142,10 @@ typedef enum { EPSPOWER_SHIFT_CONSTANT, EPSPOWER_SHIFT_RAYLEIGH,
 EXTERN PetscErrorCode EPSPowerSetShiftType(EPS,EPSPowerShiftType);
 EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
 
-typedef enum { EPSLANCZOS_ORTHOG_NONE, EPSLANCZOS_ORTHOG_FULL } EPSLanczosOrthogType;
+typedef enum { EPSLANCZOS_ORTHOG_NONE, 
+               EPSLANCZOS_ORTHOG_FULL,
+               EPSLANCZOS_ORTHOG_PERIODIC,
+               EPSLANCZOS_ORTHOG_PARTIAL } EPSLanczosOrthogType;
 
 EXTERN PetscErrorCode EPSLanczosSetOrthog(EPS,EPSLanczosOrthogType);
 EXTERN PetscErrorCode EPSLanczosGetOrthog(EPS,EPSLanczosOrthogType*);
