@@ -1157,18 +1157,24 @@ int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 -  type     - a known type of eigenvalue problem 
 
    Options Database Keys:
-+  -eps_hermitian - Hermitian eigenvalue problem (default)
++  -eps_hermitian - Hermitian eigenvalue problem
 .  -eps_gen_hermitian - generalized Hermitian eigenvalue problem
 .  -eps_non_hermitian - non-Hermitian eigenvalue problem
 -  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
     
    Note:  
-   Normally, the user need not set the EPS type, since it can be determined from
-   the information given in the EPSSetOperators call. This routine is reserved
-   for special cases such as when a nonsymmetric solver wants to be 
-   used in a symmetric problem. 
+   Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
+   (EPS_NHEP), generalized Hermitian (EPS_GHEP) and generalized non-Hermitian 
+   (EPS_GNHEP).
 
-  Level: advanced
+   This function must be used to instruct SLEPc to exploit symmetry. If no
+   problem type is specified, by default a non-Hermitian problem is assumed
+   (either standard or generalized). If the user knows that the problem is
+   Hermitian (i.e. A=A^H) of generalized Hermitian (i.e. A=A^H, B=B^H, and 
+   B positive definite) then it is recommended to set the problem type so
+   that eigensolver can exploit these properties. 
+
+   Level: basic
 
 .seealso: EPSSetOperators(), EPSSetType(), EPSType
 @*/
