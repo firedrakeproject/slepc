@@ -1034,8 +1034,9 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
 .  eps - the eigensolver context
 
    Output Parameter:
-.  error - the relative error, computed as ||Ax-kBx||/|k| where k is the 
-   eigenvalue and x is the eigenvector
+.  error - the relative error, computed as ||Ax-kBx||/|kx| where k is the 
+   eigenvalue and x is the eigenvector. 
+   If k=0 the relative error is computed as ||Ax||.
 
    Level: beginner
 
@@ -1047,9 +1048,13 @@ int EPSComputeError(EPS eps,PetscReal *error)
   Mat         A, B;
   int         i, first=1, ierr;
   PetscScalar alpha;
+  PetscReal   norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (eps->dropvectors || !eps->V) { 
+    SETERRQ(1, "Eigenvectors are not avaliable"); 
+  }
   ierr = STGetOperators(eps->OP,&A,&B);
 
   ierr = VecDuplicate(eps->vec_initial,&u); CHKERRQ(ierr);
@@ -1057,15 +1062,23 @@ int EPSComputeError(EPS eps,PetscReal *error)
   ierr = VecDuplicate(eps->vec_initial,&w); CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if( eps->eigi[i] == 0.0 ) {
+    if( eps->eigi[i] == 0.0 || 
+      PetscAbsScalar(eps->eigi[i]) < PetscAbsScalar(eps->eigr[i]*PETSC_MACHINE_EPSILON)) {
 #endif
       ierr = MatMult( A, eps->V[i], u ); CHKERRQ(ierr);
-      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
-      else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
-      alpha = -eps->eigr[i];
-      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
-      ierr = VecNorm( u, NORM_2, &error[i] ); CHKERRQ(ierr);
-      error[i] /= PetscAbsScalar(eps->eigr[i]);
+      if (PetscAbsScalar(eps->eigr[i]) < PETSC_MACHINE_EPSILON) {
+        ierr = VecNorm( u, NORM_2, &error[i]); CHKERRQ(ierr);
+        ierr = VecNorm(eps->V[i], NORM_2, &norm);CHKERRQ(ierr);
+        error[i] /= norm;
+      } else {
+        if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
+        else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
+        alpha = -eps->eigr[i];
+        ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+        ierr = VecNorm( u, NORM_2, &error[i]); CHKERRQ(ierr);
+        ierr = VecNorm(eps->V[i], NORM_2, &norm);CHKERRQ(ierr);
+        error[i] /= norm * PetscAbsScalar(eps->eigr[i]);
+      }
 #if !defined(PETSC_USE_COMPLEX)
     }
     else if( first ) {
@@ -1086,7 +1099,8 @@ int EPSComputeError(EPS eps,PetscReal *error)
       ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr);
       ierr = VecNorm( u, NORM_2, &error[i+1] ); CHKERRQ(ierr);
       error[i] = LAlapy2_( &error[i], &error[i+1] );
-      error[i] = error[i]/LAlapy2_( &eps->eigr[i], &eps->eigi[i] );
+      ierr = VecNorm(eps->V[i], NORM_2, &norm);CHKERRQ(ierr);
+      error[i] /= norm * LAlapy2_( &eps->eigr[i], &eps->eigi[i] );
       error[i+1] = error[i];
       first = 0;
     }
