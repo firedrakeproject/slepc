@@ -41,7 +41,7 @@ int main( int argc, char **argv )
 #else
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
 #endif
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,PETSC_BINARY_RDONLY,&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,PETSC_FILE_RDONLY,&viewer);CHKERRQ(ierr);
   ierr = MatLoad(viewer,MATMPIAIJ,&A);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
 
@@ -50,7 +50,7 @@ int main( int argc, char **argv )
     SETERRQ(1,"Must indicate a file name for matrix B with the -f2 option.");
   }
 
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,PETSC_BINARY_RDONLY,&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,PETSC_FILE_RDONLY,&viewer);CHKERRQ(ierr);
   ierr = MatLoad(viewer,MATMPIAIJ,&B);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
 
