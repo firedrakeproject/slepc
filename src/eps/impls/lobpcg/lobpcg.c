@@ -92,6 +92,9 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   if (!isShift) {
     SETERRQ(PETSC_ERR_SUP,"LOBPCG only works with shift spectral transformation"); 
   }
+  if (eps->which!=EPS_SMALLEST_REAL) {
+    SETERRQ(1,"Wrong value of eps->which");
+  }
   ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&lobpcg->x,&lobpcg->b);
   ierr = VecHYPRE_IJVectorCreate(lobpcg->x,&lobpcg->ijx);
@@ -209,6 +212,7 @@ PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   eps->ops->destroy              = EPSDestroy_LOBPCG;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
+  eps->which = EPS_SMALLEST_REAL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
