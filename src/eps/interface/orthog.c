@@ -52,7 +52,7 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0 || breakdown) { 
-      PetscLogInfo(eps,"EPSQRDecomposition: Zero vector found, generating a new random vector\n" );
+      PetscLogInfo(eps,"EPSQRDecomposition: Linearly dependent vector found, generating a new random vector\n" );
       ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
       ierr = STNorm(eps->OP,V[k],&norm);CHKERRQ(ierr);
     }

@@ -1,7 +1,36 @@
-
 /*                       
-       This implements the power iteration for finding the eigenpair
-       corresponding to the eigenvalue with largest magnitude.
+
+   SLEPc eigensolver: "power"
+
+   Method: Power Iteration
+
+   Description:
+
+       This solver implements the power iteration for finding dominant
+       eigenpairs. It also includes the following well-known methods:
+       - Inverse Iteration: when used in combination with shift-and-invert
+         spectral transformation.
+       - Rayleigh Quotient Iteration (RQI): also with shift-and-invert plus
+         a variable shift.
+
+   Algorithm:
+
+       The implemented algorithm is the simple power iteration working with
+       OP, the operator provided by the ST object. Converged eigenpairs are
+       deflated by restriction, so that several eigenpairs can be sought. 
+       Symmetry is preserved in symmetric definite pencils. See the SLEPc
+       users guide for details.
+
+       Variable shifts can be used. There are two possible strategies for
+       updating shift: Rayleigh quotients and Wilkinson shifts.
+
+   References:
+
+       [1] B.N. Parlett, "The Symmetric Eigenvalue Problem", SIAM Classics in 
+       Applied Mathematics (1998), pp 61-80 and 159-165.
+
+   Last update: June 2004
+
 */
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
@@ -45,6 +74,11 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPowerUpdateShift"
+/*
+   EPSPowerUpdateShift - Computes the new shift to be used in the next
+   iteration of the power method. This function is invoked only when using
+   the option of variable shifts (see EPSPowerSetShiftType).
+*/
 static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,PetscScalar* shift)
 {
   PetscErrorCode ierr;
@@ -58,19 +92,28 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,PetscScalar* shift)
   e = eps->work[0];
   w = eps->work[1];
   ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+
+  /* compute the Rayleigh quotient R(v) assuming v is B-normalized */
   ierr = MatMult(A,v,e);CHKERRQ(ierr);
   ierr = VecDot(v,e,&alpha1);CHKERRQ(ierr);
+
+  /* in the case of Wilkinson the shift is improved */
   if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
     SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #endif 
+    /* beta1 is the norm of the residual associated to R(v) */
     alpha = -alpha1;
     ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
     ierr = STNorm(eps->OP,e,&norm);CHKERRQ(ierr);
     beta1 = norm;
+    
+    /* alfa2 = (e'*A*e)/(beta1*beta1), where e is the residual */
     ierr = MatMult(A,e,w);CHKERRQ(ierr);
     ierr = VecDot(e,w,&alpha2);CHKERRQ(ierr);
     alpha2 = alpha2 / (beta1 * beta1);
+
+    /* choose the eigenvalue of [alfa1 beta1; beta1 alfa2] closest to alpha1 */
     LAlaev2_(&alpha1,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
     if (PetscAbsScalar(rt1-alpha1) < PetscAbsScalar(rt2-alpha1)) {
       *shift = rt1;
@@ -90,7 +133,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
   int            i;
-  Vec            v, y, e, w;
+  Vec            v, y, e;
   PetscReal      relerr, norm;
   PetscScalar    theta, alpha, rho;
 
@@ -98,7 +141,6 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   v = eps->V[0];
   y = eps->AV[0];
   e = eps->work[0];
-  w = eps->work[1];
 
   ierr = VecCopy(eps->vec_initial,y);CHKERRQ(ierr);
 
@@ -123,7 +165,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     /* y = OP v */
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
 
-    /* theta = v^* y */
+    /* theta = (y,v)_B */
     ierr = STInnerProduct(eps->OP,y,v,&theta);CHKERRQ(ierr);
 
     /* compute residual norm */
@@ -137,7 +179,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     /* update eigenvalue and shift */
     if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
         ierr = EPSPowerUpdateShift(eps,v,&rho);CHKERRQ(ierr);
-        /* do not update if rho is close to an eigenvalue */
+        /* change the shift only if rho is not too close to an eigenvalue */
         if (relerr > 1000*eps->tol) {
           ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
         }
@@ -346,3 +388,4 @@ PetscErrorCode EPSCreate_POWER(EPS eps)
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
+

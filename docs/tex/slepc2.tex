@@ -211,21 +211,19 @@ which can also be specified at the command line. This criterion is used both for
 
 	The available methods for solving the eigenvalue problems are the following:
 \begin{itemize}
-\item Power Iteration with deflation. When combined with shift-and-invert (see chapter \ref{cap:st}), it is equivalent to the Inverse Iteration.
-\item Rayleigh Quotient Iteration (RQI).
-\item Subspace Iteration with non-Hermitian projection and locking.
+\item Power Iteration with deflation. When combined with shift-and-invert (see chapter \ref{cap:st}), it is equivalent to the Inverse Iteration. Also, this solver embeds the Rayleigh Quotient Iteration (RQI) by allowing variable shifts.
+\item Subspace Iteration with Rayleigh-Ritz projection and locking.
 \item Arnoldi method with explicit restart and deflation.
 %\item Lanczos method with full reorthogonalization.
 \end{itemize}
-A detailed description of the implemented algorithms is included in appendix \ref{cap:meth} of this manual.
+The default solver is Arnoldi. A detailed description of the implemented algorithms is included in appendix \ref{cap:meth} of this manual.
 
 \begin{table}[t]
 \centering
 {\small \begin{tabular}{lll}
                            &                      & {\footnotesize Options} \\
 Method                     & \ident{EPSType}      & {\footnotesize Database Name}\\\hline
-Power Method / Inverse Iteration & \texttt{EPSPOWER}    & \texttt{power} \\
-Rayleigh Quotient Iteration& \texttt{EPSRQI}      & \texttt{rqi} \\
+Power / Inverse / RQI      & \texttt{EPSPOWER}    & \texttt{power} \\
 Subspace Iteration         & \texttt{EPSSUBSPACE} & \texttt{subspace} \\
 Arnoldi Method             & \texttt{EPSARNOLDI}  & \texttt{arnoldi} \\
 Wrapper to \arpack         & \texttt{EPSARPACK}   & \texttt{arpack} \\
@@ -238,7 +236,7 @@ Wrapper to \trlan          & \texttt{EPSTRLAN}    & \texttt{trlan} \\\hline
 \end{table}
 
 
-In addition to these methods, \slepc provides also wrappers to external packages such as \arpack, \blzpack, \planso, or \trlan. A complete list of this interfaces can be found in section \ref{sec:wrap}.
+In addition to these methods, \slepc also provides wrappers to external packages such as \arpack, \blzpack, \planso, or \trlan. A complete list of these interfaces can be found in section \ref{sec:wrap}.
 
 The solution method can be specified procedurally or via the command line. The application programmer can set it by means of the command
 	\findex{EPSSetType}
@@ -247,7 +245,6 @@ The solution method can be specified procedurally or via the command line. The a
 	\end{Verbatim}
 where \texttt{method} can be one of 
 \texttt{EPSPOWER}, 
-\texttt{EPSRQI},
 \texttt{EPSSUBSPACE},
 \texttt{EPSARNOLDI},
 \texttt{EPSARPACK},

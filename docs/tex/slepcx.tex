@@ -227,7 +227,6 @@ Each of these components consists of an abstract interface (simply a set of call
 \begin{tabular}{cccc} \hline
 Method   & \texttt{ncv} & \texttt{max\_it} & \texttt{tol} \\ \hline
 \texttt{power}    &  1 & $\max(2000,100N)$ & $10^{-7}$ \\ 
-\texttt{rqi}      &  1 & $\max(100,N)$ & $10^{-7}$ \\ 
 \texttt{subspace} &  $\max(2\cdot nev,nev+8)$ & $\max(100,N)$ & $10^{-7}$ \\ 
 \texttt{arnoldi}  &  $\max(2\cdot nev,nev+8)$ & $\max(100,N)$ & $10^{-7}$ \\ 
 %\texttt{lanczos}  &  1 & $\max(2000,1000N)$ & $10^{-7}$ \\ 
@@ -239,60 +238,36 @@ Method   & \texttt{ncv} & \texttt{max\_it} & \texttt{tol} \\ \hline
 
 \section{\ident{power}}
 
-The Power Method is the simplest vector iteration method. It consists in premultiplying an initial vector by matrix $A$ repeatedly. 
-%Assuming that $A$ is simple, i.e., the $n$ eigenvectors $\{x_1,x_2,\ldots,x_n\}$ form a full basis of $\Co^n$, any vector $v_0\in\Co^n$ can be written as a linear combination of these vectors,
-%\begin{equation}
-%\label{eq:vinicial}
-%v_0=c_1x_1+c_2x_2+\cdots+c_nx_n\;\;.
-%\end{equation}
-%	If $\{\lambda_1,\lambda_2,\ldots,\lambda_n\}$ are the associated eigenvalues, then
-%\begin{eqnarray}
-%A^kv_0 &=& c_1A^kx_1+c_2A^kx_2+\cdots+c_nA^kx_n \\
-%       &=& c_1\lambda_1^kx_1+c_2\lambda_2^kx_2+\cdots+c_n\lambda_n^kx_n \\
-%       &=& \lambda_1^k\left[c_1x_1+c_2\left(\frac{\lambda_2}{\lambda_1}\right)^kx_2+\cdots+c_n\left(\frac{\lambda_n}{\lambda_1}\right)^kx_n\right]\;\;.
-%\end{eqnarray}
-%	Suppose that $A$ has a dominant eigenvalue, that is, $|\lambda_1|>|\lambda_i|$, then the quotient $\left(\lambda_i/\lambda_1\right)^k\rightarrow 0$ as $k\rightarrow\infty$, for $i>1$. Therefore,
-%\begin{equation}
-%\lim_{k\rightarrow\infty}\frac{A^kv_0}{\lambda_1^k}=c_1x_1\;\;.
-%\end{equation}
-%This property is the basis of the Power Method, shown in algorithm \ref{alg:pot}, which introduces a normalization. 
-Note that this technique can sometimes fail in the case of general matrices or when the dominant eigenvalue is not unique.
+This eigensolver covers several well-known single-vector iteration methods such as the Power Iteration, the Inverse Iteration and the Rayleigh Quotient Iteration.
+
+When using the default spectral transformation (\ident{STSHIFT}), this solver provides an implementation of the Power Iteration. This is the simplest vector iteration method. It consists in premultiplying an initial vector by matrix $A$ repeatedly. Under certain conditions, the iteration converges to the dominant eigenvector (the one associated to the largest eigenvalue in magnitude). Then the approximate eigenvalue can be obtained by computing the Rayleigh quotient. Once an eigenvector has converged, deflation can be used to reveal the next ones. Note that this method will fail in the case that there is no unique dominant eigenvalue. Convergence can be very slow if separation of the dominant eigenvalue with the rest is small.
 
 \begin{algorithm}[Basic Power Method\label{alg:pot}]~\rm
 \begin{tabbing}
-Input: Matrix $A$ and initial vector $v_0$\\
-Output: Approximated dominant eigenpair $(\theta,v)$ \\
+Input: Operator $O\!P$ and initial vector $v_0$\\
+Output: Approximate dominant eigenpairs $(\theta,v)$ \\
 xxxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
-\> Set $z=v_0$\\
-\> For $k=1,2,\ldots,p$\\
-\> \> $v=z/\|z\|_2$ \\
-\> \> $z=O\!Pv$ \\
-\> \> $\theta=v^Hz$ \\
+\> Set $y=v_0$\\
+\> For $k=1,2,\ldots$\\
+\> \> Deflate previously converged eigenvectors \\
+\> \> $v=y/\|y\|_B$ \\
+\> \> $y=O\!Pv$ \\
+\> \> $\theta=(y,v)_B$ \\
+\> \> if $\|y-\theta v\|_2 < |\theta| \cdot \mathrm{tol}$, accept eigenpair \\
 \> end
 \end{tabbing}
 \end{algorithm}
 In the algorithm above, matrix $O\!P$ represents the operator, which can be any of the expressions in table \ref{tab:op}. Thus, the algorithm can be converted to the Inverse Iteration by simply specifying the \texttt{sinvert} transformation.
-%---------------------------------------------------
-\section{\ident{rqi}}
 
-The Rayleigh Quotient Iteration is similar to the Power Iteration, but with a variable shift, $\rho_k$. This \texttt{EPS} method can only be used in combination with the \texttt{sinvert} transformation.
-\begin{algorithm}[RQI, Rayleigh Quotient Iteration\label{alg:rqi}]~\rm
-\begin{tabbing}
-Input: Matrix $A$ and initial vector $v_0$\\
-Output: Approximated dominant eigenpair $(\theta,y)$ \\
-xxxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
-\> Set $v=v_0$\\
-\> $w=Bv$\\
-\> Normalize $v$ and $w$\\
-\> For $k=1,2,\ldots,p$\\
-\> \> $y=O\!Pw,\quad\theta=w^Hy$ \\
-\> \> $w=By,\quad\eta=\|y\|_B$ \\
-\> \> Normalize $y$ and $w$\\
-\> \> $\rho_{k+1}=\rho_k+\theta/\eta^2$ \\
-\> \> if $\theta>tol^{-1/2}$, stop\\
-\> end
-\end{tabbing}
-\end{algorithm}
+The Inverse Iteration works with a constant shift, that is, the operator is $(A-\sigma B)^{-1}B$ throughout the iteration. However, it is possible to change this behaviour by requesting the use of \emph{variable} shifts. There are two possibilities: Rayleigh shifts and Wilkinson shifts. This option can be changed with the command-line option \Verb!-eps_power_shift_type! or specified in the program source with the function \ident{EPSPowerSetShiftType}. 
+
+The first alternative (\ident{rayleigh}) results in the well-known Rayleigh Quotient Iteration (RQI), where the new shift $\rho_k$ is computed as the Rayleigh quotient of the current approximate eigenvector $v$
+\begin{equation}
+\rho_k=R(v)=\frac{(Av,v)}{(Bv,v)}
+\end{equation}
+This strategy leads to cubic convergence. Note that changing the shift may imply refactorization of matrix $(A-\rho_k B)$.
+
+The second alternative (\ident{wilkinson}) uses a more sophisticated formula for the shift.
 
 %---------------------------------------------------
 \section{\ident{subspace}}

@@ -347,9 +347,9 @@ PetscErrorCode STPostSolve(ST st,EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform"
-/*
-   STBackTransform - Optional back-transformation phase, intended for 
-   spectral transformation which require to transform the computed 
+/*@
+   STBackTransform - Back-transformation phase, intended for 
+   spectral transformations which require to transform the computed 
    eigenvalues back to the original eigenvalue problem.
 
    Collective on ST
