@@ -225,7 +225,7 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->orthog          = EPSClassicalGramSchmidtOrthogonalization;
   eps->orth_type       = EPS_CGS_ORTH;
-  eps->orth_eta        = 0.7;
+  eps->orth_eta        = 0.7071;
 
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
   PetscLogObjectParent(eps,eps->OP);
