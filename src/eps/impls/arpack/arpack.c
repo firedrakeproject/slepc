@@ -244,7 +244,7 @@ int EPSDestroy_ARPACK(EPS eps)
   int         ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (ar->workev) { ierr = PetscFree(ar->workev);CHKERRQ(ierr); }
   if (ar->workl)  { ierr = PetscFree(ar->workl);CHKERRQ(ierr); }
   if (ar->select) { ierr = PetscFree(ar->select);CHKERRQ(ierr); }
