@@ -125,6 +125,7 @@ static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,k,V,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     if (j == 0) {
       ierr = EPSOrthogonalize(eps,1,V,V[1],T,&norm,&breakdown);CHKERRQ(ierr);
     } else {
@@ -290,7 +291,14 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     abstol = 0.0;
     LAstegr_("V","A",&n,D,E,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,
              &abstol,&m,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEGR %i",info);
+    if (info) {
+       for (i=0;i<n;i++) {
+         ritz[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
+         E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
+       }
+       LAsteqr_("V",&n,ritz,E,Y,&n,work,&info,1);
+       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
+    }
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     anorm = 0;
@@ -348,7 +356,7 @@ PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("LANCZOS options");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-eps_lanczos_orthog","Reorthogonalization type","EPSPowerSetShiftType",list,2,list[lanczos->reorthog],(int*)&lanczos->reorthog,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-eps_lanczos_orthog","Reorthogonalization type","EPSLanczosSetOrthog",list,2,list[lanczos->reorthog],(int*)&lanczos->reorthog,&flg);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
