@@ -207,7 +207,7 @@ specifies some additional options for the solution of this linear system. In par
 		  -st_matmode shell
 \end{Verbatim}
 	As always, the procedural equivalent is also available for specifying this option in the code of the program:
-	\findex{STSinvertSetMatMode}
+	\findex{STSetMatMode}
 	\begin{Verbatim}[fontsize=\small]
 	STSetMatMode(ST st,STMatMode mode);
 	\end{Verbatim}
@@ -216,7 +216,7 @@ specifies some additional options for the solution of this linear system. In par
 	
 	The second approach (``\Verb!inplace!'') can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} can be very inefficient. 
 If the user knows that the pattern is the same (or a subset), then this can be specified with the function
-	\findex{STSinvertSetMatStructure}
+	\findex{STSetMatStructure}
 	\begin{Verbatim}[fontsize=\small]
 	STSetMatStructure(ST st,MatStructure str);
 	\end{Verbatim}
