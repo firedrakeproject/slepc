@@ -73,12 +73,10 @@ PetscErrorCode STApplyB(ST st,Vec x,Vec y)
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
-  /*
   if (x->id == st->xid && x->state == st->xstate) {
     ierr = VecCopy(st->Bx, y);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  */
 
   ierr = PetscLogEventBegin(ST_ApplyB,st,x,y,0);CHKERRQ(ierr);
   ierr = (*st->ops->applyB)(st,x,y);CHKERRQ(ierr);
