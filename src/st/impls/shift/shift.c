@@ -17,11 +17,12 @@ int STApply_Shift(ST st,Vec x,Vec y)
     w = (Vec) st->data;
     ierr = MatMult(st->A,x,w);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,w,y);CHKERRQ(ierr);
-    ierr = VecAXPY(&st->sigma,x,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A + sI) x */
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
+  }
+  if (st->sigma != 0) {
     ierr = VecAXPY(&st->sigma,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
