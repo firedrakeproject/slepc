@@ -462,7 +462,7 @@ EXTERN_C_END
 -  nsteps  - maximum number of steps
 
    Options Database Key:
-.  -eps_blzpack_nsteps - Sets the bounds of the interval 
+.  -eps_blzpack_nsteps - Sets the maximum number of steps per run
 
    Level: advanced
 
