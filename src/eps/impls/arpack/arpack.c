@@ -46,10 +46,12 @@ static int EPSSetDefaults_ARPACK(EPS eps)
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
+    if (eps->ncv>N) SETERRQ(1,"The value of ncv cannot be larger than N"); 
   }
-  else eps->ncv = PetscMax(6,2*eps->nev+1);
-  if (eps->ncv>N) SETERRQ(1,"The value of ncv cannot be larger than N"); 
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
+  else /* set default value of ncv */
+    eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
+
+  if (!eps->max_it) eps->max_it = PetscMax(300,ceil(2*N/eps->ncv));
   if (!eps->tol) eps->tol = 1.e-7;
   PetscFunctionReturn(0);
 }
