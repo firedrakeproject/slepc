@@ -4,6 +4,42 @@
 */
 #include "src/eps/impls/blzpack/blzpackp.h"   /*I "slepceps.h" I*/
 
+const char* blzpack_error[33] = {
+  "",
+  "illegal data, LFLAG ",
+  "illegal data, dimension of (U), (V), (X) ",
+  "illegal data, leading dimension of (U), (V), (X) ",
+  "illegal data, leading dimension of (EIG) ",
+  "illegal data, number of required eigenpairs ",
+  "illegal data, Lanczos algorithm block size ",
+  "illegal data, maximum number of steps ",
+  "illegal data, number of starting vectors ",
+  "illegal data, number of eigenpairs provided ",
+  "illegal data, problem type flag ",
+  "illegal data, spectrum slicing flag ",
+  "illegal data, eigenvectors purification flag ",
+  "illegal data, level of output ",
+  "illegal data, output file unit ",
+  "illegal data, LCOMM (MPI or PVM) ",
+  "illegal data, dimension of ISTOR ",
+  "illegal data, convergence threshold ",
+  "illegal data, dimension of RSTOR ",
+  "illegal data on at least one PE ",
+  "ISTOR(3:14) must be equal on all PEs ",
+  "RSTOR(1:3) must be equal on all PEs ",
+  "not enough space in ISTOR to start eigensolution ",
+  "not enough space in RSTOR to start eigensolution ",
+  "illegal data, number of negative eigenvalues ",
+  "illegal data, entries of V ",
+  "illegal data, entries of X ",
+  "failure in computational subinterval ",
+  "file I/O error, blzpack.__.BQ ",
+  "file I/O error, blzpack.__.BX ",
+  "file I/O error, blzpack.__.Q ",
+  "file I/O error, blzpack.__.X ",
+  "parallel interface error "
+};
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_BLZPACK"
 static int EPSSetUp_BLZPACK(EPS eps)
@@ -177,7 +213,13 @@ static int  EPSSolve_BLZPACK(EPS eps)
     for( i=0; i<eps->nconv; i++ ) 
 	    eps->eigr[i] = 1.0 / (eps->eigr[i] - sigma);
   }
-  if (lflag!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in BLZPACK (code=%d)",blz->istor[15]); }
+  if (lflag!=0) { 
+    char msg[2048] = "";
+    for (i = 0; i < 33; i++) {
+      if (blz->istor[15] & (1 << i)) strcat(msg, blzpack_error[i]);
+    }
+    SETERRQ2(PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15], msg); 
+  }
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
 
