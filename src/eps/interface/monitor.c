@@ -18,11 +18,13 @@
              monitor routine (use PETSC_NULL if no context is desired)
 
    Calling Sequence of monitor:
-$     monitor (EPS eps, int its, int nconv, PetscReal* errest, int nest, void *mctx)
+$     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi, PetscReal* errest, int nest, void *mctx)
 
 +  eps    - eigensolver context obtained from EPSCreate()
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates for each eigenpair
 .  nest   - number of error estimates
 -  mctx   - optional monitoring context, as set by EPSSetMonitor()

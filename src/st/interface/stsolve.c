@@ -140,7 +140,7 @@ PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
 -  x  - input vector
 
    Output Parameter:
-+  norm - the computed norm
+.  norm - the computed norm
 
    Notes:
    This function will usually compute the 2-norm of a vector, ||x||_2. But
@@ -193,7 +193,7 @@ PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
 -  y  - input vector
 
    Output Parameter:
-+  p - result of the inner product
+.  p - result of the inner product
 
    Notes:
    This function will usually compute the standard dot product of vectors
