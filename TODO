@@ -47,9 +47,6 @@ TODO
 
   b. Estructurar mejor la información que sacan los monitores por defecto.
 
-  c. Monitores gráficos: gráfica del error estimado o de la convergencia de
-     los valores de Ritz.
-
 (09) Test de convergencia
 
   a. Implementar una rutina ComputeRitzError análoga a EPSComputeRelativeError

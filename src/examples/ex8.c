@@ -22,6 +22,15 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
               |                  -1  1  1 |
               |                     -1  1 |
 
+   Note that working with A^T*A can lead to poor accuracy of the computed
+   singular values when A is ill-conditioned (which is not the case here).
+   Another alternative would be to compute the eigenvalues of
+
+              |  0   A |
+              | A^T  0 |
+
+   but this significantly increases the cost of the solution process.
+
  */
 
 
