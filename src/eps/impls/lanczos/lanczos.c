@@ -189,7 +189,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
                  lwork=18*ncv,
                  liwork=10*ncv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *T=eps->T,*Y,ts;
+  PetscScalar    *T=eps->T,*Y,*W,ts;
   PetscReal      *ritz,*bnd,*D,*E,*work,norm,anorm,beta,abstol;
 
   PetscFunctionBegin;
@@ -199,6 +199,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&W);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&D);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&E);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ncv*sizeof(int),&isuppz);CHKERRQ(ierr);
@@ -240,7 +241,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
     }
 
-    /* Compute eigenvalues W and eigenvectors Y of the tridiagonal block */
+    /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
     abstol = 0.0;
     LAstegr_("V","A",&n,D,E,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,
              &abstol,&m,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
@@ -249,23 +250,23 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     anorm = 0;
     for (i=0;i<n;i++) {
-      if (ritz[i] > anorm) anorm = ritz[i];
+      if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
       bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]);
     }
     ierr = RefineBounds(n,ritz,bnd,eps->tol,eps->tol*anorm*N);CHKERRQ(ierr);
     
-    /* reverse order of ritz values and caculate relateive error bounds */
+    /* Reverse order of Ritz values and calculate relative error bounds */
     for (i=0;i<n;i++) {
       eps->eigr[ncv-i-1] = ritz[i];
       eps->errest[ncv-i-1] = bnd[i] / ritz[i];
     }
 
     /* Update V(:,idx) = V*Y(:,idx) */
-    ierr = PetscMemzero(T,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(W,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n;i++) 
       for (j=0;j<n;j++) 
-          T[i+nconv+(j+nconv)*ncv] = Y[i+(n-j-1)*n];
-    ierr = EPSReverseProjection(eps,eps->V,T,nconv,ncv,eps->work);CHKERRQ(ierr);
+          W[i+nconv+(j+nconv)*ncv] = Y[i+(n-j-1)*n];
+    ierr = EPSReverseProjection(eps,eps->V,W,nconv,ncv,eps->work);CHKERRQ(ierr);
 
     /* Look for converged eigenpairs */
     while (nconv<ncv && eps->errest[nconv]<eps->tol) nconv++;
@@ -283,6 +284,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(ritz);CHKERRQ(ierr);
   ierr = PetscFree(bnd);CHKERRQ(ierr);
   ierr = PetscFree(Y);CHKERRQ(ierr);
+  ierr = PetscFree(W);CHKERRQ(ierr);
   ierr = PetscFree(D);CHKERRQ(ierr);
   ierr = PetscFree(E);CHKERRQ(ierr);
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
