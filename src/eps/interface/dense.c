@@ -330,8 +330,8 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
          /* complex eigenvalue */
          wr[j] = H[j*n+j];
          wr[j+1] = H[j*n+j];
-         wi[j] = sqrt(PetscAbsScalar(H[j*n+j+1])) *
-                 sqrt(PetscAbsScalar(H[(j+1)*n+j]));
+         wi[j] = sqrt(PetscAbsReal(H[j*n+j+1])) *
+                 sqrt(PetscAbsReal(H[(j+1)*n+j]));
          j++;
        }
      }
