@@ -14,6 +14,7 @@ struct _EPSOps {
   int  (*publishoptions)(EPS);
   int  (*destroy)(EPS);
   int  (*view)(EPS,PetscViewer);
+  int  (*backtransform)(EPS);
 };
 
 /*
@@ -93,6 +94,6 @@ extern int EPSDefaultGetWork(EPS,int);
 extern int EPSDefaultFreeWork(EPS);
 extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscReal*);
 extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscReal*);
-extern int EPSIROrthogonalization(EPS,int,PetscScalar*);
+extern int EPSBackTransform_Default(EPS);
 
 #endif

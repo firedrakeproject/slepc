@@ -104,8 +104,6 @@ static int  EPSSolve_ARPACK(EPS eps)
   }
   else iparam[6] = eps->isgeneralized? 2: 1;
  
-  for(;;) {
-
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
       switch(eps->which) {
@@ -115,13 +113,8 @@ static int  EPSSolve_ARPACK(EPS eps)
         case EPS_SMALLEST_REAL:      which = "SA"; break;
         default: SETERRQ(1,"Wrong value of eps->which");
       }
-      ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
-                resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
-                ar->workl, &ar->lworkl, &info, 1, 2 );
-      EPSMonitorEstimates(eps,iparam[2],iparam[4],&ar->workl[ipntr[6]-1],eps->ncv); 
-      EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],PETSC_NULL,eps->ncv); 
-    }
-    else {
+    } else {
+#endif
       switch(eps->which) {
         case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
         case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
@@ -131,6 +124,21 @@ static int  EPSSolve_ARPACK(EPS eps)
         case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
         default: SETERRQ(1,"Wrong value of eps->which");
       }
+#if !defined(PETSC_USE_COMPLEX)
+    }
+#endif
+
+  for(;;) {
+
+#if !defined(PETSC_USE_COMPLEX)
+    if (eps->ishermitian) {
+      ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
+                resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+                ar->workl, &ar->lworkl, &info, 1, 2 );
+      EPSMonitorEstimates(eps,iparam[2],iparam[4],&ar->workl[ipntr[6]-1],eps->ncv); 
+      EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],PETSC_NULL,eps->ncv); 
+    }
+    else {
       ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
@@ -138,16 +146,6 @@ static int  EPSSolve_ARPACK(EPS eps)
       EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],eps->ncv); 
     }
 #else
-    switch(eps->which) {
-      case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
-      case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
-      case EPS_LARGEST_REAL:       which = "LR"; break;
-      case EPS_SMALLEST_REAL:      which = "SR"; break;
-      case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
-      case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
-      default: SETERRQ(1,"Wrong value of eps->which");
-    }
-
     ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
@@ -228,10 +226,6 @@ static int  EPSSolve_ARPACK(EPS eps)
 
   if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
 
-  if(isSinv) {
-    for( i=0; i<eps->nconv; i++ ) 
-	    eps->eigr[i] = 1.0 / (eps->eigr[i] - sigmar);
-  }
   ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);
   ierr = VecRestoreArray( eps->vec_initial, &resid ); CHKERRQ(ierr);
   eps->reason = EPS_CONVERGED_TOL;
@@ -244,6 +238,26 @@ static int  EPSSolve_ARPACK(EPS eps)
 
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBackTransform_ARPACK"
+int EPSBackTransform_ARPACK(EPS eps)
+{
+  ST          st;
+  int         ierr,i;
+  PetscTruth  isSinv;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)st,STSINV,&isSinv);CHKERRQ(ierr);
+  if (!isSinv)
+    for (i=0;i<eps->nconv;i++) {
+      ierr = STBackTransform(st,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
+    }
 
   PetscFunctionReturn(0);
 }
@@ -286,6 +300,7 @@ int EPSCreate_ARPACK(EPS eps)
   eps->ops->solve                = EPSSolve_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
   eps->ops->view                 = 0;
+  eps->ops->backtransform        = EPSBackTransform_ARPACK;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -188,7 +188,23 @@ int EPSSolve(EPS eps)
 
   /* Map eigenvalues back to the original problem, necessary in some 
   * spectral transformations */
-  ierr = EPSBackTransform(eps);CHKERRQ(ierr);
+  ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
+
+#ifndef PETSC_USE_COMPLEX
+  /* reorder conjugate eigenvalues (positive imaginary first) */
+  for (i=0; i<eps->nconv; i++) {
+    printf("%i %f %f\n", i, eps->eigr[i],eps->eigi[i]);
+    PetscScalar minus = -1.0;
+    if (eps->eigi[i] != 0) {
+      if (eps->eigi[i] < 0) {
+        eps->eigi[i] = -eps->eigi[i];
+        eps->eigi[i+1] = -eps->eigi[i+1];
+        ierr = VecScale(&minus, eps->V[i+1]); CHKERRQ(ierr);
+      }
+      i++;
+    }
+  }
+#endif
 
   /* sort eigenvalues according to eps->which parameter */
   if (eps->nconv > 0) {
@@ -1628,21 +1644,8 @@ int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonal
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSBackTransform"
-/*@
-   EPSBackTransform - Transforms all the computed eigenvalues back to
-   the solution of the original problem.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigensolver context 
-
-   Level: developer
-
-.seealso: STBackTransform()
-@*/
-int EPSBackTransform(EPS eps)
+#define __FUNCT__ "EPSBackTransform_Default"
+int EPSBackTransform_Default(EPS eps)
 {
   ST          st;
   int         ierr,i;

@@ -114,7 +114,6 @@ typedef enum {/* converged */
 
 extern int EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
-extern int EPSBackTransform(EPS);
 extern int EPSComputeExplicitOperator(EPS,Mat*);
 extern int EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,int,int*);
 extern int EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);

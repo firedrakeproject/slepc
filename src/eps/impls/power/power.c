@@ -155,6 +155,7 @@ int EPSCreate_POWER(EPS eps)
   eps->ops->solve                = EPSSolve_POWER;
   eps->ops->destroy              = EPSDefaultDestroy;
   eps->ops->view                 = 0;
+  eps->ops->backtransform        = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
