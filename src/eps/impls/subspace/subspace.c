@@ -72,6 +72,7 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"GETRF,GETRI - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;

@@ -39,6 +39,7 @@
 PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEEVX)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"GEEVX - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
@@ -105,6 +106,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
 {
 #if defined(SLEPC_MISSING_LAPACK_GGEVX)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"GGEVX - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
@@ -186,6 +188,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
 PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYEVR) || defined(SLEPC_MISSING_LAPACK_HEEVR)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"DSYEVR/ZHEEVR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
@@ -252,6 +255,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
 PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYGVD) || defined(SLEPC_MISSING_LAPACK_HEGVD)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"DSYGVD/ZHEGVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
@@ -333,6 +337,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_HSEQR)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
@@ -410,6 +415,7 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,PetscScalar *Z,PetscScal
 PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
   int i,j,ifst,ilst,info,maxpos;

@@ -435,6 +435,7 @@ static PetscErrorCode RefineBounds(int n,PetscReal *ritz,PetscReal *bnd,PetscRea
 PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
 #if defined(SLEPC_MISSING_LAPACK_STEQR)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"STEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;

@@ -196,6 +196,7 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
 PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
+  PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
