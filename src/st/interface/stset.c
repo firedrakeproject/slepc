@@ -168,9 +168,7 @@ int STSetFromOptions(ST st)
       ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
     }
 
-    if (st->numberofshifts>0) {
-      ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&st->sigma,PETSC_NULL); CHKERRQ(ierr);
-    }
+    ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&st->sigma,PETSC_NULL); CHKERRQ(ierr);
 
     ierr = PetscOptionsEList("-st_matmode", "Shift matrix mode","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
     if (flg) { st->shift_matrix = (STMatMode)i; }
@@ -185,7 +183,7 @@ int STSetFromOptions(ST st)
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (st->ksp) {   
-    if (mode == STMATMODE_SHELL) {
+    if (st->shift_matrix == STMATMODE_SHELL) {
       /* if shift_mat is set then the default preconditioner is ILU,
          otherwise set Jacobi as the default */
       ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
