@@ -19,7 +19,7 @@ PETSC_EXTERN_CXX_BEGIN
 #define SLEPC_FORTRAN(lcase,ucase) lcase
 #endif
 
-#if defined(PETSC_BLASLAPACK_F2C)
+#if defined(PETSC_BLASLAPACK_UNDERSCORE)
 
 #if !defined(PETSC_USE_COMPLEX)
 /* real numbers */
