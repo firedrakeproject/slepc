@@ -296,7 +296,7 @@ The second alternative (\Verb!wilkinson!) uses a more sophisticated formula for 
 
 The Subspace Iteration method is a generalization of the Power Method to $m$ initial vectors. Ortogonality of vectors is enforced in order to avoid linear dependence.
 
-The implementation currently available in \slepc is based on SRRIT \citep{Bai:1997:ASF}. It performs a Rayleigh-Ritz projection procedure in order to improve convergence. Deflation is handled by locking converged eigenvectors. For better performance, orthogonalization and projection are performed only when necessary.
+The implementation currently available in \slepc is based on \srrit \citep{Bai:1997:ASF}. It performs a Rayleigh-Ritz projection procedure in order to improve convergence. Deflation is handled by locking converged eigenvectors. For better performance, orthogonalization and projection are performed only when necessary.
 
 \begin{algorithm}[Subspace Iteration\label{alg:sub}]~\rm
 \begin{tabbing}
@@ -342,7 +342,7 @@ Output: A partial Schur decomposition $O\!P\,V=VH$ \\
 xxxx\=xxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
 \> Normalize $v_1$\\
 \> Restart loop\\
-\> \> Compute an $ncv$-step Arnoldi factorization (algoritm \ref{alg:basicarn})\\
+\> \> Compute an $ncv$-step Arnoldi factorization (algorithm \ref{alg:basicarn})\\
 \> \> Reduce $H$ to (quasi-)triangular form, $H\leftarrow UHU^T$\\
 \> \> Compute eigenvectors of $H$, $Hy_i=y_i\theta_i$ \\
 \> \> Compute residual norm estimates, $\tau_i=\beta |e_m^Ty_i|$ \\
