@@ -17,14 +17,13 @@ extern int MatMarkovModel( int m, Mat A );
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Vec         *x;              /* basis vectors */
   Vec         v0;              /* initial vector */
   Mat         A;               /* operator matrix */
   EPS         eps;             /* eigenproblem solver context */
   EPSType     type;
-  PetscReal   *error, tol;
-  PetscScalar *kr, *ki;
-  int         N, M, m=15, nev, ierr, maxit, i, its, nconv;
+  PetscReal   error, tol;
+  PetscScalar kr, ki;
+  int         N, M, m=15, nev, ierr, maxit, i, its, nconv,nconvi;
   PetscScalar alpha;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -95,38 +94,43 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* 
-     Get number of converged eigenpairs
+     Get number of converged approximate eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv,&nconvi);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv+2*nconvi);
+         CHKERRQ(ierr);
 
-  if (nconv>0) {
-    /* 
-       Get converged eigenpairs: i-th eigenvalue is stored in kr[i] (real part) and
-       ki[i] (imaginary part), and the corresponding eigenvector is stored in x[i]
-    */
-    ierr = EPSGetSolution(eps,&kr,&ki,&x);CHKERRQ(ierr);
-
-    /*
-       Compute the relative error associated to each eigenpair
-    */
-    ierr = PetscMalloc(nconv*sizeof(PetscReal),&error);CHKERRQ(ierr);
-    ierr = EPSComputeError(eps,error);CHKERRQ(ierr);
-
+  if (nconv+nconvi>0) {
     /*
        Display eigenvalues and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k           ||Ax-kx||/|kx|\n"
-         "   ----------------- -----------------\n" );CHKERRQ(ierr);
-    for( i=0; i<nconv; i++ ) {
-      if (ki[i]!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",kr[i],ki[i],error[i]);CHKERRQ(ierr); }
-      else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12f\n",kr[i],error[i]);CHKERRQ(ierr); }
+         "           k          ||Ax-kx||/||kx||\n"
+         "   ----------------- ------------------\n" );CHKERRQ(ierr);
+
+    for( i=0; i<nconv+nconvi; i++ ) {
+      /* 
+        Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
+        ki (imaginary part)
+      */
+      ierr = EPSGetEigenpair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      /*
+         Compute the relative error associated to each eigenpair
+      */
+      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
+
+#ifdef PETSC_USE_COMPLEX
+      ki = PetscImaginaryPart(kr);
+      kr = PetscRealPart(kr);
+#endif 
+      if (ki!=0.0) {
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",kr,ki,error);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",kr,-ki,error);CHKERRQ(ierr);
+      } else {
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12f\n",kr,error);CHKERRQ(ierr); 
+      }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
-    ierr = PetscFree(error);CHKERRQ(ierr);
   }
   
   /* 

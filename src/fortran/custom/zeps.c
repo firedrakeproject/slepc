@@ -11,17 +11,10 @@
 #define epscreate_                  EPSCREATE
 #define epssettype_                 EPSSETTYPE           
 #define epsgettype_                 EPSGETTYPE
-#define epsregisterdestroy_         EPSREGISTERDESTROY
 #define epsdefaultestimatesmonitor_ EPSDEFAULTESTIMATESMONITOR
 #define epsdefaultvaluesmonitor_    EPSDEFAULTVALUESMONITOR
-#define epsgetconvergedreason_      EPSGETCONVERGEDREASON
-#define epsdestroy_                 EPSDESTROY
-#define epsgetsolution_             EPSGETSOLUTION
-#define epsgetst_                   EPSGETST
-#define epsgettolerances_           EPSGETTOLERANCES
 #define epssetmonitor_              EPSSETMONITOR
 #define epssetvaluesmonitor_        EPSSETVALUESMONITOR
-#define epscomputeerror_            EPSCOMPUTEERROR
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                    epsview
 #define epssetoptionsprefix_        ekepsview
@@ -31,25 +24,13 @@
 #define epscreate_                  epscreate
 #define epssettype_                 epssettype           
 #define epsgettype_                 epsgettype
-#define epsregisterdestroy_         epsregisterdestroy
 #define epsdefaultestimatesmonitor_ epsdefaultestimatesmonitor
 #define epsdefaultvaluesmonitor_    epsdefaultvaluesmonitor
-#define epsgetconvergedreason_      epsgetconvergedreason
-#define epsdestroy_                 epsdestroy
-#define epsgetsolution_             epsgetsolution
-#define epsgetst_                   epsgetst
-#define epsgettolerances_           epsgettolerances
 #define epssetmonitor_              epssetmonitor
 #define epssetvaluesmonitor_        epssetvaluesmonitor
-#define epscomputeerror_            epscomputeerror
 #endif
 
 EXTERN_C_BEGIN
-
-void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,int *ierr)
-{
-  *ierr = EPSGetConvergedReason(*eps,reason);
-}
 
 void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer, int *ierr)
 {
@@ -168,44 +149,6 @@ void PETSC_STDCALL epssetvaluesmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(E
   }
 }
 
-void PETSC_STDCALL epsgetst_(EPS *eps,ST *B,int *ierr)
-{
-  *ierr = EPSGetST(*eps,B);
-}
-
-void PETSC_STDCALL epsgettolerances_(EPS *eps,PetscReal *tol,int *maxits,int *ierr)
-{
-  *ierr = EPSGetTolerances(*eps,tol,maxits);
-}
-
-/*
-    epsgetsolution() is slightly different from C since in the Fortran
-    version the user has to provide the array to hold the vector objects,
-    while in C that array is allocated by the EPSGetSolution()
-*/
-void PETSC_STDCALL epsgetsolution_(EPS *eps,PetscScalar* eigr,PetscScalar* eigi,Vec *v,int *ierr)
-{
-  Vec         *lV;
-  PetscScalar *leigr, *leigi;
-  int i;
-  *ierr = EPSGetSolution(*eps,&leigr,&leigi,&lV);
-  for (i=0; i<(*eps)->nconv; i++) {
-    v[i] = lV[i];
-    eigr[i] = leigr[i];
-    eigi[i] = leigi[i];
-  }
-}
-
-void PETSC_STDCALL epsdestroy_(EPS *eps,int *ierr)
-{
-  *ierr = EPSDestroy(*eps);
-}
-
-void PETSC_STDCALL epsregisterdestroy_(int* ierr)
-{
-  *ierr = EPSRegisterDestroy();
-}
-
 void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
 {
   char *tname;
@@ -219,11 +162,6 @@ void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
 #else
   *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
 #endif
-}
-
-void PETSC_STDCALL epscomputeerror_(EPS *eps,PetscReal *error,int *ierr)
-{
-  *ierr = EPSComputeError(*eps,error);
 }
 
 EXTERN_C_END

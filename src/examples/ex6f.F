@@ -36,14 +36,14 @@
 !     x     basis vectors
 !     eps   eigenproblem solver context
 
-#define MAXNEV 30
+      Vec          x
       Mat          A
-      Vec          x(MAXNEV)
       EPS          eps
       EPSType      type
-      PetscReal    tol, error(MAXNEV)
-      PetscScalar  kr(MAXNEV), ki(MAXNEV)
-      integer      size, rank, N, m, nev, ierr, maxit, i, its, nconv
+      PetscReal    tol, error
+      PetscScalar  kr, ki
+      integer      size, rank, N, m, nev, ierr, maxit, i, its
+      integer      nconv, nconvi
       PetscTruth   flg
 
 !     This is the routine to use for matrix-free approach
@@ -133,36 +133,36 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-!     ** Get number of converged eigenpairs (supposed to be < MAXNEV)
-      call EPSGetConverged(eps,nconv,ierr)
+!     ** Get number of converged eigenpairs 
+      call EPSGetConverged(eps,nconv,nconvi,ierr)
       if (rank .eq. 0) then
-        write(6,150) nconv
+        write(6,150) nconv+2*nconvi
       endif
  150  format (' Number of converged approximate eigenpairs:',i2)
 
-!     ** Get converged eigenpairs: i-th eigenvalue is stored in kr(i) (real part) and
-!     ** ki(i) (imaginary part), and the corresponding eigenvector is stored in x(i)
-      call EPSGetSolution(eps,kr,ki,x,ierr)
-
-!     ** Compute the relative error associated to each eigenpair
-      call EPSComputeError(eps,error,ierr)
-
 !     ** Display eigenvalues and relative errors
-      if (nconv.gt.0 .and. rank.eq.0) then
+      if ((nconv+nconvi).gt.0 .and. rank.eq.0) then
         write(6,*)
         write(6,160)
         write(6,170)
-        do i=1,nconv
-          if (ki(i).ne.0.D0) then
-            write(6,180) kr(i), ki(i), error(i)
+        do i=1,nconv+nconvi
+!     ** Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
+!     ** ki (imaginary part), and the corresponding eigenvector is stored in x
+          call EPSGetEigenpair(eps,i,kr,ki,x,PETSC_NULL,ierr)
+
+!     ** Compute the relative error associated to each eigenpair
+          call EPSComputeRelativeError(eps,i,error,ierr)
+
+          if (ki.ne.0.D0) then
+            write(6,180) kr, ki, error
           else
-            write(6,190) kr(i), error(i)
+            write(6,190) kr, error
           endif
         enddo
         write(6,*)
       endif
- 160  format ('           k           ||Ax-kx||/|kx|')
- 170  format ('   ----------------- -----------------')
+ 160  format ('           k          ||Ax-kx||/||kx||')
+ 170  format ('   ----------------- ------------------')
  180  format (1pe11.4,1pe11.4,' j ',1pe12.4)
  190  format ('   ',1pe12.4,'       ',1pe12.4)
 

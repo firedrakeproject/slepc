@@ -60,7 +60,7 @@ int main( int argc, char **argv )
   Mat         H;               /* eigenvalue problem matrix, H=A^T*A */
   EPS         eps;             /* eigenproblem solver context */
   int         N=30, n, ierr, i, its, nconv, col[5], Istart, Iend;
-  PetscScalar *kr, sigma_1, sigma_n, value[] = { -1, 1, 1, 1, 1 };
+  PetscScalar kr[2], sigma_1, sigma_n, value[] = { -1, 1, 1, 1, 1 };
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -146,14 +146,15 @@ int main( int argc, char **argv )
   /* 
      Get number of converged eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv,PETSC_NULL);CHKERRQ(ierr);
 
   if (nconv==2) {
     /* 
        Get converged eigenpairs: i-th eigenvalue is stored in kr[i]. In this
        example, we are not interested in the eigenvectors
     */
-    ierr = EPSGetSolution(eps,&kr,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(eps,0,&kr[0],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(eps,1,&kr[1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     /* 
        The singular values of A are the square roots of the eigenvalues of H
