@@ -131,10 +131,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   /* Restart loop */
   while (eps->its<eps->max_it) {
 
-    eps->its = eps->its + 1;
-
     /* Compute an ncv-step Arnoldi factorization */
     ierr = EPSBasicArnoldi(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+    eps->its = eps->its + ncv - eps->nconv;
 
     /* At this point, H has the following structure
 
