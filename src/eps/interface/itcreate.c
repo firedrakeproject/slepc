@@ -90,6 +90,24 @@ int EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
     if (eps->dropvectors) { ierr = PetscViewerASCIIPrintf(viewer,"  computing only eigenvalues\n");CHKERRQ(ierr);}
+    ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
+    switch (eps->orth_type) {
+      case EPS_MGS_ORTH:
+        ierr = PetscViewerASCIIPrintf(viewer,"modified Gram-Schmidt\n");CHKERRQ(ierr);
+        break;
+      case EPS_CGS_ORTH:
+        ierr = PetscViewerASCIIPrintf(viewer,"classical Gram-Schmidt\n");CHKERRQ(ierr);
+        break;
+      default: SETERRQ(1,"Wrong value of eps->orth_type");
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: ");CHKERRQ(ierr);
+    if (eps->orth_eta == 0.0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"never\n");CHKERRQ(ierr);
+    } else if (eps->orth_eta < 0.0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %f)\n",eps->orth_eta);CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
