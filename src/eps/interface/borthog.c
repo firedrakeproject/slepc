@@ -165,7 +165,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   int            j;
   PetscScalar    shh[100],shh2[100],*lhh;
   PetscTruth     alloc = PETSC_FALSE;
-  PetscReal      hnorm,lnorm;
+  PetscReal      hnorm = 0,lnorm;
 
   PetscFunctionBegin;
 
@@ -245,7 +245,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   PetscScalar    alpha;
   PetscTruth     allocated;
   PetscScalar    lh[100],*h;
-  PetscReal      hnorm,lnorm;
+  PetscReal      hnorm = 0,lnorm;
   
   PetscFunctionBegin;
   
