@@ -47,14 +47,14 @@ int EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
       ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
     }
     else {
-      ierr = VecNorm(V[0],NORM_2,&norm);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,V[0],PETSC_NULL,&norm);CHKERRQ(ierr);
     }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0) { 
       PetscLogInfo(eps,"EPSQRDecomposition: Zero vector found, generating a new random vector\n" );
       ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
-      ierr = VecNorm(V[k],NORM_2,&norm);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,V[k],PETSC_NULL,&norm);CHKERRQ(ierr);
     }
     alpha = 1.0/norm;
     ierr = VecScale(&alpha,V[k]);CHKERRQ(ierr);
@@ -194,6 +194,7 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
   PetscReal   hnorm,lnorm;
 
   PetscFunctionBegin;
+
   if (!H) {
     if (n<=100) H = shh2;   /* Don't allocate small arrays */
     else { 
@@ -210,16 +211,14 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
   /*** First orthogonalization ***/
 
   /* h = V^* v */
-  ierr = VecMDot(n,v,V,lhh);CHKERRQ(ierr);
-
   /* q = v - V h */
   for (j=0;j<n;j++) {
-    H[j] = lhh[j];
-    lhh[j] = -lhh[j];    
-  }
+    ierr = STInnerProduct(eps->OP,v,V[j],PETSC_NULL,&H[j]);
+    lhh[j] = -H[j];    
+  }  
   ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
   
-  ierr = VecNorm(v, NORM_2, norm);CHKERRQ(ierr);
+  ierr = STNorm(eps->OP,v,PETSC_NULL,norm);CHKERRQ(ierr);
 
   /*** Second orthogonalization if necessary ***/
   if (eps->orth_eta != 0.0) {
@@ -234,16 +233,15 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
       PetscLogInfo(eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,hnorm);
       
       /* s = V^* q */
-      ierr = VecMDot(n,v,V,lhh);CHKERRQ(ierr); 
-
       /* q = q - V s  ;  h = h + s */
       for (j=0;j<n;j++) {
+        ierr = STInnerProduct(eps->OP,v,V[j],PETSC_NULL,&lhh[j]);
         H[j] += lhh[j];
         lhh[j] = -lhh[j];    
       }
       ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
 
-      ierr = VecNorm(v, NORM_2, norm);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,v,PETSC_NULL,norm);CHKERRQ(ierr);
     }
   }
 
@@ -264,7 +262,6 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
   PetscTruth  refinement,allocated;
   PetscScalar lh[100],*h;
   PetscReal   hnorm,lnorm;
-  Vec         w;
   
   PetscFunctionBegin;
   
@@ -283,23 +280,18 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
   
   if (!norm) { norm = &lnorm; }
   
-  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
-  
   refinement = PETSC_FALSE;
   do {
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
-      ierr = STApplyB(eps->OP,v,w);CHKERRQ(ierr);
-      ierr = VecDot(w,V[j],&alpha);CHKERRQ(ierr);
+      ierr = STInnerProduct(eps->OP,v,V[j],PETSC_NULL,&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
       h[j] += alpha;
       /* v <- v - alpha v_j */
       alpha = -alpha;
       ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
     }
-    ierr = STApplyB(eps->OP,v,w);CHKERRQ(ierr);
-    ierr = VecDot(w,v,&alpha);CHKERRQ(ierr);
-    *norm = PetscSqrtScalar(PetscRealPart(alpha));
+    ierr = STNorm(eps->OP,v,PETSC_NULL,norm);CHKERRQ(ierr);
     if (refinement) refinement = PETSC_FALSE;
     else if (eps->orth_eta != 0.0) {
       hnorm = 0.0;
@@ -314,7 +306,6 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
     }
   } while (refinement);
   
-  ierr = VecDestroy(w);CHKERRQ(ierr);
   if (allocated) {
     ierr = PetscFree(h);CHKERRQ(ierr);
   }
