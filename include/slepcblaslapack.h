@@ -104,14 +104,15 @@ extern void   LArnv_(int*,int*,int*,PetscScalar*);
 extern double LAlapy2_(double*,double*);
 extern void   LAgelqf_(int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 extern void   LAormlq_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
-extern void   LAtrevc_(char*,char*,int*,int*,PetscScalar*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,int*,int,int);
 extern void   LAgehrd_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 #if !defined(PETSC_USE_COMPLEX)
 extern void   LAhseqr_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgees_(char*,char*,int*,int*,PetscScalar*,int*,int*,PetscScalar*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int*);
+extern void   LAtrevc_(char*,char*,int*,int*,PetscScalar*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,int*,int,int);
 #else
 extern void   LAhseqr_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgees_(char*,char*,int*,int*,PetscScalar*,int*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,PetscReal*,int*,int*);
+extern void   LAtrevc_(char*,char*,int*,int*,PetscScalar*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscReal*,int*,int,int);
 #endif
 
 EXTERN_C_END

@@ -41,7 +41,7 @@ static int  EPSSolve_ARNOLDI(EPS eps)
   int         ierr, i, j, k, m, maxit=eps->max_it, ncv = eps->ncv;
   int         lwork, ilo, mout;
   Vec         w;
-  PetscReal   norm, tol=eps->tol;
+  PetscReal   norm, tol=eps->tol, *rwork;
   PetscScalar alpha, *H, *Y, *S, *pV, *work;
 
   PetscFunctionBegin;
@@ -112,7 +112,13 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
     ierr = PetscMemcpy(Y,S,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     lwork = 3*m;
     ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
     LAtrevc_("R","B",PETSC_NULL,&m,H,&ncv,Y,&ncv,Y,&ncv,&ncv,&mout,work,&ierr,1,1);
+#else
+    ierr = PetscMalloc(2*m*sizeof(PetscScalar),&rwork);CHKERRQ(ierr);
+    LAtrevc_("R","B",PETSC_NULL,&m,H,&ncv,Y,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&ierr,1,1);
+    ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
     ierr = PetscFree(work);CHKERRQ(ierr);
 
     /* compute error estimates */
