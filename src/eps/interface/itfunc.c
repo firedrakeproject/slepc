@@ -44,7 +44,7 @@ int EPSSetUp(EPS eps)
 
   /* Set default solver type */
   if (!eps->type_name) {
-    ierr = EPSSetType(eps,EPSPOWER);CHKERRQ(ierr);
+    ierr = EPSSetType(eps,EPSARNOLDI);CHKERRQ(ierr);
   }
 
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
@@ -1354,18 +1354,31 @@ int EPSIsHermitian(EPS eps,PetscTruth* is)
 
    Input Parameter:
 +  eps - the eigenproblem solver context
+.  V - basis vectors
+.  S - pointer to the values of matrix S
 .  k - starting column
 .  m - dimension of matrix S
--  S - pointer to the values of matrix S
+-  work - workarea of m vectors for intermediate results
 
    Level: developer
 
-   Note:
-   Matrix S is overwritten.
-
 @*/
-int EPSReverseProjection(EPS eps,int k,int m,PetscScalar *S)
+int EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Vec* work)
 {
+  int         ierr,i;
+  PetscScalar zero = 0.0;
+  
+  PetscFunctionBegin;
+  for (i=k;i<m;i++) {
+    ierr = VecSet(&zero,work[i]);CHKERRQ(ierr);
+    ierr = VecMAXPY(m,S+m*i,work[i],V);CHKERRQ(ierr);
+  }    
+  for (i=k;i<m;i++) {
+    ierr = VecCopy(work[i],V[i]);CHKERRQ(ierr);
+  }    
+  PetscFunctionReturn(0);
+
+/*  
   int         ierr, j;
   Vec*        y;
   PetscScalar zero = 0.0;
@@ -1384,7 +1397,8 @@ int EPSReverseProjection(EPS eps,int k,int m,PetscScalar *S)
 
   ierr = VecDestroyVecs(y, m); CHKERRQ(ierr);
 
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(0); 
+*/
 }
 
 
