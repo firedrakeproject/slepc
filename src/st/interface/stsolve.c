@@ -73,9 +73,18 @@ int STApplyB(ST st,Vec x,Vec y)
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
+  if (x == st->x && x->state == st->xstate) {
+    ierr = VecCopy(st->Bx, y);CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
+
   ierr = PetscLogEventBegin(ST_ApplyB,st,x,y,0);CHKERRQ(ierr);
   ierr = (*st->ops->applyB)(st,x,y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_ApplyB,st,x,y,0);CHKERRQ(ierr);
+  
+  st->x = x;
+  st->xstate = x->state;
+  ierr = VecCopy(y,st->Bx);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 }
 
@@ -103,7 +112,6 @@ int STApplyB(ST st,Vec x,Vec y)
 int STApplyNoB(ST st,Vec x,Vec y)
 {
   int        ierr;
-  PetscTruth isSinv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -112,9 +120,6 @@ int STApplyNoB(ST st,Vec x,Vec y)
   if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
-
-  ierr = PetscTypeCompare((PetscObject)st,STSINV,&isSinv);CHKERRQ(ierr);
-  if (!isSinv) { SETERRQ(1,"Function only available in Shift-and-Invert"); }
 
   ierr = PetscLogEventBegin(ST_ApplyNoB,st,x,y,0);CHKERRQ(ierr);
   ierr = (*st->ops->applynoB)(st,x,y);CHKERRQ(ierr);
@@ -135,8 +140,7 @@ int STApplyNoB(ST st,Vec x,Vec y)
 -  x  - input vector
 
    Output Parameter:
-+  w    - intermediate vector (see Notes below)
--  norm - the computed norm
++  norm - the computed norm
 
    Notes:
    This function will usually compute the 2-norm of a vector, ||x||_2. But
@@ -145,14 +149,11 @@ int STApplyNoB(ST st,Vec x,Vec y)
    positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B = 
    sqrt( x^H Bx ).
 
-   At the end of the execution, the intermediate vector w will hold x or Bx,
-   depending on the type of inner product.
-
    Level: developer
 
 .seealso: STInnerProduct()
 @*/
-int STNorm(ST st,Vec x,Vec w,PetscReal *norm)
+int STNorm(ST st,Vec x,PetscReal *norm)
 {
   int         ierr;
   PetscScalar p;
@@ -160,14 +161,12 @@ int STNorm(ST st,Vec x,Vec w,PetscReal *norm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  if (w) { PetscValidHeaderSpecific(w,VEC_COOKIE,3); }
-  PetscValidPointer(norm,4);
+  PetscValidPointer(norm,3);
   
-  ierr = STInnerProduct(st,x,x,w,&p);CHKERRQ(ierr);
+  ierr = STInnerProduct(st,x,x,&p);CHKERRQ(ierr);
 
   if (p==0.0)
     PetscLogInfo(st,"STNorm: Zero norm, either the vector is zero or a semi-inner product is being used\n" );
-
 
 #if defined(PETSC_USE_COMPLEX)
   if (PetscRealPart(p)<0.0 || PetscImaginaryPart(p)>PETSC_MACHINE_EPSILON) 
@@ -194,8 +193,7 @@ int STNorm(ST st,Vec x,Vec w,PetscReal *norm)
 -  y  - input vector
 
    Output Parameter:
-+  w - intermediate vector (see Notes below)
--  p - result of the inner product
++  p - result of the inner product
 
    Notes:
    This function will usually compute the standard dot product of vectors
@@ -204,54 +202,42 @@ int STNorm(ST st,Vec x,Vec w,PetscReal *norm)
    the indefinite product y^T x for complex symmetric problems or the
    B-inner product for positive definite B, (x,y)_B=y^H Bx.
 
-   At the end of the execution, the intermediate vector w will hold x or Bx,
-   depending on the type of inner product.
-
    Level: developer
 
 .seealso: STSetBilinearForm(), STApplyB(), VecDot()
 @*/
-int STInnerProduct(ST st,Vec x,Vec y,Vec w,PetscScalar *p)
+int STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
 {
   int        ierr;
-  PetscTruth allocated;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidHeaderSpecific(y,VEC_COOKIE,3);
-  if (w) { 
-    PetscValidHeaderSpecific(w,VEC_COOKIE,4); 
-    allocated = PETSC_FALSE;
-  } else { 
-    ierr = VecDuplicate(x,&w);CHKERRQ(ierr); 
-    allocated = PETSC_TRUE; 
-  }
-  PetscValidScalarPointer(p,5);
+  PetscValidScalarPointer(p,4);
   
-  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,w,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_SYMMETRIC:
-    ierr = VecCopy(x,w);CHKERRQ(ierr);
+    ierr = VecCopy(x,st->w);CHKERRQ(ierr);
     break;
   case STINNER_B_HERMITIAN:
   case STINNER_B_SYMMETRIC:
-    ierr = STApplyB(st,x,w);CHKERRQ(ierr);
+    ierr = STApplyB(st,x,st->w);CHKERRQ(ierr);
     break;
   }
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_B_HERMITIAN:
-    ierr = VecDot(w,y,p);CHKERRQ(ierr);
+    ierr = VecDot(st->w,y,p);CHKERRQ(ierr);
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-    ierr = VecTDot(w,y,p);CHKERRQ(ierr);
+    ierr = VecTDot(st->w,y,p);CHKERRQ(ierr);
     break;
   } 
-  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,w,0);CHKERRQ(ierr);
-  if (allocated) { ierr = VecDestroy(w);CHKERRQ(ierr); }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -283,6 +269,10 @@ int STSetUp(ST st)
   if (!st->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
+  if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); }
+  if (st->Bx) { ierr = VecDestroy(st->Bx);CHKERRQ(ierr); }
+  ierr = MatGetVecs(st->A,&st->w,&st->Bx);CHKERRQ(ierr);
+  st->x = PETSC_NULL; 
   if (st->ops->setup) {
     ierr = (*st->ops->setup)(st); CHKERRQ(ierr);
   }
@@ -383,21 +373,5 @@ int STBackTransform(ST st,PetscScalar* eigr,PetscScalar* eigi)
     ierr = (*st->ops->backtr)(st,eigr,eigi);CHKERRQ(ierr);
   }
 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STApplyB_Default"
-int STApplyB_Default(ST st,Vec x,Vec y)
-{
-  int        ierr;
-
-  PetscFunctionBegin;
-  if( st->B ) {
-    ierr = MatMult( st->B, x, y ); CHKERRQ(ierr);
-  }
-  else {
-    ierr = VecCopy( x, y ); CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
