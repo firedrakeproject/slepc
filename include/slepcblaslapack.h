@@ -24,6 +24,7 @@
 #define DHSEQR   SHSEQR
 #define DTREVC   STREVC
 #define DGEHRD   SGEHRD
+#define DORGHR   SORGHR
 #define DGEES    SGEES 
 #endif
 
@@ -35,6 +36,7 @@
 #define LAhseqr_ dhseqr_
 #define LAtrevc_ dtrevc_
 #define LAgehrd_ dgehrd_
+#define LAorghr_ dorghr_
 #define LAgees_  dgees_
 #elif defined(PETSC_HAVE_FORTRAN_CAPS)
 #define LArnv_   DLARNV
@@ -44,6 +46,7 @@
 #define LAhseqr_ DHSEQR
 #define LAtrevc_ DTREVC
 #define LAgehrd_ DGEHRD
+#define LAorghr_ DORGHR
 #define LAgees_  DGEES 
 #else
 #define LArnv_   dlarnv
@@ -53,6 +56,7 @@
 #define LAhseqr_ dhseqr
 #define LAtrevc_ dtrevc
 #define LAgehrd_ dgehrd
+#define LAorghr_ dorghr
 #define LAgees_  dgees
 #endif
 
@@ -67,6 +71,7 @@
 #define ZHSEQR   CHSEQR
 #define ZTREVC   CTREVC
 #define ZGEHRD   CGEHRD
+#define ZORGHR   CORGHR
 #define ZGEES    CGEES 
 #endif
 
@@ -77,6 +82,7 @@
 #define LAhseqr_ zhseqr_
 #define LAtrevc_ ztrevc_
 #define LAgehrd_ zgehrd_
+#define LAorghr_ zorghr_
 #define LAgees_  zgees_ 
 #elif defined(PETSC_HAVE_FORTRAN_CAPS)
 #define LArnv_   ZLARNV
@@ -85,6 +91,7 @@
 #define LAhseqr_ ZHSEQR
 #define LAtrevc_ ZTREVC
 #define LAgehrd_ ZGEHRD
+#define LAorghr_ ZORGHR
 #define LAgees_  ZGEES 
 #else
 #define LArnv_   zlarnv
@@ -93,6 +100,7 @@
 #define LAhseqr_ zhseqr
 #define LAtrevc_ ztrevc
 #define LAgehrd_ zgehrd
+#define LAorghr_ zorghr
 #define LAgees_  zgees 
 #endif
 
@@ -105,6 +113,7 @@ extern double LAlapy2_(double*,double*);
 extern void   LAgelqf_(int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 extern void   LAormlq_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgehrd_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
+extern void   LAorghr_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 #if !defined(PETSC_USE_COMPLEX)
 extern void   LAhseqr_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgees_(char*,char*,int*,int*,PetscScalar*,int*,int*,PetscScalar*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int*);
