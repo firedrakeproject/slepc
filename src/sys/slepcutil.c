@@ -1,7 +1,5 @@
 
-#include "slepc.h"        /*I  "slepc.h" I*/
-#include "petscvec.h"
-#include "slepcblaslapack.h"
+#include "slepc.h"
 
 extern PetscRandom rctx;
 

@@ -3,7 +3,6 @@
 #define _STIMPL
 
 #include "slepceps.h"
-#include "slepcst.h"
 
 typedef struct _STOps *STOps;
 

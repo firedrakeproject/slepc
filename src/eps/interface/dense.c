@@ -2,7 +2,7 @@
 /*                       
        This file implements interfaces to direct solvers in LAPACK
 */
-#include "slepceps.h"            /*I "slepceps.h" I*/
+#include "slepceps.h"
 #include "slepcblaslapack.h"
 
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
