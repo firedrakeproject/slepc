@@ -5,6 +5,7 @@
 
 typedef struct {
   PetscScalar tau;
+  PetscTruth  tau_set;
   Vec         w2;
 } ST_CAYLEY;
 
@@ -121,13 +122,20 @@ int STPost_Cayley(ST st)
 static int STSetUp_Cayley(ST st)
 {
   int          ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY    *ctx = (ST_CAYLEY *) st->data;
   PetscScalar  alpha;
 
   PetscFunctionBegin;
 
+  if (st->mat) { ierr = MatDestroy(st->mat);CHKERRQ(ierr); }
+  if (!ctx->tau_set) { ctx->tau = st->sigma; }
+  if (ctx->tau == 0.0 &&  st->sigma == 0.0) {
+    SETERRQ(1,"Values of shift and antishift cannot be zero simultaneously");
+  }
+
   switch (st->shift_matrix) {
   case STMATMODE_INPLACE:
+    st->mat = PETSC_NULL;
     if (st->sigma != 0.0) {
       alpha = -st->sigma;
       if (st->B) { 
@@ -163,21 +171,8 @@ static int STSetUp_Cayley(ST st)
   if (st->B) { 
    if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
    ierr = MatGetVecs(st->B,&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
-  } 
+  }
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STSetFromOptions_Cayley"
-static int STSetFromOptions_Cayley(ST st) {
-  int          ierr;
-  ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-st_antishift","Value of the antishift","STSetAntishift",ctx->tau,&ctx->tau,PETSC_NULL); CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -185,8 +180,9 @@ static int STSetFromOptions_Cayley(ST st) {
 #define __FUNCT__ "STSetShift_Cayley"
 static int STSetShift_Cayley(ST st,PetscScalar newshift)
 {
-  int          ierr;
-  PetscScalar  alpha;
+  int         ierr;
+  PetscScalar alpha;
+  ST_CAYLEY   *ctx = (ST_CAYLEY *) st->data;
 
   PetscFunctionBegin;
 
@@ -224,18 +220,71 @@ static int STSetShift_Cayley(ST st,PetscScalar newshift)
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
   }
   st->sigma = newshift;
+  if (!ctx->tau_set) { ctx->tau = newshift; }
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STCayleySetAntishift"
-int STCayleySetAntishift(ST st,PetscScalar newshift)
+#define __FUNCT__ "STSetFromOptions_Cayley"
+static int STSetFromOptions_Cayley(ST st) {
+  int         ierr;
+  PetscScalar tau;
+  PetscTruth  flg;
+  ST_CAYLEY   *ctx = (ST_CAYLEY *) st->data;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
+  ierr = PetscOptionsScalar("-st_antishift","Value of the antishift","STSetAntishift",ctx->tau,&tau,&flg); CHKERRQ(ierr);
+  if (flg) {
+    ierr = STCayleySetAntishift(st,tau);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "STCayleySetAntishift_Cayley"
+int STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 {
   ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
 
   PetscFunctionBegin;
   ctx->tau = newshift;
+  ctx->tau_set = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "STCayleySetAntishift"
+int STCayleySetAntishift(ST st,PetscScalar newshift)
+{
+  int ierr, (*f)(ST,PetscScalar);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)st,"STCayleySetAntishift_C",(void (**)(void))&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(st,newshift);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STView_Cayley"
+static int STView_Cayley(ST st,PetscViewer viewer)
+{
+  ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
+  int       ierr;
+
+  PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g\n",ctx->tau);CHKERRQ(ierr);
+#else
+  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g+%g i\n",PetscRealPart(ctx->tau),PetscImaginaryPart(ctx->tau));CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -264,7 +313,6 @@ int STCreate_Cayley(ST st)
   ierr = PetscNew(ST_CAYLEY,&ctx); CHKERRQ(ierr);
   PetscMemzero(ctx,sizeof(ST_CAYLEY));
   PetscLogObjectMemory(st,sizeof(ST_CAYLEY));
-  st->numberofshifts      = 2;
   st->data                = (void *) ctx;
 
   st->ops->apply          = STApply_Cayley;
@@ -276,10 +324,15 @@ int STCreate_Cayley(ST st)
   st->ops->setup          = STSetUp_Cayley;
   st->ops->setshift       = STSetShift_Cayley;
   st->ops->destroy        = STDestroy_Cayley;
+  st->ops->view           = STView_Cayley;
   
   st->checknullspace      = STCheckNullSpace_Default;
 
   ctx->tau                = 0.0;
+  ctx->tau_set            = PETSC_FALSE;
+
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",
+                    STCayleySetAntishift_Cayley);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
