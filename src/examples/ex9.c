@@ -139,6 +139,7 @@ int main( int argc, char **argv )
      Set operators. In this case, it is a standard eigenvalue problem
   */
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetProblemType(eps,EPS_NHEP);
 
   /*
      Force to use ARPACK if it is installed and ask for the rightmost eigenvalues
