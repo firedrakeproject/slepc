@@ -156,7 +156,7 @@ PetscErrorCode EPSDefaultGetWork(EPS eps, int nw)
     }
     eps->nwork = nw;
     ierr = VecDuplicateVecs(eps->vec_initial,nw,&eps->work); CHKERRQ(ierr);
-    PetscLogObjectParents(eps,nw,eps->work);
+    ierr = PetscLogObjectParents(eps,nw,eps->work);
   }
   
   PetscFunctionReturn(0);
