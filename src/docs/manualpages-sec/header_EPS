@@ -1,0 +1,25 @@
+<HTML>
+<HEAD>
+<TITLE>Eigenvalue Problem Solvers - EPS</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+
+<H2>Eigenvalue Problem Solvers - EPS</H2>
+
+The Eigenvalue Problem Solver (EPS) is the main object provided by SLEPc. It is used to specify an eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the eigensolvers included in the package. 
+<p>
+Conceptually, the level of abstraction occupied by EPS is similar to other solvers in PETSc such as SLES for solving linear systems of equations.
+<p>
+EPS users can set various options at runtime via the options database (e.g., 
+<font face ="Courier">
+-eps_nev 4 -eps_type arnoldi
+</font face>
+).  
+Options can also be set directly in application
+codes by calling the corresponding routines (e.g., 
+<A HREF="../../../docs/manualpages/EPS/EPSSetDimensions.html">EPSSetDimensions()</A>/
+<A HREF="../../../docs/manualpages/EPS/EPSSetType.html">EPSSetType()</A>
+).
+
+<P>
+
