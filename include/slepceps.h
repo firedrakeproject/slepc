@@ -134,6 +134,7 @@ extern int EPSSubspaceSetInner(EPS,int);
 
 extern int EPSBlzpackSetBlockSize(EPS,int);
 extern int EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);
+extern int EPSBlzpackSetNSteps(EPS,int);
 
 #endif
 

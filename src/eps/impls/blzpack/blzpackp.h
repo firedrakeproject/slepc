@@ -11,6 +11,7 @@ typedef struct {
   int         block_size;      /* block size */
   PetscReal   initial,final;   /* computational interval */
   int         slice;           /* use spectrum slicing */
+  int         nsteps;          /* maximum number of steps per run */
   int         *istor;
   PetscReal   *rstor;
   PetscScalar *u;

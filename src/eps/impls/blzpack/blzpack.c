@@ -139,12 +139,12 @@ static int  EPSSolve_BLZPACK(EPS eps)
   blz->istor[2]  = eps->nev;     /* number of required eigenpairs */
   blz->istor[3]  = eps->ncv;     /* number of working eigenpairs */
   blz->istor[4]  = blz->block_size;    /* number of vectors in a block */
-  blz->istor[5]  = 0;            /* maximun number of steps per run */
+  blz->istor[5]  = blz->nsteps;  /* maximun number of steps per run */
   blz->istor[6]  = 1;            /* number of starting vectors as input */
   blz->istor[7]  = 0;            /* number of eigenpairs given as input */
   blz->istor[8]  = blz->slice;   /* problem type */
   blz->istor[9]  = blz->slice;   /* spectrum slicing */
-  blz->istor[10] = 0;            /* solutions refinement */
+  blz->istor[10] = blz->slice;   /* solutions refinement (purify) */
   blz->istor[11] = 0;            /* level of printing */
   blz->istor[12] = 6;            /* file unit for output */
   blz->istor[13] = MPI_Comm_c2f(eps->comm);    /* communicator */
@@ -156,14 +156,13 @@ static int  EPSSolve_BLZPACK(EPS eps)
   lflag = 0;           /* reverse communication interface flag */
   eps->its  = 0;
 
-  for(;;) {
+  do {
 
     BLZpack_( blz->istor, blz->rstor, &sigma, &nneig, blz->u, blz->v, 
               &lflag, &nvopu, blz->eig, pV );
 
-    eps->its = eps->its + 1;
-
-    if( lflag == 1 ) {
+    switch (lflag) {
+    case 1:
       /* compute v = OP u */
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
@@ -177,30 +176,40 @@ static int  EPSSolve_BLZPACK(EPS eps)
           ierr = (*eps->orthog)(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         }
       }
-    }
-    else if( lflag == 2 ) {
+      /* monitor */
+      eps->its = eps->its + 1;
+      eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
+      EPSMonitor(eps,eps->its,eps->nconv,
+        blz->rstor+BLZistorr_(blz->istor,"IRITZ",5),
+        eps->eigi,
+        blz->rstor+BLZistorr_(blz->istor,"IRITZ",5)+BLZistorr_(blz->istor,"JT",2),
+        BLZistorr_(blz->istor,"NRITZ",5));
+      if (eps->its >= eps->max_it || eps->nconv >= eps->nev) lflag = 5;
+      break;
+    case 2:  
       /* compute v = B u */
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
         ierr = VecPlaceArray( y, blz->v+i*n );CHKERRQ(ierr);
         ierr = STApplyB( eps->OP, x, y ); CHKERRQ(ierr);
       }
-    }
-    else if( lflag == 3 ) {
+      break;
+    case 3:  
       /* update shift */
       ierr = STSetShift(eps->OP,sigma);CHKERRQ(ierr);
       ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCGetFactoredMatrix(pc,&A);CHKERRQ(ierr);
       ierr = MatGetInertia(A,&nneig,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    }
-    else if( lflag == 4 ) {
+      break;
+    case 4:  
       /* copy the initial vector */
       ierr = VecPlaceArray(x,blz->v);CHKERRQ(ierr);
       ierr = VecCopy(eps->vec_initial,x);CHKERRQ(ierr); 
+      break;
     }
-    else break;
-  }
+    
+  } while (lflag > 0);
 
   ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);
 
@@ -297,6 +306,10 @@ static int EPSSetFromOptions_BLZPACK(EPS eps)
     ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr);}
 
+    n = blz->nsteps;
+    ierr = PetscOptionsInt("-eps_blzpack_nsteps","Number of steps","EPSBlzpackSetNSteps",n,&n,&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr);}
+
     interval[0] = blz->initial;
     interval[1] = blz->final;
     n = 2;
@@ -305,6 +318,7 @@ static int EPSSetFromOptions_BLZPACK(EPS eps)
       if (n==1) interval[1]=interval[0];
       ierr = EPSBlzpackSetInterval(eps,interval[0],interval[1]);CHKERRQ(ierr);
     }
+    
     if (blz->slice) {
       ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
       ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
@@ -424,6 +438,50 @@ int EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
+#define __FUNCT__ "EPSBlzpackSetNSteps_BLZPACK"
+int EPSBlzpackSetNSteps_BLZPACK(EPS eps,int nsteps)
+{
+  EPS_BLZPACK   *blz = (EPS_BLZPACK *) eps->data;
+
+  PetscFunctionBegin;
+  blz->nsteps = nsteps == PETSC_DEFAULT ? 0 : nsteps;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBlzpackSetNSteps"
+/*@
+   EPSBlzpackSetNSteps - Sets the maximum number of steps per run for the BLZPACK
+   package.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps     - the eigenproblem solver context
+-  nsteps  - maximum number of steps
+
+   Options Database Key:
+.  -eps_blzpack_nsteps - Sets the bounds of the interval 
+
+   Level: advanced
+
+@*/
+int EPSBlzpackSetNSteps(EPS eps,int nsteps)
+{
+  int ierr, (*f)(EPS,int);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(eps,nsteps);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_BLZPACK"
 int EPSCreate_BLZPACK(EPS eps)
 {
@@ -444,11 +502,14 @@ int EPSCreate_BLZPACK(EPS eps)
   eps->computevectors            = EPSComputeVectors_Default;
 
   blzpack->block_size = 3;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   blzpack->initial = 0.0;
   blzpack->final = 0.0;
   blzpack->slice = 0;
+  blzpack->nsteps = 0;
+
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","EPSBlzpackSetInterval_BLZPACK",EPSBlzpackSetInterval_BLZPACK);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","EPSBlzpackSetNSteps_BLZPACK",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
 
   eps->which = EPS_SMALLEST_REAL;
 
