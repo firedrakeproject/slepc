@@ -107,7 +107,7 @@ slepc_manexamples:
                 l=`grep examples $${b} | wc -l`; \
                 if [ $$l -le 10 ] ; then \
                   if [ $$l -eq 0 ] ; then \
-                    echo "<P><H3><FONT COLOR=\"#CC3333\">Examples</FONT></H3>" >> $$b; \
+                    echo "<P><H3><FONT COLOR=\"#663300\">Examples</FONT></H3>" >> $$b; \
                   fi; \
                   echo  "<A HREF=\"../../../BB\">BB</A><BR>" | sed s?BB?${LOCDIR}$$i.html?g >> $$b; \
                   grep -v /BODY $$b > ltmp; \

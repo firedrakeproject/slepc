@@ -7,9 +7,9 @@
 <font face="Arial, Helvetica, sans-serif" size="2">
 <h2>SLEPc System routines</h2>
 
-SLEPc provides a variety of "system" level routines. These routines are generally tools used by other SLEPc routines and are not intended for application programmers. 
+<p>SLEPc provides a variety of "system" level routines. These routines are generally tools used by other SLEPc routines and are not intended for application programmers (except the basic <a href="SlepcInitialize.html">SlepcInitialize</a>() / <a href="SlepcFinalize.html">SlepcFinalize</a>()). 
+</p>
 <p>
-Useful tools for application programmers can be found in PETSc's system routines, including parallel file access, synchronized printing to screen.
-
+Useful tools for application programmers can be found in PETSc's system routines, including parallel file access, synchronized printing to screen, and many other programming aids.
 <p>
 
