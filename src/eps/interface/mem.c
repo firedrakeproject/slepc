@@ -1,59 +1,6 @@
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDefaultGetWork"
-/*
-  EPSDefaultGetWork - Gets a number of work vectors.
-
-  Input Parameters:
-+ eps  - eigensolver context
-- nw   - number of work vectors to allocate
-
-  Notes:
-  Call this only if no work vectors have been allocated.
-
- */
-PetscErrorCode EPSDefaultGetWork(EPS eps, int nw)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-
-  if (eps->nwork != nw) {
-    if (eps->nwork > 0) {
-      ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
-    }
-    eps->nwork = nw;
-    ierr = VecDuplicateVecs(eps->vec_initial,nw,&eps->work); CHKERRQ(ierr);
-    PetscLogObjectParents(eps,nw,eps->work);
-  }
-  
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSDefaultFreeWork"
-/*
-  EPSDefaultFreeWork - Free work vectors.
-
-  Input Parameters:
-. eps  - eigensolver context
-
- */
-PetscErrorCode EPSDefaultFreeWork(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (eps->work)  {
-    ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSAllocateSolution"
 PetscErrorCode EPSAllocateSolution(EPS eps)
 {
