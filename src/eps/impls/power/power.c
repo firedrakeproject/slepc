@@ -314,7 +314,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPowerGetShiftType"
-/*@
+/*@C
    EPSPowerGetShiftType - Gets the type of shifts used during the power
    iteration. 
 

@@ -15,6 +15,12 @@
 #define epsdefaultvaluesmonitor_    EPSDEFAULTVALUESMONITOR
 #define epssetmonitor_              EPSSETMONITOR
 #define epssetvaluesmonitor_        EPSSETVALUESMONITOR
+#define epssetst_                   EPSSETST
+#define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
+#define epsgetproblemtype_          EPSGETPROBLEMTYPE
+#define epsgetorthogonalization_    EPSGETORTHOGONALIZATION
+#define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
+#define epslanczosgetorthog_        EPSLANCZOSGETORTHOG
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                    epsview
 #define epssetoptionsprefix_        epssetoptionsprefix
@@ -27,6 +33,12 @@
 #define epsdefaultvaluesmonitor_    epsdefaultvaluesmonitor
 #define epssetmonitor_              epssetmonitor
 #define epssetvaluesmonitor_        epssetvaluesmonitor
+#define epssetst_                   epssetst
+#define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
+#define epsgetproblemtype_          epsgetproblemtype
+#define epsgetorthogonalization_    epsgetorthogonalization
+#define epspowergetshifttype_       epspowergetshifttype
+#define epslanczosgetorthog_        epslanczosgetorthog
 #endif
 
 EXTERN_C_BEGIN
@@ -137,5 +149,34 @@ void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
   FIXRETURNCHAR(prefix,len);
 }
 
+void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,int *ierr)
+{
+  *ierr = EPSGetST(*eps,st);
+}
+
+void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,int *ierr)
+{
+  *ierr = EPSGetWhichEigenpairs(*eps,which);
+}
+
+void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,int *ierr)
+{
+  *ierr = EPSGetProblemType(*eps,type);
+}
+
+void PETSC_STDCALL epsgetorthogonalization_(EPS *eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement,PetscReal *eta,int *ierr)
+{
+  *ierr = EPSGetOrthogonalization(*eps,type,refinement,eta);
+}
+
+void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,int *ierr)
+{
+  *ierr = EPSPowerGetShiftType(*eps,shift);
+}
+
+void PETSC_STDCALL epslanczosgetorthog_(EPS *eps,EPSLanczosOrthogType *reorthog,int *ierr)
+{
+  *ierr = EPSLanczosGetOrthog(*eps,reorthog);
+}
 EXTERN_C_END
 

@@ -285,7 +285,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STGetMatMode"
-/*@
+/*@C
    STGetMatMode - Gets a flag that indicates how the matrix is being 
    shifted in the shift-and-invert and Cayley spectral transformations.
 

@@ -42,7 +42,7 @@
    Last update: October 2004
 
 */
-#include "src/eps/epsimpl.h"
+#include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
 typedef struct {
@@ -458,7 +458,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSLanczosGetOrthog"
-/*@
+/*@C
    EPSLanczosGetOrthog - Gets the type of reorthogonalization used during the Lanczos
    iteration. 
 

@@ -322,7 +322,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetWhichEigenpairs"
-/*@
+/*@C
     EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be 
     sought.
 
@@ -436,7 +436,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetProblemType"
-/*@
+/*@C
    EPSGetProblemType - Gets the problem type from the EPS object.
 
    Not Collective
@@ -522,7 +522,7 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetOrthogonalization"
-/*@
+/*@C
    EPSGetOrthogonalization - Gets the orthogonalization type from the 
    EPS object.
 

@@ -13,6 +13,7 @@
 #define stappendoptionsprefix_    STAPPENDOPTIONSPREFIX
 #define stgetoptionsprefix_       STGETOPTIONSPREFIX
 #define stview_                   STVIEW
+#define stgetmatmode_             STGETMATMODE
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define stsettype_                stsettype
 #define stregisterdestroy_        stregisterdestroy
@@ -24,6 +25,7 @@
 #define stappendoptionsprefix_    stappendoptionsprefix
 #define stgetoptionsprefix_       stgetoptionsprefix
 #define stview_                   stview
+#define stgetmatmode_             stgetmatmode
 #endif
 
 EXTERN_C_BEGIN
@@ -117,6 +119,11 @@ void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = STView(*st,v);
+}
+
+void PETSC_STDCALL  stgetmatmode_(ST *st,STMatMode *mode,int *ierr)
+{
+  *ierr = STGetMatMode(*st,mode);
 }
 
 EXTERN_C_END

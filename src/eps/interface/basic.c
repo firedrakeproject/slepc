@@ -477,7 +477,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetST"
-/*@
+/*@C
    EPSGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
 

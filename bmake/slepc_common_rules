@@ -16,7 +16,7 @@ slepc_oshared: slepc_chk_dir
 # Builds Fortran-77 wrappers 
 #
 slepc_fortranstubs:
-	@-bfort -dir ${SLEPC_DIR}/src/fortran/auto \
+	@-${BFORT} -dir ${SLEPC_DIR}/src/fortran/auto \
 	  -mnative -ansi -nomsgs -anyname -mapptr -mpi -ferr -ptrprefix Petsc\
 	  -ptr64 PETSC_USE_POINTER_CONVERSION  -fcaps PETSC_HAVE_FORTRAN_CAPS \
           -fuscore PETSC_HAVE_FORTRAN_UNDERSCORE ${SOURCEC}
