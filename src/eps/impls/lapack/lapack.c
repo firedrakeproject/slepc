@@ -11,8 +11,7 @@
 #define __FUNCT__ "EPSSetUp_LAPACK"
 static int EPSSetUp_LAPACK(EPS eps)
 {
-  int         ierr,i,size,rank,n,m,row,nz,*cols,dummy;
-  PetscScalar *vals;
+  int         ierr,size,rank,n;
   EPS_LAPACK *la = (EPS_LAPACK *)eps->data;
   MPI_Comm    comm = eps->comm;
   Mat         *T;

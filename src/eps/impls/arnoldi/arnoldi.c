@@ -41,8 +41,11 @@ static int  EPSSolve_ARNOLDI(EPS eps)
   int         ierr, i, j, k, m, maxit=eps->max_it, ncv = eps->ncv;
   int         lwork, ilo, mout;
   Vec         w;
-  PetscReal   norm, tol=eps->tol, *rwork;
+  PetscReal   norm, tol=eps->tol;
   PetscScalar alpha, *H, *Y, *S, *pV, *work;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal   *rwork;
+#endif
 
   PetscFunctionBegin;
   w  = eps->work[0];

@@ -381,7 +381,7 @@ int EPSGetType(EPS eps,EPSType *type)
 @*/
 int EPSSetFromOptions(EPS eps)
 {
-  int        ierr,i;
+  int        ierr;
   char       type[256];
   PetscTruth flg;
   const char *orth_list[2] = { "mgs" , "cgs" };

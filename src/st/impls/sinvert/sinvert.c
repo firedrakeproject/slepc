@@ -196,6 +196,8 @@ static int STView_Sinvert(ST st,PetscViewer viewer)
     SETERRQ1(1,"Viewer type %s not supported for STSINV",((PetscObject)viewer)->type_name);
   }
   switch (ctx->shift_matrix) {
+  case STSINVERT_MATMODE_COPY:
+    break;
   case STSINVERT_MATMODE_INPLACE:
     ierr = PetscViewerASCIIPrintf(viewer,"Shifting the matrix and unshifting at exit\n");CHKERRQ(ierr);
     break;
@@ -208,6 +210,7 @@ static int STView_Sinvert(ST st,PetscViewer viewer)
       case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
       case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
       case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
+      default:                        SETERRQ(1,"Wrong structure flag");break;
     }
     ierr = PetscViewerASCIIPrintf(viewer,"Matrices A and B have %s\n",str);CHKERRQ(ierr);
   }
@@ -220,7 +223,6 @@ static int STSetFromOptions_Sinvert(ST st)
 {
   int        i,ierr;
   PetscTruth flg;
-  PC         pc;
   const char *mode_list[3] = { "copy", "inplace", "shell" };
 
   PetscFunctionBegin;
