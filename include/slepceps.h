@@ -23,7 +23,6 @@ typedef struct _p_EPS* EPS;
 #define EPSPOWER     "power"
 #define EPSSUBSPACE  "subspace"
 #define EPSARNOLDI   "arnoldi"
-#define EPSSRRIT     "srrit"
 #define EPSLAPACK    "lapack"
 /* the next ones are interfaces to external libraries */
 #define EPSARPACK    "arpack"
@@ -135,8 +134,6 @@ typedef enum { EPSPOWER_SHIFT_CONSTANT, EPSPOWER_SHIFT_RAYLEIGH,
 
 extern int EPSPowerSetShiftType(EPS,EPSPowerShiftType);
 extern int EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
-
-extern int EPSSubspaceSetInner(EPS,int);
 
 extern int EPSBlzpackSetBlockSize(EPS,int);
 extern int EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);

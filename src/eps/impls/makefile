@@ -2,7 +2,7 @@
 ALL: lib
 
 LIBBASE  = libslepc
-DIRS     = power subspace arnoldi srrit lapack arpack blzpack planso trlan
+DIRS     = power subspace arnoldi lapack arpack blzpack planso trlan
 LOCDIR   = src/eps/impls/
 MANSEC   = EPS
 

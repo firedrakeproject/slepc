@@ -2,11 +2,9 @@
 #include "src/eps/epsimpl.h"  /*I "slepceps.h" I*/
 
 EXTERN_C_BEGIN
-extern int EPSCreate_PREONLY(EPS);
 extern int EPSCreate_POWER(EPS);
 extern int EPSCreate_SUBSPACE(EPS);
 extern int EPSCreate_ARNOLDI(EPS);
-extern int EPSCreate_SRRIT(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
 extern int EPSCreate_ARPACK(EPS);
 #endif
@@ -53,8 +51,6 @@ int EPSRegisterAll(char *path)
 		  EPSCreate_SUBSPACE);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSARNOLDI, path,"EPSCreate_ARNOLDI", 
 		  EPSCreate_ARNOLDI);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSSRRIT, path,"EPSCreate_SRRIT", 
-		  EPSCreate_SRRIT);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegisterDynamic(EPSARPACK, path,"EPSCreate_ARPACK", 
 		  EPSCreate_ARPACK);CHKERRQ(ierr);
