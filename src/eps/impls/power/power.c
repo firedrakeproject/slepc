@@ -43,15 +43,51 @@ static int EPSSetUp_POWER(EPS eps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSPowerUpdateShift"
+static int  EPSPowerUpdateShift(EPS eps,Vec v,PetscScalar* shift)
+{
+  EPS_POWER   *power = (EPS_POWER *)eps->data;
+  int         ierr;
+  Vec         e, w;
+  Mat         A;
+  PetscReal   norm, rt1, rt2, cs1;
+  PetscScalar alpha, alpha1, alpha2, beta1, sn1;
+
+  PetscFunctionBegin;
+  e = eps->work[0];
+  w = eps->work[1];
+  ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatMult(A,v,e);CHKERRQ(ierr);
+  ierr = VecDot(v,e,&alpha1);CHKERRQ(ierr);
+  if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
+    alpha = -alpha1;
+    ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+    ierr = STNorm(eps->OP,e,&norm);CHKERRQ(ierr);
+    beta1 = norm;
+    ierr = MatMult(A,e,w);CHKERRQ(ierr);
+    ierr = VecDot(e,w,&alpha2);CHKERRQ(ierr);
+    alpha2 = alpha2 / (beta1 * beta1);
+    LAlaev2_(&alpha1,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
+    if (PetscAbsScalar(rt1-alpha1) < PetscAbsScalar(rt2-alpha1)) {
+      *shift = rt1;
+    } else {
+      *shift = rt2;
+    }
+  }
+  else *shift = alpha1;
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_POWER"
 static int  EPSSolve_POWER(EPS eps)
 {
   EPS_POWER   *power = (EPS_POWER *)eps->data;
   int         ierr, i;
   Vec         v, y, e, w;
-  Mat         A;
-  PetscReal   relerr, norm, rt1, rt2, cs1;
-  PetscScalar theta, alpha, rho, alpha1, alpha2, beta1, sn1;
+  PetscReal   relerr, norm;
+  PetscScalar theta, alpha, rho, alpha1;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -86,7 +122,7 @@ static int  EPSSolve_POWER(EPS eps)
     /* theta = v^* y */
     ierr = STInnerProduct(eps->OP,y,v,&theta);CHKERRQ(ierr);
 
-    /* if ||y-theta v||_2 / |theta| < tol, accept */
+    /* compute residual norm */
     ierr = VecCopy(y,e);CHKERRQ(ierr);
     alpha = -theta;
     ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
@@ -94,25 +130,9 @@ static int  EPSSolve_POWER(EPS eps)
     relerr = relerr / PetscAbsScalar(theta);
     eps->errest[eps->nconv] = relerr;
 
+    /* if ||y-theta v||_2 / |theta| < tol, accept */
     if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-      ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
-      ierr = MatMult(A,v,e);CHKERRQ(ierr);
-      ierr = VecDot(v,e,&alpha1);CHKERRQ(ierr);
-      if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
-        alpha = -alpha1;
-        ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
-        ierr = VecNorm(e,NORM_1,&norm);CHKERRQ(ierr);
-        beta1 = norm;
-        ierr = MatMult(A,e,w);CHKERRQ(ierr);
-        ierr = VecDot(e,w,&alpha2);CHKERRQ(ierr);
-        alpha2 = alpha2 / (beta1 * beta1);
-        LAlaev2_(&alpha1,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
-        if (PetscAbsScalar(rt1-alpha1) < PetscAbsScalar(rt2-alpha1)) {
-          alpha1 = rt1;
-        } else {
-          alpha1 = rt2;
-        }
-      }
+      ierr = EPSPowerUpdateShift(eps,v,&alpha1);CHKERRQ(ierr);
       if (PetscAbsScalar((alpha1-rho)/rho) > 0.001) {
         rho = alpha1;
         printf("[%i] nconv = %i rho = %g\n",eps->its,eps->nconv,rho);
@@ -123,6 +143,7 @@ static int  EPSSolve_POWER(EPS eps)
       eps->eigr[eps->nconv] = theta;
     }
 
+    /* if ||y-theta v||_2 / |theta| < tol, accept eigenpair */
     if (relerr<eps->tol) {
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) break;
@@ -194,6 +215,34 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPowerSetShiftType"
+/*@
+   EPSPowerSetShiftType - Sets the type of shifts used during the power
+   iteration. This can be used to emulate the Rayleigh Quotient Iteration
+   (RQI) method.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  shift - the type of shift
+
+   Options Database Key:
+.  -eps_power_shift_type - Sets the shift type (either 'constant' or 
+                           'rayleigh' or 'wilkinson')
+
+   Notes:
+   By default, shifts are constant (EPSPOWER_SHIFT_CONSTANT) and the iteration
+   is the simple power method (or inverse iteration if a shift-and-invert
+   transformation is being used).
+
+   A variable shift can be specified (EPSPOWER_SHIFT_RAYLEIGH or
+   EPSPOWER_SHIFT_WILKINSON). In this case, the iteration behaves rather like
+   a cubic converging method as RQI. See the users manual for details.
+   
+   Level: advanced
+
+.seealso: EPSGetShiftType(), STSetShift()
+@*/
 int EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
 {
   int ierr, (*f)(EPS,EPSPowerShiftType);
@@ -221,6 +270,22 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPowerGetShiftType"
+/*@
+   EPSPowerGetShiftType - Gets the type of shifts used during the power
+   iteration. 
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Input Parameter:
+.  shift - the type of shift
+
+   Level: advanced
+
+.seealso: EPSSetShiftType()
+@*/
 int EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
 {
   int ierr, (*f)(EPS,EPSPowerShiftType*);
