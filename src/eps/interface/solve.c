@@ -350,6 +350,7 @@ PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_COOKIE,2);
   if (!eps->W) { 
     if (eps->solverclass!=EPS_TWO_SIDE) {
@@ -1275,7 +1276,7 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,int i,Vec vec)
   ierr = STApplyTranspose(eps->OP,w,vec);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = EPSOrthogonalize(eps,i+eps->nds,eps->W,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+  ierr = EPSOrthogonalize(eps,i,eps->W,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
   if (breakdown) {
     if (i==0) { SETERRQ(1,"Left initial vector is zero"); }
     else { SETERRQ(1,"Unable to generate more left start vectors"); }

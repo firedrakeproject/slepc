@@ -213,38 +213,6 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSPurge"
-/*@
-   EPSPurge - Purge a vector of all converged vectors.
-
-   Collective on EPS
-
-   Input Parameters:
-.  eps - the eigenproblem solver context
-
-   Input/Output Parameter:
-.  v - vector to be purged
-
-   Notes:
-   On exit, v is orthogonal to all the basis vectors of the currently
-   converged invariant subspace as well as all the deflation vectors
-   provided by the user.
-
-   This routine does not normalize the resulting vector.
-
-   Level: developer
-
-.seealso: EPSOrthogonalize(), EPSAttachDeflationSpace()
-@*/
-PetscErrorCode EPSPurge(EPS eps,Vec v)
-{
-  PetscErrorCode ierr;
-  PetscFunctionBegin;
-  ierr = EPSOrthogonalize(eps,eps->nds+eps->nconv,eps->DSV,v,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSOrthogonalize"
 /*@
    EPSOrthogonalize - Orthogonalize a vector with respect to a set of vectors.
@@ -261,7 +229,7 @@ PetscErrorCode EPSPurge(EPS eps,Vec v)
 
    Output Parameter:
 +  H  - coefficients computed during orthogonalization
-.  norm - norm of the vector ofter being orthogonalized
+.  norm - norm of the vector after being orthogonalized
 -  lindep - flag indicating that refinement did not improve the quality
    of orthogonalization
 

@@ -60,15 +60,15 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
-    if (flg) 
-      SETERRQ(PETSC_ERR_SUP,"Shift spectral transformation does not work with variable shifts");
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&flg);CHKERRQ(ierr);
+    if (!flg) 
+      SETERRQ(PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert ST");
     ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
     if (mode == STMATMODE_INPLACE)
       SETERRQ(PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -101,7 +101,7 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift
   if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
 #if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
     SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
-#else
+#else 
     /* beta1 is the norm of the residual associated to R(v) */
     alpha = -alpha1;
     ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
@@ -133,17 +133,29 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  int            i;
-  Vec            v, y, e;
-  PetscReal      relerr, norm;
-  PetscScalar    theta, alpha, rho;
+  int            i, nsv;
+  Vec            v, y, e, *SV;
+  Mat            A;
+  PetscReal      relerr, norm, rt1, rt2, cs1, anorm;
+  PetscScalar    theta, alpha, rho, delta, sigma, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
   v = eps->V[0];
   y = eps->AV[0];
   e = eps->work[0];
 
-  ierr = VecCopy(eps->vec_initial,y);CHKERRQ(ierr);
+  /* prepare for selective orthogonalization of converged vectors */
+  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+    ierr = PetscMalloc(eps->nev*sizeof(Vec),&SV);CHKERRQ(ierr);
+    for (i=0;i<eps->nds;i++) SV[i]=eps->DS[i];
+    if (eps->nev>1) {
+      ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
+    }
+  }
+
+  ierr = EPSGetStartVector(eps,0,v);CHKERRQ(ierr);
+  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
 
   eps->nconv = 0;
   eps->its = 0;
@@ -152,49 +164,253 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
   while (eps->its<eps->max_it) {
 
-    /* deflation of converged eigenvectors */
-    ierr = EPSPurge(eps,y);
-
-    /* v = y/||y||_B */
-    ierr = VecCopy(y,v);CHKERRQ(ierr);
-    ierr = STNorm(eps->OP,y,&norm);CHKERRQ(ierr);
-    alpha = 1.0/norm;
-    ierr = VecScale(&alpha,v);CHKERRQ(ierr);
-
     /* y = OP v */
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
 
-    /* theta = (y,v)_B */
-    ierr = STInnerProduct(eps->OP,y,v,&theta);CHKERRQ(ierr);
+    /* theta = (v,y)_B */
+    ierr = STInnerProduct(eps->OP,v,y,&theta);CHKERRQ(ierr);
 
-    /* compute residual norm */
-    ierr = VecCopy(y,e);CHKERRQ(ierr);
-    alpha = -theta;
-    ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
-    ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-    relerr = relerr / PetscAbsScalar(theta);
-    eps->errest[eps->nconv] = relerr;
+    if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
-    /* update eigenvalue and shift */
-    if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-        ierr = EPSPowerUpdateShift(eps,v,v,&rho);CHKERRQ(ierr);
-        /* change the shift only if rho is not too close to an eigenvalue */
-        if (relerr > 1000*eps->tol) {
-          ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
-        }
-        eps->eigr[eps->nconv] = rho;
-    } else {
+      /* approximate eigenvalue is the Rayleigh quotient */
       eps->eigr[eps->nconv] = theta;
+
+      /* compute relative error as ||y-theta v||_2/|theta| */
+      ierr = VecCopy(y,e);CHKERRQ(ierr);
+      alpha = -theta;
+      ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+      ierr = VecNorm(e,NORM_2,&norm);CHKERRQ(ierr);
+      relerr = norm / PetscAbsScalar(theta);
+
+    } else {  /* RQI */
+
+      /* delta = ||y||_B */
+      ierr = STNorm(eps->OP,y,&norm);CHKERRQ(ierr);
+      delta = norm;
+
+      /* compute relative error */
+      relerr = 1.0 / (delta*PetscAbsScalar(rho));
+
+      /* approximate eigenvalue is the shift */
+      eps->eigr[eps->nconv] = rho;
+
+      /* compute new shift */
+      if (relerr<eps->tol) rho = sigma; /* if converged, restore original shift */ 
+      else {
+        rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
+        if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
+#if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
+          SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+#else 
+          /* beta1 is the norm of the residual associated to R(v) */
+          alpha = -theta/(delta*delta);
+          ierr = VecAXPY(&alpha,y,v);CHKERRQ(ierr);
+          alpha = 1.0/delta;
+          ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+          ierr = STNorm(eps->OP,v,&norm);CHKERRQ(ierr);
+          beta1 = norm;
+    
+          /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
+          ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+          ierr = MatMult(A,v,e);CHKERRQ(ierr);
+          ierr = VecDot(v,e,&alpha2);CHKERRQ(ierr);
+          alpha2 = alpha2 / (beta1 * beta1);
+
+          /* choose the eigenvalue of [rho beta1; beta1 alpha2] closest to rho */
+          LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
+          if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) rho = rt1;
+          else rho = rt2;
+#endif 
+        }
+      }
+
+      /* update operator according to new shift */
+      ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+
     }
 
-    /* if ||y-theta v||_2 / |theta| < tol, accept eigenpair */
+    eps->errest[eps->nconv] = relerr;
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
+
+    /* purge previously converged eigenvectors */
+    if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+      nsv = eps->nds;
+      for (i=0;i<eps->nconv;i++) {
+        if(PetscAbsScalar(rho-eps->eigr[i])>(eps->its+1)*anorm/1000) SV[nsv++]=eps->V[i];
+      }
+      ierr = EPSOrthogonalize(eps,nsv,SV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+    } else {
+      ierr = EPSOrthogonalize(eps,eps->nds+eps->nconv,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+    }
+
+    /* v = y/||y||_B */
+    ierr = VecCopy(y,v);CHKERRQ(ierr);
+    alpha = 1.0/norm;
+    ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+
+    /* if relerr<tol, accept eigenpair */
     if (relerr<eps->tol) {
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) break;
       v = eps->V[eps->nconv];
+      ierr = EPSGetStartVector(eps,eps->nconv,v);CHKERRQ(ierr);
+    }
+
+    eps->its = eps->its + 1;
+  }
+
+  if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
+  else eps->reason = EPS_DIVERGED_ITS;
+
+  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+    ierr = PetscFree(SV);CHKERRQ(ierr);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSolve_TS_POWER"
+PetscErrorCode EPSSolve_TS_POWER(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER *)eps->data;
+  int            i;
+  Vec            v, w, y, z, e;
+  Mat            A;
+  PetscReal      relerr, norm, rt1, rt2, cs1;
+  PetscScalar    theta, alpha, rho, delta, sigma, alpha2, beta1, sn1;
+
+  PetscFunctionBegin;
+  v = eps->V[0];
+  y = eps->AV[0];
+  e = eps->work[0];
+  w = eps->W[0];
+  z = eps->AW[0];
+
+  ierr = EPSGetStartVector(eps,0,v);CHKERRQ(ierr);
+  ierr = EPSGetLeftStartVector(eps,0,w);CHKERRQ(ierr);
+  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
+
+  eps->nconv = 0;
+  eps->its = 0;
+
+  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
+
+  while (eps->its<eps->max_it) {
+
+    /* y = OP v, z = OP' w */
+    ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
+    ierr = STApplyTranspose(eps->OP,w,z);CHKERRQ(ierr);
+
+    /* theta = (v,z)_B */
+    ierr = STInnerProduct(eps->OP,v,z,&theta);CHKERRQ(ierr);
+
+    ///* theta = (y,w)_B */
+    //ierr = STInnerProduct(eps->OP,y,w,&theta);CHKERRQ(ierr);
+
+    if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
+
+      /* approximate eigenvalue is the Rayleigh quotient */
+      eps->eigr[eps->nconv] = theta;
+
+      /* compute relative errors (right and left) */
+      ierr = VecCopy(y,e);CHKERRQ(ierr);
+      alpha = -theta;
+      ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
+      ierr = VecNorm(e,NORM_2,&norm);CHKERRQ(ierr);
+      relerr = norm / PetscAbsScalar(theta);
+      eps->errest[eps->nconv] = relerr;
+      ierr = VecCopy(z,e);CHKERRQ(ierr);
+      alpha = -theta;
+      ierr = VecAXPY(&alpha,w,e);CHKERRQ(ierr);
+      ierr = VecNorm(e,NORM_2,&norm);CHKERRQ(ierr);
+      relerr = norm / PetscAbsScalar(theta);
+      eps->errest_left[eps->nconv] = relerr;
+
+    } else {  /* RQI */
+
+      /* delta = sqrt(y,z)_B */
+      ierr = STInnerProduct(eps->OP,y,z,&alpha);CHKERRQ(ierr);
+      if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
+      delta = PetscSqrtScalar(alpha);
+
+      /* compute relative error */
+      relerr = 1.0 / (delta*PetscAbsScalar(rho));
+      eps->errest[eps->nconv] = relerr;
+      eps->errest_left[eps->nconv] = relerr;
+
+      /* approximate eigenvalue is the shift */
+      eps->eigr[eps->nconv] = rho;
+
+      /* compute new shift */
+      if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol)
+        rho = sigma; /* if converged, restore original shift */ 
+      else {
+        rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
+        if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
+#if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
+          SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+#else 
+          /* beta1 is the norm of the residual associated to R(v,w) */
+          alpha = -theta/(delta*delta);
+          ierr = VecAXPY(&alpha,y,v);CHKERRQ(ierr);
+          alpha = 1.0/delta;
+          ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+          ierr = STNorm(eps->OP,v,&norm);CHKERRQ(ierr);
+          beta1 = norm;
+    
+          /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
+          ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+          ierr = MatMult(A,v,e);CHKERRQ(ierr);
+          ierr = VecDot(v,e,&alpha2);CHKERRQ(ierr);
+          alpha2 = alpha2 / (beta1 * beta1);
+
+          /* choose the eigenvalue of [rho beta1; beta1 alpha2] closest to rho */
+          LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
+          if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) rho = rt1;
+          else rho = rt2;
+#endif 
+        }
+      }
+
+      /* update operator according to new shift */
+      ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+
     }
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
+
+    /* purge previously converged eigenvectors */
+    ierr = EPSBiOrthogonalize(eps,eps->nconv,eps->V,eps->W,z,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSBiOrthogonalize(eps,eps->nconv,eps->W,eps->V,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+    /* normalize so that (y,z)_B=1  */
+    ierr = VecCopy(y,v);CHKERRQ(ierr);
+    ierr = VecCopy(z,w);CHKERRQ(ierr);
+    ierr = STInnerProduct(eps->OP,y,z,&alpha);CHKERRQ(ierr);
+    if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
+    if (alpha>0.0) {
+      alpha = 1.0/PetscSqrtScalar(alpha);
+      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+      ierr = VecScale(&alpha,w);CHKERRQ(ierr);
+    } else {
+      alpha = 1.0/PetscSqrtScalar(-alpha);
+      ierr = VecScale(&alpha,v);CHKERRQ(ierr);
+      alpha = -alpha;
+      ierr = VecScale(&alpha,w);CHKERRQ(ierr);
+    }
+
+    /* if relerr<tol (both right and left), accept eigenpair */
+    if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol) {
+      eps->nconv = eps->nconv + 1;
+      if (eps->nconv==eps->nev) break;
+      v = eps->V[eps->nconv];
+      ierr = EPSGetStartVector(eps,eps->nconv,v);CHKERRQ(ierr);
+      w = eps->W[eps->nconv];
+      ierr = EPSGetLeftStartVector(eps,eps->nconv,w);CHKERRQ(ierr);
+    }
+
     eps->its = eps->its + 1;
   }
 
@@ -205,8 +421,8 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_TS_POWER"
-PetscErrorCode EPSSolve_TS_POWER(EPS eps)
+#define __FUNCT__ "EPSSolve_TS_POWER_OLD"
+PetscErrorCode EPSSolve_TS_POWER_OLD(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;

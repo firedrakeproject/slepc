@@ -12,6 +12,6 @@ File       Name           Description
 ----------------------------------------------------------------------------
 rdb200     Brusselator    real unsymmetric, 200 by 200, 1120 entries
 
-odep400a   ODE problem    real unsymmetric, 400 by 400, 1201 entries
-odep400b                  real symmetric indefinite, 400 by 400, 399 entries
+bfw62a     Waveguide      real unsymmetric, 62 by 62, 450 entries
+bfw62b                    real symmetric indefinite, 62 by 62, 342 entries
 

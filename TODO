@@ -9,6 +9,8 @@ TODO
      EPSSetInitialVector. Otra posibilidad es mantener la factorización
      internamente de una llamada EPSSolve a otra.
 
+  c. Permitir sacar de EPS la factorización completa.
+
 (04) Interfaces a paquetes externos
 
   b. Integrar Hlzpack en el mismo interfaz de Blzpack.
@@ -39,6 +41,8 @@ TODO
 (08) Utilidades
 
   b. Estructurar mejor la información que sacan los monitores por defecto.
+
+  c. Monitores para residuo asociado al vector propio por la izquierda.
 
 (09) Test de convergencia
 
@@ -77,6 +81,8 @@ TODO
   b. Implementar una función que mida la calidad de la ortogonalización 
      (para debug, similar a la opción -pc_test_null_space).
 
+  c. Deflation subspace en el caso de two-sided solvers.
+
 (13) Problemas Relacionados
 
   a. Definir objetos nuevos para problemas relacionados, p.e. SVD (singular
@@ -101,8 +107,6 @@ BUGS
 
 DOCUMENTACION
 -------------
-
-- En la tabla B.1 poner el valor de which por defecto, en lugar de tol.
 
 - Añadir LOBPCG en el manual.
 
