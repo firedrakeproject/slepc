@@ -228,7 +228,7 @@ Each of these components consists of an abstract interface (simply a set of call
 Method   & \texttt{ncv} & \texttt{max\_it} & \texttt{tol} \\ \hline
 \texttt{power}    &  $nev$ & $\max(2000,100N)$ & $10^{-7}$ \\ 
 \texttt{subspace} &  $\max(2\cdot nev,nev+15)$ & $\max(100,N)$ & $10^{-7}$ \\ 
-\texttt{arnoldi}  &  $\max(2\cdot nev,nev+10)$ & $\max(100,N\cdot ncv)$ & $10^{-7}$ \\ 
+\texttt{arnoldi}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,N)$ & $10^{-7}$ \\ 
 \hline
 \texttt{lapack}   &  $nev$ &         -          &    -      \\ 
 \texttt{arpack}   &  $\min(\max(20,2\!\cdot\!nev\!+\!\!1),N)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $10^{-7}$ \\ 
