@@ -179,33 +179,54 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */
     k = eps->nconv;
-    while (k<ncv && eps->errest[k]<eps->tol) { k++; }
-    for (i=k;i<ncv;i++) {
-      if (eps->errest[i]<eps->tol) {
-        ifst = i + 1;
-        ilst = k + 1;
+    while (k<ncv) {
 #if !defined(PETSC_USE_COMPLEX)
-        LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
-        SWAP(eps->eigr[k],eps->eigr[i],ts);
-        SWAP(eps->eigi[k],eps->eigi[i],ts);
-        SWAP(eps->errest[k],eps->errest[i],tr);
-        if (eps->eigi[i] != 0) {
+      if (eps->eigi[k] != 0 && k<ncv-1) {
+        if (eps->errest[k]<eps->tol && eps->errest[k+1]<eps->tol) k += 2;
+	else break;
+      } else 
+#endif
+      {
+	if (eps->errest[k]<eps->tol) k++;
+	else break;
+      }
+    }
+    
+    for (i=k;i<ncv;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+      if (eps->eigi[i] != 0 && i<ncv-1) {
+        if (eps->errest[i]<eps->tol && eps->errest[i+1]<eps->tol) {
+          ifst = i + 1;
+          ilst = k + 1;
+          LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
+          SWAP(eps->eigr[k],eps->eigr[i],ts);
+          SWAP(eps->eigi[k],eps->eigi[i],ts);
+          SWAP(eps->errest[k],eps->errest[i],tr);
           SWAP(eps->eigr[k+1],eps->eigr[i+1],ts);
           SWAP(eps->eigi[k+1],eps->eigi[i+1],ts);
           SWAP(eps->errest[k+1],eps->errest[i+1],tr);
-          k++;       
-        }
-#else
-        LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,&info,1);
-        SWAP(eps->eigr[k],eps->eigr[i],ts);
-        SWAP(eps->errest[k],eps->errest[i],tr);
+          if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+          k += 2;       
+	}
+	i++;
+      } else 
 #endif
-        if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-        k++;
-      }
+      {
+	if (eps->errest[i]<eps->tol) {
+          ifst = i + 1;
+          ilst = k + 1;
 #if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[i] != 0) i++;
+          LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
+          SWAP(eps->eigr[k],eps->eigr[i],ts);
+#else
+          LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,&info,1);
 #endif
+          SWAP(eps->eigr[k],eps->eigr[i],ts);
+          SWAP(eps->errest[k],eps->errest[i],tr);
+          if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+          k++;
+	}
+      }    
     }
 
     /* Update V(:,idx) = V*U(:,idx) */
