@@ -40,8 +40,9 @@ static int EPSSetUp_ARNOLDI(EPS eps)
 #define __FUNCT__ "EPSBasicArnoldi"
 int  EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
 {
-  int       ierr,j;
-  PetscReal norm;
+  int         ierr,j;
+  PetscReal   norm;
+  PetscScalar t;
 
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
@@ -49,15 +50,15 @@ int  EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *
     ierr = (*eps->orthog)(eps,j+1,V,f,H+m*j,&norm);CHKERRQ(ierr);
     if (norm<1e-8) SETERRQ(1,"Breakdown in Arnoldi method");
     H[(m+1)*j+1] = norm;
-    norm = 1 / norm;
-    ierr = VecScale(&norm,f);CHKERRQ(ierr);
+    t = 1 / norm;
+    ierr = VecScale(&t,f);CHKERRQ(ierr);
     ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
   }
   ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
   ierr = (*eps->orthog)(eps,j+1,V,f,H+m*j,beta);CHKERRQ(ierr);
   if (norm<1e-8) SETERRQ(1,"Breakdown in Arnoldi method");
-  norm = 1 / *beta;
-  ierr = VecScale(&norm,f);CHKERRQ(ierr);
+  t = 1 / *beta;
+  ierr = VecScale(&t,f);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -65,10 +66,11 @@ int  EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 static int  EPSSolve_ARNOLDI(EPS eps)
 {
-  int         ierr,i,ilo,info,mout,ncv=eps->ncv,one=1;
-  PetscTruth  true = PETSC_TRUE;
+  int         ierr,i,ilo,info,mout,ncv=eps->ncv,int_one=1;
+  PetscTruth  bool_true = PETSC_TRUE;
   Vec         f=eps->work[ncv];
-  PetscScalar norm,beta,*H,*U,*work;
+  PetscScalar *H,*U,*work,t;
+  PetscReal   norm,beta;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal   *rwork;
 #endif
@@ -84,12 +86,10 @@ static int  EPSSolve_ARNOLDI(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
 #endif
 
-/*  ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr); */
-  norm = 1.0;
-  ierr = VecSet(&norm,eps->V[0]);CHKERRQ(ierr);
+  ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr);
   ierr = VecNorm(eps->V[0],NORM_2,&norm);CHKERRQ(ierr);
-  norm = 1 / norm;
-  ierr = VecScale(&norm,eps->V[0]);CHKERRQ(ierr);
+  t = 1 / norm;
+  ierr = VecScale(&t,eps->V[0]);CHKERRQ(ierr);
   
   eps->nconv = 0;
   eps->its = 0;
@@ -102,7 +102,7 @@ static int  EPSSolve_ARNOLDI(EPS eps)
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
   /* [T,wr0,wi0,U] = laqr3(H,U,nconv+1,ncv) */
     ilo = eps->nconv+1;
-    dlaqr3_(&true,&true,&ncv,&ilo,&ncv,H,&ncv,eps->eigr,eps->eigi,&one,&ncv,U,&ncv,work,&info);
+    dlaqr3_(&bool_true,&bool_true,&ncv,&ilo,&ncv,H,&ncv,eps->eigr,eps->eigi,&int_one,&ncv,U,&ncv,work,&info);
   /* V(:,idx) = V*U(:,idx) */
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
   /* [Y,dummy] = eig(H) */
@@ -114,7 +114,7 @@ static int  EPSSolve_ARNOLDI(EPS eps)
   /* rsd = beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
       eps->errest[i] = beta*PetscAbsScalar(U[i*ncv+ncv-1]); 
-      if (eps->errest[i] < eps->tol) eps->nconv = eps->nconv + 1;
+      if (eps->errest[i] < eps->tol) eps->nconv = i + 1;
     }
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (eps->nconv >= eps->nev) break;
