@@ -81,9 +81,12 @@ static int STSetUp_Sinvert(ST st)
   PetscScalar  alpha;
 
   PetscFunctionBegin;
+  
+  if (st->mat) { ierr = MatDestroy(st->mat);CHKERRQ(ierr); }
 
   switch (st->shift_matrix) {
   case STMATMODE_INPLACE:
+    st->mat = PETSC_NULL;
     if (st->sigma != 0.0) {
       alpha = -st->sigma;
       if (st->B) { 
@@ -175,7 +178,6 @@ EXTERN_C_BEGIN
 int STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
-  st->numberofshifts      = 1;
   st->data                = 0;
 
   st->ops->apply          = STApply_Sinvert;
