@@ -146,7 +146,6 @@ int STSetUp(ST st)
   PetscLogInfo(st,"STSetUp:Setting up new ST\n");
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
-  if (!st->vec) {SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Vector must be set first");}
   if (!st->A) {SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
   if (!st->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);

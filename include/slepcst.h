@@ -45,9 +45,6 @@ extern int STSetShift(ST,PetscScalar);
 extern int STGetShift(ST,PetscScalar*);
 extern int STGetNumberOfShifts(ST,int*);
 
-extern int STSetVector(ST,Vec);
-extern int STGetVector(ST,Vec*);
-
 extern int STSetOptionsPrefix(ST,char*);
 extern int STAppendOptionsPrefix(ST,char*);
 extern int STGetOptionsPrefix(ST,char**);

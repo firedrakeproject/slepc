@@ -27,7 +27,6 @@ struct _p_ST {
   PetscScalar  sigma;            /* Value of the shift */
 
   /*------------------------- Misc data --------------------------*/
-  Vec          vec;
   KSP          ksp;
   void         *data;
   int          setupcalled;

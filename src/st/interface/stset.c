@@ -66,16 +66,8 @@ int STSetType(ST st,STType type)
   if (!r) SETERRQ1(1,"Unable to find requested ST type %s",type);
   if (st->data) {ierr = PetscFree(st->data);CHKERRQ(ierr);}
 
-  st->ops->destroy         = (int (*)(ST )) 0;
-  st->ops->view            = (int (*)(ST,PetscViewer) ) 0;
-  st->ops->apply           = (int (*)(ST,Vec,Vec) ) 0;
-  st->ops->applyB          = STDefaultApplyB;
-  st->ops->applynoB        = (int (*)(ST,Vec,Vec) ) 0;
-  st->ops->setup           = (int (*)(ST) ) 0;
-  st->ops->setfromoptions  = (int (*)(ST) ) 0;
-  st->ops->presolve        = (int (*)(ST) ) 0;
-  st->ops->postsolve       = (int (*)(ST) ) 0;
-  st->ops->backtr          = (int (*)(ST,PetscScalar*,PetscScalar*) ) 0;
+  ierr = PetscMemzero(st->ops,sizeof(_STOps));CHKERRQ(ierr);
+  st->ops->applyB         = STDefaultApplyB;
 
   /* Call the STCreateXXX routine for this particular type */
   ierr = (*r)(st);CHKERRQ(ierr);

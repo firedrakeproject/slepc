@@ -125,7 +125,8 @@ static int STSetUp_Sinvert(ST st)
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,ctx->mat,ctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
-  if (st->B && !ctx->w) { ierr = VecDuplicate(st->vec,&ctx->w);CHKERRQ(ierr); } 
+  if (ctx->w) { ierr = VecDestroy(ctx->w);CHKERRQ(ierr); ctx->w = 0; }
+  if (st->B) { ierr = MatGetVecs(st->B,&ctx->w,PETSC_NULL);CHKERRQ(ierr); } 
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -191,7 +192,7 @@ static int STDestroy_Sinvert(ST st)
   if (ctx->shift_matrix != STSINVERT_MATMODE_INPLACE && ctx->mat) { 
     ierr = MatDestroy(ctx->mat);CHKERRQ(ierr); 
   }
-  if (st->B) { ierr = VecDestroy(ctx->w);CHKERRQ(ierr); }
+  if (ctx->w) { ierr = VecDestroy(ctx->w);CHKERRQ(ierr); }
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

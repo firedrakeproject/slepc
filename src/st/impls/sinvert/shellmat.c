@@ -66,7 +66,7 @@ static int MatSinvert_Destroy(Mat A)
   int        ierr;
 
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  if (ctx->B) { ierr = VecDestroy(ctx->w);CHKERRQ(ierr); }
+  if (ctx->w) { ierr = VecDestroy(ctx->w);CHKERRQ(ierr); }
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -86,7 +86,7 @@ int MatCreateMatSinvert(ST st,Mat *mat)
   ctx->A = st->A;
   ctx->B = st->B;
   ctx->sigma = st->sigma;
-  if (st->B) { ierr = VecDuplicate(st->vec,&ctx->w);CHKERRQ(ierr); }
+  if (st->B) { ierr = MatGetVecs(st->B,&ctx->w,PETSC_NULL);CHKERRQ(ierr); }
   ierr = MatGetSize(st->A,&M,&N);CHKERRQ(ierr);  
   ierr = MatGetLocalSize(st->A,&m,&n);CHKERRQ(ierr);  
   ierr = MatCreateShell(st->comm,m,n,M,N,(void*)ctx,mat);CHKERRQ(ierr);

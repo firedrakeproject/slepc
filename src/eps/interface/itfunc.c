@@ -70,7 +70,6 @@ int EPSSetUp(EPS eps)
     ierr = SlepcVecSetRandom(v0);CHKERRQ(ierr);
     eps->vec_initial = v0;
   }
-  ierr = STSetVector(eps->OP,v0); CHKERRQ(ierr);
 
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 

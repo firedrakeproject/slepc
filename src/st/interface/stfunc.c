@@ -75,17 +75,12 @@ int STCreate(MPI_Comm comm,ST *newst)
   PetscHeaderCreate(st,_p_ST,struct _STOps,ST_COOKIE,-1,"ST",comm,STDestroy,STView);
   PetscLogObjectCreate(st);
   st->bops->publish       = STPublish_Petsc;
-  st->ops->destroy        = 0;
-  st->ops->apply          = 0;
+  ierr = PetscMemzero(st->ops,sizeof(_STOps));CHKERRQ(ierr);
   st->ops->applyB         = STDefaultApplyB;
-  st->ops->applynoB       = 0;
-  st->ops->setshift       = 0;
-  st->ops->view           = 0;
 
   st->A                   = 0;
   st->B                   = 0;
   st->sigma               = 0.0;
-  st->vec                 = 0;
   st->data                = 0;
   st->setupcalled         = 0;
   
@@ -155,63 +150,6 @@ int STGetOperators(ST st,Mat *A,Mat *B)
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (A) *A = st->A;
   if (B) *B = st->B;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STSetVector"
-/*@
-   STSetVector - Sets a vector associated with the ST object.
-
-   Collective on ST and Vec
-
-   Input Parameters:
-+  st  - the spectral transformation context
--  vec - the vector
-
-   Notes:
-   The vector must be set so that the ST object knows what type
-   of vector to allocate if necessary.
-
-   Level: intermediate
-
-.seealso: STGetVector()
-
-@*/
-int STSetVector(ST st,Vec vec)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
-  PetscCheckSameComm(st,1,vec,2);
-  st->vec = vec;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STGetVector"
-/*@
-   STGetVector - Gets a vector associated with the ST object; if the 
-   vector was not yet set it will return a nul pointer.
-
-   Not collective, but vector is shared by all processors that share the ST
-
-   Input Parameter:
-.  st - the spectral transformation context
-
-   Output Parameter:
-.  vec - the vector
-
-   Level: intermediate
-
-.seealso: STSetVector()
-
-@*/
-int STGetVector(ST st,Vec *vec)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  *vec = st->vec;
   PetscFunctionReturn(0);
 }
 

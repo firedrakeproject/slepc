@@ -46,7 +46,11 @@ static int STSetUp_Shift(ST st)
 
   PetscFunctionBegin;
   if (st->B) {
-    ierr = VecDuplicate(st->vec,&w);CHKERRQ(ierr);
+    if (st->data) {
+      w = (Vec) st->data;
+      ierr = VecDestroy(w);CHKERRQ(ierr);
+    } 
+    ierr = MatGetVecs(st->B,&w,PETSC_NULL);CHKERRQ(ierr);
     st->data = (void *) w;
     ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
