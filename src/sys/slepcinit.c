@@ -55,7 +55,7 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcRegisterEvents"
-PetscEvent EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalization, ST_InnerProduct;
+PetscEvent EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalize, ST_InnerProduct, EPS_ReverseProjection;
 
 /*
    SlepcRegisterEvents - Registers SLEPc events for use in performance logging.
@@ -72,8 +72,9 @@ PetscErrorCode SlepcRegisterEvents()
   info = PetscLogEventRegister(&ST_Apply,"STApply",PETSC_NULL); CHKERRQ(info);
   info = PetscLogEventRegister(&ST_ApplyB,"STApplyB",PETSC_NULL); CHKERRQ(info);
   info = PetscLogEventRegister(&ST_ApplyNoB,"STApplyNoB",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&EPS_Orthogonalization,"EPSOrthogonalization",PETSC_NULL); CHKERRQ(info);
+  info = PetscLogEventRegister(&EPS_Orthogonalize,"EPSOrthogonalize",PETSC_NULL); CHKERRQ(info);
   info = PetscLogEventRegister(&ST_InnerProduct,"STInnerProduct",PETSC_NULL); CHKERRQ(info);
+  info = PetscLogEventRegister(&EPS_ReverseProjection,"EPSReverseProjection",PETSC_NULL); CHKERRQ(info);
 
   PetscFunctionReturn(info);
 }

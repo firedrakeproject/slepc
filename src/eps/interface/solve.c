@@ -593,6 +593,7 @@ PetscErrorCode EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Ve
   PetscScalar    zero = 0.0;
   
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_ReverseProjection,eps,0,0,0);CHKERRQ(ierr);
   for (i=k;i<m;i++) {
     ierr = VecSet(&zero,work[i]);CHKERRQ(ierr);
     ierr = VecMAXPY(m,S+m*i,work[i],V);CHKERRQ(ierr);
@@ -600,6 +601,7 @@ PetscErrorCode EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Ve
   for (i=k;i<m;i++) {
     ierr = VecCopy(work[i],V[i]);CHKERRQ(ierr);
   }    
+  ierr = PetscLogEventEnd(EPS_ReverseProjection,eps,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
