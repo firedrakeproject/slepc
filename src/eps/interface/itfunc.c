@@ -511,20 +511,22 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
   if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
 #else
-  c = 0;
-  j = 0;
-  found = PETSC_FALSE;
-  while (j < eps->nconv && !found) {
-    if (!eps->perm) k = j;
-    else k = eps->perm[j];
-    if (i == c) found = PETSC_TRUE;
-    else {
-      if (eps->eigi[k] == 0) j++;
-      else j+=2;
-      c++;
+  else {
+    c = 0;
+    j = 0;
+    found = PETSC_FALSE;
+    while (j < eps->nconv && !found) {
+      if (!eps->perm) k = j;
+      else k = eps->perm[j];
+      if (i == c) found = PETSC_TRUE;
+      else {
+        if (eps->eigi[k] == 0) j++;
+        else j+=2;
+        c++;
+      }
     }
+    if (!found) { SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); }
   }
-  if (!found) { SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); }
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = eps->eigi[k];
   if (Vr) VecCopy(eps->V[k], Vr);
