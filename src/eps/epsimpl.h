@@ -67,7 +67,7 @@ struct _p_EPS {
   int        numbervmonitors; 
 
   /* --------------- Orthogonalization --------------------- */
-  int        (*orthog)(EPS,int,PetscScalar*,PetscReal*);
+  int        (*orthog)(EPS,int,Vec,PetscScalar*,PetscReal*);
   PetscReal  orth_eta;
   EPSOrthogonalizationType orth_type;   /* which orthogonalization to use */
   
@@ -92,8 +92,8 @@ struct _p_EPS {
 extern int EPSDefaultDestroy(EPS);
 extern int EPSDefaultGetWork(EPS,int);
 extern int EPSDefaultFreeWork(EPS);
-extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscReal*);
-extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscReal*);
+extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec,PetscScalar*,PetscReal*);
+extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec,PetscScalar*,PetscReal*);
 extern int EPSBackTransform_Default(EPS);
 
 #endif
