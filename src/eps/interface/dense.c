@@ -184,7 +184,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
   char           *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-  int            lwork = 2*n,lrwork = 24*n;
+  int            lwork = 18*n,lrwork = 24*n;
 #else
   int            lwork = 26*n;
 #endif 
@@ -258,7 +258,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 
   PetscFunctionBegin;
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY) || defined(PETSC_BLASLAPACK_F2C)
-  SETERRQ(PETSC_ERR_SUP,"DSYEVR/ZHEEVR - Lapack routine is unavailable.");
+  SETERRQ(PETSC_ERR_SUP,"DSYGVD/ZHEGVD - Lapack routine is unavailable.");
 #endif 
 
   if (V) jobz = "V";

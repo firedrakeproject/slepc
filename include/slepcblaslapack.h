@@ -85,7 +85,7 @@ PETSC_EXTERN_CXX_BEGIN
 #else
 #define LAorghr_ SLEPC_BLASLAPACK(unghr,UNGHR)
 #define LAsyevr_ SLEPC_BLASLAPACK(heevr,HEEVR)
-#define LAsygvd_ SLEPC_BLASLAPACK(hegvd,SYGVD)
+#define LAsygvd_ SLEPC_BLASLAPACK(hegvd,HEGVD)
 #endif
 
 EXTERN_C_BEGIN
