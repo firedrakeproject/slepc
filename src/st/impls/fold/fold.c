@@ -1,6 +1,6 @@
 /*
-    Folding spectral transformation, applies (A + sigma I)² as operator, or 
-    inv(B)(A + sigma I)² for generalized problems
+    Folding spectral transformation, applies (A + sigma I)^2 as operator, or 
+    inv(B)(A + sigma I)^2 for generalized problems
 */
 #include "src/st/stimpl.h"          /*I "slepcst.h" I*/
 
@@ -19,7 +19,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (st->B) {
-    /* generalized eigenproblem: y = (B^-1 A + sI)² x */
+    /* generalized eigenproblem: y = (B^-1 A + sI)^2 x */
     if (st->sigma != 0.0) {
       alpha = - st->sigma;
       ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
@@ -35,7 +35,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
       ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
     }
   } else {
-    /* standard eigenproblem: y = (A + sI)² x */
+    /* standard eigenproblem: y = (A + sI)^2 x */
     ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
     alpha = - st->sigma;
     if (st->sigma != 0.0) {

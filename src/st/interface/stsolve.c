@@ -456,7 +456,8 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
-/*PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
+/*
+PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
 PetscErrorCode VecMDotEnd(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
 
 #undef __FUNCT__  

@@ -11,4 +11,56 @@ chkslepc_dir:
           echo "******************************************************" ; \
         fi
 
-
+slepc_html:
+	-@sed -e s?man+../?man+ROOT/docs/manualpages/? ${LOC}/docs/manualpages/manualpages.cit > /tmp/$$USER.htmlmap
+	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> /tmp/$$USER.htmlmap
+	-@ROOT=`echo ${LOCDIR} | sed -e s?/[a-z]*?/..?g -e s?src/??g -e s?include/??g` ;\
+          loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
+          ${MKDIR} -p $${loc} ;\
+          for i in ${SOURCEC} ${SOURCEF} ${SOURCEH} ${EXAMPLESC} ${EXAMPLESF} ${EXAMPLESCH} ${EXAMPLESFH} ${EXAMPLESMATLAB} foo ; do\
+	    if [ -f $$i ]; then \
+              iroot=`echo $$i | sed -e "s?[a-z.]*/??g"`;\
+              IROOT=`echo $${i} | sed -e s?[.][.]??g` ;\
+              if [ "$${IROOT}" != "$${i}" ] ; then \
+                IROOT=".."; \
+              else \
+                IROOT=$${ROOT};\
+              fi;\
+              ${RM} $${loc}/$$i.html; \
+              echo "<center><a href=\"$${iroot}\">Actual source code: $${iroot}</a></center><br>" > $${loc}/$$i.html; \
+              sed -e "s/CHKERRQ(ierr);//g" -e "s/PetscFunctionReturn(0)/return(0)/g"  \
+              -e "s/ierr [ ]*= //g"  $$i | ${C2HTML} -n  | ${PETSC_DIR}/maint/fixinclude $$i $${ROOT} | \
+              egrep -v '(PetscValid|PetscFunctionBegin|PetscCheck|PetscErrorCode ierr;|#if !defined\(__|#define __|#undef __|EXTERN_C|extern )' | \
+              ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml | sed -e s?ROOT?$${IROOT}?g >> $${loc}/$$i.html ; \
+	    fi; \
+         done
+	-@ROOT=`echo ${LOCDIR} | sed -e s?/[a-z]*?/..?g -e s?src/??g -e s?include/??g` ;\
+          loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`; ${RM} $${loc}/index.html; \
+          cat ${SLEPC_DIR}/src/docs/manualpages-sec/header_${MANSEC} | sed -e "s?<A HREF=\"PETSC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?PETSC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
+          echo "<p>" >> $${loc}/index.html
+	-@loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`;\
+            if [ "${EXAMPLESC}" != "" ] ; then \
+               for file in ${EXAMPLESC} foo ; do \
+		if [ -f $$file ]; then \
+                   cmess=`grep "static char help" $${file} | cut -d\" -f2 | cut -d\. -f1`; \
+                   echo "<a href=\"$${file}.html\">$${file}: $${cmess}</a><br>" >> $${loc}/index.html;\
+		fi; \
+               done ;\
+            else \
+               for file in ${DIRS} foo; do \
+		 if [ -d $$file ]; then \
+                   echo "<a href=\"$${file}/\">$${file}/</a><br>" >> $${loc}/index.html; \
+		 fi; \
+               done; \
+               echo " " >> $${loc}/index.html; \
+               for file in ${SOURCEH} ${SOURCEC} ${SOURCEF} foo ; do \
+		 if [ -f $$file ]; then \
+                   echo "<a href=\"$${file}.html\">$${file}</a><br>" >> $${loc}/index.html; \
+		 fi; \
+               done; \
+            fi ;\
+            echo " " >> $${loc}/index.html; \
+            echo "<a href=\"makefile.html\">makefile</a><br>" >> $${loc}/index.html
+	-@loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
+	   cat makefile | ${C2HTML}  | ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml > $${loc}/makefile.html
+	-@${RM} /tmp/$$USER.htmlmap tmp

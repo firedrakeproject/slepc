@@ -75,7 +75,7 @@ build:
 	-@echo "Completed building SLEPc libraries"
 	-@echo "========================================="
 
-# Builds SLEPc test examples for a given BOPT and architecture
+# Builds SLEPc test examples for a given architecture
 testexamples: info
 	-@echo "BEGINNING TO COMPILE AND RUN SLEPc TEST EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
@@ -86,7 +86,7 @@ testexamples: info
 	-@echo "Completed compiling and running test examples"
 	-@echo "========================================="
 
-# Builds SLEPc test examples for a given BOPT and architecture
+# Builds SLEPc test examples for a given architecture
 testfortran: info
 	-@echo "BEGINNING TO COMPILE AND RUN SLEPc FORTRAN TEST EXAMPLES"
 	-@echo "========================================="
@@ -103,7 +103,7 @@ testfortran: info
 	-@
 	-@echo "========================================="
 
-# Builds SLEPc test examples for a given BOPT and architecture
+# Builds SLEPc test examples for a given architecture
 testexamples_uni: info
 	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
@@ -113,6 +113,8 @@ testexamples_uni: info
 	   ACTION=testexamples_4  tree 
 	-@echo "Completed compiling and running uniprocessor test examples"
 	-@echo "========================================="
+
+# Builds SLEPc test examples for a given architecture
 testfortran_uni: info
 	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR FORTRAN EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
@@ -176,30 +178,39 @@ chk_concepts_dir: chk_loc
 	  echo Making directory ${LOC}/docs/manualpages/concepts for library; ${MKDIR} ${LOC}/docs/manualpages/concepts; fi
 
 # Builds all the documentation
-slepc_alldoc: slepc_allmanualpages
-#	cd docs/tex; ${OMAKE} ps  
+alldoc: alldoc1 alldoc2
 
-# Deletes man pages (HTML version)
-slepc_deletemanualpages:
-	find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \;
-	${RM} ${LOC}/docs/exampleconcepts
-	${RM} ${LOC}/docs/manconcepts
-	${RM} ${LOC}/docs/manualpages/manualpages.cit
-#	-${PETSC_DIR}/maint/update-docs.py ${SLEPC_DIR} ${LOC} clean
-
-# Builds all versions of the man pages
-slepc_allmanualpages: chk_loc slepc_deletemanualpages chk_concepts_dir
+# Build everything that goes into 'doc' dir except html sources
+alldoc1: chk_loc deletemanualpages chk_concepts_dir
 	-${OMAKE} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
+	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
+	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
+#	cd src/docs/tex/manual; ${OMAKE} manual.pdf LOC=${LOC}
 	-${OMAKE} ACTION=manualpages tree_basic LOC=${LOC}
 	-${PETSC_DIR}/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
-	-${OMAKE} ACTION=slepc_manexamples tree LOC=${LOC}
+	-${OMAKE} ACTION=manexamples tree_basic LOC=${LOC}
 	-${OMAKE} manconcepts LOC=${LOC}
-	-${OMAKE} ACTION=getexlist tree LOC=${LOC}
-	-${OMAKE} ACTION=slepc_exampleconcepts tree LOC=${LOC}
+	-${OMAKE} ACTION=getexlist tree_basic LOC=${LOC}
+	-${OMAKE} ACTION=exampleconcepts tree_basic LOC=${LOC}
+	-@touch ${LOC}/docs/exampleconcepts
 	-${PETSC_DIR}/maint/helpindex.py ${SLEPC_DIR} ${LOC}
-	-${OMAKE} ACTION=slepc_html alltree LOC=${LOC}
-#	-${PETSC_DIR}/maint/update-docs.py ${LOC}
+#	-grep -h Polymorphic include/*.h | grep -v '#define ' | sed "s?PetscPolymorphic[a-zA-Z]*(??g" | cut -f1 -d"{" > tmppoly
+#	-${PETSC_DIR}/maint/processpoly.py ${SLEPC_DIR} ${LOC}
+
+# Builds .html versions of the source
+# html overwrites some stuff created by update-docs - hence this is done later.
+alldoc2: chk_loc
+	-${OMAKE} ACTION=slepc_html PETSC_DIR=${PETSC_DIR} alltree LOC=${LOC}
 	cp ${LOC}/docs/manual.htm ${LOC}/docs/index.html
+
+# Deletes man pages (HTML version)
+deletemanualpages: chk_loc
+	-@if [ -d ${LOC} -a -d ${LOC}/docs/manualpages ]; then \
+          find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \; ;\
+          ${RM} ${LOC}/docs/exampleconcepts ;\
+          ${RM} ${LOC}/docs/manconcepts ;\
+          ${RM} ${LOC}/docs/manualpages/manualpages.cit ;\
+        fi
 
 # Builds Fortran stub files
 allfortranstubs:
