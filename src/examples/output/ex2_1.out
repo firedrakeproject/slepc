@@ -2,7 +2,7 @@
 2-D Laplacian Eigenproblem, N=100 (10x10 grid)
 
  Number of iterations of the method: 64
- Solution method: arnoldi
+ Solution method: lanczos
 
  Number of requested eigenvalues: 1
  Stopping condition: tol=1e-07, maxit=100

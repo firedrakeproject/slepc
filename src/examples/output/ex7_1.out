@@ -2,16 +2,16 @@
 Generalized eigenproblem stored in file.
 
  Reading REAL matrices from binary files...
- Number of iterations of the method: 64
- Number of linear iterations of the method: 320
+ Number of iterations of the method: 32
+ Number of linear iterations of the method: 165
  Solution method: arnoldi
 
  Number of requested eigenvalues: 1
  Stopping condition: tol=1e-07, maxit=100
  Number of converged approximate eigenpairs: 2
 
-           k             ||Ax-kx||/||kx||
+           k             ||Ax-kBx||/||kx||
   --------------------- ------------------
- -243874.994983 +6999.809240 i     0.000000
- -243874.994983 -6999.809240 i     0.000000
+ -243874.994933 +6999.809581 i     0.000000
+ -243874.994933 -6999.809581 i     0.000000
 

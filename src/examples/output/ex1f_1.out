@@ -1,12 +1,12 @@
 1-D Laplacian Eigenproblem, n =    30
 
- Number of iterations of the method:   96
- Solution method: arnoldi                                                                         
+ Number of iterations of the method:   112
+ Solution method: lanczos                                                                         
  Number of requested eigenvalues: 1
  Stopping condition: tol=1.0000E-07, maxit=   100
  Number of converged approximate eigenpairs: 1
 
           k          ||Ax-kx||/||kx||
   ----------------- ------------------
-     3.9897E+00         6.7569E-09
+     3.9897E+00         7.8817E-09
 

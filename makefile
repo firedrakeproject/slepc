@@ -7,7 +7,6 @@ LOCDIR = .
 DIRS   = src include docs 
 
 include ${SLEPC_DIR}/bmake/slepc_common
-include ${PETSC_DIR}/bmake/common/test
 
 #
 # Basic targets to build SLEPc libraries.
@@ -77,26 +76,26 @@ build:
 	-@echo "========================================="
 
 # Builds SLEPc test examples for a given BOPT and architecture
-slepc_testexamples: info chkopts
+testexamples: info
 	-@echo "BEGINNING TO COMPILE AND RUN SLEPc TEST EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
-	-@${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} \
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} \
 	   ACTION=testexamples_1  tree 
 	-@echo "Completed compiling and running test examples"
 	-@echo "========================================="
 
 # Builds SLEPc test examples for a given BOPT and architecture
-slepc_testfortran: info chkopts
+testfortran: info
 	-@echo "BEGINNING TO COMPILE AND RUN SLEPc FORTRAN TEST EXAMPLES"
 	-@echo "========================================="
 	-@echo "Due to different numerical round-off on certain"
 	-@echo "machines or the way Fortran formats numbers"
 	-@echo "some of the results may not match exactly."
 	-@echo "========================================="
-	-@if [ "${C_FC}" != "" ]; then \
-	    ${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} ACTION=testexamples_3  tree ; \
+	-@if [ "${FC}" != "" ]; then \
+	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} ACTION=testexamples_3  tree ; \
             echo "Completed compiling and running Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
@@ -105,22 +104,22 @@ slepc_testfortran: info chkopts
 	-@echo "========================================="
 
 # Builds SLEPc test examples for a given BOPT and architecture
-slepc_testexamples_uni: info chkopts
+testexamples_uni: info
 	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
-	-@${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} \
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} \
 	   ACTION=testexamples_4  tree 
 	-@echo "Completed compiling and running uniprocessor test examples"
 	-@echo "========================================="
-slepc_testfortran_uni: info chkopts
+testfortran_uni: info
 	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR FORTRAN EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
-	-@if [ "${C_FC}" != "" ]; then \
-            ${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=testexamples_9  tree; \
+	-@if [ "${FC}" != "" ]; then \
+            ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=testexamples_9  tree; \
             echo "Completed compiling and running uniprocessor fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \

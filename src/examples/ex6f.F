@@ -180,7 +180,7 @@
 
       Mat         A
       Vec         x,y
-      integer     trans,one,ierr,i,N
+      integer     trans,one,ierr,N
       PetscScalar x_array(1),y_array(1)
       PetscOffset i_x,i_y
 
