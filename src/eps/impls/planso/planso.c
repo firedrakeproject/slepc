@@ -15,6 +15,14 @@ static int EPSSetUp_PLANSO(EPS eps)
   EPS_PLANSO *pl = (EPS_PLANSO *)eps->data;
 
   PetscFunctionBegin;
+  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
+  if (eps->ncv) {
+    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+  }
+  else eps->ncv = eps->nev;
+  if (!eps->max_it) eps->max_it = PetscMax(100,n);
+  if (!eps->tol) eps->tol = 1.e-7;
+
 #if defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_ERR_SUP,"Requested method is not available for complex problems");
 #endif
@@ -25,23 +33,7 @@ static int EPSSetUp_PLANSO(EPS eps)
   pl->lwork = 5*n+1+4*eps->ncv+PetscMax(n,eps->ncv+1);
   ierr = PetscMalloc(pl->lwork*sizeof(PetscReal),&pl->work);CHKERRQ(ierr);
 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_PLANSO"
-static int EPSSetDefaults_PLANSO(EPS eps)
-{
-  int         ierr, N;
-
-  PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
-  }
-  else eps->ncv = eps->nev;
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!eps->tol) eps->tol = 1.e-7;
+  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -56,6 +48,8 @@ int  PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p)
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)q,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)p,&y);CHKERRQ(ierr);
   ierr = STApply(globaleps->OP,x,y);CHKERRQ(ierr);
+  ierr = VecDestroy(x);CHKERRQ(ierr);
+  ierr = VecDestroy(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -70,6 +64,8 @@ int  PLANopm_(int *n,PetscReal *q, PetscReal *s)
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)q,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)s,&y);CHKERRQ(ierr);
   ierr = STApplyB(globaleps->OP,x,y);CHKERRQ(ierr);
+  ierr = VecDestroy(x);CHKERRQ(ierr);
+  ierr = VecDestroy(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -116,7 +112,8 @@ int EPSDestroy_PLANSO(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (pl->work)  { ierr = PetscFree(pl->work);CHKERRQ(ierr); }
-  if (eps->data) { ierr = PetscFree(eps->data);CHKERRQ(ierr); }
+  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -134,7 +131,6 @@ int EPSCreate_PLANSO(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_PLANSO));
   eps->data                      = (void *) planso;
   eps->ops->setup                = EPSSetUp_PLANSO;
-  eps->ops->setdefaults          = EPSSetDefaults_PLANSO;
   eps->ops->solve                = EPSSolve_PLANSO;
   eps->ops->destroy              = EPSDestroy_PLANSO;
   eps->ops->view                 = 0;
