@@ -84,7 +84,7 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell} \\\hline
 
 \subsection{Default Behavior}
 
-	By default, a zero shift spectral transformation is performed (\texttt{STSHIFT}). This means that in this case the solver works with the original expressions of the eigenvalue problems,
+	By default, a zero shift spectral transformation is performed (\texttt{STSHIFT}). This means that in this case $\sigma=0$ and the solver works with the original expressions of the eigenvalue problems,
 \begin{equation}Ax=\lambda x\;\;,\end{equation}
 for standard problems, and $Ax=\lambda Bx$ for generalized ones. Note that this last equation is in fact treated internally as
 \begin{equation}B^{-1}Ax=\lambda x\;\;.\end{equation}
@@ -102,7 +102,7 @@ This means that after the solution process, the value $\sigma$ has to be subtrac
 
 \subsection{Shift-and-invert}
 
-	The shift-and-invert spectral transformation (\texttt{STSINV}) is used to enhance convergence to a desired portion of the spectrum. In this case, the solver deals with the expressions 
+	The shift-and-invert spectral transformation (\texttt{STSINV}) is used to enhance convergence of eigenvalues in the neighbourhood of a given value. In this case, the solver deals with the expressions 
 \begin{equation}(A-\sigma I)^{-1}x=\theta x\;\;,\end{equation}
 for standard problems, and 
 \begin{equation}(A-\sigma B)^{-1}B x=\theta x\;\;,\end{equation}
@@ -122,7 +122,7 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 
 	In many of the cases shown in table \ref{tab:op}, the operator contains an inverted matrix which means that a linear system of equations must be solved whenever the application of the operator to a vector is required. These cases are handled internally by means of a \ident{KSP} object.
 
-	In the simplest case, a generalized problem is to be solved with no spectral transformation. A sample command line could be
+	In the simplest case, a generalized problem is to be solved with a zero shift. A sample command line could be
 \begin{Verbatim}[fontsize=\small]
 	$ program -eps_type subspace -eps_tol 1e-6 -eps_monitor
 \end{Verbatim}
@@ -143,7 +143,7 @@ specifies some additional options for the solution of this linear system. In par
 	STGetKSP(ST st,KSP *ksp);
 	\end{Verbatim}
 	
-	The above functionality is also applicable to the other spectral transformations. In the case of shift from origin, again the \ident{KSP} object will be set only in generalized problems, and with $B$ as the coefficient matrix. In this other example, the spectrum is shifted by $\sigma=0.5$ and several options are specified for the linear systems
+	The above functionality is also applicable to the other spectral transformations. In this other example, the spectrum is shifted by $\sigma=0.5$ and several options are specified for the linear systems
 \begin{Verbatim}[fontsize=\small]
 	$ program -st_type shift -st_shift 0.5 -st_ksp_type cgs 
 		  -st_pc_ilu_levels 1
@@ -164,32 +164,35 @@ specifies some additional options for the solution of this linear system. In par
 	\item Shifted: $A-\sigma I$.
 	\item Axpy: $A-\sigma B$.
 	\end{itemize}
-	The first case has already been described and has no difficulty. In the other two cases, which correspond to the shift-and-invert transformation, there are two possible approaches:
-	\begin{enumerate}
-	\item To work with the corresponding expression without forming the matrix explicitly. This is achieved by internally setting a matrix-free matrix with \ident{MatCreateShell}.
-	\item To build the coefficient matrix explicitly. This is done by means of a \ident{MatShift} or a \ident{MatAXPY} operation, which overwrites matrix $A$ with the corresponding expression. This alteration of matrix $A$ is reversed after the eigensolution process has finished.
-	\end{enumerate}
-	The default behavior is not to build the coefficient matrix explicitly (option 1). The user can select the second approach as in the following example
+	The first case has already been described and presents no difficulty. In the other two cases, which correspond to the shift-and-invert transformation, there are three possible approaches:
+	\begin{description}
+	\item[``\Verb!shell!''] To work with the corresponding expression without forming the matrix explicitly. This is achieved by internally setting a matrix-free matrix with \ident{MatCreateShell}.
+	\item[``\Verb!inplace!''] To build the coefficient matrix explicitly. This is done by means of a \ident{MatShift} or a \ident{MatAXPY} operation, which overwrites matrix $A$ with the corresponding expression. This alteration of matrix $A$ is reversed after the eigensolution process has finished.
+	\item[``\Verb!copy!''] To build the matrix explicitly, as in the previous option, but using a working copy of the matrix, that is, without modifying the originall matrix $A$. 
+	\end{description}
+	The default behavior is to build the coefficient matrix explicitly in a copy of $A$ (option ``\Verb!copy!''). The user can change this as in the following example
 \begin{Verbatim}[fontsize=\small]
 	$ program -st_type sinvert -st_shift 10 -st_pc_type jacobi
-		  -st_sinvert_shift_mat
+		  -st_sinvert_matmode shell
 \end{Verbatim}
 	As always, the procedural equivalent is also available for specifying this option in the code of the program:
-	\findex{STSinvertSetShiftMat}
+	\findex{STSinvertSetMatMode}
 	\begin{Verbatim}[fontsize=\small]
-	STSinvertSetShiftMat(ST st);
+	STSinvertSetMatMode(ST st,STSinvertMatMode mode);
 	\end{Verbatim}
 
-	The user must consider which one of the two approaches is the most appropriate for the particular application. The two options have advantatges and drawbacks. The first approach is the simplest one but severely restricts the number of possibilities available for solving the system, in particular most of the \petsc{} preconditioners would not be available. The only preconditioners that can be used in this case are Jacobi (only if matrices $A$ and $B$ have the operation \ident{MATOP\_GET\_DIAGONAL}) or a user-defined one.
+	The user must consider which approach is the most appropriate for the particular application. The different options have advantatges and drawbacks. The first approach is the simplest one but severely restricts the number of possibilities available for solving the system, in particular most of the \petsc{} preconditioners would not be available, including direct methods. The only preconditioners that can be used in this case are Jacobi (only if matrices $A$ and $B$ have the operation \ident{MATOP\_GET\_DIAGONAL}) or a user-defined one.
 	
-	The second approach (compute the coefficient matrix explicitly) can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} can be very inefficient. 
-If the user knows that the pattern is the same, then this can be specified with the function
+	The second approach (``\Verb!inplace!'') can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} can be very inefficient. 
+If the user knows that the pattern is the same (or a subset), then this can be specified with the function
 	\findex{STSinvertSetMatStructure}
 	\begin{Verbatim}[fontsize=\small]
-	STSinvertSetMatStructure(ST st);
+	STSinvertSetMatStructure(ST st,MatStructure str);
 	\end{Verbatim}
 	
 	Note that when the value of the shift $\sigma$ is very close to an eigenvalue, then the linear system will be ill-conditioned and using iterative methods may be problematic. On the other hand, in symmetric definite problems, the coefficient matrix will be indefinite whenever $\sigma$ is a point in the interior of the spectrum and in that case it is not possible to use a symmetric definite factorization (\texttt{cholesky} or \texttt{icc}).
+
+	The third approach (``\Verb!copy!'') uses more memory but avoids a potential problem that could appear in the ``\Verb!inplace!'' approach: the recovered matrix might be slightly different from the original one (due to roundoff).
 
 \subsection{Shell Transformations}
 \label{sec:shell}

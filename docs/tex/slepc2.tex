@@ -30,11 +30,11 @@ where $B\in\Co^{n\times n}$.
 
 \begin{figure}[t]
 \begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
-Vec         xr, xi;           /* basis vectors */
+Vec         xr, xi;       /* basis vectors */
 Mat         A;            /* operator matrix */
 EPS         eps;          /* eigenproblem solver context */
 PetscReal   error;
-PetscScalar kr,ki;
+PetscScalar kr, ki;
 int         its, nconv;
 
 EPSCreate( PETSC_COMM_WORLD, &eps );
@@ -44,8 +44,7 @@ EPSSolve( eps );
 EPSGetIterationNumber( eps, &its );
 EPSGetConverged( eps, &nconv );
 EPSGetEigenpair( eps, j, &kr, &ki, xr, xi );
-PetscMalloc( nconv*sizeof(PetscReal), &error );
-EPSComputeError( eps, error );
+EPSComputeRelativeError( eps, i, &error );
 EPSDestroy( eps );
 \end{Verbatim}
 \caption{\label{fig:ex-eps}Example code for basic solution with \ident{EPS}.}
@@ -90,13 +89,14 @@ EPSDestroy( eps );
 	queries how many eigenpairs have converged to working precision. The solution of the eigenproblem is retrieved in line 14 with one or serveral calls to the following function
 	\findex{EPSGetEigenpair}
 	\begin{Verbatim}[fontsize=\small]
-	EPSGetEigenpair(EPS eps,int j,PetscScalar *kr,PetscScalar *ki,Vec xi, Vec xr);
+	EPSGetEigenpair(EPS eps,int j,PetscScalar *kr,PetscScalar *ki,
+               Vec xi, Vec xr);
 	\end{Verbatim}
 	\label{GetEigenpair}
-	This function returns the $j$-th solution of the eigenproblem problem. \texttt{kr} and \texttt{ki} receive the real and imaginary parts of the eigenvalue, while \texttt{xi} and \texttt{xr} receive the real and imaginary parts of the associated eigenvector. Therefore, the $j$-th eigenvalue is \texttt{kr}$+\,i\cdot$\texttt{ki} and the $j$-th eigenvector is stored in the \texttt{Vec} objects \texttt{xr} and \texttt{xi}. 
+	This function returns the $j$-th solution of the eigenproblem. \texttt{kr} and \texttt{ki} receive the real and imaginary parts of the eigenvalue, while \texttt{xi} and \texttt{xr} receive the real and imaginary parts of the associated eigenvector. Therefore, the $j$-th eigenvalue is \texttt{kr}$+\,i\cdot$\texttt{ki} and the $j$-th eigenvector is stored in the \texttt{Vec} objects \texttt{xr} and \texttt{xi}. 
 	[Note: see section \ref{sec:complex} for a detailed discussion of this issue.] 
 	
-	In line 16 of the example the relative residual error $\|Ax_j\!-\!\lambda_jBx_j\|/\|\lambda_jx_j\|$ associated to each eigenpair is computed with a call to
+	In line 15 of the example the relative residual error $\|Ax_j\!-\!\lambda_jBx_j\|/\|\lambda_jx_j\|$ associated to the $j$-th eigenpair is computed with a call to
 	\findex{EPSComputeRelativeError}
 	\begin{Verbatim}[fontsize=\small]
 	EPSComputeRelativeError(EPS eps,int j,PetscReal *error);
@@ -164,7 +164,7 @@ Generalized Non-Hermitian & \texttt{EPS\_GNHEP}       & \texttt{-eps\_gen\_non\_
 	The user can specify which eigenvalues to compute. The default is to compute only one eigenvalue (and eigenvector), in particular, the dominant one (largest in magnitude). The function
 	\findex{EPSSetDimensions}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetDimensions(EPS eps,int nev,int ncv)
+	EPSSetDimensions(EPS eps,int nev,int ncv);
 	\end{Verbatim}
 allows the specification of the number of eigenvalues to compute, \texttt{nev}. The last argument can be set to prescribe the number of basis vectors to be used by the solution algorithm, \texttt{ncv}. These two parameters can also be set at run time with the options \Verb!-eps_nev! and \Verb!-eps_ncv!. For example, the command line
 \begin{Verbatim}[fontsize=\small]
@@ -177,7 +177,7 @@ requests 10 eigenvalues and instructs to use 24 basis vectors. Note that \texttt
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetWhichEigenpairs(EPS eps,EPSWhich which);
 	\end{Verbatim}
-which can also be specified at the command line. Note that not all these possibilities are available for all the solvers. To compute eigenvalues located in the interior part of the spectrum, the user should use a spectral transformation (see chapter \ref{cap:st}).
+which can also be specified at the command line. This criterion is used both for configuring how the eigensolver seeks eigenvalues (note that not all these possibilities are available for all the solvers) and also for sorting the computed values. To compute eigenvalues located in the interior part of the spectrum, the user should use a spectral transformation (see chapter \ref{cap:st}). Note that in this case, the value of \Verb!which! applies to the transformed spectrum.
 
 \begin{table}[t]
 \centering
@@ -193,7 +193,7 @@ which can also be specified at the command line. Note that not all these possibi
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
 \end{table}
 
-\footnotetext{If \slepc is compiled for real numbers (\Verb!BOPT=O!), then the absolute value of the imaginary part,$|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
+\footnotetext{If \slepc is compiled for real numbers (e.g. \Verb!BOPT=O!), then the absolute value of the imaginary part, $|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
 
 	Another option for specifying the problem is when the user is only interested in the eigenvalues but does not care about eigenvectors. In this case the user can choose not to compute the eigenvectors (this can reduce the amount of computation in some cases), with the command
 	\findex{EPSSetDropEigenvectors}
