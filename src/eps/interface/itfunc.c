@@ -102,7 +102,7 @@ int EPSSetUp(EPS eps)
     ierr = VecSetSizes(v0,m,PETSC_DECIDE);CHKERRQ(ierr);
     ierr = VecSetFromOptions(v0);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(v0);CHKERRQ(ierr);
-    ierr = EPSSetInitialVector(eps,v0);CHKERRQ(ierr);
+    eps->vec_initial = v0;
   }
   ierr = STSetVector(eps->OP,v0); CHKERRQ(ierr);
 
