@@ -71,11 +71,12 @@ Within the \slepc distribution, the directory
 2.1.5 & 2.1.5 &   & Released & May 2003 \\ 
       & 2.1.6 &   &          &          \\ \hline
 2.2.0 & 2.2.0 & $\star$ & Released & Apr 2004 \\ \hline
+\slepcversion & \slepcversion & $\star$ & Released & Aug 2004 \\ \hline
 \end{tabular}
 \caption{\label{tab:ver} Correspondence between \slepc and \petsc\ releases.}
 \end{table}
 
-	Although installing \petsc\ can be tricky some times, in general it is very easy. The user simply sets the environment variables \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} and types \texttt{make}. Apart of this, some customization may be necessary, see the \petsc\ documentation for details.
+	There are two possible ways of installing \petsc: automatically (with configure scripts) or manually. \slepc does not support automatic installation yet. For a manual installation of \petsc, the user simply sets the environment variables \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} and types \texttt{make}. Apart of this, some customization may be necessary, see the \petsc\ documentation for details.
 
 	The installation process for \slepc is very similar. The main steps are described next. Note that prior to this steps, optional packages must have been installed. If any of these packages is installed afterwards, recompilation is necessary. Refer to \url{\slepchome/install.htm} or to section \ref{sec:wrap} for details about installation of some of these packages.
 
@@ -84,9 +85,9 @@ Within the \slepc distribution, the directory
 	\item Refer to \url{\slepchome/download.htm} for available patches to the latest \slepc release.
 	\item Set the environment variable \ident{SLEPC\_DIR} to the full path of the \slepc home directory, for example,
 	\begin{Verbatim}[fontsize=\small]
-	setenv SLEPC_DIR /home/username/slepc-2.2.0
+	setenv SLEPC_DIR /home/username/slepc-2.2.x
 	\end{Verbatim}
-	In addition to this variable, \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} must also be set correctly, the first one pointing to the \petsc\ home directory and the other containing the selected architecture (remember that \petsc\ allows several versions compiled for different architectures to coexist in the same directory tree).
+	In addition to this variable, \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} must also be set correctly, the first one pointing to the \petsc\ home directory and the other containing the selected architecture.% (remember that \petsc\ allows several versions compiled for different architectures to coexist in the same directory tree).
 	\item Edit the file \Verb!${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages! to indicate the local installation of optional software packages such as \arpack. If there exists no directory named \Verb!bmake/${PETSC_ARCH}! for the value of \Verb!${PETSC_ARCH}! you are using, then create it similar to the existing ones.
 	\item In the \slepc home directory, type
 	\begin{Verbatim}[fontsize=\small]
@@ -108,13 +109,12 @@ Within the \slepc distribution, the directory
 	\end{Verbatim}
 \end{enumerate}
 	
-	For details about availability of \slepc on Windows platforms, see the up-to-date information in \url{\slepchome/install.htm}.
+%	For details about availability of \slepc on Windows platforms, see the up-to-date information in \url{\slepchome/install.htm}.
 %---------------------------------------------------
 \section{Running \slepc Programs}
 
 Before using \slepc, the user must first set the environment variable
-\ident{SLEPC\_DIR}, indicating the full path of the \slepc home
-directory. For example, under the UNIX C shell a command of the form
+\ident{SLEPC\_DIR}, indicating the full path of the directory in which \slepc has been installed. For example, under the UNIX C shell a command of the form
 	\begin{Verbatim}[fontsize=\small]
 	setenv SLEPC_DIR /software/slepc
 	\end{Verbatim}
@@ -163,7 +163,7 @@ All \slepc routines return an integer indicating whether an error has
 occurred during the call.  The error code is set to be nonzero if an
 error has been detected; otherwise, it is zero.  For the C/C++
 interface, the error variable is the routine's return value, while for
-the Fortran version, each \petsc\ routine has as its final argument an
+the Fortran version, each \slepc routine has as its final argument an
 integer error variable. 
 
 All \slepc programs should call \rutina{SlepcFinalize}
@@ -238,6 +238,7 @@ with the following sequence of commands:
 	\begin{Verbatim}[fontsize=\small,numbers=none]
 	EPSCreate(MPI_Comm comm,EPS *eps);
 	EPSSetOperators(EPS eps,Mat A,Mat B);
+        EPSSetProblemType(EPS eps,EPSProblemType type);
 	EPSSetFromOptions(EPS eps);
 	EPSSolve(EPS eps);
 	EPSGetIterationNumber(EPS eps,int *its);
@@ -247,7 +248,7 @@ with the following sequence of commands:
 	EPSDestroy(EPS eps);
 	\end{Verbatim}
 The user first creates the \ident{EPS} context and sets the operators
-associated with the eigensystem. The user then sets various options for
+associated with the eigensystem as well as the problem type. The user then sets various options for
 customized solution, solves the problem, retrieves the solution, 
 and finally destroys the \ident{EPS} context.
 Chapter~\ref{cap:eps} describes in detail the \ident{EPS} package, including
