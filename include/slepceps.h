@@ -24,6 +24,7 @@ typedef struct _p_EPS* EPS;
 #define EPSPOWER     "power"
 #define EPSSUBSPACE  "subspace"
 #define EPSARNOLDI   "arnoldi"
+#define EPSARNOLDI2  "arnoldi2"
 #define EPSLANCZOS   "lanczos"
 #define EPSLAPACK    "lapack"
 /* the next ones are interfaces to external libraries */
@@ -144,6 +145,7 @@ EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
 
 typedef enum { EPSLANCZOS_ORTHOG_NONE, 
                EPSLANCZOS_ORTHOG_FULL,
+	       EPSLANCZOS_ORTHOG_SELECTIVE,
                EPSLANCZOS_ORTHOG_PERIODIC,
                EPSLANCZOS_ORTHOG_PARTIAL } EPSLanczosOrthogType;
 

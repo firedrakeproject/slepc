@@ -249,6 +249,52 @@ PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STNormBegin"
+PetscErrorCode STNormBegin(ST st,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidPointer(norm,3);
+  
+  ierr = STInnerProductBegin(st,x,x,&p);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STNormEnd"
+PetscErrorCode STNormEnd(ST st,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidPointer(norm,3);
+  
+  ierr = STInnerProductEnd(st,x,x,&p);CHKERRQ(ierr);
+
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    PetscLogInfo(st,"STNorm: Zero norm, either the vector is zero or a semi-inner product is being used\n" );
+
+#if defined(PETSC_USE_COMPLEX)
+  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+     SETERRQ(1,"STNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(PetscRealPart(p));
+#else
+  if (p<0.0) SETERRQ(1,"STNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(p);
+#endif
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STInnerProduct"
 /*@
    STInnerProduct - Computes the inner product of two vectors.
@@ -366,6 +412,70 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
     ierr = VecMTDot(n,st->w,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STInnerProductBegin"
+PetscErrorCode STInnerProductBegin(ST st,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidScalarPointer(p,4);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_SYMMETRIC:
+    ierr = VecCopy(x,st->w);CHKERRQ(ierr);
+    break;
+  case STINNER_B_HERMITIAN:
+  case STINNER_B_SYMMETRIC:
+    ierr = STApplyB(st,x,st->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecDotBegin(st->w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    ierr = VecTDotBegin(st->w,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STInnerProductEnd"
+PetscErrorCode STInnerProductEnd(ST st,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidScalarPointer(p,4);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecDotEnd(st->w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    ierr = VecTDotEnd(st->w,y,p);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
