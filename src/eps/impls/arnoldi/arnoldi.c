@@ -63,9 +63,9 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,mout,info,ncv=eps->ncv;
+  int            i,k,mout,info,ifst,ilst,ncv=eps->ncv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *H=eps->T,*U,*work,t;
+  PetscScalar    *H=eps->T,*U,*Y,*work,t;
   PetscReal      norm,beta;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -77,6 +77,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #endif 
   ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
@@ -98,21 +99,43 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
   /* [T,wr0,wi0,U] = laqr3(H,U,nconv+1,ncv) */
     ierr = EPSDenseSchur(H,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
-  /* V(:,idx) = V*U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+    ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   /* [Y,dummy] = eig(H) */
 #if !defined(PETSC_USE_COMPLEX)
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,U,&ncv,&ncv,&mout,work,&info,1,1);
+    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
 #else
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,U,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   /* rsd = beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
-      eps->errest[i] = beta*PetscAbsScalar(U[i*ncv+ncv-1]); 
-      if (eps->errest[i] < eps->tol) eps->nconv = i + 1;
-      else break;
+      eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]); 
+    }  
+  /* check convergence */
+    k = eps->nconv;
+    while (k<ncv && eps->errest[k]<eps->tol) k++;
+    for (i=k+1;i<ncv;i++) {
+      if (eps->errest[i]<eps->tol) {
+        ifst = i + 1;
+        ilst = k + 1;
+#if !defined(PETSC_USE_COMPLEX)
+        LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,work,&info,1);
+#else
+        LAtrexc_("V",&ncv,H,&ncv,U,&ncv,&ifst,&ilst,&info,1);
+#endif
+        if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+        k++;
+      }
+#if !defined(PETSC_USE_COMPLEX)
+      if (eps->eigi[i] != 0) i++;
+#endif
     }
+  /* sort eigenvalues */
+    ierr = EPSSortDenseSchur(H,U,eps->eigr,eps->eigi,k,ncv);CHKERRQ(ierr);
+
+  /* V(:,idx) = V*U(:,idx) */
+    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+    eps->nconv = k;
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (eps->nconv >= eps->nev) break;
   }
@@ -124,6 +147,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #endif
 
   ierr = PetscFree(U);CHKERRQ(ierr);
+  ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
