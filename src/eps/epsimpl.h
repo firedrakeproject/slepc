@@ -45,6 +45,7 @@ struct _p_EPS {
                                    with a particular solver */
   int        nconv,             /* number of converged eigenvalues */
              its;               /* number of iterations so far computed */
+  int        *perm;             /* permutation for eigenvalue ordering */
 
   /* ---------------- Default work-area and status vars -------------------- */
   int        nwork;
