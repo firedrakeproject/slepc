@@ -155,7 +155,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
-    ierr = EPSDenseSchur(H,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Compute eigenvectors Y of H */
     ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     }
 
     /* Sort the remaining columns of the Schur form  */
-    ierr = EPSSortDenseSchur(H,U,eps->eigr,eps->eigi,k,ncv);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(ncv,k,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Update V(:,idx) = V*U(:,idx) */
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
