@@ -272,7 +272,7 @@ PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
 
    Level: developer
 
-.seealso: STSetBilinearForm(), STApplyB(), VecDot()
+.seealso: STSetBilinearForm(), STApplyB(), VecDot(), STMInnerProduct()
 @*/
 PetscErrorCode STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
 {
@@ -312,28 +312,29 @@ PetscErrorCode STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
 #undef __FUNCT__  
 #define __FUNCT__ "STMInnerProduct"
 /*@
-   STMInnerProduct - Computes the inner product of multiple vectors.
+   STMInnerProduct - Computes the inner products a vector x with a set of
+   vectors (columns of Y).
 
    Collective on ST and Vec
 
    Input Parameters:
 +  st - the spectral transformation context
 .  x  - input vector
--  y  - input vectors
+-  Y  - input vectors
 
    Output Parameter:
-.  p - result of the inner product
+.  p - result of the inner products
 
    Notes:
-   This function will usually compute the standard dot product of vectors
-   x and y, (x,y)=y^H x. However this behaviour may be different if changed 
-   via STSetBilinearForm(). This allows use of other inner products such as
-   the indefinite product y^T x for complex symmetric problems or the
-   B-inner product for positive definite B, (x,y)_B=y^H Bx.
+   This function will usually compute the standard dot product of x and y_i, 
+   (x,y_i)=y_i^H x, for each column of Y. However this behaviour may be different
+   if changed via STSetBilinearForm(). This allows use of other inner products 
+   such as the indefinite product y_i^T x for complex symmetric problems or the
+   B-inner product for positive definite B, (x,y_i)_B=y_i^H Bx.
 
    Level: developer
 
-.seealso: STSetBilinearForm(), STApplyB(), VecDot()
+.seealso: STSetBilinearForm(), STApplyB(), VecMDot(), STInnerProduct()
 @*/
 PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
 {
