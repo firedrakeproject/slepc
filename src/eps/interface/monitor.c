@@ -204,7 +204,6 @@ PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
     if (errest[i] > 0.0) y[i] = log10(errest[i]); else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
-  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   if (eps->ishermitian) {
     ierr = PetscDrawLGAddPoint(lg1,x,eps->eigr);CHKERRQ(ierr);
@@ -214,6 +213,7 @@ PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
     ierr = PetscDrawSetPause(draw1,pause);CHKERRQ(ierr);    
   }
 #endif  
+  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   ierr = PetscFree(x);CHKERRQ(ierr);
   ierr = PetscFree(y);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
