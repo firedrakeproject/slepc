@@ -362,7 +362,7 @@ PetscErrorCode STPostSolve(ST st,EPS eps)
    Level: developer
 
 .seealso: EPSBackTransform()
-*/
+@*/
 PetscErrorCode STBackTransform(ST st,PetscScalar* eigr,PetscScalar* eigi)
 {
   PetscErrorCode ierr;
