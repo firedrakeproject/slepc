@@ -125,20 +125,32 @@ int STApplyNoB(ST st,Vec x,Vec y)
 #undef __FUNCT__  
 #define __FUNCT__ "STInnerProduct"
 /*@
-   STApplyB - Applies the B matrix to a vector.
+   STInnerProduct - Computes de inner product of two vectors.
 
    Collective on ST and Vec
 
    Input Parameters:
 +  st - the spectral transformation context
--  x - input vector
+.  x  - input vector
+-  y  - input vector
 
    Output Parameter:
-.  y - output vector
++  w - intermediate vector (see Notes below)
+-  p - result of the inner product
+
+   Notes:
+   This function will usually compute the standard dot product of vectors
+   x and y, (x,y)=y^H x. However this behaviour may be different if changed 
+   via STSetBilinearForm(). This allows use of other inner products such as
+   the indefinite product y^T x for complex symmetric problems or the
+   B-inner product for positive definite B, (x,y)_B=y^H Bx.
+
+   At the end of the execution, the intermediate vector w will hold x or Bx,
+   depending on the type of inner product.
 
    Level: developer
 
-.seealso: STApply(), STApplyNoB()
+.seealso: STSetBilinearForm(), STApplyB(), VecDot()
 @*/
 int STInnerProduct(ST st,Vec x,Vec y,Vec w,PetscScalar *p)
 {
