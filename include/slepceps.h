@@ -78,6 +78,7 @@ extern int EPSGetConverged(EPS,int*);
 extern int EPSGetEigenpair(EPS,int,PetscScalar*,PetscScalar*,Vec,Vec);
 extern int EPSComputeRelativeError(EPS,int,PetscReal*);
 extern int EPSComputeResidualNorm(EPS,int,PetscReal*);
+extern int EPSGetSchurVectors(EPS,Vec*);
 extern int EPSGetErrorEstimate(EPS,int,PetscReal*);
 
 extern int EPSSetMonitor(EPS,int (*)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),void*);
@@ -88,7 +89,6 @@ extern int EPSGetNumberLinearIterations(EPS eps,int*);
 
 extern int EPSSetInitialVector(EPS,Vec);
 extern int EPSGetInitialVector(EPS,Vec*);
-extern int EPSSetDropEigenvectors(EPS);
 extern int EPSSetWhichEigenpairs(EPS,EPSWhich);
 extern int EPSGetWhichEigenpairs(EPS,EPSWhich*);
 extern int EPSSetOrthogonalization(EPS,EPSOrthogonalizationType,EPSOrthogonalizationRefinementType,PetscReal);

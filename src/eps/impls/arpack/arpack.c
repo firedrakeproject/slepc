@@ -209,8 +209,7 @@ static int  EPSSolve_ARPACK(EPS eps)
                                "Try increasing the size of NCV relative to NEV."); }
   else if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);}
 
-  if (eps->dropvectors) rvec = PETSC_FALSE;
-  else rvec = PETSC_TRUE;
+  rvec = PETSC_TRUE;
 
 #if !defined(PETSC_USE_COMPLEX)
   if (eps->ishermitian) {
@@ -314,6 +313,7 @@ int EPSCreate_ARPACK(EPS eps)
   eps->ops->destroy              = EPSDestroy_ARPACK;
   eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_ARPACK;
+  eps->computevectors            = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -238,6 +238,7 @@ int EPSCreate_SUBSPACE(EPS eps)
   eps->ops->setfromoptions       = EPSSetFromOptions_SUBSPACE;
   eps->ops->view                 = EPSView_SUBSPACE;
   eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->computevectors            = EPSComputeVectors_Default;
 
   subspace->inner = 0;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSSubspaceSetInner_C","EPSSubspaceSetInner_SUBSPACE",EPSSubspaceSetInner_SUBSPACE);CHKERRQ(ierr);

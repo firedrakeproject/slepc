@@ -56,6 +56,8 @@ int EPSSetUp(EPS eps)
     else {
       ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
     }
+  } else if ((B && !eps->isgeneralized) || (!B && eps->isgeneralized)) {
+    SETERRQ(0,"Warning: Inconsistent EPS state"); 
   }
   
   /* Check if the EPS initial vector has been set */
@@ -423,6 +425,24 @@ int EPSGetConverged(EPS eps,int *nconv)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSGetSchurVectors" 
+int EPSGetSchurVectors(EPS eps, Vec *v)
+{
+  int ierr,i;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(v,VEC_COOKIE,3);
+  if (!eps->V) { 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+  }
+  for (i=0;i<eps->nconv;i++) {
+    ierr = VecCopy(eps->V[i],v[i]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSGetEigenpair" 
 /*@
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem 
@@ -471,8 +491,8 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
   if (i<0 || i>=eps->nconv) { 
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
-  if (eps->dropvectors && (Vr || Vi) ) { 
-    SETERRQ(1, "Eigenvectors are not available"); 
+  if (!eps->computedvectors && (Vr || Vi) ) { 
+    ierr = (*eps->computevectors)(eps);CHKERRQ(ierr);
   }  
 
   if (!eps->perm) k = i;
@@ -480,22 +500,22 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 #ifdef PETSC_USE_COMPLEX
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = 0;
-  if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+  if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
 #else
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = eps->eigi[k];
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
-    if (Vi) { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
+    if (Vi) { ierr = VecCopy(eps->AV[k+1], Vi); CHKERRQ(ierr); }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k-1], Vr); CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->AV[k-1], Vr); CHKERRQ(ierr); }
     if (Vi) { 
-      ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
+      ierr = VecCopy(eps->AV[k], Vi); CHKERRQ(ierr); 
       ierr = VecScale(&minus, Vi); CHKERRQ(ierr); 
     }
   } else { /* real eigenvalue */
-    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
   }
 #endif
@@ -966,11 +986,6 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
     eps->vec_initial = PETSC_NULL;
   }
 
-  /* The following call is done in order to check the consistency of the
-     problem type with the specified matrices */
-  if (eps->problem_type) {
-    ierr = EPSSetProblemType(eps,eps->problem_type);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -1012,7 +1027,6 @@ int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (eps->dropvectors || !eps->V) { SETERRQ(1, "Eigenvectors are not available"); }  
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&u); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&v); CHKERRQ(ierr);
@@ -1206,7 +1220,6 @@ int EPSSetProblemType(EPS eps,EPSProblemType type)
       SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   }
   eps->problem_type = type;
-  if (eps->isgeneralized != (PetscTruth)B) { SETERRQ(0,"Warning: Inconsistent EPS state"); }
 
   PetscFunctionReturn(0);
 }
@@ -1394,5 +1407,18 @@ int EPSBackTransform_Default(EPS eps)
     ierr = STBackTransform(st,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
   }
 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeVectors_Default"
+int EPSComputeVectors_Default(EPS eps)
+{
+  int         ierr,i;
+
+  PetscFunctionBegin;
+  for (i=0;i<eps->nconv;i++) {
+    ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }

@@ -355,6 +355,16 @@ static int EPSSolve_SRRIT(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeVectors_SRRIT"
+int EPSComputeVectors_SRRIT(EPS eps)
+{
+  int ierr;
+  PetscFunctionBegin;
+  ierr = EPSComputeVectors_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_SRRIT"
@@ -365,6 +375,7 @@ int EPSCreate_SRRIT(EPS eps)
   eps->ops->solve                = EPSSolve_SRRIT;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->computevectors            = EPSComputeVectors_SRRIT;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -72,30 +72,26 @@ static int  EPSSolve_LAPACK(EPS eps)
   ierr = MatGetArray(la->BA,&array);CHKERRQ(ierr);
   ierr = MatGetSize(la->BA,&n,&n);CHKERRQ(ierr);
 
-  if (!eps->dropvectors) {
-    if (size == 1) {
-      ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-    } else {
-      ierr = PetscMalloc(sizeof(PetscScalar)*n,&pV);CHKERRQ(ierr);
-    }
-  } else pV = PETSC_NULL;
+  if (size == 1) {
+    ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
+  } else {
+    ierr = PetscMalloc(sizeof(PetscScalar)*n,&pV);CHKERRQ(ierr);
+  }
   
   ierr = EPSDenseNHEPSorted(n,array,eps->eigr,eps->eigi,pV,eps->ncv,eps->which);CHKERRQ(ierr);
   
   ierr = MatRestoreArray(la->BA,&array);CHKERRQ(ierr);
 
-  if (!eps->dropvectors) {
-    if (size == 1) {
-      ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
-    } else {
-      for (i=0; i<eps->ncv; i++) {
-        ierr = VecGetOwnershipRange(eps->V[i], &low, &high);CHKERRQ(ierr);
-        ierr = VecGetArray(eps->V[i], &array);CHKERRQ(ierr);
-        ierr = PetscMemcpy(array, pV+i*n+low, (high-low)*sizeof(PetscScalar));
-        ierr = VecRestoreArray(eps->V[i], &array);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(pV);CHKERRQ(ierr);
+  if (size == 1) {
+    ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
+  } else {
+    for (i=0; i<eps->ncv; i++) {
+      ierr = VecGetOwnershipRange(eps->V[i], &low, &high);CHKERRQ(ierr);
+      ierr = VecGetArray(eps->V[i], &array);CHKERRQ(ierr);
+      ierr = PetscMemcpy(array, pV+i*n+low, (high-low)*sizeof(PetscScalar));
+      ierr = VecRestoreArray(eps->V[i], &array);CHKERRQ(ierr);
     }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
   }
 
   eps->nconv = eps->ncv;
@@ -145,6 +141,7 @@ int EPSCreate_LAPACK(EPS eps)
   eps->ops->destroy              = EPSDestroy_LAPACK;
   eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->computevectors            = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

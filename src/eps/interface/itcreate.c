@@ -89,7 +89,6 @@ int EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of basis vectors (ncv): %d\n",eps->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
-    if (eps->dropvectors) { ierr = PetscViewerASCIIPrintf(viewer,"  computing only eigenvalues\n");CHKERRQ(ierr);}
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
     switch (eps->orth_type) {
       case EPS_MGS_ORTH:
@@ -118,33 +117,6 @@ int EPSView(EPS eps,PetscViewer viewer)
     }
     ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDropEigenvectors"
-/*@C
-   EPSSetDropEigenvectors - Sets the EPS solver not to compute the 
-   eigenvectors. In some methods, this can reduce the number of operations 
-   necessary for obtaining the eigenvalues.
-
-   Collective on KSP
-
-   Input Parameter:
-.  eps - the eigensolver context
-
-   Options Database Keys:
-.   -eps_drop_eigenvectors - do not compute eigenvectors
-
-   Level: advanced
-
-.seealso: EPSSetUp(), EPSSolve(), EPSDestroy()
-@*/
-int EPSSetDropEigenvectors(EPS eps)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  eps->dropvectors = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -198,7 +170,8 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nds             = 0;
   eps->tol             = 0.0;
   eps->which           = EPS_LARGEST_MAGNITUDE;
-  eps->dropvectors     = PETSC_FALSE;
+  eps->computedvectors = PETSC_FALSE;
+  eps->computevectors  = PETSC_NULL;
   eps->problem_type    = (EPSProblemType)0;
 
   eps->vec_initial     = 0;
@@ -414,11 +387,6 @@ int EPSSetFromOptions(EPS eps)
     if( eps->nev<1 ) SETERRQ(1,"Illegal value for option -eps_nev. Must be > 0");
     ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&eps->ncv,&flg);CHKERRQ(ierr);
     if( flg && eps->ncv<1 ) SETERRQ(1,"Illegal value for option -eps_ncv. Must be > 0");
-
-    ierr = PetscOptionsName("-eps_drop_eigenvectors","Do not compute eigenvectors","EPSSetDropEigenvectors",&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = EPSSetDropEigenvectors(eps);CHKERRQ(ierr);
-    }
 
     /* -----------------------------------------------------------------------*/
     /*

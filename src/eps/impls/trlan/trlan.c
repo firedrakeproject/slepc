@@ -151,6 +151,7 @@ int EPSCreate_TRLAN(EPS eps)
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->computevectors            = EPSComputeVectors_Default;
   eps->which = EPS_LARGEST_REAL;
   PetscFunctionReturn(0);
 }

@@ -413,6 +413,7 @@ int EPSCreate_BLZPACK(EPS eps)
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
   eps->ops->view                 = EPSView_BLZPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->computevectors            = EPSComputeVectors_Default;
 
   blzpack->block_size = 3;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);

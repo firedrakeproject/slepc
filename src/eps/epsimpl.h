@@ -34,13 +34,13 @@ struct _p_EPS {
              nds;               /* number of basis vectors of deflation space */
   PetscReal  tol;               /* tolerance */
   EPSWhich   which;             /* which part of the spectrum to be sought */
-  PetscTruth dropvectors;       /* do not compute eigenvectors */
+  PetscTruth computedvectors;   /* computed eigenvectors */
   EPSProblemType problem_type;  /* which kind of problem to be solved */
 
   /*------------------------- Working data --------------------------*/
   Vec         vec_initial;      /* initial vector for iterative methods */
   Vec         *V,               /* set of basis vectors */
-              *AV,              /* eigen vectors */
+              *AV,              /* computed eigen vectors */
               *DS,              /* deflation space */
               *DSV;             /* deflation space and basis vectors*/
   PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
@@ -66,6 +66,8 @@ struct _p_EPS {
   int        (*monitordestroy[MAXEPSMONITORS])(void*);
   void       *monitorcontext[MAXEPSMONITORS];
   int        numbermonitors; 
+
+  int        (*computevectors)(EPS);
 
   /* --------------- Orthogonalization --------------------- */
   int        (*orthog)(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
@@ -93,5 +95,5 @@ extern int EPSFreeSolutionContiguous(EPS);
 extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
 extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
 extern int EPSBackTransform_Default(EPS);
-
+extern int EPSComputeVectors_Default(EPS);
 #endif

@@ -192,6 +192,7 @@ int EPSCreate_ARNOLDI(EPS eps)
   eps->ops->solve                = EPSSolve_ARNOLDI;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->computevectors            = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
