@@ -108,7 +108,7 @@ int main( int argc, char **argv )
      Set operators. In this case, it is a standard symmetric eigenvalue problem
   */
   ierr = EPSSetOperators(eps,H,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_NHEP);
+  ierr = EPSSetProblemType(eps,EPS_HEP);
 
   /*
      Set solver parameters at runtime
