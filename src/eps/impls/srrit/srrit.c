@@ -2,21 +2,6 @@
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
-/* #define DEBUG */
-
-typedef PetscTruth logical;
-typedef PetscBLASInt integer;
-typedef PetscScalar doublereal;
-typedef PetscBLASInt ftnlen;
-
-extern int dlaqr3_(logical *wantt, logical *wantz, integer *n, 
-	integer *ilo, integer *ihi, doublereal *h__, integer *ldh, doublereal 
-	*wr, doublereal *wi, integer *iloz, integer *ihiz, doublereal *z__, 
-	integer *ldz, doublereal *work, integer *info);
-        
-extern doublereal dcond_(integer *m, doublereal *h__, integer *ldh, integer *ipvt, 
-	doublereal *mult, integer *info);
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_SRRIT"
 static int EPSSetUp_SRRIT(EPS eps)
@@ -40,6 +25,32 @@ static int EPSSetUp_SRRIT(EPS eps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSdcond"
+static int EPSdcond(PetscScalar* H,int n, PetscReal* cond)
+{
+  int         ierr,*ipiv,lwork;
+  PetscScalar *work;
+  PetscReal   hn,hin,*rwork;
+  
+  PetscFunctionBegin;
+  ierr = PetscMalloc(sizeof(int)*n,&ipiv);CHKERRQ(ierr);
+  lwork = n*n;
+  ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
+  hn = LAlanhs_("I",&n,H,&n,rwork,1);
+  LAgetrf_(&n,&n,H,&n,ipiv,&ierr);
+  if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xGETRF");
+  LAgetri_(&n,H,&n,ipiv,work,&lwork,&ierr);
+  if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xGETRI");
+  hin = LAlange_("I",&n,&n,H,&n,rwork,1);
+  *cond = hn * hin;
+  ierr = PetscFree(ipiv);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSdgroup"
 static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscScalar *rsd,PetscScalar grptol,
   int *ngrp,PetscScalar *ctr,PetscScalar *ae,PetscScalar *arsd)
@@ -51,21 +62,8 @@ static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscScalar *rs
   *ngrp = 0;
   *ctr = 0;
       
-/* rmod = norm([ wr(l) wi(l) ]) */;
-   rmod = LAlapy2_(wr+l,wi+l);
+  rmod = LAlapy2_(wr+l,wi+l);
 
-/* while 1
-     l1 = l + ngrp;
-     if l1>m, break, end
-     rmod1 = norm([ wr(l1) wi(l1) ]);   % dlapy2
-     if abs(rmod-rmod1)>grptol*(rmod+rmod1), break, end
-     ctr = (rmod+rmod1)/2.0;
-     if wi(l1)~=0
-       ngrp = ngrp + 2;
-     else
-       ngrp = ngrp + 1;
-     end
-   end */
   for (i=l;i<m;) {
     rmod1 = LAlapy2_(wr+i,wi+i);
     if (PetscAbsReal(rmod-rmod1) > grptol*(rmod+rmod1)) break;
@@ -82,15 +80,6 @@ static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscScalar *rs
   *ae = 0;
   *arsd = 0;
 
-/* if ngrp~=0
-     l1 = l + ngrp - 1;
-     for j = l:l1
-       ae = ae + wr(j);
-       arsd = arsd + rsd(j)*rsd(j);
-     end
-     ae = ae/ngrp;
-     arsd = sqrt(arsd/ngrp);
-   end */
   if (*ngrp) {
     for (i=l;i<l+*ngrp;i++) {
       (*ae) += wr[i];
@@ -109,8 +98,6 @@ static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int
   int         ierr,i;
   PetscScalar zero = 0.0,minus = -1.0;
     
-/* R = AV(:,l+1:m) - V*T(:,l+1:m)
-   rsd = sum(R.^2,1) */
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
     ierr = VecSet(&zero,eps->work[0]);CHKERRQ(ierr);
@@ -119,24 +106,6 @@ static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int
     ierr = VecDot(eps->work[1],eps->work[1],rsd+i);CHKERRQ(ierr);
   }
 
-/* jnext = l+1 
-   k = 0 
-   for j=l+1:m 
-     k = k + 1 
-     if j<jnext, continue, end 
-     if j==m 
-       rsd(k) = sqrt(rsd(k)) 
-     else 
-       if T(j+1,j)==0.0 
-         rsd(k) = sqrt(rsd(k)) 
-         jnext = jnext + 1 
-       else
-         rsd(k) = sqrt((rsd(k)+rsd(k+1))/2)
-         rsd(k+1) = rsd(k) 
-         jnext = jnext + 2 
-       end 
-     end 
-   end */
   for (i=l;i<m;i++) {
     if (i == m-1) {
       rsd[i] = PetscSqrtScalar(rsd[i]);  
@@ -155,9 +124,8 @@ static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int
 #define __FUNCT__ "EPSSolve_SRRIT"
 static int EPSSolve_SRRIT(EPS eps)
 {
-  int         ierr,i,j,info,ilo,lwork,ngrp,nogrp,*itrsd,*itrsdold,
-              nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv,one = 1;
-  PetscTruth  true = PETSC_TRUE;
+  int         ierr,i,j,ilo,lwork,ngrp,nogrp,*itrsd,*itrsdold,
+              nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
   PetscScalar *T,*U,*tau,*work,
               ctr,ae,arsd,octr,oae,oarsd,tcond;
   PetscReal   *rsdold,norm;
@@ -194,7 +162,7 @@ static int EPSSolve_SRRIT(EPS eps)
   while (eps->its<eps->max_it) {
 
     /* [ nogrp, octr, oae, oarsd ] = dgroup( nconv+1, ncv, wr, wi, rsd, grptol ) */
-    EPSdgroup(eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,grptol,&nogrp,&octr,&oae,&oarsd);
+    ierr = EPSdgroup(eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
     /* AV(:,idx) = stapply(st,V(:,idx)) */
     for (i=eps->nconv;i<ncv;i++) {
@@ -208,17 +176,19 @@ static int EPSSolve_SRRIT(EPS eps)
 
     /* [U,H] = hess(T) */
     ilo = eps->nconv + 1;
-    LAgehrd_(&ncv,&ilo,&ncv,T,&ncv,tau,work,&lwork,&info);
+    LAgehrd_(&ncv,&ilo,&ncv,T,&ncv,tau,work,&lwork,&ierr);
+    if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xGEHRD");
     for (j=0;j<ncv-1;j++) {
       for (i=j+2;i<ncv;i++) {
         U[i+j*ncv] = T[i+j*ncv];
         T[i+j*ncv] = 0.0;
       }      
     }
-    LAorghr_(&ncv,&ilo,&ncv,U,&ncv,tau,work,&lwork,&info);
-
+    LAorghr_(&ncv,&ilo,&ncv,U,&ncv,tau,work,&lwork,&ierr);
+    if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xORGHR");
+    
     /* [T,wr,wi,U] = laqr3(H,U) */
-    dlaqr3_(&true,&true,&ncv,&ilo,&ncv,T,&ncv,eps->eigr,eps->eigi,&one,&ncv,U,&ncv,work,&info);
+    ierr = EPSDenseSchur(T,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
     
     /* AV(:,idx) = AV*U(:,idx) */
     ierr = EPSReverseProjection(eps,eps->AV,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
@@ -230,22 +200,10 @@ static int EPSSolve_SRRIT(EPS eps)
     for (i=0;i<ncv;i++) { rsdold[i] = eps->errest[i]; }
 
     /* rsd(idx) = SchurResidualNorms(V,AV,T,nconv,ncv) */
-    EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,ncv,ncv,eps->errest);
+    ierr = EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,ncv,ncv,eps->errest);CHKERRQ(ierr);
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv); 
   
-#ifdef DEBUG
-    printf("[%3d] eigr:  ",eps->its);
-    for (i=0;i<5;i++) printf(" %12e",eps->eigr[i]);
-    printf("\n");
-    printf("[%3d] eigi:  ",eps->its);
-    for (i=0;i<5;i++) printf(" %12e",eps->eigi[i]);
-    printf("\n");
-    printf("[%3d] error: ",eps->its);
-    for (i=0;i<5;i++) printf(" %12e",eps->errest[i]);
-    printf("\n");
-#endif
-
     /* itrsdold = itrsd;
        for j=idx, itrsd(j)=its; end */
     for (i=0;i<ncv;i++) { itrsdold[i] = itrsd[i]; }
@@ -253,11 +211,7 @@ static int EPSSolve_SRRIT(EPS eps)
     
     for (;;) {
       /* [ ngrp, ctr, ae, arsd ] = dgroup( nconv+1, ncv, wr, wi, rsd, grptol ) */
-      EPSdgroup(eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);
-#ifdef DEBUG
-      printf("[%3d] ngrp=%d ctr=%e ae=%e arsd=%e\n",eps->its,ngrp,ctr,ae,arsd);
-#endif
-
+      ierr = EPSdgroup(eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
       if (ngrp!=nogrp) break;
       if (ngrp==0) break;
       if (PetscAbsScalar(ae-oae)>ctr*cnvtol*(itrsd[eps->nconv]-itrsdold[eps->nconv])) break;
@@ -282,14 +236,12 @@ static int EPSSolve_SRRIT(EPS eps)
 
     /* tcond = cond(T,inf) */
     ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv);CHKERRQ(ierr);
-    tcond = dcond_(&ncv,U,&ncv,iwork,work,&info);
+    /* tcond = dcond_(&ncv,U,&ncv,iwork,work,&ierr); */
+    ierr = EPSdcond(U,ncv,&tcond);CHKERRQ(ierr);
     
     /* idort = max([1 fix(orttol/max([1 log10(tcond)]))]) */
     idort = PetscMax(1,floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(eps->its+idort, nxtsrr);
-#ifdef DEBUG
-    printf("[%3d] nxtsrr=%d idort=%d\n",eps->its,nxtsrr,idort);
-#endif
 
     /* V(:,idx) = AV(:,idx) */
     for (i=eps->nconv;i<ncv;i++) {
