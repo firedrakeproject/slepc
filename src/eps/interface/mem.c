@@ -51,6 +51,7 @@ PetscErrorCode EPSFreeSolution(EPS eps)
     ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
     ierr = VecDestroyVecs(eps->V,eps->allocated_ncv);CHKERRQ(ierr);
     ierr = VecDestroyVecs(eps->AV,eps->allocated_ncv);CHKERRQ(ierr);
+    eps->allocated_ncv = 0;
   }
   PetscFunctionReturn(0);
 }
@@ -137,6 +138,7 @@ PetscErrorCode EPSFreeSolutionContiguous(EPS eps)
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(eps->AV);CHKERRQ(ierr);
+    eps->allocated_ncv = 0;
   }
   PetscFunctionReturn(0);
 }
