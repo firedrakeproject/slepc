@@ -99,6 +99,7 @@ EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
 EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);
 
 EXTERN PetscErrorCode EPSDefaultMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
+EXTERN PetscErrorCode EPSLGMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
 
 EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,char*);
 EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,char*);

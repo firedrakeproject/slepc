@@ -73,7 +73,7 @@ PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,Pe
 
    Level: intermediate
 
-.seealso: EPSSetMonitor(), EPSSetValuesMonitor()
+.seealso: EPSSetMonitor()
 @*/
 PetscErrorCode EPSClearMonitor(EPS eps)
 {
@@ -152,3 +152,42 @@ PetscErrorCode EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,Pet
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSLGMonitor"
+PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *monctx)
+{
+  PetscDrawLG    lg = (PetscDrawLG) monctx;
+  PetscErrorCode ierr;
+  PetscReal      *x,*y;
+  int            i,n = eps->nev;
+
+  PetscFunctionBegin;
+
+  if (!monctx) {
+    MPI_Comm comm;
+    ierr = PetscObjectGetComm((PetscObject)eps,&comm);CHKERRQ(ierr);
+    ierr = PetscViewerDrawGetDrawLG(PETSC_VIEWER_DRAW_(comm),0,&lg);CHKERRQ(ierr);
+    if (!its) {
+      PetscDraw draw;
+      ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
+      ierr = PetscDrawLGGetDraw(lg,&draw);
+      ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
+    }
+  }
+
+  if (!its) {
+    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+  }
+  ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    x[i] = (PetscReal) its;
+    if (errest[i] > 0.0) y[i] = log10(errest[i]); else y[i] = 0.0;
+  }
+  ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
+  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+  ierr = PetscFree(x);CHKERRQ(ierr);
+  ierr = PetscFree(y);CHKERRQ(ierr);  
+  PetscFunctionReturn(0);
+} 

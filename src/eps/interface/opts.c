@@ -90,6 +90,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {
       ierr = EPSSetMonitor(eps,EPSDefaultMonitor,PETSC_NULL);CHKERRQ(ierr);
     }
+    ierr = PetscOptionsName("-eps_xmonitor","Monitor error estimates graphically","EPSSetMonitor",&flg);CHKERRQ(ierr); 
+    if (flg) {
+      ierr = EPSSetMonitor(eps,EPSLGMonitor,PETSC_NULL);CHKERRQ(ierr);
+    }
   /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsLogicalGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);}
