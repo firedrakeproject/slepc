@@ -61,6 +61,7 @@ void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),int *ierr
 #else
   *ierr = PetscStrncpy(name,tname,len);
 #endif
+  FIXRETURNCHAR(name,len);
 }
 
 void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),
@@ -162,6 +163,7 @@ void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
 #else
   *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
 #endif
+  FIXRETURNCHAR(prefix,len);
 }
 
 EXTERN_C_END
