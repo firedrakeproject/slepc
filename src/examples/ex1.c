@@ -1,6 +1,6 @@
 
-static char help[] = "Simple example that solves an eigensystem with the "
-  "EPS object. The standard symmetric eigenvalue problem to be solved "
+static char help[] = "Simple example that solves an eigensystem with the EPS object. "
+  "The standard symmetric eigenvalue problem to be solved "
   "corresponds to the Laplacian operator in 1 dimension.\n\n"
   "The command line options are:\n\n"
   "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n\n";

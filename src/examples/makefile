@@ -22,6 +22,8 @@ TESTEXAMPLES_7  =
 TESTEXAMPLES_8  = 
 TESTEXAMPLES_13 = 
 
+MANSEC           = examples
+
 include ${SLEPC_DIR}/bmake/slepc_common
 
 ex1: ex1.o slepc_chkopts

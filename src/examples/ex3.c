@@ -1,7 +1,6 @@
 
-static char help[] = "This example solves the same eigenproblem as in "
-  "example ex2.c, but using a shell matrix. The problem is a standard "
-  "symmetric eigenproblem corresponding to the 2-D Laplacian operator.\n\n"
+static char help[] = "This example solves the same eigenproblem as in example ex2, but using a shell matrix. "
+  "The problem is a standard symmetric eigenproblem corresponding to the 2-D Laplacian operator.\n\n"
   "The command line options are:\n\n"
   "  -n <n>, where <n> = number of grid subdivisions in both x and y dimensions.\n\n";
 

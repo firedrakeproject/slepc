@@ -1,5 +1,5 @@
-static char help[] = "Example that illustrates the use of shell spectral "
-  "transformations. The problem to be solved is the same as ex1.c and"
+static char help[] = "Example that illustrates the use of shell spectral transformations. "
+  "The problem to be solved is the same as ex1.c and"
   "corresponds to the Laplacian operator in 1 dimension.\n\n"
   "The command line options are:\n\n"
   "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n\n";

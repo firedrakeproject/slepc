@@ -1,7 +1,6 @@
 
-static char help[] = "This example estimates the 2-norm condition number of a"
-  "matrix A, that is, the ratio of the largest singular value of A to the "
-  "smallest. The matrix is a Grcar matrix.\n\n"
+static char help[] = "This example estimates the 2-norm condition number of a matrix A, that is, the ratio of the largest singular value of A to the smallest. "
+  "The matrix is a Grcar matrix.\n\n"
   "The command line options are:\n\n"
   "  -n <n>, where <n> = matrix dimension.\n\n";
 

@@ -167,11 +167,10 @@ slepc_allmanualpages: chk_loc slepc_deletemanualpages chk_concepts_dir
 	-${OMAKE} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
 	-${OMAKE} ACTION=manualpages tree_basic LOC=${LOC}
 	-${PETSC_DIR}/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
-	-${OMAKE} ACTION=manexamples tree LOC=${LOC}
+	-${OMAKE} ACTION=slepc_manexamples tree LOC=${LOC}
 	-${OMAKE} manconcepts LOC=${LOC}
 	-${OMAKE} ACTION=getexlist tree LOC=${LOC}
-	-${OMAKE} ACTION=exampleconcepts tree LOC=${LOC}
-	touch ${LOC}/docs/tex/exampleconcepts
+	-${OMAKE} ACTION=slepc_exampleconcepts tree LOC=${LOC}
 	-${PETSC_DIR}/maint/helpindex.py ${SLEPC_DIR} ${LOC}
 	-${OMAKE} ACTION=slepc_html alltree LOC=${LOC}
 #	-${PETSC_DIR}/maint/update-docs.py ${LOC}

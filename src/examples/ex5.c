@@ -1,7 +1,6 @@
 
-static char help[] = "Eigenvalue problem associated with a Markov model "
-  "of a random walk on a triangular grid. It is a standard symmetric "
-  "eigenproblem and the rightmost eigenvalue is known to be 1.\n\n"
+static char help[] = "Eigenvalue problem associated with a Markov model of a random walk on a triangular grid. "
+  "It is a standard symmetric eigenproblem and the rightmost eigenvalue is known to be 1.\n\n"
   "This example illustrates how the user can set the initial vector.\n\n"
   "The command line options are:\n\n"
   "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
