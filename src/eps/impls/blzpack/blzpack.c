@@ -61,7 +61,7 @@ static int EPSSetUp_BLZPACK(EPS eps)
   ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
 
   k1 = PetscMin(N,180);
-  k2 = blz->block_size? blz->block_size: 3;
+  k2 = blz->block_size;
   k4 = PetscMin(eps->ncv,N);
   k3 = 484+k1*(13+k1*2+k2+PetscMax(18,k2+2))+k2*k2*3+k4*2;
 
@@ -300,7 +300,10 @@ int EPSBlzpackSetBlockSize_BLZPACK(EPS eps,int bs)
 
   PetscFunctionBegin;
   blz             = (EPS_BLZPACK *) eps->data;
-  blz->block_size = bs;
+  if (bs == PETSC_DEFAULT) blz->block_size = 3;
+  else if (bs <= 0) { 
+    SETERRQ(1, "Incorrect block size"); 
+  } else blz->block_size = bs;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -413,7 +416,7 @@ int EPSCreate_BLZPACK(EPS eps)
   eps->ops->view                 = EPSView_BLZPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;
 
-  blzpack->block_size = 0;
+  blzpack->block_size = 3;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   blzpack->initial = 0.0;
   blzpack->final = 0.0;

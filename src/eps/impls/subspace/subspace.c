@@ -37,7 +37,7 @@ static int EPSSetDefaults_SUBSPACE(EPS eps)
   else eps->ncv = PetscMin(2*eps->nev,eps->nev+8);
   eps->ncv = PetscMin(eps->ncv,N);
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!subspace->inner) {
+  if (!subspace->inner || subspace->inner == PETSC_DEFAULT) {
     if (eps->ishermitian) subspace->inner = 10;
     else                  subspace->inner = 4;
   }
@@ -169,6 +169,9 @@ static int EPSSetFromOptions_SUBSPACE(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("SUBSPACE options");CHKERRQ(ierr);
     val = subspace->inner;
+    if (val <= 0) 
+      if (eps->ishermitian) val = 10;
+      else                  val = 4;
     ierr = PetscOptionsInt("-eps_subspace_inner","Number of inner iterations","EPSSubspaceSetInner",val,&val,&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSubspaceSetInner(eps,val);CHKERRQ(ierr);}
   ierr = PetscOptionsTail();CHKERRQ(ierr);
