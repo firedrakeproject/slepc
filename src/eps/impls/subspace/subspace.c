@@ -67,18 +67,10 @@ static PetscErrorCode EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,Pets
   *ngrp = 0;
   *ctr = 0;
       
-#if !defined(PETSC_USE_COMPLEX)
-  rmod = LAlapy2_(wr+l,wi+l);
-#else 
-  rmod = PetscAbsScalar(wr[l]);
-#endif
+  rmod = SlepcAbsEigenvalue(wr[l],wi[l]);
 
   for (i=l;i<m;) {
-#if !defined(PETSC_USE_COMPLEX)
-    rmod1 = LAlapy2_(wr+i,wi+i);
-#else 
-    rmod1 = PetscAbsScalar(wr[i]);
-#endif
+    rmod1 = SlepcAbsEigenvalue(wr[i],wi[i]);
     if (PetscAbsReal(rmod-rmod1) > grptol*(rmod+rmod1)) break;
     *ctr = (rmod+rmod1)/2.0;
     if (wi[i] != 0.0) {
@@ -335,11 +327,11 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
 {
   PetscFunctionBegin;
-  eps->ops->setup                = EPSSetUp_SUBSPACE;
   eps->ops->solve                = EPSSolve_SUBSPACE;
+  eps->ops->setup                = EPSSetUp_SUBSPACE;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->computevectors            = EPSComputeVectors_SUBSPACE;
+  eps->ops->computevectors       = EPSComputeVectors_SUBSPACE;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
