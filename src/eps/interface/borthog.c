@@ -245,6 +245,7 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
   PetscTruth  refinement,allocated;
   PetscScalar lh[100],*h;
   PetscReal   hnorm;
+  Vec         w;
   
   PetscFunctionBegin;
   
@@ -260,18 +261,24 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
   for (j=0; j<n; j++) {
     h[j] = 0;
   }
+  
+  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+  
   refinement = PETSC_FALSE;
   do {
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
-      ierr = VecDot(v,V[j],&alpha);CHKERRQ(ierr);
+      ierr = STApplyB(eps->OP,v,w);CHKERRQ(ierr);
+      ierr = VecDot(w,V[j],&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
       h[j] += alpha;
       /* v <- v - alpha v_j */
       alpha = -alpha;
       ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
     }
-    ierr = VecNorm(v, NORM_2, norm);CHKERRQ(ierr);
+    ierr = STApplyB(eps->OP,v,w);CHKERRQ(ierr);
+    ierr = VecDot(w,v,&alpha);CHKERRQ(ierr);
+    *norm = PetscSqrtScalar(alpha);
     if (refinement) refinement = PETSC_FALSE;
     else if (eps->orth_eta != 0.0) {
       hnorm = 0.0;
@@ -286,6 +293,7 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
     }
   } while (refinement);
   
+  ierr = VecDestroy(w);CHKERRQ(ierr);
   if (allocated) {
     ierr = PetscFree(h);CHKERRQ(ierr);
   }
