@@ -152,25 +152,25 @@ EXTERN_C_BEGIN
 
 #if !defined(_petsc_mpi_uni)
 
-extern void   ARsaupd_(MPI_Comm*,int*,char*,int*,char*,int*,PetscReal*,PetscScalar*,
+extern void   ARsaupd_(MPI_Fint*,int*,char*,int*,char*,int*,PetscReal*,PetscScalar*,
                        int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscScalar*,int*,int*,int,int);
-extern void   ARseupd_(MPI_Comm*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,
+extern void   ARseupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,
                        int*,PetscReal*,
                        char*,int*,char*,int*,PetscReal*,PetscScalar*,
                        int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscScalar*,int*,int*,int,int,int);
 
 #if !defined(PETSC_USE_COMPLEX)
-extern void   ARnaupd_(MPI_Comm*,int*,char*,int*,char*,int*,PetscReal*,PetscScalar*,
+extern void   ARnaupd_(MPI_Fint*,int*,char*,int*,char*,int*,PetscReal*,PetscScalar*,
                        int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscScalar*,int*,int*,int,int);
-extern void   ARneupd_(MPI_Comm*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,
+extern void   ARneupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,
                        PetscReal*,int*,PetscReal*,PetscReal*,PetscReal*,
                        char*,int*,char*,int*,PetscReal*,PetscScalar*,
                        int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscScalar*,int*,int*,int,int,int);
 #else
-extern void   ARnaupd_(MPI_Comm*,int*,char*,int*,char*,int*,PetscReal*,PetscScalar*,
+extern void   ARnaupd_(MPI_Fint*,int*,char*,int*,char*,int*,PetscReal*,PetscScalar*,
                        int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscScalar*,int*,PetscReal*,int*,
                        int,int);
-extern void   ARneupd_(MPI_Comm*,PetscTruth*,char*,PetscTruth*,PetscScalar*,PetscScalar*,
+extern void   ARneupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscScalar*,PetscScalar*,
                        int*,PetscScalar*,PetscScalar*,
                        char*,int*,char*,int*,PetscReal*,PetscScalar*,
                        int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscScalar*,int*,PetscReal*,int*,

@@ -1,5 +1,7 @@
 
 #include "slepc.h" /*I "slepc.h" I*/
+#include "slepceps.h"
+#include "slepcst.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcPrintVersion"
