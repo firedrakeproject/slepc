@@ -513,8 +513,10 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
     default:
       SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown refinement type");
   }
-  if (eta == PETSC_DEFAULT) eps->orthog_eta = 0.7071;
-  else eps->orthog_eta = eta;
+  if (eta != PETSC_DEFAULT && eta <= 0.0) {
+    SETERRQ(PETSC_ERR_ARG_WRONG,"Invalid eta value");    
+  }
+  eps->orthog_eta = eta;
   PetscFunctionReturn(0);
 }
 

@@ -210,7 +210,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->orthog_type     = EPS_CGS_ORTH;
   eps->orthog_ref      = EPS_ORTH_REFINE_IFNEEDED;
-  eps->orthog_eta      = 0.7071;
+  eps->orthog_eta      = PETSC_DEFAULT;
 
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
   PetscLogObjectParent(eps,eps->OP);

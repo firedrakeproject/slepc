@@ -45,6 +45,12 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = EPSSetType(eps,EPSARNOLDI);CHKERRQ(ierr);
   }
 
+  /* Set default eta for orthogonalization */
+  if (eps->orthog_eta == PETSC_DEFAULT) {
+    if (eps->orthog_type == EPS_MGS_ORTH) eps->orthog_eta = 0.7071;
+    else eps->orthog_eta = 0.5;
+  }
+  
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   /* Set default problem type */
   if (!eps->problem_type) {
