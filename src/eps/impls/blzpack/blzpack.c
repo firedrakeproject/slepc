@@ -174,9 +174,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 	} else {
           ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
 	}
-        if (eps->nds>0) {
-          ierr = (*eps->orthog)(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-        }
+        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       }
       /* monitor */
       eps->its = eps->its + 1;

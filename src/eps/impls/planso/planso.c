@@ -50,9 +50,7 @@ int PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p)
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)q,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)p,&y);CHKERRQ(ierr);
   ierr = STApply(globaleps->OP,x,y);CHKERRQ(ierr);
-  if (globaleps->nds>0) {
-    ierr = (*globaleps->orthog)(globaleps,globaleps->nds,globaleps->DS,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  }
+  ierr = EPSOrthogonalize(globaleps,globaleps->nds,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);

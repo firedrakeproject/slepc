@@ -289,7 +289,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       for (i=eps->nconv;i<ncv;i++) {
         /* v = repgs(V(:,1:j-1),V(:,j))
            V(:,j) = v/norm(v) */
-        ierr = (*eps->orthog)(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm);CHKERRQ(ierr);
+        ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
         if (norm < 1e-8) { SETERRQ(1,"Norm is zero"); }
         t = 1 / norm;
         ierr = VecScale(&t,eps->V[i]);CHKERRQ(ierr);

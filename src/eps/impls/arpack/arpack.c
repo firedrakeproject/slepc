@@ -158,17 +158,13 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       ierr = VecPlaceArray( x, &ar->workd[ipntr[0]-1] );CHKERRQ(ierr);
       ierr = VecPlaceArray( y, &ar->workd[ipntr[1]-1] );CHKERRQ(ierr);
       ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
-      if (eps->nds>0) {
-        ierr = (*eps->orthog)(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      }
+      ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       if (iparam[6]==2) { /* regular inverse mode */
         w = eps->work[0];
         ierr = STGetOperators( eps->OP, &A, PETSC_NULL ); CHKERRQ(ierr);
         ierr = MatMult(A,x,w);CHKERRQ(ierr); 
         ierr = VecCopy( w, x );CHKERRQ(ierr);
-        if (eps->nds>0) {
-          ierr = (*eps->orthog)(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-        }
+        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       }
     }
     else if( ido == 1 ) {
@@ -181,17 +177,13 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         ierr = VecPlaceArray( x, &ar->workd[ipntr[0]-1] );CHKERRQ(ierr);
         ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
       }
-      if (eps->nds>0) {
-        ierr = (*eps->orthog)(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      }
+      ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       if (iparam[6]==2) { /* regular inverse mode */
         w = eps->work[0];
         ierr = STGetOperators( eps->OP, &A, PETSC_NULL ); CHKERRQ(ierr);
         ierr = MatMult(A,x,w);CHKERRQ(ierr); 
         ierr = VecCopy( w, x );CHKERRQ(ierr);
-        if (eps->nds>0) {
-          ierr = (*eps->orthog)(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-        }
+        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       }
     }
     else if( ido == 2 ) {

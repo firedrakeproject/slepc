@@ -34,7 +34,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   int            i;   
   Vec            v0;  
   Mat            A,B; 
-  PetscReal      norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -82,7 +81,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       /* orthonormalize vectors in DS if necessary */
       ierr = EPSQRDecomposition(eps,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
     }
-    ierr = (*eps->orthog)(eps,eps->nds,eps->DS,eps->vec_initial,PETSC_NULL,&norm);CHKERRQ(ierr); 
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
 
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
