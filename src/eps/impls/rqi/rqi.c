@@ -8,21 +8,8 @@
 #define __FUNCT__ "EPSSetUp_RQI"
 static int EPSSetUp_RQI(EPS eps)
 {
-  int        ierr;
-  PetscTruth isSinv;
-
-  PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
-  if (!isSinv) SETERRQ(1,"A shift-and-invert ST must be specified in order to use RQI");
-  ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_RQI"
-static int EPSSetDefaults_RQI(EPS eps)
-{
   int         ierr, N;
+  PetscTruth  isSinv;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -32,6 +19,11 @@ static int EPSSetDefaults_RQI(EPS eps)
   else eps->ncv = eps->nev;
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
+
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+  if (!isSinv) SETERRQ(1,"A shift-and-invert ST must be specified in order to use RQI");
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -126,9 +118,8 @@ int EPSCreate_RQI(EPS eps)
   PetscFunctionBegin;
   eps->data                      = (void *) 0;
   eps->ops->setup                = EPSSetUp_RQI;
-  eps->ops->setdefaults          = EPSSetDefaults_RQI;
   eps->ops->solve                = EPSSolve_RQI;
-  eps->ops->destroy              = EPSDefaultDestroy;
+  eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->view                 = 0;
   eps->ops->backtransform        = EPSBackTransform_Default;
   PetscFunctionReturn(0);

@@ -8,10 +8,21 @@
 #define __FUNCT__ "EPSSetUp_ARPACK"
 static int EPSSetUp_ARPACK(EPS eps)
 {
-  int         ierr, n, ncv;
+  int         ierr, N, n, ncv;
   EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
+  if (eps->ncv) {
+    if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
+    if (eps->ncv>N) SETERRQ(1,"The value of ncv cannot be larger than N"); 
+  }
+  else /* set default value of ncv */
+    eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
+
+  if (!eps->max_it) eps->max_it = PetscMax(300,(int)ceil(2*N/eps->ncv));
+  if (!eps->tol) eps->tol = 1.e-7;
+
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ar->rwork);CHKERRQ(ierr);
@@ -32,27 +43,8 @@ static int EPSSetUp_ARPACK(EPS eps)
   ierr = PetscMalloc(3*n*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_ARPACK"
-static int EPSSetDefaults_ARPACK(EPS eps)
-{
-  int         ierr, N;
-
-  PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->ncv) {
-    if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
-    if (eps->ncv>N) SETERRQ(1,"The value of ncv cannot be larger than N"); 
-  }
-  else /* set default value of ncv */
-    eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
-
-  if (!eps->max_it) eps->max_it = PetscMax(300,(int)ceil(2*N/eps->ncv));
-  if (!eps->tol) eps->tol = 1.e-7;
   PetscFunctionReturn(0);
 }
 
@@ -278,7 +270,9 @@ int EPSDestroy_ARPACK(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   if (ar->rwork)  { ierr = PetscFree(ar->rwork);CHKERRQ(ierr); }
 #endif
-  ierr = EPSDefaultDestroy(eps);CHKERRQ(ierr);
+  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);
+  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -296,7 +290,6 @@ int EPSCreate_ARPACK(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_ARPACK));
   eps->data                      = (void *) arpack;
   eps->ops->setup                = EPSSetUp_ARPACK;
-  eps->ops->setdefaults          = EPSSetDefaults_ARPACK;
   eps->ops->solve                = EPSSolve_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
   eps->ops->view                 = 0;

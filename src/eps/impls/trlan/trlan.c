@@ -15,6 +15,14 @@ static int EPSSetUp_TRLAN(EPS eps)
   EPS_TRLAN *tr = (EPS_TRLAN *)eps->data;
 
   PetscFunctionBegin;
+  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
+  if (eps->ncv) {
+    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+  }
+  else eps->ncv = eps->nev;
+  if (!eps->max_it) eps->max_it = PetscMax(100,N);
+  if (!eps->tol) eps->tol = 1.e-7;
+  
 #if defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_ERR_SUP,"Requested method is not available for complex problems");
 #endif
@@ -31,23 +39,7 @@ static int EPSSetUp_TRLAN(EPS eps)
   else tr->lwork = n*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10);
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_TRLAN"
-static int EPSSetDefaults_TRLAN(EPS eps)
-{
-  int         ierr, N;
-
-  PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
-  }
-  else eps->ncv = eps->nev;
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!eps->tol) eps->tol = 1.e-7;
+  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -132,7 +124,8 @@ int EPSDestroy_TRLAN(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (tr->work)  { ierr = PetscFree(tr->work);CHKERRQ(ierr); }
-  if (eps->data) { ierr = PetscFree(eps->data);CHKERRQ(ierr); }
+  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -150,7 +143,6 @@ int EPSCreate_TRLAN(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_TRLAN));
   eps->data                      = (void *) trlan;
   eps->ops->setup                = EPSSetUp_TRLAN;
-  eps->ops->setdefaults          = EPSSetDefaults_TRLAN;
   eps->ops->solve                = EPSSolve_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->view                 = 0;

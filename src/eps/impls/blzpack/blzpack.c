@@ -48,6 +48,16 @@ static int EPSSetUp_BLZPACK(EPS eps)
   EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
 
   PetscFunctionBegin;
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
+  if (eps->ncv) {
+    if( eps->ncv < PetscMin(eps->nev+10,eps->nev*2) )
+      SETERRQ(0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
+  }
+  else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
+  if (!eps->max_it) eps->max_it = PetscMax(100,N);
+  if (!eps->tol) eps->tol = 1.e-7;
+
 #if defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_ERR_SUP,"Requested method is not available for complex problems");
 #endif
@@ -56,9 +66,6 @@ static int EPSSetUp_BLZPACK(EPS eps)
 
   if (eps->which!=EPS_SMALLEST_REAL)
     SETERRQ(1,"Wrong value of eps->which");
-
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
 
   k1 = PetscMin(N,180);
   k2 = blz->block_size;
@@ -80,24 +87,7 @@ static int EPSSetUp_BLZPACK(EPS eps)
 
   ierr = PetscMalloc(2*eps->ncv*sizeof(PetscReal),&blz->eig);CHKERRQ(ierr);
 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_BLZPACK"
-static int EPSSetDefaults_BLZPACK(EPS eps)
-{
-  int         ierr, N;
-
-  PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->ncv) {
-    if( eps->ncv < PetscMin(eps->nev+10,eps->nev*2) )
-      SETERRQ(0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
-  }
-  else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!eps->tol) eps->tol = 1.e-7;
+  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -240,7 +230,8 @@ int EPSDestroy_BLZPACK(EPS eps)
   if (blz->u)     { ierr = PetscFree(blz->u);CHKERRQ(ierr); }
   if (blz->v)     { ierr = PetscFree(blz->v);CHKERRQ(ierr); }
   if (blz->eig)   { ierr = PetscFree(blz->eig);CHKERRQ(ierr); }
-  ierr = EPSDefaultDestroy(eps);CHKERRQ(ierr);
+  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -409,7 +400,6 @@ int EPSCreate_BLZPACK(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_BLZPACK));
   eps->data                      = (void *) blzpack;
   eps->ops->setup                = EPSSetUp_BLZPACK;
-  eps->ops->setdefaults          = EPSSetDefaults_BLZPACK;
   eps->ops->solve                = EPSSolve_BLZPACK;
   eps->ops->destroy              = EPSDestroy_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;

@@ -164,13 +164,19 @@ int EPSDefaultValuesMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
  */
 int  EPSDefaultGetWork(EPS eps, int nw)
 {
-  int ierr;
+  int         ierr;
 
   PetscFunctionBegin;
-  if (eps->work) {ierr = EPSDefaultFreeWork( eps );CHKERRQ(ierr);}
-  eps->nwork = nw;
-  ierr = VecDuplicateVecs(eps->vec_initial,nw,&eps->work); CHKERRQ(ierr);
-  PetscLogObjectParents(eps,nw,eps->work);
+
+  if (eps->nwork != nw) {
+    if (eps->nwork > 0) {
+      ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
+    }
+    eps->nwork = nw;
+    ierr = VecDuplicateVecs(eps->vec_initial,nw,&eps->work); CHKERRQ(ierr);
+    PetscLogObjectParents(eps,nw,eps->work);
+  }
+  
   PetscFunctionReturn(0);
 }
 
@@ -185,7 +191,7 @@ int  EPSDefaultGetWork(EPS eps, int nw)
  */
 int EPSDefaultFreeWork(EPS eps)
 {
-  int ierr;
+  int          ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->work)  {
@@ -194,17 +200,101 @@ int EPSDefaultFreeWork(EPS eps)
   PetscFunctionReturn(0);
 }
 
+
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDefaultDestroy"
-/*
-  EPSDefaultDestroy - Destroys an eigensolver context variable for methods 
-  with no separate context. Preferred calling sequence EPSDestroy().
+#define __FUNCT__ "EPSAllocateSolution"
+int EPSAllocateSolution(EPS eps)
+{
+  int         ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!eps->eigr){
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
+  }
+  if (!eps->eigi){
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
+  }
+  if (!eps->errest){
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
+  }
+  if (!eps->V){
+    ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->V); CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
 
-  Input Parameter: 
-. eps - the eigensolver context
+#undef __FUNCT__  
+#define __FUNCT__ "EPSFreeSolution"
+int EPSFreeSolution(EPS eps)
+{
+  int          ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (eps->eigr){ ierr = PetscFree(eps->eigr);CHKERRQ(ierr); }
+  if (eps->eigi){ ierr = PetscFree(eps->eigi);CHKERRQ(ierr); }
+  if (eps->errest){ ierr = PetscFree(eps->errest);CHKERRQ(ierr); }
+  if (eps->V){
+    ierr = VecDestroyVecs(eps->V,eps->ncv); CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
 
-*/
-int EPSDefaultDestroy(EPS eps)
+#undef __FUNCT__  
+#define __FUNCT__ "EPSAllocateSolutionContiguous"
+int EPSAllocateSolutionContiguous(EPS eps)
+{
+  int         i, ierr, nloc, nev, ncv;
+  PetscScalar *pV;
+
+  PetscFunctionBegin;
+  nev = eps->nev;
+  ncv = eps->ncv;
+  if (!eps->eigr){
+    ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
+  }
+  if (!eps->eigi){
+    ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
+  }
+  if (!eps->errest){
+    ierr = PetscMalloc(ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
+  }
+  if (!eps->V){
+    ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
+    ierr = PetscMalloc(ncv*sizeof(Vec),&eps->V);CHKERRQ(ierr);
+    ierr = PetscMalloc(ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+    for (i=0;i<ncv;i++) {
+      ierr = VecCreateMPIWithArray(eps->comm,nloc,PETSC_DECIDE,pV+i*nloc,&eps->V[i]);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSFreeSolutionContiguous"
+int EPSFreeSolutionContiguous(EPS eps)
+{
+  int          i, ierr;
+  PetscScalar* pV;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (eps->eigr){ ierr = PetscFree(eps->eigr);CHKERRQ(ierr); }
+  if (eps->eigi){ ierr = PetscFree(eps->eigi);CHKERRQ(ierr); }
+  if (eps->errest){ ierr = PetscFree(eps->errest);CHKERRQ(ierr); }
+  if (eps->V){
+    ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
+    for (i=0;i<eps->ncv;i++) {
+      ierr = VecDestroy(eps->V[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
+    ierr = PetscFree(eps->V);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_Default"
+int EPSDestroy_Default(EPS eps)
 {
   int ierr;
 
@@ -213,9 +303,12 @@ int EPSDefaultDestroy(EPS eps)
   if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
 
   /* free work vectors */
-  EPSDefaultFreeWork( eps );
+  ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);
+  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetConvergedReason"

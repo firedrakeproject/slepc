@@ -11,7 +11,7 @@
 #define __FUNCT__ "EPSSetUp_LAPACK"
 static int EPSSetUp_LAPACK(EPS eps)
 {
-  int         ierr,size,rank,n;
+  int         ierr,size,rank,n,N;
   EPS_LAPACK *la = (EPS_LAPACK *)eps->data;
   MPI_Comm    comm = eps->comm;
   Mat         *T;
@@ -19,6 +19,16 @@ static int EPSSetUp_LAPACK(EPS eps)
   PetscTruth flg;
 
   PetscFunctionBegin;
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
+  if (eps->nev<1 || eps->nev>N) SETERRQ(1,"Wrong value of nev");  
+  if (eps->ncv) {
+    if (eps->ncv<=eps->nev) SETERRQ(1,"Wrong value of ncv");    
+#ifndef PETSC_USE_COMPLEX
+  } else eps->ncv = PetscMin(eps->nev + 1, N);
+#else
+  } else eps->ncv = eps->nev;
+#endif
+
   ierr = EPSComputeExplicitOperator(eps,&la->BA);CHKERRQ(ierr);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
@@ -41,26 +51,7 @@ static int EPSSetUp_LAPACK(EPS eps)
     ierr = MatConvert(la->BA, MATSEQDENSE, &la->BA);CHKERRQ(ierr);
   }
 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults_LAPACK"
-static int EPSSetDefaults_LAPACK(EPS eps)
-{
-  int         ierr, N;
-
-  PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->nev<1 || eps->nev>N) SETERRQ(1,"Wrong value of nev");  
-  if (eps->ncv) {
-    if (eps->ncv<=eps->nev) SETERRQ(1,"Wrong value of ncv");    
-#ifndef PETSC_USE_COMPLEX
-  } else eps->ncv = PetscMin(eps->nev + 1, N);
-#else
-  } else eps->ncv = eps->nev;
-#endif
-
+  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -129,7 +120,8 @@ int EPSDestroy_LAPACK(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   if (la->BA) { ierr = MatDestroy(la->BA);CHKERRQ(ierr); }
-  ierr = EPSDefaultDestroy(eps);CHKERRQ(ierr);
+  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -147,7 +139,6 @@ int EPSCreate_LAPACK(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_LAPACK));
   eps->data                      = (void *) la;
   eps->ops->setup                = EPSSetUp_LAPACK;
-  eps->ops->setdefaults          = EPSSetDefaults_LAPACK;
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;
   eps->ops->view                 = 0;

@@ -6,57 +6,6 @@
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetDefaults"
-/*@
-   EPSSetDefaults - Sets the default values of the internal parameters
-   of the eigensolver. Some of these parameters are set by a method-specific
-   routine.
-
-   Collective on EPS
-
-   Input Parameter:
-.  eps   - eigenproblem solver context
-
-   Level: developer
-
-.seealso: EPSSetType(), EPSSetUp()
-@*/
-int EPSSetDefaults(EPS eps)
-{
-  int        ierr;
-  Mat        A,B;
-  PetscTruth Ah,Bh;
-  
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-
-  /* Set default solver type */
-  if (!eps->type_name) {
-    ierr = EPSSetType(eps,EPSPOWER);CHKERRQ(ierr);
-  }
-
-  /* Set default problem type */
-  if (!eps->problem_type) {
-    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-    ierr = SlepcIsHermitian(A,&Ah);CHKERRQ(ierr);
-    if (B==PETSC_NULL) {
-      if (Ah) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
-      else    { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
-    }
-    else {
-      ierr = SlepcIsHermitian(B,&Bh);CHKERRQ(ierr);
-      if (Ah && Bh) { ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr); }
-      else          { ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr); }
-    }
-  }
-
-  if (eps->ops->setdefaults) {
-    ierr = (*eps->ops->setdefaults)(eps);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp"
 /*@
    EPSSetUp - Sets up all the internal data structures necessary for the
@@ -81,58 +30,51 @@ int EPSSetDefaults(EPS eps)
 @*/
 int EPSSetUp(EPS eps)
 {
-  int         n, m, i, ierr, nloc, nev, ncv;
-  PetscScalar *pV;
+  int         ierr;
   Vec         v0;
-  Mat         A;
+  Mat         A,B;
+  PetscTruth  Ah,Bh;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
 
-  /* reset the convergence flag from the previous solves */
-  eps->reason = EPS_CONVERGED_ITERATING;
+  if (eps->setupcalled) PetscFunctionReturn(0);
 
+  ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
+
+  /* Set default solver type */
+  if (!eps->type_name) {
+    ierr = EPSSetType(eps,EPSPOWER);CHKERRQ(ierr);
+  }
+
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  /* Set default problem type */
+  if (!eps->problem_type) {
+    ierr = SlepcIsHermitian(A,&Ah);CHKERRQ(ierr);
+    if (B==PETSC_NULL) {
+      if (Ah) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
+      else    { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
+    }
+    else {
+      ierr = SlepcIsHermitian(B,&Bh);CHKERRQ(ierr);
+      if (Ah && Bh) { ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr); }
+      else          { ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr); }
+    }
+  }
+  
   /* Check if the EPS initial vector has been set */
   ierr = EPSGetInitialVector(eps,&v0);CHKERRQ(ierr);
   if (!v0) {
-    ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(A,&n,&m);CHKERRQ(ierr);
-    ierr = VecCreate(eps->comm,&v0);CHKERRQ(ierr);
-    ierr = VecSetSizes(v0,m,PETSC_DECIDE);CHKERRQ(ierr);
-    ierr = VecSetFromOptions(v0);CHKERRQ(ierr);
+    ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(v0);CHKERRQ(ierr);
     eps->vec_initial = v0;
   }
   ierr = STSetVector(eps->OP,v0); CHKERRQ(ierr);
 
-  ierr = EPSSetDefaults(eps);CHKERRQ(ierr);
-  
-  nev = eps->nev;
-  ncv = eps->ncv;
-  if (!eps->eigr){
-    ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
-  }
-  if (!eps->eigi){
-    ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
-  }
-  if (!eps->errest){
-    ierr = PetscMalloc(ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
-  }
-  if (!eps->V){
-    ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
-    ierr = PetscMalloc(ncv*sizeof(Vec),&eps->V);CHKERRQ(ierr);
-    ierr = PetscMalloc(ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
-    for (i=0;i<ncv;i++) {
-      ierr = VecCreateMPIWithArray(eps->comm,nloc,PETSC_DECIDE,pV+i*nloc,&eps->V[i]);CHKERRQ(ierr);
-    }
-  }
-
-  if (eps->setupcalled) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(EPS_SetUp,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
-  eps->setupcalled = 1;
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(EPS_SetUp,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
+  eps->setupcalled = 1;
   PetscFunctionReturn(0);
 }
 
@@ -174,6 +116,9 @@ int EPSSolve(EPS eps)
     ierr = MatView(A,PETSC_VIEWER_BINARY_(eps->comm));CHKERRQ(ierr);
     if (B) ierr = MatView(B,PETSC_VIEWER_BINARY_(eps->comm));CHKERRQ(ierr);
   }
+
+  /* reset the convergence flag from the previous solves */
+  eps->reason = EPS_CONVERGED_ITERATING;
 
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   ierr = STResetNumberLinearIterations(eps->OP);
@@ -254,8 +199,7 @@ int EPSSolve(EPS eps)
 @*/
 int EPSDestroy(EPS eps)
 {
-  int         i,ierr;
-  PetscScalar *pV;
+  int         ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -265,26 +209,17 @@ int EPSDestroy(EPS eps)
   ierr = PetscObjectDepublish(eps);CHKERRQ(ierr);
 
   ierr = STDestroy(eps->OP);CHKERRQ(ierr);
+
   if (eps->ops->destroy) {
     ierr = (*eps->ops->destroy)(eps); CHKERRQ(ierr);
   }
-
-  if (eps->eigr){ ierr = PetscFree(eps->eigr);CHKERRQ(ierr); }
-  if (eps->eigi){ ierr = PetscFree(eps->eigi);CHKERRQ(ierr); }
-  if (eps->errest){ ierr = PetscFree(eps->errest);CHKERRQ(ierr); }
-  if (eps->V){
-    ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-    for (i=0;i<eps->ncv;i++) {
-      ierr = VecDestroy(eps->V[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(pV);CHKERRQ(ierr);
-    ierr = PetscFree(eps->V);CHKERRQ(ierr);
-  }
-  if (eps->vec_initial) {
-    ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
-  }
+  
   if (eps->perm) {
     ierr = PetscFree(eps->perm);CHKERRQ(ierr);
+  }
+
+  if (eps->vec_initial) {
+    ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
   }
 
   PetscLogObjectDestroy(eps);
