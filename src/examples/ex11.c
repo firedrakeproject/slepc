@@ -30,10 +30,12 @@ int main( int argc, char **argv )
   ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if( flag==PETSC_FALSE ) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%d (%dx%d grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nFiedler vector of a 2-D regular mesh, N=%d (%dx%d grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the operator matrix that defines the eigensystem, Ax=kx
+     In this example, A = L(G), where L is the Laplacian of graph G, i.e.
+     Lii = degree of node i, Lij = -1 if edge (i,j) exists in G
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MatCreate(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,&A);CHKERRQ(ierr);
@@ -68,9 +70,9 @@ int main( int argc, char **argv )
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   
   /*
-    Change default options needed for this problem
+     Specify some options: use shift-and-invert to compute eigenpairs
+     close to the origin
   */
-  ierr = EPSSetType(eps,EPSSUBSPACE);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINV);CHKERRQ(ierr);
   ierr = STSetShift(st,1e-3);CHKERRQ(ierr);
@@ -85,7 +87,8 @@ int main( int argc, char **argv )
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /*
-     Attach deflation space
+     Attach deflation space: in this case, the matrix has a constant 
+     nullspace, [1 1 ... 1]^T is the eigenvector of the zero eigenvalue
   */
   ierr = MatGetVecs(A,&x,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecSet(&one,x);CHKERRQ(ierr);
