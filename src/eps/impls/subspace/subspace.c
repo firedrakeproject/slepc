@@ -34,7 +34,7 @@ static int EPSSetDefaults_SUBSPACE(EPS eps)
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
-  else eps->ncv = PetscMin(2*eps->nev,eps->nev+8);
+  else eps->ncv = PetscMax(2*eps->nev,eps->nev+8);
   eps->ncv = PetscMin(eps->ncv,N);
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!subspace->inner || subspace->inner == PETSC_DEFAULT) {
