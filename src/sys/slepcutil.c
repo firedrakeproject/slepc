@@ -158,8 +158,8 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcMatConvertSeqDense"
 /*@C
-   SlepcMatConvertSeqDense - Converts a parallel matrix to another in sequential dense format 
-     replicating the values in every processor.
+   SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential 
+   dense format replicating the values in every processor.
 
    Collective
 
@@ -195,7 +195,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     ierr = ISDestroy(isrow);CHKERRQ(ierr);
     ierr = ISDestroy(iscol);CHKERRQ(ierr);
 
-    /* Fake support for "inplace" convert. */
+    /* Fake support for "inplace" convert */
     if (*newmat == mat) {
       ierr = MatDestroy(mat);CHKERRQ(ierr);
     }
@@ -214,3 +214,4 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 
   PetscFunctionReturn(0);  
 }
+

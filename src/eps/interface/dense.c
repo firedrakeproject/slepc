@@ -1,5 +1,8 @@
 /*                       
-     This file contains routines for handling small size dense problems.
+     This file contains routines for handling small-size dense problems.
+     All routines are simply wrappers to LAPACK routines. Matrices passed in
+     as arguments are assumed to be square matrices stored in column-major 
+     format with a leading dimension equal to the number of rows.
 */
 #include "slepceps.h" /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
@@ -7,7 +10,7 @@
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDenseNHEP"
 /*@
-   EPSDenseNHEP - Solves a dense non-Hermitian standard Eigenvalue Problem.
+   EPSDenseNHEP - Solves a dense standard non-Hermitian Eigenvalue Problem.
 
    Not Collective
 
@@ -68,7 +71,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDenseGNHEP"
 /*@
-   EPSDenseGNHEP - Solves a dense non-Hermitian generalized Eigenvalue Problem.
+   EPSDenseGNHEP - Solves a dense Generalized non-Hermitian Eigenvalue Problem.
 
    Not Collective
 
@@ -85,7 +88,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
    Notes:
    If V is PETSC_NULL then the eigenvectors are not computed.
 
-   Matrix A and B are overwritten.
+   Matrices A and B are overwritten.
    
    This routine uses LAPACK routines xGGEVX.
 
@@ -149,7 +152,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDenseHEP"
 /*@
-   EPSDenseNHEP - Solves a dense Hermitian standard Eigenvalue Problem.
+   EPSDenseHEP - Solves a dense standard Hermitian Eigenvalue Problem.
 
    Not Collective
 
@@ -214,7 +217,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDenseGHEP"
 /*@
-   EPSDenseGHEP - Solves a dense Hermitian generalized Eigenvalue Problem.
+   EPSDenseGHEP - Solves a dense Generalized Hermitian Eigenvalue Problem.
 
    Not Collective
 
@@ -230,7 +233,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
    Notes:
    If V is PETSC_NULL then the eigenvectors are not computed.
 
-   Matrix A and B are overwritten.
+   Matrices A and B are overwritten.
    
    This routine uses LAPACK routines DSYGVD or ZHEGVD.
 

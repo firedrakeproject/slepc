@@ -9,20 +9,13 @@ TODO
      EPSSetInitialVector. Otra posibilidad es mantener la factorización
      internamente de una llamada EPSSolve a otra.
 
-(02) Rutinas EPSDenseXXX
-
-  a. Implementar problema generalizado para EPSLAPACK.
-
-  b. Añadir flop_count en todas las rutinas que llaman a alguna función de
-     lapack.
-
 (04) Interfaces a paquetes externos
 
   b. Integrar Hlzpack en el mismo interfaz de Blzpack.
 
 (06) Nuevos EPS
 
-  b. Lanczos: versión básica simétrica. Posteriormente versiones con diferentes
+  b. Lanczos: Diversas versiones con diferentes
      técnicas de reortogonalización (parcial, selectiva, mixta). Revisar
      bibliografía e implementaciones (propack, blzpack, lanso, etc).
 
@@ -108,10 +101,4 @@ BUGS
 
 DOCUMENTACION
 -------------
-
-** Comentar cambio de los monitores.
-
-** B-ortogonalización en el manual.
-
-
 

@@ -133,10 +133,10 @@ PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
     STComputeExplicitOperator - Computes the explicit operator associated
     to the eigenvalue problem with the specified spectral transformation.  
 
-    Collective on EPS
+    Collective on ST
 
     Input Parameter:
-.   eps - the eigenvalue solver context
+.   st - the spectral transform context
 
     Output Parameter:
 .   mat - the explicit operator
@@ -147,7 +147,7 @@ PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
     transformation the result would be matrix (A - s B)^-1 B.
     
     This computation is done by applying the operator to columns of the 
-    identity matrix.
+    identity matrix. Note that the result is a dense matrix.
 
     Level: advanced
 

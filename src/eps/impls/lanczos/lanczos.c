@@ -113,6 +113,15 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,V
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPlainLanczos"
+/*
+   EPSPlainLanczos - Local reorthogonalization.
+
+   This is the simplest variant. At each Lanczos step, the corresponding Lanczos vector 
+   is orthogonalized with respect to the two previous Lanczos vectors, according to
+   the three term Lanczos recurrence. WARNING: This variant does not track the loss of 
+   orthogonality that occurs in finite-precision arithmetic and, therefore, the 
+   generated vectors are not guaranteed to be (semi-)orthogonal.
+*/
 static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,Vec f,PetscReal *beta)
 {
   PetscErrorCode ierr;
@@ -291,7 +300,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     abstol = 0.0;
     LAstegr_("V","A",&n,D,E,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,
              &abstol,&m,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
-    if (info) {
+    if (info) { /* Use the symmetric QR iteration if RRR fails */
        for (i=0;i<n;i++) {
          ritz[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
          E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
@@ -384,7 +393,7 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "EPSLanczosSetOrthog"
 /*@
-   EPSLanczosSetOrthog - Sets the type of reorthogonalization used during the lanczos
+   EPSLanczosSetOrthog - Sets the type of reorthogonalization used during the Lanczos
    iteration. 
 
    Collective on EPS
@@ -429,7 +438,7 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "EPSLanczosGetOrthog"
 /*@
-   EPSLanczosGetOrthog - Gets the type of reorthogonalization used during the lanczos
+   EPSLanczosGetOrthog - Gets the type of reorthogonalization used during the Lanczos
    iteration. 
 
    Collective on EPS
