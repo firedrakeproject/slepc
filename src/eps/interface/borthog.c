@@ -174,7 +174,7 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
   int         ierr,j;
   PetscScalar shh[100],shh2[100],*lhh;
   PetscTruth  alloc = PETSC_FALSE;
-  PetscReal   hnorm;
+  PetscReal   hnorm,lnorm;
 
   PetscFunctionBegin;
   if (!H) {
@@ -187,6 +187,8 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
   /* Don't allocate small arrays */
   if (n<=100) lhh = shh;
   else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  
+  if (!norm) { norm = &lnorm; }
   
   /*** First orthogonalization ***/
 
@@ -244,7 +246,7 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
   PetscScalar alpha;
   PetscTruth  refinement,allocated;
   PetscScalar lh[100],*h;
-  PetscReal   hnorm;
+  PetscReal   hnorm,lnorm;
   Vec         w;
   
   PetscFunctionBegin;
@@ -261,6 +263,8 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
   for (j=0; j<n; j++) {
     h[j] = 0;
   }
+  
+  if (!norm) { norm = &lnorm; }
   
   ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
   
