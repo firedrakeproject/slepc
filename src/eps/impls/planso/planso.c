@@ -31,6 +31,7 @@ static int EPSSetUp_PLANSO(EPS eps)
 
   ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
   pl->lwork = 5*n+1+4*eps->ncv+PetscMax(n,eps->ncv+1);
+  if (pl->work)  { ierr = PetscFree(pl->work);CHKERRQ(ierr); }
   ierr = PetscMalloc(pl->lwork*sizeof(PetscReal),&pl->work);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);

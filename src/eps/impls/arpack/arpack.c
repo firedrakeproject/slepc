@@ -25,8 +25,10 @@ static int EPSSetUp_ARPACK(EPS eps)
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
+  if (ar->rwork)  { ierr = PetscFree(ar->rwork);CHKERRQ(ierr); }
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ar->rwork);CHKERRQ(ierr);
   ar->lworkl = 3*ncv*ncv+5*ncv;
+  if (ar->workev) { ierr = PetscFree(ar->workev);CHKERRQ(ierr); }
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
 #else
   if( eps->ishermitian ) {
@@ -34,12 +36,16 @@ static int EPSSetUp_ARPACK(EPS eps)
   }
   else {
     ar->lworkl = 3*ncv*ncv+6*ncv;
+    if (ar->workev) { ierr = PetscFree(ar->workev);CHKERRQ(ierr); }
     ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
   }
 #endif
+  if (ar->workl)  { ierr = PetscFree(ar->workl);CHKERRQ(ierr); }
   ierr = PetscMalloc(ar->lworkl*sizeof(PetscScalar),&ar->workl);CHKERRQ(ierr);
+  if (ar->select) { ierr = PetscFree(ar->select);CHKERRQ(ierr); }
   ierr = PetscMalloc(ncv*sizeof(PetscTruth),&ar->select);CHKERRQ(ierr);
   ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
+  if (ar->workd)  { ierr = PetscFree(ar->workd);CHKERRQ(ierr); }
   ierr = PetscMalloc(3*n*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);

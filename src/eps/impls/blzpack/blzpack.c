@@ -73,18 +73,23 @@ static int EPSSetUp_BLZPACK(EPS eps)
   k3 = 484+k1*(13+k1*2+k2+PetscMax(18,k2+2))+k2*k2*3+k4*2;
 
   listor = 123+k1*12;
+  if (blz->istor) { ierr = PetscFree(blz->istor);CHKERRQ(ierr); }
   ierr = PetscMalloc((17+listor)*sizeof(int),&blz->istor);CHKERRQ(ierr);
   blz->istor[14] = listor;
 
   if( eps->isgeneralized ) lrstor = n*(k2*4+k1*2+k4)+k3;
   else lrstor = n*(k2*4+k1)+k3;
+  if (blz->rstor) { ierr = PetscFree(blz->rstor);CHKERRQ(ierr); }
   ierr = PetscMalloc((4+lrstor)*sizeof(PetscReal),&blz->rstor);CHKERRQ(ierr);
   blz->rstor[3] = lrstor;
 
   ncuv = PetscMax(3,blz->block_size);
+  if (blz->u)     { ierr = PetscFree(blz->u);CHKERRQ(ierr); }
   ierr = PetscMalloc(ncuv*n*sizeof(PetscScalar),&blz->u);CHKERRQ(ierr);
+  if (blz->v)     { ierr = PetscFree(blz->v);CHKERRQ(ierr); }
   ierr = PetscMalloc(ncuv*n*sizeof(PetscScalar),&blz->v);CHKERRQ(ierr);
 
+  if (blz->eig)   { ierr = PetscFree(blz->eig);CHKERRQ(ierr); }
   ierr = PetscMalloc(2*eps->ncv*sizeof(PetscReal),&blz->eig);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);

@@ -29,6 +29,7 @@ static int EPSSetUp_LAPACK(EPS eps)
   } else eps->ncv = eps->nev;
 #endif
 
+  if (la->BA) { ierr = MatDestroy(la->BA);CHKERRQ(ierr); }
   ierr = EPSComputeExplicitOperator(eps,&la->BA);CHKERRQ(ierr);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
@@ -41,7 +42,7 @@ static int EPSSetUp_LAPACK(EPS eps)
     ierr = MatGetSubMatrices(la->BA, 1, &isrow, &iscol, MAT_INITIAL_MATRIX, &T);CHKERRQ(ierr);
     ierr = ISDestroy(isrow);CHKERRQ(ierr);
     ierr = ISDestroy(iscol);CHKERRQ(ierr);
-    MatDestroy(la->BA);CHKERRQ(ierr);
+    ierr = MatDestroy(la->BA);CHKERRQ(ierr);
     la->BA = *T;
   }
   
