@@ -428,38 +428,19 @@ int EPSSetDimensions(EPS eps,int nev,int ncv)
   
    Output Parameter:
 .  nconv - number of converged real eigenvalues 
-.  nconvi - number of converged complex eigenvalues 
 
    Note:
    This function should be called after EPSSolve() has finished.
-   The total number of converged eigenpairs is nconv+2*nconvi 
-   (conjugated complex eigenvalues count as one).
 
    Level: beginner
 
 .seealso: EPSSetDimensions()
 @*/
-int EPSGetConverged(EPS eps,int *nconv, int *nconvi)
+int EPSGetConverged(EPS eps,int *nconv)
 {
-  int i, nr, ni;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  nr = 0;
-  ni = 0;
-  for (i = 0; i < eps->nconv; i++) {
-#ifdef PETSC_USE_COMPLEX
-    if (PetscImaginaryPart(eps->eigr[i]) == 0) {
-#else
-    if (eps->eigi[i] == 0) {
-#endif
-      nr++;
-    } else {
-      ni++; i++;
-    }
-  }
-  if (nconv) *nconv = nr;
-  if (nconvi) *nconvi = ni;
+  if (nconv) *nconv = eps->nconv;
   PetscFunctionReturn(0);
 }
 
@@ -474,7 +455,7 @@ int EPSGetConverged(EPS eps,int *nconv, int *nconvi)
 
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
-.  i   - number of solution
+.  i   - index of solution
 
    Output Parameters:
 +  eigr - real part of eigenvalue
@@ -492,47 +473,43 @@ int EPSGetConverged(EPS eps,int *nconv, int *nconvi)
 @*/
 int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
-  int         ierr, k, j, c;
-  PetscTruth  found;
-  PetscScalar zero = 0.0;
+  int         ierr, k;
+  PetscScalar zero = 0.0, minus = -1.0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (!eps->eigr || !eps->eigi || !eps->V) { 
-     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
+  if (i<0 || i>=eps->nconv) { 
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+  }
+  if (eps->dropvectors && (Vr || Vi) ) { 
+    SETERRQ(1, "Eigenvectors are not available"); 
+  }  
 
-#ifdef PETSC_USE_COMPLEX
-  if (i<0 || i>=eps->nconv) { SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); }
   if (!eps->perm) k = i;
   else k = eps->perm[i];
+#ifdef PETSC_USE_COMPLEX
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = 0;
   if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
 #else
-  else {
-    c = 0;
-    j = 0;
-    found = PETSC_FALSE;
-    while (j < eps->nconv && !found) {
-      if (!eps->perm) k = j;
-      else k = eps->perm[j];
-      if (i == c) found = PETSC_TRUE;
-      else {
-        if (eps->eigi[k] == 0) j++;
-        else j+=2;
-        c++;
-      }
-    }
-    if (!found) { SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); }
-  }
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = eps->eigi[k];
-  if (Vr) VecCopy(eps->V[k], Vr);
-  if (Vi) {
-    if (eps->eigi[k] == 0) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
-    else { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
+  if (eps->eigi[k] > 0) { /* first conjugate eigenvalue */
+    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+    if (Vi) { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
+  } else if (eps->eigi[k] < 0) { /* second conjugate eigenvalue */
+    if (Vr) { ierr = VecCopy(eps->V[k-1], Vr); CHKERRQ(ierr); }
+    if (Vi) { 
+      ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
+      ierr = VecScale(&minus, Vi); CHKERRQ(ierr); 
+    }
+  } else { /* real eigenvalue */
+    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+    if (Vi) { ierr = VecSet(&zero, Vi); CHKERRQ(ierr); }
   }
 #endif
   
@@ -555,7 +532,7 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 
    Level: advanced
 
-.seealso: EPSGetSolution(), EPSComputeError()
+.seealso: EPSGetSolution(), EPSComputeRelativeError()
 @*/
 int EPSGetErrorEstimates(EPS eps, PetscReal **errest)
 {
