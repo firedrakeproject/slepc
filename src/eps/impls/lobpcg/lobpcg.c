@@ -56,9 +56,7 @@ int EPSFunctA(HYPRE_ParVector x,HYPRE_ParVector y)
 { /* computes y=A*x */
   PetscErrorCode  ierr;
   EPS_LOBPCG      *lobpcg = (EPS_LOBPCG *)globaleps->data;
-  Mat             A;
   HYPRE_ParVector px,py;
-  PetscReal       shift;
 
   PetscFunctionBegin;
 
@@ -66,12 +64,7 @@ int EPSFunctA(HYPRE_ParVector x,HYPRE_ParVector y)
   HYPRE_ParVectorCopy(x,px);
   ierr = VecHYPRE_IJVectorCopyFrom(lobpcg->ijx,lobpcg->x);CHKERRQ(ierr);
   
-  ierr = STGetOperators(globaleps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatMult(A,lobpcg->x,lobpcg->b);CHKERRQ(ierr);CHKERRQ(ierr);
-  ierr = STGetShift(globaleps->OP,&shift);CHKERRQ(ierr);
-  if (shift != 0) {
-    ierr = VecAXPY(&shift,lobpcg->x,lobpcg->b);CHKERRQ(ierr);
-  }
+  ierr = STApply(globaleps->OP,lobpcg->x,lobpcg->b);CHKERRQ(ierr);
   
   ierr = VecHYPRE_IJVectorCopy(lobpcg->b,lobpcg->ijb);CHKERRQ(ierr);
   HYPRE_IJVectorGetObject(lobpcg->ijb,(void**)&py);
@@ -107,9 +100,9 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = KSPSetUp(lobpcg->ksp);CHKERRQ(ierr);
   ierr = VecGetSize(lobpcg->x,&N);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  HYPRE_LobpcgSetTolerance(lobpcg->data,eps->tol);
-  if (!eps->tol) eps->tol = 1.e-7;
   HYPRE_LobpcgSetMaxIterations(lobpcg->data,eps->max_it);
+  if (!eps->tol) eps->tol = 1.e-7;
+  HYPRE_LobpcgSetTolerance(lobpcg->data,eps->tol);
   eps->ncv = eps->nev;
   lobpcg->bsize = eps->nev;
   HYPRE_LobpcgSetBlocksize(lobpcg->data,lobpcg->bsize);
@@ -135,36 +128,24 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 #define __FUNCT__ "EPSSolve_LOBPCG"
 PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
-  PetscErrorCode ierr;
-  EPS_LOBPCG     *lobpcg = (EPS_LOBPCG *)eps->data;
-  int            i;
+  PetscErrorCode  ierr;
+  EPS_LOBPCG      *lobpcg = (EPS_LOBPCG *)eps->data;
+  int             i;
+  HYPRE_ParVector px;
 
   PetscFunctionBegin;
   globaleps = eps;
   HYPRE_LobpcgSolve(lobpcg->data,EPSFunctA,lobpcg->eigenvector,&lobpcg->eigval);
-  for (i=0;i<lobpcg->bsize;i++) { eps->eigr[i] = lobpcg->eigval[i]; }
+  HYPRE_IJVectorGetObject(lobpcg->ijx,(void**)&px);
+  for (i=0;i<lobpcg->bsize;i++) { 
+    eps->eigr[i] = lobpcg->eigval[i]; 
+    eps->eigi[i] = 0;
+    HYPRE_ParVectorCopy(lobpcg->eigenvector[i],px);
+    ierr = VecHYPRE_IJVectorCopyFrom(lobpcg->ijx,eps->V[i]);CHKERRQ(ierr);
+  }
   eps->nconv = lobpcg->bsize;
   eps->reason = EPS_CONVERGED_TOL;
   HYPRE_LobpcgGetIterations(lobpcg->data,&eps->its);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSComputeVectors_LOBPCG"
-PetscErrorCode EPSComputeVectors_LOBPCG(EPS eps)
-{
-  PetscErrorCode  ierr;
-  EPS_LOBPCG      *lobpcg = (EPS_LOBPCG *)eps->data;
-  HYPRE_ParVector px;
-  int             i;
-
-  PetscFunctionBegin;
-  HYPRE_IJVectorGetObject(lobpcg->ijx,(void**)&px);
-  for (i=0;i<lobpcg->bsize;i++) {
-    HYPRE_ParVectorCopy(lobpcg->eigenvector[i],px);
-    ierr = VecHYPRE_IJVectorCopyFrom(lobpcg->ijx,eps->AV[i]);CHKERRQ(ierr);
-  }
-  eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -227,7 +208,7 @@ PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   eps->ops->setfromoptions       = EPSSetFromOptions_LOBPCG;
   eps->ops->destroy              = EPSDestroy_LOBPCG;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_LOBPCG;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
