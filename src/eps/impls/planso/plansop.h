@@ -26,7 +26,6 @@ typedef struct {
 #define PLANdr2_   SLEPC_FORTRAN(plandr2,PLANDR2)
 #define PLANop_    SLEPC_FORTRAN(op,OP)
 #define PLANopm_   SLEPC_FORTRAN(opm,OPM)
-#define PLANstore_ SLEPC_FORTRAN(store,STORE)
 
 EXTERN_C_BEGIN
 
