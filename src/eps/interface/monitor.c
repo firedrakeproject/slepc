@@ -176,6 +176,7 @@ PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {
+    ierr = PetscDrawSetTitle(draw,"Error estimates");CHKERRQ(ierr);
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
@@ -187,6 +188,7 @@ PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
     ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDrawLG(viewer,1,&lg1);CHKERRQ(ierr);
     if (!its) {
+      ierr = PetscDrawSetTitle(draw1,"Approximate eigenvalues");CHKERRQ(ierr);
       ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
       ierr = PetscDrawLGSetDimension(lg1,n);CHKERRQ(ierr);
       ierr = PetscDrawLGReset(lg1);CHKERRQ(ierr);
