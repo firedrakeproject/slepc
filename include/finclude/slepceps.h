@@ -42,5 +42,41 @@
       parameter (EPS_GHEP                   =  2)
       parameter (EPS_NHEP                   =  3)
       parameter (EPS_GNHEP                  =  4)
+      
+      integer EPS_LARGEST_MAGNITUDE
+      integer EPS_SMALLEST_MAGNITUDE
+      integer EPS_LARGEST_REAL
+      integer EPS_SMALLEST_REAL
+      integer EPS_LARGEST_IMAGINARY
+      integer EPS_SMALLEST_IMAGINARY
+
+      parameter (EPS_LARGEST_MAGNITUDE      =  0)
+      parameter (EPS_SMALLEST_MAGNITUDE     =  1)
+      parameter (EPS_LARGEST_REAL           =  2)
+      parameter (EPS_SMALLEST_REAL          =  3)
+      parameter (EPS_LARGEST_IMAGINARY      =  4)
+      parameter (EPS_SMALLEST_IMAGINARY     =  5)
+
+      integer EPS_MGS_ORTH
+      integer EPS_CGS_ORTH
+      
+      parameter (EPS_MGS_ORTH               =  0)
+      parameter (EPS_CGS_ORTH               =  1)
+
+      integer EPS_ORTH_REFINE_NEVER
+      integer EPS_ORTH_REFINE_IFNEEDED
+      integer EPS_ORTH_REFINE_ALWAYS 
+
+      parameter (EPS_ORTH_REFINE_NEVER      =  0)  
+      parameter (EPS_ORTH_REFINE_IFNEEDED   =  1)  
+      parameter (EPS_ORTH_REFINE_ALWAYS     =  2)  
+       
+      integer EPSPOWER_SHIFT_CONSTANT
+      integer EPSPOWER_SHIFT_RAYLEIGH
+      integer EPSPOWER_SHIFT_WILKINSON
+
+      parameter (EPSPOWER_SHIFT_CONSTANT    =  0)
+      parameter (EPSPOWER_SHIFT_RAYLEIGH    =  1)
+      parameter (EPSPOWER_SHIFT_WILKINSON   =  2)
 
 #endif

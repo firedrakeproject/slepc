@@ -117,7 +117,7 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcAbsEigenvalue"
-/*@
+/*@C
    SlepcAbsEigenvalue - Computes the absolute value of a complex number given
    its real and imaginary parts.
 

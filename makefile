@@ -13,7 +13,7 @@ include ${SLEPC_DIR}/bmake/slepc_common
 # all: builds the C/C++ and Fortran libraries
 all:
 	-@${MAKE} slepc_all_build 2>&1 | tee make_log_${PETSC_ARCH}_${BOPT}
-slepc_all_build: chk_slepc_dir info slepc_chklib_dir slepc_deletelibs slepc_build_c slepc_build_fortran slepc_shared
+slepc_all_build: chk_slepc_dir info slepc_chklib_dir slepc_deletelibs slepc_build slepc_shared
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -47,25 +47,12 @@ info:
 #
 # Builds the SLEPc libraries
 #
-slepc_build_c:
+slepc_build:
 	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
 	-@${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} ACTION=libfast  tree 
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${LIB_SUFFIX}
 	-@echo "Completed building SLEPc libraries"
-	-@echo "========================================="
-
-#
-# Builds SLEPc Fortran source
-#
-slepc_build_fortran:
-	-@echo "BEGINNING TO COMPILE SLEPc FORTRAN SOURCE"
-	-@echo "========================================="
-	-@cd src/fortran/custom; \
-	  ${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} libf clean 
-	${RANLIB} ${SLEPC_LIB_DIR}/libslepcfortran.a
-	${RANLIB} ${SLEPC_LIB_DIR}/libslepc.a
-	-@echo "Completed compiling SLEPc Fortran source"
 	-@echo "========================================="
 
 # Builds SLEPc test examples for a given BOPT and architecture
@@ -87,9 +74,13 @@ slepc_testfortran: info chkopts
 	-@echo "machines or the way Fortran formats numbers"
 	-@echo "some of the results may not match exactly."
 	-@echo "========================================="
-	-@${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} \
-	   ACTION=testexamples_3  tree 
-	-@echo "Completed compiling and running Fortran test examples"
+	-@if [ "${C_FC}" != "" ]; then \
+	    ${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} ACTION=testexamples_3  tree ; \
+            echo "Completed compiling and running Fortran test examples"; \
+          else \
+            echo "Error: No FORTRAN compiler available"; \
+          fi
+	-@
 	-@echo "========================================="
 
 # Builds SLEPc test examples for a given BOPT and architecture
@@ -107,9 +98,13 @@ slepc_testfortran_uni: info chkopts
 	-@echo "Due to different numerical round-off on certain"
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
-	-@${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} \
-	   ACTION=testexamples_9  tree 
-	-@echo "Completed compiling and running uniprocessor fortran test examples"
+	-@if [ "${C_FC}" != "" ]; then \
+            ${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=testexamples_9  tree; \
+            echo "Completed compiling and running uniprocessor fortran test examples"; \
+          else \
+            echo "Error: No FORTRAN compiler available"; \
+          fi
+	-@
 	-@echo "========================================="
 
 # Ranlib on the libraries

@@ -14,9 +14,8 @@
 #include "slepc.h"
 
 extern PetscTruth SlepcBeganPetsc;
-extern PetscRandom rctx;
-extern int ST_COOKIE;
-extern int EPS_COOKIE;
+extern PetscCookie ST_COOKIE;
+extern PetscCookie EPS_COOKIE;
 
 static PetscTruth SlepcInitializeCalled=PETSC_FALSE;
 
@@ -103,8 +102,6 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr
     if (*ierr) return;
     SlepcBeganPetsc = PETSC_TRUE;
   }
-
-  PetscRandomCreate(PETSC_COMM_WORLD,RANDOM_DEFAULT,&rctx);
 
   EPS_COOKIE = 0;
   PetscLogClassRegister(&EPS_COOKIE,"Eigenproblem Solver");

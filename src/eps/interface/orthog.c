@@ -224,7 +224,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPurge"
 /*@
-   EPSOrthogonalize - Purge a vector of all converged vectors.
+   EPSPurge - Purge a vector of all converged vectors.
 
    Collective on EPS
 
