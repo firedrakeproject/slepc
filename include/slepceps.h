@@ -132,7 +132,6 @@ extern int EPSSubspaceSetInner(EPS,int);
 
 extern int EPSBlzpackSetBlockSize(EPS,int);
 extern int EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);
-extern int EPSBlzpackSetMatGetInertia(EPS,int (*f)(Mat,int*,int*,int*));
 
 #endif
 
