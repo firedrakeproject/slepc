@@ -189,7 +189,7 @@ slepc_allfortranstubs:
 	  touch ${SLEPC_DIR}/src/fortran/auto/makefile.src ;\
 	  ${OMAKE} ACTION=slepc_fortranstubs tree_basic ;\
 	  cd ${SLEPC_DIR}/src/fortran/auto; ${RM} makefile.src; echo SOURCEC = ` ls *.c | tr -s '\n' ' '` > makefile.src ;\
-	  cd ${SLEPC_DIR}/src/fortran/auto; ${OMAKE} slepc_fixfortran ;\
+	  cd ${SLEPC_DIR}/src/fortran/auto; ${OMAKE} fixfortran ;\
         fi
 
 # -------------------------------------------------------------------------------
