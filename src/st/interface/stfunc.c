@@ -295,9 +295,9 @@ int STGetShift(ST st,PetscScalar* shift)
 .  nshifts - the number of shifts
 
    Note:
-   The returned value will be either 0 (for STSHELL) 
-   or 1 (for STSHIFT and STSINV). Future versions of SLEPc may
-   provide other ST which requires more than one shift.
+   Currently, the returned value will always be either 1 (for STSHIFT 
+   and STSINV). Future versions of SLEPc may provide other ST which 
+   requires more than one shift.
 
    Level: advanced
 
