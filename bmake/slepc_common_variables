@@ -72,7 +72,7 @@ SLEPC_EXTERNAL_LIB  = ${ARPACK_LIB} ${BLZPACK_LIB} ${PLANSO_LIB} ${TRLAN_LIB}
 #
 # Some variables used to build shared libraries
 #
-SHLIBS       = libslepc libslepcfortran
+SHLIBS       = libslepc
 
 
 slepc_clean: clean
