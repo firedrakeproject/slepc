@@ -49,7 +49,6 @@
 	STSetType(ST st,STType type);
 	\end{Verbatim}
 where \texttt{type} can be one of 
-\texttt{STNONE},
 \texttt{STSHIFT},
 \texttt{STSINV}, or
 \texttt{STSHELL}.
@@ -60,7 +59,6 @@ The \ident{ST} type can also be set with the options database command \Verb!-st_
 {\small \begin{tabular}{lll}
                         &                   & {\footnotesize Options} \\
 Spectral Transformation & \ident{STType}    & {\footnotesize Database Name}\\\hline
-Regular Mode            & \texttt{STNONE}   & \texttt{none} \\
 Shift from Origin       & \texttt{STSHIFT}  & \texttt{shift} \\
 Shift-and-invert        & \texttt{STSINV}   & \texttt{sinvert} \\
 Shell Transformation    & \texttt{STSHELL}  & \texttt{shell} \\\hline
@@ -68,13 +66,12 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell} \\\hline
 \caption{\label{tab:transforms}Spectral transformations available in the  \ident{ST} package.}
 \end{table}
 
-	The first three spectral transformations are described in detail in the rest of this section. Table \ref{tab:op} summarizes the operator used in each case, either for standard or generalized eigenproblems. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of this transformations.
+	The first two spectral transformations are described in detail in the rest of this section. Table \ref{tab:op} summarizes the operator used in each case, either for standard or generalized eigenproblems. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of this transformations.
 
 	\begin{table}
 	\centering
 	{\small \begin{tabular}{lcc}
 	\ident{ST} & Standard problem & Generalized problem\\\hline
-	\texttt{none} & $A$&$B^{-1}A$ \\
 	\texttt{shift} & $A+\sigma I$& $B^{-1}A+\sigma I$\\
 	 \texttt{sinvert} &$(A-\sigma I)^{-1}$ &$(A-\sigma B)^{-1}B$ \\\hline
 	\end{tabular} }
@@ -87,7 +84,7 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell} \\\hline
 
 \subsection{Default Behavior}
 
-	By default, no spectral transformation is performed (\texttt{STNONE}). This means that in this case the solver works with the original expressions of the eigenvalue problems,
+	By default, a zero shift spectral transformation is performed (\texttt{STSHIFT}). This means that in this case the solver works with the original expressions of the eigenvalue problems,
 \begin{equation}Ax=\lambda x\;\;,\end{equation}
 for standard problems, and $Ax=\lambda Bx$ for generalized ones. Note that this last equation is in fact treated internally as
 \begin{equation}B^{-1}Ax=\lambda x\;\;.\end{equation}
