@@ -1032,7 +1032,7 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
 @*/
 int EPSComputeError(EPS eps,PetscReal *error)
 {
-  Vec         u, w;
+  Vec         u, v, w;
   Mat         A, B;
   int         i, first=1, ierr;
   PetscScalar alpha;
@@ -1042,6 +1042,7 @@ int EPSComputeError(EPS eps,PetscReal *error)
   ierr = STGetOperators(eps->OP,&A,&B);
 
   ierr = VecDuplicate(eps->vec_initial,&u); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&v); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&w); CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -1058,10 +1059,10 @@ int EPSComputeError(EPS eps,PetscReal *error)
     }
     else if( first ) {
       ierr = MatMult( A, eps->V[i], u ); CHKERRQ(ierr);
-      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
-      else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
+      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], v ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( eps->V[i], v ); CHKERRQ(ierr); }
       alpha = -eps->eigr[i];
-      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+      ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr);
       if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i+1], w ); CHKERRQ(ierr); }
       else { ierr = VecCopy( eps->V[i+1], w ); CHKERRQ(ierr); }
       alpha = eps->eigi[i];
@@ -1070,10 +1071,8 @@ int EPSComputeError(EPS eps,PetscReal *error)
       ierr = MatMult( A, eps->V[i+1], u ); CHKERRQ(ierr);
       alpha = -eps->eigr[i];
       ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
-      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
-      else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
       alpha = -eps->eigi[i];
-      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+      ierr = VecAXPY( &alpha, v, u ); CHKERRQ(ierr);
       ierr = VecNorm( u, NORM_2, &error[i+1] ); CHKERRQ(ierr);
       error[i] = LAlapy2_( &error[i], &error[i+1] );
       error[i] = error[i]/LAlapy2_( &eps->eigr[i], &eps->eigi[i] );
@@ -1084,6 +1083,7 @@ int EPSComputeError(EPS eps,PetscReal *error)
 #endif
   }
   ierr = VecDestroy(w); CHKERRQ(ierr);
+  ierr = VecDestroy(v); CHKERRQ(ierr);
   ierr = VecDestroy(u); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
