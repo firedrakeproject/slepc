@@ -45,17 +45,8 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBasicLanczos"
 /*
-   EPSBasicLanczos - Computes an m-step Arnoldi factorization. The first k
-   columns are assumed to be locked and therefore they are not modified. On
-   exit, the following relation is satisfied:
-
+   EPSBasicLanczos - 
                     OP * V - V * H = f * e_m^T
-
-   where the columns of V are the Arnoldi vectors (which are B-orthonormal),
-   H is an upper Hessenberg matrix, f is the residual vector and e_m is
-   the m-th vector of the canonical basis. The vector f is B-orthogonal to
-   the columns of V. On exit, beta contains the B-norm of f and the next 
-   Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
 static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
 {
@@ -84,39 +75,41 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   PetscFunctionReturn(0);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_LANCZOS"
 PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,j,n,info,ncv=eps->ncv,nconv;
+  int            i,j,n,m,*iwork,*ifail,info,ncv=eps->ncv,nconv;
   Vec            f=eps->work[ncv];
-  PetscScalar    *T=eps->T,*D,*E,*Y,*work,ts;
-  PetscReal      norm,beta,tr;
+  PetscScalar    *T=eps->T,*D,*E,*Y,*W,*work,ts;
+  PetscReal      norm,beta,abstol;
 
   PetscFunctionBegin;
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
-  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+  SETERRQ(PETSC_ERR_SUP,"xSTEVX - Lapack routine is unavailable.");
 #endif 
   ierr = PetscMemzero(T,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&D);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&E);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&W);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(5*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(5*ncv*sizeof(PetscScalar),&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&ifail);CHKERRQ(ierr);
 
-  /* The first Arnoldi vector is the normalized initial vector */
+  /* The first vector is the normalized initial vector */
   ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr);
   ierr = STNorm(eps->OP,eps->V[0],&norm);CHKERRQ(ierr);
   ts = 1 / norm;
   ierr = VecScale(&ts,eps->V[0]);CHKERRQ(ierr);
   
+  abstol = 2*LAlamch_("S",1);
+  
   eps->nconv = nconv = 0;
   eps->its = 0;
-  /* Restart loop */
   while (eps->its<eps->max_it) {
-    /* Compute an ncv-step Arnoldi factorization */
     ierr = EPSBasicLanczos(eps,T,eps->V,nconv,ncv,f,&beta);CHKERRQ(ierr);
 
     n = ncv - nconv;
@@ -124,12 +117,12 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       D[i] = T[(i+nconv)*(ncv+1)];
       E[i] = T[(i+nconv)*(ncv+1)+1];
     }
-    LAstev_("V",&n,D,E,Y,&n,work,&info,1);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEV %i",info);
+    LAstevx_("V","A",&n,D,E,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&abstol,&m,W,Y,&n,work,iwork,ifail,&info,1,1);
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEVX %i",info);
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     for (i=0;i<n;i++) {
-      eps->eigr[ncv-i-1] = D[i];
+      eps->eigr[ncv-i-1] = W[i];
       eps->errest[ncv-i-1] = beta*PetscAbsScalar(Y[i*n+n-1]);
     }
     
@@ -139,8 +132,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
           T[i+nconv+(j+nconv)*ncv] = Y[i+(n-j-1)*n];
     ierr = EPSReverseProjection(eps,eps->V,T,nconv,ncv,eps->work);CHKERRQ(ierr);
 
-    /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
-       factorization so that all converged eigenvalues are first */
+    /* Look for converged eigenpairs */
     while (nconv<ncv && eps->errest[nconv]<eps->tol) nconv++;
 
     EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,ncv);
@@ -158,7 +150,10 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(D);CHKERRQ(ierr);
   ierr = PetscFree(E);CHKERRQ(ierr);
+  ierr = PetscFree(W);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscFree(ifail);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
