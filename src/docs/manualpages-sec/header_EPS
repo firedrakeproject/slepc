@@ -1,9 +1,10 @@
 <HTML>
 <HEAD>
+<link rel="stylesheet" href="/slepc/vinculs.css" type="text/css">
 <TITLE>Eigenvalue Problem Solvers - EPS</TITLE>
 </HEAD>
 <BODY BGCOLOR="FFFFFF">
-
+<font face="Arial, Helvetica, sans-serif" size="2">
 <H2>Eigenvalue Problem Solvers - EPS</H2>
 
 The Eigenvalue Problem Solver (EPS) is the main object provided by SLEPc. It is used to specify an eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the eigensolvers included in the package. 
