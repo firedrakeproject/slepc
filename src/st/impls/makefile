@@ -2,7 +2,7 @@
 ALL: lib
 
 LIBBASE  = libslepc
-DIRS     = shell shift sinvert cayley
+DIRS     = shell shift sinvert cayley fold
 LOCDIR   = src/st/impls/
 MANSEC   = ST
 

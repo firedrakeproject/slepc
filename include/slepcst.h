@@ -15,6 +15,7 @@ typedef struct _p_ST* ST;
 #define STSHIFT     "shift"
 #define STSINV      "sinvert"
 #define STCAYLEY    "cayley"
+#define STFOLD      "fold"
 typedef char *STType;
 
 EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);

@@ -6,6 +6,7 @@ EXTERN PetscErrorCode STCreate_Shell(ST);
 EXTERN PetscErrorCode STCreate_Shift(ST);
 EXTERN PetscErrorCode STCreate_Sinvert(ST);
 EXTERN PetscErrorCode STCreate_Cayley(ST);
+EXTERN PetscErrorCode STCreate_Fold(ST);
 EXTERN_C_END
 
 extern PetscTruth STRegisterAllCalled;
@@ -35,6 +36,7 @@ PetscErrorCode STRegisterAll(char *path)
   ierr = STRegisterDynamic(STSHIFT  ,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSINV   ,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STCAYLEY ,path,"STCreate_Cayley",STCreate_Cayley);CHKERRQ(ierr);
+  ierr = STRegisterDynamic(STFOLD   ,path,"STCreate_Fold",STCreate_Fold);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
