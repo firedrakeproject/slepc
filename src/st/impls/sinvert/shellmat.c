@@ -16,10 +16,10 @@ static int MatSinvert_Mult(Mat A,Vec x,Vec y)
   PetscScalar alpha;
 
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  alpha = -ctx->sigma;
 
   ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
-  if (alpha != 0.0) { 
+  if (ctx->sigma != 0.0) { 
+    alpha = -ctx->sigma;
     if (ctx->B) {  /* y = (A - sB) x */
       ierr = MatMult(ctx->B,x,ctx->w);CHKERRQ(ierr);
       ierr = VecAXPY(&alpha,ctx->w,y);CHKERRQ(ierr); 
@@ -41,10 +41,10 @@ static int MatSinvert_GetDiagonal(Mat A,Vec diag)
   Vec         diagb;
 
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  alpha = -ctx->sigma;
 
   ierr = MatGetDiagonal(ctx->A,diag);CHKERRQ(ierr);
-  if (alpha != 0.0) { 
+  if (ctx->sigma != 0.0) { 
+    alpha = -ctx->sigma;
     if (ctx->B) {
       ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
       ierr = MatGetDiagonal(ctx->B,diagb);CHKERRQ(ierr);

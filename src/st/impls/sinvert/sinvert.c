@@ -95,8 +95,8 @@ static int STSetUp_Sinvert(ST st)
 
   switch (ctx->shift_matrix) {
   case STSINVERT_MATMODE_INPLACE:
-    alpha = -st->sigma;
-    if (alpha != 0.0) {
+    if (st->sigma != 0.0) {
+      alpha = -st->sigma;
       if (st->B) { 
         ierr = MatAXPY(&alpha,st->B,st->A,ctx->str);CHKERRQ(ierr); 
       } else { 
@@ -113,8 +113,8 @@ static int STSetUp_Sinvert(ST st)
     break;
   default:
     ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&ctx->mat);CHKERRQ(ierr);
-    alpha = -st->sigma;
-    if (alpha != 0.0) {
+    if (st->sigma != 0.0) {
+      alpha = -st->sigma;
       if (st->B) { 
         ierr = MatAXPY(&alpha,st->B,ctx->mat,ctx->str);CHKERRQ(ierr); 
       } else { 
@@ -147,13 +147,17 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
   switch (stctx->shift_matrix) {
   case STSINVERT_MATMODE_INPLACE:
     /* Undo previous operations */
-    alpha = st->sigma;
-    if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,stctx->str);CHKERRQ(ierr); }
-    else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+    if (st->sigma != 0.0) {
+      alpha = st->sigma;
+      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,stctx->str);CHKERRQ(ierr); }
+      else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+    }
     /* Apply new shift */
-    alpha = -newshift;
-    if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,stctx->str);CHKERRQ(ierr); }
-    else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+    if (newshift != 0.0) {
+      alpha = -newshift;
+      if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,stctx->str);CHKERRQ(ierr); }
+      else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+    }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   case STSINVERT_MATMODE_SHELL:
@@ -163,9 +167,11 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
     break;
   default:
     ierr = MatCopy(st->A, stctx->mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
-    alpha = -st->sigma;
-    if (st->B) { ierr = MatAXPY(&alpha,st->B,stctx->mat,stctx->str);CHKERRQ(ierr); }
-    else { ierr = MatShift(&alpha,stctx->mat);CHKERRQ(ierr); }
+    if (newshift != 0.0) {   
+      alpha = -newshift;
+      if (st->B) { ierr = MatAXPY(&alpha,st->B,stctx->mat,stctx->str);CHKERRQ(ierr); }
+      else { ierr = MatShift(&alpha,stctx->mat);CHKERRQ(ierr); }
+    }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,stctx->mat,stctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
