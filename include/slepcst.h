@@ -10,7 +10,6 @@ extern int ST_COOKIE;
 
 typedef struct _p_ST* ST;
 
-#define STNONE      "none"
 #define STSHELL     "shell"
 #define STSHIFT     "shift"
 #define STSINV      "sinvert"

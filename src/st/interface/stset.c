@@ -165,7 +165,7 @@ int STSetFromOptions(ST st)
 
   if (!STRegisterAllCalled) {ierr = STRegisterAll(PETSC_NULL);CHKERRQ(ierr);}
   ierr = PetscOptionsBegin(st->comm,st->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);
-    ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(st->type_name?st->type_name:STNONE),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(st->type_name?st->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = STSetType(st,type);CHKERRQ(ierr);
     }
@@ -173,7 +173,7 @@ int STSetFromOptions(ST st)
       Set the type if it was never set.
     */
     if (!st->type_name) {
-      ierr = STSetType(st,STNONE);CHKERRQ(ierr);
+      ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
     }
 
     if (st->numberofshifts>0) {

@@ -149,7 +149,7 @@ int STSetUp(ST st)
   if (!st->vec) {SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Vector must be set first");}
   if (!st->A) {SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
   if (!st->type_name) {
-    ierr = STSetType(st,STNONE);CHKERRQ(ierr);
+    ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
   if (st->ops->setup) {
     ierr = (*st->ops->setup)(st); CHKERRQ(ierr);

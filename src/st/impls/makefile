@@ -2,7 +2,7 @@
 ALL: lib
 
 LIBBASE  = libslepc
-DIRS     = none shell shift sinvert
+DIRS     = shell shift sinvert
 LOCDIR   = src/st/impls/
 MANSEC   = ST
 

@@ -2,7 +2,6 @@
 #include "src/st/stimpl.h"          /*I   "slepcst.h"   I*/
 
 EXTERN_C_BEGIN
-extern int STCreate_None(ST);
 extern int STCreate_Shell(ST);
 extern int STCreate_Shift(ST);
 extern int STCreate_Sinvert(ST);
@@ -31,7 +30,6 @@ int STRegisterAll(char *path)
   PetscFunctionBegin;
   STRegisterAllCalled = PETSC_TRUE;
 
-  ierr = STRegisterDynamic(STNONE  ,path,"STCreate_None",STCreate_None);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSHELL ,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSHIFT ,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSINV  ,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
