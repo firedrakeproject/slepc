@@ -261,13 +261,13 @@ In the algorithm above, matrix $O\!P$ represents the operator, which can be any 
 
 The Inverse Iteration works with a constant shift, that is, the operator is $(A-\sigma B)^{-1}B$ throughout the iteration. However, it is possible to change this behaviour by requesting the use of \emph{variable} shifts. There are two possibilities: Rayleigh shifts and Wilkinson shifts. This option can be changed with the command-line option \Verb!-eps_power_shift_type! or specified in the program source with the function \ident{EPSPowerSetShiftType}. 
 
-The first alternative (\ident{rayleigh}) results in the well-known Rayleigh Quotient Iteration (RQI), where the new shift $\rho_k$ is computed as the Rayleigh quotient of the current approximate eigenvector $v$
+The first alternative (\Verb!rayleigh!) results in the well-known Rayleigh Quotient Iteration (RQI), where the new shift $\rho_k$ is computed as the Rayleigh quotient of the current approximate eigenvector $v$
 \begin{equation}
 \rho_k=R(v)=\frac{(Av,v)}{(Bv,v)}
 \end{equation}
 This strategy leads to cubic convergence. Note that changing the shift may imply refactorization of matrix $(A-\rho_k B)$.
 
-The second alternative (\ident{wilkinson}) uses a more sophisticated formula for the shift \citep{Parlett:1998:SEP}.
+The second alternative (\Verb!wilkinson!) uses a more sophisticated formula for the shift \citep{Parlett:1998:SEP}.
 
 %---------------------------------------------------
 \section{\ident{subspace}}
@@ -309,28 +309,42 @@ xxxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
 %---------------------------------------------------
 \section{\ident{arnoldi}}
 
-The version of the Arnoldi method implemented in \slepc uses locking and explicit restart. The orthogonalization technique can be chosen as described in chapter \ref{cap:eps}.
+The version of the Arnoldi method implemented in \slepc uses locking and explicit restart. The orthogonalization technique can be chosen as described in section \ref{sec:orthog}.
 
-\begin{algorithm}[Arnoldi\label{alg:arn}]~\rm
+The implemented method (see algorithm \ref{alg:arn}) builds an Arnoldi factorization of order \Verb!ncv! by means of algorithm \ref{alg:basicarn}. Converged eigenpairs are locked and the iteration is restarted with the rest of the columns being the active columns for the next Arnoldi factorization. Currently, no filtering is applied to the vector used for restarting.
+
+\begin{algorithm}[Explicitly Restarted Arnoldi\label{alg:arn}]~\rm
 \begin{tabbing}
-Input: Matrix $A$, the initial vector $v_0$, and number of steps $k$ \\
-Output: $(V_k,H_k,f_k)$ so that $AV_k=V_kH_k+f_ke_k^T$ \\
+Input: Operator $O\!P$, initial vector $v_1$, and dimension of the subspace $ncv$ \\
+Output: A partial Schur decomposition $O\!P\,V=VH$ \\
 xxxx\=xxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
-\> Normalize $v_0$\\
+\> Normalize $v_1$\\
 \> Restart loop\\
-\> \> For $j=1,2,\ldots,k$\\
-\> \> \> $w=O\!Pv_j$ \\
-\> \> \> For $i=1,2,\ldots,j$ \\
-\> \> \> \> $h_{ij}=(w,v_i)$ \\
-\> \> \> \> $w=w-h_{ij}v_i$ \\
-\> \> \> end\\
-\> \> \> $h_{j+1,j}=\|w\|_2\;$. \> \>If $h_{j+1,j}=0$ Stop \\
-\> \> \> Reduce $H$ to (real) Schur form, $H=S\tilde{H}S^T$\\
-\> \> \> $V=VS$ \\
-\> \> end\\
+\> \> Compute an $ncv$-step Arnoldi factorization (algoritm \ref{alg:basicarn})\\
+\> \> Reduce $H$ to (quasi-)triangular form, $H\leftarrow UHU^T$\\
+\> \> Compute eigenvectors of $H$, $Hy_i=y_i\theta_i$ \\
+\> \> Compute residual norm estimates, $\tau_i=\beta |e_m^Ty_i|$ \\
 \> \> Lock converged eigenpairs\\
-\> \> Choose new initial vector\\
+\> \> $V=VU$\\
 \> end\\
+\end{tabbing}
+\end{algorithm}
+
+\begin{algorithm}[Basic Arnoldi Factorization\label{alg:basicarn}]~\rm
+\begin{tabbing}
+Input: Operator $O\!P$, number of steps $m$, and $V_k$, $H_k$ with $k<m$  \\
+Output: $(V_m,H_m,f_m,\beta)$ so that $O\!P\,V_m-V_mH_m=f_me_m^T$, $\beta=\|f\|_B$ \\
+xxxx\=xxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
+\> For $j=k+1,\ldots,m-1$\\
+\> \> $w=O\!Pv_j$ \\
+\> \> Orthogonalize $w$ with respect to $V_j$ (obtaining $h_{1:j,j}$) \\
+\> \> $h_{j+1,j}=\|w\|_B$ \\
+\> \> $v_{j+1}=w/h_{j+1,j}$ \\
+\> end \\
+\> $f=O\!Pv_m$ \\
+\> Orthogonalize $f$ with respect to $V_m$ (obtaining $h_{1:m,m}$) \\
+\> $\beta=\|f\|_B$ \\
+\> $f=f/\beta$ \\
 \end{tabbing}
 \end{algorithm}
 
