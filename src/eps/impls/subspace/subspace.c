@@ -270,10 +270,10 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
     
     /* 4. Reduce T to quasi-triangular (Schur) form */
-    ierr = EPSDenseSchur(T,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(ncv,eps->nconv,T,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* 5. Sort diagonal elements in T and accumulate rotations on U */
-    ierr = EPSSortDenseSchur(T,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(ncv,eps->nconv,T,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
     ierr = EPSReverseProjection(eps,eps->AV,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);

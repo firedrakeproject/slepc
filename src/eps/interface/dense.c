@@ -312,7 +312,7 @@ PetscErrorCode EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScala
 
 .seealso: EPSSortDenseSchur()
 @*/
-PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
+PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   int ilo,lwork,info;
@@ -389,7 +389,7 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
 
 .seealso: EPSDenseSchur()
 @*/
-PetscErrorCode EPSSortDenseSchur(PetscScalar *T,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
+PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
   int i,j,ifst,ilst,info,maxpos;
 #if !defined(PETSC_USE_COMPLEX)
