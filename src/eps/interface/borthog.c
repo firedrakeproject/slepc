@@ -47,14 +47,14 @@ int EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
       ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
     }
     else {
-      ierr = STNorm(eps->OP,V[0],PETSC_NULL,&norm);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,V[0],&norm);CHKERRQ(ierr);
     }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0) { 
       PetscLogInfo(eps,"EPSQRDecomposition: Zero vector found, generating a new random vector\n" );
       ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
-      ierr = STNorm(eps->OP,V[k],PETSC_NULL,&norm);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,V[k],&norm);CHKERRQ(ierr);
     }
     alpha = 1.0/norm;
     ierr = VecScale(&alpha,V[k]);CHKERRQ(ierr);
@@ -213,12 +213,12 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
   /* h = V^* v */
   /* q = v - V h */
   for (j=0;j<n;j++) {
-    ierr = STInnerProduct(eps->OP,v,V[j],PETSC_NULL,&H[j]);
+    ierr = STInnerProduct(eps->OP,v,V[j],&H[j]);
     lhh[j] = -H[j];    
   }  
   ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
   
-  ierr = STNorm(eps->OP,v,PETSC_NULL,norm);CHKERRQ(ierr);
+  ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
 
   /*** Second orthogonalization if necessary ***/
   if (eps->orth_eta != 0.0) {
@@ -235,13 +235,13 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
       /* s = V^* q */
       /* q = q - V s  ;  h = h + s */
       for (j=0;j<n;j++) {
-        ierr = STInnerProduct(eps->OP,v,V[j],PETSC_NULL,&lhh[j]);
+        ierr = STInnerProduct(eps->OP,v,V[j],&lhh[j]);
         H[j] += lhh[j];
         lhh[j] = -lhh[j];    
       }
       ierr = VecMAXPY(n,lhh,v,V);CHKERRQ(ierr);
 
-      ierr = STNorm(eps->OP,v,PETSC_NULL,norm);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
     }
   }
 
@@ -284,14 +284,14 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
   do {
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
-      ierr = STInnerProduct(eps->OP,v,V[j],PETSC_NULL,&alpha);CHKERRQ(ierr);
+      ierr = STInnerProduct(eps->OP,v,V[j],&alpha);CHKERRQ(ierr);
       /* store coefficients if requested */
       h[j] += alpha;
       /* v <- v - alpha v_j */
       alpha = -alpha;
       ierr = VecAXPY(&alpha,V[j],v);CHKERRQ(ierr);
     }
-    ierr = STNorm(eps->OP,v,PETSC_NULL,norm);CHKERRQ(ierr);
+    ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
     if (refinement) refinement = PETSC_FALSE;
     else if (eps->orth_eta != 0.0) {
       hnorm = 0.0;

@@ -166,8 +166,6 @@ static int STSetUp_Cayley(ST st)
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
-  if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); }
-  ierr = MatGetVecs(st->A,&st->w,PETSC_NULL);CHKERRQ(ierr); 
   if (st->B) { 
    if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
    ierr = MatGetVecs(st->B,&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 

@@ -65,8 +65,8 @@ typedef enum { STINNER_HERMITIAN, STINNER_SYMMETRIC,
                STINNER_B_HERMITIAN, STINNER_B_SYMMETRIC } STBilinearForm;
 extern int STSetBilinearForm(ST,STBilinearForm);
 
-extern int STInnerProduct(ST st,Vec,Vec,Vec,PetscScalar*);
-extern int STNorm(ST st,Vec,Vec,PetscReal*);
+extern int STInnerProduct(ST st,Vec,Vec,PetscScalar*);
+extern int STNorm(ST st,Vec,PetscReal*);
 
 /* --------- options specific to particular spectral transformations-------- */
 
