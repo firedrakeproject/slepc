@@ -80,8 +80,8 @@ int EPSView(EPS eps,PetscViewer viewer)
       case EPS_SMALLEST_MAGNITUDE: which = "smallest eigenvalues in magnitude"; break;
       case EPS_LARGEST_REAL:       which = "largest real parts"; break;
       case EPS_SMALLEST_REAL:      which = "smallest real parts"; break;
-      case EPS_LARGEST_IMAGINARY:  which = "largest imaginary parts in magnitude"; break;
-      case EPS_SMALLEST_IMAGINARY: which = "smallest imaginary parts in magnitude"; break;
+      case EPS_LARGEST_IMAGINARY:  which = "largest imaginary parts"; break;
+      case EPS_SMALLEST_IMAGINARY: which = "smallest imaginary parts"; break;
       default: SETERRQ(1,"Wrong value of eps->which");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: %s\n",which);CHKERRQ(ierr);
@@ -397,11 +397,11 @@ int EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
 
     orth_type = eps->orth_type;
-    ierr = PetscOptionsEList("-eps_orthog_type","type of orthogonalization","EPSSetOrthogonalization",orth_list,2,orth_list[orth_type],(int*)&orth_type,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,2,orth_list[orth_type],(int*)&orth_type,PETSC_NULL);CHKERRQ(ierr);
     ref_type = EPS_ORTH_REFINE_IFNEEDED;
-    ierr = PetscOptionsEList("-eps_orthog_refinement","type of refinement","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[ref_type],(int*)&ref_type,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[ref_type],(int*)&ref_type,PETSC_NULL);CHKERRQ(ierr);
     eta = eps->orth_eta;
-    ierr = PetscOptionsReal("-eps_orthog_eta","eta","EPSSetOrthogonalizationRefinement",eta,&eta,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_orthog_eta","Parameter of iterative refinement during orthogonalization","EPSSetOrthogonalizationRefinement",eta,&eta,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetOrthogonalization(eps,orth_type,ref_type,eta);CHKERRQ(ierr);
 
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&eps->max_it,PETSC_NULL);CHKERRQ(ierr);
@@ -453,8 +453,8 @@ int EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_view_binary","Saves the matrices associated to the eigenproblem","EPSSetFromOptions",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_plot_eigs","Makes a plot of the computed eigenvalues","EPSSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view_binary","Save the matrices associated to the eigenproblem","EPSSetFromOptions",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_plot_eigs","Make a plot of the computed eigenvalues","EPSSolve",0);CHKERRQ(ierr);
 
     if (eps->ops->setfromoptions) {
       ierr = (*eps->ops->setfromoptions)(eps);CHKERRQ(ierr);
