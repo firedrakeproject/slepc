@@ -64,6 +64,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
+  ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
 
   /* DSV is equal to the columns of DS followed by the ones in V */
   if (eps->DSV) { ierr = PetscFree(eps->DSV);CHKERRQ(ierr); }
@@ -79,7 +80,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
 
-  ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);
     
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
