@@ -18,18 +18,11 @@ typedef struct {
 #endif
 } EPS_ARPACK;
 
-
 /*
    Definition of routines from the ARPACK package
 */
 
-/*
-   This include file on the Cray T3D/T3E defines the interface between 
-  Fortran and C representations of character strings.
-*/
-#if defined(PETSC_USES_CPTOFCD)
-#include <fortran.h>
-#endif
+#include "slepcblaslapack.h"
 
 #if !defined(_petsc_mpi_uni)
 
@@ -43,27 +36,18 @@ typedef struct {
 /*
    For these machines we must call the single precision Fortran version
 */
-#define PDNAUPD  PSNAUPD
-#define PDNEUPD  PSNEUPD
-#define PDSAUPD  PSSAUPD
-#define PDSEUPD  PSSEUPD
-#endif
+#define ARnaupd_ SLEPC_FORTRAN(psnaupd,PSNAUPD)
+#define ARneupd_ SLEPC_FORTRAN(psneupd,PSNEUPD)
+#define ARsaupd_ SLEPC_FORTRAN(pssaupd,PSSAUPD)
+#define ARseupd_ SLEPC_FORTRAN(psseupd,PSSEUPD)
 
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
-#define ARnaupd_ pdnaupd_
-#define ARneupd_ pdneupd_
-#define ARsaupd_ pdsaupd_
-#define ARseupd_ pdseupd_
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define ARnaupd_ PDNAUPD
-#define ARneupd_ PDNEUPD
-#define ARsaupd_ PDSAUPD
-#define ARseupd_ PDSEUPD
 #else
-#define ARnaupd_ pdnaupd
-#define ARneupd_ pdneupd
-#define ARsaupd_ pdsaupd
-#define ARseupd_ pdseupd
+
+#define ARnaupd_ SLEPC_FORTRAN(pdnaupd,PDNAUPD)
+#define ARneupd_ SLEPC_FORTRAN(pdneupd,PDNEUPD)
+#define ARsaupd_ SLEPC_FORTRAN(pdsaupd,PDSAUPD)
+#define ARseupd_ SLEPC_FORTRAN(pdseupd,PDSEUPD)
+
 #endif
 
 #else
@@ -71,19 +55,15 @@ typedef struct {
    Complex 
 */
 #if defined(PETSC_USES_FORTRAN_SINGLE) 
-#define PZNAUPD  PCNAUPD
-#define PZNEUPD  PCNEUPD
-#endif
 
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
-#define ARnaupd_ pznaupd_
-#define ARneupd_ pzneupd_
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define ARnaupd_ PZNAUPD
-#define ARneupd_ PZNEUPD
+#define ARnaupd_ SLEPC_FORTRAN(pcnaupd,PCNAUPD)
+#define ARneupd_ SLEPC_FORTRAN(pcneupd,PCNEUPD)
+
 #else
-#define ARnaupd_ pznaupd
-#define ARneupd_ pzneupd
+
+#define ARnaupd_ SLEPC_FORTRAN(pznaupd,PZNAUPD)
+#define ARneupd_ SLEPC_FORTRAN(pzneupd,PZNEUPD)
+
 #endif
 
 #endif
@@ -101,27 +81,18 @@ typedef struct {
 /*
    For these machines we must call the single precision Fortran version
 */
-#define DNAUPD  SNAUPD
-#define DNEUPD  SNEUPD
-#define DSAUPD  SSAUPD
-#define DSEUPD  SSEUPD
-#endif
+#define ARnaupd__ SLEPC_FORTRAN(snaupd,SNAUPD)
+#define ARneupd__ SLEPC_FORTRAN(sneupd,SNEUPD)
+#define ARsaupd__ SLEPC_FORTRAN(ssaupd,SSAUPD)
+#define ARseupd__ SLEPC_FORTRAN(sseupd,SSEUPD)
 
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) 
-#define ARnaupd__ dnaupd
-#define ARneupd__ dneupd
-#define ARsaupd__ dsaupd
-#define ARseupd__ dseupd
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define ARnaupd__ DNAUPD
-#define ARneupd__ DNEUPD
-#define ARsaupd__ DSAUPD
-#define ARseupd__ DSEUPD
 #else
-#define ARnaupd__ dnaupd
-#define ARneupd__ dneupd
-#define ARsaupd__ dsaupd
-#define ARseupd__ dseupd
+
+#define ARnaupd__ SLEPC_FORTRAN(dnaupd,DNAUPD)
+#define ARneupd__ SLEPC_FORTRAN(dneupd,DNEUPD)
+#define ARsaupd__ SLEPC_FORTRAN(dsaupd,DSAUPD)
+#define ARseupd__ SLEPC_FORTRAN(dseupd,DSEUPD)
+
 #endif
 
 #else
@@ -129,19 +100,15 @@ typedef struct {
    Complex 
 */
 #if defined(PETSC_USES_FORTRAN_SINGLE) 
-#define ZNAUPD  CNAUPD
-#define ZNEUPD  CNEUPD
-#endif
 
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define ARnaupd__ znaupd
-#define ARneupd__ zneupd
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define ARnaupd__ ZNAUPD
-#define ARneupd__ ZNEUPD
+#define ARnaupd__ SLEPC_FORTRAN(cnaupd,CNAUPD)
+#define ARneupd__ SLEPC_FORTRAN(cneupd,CNEUPD)
+
 #else
-#define ARnaupd__ znaupd
-#define ARneupd__ zneupd
+
+#define ARnaupd__ SLEPC_FORTRAN(znaupd,ZNAUPD)
+#define ARneupd__ SLEPC_FORTRAN(zneupd,ZNEUPD)
+
 #endif
 
 #endif

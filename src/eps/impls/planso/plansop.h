@@ -12,46 +12,21 @@ typedef struct {
   int        lwork;
 } EPS_PLANSO;
 
-
 /*
    Definition of routines from the PLANSO package
 */
-#include "petsc.h"
 
-/*
-   This include file on the Cray T3D/T3E defines the interface between 
-  Fortran and C representations of charactor strings.
-*/
-#if defined(PETSC_USES_CPTOFCD)
-#include <fortran.h>
-#endif
-
-#if !defined(PETSC_USE_COMPLEX)
+#include "slepcblaslapack.h"
 
 /*
     These are real case. PLANSO currently only has DOUBLE PRECISION version
 */
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
-#define PLANdr_    plandr_
-#define PLANdr2_   plandr2_
-#define PLANop_    op_
-#define PLANopm_   opm_
-#define PLANstore_ store_
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define PLANdr_    PLANDR
-#define PLANdr2_   PLANDR2
-#define PLANop_    OP
-#define PLANopm_   OPM
-#define PLANstore_ STORE
-#else
-#define PLANdr_    plandr
-#define PLANdr2_   plandr2
-#define PLANop_    op
-#define PLANopm_   opm
-#define PLANstore_ store
-#endif
 
-#endif
+#define PLANdr_    SLEPC_FORTRAN(plandr,PLANDR)
+#define PLANdr2_   SLEPC_FORTRAN(plandr2,PLANDR2)
+#define PLANop_    SLEPC_FORTRAN(op,OP)
+#define PLANopm_   SLEPC_FORTRAN(opm,OPM)
+#define PLANstore_ SLEPC_FORTRAN(store,STORE)
 
 EXTERN_C_BEGIN
 

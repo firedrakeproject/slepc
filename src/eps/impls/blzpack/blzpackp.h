@@ -19,22 +19,11 @@ typedef struct {
   PetscScalar *eig;
 } EPS_BLZPACK;
 
-
 /*
    Definition of routines from the BLZPACK package
 */
 
-#include "petsc.h"
-
-/*
-   This include file on the Cray T3D/T3E defines the interface between 
-  Fortran and C representations of character strings.
-*/
-#if defined(PETSC_USES_CPTOFCD)
-#include <fortran.h>
-#endif
-
-#if !defined(PETSC_USE_COMPLEX)
+#include "slepcblaslapack.h"
 
 /*
     These are real case, current version of BLZPACK only supports real
@@ -45,24 +34,13 @@ typedef struct {
 /*
    For these machines we must call the single precision Fortran version
 */
-#define BLZDRD   BLZDRS 
+#define BLZpack_ SLEPC_FORTRAN(blzdrs,BLZDRS)
+#else 
+#define BLZpack_ SLEPC_FORTRAN(blzdrd,BLZDRD)
 #endif
 
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
-#define BLZpack_   blzdrd_
-#define BLZistorr_ istorr_
-#define BLZrstorr_ rstorr_
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define BLZpack_   BLZDRD
-#define BLZistorr_ ISTORR
-#define BLZrstorr_ RSTORR
-#else
-#define BLZpack_   blzdrd
-#define BLZistorr_ istorr
-#define BLZrstorr_ rstorr
-#endif
-
-#endif
+#define BLZistorr_ SLEPC_FORTRAN(istorr,ISTORR)
+#define BLZrstorr_ SLEPC_FORTRAN(rstorr,RSTORR)
 
 EXTERN_C_BEGIN
 

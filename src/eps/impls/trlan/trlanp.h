@@ -14,34 +14,17 @@ typedef struct {
   int       lwork;
 } EPS_TRLAN;
 
-
 /*
    Definition of routines from the TRLAN package
 */
-#include "petsc.h"
 
-/*
-   This include file on the Cray T3D/T3E defines the interface between 
-  Fortran and C representations of charactor strings.
-*/
-#if defined(PETSC_USES_CPTOFCD)
-#include <fortran.h>
-#endif
-
-#if !defined(PETSC_USE_COMPLEX)
+#include "slepcblaslapack.h"
 
 /*
     These are real case. TRLAN currently only has DOUBLE PRECISION version
 */
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_F2C)
-#define TRLan_     trlan77_
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#define TRLan_     TRLAN77
-#else
-#define TRLan_     trlan77
-#endif
 
-#endif
+#define TRLan_     SLEPC_FORTRAN(trlan77,TRLAN77)
 
 EXTERN_C_BEGIN
 
