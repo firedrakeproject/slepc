@@ -39,7 +39,7 @@ int main( int argc, char **argv )
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n");CHKERRQ(ierr);
 #endif
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,PETSC_FILE_RDONLY,&viewer);CHKERRQ(ierr);
-  ierr = MatLoad(viewer,MATMPIAIJ,&A);CHKERRQ(ierr);
+  ierr = MatLoad(viewer,MATAIJ,&A);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
