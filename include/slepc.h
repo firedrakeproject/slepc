@@ -41,6 +41,7 @@ EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 #else
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
 #endif
+EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 
 PETSC_EXTERN_CXX_END
 #endif

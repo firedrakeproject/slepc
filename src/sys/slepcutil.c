@@ -154,3 +154,63 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 }
 
 #endif
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcMatConvertSeqDense"
+/*@C
+   SlepcMatConvertSeqDense - Converts a parallel matrix to another in sequential dense format 
+     replicating the values in every processor.
+
+   Collective
+
+   Input parameters:
++  A  - the source matrix
+-  B  - the target matrix
+
+   Level: developer
+   
+@*/
+PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
+{
+  PetscErrorCode ierr;
+  int            size,m,n;
+  MPI_Comm       comm;
+  Mat            *M;
+  IS             isrow, iscol;
+  PetscTruth     flg;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mat,MAT_COOKIE,1);
+  PetscValidPointer(newmat,2);
+
+  ierr = PetscObjectGetComm((PetscObject)mat,&comm);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
+
+  if (size > 1) {
+    /* assemble full matrix on every processor */
+    ierr = MatGetSize(mat,&m,&n);CHKERRQ(ierr);
+    ierr = ISCreateStride(PETSC_COMM_SELF,m,0,1,&isrow);CHKERRQ(ierr);
+    ierr = ISCreateStride(PETSC_COMM_SELF,n,0,1,&iscol);CHKERRQ(ierr);
+    ierr = MatGetSubMatrices(mat,1,&isrow,&iscol,MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
+    ierr = ISDestroy(isrow);CHKERRQ(ierr);
+    ierr = ISDestroy(iscol);CHKERRQ(ierr);
+
+    /* Fake support for "inplace" convert. */
+    if (*newmat == mat) {
+      ierr = MatDestroy(mat);CHKERRQ(ierr);
+    }
+    *newmat = *M;
+    ierr = PetscFree(M);CHKERRQ(ierr);     
+  
+    /* convert matrix to MatSeqDense */
+    ierr = PetscTypeCompare((PetscObject)*newmat,MATSEQDENSE,&flg); CHKERRQ(ierr);
+    if (!flg) {
+      ierr = MatConvert(*newmat,MATSEQDENSE,newmat);CHKERRQ(ierr);
+    } 
+  } else {
+    /* convert matrix to MatSeqDense */
+    ierr = MatConvert(mat,MATSEQDENSE,newmat);CHKERRQ(ierr);
+  }
+
+  PetscFunctionReturn(0);  
+}
