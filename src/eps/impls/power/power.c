@@ -140,6 +140,7 @@ int EPSCreate_POWER(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                      = (void *) 0;
+  eps->ops->setfromoptions       = 0;
   eps->ops->setup                = EPSSetUp_POWER;
   eps->ops->solve                = EPSSolve_POWER;
   eps->ops->destroy              = EPSDestroy_Default;

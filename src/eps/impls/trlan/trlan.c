@@ -142,6 +142,7 @@ int EPSCreate_TRLAN(EPS eps)
   PetscMemzero(trlan,sizeof(EPS_TRLAN));
   PetscLogObjectMemory(eps,sizeof(EPS_TRLAN));
   eps->data                      = (void *) trlan;
+  eps->ops->setfromoptions       = 0;
   eps->ops->setup                = EPSSetUp_TRLAN;
   eps->ops->solve                = EPSSolve_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;

@@ -139,6 +139,7 @@ int EPSCreate_LAPACK(EPS eps)
   PetscMemzero(la,sizeof(EPS_LAPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_LAPACK));
   eps->data                      = (void *) la;
+  eps->ops->setfromoptions       = 0;
   eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;

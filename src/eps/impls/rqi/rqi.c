@@ -117,6 +117,7 @@ int EPSCreate_RQI(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                      = (void *) 0;
+  eps->ops->setfromoptions       = 0;
   eps->ops->setup                = EPSSetUp_RQI;
   eps->ops->solve                = EPSSolve_RQI;
   eps->ops->destroy              = EPSDestroy_Default;

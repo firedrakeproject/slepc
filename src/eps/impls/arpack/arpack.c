@@ -309,6 +309,7 @@ int EPSCreate_ARPACK(EPS eps)
   PetscMemzero(arpack,sizeof(EPS_ARPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_ARPACK));
   eps->data                      = (void *) arpack;
+  eps->ops->setfromoptions       = 0;
   eps->ops->setup                = EPSSetUp_ARPACK;
   eps->ops->solve                = EPSSolve_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
