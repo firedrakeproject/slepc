@@ -64,7 +64,7 @@ int EPSSetUp(EPS eps)
   
   /* Check if the EPS initial vector has been set */
   ierr = EPSGetInitialVector(eps,&v0);CHKERRQ(ierr);
-  if (!v0) {
+  if (!eps->vec_initial_set && !v0) {
     ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(v0);CHKERRQ(ierr);
     eps->vec_initial = v0;
@@ -730,6 +730,7 @@ int EPSSetInitialVector(EPS eps,Vec vec)
   }
   eps->vec_initial = vec;
   PetscObjectReference((PetscObject)eps->vec_initial);
+  eps->vec_initial_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -950,6 +951,10 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
   if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
   eps->setupcalled = 0;  /* so that next solve call will call setup */
+  if (!eps->vec_initial_set && eps->vec_initial) {
+    ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+    eps->vec_initial = PETSC_NULL;
+  }
 
   /* The following call is done in order to check the consistency of the
      problem type with the specified matrices */
