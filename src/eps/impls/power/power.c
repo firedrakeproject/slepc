@@ -87,7 +87,7 @@ static int  EPSSolve_POWER(EPS eps)
   int         ierr, i;
   Vec         v, y, e, w;
   PetscReal   relerr, norm;
-  PetscScalar theta, alpha, rho, alpha1;
+  PetscScalar theta, alpha, rho;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -99,13 +99,15 @@ static int  EPSSolve_POWER(EPS eps)
 
   eps->nconv = 0;
   eps->its = 0;
-  ierr = STGetShift(eps->OP,&rho);CHKERRQ(ierr);
 
   for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
 
   while (eps->its<eps->max_it) {
 
     eps->its = eps->its + 1;
+
+    /* deflation of converged eigenvectors */
+    ierr = EPSPurge(eps,y);
 
     /* v = y/||y||_B */
     ierr = VecCopy(y,v);CHKERRQ(ierr);
@@ -115,9 +117,6 @@ static int  EPSSolve_POWER(EPS eps)
 
     /* y = OP v */
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
-
-    /* deflation of converged eigenvectors */
-    ierr = EPSPurge(eps,y);
 
     /* theta = v^* y */
     ierr = STInnerProduct(eps->OP,y,v,&theta);CHKERRQ(ierr);
@@ -130,15 +129,14 @@ static int  EPSSolve_POWER(EPS eps)
     relerr = relerr / PetscAbsScalar(theta);
     eps->errest[eps->nconv] = relerr;
 
-    /* if ||y-theta v||_2 / |theta| < tol, accept */
+    /* update eigenvalue and shift */
     if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-      ierr = EPSPowerUpdateShift(eps,v,&alpha1);CHKERRQ(ierr);
-      if (PetscAbsScalar((alpha1-rho)/rho) > 0.001) {
-        rho = alpha1;
-        printf("[%i] nconv = %i rho = %g\n",eps->its,eps->nconv,rho);
-        ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
-      }
-      eps->eigr[eps->nconv] = alpha1;
+        ierr = EPSPowerUpdateShift(eps,v,&rho);CHKERRQ(ierr);
+        /* do not update if rho is close to an eigenvalue */
+        if (relerr > 1000*eps->tol) {
+          ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+        }
+        eps->eigr[eps->nconv] = rho;
     } else {
       eps->eigr[eps->nconv] = theta;
     }
@@ -299,6 +297,24 @@ int EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSView_POWER"
+int EPSView_POWER(EPS eps,PetscViewer viewer)
+{
+  EPS_POWER   *power = (EPS_POWER *)eps->data;
+  int         ierr;
+  PetscTruth  isascii;
+  const char  *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
+
+  PetscFunctionBegin;
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) {
+    SETERRQ1(1,"Viewer type %s not supported for EPSPOWER",((PetscObject)viewer)->type_name);
+  }  
+  ierr = PetscViewerASCIIPrintf(viewer,"shift type: %s\n",shift_list[power->shift_type]);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_POWER"
@@ -316,7 +332,7 @@ int EPSCreate_POWER(EPS eps)
   eps->ops->setup                = EPSSetUp_POWER;
   eps->ops->solve                = EPSSolve_POWER;
   eps->ops->destroy              = EPSDestroy_Default;
-  eps->ops->view                 = 0;
+  eps->ops->view                 = EPSView_POWER;
   eps->ops->backtransform        = EPSBackTransform_POWER;
   eps->computevectors            = EPSComputeVectors_Default;
   power->shift_type              = EPSPOWER_SHIFT_CONSTANT;
