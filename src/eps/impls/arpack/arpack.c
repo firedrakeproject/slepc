@@ -62,10 +62,10 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
   char        bmat[1], *which, howmny[] = "A";
   int         i, n, iparam[11], ipntr[14], ido, info, ierr;
-  PetscScalar sigmar, sigmai, *pV, *resid;
+  PetscScalar sigmar = 0.0, sigmai, *pV, *resid;
   Vec         x, y, w;
-  Mat         A;
-  PetscTruth  isSinv,rvec;
+  Mat         A,B;
+  PetscTruth  isSinv,isShift,rvec;
   MPI_Fint    fcomm;
   
   PetscFunctionBegin;
@@ -94,14 +94,21 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         5   [ 4  'G' ]    [ 3  'G' ]
         6   [ 5  'G' ]    [ 4  'G' ]
    */
-  bmat[0] = eps->isgeneralized? 'G': 'I';
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
-  if(isSinv) {
-    iparam[6] = 3;
-    ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
-    sigmai = 0.0;
+  bmat[0] = 'I';
+  iparam[6] = 1;
+  if (eps->ishermitian && eps->isgeneralized) {
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+    if (isSinv) {
+      bmat[0] = 'G';
+      iparam[6] = 3;
+      ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
+      sigmai = 0.0;
+    } else if (isShift) {
+      bmat[0] = 'G';
+      iparam[6] = 2;
+    }
   }
-  else iparam[6] = eps->isgeneralized? 2: 1;
  
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
@@ -134,7 +141,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
   eps->its = 0;
 
-  for(;;) {
+  do {
 
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
@@ -157,83 +164,67 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #endif
     eps->its++;
     
-    if( ido == -1 ) {
-      ierr = VecPlaceArray( x, &ar->workd[ipntr[0]-1] );CHKERRQ(ierr);
-      ierr = VecPlaceArray( y, &ar->workd[ipntr[1]-1] );CHKERRQ(ierr);
-      ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
-      ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      if (iparam[6]==2) { /* regular inverse mode */
-        w = eps->work[0];
-        ierr = STGetOperators( eps->OP, &A, PETSC_NULL ); CHKERRQ(ierr);
-        ierr = MatMult(A,x,w);CHKERRQ(ierr); 
-        ierr = VecCopy( w, x );CHKERRQ(ierr);
-        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    if (ido >= -1 && ido <= 2) {
+      ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]); CHKERRQ(ierr);
+      ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]); CHKERRQ(ierr);
+      if (ido == 1 || ido == -1) { /* Y=OP*X */
+        ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
+        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);
+        if (ido == 1 && iparam[6] == 2) { /* X=A*X */
+          w = eps->work[0];
+          ierr = STGetOperators(eps->OP,&A,PETSC_NULL); CHKERRQ(ierr);
+          ierr = MatMult(A,x,w); CHKERRQ(ierr); 
+          ierr = VecCopy(w,x); CHKERRQ(ierr);
+          ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);	  
+	}
+      } else if (ido == 2) { /* Y=B*X */
+	ierr = STGetOperators(eps->OP,PETSC_NULL,&B); CHKERRQ(ierr);
+	ierr = MatMult(B,x,y); CHKERRQ(ierr); 
       }
+    } else {
+      SETERRQ1(1,"Internal error in ARPACK reverse comunication interface (ido=%i)\n",ido);
     }
-    else if( ido == 1 ) {
-      ierr = VecPlaceArray( y, &ar->workd[ipntr[1]-1] );CHKERRQ(ierr);
-      if (isSinv && eps->isgeneralized) { 
-        ierr = VecPlaceArray( x, &ar->workd[ipntr[2]-1] );CHKERRQ(ierr);
-        ierr = STApplyNoB( eps->OP, x, y ); CHKERRQ(ierr);
-      }
-      else {
-        ierr = VecPlaceArray( x, &ar->workd[ipntr[0]-1] );CHKERRQ(ierr);
-        ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
-      }
-      ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      if (iparam[6]==2) { /* regular inverse mode */
-        w = eps->work[0];
-        ierr = STGetOperators( eps->OP, &A, PETSC_NULL ); CHKERRQ(ierr);
-        ierr = MatMult(A,x,w);CHKERRQ(ierr); 
-        ierr = VecCopy( w, x );CHKERRQ(ierr);
-        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      }
-    }
-    else if( ido == 2 ) {
-      ierr = VecPlaceArray( x, &ar->workd[ipntr[0]-1] );CHKERRQ(ierr);
-      ierr = VecPlaceArray( y, &ar->workd[ipntr[1]-1] );CHKERRQ(ierr);
-      ierr = STApplyB( eps->OP, x, y ); CHKERRQ(ierr);
-    }
-    else break;
-  }
+    
+  } while (ido != 99);
 
   eps->nconv = iparam[4];
   
-  if (info==1) { SETERRQ(0,"Exceeded maximum number of iterations in xxAUPD"); }
-  else if(info==3) { SETERRQ(1,"No shift could be applied in xxAUPD.\n"
-                               "Try increasing the size of NCV relative to NEV."); }
-  else if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);}
+  if (info==3) { SETERRQ(1,"No shift could be applied in xxAUPD.\n"
+                           "Try increasing the size of NCV relative to NEV."); }
+  else if (info!=0 && info!=1) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);}
 
   rvec = PETSC_TRUE;
 
+  if (eps->nconv > 0) {
 #if !defined(PETSC_USE_COMPLEX)
-  if (eps->ishermitian) {
-    ARseupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,  
-               pV, &n, &sigmar, 
-               bmat, &n, which, &eps->nev, &eps->tol,
-               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
-               ar->workl, &ar->lworkl, &info, 1, 1, 2 );
-  }
-  else {
-    ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
-               pV, &n, &sigmar, &sigmai, ar->workev, 
-               bmat, &n, which, &eps->nev, &eps->tol,
-               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
-               ar->workl, &ar->lworkl, &info, 1, 1, 2 );
-  }
+    if (eps->ishermitian) {
+      ARseupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,  
+        	 pV, &n, &sigmar, 
+        	 bmat, &n, which, &eps->nev, &eps->tol,
+        	 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+        	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
+    }
+    else {
+      ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
+        	 pV, &n, &sigmar, &sigmai, ar->workev, 
+        	 bmat, &n, which, &eps->nev, &eps->tol,
+        	 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+        	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
+    }
 #else
-  ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,
-             pV, &n, &sigmar, ar->workev, 
-             bmat, &n, which, &eps->nev, &eps->tol,
-             resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
-             ar->workl, &ar->lworkl, ar->rwork, &info, 1, 1, 2 );
+    ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,
+               pV, &n, &sigmar, ar->workev, 
+               bmat, &n, which, &eps->nev, &eps->tol,
+               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 1, 2 );
 #endif
-
-  if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
+    if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
+  }
 
   ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);
   ierr = VecRestoreArray( eps->vec_initial, &resid ); CHKERRQ(ierr);
-  eps->reason = EPS_CONVERGED_TOL;
+  if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
+  else eps->reason = EPS_DIVERGED_ITS;
 
   if (eps->ishermitian) {
     ierr = PetscMemcpy(eps->errest,&ar->workl[ipntr[8]-1],eps->nconv);CHKERRQ(ierr);
