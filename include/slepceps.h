@@ -37,10 +37,8 @@ typedef enum { EPS_HEP=1,  EPS_GHEP,
                EPS_NHEP,   EPS_GNHEP } EPSProblemType;
 
 typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
-               EPS_LARGEST_ALGEBRAIC, EPS_SMALLEST_ALGEBRAIC,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
-               EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY,
-               EPS_BOTH_ENDS } EPSWhich;
+               EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
 
 typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH,
                EPS_IR_ORTH } EPSOrthogonalizationType;
@@ -74,9 +72,10 @@ extern int EPSGetTolerances(EPS,PetscReal*,int*);
 extern int EPSSetDimensions(EPS,int,int);
 extern int EPSGetDimensions(EPS,int*,int*);
 
-extern int EPSGetConverged(EPS,int*);
-extern int EPSGetSolution(EPS,PetscScalar**,PetscScalar**,Vec**);
-extern int EPSComputeError(EPS,PetscReal*);
+extern int EPSGetConverged(EPS,int*,int*);
+extern int EPSGetEigenpair(EPS,int,PetscScalar*,PetscScalar*,Vec,Vec);
+extern int EPSComputeRelativeError(EPS,int,PetscReal*);
+extern int EPSComputeResidualNorm(EPS,int,PetscReal*);
 extern int EPSGetErrorEstimates(EPS,PetscReal**);
 
 extern int EPSSetMonitor(EPS,int (*)(EPS,int,int,PetscReal*,int,void*),void*);
