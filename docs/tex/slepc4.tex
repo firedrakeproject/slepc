@@ -100,16 +100,16 @@ After this call, the new solver could be used in the same way as the rest of \sl
 
 	In \slepc it is not possible to completely separate real numbers and complex numbers because the solution of non-symmetric real-valued eigenvalue problems can be complex. \slepc has been designed trying to provide a uniform interface to manage all the possible cases. This section clarifies the differences between the interface in each of the two versions, mainly in the format of the computed solution and the shifts.
 
-\paragraph{Real \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are real. The computed approximate solution returned by the function \ident{EPSGetSolution} is stored in the following way: \texttt{kr} and \texttt{ki} contain the real and imaginary parts of the eigenvalues, respectively, and \texttt{x} contains the associated eigenvectors. Two cases can be distinguished:
+\paragraph{Real \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are real. The computed approximate solution returned by the function \ident{EPSGetEigenpair} is stored in the following way: \texttt{kr} and \texttt{ki} contain the real and imaginary parts of the eigenvalues, respectively, and \texttt{xr} and \texttt{xi} contains the associated eigenvectors. Two cases can be distinguished:
 
 \begin{itemize}
-\item	When \texttt{ki[j]} is zero, it means that the $j$-th eigenvalue is a real number. In this case, \texttt{kr[j]} is the eigenvalue and \texttt{x[j]} is the corresponding eigenvector.
+\item	When \texttt{ki} is zero, it means that the $j$-th eigenvalue is a real number. In this case, \texttt{kr} is the eigenvalue and \texttt{x} is the corresponding eigenvector.
 
-\item	If \texttt{ki[j]} is different from zero, then the $j$-th eigenvalue is a complex number. In this case, the $j$-th and $(j\!\!+\!\!1)$-th eigenvalues form a complex conjugate pair. Therefore, the $j$-th eigenvalue is \texttt{kr[j]}$+\,i\cdot$\texttt{ki[j]} and the $(j\!+\!1)$-th one is \texttt{kr[j+1]}$+\,i\cdot$\texttt{ki[j+1]}, where \texttt{kr[j+1]=kr[j]} and \texttt{ki[j+1]=-ki[j]}. 
-With respect to the eigenvectors, we use the same convention as other linear algebra packages: \texttt{x[j]} stores the real part of the eigenvectors and \texttt{x[j+1]} the imaginary part, that is, the $j$-th eigenvector is \texttt{x[j]}$+\,i\cdot$\texttt{x[j+1]} and the $(j\!\!+\!\!1)$-th eigenvector is \texttt{x[j]}$-\,i\cdot$\texttt{x[j+1]}. 
+\item	If \texttt{ki} is different from zero, then the $j$-th eigenvalue is a complex number. In this case, the $j$-th and $(j\!\!+\!\!1)$-th eigenvalues form a complex conjugate pair. Therefore, the $j$-th eigenvalue is \texttt{kr}$+\,i\cdot$\texttt{ki}.
+With respect to the eigenvectors, \texttt{xr} stores the real part of the eigenvectors and \texttt{xi} the imaginary part, that is, the $j$-th eigenvector is \texttt{xr}$+\,i\cdot$\texttt{xi}. 
 \end{itemize}
 
-\paragraph{Complex \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are complex. The computed approximate solution returned by the function \ident{EPSGetSolution} is the following: \texttt{kr} contains the (complex) eigenvalues and \texttt{x} contains the corresponding (complex) eigenvectors. In this case, \texttt{ki} is not used.
+\paragraph{Complex \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are complex. The computed approximate solution returned by the function \ident{EPSGetEigenpair} is the following: \texttt{kr} contains the (complex) eigenvalues and \texttt{xr} contains the corresponding (complex) eigenvectors. In this case, \texttt{ki} and \texttt{xi} are not used (set to 0).
 
 \paragraph{Shifts.} Some packages such as \arpack{} support the use of complex shifts even when working with real arithmetic. Currently, this is not supported in \slepc. The shifts in the \ident{ST} package are defined as \ident{PetscScalar} variables and, therefore, the complex version of the libraries must be used in order to be able to specify complex shifts.
 
