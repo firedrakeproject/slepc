@@ -69,6 +69,8 @@ Within the \slepc distribution, the directory
       & 2.1.2 &   &          &   \\ 
       & 2.1.3 &   &          &   \\ \hline
 2.1.5 & 2.1.5 &   & Released & May 2003 \\ \hline
+      & 2.1.6 &   &          &          \\ \hline
+2.2.0 & 2.2.0 & $\star$ & Released & Apr 2004 \\ \hline
 \end{tabular}
 \caption{\label{tab:ver} Correspondence between \slepc and \petsc\ releases.}
 \end{table}
@@ -82,7 +84,7 @@ Within the \slepc distribution, the directory
 	\item Refer to \url{\slepchome/download.htm} for available patches to the latest \slepc release.
 	\item Set the environment variable \ident{SLEPC\_DIR} to the full path of the \slepc home directory, for example,
 	\begin{Verbatim}[fontsize=\small]
-	setenv SLEPC_DIR /home/username/slepc-2.1.1
+	setenv SLEPC_DIR /home/username/slepc-2.2.0
 	\end{Verbatim}
 	In addition to this variable, \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} must also be set correctly, the first one pointing to the \petsc\ home directory and the other containing the selected architecture (remember that \petsc\ allows several versions compiled for different architectures to coexist in the same directory tree).
 	\item Edit the file \Verb!${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages! to indicate the local installation of optional software packages such as \arpack. If there exists no directory named \Verb!bmake/${PETSC_ARCH}! for the value of \Verb!${PETSC_ARCH}! you are using, then create it similar to the existing ones.
