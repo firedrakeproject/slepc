@@ -9,7 +9,6 @@ typedef struct _EPSOps *EPSOps;
 struct _EPSOps {
   int  (*solve)(EPS);                   /* actual solver */
   int  (*setup)(EPS);
-  int  (*setdefaults)(EPS);
   int  (*setfromoptions)(EPS);
   int  (*publishoptions)(EPS);
   int  (*destroy)(EPS);
@@ -89,9 +88,13 @@ struct _p_EPS {
 	  } \
 	}
 
-extern int EPSDefaultDestroy(EPS);
+extern int EPSDestroy_Default(EPS);
 extern int EPSDefaultGetWork(EPS,int);
 extern int EPSDefaultFreeWork(EPS);
+extern int EPSAllocateSolution(EPS);
+extern int EPSFreeSolution(EPS);
+extern int EPSAllocateSolutionContiguous(EPS);
+extern int EPSFreeSolutionContiguous(EPS);
 extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec,PetscScalar*,PetscReal*);
 extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec,PetscScalar*,PetscReal*);
 extern int EPSBackTransform_Default(EPS);
