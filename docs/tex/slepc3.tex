@@ -9,7 +9,7 @@
 %---------------------------------------------------
 \section{General Description}
 
-	Spectral transformations are powerful tools for manipulating the way in which eigensolvers behave when coping with a problem. The general strategy consists in transforming the original problem into a new one in which eigenvalues are mapped to a new position while eigenvectors typically remain unchanged. These transformations can be used with several goals in mind:
+	Spectral transformations are powerful tools for manipulating the way in which eigensolvers behave when coping with a problem. The general strategy consists in transforming the original problem into a new one in which eigenvalues are mapped to a new position while eigenvectors remain unchanged. These transformations can be used with several goals in mind:
 \begin{itemize}
 \item Avoid convergence problems. For instance, simple methods such as the Power Iteration can fail to obtain the solution under certain conditions, and sometimes this situation  can be avoided by simply shifting the spectrum.
 \item Compute internal eigenvalues. In some applications, the eigenpairs of interest are not the extreme ones (largest magnitude, smallest magnitude, rightmost, leftmost), but those contained in a certain interval or those closest to a certain value of the complex plane.
@@ -38,7 +38,7 @@
 	\end{Verbatim}
 	This can also be done with the command line option \Verb!-st_shift <shift>!. [Note: the argument \texttt{shift} is defined as a \texttt{PetscScalar}, and this means that complex shifts are not allowed unless the complex version of \slepc is used --- see section \ref{sec:complex} for a detailed discussion of this issue.]
 
-	Other object operations are available for applying the operator, setting options, etc.\ which are not usually called by the user. The most important of such functions are \ident{STApply}, which applies the operator to a vector, \ident{STApplyB}, which applies matrix $B$ to a vector, and \ident{STSetUp} which prepares all the necessary data structures before the solution process starts. The operator refers to one of $A$, $B^{-1}\!A$, $A+\sigma I$, ...\ depending on which kind of spectral transformation is being used.
+	Other object operations are available which are not usually called by the user. The most important of such functions are \ident{STApply}, which applies the operator to a vector, \ident{STApplyB}, which applies matrix $B$ to a vector, and \ident{STSetUp} which prepares all the necessary data structures before the solution process starts. The operator refers to one of $A$, $B^{-1}\!A$, $A+\sigma I$, ...\ depending on which kind of spectral transformation is being used.
  
 %---------------------------------------------------
 \section{Available Transformations}
@@ -98,7 +98,7 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & --\\\hline
 \begin{equation}Ax=\lambda x\;\;,\end{equation}
 for standard problems, and $Ax=\lambda Bx$ for generalized ones. Note that this last equation is in fact treated internally as
 \begin{equation}B^{-1}Ax=\lambda x\;\;.\end{equation}
-When the eigensolver in \ident{EPS} requests the application of the operator to a vector, a matrix-vector multiplication by matrix $A$ is carried out (in the standard case) or a matrix-vector multiplication by matrix $A$ followed by a linear system solve with coefficient matrix $B$ (in the generalized case). Note that in this case, the operation will fail if matrix $B$ is singular.
+When the eigensolver in \ident{EPS} requests the application of the operator to a vector, a matrix-vector multiplication by matrix $A$ is carried out (in the standard case) or a matrix-vector multiplication by matrix $A$ followed by a linear system solve with coefficient matrix $B$ (in the generalized case). Note that in the last case, the operation will fail if matrix $B$ is singular.
 
 \subsection{Shift of Origin}
 
@@ -117,7 +117,7 @@ This means that after the solution process, the value $\sigma$ has to be subtrac
 for standard problems, and 
 \begin{equation}(A-\sigma B)^{-1}B x=\theta x\;\;,\end{equation}
 for generalized ones. 
-This transformation is effective for finding eigenvalues near $\sigma$ since the eigenvalues $\theta$ of the operator that are largest in magnitude correspond to the eigenvalues $\lambda$ of the original problem that are nearest to the shift $\sigma$ in absolute value. Once they are found, they may be transformed back to eigenvalues of the original problem. Again, the eigenvectors remain unchanged.
+This transformation is effective for finding eigenvalues near $\sigma$ since the eigenvalues $\theta$ of the operator that are largest in magnitude correspond to the eigenvalues $\lambda$ of the original problem that are closest to the shift $\sigma$ in absolute value. Once they are found, they may be transformed back to eigenvalues of the original problem. Again, the eigenvectors remain unchanged.
 In this case, the relation between the eigenvalues of both problems is
 \begin{equation}\theta=1/(\lambda-\sigma)\;\;.\end{equation}
 Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=\sigma+1/\theta$ for each of the computed eigenvalues.
@@ -162,9 +162,9 @@ In this case, assuming that the program solves a generalized problem, the \ident
 	The default values corresponding to the \ident{KSP} object can be modified via the command line. For instance,
 \begin{Verbatim}[fontsize=\small]
 	$ program -eps_type subspace -eps_tol 1e-6 -eps_monitor
-	          -st_ksp_type cg -st_pc_type jacobi -st_ksp_rtol 1e-8
+	          -st_ksp_type cg -st_pc_type jacobi -st_ksp_rtol 1e-5
 \end{Verbatim}
-specifies some additional options for the solution of this linear system. In particular, this example selects the CG solver with Jacobi preconditioning and a relative tolerance of $10^{-8}$. The \Verb!-st_! prefix signifies that the option corresponds to the linear system within \ident{ST}.
+specifies some additional options for the solution of this linear system. In particular, this example selects the CG solver with Jacobi preconditioning and a relative tolerance of $10^{-5}$. The \Verb!-st_! prefix signifies that the option corresponds to the linear system within \ident{ST}.
 
 	If an iterative method is used for the linear system solves, usually a slightly more stringent tolerance must be required of the linear solves relative to the desired accuracy of the eigenvalue calculation. It is also possible to select any of the direct linear solvers available in \petsc. In this case, the factorization is only carried out at the beginning of the eigenvalue calculation and this cost is amortized in each subsequent application of the operator. This is also the case for iterative methods with preconditioners with high-cost set-up such as ILU.
 
@@ -250,5 +250,30 @@ can be used optionally to specify the routine for the back-transformation of eig
       STShellSetName(ST,char*);
 	\end{Verbatim}
 to specify a name for the new shell transformation in order to identify it in the program's output (\ident{STView}).
+
+\subsection{Preserving the Symmetry}
+\label{sec:symm}
+
+	As mentioned in section \ref{sec:defprob}, some eigensolvers can exploit symmetry and compute a solution for Hermitian problems with less storage and/or computational cost than other methods. Also, symmetric solvers are typically more accurate. However, in the case of generalized eigenvalue problems in which both $A$ and $B$ are symmetric, we have that due to the spectral transformation, symmetry is lost because none of the operators $B^{-1}\!A+\sigma I$, $(A-\sigma B)^{-1}B$ or $(A-\sigma B)^{-1}(A+\tau B)$ is symmetric (the same applies in the Hermitian case for complex matrices).
+
+	The solution proposed in \slepc is based on selecting different kinds of inner products. Currently, we have the following choice of inner products:
+  \begin{itemize}
+    \item Standard Hermitian inner product: $\langle x,y\rangle=x^Hy$
+    \item $B$-inner product: $\langle x,y\rangle_B=x^H\!B\,y$
+  \end{itemize}
+
+	The second one will be used for preserving the symmetry in symmetric definite generalized problems. Note that $\langle x,y\rangle_B$ is a genuine inner product only if $B$ is symmetric positive definite. 
+
+	$\R^n$ with $\langle x,y\rangle_B$ is isomorphic to the Euclidean $n$-space $\R^n$ with the standard Hermitian inner product. This means that if we use $\langle x,y\rangle_B$ instead of the standard inner product, we are just changing the way lengths and angles are measured, but otherwise all the algebraic properties are maintained and therefore algorithms remain correct. What is interesting to observe is that $B^{-1}\!A$ is auto-adjoint with respect to $\langle x,y\rangle_B$, and similarly with the rest of spectral transformations.
+
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=10cm]{solvers}
+  \end{center}
+\caption{\label{fig:abstr}Abstraction used by \slepc solvers.}
+\end{figure}
+
+	Internally, \slepc operates with the abstraction illustrated in figure \ref{fig:abstr}. The operations indicated by dashed arrows are implemented as virtual functions: \ident{STInnerProduct} and \ident{STApply}. From the user point of view, all the above explanation is transparent. The only thing he/she has to care about is to set the problem type appropriately with \ident{EPSSetProblemType} (see section \ref{sec:defprob}).
+
 
 

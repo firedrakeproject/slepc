@@ -33,7 +33,8 @@ DOC_EPS	= \
 	upv.ps \
 	dsic.ps \
 	petscwww.ps \
-	slepc.eps
+	solvers.eps \
+	slepc-fig.eps
 
 OTHER	= slepc.cls engnat.bst srcltx.sty
 

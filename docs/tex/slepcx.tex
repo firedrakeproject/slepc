@@ -7,9 +7,9 @@
 \section{The Eigenvalue Problem}
 \label{sec:eig}
 
-	The eigenvalue problem is a central topic in numerical linear algebra. In the standard formulation, the problem consists in the determination of $\lambda\in\Co$ for which the equation
+	The eigenvalue problem is a central topic in numerical linear algebra. In the standard formulation, the problem consists in the determination of $\lambda\in\C$ for which the equation
 \begin{equation}Ax=\lambda x\;\;\label{eq:eigstd}\end{equation}
-has nontrivial solution, where $A\in\Co^{n\times n}$ and $x \in \Co^n$. The scalar $\lambda$ and the vector $x$ are called eigenvalue and eigenvector, respectively.
+has nontrivial solution, where $A\in\C^{n\times n}$ and $x \in \C^n$. The scalar $\lambda$ and the vector $x$ are called eigenvalue and eigenvector, respectively.
 
 	In many applications, the problem is formulated as $Ax=\lambda Bx$, which is known as the generalized eigenvalue problem. Usually, this problem is solved by reformulating it in standard form, as discussed in section \ref{sec:nonstd}.
 
@@ -117,7 +117,7 @@ It is possible to transform this problem to a generalized eigenproblem by increa
 \label{eq:quad}
 \left[\begin{array}{cc}-B & -C\\I & 0\end{array}\right]v=\lambda\left[\begin{array}{cc}\;A\; & 0\\0 & \;I\;\end{array}\right]v\;\;.
 \end{equation}
-	Other linear algebra problems are very closely related to eigenproblems. One of them is the {\em singular value decomposition\/} (SVD). Let $A$ be a real $m\times n$ matrix, then there exist two orthogonal matrices $U\in\Real^{m\times m}$, $V\in\Real^{n\times n}$ such that
+	Other linear algebra problems are very closely related to eigenproblems. One of them is the {\em singular value decomposition\/} (SVD). Let $A$ be a real $m\times n$ matrix, then there exist two orthogonal matrices $U\in\R^{m\times m}$, $V\in\R^{n\times n}$ such that
 \begin{equation}
 \label{eq:svd}
 U^T\!A\,V=\mathrm{diag}(\sigma_1,\ldots,\sigma_p)\;\;,
@@ -219,18 +219,18 @@ Each of these components consists of an abstract interface (simply a set of call
 \chapter{Catalog of Solvers}
 \label{cap:meth}
 
-	This appendix provides a short description of all the eigensolvers which are available in \slepc, including the interfaces to external libraries. In the case of ``native'' methods, that is, those methods that are implemented directly in \slepc, the description includes a sketch of the algorithm which is actually implemented. A short description of wrappers to external libraries is provided in section \ref{sec:wrap} of this appendix, including pointers to the respective websites from which the software can be downloaded. In both cases, the description may also include method-specific parameters, that can be set n the same way as other \slepc options, either procedurally or via the command-line.
+	This appendix provides a short description of all the eigensolvers which are available in \slepc, including the interfaces to external libraries. In the case of ``native'' methods, that is, those methods that are implemented directly in \slepc, the description includes a sketch of the algorithm which is actually implemented. A short description of wrappers to external libraries is provided in section \ref{sec:wrap} of this appendix, including pointers to the respective websites from which the software can be downloaded. In both cases, the description may also include method-specific parameters, that can be set in the same way as other \slepc options, either procedurally or via the command-line.
 
 	Table \ref{tab:defaults} summarizes all eigensolvers available in \slepc, both native and external. This table shows the default values for some of the parameters that the user can adjust.
 \begin{table}
 \centering
 \begin{tabular}{cccc} \hline
 Method   & \texttt{ncv} & \texttt{max\_it} & \texttt{tol} \\ \hline
+\texttt{lapack}   &  $nev$ &         -         &    -      \\ 
 \texttt{power}    &  $nev$ & $\max(2000,100N)$ & $10^{-7}$ \\ 
 \texttt{subspace} &  $\max(2\cdot nev,nev+15)$ & $\max(100,N)$ & $10^{-7}$ \\ 
 \texttt{arnoldi}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,N)$ & $10^{-7}$ \\ 
 \hline
-\texttt{lapack}   &  $nev$ &         -          &    -      \\ 
 \texttt{arpack}   &  $\min(\max(20,2\!\cdot\!nev\!+\!\!1),N)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $10^{-7}$ \\ 
 \texttt{blzpack}  &  $\min(nev\!+\!\!10,2\!\cdot\!nev)$ & $\max(100,N)$ & $10^{-7}$ \\ 
 \texttt{planso}   &  $nev$ & $\max(100,N)$ & $10^{-7}$ \\ 
@@ -244,11 +244,11 @@ Method   & \texttt{ncv} & \texttt{max\_it} & \texttt{tol} \\ \hline
 \centering
 \begin{tabular}{ccccc} \hline
 Method   &  Portion of spectrum & Problem type & Complex \\ \hline
+\texttt{lapack}   &  all                 & all & yes \\ 
 \texttt{power}    &  Largest $|\lambda|$ & all & yes \\ 
 \texttt{subspace} &  Largest $|\lambda|$ & all & yes \\ 
 \texttt{arnoldi}  &  Largest $|\lambda|$ & all & yes \\ 
 \hline
-\texttt{lapack}   &  all &  all & yes \\ 
 \texttt{arpack}   &  all &  all & yes \\ 
 \texttt{blzpack}  &  Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & no \\ 
 \texttt{planso}   &  Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\ 
@@ -285,7 +285,7 @@ The Inverse Iteration works with a constant shift, that is, the operator is $(A-
 
 The first alternative (\Verb!rayleigh!) results in the well-known Rayleigh Quotient Iteration (RQI), where the new shift $\rho_k$ is computed as the Rayleigh quotient of the current approximate eigenvector $v$
 \begin{equation}
-\rho_k=R(v)=\frac{(Av,v)}{(Bv,v)}
+\rho_k=R(v)=\frac{v^H\!\!Av}{v^H\!Bv}
 \end{equation}
 The rate of convergence of this strategy is quadratic in general and cubic when the problem is Hermitian. Note that changing the shift may imply refactorization of matrix $(A-\rho_k B)$.
 
@@ -303,7 +303,7 @@ The implementation currently available in \slepc is based on \srrit \citep{Bai:1
 Input: Operator $O\!P$ \\
 Output: $m$ dominant Schur vectors $V$ and corresponding eigenvalues\\
 xxxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
-\> Generate a set of initial orthonormal vectors $V\in\Co^{n\times m}$\\
+\> Generate a set of initial orthonormal vectors $V\in\C^{n\times m}$\\
 \> For $k=1,2,\ldots$\\
 \> \> Perform a Rayleigh-Ritz Projection step (algorithm \ref{alg:rrp})\\
 \> \> Check convergence of eigenvalues \\
@@ -408,7 +408,7 @@ SLEPC_HAVE_ARPACK = -DSLEPC_HAVE_ARPACK
 	\item Use the runtime option \Verb!-eps_type <type>! to select the solver.
 	\end{enumerate}
 
-	An exception to the above is \lapack, which should be already available in the \petsc{} installation.
+	An exception to the above is \lapack, which should be enabled during the \petsc{} installation.
 
 \section*{\underline{\lapack}}
 	\begin{description}
@@ -449,11 +449,9 @@ used. Generalized problems are transformed to standard ones.
 
 	\blzpack\ uses a combination of partial and selective re-orthogonalization strategies. It can be run in either sequential or parallel mode, by means of MPI or PVM interfaces, and it uses the reverse communication strategy.
 	\item[Installation.] For the compilation of the \texttt{libblzpack.a} library, first check the appropriate architecture file in the directory \texttt{sys/MACROS} and then type \texttt{creator -mpi}.
-	\item[Specific options.] The \slepc interface to this package allows
-to specify the block size with the function \ident{EPSBlzpackSetBlockSize} or
-at run time with the option \Verb!-eps_blzpack_block_size <size>!.
+	\item[Specific options.] The \slepc interface to this package allows the user to specify the block size with the function \ident{EPSBlzpackSetBlockSize} or at run time with the option \Verb!-eps_blzpack_block_size <size>!. Also, the function \ident{EPSBlzpackSetNSteps} can be used to set the maximum number of steps per run (also with \Verb!-eps_blzpack_nsteps!).
 
-	For the spectrum slicing feature, \slepc allows the programmer to provide the computational interval with the option \Verb!-eps_blzpack_interval!, or with the function \ident{EPSBlzpackSetInterval} in the program source. Also, the function \ident{EPSBlzpackSetMatGetInertia} can be used to provide a function for computing the intertia of the matrix.
+	For the spectrum slicing feature, \slepc allows the programmer to provide the computational interval with the option \Verb!-eps_blzpack_interval!, or with the function \ident{EPSBlzpackSetInterval} in the program source.
 	\end{description}
 
 \section*{\underline{\planso}}
