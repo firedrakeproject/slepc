@@ -267,30 +267,44 @@ The first alternative (\ident{rayleigh}) results in the well-known Rayleigh Quot
 \end{equation}
 This strategy leads to cubic convergence. Note that changing the shift may imply refactorization of matrix $(A-\rho_k B)$.
 
-The second alternative (\ident{wilkinson}) uses a more sophisticated formula for the shift.
+The second alternative (\ident{wilkinson}) uses a more sophisticated formula for the shift \citep{Parlett:1998:SEP}.
 
 %---------------------------------------------------
 \section{\ident{subspace}}
 
-The Subspace Iteration method is a generalization of the Power Method to $m$ initial vectors. Ortogonality of vectors is enforced every $inner$ iterations. The current implementation locks converged eigenpairs.
+The Subspace Iteration method is a generalization of the Power Method to $m$ initial vectors. Ortogonality of vectors is enforced in order to avoid linear dependence.
+
+The implementation currently available in \slepc is based on SRRIT \citep{Bai:1997:ASF}. It performs a Rayleigh-Ritz projection procedure in order to improve convergence. Deflation is handled by locking converged eigenvectors. For better performance, orthogonalization and projection are performed only when necessary.
 
 \begin{algorithm}[Subspace Iteration\label{alg:sub}]~\rm
 \begin{tabbing}
-Input: Matrix $A$ and set of initial vectors $Z\in\Co^{n\times m} $\\
-Output: $m$ approximated dominant Schur vectors $V$ \\
-xxxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
-\> Factorize $VR=Z$\\
-\> For $k=1,2,\ldots,p$\\
-\> \> $Y=O\!P^{inner}V$ \\
-\> \> Factorize $VR=Y$ \\
-\> \> Compute the projected matrix, $H=V^HAV$ \\
-\> \> Solve the reduced problem, $H=S\Theta S^H$ \\
-\> \> $V=VS$ \\
+Input: Operator $O\!P$ \\
+Output: $m$ dominant Schur vectors $V$ and corresponding eigenvalues\\
+xxxx\=xxx\=xxx\=xxxxxxxxxxxx\=\kill
+\> Generate a set of initial orthonormal vectors $V\in\Co^{n\times m}$\\
+\> For $k=1,2,\ldots$\\
+\> \> Perform a Rayleigh-Ritz Projection step (algorithm \ref{alg:rrp})\\
+\> \> Check convergence of eigenvalues \\
+\> \> Orthogonalization loop \\
+\> \> \> Repeatedly compute $V = O\!P\, V$ \\
+\> \> \> Orthogonalize columns of $V$ \\
+\> \> end \\
 \> end
 \end{tabbing}
 \end{algorithm}
 
-The default value of the parameter $inner$ is 10 for Hermitian problems and 4 for non-Hermitian ones. This value can be changed with the command-line option \Verb!-eps_subspace_inner! of specified in the program source with the function \ident{EPSSubspaceSetInner}.
+\begin{algorithm}[Rayleigh-Ritz Projection\label{alg:rrp}]~\rm
+\begin{tabbing}
+Input: Operator $O\!P$ and set of vectors $V$\\
+Output: Schur vectors $V$ and quasi-triangular matrix $T$ \\
+xxxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
+\> $T=V^H O\!P\, V$ \\
+\> Reduce to Hessenberg form: $T=U_1^HTU_1$ \\
+\> Reduce to quasi-triangular form: $T=U_2^HTU_2$ \\
+\> $U=U_1U_2$ \\
+\> $V=VU$ 
+\end{tabbing}
+\end{algorithm}
 
 %---------------------------------------------------
 \section{\ident{arnoldi}}
