@@ -1,7 +1,6 @@
 
 ALL: lib
 
-#PENDIENTE: cambiar por 'PETSC_HAVE_LIBHYPRE_LOBPCG'
 #requirespackage  'PETSC_HAVE_HYPRE'
 #requiresprecision double
 #requiresscalar    real
