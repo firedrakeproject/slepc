@@ -251,7 +251,7 @@ PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
 #undef __FUNCT__  
 #define __FUNCT__ "STInnerProduct"
 /*@
-   STInnerProduct - Computes de inner product of two vectors.
+   STInnerProduct - Computes the inner product of two vectors.
 
    Collective on ST and Vec
 
@@ -304,7 +304,69 @@ PetscErrorCode STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
   case STINNER_B_SYMMETRIC:
     ierr = VecTDot(st->w,y,p);CHKERRQ(ierr);
     break;
-  } 
+  }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STMInnerProduct"
+/*@
+   STMInnerProduct - Computes the inner product of multiple vectors.
+
+   Collective on ST and Vec
+
+   Input Parameters:
++  st - the spectral transformation context
+.  x  - input vector
+-  y  - input vectors
+
+   Output Parameter:
+.  p - result of the inner product
+
+   Notes:
+   This function will usually compute the standard dot product of vectors
+   x and y, (x,y)=y^H x. However this behaviour may be different if changed 
+   via STSetBilinearForm(). This allows use of other inner products such as
+   the indefinite product y^T x for complex symmetric problems or the
+   B-inner product for positive definite B, (x,y)_B=y^H Bx.
+
+   Level: developer
+
+.seealso: STSetBilinearForm(), STApplyB(), VecDot()
+@*/
+PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidPointer(y,4);
+  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidScalarPointer(p,5);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_SYMMETRIC:
+    ierr = VecCopy(x,st->w);CHKERRQ(ierr);
+    break;
+  case STINNER_B_HERMITIAN:
+  case STINNER_B_SYMMETRIC:
+    ierr = STApplyB(st,x,st->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecMDot(n,st->w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    ierr = VecMTDot(n,st->w,y,p);CHKERRQ(ierr);
+    break;
+  }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -69,6 +69,7 @@ typedef enum { STINNER_HERMITIAN, STINNER_SYMMETRIC,
 EXTERN PetscErrorCode STSetBilinearForm(ST,STBilinearForm);
 
 EXTERN PetscErrorCode STInnerProduct(ST st,Vec,Vec,PetscScalar*);
+EXTERN PetscErrorCode STMInnerProduct(ST st,PetscInt,Vec,const Vec[],PetscScalar*);
 EXTERN PetscErrorCode STNorm(ST st,Vec,PetscReal*);
 
 /* --------- options specific to particular spectral transformations-------- */

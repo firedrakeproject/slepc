@@ -101,9 +101,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
 
   /* h = V^* v */
   /* q = v - V h */
-  for (j=0;j<n;j++) {
-    ierr = STInnerProduct(eps->OP,v,V[j],&H[j]);
-  }
+  ierr = STMInnerProduct(eps->OP,n,v,V,H);CHKERRQ(ierr);
   ierr = VecSet(&zero,w);CHKERRQ(ierr);
   ierr = VecMAXPY(n,H,w,V);CHKERRQ(ierr);
   ierr = VecAXPY(&minus,w,v);CHKERRQ(ierr);
@@ -128,8 +126,8 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
 
     /* s = V^* q */
     /* q = q - V s  ;  h = h + s */
+    ierr = STMInnerProduct(eps->OP,n,v,V,lhh);CHKERRQ(ierr);
     for (j=0;j<n;j++) {
-      ierr = STInnerProduct(eps->OP,v,V[j],&lhh[j]);
       H[j] += lhh[j];
     }
     ierr = VecSet(&zero,w);CHKERRQ(ierr);
