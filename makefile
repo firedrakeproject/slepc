@@ -157,10 +157,10 @@ slepc_alldoc: slepc_allmanualpages
 # Deletes man pages (HTML version)
 slepc_deletemanualpages:
 	find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \;
-	${RM} ${LOC}/docs/tex/exampleconcepts
-	${RM} ${LOC}/docs/tex/manconcepts
+	${RM} ${LOC}/docs/exampleconcepts
+	${RM} ${LOC}/docs/manconcepts
 	${RM} ${LOC}/docs/manualpages/manualpages.cit
-#	-${PETSC_DIR}/maint/update-docs.py ${LOC} clean
+#	-${PETSC_DIR}/maint/update-docs.py ${SLEPC_DIR} ${LOC} clean
 
 # Builds all versions of the man pages
 slepc_allmanualpages: chk_loc slepc_deletemanualpages chk_concepts_dir

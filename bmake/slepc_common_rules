@@ -61,7 +61,7 @@ slepc_html:
          done
 	-@ROOT=`echo ${LOCDIR} | sed -e s?/[a-z]*?/..?g -e s?src/??g -e s?include/??g` ;\
           loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`; ${RM} $${loc}/index.html; \
-          cat ${SLEPC_DIR}/docs/manualpages/sec/header_${MANSEC} | sed -e "s?<A HREF=\"SLEPC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?SLEPC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
+          cat ${SLEPC_DIR}/src/docs/manualpages-sec/header_${MANSEC} | sed -e "s?<A HREF=\"SLEPC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?SLEPC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
           echo "<p>" >> $${loc}/index.html
 	-@loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;\
             if [ "${EXAMPLESC}" != "" ] ; then \
@@ -134,7 +134,7 @@ slepc_exampleconcepts:
               line=`expr $$line + 1` ; \
               while [ $$line -gt 0 ] ; do \
                 a=`head -$$line ltmp | tail -1`; \
-                echo ${LOCDIR}$$i $$a >> ${LOC}/docs/tex/exampleconcepts; \
+                echo ${LOCDIR}$$i $$a >> ${LOC}/docs/exampleconcepts; \
                 line=`expr $$line - 1` ; \
               done; \
               ${RM} ltmp; \

@@ -22,7 +22,7 @@ TESTEXAMPLES_7  =
 TESTEXAMPLES_8  = 
 TESTEXAMPLES_13 = 
 
-MANSEC           = examples
+MANSEC           = EPS
 
 include ${SLEPC_DIR}/bmake/slepc_common
 
