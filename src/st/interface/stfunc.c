@@ -88,6 +88,7 @@ int STCreate(MPI_Comm comm,ST *newst)
   st->setupcalled         = 0;
   st->w                   = 0;
   st->shift_matrix        = STMATMODE_COPY;
+  st->bilinear_form       = STINNER_HERMITIAN;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
   
   ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);

@@ -123,6 +123,60 @@ int STApplyNoB(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STInnerProduct"
+/*@
+   STApplyB - Applies the B matrix to a vector.
+
+   Collective on ST and Vec
+
+   Input Parameters:
++  st - the spectral transformation context
+-  x - input vector
+
+   Output Parameter:
+.  y - output vector
+
+   Level: developer
+
+.seealso: STApply(), STApplyNoB()
+@*/
+int STInnerProduct(ST st,Vec x,Vec y,Vec w,PetscScalar *p)
+{
+  int        ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(w,VEC_COOKIE,4);
+  PetscValidScalarPointer(p,5);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,w,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_SYMMETRIC:
+    ierr = VecCopy(x,w);CHKERRQ(ierr);
+    break;
+  case STINNER_B_HERMITIAN:
+  case STINNER_B_SYMMETRIC:
+    ierr = STApplyB(st,x,w);CHKERRQ(ierr);
+    break;
+  }
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecDot(w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    ierr = VecTDot(w,y,p);CHKERRQ(ierr);
+    break;
+  }  
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,w,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STSetUp"
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
@@ -268,4 +322,3 @@ int STApplyB_Default(ST st,Vec x,Vec y)
   }
   PetscFunctionReturn(0);
 }
-

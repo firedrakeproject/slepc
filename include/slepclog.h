@@ -10,6 +10,6 @@
   Lists all SLEPC events for profiling.
 */
 
-extern int EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalization;
+extern int EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalization, ST_InnerProduct;
 
 #endif

@@ -55,7 +55,7 @@ int SlepcPrintHelpIntro(MPI_Comm comm)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcRegisterEvents"
-int EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalization;
+int EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalization, ST_InnerProduct;
 
 /*
    SlepcRegisterEvents - Registers SLEPc events for use in performance logging.
@@ -73,6 +73,7 @@ int SlepcRegisterEvents()
   info = PetscLogEventRegister(&ST_ApplyB,"STApplyB",PETSC_NULL); CHKERRQ(info);
   info = PetscLogEventRegister(&ST_ApplyNoB,"STApplyNoB",PETSC_NULL); CHKERRQ(info);
   info = PetscLogEventRegister(&EPS_Orthogonalization,"EPSOrthogonalization",PETSC_NULL); CHKERRQ(info);
+  info = PetscLogEventRegister(&ST_InnerProduct,"STInnerProduct",PETSC_NULL); CHKERRQ(info);
 
   PetscFunctionReturn(info);
 }

@@ -282,3 +282,13 @@ int STSetMatMode(ST st,STMatMode mode)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "STSetBilinearForm"
+int STSetBilinearForm(ST st,STBilinearForm form)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  st->bilinear_form = form;
+  PetscFunctionReturn(0);
+}
+

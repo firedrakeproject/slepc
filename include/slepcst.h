@@ -60,9 +60,12 @@ extern int STResetNumberLinearIterations(ST);
 
 typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
                STMATMODE_SHELL } STMatMode;
-
 extern int STSetMatMode(ST,STMatMode);
 extern int STSetMatStructure(ST,MatStructure);
+
+typedef enum { STINNER_HERMITIAN,STINNER_SYMMETRIC,
+               STINNER_B_HERMITIAN,STINNER_B_SYMMETRIC } STBilinearForm;
+int STSetBilinearForm(ST,STBilinearForm);
 
 extern int STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);
 extern int STShellSetBackTransform(ST, int (*)(void*,PetscScalar*,PetscScalar*));

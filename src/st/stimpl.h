@@ -23,11 +23,12 @@ struct _STOps {
 struct _p_ST {
   PETSCHEADER(struct _STOps)
   /*------------------------- User parameters --------------------------*/
-  Mat          A,B;              /* Matrices which define the eigensystem */
-  PetscScalar  sigma;            /* Value of the shift */
-  STMatMode    shift_matrix;
-  MatStructure str;          /* whether matrices have the same pattern or not */
-  Mat          mat;
+  Mat            A,B;              /* Matrices which define the eigensystem */
+  PetscScalar    sigma;            /* Value of the shift */
+  STMatMode      shift_matrix;
+  STBilinearForm bilinear_form;
+  MatStructure   str;          /* whether matrices have the same pattern or not */
+  Mat            mat;
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
