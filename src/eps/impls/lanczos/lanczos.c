@@ -45,6 +45,10 @@
 #include "src/eps/epsimpl.h"
 #include "slepcblaslapack.h"
 
+typedef struct {
+  EPSLanczosOrthogType reorthog;
+} EPS_LANCZOS;
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_LANCZOS"
 PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
@@ -108,6 +112,39 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,V
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSPlainLanczos"
+static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,Vec f,PetscReal *beta)
+{
+  PetscErrorCode ierr;
+  int            j;
+  PetscReal      norm;
+  PetscScalar    t;
+  PetscTruth     breakdown;
+
+  PetscFunctionBegin;
+  for (j=k;j<m-1;j++) {
+    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    if (j == 0) {
+      ierr = EPSOrthogonalize(eps,1,V,V[1],T,&norm,&breakdown);CHKERRQ(ierr);
+    } else {
+      ierr = EPSOrthogonalize(eps,2,V+j-1,V[j+1],T+m*j+j-1,&norm,&breakdown);CHKERRQ(ierr);
+    }
+    T[(m+1)*j+1] = norm;
+    if (breakdown) {
+      PetscLogInfo(eps,"Breakdown in Lanczos method (norm=%g)\n",norm);
+      ierr = SlepcVecSetRandom(V[j+1]);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,V[j+1],&norm);CHKERRQ(ierr);
+    }
+    t = 1 / norm;
+    ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
+  }
+  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
+  ierr = EPSOrthogonalize(eps,m,V,f,T+m*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSBasicLanczos"
 /*
    EPSBasicLanczos - Computes an m-step Lanczos factorization. The first k
@@ -128,10 +165,18 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,V
 */
 static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int m,Vec f,PetscReal *beta)
 {
+  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSFullLanczos(eps,T,V,k,m,f,beta);CHKERRQ(ierr);
+  switch (lanczos->reorthog) {
+    case EPSLANCZOS_ORTHOG_NONE:
+      ierr = EPSPlainLanczos(eps,T,V,k,m,f,beta);CHKERRQ(ierr);
+      break;
+    case EPSLANCZOS_ORTHOG_FULL:
+      ierr = EPSFullLanczos(eps,T,V,k,m,f,beta);CHKERRQ(ierr);
+      break;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -261,12 +306,11 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       eps->errest[ncv-i-1] = bnd[i] / ritz[i];
     }
 
-    /* Update V(:,idx) = V*Y(:,idx) */
-    ierr = PetscMemzero(W,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+    /* Update V(:,idx) = V*Y */
     for (i=0;i<n;i++) 
       for (j=0;j<n;j++) 
-          W[i+nconv+(j+nconv)*ncv] = Y[i+(n-j-1)*n];
-    ierr = EPSReverseProjection(eps,eps->V,W,nconv,ncv,eps->work);CHKERRQ(ierr);
+          W[i+j*n] = Y[i+(n-j-1)*n];
+    ierr = EPSReverseProjection(eps,eps->V+nconv,W,0,n,eps->work);CHKERRQ(ierr);
 
     /* Look for converged eigenpairs */
     while (nconv<ncv && eps->errest[nconv]<eps->tol) nconv++;
@@ -293,18 +337,159 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetFromOptions_LANCZOS"
+PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  PetscTruth     flg;
+  const char     *list[2] = { "none", "full" };
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("LANCZOS options");CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-eps_lanczos_orthog","Reorthogonalization type","EPSPowerSetShiftType",list,2,list[lanczos->reorthog],(int*)&lanczos->reorthog,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSLanczosSetOrthog_LANCZOS"
+PetscErrorCode EPSLanczosSetOrthog_LANCZOS(EPS eps,EPSLanczosOrthogType reorthog)
+{
+  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+
+  PetscFunctionBegin;
+  switch (reorthog) {
+    case EPSLANCZOS_ORTHOG_NONE:
+    case EPSLANCZOS_ORTHOG_FULL:
+      lanczos->reorthog = reorthog;
+      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
+  }
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSLanczosSetOrthog"
+/*@
+   EPSLanczosSetOrthog - Sets the type of reorthogonalization used during the lanczos
+   iteration. 
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  reorthog - the type of reorthogonalization
+
+   Options Database Key:
+.  -eps_lanczos_orthog - Sets the reorthogonalization type (either 'none' or 
+                           'full')
+   
+   Level: advanced
+
+.seealso: EPSLanczosGetOrthog()
+@*/
+PetscErrorCode EPSLanczosSetOrthog(EPS eps,EPSLanczosOrthogType reorthog)
+{
+  PetscErrorCode ierr, (*f)(EPS,EPSLanczosOrthogType);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSLanczosSetOrthog_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(eps,reorthog);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSLanczosGetOrthog_LANCZOS"
+PetscErrorCode EPSLanczosGetOrthog_LANCZOS(EPS eps,EPSLanczosOrthogType *reorthog)
+{
+  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+  PetscFunctionBegin;
+  *reorthog = lanczos->reorthog;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSLanczosGetOrthog"
+/*@
+   EPSLanczosGetOrthog - Gets the type of reorthogonalization used during the lanczos
+   iteration. 
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Input Parameter:
+.  reorthog - the type of reorthogonalization
+
+   Level: advanced
+
+.seealso: EPSLanczosSetOrthog()
+@*/
+PetscErrorCode EPSLanczosGetOrthog(EPS eps,EPSLanczosOrthogType *reorthog)
+{
+  PetscErrorCode ierr, (*f)(EPS,EPSLanczosOrthogType*);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSLanczosGetOrthog_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(eps,reorthog);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSView_LANCZOS"
+PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  PetscTruth     isascii;
+  const char     *list[2] = { "none", "full" };
+
+  PetscFunctionBegin;
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) {
+    SETERRQ1(1,"Viewer type %s not supported for EPSLANCZOS",((PetscObject)viewer)->type_name);
+  }  
+  ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",list[lanczos->reorthog]);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_LANCZOS"
 PetscErrorCode EPSCreate_LANCZOS(EPS eps)
 {
+  PetscErrorCode ierr;
+  EPS_LANCZOS    *lanczos;
+
   PetscFunctionBegin;
-  eps->data                      = (void *) 0;
+  ierr = PetscNew(EPS_LANCZOS,&lanczos);CHKERRQ(ierr);
+  PetscMemzero(lanczos,sizeof(EPS_LANCZOS));
+  PetscLogObjectMemory(eps,sizeof(EPS_LANCZOS));
+  eps->data                      = (void *) lanczos;
   eps->ops->solve                = EPSSolve_LANCZOS;
   eps->ops->setup                = EPSSetUp_LANCZOS;
+  eps->ops->setfromoptions       = EPSSetFromOptions_LANCZOS;
   eps->ops->destroy              = EPSDestroy_Default;
+  eps->ops->view                 = EPSView_LANCZOS;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
+  lanczos->reorthog              = EPSLANCZOS_ORTHOG_FULL;
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetOrthog_C","EPSLanczosSetOrthog_LANCZOS",EPSLanczosSetOrthog_LANCZOS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetOrthog_C","EPSLanczosGetOrthog_LANCZOS",EPSLanczosGetOrthog_LANCZOS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
