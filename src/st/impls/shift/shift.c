@@ -16,7 +16,7 @@ int STApply_Shift(ST st,Vec x,Vec y)
     /* generalized eigenproblem: y = (B^-1 A + sI) x */
     w = (Vec) st->data;
     ierr = MatMult(st->A,x,w);CHKERRQ(ierr);
-    ierr = STAssociatedSLESSolve(st,w,y);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolve(st,w,y);CHKERRQ(ierr);
     ierr = VecAXPY(&st->sigma,x,y);CHKERRQ(ierr);
   }
   else {
@@ -44,10 +44,11 @@ static int STSetUp_Shift(ST st)
   Vec     w;
 
   PetscFunctionBegin;
-  if (st->sles) {
+  if (st->ksp) {
     ierr = VecDuplicate(st->vec,&w);CHKERRQ(ierr);
     st->data = (void *) w;
-    ierr = SLESSetUp(st->sles,st->vec,st->vec);CHKERRQ(ierr);
+    ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
+    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   } 
   PetscFunctionReturn(0);
 }
@@ -83,11 +84,11 @@ int STCreate_Shift(ST st)
   st->ops->setup       = STSetUp_Shift;
 
   if (st->B) {
-    ierr = SLESCreate(st->comm,&st->sles);CHKERRQ(ierr);
+    ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);
     ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
-    ierr = SLESSetOptionsPrefix(st->sles,prefix);CHKERRQ(ierr);
-    ierr = SLESAppendOptionsPrefix(st->sles,"st_");CHKERRQ(ierr);
-    ierr = SLESSetOperators(st->sles,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);

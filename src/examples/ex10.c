@@ -8,7 +8,7 @@ static char help[] = "Example that illustrates the use of shell spectral "
 
 /* Define context for user-provided spectral transformation */
 typedef struct {
-  SLES        sles;
+  KSP        ksp;
 } SampleShellST;
 
 /* Declare routines for user-provided spectral transformation */
@@ -203,8 +203,8 @@ int SampleShellSTCreate(SampleShellST **shell)
   int           ierr;
 
   ierr   = PetscNew(SampleShellST,&newctx);CHKERRQ(ierr);
-  ierr   = SLESCreate(PETSC_COMM_WORLD,&newctx->sles);CHKERRQ(ierr);
-  ierr   = SLESAppendOptionsPrefix(newctx->sles,"st_"); CHKERRQ(ierr);
+  ierr   = KSPCreate(PETSC_COMM_WORLD,&newctx->ksp);CHKERRQ(ierr);
+  ierr   = KSPAppendOptionsPrefix(newctx->ksp,"st_"); CHKERRQ(ierr);
   *shell = newctx;
   return 0;
 }
@@ -224,7 +224,7 @@ int SampleShellSTCreate(SampleShellST **shell)
 
    Notes:
    In this example, the user-defined transformation is simply OP=A^-1.
-   Therefore, the eigenpairs converge in reversed order. The SLES object
+   Therefore, the eigenpairs converge in reversed order. The KSP object
    used for the solution of linear systems with A is handled via the
    user-defined context SampleShellST.
 */
@@ -235,8 +235,8 @@ int SampleShellSTSetUp(SampleShellST *shell,ST st)
 
   ierr = STGetOperators( st, &A, &B ); CHKERRQ(ierr);
   if (B) { SETERRQ(0,"Warning: This transformation is not intended for generalized problems"); }
-  ierr = SLESSetOperators(shell->sles,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = SLESSetFromOptions(shell->sles);CHKERRQ(ierr);
+  ierr = KSPSetOperators(shell->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
 
   return 0;
 }
@@ -264,7 +264,9 @@ int SampleShellSTApply(void *ctx,Vec x,Vec y)
   SampleShellST *shell = (SampleShellST*)ctx;
   int           ierr;
 
-  ierr = SLESSolve(shell->sles,x,y,PETSC_NULL);CHKERRQ(ierr);
+  ierr = KSPSetRhs(shell->ksp,x);CHKERRQ(ierr);
+  ierr = KSPSetSolution(shell->ksp,y);CHKERRQ(ierr);
+  ierr = KSPSolve(shell->ksp);CHKERRQ(ierr);
 
   return 0;
 }
@@ -309,7 +311,7 @@ int SampleShellSTDestroy(SampleShellST *shell)
 {
   int ierr;
 
-  ierr = SLESDestroy(shell->sles);CHKERRQ(ierr);
+  ierr = KSPDestroy(shell->ksp);CHKERRQ(ierr);
   ierr = PetscFree(shell);CHKERRQ(ierr);
 
   return 0;

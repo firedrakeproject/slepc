@@ -31,7 +31,7 @@ int STDestroy(ST st)
   ierr = PetscObjectDepublish(st);CHKERRQ(ierr);
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
-  if (st->sles) { ierr = SLESDestroy(st->sles);CHKERRQ(ierr); } 
+  if (st->ksp) { ierr = KSPDestroy(st->ksp);CHKERRQ(ierr); } 
 
   PetscLogObjectDestroy(st);
   PetscHeaderDestroy(st);
@@ -99,7 +99,7 @@ int STCreate(MPI_Comm comm,ST *newst)
   st->B                   = 0;
   st->sigma               = 1.0;
   st->vec                 = 0;
-  st->sles                = 0;
+  st->ksp                 = 0;
   st->data                = 0;
   st->setupcalled         = 0;
   *newst                  = st;
@@ -465,18 +465,18 @@ int STView(ST st,PetscViewer viewer)
       ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    if (st->sles) {
+    if (st->ksp) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"Associated SLES object\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"Associated KSP object\n");CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
-      ierr = SLESView(st->sles,viewer);CHKERRQ(ierr);
+      ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
-    if (st->sles) {ierr = SLESView(st->sles,viewer);CHKERRQ(ierr);}
+    if (st->ksp) {ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);}
     if (st->ops->view) {ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);}
   } else {
     SETERRQ1(1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);

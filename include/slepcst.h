@@ -4,7 +4,7 @@
 */
 #if !defined(__SLEPCST_H)
 #define __SLEPCST_H
-#include "petscsles.h"
+#include "petscksp.h"
 
 extern int ST_COOKIE;
 
@@ -40,8 +40,8 @@ extern int STRegister(char*,char*,char*,int(*)(ST));
 #define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,d)
 #endif
 
-extern int STSetSLES(ST,SLES);
-extern int STGetSLES(ST,SLES*);
+extern int STSetKSP(ST,KSP);
+extern int STGetKSP(ST,KSP*);
 extern int STSetShift(ST,PetscScalar);
 extern int STGetShift(ST,PetscScalar*);
 extern int STGetNumberOfShifts(ST,int*);
@@ -54,7 +54,7 @@ extern int STAppendOptionsPrefix(ST,char*);
 extern int STGetOptionsPrefix(ST,char**);
 
 extern int STBackTransform(ST,PetscScalar*,PetscScalar*);
-extern int STAssociatedSLESSolve(ST,Vec,Vec);
+extern int STAssociatedKSPSolve(ST,Vec,Vec);
 
 /* --------- options specific to particular spectral transformations-------- */
 

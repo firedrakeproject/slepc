@@ -22,11 +22,11 @@ static int STApply_Sinvert(ST st,Vec x,Vec y)
   if (st->B) {
     /* generalized eigenproblem: y = (A - sB)^-1 B x */
     ierr = MatMult(st->B,x,ctx->w);CHKERRQ(ierr);
-    ierr = STAssociatedSLESSolve(st,ctx->w,y);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolve(st,ctx->w,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A - sI)^-1 x */
-    ierr = STAssociatedSLESSolve(st,x,y);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolve(st,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -38,7 +38,7 @@ static int STApplyNoB_Sinvert(ST st,Vec x,Vec y)
   int       ierr;
 
   PetscFunctionBegin;
-  ierr = STAssociatedSLESSolve(st,x,y);CHKERRQ(ierr);
+  ierr = STAssociatedKSPSolve(st,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -86,14 +86,15 @@ static int STSetUp_Sinvert(ST st)
     else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
      * improve performance when solving a number of related eigenproblems */
-    ierr = SLESSetOperators(st->sles,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   else {
     ierr = MatCreateMatSinvert(st,&ctx->mat);CHKERRQ(ierr);
-    ierr = SLESSetOperators(st->sles,ctx->mat,ctx->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,ctx->mat,ctx->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   if (st->B && !ctx->w) { ierr = VecDuplicate(st->vec,&ctx->w);CHKERRQ(ierr); } 
-  ierr = SLESSetUp(st->sles,st->vec,st->vec);CHKERRQ(ierr);
+  ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
+  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -120,14 +121,15 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
     alpha = -newshift;
     if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,stctx->str);CHKERRQ(ierr); }
     else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
-    ierr = SLESSetOperators(st->sles,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   else {
     ierr = MatShellGetContext(stctx->mat,(void**)&ctx);CHKERRQ(ierr);
     ctx->sigma = newshift;
-    ierr = SLESSetOperators(st->sles,stctx->mat,stctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,stctx->mat,stctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
-  ierr = SLESSetUp(st->sles,st->vec,st->vec);CHKERRQ(ierr);
+  ierr = KSPSetRhs(st->ksp,st->vec);CHKERRQ(ierr);
+  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -190,7 +192,7 @@ static int STSetFromOptions_Sinvert(ST st)
     else {
       /* if shift_mat is set then the default preconditioner is ILU,
          otherwise set Jacobi as the default */
-      ierr = SLESGetPC(st->sles,&pc); CHKERRQ(ierr);
+      ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     }
     ierr = PetscOptionsLogicalGroupBegin("-st_sinvert_same_pattern","same nonzero pattern","STSinvertSetMatStructure",&flg);CHKERRQ(ierr);
@@ -338,10 +340,10 @@ int STCreate_Sinvert(ST st)
   st->ops->setfromoptions = STSetFromOptions_Sinvert;
   st->ops->view           = STView_Sinvert;
 
-  ierr = SLESCreate(st->comm,&st->sles);CHKERRQ(ierr);
+  ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);
   ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
-  ierr = SLESSetOptionsPrefix(st->sles,prefix);CHKERRQ(ierr);
-  ierr = SLESAppendOptionsPrefix(st->sles,"st_");CHKERRQ(ierr);
+  ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
+  ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
   ctx->shift_matrix = PETSC_FALSE;
   ctx->str          = DIFFERENT_NONZERO_PATTERN;
 

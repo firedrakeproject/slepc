@@ -57,7 +57,7 @@ int STSetType(ST st,STType type)
   ierr = PetscFListDestroy(&st->qlist);CHKERRQ(ierr);
   st->data        = 0;
   st->setupcalled = 0;
-  st->sles        = 0;
+  st->ksp         = 0;
 
   /* Get the function pointers for the method requested */
   if (!STRegisterAllCalled) {ierr = STRegisterAll(0); CHKERRQ(ierr);}
@@ -183,9 +183,9 @@ int STSetFromOptions(ST st)
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
     }
-    if (st->sles) {
+    if (st->ksp) {
       ierr = PetscOptionsHead("Associated Linear Solver options ------------");CHKERRQ(ierr);
-      ierr = SLESSetFromOptions(st->sles);CHKERRQ(ierr);
+      ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
       ierr = PetscOptionsTail();CHKERRQ(ierr);
     }
 

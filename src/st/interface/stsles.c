@@ -1,15 +1,15 @@
 
 /*
     The ST (spectral transformation) interface routines related to the
-    SLES object associated to it.
+    KSP object associated to it.
 */
 
 #include "src/st/stimpl.h"            /*I "slepcst.h" I*/
 
 #undef __FUNCT__  
-#define __FUNCT__ "STAssociatedSLESSolve"
+#define __FUNCT__ "STAssociatedKSPSolve"
 /*@C
-   STAssociatedSLESSolve - Solve the linear system of equations associated
+   STAssociatedKSPSolve - Solve the linear system of equations associated
    to the spectral transformation.
 
    Collective on ST
@@ -23,56 +23,56 @@
 
    Level: developer
 
-.seealso: STGetSLES(), SLESSolve()
+.seealso: STGetKSP(), KSPSolve()
 @*/
-int STAssociatedSLESSolve(ST st,Vec b,Vec x)
+int STAssociatedKSPSolve(ST st,Vec b,Vec x)
 {
-  int   its,ierr;
-  KSP   ksp;
+  int   ierr;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE);
   PetscValidHeaderSpecific(b,VEC_COOKIE);
   PetscValidHeaderSpecific(x,VEC_COOKIE);
-  if (!st->sles) { SETERRQ(PETSC_ERR_SUP,"ST has no associated SLES"); }
-  ierr = SLESSolve(st->sles,b,x,&its);CHKERRQ(ierr);
-  ierr = SLESGetKSP(st->sles,&ksp);CHKERRQ(ierr);
-  ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) { SETERRQ1(0,"Warning: SLES did not converge (%d)",reason); }
+  if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
+  ierr = KSPSetRhs(st->ksp,b);CHKERRQ(ierr);
+  ierr = KSPSetSolution(st->ksp,x);CHKERRQ(ierr);
+  ierr = KSPSolve(st->ksp);CHKERRQ(ierr);
+  ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
+  if (reason<0) { SETERRQ1(0,"Warning: KSP did not converge (%d)",reason); }
 
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STSetSLES"
+#define __FUNCT__ "STSetKSP"
 /*@
-   STSetSLES - Sets the SLES object associated with the spectral 
+   STSetKSP - Sets the KSP object associated with the spectral 
    transformation.
 
    Not collective
 
    Input Parameters:
 +  st   - the spectral transformation context
--  sles - the linear system context
+-  ksp  - the linear system context
 
    Level: advanced
 
 @*/
-int STSetSLES(ST st,SLES sles)
+int STSetKSP(ST st,KSP ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE);
-  PetscValidHeaderSpecific(sles,SLES_COOKIE);
-  PetscCheckSameComm(st,sles);
-  st->sles = sles;
+  PetscValidHeaderSpecific(ksp,KSP_COOKIE);
+  PetscCheckSameComm(st,ksp);
+  st->ksp = ksp;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STGetSLES"
+#define __FUNCT__ "STGetKSP"
 /*@
-   STGetSLES - Gets the SLES object associated with the spectral
+   STGetKSP - Gets the KSP object associated with the spectral
    transformation.
 
    Not collective
@@ -81,22 +81,22 @@ int STSetSLES(ST st,SLES sles)
 .  st - the spectral transformation context
 
    Output Parameter:
-.  sles - the linear system context
+.  ksp  - the linear system context
 
    Notes:
-   On output, the value of sles can be PETSC_NULL if the combination of 
+   On output, the value of ksp can be PETSC_NULL if the combination of 
    eigenproblem type and selected transformation does not require to 
    solve a linear system of equations.
    
    Level: intermediate
 
 @*/
-int STGetSLES(ST st,SLES* sles)
+int STGetKSP(ST st,KSP* ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE);
   if (!st->type_name) { SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
-  if (sles)  *sles = st->sles;
+  if (ksp)  *ksp = st->ksp;
   PetscFunctionReturn(0);
 }
 
