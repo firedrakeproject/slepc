@@ -430,7 +430,10 @@ int EPSGetConverged(EPS eps,int *nconv)
 int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
   int         ierr, k;
-  PetscScalar zero = 0.0, minus = -1.0;
+  PetscScalar zero = 0.0;
+#ifndef PETSC_USE_COMPLEX
+  PetscScalar minus = -1.0;
+#endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1040,7 +1043,9 @@ int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
   Mat         A, B;
   int         ierr;
   PetscScalar alpha, kr, ki;
+#ifndef PETSC_USE_COMPLEX
   PetscReal   ni, nr;
+#endif
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1118,10 +1123,15 @@ int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 @*/
 int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 {
-  Vec         xr, xi, u;
+  Vec         xr, xi;
   int         ierr;
-  PetscScalar kr, ki, alpha;
-  PetscReal   norm, er, ei;
+  PetscScalar kr, ki;
+  PetscReal   norm, er;
+#ifndef PETSC_USE_COMPLEX
+  Vec         u;
+  PetscScalar alpha;
+  PetscReal   ei;
+#endif
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
@@ -1398,7 +1408,6 @@ int EPSReverseProjection(EPS eps,int k,int m,PetscScalar *S)
 @*/
 int EPSSwapEigenpairs(EPS eps,int i,int j)
 {
-  int         ierr;
   PetscScalar tscalar;
   PetscReal   treal;
   Vec         tvec;

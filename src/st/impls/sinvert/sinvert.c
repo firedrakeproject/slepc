@@ -46,9 +46,9 @@ static int STApplyNoB_Sinvert(ST st,Vec x,Vec y)
 #define __FUNCT__ "STBackTransform_Sinvert"
 int STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
+#ifndef PETSC_USE_COMPLEX
   PetscScalar t;
   PetscFunctionBegin;
-#ifndef PETSC_USE_COMPLEX
   PetscValidPointer(eigr,2);
   PetscValidPointer(eigi,3);
   if (*eigi == 0) *eigr = 1.0 / *eigr + st->sigma;
@@ -58,6 +58,7 @@ int STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
     *eigi = - *eigi / t;
   }
 #else
+  PetscFunctionBegin;
   PetscValidPointer(eigr,2);
   *eigr = 1.0 / *eigr + st->sigma;
 #endif

@@ -31,7 +31,7 @@ static int EPSSetUp_POWER(EPS eps)
 #define __FUNCT__ "EPSSolve_POWER"
 static int  EPSSolve_POWER(EPS eps)
 {
-  int         ierr, i, k, maxit=eps->max_it;
+  int         ierr, i, maxit=eps->max_it;
   Vec         v, w, y, e;
   PetscReal   relerr, norm, tol=eps->tol;
   PetscScalar theta, alpha, eta;

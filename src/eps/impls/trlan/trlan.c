@@ -20,7 +20,7 @@ static int EPSSetUp_TRLAN(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
+  if (!eps->max_it) eps->max_it = PetscMax(100,n);
   if (!eps->tol) eps->tol = 1.e-7;
   
 #if defined(PETSC_USE_COMPLEX)

@@ -214,6 +214,7 @@ static int  EPSSolve_ARPACK(EPS eps)
              bmat, &n, which, &eps->nev, &eps->tol,
              resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
              ar->workl, &ar->lworkl, ar->rwork, &info, 1, 1, 2 );
+  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 #endif
 
   if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
