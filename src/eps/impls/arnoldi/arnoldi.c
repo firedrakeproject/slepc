@@ -170,7 +170,8 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
-      eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]);
+      eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) /
+                       SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]);
     }  
 
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 

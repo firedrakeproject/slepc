@@ -378,7 +378,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetErrorEstimate" 
 /*@
-   EPSGetErrorEstimate - Returns the error bound associated to the i-th 
+   EPSGetErrorEstimate - Returns the relative error bound associated to the i-th 
    approximate eigenpair.
 
    Not Collective

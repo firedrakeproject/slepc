@@ -25,7 +25,7 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 .  nconv  - number of converged eigenpairs
 .  eigr   - real part of the eigenvalues
 .  eigi   - imaginary part of the eigenvalues
-.  errest - error estimates for each eigenpair
+.  errest - relative error estimates for each eigenpair
 .  nest   - number of error estimates
 -  mctx   - optional monitoring context, as set by EPSSetMonitor()
 
