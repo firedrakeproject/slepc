@@ -73,9 +73,11 @@ static int  EPSSolve_SUBSPACE(EPS eps)
 
   while (eps->its<maxit) {
 
+    eps->its = eps->its + 1;
+
     /* Y = OP^inner V */
     for (k=i;k<ncv;k++) {
-      for (j=i;j<subspace->inner;j++) {
+      for (j=0;j<subspace->inner;j++) {
         ierr = STApply(eps->OP,eps->V[k],w);CHKERRQ(ierr);
         ierr = VecCopy(w,eps->V[k]);CHKERRQ(ierr);
       }
@@ -120,9 +122,8 @@ static int  EPSSolve_SUBSPACE(EPS eps)
     }
     i = eps->nconv;
 
-    EPSMonitorEstimates(eps,eps->its + 1,eps->nconv,eps->errest,ncv); 
-    EPSMonitorValues(eps,eps->its + 1,eps->nconv,eps->eigr,PETSC_NULL,ncv); 
-    eps->its = eps->its + 1;
+    EPSMonitorEstimates(eps,eps->its,eps->nconv,eps->errest,ncv); 
+    EPSMonitorValues(eps,eps->its,eps->nconv,eps->eigr,PETSC_NULL,ncv); 
 
     if (eps->nconv>=eps->nev) break;
 
@@ -131,7 +132,6 @@ static int  EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscFree(H);CHKERRQ(ierr);
   ierr = PetscFree(S);CHKERRQ(ierr);
 
-  if( eps->its==maxit ) eps->its = eps->its - 1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 #if defined(PETSC_USE_COMPLEX)
