@@ -1,14 +1,12 @@
 
-#requiresscalar real 
-
 ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = srrit.c laqr3.c dcond.c
+SOURCEC  = srrit.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = srrit.o laqr3.o dcond.o
+OBJSC    = srrit.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
