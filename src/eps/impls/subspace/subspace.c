@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   int            i,j,ilo,lwork,info,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
   PetscScalar    *T=eps->T,*U,*tau,*work,t;
-  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsdold,norm,tcond;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond;
   PetscTruth     breakdown;
   /* Parameters */
   int            init = 5;        /* Number of initial iterations */
@@ -220,6 +220,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   eps->its = 0;
   eps->nconv = 0;
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsdold);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv,&tau);CHKERRQ(ierr);
   lwork = ncv*ncv;
@@ -233,7 +234,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
     eps->eigr[i] = 0.0;
     eps->eigi[i] = 0.0;
-    eps->errest[i] = 0.0;
+    rsd[i] = 0.0;
     itrsd[i] = -1;
   }
   ierr = EPSQRDecomposition(eps,eps->V,0,ncv,PETSC_NULL,0);CHKERRQ(ierr);
@@ -241,7 +242,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   while (eps->its<eps->max_it) {
 
     /* Find group in previously computed eigenvalues */
-    ierr = EPSFindGroup(eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
+    ierr = EPSFindGroup(eps->nconv,ncv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
     /* Compute a Rayleigh-Ritz projection step 
        on the active columns (idx) */
@@ -282,10 +283,13 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
     
     /* Compute residuals */
-    for (i=0;i<ncv;i++) { rsdold[i] = eps->errest[i]; }
+    for (i=0;i<ncv;i++) { rsdold[i] = rsd[i]; }
 
-    ierr = EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,ncv,ncv,eps->errest);CHKERRQ(ierr);
+    ierr = EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,ncv,ncv,rsd);CHKERRQ(ierr);
 
+    for (i=0;i<ncv;i++) { 
+      eps->errest[i] = rsd[i] / SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]); 
+    }
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv); 
   
     /* Convergence check */
@@ -294,7 +298,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     
     for (;;) {
       /* Find group in currently computed eigenvalues */
-      ierr = EPSFindGroup(eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
+      ierr = EPSFindGroup(eps->nconv,ncv,eps->eigr,eps->eigi,rsd,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
       if (ngrp!=nogrp) break;
       if (ngrp==0) break;
       if (PetscAbsScalar(ae-oae)>ctr*cnvtol*(itrsd[eps->nconv]-itrsdold[eps->nconv])) break;
@@ -362,6 +366,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   }
 
   ierr = PetscFree(U);CHKERRQ(ierr);
+  ierr = PetscFree(rsd);CHKERRQ(ierr);
   ierr = PetscFree(rsdold);CHKERRQ(ierr);
   ierr = PetscFree(tau);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
