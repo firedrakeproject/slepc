@@ -346,3 +346,25 @@ xxxx\=xxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
 	\end{Verbatim}
 The argument \Verb!type! can be used to choose between CGS and MGS. The argument \Verb!refinement! specifies if refinement should be performed always (thus carrying out unnecessary work), never (i.e. the non-iterative algorithms) or if needed (according to the condition established in the algorithms above). In the last case, the value of $\eta$ can be provided via the last argument, \Verb!eta!. The default is to do refinement if needed with a value of $\eta$ equal to $1/\sqrt{2}$, as suggested in \citep{Reichel:1990:FSU}. Alternatively, all these options can be specified in the command line with \Verb!-eps_orthog_type [cgs|mgs]! for the algorithm, \Verb!-eps_orthog_refinement! \Verb! [never|ifneeded|always]! for the refinement strategy, and \Verb!-eps_orthog_eta! for setting the value of $\eta$.
 
+
+\subsection{Dealing with Deflation Subspaces}
+
+	In some applications, when solving an eigenvalue problem the user wishes to use a priori knowledge about the solution. This is the case when an invariant subspace has already been computed (e.g. in a previous \ident{EPSSolve} call) or when a basis of the nullspace is known.
+
+	Consider the following example. Given a graph $G$, with vertex set $V$ and edges $E$, the Laplacian matrix of $G$ is a sparse symmetric positive semidefinite matrix $L$ such that
+$$l_{ij}=\left\{\begin{array}{cl}
+         d(v_i) & \mathrm{if}\;i=j\\
+         -1 & \mathrm{if}\;e_{ij}\in E\\
+         0&\mathrm{otherwise}
+\end{array}\right.$$
+where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all row sums are equal to zero. The constant vector is an eigenvector with zero eigenvalue, and if the graph is connected then all other eigenvalues are positive. The so-called Fiedler vector is the eigenvector associated to the smallest nonzero eigenvalue and can be used in heuristics for a number of graph manipulations such as partitioning. One Possible way of computing this vector with \slepc is to instruct the eigensolver to search for the smallest eigenvalue (with \ident{EPSSetWhichEigenpairs} or by using a spectral transformation as described in next chapter) but preventing it from computing the already known eigenvalue. For this, the user must provide a basis for the invariant subspace (in this case just vector $[1,1,\ldots,1]^T$) so that the eigensolver can \emph{deflate} this subspace. This process is very similar to what eigensolvers normally do with invariant subspaces associated to eigenvalues as they converge. In other words, when a deflation space has been specified, the eigensolver works with the restriction of the problem to the orthogonal complement of this subspace.
+
+	The following function can be used to provide the \ident{EPS} object with some basis vectors corresponding to a subspace that should be deflated during the solution process. 
+	\findex{EPSAttachDeflationSpace}
+	\begin{Verbatim}[fontsize=\small]
+	EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
+	\end{Verbatim}
+The value \texttt{n} indicates how many vectors are passed in argument \texttt{ds}. This function can be called several times. The last parameter indicates whether all the provided vectors are known to be mutually orthonormal or not. If not, they are explicitly orthonormalized internally.
+
+	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a nullspace. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a nullspace of the associated linear system (see section \ref{sec:lin}). In this case, this nullspace is passed to the linear solver (see \petsc's function \texttt{KSPSetNullSpace}) to enable the solution of singular systems. In practice, this allows to compute eigenvalues of singular pencils (i.e. when $A$ and $B$ share a common nullspace).
+
