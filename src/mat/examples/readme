@@ -1,0 +1,17 @@
+
+SLEPc example matrices
+----------------------
+
+Matrices taken from the Non-Hermitian Eigenvalue Problem Collection.
+Matrix Market - NEP Collection (http://math.nist.gov/MatrixMarket/data/NEP).
+
+Saved in MATMPIAIJ format with a PetscViewerBinary.
+
+
+File       Name           Description
+----------------------------------------------------------------------------
+rdb200     Brusselator    real unsymmetric, 200 by 200, 1120 entries
+
+odep400a   ODE problem    real unsymmetric, 400 by 400, 1201 entries
+odep400b                  real symmetric indefinite, 400 by 400, 399 entries
+

@@ -1,0 +1,130 @@
+
+  
+        SLEPc: Scalable Library for Eigenvalue Problem Computations
+        ===========================================================
+
+                            Vicente Hernandez
+                              Jose E. Roman
+                              Vicent Vidal
+
+        GRyCAP - Grupo de Redes y Computacion de Altas Prestaciones
+                Universidad Politecnica de Valencia, Spain
+
+
+ Overview
+ --------
+
+ SLEPc, the Scalable Library for Eigenvalue Problem Computations, is a software
+ package for  the  solution of large sparse  eigenvalue  problems  on  parallel
+ computers. It  can be used for the solution of problems formulated  in  either
+ standard  or  generalized form, as well as other related problems such as  the
+ singular value decomposition.
+
+ The  emphasis  of the software is on methods and  techniques  appropriate  for
+ problems  in  which  the  associated matrices are sparse, for  example,  those
+ arising after the discretization of partial differential equations. Therefore,
+ most  of  the methods offered by the library are projection methods  or  other
+ methods  with similar properties. Some of these methods are  Arnoldi,  Lanczos
+ and Subspace Iteration, to name a few. SLEPc implements these basic methods as
+ well  as more sophisticated algorithms. It also provides built-in support  for
+ spectral transformations such as shift-and-invert.
+
+ SLEPc is a general library in the sense that it covers standard and genralized
+ eigenvalue  problems,  both Hermitian and non-Hermitian, with either  real  or
+ complex arithmetic.
+
+ SLEPc is built on top of PETSc, the Portable Extensible Toolkit for Scientific
+ Computation (http://www.mcs.anl.gov/petsc). It can be considered an  extension
+ of  PETSc  providing  all the functionality  necessary  for  the  solution  of
+ eigenvalue  problems.  This means that PETSc must be previously  installed  in
+ order  to  use SLEPc. PETSc users will find SLEPc very easy to use,  since  it
+ enforces the same programming paradigm. For those users which are not familiar
+ with  PETSc yet, our recommendation is to fully understand its basic  concepts
+ before proceeding with SLEPc.
+
+
+ Documentation
+ -------------
+
+ The  Users Manual is included in the SLEPc distribution file. It can be  found
+ in directory  'docs' and it contains a general description of the capabilities
+ of  the software.  The manual does not include detailed reference  information
+ about  individual SLEPc routines. This information is provided in the form  of
+ man pages in HTML format (see 'docs/manualpages'). 
+
+
+ Installation
+ ------------
+
+ The installation procedure of SLEPc is very similar to that of PETSc. Briefly,
+ the  environment variable $SLEPC_DIR must be set and then  the  libraries  are
+ built with the command 'make BOPT=O', for example. For this to work correctly,
+ variables $PETSC_DIR and $PETSC_ARCH must also be set appropriately.
+
+ More detailed information about installation can be found in the Users  Manual
+ or in the SLEPc home page, including instructions for configuring SLEPc to use
+ external libraries such as ARPACK.
+
+
+ More Information
+ ----------------
+
+ Additional  information can be found in the SLEPc home page at  the  following
+ address:
+
+                  http://www.grycap.upv.es/slepc
+
+ Among other things, this site includes information about:
+
+  - How to contact the authors for support.
+  - Download page including available patches (if any).
+  - On-line documentation.
+  - Mailing list for announcement of new releases.
+
+ All questions/comments should be directed to slepc-maint@grycap.upv.es.
+
+
+ Acknowledgements
+ ----------------
+
+ The development of SLEPc has been partially supported by the following grants:
+
+ - Oficina de Ciencia y Tecnologia, Generalitat Valenciana, CTIDB/2002/54.
+
+
+ Conditions of use
+ -----------------
+
+ Copyright (c) 2002-2003, Universidad Politecnica de Valencia, Spain
+
+ This  software is provided 'as is', with absolutely no warranty, expressed  or
+ implied.  Any use is at your own risk. In no event shall the authors be liable
+ for  any direct or indirect damages arising in any way out of the use of  this
+ software.
+ 
+ The  user will acknowledge (using references [1] or [2]) the  contribution  of
+ SLEPc  in any publication of material dependent upon the use of  the  package. 
+ The  user  will reasonably endeavour to notify the authors of the  package  of 
+ this publication.
+
+ The  user can modify the code but, at no time shall the right or title to  all
+ or  any  part  of  this  package pass to the user. Contributions  are  welcome
+ relating  to any alteration or addition made to this package for the  purposes
+ of  extending the capabilities or enhancing its performance.  Credit  will  be 
+ given in the documentation for contributed code.
+
+ This  package (or a modified version) may not be sold. It is freely  available
+ and  it can be redistributed provided that redistribution comprises all  files
+ including this copyright notice. No license is required for research use.  For
+ commercial use, written permission must be granted by the authors.
+
+
+ [1] V. Hernandez, J. E. Roman and V. Vidal (2003),
+     SLEPc: Scalable Library for Eigenvalue Problem Computations,
+     Lecture Notes in Computer Science, 2565, pp. 377-391.
+
+ [2] V. Hernandez, J. E. Roman and V. Vidal (2002),
+     SLEPc Users Manual, Technical Report DSIC-II/24/02, 
+     Universidad Politecnica de Valencia, Spain.
+
+

@@ -1,0 +1,135 @@
+%-------------------------------------------------------
+% SLEPc Users Manual
+%-------------------------------------------------------
+\chapter{\label{cap:petsc}Relation with \petsc}
+%-------------------------------------------------------
+
+\noindent \slepc relies on \petsc{} for all the features which are not directly related to eigenvalue problems. All the functionality associated to vectors and matrices as well as linear systems of equations is provided by \petsc. Also, low level details are inherited directly from \petsc. In particular, the parallelism within \slepc methods is handled completely by \petsc's vector and matrix modules. 
+
+	\slepc only contains high level objects, as depicted in figure \ref{fig:slepc}. These object classes have been designed and implemented following the philosophy of other high level objects in \petsc. In this way, \slepc benefits from a number of \petsc's good properties such as the following (see \petsc{} users guide for details):
+\begin{itemize}
+\item Portability and scalability in a wide range of platforms.
+\item Support for profiling of programs:
+  \begin{itemize}
+  \item Display performance statistics with \Verb!-log_summary!, including also \slepc's objects. The collected data are \emph{flops} and execution times as well as information about parallel performance.
+  \item Profile application codes with user-defined events.
+  \item Direct wall-clock timing with \ident{PetscGetTime}.
+  \item Display detailed profile information and trace of events.
+  \item Graphical visualization of events with MPE.
+  \end{itemize}
+\item Support for debugging of programs:
+  \begin{itemize}
+  \item Debugger startup and attachment of parallel processes.
+  \item Automatic generation of back-traces of the call stack.
+  \item Detection of memory leaks.
+  \end{itemize}
+\item A number of viewers for visualization of data, including graphics viewers.
+\item Interface to external software such as \matlab.
+\item Easy handling of runtime options.
+\end{itemize}
+
+	This chapter discusses several issues related to the interaction between \slepc and \petsc{} which can be important for the user.
+
+%---------------------------------------------------
+
+\section{Supported Matrix Objects}
+\label{sec:supported}
+
+	Methods implemented in the \ident{EPS} module merely require vector operations and matrix-vector products. In \petsc, mathematical objects such as vectors and matrices have an interface which is independent of the underlying data structures. \slepc manipulates vectors and matrices via this interface and, therefore, it can be used with any of the matrix representations provided by \petsc, including dense, sparse, block-diagonal and symmetric formats, either sequential or parallel.
+
+	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated to a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSEQSBAIJ}.
+
+\paragraph{Shell Matrices.}
+
+	In many applications, the matrices that define the eigenvalue problem are not available explicitly. Instead, the user knows a way of applying these matrices to a vector.
+
+	An intermediate case is when the matrices have some block structure and the different blocks are stored separately. There are numerous situations in which this occurs, such as the discretization of equations with a mixed finite-element scheme. An example is the eigenproblem arising in the stability analysis associated with Stokes problems,
+\begin{equation}
+\left[\begin{array}{cc}A & C\\C^H & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]
+=\lambda\left[\begin{array}{cc}B & 0\\0 & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]\;\;,
+\end{equation}
+where $x$ and $p$ denote the velocity and pressure fields. Similar formulations also appear in many other situations, such as the quadratic eigenvalue problem (see equation (\ref{eq:quad}) or the singular value decomposition (\ref{eq:svd2})).
+
+	Many of these problems can be solved by reformulating them as a reduced-order standard or generalized eigensystem, in which the matrices are equal to certain operations of the blocks. These matrices are not computed explicitly to avoid losing sparsity.
+
+	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices which do not require explicit storage of the component values. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector. 
+
+	Shell matrices, also called matrix-free matrices, are created in \petsc{} with the command \ident{MatCreateShell}. Then, the function \ident{MatShellSetOperation} is used to provide any user-defined shell matrix operations (see the \petsc{} documentation for additional details). Several examples are available in \slepc which illustrate how to solve a matrix-free eigenvalue problem.
+
+	In the simplest case, defining matrix-vector product operations (\ident{MATOP\_MULT}) is enough for using \ident{EPS} with shell matrices. However, in the case of generalized problems, if matrix $B$ is also a shell matrix then it may be necessary to define other operations in order to be able to solve the linear system successfully, for example \ident{MATOP\_GET\_DIAGONAL} to use Jacobi preconditioning. On the other hand, if the shift-and-invert \ident{ST} is to be used, then in addition it may also be necessary to define \ident{MATOP\_SHIFT} or \ident{MATOP\_AXPY} (see section \ref{sec:explicit} for discussion).
+
+\section{Extending \slepc}
+\label{sec:extend}
+
+	Shell matrices are a simple mechanism of extensibility, in the sense that the package is extended with new user-defined matrix objects. Once the new matrix has been defined, it can be used by \slepc in the same way as the rest of the matrices as long as the required operations are provided.
+
+	A similar mechanism is available in \slepc also for extending the system incorporating new spectral transformations. This is done by using the \ident{STSHELL} spectral transformation in which the user defines how the operator is applied to a vector and optionally how the computed eigenvalues are transformed back to the solution of the original problem (see section \ref{sec:shell} for details).
+
+	\slepc further supports extensibility by allowing application programmers to code their own subroutines for unimplemented features such as new eigensolvers or new spectral transformations. It is possible to register these new methods to the system and use them as the rest of standard subroutines.
+
+	For example, to implement the Subspace Iteration method with symmetric projection, one could copy the \slepc code associated to the \texttt{subspace} solver, modify it and register a new \ident{EPS} type with the following line of code
+	\begin{Verbatim}[fontsize=\small]
+	EPSRegister("newsubspace",0,"EPSCreate_NEWSUB",EPSCreate_NEWSUB);
+	\end{Verbatim}
+After this call, the new solver could be used in the same way as the rest of \slepc solvers. For instance,
+	\begin{Verbatim}[fontsize=\small]
+	$ program -eps_type newsubspace
+	\end{Verbatim}
+
+	\ident{EPSRegister} can be used to register new types whose code is linked into the executable. To register types in a dynamic library use \ident{EPSRegisterDynamic}.
+	In a similar way, \ident{STRegister} and \ident{STRegisterDynamic} can be used to register new spectral transformation types.
+
+%---------------------------------------------------
+\section{Fortran Interface}
+\label{sec:fortran}
+
+	\slepc provides an interface for Fortran 77 programmers, very much like \petsc. As in the case of \petsc, there are slight differences between the C and Fortran \slepc interfaces, due to differences in Fortran syntax. For instance, the error checking variable is the final argument of all the routines in the Fortran interface, in contrast to the C convention of providing the error variable as the routine's return value.
+
+	Apart from the comments included in the \petsc{} documentation, the most remarkable difference in the Fortran interface is that \texttt{kr}, \texttt{ki} and \texttt{x} must be declared as arrays instead of pointers. 
+
+	The following code is a sample program written in Fortran 77. It is the Fortran equivalent of the program given in section \ref{sec:simpleex} and can be found in \Verb!${SLEPC_DIR}/src/examples/ex1f.F!.
+\MyVerbatimInput{${SLEPC_DIR}/src/examples/ex1f.F}
+
+%---------------------------------------------------
+\section{Complex Numbers}
+\label{sec:complex}
+
+	\petsc{} supports the use of complex numbers in application programs written in C, C++ and Fortran. Currently, this is done by defining the data type \ident{PetscScalar} either as a real or complex number. This implies that two different versions of the \petsc{} libraries can be built separately, one for real numbers and one for complex numbers, but they cannot be used at the same time. [Note: this may change in future versions of \petsc.]
+
+	\slepc inherits this property. To build the real version of the \slepc libraries, the flag \ident{BOPT} must be set to \Verb!g! or \Verb!O! (debug or optimized flavors, respectively). To build the complex version, one of \Verb!BOPT=[g_complex,O_complex]! must be used. Application programs must be compiled also specifying the appropriate \ident{BOPT} value to link with the desired libraries.
+
+	In \slepc it is not possible to completely separate real numbers and complex numbers because the solution of non-symmetric real-valued eigenvalue problems can be complex. \slepc has been designed trying to provide a uniform interface to manage all the possible cases. This section clarifies the differences between the interface in each of the two versions, mainly in the format of the computed solution and the shifts.
+
+\paragraph{Real \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are real. The computed approximate solution returned by the function \ident{EPSGetSolution} is stored in the following way: \texttt{kr} and \texttt{ki} contain the real and imaginary parts of the eigenvalues, respectively, and \texttt{x} contains the associated eigenvectors. Two cases can be distinguished:
+
+\begin{itemize}
+\item	When \texttt{ki[j]} is zero, it means that the $j$-th eigenvalue is a real number. In this case, \texttt{kr[j]} is the eigenvalue and \texttt{x[j]} is the corresponding eigenvector.
+
+\item	If \texttt{ki[j]} is different from zero, then the $j$-th eigenvalue is a complex number. In this case, the $j$-th and $(j\!\!+\!\!1)$-th eigenvalues form a complex conjugate pair. Therefore, the $j$-th eigenvalue is \texttt{kr[j]}$+\,i\cdot$\texttt{ki[j]} and the $(j\!+\!1)$-th one is \texttt{kr[j+1]}$+\,i\cdot$\texttt{ki[j+1]}, where \texttt{kr[j+1]=kr[j]} and \texttt{ki[j+1]=-ki[j]}. 
+With respect to the eigenvectors, we use the same convention as other linear algebra packages: \texttt{x[j]} stores the real part of the eigenvectors and \texttt{x[j+1]} the imaginary part, that is, the $j$-th eigenvector is \texttt{x[j]}$+\,i\cdot$\texttt{x[j+1]} and the $(j\!\!+\!\!1)$-th eigenvector is \texttt{x[j]}$-\,i\cdot$\texttt{x[j+1]}. 
+\end{itemize}
+
+\paragraph{Complex \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are complex. The computed approximate solution returned by the function \ident{EPSGetSolution} is the following: \texttt{kr} contains the (complex) eigenvalues and \texttt{x} contains the corresponding (complex) eigenvectors. In this case, \texttt{ki} is not used.
+
+\paragraph{Shifts.} Some packages such as \arpack{} support the use of complex shifts even when working with real arithmetic. Currently, this is not supported in \slepc. The shifts in the \ident{ST} package are defined as \ident{PetscScalar} variables and, therefore, the complex version of the libraries must be used in order to be able to specify complex shifts.
+
+%---------------------------------------------------
+\section{Makefiles}
+
+	\slepc uses a makefile system very similar to that of \petsc. All platform specific setting are taken directly from the \petsc{} installation. During installation of the \slepc libraries, only the file \Verb!${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages! must be edited to indicate the presence of optional software packages such as \arpack.
+
+	With respect to the application program makefiles, they are very easy to set up just by including one file from the \slepc makefile system. All the necessary \petsc{} definitions are loaded automatically. The following sample makefile illustrates how to build C and Fortran programs:
+
+	\begin{Verbatim}[fontsize=\scriptsize]
+include ${SLEPC_DIR}/bmake/slepc_common
+
+ex1: ex1.o slepc_chkopts
+	-${CLINKER} -o ex1 ex1.o ${SLEPC_LIB}
+	${RM} ex1.o
+
+ex1f: ex1f.o slepc_chkopts
+	-${FLINKER} -o ex1f ex1f.o ${SLEPC_FORTRAN_LIB} ${SLEPC_LIB}
+	${RM} ex1f.o
+	\end{Verbatim}
+
+

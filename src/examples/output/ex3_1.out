@@ -1,0 +1,14 @@
+
+2-D Laplacian Eigenproblem (matrix-free version), N=100 (10x10 grid)
+
+ Number of iterations of the method: 509
+ Solution method: power
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=10000
+ Number of converged approximate eigenpairs: 1
+
+           k           ||Ax-kx||/|k|
+   ----------------- -----------------
+       7.837972           0.000000
+

@@ -1,0 +1,126 @@
+<html>
+<head>
+<title>manual</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="../vinculs.css" type="text/css">
+<link rel="stylesheet" href="../vinculs.css" type="text/css">
+<script language="JavaScript" type="text/JavaScript">
+<!--
+
+
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_nbGroup(event, grpName) { //v6.0
+  var i,img,nbArr,args=MM_nbGroup.arguments;
+  if (event == "init" && args.length > 2) {
+    if ((img = MM_findObj(args[2])) != null && !img.MM_init) {
+      img.MM_init = true; img.MM_up = args[3]; img.MM_dn = img.src;
+      if ((nbArr = document[grpName]) == null) nbArr = document[grpName] = new Array();
+      nbArr[nbArr.length] = img;
+      for (i=4; i < args.length-1; i+=2) if ((img = MM_findObj(args[i])) != null) {
+        if (!img.MM_up) img.MM_up = img.src;
+        img.src = img.MM_dn = args[i+1];
+        nbArr[nbArr.length] = img;
+    } }
+  } else if (event == "over") {
+    document.MM_nbOver = nbArr = new Array();
+    for (i=1; i < args.length-1; i+=3) if ((img = MM_findObj(args[i])) != null) {
+      if (!img.MM_up) img.MM_up = img.src;
+      img.src = (img.MM_dn && args[i+2]) ? args[i+2] : ((args[i+1])? args[i+1] : img.MM_up);
+      nbArr[nbArr.length] = img;
+    }
+  } else if (event == "out" ) {
+    for (i=0; i < document.MM_nbOver.length; i++) {
+      img = document.MM_nbOver[i]; img.src = (img.MM_dn) ? img.MM_dn : img.MM_up; }
+  } else if (event == "down") {
+    nbArr = document[grpName];
+    if (nbArr)
+      for (i=0; i < nbArr.length; i++) { img=nbArr[i]; img.src = img.MM_up; img.MM_dn = 0; }
+    document[grpName] = nbArr = new Array();
+    for (i=2; i < args.length-1; i+=2) if ((img = MM_findObj(args[i])) != null) {
+      if (!img.MM_up) img.MM_up = img.src;
+      img.src = img.MM_dn = (args[i+1])? args[i+1] : img.MM_up;
+      nbArr[nbArr.length] = img;
+  } }
+}
+//-->
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" onLoad="MM_preloadImages('../imatges/botons/manual2.gif','../imatges/botons/instalation2.gif','../imatges/botons/FAQ2.gif')">
+<div id="Layer2" style="position:absolute; left:334px; top:0px; width:277px; height:23px; z-index:4"> 
+  <table width="278" border="0" cellpadding="0" cellspacing="0">
+    <tr> 
+      <td width="75" height="22"><a href="manual.htm" onClick="MM_nbGroup('down','group1','manual','../imatges/botons/manual2.gif',1)" onMouseOver="MM_nbGroup('over','manual','../imatges/botons/manual2.gif','',1)" onMouseOut="MM_nbGroup('out')" target="mainFrame"><img name="manual" src="../imatges/botons/manual2.gif" border="0" onLoad=""></a></td>
+      <td valign="top" width="127"><a href="instal.htm" onClick="MM_nbGroup('down','group1','installation','../imatges/botons/instalation2.gif',1)" onMouseOver="MM_nbGroup('over','installation','../imatges/botons/instalation2.gif','',1)" onMouseOut="MM_nbGroup('out')" target="mainFrame"><img name="installation" src="../imatges/botons/instalation.gif" border="0" ></a></td>
+      <td valign="top" width="75"><a href="faq.htm" onClick="MM_nbGroup('down','group1','FAQ','../imatges/botons/FAQ2.gif',1)" onMouseOver="MM_nbGroup('over','FAQ','../imatges/botons/FAQ2.gif','',1)" onMouseOut="MM_nbGroup('out')" target="mainFrame"><img name="FAQ" src="../imatges/botons/FAQ.gif" border="0"></a></td>
+      <td width="1"></td>
+    </tr>
+  </table>
+</div>
+<table width="700" border="0" cellpadding="0" cellspacing="0">
+  <tr> 
+    <td width="700" height="14"><p>&nbsp;</p>
+      <p>&nbsp;</p></td>
+  </tr>
+  <tr> 
+    <td valign="top" height="454"> 
+      <div align="left"> 
+        <p><font face="Arial, Helvetica, sans-serif" size="2">SLEPc is based on 
+          PETSc and therefore users are recommended to use this documentation 
+          together with the one provided with PETSc. Application programmers can 
+          easily begin to use SLEPc from a high level (starting from the tutorial 
+          examples) and then gradually learn more details according to their needs.<br>
+          <br>
+          &nbsp;&nbsp;<font size="3"><b>&nbsp;</b><font size="2">SLEPc Users Manual</font></font> 
+          - <a href="slepc.pdf">[PDF]</a> 
+          <a href="slepc.ps">[PS]</a> <br>
+          &nbsp;&nbsp;&nbsp;<a href="manualpages/singleindex.html"><font size="3"><font size="2">Index</font></font></a> 
+          of all manual pages </font></p>
+        <p><br>
+          <font face="Arial, Helvetica, sans-serif" size="3"><b> SLEPc Manual 
+          Pages</b></font><br>
+          <br>
+          <font face="Arial, Helvetica, sans-serif" size="2">&nbsp;&nbsp;&nbsp;<a href="manualpages/EPS/index.html">Eigenvalue 
+          Problem Solver (EPS)</a> <br>
+          &nbsp;&nbsp;&nbsp;<a href="manualpages/ST/index.html">Spectral 
+          Transformation (ST)</a> <br>
+          &nbsp;&nbsp;&nbsp;Utilities <br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="manualpages/sys/index.html">System 
+          Routines</a><br>
+          <br>
+          The manual pages are split into four categories; we recommend that you 
+          begin with basic functionality and then gradually explore more sophisticated 
+          library features.<br>
+          <br>
+          &nbsp;&nbsp;&nbsp;<i>Beginner</i> - Basic usage <br>
+          &nbsp;&nbsp;<i>&nbsp;Intermediate</i> - Setting options for algorithms 
+          and data structures <br>
+          &nbsp;&nbsp;<i>&nbsp;Advanced</i> - Setting more advanced options and 
+          customization <br>
+          &nbsp;&nbsp;&nbsp;<i>Developer</i> - Interfaces intended primarily for 
+          library developers, not for typical applications programmers</font></p>
+        <p><font face="Arial, Helvetica, sans-serif" size="2"><br>
+          <b><font size="3">PETSc Manual Pages</font></b><br>
+          <br>
+          &nbsp;&nbsp;&nbsp;PETSc Documentation:<a href="http://www.mcs.anl.gov/petsc/petsc-2/documentation/index.html" target="_blank">[PETSc 
+          website]</a> <a href="http://www.grycap.upv.es/petsc/2.1.5/docs/index.html" target="_blank">[Local 
+          copy]</a></font></p>
+      </div>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

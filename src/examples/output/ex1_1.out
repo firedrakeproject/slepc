@@ -1,0 +1,14 @@
+
+1-D Laplacian Eigenproblem, n=30
+
+ Number of iterations of the method: 1395
+ Solution method: power
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=3000
+ Number of converged eigenpairs: 1
+
+           k           ||Ax-kx||/|k|
+   ----------------- -----------------
+       3.989739           0.000000
+

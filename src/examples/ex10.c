@@ -1,0 +1,318 @@
+static char help[] = "Example that illustrates the use of shell spectral "
+  "transformations. The problem to be solved is the same as ex1.c and"
+  "corresponds to the Laplacian operator in 1 dimension.\n\n"
+  "The command line options are:\n\n"
+  "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n\n";
+
+#include "slepceps.h"
+
+/* Define context for user-provided spectral transformation */
+typedef struct {
+  SLES        sles;
+} SampleShellST;
+
+/* Declare routines for user-provided spectral transformation */
+extern int SampleShellSTCreate(SampleShellST**);
+extern int SampleShellSTSetUp(SampleShellST*,ST);
+extern int SampleShellSTApply(void*,Vec,Vec);
+extern int SampleShellSTBackTransform(void*,PetscScalar*,PetscScalar*);
+extern int SampleShellSTDestroy(SampleShellST*);
+
+#undef __FUNCT__
+#define __FUNCT__ "main"
+int main( int argc, char **argv )
+{
+  Vec           *x;              /* basis vectors */
+  Mat           A;               /* operator matrix */
+  EPS           eps;             /* eigenproblem solver context */
+  ST            st;              /* spectral transformation context */
+  SampleShellST *shell;          /* user-defined spectral transform context */
+  EPSType       type;
+  PetscReal     *error, tol;
+  PetscScalar   *kr, *ki;
+  int           n=30, nev, ierr, maxit, i, its, nconv, 
+                col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
+  PetscScalar   value[3];
+  PetscTruth    isShell;
+
+  SlepcInitialize(&argc,&argv,(char*)0,help);
+
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem (shell-enabled), n=%d\n\n",n);
+         CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+     Compute the operator matrix that defines the eigensystem, Ax=kx
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = MatCreate(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,&A);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
+  
+  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  if (Istart==0) FirstBlock=PETSC_TRUE;
+  if (Iend==n) LastBlock=PETSC_TRUE;
+  value[0]=-1.0; value[1]=2.0; value[2]=-1.0;
+  for( i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++ ) {
+    col[0]=i-1; col[1]=i; col[2]=i+1;
+    ierr = MatSetValues(A,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  if (LastBlock) {
+    i=n-1; col[0]=n-2; col[1]=n-1;
+    ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  if (FirstBlock) {
+    i=0; col[0]=0; col[1]=1; value[0]=2.0; value[1]=-1.0;
+    ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  }
+
+  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                Create the eigensolver and set various options
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  /* 
+     Create eigensolver context
+  */
+  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+
+  /* 
+     Set operators. In this case, it is a standard eigenvalue problem
+  */
+  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+
+  /*
+     Set solver parameters at runtime
+  */
+  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  /*
+     Initialize shell spectral transformation if selected by user
+  */
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)st,STSHELL,&isShell);CHKERRQ(ierr);
+  if (isShell) {
+    /* (Optional) Create a context for the user-defined spectral tranform;
+       this context can be defined to contain any application-specific data. */
+    ierr = SampleShellSTCreate(&shell);CHKERRQ(ierr);
+
+    /* (Required) Set the user-defined routine for applying the operator */
+    ierr = STShellSetApply(st,SampleShellSTApply,(void*)shell);CHKERRQ(ierr);
+
+    /* (Optional) Set the user-defined routine for back-transformation */
+    ierr = STShellSetBackTransform(st,SampleShellSTBackTransform);CHKERRQ(ierr);
+
+    /* (Optional) Set a name for the transformation, used for STView() */
+    ierr = STShellSetName(st,"MyTransformation");CHKERRQ(ierr);
+
+    /* (Optional) Do any setup required for the new transformation */
+    ierr = SampleShellSTSetUp(shell,st);CHKERRQ(ierr);
+  }
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                      Solve the eigensystem
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = EPSSolve(eps,&its);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);
+         CHKERRQ(ierr);
+
+  /*
+     Optional: Get some information from the solver and display it
+  */
+  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eps,&nev,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %d\n",nev);
+         CHKERRQ(ierr);
+  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);
+         CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                    Display solution and clean up
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  /* 
+     Get number of converged approximate eigenpairs
+  */
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %d\n\n",nconv);
+         CHKERRQ(ierr);
+
+  if (nconv>0) {
+    /* 
+       Get converged eigenpairs: i-th eigenvalue is stored in kr[i] (real part) and
+       ki[i] (imaginary part), and the corresponding eigenvector is stored in x[i]
+    */
+    ierr = EPSGetSolution(eps,&kr,&ki,&x);CHKERRQ(ierr);
+
+    /*
+       Compute the relative error associated to each eigenpair
+    */
+    ierr = PetscMalloc(nconv*sizeof(PetscReal),&error);CHKERRQ(ierr);
+    ierr = EPSComputeError(eps,error);CHKERRQ(ierr);
+
+    /*
+       Display eigenvalues and relative errors
+    */
+    ierr = PetscPrintf(PETSC_COMM_WORLD,
+         "           k           ||Ax-kx||/|k|\n"
+         "   ----------------- -----------------\n" );CHKERRQ(ierr);
+    for( i=0; i<nconv; i++ ) {
+      if (ki[i]!=0.0) {
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",kr[i],ki[i],error[i]);
+	CHKERRQ(ierr); }
+      else {
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12f\n",kr[i],error[i]);
+	CHKERRQ(ierr); }
+    }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscFree(error);CHKERRQ(ierr);
+  }
+  
+  /* 
+     Free work space
+  */
+  if (isShell) {
+    ierr = SampleShellSTDestroy(shell);CHKERRQ(ierr);
+  }
+  ierr = EPSDestroy(eps);CHKERRQ(ierr);
+  ierr = MatDestroy(A);CHKERRQ(ierr);
+  ierr = SlepcFinalize();CHKERRQ(ierr);
+  return 0;
+}
+
+/***********************************************************************/
+/*          Routines for a user-defined shell transformation           */
+/***********************************************************************/
+
+#undef __FUNCT__  
+#define __FUNCT__ "SampleShellSTCreate"
+/*
+   SampleShellSTCreate - This routine creates a user-defined
+   spectral transformation context.
+
+   Output Parameter:
+.  shell - user-defined spectral transformation context
+*/
+int SampleShellSTCreate(SampleShellST **shell)
+{
+  SampleShellST *newctx;
+  int           ierr;
+
+  ierr   = PetscNew(SampleShellST,&newctx);CHKERRQ(ierr);
+  ierr   = SLESCreate(PETSC_COMM_WORLD,&newctx->sles);CHKERRQ(ierr);
+  ierr   = SLESAppendOptionsPrefix(newctx->sles,"st_"); CHKERRQ(ierr);
+  *shell = newctx;
+  return 0;
+}
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__  
+#define __FUNCT__ "SampleShellSTSetUp"
+/*
+   SampleShellSTSetUp - This routine sets up a user-defined
+   spectral transformation context.  
+
+   Input Parameters:
+.  shell - user-defined spectral transformation context
+.  st    - spectral transformation context containing the operator matrices
+
+   Output Parameter:
+.  shell - fully set up user-defined transformation context
+
+   Notes:
+   In this example, the user-defined transformation is simply OP=A^-1.
+   Therefore, the eigenpairs converge in reversed order. The SLES object
+   used for the solution of linear systems with A is handled via the
+   user-defined context SampleShellST.
+*/
+int SampleShellSTSetUp(SampleShellST *shell,ST st)
+{
+  Mat  A,B;
+  int  ierr;
+
+  ierr = STGetOperators( st, &A, &B ); CHKERRQ(ierr);
+  if (B) { SETERRQ(0,"Warning: This transformation is not intended for generalized problems"); }
+  ierr = SLESSetOperators(shell->sles,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = SLESSetFromOptions(shell->sles);CHKERRQ(ierr);
+
+  return 0;
+}
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__  
+#define __FUNCT__ "SampleShellSTApply"
+/*
+   SampleShellSTApply - This routine demonstrates the use of a
+   user-provided spectral transformation.
+
+   Input Parameters:
+.  ctx - optional user-defined context, as set by STShellSetApply()
+.  x - input vector
+
+   Output Parameter:
+.  y - output vector
+
+   Notes:
+   The transformation implemented in this code is just OP=A^-1 and
+   therefore it is of little use, merely as an example of working with
+   a STSHELL.
+*/
+int SampleShellSTApply(void *ctx,Vec x,Vec y)
+{
+  SampleShellST *shell = (SampleShellST*)ctx;
+  int           ierr;
+
+  ierr = SLESSolve(shell->sles,x,y,PETSC_NULL);CHKERRQ(ierr);
+
+  return 0;
+}
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__  
+#define __FUNCT__ "SampleShellSTBackTransform"
+/*
+   SampleShellSTBackTransform - This routine demonstrates the use of a
+   user-provided spectral transformation.
+
+   Input Parameters:
+.  ctx  - optional user-defined context, as set by STShellSetApply()
+.  eigr - pointer to real part of eigenvalues
+.  eigi - pointer to imaginary part of eigenvalues
+
+   Output Parameters:
+.  eigr - modified real part of eigenvalues
+.  eigi - modified imaginary part of eigenvalues
+
+   Notes:
+   This code implements the back transformation of eigenvalues in
+   order to retrieve the eigenvalues of the original problem. In this
+   example, simply set k_i = 1/k_i.
+*/
+int SampleShellSTBackTransform(void *ctx,PetscScalar *eigr,PetscScalar *eigi)
+{
+  *eigr = 1.0 / *eigr;
+
+  return 0;
+}
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__  
+#define __FUNCT__ "SampleShellSTDestroy"
+/*
+   SampleShellSTDestroy - This routine destroys a user-defined
+   spectral transformation context.
+
+   Input Parameter:
+.  shell - user-defined spectral transformation context
+*/
+int SampleShellSTDestroy(SampleShellST *shell)
+{
+  int ierr;
+
+  ierr = SLESDestroy(shell->sles);CHKERRQ(ierr);
+  ierr = PetscFree(shell);CHKERRQ(ierr);
+
+  return 0;
+}
+
+

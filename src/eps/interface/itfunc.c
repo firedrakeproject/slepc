@@ -1,0 +1,1521 @@
+/*
+      Interface EPS routines that the user calls.
+*/
+
+#include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
+#include "slepcblaslapack.h"
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetDefaults"
+/*@
+   EPSSetDefaults - Sets the default values of the internal parameters
+   of the eigensolver. Some of these parameters are set by a method-specific
+   routine.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps   - eigenproblem solver context
+
+   Level: developer
+
+.seealso: EPSSetType(), EPSSetUp()
+@*/
+int EPSSetDefaults(EPS eps)
+{
+  int        ierr;
+  Mat        A,B;
+  PetscTruth Ah,Bh;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+
+  /* Set default solver type */
+  if (!eps->type_name) {
+    ierr = EPSSetType(eps,EPSPOWER);CHKERRQ(ierr);
+  }
+
+  /* Set default problem type */
+  if (!eps->problem_type) {
+    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+    ierr = SlepcIsHermitian(A,&Ah);CHKERRQ(ierr);
+    if (B==PETSC_NULL) {
+      if (Ah) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
+      else    { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
+    }
+    else {
+      ierr = SlepcIsHermitian(B,&Bh);CHKERRQ(ierr);
+      if (Ah && Bh) { ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr); }
+      else          { ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr); }
+    }
+  }
+
+  if (eps->ops->setdefaults) {
+    ierr = (*eps->ops->setdefaults)(eps);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetUp"
+/*@
+   EPSSetUp - Sets up all the internal data structures necessary for the
+   application of the eigensolver. The operations carried out depend on
+   the solver: factorization of a preconditioning matrix or simply the
+   allocation of necessary space.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps   - eigenproblem solver context
+
+   Level: advanced
+
+   Notes:
+   This function need not be called explicitly in most cases, since EPSSolve()
+   calls it. It can be useful when one want to measure the set-up time 
+   separately from the solve time.
+
+   This function sets a random initial vector if none has been provided.
+
+.seealso: EPSCreate(), EPSSolve(), EPSDestroy()
+@*/
+int EPSSetUp(EPS eps)
+{
+  int         n, m, i, ierr, nloc, nev, ncv;
+  PetscScalar *pV;
+  Vec         v0;
+  Mat         A;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+
+  /* reset the convergence flag from the previous solves */
+  eps->reason = EPS_CONVERGED_ITERATING;
+
+  /* Check if the EPS initial vector has been set */
+  ierr = EPSGetInitialVector(eps,&v0);CHKERRQ(ierr);
+  if (!v0) {
+    ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(A,&n,&m);CHKERRQ(ierr);
+    ierr = VecCreate(eps->comm,&v0);CHKERRQ(ierr);
+    ierr = VecSetSizes(v0,m,PETSC_DECIDE);CHKERRQ(ierr);
+    ierr = VecSetFromOptions(v0);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(v0);CHKERRQ(ierr);
+    ierr = EPSSetInitialVector(eps,v0);CHKERRQ(ierr);
+  }
+  ierr = STSetVector(eps->OP,v0); CHKERRQ(ierr);
+
+  ierr = EPSSetDefaults(eps);CHKERRQ(ierr);
+  
+  nev = eps->nev;
+  ncv = eps->ncv;
+  if (!eps->eigr){
+    ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
+  }
+  if (!eps->eigi){
+    ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
+  }
+  if (!eps->errest){
+    ierr = PetscMalloc(ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
+  }
+  if (!eps->V){
+    ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
+    ierr = PetscMalloc(ncv*sizeof(Vec),&eps->V);CHKERRQ(ierr);
+    ierr = PetscMalloc(ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+    for (i=0;i<ncv;i++) {
+      ierr = VecCreateMPIWithArray(eps->comm,nloc,PETSC_DECIDE,pV+i*nloc,&eps->V[i]);CHKERRQ(ierr);
+    }
+  }
+
+  if (eps->setupcalled) PetscFunctionReturn(0);
+  ierr = PetscLogEventBegin(EPS_SetUp,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
+  eps->setupcalled = 1;
+  ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
+  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_SetUp,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSolve"
+/*@
+   EPSSolve - Solves the eigensystem.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameter:
+.  its - number of iterations performed by the solver
+
+   Options Database:
++   -eps_view - print information about the solver used
+.   -eps_view_binary - save the matrices to the default binary file
+-   -eps_plot_eigs - plot computed eigenvalues
+
+   Notes:
+   On return, the parameter "its" contains either the iteration number at
+   which convergence was successfully reached, or failure was detected.  
+   Call EPSGetConvergedReason() to determine if the solver converged or 
+   failed and why.
+
+   Level: beginner
+
+.seealso: EPSCreate(), EPSSetUp(), EPSDestroy(), EPSSetTolerances() 
+@*/
+int EPSSolve(EPS eps,int *its) 
+{
+  int         i,ierr,nits;
+  PetscReal   re,im;
+  PetscTruth  flg;
+  PetscViewer viewer;
+  PetscDraw   draw;
+  PetscDrawSP drawsp;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+
+  ierr = PetscOptionsHasName(eps->prefix,"-eps_view_binary",&flg);CHKERRQ(ierr); 
+  if (flg) {
+    Mat A,B;
+    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+    ierr = MatView(A,PETSC_VIEWER_BINARY_(eps->comm));CHKERRQ(ierr);
+    if (B) ierr = MatView(B,PETSC_VIEWER_BINARY_(eps->comm));CHKERRQ(ierr);
+  }
+
+  if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
+  ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
+  ierr = STPreSolve(eps->OP,eps);CHKERRQ(ierr);
+  ierr = (*eps->ops->solve)(eps,&nits);CHKERRQ(ierr);
+  ierr = STPostSolve(eps->OP,eps);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
+  if (!eps->reason) {
+    SETERRQ(1,"Internal error, solver returned without setting converged reason");
+  }
+  if (its) *its = nits;
+
+  /* Map eigenvalues back to the original problem, necessary in some 
+  * spectral transformations */
+  ierr = EPSBackTransform(eps);CHKERRQ(ierr);
+
+  ierr = PetscOptionsHasName(eps->prefix,"-eps_view",&flg);CHKERRQ(ierr); 
+  if (flg && !PetscPreLoadingOn) { ierr = EPSView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsHasName(eps->prefix,"-eps_plot_eigs",&flg);CHKERRQ(ierr); 
+  if (flg) { 
+    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",
+                             PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
+    for( i=0; i<eps->nconv; i++ ) {
+#if defined(PETSC_USE_COMPLEX)
+      re = PetscRealPart(eps->eigr[i]);
+      im = PetscImaginaryPart(eps->eigi[i]);
+#else
+      re = eps->eigr[i];
+      im = eps->eigi[i];
+#endif
+      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
+    }
+    ierr = PetscDrawSPDraw(drawsp);CHKERRQ(ierr);
+    ierr = PetscDrawSPDestroy(drawsp);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy"
+/*@C
+   EPSDestroy - Destroys the EPS context.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Level: beginner
+
+.seealso: EPSCreate(), EPSSetUp(), EPSSolve()
+@*/
+int EPSDestroy(EPS eps)
+{
+  int         i,ierr;
+  PetscScalar *pV;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if (--eps->refct > 0) PetscFunctionReturn(0);
+
+  /* if memory was published with AMS then destroy it */
+  ierr = PetscObjectDepublish(eps);CHKERRQ(ierr);
+
+  ierr = STDestroy(eps->OP);CHKERRQ(ierr);
+  if (eps->ops->destroy) {
+    ierr = (*eps->ops->destroy)(eps); CHKERRQ(ierr);
+  }
+
+  if (eps->eigr){ ierr = PetscFree(eps->eigr);CHKERRQ(ierr); }
+  if (eps->eigi){ ierr = PetscFree(eps->eigi);CHKERRQ(ierr); }
+  if (eps->errest){ ierr = PetscFree(eps->errest);CHKERRQ(ierr); }
+  if (eps->V){
+    ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
+    for (i=0;i<eps->ncv;i++) {
+      ierr = VecDestroy(eps->V[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
+    ierr = PetscFree(eps->V);CHKERRQ(ierr);
+  }
+  ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+
+  PetscLogObjectDestroy(eps);
+  PetscHeaderDestroy(eps);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetTolerances"
+/*@C
+   EPSGetTolerances - Gets the tolerance and maximum
+   iteration count used by the default EPS convergence tests. 
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+  
+   Output Parameters:
++  tol - the convergence tolerance
+-  maxits - maximum number of iterations
+
+   Notes:
+   The user can specify PETSC_NULL for any parameter that is not needed.
+
+   Level: intermediate
+
+.seealso: EPSSetTolerances()
+@*/
+int EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if (tol)    *tol    = eps->tol;
+  if (maxits) *maxits = eps->max_it;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetTolerances"
+/*@
+   EPSSetTolerances - Sets the tolerance and maximum
+   iteration count used by the default EPS convergence testers. 
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - the eigensolver context
+.  tol - the convergence tolerance
+-  maxits - maximum number of iterations to use
+
+   Options Database Keys:
++  -eps_tol <tol> - Sets the convergence tolerance
+-  -eps_max_it <maxits> - Sets the maximum number of iterations allowed
+
+   Notes:
+   Use PETSC_DEFAULT to retain the default value of any of the tolerances.
+
+   Level: intermediate
+
+.seealso: EPSGetTolerances()
+@*/
+int EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if (tol != PETSC_DEFAULT)    eps->tol    = tol;
+  if (maxits != PETSC_DEFAULT) eps->max_it = maxits;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetDimensions"
+/*@
+   EPSGetDimensions - Gets the number of eigenvalues to compute
+   and the dimension of the subspace.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+  
+   Output Parameters:
++  nev - number of eigenvalues to compute
+-  ncv - the maximum dimension of the subspace to be used by the solver
+
+   Notes:
+   The user can specify PETSC_NULL for any parameter that is not needed.
+
+   Level: intermediate
+
+.seealso: EPSSetDimensions()
+@*/
+int EPSGetDimensions(EPS eps,int *nev,int *ncv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if( nev )   *nev = eps->nev;
+  if( ncv )   *ncv = eps->ncv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetDimensions"
+/*@
+   EPSSetDimensions - Sets the number of eigenvalues to compute
+   and the dimension of the subspace.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - the eigensolver context
+.  nev - number of eigenvalues to compute
+-  ncv - the maximum dimension of the subspace to be used by the solver
+
+   Options Database Keys:
++  -eps_nev <nev> - Sets nev
+-  -eps_ncv <ncv> - Sets ncv
+
+   Notes:
+   Use PETSC_DEFAULT to retain the previous value of any parameter.
+
+   Use PETSC_DECIDE for ncv to assign a reasonably good value, which is 
+   dependent of the solution method.
+
+   Level: intermediate
+
+.seealso: EPSGetDimensions()
+@*/
+int EPSSetDimensions(EPS eps,int nev,int ncv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+
+  if( nev != PETSC_DEFAULT ) {
+    if (nev<1) SETERRQ(1,"Illegal value of nev. Must be > 0");
+    eps->nev = nev;
+  }
+  if( ncv == PETSC_DECIDE ) eps->ncv = 0;
+  else if( ncv != PETSC_DEFAULT ) {
+    if (ncv<1) SETERRQ(1,"Illegal value of ncv. Must be > 0");
+    eps->ncv = ncv;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetConverged"
+/*@
+   EPSGetConverged - Gets the number of converged eigenpairs.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+  
+   Output Parameter:
+.  nconv - number of converged eigenvalues 
+
+   Note:
+   This function should be called after EPSSolve() has finished.
+
+   Level: beginner
+
+.seealso: EPSSetDimensions()
+@*/
+int EPSGetConverged(EPS eps,int *nconv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if (nconv)   *nconv = eps->nconv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetSolution" 
+/*@C
+   EPSGetSolution - Gets the location of the solution of the
+   eigenproblem which has already been solved. The solution consists 
+   in both the eigenvalues and the eigenvectors (if available).
+
+   Not Collective
+
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameters:
++  eigr - real part of eigenvalues
+.  eigi - imaginary part of eigenvalues
+-  V    - eigenvectors
+
+   Notes:
+   In the complex case (PETSC_USE_COMPLEX) the eigenvalues are stored in eigr
+   and eigi is set to zero.
+
+   In the real case, complex eigenvectors are stored in two consecutive vectors
+   of V containing the real and imaginary parts, respectively.
+
+   Level: beginner
+
+@*/
+int EPSGetSolution(EPS eps, PetscScalar **eigr, PetscScalar **eigi, Vec **V)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if (eigr) *eigr = eps->eigr;
+  if (eigi) *eigi = eps->eigi;
+  if (V)    *V    = eps->V;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetErrorEstimates" 
+/*@C
+   EPSGetErrorEstimates - Returns the error bounds associated to each of
+   the approximate eigenpairs.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameter:
+.  errest - the error estimates
+
+   Level: advanced
+
+.seealso: EPSGetSolution(), EPSComputeError()
+@*/
+int EPSGetErrorEstimates(EPS eps, PetscReal **errest)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *errest = eps->errest;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetST"
+/*@
+   EPSSetST - Associates a spectral transformation object to the
+   eigensolver. 
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - eigensolver context obtained from EPSCreate()
+-  st   - the spectral transformation object
+
+   Note:
+   Use EPSGetST() to retrieve the spectral transformation context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: EPSGetST()
+@*/
+int EPSSetST(EPS eps,ST st)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(st,ST_COOKIE);
+  PetscCheckSameComm(eps,st);
+  eps->OP = st;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetST"
+/*@C
+   EPSGetST - Obtain the spectral transformation (ST) object associated
+   to the eigensolver object.
+
+   Not Collective
+
+   Input Parameters:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameter:
+.  st - spectral transformation context
+
+   Level: beginner
+
+.seealso: EPSSetST()
+@*/
+int EPSGetST(EPS eps, ST *st)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *st = eps->OP;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetMonitor"
+/*@C
+   EPSSetMonitor - Sets an ADDITIONAL function to be called at every 
+   iteration to monitor the error estimates for each requested eigenpair.
+      
+   Collective on EPS
+
+   Input Parameters:
++  eps     - eigensolver context obtained from EPSCreate()
+.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring
+-  mctx    - [optional] context for private data for the
+             monitor routine (use PETSC_NULL if no context is desired)
+
+   Calling Sequence of monitor:
+$     monitor (EPS eps, int its, int nconv, PetscReal* errest, int nest, void *mctx)
+
++  eps    - eigensolver context obtained from EPSCreate()
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs
+.  errest - error estimates for each eigenpair
+.  nest   - number of error estimates
+-  mctx   - optional monitoring context, as set by EPSSetMonitor()
+
+   Options Database Keys:
++    -eps_monitor        - print error estimates at each iteration
+-    -eps_cancelmonitors - cancels all monitors that have been hardwired into
+      a code by calls to EPSetMonitor(), but does not cancel those set via
+      the options database.
+
+   Notes:  
+   Several different monitoring routines may be set by calling
+   EPSSetMonitor() multiple times; all will be called in the 
+   order in which they were set.
+
+   Level: intermediate
+
+.seealso: EPSDefaultEstimatesMonitor(), EPSClearMonitor()
+@*/
+int EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscReal*,int,void*), void *mctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if (eps->numbermonitors >= MAXEPSMONITORS) {
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS monitors set");
+  }
+  eps->monitor[eps->numbermonitors]           = monitor;
+  eps->monitorcontext[eps->numbermonitors++]  = (void*)mctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetValuesMonitor"
+/*@C
+   EPSSetValuesMonitor - Sets an ADDITIONAL function to be called at every 
+   iteration to monitor the value of approximate eigenvalues.
+      
+   Collective on EPS
+
+   Input Parameters:
++  eps     - eigensolver context obtained from EPSCreate()
+.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring
+-  mctx    - [optional] context for private data for the
+             monitor routine (use PETSC_NULL if no context is desired)
+
+   Calling Sequence of monitor:
+$     monitor (EPS eps, int its, int nconv, PetscScalar* kr, PetscScalar* ki, int nest, void *mctx)
+
++  eps    - eigensolver context obtained from EPSCreate()
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs
+.  kr     - real part of each eigenvalue
+.  ki     - imaginary part of each eigenvalue
+.  nest   - number of error estimates
+-  mctx   - optional monitoring context, as set by EPSSetMonitor()
+
+   Options Database Keys:
++    -eps_monitor_values - print eigenvalue approximations at each iteration
+-    -eps_cancelmonitors - cancels all monitors that have been hardwired into
+      a code by calls to EPSetValuesMonitor(), but does not cancel those set 
+      via the options database.
+
+   Notes:  
+   Several different monitoring routines may be set by calling
+   EPSSetValuesMonitor() multiple times; all will be called in the 
+   order in which they were set.
+
+   Level: intermediate
+
+.seealso: EPSDefaultValuesMonitor(), EPSClearMonitor()
+@*/
+int EPSSetValuesMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,int,void*), void *mctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if (eps->numbervmonitors >= MAXEPSMONITORS) {
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS values monitors set");
+  }
+  eps->vmonitor[eps->numbervmonitors]           = monitor;
+  eps->vmonitorcontext[eps->numbervmonitors++]  = (void*)mctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSClearMonitor"
+/*@C
+   EPSClearMonitor - Clears all monitors for an EPS object.
+
+   Collective on EPS
+
+   Input Parameters:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Options Database Key:
+.    -eps_cancelmonitors - Cancels all monitors that have been hardwired 
+      into a code by calls to EPSSetMonitor() or EPSSetValuesMonitor(), 
+      but does not cancel those set via the options database.
+
+   Level: intermediate
+
+.seealso: EPSSetMonitor(), EPSSetValuesMonitor()
+@*/
+int EPSClearMonitor(EPS eps)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  eps->numbermonitors = 0;
+  eps->numbervmonitors = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetMonitorContext"
+/*@C
+   EPSGetMonitorContext - Gets the estimates monitor context, as set by 
+   EPSSetMonitor() for the FIRST monitor only.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameter:
+.  ctx - monitor context
+
+   Level: intermediate
+
+.seealso: EPSSetMonitor(), EPSDefaultEstimatesMonitor()
+@*/
+int EPSGetMonitorContext(EPS eps, void **ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *ctx =      (eps->monitorcontext[0]);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetValuesMonitorContext"
+/*@C
+   EPSGetValuesMonitorContext - Gets the values monitor context, as set by 
+   EPSSetValuesMonitor() for the FIRST monitor only.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameter:
+.  ctx - monitor context
+
+   Level: intermediate
+
+.seealso: EPSSetValuesMonitor(), EPSDefaultValuesMonitor()
+@*/
+int EPSGetValuesMonitorContext(EPS eps, void **ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *ctx =      (eps->vmonitorcontext[0]);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetInitialVector"
+/*@
+   EPSSetInitialVector - Sets the initial vector from which the 
+   eigensolver starts to iterate.
+
+   Collective on EPS and Vec
+
+   Input Parameters:
++  eps - the eigensolver context
+-  vec - the vector
+
+   Level: intermediate
+
+.seealso: EPSGetInitialVector()
+
+@*/
+int EPSSetInitialVector(EPS eps,Vec vec)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(vec,VEC_COOKIE);
+  PetscCheckSameComm(eps,vec);
+  eps->vec_initial = vec;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetInitialVector"
+/*@
+   EPSGetInitialVector - Gets the initial vector associated with the 
+   eigensolver; if the vector was not set it will return a 0 pointer or
+   a vector randomly generated by EPSSetUp().
+
+   Not collective, but vector is shared by all processors that share the EPS
+
+   Input Parameter:
+.  eps - the eigensolve context
+
+   Output Parameter:
+.  vec - the vector
+
+   Level: intermediate
+
+.seealso: EPSSetInitialVector()
+
+@*/
+int EPSGetInitialVector(EPS eps,Vec *vec)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *vec = eps->vec_initial;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetWhichEigenpairs"
+/*@
+    EPSSetWhichEigenpairs - Specifies which portion of the spectrum is 
+    to be sought.
+
+    Collective on EPS
+
+    Input Parameter:
+.   eps - eigensolver context obtained from EPSCreate()
+
+    Output Parameter:
+.   which - the portion of the spectrum to be sought
+
+    Possible values:
+    The parameter 'which' can have one of these values:
+    
++     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
+.     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
+.     EPS_LARGEST_ALGEBRAIC - largest (algebraic) eigenvalues
+.     EPS_SMALLEST_ALGEBRAIC - smallest (algebraic) eigenvalues
+.     EPS_LARGEST_REAL - largest real parts
+.     EPS_SMALLEST_REAL - smallest real parts
+.     EPS_LARGEST_IMAGINARY - largest imaginary parts
+.     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
+-     EPS_BOTH_ENDS - eigenvalues from both ends of the spectrum (Hermitian case)
+
+    Options Database Keys:
++   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
+.   -eps_smallest_magnitude - Sets smallest eigenvalues in magnitude
+.   -eps_largest_algebraic - Sets largest (algebraic) eigenvalues
+.   -eps_smallest_algebraic - Sets smallest (algebraic) eigenvalues
+.   -eps_largest_real - Sets largest real parts
+.   -eps_smallest_real - Sets smallest real parts
+.   -eps_largest_imaginary - Sets largest imaginary parts
+.   -eps_smallest_imaginary - Sets smallest imaginary parts
+-   -eps_both_ends - Sets both ends
+
+    Notes:
+    No all eigensolvers implemented in EPS account for all the possible values
+    stated above. Also, some values make sense only for certain types of 
+    problems.
+    
+    Level: intermediate
+
+.seealso: EPSGetWhichEigenpairs()
+@*/
+int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  eps->which = which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetWhichEigenpairs"
+/*@C
+    EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be 
+    sought.
+
+    Not Collective
+
+    Input Parameter:
+.   eps - eigensolver context obtained from EPSCreate()
+
+    Output Parameter:
+.   which - the portion of the spectrum to be sought
+
+    Possible values:
+    The parameter 'which' can have one of these values:
+    
++     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
+.     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
+.     EPS_LARGEST_ALGEBRAIC - largest (algebraic) eigenvalues
+.     EPS_SMALLEST_ALGEBRAIC - smallest (algebraic) eigenvalues
+.     EPS_LARGEST_REAL - largest real parts
+.     EPS_SMALLEST_REAL - smallest real parts
+.     EPS_LARGEST_IMAGINARY - largest imaginary parts
+.     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
+-     EPS_BOTH_ENDS - eigenvalues from both ends of the spectrum (Hermitian case)
+
+    Level: intermediate
+
+.seealso: EPSSetWhichEigenpairs()
+@*/
+int EPSGetWhichEigenpairs(EPS eps,EPSWhich *which) 
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *which = eps->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeExplicitOperator"
+/*@
+    EPSComputeExplicitOperator - Computes the explicit operator associated
+    to the eigenvalue problem with the specified spectral transformation.  
+
+    Collective on EPS
+
+    Input Parameter:
+.   eps - the eigenvalue solver context
+
+    Output Parameter:
+.   mat - the explict operator
+
+    Notes:
+    This routine builds a matrix containing the explicit operator. For 
+    example, in generalized problems with shift-and-invert spectral
+    transformation the result would be matrix (A - s B)^-1 B.
+    
+    This computation is done by applying the operator to columns of the 
+    identity matrix.
+
+    Currently, this routine uses a dense matrix format when 1 processor
+    is used and a sparse format otherwise.  This routine is costly in general,
+    and is recommended for use only with relatively small systems.
+
+    Level: advanced
+   
+@*/
+int EPSComputeExplicitOperator(EPS eps,Mat *mat)
+{
+  Vec         in,out;
+  int         ierr,i,M,m,size,*rows,start,end;
+  MPI_Comm    comm;
+  PetscScalar *array,zero = 0.0,one = 1.0;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidPointer(mat);
+  comm = eps->comm;
+
+  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
+
+  ierr = VecDuplicate(eps->vec_initial,&in);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&out);CHKERRQ(ierr);
+  ierr = VecGetSize(in,&M);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(in,&m);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(in,&start,&end);CHKERRQ(ierr);
+  ierr = PetscMalloc((m+1)*sizeof(int),&rows);CHKERRQ(ierr);
+  for (i=0; i<m; i++) {rows[i] = start + i;}
+
+  if (size == 1) {
+    ierr = MatCreateSeqDense(comm,M,M,PETSC_NULL,mat);CHKERRQ(ierr);
+  } else {
+    ierr = MatCreateMPIAIJ(comm,m,m,M,M,0,0,0,0,mat);CHKERRQ(ierr);
+  }
+  
+  for (i=0; i<M; i++) {
+
+    ierr = VecSet(&zero,in);CHKERRQ(ierr);
+    ierr = VecSetValues(in,1,&i,&one,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(in);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(in);CHKERRQ(ierr);
+
+    ierr = STApply(eps->OP,in,out); CHKERRQ(ierr);
+    
+    ierr = VecGetArray(out,&array);CHKERRQ(ierr);
+    ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr); 
+    ierr = VecRestoreArray(out,&array);CHKERRQ(ierr);
+
+  }
+  ierr = PetscFree(rows);CHKERRQ(ierr);
+  ierr = VecDestroy(in);CHKERRQ(ierr);
+  ierr = VecDestroy(out);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetOperators"
+/*@
+   EPSSetOperators - Sets the matrices associated with the eigenvalue problem.
+
+   Collective on EPS and Mat
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+.  A  - the matrix associated with the eigensystem
+-  B  - the second matrix in the case of generalized eigenproblems
+
+   Notes: 
+   To specify a standard eigenproblem, use PETSC_NULL for parameter B.
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSGetST(), STGetOperators()
+@*/
+int EPSSetOperators(EPS eps,Mat A,Mat B)
+{
+  int ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  PetscValidHeaderSpecific(A,MAT_COOKIE);
+  if (B) PetscValidHeaderSpecific(B,MAT_COOKIE);
+  ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
+  eps->setupcalled = 0;  /* so that next solve call will call setup */
+
+  /* The following call is done in order to check the consistency of the
+     problem type with the specified matrices */
+  if (eps->problem_type) {
+    ierr = EPSSetProblemType(eps,eps->problem_type);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeError"
+/*@C
+   EPSComputeError - Computes the actual relative error associated with each of
+   the converged approximate eigenpairs.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - the eigensolver context
+
+   Output Parameter:
+.  error - the relative error, computed as ||Ax-kBx||/|k| where k is the 
+   eigenvalue and x is the eigenvector
+
+   Level: beginner
+
+.seealso: EPSSolve()
+@*/
+int EPSComputeError(EPS eps,PetscReal *error)
+{
+  Vec         u, w;
+  Mat         A, B;
+  int         i, first=1, ierr;
+  PetscScalar alpha;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  ierr = STGetOperators(eps->OP,&A,&B);
+
+  ierr = VecDuplicate(eps->vec_initial,&u); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&w); CHKERRQ(ierr);
+  for (i=0;i<eps->nconv;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if( eps->eigi[i] == 0.0 ) {
+#endif
+      ierr = MatMult( A, eps->V[i], u ); CHKERRQ(ierr);
+      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
+      alpha = -eps->eigr[i];
+      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+      ierr = VecNorm( u, NORM_2, &error[i] ); CHKERRQ(ierr);
+      error[i] /= PetscAbsScalar(eps->eigr[i]);
+#if !defined(PETSC_USE_COMPLEX)
+    }
+    else if( first ) {
+      ierr = MatMult( A, eps->V[i], u ); CHKERRQ(ierr);
+      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
+      alpha = -eps->eigr[i];
+      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i+1], w ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( eps->V[i+1], w ); CHKERRQ(ierr); }
+      alpha = eps->eigi[i];
+      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+      ierr = VecNorm( u, NORM_2, &error[i] ); CHKERRQ(ierr);
+      ierr = MatMult( A, eps->V[i+1], u ); CHKERRQ(ierr);
+      alpha = -eps->eigr[i];
+      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+      if(eps->isgeneralized) { ierr = MatMult( B, eps->V[i], w ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( eps->V[i], w ); CHKERRQ(ierr); }
+      alpha = -eps->eigi[i];
+      ierr = VecAXPY( &alpha, w, u ); CHKERRQ(ierr);
+      ierr = VecNorm( u, NORM_2, &error[i+1] ); CHKERRQ(ierr);
+      error[i] = LAlapy2_( &error[i], &error[i+1] );
+      error[i] = error[i]/LAlapy2_( &eps->eigr[i], &eps->eigi[i] );
+      error[i+1] = error[i];
+      first = 0;
+    }
+    else first = 1;
+#endif
+  }
+  ierr = VecDestroy(w); CHKERRQ(ierr);
+  ierr = VecDestroy(u); CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetProblemType"
+/*@C
+   EPSSetProblemType - Specifies the type of the eigenvalue problem.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps      - the eigensolver context
+-  type     - a known type of eigenvalue problem 
+
+   Options Database Keys:
++  -eps_hermitian - Hermitian eigenvalue problem (default)
+.  -eps_gen_hermitian - generalized Hermitian eigenvalue problem
+.  -eps_non_hermitian - non-Hermitian eigenvalue problem
+-  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
+    
+   Note:  
+   Normally, the user need not set the EPS type, since it can be set from
+   the information given in the EPSSetOperators call. This routine is reserved
+   for special cases such as when a nonsymmetric solver wants to be 
+   used in a symmetric problem. 
+
+  Level: advanced
+
+.seealso: EPSSetOperators(), EPSSetType(), EPSType
+@*/
+int EPSSetProblemType(EPS eps,EPSProblemType type)
+{
+  int        n,m,ierr;
+  Mat        A,B;
+  PetscTruth Ah,Bh,inconsistent=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+
+  if (type!=EPS_HEP && type!=EPS_GHEP && type!=EPS_NHEP && type!=EPS_GNHEP ) { SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type"); }
+
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  if (!A) { SETERRQ(1,"Must call EPSSetOperators() first"); }
+
+  /* Check for square matrices */
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  if (m!=n) { SETERRQ(1,"A is a non-square matrix"); }
+  if (B) { 
+    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
+    if (m!=n) { SETERRQ(1,"B is a non-square matrix"); }
+  }
+
+  eps->problem_type = type;
+
+  ierr = SlepcIsHermitian(A,&Ah);CHKERRQ(ierr);
+  if (B) { ierr = SlepcIsHermitian(B,&Bh);CHKERRQ(ierr); }
+
+  if (!B) {
+    eps->isgeneralized = PETSC_FALSE;
+    if (Ah) eps->ishermitian = PETSC_TRUE;
+    else    eps->ishermitian = PETSC_FALSE;
+  }
+  else {
+    eps->isgeneralized = PETSC_TRUE;
+    if (Ah && Bh) eps->ishermitian = PETSC_TRUE;
+    else          eps->ishermitian = PETSC_FALSE;
+  }
+ 
+  switch (type) {
+    case EPS_HEP:
+      if (eps->isgeneralized || !eps->ishermitian) inconsistent=PETSC_TRUE;
+      eps->ishermitian = PETSC_TRUE;
+      break;
+    case EPS_GHEP:
+      /* Note that here we do not consider the case in which A and B are 
+         non-hermitian but there exists a linear combination of them which is */
+      if (!eps->isgeneralized || !eps->ishermitian) inconsistent=PETSC_TRUE;
+      break;
+    case EPS_NHEP:
+      if (eps->isgeneralized) inconsistent=PETSC_TRUE;
+      eps->ishermitian = PETSC_FALSE;
+      break;
+    case EPS_GNHEP:
+      /* If matrix B is not given then an error is issued. An alternative 
+         would be to generate an identity matrix. Also in EPS_GHEP above */
+      if (!eps->isgeneralized) inconsistent=PETSC_TRUE;
+      eps->ishermitian = PETSC_FALSE;
+      break;
+  }
+  if (inconsistent) { SETERRQ(0,"Warning: Inconsistent EPS state"); }
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetProblemType"
+/*@C
+   EPSGetProblemType - Gets the problem type from the EPS object.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context 
+
+   Output Parameter:
+.  type - name of EPS problem type 
+
+   Level: intermediate
+
+.seealso: EPSSetProblemType()
+@*/
+int EPSGetProblemType(EPS eps,EPSProblemType *type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *type = eps->problem_type;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSIsGeneralized"
+/*@
+   EPSIsGeneralized - Ask if the EPS object corresponds to a generalized 
+   eigenvalue problem.
+
+   Not collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  is - the answer
+
+   Level: intermediate
+
+@*/
+int EPSIsGeneralized(EPS eps,PetscTruth* is)
+{
+  int  ierr;
+  Mat  B;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
+  if( B ) *is = PETSC_TRUE;
+  else *is = PETSC_FALSE;
+  if( eps->setupcalled ) {
+    if( eps->isgeneralized != *is ) { 
+      SETERRQ(0,"Warning: Inconsistent EPS state");
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSIsHermitian"
+/*@
+   EPSIsHermitian - Ask if the EPS object corresponds to a Hermitian 
+   eigenvalue problem.
+
+   Not collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  is - the answer
+
+   Level: intermediate
+
+@*/
+int EPSIsHermitian(EPS eps,PetscTruth* is)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  if( eps->ishermitian ) *is = PETSC_TRUE;
+  else *is = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSQRDecomposition"
+/*@
+   EPSQRDecomposition - Compute the QR factorization of the basis vectors.
+
+   Collective on EPS
+
+   Input Parameter:
++  eps - the eigenproblem solver context
+.  m - starting column
+-  n - ending column
+
+   Level: developer
+
+@*/
+int EPSQRDecomposition(EPS eps,int m,int n,PetscScalar *R,int ldr)
+{
+  int         ierr,k;
+  PetscScalar alpha;
+  PetscReal   norm;
+  
+  PetscFunctionBegin;
+
+  /* normalize v_m: r_{m,m} = ||v_m||_2; v_m = v_m/r_{m,m} */
+  ierr = VecNorm(eps->V[m],NORM_2,&norm);CHKERRQ(ierr);
+  if (R) { R[m+ldr*m] = norm; }
+  if (norm==0.0) SETERRQ( 1,"Zero vector in QR decomposition" );
+  alpha = 1.0/norm; 
+  ierr = VecScale(&alpha,eps->V[m]);CHKERRQ(ierr);
+
+  for (k=m+1; k<n; k++) {
+
+    /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
+    ierr = PetscLogEventBegin(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
+    if (R) { ierr = (*eps->orthog)(eps,k-1,&R[0+ldr*k]);CHKERRQ(ierr); }
+    else   { ierr = (*eps->orthog)(eps,k-1,PETSC_NULL);CHKERRQ(ierr); }
+    ierr = PetscLogEventEnd(EPS_Orthogonalization,eps,0,0,0);CHKERRQ(ierr);
+
+    /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
+    ierr = VecNorm(eps->V[k],NORM_2,&norm); CHKERRQ(ierr);
+    if (R) { R[k+ldr*k] = norm; }
+    if (norm==0.0) SETERRQ( 1,"Zero vector in QR decomposition" );
+    alpha = 1.0/norm;
+    ierr = VecScale(&alpha,eps->V[k]);CHKERRQ(ierr);
+
+  }
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSReverseProjection"
+/*@
+   EPSReverseProjection - Compute the operation V=V*S, where the columns of
+   V are m of the basis vectors of the EPS object and S is an mxm dense
+   matrix.
+
+   Collective on EPS
+
+   Input Parameter:
++  eps - the eigenproblem solver context
+.  m - starting column
+.  k - dimension of matrix S
+-  S - pointer to the values of matrix S
+
+   Level: developer
+
+   Note:
+   Matrix S is overwritten.
+
+@*/
+int EPSReverseProjection(EPS eps,int k,int m,PetscScalar *S)
+{
+  int         i,j,n,ierr,lwork;
+  PetscScalar *tau,*work,*pV;
+  
+  PetscFunctionBegin;
+
+  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
+  lwork = n;
+  ierr = PetscMalloc(m*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+
+  /* compute the LQ factorization L Q = S */
+  LAgelqf_(&m,&m,S,&m,tau,work,&lwork,&ierr);
+
+  /* triangular post-multiplication, V = V L */
+  for (i=k;i<k+m;i++) {
+    ierr = VecScale(S+(i-k)+m*(i-k),eps->V[i]);CHKERRQ(ierr);
+    for (j=i+1;j<k+m;j++) {
+      ierr = VecAXPY(S+(j-k)+m*(i-k),eps->V[j],eps->V[i]);CHKERRQ(ierr);
+    }
+  }
+
+  /* orthogonal post-multiplication, V = V Q */
+  ierr = VecGetArray(eps->V[k],&pV);CHKERRQ(ierr);
+  LAormlq_("R","N",&n,&m,&m,S,&m,tau,pV,&n,work,&lwork,&ierr,1,1);
+  ierr = VecRestoreArray(eps->V[k],&pV);CHKERRQ(ierr);
+
+  ierr = PetscFree(tau);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSwapEigenpairs"
+/*@
+   EPSSwapEigenpairs - Swaps all the information internal to the EPS object
+   corresponding to eigenpairs which occupy the i-th and j-th positions.
+
+   Collective on EPS
+
+   Input Parameter:
++  eps - the eigenproblem solver context
+.  i - first index
+-  j - second index
+
+   Level: developer
+
+@*/
+int EPSSwapEigenpairs(EPS eps,int i,int j)
+{
+  int         ierr;
+  PetscScalar tscalar;
+  PetscReal   treal;
+  
+  PetscFunctionBegin;
+  if (i!=j) {
+    ierr = VecSwap(eps->V[i],eps->V[j]);CHKERRQ(ierr);
+    tscalar = eps->eigr[i];
+    eps->eigr[i] = eps->eigr[j];
+    eps->eigr[j] = tscalar;
+    tscalar = eps->eigi[i];
+    eps->eigi[i] = eps->eigi[j];
+    eps->eigi[j] = tscalar;
+    treal = eps->errest[i];
+    eps->errest[i] = eps->errest[j];
+    eps->errest[j] = treal;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetOrthogonalization"
+/*@C
+   EPSSetOrthogonalization - Specifies the type of orthogonalization technique
+   to be used inside the eigensolver.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps      - the eigensolver context obtained from EPSCreate
+-  type     - a known type of orthogonalization
+
+   Options Database Keys:
++  -eps_ir_orth - Activates Iterative Refinement (IR) orthogonalization (default)
+.  -eps_mgs_orth - Activates Modified Gram-Schmidt (MGS) orthogonalization
+-  -eps_cgs_orth - Activates Classical Gram-Schmidt (CGS) orthogonalization
+    
+   Notes:  
+   The default orthogonalization technique (IR, an iterative variant of CGS)
+   works well for most problems. MGS is numerically more robust than CGS,
+   but CGS may give better scalability.
+
+ Level: intermediate
+
+.seealso: EPSGetOrthogonalization()
+@*/
+int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+
+  if (type!=EPS_MGS_ORTH && type!=EPS_CGS_ORTH && type!=EPS_IR_ORTH ) { SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type"); }
+
+  switch (type) {
+    case EPS_CGS_ORTH:
+      eps->orthog = EPSUnmodifiedGramSchmidtOrthogonalization;
+      break;
+    case EPS_MGS_ORTH:
+      eps->orthog = EPSModifiedGramSchmidtOrthogonalization;
+      break;
+    case EPS_IR_ORTH:
+      eps->orthog = EPSIROrthogonalization;
+      break;
+  }
+  eps->orth_type = type;
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetOrthogonalization"
+/*@C
+   EPSGetOrthogonalization - Gets the orthogonalization type from the 
+   EPS object.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - Eigensolver context 
+
+   Output Parameter:
+.  type - type of orthogonalization technique
+
+   Level: intermediate
+
+.seealso: EPSSetOrthogonalization()
+@*/
+int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  *type = eps->orth_type;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBackTransform"
+/*@C
+   EPSBackTransform - Transforms all the computed eigenvalues back to
+   the solution of the original problem.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context 
+
+   Level: developer
+
+.seealso: STBackTransform()
+@*/
+int EPSBackTransform(EPS eps)
+{
+  ST          st;
+  PetscScalar *eigr,*eigi;
+  int         ierr,i,nconv;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE);
+  ierr = EPSGetSolution(eps,&eigr,&eigi,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  for (i=0;i<nconv;i++) {
+    ierr = STBackTransform(st,&eigr[i],&eigi[i]);CHKERRQ(ierr);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+

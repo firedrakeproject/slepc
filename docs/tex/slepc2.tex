@@ -1,0 +1,306 @@
+%-------------------------------------------------------
+% SLEPc Users Manual
+%-------------------------------------------------------
+\chapter{\label{cap:eps}EPS: Eigenvalue Problem Solver}
+%-------------------------------------------------------
+
+\noindent The Eigenvalue Problem Solver (\ident{EPS}) is the main object provided by \slepc. It is used to specify an eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the eigensolvers included in the package. Conceptually, the level of abstraction occupied by \ident{EPS} is similar to other solvers in \petsc\ such as \ident{SLES} for solving linear systems of equations.
+	
+\section{General Description}
+
+	The \ident{EPS} module can be used to solve eigenvalue problems. In the standard formulation, the problem consists in the determination of $\lambda\in\Co$ for which the equation
+\begin{equation}Ax=\lambda x\;\;\end{equation}
+has nontrivial solution, where $A\in\Co^{n\times n}$ and $x \in \Co^n$. The scalar $\lambda$ and the vector $x$ are called eigenvalue and eigenvector, respectively. Note that they can be complex even when the matrix is real.
+\slepc can also solve eigenvalue problems in generalized form,
+\begin{equation}Ax=\lambda Bx\;\;,\end{equation}
+where $B\in\Co^{n\times n}$.
+
+	The methods provided by \slepc are appropriate for large sparse eigenproblems and typically only use matrix $A$ in matrix-vector products of the form $w=Av$, or $w=B^{-1}\!Av$ in the generalized case. In these two cases, the matrices $A$ and $B^{-1}\!A$, respectively, will be referred to as the {\em operator\/} matrix. Therefore, the implemented methods apply the operator to a set of vectors repeatedly until the approximations to the eigenpairs are sufficiently accurate. The operator can adopt yet other different forms if spectral transformations are used, as explained in chapter \ref{cap:st}.
+
+	\slepc assumes that only a subset of the eigenvalues must be computed. The user specifies how many of them and also in which part of the spectrum they are to be sought.
+	
+%---------------------------------------------------
+\section{Basic Usage}
+
+	The \ident{EPS} module is used in a similar way as other \petsc\ modules such as \ident{SLES}. All the information related to an eigenvalue problem is handled via a context variable. The usual object management functions are available (\ident{EPSCreate}, \ident{EPSDestroy}, \ident{EPSView}, \ident{EPSSetFromOptions}). In addition, the \ident{EPS} object provides functions for setting several parameters such as the number of eigenvalues to compute, the dimension of the subspace, the requested tolerance and the maximum number of iterations allowed. The user can also specify other things such as the orthogonalization technique or the portion of the spectrum of interest.
+
+	The solution of the problem is obtained in several steps. First of all, the matrices associated to the eigenproblem are specified via \ident{EPSSetOperators}. Then, a call to \ident{EPSSolve} is done which invokes the subroutine for the selected eigensolver. \ident{EPSGetConverged} can be used afterwards to determine how many of the requested eigenpairs have converged to working precision. \ident{EPSGetSolution} is finally used to retrieve the eigenvalues and eigenvectors. 
+
+	In order to illustrate the basic functionality of the \ident{EPS} package, a simple example is shown in figure \ref{fig:ex-eps}. The example code implements the solution of a simple standard eigenvalue problem. Code for setting up the matrix $A$ is not shown and error-checking code is omitted.
+
+\begin{figure}[t]
+\begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
+Vec         *x;           /* basis vectors */
+Mat         A;            /* operator matrix */
+EPS         eps;          /* eigenproblem solver context */
+PetscReal   *error;
+PetscScalar *kr,*ki;
+int         its, nconv;
+
+EPSCreate( PETSC_COMM_WORLD, &eps );
+EPSSetOperators( eps, A, PETSC_NULL );
+EPSSetFromOptions( eps );
+EPSSolve( eps, &its );
+EPSGetConverged( eps, &nconv );
+EPSGetSolution( eps, &kr, &ki, &x );
+PetscMalloc( nconv*sizeof(PetscReal), &error );
+EPSComputeError( eps, error );
+EPSDestroy( eps );
+\end{Verbatim}
+\caption{\label{fig:ex-eps}Example code for basic solution with \ident{EPS}.}
+\end{figure}
+
+	All the operations of the program are done over a single \ident{EPS} object. This solver context is created in line 8 with the command 
+	\findex{EPSCreate}
+	\begin{Verbatim}[fontsize=\small]
+	EPSCreate(MPI_Comm comm,EPS *eps);
+	\end{Verbatim}
+	Here \texttt{comm} is the MPI communicator, and \texttt{eps} is the newly formed solver context. Before actually solving an eigenvalue problem with \ident{EPS}, the user must specify the matrices associated to the problem, as in line 9, with the following routine
+	\findex{EPSSetOperators}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetOperators(EPS eps,Mat A,Mat B);
+	\end{Verbatim}
+	The only necessary change to the example code in order to solve a generalized problem is to provide matrix $B$ as the third argument to the call. The matrices specified in this call can be in any \petsc\ format. In particular, \ident{EPS} allows the user to solve matrix-free problems by specifying matrices created via \ident{MatCreateShell}. A more detailed discussion of this issue is given in section \ref{sec:supported}.
+
+	After setting the problem matrices, the value of the different options could be set by means of a function call such as \ident{EPSSetTolerances} (explained later in this chapter). After this, a call to \ident{EPSSetFromOptions} should be made as in line 10, 
+	\findex{EPSSetFromOptions}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetFromOptions(EPS eps);
+	\end{Verbatim}
+	The effect of this call is that options specified at runtime in the command line are passed to the \ident{EPS} object appropriately. In this way, the user can easily experiment with different combinations of options without having to recompile. All the available options as well as the associated function calls are described later in this chapter.
+
+	Line 11 launches the solution algorithm, simply with the command
+	\findex{EPSSolve}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSolve(EPS eps,int *its);
+	\end{Verbatim}
+	The subroutine which is actually invoked depends on which solver has been selected by the user. On return, the parameter \texttt{its} contains either the iteration number at which convergence was successfully reached, or the \emph{negative} of the iteration at which a problem was detected. 
+	
+	All the data associated to the solution of the eigenproblem is kept internally. The function
+	\findex{EPSGetConverged}
+	\begin{Verbatim}[fontsize=\small]
+	EPSGetConverged(EPS eps,int *nconv);
+	\end{Verbatim}
+	queries how many eigenpairs have converged to working precision. The solution of the eigenproblem is retrieved in line 13 with a call to the following function
+	\findex{EPSGetSolution}
+	\begin{Verbatim}[fontsize=\small]
+	EPSGetSolution(EPS eps,PetscScalar **kr,PetscScalar **ki,Vec **x);
+	\end{Verbatim}
+	\label{GetSolution}
+	This function returns pointers to the solution of the problem, which is stored in data structures allocated internally by the \ident{EPS} code. \texttt{kr} and \texttt{ki} point to arrays containing the real and imaginary parts of the eigenvalues, while \texttt{x} points to an array of \texttt{Vec} objects which contain the associated eigenvectors. Therefore, the $j$-th eigenvalue is \texttt{kr[j]}$+\,i\cdot$\texttt{ki[j]} and the $j$-th eigenvector is stored in the \texttt{Vec} objects \texttt{x[j]} and \texttt{x[j+1]}. 
+	[Note: see section \ref{sec:complex} for a detailed discussion of this issue.] 
+	
+	The reason why the user does not need to allocate memory for the solution of the eigenproblem is that the amount of required storage usually depends on the number of basis vectors and the number of requested eigenvalues, which are parameters typically specified at run time. The implemented solution automatically allocates the necessary memory space and returns a pointer to this space. The user is warned not to use these objects after the \ident{EPS} object has been destroyed (see below).
+	
+	In line 15 of the example the relative residual error $\|Ax_j\!-\!\lambda_jBx_j\|/|\lambda_j|$ associated to each eigenpair is computed with a call to
+	\findex{EPSComputeError}
+	\begin{Verbatim}[fontsize=\small]
+	EPSComputeError(EPS eps,PetscReal *error);
+	\end{Verbatim}
+	In this case, the user is responsible for allocating an array to store the computed errors.
+
+	Once the \ident{EPS} context is no longer needed, it should be destroyed with the command
+	\findex{EPSDestroy}
+	\begin{Verbatim}[fontsize=\small]
+	EPSDestroy(EPS eps);
+	\end{Verbatim}
+	Note that this will also release the storage allocated for the solution (eigenvalues and eigenvectors).
+
+	The above procedure is sufficient for general use of the \ident{EPS} package. As in the case of the \ident{SLES} solver, the user can optionally explicitly call 
+	\findex{EPSSetUp}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetUp(EPS eps);
+	\end{Verbatim}
+before calling \ident{EPSSolve} to perform any setup required for the eigensolver.
+
+	Internally, the \ident{EPS} object works with an \ident{ST} object (spectral transformation, described in chapter \ref{cap:st}). To allow application programmers to set any of the spectral transformation options directly within the code, the following routine is provided to extract the \ident{ST} context,
+	\findex{EPSGetST}
+	\begin{Verbatim}[fontsize=\small]
+	EPSGetST(EPS eps,ST *st);
+	\end{Verbatim}
+	
+	With the command
+	\findex{EPSView}
+	\begin{Verbatim}[fontsize=\small]
+	EPSView(EPS eps,PetscViewer viewer);
+	\end{Verbatim}
+it is possible to examine the information relevant to the \ident{EPS} object, such as the value of the different parameters, including also data related to the associated \ident{ST} object.
+
+	The options database key \Verb!-eps_plot_eigs! instructs \slepc to plot the computed approximations of the eigenvalues in an X display after the solution process.
+
+%---------------------------------------------------
+\section{Defining the Problem}
+
+	From the information provided by the user, \slepc tries to guess the kind of problem that is to be solved. For instance, if the user provides two matrices then the problem is generalized. However, the user has also the ability to specify explicitly the problem type. This could be used for instance to force a non-Hermitian version of an algorithm even when the matrix is Hermitian, or when the guess made by \slepc is not correct. However, normal usage will not require this.
+
+The problem type can be specified at run time with the corresponding command line key (see table \ref{tab:ptype}) or within the program with the function
+	\findex{EPSSetProblemType}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetProblemType(EPS eps,EPSProblemType type);
+	\end{Verbatim}
+
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{lll}
+Problem Type              & \ident{EPSProblemType} & Command line key\\\hline
+Hermitian                 & \texttt{EPS\_HEP}         & \texttt{-eps\_hermitian}\\
+Generalized Hermitian     & \texttt{EPS\_GHEP}        & \texttt{-eps\_gen\_hermitian}\\
+Non-Hermitian             & \texttt{EPS\_NHEP}        & \texttt{-eps\_non\_hermitian}\\
+Generalized Non-Hermitian & \texttt{EPS\_GNHEP}       & \texttt{-eps\_gen\_non\_hermitian}\\\hline
+\end{tabular} }
+\caption{\label{tab:ptype}Problem types considered in \ident{EPS}.}
+\end{table}
+
+	The type of the problem can be determined with the functions
+	\findex{EPSIsGeneralized} \findex{EPSIsHermitian}
+	\begin{Verbatim}[fontsize=\small]
+	EPSIsGeneralized(EPS eps,PetscTruth *gen);
+	EPSIsHermitian(EPS eps,PetscTruth *her);
+	\end{Verbatim}
+
+	The user can specify which eigenvalues to compute. The default is to compute only one eigenvalue (and eigenvector), in particular, the dominant one (largest in magnitude). The function
+	\findex{EPSSetDimensions}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetDimensions(EPS eps,int nev,int ncv)
+	\end{Verbatim}
+allows the specification of the number of eigenvalues to compute, \texttt{nev}. The last argument can be set to prescribe the number of basis vectors to be used by the solution algorithm, \texttt{ncv}. These two parameters can also be set at run time with the options \Verb!-eps_nev! and \Verb!-eps_ncv!. For example, the command line
+\begin{Verbatim}[fontsize=\small]
+	$ program -eps_nev 10 -eps_ncv 24
+\end{Verbatim}
+requests 10 eigenvalues and instructs to use 24 basis vectors. Note that \texttt{ncv} must be al least equal to \texttt{nev}, although in general it is recommended (depending on the method) to work with a larger subspace, for instance \texttt{ncv}$\,\geq \!2*$\texttt{nev}.
+
+	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones, or even eigenvalues from both sides of the spectrum. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Table \ref{tab:portion} sumarizes all the possibilities available for the function
+	\findex{EPSSetWhichEigenpairs}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetWhichEigenpairs(EPS eps,EPSWhich which);
+	\end{Verbatim}
+which can also be specified at the command line. Note that not all these possibilities are available for all the solvers. To compute eigenvalues located in the interior part of the spectrum, the user should use a spectral transformation (see chapter \ref{cap:st}).
+
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{ll}
+\texttt{EPSWhich}              & Command line key\\\hline
+\texttt{EPS\_LARGEST\_MAGNITUDE}   & \texttt{-eps\_largest\_magnitude}\\
+\texttt{EPS\_SMALLEST\_MAGNITUDE}  & \texttt{-eps\_smallest\_magnitude}\\
+\texttt{EPS\_LARGEST\_ALGEBRAIC}   & \texttt{-eps\_largest\_algebraic}\\
+\texttt{EPS\_SMALLEST\_ALGEBRAIC}  & \texttt{-eps\_smallest\_algebraic}\\
+\texttt{EPS\_LARGEST\_REAL}        & \texttt{-eps\_largest\_real}\\
+\texttt{EPS\_SMALLEST\_REAL}       & \texttt{-eps\_smallest\_real}\\
+\texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}\\
+\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary}\\
+\texttt{EPS\_BOTH\_ENDS}           & \texttt{-eps\_both\_ends}\\\hline
+\end{tabular} }
+\caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
+\end{table}
+
+	Another option for specifying the problem is when the user is only interested in the eigenvalues but does not care about eigenvectors. In this case the user can choose not to compute the eigenvectors (this can reduce the amount of computation in some cases), with the command
+	\findex{EPSSetDropEigenvectors}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetDropEigenvectors(EPS eps);
+	\end{Verbatim}
+or at run time with \Verb!-eps_drop_eigenvectors!.
+
+%---------------------------------------------------
+\section{Selecting the Eigensolver}
+
+	The available methods for solving the eigenvalue problems are the following:
+\begin{itemize}
+\item Power Iteration with deflation. When combined with shift-and-invert (see chapter \ref{cap:st}), it is equivalent to the Inverse Iteration.
+\item Rayleigh Quotient Iteration (RQI).
+\item Subspace Iteration with non-Hermitian projection and locking.
+\item Arnoldi method with explicit restart and deflation.
+%\item Lanczos method with full reorthogonalization.
+\end{itemize}
+A detailed description of the implemented algorithms is included in appendix \ref{cap:meth} of this manual.
+
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{lll}
+                           &                      & {\footnotesize Options} \\
+Method                     & \ident{EPSType}      & {\footnotesize Database Name}\\\hline
+Power Method / Inverse Iteration & \texttt{EPSPOWER}    & \texttt{power} \\
+Rayleigh Quotient Iteration& \texttt{EPSRQI}      & \texttt{rqi} \\
+Subspace Iteration         & \texttt{EPSSUBSPACE} & \texttt{subspace} \\
+Arnoldi Method             & \texttt{EPSARNOLDI}  & \texttt{arnoldi} \\
+Wrapper to \arpack         & \texttt{EPSARPACK}   & \texttt{arpack} \\
+Wrapper to \lapack         & \texttt{EPSLAPACK}   & \texttt{lapack} \\
+Wrapper to \blzpack        & \texttt{EPSBLZPACK}  & \texttt{blzpack} \\
+Wrapper to \planso         & \texttt{EPSPLANSO}   & \texttt{planso} \\
+Wrapper to \trlan          & \texttt{EPSTRLAN}    & \texttt{trlan} \\\hline
+\end{tabular} }
+\caption{\label{tab:solvers}Eigenvalue solvers available in the \ident{EPS} module.}
+\end{table}
+
+
+In addition to these methods, \slepc provides also wrappers to external packages such as \arpack, \blzpack, \planso, or \trlan. A complete list of this interfaces can be found in section \ref{sec:wrap}.
+
+The solution method can be specified procedurally or via the command line. The application programmer can set it by means of the command
+	\findex{EPSSetType}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetType(EPS eps,EPSType method);
+	\end{Verbatim}
+where \texttt{method} can be one of 
+\texttt{EPSPOWER}, 
+\texttt{EPSRQI},
+\texttt{EPSSUBSPACE},
+\texttt{EPSARNOLDI},
+\texttt{EPSARPACK},
+\texttt{EPSLAPACK},
+\texttt{EPSBLZPACK},
+\texttt{EPSPLANSO}, or
+\texttt{EPSTRLAN}.
+The \ident{EPS} method can also be set with the options database command \Verb!-eps_type! followed by the name of the method (see table \ref{tab:solvers}).
+
+	It is possible to choose among several variants of the algorithms. For instance, in many methods one can select the orthogonalization technique to be used. Again, this can be done via the following command line or procedurally. Available choices are listed in table \ref{tab:orth}.
+	\findex{EPSSetOrthogonalization}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type);
+	\end{Verbatim}
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{lll}
+Orthogonalization Algorithm & \ident{EPSOrthogonalizationType} & Command line key\\\hline
+Modified Gram-Schmidt  & \texttt{EPS\_MGS\_ORTH} & \texttt{-eps\_mgs\_orth}\\
+Classical Gram-Schmidt & \texttt{EPS\_CGS\_ORTH} & \texttt{-eps\_cgs\_orth}\\
+Iterative Refinement GS& \texttt{EPS\_IR\_ORTH}  & \texttt{-eps\_ir\_orth}\\\hline
+\end{tabular} }
+\caption{\label{tab:orth}Available orthogonalization algorithms.}
+\end{table}
+
+%---------------------------------------------------
+\section{Controlling the Solution Process}
+
+	Most of the algorithms implemented in \slepc iteratively build and refine a vector basis of a certain subspace. This basis is constructed starting from an initial vector, $v_0$. \ident{EPS} initializes this starting vector randomly. This default is a reasonable choice. However, it is also possible to supply the starting vector with the command
+	\findex{EPSSetInitialVector}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetInitialVector(EPS eps,Vec v0);
+	\end{Verbatim}
+This can be useful when the eigenvalue calculation is one of a sequence of closely related problems. In this case, a suitable starting vector can usually accelerate convergence, for instance, to construct a starting vector by taking a linear combination of the eigenvectors computed in a previously converged eigenvalue calculation.
+
+	It is possible to specify the tolerance requested for the convergence test. An approximate eigenvalue is considered to be converged if the error estimate associated to it is lower than the specified tolerance. Note that the error estimates can be computed differently depending on the solution method. The tolerance can be specified at run time with \Verb!-eps_tol <tol>! or inside the program with the function
+	\findex{EPSSetTolerances}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetTolerances(EPS eps,PetscReal tol,int max_it);
+	\end{Verbatim}
+	The third parameter of this function allows the programmer to modify the maximum number of iterations permitted to the solution algorithm, which can also be set via \Verb!-eps_max_it <its>!. Note that the default values for these and other parameters can be algorithm dependent. See appendix \ref{cap:meth} for reference.
+
+	At the end of the solution process, error estimates are available via
+	\findex{EPSGetErrorEstimates}
+	\begin{Verbatim}[fontsize=\small]
+	EPSGetErrorEstimates(EPS eps,PetscReal **errest);
+	\end{Verbatim}
+
+	Error estimates can also be displayed during execution of the solution algorithm, as a way of monitoring convergence. The user can activate this feature by using \Verb!-eps_monitor! within the options database. By default, the solvers run silently without displaying information about the iteration. \slepc also provides a different kind of convergence monitor which displays the value of the approximate eigenvalues instead of the error estimates. This is done with \Verb!-eps_monitor_values!. Both types of monitors are compatible and can be used at the same time if desired.
+
+	Application programmers can provide their own routines to perform the monitoring by using the commands
+	\findex{EPSSetMonitor} \findex{EPSSetValuesMonitor}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetMonitor(EPS eps,int (*mon)(EPS eps,int its,int nconv,
+		PetscReal *errest,int nest,void *mctx),void *mctx);
+	\end{Verbatim}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetValuesMonitor(EPS eps,int (*mon)(EPS eps,int its,int nconv,
+		PetscScalar *kr,PetscScalar *ki,int nest,void *mctx),
+		void *mctx);
+	\end{Verbatim}
+

@@ -1,0 +1,15 @@
+
+Brusselator wave model, n=30
+
+ Number of iterations of the method: 45
+ Solution method: arpack
+
+ Number of requested eigenvalues: 2
+ Stopping condition: tol=1e-07, maxit=100
+ Number of converged approximate eigenpairs: 2
+
+           k              ||Ax-kx||/|k|
+  --------------------- -----------------
+  0.000193 + 2.139385 i     0.000000
+  0.000193 - 2.139385 i     0.000000
+

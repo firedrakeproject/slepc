@@ -1,0 +1,218 @@
+%-------------------------------------------------------
+% SLEPc Users Manual
+%-------------------------------------------------------
+\chapter{\label{cap:st}ST: Spectral Transformation}
+%-------------------------------------------------------
+
+\noindent The other main \slepc object is the Spectral Transformation (\ident{ST}), which encapsulates the functionality required for acceleration techniques based on the transformation of the spectrum. As explained in chapter \ref{cap:eps}, the implemented eigensolvers work by applying an operator to a set of vectors and this operator can adopt different forms. The \ident{ST} object handles all the different possibilities in a uniform way, so that the solver can proceed without knowing which transformation has been selected. The type of spectral transformation can be specified at run time, as well as several parameters such as the value of the shift.
+	
+%---------------------------------------------------
+\section{General Description}
+
+	Spectral transformations are powerful tools for manipulating the way in which eigensolvers behave when coping with a problem. The general strategy consists in transforming the original problem into a new one in which eigenvalues are mapped to a new position while eigenvectors typically remain unchanged. These transformations can be used with several goals in mind:
+\begin{itemize}
+\item Avoid convergence problems. For instance, simple methods such as the Power Iteration can fail to obtain the solution under certain conditions, and sometimes this situation  can be avoided by simply shifting the spectrum.
+\item Compute internal eigenvalues. In some applications, the eigenpairs of interest are not the extremal ones (largest magnitude, smallest magnitude, rightmost, leftmost), but those contained in a certain interval or those closest to a certain value of the complex plane.
+\item Accelerate convergence. Convergence properties typically depend on how close the eigenvalues are from each other. With some spectral transformations, difficult eigenvalue distributions can be remapped in a more favorable way in terms of convergence. 
+\item Handle some special situations. For instance, in generalized problems when matrix $B$ is singular, it may be necessary to use a spectral transformation.
+\end{itemize}
+	
+	\slepc separates spectral transformations from solution methods so that any combination of them can be specified by the user. To achieve this, all the eigensolvers contained in \ident{EPS} must be implemented in such a way that they are independent of which transformation has been selected by the user. That is, the solver algorithm has to work with a generic operator, whose actual form depends on the transformation used. After convergence, eigenvalues are transformed back appropriately. 
+
+%---------------------------------------------------
+\section{Basic Usage}
+
+	The \ident{ST} module is the analogue to other \petsc{} modules such as \ident{PC}. 
+	The user does not usually need to create a stand-alone \ident{ST} object explicitly. Instead, every \ident{EPS} object internally sets up an associated \ident{ST}. Therefore, the usual object management methods such as \ident{STCreate}, \ident{STDestroy}, \ident{STView}, \ident{STSetFromOptions}, are not usually called by the user.
+
+	Although the \ident{ST} context is hidden inside the \ident{EPS} object, the user still has control over all the options, by means of the command line, or also inside the program. To allow application programmers to set any of the spectral transformation options directly within the code, the following routine is provided to extract the \ident{ST} context from the \ident{EPS} object,
+	\findex{EPSGetST}
+	\begin{Verbatim}[fontsize=\small]
+	EPSGetST(EPS eps,ST *st);
+	\end{Verbatim}
+	
+	After this, one is able to set any options associated to the \ident{ST} object. For example, to set the value of the shift, the following function is available
+	\findex{STSetShift}
+	\begin{Verbatim}[fontsize=\small]
+	STSetShift(ST st,PetscScalar shift);
+	\end{Verbatim}
+	This can also be done with the command line option \Verb!-st_shift <shift>!. [Note: the argument \texttt{shift} is defined as a \texttt{PetscScalar}, and this means that complex shifts are not allowed unless the complex version of \slepc is used --- see section \ref{sec:complex} for a detailed discussion of this issue.]
+
+	Other object operations are available for applying the operator, setting options, etc.\ which are not usually called by the user. The most important of such functions are \ident{STApply}, which applies the operator to a vector, \ident{STApplyB}, which applies matrix $B$ to a vector, and \ident{STSetUp} which prepares all the necessary data structures before the solution process starts. The operator refers to one of $A$, $B^{-1}\!A$, $A+\sigma I$, ...\ depending on which kind of spectral transformation is being used.
+ 
+%---------------------------------------------------
+\section{Available Transformations}
+
+	This section describes the spectral transformations which are provided in \slepc. As in the case of eigensolvers, the spectral transformation to be used can be specified procedurally or via the command line. The application programmer can set it by means of the command
+	\findex{STSetType}
+	\begin{Verbatim}[fontsize=\small]
+	STSetType(ST st,STType type);
+	\end{Verbatim}
+where \texttt{type} can be one of 
+\texttt{STNONE},
+\texttt{STSHIFT},
+\texttt{STSINV}, or
+\texttt{STSHELL}.
+The \ident{ST} type can also be set with the options database command \Verb!-st_type! followed by the name of the method (see table \ref{tab:transforms}).
+
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{lll}
+                        &                   & {\footnotesize Options} \\
+Spectral Transformation & \ident{STType}    & {\footnotesize Database Name}\\\hline
+Regular Mode            & \texttt{STNONE}   & \texttt{none} \\
+Shift from Origin       & \texttt{STSHIFT}  & \texttt{shift} \\
+Shift-and-invert        & \texttt{STSINV}   & \texttt{sinvert} \\
+Shell Transformation    & \texttt{STSHELL}  & \texttt{shell} \\\hline
+\end{tabular} }
+\caption{\label{tab:transforms}Spectral transformations available in the  \ident{ST} package.}
+\end{table}
+
+	The first three spectral transformations are described in detail in the rest of this section. Table \ref{tab:op} summarizes the operator used in each case, either for standard or generalized eigenproblems. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of this transformations.
+
+	\begin{table}
+	\centering
+	{\small \begin{tabular}{lcc}
+	\ident{ST} & Standard problem & Generalized problem\\\hline
+	\texttt{none} & $A$&$B^{-1}A$ \\
+	\texttt{shift} & $A+\sigma I$& $B^{-1}A+\sigma I$\\
+	 \texttt{sinvert} &$(A-\sigma I)^{-1}$ &$(A-\sigma B)^{-1}B$ \\\hline
+	\end{tabular} }
+	\caption{\label{tab:op}Operators used in each spectral transformation mode.}
+	\end{table}
+
+	The expressions shown in table \ref{tab:op} are not built explicitly. Instead, the appropriate operations are carried out when applying the operator to a certain vector. The inverses imply the solution of a linear system of equations which is managed by setting up an associated \ident{SLES} object. The user can control the behavior of this object by adjusting the appropriate options, as will be illustrated with examples in section \ref{sec:lin}.
+
+	In the table, the value $\sigma$ in both shift of origin (\texttt{shift}) and shift-and-invert (\texttt{sinvert}) transformations, represents the value of the shift. As explained above, this value can be specified via the \ident{STSetShift} function or in the command line.
+
+\subsection{Default Behavior}
+
+	By default, no spectral transformation is performed (\texttt{STNONE}). This means that in this case the solver works with the original expressions of the eigenvalue problems,
+\begin{equation}Ax=\lambda x\;\;,\end{equation}
+for standard problems, and $Ax=\lambda Bx$ for generalized ones. Note that this last equation is in fact treated internally as
+\begin{equation}B^{-1}Ax=\lambda x\;\;.\end{equation}
+When the eigensolver in \ident{EPS} requests the application of the operator to a vector, a matrix-vector multiplication by matrix $A$ is carried out (in the standard case) or a matrix-vector multiplication by matrix $A$ followed by a linear system solve with coefficient matrix $B$ (in the generalized case). Note that in this case, the operation will fail if matrix $B$ is singular.
+
+\subsection{Shift from Origin}
+
+	The purpose of this spectral transformation (\texttt{STSHIFT}) is to shift the whole spectrum by a certain quantity, $\sigma$, which is called \emph{shift from origin}. To achieve this, the solver has to work with the shifted matrix, that is, the expressions it has to cope with are
+\begin{equation}(A+\sigma I)x=\theta x\;\;,\end{equation}
+for standard problems, and 
+\begin{equation}(B^{-1}A+\sigma I) x=\theta x\;\;,\end{equation}
+for generalized ones. The important property that is used is that shifting does not alter the eigenvectors and that it does change the eigenvalues in a simple known way, it shifts them by $\sigma$. In both the standard and the generalized problems, the following relation holds 
+\begin{equation}\theta=\lambda+\sigma\;\;.\end{equation}
+This means that after the solution process, the value $\sigma$ has to be subtracted from the computed eigenvalues, $\theta$, in order to retrieve the solution of the original problem, $\lambda$. This is done by means of the function \ident{STBackTransform}, which does not need to be called directly by the user.
+
+\subsection{Shift-and-invert}
+
+	The shift-and-invert spectral transformation (\texttt{STSINV}) is used to enhance convergence to a desired portion of the spectrum. In this case, the solver deals with the expressions 
+\begin{equation}(A-\sigma I)^{-1}x=\theta x\;\;,\end{equation}
+for standard problems, and 
+\begin{equation}(A-\sigma B)^{-1}B x=\theta x\;\;,\end{equation}
+for generalized ones. 
+This transformation is effective for finding eigenvalues near $\sigma$ since the eigenvalues $\theta$ of the operator that are largest in magnitude correspond to the eigenvalues $\lambda$ of the original problem that are nearest to the shift $\sigma$ in absolute value. Once they are found, they may be transformed back to eigenvalues of the original problem. Again, the eigenvectors remain unchanged.
+In this case, the relation between the eigenvalues of both problems is
+\begin{equation}\theta=1/(\lambda-\sigma)\;\;.\end{equation}
+Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=\sigma+1/\theta$ for each of the computed eigenvalues.
+
+%---------------------------------------------------
+\section{Advanced Usage}
+
+Using the \ident{ST} object is very straightforward. However, when using spectral transformations many things are happening behind the scenes, mainly the solution of linear systems of equations. The user must be aware of what is going on in each case, so that it is possible to guide the solution process to the most beneficial way. This section describes several advanced aspects which can have a considerable impact on efficiency.
+
+\subsection{Solution of Linear Systems}
+\label{sec:lin}
+
+	In many of the cases shown in table \ref{tab:op}, the operator contains an inverted matrix which means that a linear system of equations must be solved whenever the application of the operator to a vector is required. These cases are handled internally by means of a \ident{SLES} object.
+
+	In the simplest case, a generalized problem is to be solved with no spectral transformation. A sample command line could be
+\begin{Verbatim}[fontsize=\small]
+	$ program -eps_type subspace -eps_tol 1e-6 -eps_monitor
+\end{Verbatim}
+In this case, assuming that the program solves a generalized problem, the \ident{ST} object associated to the \ident{EPS} solver creates a \ident{SLES} object whose coefficient matrix is $B$. This \ident{SLES} object will be set with the default values, that is, GMRES with ILU preconditioning (see the \petsc{} documentation for details).
+
+	The default values corresponding to the \ident{SLES} object can be modified via the command line. For instance,
+\begin{Verbatim}[fontsize=\small]
+	$ program -eps_type subspace -eps_tol 1e-6 -eps_monitor
+	          -st_ksp_type cg -st_pc_type jacobi -st_ksp_rtol 1e-5
+\end{Verbatim}
+specifies some additional options for the solution of this linear system. In particular, this example selects the CG solver with Jacobi preconditioning and a relative tolerance of $10^{-5}$. The \Verb!-st_! prefix signifies that the option corresponds to the linear system within \ident{ST}.
+
+	If an iterative method is used for the linear system solves, usually a slightly more stringent tolerance must be required of the linear solves relative to the desired accuracy of the eigenvalue calculation. It is also possible to select any of the direct linear solvers available in \petsc. In this case, the factorization is only carried out at the beginning of the eigenvalue calculation and this cost is amortized in each subsequent application of the operator. This is also the case for iterative methods with preconditioners with high-cost set-up such as ILU.
+
+	The application programmer is able to set the desired linear systems solver options also from within the code. In order to do this, first the context of the \ident{SLES} object must be retrieved with the following function
+	\findex{STGetSLES}
+	\begin{Verbatim}[fontsize=\small]
+	STGetSLES(ST st,SLES *sles);
+	\end{Verbatim}
+	
+	The above functionality is also applicable to the other spectral transformations. In the case of shift from origin, again the \ident{SLES} object will be set only in generalized problems, and with $B$ as the coefficient matrix. In this other example, the spectrum is shifted by $\sigma=0.5$ and several options are specified for the linear systems
+\begin{Verbatim}[fontsize=\small]
+	$ program -st_type shift -st_shift 0.5 -st_ksp_type cgs 
+		  -st_pc_ilu_levels 1
+\end{Verbatim}
+
+	Similarly, for the shift-and-invert technique with $\sigma=10$:
+\begin{Verbatim}[fontsize=\small]
+	$ program -st_type sinvert -st_shift 10 -st_pc_type jacobi
+\end{Verbatim}
+	The shift-and-invert approach deserves special consideration. In this case, the coefficient matrix is not a simple matrix but an expression which can be explicitly constructed or not, depending on the user's choice. This issue is examined in detail next.
+
+\subsection{Explicit Computation of Coefficient Matrix}
+\label{sec:explicit}
+
+	Three possibilities can be distinguished regarding the form of the coefficient matrix of the linear systems of equations associated to the different spectral transformations. The possible coefficient matrices are:
+	\begin{itemize}
+	\item Simple: $B$.
+	\item Shifted: $A-\sigma I$.
+	\item Axpy: $A-\sigma B$.
+	\end{itemize}
+	The first case has already been described and has no difficulty. In the other two cases, which correspond to the shift-and-invert transformation, there are two possible approaches:
+	\begin{enumerate}
+	\item To work with the corresponding expression without forming the matrix explicitly. This is achieved by internally setting a matrix-free matrix with \ident{MatCreateShell}.
+	\item To build the coefficient matrix explicitly. This is done by means of a \ident{MatShift} or a \ident{MatAXPY} operation, which overwrites matrix $A$ with the corresponding expression. This alteration of matrix $A$ is reversed after the eigensolution process has finished.
+	\end{enumerate}
+	The default behavior is not to build the coefficient matrix explicitly (option 1). The user can select the second approach as in the following example
+\begin{Verbatim}[fontsize=\small]
+	$ program -st_type sinvert -st_shift 10 -st_pc_type jacobi
+		  -st_sinvert_shift_mat
+\end{Verbatim}
+	As always, the procedural equivalent is also available for specifying this option in the code of the program:
+	\findex{STSinvertSetShiftMat}
+	\begin{Verbatim}[fontsize=\small]
+	STSinvertSetShiftMat(ST st);
+	\end{Verbatim}
+
+	The user must consider which one of the two approaches is the most appropriate for the particular application. The two options have advantatges and drawbacks. The first approach is the simplest one but severely restricts the number of possibilities available for solving the system, in particular most of the \petsc{} preconditioners would not be available. The only preconditioners that can be used in this case are Jacobi (only if matrices $A$ and $B$ have the operation \ident{MATOP\_GET\_DIAGONAL}) or a user-defined one.
+	
+	The second approach (compute the coefficient matrix explicitly) can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} can be very inefficient.
+	
+	Note that when the value of the shift $\sigma$ is very close to an eigenvalue, then the linear system will be ill-conditioned and using iterative methods may be problematic. On the other hand, in symmetric definite problems, the coefficient matrix will be indefinite whenever $\sigma$ is a point in the interior of the spectrum and in that case it is not possible to use a symmetric definite factorization (\texttt{cholesky} or \texttt{icc}).
+
+\subsection{Shell Transformations}
+\label{sec:shell}
+
+	The \ident{ST} package allows the user to define new spectral transformations by means of the \texttt{shell} type, in a similar way as \emph{shell} preconditioners or \emph{shell} matrices. This tool is intended for simple spectral transformations. For more sophisticated transformations, the user should register a new \ident{ST} type (see section \ref{sec:extend} for details).
+
+	At least, user-defined spectral transformations have to define how the operator is to be applied to a vector. Optionally, it can also specify the way in which computed eigenvalues must be transformed back to the solution of the original eigenproblem. An example program is provided in the \slepc distribution in order to illustrate the use of shell transformations.
+
+	The function
+	\findex{STShellSetApply}
+	\begin{Verbatim}[fontsize=\small]
+      STShellSetApply(ST,int(*)(void*,Vec,Vec),void*);
+	\end{Verbatim}
+has to be invoked after the creation of the \ident{ST} object in order to provide a routine that applies the operator to a vector. And the function
+	\findex{STShellSetBackTransform}
+	\begin{Verbatim}[fontsize=\small]
+      STShellSetBackTransform(ST,int(*)(void*,PetscScalar*,PetscScalar*));
+	\end{Verbatim}
+can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user receive a pointer to a user-defined context which can contain any useful information. This context must be passed as the last argument in the call to \ident{STShellSetApply}.
+
+	Finally, the application programmer can use the following function
+	\findex{STShellSetName}
+	\begin{Verbatim}[fontsize=\small]
+      STShellSetName(ST,char*);
+	\end{Verbatim}
+to specify a name for the new shell transformation in order to identify it in the program's output (\ident{STView}).
+
+

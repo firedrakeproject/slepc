@@ -1,0 +1,230 @@
+<html>
+<head>
+<title>installation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="../vinculs.css" type="text/css">
+<link rel="stylesheet" href="../vinculs.css" type="text/css">
+<script language="JavaScript" type="text/JavaScript">
+<!--
+
+
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_nbGroup(event, grpName) { //v6.0
+  var i,img,nbArr,args=MM_nbGroup.arguments;
+  if (event == "init" && args.length > 2) {
+    if ((img = MM_findObj(args[2])) != null && !img.MM_init) {
+      img.MM_init = true; img.MM_up = args[3]; img.MM_dn = img.src;
+      if ((nbArr = document[grpName]) == null) nbArr = document[grpName] = new Array();
+      nbArr[nbArr.length] = img;
+      for (i=4; i < args.length-1; i+=2) if ((img = MM_findObj(args[i])) != null) {
+        if (!img.MM_up) img.MM_up = img.src;
+        img.src = img.MM_dn = args[i+1];
+        nbArr[nbArr.length] = img;
+    } }
+  } else if (event == "over") {
+    document.MM_nbOver = nbArr = new Array();
+    for (i=1; i < args.length-1; i+=3) if ((img = MM_findObj(args[i])) != null) {
+      if (!img.MM_up) img.MM_up = img.src;
+      img.src = (img.MM_dn && args[i+2]) ? args[i+2] : ((args[i+1])? args[i+1] : img.MM_up);
+      nbArr[nbArr.length] = img;
+    }
+  } else if (event == "out" ) {
+    for (i=0; i < document.MM_nbOver.length; i++) {
+      img = document.MM_nbOver[i]; img.src = (img.MM_dn) ? img.MM_dn : img.MM_up; }
+  } else if (event == "down") {
+    nbArr = document[grpName];
+    if (nbArr)
+      for (i=0; i < nbArr.length; i++) { img=nbArr[i]; img.src = img.MM_up; img.MM_dn = 0; }
+    document[grpName] = nbArr = new Array();
+    for (i=2; i < args.length-1; i+=2) if ((img = MM_findObj(args[i])) != null) {
+      if (!img.MM_up) img.MM_up = img.src;
+      img.src = img.MM_dn = (args[i+1])? args[i+1] : img.MM_up;
+      nbArr[nbArr.length] = img;
+  } }
+}
+//-->
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" onLoad="MM_preloadImages('../imatges/botons/manual2.gif','../imatges/botons/instalation2.gif','../imatges/botons/FAQ2.gif')">
+<div id="Layer2" style="position:absolute; left:334px; top:0px; width:277px; height:23px; z-index:4"> 
+  <table width="278" border="0" cellpadding="0" cellspacing="0">
+    <tr> 
+      <td width="75" height="22"><a href="manual.htm" onClick="MM_nbGroup('down','group1','manual','../imatges/botons/manual2.gif',1)" onMouseOver="MM_nbGroup('over','manual','../imatges/botons/manual2.gif','',1)" onMouseOut="MM_nbGroup('out')" target="mainFrame"><img src="../imatges/botons/manual.gif" name="manual" width="75" height="22" border="0" onLoad=""></a></td>
+      <td valign="top" width="127"><a href="instal.htm" onClick="MM_nbGroup('down','group1','installation','../imatges/botons/instalation2.gif',1)" onMouseOver="MM_nbGroup('over','installation','../imatges/botons/instalation2.gif','',1)" onMouseOut="MM_nbGroup('out')" target="mainFrame"><img src="../imatges/botons/instalation2.gif" name="installation" width="127" height="22" border="0" ></a></td>
+      <td valign="top" width="75"><a href="faq.htm" onClick="MM_nbGroup('down','group1','FAQ','../imatges/botons/FAQ2.gif',1)" onMouseOver="MM_nbGroup('over','FAQ','../imatges/botons/FAQ2.gif','',1)" onMouseOut="MM_nbGroup('out')" target="mainFrame"><img name="FAQ" src="../imatges/botons/FAQ.gif" border="0"></a></td>
+      <td width="1"></td>
+    </tr>
+  </table>
+</div>
+<table width="700" border="0" cellpadding="0" cellspacing="0">
+  <tr> 
+    <td width="700" height="35"><p>&nbsp;</p>
+      <p>&nbsp;</p></td>
+  </tr>
+  <tr> 
+    <td valign="top" height="984"> <div align="left"> 
+        <p align="left"><font face="Arial, Helvetica, sans-serif"><font size="3"><b>Installation 
+          Instructions for Unix Platforms</b></font> </font></p>
+        <div align="left"> 
+          <p><font size="2" face="Arial, Helvetica, sans-serif">Previously to 
+            the installation of SLEPc, the system must have an appropriate version 
+            of PETSc installed. Check the <a href="../changes.htm" target="_parent">Changes</a> 
+            section for a list of SLEPc versions and their corresponding PETSc 
+            versions. </font></p>
+        </div>
+        <font face="Arial, Helvetica, sans-serif"> 
+        <p><font size="2"> To install PETSc, the user simply sets the environment 
+          variables <font face="Courier New, Courier, mono">PETSC_DIR</font> and 
+          <font face="Courier New, Courier, mono">PETSC_ARCH </font>and types 
+          <font face="Courier New, Courier, mono">make</font>. Apart of this, 
+          some customization may be necessary, see the <a href="../changes.htm" target="_blank">PETSc 
+          installation documentation</a> for details.</font></p>
+        <p><font size="2"> The installation process for SLEPc is very similar. 
+          The main steps are described next. Note that prior to this steps, optional 
+          packages must have been installed. If any of these packages is installed 
+          afterwards, recompilation is necessary. See below for details about 
+          installation of some of these packages.</font></p>
+        </font></div>
+      <ol>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
+          Unbundle the distribution file <strong>slepc.tgz</strong> with a usual 
+          command such as <font face="Courier New, Courier, mono">gunzip -c slepc.tgz 
+          | tar xvf -</font>. This will create a directory and unpack the software 
+          there.<br>
+          </font></font></li>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Refer 
+          to the Patches section </font><font face="Arial, Helvetica, sans-serif"><font size="2"> 
+          at the end of the <a href="../download.htm" target="_parent">Download</a> 
+          page</font></font> <font size="2">for available patches to the latest 
+          SLEPc release.<br>
+          </font></font></li>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Set 
+          the environment variable <font face="Courier New, Courier, mono">SLEPC_DIR</font> 
+          to the full path of the SLEPc home directory, for example,<br>
+          &nbsp;&nbsp;&nbsp; <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setenv 
+          SLEPC_DIR /home/username/slepc-2.1.5</font><br>
+          In addition to this variable, <font face="Courier New, Courier, mono">PETSC_DIR</font> 
+          and <font face="Courier New, Courier, mono">PETSC_ARCH</font> must also 
+          be set correctly, the first one pointing to the PETSc home directory 
+          and the other containing the selected architecture (remember that PETSc 
+          allows several versions compiled for different architectures to coexist 
+          in the same directory tree).<br>
+          </font></font></li>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Edit 
+          the file<font face="Courier New, Courier, mono"> ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages 
+          to</font> indicate the local installation of optional software packages 
+          such as ARPACK. If there exists no directory named </font><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"><font face="Courier New, Courier, mono">bmake/${PETSC_ARCH}</font></font></font> 
+          <font size="2">for the value of </font><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"><font face="Courier New, Courier, mono">${PETSC_ARCH}</font></font></font> 
+          <font size="2">you are using, then create it similar to the existing 
+          ones. <br>
+          </font></font></li>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
+          In the SLEPc home directory, type<br>
+          <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
+          BOPT=g</font><br>
+          </font>to build a debugging version of SLEPc, or<br>
+          &nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
+          BOPT=O</font><br>
+          to build an optimized version of the SLEPc libraries. The flag <font face="Courier New, Courier, mono">BOPT</font> 
+          determines what type of libraries are built (i.e., specifies compiler 
+          options). Other available alternatives are <font face="Courier New, Courier, mono">BOPT=[g_complex,O_complex]</font> 
+          for complex numbers versions.<br>
+          </font></font></li>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">If 
+          the installation went smoothly, then try running some test examples 
+          with the command<br>
+          <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
+          BOPT=g slepc_testexamples</font><br>
+          </font></font><font size="2">Examine the output for any obvious errors 
+          or problems.<br>
+          </font></font></li>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">The 
+          Fortran libraries are built automatically during the installation outlined 
+          above. To compile and test the Fortran examples, use the command<br>
+          </font><font face="Arial, Helvetica, sans-serif"><font size="2"><font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
+          BOPT=g slepc_testfortran</font></font></font></font></font></li>
+      </ol>
+      <p align="left">&nbsp;</p>
+      <p align="left"><font face="Arial, Helvetica, sans-serif"><font size="3"><b>Installation 
+        Instructions for Windows Platforms</b></font> </font></p>
+      <div align="left"><font face="Arial, Helvetica, sans-serif"> 
+        <p><font size="2">SLEPc can be installed also in Windows machines with 
+          a similar procedure as in the case of PETSc. Follow the instructions 
+          given in the <a href="http://www-unix.mcs.anl.gov/petsc/petsc-2/documentation/installation/win.html" target="_blank">PETSc 
+          Windows installation document.</a></font></p>
+        <p>&nbsp;</p>
+        <p><font size="3"><b>Optional Software</b></font></p>
+        <p><font size="2">SLEPc provides an interface to several software packages. 
+          These should be installed before installing SLEPc. These packages are 
+          not developed, maintained, or supported by the SLEPc team; we merely 
+          provide an interface to them. To integrate one of these libraries in 
+          SLEPc:</font></p>
+        </font></div>
+      <ul>
+        <li> 
+          <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">First 
+            install the external package following its instructions. Make sure 
+            you use the same compilers and MPI that you plan to use with PETSc/SLEPc.<br>
+            </font></font></div>
+        </li>
+        <li> 
+          <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">Enable 
+            the utilization of the external software from SLEPc by editing the 
+            file <font face="Courier New, Courier, mono">${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages</font>. 
+            For example, to use ARPACK, one would specify the following variables 
+            with the appropriate paths:<br>
+            <br>
+            <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;ARPACK_INCLUDE 
+            = <br>
+            &nbsp;&nbsp;&nbsp;ARPACK_LIB = -L/home/slepc/soft/ARPACK -lparpack 
+            &#8211;larpack<br>
+            &nbsp;&nbsp;&nbsp;SLEPC_HAVE_ARPACK = -DSLEPC_HAVE_ARPACK</font></font></font></div>
+        </li>
+      </ul>
+      <div align="left"> 
+        <p><font size="2" face="Arial, Helvetica, sans-serif">SLEPc currently 
+          interfaces to the following libraries:</font></p>
+      </div>
+      <ul>
+        <li> 
+          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.caam.rice.edu/software/ARPACK" target="_blank">ARPACK</a> 
+            (Implicitly Restarted Arnoldi/Lanczos solver).</font></div>
+        </li>
+        <li> 
+          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.nersc.gov/%7Eosni/#Software" target="_blank">BLZPACK</a> 
+            (Block Lanczos with selective and partial reorthogonalization). </font></div>
+        </li>
+        <li> 
+          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.nersc.gov/research/SIMON/planso.html" target="_blank">PLANSO</a> 
+            (Lanczos with partial reorthogonalization).</font></div>
+        </li>
+        <li> 
+          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.nersc.gov/%7Ekewu/trlan.html" target="_blank">TRLAN</a> 
+            (Dynamic Thick Restart Lanczos solver).</font></div>
+        </li>
+      </ul>
+      <div align="left">
+        <p><font size="2" face="Arial, Helvetica, sans-serif">Additional information 
+          about these packages can be found in Appendix B of the SLEPc Users Manual.</font> 
+        </p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+      </div></td>
+  </tr>
+</table>
+</body>
+</html>

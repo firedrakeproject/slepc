@@ -1,0 +1,37 @@
+Example categories:
+
+    1 - basic C suite used in installation tests
+    2 - additional C suite including graphics
+    3 - basic Fortran .F suite
+    4 - uniprocessor version of 1 and 2
+    5 - C examples that require complex numbers
+    6 - C examples that don't work with complex numbers
+    7 - C examples that require BlockSolve
+    8 - Fortran .F examples that don't work with complex numbers
+    9 - uniprocessor version of 3
+   10 - Fortran examples that require complex
+   11 - uniprocessor version of 5
+   12 - basic f90 examples
+   13 - Examples that should only be compiled.
+   14 - requires Matlab - src/dm/da/examples/tests
+   15 - AMS (Alice Memory Snooper) tests - src/snes/examples/tutuorials
+   16 - Requires ParMetis
+   17 - requires PYTHON (uses urlget.py) and popen()
+   18 - requires SPAI
+
+Available examples:
+
+  Category   Filename   Description
+
+      1       ex1.c     1-D Laplacian, standard symmetric eigenproblem
+      3       ex1f.F    Fortran equivalent of ex1.c
+      1       ex2.c     2-D Laplacian, standard symmetric eigenproblem
+      4       ex3.c     2-D Laplacian, matrix-free version
+      1       ex4.c     Matrix loaded from a file, standard problem
+      1       ex5.c     Markov model of a random walk in a triangular grid
+      9       ex6f.F    Ising model for ferromagnetic materials
+      1       ex7.c     Matrices loaded from a file, generalized problem
+      6       ex8.c     Grcar matrix, Singular Value Decomposition
+      1       ex9.c     Brusselator model, standard nonsymmetric with blocks
+      1       ex10.c    Shell spectral transformation
+

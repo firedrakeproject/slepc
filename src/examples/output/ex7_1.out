@@ -1,0 +1,15 @@
+
+Generalized eigenproblem stored in file.
+
+ Reading REAL matrices from binary files...
+ Number of iterations of the method: 712
+ Solution method: power
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=40000
+ Number of converged approximate eigenpairs: 1
+
+           k              ||Ax-kx||/|k|
+  --------------------- -----------------
+       -4.37421e+16           0.000011
+
