@@ -187,8 +187,8 @@ which can also be specified at the command line. This criterion is used both for
 \texttt{EPS\_SMALLEST\_MAGNITUDE}  & \texttt{-eps\_smallest\_magnitude} & Smallest $|\lambda|$ \\
 \texttt{EPS\_LARGEST\_REAL}        & \texttt{-eps\_largest\_real}       & Largest $\mathrm{Re}(\lambda)$ \\
 \texttt{EPS\_SMALLEST\_REAL}       & \texttt{-eps\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
-\texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$ \footnotemark \\
-\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$ \addtocounter{footnote}{-1}\footnotemark \\
+\texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark \\
+\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\addtocounter{footnote}{-1}\footnotemark \\
 \end{tabular} }
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
 \end{table}
@@ -253,22 +253,6 @@ where \texttt{method} can be one of
 \texttt{EPSTRLAN}.
 The \ident{EPS} method can also be set with the options database command \Verb!-eps_type! followed by the name of the method (see table \ref{tab:solvers}).
 
-	It is possible to choose among several variants of the algorithms. For instance, in many methods one can select the orthogonalization technique to be used. Again, this can be done via the following command line or procedurally. Available choices are listed in table \ref{tab:orth}.
-	\findex{EPSSetOrthogonalization}
-	\begin{Verbatim}[fontsize=\small]
-	EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type);
-	\end{Verbatim}
-\begin{table}[t]
-\centering
-{\small \begin{tabular}{lll}
-Orthogonalization Algorithm & \ident{EPSOrthogonalizationType} & Command line key\\\hline
-Modified Gram-Schmidt  & \texttt{EPS\_MGS\_ORTH} & \texttt{-eps\_mgs\_orth}\\
-Classical Gram-Schmidt & \texttt{EPS\_CGS\_ORTH} & \texttt{-eps\_cgs\_orth}\\
-Iterative Refinement GS& \texttt{EPS\_IR\_ORTH}  & \texttt{-eps\_ir\_orth}\\\hline
-\end{tabular} }
-\caption{\label{tab:orth}Available orthogonalization algorithms.}
-\end{table}
-
 %---------------------------------------------------
 \section{Controlling the Solution Process}
 
@@ -289,7 +273,7 @@ This can be useful when the eigenvalue calculation is one of a sequence of close
 	At the end of the solution process, error estimates are available via
 	\findex{EPSGetErrorEstimates}
 	\begin{Verbatim}[fontsize=\small]
-	EPSGetErrorEstimates(EPS eps,PetscReal **errest);
+	EPSGetErrorEstimates(EPS eps,int,j,PetscReal *errest);
 	\end{Verbatim}
 
 	Error estimates can also be displayed during execution of the solution algorithm, as a way of monitoring convergence. The user can activate this feature by using \Verb!-eps_monitor! within the options database. By default, the solvers run silently without displaying information about the iteration. \slepc also provides a different kind of convergence monitor which displays the value of the approximate eigenvalues instead of the error estimates. This is done with \Verb!-eps_monitor_values!. Both types of monitors are compatible and can be used at the same time if desired.
@@ -305,4 +289,60 @@ This can be useful when the eigenvalue calculation is one of a sequence of close
 		PetscScalar *kr,PetscScalar *ki,int nest,void *mctx),
 		void *mctx);
 	\end{Verbatim}
+
+%---------------------------------------------------
+\section{Advanced Usage}
+
+	This section includes the description of several advanced features of the eigensolver object. The default settings are appropriate for most applications and modification is not necessary for normal usage.
+
+\subsection{Orthogonalization}
+
+	Internally, eigensolvers in \ident{EPS} often need to orthogonalize a vector against a set of vectors (for instance, when building an orthonormal basis of a Krylov subspace). This operation in carried out typically by a Gram-Schmidt orthogonalization procedure.
+
+	It has been acknowledged that the classical Gram-Schmidt (CGS) algorithm may produce vectors which are far from orthogonal. The method known as modified Gram-Schmidt (MGS) is numerically to be preferred, since the achieved orthogonality is of the order of machine precision times condition number of the matrix whose columns are the vectors to orthogonalize. This may still be insufficient for matrices that are ill conditioned, such as the case of Krylov subspaces. To overcome this difficulty, the MGS process can be applied iteratively (a single reorthogonalization step is sufficient in practice). A simple test has been devised to assess when a second orthogonalization is required, see \citep{Daniel:1976:RSA}. On the other hand, the same idea is applicable to the CGS process and it has been shown that the same accuracy can be attained in the same number of iterations, see \citep{Hoffmann:1989:IAG}.
+
+\begin{algorithm}[Classical Gram-Schmidt with Iterative Refinement\label{alg:cgs}]~\rm
+\begin{tabbing}
+Input: Vector $v$ to orthogonalize against the $m$ columns of $Q$ \\
+Output: Orthogonalized vector $q$ \\
+xxxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
+\> $h=Q^*v$\\
+\> $\tilde{q}=v-Qh$\\
+\> If $||\tilde{q}||_2<\eta||h||_2$\\
+\> \> $s=Q^*\tilde{q}$\\
+\> \> $\tilde{q}=\tilde{q}-Qs$\\
+\> \> $h=h+s$\\
+\> end \\
+\> $q=\tilde{q}/||\tilde{q}||_2$
+\end{tabbing}
+\end{algorithm}
+
+\begin{algorithm}[Modified Gram-Schmidt with Iterative Refinement\label{alg:mgs}]~\rm
+\begin{tabbing}
+Input: Vector $v$ to orthogonalize against the $m$ columns of $Q$ \\
+Output: Orthogonalized vector $q$ \\
+xxxx\=xxx\=xxx\=xxxxxxxxxxxxxxx\=\kill
+\> $\tilde{q}=v$\\
+\> For $i=1,\ldots,m$\\
+\> \> $h_i=q_i^*\tilde{q}$\\
+\> \> $\tilde{q}=\tilde{q}-q_ih_i$\\
+\> End\\
+\> If $||\tilde{q}||_2<\eta||h||_2$\\
+\> \> For $i=1,\ldots,m$\\
+\> \> \> $s_i=q_i^*\tilde{q}$\\
+\> \> \> $\tilde{q}=\tilde{q}-q_is_i$\\
+\> \> End\\
+\> \> $h=h+s$\\
+\> end \\
+\> $q=\tilde{q}/||\tilde{q}||_2$
+\end{tabbing}
+\end{algorithm}
+
+	\slepc provides implementations of both CGS and MGS with iterative refinement (see algorithms \ref{alg:cgs} and \ref{alg:mgs} above). The default is CGS since it is better suited for parallel architectures. The user is able to select the orthogonalization technique to be used. Again, this can be done procedurally or via the command line. The following function provides all the possibilities
+	\findex{EPSSetOrthogonalization}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type,
+           EPSOrthogonalizationRefinementType refinement, PetscReal eta);
+	\end{Verbatim}
+The argument \Verb!type! can be used to choose between CGS and MGS. The argument \Verb!refinement! specifies if refinement should be performed always (thus carrying out unnecessary work), never (i.e. the non-iterative algorithms) or if needed (according to the condition established in the algorithms above). In the last case, the value of $\eta$ can be provided via the last argument, \Verb!eta!. The default is to do refinement if needed with a value of $\eta$ equal to $1/\sqrt{2}$, as suggested in \citep{Reichel:1990:FSU}. Alternatively, all these options can be specified in the command line with \Verb!-eps_orthog_type [cgs|mgs]! for the algorithm, \Verb!-eps_orthog_refinement! \Verb! [never|ifneeded|always]! for the refinement strategy, and \Verb!-eps_orthog_eta! for setting the value of $\eta$.
 
