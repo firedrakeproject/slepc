@@ -120,7 +120,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
     }
     HYPRE_IJVectorGetObject(ijv,(void**)&lobpcg->eigenvector[i]);    
   }
-  HYPRE_LobpcgSetVerbose(lobpcg->data,1);
+  HYPRE_LobpcgSetVerbose(lobpcg->data,0);
   HYPRE_LobpcgSetSolverFunction(lobpcg->data,EPSFunctSolver);
   HYPRE_LobpcgSetup(lobpcg->data);
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
