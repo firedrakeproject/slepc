@@ -175,7 +175,7 @@ allows the specification of the number of eigenvalues to compute, \texttt{nev}. 
 \end{Verbatim}
 requests 10 eigenvalues and instructs to use 24 basis vectors. Note that \texttt{ncv} must be al least equal to \texttt{nev}, although in general it is recommended (depending on the method) to work with a larger subspace, for instance \texttt{ncv}$\,\geq \!2*$\texttt{nev}.
 
-	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones, or even eigenvalues from both sides of the spectrum. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Table \ref{tab:portion} sumarizes all the possibilities available for the function
+	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Table \ref{tab:portion} sumarizes all the possibilities available for the function
 	\findex{EPSSetWhichEigenpairs}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetWhichEigenpairs(EPS eps,EPSWhich which);
@@ -184,17 +184,14 @@ which can also be specified at the command line. Note that not all these possibi
 
 \begin{table}[t]
 \centering
-{\small \begin{tabular}{ll}
-\texttt{EPSWhich}              & Command line key\\\hline
-\texttt{EPS\_LARGEST\_MAGNITUDE}   & \texttt{-eps\_largest\_magnitude}\\
-\texttt{EPS\_SMALLEST\_MAGNITUDE}  & \texttt{-eps\_smallest\_magnitude}\\
-\texttt{EPS\_LARGEST\_ALGEBRAIC}   & \texttt{-eps\_largest\_algebraic}\\
-\texttt{EPS\_SMALLEST\_ALGEBRAIC}  & \texttt{-eps\_smallest\_algebraic}\\
-\texttt{EPS\_LARGEST\_REAL}        & \texttt{-eps\_largest\_real}\\
-\texttt{EPS\_SMALLEST\_REAL}       & \texttt{-eps\_smallest\_real}\\
-\texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}\\
-\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary}\\
-\texttt{EPS\_BOTH\_ENDS}           & \texttt{-eps\_both\_ends}\\\hline
+{\small \begin{tabular}{lll}
+\texttt{EPSWhich}                  & Command line key                   & Eigenvalues \\\hline
+\texttt{EPS\_LARGEST\_MAGNITUDE}   & \texttt{-eps\_largest\_magnitude}  & Largest $|\lambda|$ \\
+\texttt{EPS\_SMALLEST\_MAGNITUDE}  & \texttt{-eps\_smallest\_magnitude} & Smallest $|\lambda|$ \\
+\texttt{EPS\_LARGEST\_REAL}        & \texttt{-eps\_largest\_real}       & Largest $\mathrm{Re}(\lambda)$ \\
+\texttt{EPS\_SMALLEST\_REAL}       & \texttt{-eps\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
+\texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}  & Largest $|\mathrm{Im}(\lambda)|$ \\
+\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary} & Smallest $|\mathrm{Im}(\lambda)|$ \\
 \end{tabular} }
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
 \end{table}
