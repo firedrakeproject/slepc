@@ -756,7 +756,10 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec)
 
   /* Orthonormalize the vector with respect to previous vectors */
   ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-  if (breakdown) { SETERRQ(1,"Illegal start vector"); }
+  if (breakdown) {
+    if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); }
+    else { SETERRQ(1,"Unable to generate more start vectors"); }
+  }
   t = 1 / norm;
   ierr = VecScale(&t,vec);CHKERRQ(ierr);
 
