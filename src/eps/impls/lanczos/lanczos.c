@@ -65,8 +65,8 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   else eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
-  if (eps->which!=EPS_LARGEST_MAGNITUDE)
-    SETERRQ(1,"Wrong value of eps->which");
+/*  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+    SETERRQ(1,"Wrong value of eps->which");*/
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -239,7 +239,7 @@ PetscErrorCode RefineBounds(int n,PetscReal *ritz,PetscReal *bnd,PetscReal eps,P
 PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  int            nconv,i,j,n,m,*isuppz,*iwork,info,N,
+  int            nconv,i,j,n,m,*isuppz,*iwork,info,N,*perm,
                  ncv=eps->ncv,
                  lwork=18*ncv,
                  liwork=10*ncv;
@@ -260,6 +260,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(2*ncv*sizeof(int),&isuppz);CHKERRQ(ierr);
   ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
   ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr);
@@ -269,6 +270,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   
   nconv = 0;
   eps->its = 0;
+  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   /* Restart loop */
   while (eps->its<eps->max_it) {
@@ -315,22 +317,31 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
       bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]);
     }
-    ierr = RefineBounds(n,ritz,bnd,eps->tol,eps->tol*anorm*N);CHKERRQ(ierr);
+/*    ierr = RefineBounds(n,ritz,bnd,eps->tol,eps->tol*anorm*N);CHKERRQ(ierr);*/
     
+    ierr = EPSSortEigenvalues(n,ritz,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
     /* Reverse order of Ritz values and calculate relative error bounds */
     for (i=0;i<n;i++) {
-      eps->eigr[ncv-i-1] = ritz[i];
-      eps->errest[ncv-i-1] = bnd[i] / ritz[i];
+      eps->eigr[nconv+i] = ritz[perm[i]];
+      eps->errest[nconv+i] = bnd[perm[i]] / ritz[perm[i]];
     }
 
     /* Update V(:,idx) = V*Y */
-    for (i=0;i<n;i++) 
-      for (j=0;j<n;j++) 
-          W[i+j*n] = Y[i+(n-j-1)*n];
+    for (j=0;j<n;j++) 
+      for (i=0;i<n;i++) 
+        W[i+j*n] = Y[i+perm[j]*n];
     ierr = EPSReverseProjection(eps,eps->V+nconv,W,0,n,eps->work);CHKERRQ(ierr);
 
     /* Look for converged eigenpairs */
-    while (nconv<ncv && eps->errest[nconv]<eps->tol) nconv++;
+    while (nconv<ncv && eps->errest[nconv]<eps->tol) {
+      ierr = STNorm(eps->OP,eps->V[nconv],&norm);CHKERRQ(ierr);
+      eps->errest[nconv] = eps->errest[nconv] / norm;
+      if (eps->errest[nconv]<eps->tol) {
+        ts = 1 / norm;
+        ierr = VecScale(&ts,eps->V[nconv]);CHKERRQ(ierr);
+        nconv++;
+      }
+    }
 
     EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     eps->its = eps->its + ncv - nconv;
@@ -340,7 +351,6 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   eps->nconv = nconv;
   if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 
   ierr = PetscFree(ritz);CHKERRQ(ierr);
   ierr = PetscFree(bnd);CHKERRQ(ierr);
@@ -351,6 +361,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
