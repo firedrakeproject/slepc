@@ -33,10 +33,8 @@
 !
 !  Variables:
 !     A     operator matrix
-!     x     basis vectors
 !     eps   eigenproblem solver context
 
-      Vec          x
       Mat          A
       EPS          eps
       EPSType      type
@@ -55,14 +53,14 @@
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
 #if defined(PETSC_USE_COMPLEX)
-      write(6,*) "This example requires real numbers."
+      write(*,*) 'This example requires real numbers.'
       goto 999
 #endif
       call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       if (size .ne. 1) then
          if (rank .eq. 0) then
-            write(6,*) 'This is a uniprocessor example only!'
+            write(*,*) 'This is a uniprocessor example only!'
          endif
          SETERRQ(1,' ',ierr)
       endif
@@ -71,11 +69,10 @@
       N = 2*m
 
       if (rank .eq. 0) then
-        write(6,*)
-        write(6,100) m
-        write(6,*)
+        write(*,*)
+        write(*,'(A,I6,A)') 'Ising Model Eigenproblem, m=',m,', (N=2*m)'
+        write(*,*)
       endif
- 100  format ('Ising Model Eigenproblem, m =',i6,', (N=2*m)' )
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Register the matrix-vector subroutine for the operator that defines
@@ -106,27 +103,23 @@
       call EPSSolve(eps,ierr) 
       call EPSGetIterationNumber(eps,its,ierr)
       if (rank .eq. 0) then
-        write(6,*)
-        write(6,140) its
+        write(*,'(A,I4)') ' Number of iterations of the method: ', its
       endif
- 140  format (' Number of iterations of the method: ',i4)
 
 !     ** Optional: Get some information from the solver and display it
       call EPSGetType(eps,type,ierr)
       if (rank .eq. 0) then
-        write(6,110) type
+        write(*,'(A,A)') ' Solution method: ', type
       endif
- 110  format (' Solution method: ',a)
       call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
-        write(6,120) nev
+        write(*,'(A,I2)') ' Number of requested eigenvalues:', nev
       endif
- 120  format (' Number of requested eigenvalues:',i2)
       call EPSGetTolerances(eps,tol,maxit,ierr)
       if (rank .eq. 0) then
-        write(6,130) tol, maxit
+        write(*,'(A,1PE10.4,A,I6)') ' Stopping condition: tol=', tol, 
+     &                              ', maxit=', maxit
       endif
- 130  format (' Stopping condition: tol=',1pe10.4,', maxit=',i6)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up
@@ -135,35 +128,30 @@
 !     ** Get number of converged eigenpairs 
       call EPSGetConverged(eps,nconv,ierr)
       if (rank .eq. 0) then
-        write(6,150) nconv
+        write(*,'(A,I2)') ' Number of converged eigenpairs:', nconv
       endif
- 150  format (' Number of converged approximate eigenpairs:',i2)
 
 !     ** Display eigenvalues and relative errors
       if (nconv.gt.0 .and. rank.eq.0) then
-        write(6,*)
-        write(6,160)
-        write(6,170)
+        write(*,*)
+        write(*,*) '           k          ||Ax-kx||/||kx||'
+        write(*,*) '   ----------------- ------------------'
         do i=0,nconv-1
-!     ** Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
-!     ** ki (imaginary part), and the corresponding eigenvector is stored in x
-          call EPSGetEigenpair(eps,i,kr,ki,x,PETSC_NULL,ierr)
+!         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
+!         ** (real part) and ki (imaginary part)
+          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL,PETSC_NULL,ierr)
 
-!     ** Compute the relative error associated to each eigenpair
+!         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)
 
           if (ki.ne.0.D0) then
-            write(6,180) kr, ki, error
+            write(*,'(1P,E11.4,E11.4,A,E12.4)') kr, ki, ' j ', error
           else
-            write(6,190) kr, error
+            write(*,'(1P,A,E12.4,A,E12.4)') '   ', kr, '       ', error
           endif
         enddo
-        write(6,*)
+        write(*,*)
       endif
- 160  format ('           k          ||Ax-kx||/||kx||')
- 170  format ('   ----------------- ------------------')
- 180  format (1pe11.4,1pe11.4,' j ',1pe12.4)
- 190  format ('   ',1pe12.4,'       ',1pe12.4)
 
 !     ** Free work space
       call EPSDestroy(eps,ierr)
