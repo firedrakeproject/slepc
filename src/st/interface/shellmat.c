@@ -8,11 +8,11 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatShellMult"
-static int STMatShellMult(Mat A,Vec x,Vec y)
+PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
 {
-  int         ierr;
-  ST          ctx;
-  PetscScalar alpha;
+  PetscErrorCode ierr;
+  ST             ctx;
+  PetscScalar    alpha;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -33,12 +33,12 @@ static int STMatShellMult(Mat A,Vec x,Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatShellGetDiagonal"
-static int STMatShellGetDiagonal(Mat A,Vec diag)
+PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 {
-  int         ierr;
-  ST          ctx;
-  PetscScalar alpha;
-  Vec         diagb;
+  PetscErrorCode ierr;
+  ST             ctx;
+  PetscScalar    alpha;
+  Vec            diagb;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -61,10 +61,11 @@ static int STMatShellGetDiagonal(Mat A,Vec diag)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STMatShellCreate"
-int STMatShellCreate(ST st,Mat *mat)
+PetscErrorCode STMatShellCreate(ST st,Mat *mat)
 {
-  int          n, m, N, M, ierr;
-  PetscTruth   hasA, hasB;
+  PetscErrorCode ierr;
+  int            n, m, N, M;
+  PetscTruth     hasA, hasB;
 
   PetscFunctionBegin;
   ierr = MatGetSize(st->A,&M,&N);CHKERRQ(ierr);  

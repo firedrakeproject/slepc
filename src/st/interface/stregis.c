@@ -2,10 +2,10 @@
 #include "src/st/stimpl.h"          /*I   "slepcst.h"   I*/
 
 EXTERN_C_BEGIN
-extern int STCreate_Shell(ST);
-extern int STCreate_Shift(ST);
-extern int STCreate_Sinvert(ST);
-extern int STCreate_Cayley(ST);
+EXTERN PetscErrorCode STCreate_Shell(ST);
+EXTERN PetscErrorCode STCreate_Shift(ST);
+EXTERN PetscErrorCode STCreate_Sinvert(ST);
+EXTERN PetscErrorCode STCreate_Cayley(ST);
 EXTERN_C_END
 
 extern PetscTruth STRegisterAllCalled;
@@ -24,9 +24,9 @@ extern PetscTruth STRegisterAllCalled;
 
 .seealso: STRegisterDynamic(), STRegisterDestroy()
 @*/
-int STRegisterAll(char *path)
+PetscErrorCode STRegisterAll(char *path)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   STRegisterAllCalled = PETSC_TRUE;
@@ -37,5 +37,4 @@ int STRegisterAll(char *path)
   ierr = STRegisterDynamic(STCAYLEY ,path,"STCreate_Cayley",STCreate_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 

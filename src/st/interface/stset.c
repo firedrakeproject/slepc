@@ -41,9 +41,9 @@ PetscFList STList = 0;
 .seealso: EPSSetType()
 
 @*/
-int STSetType(ST st,STType type)
+PetscErrorCode STSetType(ST st,STType type)
 {
-  int ierr,(*r)(ST);
+  PetscErrorCode ierr,(*r)(ST);
   PetscTruth match;
 
   PetscFunctionBegin;
@@ -88,9 +88,9 @@ int STSetType(ST st,STType type)
 .seealso: STRegisterAll(), STRegisterAll()
 
 @*/
-int STRegisterDestroy(void)
+PetscErrorCode STRegisterDestroy(void)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (STList) {
@@ -119,7 +119,7 @@ int STRegisterDestroy(void)
 .seealso: STSetType()
 
 @*/
-int STGetType(ST st,STType *meth)
+PetscErrorCode STGetType(ST st,STType *meth)
 {
   PetscFunctionBegin;
   *meth = (STType) st->type_name;
@@ -143,14 +143,15 @@ int STGetType(ST st,STType *meth)
 .seealso: 
 
 @*/
-int STSetFromOptions(ST st)
+PetscErrorCode STSetFromOptions(ST st)
 {
-  int        ierr,i;
-  char       type[256];
-  PetscTruth flg;
-  const char *mode_list[3] = { "copy", "inplace", "shell" };
-  const char *structure_list[3] = { "same", "different", "subset" };
-  PC         pc;
+  PetscErrorCode ierr;
+  int            i;
+  char           type[256];
+  PetscTruth     flg;
+  const char     *mode_list[3] = { "copy", "inplace", "shell" };
+  const char     *structure_list[3] = { "same", "different", "subset" };
+  PC             pc;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -225,7 +226,7 @@ int STSetFromOptions(ST st)
 
 .seealso: STSetOperators(), MatAXPY()
 @*/
-int STSetMatStructure(ST st,MatStructure str)
+PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -274,7 +275,7 @@ int STSetMatStructure(ST st,MatStructure str)
 
 .seealso: STSetOperators(), STSetMatStructure()
 @*/
-int STSetMatMode(ST st,STMatMode mode)
+PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -284,7 +285,7 @@ int STSetMatMode(ST st,STMatMode mode)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STGetMatMode"
-int STGetMatMode(ST st,STMatMode *mode)
+PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -294,7 +295,7 @@ int STGetMatMode(ST st,STMatMode *mode)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetBilinearForm"
-int STSetBilinearForm(ST st,STBilinearForm form)
+PetscErrorCode STSetBilinearForm(ST st,STBilinearForm form)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);

@@ -28,12 +28,13 @@
 
 .seealso: EPSCreate(), EPSSolve(), EPSDestroy(), STSetUp()
 @*/
-int EPSSetUp(EPS eps)
+PetscErrorCode EPSSetUp(EPS eps)
 {
-  int         i,ierr;
-  Vec         v0;
-  Mat         A,B;
-  PetscReal   norm;
+  PetscErrorCode ierr;
+  int            i;   
+  Vec            v0;  
+  Mat            A,B; 
+  PetscReal      norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -111,14 +112,15 @@ int EPSSetUp(EPS eps)
 
 .seealso: EPSCreate(), EPSSetUp(), EPSDestroy(), EPSSetTolerances() 
 @*/
-int EPSSolve(EPS eps) 
+PetscErrorCode EPSSolve(EPS eps) 
 {
-  int         i,ierr;
-  PetscReal   re,im;
-  PetscTruth  flg;
-  PetscViewer viewer;
-  PetscDraw   draw;
-  PetscDrawSP drawsp;
+  PetscErrorCode ierr;
+  int            i;
+  PetscReal      re,im;
+  PetscTruth     flg;
+  PetscViewer    viewer;
+  PetscDraw      draw;
+  PetscDrawSP    drawsp;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -215,9 +217,9 @@ int EPSSolve(EPS eps)
 
 .seealso: EPSCreate(), EPSSetUp(), EPSSolve()
 @*/
-int EPSDestroy(EPS eps)
+PetscErrorCode EPSDestroy(EPS eps)
 {
-  int         ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -275,7 +277,7 @@ int EPSDestroy(EPS eps)
 
 .seealso: EPSSetTolerances()
 @*/
-int EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
+PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -308,7 +310,7 @@ int EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
 
 .seealso: EPSGetTolerances()
 @*/
-int EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
+PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -339,7 +341,7 @@ int EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
 
 .seealso: EPSSetDimensions()
 @*/
-int EPSGetDimensions(EPS eps,int *nev,int *ncv)
+PetscErrorCode EPSGetDimensions(EPS eps,int *nev,int *ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -375,7 +377,7 @@ int EPSGetDimensions(EPS eps,int *nev,int *ncv)
 
 .seealso: EPSGetDimensions()
 @*/
-int EPSSetDimensions(EPS eps,int nev,int ncv)
+PetscErrorCode EPSSetDimensions(EPS eps,int nev,int ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -416,7 +418,7 @@ int EPSSetDimensions(EPS eps,int nev,int ncv)
 
 .seealso: EPSSetDimensions()
 @*/
-int EPSGetConverged(EPS eps,int *nconv)
+PetscErrorCode EPSGetConverged(EPS eps,int *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -452,9 +454,10 @@ int EPSGetConverged(EPS eps,int *nconv)
 
 .seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve()
 @*/
-int EPSGetInvariantSubspace(EPS eps, Vec *v)
+PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 {
-  int ierr,i;
+  PetscErrorCode ierr;
+  int            i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -502,12 +505,13 @@ int EPSGetInvariantSubspace(EPS eps, Vec *v)
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetInvariantSubspace()
 @*/
-int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
+PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
-  int         ierr, k;
-  PetscScalar zero = 0.0;
+  PetscErrorCode ierr;
+  int            k;
+  PetscScalar    zero = 0.0;
 #ifndef PETSC_USE_COMPLEX
-  PetscScalar minus = -1.0;
+  PetscScalar    minus = -1.0;
 #endif
 
   PetscFunctionBegin;
@@ -569,7 +573,7 @@ int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr
 
 .seealso: EPSComputeRelativeError()
 @*/
-int EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
+PetscErrorCode EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -604,9 +608,9 @@ int EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
 
 .seealso: EPSGetST()
 @*/
-int EPSSetST(EPS eps,ST st)
+PetscErrorCode EPSSetST(EPS eps,ST st)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -636,7 +640,7 @@ int EPSSetST(EPS eps,ST st)
 
 .seealso: EPSSetST()
 @*/
-int EPSGetST(EPS eps, ST *st)
+PetscErrorCode EPSGetST(EPS eps, ST *st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -683,7 +687,7 @@ $     monitor (EPS eps, int its, int nconv, PetscReal* errest, int nest, void *m
 
 .seealso: EPSDefaultEstimatesMonitor(), EPSClearMonitor()
 @*/
-int EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*), void *mctx)
+PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*), void *mctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -714,7 +718,7 @@ int EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,
 
 .seealso: EPSSetMonitor(), EPSSetValuesMonitor()
 @*/
-int EPSClearMonitor(EPS eps)
+PetscErrorCode EPSClearMonitor(EPS eps)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -740,7 +744,7 @@ int EPSClearMonitor(EPS eps)
 
 .seealso: EPSSetMonitor(), EPSDefaultEstimatesMonitor()
 @*/
-int EPSGetMonitorContext(EPS eps, void **ctx)
+PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -765,9 +769,9 @@ int EPSGetMonitorContext(EPS eps, void **ctx)
 .seealso: EPSGetInitialVector()
 
 @*/
-int EPSSetInitialVector(EPS eps,Vec vec)
+PetscErrorCode EPSSetInitialVector(EPS eps,Vec vec)
 {
-  int ierr;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -802,7 +806,7 @@ int EPSSetInitialVector(EPS eps,Vec vec)
 .seealso: EPSSetInitialVector()
 
 @*/
-int EPSGetInitialVector(EPS eps,Vec *vec)
+PetscErrorCode EPSGetInitialVector(EPS eps,Vec *vec)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -853,7 +857,7 @@ int EPSGetInitialVector(EPS eps,Vec *vec)
 
 .seealso: EPSGetWhichEigenpairs(), EPSSortEigenvalues()
 @*/
-int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
+PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -882,7 +886,7 @@ int EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 
 .seealso: EPSSetWhichEigenpairs()
 @*/
-int EPSGetWhichEigenpairs(EPS eps,EPSWhich *which) 
+PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which) 
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -920,12 +924,13 @@ int EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 
 .seealso: STApply()   
 @*/
-int EPSComputeExplicitOperator(EPS eps,Mat *mat)
+PetscErrorCode EPSComputeExplicitOperator(EPS eps,Mat *mat)
 {
-  Vec         in,out;
-  int         ierr,i,M,m,size,*rows,start,end;
-  MPI_Comm    comm;
-  PetscScalar *array,zero = 0.0,one = 1.0;
+  PetscErrorCode ierr;
+  Vec            in,out;
+  int            i,M,m,size,*rows,start,end;
+  MPI_Comm       comm;
+  PetscScalar    *array,zero = 0.0,one = 1.0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -989,9 +994,10 @@ int EPSComputeExplicitOperator(EPS eps,Mat *mat)
 
 .seealso: EPSSolve(), EPSGetST(), STGetOperators()
 @*/
-int EPSSetOperators(EPS eps,Mat A,Mat B)
+PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
-  int m,n,ierr;
+  PetscErrorCode ierr;
+  int            m,n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1042,14 +1048,14 @@ int EPSSetOperators(EPS eps,Mat A,Mat B)
 
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
 @*/
-int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
+PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 {
-  Vec         u, v, w, xr, xi;
-  Mat         A, B;
-  int         ierr;
-  PetscScalar alpha, kr, ki;
+  PetscErrorCode ierr;
+  Vec            u, v, w, xr, xi;
+  Mat            A, B;
+  PetscScalar    alpha, kr, ki;
 #ifndef PETSC_USE_COMPLEX
-  PetscReal   ni, nr;
+  PetscReal      ni, nr;
 #endif
   
   PetscFunctionBegin;
@@ -1125,16 +1131,16 @@ int EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 
 .seealso: EPSSolve(), EPSComputeResidualNorm()
 @*/
-int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
+PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 {
-  Vec         xr, xi;
-  int         ierr;
-  PetscScalar kr, ki;
-  PetscReal   norm, er;
+  PetscErrorCode ierr;
+  Vec            xr, xi;  
+  PetscScalar    kr, ki;  
+  PetscReal      norm, er;
 #ifndef PETSC_USE_COMPLEX
-  Vec         u;
-  PetscScalar alpha;
-  PetscReal   ei;
+  Vec            u;
+  PetscScalar    alpha;
+  PetscReal      ei;
 #endif
   
   PetscFunctionBegin;
@@ -1205,10 +1211,10 @@ int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 
 .seealso: EPSSetOperators(), EPSSetType(), EPSProblemType
 @*/
-int EPSSetProblemType(EPS eps,EPSProblemType type)
+PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 {
-  int        ierr;
-  Mat        A,B;
+  PetscErrorCode ierr;
+  Mat            A,B;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1274,7 +1280,7 @@ int EPSSetProblemType(EPS eps,EPSProblemType type)
 
 .seealso: EPSSetProblemType()
 @*/
-int EPSGetProblemType(EPS eps,EPSProblemType *type)
+PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1299,10 +1305,10 @@ int EPSGetProblemType(EPS eps,EPSProblemType *type)
    Level: intermediate
 
 @*/
-int EPSIsGeneralized(EPS eps,PetscTruth* is)
+PetscErrorCode EPSIsGeneralized(EPS eps,PetscTruth* is)
 {
-  int  ierr;
-  Mat  B;
+  PetscErrorCode ierr;
+  Mat            B;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1334,7 +1340,7 @@ int EPSIsGeneralized(EPS eps,PetscTruth* is)
    Level: intermediate
 
 @*/
-int EPSIsHermitian(EPS eps,PetscTruth* is)
+PetscErrorCode EPSIsHermitian(EPS eps,PetscTruth* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1363,10 +1369,11 @@ int EPSIsHermitian(EPS eps,PetscTruth* is)
    Level: developer
 
 @*/
-int EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Vec* work)
+PetscErrorCode EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Vec* work)
 {
-  int         ierr,i;
-  PetscScalar zero = 0.0;
+  PetscErrorCode ierr;
+  int            i;
+  PetscScalar    zero = 0.0;
   
   PetscFunctionBegin;
   for (i=k;i<m;i++) {
@@ -1377,28 +1384,6 @@ int EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Vec* work)
     ierr = VecCopy(work[i],V[i]);CHKERRQ(ierr);
   }    
   PetscFunctionReturn(0);
-
-/*  
-  int         ierr, j;
-  Vec*        y;
-  PetscScalar zero = 0.0;
-  
-  PetscFunctionBegin;
-  ierr = VecDuplicateVecs(eps->V[k], m, &y); CHKERRQ(ierr);
-
-  for (j=k; j<k+m; j++)  {
-    ierr = VecCopy(eps->V[j], y[j-k]); CHKERRQ(ierr);
-    ierr = VecSet(&zero, eps->V[j]);CHKERRQ(ierr);
-  }
-
-  for (j=k;j<k+m;j++) {
-    ierr = VecMAXPY(m, S+m*(j-k), eps->V[j], y);CHKERRQ(ierr);
-  }
-
-  ierr = VecDestroyVecs(y, m); CHKERRQ(ierr);
-
-  PetscFunctionReturn(0); 
-*/
 }
 
 
@@ -1418,11 +1403,11 @@ int EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Vec* work)
    Level: developer
 
 @*/
-int EPSSwapEigenpairs(EPS eps,int i,int j)
+PetscErrorCode EPSSwapEigenpairs(EPS eps,int i,int j)
 {
-  PetscScalar tscalar;
-  PetscReal   treal;
-  int         ierr;
+  PetscErrorCode ierr;
+  PetscScalar    tscalar;
+  PetscReal      treal;
   
   PetscFunctionBegin;
   if (i!=j) {
@@ -1442,25 +1427,25 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBackTransform_Default"
-int EPSBackTransform_Default(EPS eps)
+PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
-  ST          st;
-  int         ierr,i;
+  PetscErrorCode ierr;
+  int            i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
-    ierr = STBackTransform(st,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->OP,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_Default"
-int EPSComputeVectors_Default(EPS eps)
+PetscErrorCode EPSComputeVectors_Default(EPS eps)
 {
-  int         ierr,i;
+  PetscErrorCode ierr;
+  int            i;
 
   PetscFunctionBegin;
   for (i=0;i<eps->nconv;i++) {

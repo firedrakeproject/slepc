@@ -6,10 +6,11 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_ARPACK"
-static int EPSSetUp_ARPACK(EPS eps)
+PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
-  int         ierr, N, n, ncv;
-  EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
+  PetscErrorCode ierr;
+  int            N, n, ncv;
+  EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -56,7 +57,7 @@ static int EPSSetUp_ARPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARPACK"
-static int  EPSSolve_ARPACK(EPS eps)
+PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
   char        bmat[1], *which, howmny[] = "A";
@@ -254,10 +255,10 @@ static int  EPSSolve_ARPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBackTransform_ARPACK"
-int EPSBackTransform_ARPACK(EPS eps)
+PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
-  int         ierr;
-  PetscTruth  isSinv;
+  PetscErrorCode ierr;
+  PetscTruth     isSinv;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
@@ -269,10 +270,10 @@ int EPSBackTransform_ARPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_ARPACK"
-int EPSDestroy_ARPACK(EPS eps)
+PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 {
-  EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
-  int         ierr;
+  PetscErrorCode ierr;
+  EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -292,10 +293,10 @@ int EPSDestroy_ARPACK(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_ARPACK"
-int EPSCreate_ARPACK(EPS eps)
+PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {
-  EPS_ARPACK *arpack;
-  int         ierr;
+  PetscErrorCode ierr;
+  EPS_ARPACK     *arpack;
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_ARPACK,&arpack);CHKERRQ(ierr);

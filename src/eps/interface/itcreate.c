@@ -35,10 +35,10 @@ PetscFList EPSList = 0;
 
 .seealso: STView(), PetscViewerASCIIOpen()
 @*/
-int EPSView(EPS eps,PetscViewer viewer)
+PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
+  PetscErrorCode ierr;
   char        *type, *which;
-  int         ierr;
   PetscTruth  isascii;
 
   PetscFunctionBegin;
@@ -122,7 +122,7 @@ int EPSView(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPublish_Petsc"
-static int EPSPublish_Petsc(PetscObject object)
+static PetscErrorCode EPSPublish_Petsc(PetscObject object)
 {
   PetscFunctionBegin;
   PetscFunctionReturn(0);
@@ -148,13 +148,18 @@ static int EPSPublish_Petsc(PetscObject object)
 
 .seealso: EPSSetUp(), EPSSolve(), EPSDestroy(), EPS
 @*/
-int EPSCreate(MPI_Comm comm,EPS *outeps)
+PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 {
-  EPS   eps;
-  int   ierr;
+  PetscErrorCode ierr;
+  EPS            eps;
 
   PetscFunctionBegin;
+  PetscValidPointer(outeps,2);
   *outeps = 0;
+#ifndef PETSC_USE_DYNAMIC_LIBRARIES
+  ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+#endif
+
   PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_COOKIE,-1,"EPS",comm,EPSDestroy,EPSView);
   PetscLogObjectCreate(eps);
   *outeps = eps;
@@ -237,9 +242,9 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
 
 .seealso: STSetType(), EPSType
 @*/
-int EPSSetType(EPS eps,EPSType type)
+PetscErrorCode EPSSetType(EPS eps,EPSType type)
 {
-  int ierr,(*r)(EPS);
+  PetscErrorCode ierr,(*r)(EPS);
   PetscTruth match;
 
   PetscFunctionBegin;
@@ -281,9 +286,9 @@ int EPSSetType(EPS eps,EPSType type)
 
 .seealso: EPSRegisterDynamic(), EPSRegisterAll()
 @*/
-int EPSRegisterDestroy(void)
+PetscErrorCode EPSRegisterDestroy(void)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (EPSList) {
@@ -311,7 +316,7 @@ int EPSRegisterDestroy(void)
 
 .seealso: EPSSetType()
 @*/
-int EPSGetType(EPS eps,EPSType *type)
+PetscErrorCode EPSGetType(EPS eps,EPSType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -338,16 +343,16 @@ int EPSGetType(EPS eps,EPSType *type)
 
 .seealso: 
 @*/
-int EPSSetFromOptions(EPS eps)
+PetscErrorCode EPSSetFromOptions(EPS eps)
 {
-  int        ierr;
-  char       type[256];
-  PetscTruth flg;
-  const char *orth_list[2] = { "mgs" , "cgs" };
-  const char *ref_list[3] = { "never" , "ifneeded", "always" };
+  PetscErrorCode ierr;
+  char           type[256];
+  PetscTruth     flg;
+  const char     *orth_list[2] = { "mgs" , "cgs" };
+  const char     *ref_list[3] = { "never" , "ifneeded", "always" };
+  PetscReal      eta;
   EPSOrthogonalizationType orth_type;
   EPSOrthogonalizationRefinementType ref_type;
-  PetscReal  eta;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -473,14 +478,13 @@ M*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRegister"
-int EPSRegister(char *sname,char *path,char *name,int (*function)(EPS))
+PetscErrorCode EPSRegister(char *sname,char *path,char *name,int (*function)(EPS))
 {
-  int  ierr;
-  char fullname[256];
+  PetscErrorCode ierr;
+  char           fullname[256];
 
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
   ierr = PetscFListAdd(&EPSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-

@@ -19,9 +19,10 @@
    Output  Parameter:
 .  x - computed solution
 */
-int STAssociatedKSPSolve(ST st,Vec b,Vec x)
+PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 {
-  int   ierr,its;
+  PetscErrorCode ierr;
+  int            its;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
@@ -53,9 +54,10 @@ int STAssociatedKSPSolve(ST st,Vec b,Vec x)
    Level: advanced
 
 @*/
-int STSetKSP(ST st,KSP ksp)
+PetscErrorCode STSetKSP(ST st,KSP ksp)
 {
-  int   ierr;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(ksp,KSP_COOKIE,2);
@@ -90,7 +92,7 @@ int STSetKSP(ST st,KSP ksp)
    Level: intermediate
 
 @*/
-int STGetKSP(ST st,KSP* ksp)
+PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -117,7 +119,7 @@ int STGetKSP(ST st,KSP* ksp)
 
 .seealso: STResetNumberLinearIterations()
 @*/
-int STGetNumberLinearIterations(ST st,int* lits)
+PetscErrorCode STGetNumberLinearIterations(ST st,int* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -141,7 +143,7 @@ int STGetNumberLinearIterations(ST st,int* lits)
 
 .seealso: STGetNumberLinearIterations()
 @*/
-int STResetNumberLinearIterations(ST st)
+PetscErrorCode STResetNumberLinearIterations(ST st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -151,14 +153,15 @@ int STResetNumberLinearIterations(ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace_Default"
-int STCheckNullSpace_Default(ST st,int n,Vec* V)
+PetscErrorCode STCheckNullSpace_Default(ST st,int n,Vec* V)
 {
-  int          i,c,ierr;
-  PetscReal    norm;
-  Vec          *T,w;
-  Mat          A;
-  PC           pc;
-  MatNullSpace nullsp;
+  PetscErrorCode ierr;
+  int            i,c;
+  PetscReal      norm;
+  Vec            *T,w;
+  Mat            A;
+  PC             pc;
+  MatNullSpace   nullsp;
   
   PetscFunctionBegin;
   ierr = PetscMalloc(n*sizeof(Vec),&T);CHKERRQ(ierr);
@@ -207,9 +210,9 @@ int STCheckNullSpace_Default(ST st,int n,Vec* V)
 
 .seealso: EPSAttachDeflationSpace()
 @*/
-int STCheckNullSpace(ST st,int n,Vec* V)
+PetscErrorCode STCheckNullSpace(ST st,int n,Vec* V)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (n>0 && st->checknullspace) {

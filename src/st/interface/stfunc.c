@@ -19,9 +19,9 @@
 
 .seealso: STCreate(), STSetUp()
 @*/
-int STDestroy(ST st)
+PetscErrorCode STDestroy(ST st)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -45,7 +45,7 @@ int STDestroy(ST st)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STPublish_Petsc"
-static int STPublish_Petsc(PetscObject object)
+static PetscErrorCode STPublish_Petsc(PetscObject object)
 {
   PetscFunctionBegin;
   PetscFunctionReturn(0);
@@ -68,14 +68,18 @@ static int STPublish_Petsc(PetscObject object)
 
 .seealso: STSetUp(), STApply(), STDestroy()
 @*/
-int STCreate(MPI_Comm comm,ST *newst)
+PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 {
-  ST      st;
-  int     ierr;
-  char*   prefix;
+  PetscErrorCode ierr;
+  ST             st;
+  char*          prefix;
 
   PetscFunctionBegin;
+  PetscValidPointer(newst,2);
   *newst = 0;
+#ifndef PETSC_USE_DYNAMIC_LIBRARIES
+  ierr = PCRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+#endif
 
   PetscHeaderCreate(st,_p_ST,struct _STOps,ST_COOKIE,-1,"ST",comm,STDestroy,STView);
   PetscLogObjectCreate(st);
@@ -122,7 +126,7 @@ int STCreate(MPI_Comm comm,ST *newst)
 
 .seealso: STGetOperators()
  @*/
-int STSetOperators(ST st,Mat A,Mat B)
+PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -152,7 +156,7 @@ int STSetOperators(ST st,Mat A,Mat B)
 
 .seealso: STSetOperators()
 @*/
-int STGetOperators(ST st,Mat *A,Mat *B)
+PetscErrorCode STGetOperators(ST st,Mat *A,Mat *B)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -179,9 +183,9 @@ int STGetOperators(ST st,Mat *A,Mat *B)
    Level: beginner
 
 @*/
-int STSetShift(ST st,PetscScalar shift)
+PetscErrorCode STSetShift(ST st,PetscScalar shift)
 {
-  int         ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -210,7 +214,7 @@ int STSetShift(ST st,PetscScalar shift)
    Level: beginner
 
 @*/
-int STGetShift(ST st,PetscScalar* shift)
+PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -239,9 +243,9 @@ int STGetShift(ST st,PetscScalar* shift)
 
 .seealso: STAppendOptionsPrefix(), STGetOptionsPrefix()
 @*/
-int STSetOptionsPrefix(ST st,char *prefix)
+PetscErrorCode STSetOptionsPrefix(ST st,char *prefix)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -270,9 +274,9 @@ int STSetOptionsPrefix(ST st,char *prefix)
 
 .seealso: STSetOptionsPrefix(), STGetOptionsPrefix()
 @*/
-int STAppendOptionsPrefix(ST st,char *prefix)
+PetscErrorCode STAppendOptionsPrefix(ST st,char *prefix)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -301,9 +305,9 @@ int STAppendOptionsPrefix(ST st,char *prefix)
 
 .seealso: STSetOptionsPrefix(), STAppendOptionsPrefix()
 @*/
-int STGetOptionsPrefix(ST st,char **prefix)
+PetscErrorCode STGetOptionsPrefix(ST st,char **prefix)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -337,11 +341,11 @@ int STGetOptionsPrefix(ST st,char **prefix)
 
 .seealso: EPSView(), PetscViewerASCIIOpen()
 @*/
-int STView(ST st,PetscViewer viewer)
+PetscErrorCode STView(ST st,PetscViewer viewer)
 {
+  PetscErrorCode    ierr;
   STType            cstr;
   char*             str;
-  int               ierr;
   PetscTruth        isascii,isstring;
   PetscViewerFormat format;
 
@@ -403,10 +407,10 @@ int STView(ST st,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STView_Default"
-int STView_Default(ST st,PetscViewer viewer) 
+PetscErrorCode STView_Default(ST st,PetscViewer viewer) 
 {
-  int        ierr;
-  PetscTruth isascii,isstring;
+  PetscErrorCode ierr;
+  PetscTruth     isascii,isstring;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
@@ -464,14 +468,13 @@ M*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "STRegister"
-int STRegister(char *sname,char *path,char *name,int (*function)(ST))
+PetscErrorCode STRegister(char *sname,char *path,char *name,int (*function)(ST))
 {
-  int  ierr;
-  char fullname[256];
+  PetscErrorCode ierr;
+  char           fullname[256];
 
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
   ierr = PetscFListAdd(&STList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-

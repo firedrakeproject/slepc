@@ -10,7 +10,7 @@
 
    Collective on MPI_Comm
 */
-int SlepcPrintVersion(MPI_Comm comm)
+PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
   int  info = 0;
   
@@ -37,7 +37,7 @@ int SlepcPrintVersion(MPI_Comm comm)
 
    Collective on MPI_Comm
 */
-int SlepcPrintHelpIntro(MPI_Comm comm)
+PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
   int  info = 0;
   
@@ -55,12 +55,12 @@ int SlepcPrintHelpIntro(MPI_Comm comm)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcRegisterEvents"
-int EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalization, ST_InnerProduct;
+PetscEvent EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, EPS_Orthogonalization, ST_InnerProduct;
 
 /*
    SlepcRegisterEvents - Registers SLEPc events for use in performance logging.
 */
-int SlepcRegisterEvents()
+PetscErrorCode SlepcRegisterEvents()
 {
   int  info = 0;
   
@@ -86,8 +86,8 @@ int SlepcRegisterEvents()
 PetscTruth  SlepcBeganPetsc = PETSC_FALSE; 
 PetscTruth  SlepcInitializeCalled = PETSC_FALSE;
 PetscRandom rctx = PETSC_NULL;
-int         EPS_COOKIE = 0;
-int         ST_COOKIE = 0;
+PetscCookie EPS_COOKIE = 0;
+PetscCookie ST_COOKIE = 0;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 extern PetscDLLibraryList DLLibrariesLoaded;
@@ -116,12 +116,12 @@ extern PetscDLLibraryList DLLibrariesLoaded;
 
 .seealso: SlepcInitializeFortran(), SlepcFinalize(), PetscInitialize()
 @*/
-int SlepcInitialize(int *argc,char ***args,char file[],const char help[])
+PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char help[])
 {
-  int        ierr,info=0;
+  PetscErrorCode ierr,info=0;
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  char       libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
-  PetscTruth found;
+  char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
+  PetscTruth     found;
 #endif
 
   PetscFunctionBegin;
@@ -187,9 +187,9 @@ int SlepcInitialize(int *argc,char ***args,char file[],const char help[])
 
 .seealso: SlepcInitialize(), PetscFinalize()
 @*/
-int SlepcFinalize(void)
+PetscErrorCode SlepcFinalize(void)
 {
-  int ierr,info=0;
+  PetscErrorCode ierr,info=0;
   
   PetscFunctionBegin;
   PetscLogInfo(0,"SlepcFinalize: SLEPc successfully ended!\n");

@@ -14,29 +14,29 @@
 
 /* ========================================================================== */
 /* 
-   SLEPc logging/profiling information
-*/
-#include "slepclog.h"
-#include <limits.h>
-#include <float.h>
-
-/* ========================================================================== */
-/* 
    The PETSc include files. 
 */
 #include "petsc.h"
 #include "petscvec.h"
 #include "petscmat.h"
 
+/* ========================================================================== */
+/* 
+   SLEPc logging/profiling information
+*/
+#include "slepclog.h"
+
+PETSC_EXTERN_CXX_BEGIN
 /*
     Initialization of SLEPc and other system routines
 */
-extern int SlepcInitialize(int*,char***,char[],const char[]);
-extern int SlepcFinalize(void);
-extern int SlepcInitializeFortran(void);
+EXTERN PetscErrorCode SlepcInitialize(int*,char***,char[],const char[]);
+EXTERN PetscErrorCode SlepcFinalize(void);
+EXTERN PetscErrorCode SlepcInitializeFortran(void);
 
-extern int SlepcVecSetRandom(Vec);
-extern int SlepcIsHermitian(Mat,PetscTruth*);
+EXTERN PetscErrorCode SlepcVecSetRandom(Vec);
+EXTERN PetscErrorCode SlepcIsHermitian(Mat,PetscTruth*);
 
+PETSC_EXTERN_CXX_END
 #endif
 

@@ -41,7 +41,7 @@ EXTERN_C_END
 
 @*/
 
-int SlepcInitializeFortran(void)
+PetscErrorCode SlepcInitializeFortran(void)
 {
   slepcsetcommonblock_();
   return 0;

@@ -8,9 +8,10 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_ARNOLDI"
-static int EPSSetUp_ARNOLDI(EPS eps)
+PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
 {
-  int         ierr, N;
+  PetscErrorCode ierr;
+  int            N;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -28,11 +29,12 @@ static int EPSSetUp_ARNOLDI(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBasicArnoldi"
-int  EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
+static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
 {
-  int         ierr,j;
-  PetscReal   norm;
-  PetscScalar t;
+  PetscErrorCode ierr;
+  int            j;
+  PetscReal      norm;
+  PetscScalar    t;
 
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
@@ -54,14 +56,15 @@ int  EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARNOLDI"
-static int  EPSSolve_ARNOLDI(EPS eps)
+PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
-  int         ierr,i,mout,ncv=eps->ncv;
-  Vec         f=eps->work[ncv];
-  PetscScalar *H,*U,*work,t;
-  PetscReal   norm,beta;
+  PetscErrorCode ierr;
+  int            i,mout,info,ncv=eps->ncv;
+  Vec            f=eps->work[ncv];
+  PetscScalar    *H,*U,*work,t;
+  PetscReal      norm,beta;
 #if defined(PETSC_USE_COMPLEX)
-  PetscReal   *rwork;
+  PetscReal      *rwork;
 #endif
 
   PetscFunctionBegin;
@@ -95,11 +98,11 @@ static int  EPSSolve_ARNOLDI(EPS eps)
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
   /* [Y,dummy] = eig(H) */
 #if !defined(PETSC_USE_COMPLEX)
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,U,&ncv,&ncv,&mout,work,&ierr,1,1);
+    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,U,&ncv,&ncv,&mout,work,&info,1,1);
 #else
-    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,U,&ncv,&ncv,&mout,work,rwork,&ierr,1,1);
+    LAtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,U,&ncv,&ncv,&mout,work,rwork,&info,1,1);
 #endif
-    if (ierr) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",ierr);
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   /* rsd = beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
       eps->errest[i] = beta*PetscAbsScalar(U[i*ncv+ncv-1]); 
@@ -127,7 +130,7 @@ static int  EPSSolve_ARNOLDI(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_ARNOLDI"
-int EPSCreate_ARNOLDI(EPS eps)
+PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                      = (void *) 0;

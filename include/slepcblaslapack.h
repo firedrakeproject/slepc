@@ -5,8 +5,8 @@
 */
 #if !defined(_SLEPCBLASLAPACK_H)
 #define _SLEPCBLASLAPACK_H
-
 #include "petscblaslapack.h"
+PETSC_EXTERN_CXX_BEGIN
 
 #if !defined(PETSC_USE_COMPLEX)
 
@@ -123,23 +123,24 @@ EXTERN_C_BEGIN
 
 EXTERN PetscReal LAlapy2_(PetscReal*,PetscReal*);
 EXTERN void      LAlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
-EXTERN void      LAgehrd_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
-EXTERN void      LAorghr_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
-EXTERN PetscReal LAlanhs_(const char*,int*,PetscScalar*,int*,PetscReal*,int);
-EXTERN PetscReal LAlange_(const char*,int*,int*,PetscScalar*,int*,PetscReal*,int);
-EXTERN void      LAgetri_(int*,PetscScalar*,int*,int*,PetscScalar*,int*,int*);
+EXTERN void      LAgehrd_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+EXTERN void      LAorghr_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+EXTERN PetscReal LAlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
+EXTERN PetscReal LAlange_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
+EXTERN void      LAgetri_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 
 #if !defined(PETSC_USE_COMPLEX)
-EXTERN void      LAhseqr_(const char*,const char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
-EXTERN void      LAtrexc_(const char*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,int*,int);
-EXTERN void      LAtrevc_(const char*,const char*,int*,int*,PetscScalar*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,int*,int,int);
+EXTERN void      LAhseqr_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+EXTERN void      LAtrexc_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt);
+EXTERN void      LAtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 #else
-EXTERN void      LAhseqr_(const char*,const char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
-EXTERN void      LAtrexc_(const char*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,int*,int);
-EXTERN void      LAtrevc_(const char*,const char*,int*,int*,PetscScalar*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscReal*,int*,int,int);
+EXTERN void      LAhseqr_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+EXTERN void      LAtrexc_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt);
+EXTERN void      LAtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 #endif
 
 EXTERN_C_END
 
+PETSC_EXTERN_CXX_END
 #endif
 

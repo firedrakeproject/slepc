@@ -5,8 +5,9 @@
 #if !defined(__SLEPCST_H)
 #define __SLEPCST_H
 #include "petscksp.h"
+PETSC_EXTERN_CXX_BEGIN
 
-extern int ST_COOKIE;
+extern PetscCookie ST_COOKIE;
 
 typedef struct _p_ST* ST;
 
@@ -16,67 +17,68 @@ typedef struct _p_ST* ST;
 #define STCAYLEY    "cayley"
 typedef char *STType;
 
-extern int STCreate(MPI_Comm,ST*);
-extern int STDestroy(ST);
-extern int STSetType(ST,STType);
-extern int STGetType(ST,STType*);
-extern int STSetOperators(ST,Mat,Mat);
-extern int STGetOperators(ST,Mat*,Mat*);
-extern int STSetUp(ST);
-extern int STSetFromOptions(ST);
-extern int STView(ST,PetscViewer);
+EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);
+EXTERN PetscErrorCode STDestroy(ST);
+EXTERN PetscErrorCode STSetType(ST,STType);
+EXTERN PetscErrorCode STGetType(ST,STType*);
+EXTERN PetscErrorCode STSetOperators(ST,Mat,Mat);
+EXTERN PetscErrorCode STGetOperators(ST,Mat*,Mat*);
+EXTERN PetscErrorCode STSetUp(ST);
+EXTERN PetscErrorCode STSetFromOptions(ST);
+EXTERN PetscErrorCode STView(ST,PetscViewer);
 
-extern int STApply(ST,Vec,Vec);
-extern int STApplyB(ST,Vec,Vec);
-extern int STApplyNoB(ST,Vec,Vec);
+EXTERN PetscErrorCode STApply(ST,Vec,Vec);
+EXTERN PetscErrorCode STApplyB(ST,Vec,Vec);
+EXTERN PetscErrorCode STApplyNoB(ST,Vec,Vec);
 
 extern PetscFList STList;
-extern int STRegisterAll(char*);
-extern int STRegisterDestroy(void);
-extern int STRegister(char*,char*,char*,int(*)(ST));
+EXTERN PetscErrorCode STRegisterAll(char*);
+EXTERN PetscErrorCode STRegisterDestroy(void);
+EXTERN PetscErrorCode STRegister(char*,char*,char*,int(*)(ST));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,0)
 #else
 #define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,d)
 #endif
 
-extern int STSetKSP(ST,KSP);
-extern int STGetKSP(ST,KSP*);
-extern int STSetShift(ST,PetscScalar);
-extern int STGetShift(ST,PetscScalar*);
+EXTERN PetscErrorCode STSetKSP(ST,KSP);
+EXTERN PetscErrorCode STGetKSP(ST,KSP*);
+EXTERN PetscErrorCode STSetShift(ST,PetscScalar);
+EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 
-extern int STSetOptionsPrefix(ST,char*);
-extern int STAppendOptionsPrefix(ST,char*);
-extern int STGetOptionsPrefix(ST,char**);
+EXTERN PetscErrorCode STSetOptionsPrefix(ST,char*);
+EXTERN PetscErrorCode STAppendOptionsPrefix(ST,char*);
+EXTERN PetscErrorCode STGetOptionsPrefix(ST,char**);
 
-extern int STBackTransform(ST,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);
 
-extern int STCheckNullSpace(ST,int,Vec*);
+EXTERN PetscErrorCode STCheckNullSpace(ST,int,Vec*);
 
-extern int STGetNumberLinearIterations(ST,int*);
-extern int STResetNumberLinearIterations(ST);
+EXTERN PetscErrorCode STGetNumberLinearIterations(ST,int*);
+EXTERN PetscErrorCode STResetNumberLinearIterations(ST);
 
 typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
                STMATMODE_SHELL } STMatMode;
-extern int STSetMatMode(ST,STMatMode);
-extern int STGetMatMode(ST,STMatMode*);
-extern int STSetMatStructure(ST,MatStructure);
+EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
+EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
+EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
 
 typedef enum { STINNER_HERMITIAN, STINNER_SYMMETRIC,
                STINNER_B_HERMITIAN, STINNER_B_SYMMETRIC } STBilinearForm;
-extern int STSetBilinearForm(ST,STBilinearForm);
+EXTERN PetscErrorCode STSetBilinearForm(ST,STBilinearForm);
 
-extern int STInnerProduct(ST st,Vec,Vec,PetscScalar*);
-extern int STNorm(ST st,Vec,PetscReal*);
+EXTERN PetscErrorCode STInnerProduct(ST st,Vec,Vec,PetscScalar*);
+EXTERN PetscErrorCode STNorm(ST st,Vec,PetscReal*);
 
 /* --------- options specific to particular spectral transformations-------- */
 
-extern int STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);
-extern int STShellSetBackTransform(ST, int (*)(void*,PetscScalar*,PetscScalar*));
-extern int STShellSetName(ST,char*);
-extern int STShellGetName(ST,char**);
+EXTERN PetscErrorCode STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);
+EXTERN PetscErrorCode STShellSetBackTransform(ST, int (*)(void*,PetscScalar*,PetscScalar*));
+EXTERN PetscErrorCode STShellSetName(ST,char*);
+EXTERN PetscErrorCode STShellGetName(ST,char**);
 
-extern int STCayleySetAntishift(ST,PetscScalar);
+EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
+PETSC_EXTERN_CXX_END
 #endif
 

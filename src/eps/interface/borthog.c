@@ -29,11 +29,12 @@
    Level: developer
 
 @*/
-int EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
+PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
 {
-  int         ierr,k;
-  PetscScalar alpha;
-  PetscReal   norm;
+  PetscErrorCode ierr;
+  int            k;
+  PetscScalar    alpha;
+  PetscReal      norm;
   
   PetscFunctionBegin;
 
@@ -98,7 +99,7 @@ int EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int ldr)
 
 .seealso: EPSGetOrthogonalization()
 @*/
-int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EPSOrthogonalizationRefinementType refinement, PetscReal eta)
+PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EPSOrthogonalizationRefinementType refinement, PetscReal eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -152,7 +153,7 @@ int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EPSOrthogonal
 
 .seealso: EPSSetOrthogonalization()
 @*/
-int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement, PetscReal *eta)
+PetscErrorCode EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement, PetscReal *eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -170,9 +171,9 @@ int EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonal
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPurge"
-int EPSPurge(EPS eps,Vec v)
+PetscErrorCode EPSPurge(EPS eps,Vec v)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (eps->nds+eps->nconv>0) {
@@ -186,12 +187,13 @@ int EPSPurge(EPS eps,Vec v)
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSClassicalGramSchmidtOrthogonalization"
-int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm)
+PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm)
 {
-  int         ierr,j;
-  PetscScalar shh[100],shh2[100],*lhh;
-  PetscTruth  alloc = PETSC_FALSE;
-  PetscReal   hnorm,lnorm;
+  PetscErrorCode ierr;
+  int            j;
+  PetscScalar    shh[100],shh2[100],*lhh;
+  PetscTruth     alloc = PETSC_FALSE;
+  PetscReal      hnorm,lnorm;
 
   PetscFunctionBegin;
 
@@ -255,13 +257,14 @@ int EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscSca
  */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSModifiedGramSchmidtOrthogonalization"
-int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm)
+PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm)
 {
-  int         ierr,j;
-  PetscScalar alpha;
-  PetscTruth  refinement,allocated;
-  PetscScalar lh[100],*h;
-  PetscReal   hnorm,lnorm;
+  PetscErrorCode ierr;
+  int            j;
+  PetscScalar    alpha;
+  PetscTruth     refinement,allocated;
+  PetscScalar    lh[100],*h;
+  PetscReal      hnorm,lnorm;
   
   PetscFunctionBegin;
   
@@ -341,10 +344,11 @@ int EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec v,PetscScal
 
 .seealso: EPSRemoveDeflationSpace()
 @*/
-int EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
+PetscErrorCode EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
 {
-  int ierr, i;
-  Vec *tvec;
+  PetscErrorCode ierr;
+  int            i;
+  Vec            *tvec;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -380,9 +384,9 @@ int EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
 
 .seealso: EPSAttachDeflationSpace()
 @*/
-int EPSRemoveDeflationSpace(EPS eps)
+PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 {
-  int ierr;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -393,4 +397,3 @@ int EPSRemoveDeflationSpace(EPS eps)
   eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
-

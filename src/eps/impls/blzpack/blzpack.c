@@ -42,13 +42,14 @@ const char* blzpack_error[33] = {
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_BLZPACK"
-static int EPSSetUp_BLZPACK(EPS eps)
+PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
-  int         ierr, listor, lrstor, ncuv, N, n, k1, k2, k3, k4;
-  EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
-  PetscTruth  flg;
-  KSP         ksp;
-  PC          pc;
+  PetscErrorCode ierr;
+  int            listor, lrstor, ncuv, N, n, k1, k2, k3, k4;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  PetscTruth     flg;
+  KSP            ksp;
+  PC             pc;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -113,15 +114,16 @@ static int EPSSetUp_BLZPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_BLZPACK"
-static int  EPSSolve_BLZPACK(EPS eps)
+PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
-  int          i, n, nneig, lflag, nvopu, ierr;
-  Vec          x, y;
-  PetscScalar  sigma,*pV;
-  Mat          A;
-  KSP          ksp;
-  PC           pc;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data; 
+  int            i, n, nneig, lflag, nvopu;      
+  Vec            x, y;                           
+  PetscScalar    sigma,*pV;                      
+  Mat            A;                              
+  KSP            ksp;                            
+  PC             pc;                             
   
   PetscFunctionBegin;
 
@@ -236,10 +238,10 @@ static int  EPSSolve_BLZPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBackTransform_BLZPACK"
-int EPSBackTransform_BLZPACK(EPS eps)
+PetscErrorCode EPSBackTransform_BLZPACK(EPS eps)
 {
-  int         ierr;
-  EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
 
   PetscFunctionBegin;
   if (!blz->slice) {
@@ -250,10 +252,10 @@ int EPSBackTransform_BLZPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_BLZPACK"
-int EPSDestroy_BLZPACK(EPS eps)
+PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
-  int          ierr;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -269,11 +271,11 @@ int EPSDestroy_BLZPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSView_BLZPACK"
-static int EPSView_BLZPACK(EPS eps,PetscViewer viewer)
+PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;
-  int         ierr;
-  PetscTruth  isascii;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK *) eps->data;
+  PetscTruth     isascii;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
@@ -287,14 +289,15 @@ static int EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetFromOptions_BLZPACK"
-static int EPSSetFromOptions_BLZPACK(EPS eps)
+PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK *)eps->data;
-  int         ierr,bs,n;
-  PetscReal   interval[2];
-  PetscTruth  flg;
-  KSP         ksp;
-  PC          pc;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  int            bs,n;
+  PetscReal      interval[2];
+  PetscTruth     flg;
+  KSP            ksp;
+  PC             pc;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("BLZPACK options");CHKERRQ(ierr);
@@ -331,12 +334,11 @@ static int EPSSetFromOptions_BLZPACK(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBlzpackSetBlockSize_BLZPACK"
-int EPSBlzpackSetBlockSize_BLZPACK(EPS eps,int bs)
+PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,int bs)
 {
-  EPS_BLZPACK   *blz;
+  EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;;
 
   PetscFunctionBegin;
-  blz             = (EPS_BLZPACK *) eps->data;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
   else if (bs <= 0) { 
     SETERRQ(1, "Incorrect block size"); 
@@ -363,9 +365,9 @@ EXTERN_C_END
 
 .seealso: EPSBlzpackSetInterval
 @*/
-int EPSBlzpackSetBlockSize(EPS eps,int bs)
+PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,int bs)
 {
-  int ierr, (*f)(EPS,int);
+  PetscErrorCode ierr, (*f)(EPS,int);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -379,12 +381,11 @@ int EPSBlzpackSetBlockSize(EPS eps,int bs)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBlzpackSetInterval_BLZPACK"
-int EPSBlzpackSetInterval_BLZPACK(EPS eps,PetscReal initial,PetscReal final)
+PetscErrorCode EPSBlzpackSetInterval_BLZPACK(EPS eps,PetscReal initial,PetscReal final)
 {
-  EPS_BLZPACK   *blz;
+  EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;;
 
   PetscFunctionBegin;
-  blz             = (EPS_BLZPACK *) eps->data;
   blz->initial    = initial;
   blz->final      = final;
   blz->slice      = 1;
@@ -420,9 +421,9 @@ EXTERN_C_END
 
 .seealso: EPSBlzpackSetBlockSize()
 @*/
-int EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
+PetscErrorCode EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
 {
-  int ierr, (*f)(EPS,PetscReal,PetscReal);
+  PetscErrorCode ierr, (*f)(EPS,PetscReal,PetscReal);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -436,9 +437,9 @@ int EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBlzpackSetNSteps_BLZPACK"
-int EPSBlzpackSetNSteps_BLZPACK(EPS eps,int nsteps)
+PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,int nsteps)
 {
-  EPS_BLZPACK   *blz = (EPS_BLZPACK *) eps->data;
+  EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;
 
   PetscFunctionBegin;
   blz->nsteps = nsteps == PETSC_DEFAULT ? 0 : nsteps;
@@ -464,9 +465,9 @@ EXTERN_C_END
    Level: advanced
 
 @*/
-int EPSBlzpackSetNSteps(EPS eps,int nsteps)
+PetscErrorCode EPSBlzpackSetNSteps(EPS eps,int nsteps)
 {
-  int ierr, (*f)(EPS,int);
+  PetscErrorCode ierr, (*f)(EPS,int);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -480,10 +481,10 @@ int EPSBlzpackSetNSteps(EPS eps,int nsteps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_BLZPACK"
-int EPSCreate_BLZPACK(EPS eps)
+PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 {
-  EPS_BLZPACK *blzpack;
-  int          ierr;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blzpack;
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_BLZPACK,&blzpack);CHKERRQ(ierr);

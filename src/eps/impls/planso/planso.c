@@ -9,10 +9,11 @@ static EPS globaleps;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_PLANSO"
-static int EPSSetUp_PLANSO(EPS eps)
+PetscErrorCode EPSSetUp_PLANSO(EPS eps)
 {
-  int        ierr, n;
-  EPS_PLANSO *pl = (EPS_PLANSO *)eps->data;
+  PetscErrorCode ierr;
+  int            n;
+  EPS_PLANSO     *pl = (EPS_PLANSO *)eps->data;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
@@ -40,10 +41,10 @@ static int EPSSetUp_PLANSO(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PLANop_"
-int  PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p)
+int PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p)
 {
-  Vec       x,y;
-  int       ierr;
+  PetscErrorCode ierr;
+  Vec            x,y;
 
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)q,&x);CHKERRQ(ierr);
@@ -59,10 +60,10 @@ int  PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PLANopm_"
-int  PLANopm_(int *n,PetscReal *q, PetscReal *s)
+int PLANopm_(int *n,PetscReal *q, PetscReal *s)
 {
-  Vec    x,y;
-  int    ierr;
+  PetscErrorCode ierr;
+  Vec            x,y;
 
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,(PetscScalar*)q,&x);CHKERRQ(ierr);
@@ -75,12 +76,13 @@ int  PLANopm_(int *n,PetscReal *q, PetscReal *s)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_PLANSO"
-static int  EPSSolve_PLANSO(EPS eps)
+PetscErrorCode EPSSolve_PLANSO(EPS eps)
 {
-  int        i, n, msglvl, lohi, ierr;
-  PetscReal  condm;
-  EPS_PLANSO *pl = (EPS_PLANSO *)eps->data;
-  MPI_Fint    fcomm;
+  PetscErrorCode ierr;
+  int            i, n, msglvl, lohi,info;
+  PetscReal      condm;
+  EPS_PLANSO     *pl = (EPS_PLANSO *)eps->data;
+  MPI_Fint       fcomm;
   
   PetscFunctionBegin;
 
@@ -96,22 +98,22 @@ static int  EPSSolve_PLANSO(EPS eps)
   fcomm = MPI_Comm_c2f(eps->comm);
 
   PLANdr2_( &n, &eps->ncv, &eps->nev, &lohi, &condm, &eps->tol, &eps->its, &eps->nconv, 
-            eps->eigr, eps->eigi, pl->work, &pl->lwork, &ierr, &msglvl, &fcomm );
+            eps->eigr, eps->eigi, pl->work, &pl->lwork, &info, &msglvl, &fcomm );
 
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
   eps->reason = EPS_CONVERGED_TOL;
   
-  if (ierr!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in PLANSO (code=%d)",ierr);}
+  if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in PLANSO (code=%d)",info);}
 
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_PLANSO"
-int EPSDestroy_PLANSO(EPS eps)
+PetscErrorCode EPSDestroy_PLANSO(EPS eps)
 {
-  EPS_PLANSO *pl = (EPS_PLANSO *)eps->data;
-  int         ierr;
+  PetscErrorCode ierr;
+  EPS_PLANSO     *pl = (EPS_PLANSO *)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -124,10 +126,10 @@ int EPSDestroy_PLANSO(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_PLANSO"
-int EPSCreate_PLANSO(EPS eps)
+PetscErrorCode EPSCreate_PLANSO(EPS eps)
 {
-  EPS_PLANSO *planso;
-  int        ierr;
+  PetscErrorCode ierr;
+  EPS_PLANSO     *planso;
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_PLANSO,&planso);CHKERRQ(ierr);

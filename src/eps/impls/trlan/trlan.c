@@ -9,10 +9,11 @@ static EPS globaleps;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_TRLAN"
-static int EPSSetUp_TRLAN(EPS eps)
+PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
-  int        ierr, n;
-  EPS_TRLAN *tr = (EPS_TRLAN *)eps->data;
+  PetscErrorCode ierr;
+  int            n;
+  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
@@ -66,7 +67,7 @@ static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,i
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_TRLAN"
-static int  EPSSolve_TRLAN(EPS eps)
+PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   int         ipar[32], i, n, lohi, stat, ierr;
   EPS_TRLAN   *tr = (EPS_TRLAN *)eps->data;
@@ -119,10 +120,10 @@ static int  EPSSolve_TRLAN(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_TRLAN"
-int EPSDestroy_TRLAN(EPS eps)
+PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 {
-  EPS_TRLAN *tr = (EPS_TRLAN *)eps->data;
-  int         ierr;
+  PetscErrorCode ierr;
+  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -135,10 +136,10 @@ int EPSDestroy_TRLAN(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_TRLAN"
-int EPSCreate_TRLAN(EPS eps)
+PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
-  EPS_TRLAN *trlan;
-  int        ierr;
+  PetscErrorCode ierr;
+  EPS_TRLAN      *trlan;
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_TRLAN,&trlan);CHKERRQ(ierr);

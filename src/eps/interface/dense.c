@@ -34,10 +34,11 @@
 
 .seealso: EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
 @*/
-int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
+PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
 {
-  int       ierr,i,*perm;
-  PetscReal *values;
+  PetscErrorCode ierr;
+  int            i,*perm;
+  PetscReal      *values;
 
   PetscFunctionBegin;
   ierr = PetscMalloc(n*sizeof(int),&perm);CHKERRQ(ierr);
@@ -130,9 +131,9 @@ int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,i
 
 .seealso: EPSDenseNHEPSorted()
 @*/
-int EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V)
+PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V)
 {
-  int ierr;
+  PetscErrorCode ierr;
   
 #if defined(PETSC_HAVE_ESSL)
 
@@ -169,7 +170,7 @@ int EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar
 #elif !defined(PETSC_USE_COMPLEX)
 
   PetscScalar *work,sdummy;
-  int         lwork;
+  int         lwork,info;
   char        *jobvr;
 
   PetscFunctionBegin;
@@ -177,15 +178,15 @@ int EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar
   ierr     = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   if (V) jobvr = "V";
   else jobvr = "N";
-  LAgeev_("N",jobvr,&n,A,&n,w,wi,&sdummy,&n,V,&n,work,&lwork,&ierr);
-  if (ierr) SETERRQ1(PETSC_ERR_LIB,"Error in LAPACK routine %d",ierr);
+  LAgeev_("N",jobvr,&n,A,&n,w,wi,&sdummy,&n,V,&n,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEEV %d",info);
   ierr = PetscFree(work);CHKERRQ(ierr);
 
 #else
 
   PetscScalar *work,sdummy;
   PetscReal   *rwork;
-  int         lwork;
+  int         lwork,info;
   char        *jobvr;
 
   PetscFunctionBegin;
@@ -194,8 +195,8 @@ int EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar
   ierr = PetscMalloc(2*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
   if (V) jobvr = "V";
   else jobvr = "N";
-  LAgeev_("N",jobvr,&n,A,&n,w,&sdummy,&n,V,&n,work,&lwork,rwork,&ierr);
-  if (ierr) SETERRQ1(PETSC_ERR_LIB,"Error in LAPACK routine %d",ierr);
+  LAgeev_("N",jobvr,&n,A,&n,w,&sdummy,&n,V,&n,work,&lwork,rwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEEV %d",info);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 
@@ -230,10 +231,11 @@ int EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar
 
 .seealso: EPSDenseNHEP(), EPSSortEigenvalues()
 @*/
-int EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V,int m,EPSWhich which)
+PetscErrorCode EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V,int m,EPSWhich which)
 {
-  int         i,ierr,*perm,iwork[100];
-  PetscScalar *realpart,*imagpart,*vectors,work[200];
+  PetscErrorCode ierr;
+  int            i,*perm,iwork[100];
+  PetscScalar    *realpart,*imagpart,*vectors,work[200];
 
   PetscFunctionBegin;
   if (m<=100) perm = iwork;
@@ -274,9 +276,10 @@ int EPSDenseNHEPSorted(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,Petsc
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDenseSchur"
-int EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
+PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,int k,int n)
 {
-  int         ierr,i,j,ilo,ifst,ilst,lwork,maxpos;
+  PetscErrorCode ierr;
+  int i,j,ilo,ifst,ilst,lwork,info,maxpos;
   PetscScalar *work;
   PetscReal   max,m;
   
@@ -286,11 +289,11 @@ int EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ilo = k+1;
 #if !defined(PETSC_USE_COMPLEX)
-  LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,wi,Z,&n,work,&lwork,&ierr,1,1);
+  LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,wi,Z,&n,work,&lwork,&info,1,1);
 #else
-  LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,Z,&n,work,&lwork,&ierr,1,1);
+  LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,Z,&n,work,&lwork,&info,1,1);
 #endif
-  if (ierr) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %i",ierr);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
 
 
   for (i=k;i<n-1;i++) {
@@ -316,11 +319,11 @@ int EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,
       ifst = maxpos + 1;
       ilst = i + 1;
 #if !defined(PETSC_USE_COMPLEX)
-      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,work,&ierr,1);
+      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,work,&info,1);
 #else
-      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,&ierr,1);
+      LAtrexc_("V",&n,H,&n,Z,&n,&ifst,&ilst,&info,1);
 #endif
-      if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xTREXC");
+      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       for (j=i;j<n;j++) {
         wr[j] = H[j*(n+1)];
 #if !defined(PETSC_USE_COMPLEX)

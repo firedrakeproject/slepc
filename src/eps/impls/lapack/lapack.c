@@ -9,14 +9,15 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_LAPACK"
-static int EPSSetUp_LAPACK(EPS eps)
+PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
-  int         ierr,size,rank,n,N;
-  EPS_LAPACK *la = (EPS_LAPACK *)eps->data;
-  MPI_Comm    comm = eps->comm;
-  Mat         *T;
-  IS isrow, iscol;
-  PetscTruth flg;
+  PetscErrorCode ierr;
+  int            size,rank,n,N;
+  EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
+  MPI_Comm       comm = eps->comm;
+  Mat            *T;
+  IS             isrow, iscol;
+  PetscTruth     flg;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -58,12 +59,13 @@ static int EPSSetUp_LAPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_LAPACK"
-static int  EPSSolve_LAPACK(EPS eps)
+PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
-  int         ierr,n,size,rank,i,low,high;
-  PetscScalar *array,*pV;
-  EPS_LAPACK *la = (EPS_LAPACK *)eps->data;
-  MPI_Comm    comm = eps->comm;
+  PetscErrorCode ierr;
+  int            n,size,rank,i,low,high;
+  PetscScalar    *array,*pV;
+  EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
+  MPI_Comm       comm = eps->comm;
   
   PetscFunctionBegin;
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
@@ -107,11 +109,12 @@ static int  EPSSolve_LAPACK(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_LAPACK"
-int EPSDestroy_LAPACK(EPS eps)
+PetscErrorCode EPSDestroy_LAPACK(EPS eps)
 {
-  int         ierr,size;
-  EPS_LAPACK *la = (EPS_LAPACK *)eps->data;
-  MPI_Comm    comm = eps->comm;
+  PetscErrorCode ierr;
+  int            size;
+  EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
+  MPI_Comm       comm = eps->comm;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -125,10 +128,10 @@ int EPSDestroy_LAPACK(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_LAPACK"
-int EPSCreate_LAPACK(EPS eps)
+PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
-  EPS_LAPACK *la;
-  int ierr;
+  PetscErrorCode ierr;
+  EPS_LAPACK     *la;
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_LAPACK,&la);CHKERRQ(ierr);

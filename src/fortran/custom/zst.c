@@ -28,7 +28,7 @@
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL stsettype_(ST *st,CHAR type PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL stsettype_(ST *st,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -37,12 +37,12 @@ void PETSC_STDCALL stsettype_(ST *st,CHAR type PETSC_MIXED_LEN(len),int *ierr PE
   FREECHAR(type,t);
 }
 
-void PETSC_STDCALL stregisterdestroy_(int *ierr)
+void PETSC_STDCALL stregisterdestroy_(PetscErrorCode *ierr)
 {
   *ierr = STRegisterDestroy();
 }
 
-void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *tname;
 
@@ -58,17 +58,17 @@ void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),int *ierr PE
   FIXRETURNCHAR(name,len);
 }
 
-void PETSC_STDCALL stdestroy_(ST *st,int *ierr)
+void PETSC_STDCALL stdestroy_(ST *st,PetscErrorCode *ierr)
 {
   *ierr = STDestroy(*st);
 }
 
-void PETSC_STDCALL stcreate_(MPI_Comm *comm,ST *newst,int *ierr)
+void PETSC_STDCALL stcreate_(MPI_Comm *comm,ST *newst,PetscErrorCode *ierr)
 {
   *ierr = STCreate((MPI_Comm)PetscToPointerComm(*comm),newst);
 }
 
-void PETSC_STDCALL stgetoperators_(ST *st,Mat *mat,Mat *pmat,int *ierr)
+void PETSC_STDCALL stgetoperators_(ST *st,Mat *mat,Mat *pmat,PetscErrorCode *ierr)
 {
   if (FORTRANNULLOBJECT(mat))   mat = PETSC_NULL;
   if (FORTRANNULLOBJECT(pmat))  pmat = PETSC_NULL;
@@ -76,7 +76,7 @@ void PETSC_STDCALL stgetoperators_(ST *st,Mat *mat,Mat *pmat,int *ierr)
 }
 
 void PETSC_STDCALL stsetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
-                                       int *ierr PETSC_END_LEN(len))
+                                       PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -86,7 +86,7 @@ void PETSC_STDCALL stsetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
 }
 
 void PETSC_STDCALL stappendoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
-                                          int *ierr PETSC_END_LEN(len))
+                                          PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -96,7 +96,7 @@ void PETSC_STDCALL stappendoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len
 }
 
 void PETSC_STDCALL stgetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
-                                       int *ierr PETSC_END_LEN(len))
+                                       PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *tname;
 
@@ -112,7 +112,7 @@ void PETSC_STDCALL stgetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
   FIXRETURNCHAR(prefix,len);
 }
 
-void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, int *ierr)
+void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);

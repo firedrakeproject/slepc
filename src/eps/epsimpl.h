@@ -85,15 +85,16 @@ struct _p_EPS {
 	  } \
 	}
 
-extern int EPSDestroy_Default(EPS);
-extern int EPSDefaultGetWork(EPS,int);
-extern int EPSDefaultFreeWork(EPS);
-extern int EPSAllocateSolution(EPS);
-extern int EPSFreeSolution(EPS);
-extern int EPSAllocateSolutionContiguous(EPS);
-extern int EPSFreeSolutionContiguous(EPS);
-extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
-extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
-extern int EPSBackTransform_Default(EPS);
-extern int EPSComputeVectors_Default(EPS);
+EXTERN PetscErrorCode EPSDestroy_Default(EPS);
+EXTERN PetscErrorCode EPSDefaultGetWork(EPS,int);
+EXTERN PetscErrorCode EPSDefaultFreeWork(EPS);
+EXTERN PetscErrorCode EPSAllocateSolution(EPS);
+EXTERN PetscErrorCode EPSFreeSolution(EPS);
+EXTERN PetscErrorCode EPSAllocateSolutionContiguous(EPS);
+EXTERN PetscErrorCode EPSFreeSolutionContiguous(EPS);
+EXTERN PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
+EXTERN PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
+EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
+EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
+
 #endif

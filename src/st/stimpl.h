@@ -44,11 +44,11 @@ struct _p_ST {
   Vec          Bx;
 };
 
-extern int STApplyB_Default(ST,Vec,Vec);
-extern int STView_Default(ST,PetscViewer);
-extern int STAssociatedKSPSolve(ST,Vec,Vec);
-extern int STCheckNullSpace_Default(ST,int,Vec*);
-extern int STMatShellCreate(ST st,Mat *mat);
+EXTERN PetscErrorCode STApplyB_Default(ST,Vec,Vec);
+EXTERN PetscErrorCode STView_Default(ST,PetscViewer);
+EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
+EXTERN PetscErrorCode STCheckNullSpace_Default(ST,int,Vec*);
+EXTERN PetscErrorCode STMatShellCreate(ST st,Mat *mat);
 
 #endif
 

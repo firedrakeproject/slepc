@@ -23,11 +23,12 @@ extern PetscRandom rctx;
 
 .seealso: VecSetRandom()
 @*/
-int SlepcVecSetRandom(Vec x)
+PetscErrorCode SlepcVecSetRandom(Vec x)
 {
-  int          ierr,i,n,low,high;
-  PetscScalar  *pv,*px;
-  Vec          v;
+  PetscErrorCode ierr;
+  int            i,n,low,high;
+  PetscScalar    *pv,*px;
+  Vec            v;
 
   PetscFunctionBegin;
   ierr = VecGetSize(x,&n);CHKERRQ(ierr);
@@ -66,14 +67,15 @@ int SlepcVecSetRandom(Vec x)
    Level: developer
 
 @*/
-int SlepcIsHermitian(Mat A,PetscTruth *is)
+PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
 {
-  int         M,N,m,n,ierr;
-  Vec         x,w1,w2;
-  PetscScalar alpha;
-  MPI_Comm    comm;
-  PetscReal   norm;
-  PetscTruth  has;
+  PetscErrorCode ierr;
+  int            M,N,m,n;
+  Vec            x,w1,w2;
+  PetscScalar    alpha;
+  MPI_Comm       comm;
+  PetscReal      norm;
+  PetscTruth     has;
 
   PetscFunctionBegin;
 

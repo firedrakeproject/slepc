@@ -17,13 +17,12 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "STApply_Shell"
-static int STApply_Shell(ST st,Vec x,Vec y)
+PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 {
-  ST_Shell *shell;
-  int       ierr;
+  PetscErrorCode ierr;
+  ST_Shell       *shell = (ST_Shell *) st->data;
 
   PetscFunctionBegin;
-  shell = (ST_Shell *) st->data;
   if (!shell->apply) SETERRQ(1,"No apply() routine provided to Shell ST");
   ierr  = (*shell->apply)(shell->ctx,x,y); CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -31,13 +30,12 @@ static int STApply_Shell(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Shell"
-static int STBackTransform_Shell(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Shell(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
-  ST_Shell *shell;
-  int       ierr;
+  PetscErrorCode ierr;
+  ST_Shell       *shell = (ST_Shell *) st->data;
 
   PetscFunctionBegin;
-  shell = (ST_Shell *) st->data;
   if (shell->backtr) {
     ierr  = (*shell->backtr)(shell->ctx,eigr,eigi); CHKERRQ(ierr);
   }
@@ -46,10 +44,10 @@ static int STBackTransform_Shell(ST st,PetscScalar *eigr,PetscScalar *eigi)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STDestroy_Shell"
-static int STDestroy_Shell(ST st)
+PetscErrorCode STDestroy_Shell(ST st)
 {
-  ST_Shell *shell = (ST_Shell *) st->data;
-  int      ierr;
+  PetscErrorCode ierr;
+  ST_Shell       *shell = (ST_Shell *) st->data;
 
   PetscFunctionBegin;
   ierr = PetscFree(shell);CHKERRQ(ierr);
@@ -58,11 +56,11 @@ static int STDestroy_Shell(ST st)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STView_Shell"
-static int STView_Shell(ST st,PetscViewer viewer)
+PetscErrorCode STView_Shell(ST st,PetscViewer viewer)
 {
-  ST_Shell  *ctx = (ST_Shell*)st->data;
-  int        ierr;
-  PetscTruth isascii;
+  PetscErrorCode ierr;
+  ST_Shell       *ctx = (ST_Shell*)st->data;
+  PetscTruth     isascii;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
@@ -78,12 +76,11 @@ static int STView_Shell(ST st,PetscViewer viewer)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetApply_Shell"
-int STShellSetApply_Shell(ST st, int (*apply)(void*,Vec,Vec),void *ptr)
+PetscErrorCode STShellSetApply_Shell(ST st, int (*apply)(void*,Vec,Vec),void *ptr)
 {
-  ST_Shell *shell;
+  ST_Shell *shell = (ST_Shell *) st->data;
 
   PetscFunctionBegin;
-  shell        = (ST_Shell *) st->data;
   shell->apply = apply;
   shell->ctx   = ptr;
   PetscFunctionReturn(0);
@@ -93,12 +90,11 @@ EXTERN_C_END
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetBackTransform_Shell"
-int STShellSetBackTransform_Shell(ST st, int (*backtr)(void*,PetscScalar*,PetscScalar*))
+PetscErrorCode STShellSetBackTransform_Shell(ST st, int (*backtr)(void*,PetscScalar*,PetscScalar*))
 {
-  ST_Shell *shell;
+  ST_Shell *shell = (ST_Shell *) st->data;
 
   PetscFunctionBegin;
-  shell         = (ST_Shell *) st->data;
   shell->backtr = backtr;
   PetscFunctionReturn(0);
 }
@@ -107,12 +103,11 @@ EXTERN_C_END
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetName_Shell"
-int STShellSetName_Shell(ST st,char *name)
+PetscErrorCode STShellSetName_Shell(ST st,char *name)
 {
-  ST_Shell *shell;
+  ST_Shell *shell = (ST_Shell *) st->data;
 
   PetscFunctionBegin;
-  shell       = (ST_Shell *) st->data;
   shell->name = name;
   PetscFunctionReturn(0);
 }
@@ -121,12 +116,11 @@ EXTERN_C_END
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellGetName_Shell"
-int STShellGetName_Shell(ST st,char **name)
+PetscErrorCode STShellGetName_Shell(ST st,char **name)
 {
-  ST_Shell *shell;
+  ST_Shell *shell = (ST_Shell *) st->data;
 
   PetscFunctionBegin;
-  shell  = (ST_Shell *) st->data;
   *name  = shell->name;
   PetscFunctionReturn(0);
 }
@@ -158,9 +152,9 @@ EXTERN_C_END
 
 .seealso: STShellSetBackTransform()
 @*/
-int STShellSetApply(ST st, int (*apply)(void*,Vec,Vec),void *ptr)
+PetscErrorCode STShellSetApply(ST st, int (*apply)(void*,Vec,Vec),void *ptr)
 {
-  int ierr, (*f)(ST,int (*)(void*,Vec,Vec),void *);
+  PetscErrorCode ierr, (*f)(ST,int (*)(void*,Vec,Vec),void *);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -197,9 +191,9 @@ int STShellSetApply(ST st, int (*apply)(void*,Vec,Vec),void *ptr)
 
 .seealso: STShellSetApply()
 @*/
-int STShellSetBackTransform(ST st, int (*backtr)(void*,PetscScalar*,PetscScalar*))
+PetscErrorCode STShellSetBackTransform(ST st, int (*backtr)(void*,PetscScalar*,PetscScalar*))
 {
-  int ierr, (*f)(ST,int (*)(void*,PetscScalar*,PetscScalar*));
+  PetscErrorCode ierr, (*f)(ST,int (*)(void*,PetscScalar*,PetscScalar*));
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -226,9 +220,9 @@ int STShellSetBackTransform(ST st, int (*backtr)(void*,PetscScalar*,PetscScalar*
 
 .seealso: STShellGetName()
 @*/
-int STShellSetName(ST st,char *name)
+PetscErrorCode STShellSetName(ST st,char *name)
 {
-  int ierr, (*f)(ST,char *);
+  PetscErrorCode ierr, (*f)(ST,char *);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -257,9 +251,9 @@ int STShellSetName(ST st,char *name)
 
 .seealso: STShellSetName()
 @*/
-int STShellGetName(ST st,char **name)
+PetscErrorCode STShellGetName(ST st,char **name)
 {
-  int ierr, (*f)(ST,char **);
+  PetscErrorCode ierr, (*f)(ST,char **);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -289,10 +283,10 @@ $             STShellSetBackTransform(st,backtr);    (optional)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STCreate_Shell"
-int STCreate_Shell(ST st)
+PetscErrorCode STCreate_Shell(ST st)
 {
-  int      ierr;
-  ST_Shell *shell;
+  PetscErrorCode ierr;
+  ST_Shell       *shell;
 
   PetscFunctionBegin;
   st->ops->destroy = STDestroy_Shell;

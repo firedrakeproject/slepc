@@ -6,9 +6,9 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "STApply_Shift"
-int STApply_Shift(ST st,Vec x,Vec y)
+PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
 {
-  int    ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (st->B) {
@@ -28,9 +28,9 @@ int STApply_Shift(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STApplyB_Shift"
-int STApplyB_Shift(ST st,Vec x,Vec y)
+PetscErrorCode STApplyB_Shift(ST st,Vec x,Vec y)
 {
-  int        ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = VecCopy( x, y ); CHKERRQ(ierr);
@@ -39,7 +39,7 @@ int STApplyB_Shift(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Shift"
-int STBackTransform_Shift(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Shift(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscFunctionBegin;
   if (eigr) *eigr -= st->sigma;
@@ -48,9 +48,9 @@ int STBackTransform_Shift(ST st,PetscScalar *eigr,PetscScalar *eigi)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetUp_Shift"
-static int STSetUp_Shift(ST st)
+PetscErrorCode STSetUp_Shift(ST st)
 {
-  int     ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (st->B) {
@@ -63,9 +63,9 @@ static int STSetUp_Shift(ST st)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STView_Shift"
-static int STView_Shift(ST st,PetscViewer viewer)
+PetscErrorCode STView_Shift(ST st,PetscViewer viewer)
 {
-  int     ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (st->B) {
@@ -77,7 +77,7 @@ static int STView_Shift(ST st,PetscViewer viewer)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STCreate_Shift"
-int STCreate_Shift(ST st)
+PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
   st->ops->apply       = STApply_Shift;

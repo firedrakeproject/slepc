@@ -25,9 +25,9 @@
 
 .seealso: STApplyB(), STApplyNoB()
 @*/
-int STApply(ST st,Vec x,Vec y)
+PetscErrorCode STApply(ST st,Vec x,Vec y)
 {
-  int        ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -61,9 +61,9 @@ int STApply(ST st,Vec x,Vec y)
 
 .seealso: STApply(), STApplyNoB()
 @*/
-int STApplyB(ST st,Vec x,Vec y)
+PetscErrorCode STApplyB(ST st,Vec x,Vec y)
 {
-  int        ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -109,9 +109,9 @@ int STApplyB(ST st,Vec x,Vec y)
 
 .seealso: STApply(), STApplyB()
 @*/
-int STApplyNoB(ST st,Vec x,Vec y)
+PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
 {
-  int        ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -153,10 +153,10 @@ int STApplyNoB(ST st,Vec x,Vec y)
 
 .seealso: STInnerProduct()
 @*/
-int STNorm(ST st,Vec x,PetscReal *norm)
+PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
 {
-  int         ierr;
-  PetscScalar p;
+  PetscErrorCode ierr;
+  PetscScalar    p;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -206,9 +206,9 @@ int STNorm(ST st,Vec x,PetscReal *norm)
 
 .seealso: STSetBilinearForm(), STApplyB(), VecDot()
 @*/
-int STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
+PetscErrorCode STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
 {
-  int        ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -255,9 +255,9 @@ int STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
 
 .seealso: STCreate(), STApply(), STDestroy()
 @*/
-int STSetUp(ST st)
+PetscErrorCode STSetUp(ST st)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -301,9 +301,9 @@ int STSetUp(ST st)
     EPSSolve(eps,its);
     STPostSolve(st,eps);
 */
-int STPreSolve(ST st,EPS eps)
+PetscErrorCode STPreSolve(ST st,EPS eps)
 {
-  int         ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -332,9 +332,9 @@ int STPreSolve(ST st,EPS eps)
     EPSSolve(eps,its);
     STPostSolve(st,eps);
 */
-int STPostSolve(ST st,EPS eps)
+PetscErrorCode STPostSolve(ST st,EPS eps)
 {
-  int         ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -363,9 +363,9 @@ int STPostSolve(ST st,EPS eps)
 
 .seealso: EPSBackTransform()
 */
-int STBackTransform(ST st,PetscScalar* eigr,PetscScalar* eigi)
+PetscErrorCode STBackTransform(ST st,PetscScalar* eigr,PetscScalar* eigi)
 {
-  int         ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);

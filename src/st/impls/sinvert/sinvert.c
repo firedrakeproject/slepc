@@ -5,9 +5,9 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "STApply_Sinvert"
-static int STApply_Sinvert(ST st,Vec x,Vec y)
+PetscErrorCode STApply_Sinvert(ST st,Vec x,Vec y)
 {
-  int       ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (st->B) {
@@ -24,9 +24,9 @@ static int STApply_Sinvert(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STApplyNoB_Sinvert"
-static int STApplyNoB_Sinvert(ST st,Vec x,Vec y)
+PetscErrorCode STApplyNoB_Sinvert(ST st,Vec x,Vec y)
 {
-  int       ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = STAssociatedKSPSolve(st,x,y);CHKERRQ(ierr);
@@ -35,9 +35,9 @@ static int STApplyNoB_Sinvert(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STApplyB_Sinvert"
-int STApplyB_Sinvert(ST st,Vec x,Vec y)
+PetscErrorCode STApplyB_Sinvert(ST st,Vec x,Vec y)
 {
-  int        ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if( st->B ) {
@@ -51,7 +51,7 @@ int STApplyB_Sinvert(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Sinvert"
-int STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
 #ifndef PETSC_USE_COMPLEX
   PetscScalar t;
@@ -74,10 +74,10 @@ int STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STPost_Sinvert"
-int STPost_Sinvert(ST st)
+PetscErrorCode STPost_Sinvert(ST st)
 {
-  PetscScalar  alpha;
-  int          ierr;
+  PetscErrorCode ierr;
+  PetscScalar    alpha;
 
   PetscFunctionBegin;
   if (st->shift_matrix == STMATMODE_INPLACE) {
@@ -91,10 +91,10 @@ int STPost_Sinvert(ST st)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetUp_Sinvert"
-static int STSetUp_Sinvert(ST st)
+PetscErrorCode STSetUp_Sinvert(ST st)
 {
-  int          ierr;
-  PetscScalar  alpha;
+  PetscErrorCode ierr;
+  PetscScalar    alpha;
 
   PetscFunctionBegin;
   
@@ -139,10 +139,10 @@ static int STSetUp_Sinvert(ST st)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetShift_Sinvert"
-static int STSetShift_Sinvert(ST st,PetscScalar newshift)
+PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
-  int          ierr;
-  PetscScalar  alpha;
+  PetscErrorCode ierr;
+  PetscScalar    alpha;
 
   PetscFunctionBegin;
 
@@ -187,7 +187,7 @@ static int STSetShift_Sinvert(ST st,PetscScalar newshift)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STCreate_Sinvert"
-int STCreate_Sinvert(ST st)
+PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
   st->data                = 0;

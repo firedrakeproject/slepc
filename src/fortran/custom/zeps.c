@@ -32,14 +32,14 @@
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer, int *ierr)
+void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer, PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = EPSView(*eps,v);
 }
 
-void PETSC_STDCALL epssettype_(EPS *eps,CHAR type PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL epssettype_(EPS *eps,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -48,7 +48,7 @@ void PETSC_STDCALL epssettype_(EPS *eps,CHAR type PETSC_MIXED_LEN(len),int *ierr
   FREECHAR(type,t);
 }
 
-void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *tname;
 
@@ -65,7 +65,7 @@ void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),int *ierr
 }
 
 void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),
-                                        int *ierr PETSC_END_LEN(len))
+                                        PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -75,7 +75,7 @@ void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
 }
 
 void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),
-                                           int *ierr PETSC_END_LEN(len))
+                                           PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -84,7 +84,7 @@ void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL epscreate_(MPI_Comm *comm,EPS *eps,int *ierr){
+void PETSC_STDCALL epscreate_(MPI_Comm *comm,EPS *eps,PetscErrorCode *ierr){
   *ierr = EPSCreate((MPI_Comm)PetscToPointerComm(*comm),eps);
 }
 
@@ -94,7 +94,7 @@ void PETSC_STDCALL epscreate_(MPI_Comm *comm,EPS *eps,int *ierr){
    
    functions, hence no STDCALL
 */
-void  epsdefaultmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,int *ierr)
+void  epsdefaultmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = EPSDefaultMonitor(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
@@ -108,7 +108,7 @@ static int ourmonitor(EPS eps,int i,int nc,PetscScalar *er,PetscScalar *ei,Petsc
 }
 
 void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,int*),
-                    void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,int *),int *ierr)
+                    void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,int *),PetscErrorCode *ierr)
 {
   if ((void(*)())monitor == (void(*)())epsdefaultmonitor_) {
     *ierr = EPSSetMonitor(*eps,EPSDefaultMonitor,0);
@@ -122,7 +122,7 @@ void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,in
   }
 }
 
-void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *tname;
 

@@ -4,9 +4,10 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_SUBSPACE"
-static int EPSSetUp_SUBSPACE(EPS eps)
+PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 {
-  int       ierr, N;
+  PetscErrorCode ierr;
+  int            N;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -26,11 +27,12 @@ static int EPSSetUp_SUBSPACE(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSdcond"
-static int EPSdcond(PetscScalar* H,int n, PetscReal* cond)
+static PetscErrorCode EPSdcond(PetscScalar* H,int n, PetscReal* cond)
 {
-  int         ierr,*ipiv,lwork;
-  PetscScalar *work;
-  PetscReal   hn,hin,*rwork;
+  PetscErrorCode ierr;
+  int            *ipiv,lwork,info;
+  PetscScalar    *work;
+  PetscReal      hn,hin,*rwork;
   
   PetscFunctionBegin;
   ierr = PetscMalloc(sizeof(int)*n,&ipiv);CHKERRQ(ierr);
@@ -38,10 +40,10 @@ static int EPSdcond(PetscScalar* H,int n, PetscReal* cond)
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
   hn = LAlanhs_("I",&n,H,&n,rwork,1);
-  LAgetrf_(&n,&n,H,&n,ipiv,&ierr);
-  if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xGETRF");
-  LAgetri_(&n,H,&n,ipiv,work,&lwork,&ierr);
-  if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xGETRI");
+  LAgetrf_(&n,&n,H,&n,ipiv,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
+  LAgetri_(&n,H,&n,ipiv,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
   hin = LAlange_("I",&n,&n,H,&n,rwork,1);
   *cond = hn * hin;
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
@@ -52,7 +54,7 @@ static int EPSdcond(PetscScalar* H,int n, PetscReal* cond)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSdgroup"
-static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,
+static PetscErrorCode EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,
   PetscReal grptol,int *ngrp,PetscReal *ctr,PetscReal *ae,PetscReal *arsd)
 {
   int       i;
@@ -101,12 +103,13 @@ static int EPSdgroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSchurResidualNorms"
-static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int m,int ldt,PetscReal *rsd)
+static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int m,int ldt,PetscReal *rsd)
 {
-  int         ierr,i;
-  PetscScalar zero = 0.0,minus = -1.0;
+  PetscErrorCode ierr;
+  int            i;
+  PetscScalar    zero = 0.0,minus = -1.0;
 #if defined(PETSC_USE_COMPLEX)
-  PetscScalar t;
+  PetscScalar    t;
 #endif
 
   PetscFunctionBegin;
@@ -138,20 +141,21 @@ static int EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_SUBSPACE"
-static int EPSSolve_SUBSPACE(EPS eps)
+PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
-  int         ierr,i,j,ilo,lwork,ngrp,nogrp,*itrsd,*itrsdold,
-              nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
-  PetscScalar *T,*U,*tau,*work,t;
-  PetscReal   arsd,oarsd,ctr,octr,ae,oae,*rsdold,norm,tcond;
+  PetscErrorCode ierr;
+  int            i,j,ilo,lwork,info,ngrp,nogrp,*itrsd,*itrsdold,
+                 nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
+  PetscScalar    *T,*U,*tau,*work,t;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsdold,norm,tcond;
   /* Parameters */
-  int         init = 5;
-  PetscReal   stpfac = 1.5,
-              alpha = 1.0,
-              beta = 1.1,
-              grptol = 1e-8,
-              cnvtol = 1e-6;
-  int         orttol = 2;
+  int            init = 5;
+  PetscReal      stpfac = 1.5,
+                 alpha = 1.0,
+                 beta = 1.1,
+                 grptol = 1e-8,
+                 cnvtol = 1e-6;
+  int            orttol = 2;
 
   PetscFunctionBegin;
   eps->its = 0;
@@ -191,16 +195,16 @@ static int EPSSolve_SUBSPACE(EPS eps)
 
     /* [U,H] = hess(T) */
     ilo = eps->nconv + 1;
-    LAgehrd_(&ncv,&ilo,&ncv,T,&ncv,tau,work,&lwork,&ierr);
-    if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xGEHRD");
+    LAgehrd_(&ncv,&ilo,&ncv,T,&ncv,tau,work,&lwork,&info);
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
     for (j=0;j<ncv-1;j++) {
       for (i=j+2;i<ncv;i++) {
         U[i+j*ncv] = T[i+j*ncv];
         T[i+j*ncv] = 0.0;
       }      
     }
-    LAorghr_(&ncv,&ilo,&ncv,U,&ncv,tau,work,&lwork,&ierr);
-    if (ierr) SETERRQ(PETSC_ERR_LIB,"Error in Lapack xORGHR");
+    LAorghr_(&ncv,&ilo,&ncv,U,&ncv,tau,work,&lwork,&info);
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
     
     /* [T,wr,wi,U] = laqr3(H,U) */
     ierr = EPSDenseSchur(T,U,eps->eigr,eps->eigi,eps->nconv,ncv);CHKERRQ(ierr);
@@ -311,9 +315,9 @@ static int EPSSolve_SUBSPACE(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_SUBSPACE"
-int EPSComputeVectors_SUBSPACE(EPS eps)
+PetscErrorCode EPSComputeVectors_SUBSPACE(EPS eps)
 {
-  int ierr;
+  PetscErrorCode ierr;
   PetscFunctionBegin;
   ierr = EPSComputeVectors_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -322,7 +326,7 @@ int EPSComputeVectors_SUBSPACE(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_SUBSPACE"
-int EPSCreate_SUBSPACE(EPS eps)
+PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
 {
   PetscFunctionBegin;
   eps->ops->setup                = EPSSetUp_SUBSPACE;

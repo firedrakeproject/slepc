@@ -29,7 +29,7 @@
       failed and why.
 
 @*/
-int EPSGetIterationNumber(EPS eps,int *its)
+PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -64,7 +64,7 @@ int EPSGetIterationNumber(EPS eps,int *its)
    Level: intermediate
 
 @*/
-int EPSGetNumberLinearIterations(EPS eps,int* lits)
+PetscErrorCode EPSGetNumberLinearIterations(EPS eps,int* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -95,10 +95,11 @@ int EPSGetNumberLinearIterations(EPS eps,int* lits)
 
 .seealso: EPSSetMonitor()
 @*/
-int EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *dummy)
+PetscErrorCode EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *dummy)
 {
-  int         i,ierr;
-  PetscViewer viewer = (PetscViewer) dummy;
+  PetscErrorCode ierr;
+  int            i;
+  PetscViewer    viewer = (PetscViewer) dummy;
 
   PetscFunctionBegin;
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(eps->comm);
@@ -129,9 +130,9 @@ int EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *e
   Call this only if no work vectors have been allocated.
 
  */
-int  EPSDefaultGetWork(EPS eps, int nw)
+PetscErrorCode EPSDefaultGetWork(EPS eps, int nw)
 {
-  int         ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
 
@@ -156,9 +157,10 @@ int  EPSDefaultGetWork(EPS eps, int nw)
 . eps  - eigensolver context
 
  */
-int EPSDefaultFreeWork(EPS eps)
+PetscErrorCode EPSDefaultFreeWork(EPS eps)
 {
-  int          ierr;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->work)  {
@@ -170,9 +172,9 @@ int EPSDefaultFreeWork(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAllocateSolution"
-int EPSAllocateSolution(EPS eps)
+PetscErrorCode EPSAllocateSolution(EPS eps)
 {
-  int         ierr;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -196,9 +198,9 @@ int EPSAllocateSolution(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFreeSolution"
-int EPSFreeSolution(EPS eps)
+PetscErrorCode EPSFreeSolution(EPS eps)
 {
-  int          ierr;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -214,10 +216,11 @@ int EPSFreeSolution(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAllocateSolutionContiguous"
-int EPSAllocateSolutionContiguous(EPS eps)
+PetscErrorCode EPSAllocateSolutionContiguous(EPS eps)
 {
-  int         i, ierr, nloc;
-  PetscScalar *pV;
+  PetscErrorCode ierr;
+  int            i,nloc;
+  PetscScalar    *pV;
 
   PetscFunctionBegin;
   if (eps->allocated_ncv != eps->ncv) {
@@ -259,10 +262,11 @@ int EPSAllocateSolutionContiguous(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFreeSolutionContiguous"
-int EPSFreeSolutionContiguous(EPS eps)
+PetscErrorCode EPSFreeSolutionContiguous(EPS eps)
 {
-  int          i, ierr;
-  PetscScalar* pV;
+  PetscErrorCode ierr;
+  int            i;
+  PetscScalar    *pV;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -288,9 +292,9 @@ int EPSFreeSolutionContiguous(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_Default"
-int EPSDestroy_Default(EPS eps)
+PetscErrorCode EPSDestroy_Default(EPS eps)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -331,11 +335,10 @@ int EPSDestroy_Default(EPS eps)
 
 .seealso: EPSSetTolerances(), EPSSolve(), EPSConvergedReason
 @*/
-int EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
+PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   *reason = eps->reason;
   PetscFunctionReturn(0);
 }
-

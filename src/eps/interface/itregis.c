@@ -2,21 +2,21 @@
 #include "src/eps/epsimpl.h"  /*I "slepceps.h" I*/
 
 EXTERN_C_BEGIN
-extern int EPSCreate_POWER(EPS);
-extern int EPSCreate_SUBSPACE(EPS);
-extern int EPSCreate_ARNOLDI(EPS);
+EXTERN PetscErrorCode EPSCreate_POWER(EPS);
+EXTERN PetscErrorCode EPSCreate_SUBSPACE(EPS);
+EXTERN PetscErrorCode EPSCreate_ARNOLDI(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
-extern int EPSCreate_ARPACK(EPS);
+EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
-extern int EPSCreate_LAPACK(EPS);
+EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
 #if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
-extern int EPSCreate_BLZPACK(EPS);
+EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
 #endif
 #if defined(SLEPC_HAVE_PLANSO) && !defined(PETSC_USE_COMPLEX)
-extern int EPSCreate_PLANSO(EPS);
+EXTERN PetscErrorCode EPSCreate_PLANSO(EPS);
 #endif
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
-extern int EPSCreate_TRLAN(EPS);
+EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
 EXTERN_C_END
   
@@ -25,7 +25,7 @@ EXTERN_C_END
     EPSRegisterAll() is called. In general, if there is more than one
     DLL, then EPSRegisterAll() may be called several times.
 */
-extern PetscTruth EPSRegisterAllCalled;
+EXTERN PetscTruth EPSRegisterAllCalled;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRegisterAll"
@@ -38,9 +38,9 @@ extern PetscTruth EPSRegisterAllCalled;
 
 .seealso:  EPSRegisterDestroy()
 @*/
-int EPSRegisterAll(char *path)
+PetscErrorCode EPSRegisterAll(char *path)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   EPSRegisterAllCalled = PETSC_TRUE;
@@ -71,4 +71,3 @@ int EPSRegisterAll(char *path)
 #endif
   PetscFunctionReturn(0);
 }
-

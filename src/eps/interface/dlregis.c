@@ -1,6 +1,7 @@
 
 #include "slepceps.h"
 
+#ifdef PETSC_USE_DYNAMIC_LIBRARIES
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "PetscDLLibraryRegister"
@@ -14,9 +15,9 @@ EXTERN_C_BEGIN
   Input Parameter:
   path - library path
  */
-int PetscDLLibraryRegister(char *path)
+PetscErrorCode PetscDLLibraryRegister(char *path)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
   ierr = PetscInitializeNoArguments(); if (ierr) return 1;
 
@@ -40,10 +41,10 @@ static char *version = SLEPC_VERSION_NUMBER;
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "PetscDLLibraryInfo"
-int PetscDLLibraryInfo(char *path,char *type,char **mess) 
+PetscErrorCode PetscDLLibraryInfo(char *path,char *type,char **mess) 
 {
-  PetscTruth iscon,isaut,isver;
-  int        ierr;
+  PetscErrorCode ierr;
+  PetscTruth     iscon,isaut,isver;
 
   PetscFunctionBegin; 
 
@@ -58,4 +59,6 @@ int PetscDLLibraryInfo(char *path,char *type,char **mess)
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
+
+#endif /* PETSC_USE_DYNAMIC_LIBRARIES */
 
