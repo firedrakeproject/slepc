@@ -82,7 +82,7 @@
 #define LAhseqr_ zhseqr_
 #define LAtrevc_ ztrevc_
 #define LAgehrd_ zgehrd_
-#define LAunghr_ zunghr_
+#define LAorghr_ zunghr_
 #define LAgees_  zgees_ 
 #elif defined(PETSC_HAVE_FORTRAN_CAPS)
 #define LArnv_   ZLARNV
@@ -91,7 +91,7 @@
 #define LAhseqr_ ZHSEQR
 #define LAtrevc_ ZTREVC
 #define LAgehrd_ ZGEHRD
-#define LAunghr_ ZUNGHR
+#define LAorghr_ ZUNGHR
 #define LAgees_  ZGEES 
 #else
 #define LArnv_   zlarnv
@@ -100,7 +100,7 @@
 #define LAhseqr_ zhseqr
 #define LAtrevc_ ztrevc
 #define LAgehrd_ zgehrd
-#define LAunghr_ zunghr
+#define LAorghr_ zunghr
 #define LAgees_  zgees 
 #endif
 
@@ -113,16 +113,15 @@ extern double LAlapy2_(double*,double*);
 extern void   LAgelqf_(int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 extern void   LAormlq_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgehrd_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
+extern void   LAorghr_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 #if !defined(PETSC_USE_COMPLEX)
 extern void   LAhseqr_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgees_(char*,char*,int*,int*,PetscScalar*,int*,int*,PetscScalar*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int*);
 extern void   LAtrevc_(char*,char*,int*,int*,PetscScalar*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,int*,int,int);
-extern void   LAorghr_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 #else
 extern void   LAhseqr_(char*,char*,int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,int*,int,int);
 extern void   LAgees_(char*,char*,int*,int*,PetscScalar*,int*,int*,PetscScalar*,PetscScalar*,int*,PetscScalar*,int*,PetscReal*,int*,int*);
 extern void   LAtrevc_(char*,char*,int*,int*,PetscScalar*,int*,PetscScalar*,int*,PetscScalar*,int*,int*,int*,PetscScalar*,PetscReal*,int*,int,int);
-extern void   LAunghr_(int*,int*,int*,PetscScalar*,int*,PetscScalar*,PetscScalar*,int*,int*);
 #endif
 
 EXTERN_C_END
