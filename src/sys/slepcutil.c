@@ -120,6 +120,26 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcAbsEigenvalue"
+/*@
+   SlepcAbsEigenvalue - Computes the absolute value of a complex number given
+   its real and imaginary parts.
+
+   Not collective
+
+   Input parameters:
++  x  - the real part of the complex number
+-  y  - the imaginary part of the complex number
+
+   Return value:
+.  the absolute value of the number
+
+   Notes: 
+   This function computes sqrt(x**2+y**2), taking care not to cause unnecessary
+   overflow. It is based on LAPACK's DLAPY2.
+
+   Level: developer
+
+@*/
 PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 {
   PetscReal xabs,yabs,w,z,t;

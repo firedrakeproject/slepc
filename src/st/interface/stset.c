@@ -273,7 +273,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 
    Level: intermediate
 
-.seealso: STSetOperators(), STSetMatStructure()
+.seealso: STSetOperators(), STSetMatStructure(), STGetMatMode()
 @*/
 PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 {
@@ -285,6 +285,22 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STGetMatMode"
+/*@
+   STGetMatMode - Gets a flag that indicates how the matrix is being 
+   shifted in the shift-and-invert and Cayley spectral transformations.
+
+   Collective on ST
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  mode - the mode flag
+
+   Level: intermediate
+
+.seealso: STSetMatMode()
+@*/
 PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 {
   PetscFunctionBegin;
@@ -295,6 +311,24 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetBilinearForm"
+/*@
+   STSetBilinearForm - Specifies the bilinear form to be used for
+   inner products in eigensolvers.
+
+   Collective on ST
+
+   Input Parameters:
++  st    - the spectral transformation context
+-  form  - the type of bilinear form
+
+   Note:
+   This function is called by EPSSetProblemType() and usually need not be
+   called by the user.
+
+   Level: developer
+
+.seealso: STInnerProduct(), STNorm(), EPSSetProblemType()
+@*/
 PetscErrorCode STSetBilinearForm(ST st,STBilinearForm form)
 {
   PetscFunctionBegin;
