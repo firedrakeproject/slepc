@@ -193,7 +193,6 @@ int EPSSolve(EPS eps)
 #ifndef PETSC_USE_COMPLEX
   /* reorder conjugate eigenvalues (positive imaginary first) */
   for (i=0; i<eps->nconv; i++) {
-    printf("%i %f %f\n", i, eps->eigr[i],eps->eigi[i]);
     PetscScalar minus = -1.0;
     if (eps->eigi[i] != 0) {
       if (eps->eigi[i] < 0) {
