@@ -62,9 +62,6 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
 
-#if defined(PETSC_USE_COMPLEX)
-  SETERRQ(PETSC_ERR_SUP,"Requested method is not available for complex problems");
-#endif
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (blz->slice) {
