@@ -412,10 +412,11 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,Petsc
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #endif 
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-#endif
 
+#if !defined(PETSC_USE_COMPLEX)
+
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  
   for (i=k;i<n-1;i++) {
     max = SlepcAbsEigenvalue(wr[i],wi[i]);
     maxpos = 0;
@@ -425,21 +426,14 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,Petsc
         max = m;
         maxpos = j;
       }
-#if !defined(PETSC_USE_COMPLEX)
       if (wi[j] != 0) j++;
-#endif
     }
     if (maxpos) {
       ifst = maxpos + 1;
       ilst = i + 1;
-#if !defined(PETSC_USE_COMPLEX)
       LAtrexc_("V",&n,T,&n,Z,&n,&ifst,&ilst,work,&info,1);
-#else
-      LAtrexc_("V",&n,T,&n,Z,&n,&ifst,&ilst,&info,1);
-#endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-
-#if !defined(PETSC_USE_COMPLEX)
+      
       for (j=k;j<n;j++) {
         if (j==n-1 || T[j*n+j+1] == 0.0) { 
           /* real eigenvalue */
@@ -455,19 +449,37 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,Petsc
           j++;
         }
       }
-#else
+    }
+    if (wi[i] != 0) i++;
+  }
+  
+  ierr = PetscFree(work);CHKERRQ(ierr);
+
+#else /* PETSC_USE_COMPLEX */
+
+  for (i=k;i<n-1;i++) {
+    max = SlepcAbsEigenvalue(wr[i],wi[i]);
+    maxpos = 0;
+    for (j=i+1;j<n;j++) {
+      m = SlepcAbsEigenvalue(wr[j],wi[j]);
+      if (m > max) {
+        max = m;
+        maxpos = j;
+      }
+    }
+    if (maxpos) {
+      ifst = maxpos + 1;
+      ilst = i + 1;
+      LAtrexc_("V",&n,T,&n,Z,&n,&ifst,&ilst,&info,1);
+      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+
       for (j=k;j<n;j++) {
         wr[j] = T[j*(n+1)];
       }
-#endif
     }
-#if !defined(PETSC_USE_COMPLEX)
-    if (wi[i] != 0) i++;
-#endif
   }
-  
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(work);CHKERRQ(ierr);
+
 #endif
+  
   PetscFunctionReturn(0);
 }
