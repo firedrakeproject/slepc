@@ -51,7 +51,7 @@ static int EPSSetDefaults_ARPACK(EPS eps)
   else /* set default value of ncv */
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
 
-  if (!eps->max_it) eps->max_it = PetscMax(300,ceil(2*N/eps->ncv));
+  if (!eps->max_it) eps->max_it = PetscMax(300,(int)ceil(2*N/eps->ncv));
   if (!eps->tol) eps->tol = 1.e-7;
   PetscFunctionReturn(0);
 }

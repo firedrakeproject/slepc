@@ -22,7 +22,7 @@ int STApply_Shift(ST st,Vec x,Vec y)
     /* standard eigenproblem: y = (A + sI) x */
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
   }
-  if (st->sigma != 0) {
+  if (st->sigma != 0.0) {
     ierr = VecAXPY(&st->sigma,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
