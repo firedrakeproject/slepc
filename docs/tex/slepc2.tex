@@ -134,13 +134,9 @@ it is possible to examine the information relevant to the \ident{EPS} object, su
 %---------------------------------------------------
 \section{Defining the Problem}
 
-	From the information provided by the user, \slepc tries to guess the kind of problem that is to be solved. For instance, if the user provides two matrices then the problem is generalized. However, the user has also the ability to specify explicitly the problem type. This could be used for instance to force a non-Hermitian version of an algorithm even when the matrix is Hermitian, or when the guess made by \slepc is not correct. However, normal usage will not require this.
+%	From the information provided by the user, \slepc tries to guess the kind of problem that is to be solved. For instance, if the user provides two matrices then the problem is generalized. However, the user has also the ability to specify explicitly the problem type. This could be used for instance to force a non-Hermitian version of an algorithm even when the matrix is Hermitian, or when the guess made by \slepc is not correct. However, normal usage will not require this.
 
-The problem type can be specified at run time with the corresponding command line key (see table \ref{tab:ptype}) or within the program with the function
-	\findex{EPSSetProblemType}
-	\begin{Verbatim}[fontsize=\small]
-	EPSSetProblemType(EPS eps,EPSProblemType type);
-	\end{Verbatim}
+	\slepc is able to cope with different kinds of problems. Currently supported problem types are listed in table \ref{tab:ptype}. An eigenproblem is generalized ($Ax=\lambda Bx$) if the user has specified two matrices (see \ident{EPSSetOperators} above), otherwise it is standard ($Ax=\lambda x$). A standard eigenproblem is Hermitian if matrix $A$ is Hermitian (i.e., $A=A^H$) or, equivalently in the case of real matrices, if matrix $A$ is symmetric (i.e., $A=A^T$). A generalized eigenproblem is Hermitian if if matrix $A$ is Hermitian (symmetric) and matrix $B$ is Hermitian (symmetric) positive definite.
 
 \begin{table}[t]
 \centering
@@ -153,6 +149,14 @@ Generalized Non-Hermitian & \texttt{EPS\_GNHEP}       & \texttt{-eps\_gen\_non\_
 \end{tabular} }
 \caption{\label{tab:ptype}Problem types considered in \ident{EPS}.}
 \end{table}
+
+The problem type can be specified at run time with the corresponding command line key or within the program with the function
+	\findex{EPSSetProblemType}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetProblemType(EPS eps,EPSProblemType type);
+	\end{Verbatim}
+
+Some eigensolvers are able to exploit symmetry, that is, they compute a solution for Hermitian problems with less storage and/or computational cost than other methods that ignore this property. Also, symmetric solvers are typically more accurate. On the other hand, some eigensolver in \slepc only have a symmetric version and will abort if the problem is non-Hermitian. For all these reasons, the user is strongly recommended to always specify the problem type in the source code. 
 
 	The type of the problem can be determined with the functions
 	\findex{EPSIsGeneralized} \findex{EPSIsHermitian}
