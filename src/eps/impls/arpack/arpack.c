@@ -132,6 +132,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #endif
       for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
 
+  eps->its = 0;
+
   for(;;) {
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -153,7 +155,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
     EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
 #endif
-
+    eps->its++;
+    
     if( ido == -1 ) {
       ierr = VecPlaceArray( x, &ar->workd[ipntr[0]-1] );CHKERRQ(ierr);
       ierr = VecPlaceArray( y, &ar->workd[ipntr[1]-1] );CHKERRQ(ierr);
@@ -195,7 +198,6 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   }
 
   eps->nconv = iparam[4];
-  eps->its   = iparam[2];
   
   if (info==1) { SETERRQ(0,"Exceeded maximum number of iterations in xxAUPD"); }
   else if(info==3) { SETERRQ(1,"No shift could be applied in xxAUPD.\n"
