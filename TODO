@@ -95,10 +95,14 @@ TODO
 BUGS
 ----
 
-
+ - Implementar cache de Bx utilizando el id de objeto.
 
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 DOCUMENTACION
 -------------
+
+- En la tabla B.1 poner el valor de which por defecto, en lugar de tol.
+
+- Añadir LOBPCG en el manual.
 
