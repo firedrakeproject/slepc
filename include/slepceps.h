@@ -124,6 +124,7 @@ extern int STPreSolve(ST,EPS);
 extern int STPostSolve(ST,EPS);
 
 extern int EPSAttachDeflationSpace(EPS,int,Vec*,PetscTruth);
+extern int EPSRemoveDeflationSpace(EPS);
 
 /* --------- options specific to particular eigensolvers -------- */
 
