@@ -4,9 +4,6 @@ TODO
 
 (01) Esquemas de resolución iterativa
 
-  a. Hacer que EPSSetDimensions permita ampliar o reducir el número de
-     vectores que había reservados. [HECHO]
-
   b. Incorporar la idea de que el usuario pueda dar un subespacio inicial de
      búsqueda, por ejemplo con EPSSetInitialSpace. Analizar la relación con
      EPSSetInitialVector. Otra posibilidad es mantener la factorización
@@ -30,27 +27,14 @@ TODO
      el nuevo shift. Con esto, el método RQI desaparecería como tal y se
      integraría en POWER.
 
+  c. Probar Cayley con desplazamientos variables (sería una implementación del
+     método RKS de Ruhe). 
+
 (04) Interfaces a paquetes externos
 
   a. Testear la opción de intervalo en Blzpack.
 
   b. Integrar Hlzpack en el mismo interfaz de Blzpack.
-
-(05) Nuevos ST
-
-  a. Cayley (y Cayley generalizado, con 2 shifts distintos). Junto con
-     los desplazamientos variables (03) se tendría una implementación del
-     método RKS de Ruhe. Para más de un shift habría que usar la función
-     NumberOfShifts y modificar STSetShift para que se le pase un índice.
-     Otra opción es usar el nombre "antishift" para el segundo shift. O
-     también se podrían llamar "pole" y "zero".
-
-  b. Transformación Buckling (ver Arpack). Habría que ver si tiene interés
-     y en qué aplicaciones. Nota: En realidad esta transformación sería
-     igual a la de Cayley generalizado con el shift del numerador igual a 0.
-
-  c. En todas las transformaciones, considerar el caso en que el shift sea 0
-     para hacer menos operaciones (por ejemplo, el MatAXPY no hacerlo). [HECHO]
 
 (06) Nuevos EPS
 
@@ -78,8 +62,6 @@ TODO
      teniendo en cuenta este subespacio. [MEDIO HECHO :-)]
 
 (08) Utilidades
-
-  a. Unificar EPSMonitor y EPSValuesMonitor. [HECHO]
 
   b. Estructurar mejor la información que sacan los monitores por defecto.
 
@@ -167,8 +149,6 @@ BUGS
 
 DOCUMENTACION
 -------------
-
-** Añadir EPSSetDeflationSpace y STCheckNullSpace en el manual y en changes.
 
 ** Comentar cambio de los monitores.
 
