@@ -1,81 +1,20 @@
-#
-# SLEPc-specific definitions:
-#
-# SLEPC_LIB_DIR (defined from $SLEPC_DIR) determines the libraries that are linked.
-# SLEPC_PDIR (defined from $SLEPC_DIR) determines where the libraries are built.
-# SLEPC_LIB_DIR and SLEPC_PDIR will usually be identical.
-#
-# If you change SLEPC_PDIR in your makefile you MUST put it after the
-# include line.
-#
-# LIBNAME       - library name
-# SLEPC_INCLUDE - locations of include files
-#
-# Definitions from the PETSc makefile system:
-#
-# SOURCE        - source files
-# SSOURCE       - single precision versions of some source code
-# OBJS          - object files
-# SOBJS         - single precision versions of some object files
-# DOCS          - files that contain documentation, readmes etc.
-# CPPFLAGS      - preprocessor flags for *.c, *.F preprocessing
-# PETSC_PARCH   - corresponds to the PARCH_arch in the source files, set in 
-#                 the file bmake/${PETSC_ARCH}/base
-#
-# The following includes pick up the default variables from PETSc, and add in
-# some extra packages specific to SLEPc
-#
 include ${PETSC_DIR}/bmake/common/variables
 include ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages
-#
-#
-INSTALL_LIB_DIR	= ${SLEPC_DIR}/lib/lib${BOPT}/${PETSC_ARCH}
-SLEPC_LIB_DIR   = ${SLEPC_DIR}/lib/lib${BOPT}/${PETSC_ARCH}
-SLEPC_INCLUDE	= -I${SLEPC_DIR} -I${SLEPC_DIR}/include ${HYPRE_INCLUDE}
-CCPPFLAGS	= ${SLEPC_INCLUDE} ${PETSC_CCPPFLAGS}
-FCPPFLAGS	= ${SLEPC_INCLUDE} ${PETSC_FCPPFLAGS}
 
-C_SH_LIB_PATH	= ${CLINKER_SLFLAG}${SLEPC_LIB_DIR} ${PETSC_C_SH_LIB_PATH}
-F_SH_LIB_PATH	= ${FLINKER_SLFLAG}${SLEPC_LIB_DIR} ${PETSC_F_SH_LIB_PATH}
-#
-# Defines all libraries needed for using SLEPC as well as all lower-level PETSc 
-# components (such as vectors and matrices). The order of listing these libraries 
-# is important!
-#
-SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}
-# SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc
-# SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc ${PETSC_SYS_LIB}
-# SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc ${PETSC_SLES_LIB}
-# SLEPC_LIB	= ${SLEPC_LIB_DIR}/libslepc.a ${PETSC_SLES_LIB}
-#
-# Link if you are using the SLEPC Fortran interface.
-#
-#SLEPC_FORTRAN_LIB = -L${SLEPC_LIB_DIR} -lslepcfortran
-SLEPC_FORTRAN_LIB = -L${SLEPC_LIB_DIR} -lslepcfortran ${PETSC_FORTRAN_LIB}
-#
-# Link if you are using code from the contributed part of SLEPC
-#
-SLEPC_CONTRIB = -L${SLEPC_LIB_DIR} -lslepccontrib
-# ---------------------------------------------------------------------------------------
-#
-# PCONF - indicates which OPTIONAL external packages are available at your site; appropriate
-#         ones are defined in bmake/${PETSC_ARCH}/packages (as are the library locations).
-#         Ones that are not defined are ignored. You only need to edit this to add a new 
-#         package that SLEPc has never seen before. Never remove any of these, rather remove
-#         them from the appropriate bmake/${PETSC_ARCH}/packages
-#
-#
-PCONF_PETSC = ${PETSC_HAVE_MPE} ${PETSC_HAVE_BLOCKSOLVE} ${PETSC_HAVE_PVODE} ${PETSC_HAVE_PARMETIS} ${PETSC_HAVE_AMS} ${PETSC_HAVE_SPAI} ${PETSC_HAVE_X11} ${PETSC_HAVE_MATLAB_ENGINE} ${PETSC_HAVE_ADIC} ${PETSC_HAVE_JAVA} ${PETSC_HAVE_LUSOL} ${PETSC_HAVE_DSCPACK} ${PETSC_HAVE_RAMG} ${PETSC_HAVE_MATLAB} ${PETSC_HAVE_ESSL} ${PETSC_HAVE_ADIFOR} ${PETSC_HAVE_SUPERLUDIST} ${PETSC_HAVE_SUPERLU} ${PETSC_HAVE_SPOOLES} ${PETSC_HAVE_UMFPACK} ${PETSC_HAVE_CCA} ${PETSC_HAVE_TRILINOS} ${PETSC_HAVE_HYPRE} ${PETSC_HAVE_MATHEMATICA} ${PETSC_HAVE_TRIANGLE} ${PETSC_HAVE_PLAPACK} ${PETSC_HAVE_SAMG}
+SLEPC_LIB_DIR	    = ${SLEPC_DIR}/lib/${PETSC_ARCH}
+SLEPC_INCLUDE       = -I${SLEPC_DIR} -I${SLEPC_DIR}/include
+CC_INCLUDES         = ${PETSC_INCLUDE} ${SLEPC_INCLUDE}
+FC_INCLUDES         = ${PETSC_INCLUDE} ${SLEPC_INCLUDE}
 
-PCONF        = ${PCONF_PETSC} ${SLEPC_HAVE_ARPACK} ${SLEPC_HAVE_BLZPACK} ${SLEPC_HAVE_PLANSO} ${SLEPC_HAVE_TRLAN}
+SLEPC_PCONF         = ${SLEPC_HAVE_ARPACK} ${SLEPC_HAVE_BLZPACK} ${SLEPC_HAVE_PLANSO} ${SLEPC_HAVE_TRLAN}
 SLEPC_EXTERNAL_LIB  = ${ARPACK_LIB} ${BLZPACK_LIB} ${PLANSO_LIB} ${TRLAN_LIB}
-#
-# Some variables used to build shared libraries
-#
-SHLIBS       = libslepc
 
+INSTALL_LIB_DIR	= ${SLEPC_LIB_DIR}
+CCPPFLAGS	= ${PETSC_CCPPFLAGS} ${SLEPC_INCLUDE} ${SLEPC_PCONF} 
+FCPPFLAGS	= ${PETSC_FCPPFLAGS} ${SLEPC_INCLUDE} ${SLEPC_PCONF} 
 
-slepc_clean: clean
-slepc_chkopts: chkopts
-slepc_testexamples_1: testexamples_1
+SLEPC_LIB         = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}
+SLEPC_FORTRAN_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepcfortran ${PETSC_FORTRAN_LIB}
+
+SHLIBS   = libslepc
 

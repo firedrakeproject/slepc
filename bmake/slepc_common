@@ -5,8 +5,13 @@
 # need to edit only ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages to specify the
 # packages installed in your system.
 #
-include ${SLEPC_DIR}/bmake/slepc_common_variables
+#
+# a dummy target which does nothing - just in case
+# 'ALL: get mapped into this file'
+#  
+all_dummy:
+	-@true
 
+include ${SLEPC_DIR}/bmake/slepc_common_variables
 include ${SLEPC_DIR}/bmake/slepc_common_rules
 
-include ${PETSC_DIR}/bmake/common/test

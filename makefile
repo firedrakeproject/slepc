@@ -7,13 +7,23 @@ LOCDIR = .
 DIRS   = src include docs 
 
 include ${SLEPC_DIR}/bmake/slepc_common
+include ${PETSC_DIR}/bmake/common/test
 
 #
 # Basic targets to build SLEPc libraries.
 # all: builds the C/C++ and Fortran libraries
 all:
-	-@${MAKE} slepc_all_build 2>&1 | tee make_log_${PETSC_ARCH}_${BOPT}
-slepc_all_build: chk_slepc_dir info slepc_chklib_dir slepc_deletelibs slepc_build slepc_shared
+	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkpetsc_dir
+	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkslepc_dir
+	-@${OMAKE} all_build 2>&1 | tee make_log_${PETSC_ARCH}
+	-@egrep -i "( error | error:)" make_log_${PETSC_ARCH} > /dev/null; if [ "$$?" = "0" ]; then \
+           echo "********************************************************************"; \
+           echo "  Error during compile, check make_log_${PETSC_ARCH}"; \
+           echo "  Send it and configure.log to slepc-maint@grycap.upv.es";\
+           echo "********************************************************************"; \
+           exit 1; fi
+	
+all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs build shared
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -21,37 +31,48 @@ info:
 	-@echo "=========================================="
 	-@echo On `date` on `hostname`
 	-@echo Machine characteristics: `uname -a`
-	-@echo "-----------------------------------------"
-	-@echo "Using C compiler: ${C_CC} ${COPTFLAGS} ${CCPPFLAGS}"
-	-@echo "C Compiler version: " `${C_CCV}`
-	-@echo "Using C++ compiler: ${CXX_CC} ${COPTFLAGS} ${CCPPFLAGS}"
-	-@echo "C++ Compiler version: " `${CXX_CCV}`
-	-@echo "Using Fortran compiler: ${C_FC} ${FOPTFLAGS} ${FCPPFLAGS}"
-	-@echo "Fortran Compiler version: " `${C_FCV}`
-	-@echo "-----------------------------------------"
-	-@grep SLEPC_VERSION_NUMBER ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//"
-	-@echo "-----------------------------------------"
-	-@echo "Using PETSc/SLEPc flags: ${PETSCFLAGS} ${PCONF}"
-	-@echo "-----------------------------------------"
-	-@echo "Using include paths: ${SLEPC_INCLUDE}"
+	-@echo "config/configure.py run at " ${CONFIGURE_RUN_TIME}
+	-@echo "config/configure.py options " ${CONFIGURE_OPTIONS}
 	-@echo "-----------------------------------------"
 	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
 	-@echo "Using PETSc directory: ${PETSC_DIR}"
 	-@echo "Using PETSc arch: ${PETSC_ARCH}"
+	-@echo "-----------------------------------------"
+	-@grep "define SLEPC_VERSION" ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//"
+	-@echo "-----------------------------------------"
+	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
+	-@echo "-----------------------------------------"
+	-@echo "Using configuration flags:"
+	-@grep "\#define " ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf.h
+	-@echo "-----------------------------------------"
+	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_INCLUDE}"
+	-@echo "Using PETSc/SLEPc flags: ${PETSCFLAGS} ${PCONF}"
 	-@echo "------------------------------------------"
-	-@echo "Using C linker: ${CLINKER}"
-	-@echo "Using Fortran linker: ${FLINKER}"
+	-@echo "Using C/C++ compiler: ${CC} ${COPTFLAGS} ${CPPFLAGS}"
+	-@echo "C/C++ Compiler version: " `${CCV}`
+	-@if [ "${FC}" != "" ]; then \
+	   echo "Using Fortran compiler: ${FC} ${FOPTFLAGS} ${FPPFLAGS}";\
+	   echo "Fortran Compiler version: " `${FCV}`;\
+         fi
+	-@echo "-----------------------------------------"
+	-@echo "Using C/C++ linker: ${CC_LINKER}"
+	-@if [ "${FC}" != "" ]; then \
+	   echo "Using Fortran linker: ${FC_LINKER}";\
+         fi
+	-@echo "-----------------------------------------"
 	-@echo "Using libraries: ${SLEPC_LIB}"
+	-@echo "------------------------------------------"
+	-@echo "Using mpirun: ${MPIRUN}"
 	-@echo "=========================================="
 
 #
 # Builds the SLEPc libraries
 #
-slepc_build:
+build:
 	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
 	-@${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} ACTION=libfast  tree 
-	${RANLIB} ${SLEPC_LIB_DIR}/*.${LIB_SUFFIX}
+	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 	-@echo "Completed building SLEPc libraries"
 	-@echo "========================================="
 
@@ -108,16 +129,26 @@ slepc_testfortran_uni: info chkopts
 	-@echo "========================================="
 
 # Ranlib on the libraries
-slepc_ranlib:
+ranlib:
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${LIB_SUFFIX}
 
 # Deletes SLEPc libraries
-slepc_deletelibs: chkopts_basic
+deletelibs:
 	-${RM} -f ${SLEPC_LIB_DIR}/*
 
-slepc_shared: shared
-slepc_chklib_dir: chklib_dir
+# Cleans up build
+allclean: deletelibs
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=clean tree
 
+#
+# Check if PETSC_DIR variable specified is valid
+#
+chk_petsc_dir:
+	@if [ ! -f ${PETSC_DIR}/include/petscversion.h ]; then \
+	  echo "Incorrect PETSC_DIR specified: ${PETSC_DIR}!"; \
+	  echo "You need to use / to separate directories, not \\!"; \
+	  echo "Aborting build"; \
+	  false; fi
 #
 # Check if SLEPC_DIR variable specified is valid
 #

@@ -25,55 +25,55 @@ TESTEXAMPLES_13 =
 
 include ${SLEPC_DIR}/bmake/slepc_common
 
-ex1: ex1.o slepc_chkopts
+ex1: ex1.o chkopts
 	-${CLINKER} -o ex1 ex1.o ${SLEPC_LIB}
 	${RM} ex1.o
 
-ex1f: ex1f.o slepc_chkopts
+ex1f: ex1f.o chkopts
 	-${FLINKER} -o ex1f ex1f.o ${SLEPC_FORTRAN_LIB} ${SLEPC_LIB}
 	${RM} ex1f.o
 
-ex2: ex2.o slepc_chkopts
+ex2: ex2.o chkopts
 	-${CLINKER} -o ex2 ex2.o ${SLEPC_LIB}
 	${RM} ex2.o
 
-ex3: ex3.o slepc_chkopts
+ex3: ex3.o chkopts
 	-${CLINKER} -o ex3 ex3.o ${SLEPC_LIB}
 	${RM} ex3.o
 
-ex4: ex4.o slepc_chkopts
+ex4: ex4.o chkopts
 	-${CLINKER} -o ex4 ex4.o ${SLEPC_LIB}
 	${RM} ex4.o
 
-ex5: ex5.o slepc_chkopts
+ex5: ex5.o chkopts
 	-${CLINKER} -o ex5 ex5.o ${SLEPC_LIB}
 	${RM} ex5.o
 
-ex6f: ex6f.o mvmisg.o slepc_chkopts
+ex6f: ex6f.o mvmisg.o chkopts
 	-${FLINKER} -o ex6f ex6f.o mvmisg.o ${SLEPC_FORTRAN_LIB} ${SLEPC_LIB}
 	${RM} ex6f.o mvmisg.o
 
-ex7: ex7.o slepc_chkopts
+ex7: ex7.o chkopts
 	-${CLINKER} -o ex7 ex7.o ${SLEPC_LIB}
 	${RM} ex7.o
 
-ex8: ex8.o slepc_chkopts
+ex8: ex8.o chkopts
 	-${CLINKER} -o ex8 ex8.o ${SLEPC_LIB}
 	${RM} ex8.o
 
-ex9: ex9.o slepc_chkopts
+ex9: ex9.o chkopts
 	-${CLINKER} -o ex9 ex9.o ${SLEPC_LIB}
 	${RM} ex9.o
 
-ex10: ex10.o slepc_chkopts
+ex10: ex10.o chkopts
 	-${CLINKER} -o ex10 ex10.o ${SLEPC_LIB}
 	${RM} ex10.o
 
-ex11: ex11.o slepc_chkopts
+ex11: ex11.o chkopts
 	-${CLINKER} -o ex11 ex11.o ${SLEPC_LIB}
 	${RM} ex11.o
 
-ex12: ex12.o slepc_chkopts
+ex12: ex12.o chkopts
 	-${CLINKER} -o ex12 ex12.o ${SLEPC_LIB}
 	${RM} ex12.o
 
