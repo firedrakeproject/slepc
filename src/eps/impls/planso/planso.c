@@ -38,7 +38,7 @@ PetscErrorCode EPSSetUp_PLANSO(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PLANop_"
-int PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p)
+int PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p,MPI_Comm* c)
 {
   PetscErrorCode ierr;
   Vec            x,y;
@@ -55,7 +55,7 @@ int PLANop_(int *n,PetscReal *s, PetscReal *q, PetscReal *p)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PLANopm_"
-int PLANopm_(int *n,PetscReal *q, PetscReal *s)
+int PLANopm_(int *n,PetscReal *q, PetscReal *s,MPI_Comm* c)
 {
   PetscErrorCode ierr;
   Vec            x,y;
