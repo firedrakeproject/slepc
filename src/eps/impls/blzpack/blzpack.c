@@ -216,7 +216,7 @@ static int  EPSSolve_BLZPACK(EPS eps)
   if (lflag!=0) { 
     char msg[2048] = "";
     for (i = 0; i < 33; i++) {
-      if (blz->istor[15] & (1 << i)) strcat(msg, blzpack_error[i]);
+      if (blz->istor[15] & (1 << i)) PetscStrcat(msg, blzpack_error[i]);
     }
     SETERRQ2(PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15], msg); 
   }
