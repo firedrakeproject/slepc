@@ -72,6 +72,7 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#if 0
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPowerUpdateShift"
 /*
@@ -125,6 +126,7 @@ static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift
 
   PetscFunctionReturn(0);
 }
+#endif 
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_POWER"
@@ -155,6 +157,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
   ierr = EPSGetStartVector(eps,0,v);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
+  rho = sigma;
 
   eps->nconv = 0;
   eps->its = 0;
@@ -187,14 +190,17 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       delta = norm;
 
       /* compute relative error */
-      relerr = 1.0 / (delta*PetscAbsScalar(rho));
+      if (rho == 0.0) relerr = PETSC_MAX;
+      else relerr = 1.0 / (norm*PetscAbsScalar(rho));
 
       /* approximate eigenvalue is the shift */
       eps->eigr[eps->nconv] = rho;
 
       /* compute new shift */
-      if (relerr<eps->tol) rho = sigma; /* if converged, restore original shift */ 
-      else {
+      if (relerr<eps->tol) {
+        rho = sigma; /* if converged, restore original shift */ 
+        ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+      } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
         if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
 #if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
@@ -218,11 +224,17 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
           else rho = rt2;
 #endif 
         }
+	/* update operator according to new shift */
+	PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
+	ierr = STSetShift(eps->OP,rho);
+	PetscPopErrorHandler();
+	if (ierr) {
+          eps->eigr[eps->nconv] = rho;
+	  relerr = PETSC_MACHINE_EPSILON;
+	  rho = sigma;
+          ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+	} 	
       }
-
-      /* update operator according to new shift */
-      ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
-
     }
 
     eps->errest[eps->nconv] = relerr;
@@ -277,6 +289,9 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   PetscScalar    theta, alpha, rho, delta, sigma, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
+#ifdef PETSC_USE_COMPLEX
+  SETERRQ(1,"Two side power is not implemented for complex numbers");
+#else
   v = eps->V[0];
   y = eps->AV[0];
   e = eps->work[0];
@@ -286,6 +301,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   ierr = EPSGetStartVector(eps,0,v);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,0,w);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
+  rho = sigma;
 
   eps->nconv = 0;
   eps->its = 0;
@@ -329,7 +345,8 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       delta = PetscSqrtScalar(alpha);
 
       /* compute relative error */
-      relerr = 1.0 / (delta*PetscAbsScalar(rho));
+      if (rho == 0.0) relerr = PETSC_MAX;
+      else relerr = 1.0 / delta*PetscAbsScalar(rho));
       eps->errest[eps->nconv] = relerr;
       eps->errest_left[eps->nconv] = relerr;
 
@@ -337,9 +354,10 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       eps->eigr[eps->nconv] = rho;
 
       /* compute new shift */
-      if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol)
+      if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol) {
         rho = sigma; /* if converged, restore original shift */ 
-      else {
+        ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+      } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
         if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
 #if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
@@ -363,11 +381,18 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
           else rho = rt2;
 #endif 
         }
+	/* update operator according to new shift */
+	PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
+	ierr = STSetShift(eps->OP,rho);
+	PetscPopErrorHandler();
+	if (ierr) {
+          eps->eigr[eps->nconv] = rho;
+	  eps->errest[eps->nconv] = PETSC_MACHINE_EPSILON;
+	  eps->errest_left[eps->nconv] = PETSC_MACHINE_EPSILON;
+	  rho = sigma;
+          ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+	}
       }
-
-      /* update operator according to new shift */
-      ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
-
     }
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
@@ -408,8 +433,10 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   else eps->reason = EPS_DIVERGED_ITS;
 
   PetscFunctionReturn(0);
+#endif
 }
 
+#if 0
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_TS_POWER_OLD"
 PetscErrorCode EPSSolve_TS_POWER_OLD(EPS eps)
@@ -505,6 +532,7 @@ PetscErrorCode EPSSolve_TS_POWER_OLD(EPS eps)
 
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBackTransform_POWER"
