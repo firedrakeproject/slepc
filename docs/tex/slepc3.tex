@@ -59,7 +59,7 @@ The \ident{ST} type can also be set with the options database command \Verb!-st_
 {\small \begin{tabular}{lll}
                         &                   & {\footnotesize Options} \\
 Spectral Transformation & \ident{STType}    & {\footnotesize Database Name}\\\hline
-Shift from Origin       & \texttt{STSHIFT}  & \texttt{shift} \\
+Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift} \\
 Shift-and-invert        & \texttt{STSINV}   & \texttt{sinvert} \\
 Shell Transformation    & \texttt{STSHELL}  & \texttt{shell} \\\hline
 \end{tabular} }
@@ -90,9 +90,9 @@ for standard problems, and $Ax=\lambda Bx$ for generalized ones. Note that this 
 \begin{equation}B^{-1}Ax=\lambda x\;\;.\end{equation}
 When the eigensolver in \ident{EPS} requests the application of the operator to a vector, a matrix-vector multiplication by matrix $A$ is carried out (in the standard case) or a matrix-vector multiplication by matrix $A$ followed by a linear system solve with coefficient matrix $B$ (in the generalized case). Note that in this case, the operation will fail if matrix $B$ is singular.
 
-\subsection{Shift from Origin}
+\subsection{Shift of Origin}
 
-	The purpose of this spectral transformation (\texttt{STSHIFT}) is to shift the whole spectrum by a certain quantity, $\sigma$, which is called \emph{shift from origin}. To achieve this, the solver has to work with the shifted matrix, that is, the expressions it has to cope with are
+	The purpose of this spectral transformation (\texttt{STSHIFT}) is to shift the whole spectrum by a certain quantity, $\sigma$, which is called \emph{shift of origin}. To achieve this, the solver has to work with the shifted matrix, that is, the expressions it has to cope with are
 \begin{equation}(A+\sigma I)x=\theta x\;\;,\end{equation}
 for standard problems, and 
 \begin{equation}(B^{-1}A+\sigma I) x=\theta x\;\;,\end{equation}
@@ -168,7 +168,7 @@ specifies some additional options for the solution of this linear system. In par
 	\begin{description}
 	\item[``\Verb!shell!''] To work with the corresponding expression without forming the matrix explicitly. This is achieved by internally setting a matrix-free matrix with \ident{MatCreateShell}.
 	\item[``\Verb!inplace!''] To build the coefficient matrix explicitly. This is done by means of a \ident{MatShift} or a \ident{MatAXPY} operation, which overwrites matrix $A$ with the corresponding expression. This alteration of matrix $A$ is reversed after the eigensolution process has finished.
-	\item[``\Verb!copy!''] To build the matrix explicitly, as in the previous option, but using a working copy of the matrix, that is, without modifying the originall matrix $A$. 
+	\item[``\Verb!copy!''] To build the matrix explicitly, as in the previous option, but using a working copy of the matrix, that is, without modifying the original matrix $A$. 
 	\end{description}
 	The default behavior is to build the coefficient matrix explicitly in a copy of $A$ (option ``\Verb!copy!''). The user can change this as in the following example
 \begin{Verbatim}[fontsize=\small]

@@ -131,7 +131,7 @@ static int  EPSSolve_BLZPACK(EPS eps)
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
   if(isSinv) { ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr); }
-  else sigma = 0.0;              /* shift from origin */
+  else sigma = 0.0;              /* shift of origin */
   nneig = 0;                     /* no. of eigs less than sigma */
 
   blz->rstor[0]  = blz->initial; /* lower limit of eigenvalue interval */
