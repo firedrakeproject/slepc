@@ -1,8 +1,9 @@
 
 ALL: lib
 
-#requirespackage  'SLEPC_HAVE_PLANSO'
-#requiresscalar   real
+#requirespackage   'SLEPC_HAVE_PLANSO'
+#requiresprecision double
+#requiresscalar    real
 
 CFLAGS   =
 FFLAGS   =
