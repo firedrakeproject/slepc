@@ -96,8 +96,13 @@ static int STSetUp_Sinvert(ST st)
   switch (ctx->shift_matrix) {
   case STSINVERT_MATMODE_INPLACE:
     alpha = -st->sigma;
-    if (st->B) { ierr = MatAXPY(&alpha,st->B,st->A,ctx->str);CHKERRQ(ierr); }
-    else { ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); }
+    if (alpha != 0.0) {
+      if (st->B) { 
+        ierr = MatAXPY(&alpha,st->B,st->A,ctx->str);CHKERRQ(ierr); 
+      } else { 
+        ierr = MatShift(&alpha,st->A);CHKERRQ(ierr); 
+      }
+    }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -109,8 +114,13 @@ static int STSetUp_Sinvert(ST st)
   default:
     ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&ctx->mat);CHKERRQ(ierr);
     alpha = -st->sigma;
-    if (st->B) { ierr = MatAXPY(&alpha,st->B,ctx->mat,ctx->str);CHKERRQ(ierr); }
-    else { ierr = MatShift(&alpha,ctx->mat);CHKERRQ(ierr); }
+    if (alpha != 0.0) {
+      if (st->B) { 
+        ierr = MatAXPY(&alpha,st->B,ctx->mat,ctx->str);CHKERRQ(ierr); 
+      } else { 
+        ierr = MatShift(&alpha,ctx->mat);CHKERRQ(ierr); 
+      }
+    }
     /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
      * improve performance when solving a number of related eigenproblems */
     ierr = KSPSetOperators(st->ksp,ctx->mat,ctx->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);

@@ -18,14 +18,15 @@ static int MatSinvert_Mult(Mat A,Vec x,Vec y)
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   alpha = -ctx->sigma;
 
-  if (ctx->B) {  /* y = (A - sB) x */
-    ierr = MatMult(ctx->B,x,ctx->w);CHKERRQ(ierr);
-    ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
-    ierr = VecAXPY(&alpha,ctx->w,y);CHKERRQ(ierr);
-  }
-  else {    /* y = (A - sI) x */
-    ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
+  ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
+  if (alpha != 0.0) { 
+    if (ctx->B) {  /* y = (A - sB) x */
+      ierr = MatMult(ctx->B,x,ctx->w);CHKERRQ(ierr);
+      ierr = VecAXPY(&alpha,ctx->w,y);CHKERRQ(ierr); 
+    }
+    else {    /* y = (A - sI) x */
     ierr = VecAXPY(&alpha,x,y);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -43,14 +44,16 @@ static int MatSinvert_GetDiagonal(Mat A,Vec diag)
   alpha = -ctx->sigma;
 
   ierr = MatGetDiagonal(ctx->A,diag);CHKERRQ(ierr);
-  if (ctx->B) {
-    ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
-    ierr = MatGetDiagonal(ctx->B,diagb);CHKERRQ(ierr);
-    ierr = VecAXPY(&alpha,diagb,diag);CHKERRQ(ierr);
-    ierr = VecDestroy(diagb);CHKERRQ(ierr);
-  }
-  else {
-    ierr = VecShift(&alpha,diag);CHKERRQ(ierr);
+  if (alpha != 0.0) { 
+    if (ctx->B) {
+      ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
+      ierr = MatGetDiagonal(ctx->B,diagb);CHKERRQ(ierr);
+      ierr = VecAXPY(&alpha,diagb,diag);CHKERRQ(ierr);
+      ierr = VecDestroy(diagb);CHKERRQ(ierr);
+    }
+    else {
+      ierr = VecShift(&alpha,diag);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
