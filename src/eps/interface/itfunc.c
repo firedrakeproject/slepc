@@ -1549,7 +1549,7 @@ int EPSSwapEigenpairs(EPS eps,int i,int j)
 
 .seealso: EPSGetOrthogonalization()
 @*/
-int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type,PetscScalar eta)
+int EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type,PetscReal eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);

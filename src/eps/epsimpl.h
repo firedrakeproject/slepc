@@ -91,8 +91,8 @@ struct _p_EPS {
 extern int EPSDefaultDestroy(EPS);
 extern int EPSDefaultGetWork(EPS,int);
 extern int EPSDefaultFreeWork(EPS);
-extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscScalar*);
-extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscScalar*);
+extern int EPSModifiedGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscReal*);
+extern int EPSClassicalGramSchmidtOrthogonalization(EPS,int,PetscScalar*,PetscReal*);
 extern int EPSIROrthogonalization(EPS,int,PetscScalar*);
 
 #endif

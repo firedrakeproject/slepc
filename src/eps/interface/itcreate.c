@@ -395,7 +395,7 @@ int EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
 
     ierr = PetscOptionsEList("-eps_orthog_type","type of orthogonalization","EPSSetOrthogonalization",orth_list,2,orth_list[eps->orth_type],&i,&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetOrthogonalization(eps,i,eps->orth_eta);CHKERRQ(ierr);}
+    if (flg) {ierr = EPSSetOrthogonalization(eps,(EPSOrthogonalizationType)i,eps->orth_eta);CHKERRQ(ierr);}
     ierr = PetscOptionsReal("-eps_orthog_eta","eta","EPSSetOrthogonalization",eps->orth_eta,&eps->orth_eta,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&eps->max_it,PETSC_NULL);CHKERRQ(ierr);
