@@ -1358,34 +1358,23 @@ int EPSIsHermitian(EPS eps,PetscTruth* is)
 @*/
 int EPSReverseProjection(EPS eps,int k,int m,PetscScalar *S)
 {
-  int         i,j,n,ierr,lwork;
-  PetscScalar *tau,*work,*pV;
+  int         ierr, j;
+  Vec*        y;
+  PetscScalar zero = 0.0;
   
   PetscFunctionBegin;
+  ierr = VecDuplicateVecs(eps->V[k], m, &y); CHKERRQ(ierr);
 
-  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
-  lwork = n;
-  ierr = PetscMalloc(m*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-
-  /* compute the LQ factorization L Q = S */
-  LAgelqf_(&m,&m,S,&m,tau,work,&lwork,&ierr);
-
-  /* triangular post-multiplication, V = V L */
-  for (i=k;i<k+m;i++) {
-    ierr = VecScale(S+(i-k)+m*(i-k),eps->V[i]);CHKERRQ(ierr);
-    for (j=i+1;j<k+m;j++) {
-      ierr = VecAXPY(S+(j-k)+m*(i-k),eps->V[j],eps->V[i]);CHKERRQ(ierr);
-    }
+  for (j=k; j<k+m; j++)  {
+    ierr = VecCopy(eps->V[j], y[j-k]); CHKERRQ(ierr);
+    ierr = VecSet(&zero, eps->V[j]);CHKERRQ(ierr);
   }
 
-  /* orthogonal post-multiplication, V = V Q */
-  ierr = VecGetArray(eps->V[k],&pV);CHKERRQ(ierr);
-  LAormlq_("R","N",&n,&m,&m,S,&m,tau,pV,&n,work,&lwork,&ierr,1,1);
-  ierr = VecRestoreArray(eps->V[k],&pV);CHKERRQ(ierr);
+  for (j=k;j<k+m;j++) {
+    ierr = VecMAXPY(m, S+m*(j-k), eps->V[j], y);CHKERRQ(ierr);
+  }
 
-  ierr = PetscFree(tau);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(y, m); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
