@@ -93,6 +93,7 @@ extern int EPSSetWhichEigenpairs(EPS,EPSWhich);
 extern int EPSGetWhichEigenpairs(EPS,EPSWhich*);
 extern int EPSSetOrthogonalization(EPS,EPSOrthogonalizationType,EPSOrthogonalizationRefinementType,PetscReal);
 extern int EPSGetOrthogonalization(EPS,EPSOrthogonalizationType*,EPSOrthogonalizationRefinementType*,PetscReal*);
+extern int EPSPurge(EPS,Vec);
 
 extern int EPSIsGeneralized(EPS,PetscTruth*);
 extern int EPSIsHermitian(EPS,PetscTruth*);
