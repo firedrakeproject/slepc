@@ -5,10 +5,8 @@
 # need to edit only ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages to specify the
 # packages installed in your system.
 #
-include ${PETSC_DIR}/bmake/common/base
-
 include ${SLEPC_DIR}/bmake/slepc_common_variables
 
-include ${SLEPC_DIR}/bmake/slepc_common_basic
+include ${SLEPC_DIR}/bmake/slepc_common_rules
 
 include ${PETSC_DIR}/bmake/common/test

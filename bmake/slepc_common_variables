@@ -22,6 +22,13 @@
 # PETSC_PARCH   - corresponds to the PARCH_arch in the source files, set in 
 #                 the file bmake/${PETSC_ARCH}/base
 #
+# The following includes pick up the default variables from PETSc, and add in
+# some extra packages specific to SLEPc
+#
+include ${PETSC_DIR}/bmake/common/variables
+include ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages
+#
+#
 INSTALL_LIB_DIR	= ${SLEPC_DIR}/lib/lib${BOPT}/${PETSC_ARCH}
 SLEPC_LIB_DIR   = ${SLEPC_DIR}/lib/lib${BOPT}/${PETSC_ARCH}
 SLEPC_INCLUDE	= -I${SLEPC_DIR} -I${SLEPC_DIR}/include 
@@ -67,9 +74,6 @@ SLEPC_EXTERNAL_LIB  = ${ARPACK_LIB} ${BLZPACK_LIB} ${PLANSO_LIB} ${TRLAN_LIB}
 #
 SHLIBS       = libslepc libslepcfortran
 
-# The following include file defines the packages installed in your system.
-#
-include ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages
 
 slepc_clean: clean
 slepc_chkopts: chkopts
