@@ -426,6 +426,32 @@ int EPSGetConverged(EPS eps,int *nconv)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetInvariantSubspace" 
+/*@
+   EPSGetInvariantSubspace - Gets a basis of the computed invariant subspace.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+  
+   Output Parameter:
+.  v - an array of vectors
+
+   Notes:
+   This function should be called after EPSSolve() has finished.
+
+   The user should provide in v an array of nconv vectors, where nconv is
+   the value returned by EPSGetConverged().
+
+   The vectors returned in v span an invariant subspace associated with the
+   (nconv) computed eigenvalues. An invariant subspace X of A satisfies Ax 
+   in X for all x in X (a similar definition applies for generalized 
+   eigenproblems). 
+
+   Level: intermediate
+
+.seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve()
+@*/
 int EPSGetInvariantSubspace(EPS eps, Vec *v)
 {
   int ierr,i;
@@ -473,7 +499,8 @@ int EPSGetInvariantSubspace(EPS eps, Vec *v)
 
    Level: beginner
 
-.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
+          EPSGetInvariantSubspace()
 @*/
 int EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
@@ -1174,9 +1201,9 @@ int EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
    B positive definite) then it is recommended to set the problem type so
    that eigensolver can exploit these properties. 
 
-   Level: basic
+   Level: beginner
 
-.seealso: EPSSetOperators(), EPSSetType(), EPSType
+.seealso: EPSSetOperators(), EPSSetType(), EPSProblemType
 @*/
 int EPSSetProblemType(EPS eps,EPSProblemType type)
 {
