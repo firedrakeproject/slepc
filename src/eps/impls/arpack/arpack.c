@@ -126,6 +126,11 @@ static int  EPSSolve_ARPACK(EPS eps)
     }
 #endif
 
+#if !defined(PETSC_USE_COMPLEX)
+    if (eps->ishermitian)
+#endif
+      for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
+
   for(;;) {
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -133,22 +138,19 @@ static int  EPSSolve_ARPACK(EPS eps)
       ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      EPSMonitorEstimates(eps,iparam[2],iparam[4],&ar->workl[ipntr[6]-1],eps->ncv); 
-      EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],PETSC_NULL,eps->ncv); 
+      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
     }
     else {
       ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      EPSMonitorEstimates(eps,iparam[2],iparam[4],&ar->workl[ipntr[7]-1],eps->ncv); 
-      EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],eps->ncv); 
+      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
     }
 #else
     ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
-    EPSMonitorEstimates(eps,iparam[2],iparam[4],(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
-    EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],PETSC_NULL,eps->ncv); 
+    EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
 #endif
 
     if( ido == -1 ) {
@@ -205,7 +207,6 @@ static int  EPSSolve_ARPACK(EPS eps)
                bmat, &n, which, &eps->nev, &eps->tol,
                resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                ar->workl, &ar->lworkl, &info, 1, 1, 2 );
-    for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
   }
   else {
     ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
@@ -220,7 +221,6 @@ static int  EPSSolve_ARPACK(EPS eps)
              bmat, &n, which, &eps->nev, &eps->tol,
              resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
              ar->workl, &ar->lworkl, ar->rwork, &info, 1, 1, 2 );
-  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 #endif
 
   if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }

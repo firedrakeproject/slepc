@@ -59,6 +59,8 @@ static int  EPSSolve_RQI(EPS eps)
   ierr = VecScale(&alpha,v);CHKERRQ(ierr);
   ierr = VecScale(&alpha,w);CHKERRQ(ierr);
 
+  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
+
   for (i=0;i<maxit;i++) {
     eps->its = i;
 
@@ -91,9 +93,8 @@ static int  EPSSolve_RQI(EPS eps)
     /* if |theta| > tol^-1/2, stop */
     relerr = PetscAbsScalar(theta);
     eps->errest[eps->nconv] = 1/(relerr*relerr);
-    EPSMonitorEstimates(eps,i+1,eps->nconv,eps->errest,eps->nconv+1); 
     eps->eigr[eps->nconv] = rho;
-    EPSMonitorValues(eps,i+1,eps->nconv,eps->eigr,PETSC_NULL,eps->nconv+1); 
+    EPSMonitor(eps,i+1,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
     if (relerr>tol) {
       eps->nconv = eps->nconv + 1;
       break;
@@ -105,7 +106,6 @@ static int  EPSSolve_RQI(EPS eps)
   eps->its = i+1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 
   PetscFunctionReturn(0);
 }

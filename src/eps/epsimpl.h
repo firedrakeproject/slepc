@@ -57,14 +57,10 @@ struct _p_EPS {
              ishermitian;
   EPSConvergedReason reason;     
 
-  int        (*monitor[MAXEPSMONITORS])(EPS,int,int,PetscReal*,int,void*); 
+  int        (*monitor[MAXEPSMONITORS])(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*); 
   int        (*monitordestroy[MAXEPSMONITORS])(void*);
   void       *monitorcontext[MAXEPSMONITORS];
   int        numbermonitors; 
-  int        (*vmonitor[MAXEPSMONITORS])(EPS,int,int,PetscScalar*,PetscScalar*,int,void*); 
-  int        (*vmonitordestroy[MAXEPSMONITORS])(void*);
-  void       *vmonitorcontext[MAXEPSMONITORS];
-  int        numbervmonitors; 
 
   /* --------------- Orthogonalization --------------------- */
   int        (*orthog)(EPS,int,Vec,PetscScalar*,PetscReal*);
@@ -73,18 +69,10 @@ struct _p_EPS {
   
 };
 
-#define EPSMonitorEstimates(eps,it,nconv,errest,nest) \
+#define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \
         { int _ierr,_i,_im = eps->numbermonitors; \
           for ( _i=0; _i<_im; _i++ ) {\
-            _ierr=(*eps->monitor[_i])(eps,it,nconv,errest,nest,eps->monitorcontext[_i]);\
-            CHKERRQ(_ierr); \
-	  } \
-	}
-
-#define EPSMonitorValues(eps,it,nconv,eigr,eigi,neig) \
-        { int _ierr,_i,_im = eps->numbervmonitors; \
-          for ( _i=0; _i<_im; _i++ ) {\
-            _ierr=(*eps->vmonitor[_i])(eps,it,nconv,eigr,eigi,neig,eps->monitorcontext[_i]);\
+            _ierr=(*eps->monitor[_i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[_i]);\
             CHKERRQ(_ierr); \
 	  } \
 	}

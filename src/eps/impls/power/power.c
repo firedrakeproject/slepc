@@ -50,6 +50,8 @@ static int  EPSSolve_POWER(EPS eps)
   eps->nconv = 0;
   eps->its = 0;
 
+  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
+
   while (eps->its<maxit) {
 
     eps->its = eps->its + 1;
@@ -122,13 +124,11 @@ static int  EPSSolve_POWER(EPS eps)
       v = eps->V[eps->nconv];
     }
 
-    EPSMonitorEstimates(eps,eps->its,eps->nconv,eps->errest,eps->nconv+1); 
-    EPSMonitorValues(eps,eps->its,eps->nconv,eps->eigr,PETSC_NULL,eps->nconv+1); 
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
   }
 
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 
   PetscFunctionReturn(0);
 }

@@ -222,7 +222,6 @@ int EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->reason          = EPS_CONVERGED_ITERATING;
 
   eps->numbermonitors  = 0;
-  eps->numbervmonitors = 0;
 
   eps->orthog          = EPSClassicalGramSchmidtOrthogonalization;
   eps->orth_type       = EPS_CGS_ORTH;
@@ -428,18 +427,11 @@ int EPSSetFromOptions(EPS eps)
       ierr = EPSClearMonitor(eps); CHKERRQ(ierr);
     }
     /*
-      Prints error estimates at each iteration
+      Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsName("-eps_monitor","Monitor error estimates","EPSSetMonitor",&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsName("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSSetMonitor",&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = EPSSetMonitor(eps,EPSDefaultEstimatesMonitor,PETSC_NULL);CHKERRQ(ierr);
-    }
-    /*
-      Prints approximate eigenvalues at each iteration
-    */
-    ierr = PetscOptionsName("-eps_monitor_values","Monitor approximate eigenvalues","EPSSetValuesMonitor",&flg);CHKERRQ(ierr); 
-    if (flg) {
-      ierr = EPSSetValuesMonitor(eps,EPSDefaultValuesMonitor,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSSetMonitor(eps,EPSDefaultMonitor,PETSC_NULL);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsLogicalGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);

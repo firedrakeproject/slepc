@@ -74,45 +74,10 @@ int EPSGetNumberLinearIterations(EPS eps,int* lits)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDefaultEstimatesMonitor"
+#define __FUNCT__ "EPSDefaultMonitor"
 /*@C
-   EPSDefaultEstimatesMonitor - Print the error estimates at each iteration 
-   of the eigensolver.
-
-   Collective on EPS
-
-   Input Parameters:
-+  eps    - eigensolver context
-.  its    - iteration number
-.  nconv  - number of converged eigenpairs so far
-.  errest - error estimates
-.  nest   - number of error estimates to display
--  dummy  - unused monitor context 
-
-   Level: intermediate
-
-.seealso: EPSSetMonitor()
-@*/
-int EPSDefaultEstimatesMonitor(EPS eps,int its,int nconv,PetscReal *errest,int nest,void *dummy)
-{
-  int         i,ierr;
-  PetscViewer viewer = (PetscViewer) dummy;
-
-  PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(eps->comm);
-  ierr = PetscViewerASCIIPrintf(viewer,"%3d EPS nconv=%d Error Estimates:",its,nconv);CHKERRQ(ierr);
-  for (i=0;i<nest;i++) {
-    ierr = PetscViewerASCIIPrintf(viewer," %10.8e",errest[i]);CHKERRQ(ierr);
-  }
-  ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSDefaultValuesMonitor"
-/*@C
-   EPSDefaultValuesMonitor - Print the current approximate values of the
-   eigenvalues.
+   EPSDefaultEstimatesMonitor - Print the current approximate values and 
+   error estimates at each iteration of the eigensolver.
 
    Collective on EPS
 
@@ -121,29 +86,31 @@ int EPSDefaultEstimatesMonitor(EPS eps,int its,int nconv,PetscReal *errest,int n
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs so far
 .  eigr   - real part of the eigenvalues
-.  eigi   - imaginary part of the eigenvalues (can be PETSC_NULL)
-.  neig   - number of eigenvalues to display
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
 -  dummy  - unused monitor context 
 
    Level: intermediate
 
-.seealso: EPSSetValuesMonitor()
+.seealso: EPSSetMonitor()
 @*/
-int EPSDefaultValuesMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,int neig,void *dummy)
+int EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *dummy)
 {
   int         i,ierr;
   PetscViewer viewer = (PetscViewer) dummy;
 
   PetscFunctionBegin;
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(eps->comm);
-  ierr = PetscViewerASCIIPrintf(viewer,"%3d EPS nconv=%d Values:",its,nconv);CHKERRQ(ierr);
-  for (i=0;i<neig;i++) {
+  ierr = PetscViewerASCIIPrintf(viewer,"%3d EPS nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
+  for (i=0;i<nest;i++) {
 #if defined(PETSC_USE_COMPLEX)
     ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
 #else
     ierr = PetscViewerASCIIPrintf(viewer," %g",eigr[i]);CHKERRQ(ierr);
-    if (eigi && eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
+    if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
 #endif
+    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",errest[i]);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

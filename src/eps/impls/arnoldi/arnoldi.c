@@ -159,8 +159,7 @@ ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
     alpha = 1.0/norm;
     ierr = VecScale(&alpha,eps->V[k]);CHKERRQ(ierr);
 
-    EPSMonitorEstimates(eps,eps->its + 1,eps->nconv,eps->errest,m); 
-    EPSMonitorValues(eps,eps->its + 1,eps->nconv,eps->eigr,eps->eigi,m); 
+    EPSMonitor(eps,eps->its + 1,eps->nconv,eps->eigr,eps->eigi,eps->errest,m); 
     eps->its = eps->its + 1;
 
     if (eps->nconv>=eps->nev) break;

@@ -79,8 +79,7 @@ extern int EPSComputeRelativeError(EPS,int,PetscReal*);
 extern int EPSComputeResidualNorm(EPS,int,PetscReal*);
 extern int EPSGetErrorEstimate(EPS,int,PetscReal*);
 
-extern int EPSSetMonitor(EPS,int (*)(EPS,int,int,PetscReal*,int,void*),void*);
-extern int EPSSetValuesMonitor(EPS,int (*)(EPS,int,int,PetscScalar*,PetscScalar*,int,void*),void*);
+extern int EPSSetMonitor(EPS,int (*)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),void*);
 extern int EPSClearMonitor(EPS);
 extern int EPSGetMonitorContext(EPS,void **);
 extern int EPSGetIterationNumber(EPS,int*);
@@ -97,8 +96,7 @@ extern int EPSGetOrthogonalization(EPS,EPSOrthogonalizationType*,EPSOrthogonaliz
 extern int EPSIsGeneralized(EPS,PetscTruth*);
 extern int EPSIsHermitian(EPS,PetscTruth*);
 
-extern int EPSDefaultEstimatesMonitor(EPS,int,int,PetscReal*,int,void*);
-extern int EPSDefaultValuesMonitor(EPS,int,int,PetscScalar*,PetscScalar*,int,void*);
+extern int EPSDefaultMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
 
 extern int EPSSetOptionsPrefix(EPS,char*);
 extern int EPSAppendOptionsPrefix(EPS,char*);

@@ -94,58 +94,30 @@ void PETSC_STDCALL epscreate_(MPI_Comm *comm,EPS *eps,int *ierr){
    
    functions, hence no STDCALL
 */
-void  epsdefaultestimatesmonitor_(EPS *eps,int *it,int *nconv,PetscReal *errest,int *nest,void *ctx,int *ierr)
+void  epsdefaultmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,int *ierr)
 {
-  *ierr = EPSDefaultEstimatesMonitor(*eps,*it,*nconv,errest,*nest,ctx);
+  *ierr = EPSDefaultMonitor(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
  
-void  epsdefaultvaluesmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,int *neig,void *ctx,int *ierr)
-{
-  *ierr = EPSDefaultValuesMonitor(*eps,*it,*nconv,eigr,eigi,*neig,ctx);
-}
- 
-static void (PETSC_STDCALL *f1)(EPS*,int*,int*,PetscReal*,int*,void*,int*);
-static int ourmonitor(EPS eps,int i,int nc,PetscReal *d,int l,void* ctx)
+static void (PETSC_STDCALL *f1)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,int*);
+static int ourmonitor(EPS eps,int i,int nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,int l,void* ctx)
 {
   int ierr = 0;
-  (*f1)(&eps,&i,&nc,d,&l,ctx,&ierr);CHKERRQ(ierr);
+  (*f1)(&eps,&i,&nc,er,ei,d,&l,ctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
-void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscReal*,int*,void*,int*),
+void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,int*),
                     void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,int *),int *ierr)
 {
-  if ((void(*)())monitor == (void(*)())epsdefaultestimatesmonitor_) {
-    *ierr = EPSSetMonitor(*eps,EPSDefaultEstimatesMonitor,0);
+  if ((void(*)())monitor == (void(*)())epsdefaultmonitor_) {
+    *ierr = EPSSetMonitor(*eps,EPSDefaultMonitor,0);
   } else {
     f1  = monitor;
     if (FORTRANNULLFUNCTION(monitordestroy)) {
       *ierr = EPSSetMonitor(*eps,ourmonitor,mctx);
     } else {
       *ierr = EPSSetMonitor(*eps,ourmonitor,mctx);
-    }
-  }
-}
-
-static void (PETSC_STDCALL *f3)(EPS*,int*,int*,PetscScalar*,PetscScalar*,int*,void*,int*);
-static int ourmonitor2(EPS eps,int i,int nc,PetscScalar *d1,PetscScalar *d2,int l,void* ctx)
-{
-  int ierr = 0;
-  (*f3)(&eps,&i,&nc,d1,d2,&l,ctx,&ierr);CHKERRQ(ierr);
-  return 0;
-}
-
-void PETSC_STDCALL epssetvaluesmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,int*,void*,int*),
-                    void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,int *),int *ierr)
-{
-  if ((void(*)())monitor == (void(*)())epsdefaultvaluesmonitor_) {
-    *ierr = EPSSetValuesMonitor(*eps,EPSDefaultValuesMonitor,0);
-  } else {
-    f3  = monitor;
-    if (FORTRANNULLFUNCTION(monitordestroy)) {
-      *ierr = EPSSetValuesMonitor(*eps,ourmonitor2,mctx);
-    } else {
-      *ierr = EPSSetValuesMonitor(*eps,ourmonitor2,mctx);
     }
   }
 }
