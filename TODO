@@ -1,0 +1,174 @@
+
+TODO
+----
+
+(01) Esquemas de resolución iterativa
+
+  a. Hacer que EPSSetDimensions permita ampliar o reducir el número de
+     vectores que había reservados. [HECHO]
+
+  b. Incorporar la idea de que el usuario pueda dar un subespacio inicial de
+     búsqueda, por ejemplo con EPSSetInitialSpace. Analizar la relación con
+     EPSSetInitialVector. Otra posibilidad es mantener la factorización
+     internamente de una llamada EPSSolve a otra.
+
+(02) Rutinas EPSDenseXXX
+
+  a. Implementar problema generalizado para EPSLAPACK.
+
+  b. Añadir flop_count en todas las rutinas que llaman a alguna función de
+     lapack.
+
+(03) Desplazamientos variables
+
+  a. Implementar la infraestructura en ST para almacenar un valor inicial
+     del desplazamiento y el valor actualizado en cada momento.
+
+  b. Posibilidad para especificar la forma de calcular los desplazamientos:
+     -st_shift_type {constant,rayleigh,wilkinson}. Para permitir esto
+     habría que tener una función virtual STUpdateShift(v,&w) que calculara
+     el nuevo shift. Con esto, el método RQI desaparecería como tal y se
+     integraría en POWER.
+
+(04) Interfaces a paquetes externos
+
+  a. Testear la opción de intervalo en Blzpack.
+
+  b. Integrar Hlzpack en el mismo interfaz de Blzpack.
+
+(05) Nuevos ST
+
+  a. Cayley (y Cayley generalizado, con 2 shifts distintos). Junto con
+     los desplazamientos variables (03) se tendría una implementación del
+     método RKS de Ruhe. Para más de un shift habría que usar la función
+     NumberOfShifts y modificar STSetShift para que se le pase un índice.
+     Otra opción es usar el nombre "antishift" para el segundo shift. O
+     también se podrían llamar "pole" y "zero".
+
+  b. Transformación Buckling (ver Arpack). Habría que ver si tiene interés
+     y en qué aplicaciones. Nota: En realidad esta transformación sería
+     igual a la de Cayley generalizado con el shift del numerador igual a 0.
+
+  c. En todas las transformaciones, considerar el caso en que el shift sea 0
+     para hacer menos operaciones (por ejemplo, el MatAXPY no hacerlo).
+
+(06) Nuevos EPS
+
+  a. Iteración del Subespacio: Implementar el método SRRIT (Bai y Stewart).
+
+  b. Lanczos: versión básica simétrica. Posteriormente versiones con diferentes
+     técnicas de reortogonalización (parcial, selectiva, mixta). Revisar
+     bibliografía e implementaciones (propack, blzpack, lanso, etc).
+
+  c. Lanczos no simétrico: Algoritmo implementado en qmrpack.
+
+  d. Davidson (y Davidson Generalizado al usar un precondicionado distinto
+     de D_A).
+
+  e. Jacobi-Davidson: basado en implementación de Sleijpen o de Hochstenbach.
+
+  f. IRA/IRL: basado en implementación de Arpack (Fortran o Matlab) o de
+     irbleigs (versión a bloques).
+
+  g. Otros: ABLE, TRQ.
+
+(07) Gestión de vectores de trabajo
+
+  a. Implementar EPSAttachDeflationSpace y adaptar solvers para que trabajen
+     teniendo en cuenta este subespacio.
+
+(08) Utilidades
+
+  a. Unificar EPSMonitor y EPSValuesMonitor. [HECHO]
+
+  b. Estructurar mejor la información que sacan los monitores por defecto.
+
+(09) Test de convergencia
+
+  a. Implementar una rutina ComputeRitzError análoga a EPSComputeRelativeError
+     pero que haga el cálculo internamente en el solver con los valores no
+     convergidos aún. Esta rutina sería genérica y la usarían todos los solvers
+     salvo aquellos en los que se pueda obtener una estimación del error con 
+     menos cálculos (p.e. Arnoldi). Convendría hacer una función virtual para
+     esto? Para esto habría que unificar la representación interna de los
+     valores/vectores de Ritz en todos los solvers.
+
+  b. Rutinas del tipo SetConvergenceTest/DefaultConverged: analizar si podrían
+     ser de interés para los solvers de valores propios.
+
+(10) Producto interior
+
+  a. Función STInnerProduct(x,y) que calcule (x,y) o (x,y)_B según sea un
+     problema estándar o generalizado. Con ella se simplificaría el método
+     POWER, pero habría que ver cómo encajaría esto con el resto de solvers.
+
+  b. Permitir al usuario definir la función STInnerProduct, por ejemplo para
+     definir un producto indefinido (con VecTDot) para problemas complejos
+     simétricos.
+
+(11) Métodos directos para los sistemas lineales
+
+  a. Alternativa 1: Nuevo ST Cholesky, con OP=L^-1AL^T y BackTransform=L^Tx.
+     Utilizaría MatCholeskyFactor, MatForwardSolve, MatBackwardSolve.
+
+  b. Alternativa 2: Dos modos de trabajo: "split" (por defecto) e "inexact".
+     En el primero se factoriza la matriz del sistema lineal y posteriormente
+     se hacen los solves forward/backward (pro: más estabilidad numérica,
+     contra: refactorizar cada vez que se cambia el shift). En el segundo
+     se trabaja como hasta ahora, típicamente con solvers iterativos.
+     Problema: para el modo split habría que disponer de factorizaciones de
+     varios tipos: LU, LL^T y LDL^T. El modo split es análogo a 
+     -ksp_symmetric_pc y éste parece que no está implementado del todo.
+
+(12) Ortogonalización
+
+  a. Posiblemente sea necesario tener dos rutinas de ortogonalización: p.e.
+     EPSOrthogDeflate (elimina un vector si es linealmente dependiente 
+     respecto de los demás) y EPSOrthogExpand (en ese caso crea un vector 
+     aleatorio).
+
+  b. Implementar una función que mida la calidad de la ortogonalización 
+     (para debug, similar a la opción -pc_test_null_space).
+
+(13) Problemas Relacionados
+
+  a. Definir objetos nuevos para problemas relacionados, p.e. SVD (singular
+     value decomposition), QEP (quadratic eigenvalue problem), NEP (non-linear
+     eigenvalue problem), que tengan internamente un EPS.
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+BUGS
+----
+
+[01] POWER
+
+  a. La deflación no funciona con O_complex. A partir del segundo par propio
+     el valor lo calcula bien pero el vector no.
+
+[02] ARNOLDI
+
+  a. Sólo converge un valor propio. Hay una versión implementada por Yunkai
+     que corrige esto, pero aún no la hemos analizado.
+
+[03] RQI
+
+  a. No funciona al usarlo con SINVERT, porque BackTransform no usa el
+     shift original. Para arreglar esto habría que implementar primero los
+     desplazamientos variables (03).
+
+[04] BLZPACK
+
+  a. Se ejecuta la parte lflag==3 (actualizar el desplazamiento). Se supone
+     que esto sólo debería hacerlo cuando se especifica un intervalo (?).
+
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+DOCUMENTACION
+-------------
+
+**  Sustituir "shift from origin" por "shift of origin".
+
+
+
