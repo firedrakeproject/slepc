@@ -15,33 +15,31 @@ static int EPSSetUp_LAPACK(EPS eps)
   PetscScalar *vals;
   EPS_LAPACK *la = (EPS_LAPACK *)eps->data;
   MPI_Comm    comm = eps->comm;
+  Mat         *T;
+  IS isrow, iscol;
+  PetscTruth flg;
 
   PetscFunctionBegin;
   ierr = EPSComputeExplicitOperator(eps,&la->BA);CHKERRQ(ierr);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
-
-  ierr     = MatGetSize(la->BA,&n,&n);CHKERRQ(ierr);
-  if (size > 1) { /* assemble matrix on first processor */
-    if (!rank) {
-      ierr = MatCreateMPIDense(comm,n,n,n,n,PETSC_NULL,&la->A);CHKERRQ(ierr);
-    }
-    else {
-      ierr = MatCreateMPIDense(comm,0,n,n,n,PETSC_NULL,&la->A);CHKERRQ(ierr);
-    }
-    PetscLogObjectParent(la->BA,la->A);
-
-    ierr = MatGetOwnershipRange(la->BA,&row,&dummy);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(la->BA,&m,&dummy);CHKERRQ(ierr);
-    for (i=0; i<m; i++) {
-      ierr = MatGetRow(la->BA,row,&nz,&cols,&vals);CHKERRQ(ierr);
-      ierr = MatSetValues(la->A,1,&row,nz,cols,vals,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatRestoreRow(la->BA,row,&nz,&cols,&vals);CHKERRQ(ierr);
-      row++;
-    } 
-
-    ierr = MatAssemblyBegin(la->A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(la->A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  
+  if (size > 1) {
+    /* assemble full matrix on every processor */
+    ierr = MatGetSize(la->BA,&n,&n);CHKERRQ(ierr);
+    ierr = ISCreateStride(PETSC_COMM_SELF, n, 0, 1, &isrow);CHKERRQ(ierr);
+    ierr = ISCreateStride(PETSC_COMM_SELF, n, 0, 1, &iscol);CHKERRQ(ierr);
+    ierr = MatGetSubMatrices(la->BA, 1, &isrow, &iscol, MAT_INITIAL_MATRIX, &T);CHKERRQ(ierr);
+    ierr = ISDestroy(isrow);CHKERRQ(ierr);
+    ierr = ISDestroy(iscol);CHKERRQ(ierr);
+    MatDestroy(la->BA);CHKERRQ(ierr);
+    la->BA = *T;
+  }
+  
+  ierr = PetscTypeCompare((PetscObject)la->BA, MATSEQDENSE, &flg); CHKERRQ(ierr);
+  if (!flg) {
+    /* convert matrix to MatSeqDense */
+    ierr = MatConvert(la->BA, MATSEQDENSE, &la->BA);CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);
@@ -66,7 +64,7 @@ static int EPSSetDefaults_LAPACK(EPS eps)
 #define __FUNCT__ "EPSSolve_LAPACK"
 static int  EPSSolve_LAPACK(EPS eps,int *its)
 {
-  int         ierr,n,size,rank;
+  int         ierr,n,size,rank,i,low,high;
   PetscScalar *array,*pV;
   EPS_LAPACK *la = (EPS_LAPACK *)eps->data;
   MPI_Comm    comm = eps->comm;
@@ -74,28 +72,34 @@ static int  EPSSolve_LAPACK(EPS eps,int *its)
   PetscFunctionBegin;
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
-  if (size>1) {
-    ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
-  } else {
-    ierr = MatGetArray(la->BA,&array);CHKERRQ(ierr);
-  }
+  
+  ierr = MatGetArray(la->BA,&array);CHKERRQ(ierr);
   ierr = MatGetSize(la->BA,&n,&n);CHKERRQ(ierr);
 
-  if (eps->dropvectors) pV = PETSC_NULL;
-  else {
-    ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-  }
-
+  if (!eps->dropvectors) {
+    if (size == 1) {
+      ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
+    } else {
+      ierr = PetscMalloc(sizeof(PetscScalar)*n,&pV);CHKERRQ(ierr);
+    }
+  } else pV = PETSC_NULL;
+  
   ierr = EPSDenseNHEPSorted(n,array,eps->eigr,eps->eigi,pV,eps->ncv,eps->which);CHKERRQ(ierr);
+  
+  ierr = MatRestoreArray(la->BA,&array);CHKERRQ(ierr);
 
   if (!eps->dropvectors) {
-    ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
-  }
-
-  if (size > 1) {
-    ierr = MatRestoreArray(la->A,&array);CHKERRQ(ierr);
-  } else {
-    ierr = MatRestoreArray(la->BA,&array);CHKERRQ(ierr);
+    if (size == 1) {
+      ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
+    } else {
+      for (i=0; i<eps->ncv; i++) {
+        ierr = VecGetOwnershipRange(eps->V[i], &low, &high);CHKERRQ(ierr);
+        ierr = VecGetArray(eps->V[i], &array);CHKERRQ(ierr);
+        ierr = PetscMemcpy(array, pV+i*n+low, (high-low)*sizeof(PetscScalar));
+        ierr = VecRestoreArray(eps->V[i], &array);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(pV);CHKERRQ(ierr);
+    }
   }
 
   eps->nconv = eps->ncv;
@@ -124,9 +128,6 @@ int EPSDestroy_LAPACK(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  if (size > 1) {
-    ierr = MatDestroy(la->A);CHKERRQ(ierr);
-  }
   ierr = MatDestroy(la->BA);CHKERRQ(ierr);
   ierr = EPSDefaultDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
