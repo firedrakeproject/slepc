@@ -21,7 +21,8 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   else eps->ncv = PetscMax(2*eps->nev,eps->nev+8);
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
-
+  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+    SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
@@ -110,6 +111,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     for (i=eps->nconv;i<ncv;i++) { 
       eps->errest[i] = beta*PetscAbsScalar(U[i*ncv+ncv-1]); 
       if (eps->errest[i] < eps->tol) eps->nconv = i + 1;
+      else break;
     }
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (eps->nconv >= eps->nev) break;
