@@ -78,7 +78,7 @@ static int  EPSSolve_POWER(EPS eps)
       ierr = STApplyNoB(eps->OP,w,y);CHKERRQ(ierr);
 
       /* deflation of converged eigenvectors */
-      if (eps->nconv>0) {
+      if (eps->nds+eps->nconv>0) {
         ierr = (*eps->orthog)(eps,eps->nds+eps->nconv,eps->DSV,y,PETSC_NULL,&norm);CHKERRQ(ierr);
       }
 
@@ -96,7 +96,7 @@ static int  EPSSolve_POWER(EPS eps)
       ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
 
       /* deflation of converged eigenvectors */
-      if (eps->nconv>0) {
+      if (eps->nds+eps->nconv>0) {
         ierr = (*eps->orthog)(eps,eps->nds+eps->nconv,eps->DSV,y,PETSC_NULL,&norm);CHKERRQ(ierr);
       }
 
