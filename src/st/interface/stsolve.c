@@ -123,6 +123,65 @@ int STApplyNoB(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STNorm"
+/*@
+   STNorm - Computes de norm of a vector as the square root of the inner 
+   product (x,x) as defined by STInnerProduct().
+
+   Collective on ST and Vec
+
+   Input Parameters:
++  st - the spectral transformation context
+-  x  - input vector
+
+   Output Parameter:
++  w    - intermediate vector (see Notes below)
+-  norm - the computed norm
+
+   Notes:
+   This function will usually compute the 2-norm of a vector, ||x||_2. But
+   this behaviour may be different if using a non-standard inner product changed 
+   via STSetBilinearForm(). For example, if using the B-inner product for 
+   positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B = 
+   sqrt( x^H Bx ).
+
+   At the end of the execution, the intermediate vector w will hold x or Bx,
+   depending on the type of inner product.
+
+   Level: developer
+
+.seealso: STInnerProduct()
+@*/
+int STNorm(ST st,Vec x,Vec w,PetscReal *norm)
+{
+  int         ierr;
+  PetscScalar p;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(w,VEC_COOKIE,3);
+  PetscValidPointer(norm,4);
+  
+  ierr = STInnerProduct(st,x,x,w,&p);CHKERRQ(ierr);
+
+  if (p==0.0)
+    PetscLogInfo(st,"STNorm: Zero norm, either the vector is zero or a semi-inner product is being used\n" );
+
+
+#if defined(PETSC_USE_COMPLEX)
+  if (PetscRealPart(p)<0.0 || PetscImaginaryPart(p)>PETSC_MACHINE_EPSILON) 
+     SETERRQ(1,"STNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(PetscRealPart(p));
+#else
+  if (p<0.0) SETERRQ(1,"STNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(p);
+#endif
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STInnerProduct"
 /*@
    STInnerProduct - Computes de inner product of two vectors.

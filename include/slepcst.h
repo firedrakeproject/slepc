@@ -56,16 +56,19 @@ extern int STCheckNullSpace(ST,int,Vec*);
 extern int STGetNumberLinearIterations(ST,int*);
 extern int STResetNumberLinearIterations(ST);
 
-/* --------- options specific to particular spectral transformations-------- */
-
 typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
                STMATMODE_SHELL } STMatMode;
 extern int STSetMatMode(ST,STMatMode);
 extern int STSetMatStructure(ST,MatStructure);
 
-typedef enum { STINNER_HERMITIAN,STINNER_SYMMETRIC,
-               STINNER_B_HERMITIAN,STINNER_B_SYMMETRIC } STBilinearForm;
-int STSetBilinearForm(ST,STBilinearForm);
+typedef enum { STINNER_HERMITIAN, STINNER_SYMMETRIC,
+               STINNER_B_HERMITIAN, STINNER_B_SYMMETRIC } STBilinearForm;
+extern int STSetBilinearForm(ST,STBilinearForm);
+
+extern int STInnerProduct(ST st,Vec,Vec,Vec,PetscScalar*);
+extern int STNorm(ST st,Vec,Vec,PetscReal*);
+
+/* --------- options specific to particular spectral transformations-------- */
 
 extern int STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);
 extern int STShellSetBackTransform(ST, int (*)(void*,PetscScalar*,PetscScalar*));
