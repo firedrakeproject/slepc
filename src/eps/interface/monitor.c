@@ -157,28 +157,44 @@ PetscErrorCode EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,Pet
 #define __FUNCT__ "EPSLGMonitor"
 PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *monctx)
 {
-  PetscDrawLG    lg = (PetscDrawLG) monctx;
+  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscDraw      draw;
+  PetscDrawLG    lg;
   PetscErrorCode ierr;
   PetscReal      *x,*y;
   int            i,n = eps->nev;
+#if !defined(PETSC_USE_COMPLEX)
+  int            pause;
+  PetscDraw      draw1;
+  PetscDrawLG    lg1;
+#endif
 
   PetscFunctionBegin;
 
-  if (!monctx) {
-    MPI_Comm comm;
-    ierr = PetscObjectGetComm((PetscObject)eps,&comm);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDrawLG(PETSC_VIEWER_DRAW_(comm),0,&lg);CHKERRQ(ierr);
-    if (!its) {
-      PetscDraw draw;
-      ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
-      ierr = PetscDrawLGGetDraw(lg,&draw);
-      ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
-    }
+  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(eps->comm); }
+
+  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
+  if (!its) {
+    ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
+    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(eps->tol)-2,0.0);CHKERRQ(ierr);
   }
 
-  if (!its) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (eps->ishermitian) {
+    ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
+    ierr = PetscViewerDrawGetDrawLG(viewer,1,&lg1);CHKERRQ(ierr);
+    if (!its) {
+      ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
+      ierr = PetscDrawLGSetDimension(lg1,n);CHKERRQ(ierr);
+      ierr = PetscDrawLGReset(lg1);CHKERRQ(ierr);
+      ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
+    }
   }
+#endif
+
   ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
@@ -187,6 +203,15 @@ PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (eps->ishermitian) {
+    ierr = PetscDrawLGAddPoint(lg1,x,eps->eigr);CHKERRQ(ierr);
+    ierr = PetscDrawGetPause(draw1,&pause);CHKERRQ(ierr);
+    ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);    
+    ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
+    ierr = PetscDrawSetPause(draw1,pause);CHKERRQ(ierr);    
+  }
+#endif  
   ierr = PetscFree(x);CHKERRQ(ierr);
   ierr = PetscFree(y);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
