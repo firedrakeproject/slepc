@@ -72,6 +72,8 @@ EXTERN PetscErrorCode STInnerProduct(ST st,Vec,Vec,PetscScalar*);
 EXTERN PetscErrorCode STInnerProductBegin(ST st,Vec,Vec,PetscScalar*);
 EXTERN PetscErrorCode STInnerProductEnd(ST st,Vec,Vec,PetscScalar*);
 EXTERN PetscErrorCode STMInnerProduct(ST st,PetscInt,Vec,const Vec[],PetscScalar*);
+EXTERN PetscErrorCode STMInnerProductBegin(ST st,PetscInt,Vec,const Vec[],PetscScalar*);
+EXTERN PetscErrorCode STMInnerProductEnd(ST st,PetscInt,Vec,const Vec[],PetscScalar*);
 EXTERN PetscErrorCode STNorm(ST st,Vec,PetscReal*);
 EXTERN PetscErrorCode STNormBegin(ST st,Vec,PetscReal*);
 EXTERN PetscErrorCode STNormEnd(ST st,Vec,PetscReal*);

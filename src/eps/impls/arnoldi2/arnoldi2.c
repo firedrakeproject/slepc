@@ -90,32 +90,41 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
   if (m<=100) lhh = shh;
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
   ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
-  reort = PETSC_TRUE;
+
+  switch (eps->orthog_ref) {
+  case EPS_ORTH_REFINE_NEVER:
+    reort = PETSC_FALSE;
+    break;
+  case EPS_ORTH_REFINE_ALWAYS:
+  case EPS_ORTH_REFINE_IFNEEDED:
+    reort = PETSC_TRUE;
+    break;
+  }
 
   for (j=k;j<m;j++) {
     eps->its++;
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-/*    ierr = STNorm(eps->OP,f,&norm);CHKERRQ(ierr);  */
+    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
+      ierr = STNormBegin(eps->OP,f,&norm);CHKERRQ(ierr);
+    }
 
     countorthog++;
-    for (i=0;i<=j;i++) {
-      ierr = STInnerProductBegin(eps->OP,f,V[i],H+m*j+i);CHKERRQ(ierr);
-    }
+    ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
 
     if (j>k && reort) {
       countreorthog++;
-      for (i=0;i<j;i++) {
-        ierr = STInnerProductBegin(eps->OP,V[j],V[i],lhh+i);CHKERRQ(ierr);
-      }
+      ierr = STMInnerProductBegin(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
     }
     
-    for (i=0;i<=j;i++) {
-      ierr = STInnerProductEnd(eps->OP,f,V[j],H+m*j+i);CHKERRQ(ierr);
+    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
+      ierr = STNormEnd(eps->OP,f,&norm);CHKERRQ(ierr);
     }
 
+    ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+
     if (j>k && reort) {
+      ierr = STMInnerProductEnd(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
       for (i=0;i<j;i++) {
-        ierr = STInnerProductEnd(eps->OP,V[j],V[i],lhh+i);CHKERRQ(ierr);
 	H[m*(j-1)+i] += lhh[i];
       }
       ierr = VecSet(&zero,w);CHKERRQ(ierr);
@@ -139,7 +148,9 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
     }
     
-/*    reort = *beta < eps->orthog_eta * norm ? PETSC_TRUE : PETSC_FALSE;*/
+    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
+      reort = *beta < eps->orthog_eta * norm ? PETSC_TRUE : PETSC_FALSE;
+    }
   }
 
 

@@ -418,6 +418,75 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
+PetscErrorCode VecMDotEnd(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
+
+#undef __FUNCT__  
+#define __FUNCT__ "STMInnerProductBegin"
+PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidPointer(y,4);
+  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidScalarPointer(p,5);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_SYMMETRIC:
+    ierr = VecCopy(x,st->w);CHKERRQ(ierr);
+    break;
+  case STINNER_B_HERMITIAN:
+  case STINNER_B_SYMMETRIC:
+    ierr = STApplyB(st,x,st->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecMDotBegin(n,st->w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    /* ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr); */
+    break;
+  }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STMInnerProductEnd"
+PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidPointer(y,4);
+  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidScalarPointer(p,5);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecMDotEnd(n,st->w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    /* ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr); */
+    break;
+  }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "STInnerProductBegin"
 PetscErrorCode STInnerProductBegin(ST st,Vec x,Vec y,PetscScalar *p)
