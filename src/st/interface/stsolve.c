@@ -160,7 +160,7 @@ int STNorm(ST st,Vec x,Vec w,PetscReal *norm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(w,VEC_COOKIE,3);
+  if (w) { PetscValidHeaderSpecific(w,VEC_COOKIE,3); }
   PetscValidPointer(norm,4);
   
   ierr = STInnerProduct(st,x,x,w,&p);CHKERRQ(ierr);
@@ -214,12 +214,19 @@ int STNorm(ST st,Vec x,Vec w,PetscReal *norm)
 int STInnerProduct(ST st,Vec x,Vec y,Vec w,PetscScalar *p)
 {
   int        ierr;
+  PetscTruth allocated;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidHeaderSpecific(y,VEC_COOKIE,3);
-  PetscValidHeaderSpecific(w,VEC_COOKIE,4);
+  if (w) { 
+    PetscValidHeaderSpecific(w,VEC_COOKIE,4); 
+    allocated = PETSC_FALSE;
+  } else { 
+    ierr = VecDuplicate(x,&w);CHKERRQ(ierr); 
+    allocated = PETSC_TRUE; 
+  }
   PetscValidScalarPointer(p,5);
   
   ierr = PetscLogEventBegin(ST_InnerProduct,st,x,w,0);CHKERRQ(ierr);
@@ -242,8 +249,9 @@ int STInnerProduct(ST st,Vec x,Vec y,Vec w,PetscScalar *p)
   case STINNER_B_SYMMETRIC:
     ierr = VecTDot(w,y,p);CHKERRQ(ierr);
     break;
-  }  
+  } 
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,w,0);CHKERRQ(ierr);
+  if (allocated) { ierr = VecDestroy(w);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
