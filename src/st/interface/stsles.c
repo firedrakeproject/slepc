@@ -155,4 +155,53 @@ int STResetNumberLinearIterations(ST st)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "STCheckNullSpace_Default"
+int STCheckNullSpace_Default(ST st,int n,Vec* V)
+{
+  int          i,c,ierr;
+  PetscReal    norm;
+  Vec          *T,w;
+  Mat          A;
+  PC           pc;
+  MatNullSpace nullsp;
+  
+  PetscFunctionBegin;
+  ierr = PetscMalloc(n*sizeof(Vec),&T);CHKERRQ(ierr);
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,PETSC_NULL,&w);CHKERRQ(ierr);
+  c = 0;
+  for (i=0;i<n;i++) {
+    ierr = MatMult(A,V[i],w);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
+    if (norm < 1e-8) {
+      PetscLogInfo(st,"STCheckNullSpace: vector %i norm=%g\n",i,norm);
+      T[c] = V[i];
+      c++;
+    }
+  }
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  if (c>0) {
+    ierr = MatNullSpaceCreate(st->comm,PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
+    ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);
+    ierr = MatNullSpaceDestroy(nullsp);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(T);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STCheckNullSpace"
+int STCheckNullSpace(ST st,int n,Vec* V)
+{
+  int ierr;
+
+  PetscFunctionBegin;
+  if (n>0 && st->checknullspace) {
+    ierr = (*st->checknullspace)(st,n,V);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 

@@ -398,6 +398,8 @@ int STCreate_Sinvert(ST st)
   st->ops->destroy        = STDestroy_Sinvert;
   st->ops->setfromoptions = STSetFromOptions_Sinvert;
   st->ops->view           = STView_Sinvert;
+  
+  st->checknullspace      = STCheckNullSpace_Default;
 
   ctx->shift_matrix = STSINVERT_MATMODE_COPY;
   ctx->str          = DIFFERENT_NONZERO_PATTERN;

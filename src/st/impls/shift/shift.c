@@ -80,6 +80,7 @@ int STCreate_Shift(ST st)
   st->ops->backtr      = STBackTransform_Shift;
   st->ops->destroy     = STDestroy_Shift;
   st->ops->setup       = STSetUp_Shift;
+  st->checknullspace   = 0;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

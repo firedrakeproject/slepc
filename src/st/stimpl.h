@@ -33,9 +33,12 @@ struct _p_ST {
   int          setupcalled;
   int          numberofshifts;
   int          lineariterations;
+  int          (*checknullspace)(ST,int,Vec*);
 };
 
 extern int STDefaultApplyB( ST, Vec, Vec );
+extern int STAssociatedKSPSolve(ST,Vec,Vec);
+extern int STCheckNullSpace_Default(ST,int,Vec*);
 
 #endif
 

@@ -53,7 +53,8 @@ extern int STAppendOptionsPrefix(ST,char*);
 extern int STGetOptionsPrefix(ST,char**);
 
 extern int STBackTransform(ST,PetscScalar*,PetscScalar*);
-extern int STAssociatedKSPSolve(ST,Vec,Vec);
+
+extern int STCheckNullSpace(ST,int,Vec*);
 
 extern int STGetNumberLinearIterations(ST,int*);
 extern int STResetNumberLinearIterations(ST);
