@@ -177,7 +177,7 @@
         enddo
         write(6,*)
       endif
- 160  format ('           k           ||Ax-kx||/|k|')
+ 160  format ('           k           ||Ax-kx||/|kx|')
  170  format ('   ----------------- -----------------')
  180  format (1pe11.4,1pe11.4,' j ',1pe12.4)
  190  format ('   ',1pe12.4,'       ',1pe12.4)
