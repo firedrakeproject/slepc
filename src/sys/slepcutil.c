@@ -1,13 +1,12 @@
 
 #include "slepc.h" /*I "slepc.h" I*/
-
-extern PetscRandom rctx;
+#include <stdlib.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"
 /*@
    SlepcVecSetRandom - Sets all components of a vector to random numbers which
-   follow a uniform distribution in [-1,1].
+   follow a uniform distribution in [0,1).
 
    Collective on Vec
 
@@ -27,20 +26,18 @@ PetscErrorCode SlepcVecSetRandom(Vec x)
 {
   PetscErrorCode ierr;
   int            i,n,low,high;
-  PetscScalar    *pv,*px;
-  Vec            v;
-
+  PetscScalar    *px,t;
+  static unsigned short seed[3] = { 1, 3, 2 };
+  
   PetscFunctionBegin;
   ierr = VecGetSize(x,&n);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
-  ierr = VecCreateSeq(PETSC_COMM_SELF,n,&v);CHKERRQ(ierr); 
-  ierr = VecSetRandom(rctx,v);CHKERRQ(ierr);
-  ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
   ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-  for (i=low;i<high;i++) px[i-low]=pv[i];
-  ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    t = erand48(seed);
+    if (i>=low && i<high) px[i-low] = t;
+  }
   ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-  ierr = VecDestroy(v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -85,7 +85,6 @@ PetscErrorCode SlepcRegisterEvents()
 */
 PetscTruth  SlepcBeganPetsc = PETSC_FALSE; 
 PetscTruth  SlepcInitializeCalled = PETSC_FALSE;
-PetscRandom rctx = PETSC_NULL;
 PetscCookie EPS_COOKIE = 0;
 PetscCookie ST_COOKIE = 0;
 
@@ -139,8 +138,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
-  ierr = PetscRandomCreate(PETSC_COMM_WORLD,RANDOM_DEFAULT,&rctx);CHKERRQ(ierr);
-
   EPS_COOKIE = 0;
   ierr = PetscLogClassRegister(&EPS_COOKIE,"Eigenproblem Solver");CHKERRQ(ierr);
   ST_COOKIE = 0;
@@ -189,12 +186,10 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
 @*/
 PetscErrorCode SlepcFinalize(void)
 {
-  PetscErrorCode ierr,info=0;
+  PetscErrorCode info=0;
   
   PetscFunctionBegin;
   PetscLogInfo(0,"SlepcFinalize: SLEPc successfully ended!\n");
-
-  ierr = PetscRandomDestroy(rctx);CHKERRQ(ierr);
 
   if (SlepcBeganPetsc) {
     info = PetscFinalize();CHKERRQ(info);
