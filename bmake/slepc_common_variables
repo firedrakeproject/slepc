@@ -26,7 +26,7 @@
 # some extra packages specific to SLEPc
 #
 include ${PETSC_DIR}/bmake/common/variables
-include ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages
+-include ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages
 #
 #
 INSTALL_LIB_DIR	= ${SLEPC_DIR}/lib/lib${BOPT}/${PETSC_ARCH}
