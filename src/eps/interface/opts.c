@@ -44,12 +44,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {
       ierr = EPSSetType(eps,type);CHKERRQ(ierr);
     }
-    /*
-      Set the type if it was never set.
-    */
-    if (!eps->type_name) {
-      ierr = EPSSetType(eps,EPSARNOLDI);CHKERRQ(ierr);
-    }
 
     ierr = PetscOptionsLogicalGroupBegin("-eps_hermitian","hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);}
@@ -59,6 +53,17 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);}
     ierr = PetscOptionsLogicalGroupEnd("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
+
+    /*
+      Set the type if it was never set.
+    */
+    if (!eps->type_name) {
+      if (eps->ishermitian) {
+        ierr = EPSSetType(eps,EPSLANCZOS);CHKERRQ(ierr);
+      } else {
+        ierr = EPSSetType(eps,EPSARNOLDI);CHKERRQ(ierr);
+      }      
+    }
 
     orth_type = eps->orthog_type;
     ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,2,orth_list[orth_type],(int*)&orth_type,&flg);CHKERRQ(ierr);
