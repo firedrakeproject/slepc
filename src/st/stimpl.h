@@ -39,7 +39,7 @@ struct _p_ST {
   int          (*checknullspace)(ST,int,Vec*);
   
   /*------------------------- Cache Bx product -------------------*/
-  Vec          x;
+  int          xid;
   int          xstate;
   Vec          Bx;
 };
