@@ -317,6 +317,9 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
   PetscErrorCode ierr;
   int ilo,lwork,info;
   PetscScalar *work;
+#if !defined(PETSC_USE_COMPLEX)
+  int j;
+#endif
   
   PetscFunctionBegin;
 #if defined(PETSC_BLASLAPACK_ESSL_ONLY)
@@ -328,6 +331,21 @@ PetscErrorCode EPSDenseSchur(PetscScalar *H,PetscScalar *Z,PetscScalar *wr,Petsc
   ilo = k+1;
 #if !defined(PETSC_USE_COMPLEX)
   LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,wi,Z,&n,work,&lwork,&info,1,1);
+  for (j=0;j<k;j++) {
+    if (j==n-1 || H[j*n+j+1] == 0.0) { 
+      /* real eigenvalue */
+      wr[j] = H[j*n+j];
+      wi[j] = 0.0;
+    } else {
+      /* complex eigenvalue */
+      wr[j] = H[j*n+j];
+      wr[j+1] = H[j*n+j];
+      wi[j] = sqrt(PetscAbsReal(H[j*n+j+1])) *
+              sqrt(PetscAbsReal(H[(j+1)*n+j]));
+      wi[j+1] = -wi[j];
+      j++;
+    }
+  }
 #else
   LAhseqr_("S","V",&n,&ilo,&n,H,&n,wr,Z,&n,work,&lwork,&info,1,1);
 #endif
@@ -423,6 +441,7 @@ PetscErrorCode EPSSortDenseSchur(PetscScalar *T,PetscScalar *Z,PetscScalar *wr,P
           wr[j+1] = T[j*n+j];
           wi[j] = sqrt(PetscAbsReal(T[j*n+j+1])) *
                   sqrt(PetscAbsReal(T[(j+1)*n+j]));
+          wi[j+1] = -wi[j];
           j++;
         }
       }
