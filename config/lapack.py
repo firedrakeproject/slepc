@@ -26,7 +26,7 @@ def checkLapack(conf,scalar,precision):
     f =  '#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
     f += prefix + i + '_\n'
     f += '#elif defined(PETSC_HAVE_FORTRAN_CAPS)\n'
-    f += prefix + i + '\n'
+    f += prefix.upper() + i.upper() + '\n'
     f += '#else\n'
     f += prefix + i + '\n'
     f += '#endif\n'
