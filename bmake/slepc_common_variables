@@ -42,7 +42,7 @@ F_SH_LIB_PATH	= ${FLINKER_SLFLAG}${SLEPC_LIB_DIR} ${PETSC_F_SH_LIB_PATH}
 # components (such as vectors and matrices). The order of listing these libraries 
 # is important!
 #
-SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_SLES_LIB}
+SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}
 # SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc
 # SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc ${PETSC_SYS_LIB}
 # SLEPC_LIB	= -L${SLEPC_LIB_DIR} -lslepc ${PETSC_SLES_LIB}
