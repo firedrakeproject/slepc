@@ -490,17 +490,17 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 .seealso: EPSGetLeftVector(), EPSComputeRelativeErrorLeft(), EPSSetLeftInitialVector(),
    EPSClass
 @*/
-PetscErrorCode EPSSetClass(EPS eps,EPSClass class)
+PetscErrorCode EPSSetClass(EPS eps,EPSClass cl)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
 
-  if (class!=EPS_ONE_SIDE && class!=EPS_TWO_SIDE) SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigensolver class");
-  if (eps->solverclass!=class) {
+  if (cl != EPS_ONE_SIDE && cl != EPS_TWO_SIDE) SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigensolver class");
+  if (eps->solverclass!=cl) {
     if (eps->solverclass == EPS_TWO_SIDE) { ierr = EPSFreeSolution(eps);CHKERRQ(ierr); }
-    eps->solverclass = class;
+    eps->solverclass = cl;
   }
 
   PetscFunctionReturn(0);
@@ -523,11 +523,11 @@ PetscErrorCode EPSSetClass(EPS eps,EPSClass class)
 
 .seealso: EPSSetClass()
 @*/
-PetscErrorCode EPSGetClass(EPS eps,EPSClass *class)
+PetscErrorCode EPSGetClass(EPS eps,EPSClass *cl)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  *class = eps->solverclass;
+  *cl = eps->solverclass;
   PetscFunctionReturn(0);
 }
 

@@ -301,6 +301,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_COOKIE,2);
   if (!eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
