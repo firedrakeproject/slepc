@@ -119,7 +119,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   /* if ||q|| < eta ||h|| */
   if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
       eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
-    PetscLogInfo(eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm,hnorm);
+    PetscLogInfo(eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0);
     countreorthog++;
 
     /* s = V^* q */
@@ -188,7 +188,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   /* if ||q|| < eta ||h|| */
   if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
       eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
-    PetscLogInfo(eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",*norm,*hnorm);
+    PetscLogInfo(eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0);
     countreorthog++;
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
