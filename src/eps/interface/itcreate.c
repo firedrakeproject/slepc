@@ -151,23 +151,7 @@ int EPSSetDropEigenvectors(EPS eps)
 #define __FUNCT__ "EPSPublish_Petsc"
 static int EPSPublish_Petsc(PetscObject object)
 {
-#if defined(PETSC_HAVE_AMS)
-  EPS          v = (EPS) object;
-  int          ierr;
-#endif
-  
   PetscFunctionBegin;
-
-#if defined(PETSC_HAVE_AMS)
-  /* if it is already published then return */
-  if (v->amem >=0 ) PetscFunctionReturn(0);
-
-  ierr = PetscObjectPublishBaseBegin(object);CHKERRQ(ierr);
-  ierr = AMS_Memory_add_field((AMS_Memory)v->amem,"Iteration",&v->its,1,AMS_INT,AMS_READ,
-                                AMS_COMMON,AMS_REDUCT_UNDEF);CHKERRQ(ierr);
-  ierr = PetscObjectPublishBaseEnd(object);CHKERRQ(ierr);
-#endif
-
   PetscFunctionReturn(0);
 }
 

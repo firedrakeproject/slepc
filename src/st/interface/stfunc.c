@@ -42,21 +42,7 @@ int STDestroy(ST st)
 #define __FUNCT__ "STPublish_Petsc"
 static int STPublish_Petsc(PetscObject object)
 {
-#if defined(PETSC_HAVE_AMS)
-  ST          v = (ST) object;
-  int         ierr;
-#endif
-  
   PetscFunctionBegin;
-
-#if defined(PETSC_HAVE_AMS)
-  /* if it is already published then return */
-  if (v->amem >=0 ) PetscFunctionReturn(0);
-
-  ierr = PetscObjectPublishBaseBegin(object);CHKERRQ(ierr);
-  ierr = PetscObjectPublishBaseEnd(object);CHKERRQ(ierr);
-#endif
-
   PetscFunctionReturn(0);
 }
 
