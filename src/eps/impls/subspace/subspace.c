@@ -248,13 +248,13 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     if (eps->nconv>=eps->nev) break;
     
     /* nxtsrr = min([maxit max([fix(stpfac*its) init])]) */
-    nxtsrr = PetscMin(eps->max_it,PetscMax(floor(stpfac*eps->its), init));
+    nxtsrr = PetscMin(eps->max_it,PetscMax((int)floor(stpfac*eps->its), init));
     
     if (ngrp!=nogrp || ngrp==0 || arsd>=oarsd) {
       idsrr = nxtsrr - eps->its;
     } else {
       /* idsrr = max([1 alpha+beta*(itrsdold(nconv+1)-itrsd(nconv+1))*log(arsd/tol)/log(arsd/oarsd)]) */
-      idsrr = floor(alpha+beta*(itrsdold[eps->nconv]-itrsd[eps->nconv])*log(arsd/eps->tol)/log(arsd/oarsd));
+      idsrr = (int)floor(alpha+beta*(itrsdold[eps->nconv]-itrsd[eps->nconv])*log(arsd/eps->tol)/log(arsd/oarsd));
       idsrr = PetscMax(1,idsrr);
     }
     nxtsrr = PetscMin(nxtsrr,eps->its+idsrr);
@@ -265,7 +265,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSdcond(U,ncv,&tcond);CHKERRQ(ierr);
     
     /* idort = max([1 fix(orttol/max([1 log10(tcond)]))]) */
-    idort = PetscMax(1,floor(orttol/PetscMax(1,log10(tcond))));    
+    idort = PetscMax(1,(int)floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(eps->its+idort, nxtsrr);
 
     /* V(:,idx) = AV(:,idx) */

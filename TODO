@@ -90,6 +90,13 @@ TODO
      value decomposition), QEP (quadratic eigenvalue problem), NEP (non-linear
      eigenvalue problem), que tengan internamente un EPS.
 
+  b. Suponemos que GHEP exige B Hermitiana definida positiva (es lo que se
+     denomina definite matrix pencil). Si no es definida positiva hay que 
+     sustituir B por alpha*A+beta*B siendo esta matrix definida positiva.
+     Se supone que los parámetros alpha y beta se pueden calcular de forma
+     automática (rutina pfind en http://www.netlib.org/toms/646, el problema
+     es que es para matrices densas).
+
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 BUGS
