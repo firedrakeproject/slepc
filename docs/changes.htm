@@ -75,15 +75,29 @@
     <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">2.2.0</font></div></td>
     <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif"><font size="2"><font color="#CCCCCC"><font color="#000000">*</font></font></font></font></div></td>
     <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">Released</font></div></td>
-    <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">April 
-        2004</font></div></td>
+    <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">Apr 2004</font></div></td>
+  </tr>
+  <tr valign="middle" bordercolor="#FFFFFF"> 
+    <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">2.2.1</font></div></td>
+    <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">2.2.1</font></div></td>
+    <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif"><font size="2"><font color="#CCCCCC"><font color="#000000">*</font></font></font></font></div></td>
+    <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">Released</font></div></td>
+    <td height="21"> <div align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#000000">Aug 2004</font></div></td>
   </tr>
 </table>
 <p><font size="2" face="Arial, Helvetica, sans-serif"><b><font size="3"><br>
-  Changes in Version 2.2.x</font></b></font></p>
+  Changes in Version 2.2.1</font></b></font></p>
 <ul>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'power' eigensolver has been replaced by a simpler implementation.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'rqi' eigensolver has been removed. Now the Rayleigh Quotient Iteration is embedded in the 'power' method.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'subspace' eigensolver has been rewritten. Now it follows the SRRIT implementation, which is much faster than the old one.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'arnoldi' eigensolver has been re-implemented as well. The new implementation is much more robust and efficient.</font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif"> A new Spectral Tranformation (ST) has been added: the generalized Cayley transform.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Support for user-provided deflation space has been added (see EPSAttachDeflationSpace).</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> Support for user-provided deflation subspaces has been added (see EPSAttachDeflationSpace).</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> Support for preservation of symmetry in eigensolvers. For this feature, the user must explicitly call EPSSetProblemType in symmetric problems.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> The two types of monitors (error estimates and values) have been merged in a single one.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> New function EPSGetInvariantSubspace.</font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif"> Better support for spectrum slicing in 'blzpack'.</font></li>
   </ul>
 <p><font size="2" face="Arial, Helvetica, sans-serif"><b><font size="3"><br>
   Changes in Version 2.2.0</font></b></font></p>
