@@ -125,7 +125,7 @@ runex6f_1:
 	   ${RM} -f ex6f_1.tmp
 
 runex7_1:
-	-@${MPIRUN} -np 1 ex7 -f1 ${SLEPC_DIR}/src/mat/examples/odep400a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/odep400b.petsc -st_type sinvert -st_shift -1e18 > ex7_1.tmp 2>&1;	  \
+	-@${MPIRUN} -np 1 ex7 -f1 ${SLEPC_DIR}/src/mat/examples/bfw62a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/bfw62b.petsc > ex7_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp
