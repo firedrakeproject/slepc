@@ -5,6 +5,8 @@
 #include "slepceps.h"            /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSortEigenvalues"
 /*@
@@ -82,6 +84,23 @@ int EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,i
     default: SETERRQ(1,"Wrong value of which");
   }
 
+#if !defined(PETSC_USE_COMPLEX)
+  for (i=0; i<nev-1; i++) {
+    if (eigi[permout[i]] != 0.0) {
+      if (eig[permout[i]] == eig[permout[i+1]] &&
+          eigi[permout[i]] == -eigi[permout[i+1]] &&
+          eigi[permout[i]] < 0.0) {
+        int tmp;
+        SWAP(permout[i], permout[i+1], tmp);
+        printf("i = %i\n",i);
+      }
+    i++;
+    }
+  }
+#endif
+
+  for (i=0; i<nev; i++) printf("permout[%i] = %i\n", i, permout[i]);
+  
   ierr = PetscFree(values);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
