@@ -17,7 +17,7 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
-  int         nev, ierr, maxit, i, its, nconv, nconvi;
+  int         nev, ierr, maxit, i, its, nconv;
   char        filename[256];
   PetscViewer viewer;
   PetscTruth  flg;
@@ -97,17 +97,17 @@ int main( int argc, char **argv )
   /* 
      Get number of converged eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv,&nconvi);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv+2*nconvi);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
 
-  if (nconv+nconvi>0) {
+  if (nconv>0) {
     /*
        Display eigenvalues and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k             ||Ax-kx||/||kx||\n"
          "  --------------------- ------------------\n" );CHKERRQ(ierr);
-    for( i=0; i<nconv+nconvi; i++ ) {
+    for( i=0; i<nconv; i++ ) {
       /* 
          Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
          ki (imaginary part)
@@ -128,11 +128,12 @@ int main( int argc, char **argv )
 #endif
       if( im != 0.0 ) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," % 6f %+6f i",re,im);CHKERRQ(ierr);
-        ierr = PetscPrintf(PETSC_COMM_WORLD," % 12f\n",error);CHKERRQ(ierr);
-        ierr = PetscPrintf(PETSC_COMM_WORLD," % 6f %+6f i",re,-im);CHKERRQ(ierr);
-      } else { ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",re); CHKERRQ(ierr); }
+      } else {
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",re); CHKERRQ(ierr);
+      }
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12f\n",error);CHKERRQ(ierr);
     }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
   }
   
   /* 

@@ -42,8 +42,7 @@
       EPSType      type
       PetscReal    tol, error
       PetscScalar  kr, ki
-      integer      size, rank, N, m, nev, ierr, maxit, i, its
-      integer      nconv, nconvi
+      integer      size, rank, N, m, nev, ierr, maxit, i, its, nconv
       PetscTruth   flg
 
 !     This is the routine to use for matrix-free approach
@@ -134,18 +133,18 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Get number of converged eigenpairs 
-      call EPSGetConverged(eps,nconv,nconvi,ierr)
+      call EPSGetConverged(eps,nconv,ierr)
       if (rank .eq. 0) then
-        write(6,150) nconv+2*nconvi
+        write(6,150) nconv
       endif
  150  format (' Number of converged approximate eigenpairs:',i2)
 
 !     ** Display eigenvalues and relative errors
-      if ((nconv+nconvi).gt.0 .and. rank.eq.0) then
+      if (nconv.gt.0 .and. rank.eq.0) then
         write(6,*)
         write(6,160)
         write(6,170)
-        do i=1,nconv+nconvi
+        do i=0,nconv-1
 !     ** Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
 !     ** ki (imaginary part), and the corresponding eigenvector is stored in x
           call EPSGetEigenpair(eps,i,kr,ki,x,PETSC_NULL,ierr)

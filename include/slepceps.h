@@ -72,7 +72,7 @@ extern int EPSGetTolerances(EPS,PetscReal*,int*);
 extern int EPSSetDimensions(EPS,int,int);
 extern int EPSGetDimensions(EPS,int*,int*);
 
-extern int EPSGetConverged(EPS,int*,int*);
+extern int EPSGetConverged(EPS,int*);
 extern int EPSGetEigenpair(EPS,int,PetscScalar*,PetscScalar*,Vec,Vec);
 extern int EPSComputeRelativeError(EPS,int,PetscReal*);
 extern int EPSComputeResidualNorm(EPS,int,PetscReal*);

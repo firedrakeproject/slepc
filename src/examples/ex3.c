@@ -20,9 +20,9 @@ int main( int argc, char **argv )
   Mat         A;               /* operator matrix */
   EPS         eps;             /* eigenproblem solver context */
   EPSType     type;
-  PetscReal   error, tol;
+  PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
-  int         size, N, n=10, nev, ierr, maxit, i, its, nconv, nconvi;
+  int         size, N, n=10, nev, ierr, maxit, i, its, nconv;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
@@ -85,11 +85,11 @@ int main( int argc, char **argv )
   /* 
      Get number of converged approximate eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv,&nconvi);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %d\n\n",nconv+2*nconvi);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %d\n\n",nconv);
          CHKERRQ(ierr);
 
-  if (nconv+nconvi>0) {
+  if (nconv>0) {
     /*
        Display eigenvalues and relative errors
     */
@@ -97,26 +97,28 @@ int main( int argc, char **argv )
          "           k          ||Ax-kx||/||kx||\n"
          "   ----------------- ------------------\n" );CHKERRQ(ierr);
 
-    for( i=0; i<nconv+nconvi; i++ ) {
+    for( i=0; i<nconv; i++ ) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
-      ierr = EPSGetEigenPair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetEigenpair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       /*
          Compute the relative error associated to each eigenpair
       */
       ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
 
 #ifdef PETSC_USE_COMPLEX
-      ki = PetscImaginaryPart(kr);
-      kr = PetscRealPart(kr);
+      re = PetscRealPart(kr);
+      im = PetscImaginaryPart(kr);
+#else
+      re = kr;
+      im = ki;
 #endif 
-      if (ki!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",kr,ki,error);CHKERRQ(ierr);
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",kr,-ki,error);CHKERRQ(ierr);
+      if (im!=0.0) {
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",re,im,error);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12f\n",kr,error);CHKERRQ(ierr); 
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12f\n",re,error);CHKERRQ(ierr); 
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);

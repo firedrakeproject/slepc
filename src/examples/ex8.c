@@ -59,7 +59,7 @@ int main( int argc, char **argv )
   Mat         A;               /* Grcar matrix */
   Mat         H;               /* eigenvalue problem matrix, H=A^T*A */
   EPS         eps;             /* eigenproblem solver context */
-  int         N=30, n, ierr, i, its, nconv, col[5], Istart, Iend;
+  int         N=30, n, ierr, i, nconv1, nconv2, col[5], Istart, Iend;
   PetscScalar kl, ks, sigma_1, sigma_n, value[] = { -1, 1, 1, 1, 1 };
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -113,75 +113,65 @@ int main( int argc, char **argv )
   /*
      Set solver parameters at runtime
   */
+#ifdef SLEPC_HAVE_ARPACK
+  ierr = EPSSetType(eps, EPSARPACK);CHKERRQ(ierr);
+#else
+  ierr = EPSSetType(eps, EPSLAPACK);CHKERRQ(ierr);
+#endif
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-
-  /*
-     Set the solution method. Two eigenvalues are requested, one from each end
-     of the spectrum
-  */
   ierr = EPSSetDimensions(eps,1,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,PETSC_DEFAULT,1000);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  /*
+     First request an eigenvalue from one end of the spectrum
+  */
+  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   /* 
      Get number of converged eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv,PETSC_NULL);CHKERRQ(ierr);
-  if (nconv<1) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge!\n\n");CHKERRQ(ierr);
-    ierr = EPSDestroy(eps);CHKERRQ(ierr);
-    ierr = MatDestroy(A);CHKERRQ(ierr);
-    ierr = MatDestroy(H);CHKERRQ(ierr);
-    ierr = SlepcFinalize();CHKERRQ(ierr);
-    return 0;    
+  ierr = EPSGetConverged(eps,&nconv1);CHKERRQ(ierr);
+    /* 
+       Get converged eigenpairs: largest eigenvalue is stored in kl. In this
+       example, we are not interested in the eigenvectors
+    */
+  if (nconv1 > 0) {
+    ierr = EPSGetEigenpair(eps,0,&kl,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   }
 
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
-  /* 
-     Get converged eigenpairs: largest eigenvalue is stored in kl. In this
-     example, we are not interested in the eigenvectors
+  /*
+     Request an eigenvalue from the other end of the spectrum
   */
-  ierr = EPSGetEigenpair(eps,0,&kl,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   /* 
      Get number of converged eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv,PETSC_NULL);CHKERRQ(ierr);
-  if (nconv<1) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge!\n\n");CHKERRQ(ierr);
-    ierr = EPSDestroy(eps);CHKERRQ(ierr);
-    ierr = MatDestroy(A);CHKERRQ(ierr);
-    ierr = MatDestroy(H);CHKERRQ(ierr);
-    ierr = SlepcFinalize();CHKERRQ(ierr);
-    return 0;    
-  }
-
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv2);CHKERRQ(ierr);
   /* 
      Get converged eigenpairs: smallest eigenvalue is stored in ks. In this
      example, we are not interested in the eigenvectors
   */
-  ierr = EPSGetEigenpair(eps,0,&ks,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  if (nconv2 > 0) {
+    ierr = EPSGetEigenpair(eps,0,&ks,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  if (nconv1 > 0 && nconv2 > 0) {
+    sigma_1 = PetscSqrtScalar(kl);
+    sigma_n = PetscSqrtScalar(ks);
 
-
-  sigma_1 = PetscSqrtScalar(kl);
-  sigma_n = PetscSqrtScalar(ks);
-
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge!\n\n");CHKERRQ(ierr);
+  }   
  
   /* 
      Free work space
