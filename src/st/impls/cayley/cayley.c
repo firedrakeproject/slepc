@@ -258,7 +258,29 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "STCayleySetAntishift"
-PetscErrorCode STCayleySetAntishift(ST st,PetscScalar newshift)
+/*@
+   STCayleySetAntishift - Sets the value of the anti-shift for the Cayley
+   spectral transformation.
+
+   Collective on ST
+
+   Input Parameters:
++  st  - the spectral transformation context
+-  tau - the anti-shift
+
+   Options Database Key:
+.  -st_antishift - Sets the value of the anti-shift
+
+   Level: intermediate
+
+   Note:
+   In the generalized Cayley transform, the operator can be expressed as
+   OP = inv(A - sigma B)*(A + tau B). This function sets the value of tau.
+   Use STSetShift() for setting sigma.
+
+.seealso: STSetShift()
+@*/
+PetscErrorCode STCayleySetAntishift(ST st,PetscScalar tau)
 {
   PetscErrorCode ierr, (*f)(ST,PetscScalar);
 
@@ -266,7 +288,7 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar newshift)
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STCayleySetAntishift_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
-    ierr = (*f)(st,newshift);CHKERRQ(ierr);
+    ierr = (*f)(st,tau);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

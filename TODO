@@ -40,12 +40,17 @@ TODO
 
 (07) Gestión de vectores de trabajo
 
-  a. Implementar EPSAttachDeflationSpace y adaptar solvers para que trabajen
-     teniendo en cuenta este subespacio. [MEDIO HECHO :-)]
+  a. Adaptar Arnoldi para que trabaje teniendo en cuenta el deflation space.
+
+  b. Ahorrar vectores de trabajo en EPSReverseProjection haciendo primero
+     la descomposición QR.
 
 (08) Utilidades
 
   b. Estructurar mejor la información que sacan los monitores por defecto.
+
+  c. Monitores gráficos: gráfica del error estimado o de la convergencia de
+     los valores de Ritz.
 
 (09) Test de convergencia
 
@@ -111,7 +116,7 @@ DOCUMENTACION
 
 ** Comentar cambio de los monitores.
 
-** Descripción de los métodos en el manual.
+** B-ortogonalización en el manual.
 
-** Cabeceras de las rutinas nuevas.
+
 

@@ -43,7 +43,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
-  else eps->ncv = PetscMax(2*eps->nev,eps->nev+8);
+  else eps->ncv = PetscMax(2*eps->nev,eps->nev+10);
   if (!eps->max_it) eps->max_it = PetscMax(100,N*eps->ncv);
   if (!eps->tol) eps->tol = 1.e-7;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)

@@ -361,7 +361,7 @@ EXTERN_C_END
 
    Level: advanced
 
-.seealso: EPSBlzpackSetInterval
+.seealso: EPSBlzpackSetInterval()
 @*/
 PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,int bs)
 {

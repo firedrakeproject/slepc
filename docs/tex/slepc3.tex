@@ -129,9 +129,15 @@ Therefore, after the solution process, the operation to be performed in function
 \begin{equation}(A-\sigma I)^{-1}(A+\tau I)x=\theta x\;\;,\end{equation}
 for standard problems, and 
 \begin{equation}(A-\sigma B)^{-1}(A+\tau B)x=\theta x\;\;,\end{equation}
-for generalized ones. Sometimes, the term Cayley transform is applied for the particular case in which $\tau=\sigma$. This is the default if $\tau$ is not given a value explicitly.
+for generalized ones. Sometimes, the term Cayley transform is applied for the particular case in which $\tau=\sigma$. This is the default if $\tau$ is not given a value explicitly. The value of $\tau$ (the anti-shift) can be set with the following function
+	\findex{STCayleySetAntishift}
+	\begin{Verbatim}[fontsize=\small]
+	STCayleySetAntishift(ST st,PetscScalar tau);
+	\end{Verbatim}
+or in the command line with \Verb!-st_antishift!.
 
 This transformation is mathematically equivalent to shift-and-invert and, therefore, it is effective for finding eigenvalues near $\sigma$ as well. However, in some situations it is numerically advantatgeous with respect to shift-and-invert (see \citep[\S 11.2]{Bai:2000:TSA}).
+
 In this case, the relation between the eigenvalues of both problems is
 \begin{equation}\theta=(\lambda+\tau)/(\lambda-\sigma)\;\;.\end{equation}
 Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=(\theta\sigma+\tau)/(\theta-1)$ for each of the computed eigenvalues.
