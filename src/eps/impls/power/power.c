@@ -50,14 +50,17 @@ static int  EPSSolve_POWER(EPS eps)
   y = eps->work[0];
   w = eps->work[1];
   e = eps->work[2];
-  eps->nconv = 0;
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
 
   ierr = VecCopy(eps->vec_initial,y);CHKERRQ(ierr);
 
-  for (i=0;i<maxit;i++) {
-    eps->its = i;
+  eps->nconv = 0;
+  eps->its = 0;
+
+  while (eps->its<maxit) {
+
+    eps->its = eps->its + 1;
 
     if (isSinv) {
       /* w = B y */
@@ -80,11 +83,9 @@ static int  EPSSolve_POWER(EPS eps)
       /* y = OP w */
       ierr = STApplyNoB(eps->OP,w,y);CHKERRQ(ierr);
 
-      /* Wielandt deflation, y = y - lambda_k v_k v_k^* v, for k=1..nconv */
-      for (k=0;k<eps->nconv;k++) {
-        ierr = VecDot(v,eps->V[k],&alpha);CHKERRQ(ierr);
-        alpha = -alpha*eps->eigr[k];
-        ierr = VecAXPY(&alpha,eps->V[k],y);CHKERRQ(ierr);
+      /* deflation of converged eigenvectors */
+      if (eps->nconv>0) {
+        ierr = (*eps->orthog)(eps,eps->nconv,y,PETSC_NULL,&norm);CHKERRQ(ierr);
       }
 
       /* theta = w^* y */
@@ -100,27 +101,24 @@ static int  EPSSolve_POWER(EPS eps)
       /* y = OP v */
       ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
 
-      /* Wielandt deflation, y = y - lambda_k v_k v_k^* v, for k=1..nconv */
-      for (k=0;k<eps->nconv;k++) {
-        ierr = VecDot(v,eps->V[k],&alpha);CHKERRQ(ierr);
-        alpha = -alpha*eps->eigr[k];
-        ierr = VecAXPY(&alpha,eps->V[k],y);CHKERRQ(ierr);
+      /* deflation of converged eigenvectors */
+      if (eps->nconv>0) {
+        ierr = (*eps->orthog)(eps,eps->nconv,y,PETSC_NULL,&norm);CHKERRQ(ierr);
       }
 
       /* theta = v^* y */
       ierr = VecDot(y,v,&theta);CHKERRQ(ierr);
     }
 
-    /* if ||y-theta v||_2 / |theta| < tol, stop */
+    /* if ||y-theta v||_2 / |theta| < tol, accept */
     ierr = VecCopy(y,e);CHKERRQ(ierr);
     alpha = -theta;
     ierr = VecAXPY(&alpha,v,e);CHKERRQ(ierr);
     ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
     relerr = relerr / PetscAbsScalar(theta);
     eps->errest[eps->nconv] = relerr;
-    EPSMonitorEstimates(eps,i+1,eps->nconv,eps->errest,eps->nconv+1); 
     eps->eigr[eps->nconv] = theta;
-    EPSMonitorValues(eps,i+1,eps->nconv,eps->eigr,PETSC_NULL,eps->nconv+1); 
+
     if (relerr<tol) {
       if(isSinv) {
         ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
@@ -132,10 +130,10 @@ static int  EPSSolve_POWER(EPS eps)
       v = eps->V[eps->nconv];
     }
 
+    EPSMonitorEstimates(eps,eps->its,eps->nconv,eps->errest,eps->nconv+1); 
+    EPSMonitorValues(eps,eps->its,eps->nconv,eps->eigr,PETSC_NULL,eps->nconv+1); 
   }
 
-  if( i==maxit ) i--;
-  eps->its = i + 1;
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
