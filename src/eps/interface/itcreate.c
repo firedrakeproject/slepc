@@ -90,7 +90,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
-    switch (eps->orth_type) {
+    switch (eps->orthog_type) {
       case EPS_MGS_ORTH:
         ierr = PetscViewerASCIIPrintf(viewer,"modified Gram-Schmidt\n");CHKERRQ(ierr);
         break;
@@ -100,12 +100,17 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       default: SETERRQ(1,"Wrong value of eps->orth_type");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: ");CHKERRQ(ierr);
-    if (eps->orth_eta == 0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"never\n");CHKERRQ(ierr);
-    } else if (eps->orth_eta < 0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %f)\n",eps->orth_eta);CHKERRQ(ierr);
+    switch (eps->orthog_ref) {
+      case EPS_ORTH_REFINE_NEVER:
+        ierr = PetscViewerASCIIPrintf(viewer,"never\n");CHKERRQ(ierr);
+        break;
+      case EPS_ORTH_REFINE_IFNEEDED:
+        ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %f)\n",eps->orthog_eta);CHKERRQ(ierr);
+        break;
+      case EPS_ORTH_REFINE_ALWAYS:
+        ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);
+        break;
+      default: SETERRQ(1,"Wrong value of eps->orth_ref");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -202,9 +207,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->numbermonitors  = 0;
 
-  eps->orthog          = EPSClassicalGramSchmidtOrthogonalization;
-  eps->orth_type       = EPS_CGS_ORTH;
-  eps->orth_eta        = 0.7071;
+  eps->orthog_type     = EPS_CGS_ORTH;
+  eps->orthog_ref      = EPS_ORTH_REFINE_IFNEEDED;
+  eps->orthog_eta      = 0.7071;
 
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
   PetscLogObjectParent(eps,eps->OP);
@@ -378,11 +383,11 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsLogicalGroupEnd("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
 
-    orth_type = eps->orth_type;
+    orth_type = eps->orthog_type;
     ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,2,orth_list[orth_type],(int*)&orth_type,&flg);CHKERRQ(ierr);
-    ref_type = EPS_ORTH_REFINE_IFNEEDED;
+    ref_type = eps->orthog_ref;
     ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[ref_type],(int*)&ref_type,&flg);CHKERRQ(ierr);
-    eta = eps->orth_eta;
+    eta = eps->orthog_eta;
     ierr = PetscOptionsReal("-eps_orthog_eta","Parameter of iterative refinement during orthogonalization","EPSSetOrthogonalizationRefinement",eta,&eta,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetOrthogonalization(eps,orth_type,ref_type,eta);CHKERRQ(ierr);
 

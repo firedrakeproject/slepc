@@ -70,11 +70,10 @@ struct _p_EPS {
   int        (*computevectors)(EPS);
 
   /* --------------- Orthogonalization --------------------- */
-  int        (*orthog)(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
-  PetscReal  orth_eta;
-  PetscTruth ds_ortho;     /* if vectors in DS have to be orthonormalized */
-  EPSOrthogonalizationType orth_type;   /* which orthogonalization to use */
-  
+  EPSOrthogonalizationType           orthog_type; /* which orthogonalization to use */
+  EPSOrthogonalizationRefinementType orthog_ref;   /* refinement method */
+  PetscReal               orthog_eta;
+  PetscTruth              ds_ortho;    /* if vectors in DS have to be orthonormalized */  
 };
 
 #define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \
@@ -92,8 +91,6 @@ EXTERN PetscErrorCode EPSAllocateSolution(EPS);
 EXTERN PetscErrorCode EPSFreeSolution(EPS);
 EXTERN PetscErrorCode EPSAllocateSolutionContiguous(EPS);
 EXTERN PetscErrorCode EPSFreeSolutionContiguous(EPS);
-EXTERN PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
-EXTERN PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*);
 EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 
