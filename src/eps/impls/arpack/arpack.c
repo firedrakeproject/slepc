@@ -141,19 +141,19 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
+      EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
     }
     else {
       ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
+      EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
     }
 #else
     ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
-    EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
+    EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
 #endif
     eps->its++;
     

@@ -136,7 +136,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   while (eps->its<eps->max_it) {
     /* Compute an ncv-step Arnoldi factorization */
     ierr = EPSBasicArnoldi(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
-    eps->its = eps->its + ncv - eps->nconv;
 
     /* At this point, H has the following structure
 
@@ -209,6 +208,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
     eps->nconv = k;
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
+    eps->its = eps->its + ncv - eps->nconv;
     if (eps->nconv >= eps->nev) break;
   }
   

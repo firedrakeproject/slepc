@@ -177,13 +177,13 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       }
       /* monitor */
-      eps->its = eps->its + 1;
       eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
       EPSMonitor(eps,eps->its,eps->nconv,
         blz->rstor+BLZistorr_(blz->istor,"IRITZ",5),
         eps->eigi,
         blz->rstor+BLZistorr_(blz->istor,"IRITZ",5)+BLZistorr_(blz->istor,"JT",2),
         BLZistorr_(blz->istor,"NRITZ",5));
+      eps->its = eps->its + 1;
       if (eps->its >= eps->max_it || eps->nconv >= eps->nev) lflag = 5;
       break;
     case 2:  

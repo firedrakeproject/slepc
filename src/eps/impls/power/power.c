@@ -151,8 +151,6 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
   while (eps->its<eps->max_it) {
 
-    eps->its = eps->its + 1;
-
     /* deflation of converged eigenvectors */
     ierr = EPSPurge(eps,y);
 
@@ -196,6 +194,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     }
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
+    eps->its = eps->its + 1;
   }
 
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
