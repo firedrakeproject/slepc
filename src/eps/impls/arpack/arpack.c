@@ -104,25 +104,17 @@ static int  EPSSolve_ARPACK(EPS eps)
   }
   else iparam[6] = eps->isgeneralized? 2: 1;
  
-  switch(eps->which) {
-    case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
-    case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
-    case EPS_LARGEST_REAL:       which = "LR"; break;
-    case EPS_SMALLEST_REAL:      which = "SR"; break;
-    case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
-    case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
-#if !defined(PETSC_USE_COMPLEX)
-    case EPS_LARGEST_ALGEBRAIC:  which = "LA"; break;
-    case EPS_SMALLEST_ALGEBRAIC: which = "SA"; break;
-    case EPS_BOTH_ENDS:          which = "BE"; break;
-#endif
-    default: SETERRQ(1,"Wrong value of eps->which");
-  }
-
   for(;;) {
 
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
+      switch(eps->which) {
+        case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
+        case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
+        case EPS_LARGEST_REAL:       which = "LA"; break;
+        case EPS_SMALLEST_REAL:      which = "SA"; break;
+        default: SETERRQ(1,"Wrong value of eps->which");
+      }
       ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
@@ -130,6 +122,15 @@ static int  EPSSolve_ARPACK(EPS eps)
       EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],PETSC_NULL,eps->ncv); 
     }
     else {
+      switch(eps->which) {
+        case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
+        case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
+        case EPS_LARGEST_REAL:       which = "LR"; break;
+        case EPS_SMALLEST_REAL:      which = "SR"; break;
+        case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
+        case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
+        default: SETERRQ(1,"Wrong value of eps->which");
+      }
       ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
@@ -137,6 +138,16 @@ static int  EPSSolve_ARPACK(EPS eps)
       EPSMonitorValues(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],eps->ncv); 
     }
 #else
+    switch(eps->which) {
+      case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
+      case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
+      case EPS_LARGEST_REAL:       which = "LR"; break;
+      case EPS_SMALLEST_REAL:      which = "SR"; break;
+      case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
+      case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
+      default: SETERRQ(1,"Wrong value of eps->which");
+    }
+
     ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
@@ -233,6 +244,11 @@ static int  EPSSolve_ARPACK(EPS eps)
 
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
+
+  if (eps->nconv > 0) {
+    ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
+    ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
+  }
 
   PetscFunctionReturn(0);
 }
