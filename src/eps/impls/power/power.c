@@ -346,7 +346,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 
       /* compute relative error */
       if (rho == 0.0) relerr = PETSC_MAX;
-      else relerr = 1.0 / delta*PetscAbsScalar(rho));
+      else relerr = 1.0 / (delta*PetscAbsScalar(rho));
       eps->errest[eps->nconv] = relerr;
       eps->errest_left[eps->nconv] = relerr;
 
