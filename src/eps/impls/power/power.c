@@ -286,7 +286,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   Vec            v, w, y, z, e;
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1;
-  PetscScalar    theta, alpha, rho, delta, sigma, alpha2, beta1, sn1;
+  PetscScalar    theta, alpha, beta, rho, delta, sigma, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
 #ifdef PETSC_USE_COMPLEX
@@ -406,15 +406,11 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     ierr = VecCopy(z,w);CHKERRQ(ierr);
     ierr = STInnerProduct(eps->OP,y,z,&alpha);CHKERRQ(ierr);
     if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
-    if (alpha>0.0) {
-      alpha = 1.0/PetscSqrtScalar(alpha);
-      ierr = VecScale(v,alpha);CHKERRQ(ierr);
-      ierr = VecScale(w,alpha);CHKERRQ(ierr);
-    } else {
-      alpha = 1.0/PetscSqrtScalar(-alpha);
-      ierr = VecScale(v,alpha);CHKERRQ(ierr);
-      ierr = VecScale(w,-alpha);CHKERRQ(ierr);
-    }
+    delta = PetscSqrtScalar(PetscAbsScalar(alpha));
+    beta = 1.0/PetscConj(alpha/delta);
+    delta = 1.0/delta;
+    ierr = VecScale(w,beta);CHKERRQ(ierr);
+    ierr = VecScale(v,delta);CHKERRQ(ierr);
 
     /* if relerr<tol (both right and left), accept eigenpair */
     if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol) {
