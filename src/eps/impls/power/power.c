@@ -289,9 +289,6 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   PetscScalar    theta, alpha, beta, rho, delta, sigma, alpha2, beta1, sn1;
 
   PetscFunctionBegin;
-#ifdef PETSC_USE_COMPLEX
-  SETERRQ(1,"Two side power is not implemented for complex numbers");
-#else
   v = eps->V[0];
   y = eps->AV[0];
   e = eps->work[0];
@@ -346,7 +343,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 
       /* compute relative error */
       if (rho == 0.0) relerr = PETSC_MAX;
-      else relerr = 1.0 / (delta*PetscAbsScalar(rho));
+      else relerr = 1.0 / (PetscAbsScalar(delta*rho));
       eps->errest[eps->nconv] = relerr;
       eps->errest_left[eps->nconv] = relerr;
 
@@ -429,7 +426,6 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   else eps->reason = EPS_DIVERGED_ITS;
 
   PetscFunctionReturn(0);
-#endif
 }
 
 #if 0
