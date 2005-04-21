@@ -4,7 +4,6 @@
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define stsettype_                STSETTYPE           
-#define stregisterdestroy_        STREGISTERDESTROY
 #define stgettype_                STGETTYPE
 #define stdestroy_                STDESTROY
 #define stcreate_                 STCREATE
@@ -16,7 +15,6 @@
 #define stgetmatmode_             STGETMATMODE
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define stsettype_                stsettype
-#define stregisterdestroy_        stregisterdestroy
 #define stgettype_                stgettype
 #define stdestroy_                stdestroy
 #define stcreate_                 stcreate
@@ -37,11 +35,6 @@ void PETSC_STDCALL stsettype_(ST *st,CHAR type PETSC_MIXED_LEN(len),PetscErrorCo
   FIXCHAR(type,len,t);
   *ierr = STSetType(*st,t);
   FREECHAR(type,t);
-}
-
-void PETSC_STDCALL stregisterdestroy_(PetscErrorCode *ierr)
-{
-  *ierr = STRegisterDestroy();
 }
 
 void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

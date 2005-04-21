@@ -4,8 +4,6 @@
 */
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
-EXTERN PetscTruth EPSRegisterAllCalled;
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetFromOptions"
 /*@
@@ -38,7 +36,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!EPSRegisterAllCalled) {ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);}
   ierr = PetscOptionsBegin(eps->comm,eps->prefix,"Eigenproblem Solver (EPS) Options","EPS");CHKERRQ(ierr);
     ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(eps->type_name?eps->type_name:EPSARNOLDI),type,256,&flg);CHKERRQ(ierr);
     if (flg) {

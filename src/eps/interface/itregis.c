@@ -5,7 +5,7 @@ EXTERN_C_BEGIN
 EXTERN PetscErrorCode EPSCreate_POWER(EPS);
 EXTERN PetscErrorCode EPSCreate_SUBSPACE(EPS);
 EXTERN PetscErrorCode EPSCreate_ARNOLDI(EPS);
-//EXTERN PetscErrorCode EPSCreate_ARNOLDI2(EPS);
+/* EXTERN PetscErrorCode EPSCreate_ARNOLDI2(EPS); */
 EXTERN PetscErrorCode EPSCreate_LANCZOS(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
 EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
@@ -30,7 +30,6 @@ EXTERN_C_END
     EPSRegisterAll() is called. In general, if there is more than one
     DLL, then EPSRegisterAll() may be called several times.
 */
-EXTERN PetscTruth EPSRegisterAllCalled;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRegisterAll"
@@ -41,14 +40,13 @@ EXTERN PetscTruth EPSRegisterAllCalled;
 
   Level: advanced
 
-.seealso:  EPSRegisterDestroy()
+.seealso:  EPSRegisterDynamic()
 @*/
 PetscErrorCode EPSRegisterAll(char *path)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  EPSRegisterAllCalled = PETSC_TRUE;
 
   ierr = EPSRegisterDynamic(EPSPOWER, path,"EPSCreate_POWER", 
 		  EPSCreate_POWER);CHKERRQ(ierr);
@@ -56,8 +54,8 @@ PetscErrorCode EPSRegisterAll(char *path)
 		  EPSCreate_SUBSPACE);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSARNOLDI, path,"EPSCreate_ARNOLDI", 
 		  EPSCreate_ARNOLDI);CHKERRQ(ierr);
-//  ierr = EPSRegisterDynamic(EPSARNOLDI2, path,"EPSCreate_ARNOLDI2", 
-//		  EPSCreate_ARNOLDI2);CHKERRQ(ierr);
+/*  ierr = EPSRegisterDynamic(EPSARNOLDI2, path,"EPSCreate_ARNOLDI2", 
+		  EPSCreate_ARNOLDI2);CHKERRQ(ierr); */
   ierr = EPSRegisterDynamic(EPSLANCZOS, path,"EPSCreate_LANCZOS", 
 		  EPSCreate_LANCZOS);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)

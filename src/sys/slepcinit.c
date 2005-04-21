@@ -53,33 +53,6 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
   PetscFunctionReturn(info);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcRegisterEvents"
-PetscEvent EPS_SetUp, EPS_Solve, ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, ST_ApplyTranspose, EPS_Orthogonalize, ST_InnerProduct, EPS_ReverseProjection;
-
-/*
-   SlepcRegisterEvents - Registers SLEPc events for use in performance logging.
-*/
-PetscErrorCode SlepcRegisterEvents()
-{
-  int  info = 0;
-  
-  PetscFunctionBegin;
-
-  info = PetscLogEventRegister(&EPS_SetUp,"EPSSetUp",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&EPS_Solve,"EPSSolve",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&ST_SetUp,"STSetUp",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&ST_Apply,"STApply",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&ST_ApplyB,"STApplyB",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&ST_ApplyNoB,"STApplyNoB",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&ST_ApplyTranspose,"STApplyTranspose",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&EPS_Orthogonalize,"EPSOrthogonalize",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&ST_InnerProduct,"STInnerProduct",PETSC_NULL); CHKERRQ(info);
-  info = PetscLogEventRegister(&EPS_ReverseProjection,"EPSReverseProjection",PETSC_NULL); CHKERRQ(info);
-
-  PetscFunctionReturn(info);
-}
-
 /* ------------------------Nasty global variables -------------------------------*/
 /*
    Indicates whether SLEPc started PETSc, or whether it was 
@@ -87,8 +60,6 @@ PetscErrorCode SlepcRegisterEvents()
 */
 PetscTruth  SlepcBeganPetsc = PETSC_FALSE; 
 PetscTruth  SlepcInitializeCalled = PETSC_FALSE;
-PetscCookie EPS_COOKIE = 0;
-PetscCookie ST_COOKIE = 0;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 extern PetscDLLibraryList DLLibrariesLoaded;
@@ -119,7 +90,8 @@ extern PetscDLLibraryList DLLibrariesLoaded;
 @*/
 PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char help[])
 {
-  PetscErrorCode ierr,info=0;
+  PetscErrorCode ierr;
+  PetscErrorCode info=0;
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
   PetscTruth     found;
@@ -140,11 +112,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
-  EPS_COOKIE = 0;
-  ierr = PetscLogClassRegister(&EPS_COOKIE,"Eigenproblem Solver");CHKERRQ(ierr);
-  ST_COOKIE = 0;
-  ierr = PetscLogClassRegister(&ST_COOKIE,"Spectral Transform");CHKERRQ(ierr);
-
   /*
       Load the dynamic libraries
   */
@@ -159,16 +126,10 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
     SETERRQ1(1,"Unable to locate SLEPc dynamic library %s \n You cannot move the dynamic libraries!\n or remove USE_DYNAMIC_LIBRARIES from ${PETSC_DIR}/bmake/$PETSC_ARCH/petscconf.h\n and rebuild libraries before moving",libs);
   }
 #else
-
-  ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);
-  ierr = STRegisterAll(PETSC_NULL);CHKERRQ(ierr);
-
+  ierr = STInitializePackage(PETSC_NULL); CHKERRQ(ierr);
+  ierr = EPSInitializePackage(PETSC_NULL); CHKERRQ(ierr);
 #endif
 
-  /*
-      Register SLEPc events
-  */
-  info = SlepcRegisterEvents();CHKERRQ(info);
   SlepcInitializeCalled = PETSC_TRUE;
   PetscLogInfo((0,"SlepcInitialize: SLEPc successfully started\n"));
   PetscFunctionReturn(info);
@@ -202,3 +163,34 @@ PetscErrorCode SlepcFinalize(void)
   PetscFunctionReturn(info);
 }
 
+#ifdef PETSC_USE_DYNAMIC_LIBRARIES
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "PetscDLLibraryRegister_slepc"
+/*
+  PetscDLLibraryRegister - This function is called when the dynamic library 
+  it is in is opened.
+
+  This one registers all the EPS and ST methods in the libslepc.a
+  library.
+
+  Input Parameter:
+  path - library path
+ */
+PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
+{
+  PetscErrorCode ierr;
+
+  ierr = PetscInitializeNoArguments(); if (ierr) return 1;
+
+  PetscFunctionBegin;
+  /*
+      If we got here then PETSc was properly loaded
+  */
+  ierr = STInitializePackage(path); CHKERRQ(ierr);
+  ierr = EPSInitializePackage(path); CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#endif /* PETSC_USE_DYNAMIC_LIBRARIES */

@@ -4,6 +4,9 @@
 
 #include "slepceps.h"
 
+extern PetscEvent ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, ST_ApplyTranspose, ST_InnerProduct;
+extern PetscFList STList;
+
 typedef struct _STOps *STOps;
 
 struct _STOps {
@@ -44,6 +47,14 @@ struct _p_ST {
   int          xstate;
   Vec          Bx;
 };
+
+EXTERN PetscErrorCode STRegisterAll(char*);
+EXTERN PetscErrorCode STRegister(char*,char*,char*,int(*)(ST));
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,0)
+#else
+#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,d)
+#endif
 
 EXTERN PetscErrorCode STApplyB_Default(ST,Vec,Vec);
 EXTERN PetscErrorCode STView_Default(ST,PetscViewer);

@@ -3,8 +3,61 @@
 */
 #include "src/eps/epsimpl.h"      /*I "slepceps.h" I*/
 
-PetscTruth EPSRegisterAllCalled = PETSC_FALSE;
 PetscFList EPSList = 0;
+PetscCookie EPS_COOKIE = 0;
+PetscEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Orthogonalize = 0, EPS_ReverseProjection = 0;
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSInitializePackage"
+/*@C
+  EPSInitializePackage - This function initializes everything in the EPS package. It is called
+  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to EPSCreate()
+  when using static libraries.
+
+  Input Parameter:
+  path - The dynamic library path, or PETSC_NULL
+
+  Level: developer
+
+.seealso: SlepcInitialize()
+@*/
+PetscErrorCode EPSInitializePackage(char *path) {
+  static PetscTruth initialized = PETSC_FALSE;
+  char              logList[256];
+  char             *className;
+  PetscTruth        opt;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (initialized) PetscFunctionReturn(0);
+  initialized = PETSC_TRUE;
+  /* Register Classes */
+  ierr = PetscLogClassRegister(&EPS_COOKIE,"Eigenproblem Solver");CHKERRQ(ierr);
+  /* Register Constructors */
+  ierr = EPSRegisterAll(path);CHKERRQ(ierr);
+  /* Register Events */
+  ierr = PetscLogEventRegister(&EPS_SetUp,"EPSSetUp",EPS_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&EPS_Solve,"EPSSolve",EPS_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&EPS_Orthogonalize,"EPSOrthogonalize",EPS_COOKIE); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&EPS_ReverseProjection,"EPSReverseProjection",EPS_COOKIE);CHKERRQ(ierr);
+  /* Process info exclusions */
+  ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  if (opt) {
+    ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
+    if (className) {
+      ierr = PetscLogInfoDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
+    }
+  }
+  /* Process summary exclusions */
+  ierr = PetscOptionsGetString(PETSC_NULL, "-log_summary_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  if (opt) {
+    ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
+    if (className) {
+      ierr = PetscLogEventDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSView"
@@ -168,9 +221,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscFunctionBegin;
   PetscValidPointer(outeps,2);
   *outeps = 0;
-#ifndef PETSC_USE_DYNAMIC_LIBRARIES
-  ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);
-#endif
 
   PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_COOKIE,-1,"EPS",comm,EPSDestroy,EPSView);
   PetscLogObjectCreate(eps);
@@ -278,8 +328,6 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
     ierr = (*eps->ops->destroy)(eps); CHKERRQ(ierr);
     eps->data = 0;
   }
-  /* Get the function pointers for the iterative method requested */
-  if (!EPSRegisterAllCalled) {ierr = EPSRegisterAll(PETSC_NULL); CHKERRQ(ierr);}
 
   ierr = PetscFListFind(eps->comm,EPSList,type,(void (**)(void)) &r);CHKERRQ(ierr);
 
@@ -290,31 +338,6 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   ierr = (*r)(eps); CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)eps,type);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSRegisterDestroy"
-/*@C
-   EPSRegisterDestroy - Frees the list of EPS methods that were
-   registered by EPSRegisterDynamic().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: EPSRegisterDynamic(), EPSRegisterAll()
-@*/
-PetscErrorCode EPSRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (EPSList) {
-    ierr = PetscFListDestroy(&EPSList);CHKERRQ(ierr);
-    EPSList = 0;
-  }
-  EPSRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -380,7 +403,7 @@ $     -eps_type my_solver
    and others of the form ${any_environmental_variable} occuring in pathname will be 
    replaced with appropriate values.
 
-.seealso: EPSRegisterAll(), EPSRegisterDestroy()
+.seealso: EPSRegisterAll()
 
 M*/
 

@@ -9,8 +9,6 @@ EXTERN PetscErrorCode STCreate_Cayley(ST);
 EXTERN PetscErrorCode STCreate_Fold(ST);
 EXTERN_C_END
 
-extern PetscTruth STRegisterAllCalled;
-
 #undef __FUNCT__  
 #define __FUNCT__ "STRegisterAll"
 /*@C
@@ -23,15 +21,13 @@ extern PetscTruth STRegisterAllCalled;
 
    Level: advanced
 
-.seealso: STRegisterDynamic(), STRegisterDestroy()
+.seealso: STRegisterDynamic()
 @*/
 PetscErrorCode STRegisterAll(char *path)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  STRegisterAllCalled = PETSC_TRUE;
-
   ierr = STRegisterDynamic(STSHELL  ,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSHIFT  ,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSINV   ,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);

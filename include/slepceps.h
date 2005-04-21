@@ -63,15 +63,7 @@ EXTERN PetscErrorCode EPSSetUp(EPS);
 EXTERN PetscErrorCode EPSSolve(EPS);
 EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
 
-extern PetscFList EPSList;
-EXTERN PetscErrorCode EPSRegisterAll(char *);
-EXTERN PetscErrorCode EPSRegisterDestroy(void);
-EXTERN PetscErrorCode EPSRegister(char*,char*,char*,int(*)(EPS));
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,0)
-#else
-#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,d)
-#endif
+EXTERN PetscErrorCode EPSInitializePackage(char *);
 
 EXTERN PetscErrorCode EPSSetST(EPS,ST);
 EXTERN PetscErrorCode EPSGetST(EPS,ST*);

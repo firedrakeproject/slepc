@@ -6,7 +6,6 @@
 #include "src/st/stimpl.h"      /*I "slepcst.h" I*/
 #include "petscsys.h"
 
-PetscTruth STRegisterAllCalled = PETSC_FALSE;
 /*
    Contains the list of registered EPS routines
 */
@@ -58,9 +57,6 @@ PetscErrorCode STSetType(ST st,STType type)
   st->data        = 0;
   st->setupcalled = 0;
 
-  /* Get the function pointers for the method requested */
-  if (!STRegisterAllCalled) {ierr = STRegisterAll(0); CHKERRQ(ierr);}
-
   /* Determine the STCreateXXX routine for a particular type */
   ierr =  PetscFListFind(st->comm, STList, type,(void (**)(void)) &r );CHKERRQ(ierr);
   if (!r) SETERRQ1(1,"Unable to find requested ST type %s",type);
@@ -72,32 +68,6 @@ PetscErrorCode STSetType(ST st,STType type)
   ierr = (*r)(st);CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)st,type);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STRegisterDestroy"
-/*@C
-   STRegisterDestroy - Frees the list of spectral transformations that were
-   registered by STRegisterDynamic().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: STRegisterAll(), STRegisterAll()
-
-@*/
-PetscErrorCode STRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (STList) {
-    ierr = PetscFListDestroy(&STList);CHKERRQ(ierr);
-    STList = 0;
-  }
-  STRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -156,7 +126,6 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
 
-  if (!STRegisterAllCalled) {ierr = STRegisterAll(PETSC_NULL);CHKERRQ(ierr);}
   ierr = PetscOptionsBegin(st->comm,st->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);
     ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(st->type_name?st->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {

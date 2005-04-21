@@ -5,6 +5,63 @@
 
 #include "src/st/stimpl.h"            /*I "slepcst.h" I*/
 
+PetscCookie ST_COOKIE = 0;
+PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyB = 0, ST_ApplyNoB = 0, ST_ApplyTranspose = 0, ST_InnerProduct = 0;
+
+#undef __FUNCT__  
+#define __FUNCT__ "STInitializePackage"
+/*@C
+  STInitializePackage - This function initializes everything in the ST package. It is called
+  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to STCreate()
+  when using static libraries.
+
+  Input Parameter:
+  path - The dynamic library path, or PETSC_NULL
+
+  Level: developer
+
+.seealso: SlepcInitialize()
+@*/
+PetscErrorCode STInitializePackage(char *path) {
+  static PetscTruth initialized = PETSC_FALSE;
+  char              logList[256];
+  char             *className;
+  PetscTruth        opt;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (initialized) PetscFunctionReturn(0);
+  initialized = PETSC_TRUE;
+  /* Register Classes */
+  ierr = PetscLogClassRegister(&ST_COOKIE,"Spectral Transform");CHKERRQ(ierr);
+  /* Register Constructors */
+  ierr = STRegisterAll(path);CHKERRQ(ierr);
+  /* Register Events */
+  ierr = PetscLogEventRegister(&ST_SetUp,"STSetUp",ST_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&ST_Apply,"STApply",ST_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&ST_ApplyB,"STApplyB",ST_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&ST_ApplyNoB,"STApplyNoB",ST_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&ST_ApplyTranspose,"STApplyTranspose",ST_COOKIE); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&ST_InnerProduct,"STInnerProduct",ST_COOKIE);CHKERRQ(ierr);
+  /* Process info exclusions */
+  ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  if (opt) {
+    ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
+    if (className) {
+      ierr = PetscLogInfoDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
+    }
+  }
+  /* Process summary exclusions */
+  ierr = PetscOptionsGetString(PETSC_NULL, "-log_summary_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  if (opt) {
+    ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
+    if (className) {
+      ierr = PetscLogEventDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "STDestroy"
 /*@C
@@ -77,9 +134,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
   *newst = 0;
-#ifndef PETSC_USE_DYNAMIC_LIBRARIES
-  ierr = PCRegisterAll(PETSC_NULL);CHKERRQ(ierr);
-#endif
 
   PetscHeaderCreate(st,_p_ST,struct _STOps,ST_COOKIE,-1,"ST",comm,STDestroy,STView);
   PetscLogObjectCreate(st);
@@ -463,7 +517,7 @@ $     -st_type my_solver
 
    $SLEPC_DIR, $PETSC_ARCH and $BOPT occuring in pathname will be replaced with appropriate values.
 
-.seealso: STRegisterAll(), STRegisterDestroy(), STRegister()
+.seealso: STRegisterAll(), STRegister()
 M*/
 
 #undef __FUNCT__  

@@ -34,15 +34,7 @@ EXTERN PetscErrorCode STApplyNoB(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 
-extern PetscFList STList;
-EXTERN PetscErrorCode STRegisterAll(char*);
-EXTERN PetscErrorCode STRegisterDestroy(void);
-EXTERN PetscErrorCode STRegister(char*,char*,char*,int(*)(ST));
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,0)
-#else
-#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,d)
-#endif
+EXTERN PetscErrorCode STInitializePackage(char*);
 
 EXTERN PetscErrorCode STSetKSP(ST,KSP);
 EXTERN PetscErrorCode STGetKSP(ST,KSP*);

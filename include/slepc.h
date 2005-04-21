@@ -20,12 +20,6 @@
 #include "petscvec.h"
 #include "petscmat.h"
 
-/* ========================================================================== */
-/* 
-   SLEPc logging/profiling information
-*/
-#include "slepclog.h"
-
 PETSC_EXTERN_CXX_BEGIN
 /*
     Initialization of SLEPc and other system routines

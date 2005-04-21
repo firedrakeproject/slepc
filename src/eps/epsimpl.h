@@ -4,6 +4,9 @@
 
 #include "slepceps.h"
 
+extern PetscFList EPSList;
+extern PetscEvent EPS_SetUp, EPS_Solve, EPS_Orthogonalize, EPS_ReverseProjection;
+
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
@@ -90,6 +93,14 @@ struct _p_EPS {
             CHKERRQ(_ierr); \
 	  } \
 	}
+
+EXTERN PetscErrorCode EPSRegisterAll(char *);
+EXTERN PetscErrorCode EPSRegister(char*,char*,char*,int(*)(EPS));
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,0)
+#else
+#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,d)
+#endif
 
 EXTERN PetscErrorCode EPSDestroy_Default(EPS);
 EXTERN PetscErrorCode EPSDefaultGetWork(EPS,int);
