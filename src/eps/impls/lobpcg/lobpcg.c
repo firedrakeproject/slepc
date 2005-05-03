@@ -6,6 +6,20 @@
 EXTERN_C_BEGIN
 #include "HYPRE_lobpcg.h"
 #include "HYPRE_parcsr_int.h"
+
+#include "multivector.h"
+/* #include "temp_multivector.h" */
+typedef struct
+{
+ long   numVectors;
+ int*   mask;   void** vector;
+ int    ownsVectors;
+ int    ownsMask;
+                                                                                                             
+ HYPRE_InterfaceInterpreter* interpreter;
+                                                                                                             
+} hypre_TempMultiVector;
+
 EXTERN_C_END
 
 EXTERN PetscErrorCode VecHYPRE_IJVectorCreate(Vec,HYPRE_IJVector*);
@@ -84,9 +98,8 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscErrorCode  ierr;
   EPS_LOBPCG      *lobpcg = (EPS_LOBPCG *)eps->data;
   Mat             A;
-  HYPRE_IJVector  ijv;
-  HYPRE_ParVector pv;
-  int             N;
+  HYPRE_ParVector px;
+  int             i,N;
   PetscTruth      isShift;
 
   PetscFunctionBegin;
@@ -118,12 +131,21 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   HYPRE_LOBPCGSetup(lobpcg->solver,PETSC_NULL,PETSC_NULL,PETSC_NULL);
 
   lobpcg->bsize = eps->ncv = eps->nev;
-  ierr = VecHYPRE_IJVectorCreate(lobpcg->x,&ijv);CHKERRQ(ierr);
-  HYPRE_IJVectorGetObject(ijv,(void**)&pv);
-  lobpcg->eigenvectors = hypre_MultiVectorCreateFromSampleVector(&lobpcg->interpreter,lobpcg->bsize,pv);
-  hypre_MultiVectorSetRandom(lobpcg->eigenvectors,0);
   ierr = PetscMalloc(lobpcg->bsize*sizeof(PetscScalar),&lobpcg->eigval);CHKERRQ(ierr);
   ierr = PetscMemzero(lobpcg->eigval,lobpcg->bsize*sizeof(PetscScalar));CHKERRQ(ierr);
+
+  printf("Hola\n");
+  ierr = HYPRE_IJVectorGetObject(lobpcg->ijx,(void**)&px);
+  lobpcg->eigenvectors = hypre_MultiVectorCreateFromSampleVector(&lobpcg->interpreter,lobpcg->bsize,px);
+  for (i=0;i<lobpcg->bsize;i++) {
+    if (i==0) { 
+      ierr = VecHYPRE_IJVectorCopy(eps->vec_initial,lobpcg->ijx);CHKERRQ(ierr);
+    } else {
+      ierr = SlepcVecSetRandom(lobpcg->x);CHKERRQ(ierr);
+      ierr = VecHYPRE_IJVectorCopy(lobpcg->x,lobpcg->ijx);CHKERRQ(ierr);
+    }
+    HYPRE_ParVectorCopy(px,((hypre_TempMultiVector *) ((hypre_MultiVector *) lobpcg->eigenvectors)->data)->vector[i]);
+  }
   
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -136,15 +158,18 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscErrorCode  ierr;
   EPS_LOBPCG      *lobpcg = (EPS_LOBPCG *)eps->data;
   int             i;
+  HYPRE_ParVector px;
 
   PetscFunctionBegin;
   globaleps = eps;
   
   HYPRE_LOBPCGSolve(lobpcg->solver,PETSC_NULL,lobpcg->eigenvectors,lobpcg->eigval);
+  HYPRE_IJVectorGetObject(lobpcg->ijx,(void**)&px);
   for (i=0;i<lobpcg->bsize;i++) { 
     eps->eigr[i] = lobpcg->eigval[i]; 
     eps->eigi[i] = 0;
-    ierr = VecSet(eps->V[i],0);CHKERRQ(ierr);
+    HYPRE_ParVectorCopy(((hypre_TempMultiVector *) ((hypre_MultiVector *) lobpcg->eigenvectors)->data)->vector[i],px);
+    ierr = VecHYPRE_IJVectorCopyFrom(lobpcg->ijx,eps->V[i]);CHKERRQ(ierr);    
   }
   eps->nconv = lobpcg->bsize;
   eps->reason = EPS_CONVERGED_TOL;
