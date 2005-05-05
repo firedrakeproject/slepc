@@ -181,6 +181,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 	ierr = STGetOperators(eps->OP,PETSC_NULL,&B); CHKERRQ(ierr);
 	ierr = MatMult(B,x,y); CHKERRQ(ierr); 
       }
+      ierr = VecResetArray(x); CHKERRQ(ierr);
+      ierr = VecResetArray(y); CHKERRQ(ierr);
     } else if (ido != 99) {
       SETERRQ1(1,"Internal error in ARPACK reverse comunication interface (ido=%i)\n",ido);
     }

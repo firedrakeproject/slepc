@@ -172,6 +172,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
           ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
 	}
         ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = VecResetArray(x);CHKERRQ(ierr);
+        ierr = VecResetArray(y);CHKERRQ(ierr);	
       }
       /* monitor */
       eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
@@ -189,6 +191,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
         ierr = VecPlaceArray( y, blz->v+i*n );CHKERRQ(ierr);
         ierr = STApplyB( eps->OP, x, y ); CHKERRQ(ierr);
+        ierr = VecResetArray(x);CHKERRQ(ierr);
+        ierr = VecResetArray(y);CHKERRQ(ierr);	
       }
       break;
     case 3:  
@@ -203,6 +207,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       /* copy the initial vector */
       ierr = VecPlaceArray(x,blz->v);CHKERRQ(ierr);
       ierr = VecCopy(eps->vec_initial,x);CHKERRQ(ierr); 
+      ierr = VecResetArray(x);CHKERRQ(ierr);
       break;
     }
     
