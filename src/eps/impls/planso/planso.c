@@ -19,9 +19,9 @@ PetscErrorCode EPSSetUp_PLANSO(EPS eps)
   ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
-  }
-  else eps->ncv = eps->nev;
-  if (!eps->max_it) eps->max_it = PetscMax(100,n);
+    if (eps->ncv>n) SETERRQ(1,"The value of ncv cannot be larger than N"); 
+  } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),n);
+  eps->max_it = eps->ncv;
   if (!eps->tol) eps->tol = 1.e-7;
 
   if (!eps->ishermitian)
