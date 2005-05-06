@@ -168,28 +168,24 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
+#if !defined(PETSC_USE_COMPLEX)
+      if (eps->eigi[i] != 0 && i<ncv-1) {
+	eps->errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]) /
+                	 SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]);
+        eps->errest[i+1] = eps->errest[i];
+	i++;
+      } else
+#endif
       eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) /
-                       SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]);
+               	       PetscAbsScalar(eps->eigr[i]);
     }  
 
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */
     k = eps->nconv;
-    while (k<ncv) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[k] != 0 && k<ncv-1) {
-        if (eps->errest[k]<eps->tol && eps->errest[k+1]<eps->tol) k += 2;
-	else break;
-      } else 
-#endif
-      {
-	if (eps->errest[k]<eps->tol) k++;
-	else break;
-      }
-    }
-
+    while (k<ncv && eps->errest[k]<eps->tol) k++;
     /* Update V(:,idx) = V*U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,PetscMin(k+1,ncv),ncv,eps->work);CHKERRQ(ierr);
     eps->nconv = k;
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (eps->nconv >= eps->nev) break;
