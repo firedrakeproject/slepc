@@ -1017,18 +1017,18 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
    Level: developer
 
 @*/
-PetscErrorCode EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int m,Vec* work)
+PetscErrorCode EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int l,int m,Vec* work)
 {
   PetscErrorCode ierr;
   int            i;
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_ReverseProjection,eps,0,0,0);CHKERRQ(ierr);
-  for (i=k;i<m;i++) {
+  for (i=k;i<l;i++) {
     ierr = VecSet(work[i],0.0);CHKERRQ(ierr);
     ierr = VecMAXPY(work[i],m,S+m*i,V);CHKERRQ(ierr);
   }    
-  for (i=k;i<m;i++) {
+  for (i=k;i<l;i++) {
     ierr = VecCopy(work[i],V[i]);CHKERRQ(ierr);
   }    
   ierr = PetscLogEventEnd(EPS_ReverseProjection,eps,0,0,0);CHKERRQ(ierr);

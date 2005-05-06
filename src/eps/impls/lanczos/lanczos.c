@@ -370,6 +370,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m
     case EPSLANCZOS_ORTHOG_PERIODIC:
       ierr = EPSPeriodicLanczos(eps,T,V,k,m,f,beta);CHKERRQ(ierr);
       break;
+    case EPSLANCZOS_ORTHOG_PARTIAL:
+      SETERRQ(1,"Lanczos with partial orthogonalization is not implemented");
     case EPSLANCZOS_ORTHOG_FULL:
       ierr = EPSFullLanczos(eps,T,V,k,m,f,beta);CHKERRQ(ierr);
       break;
@@ -549,7 +551,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     for (j=0;j<n;j++) 
       for (i=0;i<n;i++) 
         W[i+j*n] = Y[i+perm[j]*n];
-    ierr = EPSReverseProjection(eps,eps->V+nconv,W,0,n,eps->work);CHKERRQ(ierr);
+    ierr = EPSReverseProjection(eps,eps->V+nconv,W,0,n,n,eps->work);CHKERRQ(ierr);
 
     /* Look for converged eigenpairs */
     while (nconv<m && eps->errest[nconv]<eps->tol) {

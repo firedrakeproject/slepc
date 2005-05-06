@@ -278,10 +278,10 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSSortDenseSchur(ncv,eps->nconv,T,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->AV,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+    ierr = EPSReverseProjection(eps,eps->AV,U,eps->nconv,ncv,ncv,eps->work);CHKERRQ(ierr);
     
     /* 7. V(:,idx) = V * U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,ncv,eps->work);CHKERRQ(ierr);
     
     /* Compute residuals */
     for (i=0;i<ncv;i++) { rsdold[i] = rsd[i]; }
