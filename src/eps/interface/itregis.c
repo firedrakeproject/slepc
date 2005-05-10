@@ -20,7 +20,7 @@ EXTERN PetscErrorCode EPSCreate_PLANSO(EPS);
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
 EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
-#if defined(SLEPC_HAVE_HYPRE) && !defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_HAVE_HYPRE) && !defined(PETSC_USE_COMPLEX)
 EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
 #endif
 EXTERN_C_END
