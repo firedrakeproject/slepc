@@ -242,11 +242,9 @@ int MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
   int         n, ierr;
   PetscScalar *px, *py;
-  MPI_Comm    comm;
   CTX_BRUSSEL *ctx;
 
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArray(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
@@ -267,6 +265,10 @@ int MatBrussel_Mult(Mat A,Vec x,Vec y)
 
   ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
 
   return 0;
 }
