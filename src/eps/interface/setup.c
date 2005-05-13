@@ -133,7 +133,7 @@ PetscErrorCode EPSSetInitialVector(EPS eps,Vec vec)
     ierr = VecDestroy(eps->vec_initial); CHKERRQ(ierr);
   }
   eps->vec_initial = vec;
-  PetscObjectReference((PetscObject)eps->vec_initial);
+  ierr = PetscObjectReference((PetscObject)eps->vec_initial);CHKERRQ(ierr);
   eps->vec_initial_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -195,7 +195,7 @@ PetscErrorCode EPSSetLeftInitialVector(EPS eps,Vec vec)
     ierr = VecDestroy(eps->vec_initial_left); CHKERRQ(ierr);
   }
   eps->vec_initial_left = vec;
-  PetscObjectReference((PetscObject)eps->vec_initial_left);
+  ierr = PetscObjectReference((PetscObject)eps->vec_initial_left);CHKERRQ(ierr);
   eps->vec_initial_left_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

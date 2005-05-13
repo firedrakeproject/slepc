@@ -510,7 +510,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscCheckSameComm(eps,1,st,2);
   ierr = STDestroy(eps->OP); CHKERRQ(ierr);
   eps->OP = st;
-  PetscObjectReference((PetscObject)eps->OP);
+  ierr = PetscObjectReference((PetscObject)eps->OP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
