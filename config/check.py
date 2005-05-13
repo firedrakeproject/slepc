@@ -7,10 +7,19 @@ def checkLink(functions,callbacks,flags):
   os.chdir('config')
   cfile = open('checklink.c','w')
   cfile.write('#include "petsc.h"\n')
+
+  cfile.write('EXTERN_C_BEGIN\n')
+  for f in functions:
+    cfile.write('EXTERN int\n')
+    cfile.write(f)
+    cfile.write('();\n')
+  cfile.write('EXTERN_C_END\n')
+  
   for c in callbacks:
     cfile.write('int ')    
     cfile.write(c)
     cfile.write('() { return 0; } \n')    
+
   cfile.write('int main() {\n')
   for f in functions:
     cfile.write(f)
@@ -55,7 +64,7 @@ def generateGuesses(name):
       dirs = dirs + [i + '/' + d + '/lib']
       dirs = dirs + [i + '/lib/' + d]
       
-  for d in dirs:
+  for d in dirs[:]:
     if not os.path.exists(d):
       dirs.remove(d)
   dirs = [''] + dirs
