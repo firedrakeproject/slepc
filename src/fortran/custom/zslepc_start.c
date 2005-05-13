@@ -12,10 +12,10 @@
 
 #include "src/fortran/custom/zpetsc.h" 
 #include "slepc.h"
+#include "slepcst.h"
+#include "slepceps.h"
 
 extern PetscTruth SlepcBeganPetsc;
-extern PetscCookie ST_COOKIE;
-extern PetscCookie EPS_COOKIE;
 
 static PetscTruth SlepcInitializeCalled=PETSC_FALSE;
 
@@ -90,6 +90,9 @@ EXTERN_C_BEGIN
 */
 void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
 {
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  PetscTruth found;
+#endif
   *ierr = 1;
   if (SlepcInitializeCalled) {*ierr = 0; return;}
 
@@ -103,12 +106,19 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
-  EPS_COOKIE = 0;
-  PetscLogClassRegister(&EPS_COOKIE,"Eigenproblem Solver");
-  ST_COOKIE = 0;
-  PetscLogClassRegister(&ST_COOKIE,"Spectral Transform");
-
-  *ierr = SlepcRegisterEvents(); 
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  *ierr = PetscStrcpy(libs,SLEPC_LIB_DIR);if (*ierr) return;
+  *ierr = PetscStrcat(libs,"/libslepc");if (*ierr) return;
+  *ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,1024,&found);if (*ierr) return;
+  if (found) {
+    *ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);if (*ierr) return;
+  } else {
+    SETERRQ1(1,"Unable to locate SLEPc dynamic library %s \n You cannot move the dynamic libraries!\n or remove USE_DYNAMIC_LIBRARIES from ${PETSC_DIR}/bmake/$PETSC_ARCH/petscconf.h\n and rebuild libraries before moving",libs);
+  }
+#else
+  *ierr = STInitializePackage(PETSC_NULL); if (*ierr) return;
+  *ierr = EPSInitializePackage(PETSC_NULL); if (*ierr) return;
+#endif
 
   SlepcInitializeCalled = PETSC_TRUE;
   PetscLogInfo((0,"SlepcInitialize: SLEPc successfully started from Fortran\n"));
