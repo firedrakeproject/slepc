@@ -10,9 +10,21 @@ from planso  import *
 from trlan   import *
 from lapack  import *
 
+if not hasattr(sys, 'version_info') or not sys.version_info[1] >= 2:
+  print '**** You must have Python version 2.2 or higher to run config/configure.py ******'
+  print '*           Python is easy to install for end users or sys-admin.               *'
+  print '*                   http://www.python.org/download/                             *'
+  print '*                                                                               *'
+  print '*            You CANNOT configure PETSc without Python                          *'
+  print '*    http://www.mcs.anl.gov/petsc/petsc-as/documentation/installation.html      *'
+  print '*********************************************************************************'
+  sys.exit(4)
+
 # Check if enviroment is ok
 # and get some information about PETSc configuration
 
+if 'SLEPC_DIR' not in os.environ:
+  sys.exit('ERROR: SLEPC_DIR enviroment variable is not set')
 slepcdir = os.environ['SLEPC_DIR']
 if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'bmake'])):
   sys.exit('ERROR: SLEPC_DIR enviroment variable is not valid')
@@ -20,6 +32,8 @@ if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'bma
 if os.getcwd() != slepcdir:
   sys.exit('ERROR: configure.py must be launched from SLEPc main directory')
 
+if 'PETSC_DIR' not in os.environ:
+  sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
 petscdir = os.environ['PETSC_DIR']
 if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bmake'])):
   sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
@@ -135,6 +149,8 @@ for i in sys.argv[1:]:
     havetrlan = 1
   elif i.startswith('--with-trlan'):
     havetrlan = not i.endswith('=0')
+  else:
+    sys.exit('ERROR: Invalid argument ' + i)
 
 # Check for external packages
 if havearpack:
