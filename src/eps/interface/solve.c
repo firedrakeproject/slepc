@@ -906,11 +906,12 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      ierr = VecScale(xr, kr); CHKERRQ(ierr);
-    }
     ierr = VecNorm(xr, NORM_2, &er); CHKERRQ(ierr);
-    *error = norm / er; 
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+      *error =  norm / (PetscAbsScalar(kr) * er);
+    } else {
+      *error = norm / er;
+    }
 #ifndef PETSC_USE_COMPLEX
   } else {
     ierr = VecDuplicate(xi, &u); CHKERRQ(ierr);  
@@ -974,11 +975,12 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      ierr = VecScale(xr, kr); CHKERRQ(ierr);
-    }
     ierr = VecNorm(xr, NORM_2, &er); CHKERRQ(ierr);
-    *error = norm / er; 
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+      *error =  norm / (PetscAbsScalar(kr) * er);
+    } else {
+      *error = norm / er;
+    }
 #ifndef PETSC_USE_COMPLEX
   } else {
     ierr = VecDuplicate(xi, &u); CHKERRQ(ierr);  
