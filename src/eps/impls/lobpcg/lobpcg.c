@@ -134,7 +134,6 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = PetscMalloc(lobpcg->bsize*sizeof(PetscScalar),&lobpcg->eigval);CHKERRQ(ierr);
   ierr = PetscMemzero(lobpcg->eigval,lobpcg->bsize*sizeof(PetscScalar));CHKERRQ(ierr);
 
-  printf("Hola\n");
   ierr = HYPRE_IJVectorGetObject(lobpcg->ijx,(void**)&px);
   lobpcg->eigenvectors = hypre_MultiVectorCreateFromSampleVector(&lobpcg->interpreter,lobpcg->bsize,px);
   for (i=0;i<lobpcg->bsize;i++) {
