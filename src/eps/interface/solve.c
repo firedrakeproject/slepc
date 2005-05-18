@@ -999,44 +999,6 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "EPSReverseProjection"
-/*@
-   EPSReverseProjection - Compute the operation V=V*S, where the columns of
-   V are m of the basis vectors of the EPS object and S is an mxm dense
-   matrix.
-
-   Collective on EPS
-
-   Input Parameter:
-+  eps - the eigenproblem solver context
-.  V - basis vectors
-.  S - pointer to the values of matrix S
-.  k - starting column
-.  m - dimension of matrix S
--  work - workarea of m vectors for intermediate results
-
-   Level: developer
-
-@*/
-PetscErrorCode EPSReverseProjection(EPS eps,Vec* V,PetscScalar *S,int k,int l,int m,Vec* work)
-{
-  PetscErrorCode ierr;
-  int            i;
-  
-  PetscFunctionBegin;
-  ierr = PetscLogEventBegin(EPS_ReverseProjection,eps,0,0,0);CHKERRQ(ierr);
-  for (i=k;i<l;i++) {
-    ierr = VecSet(work[i],0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(work[i],m,S+m*i,V);CHKERRQ(ierr);
-  }    
-  for (i=k;i<l;i++) {
-    ierr = VecCopy(work[i],V[i]);CHKERRQ(ierr);
-  }    
-  ierr = PetscLogEventEnd(EPS_ReverseProjection,eps,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 
 #undef __FUNCT__  

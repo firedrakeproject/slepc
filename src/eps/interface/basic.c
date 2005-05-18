@@ -5,7 +5,7 @@
 
 PetscFList EPSList = 0;
 PetscCookie EPS_COOKIE = 0;
-PetscEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Orthogonalize = 0, EPS_ReverseProjection = 0;
+PetscEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Orthogonalize = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSInitializePackage"
@@ -39,7 +39,6 @@ PetscErrorCode EPSInitializePackage(char *path) {
   ierr = PetscLogEventRegister(&EPS_SetUp,"EPSSetUp",EPS_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&EPS_Solve,"EPSSolve",EPS_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&EPS_Orthogonalize,"EPSOrthogonalize",EPS_COOKIE); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&EPS_ReverseProjection,"EPSReverseProjection",EPS_COOKIE);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {

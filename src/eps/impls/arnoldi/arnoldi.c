@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,eps->ncv+1);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -108,7 +108,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #else
   PetscErrorCode ierr;
   int            i,k,mout,info,ncv=eps->ncv;
-  Vec            f=eps->work[ncv];
+  Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*Y,*work;
   PetscReal      beta;
 #if defined(PETSC_USE_COMPLEX)
@@ -185,7 +185,13 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     k = eps->nconv;
     while (k<ncv && eps->errest[k]<eps->tol) k++;
     /* Update V(:,idx) = V*U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,PetscMin(k+1,ncv),ncv,eps->work);CHKERRQ(ierr);
+    for (i=eps->nconv;i<=k && i<ncv;i++) {
+      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
+    }
+    for (i=eps->nconv;i<=k && i<ncv;i++) {
+      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
+    }
     eps->nconv = k;
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (eps->nconv >= eps->nev) break;

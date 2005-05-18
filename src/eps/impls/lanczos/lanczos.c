@@ -72,7 +72,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,eps->ncv+1);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -156,6 +156,7 @@ static PetscErrorCode EPSPlainLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M
   PetscFunctionReturn(0);
 }
 
+#ifndef PETSC_USE_COMPLEX
 #undef __FUNCT__  
 #define __FUNCT__ "EPSUpdateOmega"
 static PetscErrorCode EPSUpdateOmega(int j,PetscReal *alpha,PetscReal* beta,PetscReal psi,PetscReal theta,PetscReal *omega,PetscReal *oldomega)
@@ -184,6 +185,7 @@ static PetscErrorCode EPSUpdateOmega(int j,PetscReal *alpha,PetscReal* beta,Pets
   }
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSelectiveLanczos"
@@ -191,11 +193,12 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
 {
   PetscErrorCode ierr;
   int            i,j,n,m = *M,info;
-  PetscReal      *omega,*oldomega,*a,*b,delta,eps1,*Y,*work;
+  PetscReal      *omega,*oldomega,*a,*b,delta,eps1,*work;
+  PetscScalar    *Y;
   PetscTruth     breakdown = PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(m*m*sizeof(PetscReal),&Y);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*m*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
   ierr = PetscMalloc(2*m*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(m*sizeof(PetscReal),&a);CHKERRQ(ierr);
   ierr = PetscMalloc(m*sizeof(PetscReal),&b);CHKERRQ(ierr);
@@ -271,6 +274,10 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
 #define __FUNCT__ "EPSPeriodicLanczos"
 static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta)
 {
+#ifdef PETSC_USE_COMPLEX
+  PetscFunctionBegin;
+  SETERRQ(1,"Periodic lanczos is not available for complex numbers");
+#else
   PetscErrorCode ierr;
   int            i,j,l,n,m = *M;
   PetscReal      norm,*omega,*oldomega,*a,*b,delta,eps1;
@@ -333,6 +340,7 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
   ierr = PetscFree(omega);CHKERRQ(ierr);
   ierr = PetscFree(oldomega);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
@@ -434,11 +442,11 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   SETERRQ(PETSC_ERR_SUP,"STEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  int            nconv,i,j,n,m,info,N,*perm,
+  int            nconv,i,j,k,n,m,info,N,*perm,
                  ncv=eps->ncv;
-  Vec            f=eps->work[ncv];
+  Vec            f=eps->work[0];
   PetscScalar    *T=eps->T,*Y,*W;
-  PetscReal      *ritz,*bnd,*E,*work,norm,anorm,beta;
+  PetscReal      *ritz,*bnd,*E,*work,anorm,beta;
 
   PetscFunctionBegin;
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
@@ -495,16 +503,18 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     anorm = 0;
     for (i=0;i<n;i++) {
       if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
-      bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]);
+      bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]) / PetscAbsReal(ritz[i]);
     }
 /*    ierr = RefineBounds(n,ritz,bnd,eps->tol,eps->tol*anorm*N);CHKERRQ(ierr);*/
-    
-    ierr = EPSSortEigenvalues(n,ritz,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
-    /* Reverse order of Ritz values and calculate relative error bounds */
+#ifdef PETSC_USE_COMPLEX
     for (i=0;i<n;i++) {
-      eps->eigr[nconv+i] = ritz[perm[i]];
-      eps->errest[nconv+i] = bnd[perm[i]] / PetscAbsReal(ritz[perm[i]]);
+      eps->eigr[i+nconv] = ritz[i];
     }
+    ierr = EPSSortEigenvalues(n,eps->eigr+nconv,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
+
+#else
+    ierr = EPSSortEigenvalues(n,ritz,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
+#endif
 
 /* CULLUM 
     m = n-1;
@@ -547,23 +557,43 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     }
 */
    
-    /* Update V(:,idx) = V*Y */
-    for (j=0;j<n;j++) 
-      for (i=0;i<n;i++) 
-        W[i+j*n] = Y[i+perm[j]*n];
-    ierr = EPSReverseProjection(eps,eps->V+nconv,W,0,n,n,eps->work);CHKERRQ(ierr);
-
     /* Look for converged eigenpairs */
-    while (nconv<m && eps->errest[nconv]<eps->tol) {
-/*      ierr = EPSOrthogonalize(eps,nconv,eps->V,eps->V[nconv],PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);*/
-      ierr = STNorm(eps->OP,eps->V[nconv],&norm);CHKERRQ(ierr);
-      eps->errest[nconv] = eps->errest[nconv] / norm;
-      if (eps->errest[nconv]<eps->tol) {
-        ierr = VecScale(eps->V[nconv],1/norm);CHKERRQ(ierr);
-        nconv++;
+    k = nconv;
+    for (i=0;i<n;i++) {
+      if (bnd[perm[i]]<eps->tol) {
+        eps->eigr[k] = ritz[perm[i]];
+        eps->errest[k] = bnd[perm[i]];
+	ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
+	ierr = VecMAXPY(eps->AV[k],n,Y+perm[i]*n,eps->V+nconv);CHKERRQ(ierr);
+	k++;
       }
     }
 
+    i = 0;
+    if (k<eps->nev) {
+      /* use first not converged vector for restarting */
+      while (bnd[perm[i]]<eps->tol) i++;
+      ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AV[k],n,Y+perm[i]*n,eps->V+nconv);CHKERRQ(ierr);
+      ierr = VecCopy(eps->AV[k],eps->V[k]);CHKERRQ(ierr);      
+    }
+    
+    j = k;
+    while (i<n) {
+      if (bnd[perm[i]]>=eps->tol) {
+        eps->eigr[j] = ritz[perm[i]];
+        eps->errest[j] = bnd[perm[i]];
+	j++;
+      }
+      i++;
+    }
+      
+    /* copy converged vectors to V */
+    for (i=nconv;i<k;i++) {
+      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
+    }
+
+    nconv = k;
     EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (nconv >= eps->nev) break;
   }

@@ -278,10 +278,22 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSSortDenseSchur(ncv,eps->nconv,T,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->AV,U,eps->nconv,ncv,ncv,eps->work);CHKERRQ(ierr);
+    for (i=eps->nconv;i<ncv;i++) {
+      ierr = VecSet(eps->work[i],0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->work[i],ncv,U+ncv*i,eps->AV);CHKERRQ(ierr);
+    }    
+    for (i=eps->nconv;i<ncv;i++) {
+      ierr = VecCopy(eps->work[i],eps->AV[i]);CHKERRQ(ierr);
+    }    
     
     /* 7. V(:,idx) = V * U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,ncv,eps->work);CHKERRQ(ierr);
+    for (i=eps->nconv;i<ncv;i++) {
+      ierr = VecSet(eps->work[i],0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->work[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
+    }    
+    for (i=eps->nconv;i<ncv;i++) {
+      ierr = VecCopy(eps->work[i],eps->V[i]);CHKERRQ(ierr);
+    }    
     
     /* Compute residuals */
     for (i=0;i<ncv;i++) { rsdold[i] = rsd[i]; }

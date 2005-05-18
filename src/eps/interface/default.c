@@ -101,10 +101,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
+  /* AV = V * Z */
   for (i=0;i<eps->nconv;i++) {
-    ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);
-  }
-  ierr = EPSReverseProjection(eps,eps->AV,Z,0,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+    ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(eps->AV[i],ncv,Z+ncv*i,eps->V);CHKERRQ(ierr);
+  }    
    
   /* left eigenvectors */
   if (eps->solverclass == EPS_TWO_SIDE) {
@@ -115,10 +116,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
+    /* AW = W * Z */
     for (i=0;i<eps->nconv;i++) {
-      ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
-    }
-    ierr = EPSReverseProjection(eps,eps->AW,Z,0,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+      ierr = VecSet(eps->AW[i],0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AW[i],ncv,Z+ncv*i,eps->W);CHKERRQ(ierr);
+    }    
   }
    
   ierr = PetscFree(Z);CHKERRQ(ierr);

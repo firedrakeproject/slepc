@@ -134,7 +134,6 @@ EXTERN PetscErrorCode EPSSortDenseSchur(int,int,PetscScalar*,PetscScalar*,PetscS
 EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSBiOrthogonalize(EPS,int,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
-EXTERN PetscErrorCode EPSReverseProjection(EPS,Vec*,PetscScalar*,int,int,int,Vec*);
 EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec);
 EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,int,Vec);
 
