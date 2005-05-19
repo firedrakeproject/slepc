@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_ARNOLDI2(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,eps->ncv+1);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -60,7 +60,7 @@ extern int countorthog;
 extern int countreorthog;
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSBasicArnoldi"
+#define __FUNCT__ "EPSBasicArnoldi2"
 /*
    EPSBasicArnoldi - Computes an m-step Arnoldi factorization. The first k
    columns are assumed to be locked and therefore they are not modified. On
@@ -74,22 +74,19 @@ extern int countreorthog;
    the columns of V. On exit, beta contains the B-norm of f and the next 
    Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
-static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
+static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta,Vec w)
 {
   PetscErrorCode ierr;
   int            i,j;
   PetscReal      norm;
-  PetscScalar    t;
   PetscTruth     breakdown,reort;
 
-  PetscScalar    shh[100],*lhh,
-                 zero = 0.0,minus = -1.0;
-  Vec            w;
+  PetscScalar    shh[100],*lhh;
 
   PetscFunctionBegin;
+
   if (m<=100) lhh = shh;
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
-  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
 
   switch (eps->orthog_ref) {
   case EPS_ORTH_REFINE_NEVER:
@@ -127,9 +124,9 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
       for (i=0;i<j;i++) {
 	H[m*(j-1)+i] += lhh[i];
       }
-      ierr = VecSet(&zero,w);CHKERRQ(ierr);
-      ierr = VecMAXPY(j,lhh,w,V);CHKERRQ(ierr);
-      ierr = VecAXPY(&minus,w,V[j]);CHKERRQ(ierr);
+      ierr = VecSet(w,0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
+      ierr = VecAXPY(V[j],-1.0,w);CHKERRQ(ierr);
 /*      ierr = STNorm(eps->OP,V[j],beta);CHKERRQ(ierr);  
       t = 1 / *beta;
       printf("beta %e\n",*beta);
@@ -137,12 +134,11 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
       H[m*(j-1)+j] = *beta; */
     }
     
-    ierr = VecSet(&zero,w);CHKERRQ(ierr);
-    ierr = VecMAXPY(j+1,H+m*j,w,V);CHKERRQ(ierr);
-    ierr = VecAXPY(&minus,w,f);CHKERRQ(ierr);
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
+    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
     ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr); 
-    t = 1 / *beta;
-    ierr = VecScale(&t,f);CHKERRQ(ierr);
+    ierr = VecScale(f, 1 / *beta);CHKERRQ(ierr);
     if (j < m-1) {
       H[m*j+j+1] = *beta;
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
@@ -160,33 +156,11 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
     for (i=0;i<m;i++) {
       H[m*(m-1)+i] += lhh[i];
     }
-    ierr = VecSet(&zero,w);CHKERRQ(ierr);
-    ierr = VecMAXPY(j,lhh,w,V);CHKERRQ(ierr);
-    ierr = VecAXPY(&minus,w,f);CHKERRQ(ierr);
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
+    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
   }
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  ierr = VecDestroy(w);CHKERRQ(ierr);
-
-#if 0
-  for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
-    eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
-    H[(m+1)*j+1] = norm;
-    if (breakdown) {
-      PetscLogInfo((eps,"Breakdown in Arnoldi method (norm=%g)\n",norm));
-      ierr = EPSGetStartVector(eps,j,V[j+1]);CHKERRQ(ierr);
-    }
-    else {
-      t = 1 / norm;
-      ierr = VecScale(&t,V[j+1]);CHKERRQ(ierr);
-    }
-  }
-  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
-  eps->its++;
-  ierr = EPSOrthogonalize(eps,m,V,f,H+m*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
-#endif
 
   PetscFunctionReturn(0);
 }
@@ -201,7 +175,7 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
 #else
   PetscErrorCode ierr;
   int            i,k,mout,info,ncv=eps->ncv;
-  Vec            f=eps->work[ncv];
+  Vec            f=eps->work[0],x=eps->work[1];
   PetscScalar    *H=eps->T,*U,*Y,*work;
   PetscReal      beta;
 #if defined(PETSC_USE_COMPLEX)
@@ -227,7 +201,7 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
   /* Restart loop */
   while (eps->its<eps->max_it) {
     /* Compute an ncv-step Arnoldi factorization */
-    ierr = EPSBasicArnoldi(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi2(eps,H,eps->V,eps->nconv,ncv,f,&beta,x);CHKERRQ(ierr);
 
     /* At this point, H has the following structure
 
@@ -261,28 +235,40 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
 
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
     for (i=eps->nconv;i<ncv;i++) { 
+#if !defined(PETSC_USE_COMPLEX)
+      if (eps->eigi[i] != 0 && i<ncv-1) {
+	eps->errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]) /
+                	 SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]);
+        eps->errest[i+1] = eps->errest[i];
+	i++;
+      } else
+#endif
       eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) /
-                       SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]);
+               	       PetscAbsScalar(eps->eigr[i]);
     }  
 
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */
     k = eps->nconv;
-    while (k<ncv) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[k] != 0 && k<ncv-1) {
-        if (eps->errest[k]<eps->tol && eps->errest[k+1]<eps->tol) k += 2;
-	else break;
-      } else 
-#endif
-      {
-	if (eps->errest[k]<eps->tol) k++;
-	else break;
-      }
+    while (k<ncv && eps->errest[k]<eps->tol) {
+      ierr = VecSet(f,0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(f,ncv,Y+ncv*k,eps->V);CHKERRQ(ierr);
+      ierr = STApply(eps->OP,f,x);CHKERRQ(ierr);
+      ierr = VecAXPY(x,-eps->eigr[k],f);CHKERRQ(ierr);
+      ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
+      if (beta<eps->tol) k++;
+      else break;
     }
 
     /* Update V(:,idx) = V*U(:,idx) */
-    ierr = EPSReverseProjection(eps,eps->V,U,eps->nconv,ncv,eps->work);CHKERRQ(ierr);
+    for (i=eps->nconv;i<=k && i<ncv;i++) {
+      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
+    }
+    for (i=eps->nconv;i<=k && i<ncv;i++) {
+      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
+    }
+    
     eps->nconv = k;
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (eps->nconv >= eps->nev) break;
