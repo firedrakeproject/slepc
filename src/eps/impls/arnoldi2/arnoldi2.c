@@ -250,15 +250,7 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */
     k = eps->nconv;
-    while (k<ncv && eps->errest[k]<eps->tol) {
-      ierr = VecSet(f,0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(f,ncv,Y+ncv*k,eps->V);CHKERRQ(ierr);
-      ierr = STApply(eps->OP,f,x);CHKERRQ(ierr);
-      ierr = VecAXPY(x,-eps->eigr[k],f);CHKERRQ(ierr);
-      ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
-      if (beta<eps->tol) k++;
-      else break;
-    }
+    while (k<ncv && eps->errest[k]<eps->tol) k++;
 
     /* Update V(:,idx) = V*U(:,idx) */
     for (i=eps->nconv;i<=k && i<ncv;i++) {
