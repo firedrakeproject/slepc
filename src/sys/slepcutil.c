@@ -27,7 +27,9 @@ PetscErrorCode SlepcVecSetRandom(Vec x)
   PetscErrorCode ierr;
   int            i,n,low,high;
   PetscScalar    *px,t;
+#if defined(PETSC_HAVE_DRAND48)
   static unsigned short seed[3] = { 1, 3, 2 };
+#endif
   
   PetscFunctionBegin;
   ierr = VecGetSize(x,&n);CHKERRQ(ierr);
@@ -220,3 +222,72 @@ PetscErrorCode SlepcQuietErrorHandler(int line,const char *fun,const char* file,
   PetscFunctionBegin;
   PetscFunctionReturn(n);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCheckOrthogonality"
+/*@
+   SlepcCheckOrthogonality - Checks (or prints) the level of orthogonality
+   of a set of vectors.
+
+   Collective on Vec
+
+   Input parameters:
++  V  - a set of vectors
+.  nv - number of V vectors
+.  W  - an alternative set of vectors (optional)
+.  nw - number of W vectors
+-  B  - matrix defining the inner product (optional)
+
+   Output parameter:
+.  lev - level of orthogonality (optional)
+
+   Notes: 
+   This function computes W'*V and prints the result. It is intended to check
+   the level of bi-orthogonality of the vectors in the two sets. If W is equal
+   to PETSC_NULL then V is used, thus checking the orthogonality of the V vectors.
+
+   If matrix B is provided then the check uses the B-inner product, W'*B*V.
+
+   If lev is not PETSC_NULL, is will contain the level of orthogonality
+   computed as ||W'*V - I|| in the Frobenius norm.
+
+   Level: developer
+
+@*/
+PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscScalar *lev)
+{
+  PetscErrorCode ierr;
+  int            i,j;
+  PetscScalar    *vals;
+  Vec            w;
+  MPI_Comm       comm;
+
+  PetscFunctionBegin;
+  if (nv<=0 || nw<=0) PetscFunctionReturn(0);
+  ierr = PetscObjectGetComm((PetscObject)V[0],&comm);CHKERRQ(ierr);
+  ierr = PetscMalloc(nv*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
+  if (B) { ierr = VecDuplicate(V[0],&w);CHKERRQ(ierr); }
+  if (lev) *lev = 0.0;
+  for (i=0;i<nw;i++) {
+    if (B) {
+      if (W) { ierr = MatMultTranspose(B,W[i],w);CHKERRQ(ierr); }
+      else { ierr = MatMultTranspose(B,V[i],w);CHKERRQ(ierr); }
+    }
+    else {
+      if (W) w = W[i];
+      else w = V[i];
+    }
+    ierr = VecMDot(nv,w,V,vals);CHKERRQ(ierr);
+    for (j=0;j<nv;j++) {
+      ierr = PetscPrintf(comm," %12g  ",vals[j]);CHKERRQ(ierr);
+      if (lev) *lev += (j==i)? (vals[j]-1.0)*(vals[j]-1.0): vals[j]*vals[j];
+    }
+    ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr);
+  }
+  ierr = PetscFree(vals);CHKERRQ(ierr);
+  if (B) { ierr = VecDestroy(w);CHKERRQ(ierr); }
+  if (lev) *lev = PetscSqrtScalar(*lev);
+  PetscFunctionReturn(0);
+}
+
+
