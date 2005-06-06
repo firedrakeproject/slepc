@@ -118,6 +118,10 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
 */
 PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int nconv,int ncv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
 {
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
   PetscErrorCode ierr;
   int            i,mout,info;
   PetscScalar    *Y=work+4*ncv;
@@ -149,16 +153,13 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int
     errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) / PetscAbsScalar(eigr[i]);
   }  
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_TREVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
-#else
   PetscErrorCode ierr;
   int            i,k,ncv=eps->ncv;
   Vec            f=eps->work[0];
@@ -233,7 +234,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 EXTERN_C_BEGIN

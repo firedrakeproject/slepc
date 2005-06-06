@@ -12,10 +12,6 @@
 #define __FUNCT__ "EPSSolve_TS_ARNOLDI"
 PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_TREVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
-#else
   PetscErrorCode ierr;
   int            i,k,ncv=eps->ncv;
   Vec            fr=eps->work[0];
@@ -104,6 +100,5 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   ierr = PetscFree(eigr);CHKERRQ(ierr);
   ierr = PetscFree(eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
