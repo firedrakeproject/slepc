@@ -454,6 +454,10 @@ PetscErrorCode EPSDestroy(EPS eps)
     ierr = PetscFree(eps->T);CHKERRQ(ierr);
   }
   
+  if (eps->Tl) {
+    ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
+  }
+  
   if (eps->perm) {
     ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   }

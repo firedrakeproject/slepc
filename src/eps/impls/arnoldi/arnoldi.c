@@ -52,7 +52,12 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  if (eps->solverclass==EPS_TWO_SIDE) {
+    if (eps->Tl) { ierr = PetscFree(eps->Tl);CHKERRQ(ierr); }  
+    ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
+    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  }
+  else { ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -71,7 +76,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
    the columns of V. On exit, beta contains the B-norm of f and the next 
    Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
-static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
+PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
 {
   PetscErrorCode ierr;
   int            j;
@@ -80,7 +85,8 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
 
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    if (trans) { ierr = STApplyTranspose(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
+    else { ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
@@ -99,6 +105,53 @@ static PetscErrorCode EPSBasicArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int m,
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "ArnoldiResiduals"
+/*
+   EPSArnoldiResiduals - Computes the 2-norm of the residual vectors from
+   the information provided by the m-step Arnoldi factorization,
+
+                    OP * V - V * H = f * e_m^T
+
+   For the approximate eigenpair (k_i,V*y_i), the residual norm is computed as
+   |beta*y(end,i)| where beta is the norm of f and y is the corresponding 
+   eigenvector of H.
+*/
+PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int nconv,int ncv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
+{
+  PetscErrorCode ierr;
+  int            i,mout,info;
+  PetscScalar    *Y=work+4*ncv;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork=(PetscReal*)(work+3*ncv);
+#endif
+
+  PetscFunctionBegin;
+
+  /* Compute eigenvectors Y of H */
+  ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
+#else
+  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+#endif
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+
+  /* Compute residual norm estimates as beta*abs(Y(m,:)) */
+  for (i=nconv;i<ncv;i++) { 
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi[i] != 0 && i<ncv-1) {
+        errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]) /
+                	 SlepcAbsEigenvalue(eigr[i],eigi[i]);
+        errest[i+1] = errest[i];
+        i++;
+    } else
+#endif
+    errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) / PetscAbsScalar(eigr[i]);
+  }  
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
@@ -107,22 +160,15 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  int            i,k,mout,info,ncv=eps->ncv;
+  int            i,k,ncv=eps->ncv;
   Vec            f=eps->work[0];
-  PetscScalar    *H=eps->T,*U,*Y,*work;
+  PetscScalar    *H=eps->T,*U,*work;
   PetscReal      beta;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#endif
 
   PetscFunctionBegin;
   ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-#endif
+  ierr = PetscMalloc((ncv+4)*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 
   eps->nconv = 0;
   eps->its = 0;
@@ -133,8 +179,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   
   /* Restart loop */
   while (eps->its<eps->max_it) {
+
     /* Compute an ncv-step Arnoldi factorization */
-    ierr = EPSBasicArnoldi(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
 
     /* At this point, H has the following structure
 
@@ -154,37 +201,16 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
     ierr = EPSDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
-    /* Sort the remaining columns of the Schur form  */
+    /* Sort the remaining columns of the Schur form */
     ierr = EPSSortDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
-    /* Compute eigenvectors Y of H */
-    ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-    LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
-#else
-    LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
-#endif
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+    /* Compute residual norm estimates */
+    ierr = ArnoldiResiduals(H,U,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
 
-    /* Compute residual norm estimates as beta*abs(Y(m,:)) */
-    for (i=eps->nconv;i<ncv;i++) { 
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[i] != 0 && i<ncv-1) {
-	eps->errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]) /
-                	 SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]);
-        eps->errest[i+1] = eps->errest[i];
-	i++;
-      } else
-#endif
-      eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) /
-               	       PetscAbsScalar(eps->eigr[i]);
-    }  
-
-    /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
-       factorization so that all converged eigenvalues are first */
+    /* Lock converged eigenpairs and update the corresponding vectors,
+       including the restart vector: V(:,idx) = V*U(:,idx) */
     k = eps->nconv;
     while (k<ncv && eps->errest[k]<eps->tol) k++;
-    /* Update V(:,idx) = V*U(:,idx) */
     for (i=eps->nconv;i<=k && i<ncv;i++) {
       ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
       ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
@@ -193,6 +219,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     eps->nconv = k;
+
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
     if (eps->nconv >= eps->nev) break;
   }
@@ -204,16 +231,13 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 #endif
 
   ierr = PetscFree(U);CHKERRQ(ierr);
-  ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
 #endif
 }
 
 EXTERN_C_BEGIN
+EXTERN PetscErrorCode EPSSolve_TS_ARNOLDI(EPS);
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_ARNOLDI"
 PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
@@ -221,6 +245,7 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
   PetscFunctionBegin;
   eps->data                      = (void *) 0;
   eps->ops->solve                = EPSSolve_ARNOLDI;
+  eps->ops->solvets              = EPSSolve_TS_ARNOLDI;
   eps->ops->setup                = EPSSetUp_ARNOLDI;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;

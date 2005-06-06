@@ -248,8 +248,9 @@ PetscErrorCode SlepcQuietErrorHandler(int line,const char *fun,const char* file,
 
    If matrix B is provided then the check uses the B-inner product, W'*B*V.
 
-   If lev is not PETSC_NULL, is will contain the level of orthogonality
-   computed as ||W'*V - I|| in the Frobenius norm.
+   If lev is not PETSC_NULL, it will contain the level of orthogonality
+   computed as ||W'*V - I|| in the Frobenius norm. Otherwise, the matrix W'*V
+   is printed.
 
    Level: developer
 
@@ -279,10 +280,10 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     }
     ierr = VecMDot(nv,w,V,vals);CHKERRQ(ierr);
     for (j=0;j<nv;j++) {
-      ierr = PetscPrintf(comm," %12g  ",vals[j]);CHKERRQ(ierr);
       if (lev) *lev += (j==i)? (vals[j]-1.0)*(vals[j]-1.0): vals[j]*vals[j];
+      else { ierr = PetscPrintf(comm," %12g  ",vals[j]);CHKERRQ(ierr); }
     }
-    ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr);
+    if (!lev) { ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr); }
   }
   ierr = PetscFree(vals);CHKERRQ(ierr);
   if (B) { ierr = VecDestroy(w);CHKERRQ(ierr); }

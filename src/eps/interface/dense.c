@@ -400,7 +400,7 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,PetscScalar *Z,PetscScal
 
    Notes:
    This function reorders the eigenvalues in wr,wi located in positions k
-   to n in ascending order of magnitude. The Schur decomposition Z*T*Z^T,
+   to n in descending order of magnitude. The Schur decomposition Z*T*Z^T,
    is also reordered by means of rotations so that eigenvalues in the
    diagonal blocks of T follow the same order.
 

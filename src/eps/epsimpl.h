@@ -113,4 +113,9 @@ EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 
+/* Private functions of the solver implementations */
+
+EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int,Vec,PetscReal*);
+EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
+
 #endif
