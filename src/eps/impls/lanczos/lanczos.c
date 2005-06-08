@@ -67,12 +67,17 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   if (!eps->tol) eps->tol = 1.e-7;
 /*  if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");*/
-  if (!eps->ishermitian)
-    SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+/*  if (!eps->ishermitian)
+    SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");*/
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  if (eps->solverclass==EPS_TWO_SIDE) {
+    if (eps->Tl) { ierr = PetscFree(eps->Tl);CHKERRQ(ierr); }  
+    ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
+    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  }
+  else { ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -93,7 +98,7 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,
 
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); 
     eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],T+m*j,&norm,&breakdown);CHKERRQ(ierr);
@@ -445,14 +450,13 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   int            nconv,i,j,k,n,m,info,N,*perm,
                  ncv=eps->ncv;
   Vec            f=eps->work[0];
-  PetscScalar    *T=eps->T,*Y,*W;
+  PetscScalar    *T=eps->T,*Y;
   PetscReal      *ritz,*bnd,*E,*work,anorm,beta;
 
   PetscFunctionBegin;
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&W);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&E);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ncv*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
@@ -605,7 +609,6 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(ritz);CHKERRQ(ierr);
   ierr = PetscFree(bnd);CHKERRQ(ierr);
   ierr = PetscFree(Y);CHKERRQ(ierr);
-  ierr = PetscFree(W);CHKERRQ(ierr);
   ierr = PetscFree(E);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
@@ -747,6 +750,7 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
 }
 
 EXTERN_C_BEGIN
+EXTERN PetscErrorCode EPSSolve_TS_LANCZOS(EPS);
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_LANCZOS"
 PetscErrorCode EPSCreate_LANCZOS(EPS eps)
@@ -760,12 +764,15 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_LANCZOS));
   eps->data                      = (void *) lanczos;
   eps->ops->solve                = EPSSolve_LANCZOS;
+  eps->ops->solvets              = EPSSolve_TS_LANCZOS;
   eps->ops->setup                = EPSSetUp_LANCZOS;
   eps->ops->setfromoptions       = EPSSetFromOptions_LANCZOS;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->view                 = EPSView_LANCZOS;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
+  if (eps->solverclass==EPS_TWO_SIDE)
+       eps->ops->computevectors       = EPSComputeVectors_Schur;
+  else eps->ops->computevectors       = EPSComputeVectors_Default;
   lanczos->reorthog              = EPSLANCZOS_ORTHOG_FULL;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetOrthog_C","EPSLanczosSetOrthog_LANCZOS",EPSLanczosSetOrthog_LANCZOS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetOrthog_C","EPSLanczosGetOrthog_LANCZOS",EPSLanczosGetOrthog_LANCZOS);CHKERRQ(ierr);
