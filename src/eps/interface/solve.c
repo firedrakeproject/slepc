@@ -78,6 +78,25 @@ PetscErrorCode EPSSolve(EPS eps)
   * spectral transformations */
   ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
 
+  /* Adjust left eigenvectors in generalized problems: y = B^T y */
+  if (eps->isgeneralized && eps->solverclass == EPS_TWO_SIDE) {
+    Mat B;
+    KSP ksp;
+    Vec w;
+    ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
+    ierr = KSPCreate(eps->comm,&ksp);CHKERRQ(ierr);
+    ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
+    ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecCopy(eps->W[i],w);CHKERRQ(ierr);
+      ierr = KSPSolveTranspose(ksp,w,eps->W[i]);CHKERRQ(ierr);
+    }
+    ierr = KSPDestroy(ksp);CHKERRQ(ierr);
+    ierr = VecDestroy(w);CHKERRQ(ierr);
+  }
+  
+
 #ifndef PETSC_USE_COMPLEX
   /* reorder conjugate eigenvalues (positive imaginary first) */
   for (i=0; i<eps->nconv-1; i++) {
