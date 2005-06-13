@@ -108,7 +108,7 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
    l to index m only. The output information is:
 
    ngrp - number of entries of the group
-   ctr  - (w(l)+w(L+ngrp-1))/2
+   ctr  - (w(l)+w(l+ngrp-1))/2
    ae   - average of wr(l),...,wr(l+ngrp-1)
    arsd - average of rsd(l),...,rsd(l+ngrp-1)
 */
@@ -210,8 +210,8 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   /* Parameters */
   int            init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5,    /* Max num of iter before next SRR step */
-                 alpha = 1.0,     /* Used to predict when  */
-                 beta = 1.1,      /* Used to predict when  */
+                 alpha = 1.0,     /* Used to predict convergence of next residual */
+                 beta = 1.1,      /* Used to predict convergence of next residual */
                  grptol = 1e-8,   /* Tolerance for EPSFindGroup */
                  cnvtol = 1e-6;   /* Convergence criterion for cnv */
   int            orttol = 2;      /* Number of decimal digits whose loss
