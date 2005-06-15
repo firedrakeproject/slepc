@@ -8,48 +8,58 @@
 #include "petscblaslapack.h"
 PETSC_EXTERN_CXX_BEGIN
 
+
 #if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)
-#if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) s##lcase##_
+#if defined(PETSC_USE_COMPLEX)
 #define SLEPC_BLASLAPACK(lcase,ucase) c##lcase##_
 #else
-#define SLEPC_BLASLAPACK(lcase,ucase) z##lcase##_
+#define SLEPC_BLASLAPACK(lcase,ucase) s##lcase##_
 #endif
 #else
-#if defined(PETSC_USE_SINGLE)
-#define SLEPC_BLASLAPACK(lcase,ucase) s##lcase##_
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) d##lcase##_
+#if defined(PETSC_USE_COMPLEX)
+#define SLEPC_BLASLAPACK(lcase,ucase) z##lcase##_
 #else
 #define SLEPC_BLASLAPACK(lcase,ucase) d##lcase##_
 #endif
 #endif
+
 #elif defined(PETSC_HAVE_FORTRAN_CAPS)
-#if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) S##ucase
+#if defined(PETSC_USE_COMPLEX)
 #define SLEPC_BLASLAPACK(lcase,ucase) C##ucase
 #else
-#define SLEPC_BLASLAPACK(lcase,ucase) Z##ucase
+#define SLEPC_BLASLAPACK(lcase,ucase) S##ucase
 #endif
 #else
-#if defined(PETSC_USE_SINGLE)
-#define SLEPC_BLASLAPACK(lcase,ucase) S##ucase
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) D##ucase
+#if defined(PETSC_USE_COMPLEX)
+#define SLEPC_BLASLAPACK(lcase,ucase) Z##ucase
 #else
 #define SLEPC_BLASLAPACK(lcase,ucase) D##ucase
 #endif
 #endif
+
 #else
-#if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_SINGLE)
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) s##lcase
+#if defined(PETSC_USE_COMPLEX)
 #define SLEPC_BLASLAPACK(lcase,ucase) c##lcase
 #else
-#define SLEPC_BLASLAPACK(lcase,ucase) z##lcase
+#define SLEPC_BLASLAPACK(lcase,ucase) s##lcase
 #endif
 #else
-#if defined(PETSC_USE_SINGLE)
-#define SLEPC_BLASLAPACK(lcase,ucase) s##lcase
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) d##lcase
+#if defined(PETSC_USE_COMPLEX)
+#define SLEPC_BLASLAPACK(lcase,ucase) z##lcase
 #else
 #define SLEPC_BLASLAPACK(lcase,ucase) d##lcase
 #endif
 #endif
+
 #endif
 
 #define LAPACKlaev2_ SLEPC_BLASLAPACK(laev2,LAEV2)
@@ -74,16 +84,19 @@ PETSC_EXTERN_CXX_BEGIN
 #define LAPACKsygvd_ SLEPC_BLASLAPACK(hegvd,HEGVD)
 #endif
 
+#define LAPACKlamch_ SLEPC_BLASLAPACKREAL(lamch,LAMCH)
+#define LAPACKstevr_ SLEPC_BLASLAPACKREAL(stevr,stevr)
+
 EXTERN_C_BEGIN
 
+EXTERN PetscReal LAPACKlamch_(const char*,PetscBLASInt);
+EXTERN PetscReal LAPACKlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
+EXTERN PetscReal LAPACKlange_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
 EXTERN void      LAPACKlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 EXTERN void      LAPACKgehrd_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 EXTERN void      LAPACKorghr_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
-EXTERN PetscReal LAPACKlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
-EXTERN PetscReal LAPACKlange_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
 EXTERN void      LAPACKgetri_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
-EXTERN void      LAPACKstegr_(const char*,const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
-EXTERN void      LAPACKsteqr_(const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt);
+EXTERN void      LAPACKstevr_(const char*,const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 
 #if !defined(PETSC_USE_COMPLEX)
 EXTERN void      LAPACKhseqr_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
@@ -102,6 +115,7 @@ EXTERN void      LAPACKggevx_(const char*,const char*,const char*,const char*,Pe
 EXTERN void      LAPACKsyevr_(const char *,const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscBLASInt*, PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
 EXTERN void      LAPACKsygvd_(PetscBLASInt*,const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 #endif
+
 
 EXTERN_C_END
 
