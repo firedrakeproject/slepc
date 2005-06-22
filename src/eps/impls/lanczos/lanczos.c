@@ -136,7 +136,7 @@ static PetscErrorCode EPSSimpleLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     if (j == k) {
       ierr = EPSOrthogonalize(eps,1,V+j,f,T+m*j+j,&norm,breakdown);CHKERRQ(ierr);
     } else {
@@ -180,8 +180,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,k,V,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     if (j == k) {
       ierr = EPSOrthogonalize(eps,1,V+j,f,T+m*j+j,&norm,breakdown);CHKERRQ(ierr);
     } else {
@@ -324,7 +323,7 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
     } else if (j>1) {
       ierr = VecMDot(j-1,f,eps->V,omega);CHKERRQ(ierr);
       for (i=0;i<j-1 && !reorthog;i++) 
-	if (PetscAbsScalar(omega[i]) > PETSC_SQRT_MACHINE_EPSILON*norm) {
+	if (PetscAbsScalar(omega[i]) > PETSC_SQRT_MACHINE_EPSILON/sqrt(j)) {
 	  reorthog = PETSC_TRUE;
 	}
       if (reorthog) {
@@ -513,18 +512,20 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 #else
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
-  int            nconv,i,j,k,n,m,N,*perm,restart,
+  int            nconv,i,j,k,n,n2,m,N,*perm,restart,
                  *isuppz,*iwork,mout,lwork,liwork,vl,vu,info,
                  ncv=eps->ncv;
   Vec            f=eps->work[0];
   PetscScalar    *T=eps->T,*Y,*H;
-  PetscReal      *ritz,*bnd,*D,*E,*work,anorm,beta,gap,norm,abstol;
-  PetscTruth     breakdown,*conv;
+  PetscReal      *ritz,*cullum_ritz,*bnd,*D,*E,*work,anorm,beta,gap,norm,abstol,restart_ritz,res;
+  PetscTruth     breakdown;
+  char           *conv;
 
   PetscFunctionBegin;
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&D);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&E);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscReal),&cullum_ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ncv*sizeof(int),&isuppz);CHKERRQ(ierr);
   lwork = 20*ncv;
@@ -535,11 +536,12 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&H);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscTruth),&conv);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0]);CHKERRQ(ierr);
   
+  restart_ritz = 0.0;
   abstol = 2.0*LAPACKlamch_("S",1);
   anorm = 1.0;
   nconv = 0;
@@ -576,14 +578,6 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
        and the off-diagonal elements in E  */
 
     n = m - nconv;
-//  DIAGONAL SUPERIOR 
-//    ritz[0] = PetscRealPart(T[nconv*(ncv+1)]);
-//    for (i=1;i<n;i++) {
-//      ritz[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
-//      E[i-1] = PetscRealPart(T[(i+nconv)*(ncv+1)-1]);
-//    }
-
-//  DIAGONAL INFERIOR
     for (i=0;i<n-1;i++) {
       D[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
       E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
@@ -610,19 +604,21 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) */
-/*    for (i=0;i<n;i++) {
-      gap = PETSC_MAX;
-      for (j=0;j<nconv;j++) 
-        if (PetscAbsScalar(ritz[i]-eps->eigr[j])<gap)
-       gap = PetscAbsScalar(ritz[i]-eps->eigr[j]);
-      for (j=0;j<n;j++) 
-        if (i!=j && PetscAbsScalar(ritz[i]-ritz[j])<gap)
-       gap = PetscAbsScalar(ritz[i]-ritz[j]);
-      bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]) * beta*PetscAbsScalar(Y[i*n+n-1]) / gap;
-      if (bnd[i] < beta*PetscAbsScalar(Y[i*n+n-1])) printf("gap %g\n",gap);
-    } */
-    for (i=0;i<n;i++) 
+    for (i=0;i<n;i++)
       bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]) + PETSC_MACHINE_EPSILON*anorm;
+//     for (i=0;i<n;i++) { /* refine bounds */
+//       gap = PETSC_MAX;
+//       for (j=0;j<nconv;j++) 
+// 	if (PetscAbsScalar(ritz[i]-eps->eigr[j])<gap)
+//           gap = PetscAbsScalar(ritz[i]-eps->eigr[j]);
+//       for (j=0;j<n;j++) 
+// 	if (i!=j && PetscAbsScalar(ritz[i]-ritz[j])<gap)
+//           gap = PetscAbsScalar(ritz[i]-ritz[j]);
+//       if (gap < bnd[i] && gap > 0) {
+//         printf("ritz %g bnd %g gap %g\n",ritz[i],bnd[i],gap);
+//         bnd[i] = bnd[i] * (bnd[i] / gap);
+//       }
+//     }
 
 /*    ierr = RefineBounds(n,ritz,bnd,eps->tol,eps->tol*anorm*N);CHKERRQ(ierr);*/
 #ifdef PETSC_USE_COMPLEX
@@ -634,71 +630,64 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     ierr = EPSSortEigenvalues(n,ritz,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
 #endif
 
-/* CULLUM 
-    m = n-1;
-    for (i=0;i<m;i++) {
-      D[i] = PetscRealPart(T[(i+nconv+1)*(ncv+1)]);
-      E[i] = PetscRealPart(T[(i+nconv+1)*(ncv+1)+1]);
-    }
-    LAPACKsteqr_("N",&m,D,E,PETSC_NULL,&m,work,&info,1);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
-
-    k = nconv;
-    for (i=0;i<n;i++) {
-      eps->eigr[nconv+i] = ritz[perm[i]];
-      eps->errest[nconv+i] = bnd[perm[i]] / PetscAbsReal(ritz[perm[i]]);
-      repeated = PETSC_FALSE;
-      while (i<n-1 && 
-             PetscAbsReal(ritz[perm[i]]-ritz[perm[i+1]])
-	     / PetscAbsReal(ritz[perm[i+1]]) < eps->tol) {
-	i++;
-	eps->eigr[nconv+i] = ritz[perm[i]];
-	eps->errest[nconv+i] = bnd[perm[i]] / PetscAbsReal(ritz[perm[i]]);
-	repeated = PETSC_TRUE;
+    if (lanczos->reorthog == EPSLANCZOS_ORTHOG_NONE) {
+      /* Cullum device */
+      n2 = n-1;
+      for (i=0;i<n2-1;i++) {
+	D[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
+	E[i] = PetscRealPart(T[(i+nconv)*(ncv+1)+1]);
       }
-      if (eps->errest[nconv+i]<eps->tol) {
-	j = 0; found = PETSC_FALSE;
-	while (j<m && !found) {
-          found = PetscAbsReal(D[j]-eps->eigr[nconv+i]) / PetscAbsReal(D[j]) < 100*eps->tol;
-	  j++;
-	}
-	if (found) printf("found %i %e\n", nconv+i, eps->eigr[nconv+i]);
-	if (!found || (found && repeated)) {
-          if (i>k) {
-	    j = perm[i]; perm[i] = perm[k]; perm[k] = j;
-	    ts = eps->eigr[nconv+i]; eps->eigr[nconv+i] = eps->eigr[nconv+k]; eps->eigr[nconv+k] = ts;
-	    ts = eps->errest[nconv+i]; eps->errest[nconv+i] = eps->errest[nconv+k]; eps->errest[nconv+k] = ts;
-	  }
-          k++;
-	}
-      } 
+      D[n2-1] = PetscRealPart(T[(n2-1+nconv)*(ncv+1)]);
+      LAPACKstevr_("N","A",&n2,D,E,&vl,&vu,PETSC_NULL,PETSC_NULL,&abstol,&mout,cullum_ritz,PETSC_NULL,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEVR %i",info);
     }
-*/
    
     /* Look for converged eigenpairs */
     k = nconv;
     for (i=0;i<n;i++) {
-      conv[i] = PETSC_FALSE;
+      conv[i] = 'N';
       eps->eigr[k] = ritz[perm[i]];
-      eps->errest[k] = bnd[perm[i]] / PetscAbsReal(ritz[perm[i]]);      
+      eps->errest[k] = bnd[perm[i]] / PetscAbsReal(eps->eigr[k]);      
       if (eps->errest[k] < eps->tol) {
-        PetscReal res;
 	ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
 	ierr = VecMAXPY(eps->AV[k],n,Y+perm[i]*n,eps->V+nconv);CHKERRQ(ierr);
-	if (lanczos->reorthog != EPSLANCZOS_ORTHOG_FULL && lanczos->reorthog != EPSLANCZOS_ORTHOG_SELECTIVE) {
+	
+	if (lanczos->reorthog == EPSLANCZOS_ORTHOG_NONE) {
+          if (i>0 && PetscAbsScalar((eps->eigr[k]-ritz[perm[i-1]]) / eps->eigr[k]) < PETSC_MACHINE_EPSILON*anorm) {
+  	    /* Discard repeated eigenvalues */
+            conv[i] = 'R';
+//            printf("[%i] Repeat %i %g %g\n",eps->its,i,eps->eigr[k],ritz[perm[i-1]]);
+ 	  } //else if (i<n-1 && PetscAbsScalar((eps->eigr[k]-ritz[perm[i+1]]) / eps->eigr[k]) >= PETSC_MACHINE_EPSILON*anorm) {
+ 	    /* Discard spurious eigenvalues via Cullum check */
+//   	    for (j=0;j<n2;j++) {
+//   	      if (PetscAbsScalar((eps->eigr[k]-cullum_ritz[j]) / eps->eigr[k]) < PETSC_MACHINE_EPSILON) {
+//   		printf("[%i] Cullum %i %.14g %.14g\n",eps->its,i,eps->eigr[k],cullum_ritz[j]);
+//   		eps->errest[k] = eps->tol * 10;
+//  		conv[i] = 'S';
+//   	      }
+//   	    }
+// 	  }
+//             printf("[%i] ? %i %.16e errest=%g norm=%g\n",eps->its,i,eps->eigr[k],eps->errest[k],norm);
+//             ierr = STApply(eps->OP,eps->AV[k],f);CHKERRQ(ierr);
+//             ierr = VecAXPY(f,-eps->eigr[k],eps->AV[k]);CHKERRQ(ierr);
+//             ierr = VecNorm(f,NORM_2,&res);CHKERRQ(ierr);
+//             eps->errest[k] = res / PetscAbsScalar(eps->eigr[k]);
+          if (conv[i] == 'N') {
+	    ierr = VecNorm(eps->AV[k],NORM_2,&norm);CHKERRQ(ierr);
+            ierr = VecScale(eps->AV[k],1.0/norm);CHKERRQ(ierr);
+            eps->errest[k] = eps->errest[k] / norm;
+	    if (eps->errest[k] < eps->tol) {
+              conv[i] = 'C';
+//   	      printf("[%i] C %i %.16e errest=%g norm=%g\n",eps->its,i,eps->eigr[k],eps->errest[k],norm);
+	      k++;
+	    }
+	  }
+	} else {
+          conv[i] = 'C';
           ierr = VecNorm(eps->AV[k],NORM_2,&norm);CHKERRQ(ierr);
-          ierr = VecScale(eps->AV[k],1.0/norm);CHKERRQ(ierr);
-	  eps->errest[k] = eps->errest[k] / norm;
+//	  printf("[%i] C %i %.14e errest=%g norm=%g\n",eps->its,i,eps->eigr[k],eps->errest[k],norm);
+          k++;
 	}
-//      ierr = STApply(eps->OP,eps->AV[k],f);CHKERRQ(ierr);
-//      ierr = VecAXPY(f,-eps->eigr[k],eps->AV[k]);CHKERRQ(ierr);
-//      ierr = VecNorm(f,NORM_2,&res);CHKERRQ(ierr);
-//      eps->errest[k] = res / PetscAbsScalar(eps->eigr[k]);
-        if (eps->errest[k] < eps->tol) {
-	  conv[i] = PETSC_TRUE;
-//          printf("[%i] C %i %g errest=%g norm=%g\n",eps->its,k,eps->eigr[k],eps->errest[k],norm);
-   	  k++;
-  	}
       }
     }
 
@@ -706,8 +695,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     j = k;
     restart = -1;
     for (i=0;i<n;i++) {
-      if (!conv[i]) {
-        if (restart == -1) restart = i;
+      if (conv[i] != 'C') {
+        if (restart == -1 && conv[i] == 'N') restart = i;
         eps->eigr[j] = ritz[perm[i]];
         eps->errest[j] = bnd[perm[i]] / ritz[perm[i]];
 //	printf("[%i] N %i %g (%g)\n",eps->its,j,eps->eigr[j],eps->errest[j]);
@@ -716,16 +705,24 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     }
     if (breakdown) restart = -1;
     
-    if (k<eps->nev && restart != -1) {
-      /* use first not converged vector for restarting */
-      ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[k],n,Y+perm[restart]*n,eps->V+nconv);CHKERRQ(ierr);
-/*      if (lanczos->reorthog != EPSLANCZOS_ORTHOG_FULL && lanczos->reorthog != EPSLANCZOS_ORTHOG_SELECTIVE) {
-        ierr = VecNorm(eps->AV[k],NORM_2,&norm);CHKERRQ(ierr);
-        ierr = VecScale(eps->AV[k],1.0/norm);CHKERRQ(ierr);
-      } */
-      ierr = VecCopy(eps->AV[k],eps->V[k]);CHKERRQ(ierr);
-//      printf("[%i] R %i %g errest=%g norm=%g\n",eps->its,k,eps->eigr[k],eps->errest[k],norm);
+    if (k<eps->nev) {
+      if (lanczos->reorthog == EPSLANCZOS_ORTHOG_SELECTIVE && restart != -1) {
+	if (PetscAbsScalar(restart_ritz - ritz[perm[restart]]) < PETSC_MACHINE_EPSILON) {
+	  restart = -1;
+	  restart_ritz = 0;
+        } else restart_ritz = ritz[perm[restart]];
+      }
+      if (restart != -1) {
+	/* use first not converged vector for restarting */
+	ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
+	ierr = VecMAXPY(eps->AV[k],n,Y+perm[restart]*n,eps->V+nconv);CHKERRQ(ierr);
+	ierr = VecCopy(eps->AV[k],eps->V[k]);CHKERRQ(ierr);
+      } else {
+	/* use random vector for restarting */
+	ierr = SlepcVecSetRandom(eps->V[k]);CHKERRQ(ierr);
+	PetscLogInfo((eps,"Using random vector for restart\n"));
+//        printf("Using random vector for restart\n");
+      }
     }
     
     /* copy converged vectors to V */
@@ -733,27 +730,23 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
 
-    if (k<eps->nev && restart != -1) {
-      if (lanczos->reorthog == EPSLANCZOS_ORTHOG_PERIODIC && lanczos->reorthog == EPSLANCZOS_ORTHOG_PARTIAL) {
+    if (k<eps->nev) {
+      if (restart == -1 || lanczos->reorthog == EPSLANCZOS_ORTHOG_NONE) {
+        /* reorthonormalize restart vector */
         ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-        ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
-      }
-    }
-
-    if (k<eps->nev && restart == -1) {
-      /* use random vector for restarting */
-//      printf("Using random vector for restart\n");
-      PetscLogInfo((eps,"Using random vector for restart\n"));
-//    ierr = EPSGetStartVector(eps,k,eps->V[k]);CHKERRQ(ierr);
-      ierr = SlepcVecSetRandom(eps->V[k]);CHKERRQ(ierr);
-      ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-      if (breakdown) {
-        eps->reason = EPS_DIVERGED_BREAKDOWN;
-	printf("Unable to generate more start vectors\n");
-	PetscLogInfo((eps,"Unable to generate more start vectors\n"));
+	if (breakdown) {
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+	  PetscLogInfo((eps,"Unable to generate more start vectors\n"));
+//	  printf("Unable to generate more start vectors\n");
+	} else {
+          ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
+	}
       } else {
-        ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
+        /* normalize restart vector */         
+        ierr = VecNorm(eps->V[k],NORM_2,&norm);CHKERRQ(ierr);
+//        ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
       }
+//      printf("[%i] R %i %g errest=%g norm=%g\n",eps->its,k,eps->eigr[k],eps->errest[k],norm);
     }
 
     nconv = k;
