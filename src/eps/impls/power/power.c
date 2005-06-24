@@ -314,8 +314,8 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     /* theta = (v,z)_B */
     ierr = STInnerProduct(eps->OP,v,z,&theta);CHKERRQ(ierr);
 
-    ///* theta = (y,w)_B */
-    //ierr = STInnerProduct(eps->OP,y,w,&theta);CHKERRQ(ierr);
+    /* theta = (y,w)_B */
+    /* ierr = STInnerProduct(eps->OP,y,w,&theta);CHKERRQ(ierr); */
 
     if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
