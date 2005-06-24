@@ -236,8 +236,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 EXTERN PetscErrorCode EPSSolve_TS_ARNOLDI(EPS);
+
+EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_ARNOLDI"
 PetscErrorCode EPSCreate_ARNOLDI(EPS eps)

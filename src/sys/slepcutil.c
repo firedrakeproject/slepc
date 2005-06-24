@@ -281,7 +281,13 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     ierr = VecMDot(nv,w,V,vals);CHKERRQ(ierr);
     for (j=0;j<nv;j++) {
       if (lev) *lev += (j==i)? (vals[j]-1.0)*(vals[j]-1.0): vals[j]*vals[j];
-      else { ierr = PetscPrintf(comm," %12g  ",vals[j]);CHKERRQ(ierr); }
+      else { 
+#ifndef PETSC_USE_COMPLEX
+        ierr = PetscPrintf(comm," %12g  ",vals[j]);CHKERRQ(ierr); 
+#else
+        ierr = PetscPrintf(comm," %12g%+12gi ",PetscRealPart(vals[j]),PetscImaginaryPart(vals[j]));CHKERRQ(ierr);     
+#endif
+      }
     }
     if (!lev) { ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr); }
   }

@@ -140,8 +140,8 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
                  ncv=eps->ncv;
   Vec            fv=eps->work[0];
   Vec            fw=eps->work[1];
-  PetscScalar    *T=eps->T,*Tl=eps->Tl,*Y,*U,*Ul,*delta,*eigr,*eigi;
-  PetscReal      *ritz,*bnd,*E,*work,betav,betaw;
+  PetscScalar    *T=eps->T,*Tl=eps->Tl,/* *Y, */ *U,*Ul,*delta,*eigr,*eigi,*work;
+  PetscReal      *ritz,*bnd,*E,betav,betaw;
 
   PetscFunctionBegin;
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
@@ -150,7 +150,7 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Ul);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&E);CHKERRQ(ierr);
-  ierr = PetscMalloc((ncv+4)*ncv*sizeof(PetscReal),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc((ncv+4)*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&delta);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eigr);CHKERRQ(ierr);
