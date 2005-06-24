@@ -454,7 +454,8 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
-/*
+
+#if 0
 PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
 PetscErrorCode VecMDotEnd(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
 
@@ -489,7 +490,7 @@ PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscSc
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-    // ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr);
+    /* ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr); */
     break;
   }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
@@ -517,13 +518,13 @@ PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScal
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-    // ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr); 
+    /* ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr); */
     break;
   }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-*/
+#endif
 
 #undef __FUNCT__  
 #define __FUNCT__ "STInnerProductBegin"
