@@ -24,7 +24,6 @@ typedef struct _p_EPS* EPS;
 #define EPSPOWER     "power"
 #define EPSSUBSPACE  "subspace"
 #define EPSARNOLDI   "arnoldi"
-#define EPSARNOLDI2  "arnoldi2"
 #define EPSLANCZOS   "lanczos"
 #define EPSLAPACK    "lapack"
 /* the next ones are interfaces to external libraries */
@@ -152,10 +151,10 @@ typedef enum { EPSLANCZOS_ORTHOG_NONE,
                EPSLANCZOS_ORTHOG_FULL,
 	       EPSLANCZOS_ORTHOG_SELECTIVE,
                EPSLANCZOS_ORTHOG_PERIODIC,
-               EPSLANCZOS_ORTHOG_PARTIAL } EPSLanczosOrthogType;
+               EPSLANCZOS_ORTHOG_PARTIAL } EPSLanczosReorthogType;
 
-EXTERN PetscErrorCode EPSLanczosSetOrthog(EPS,EPSLanczosOrthogType);
-EXTERN PetscErrorCode EPSLanczosGetOrthog(EPS,EPSLanczosOrthogType*);
+EXTERN PetscErrorCode EPSLanczosSetReorthog(EPS,EPSLanczosReorthogType);
+EXTERN PetscErrorCode EPSLanczosGetReorthog(EPS,EPSLanczosReorthogType*);
 
 EXTERN PetscErrorCode EPSBlzpackSetBlockSize(EPS,int);
 EXTERN PetscErrorCode EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);

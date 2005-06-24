@@ -38,7 +38,7 @@
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetorthogonalization_    epsgetorthogonalization
 #define epspowergetshifttype_       epspowergetshifttype
-#define epslanczosgetorthog_        epslanczosgetorthog
+#define epslanczosgetreorthog_      epslanczosgetreorthog
 #endif
 
 EXTERN_C_BEGIN
@@ -174,9 +174,9 @@ void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,int *
   *ierr = EPSPowerGetShiftType(*eps,shift);
 }
 
-void PETSC_STDCALL epslanczosgetorthog_(EPS *eps,EPSLanczosOrthogType *reorthog,int *ierr)
+void PETSC_STDCALL epslanczosgetreorthog_(EPS *eps,EPSLanczosReorthogType *reorthog,int *ierr)
 {
-  *ierr = EPSLanczosGetOrthog(*eps,reorthog);
+  *ierr = EPSLanczosGetReorthog(*eps,reorthog);
 }
 EXTERN_C_END
 
