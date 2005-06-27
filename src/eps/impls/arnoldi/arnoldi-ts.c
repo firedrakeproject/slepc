@@ -20,7 +20,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   PetscScalar    *Hr=eps->T,*Ur,*work;
   PetscScalar    *Hl=eps->Tl,*Ul;
   PetscReal      beta,gamma;
-  PetscScalar    *eigr,*eigi;
+  PetscScalar    *eigr,*eigi,*aux;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(Hr,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -30,6 +30,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   ierr = PetscMalloc((ncv+4)*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eigr);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eigi);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&aux);CHKERRQ(ierr);
 
   eps->nconv = 0;
   eps->its = 0;
@@ -45,6 +46,15 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
     /* Compute an ncv-step Arnoldi factorization for both A and A' */
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,ncv,fr,&beta);CHKERRQ(ierr);
     ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,ncv,fl,&gamma);CHKERRQ(ierr);
+
+    ierr = EPSBiOrthogonalize(eps,ncv,Qr,Ql,fr,aux,PETSC_NULL);CHKERRQ(ierr);
+    for (i=0;i<ncv;i++) {
+      Hr[ncv*(ncv-1)+i] += beta * aux[i];
+    }
+    ierr = EPSBiOrthogonalize(eps,ncv,Ql,Qr,fl,aux,PETSC_NULL);CHKERRQ(ierr);
+    for (i=0;i<ncv;i++) {
+      Hl[ncv*(ncv-1)+i] += gamma * aux[i];
+    }
 
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(Ur,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -99,6 +109,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(eigr);CHKERRQ(ierr);
   ierr = PetscFree(eigi);CHKERRQ(ierr);
+  ierr = PetscFree(aux);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

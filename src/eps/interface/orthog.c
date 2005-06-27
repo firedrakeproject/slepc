@@ -272,7 +272,7 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
       nrm = norm;
     }
     
-    countorthog++;
+    countorthog+=n;
     switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
         ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,PETSC_NULL,v,h,hnrm,nrm);CHKERRQ(ierr);
@@ -296,6 +296,97 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
   } 
   PetscFunctionReturn(0);
 }
+
+/*
+    Biorthogonalization routine using classical Gram-Schmidt with refinement.
+ */
+#undef __FUNCT__  
+#define __FUNCT__ "EPSCGSBiOrthogonalization"
+static PetscErrorCode EPSCGSBiOrthogonalization(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  int            j,ione=1,lwork,info;
+  PetscScalar    shh[100],*lhh,*vw,*tau,one=1.0,*work;
+  Vec            w;
+
+  PetscFunctionBegin;
+
+  /* Don't allocate small arrays */
+  if (n<=100) lhh = shh;
+  else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  ierr = PetscMalloc(n*n*sizeof(PetscScalar),&vw);CHKERRQ(ierr);
+  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+  
+  for (j=0;j<n;j++) {
+    ierr = STMInnerProduct(eps->OP,n,V[j],W,vw+j*n);CHKERRQ(ierr);
+  }
+  lwork = n;
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  dgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info);
+  if (info<0) SETERRQ(1,"DGELQF");
+  
+  /*** First orthogonalization ***/
+
+  /* h = W^* v */
+  /* q = v - V h */
+  ierr = STMInnerProduct(eps->OP,n,v,W,H);CHKERRQ(ierr);
+  dtrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n);
+  dormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info);
+  if (info<0) SETERRQ(1,"DORMLQ");
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);
+  ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
+
+#if 0  
+  /* compute hnorm */
+  if (hnorm) {
+    *hnorm = 0.0;
+    for (j=0; j<n; j++) {
+      *hnorm += PetscRealPart(H[j] * PetscConj(H[j]));
+    }
+    *hnorm = sqrt(*hnorm);
+  }
+  
+  /* compute norm of v for refinement or linear dependence checking */
+  if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED ||
+      (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS && hnorm) ) {
+    ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);  
+  }
+
+  /*** Second orthogonalization if necessary ***/
+  
+  /* if ||q|| < eta ||h|| */
+  if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
+      eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
+    PetscLogInfo((eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
+    countreorthog++;
+
+    /* s = W^* q */
+    /* q = q - V s  ;  h = h + s */
+    ierr = STMInnerProduct(eps->OP,n,v,W,lhh);CHKERRQ(ierr);
+    for (j=0;j<n;j++) {
+      H[j] += lhh[j];
+    }
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,n,lhh,V);CHKERRQ(ierr);
+    ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
+
+    if (hnorm) *hnorm = *norm;
+  }
+#endif 
+
+  /* compute norm of v */
+  if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
+  
+  if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+  ierr = PetscFree(vw);CHKERRQ(ierr);
+  ierr = PetscFree(tau);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBiOrthogonalize"
 /*@
@@ -363,7 +454,7 @@ PetscErrorCode EPSBiOrthogonalize(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar 
     countorthog++;
     switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
-        ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
+        ierr = EPSCGSBiOrthogonalization(eps,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       case EPS_MGS_ORTH:
         ierr = EPSModifiedGramSchmidtOrthogonalization(eps,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
@@ -378,3 +469,4 @@ PetscErrorCode EPSBiOrthogonalize(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar 
   } 
   PetscFunctionReturn(0);
 }
+
