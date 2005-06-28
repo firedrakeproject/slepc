@@ -18,7 +18,7 @@ def Load(petscdir):
       f.close()
     except:
       sys.exit('ERROR: PETSc must be configured first')
-    if not petscarch:
+    if not ARCH:
       sys.exit('ERROR: please set enviroment variable PETSC_ARCH')
 
   MPIUNI = 0
