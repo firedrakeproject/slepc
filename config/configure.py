@@ -4,6 +4,7 @@ import os
 import sys
 
 import petscconf
+import log
 import check
 import arpack
 import blzpack
@@ -107,10 +108,12 @@ if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bma
 
 petscconf.Load(petscdir)
 
+log.Open('configure_log_' + petscconf.ARCH)
+
 # Check if PETSc is working
-print 'Checking PETSc library...'
+log.Println('Checking PETSc library...')
 if not check.Link([],[],[]):
-  sys.exit('ERROR: PETSc is not installed correctly')
+  log.Exit('ERROR: PETSc is not installed correctly')
 
 # Create architecture directory
 archdir = os.sep.join([slepcdir,'bmake',petscconf.ARCH])
@@ -118,12 +121,12 @@ if not os.path.exists(archdir):
   try:
     os.mkdir(archdir)
   except:
-    sys.exit('ERROR: cannot create architecture directory ' + archdir)
+    log.Exit('ERROR: cannot create architecture directory ' + archdir)
 
 slepcconf = open(os.sep.join([archdir,'slepcconf']),'w')
 
 # Check for missing LAPACK functions
-print 'Checking LAPACK library...'
+log.Println('Checking LAPACK library...')
 missing = lapack.Check(slepcconf)
 
 # Check for external packages
@@ -138,33 +141,33 @@ if havetrlan:
 
 slepcconf.close()
 
-print
-print '='*80
-print 'SLEPc Configuration'
-print '='*80
-print
-print 'SLEPc directory:'
-print ' ',slepcdir
-print 'PETSc directory:'
-print ' ',petscdir
-print 'Architecture "%s" with %s precision %s numbers' % (petscconf.ARCH,petscconf.PRECISION,petscconf.SCALAR)
+log.Println('')
+log.Println('='*80)
+log.Println('SLEPc Configuration')
+log.Println('='*80)
+log.Println('')
+log.Println('SLEPc directory:')
+log.Println(' '+slepcdir)
+log.Println('PETSc directory:')
+log.Println(' '+petscdir)
+log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if petscconf.MPIUNI:
-  print '  Uniprocessor version without MPI'
+  log.Println('  Uniprocessor version without MPI')
 if havearpack:
-  print 'ARPACK library flags:'
-  print ' ',str.join(' ',arpacklibs)
+  log.Println('ARPACK library flags:')
+  log.Println(' '+str.join(' ',arpacklibs))
 if haveblzpack:
-  print 'BLZPACK library flags:'
-  print ' ',str.join(' ',blzpacklibs)
+  log.Println('BLZPACK library flags:')
+  log.Println(' '+str.join(' ',blzpacklibs))
 if haveplanso:
-  print 'PLANSO library flags:'
-  print ' ',str.join(' ',plansolibs)
+  log.Println('PLANSO library flags:')
+  log.Println(' '+str.join(' ',plansolibs))
 if missing:
-  print 'LAPACK mising functions:'
-  print '  ',
-  for i in missing: print i,
-  print
-  print
-  print 'WARNING: Some SLEPc functionality will not be avaliable'
-  print 'PLEASE reconfigure and recompile PETSc with a full LAPACK implementation'
+  log.Println('LAPACK mising functions:')
+  log.Print('  ')
+  for i in missing: log.Print(i)
+  log.Println('')
+  log.Println('')
+  log.Println('WARNING: Some SLEPc functionality will not be avaliable')
+  log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 print

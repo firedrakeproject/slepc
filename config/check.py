@@ -3,6 +3,7 @@ import sys
 import commands
 
 import petscconf
+import log
  
 def Link(functions,callbacks,flags):
   os.chdir('config')
@@ -30,11 +31,13 @@ def Link(functions,callbacks,flags):
   (result, output) = commands.getstatusoutput(petscconf.MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
   os.chdir(os.pardir)
   if result:
+    log.Write(output)
     return 0
   else:
     return 1
 
 def FortranLink(functions,callbacks,flags):
+  log.Write('=== With linker flags: '+str.join(' ',flags))
   f = []
   for i in functions:
     f.append(i+'_')
@@ -72,7 +75,7 @@ def GenerateGuesses(name):
   return dirs
 
 def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
-  print 'Checking',name,'library...'
+  log.Println('Checking '+name+' library...')
 
   mangling = 0
   for d in dirs:

@@ -2,6 +2,7 @@ import os
 import sys
 
 import petscconf
+import log
 import check
 
 def Check(conf):
@@ -33,6 +34,7 @@ def Check(conf):
     f += prefix + i + '\n'
     f += '#endif\n'
    
+    log.Write('=== Checking LAPACK '+prefix+i+' function...')
     if not check.Link([f],[],[]):
       missing.append(prefix + i)
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i.upper())
@@ -52,6 +54,7 @@ def Check(conf):
     f += i + '\n'
     f += '#endif\n'
    
+    log.Write('=== Checking LAPACK '+i+' function...')
     if not check.Link([f],[],[]):
       missing.append(i)
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i.upper())
