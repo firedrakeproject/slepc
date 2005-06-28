@@ -4,28 +4,16 @@
 
    Method: Explicitly Restarted Arnoldi
 
-   Description:
-
-       This solver implements the Arnoldi method with explicit restart
-       and deflation.
-
    Algorithm:
 
-       The implemented algorithm builds an Arnoldi factorization of order
-       ncv. Converged eigenpairs are locked and the iteration is restarted
-       with the rest of the columns being the active columns for the next
-       Arnoldi factorization. Currently, no filtering is applied to the
-       vector used for restarting.
+       Arnoldi method with explicit restart and deflation.
 
    References:
 
-       [1] Z. Bai et al. (eds.), "Templates for the Solution of Algebraic
-       Eigenvalue Problems: A Practical Guide", SIAM (2000), pp 161-165.
+       [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4, 
+           available at http://www.grycap.upv.es/slepc.
 
-       [2] Y. Saad, "Numerical Methods for Large Eigenvalue Problems",
-       John Wiley (1992), pp 172-183.
-
-   Last update: June 2004
+   Last update: June 2005
 
 */
 #include "src/eps/epsimpl.h"
