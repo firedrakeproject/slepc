@@ -405,7 +405,7 @@ static PetscErrorCode EPSCGSBiOrthogonalization(EPS eps,int n,Vec *V,Vec *W,Vec 
 
    Output Parameter:
 +  H  - coefficients computed during orthogonalization
--  norm - norm of the vector ofter being orthogonalized
+-  norm - norm of the vector after being orthogonalized
 
    Notes:
    This function applies an oblique projector to project vector v onto the
