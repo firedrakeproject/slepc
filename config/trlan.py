@@ -1,31 +1,29 @@
 import os
 import sys
 
-from check import *
+import petscconf
+import check
 
-def checkTrlan(conf,directory,libs,scalar,precision,uniprocessor):
+def Check(conf,directory,libs):
 
-  if scalar == 'complex':
+  if petscconf.SCALAR == 'complex':
     sys.exit('ERROR: TRLAN does not support complex numbers.') 
 
-  if precision == 'single':
+  if petscconf.PRECISION == 'single':
     sys.exit('ERROR: TRLAN does not support single precision.') 
 
   functions = ['trlan77']
-  if uniprocessor:
-    if libs:
-      libs = [libs]
-    else:
-      libs = [['-ltrlan']]
+  if libs:
+    libs = [libs]
   else:
-    if libs:
-      libs = [libs]
+    if petscconf.MPIUNI:
+      libs = [['-ltrlan']]
     else:
       libs = [['-ltrlan_mpi']]
 
   if directory:
     dirs = [directory]
   else:
-    dirs = generateGuesses('TRLan')
+    dirs = check.GenerateGuesses('TRLan')
     
-  return checkFortranLib(conf,'TRLAN',dirs,libs,functions)
+  return check.FortranLib(conf,'TRLAN',dirs,libs,functions)

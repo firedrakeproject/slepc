@@ -1,14 +1,15 @@
 import os
 import sys
 
-from check import *
+import petscconf
+import check
 
-def checkPlanso(conf,directory,libs,scalar,precision,uniprocessor):
+def Check(conf,directory,libs):
 
-  if scalar == 'complex':
+  if petscconf.SCALAR == 'complex':
     sys.exit('ERROR: PLANSO does not support complex numbers.') 
 
-  if precision == 'single':
+  if petscconf.PRECISION == 'single':
     sys.exit('ERROR: PLANSO does not support single precision.') 
 
   functions = ['plandr2']
@@ -20,6 +21,6 @@ def checkPlanso(conf,directory,libs,scalar,precision,uniprocessor):
   if directory:
     dirs = [directory]
   else:
-    dirs = generateGuesses('Plan')
+    dirs = check.GenerateGuesses('Plan')
 
-  return checkFortranLib(conf,'PLANSO',dirs,libs,functions,['op','opm'])
+  return check.FortranLib(conf,'PLANSO',dirs,libs,functions,['op','opm'])

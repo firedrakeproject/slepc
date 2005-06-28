@@ -1,9 +1,10 @@
 import os
 import sys
+import commands
 
-MAKE = 'make'
-
-def checkLink(functions,callbacks,flags):
+import petscconf
+ 
+def Link(functions,callbacks,flags):
   os.chdir('config')
   cfile = open('checklink.c','w')
   cfile.write('#include "petsc.h"\n')
@@ -26,32 +27,32 @@ def checkLink(functions,callbacks,flags):
     cfile.write('();\n')
   cfile.write('return 0;\n}\n')
   cfile.close()
-  result = os.system(MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
+  (result, output) = commands.getstatusoutput(petscconf.MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
   os.chdir(os.pardir)
   if result:
     return 0
   else:
     return 1
 
-def checkFortranLink(functions,callbacks,flags):
+def FortranLink(functions,callbacks,flags):
   f = []
   for i in functions:
     f.append(i+'_')
   c = []
   for i in callbacks:
     c.append(i+'_')  
-  if checkLink(f,c,flags): return 'UNDERSCORE'
+  if Link(f,c,flags): return 'UNDERSCORE'
   f = []
   for i in functions:
     f.append(i.upper())
   c = []
   for i in callbacks:
     c.append(i.upper())  
-  if checkLink(f,c,flags): return 'CAPS'
-  if checkLink(functions,callbacks,flags): return 'STDCALL'
+  if Link(f,c,flags): return 'CAPS'
+  if Link(functions,callbacks,flags): return 'STDCALL'
   return ''
 
-def generateGuesses(name):
+def GenerateGuesses(name):
   installdirs = ['/usr/local','/opt']
   if 'HOME' in os.environ:
     installdirs.insert(0,os.environ['HOME'])
@@ -70,7 +71,9 @@ def generateGuesses(name):
   dirs = [''] + dirs
   return dirs
 
-def checkFortranLib(conf,name,dirs,libs,functions,callbacks = []):
+def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
+  print 'Checking',name,'library...'
+
   mangling = 0
   for d in dirs:
     for l in libs:
@@ -78,14 +81,16 @@ def checkFortranLib(conf,name,dirs,libs,functions,callbacks = []):
 	flags = ['-L' + d] + l
       else:
 	flags = l
-      mangling = checkFortranLink(functions,callbacks,flags)
+      mangling = FortranLink(functions,callbacks,flags)
       if mangling: break
     if mangling: break    
 
   if not mangling:
-    print
-    print '*'*80
-    sys.exit('ERROR: Unable to link with library ' + name)
+    print 'ERROR: Unable to link with library',name
+    print 'ERROR: In directories',dirs
+    print 'ERROR: With flags',libs
+    sys.exit(1)
+    
 
   conf.write('SLEPC_HAVE_' + name + ' = -DSLEPC_HAVE_' + name + ' -DSLEPC_' + name + '_HAVE_'+mangling+'\n')
   conf.write(name + '_LIB = '+str.join(' ',flags)+'\n')

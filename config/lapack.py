@@ -1,21 +1,22 @@
 import os
 import sys
 
-from check import *
+import petscconf
+import check
 
-def checkLapack(conf,scalar,precision):
+def Check(conf):
 
   functions = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx']
 
-  if scalar == 'real':
+  if petscconf.SCALAR == 'real':
     functions += ['orghr','syevr','sygvd']
-    if precision == 'double':
+    if petscconf.PRECISION == 'double':
       prefix = 'd'
     else:
       prefix = 's'
   else:
     functions += ['unghr','heevr','hegvd']
-    if precision == 'double':
+    if petscconf.PRECISION == 'double':
       prefix = 'z'
     else:
       prefix = 'c'
@@ -32,12 +33,12 @@ def checkLapack(conf,scalar,precision):
     f += prefix + i + '\n'
     f += '#endif\n'
    
-    if not checkLink([f],[],[]):
+    if not check.Link([f],[],[]):
       missing.append(prefix + i)
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i.upper())
 
 
-  if precision == 'double':
+  if petscconf.PRECISION == 'double':
     functions = ['dlamch','dstevr']
   else:
     functions = ['slamch','sstevr']
@@ -51,7 +52,7 @@ def checkLapack(conf,scalar,precision):
     f += i + '\n'
     f += '#endif\n'
    
-    if not checkLink([f],[],[]):
+    if not check.Link([f],[],[]):
       missing.append(i)
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i.upper())
   

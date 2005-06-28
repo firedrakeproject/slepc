@@ -1,14 +1,15 @@
 import os
 import sys
 
-from check import *
+import petscconf
+import check
 
-def checkBlzpack(conf,directory,libs,scalar,precision,uniprocessor):
+def Check(conf,directory,libs):
 
-  if scalar == 'complex':
+  if petscconf.SCALAR == 'complex':
     sys.exit('ERROR: BLZPACK does not support complex numbers.') 
   
-  if precision == 'double':
+  if petscconf.PRECISION == 'double':
     functions = ['blzdrd']
   else:
     functions = ['blzdrs']
@@ -21,6 +22,6 @@ def checkBlzpack(conf,directory,libs,scalar,precision,uniprocessor):
   if directory:
     dirs = [directory]
   else:
-    dirs = generateGuesses('Blzpack')
+    dirs = check.GenerateGuesses('Blzpack')
 
-  return checkFortranLib(conf,'BLZPACK',dirs,libs,functions)
+  return check.FortranLib(conf,'BLZPACK',dirs,libs,functions)
