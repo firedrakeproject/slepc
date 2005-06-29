@@ -1,16 +1,14 @@
 
 Fiedler vector of a 2-D regular mesh, N=100 (10x10 grid)
 
- Number of iterations of the method: 16
+ Number of iterations of the method: 96
  Solution method: lanczos
 
  Number of requested eigenvalues: 1
  Stopping condition: tol=1e-07, maxit=100
- Number of converged approximate eigenpairs: 3
+ Number of converged approximate eigenpairs: 1
 
            k          ||Ax-kx||/||kx||
    ----------------- ------------------
-       0.195774           0.000022
-       0.097887           0.000059
-       0.097887           0.000023
+       0.097887           0.000000
 

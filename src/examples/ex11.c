@@ -14,7 +14,6 @@ int main( int argc, char **argv )
   Mat         A;               /* operator matrix */
   Vec         x;
   EPS         eps;             /* eigenproblem solver context */
-  ST          st;
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
@@ -70,12 +69,9 @@ int main( int argc, char **argv )
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   
   /*
-     Specify some options: use shift-and-invert to compute eigenpairs
-     close to the origin
+     Select portion of spectrum
   */
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINV);CHKERRQ(ierr);
-  ierr = STSetShift(st,0);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime

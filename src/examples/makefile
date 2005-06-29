@@ -9,7 +9,7 @@ EXAMPLESCH =
 EXAMPLESF  = ex1f.F ex6f.F mvmisg.f
 
 TESTEXAMPLES_C  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
-                  ex4.PETSc runex4_1 ex4.rm ex5.PETSc runex5_1 runex5_2 ex5.rm \
+                  ex4.PETSc runex4_1 ex4.rm ex5.PETSc runex5_1 ex5.rm \
                   ex7.PETSc runex7_1 ex7.rm ex10.PETSc runex10_1 ex10.rm \
                   ex11.PETSc runex11_1 ex11.rm ex12.PETSc runex12_1 ex12.rm
 
