@@ -8,20 +8,16 @@ EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.
 EXAMPLESCH = 
 EXAMPLESF  = ex1f.F ex6f.F mvmisg.f
 
-TESTEXAMPLES_1  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
+TESTEXAMPLES_C  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
                   ex4.PETSc runex4_1 ex4.rm ex5.PETSc runex5_1 runex5_2 ex5.rm \
                   ex7.PETSc runex7_1 ex7.rm ex10.PETSc runex10_1 ex10.rm \
                   ex11.PETSc runex11_1 ex11.rm ex12.PETSc runex12_1 ex12.rm
-TESTEXAMPLES_2  = 
-TESTEXAMPLES_3  = ex1f.PETSc runex1f_1 ex1f.rm
-TESTEXAMPLES_9  = ex6f.PETSc runex6f_1 ex6f.rm
-TESTEXAMPLES_4  = ex3.PETSc runex3_1 ex3.rm
-TESTEXAMPLES_5  = 
-TESTEXAMPLES_11 = 
-TESTEXAMPLES_6  = 
-TESTEXAMPLES_7  = 
-TESTEXAMPLES_8  = 
-TESTEXAMPLES_13 = 
+
+TESTEXAMPLES_FORTRAN  = ex1f.PETSc runex1f_1 ex1f.rm
+
+TESTEXAMPLES_FORTRAN_MPIUNI  = ex6f.PETSc runex6f_1 ex6f.rm
+
+TESTEXAMPLES_C_X11_MPIUNI  = ex3.PETSc runex3_1 ex3.rm
 
 include ${SLEPC_DIR}/bmake/slepc_common
 
