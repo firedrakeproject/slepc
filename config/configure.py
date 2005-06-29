@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 
 import petscconf
 import log
@@ -84,7 +85,24 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-trlan'):
     havetrlan = not i.endswith('=0')
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
-    print 'HELP!'
+    print 'SLEPc Configure Help'
+    print '-'*80
+    print 'ARPACK:'
+    print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
+    print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
+    print '  --with-arpack-flags=<flags>      : Indicate comma-separated flags for linking ARPACK'
+    print 'BLZPACK:'
+    print '  --with-blzpack                   : Indicate if you wish to test for BLZPACK'
+    print '  --with-blzpack-dir=<dir>         : Indicate the directory for BLZPACK libraries'
+    print '  --with-blzpack-flags=<flags>     : Indicate comma-separated flags for linking BLZPACK'
+    print 'PLANSO:'
+    print '  --with-planso                    : Indicate if you wish to test for PLANSO'
+    print '  --with-planso-dir=<dir>          : Indicate the directory for PLANSO libraries'
+    print '  --with-planso-flags=<flags>      : Indicate comma-separated flags for linking PLANSO'
+    print 'TRLAN:'
+    print '  --with-trlan                     : Indicate if you wish to test for TRLAN'
+    print '  --with-trlan-dir=<dir>           : Indicate the directory for TRLAN libraries'
+    print '  --with-trlan-flags=<flags>       : Indicate comma-separated flags for linking TRLAN'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
@@ -109,6 +127,13 @@ if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bma
 petscconf.Load(petscdir)
 
 log.Open('configure_log_' + petscconf.ARCH)
+
+log.Write('='*80)
+log.Write('Starting Configure Run at '+time.ctime(time.time()))
+log.Write('Configure Options: '+str.join(' ',sys.argv))
+log.Write('Working directory: '+os.getcwd())
+log.Write('Python version:\n' + sys.version)
+log.Write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc library...')
@@ -168,6 +193,6 @@ if missing:
   for i in missing: log.Print(i)
   log.Println('')
   log.Println('')
-  log.Println('WARNING: Some SLEPc functionality will not be avaliable')
+  log.Println('WARNING: Some SLEPc functionality will not be available')
   log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 print
