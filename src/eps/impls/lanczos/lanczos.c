@@ -24,6 +24,14 @@
        - Full reorthogonalization: at each Lanczos step, the corresponding
        Lanczos vector is orthogonalized with respect to all the previous
        vectors.
+       
+       - Local reorthogonalization
+       
+       - Selective reorthogonalization
+       
+       - Periodic reorthogonalization
+       
+       - Partial reorthogonalization
 
    References:
 
@@ -163,6 +171,9 @@ static PetscErrorCode EPSSimpleLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSelectiveLanczos"
+/*
+   EPSSelectiveLanczos - Selective reorthogonalization.
+*/
 static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown,PetscReal anorm)
 {
 #if defined(SLEPC_MISSING_LAPACK_DSTEVR) || defined(SLEPC_MISSING_LAPACK_DLAMCH)
@@ -247,6 +258,9 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPeriodicLanczos"
+/*
+   EPSPeriodicLanczos - Periodic reorthogonalization.
+*/
 static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta, PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
@@ -305,6 +319,9 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPartialLanczos"
+/*
+   EPSPartialLanczos - Partial reorthogonalization.
+*/
 static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta, PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
