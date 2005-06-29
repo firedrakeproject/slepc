@@ -4,9 +4,6 @@
 */
 #include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
 
-int countorthog = 0;
-int countreorthog = 0;
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSQRDecomposition"
 /*@
@@ -119,7 +116,6 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
       eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
     PetscLogInfo((eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
-    countreorthog++;
 
     /* s = W^* q */
     /* q = q - V s  ;  h = h + s */
@@ -189,7 +185,6 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
       eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
     PetscLogInfo((eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
-    countreorthog++;
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
       ierr = STInnerProduct(eps->OP,v,W[j],&alpha);CHKERRQ(ierr);
@@ -272,7 +267,6 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
       nrm = norm;
     }
     
-    countorthog+=n;
     switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
         ierr = EPSClassicalGramSchmidtOrthogonalization(eps,n,V,PETSC_NULL,v,h,hnrm,nrm);CHKERRQ(ierr);
@@ -360,7 +354,6 @@ static PetscErrorCode EPSCGSBiOrthogonalization(EPS eps,int n,Vec *V,Vec *W,Vec 
   if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
       eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
     PetscLogInfo((eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
-    countreorthog++;
 
     /* s = W^* q */
     /* q = q - V s  ;  h = h + s */
@@ -451,7 +444,6 @@ PetscErrorCode EPSBiOrthogonalize(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar 
       nrm = norm;
     }
     
-    countorthog++;
     switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
         ierr = EPSCGSBiOrthogonalization(eps,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
