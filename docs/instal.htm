@@ -21,27 +21,21 @@
   </tr>
   <tr> 
     <td valign="top" height="984"> <div align="left"> 
-        <p align="left"><font face="Arial, Helvetica, sans-serif"><font size="3"><b>Installation 
-          Instructions for Unix Platforms</b></font> </font></p>
+        <p align="left"><font face="Arial, Helvetica, sans-serif"><font size="3">
+        <b>Installation Instructions</b></font> </font></p>
         <div align="left"> 
           <p><font size="2" face="Arial, Helvetica, sans-serif">Previously to 
             the installation of SLEPc, the system must have an appropriate version 
-            of PETSc installed. Check the <a href="changes.htm">Changes</a> 
+            of PETSc installed (see the <a href="http://www-unix.mcs.anl.gov/petsc/petsc-as/documentation/installation.html" target="_blank">PETSc installation documentation</a> for details). Check the <a href="changes.htm">Changes</a> 
             section for a list of SLEPc versions and their corresponding PETSc 
             versions. </font></p>
         </div>
         <font face="Arial, Helvetica, sans-serif"> 
-        <p><font size="2"> To install PETSc, the user simply sets the environment 
-          variables <font face="Courier New, Courier, mono">PETSC_DIR</font> and 
-          <font face="Courier New, Courier, mono">PETSC_ARCH </font>and types 
-          <font face="Courier New, Courier, mono">make</font>. Apart of this, 
-          some customization may be necessary, see the <a href="http://www-unix.mcs.anl.gov/petsc/petsc-2/documentation/installation.html" target="_blank">PETSc 
-          installation documentation</a> for details.</font></p>
-        <p><font size="2"> The installation process for SLEPc is very similar. 
-          The main steps are described next. Note that prior to this steps, optional 
-          packages must have been installed. If any of these packages is installed 
-          afterwards, recompilation is necessary. See below for details about 
-          installation of some of these packages.</font></p>
+        <p><font size="2">
+	The installation process for SLEPc is very similar to PETSc, with two stages: configuration and compilation. SLEPc configuration is much simpler because most of the configuration information is taken from PETSc, including compiler options and scalar type (real or complex). Several configurations can coexist in the same directory tree, being referred by different values of <font face="Courier New, Courier, mono">PETSC_ARCH</font>, so that one can, for instance, have a SLEPc compiled with real scalars and another one with complex scalars.</font></p>
+
+        <p><font size="2">
+	The main steps for the installation are described next. Note that prior to this steps, optional packages must have been installed (see below). If any of these packages is installed afterwards, reconfiguration and recompilation is necessary.</font></p> 
         </font></div>
       <ol>
         <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
@@ -52,7 +46,7 @@
           </font></font></li>
         <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Refer 
           to the Patches section </font><font face="Arial, Helvetica, sans-serif"><font size="2"> 
-          at the end of the <a href="http://www.grycap.upv.es/slepc/download.htm" target="_blank">Download</a> 
+          at the <a href="http://www.grycap.upv.es/slepc/download.htm" target="_blank">Download</a> 
           page</font></font> <font size="2">for available patches to the latest 
           SLEPc release.<br>
           </font></font></li>
@@ -60,57 +54,39 @@
           the environment variable <font face="Courier New, Courier, mono">SLEPC_DIR</font> 
           to the full path of the SLEPc home directory, for example,<br>
           &nbsp;&nbsp;&nbsp; <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setenv 
-          SLEPC_DIR /home/username/slepc-2.2.1</font><br>
+          SLEPC_DIR /home/username/slepc-2.3.x</font><br>
           In addition to this variable, <font face="Courier New, Courier, mono">PETSC_DIR</font> 
           and <font face="Courier New, Courier, mono">PETSC_ARCH</font> must also 
           be set correctly, the first one pointing to the PETSc home directory 
-          and the other containing the selected architecture (remember that PETSc 
-          allows several versions compiled for different architectures to coexist 
-          in the same directory tree).<br>
+          and the other containing the selected architecture.<br>
           </font></font></li>
-        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Edit 
-          the file<font face="Courier New, Courier, mono"> ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages 
-          to</font> indicate the local installation of optional software packages 
-          such as ARPACK. If there exists no directory named </font><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"><font face="Courier New, Courier, mono">bmake/${PETSC_ARCH}</font></font></font> 
-          <font size="2">for the value of </font><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"><font face="Courier New, Courier, mono">${PETSC_ARCH}</font></font></font> 
-          <font size="2">you are using, then create it similar to the existing 
-          ones. <br>
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
+          In the SLEPc directory, execute<br>
+          <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;./config/configure.py</font><br>
+          </font>Note that in order to enable external packages (see below), this command must be run with appropiate options. To see available options use <font face="Courier New, Courier, mono">./config/configure.py --help</font><br>
           </font></font></li>
         <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
           In the SLEPc home directory, type<br>
           <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
-          BOPT=g</font><br>
-          </font>to build a debugging version of SLEPc, or<br>
-          &nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
-          BOPT=O</font><br>
-          to build an optimized version of the SLEPc libraries. The flag <font face="Courier New, Courier, mono">BOPT</font> 
-          determines what type of libraries are built (i.e., specifies compiler 
-          options). Other available alternatives are <font face="Courier New, Courier, mono">BOPT=[g_complex,O_complex]</font> 
-          for complex numbers versions.<br>
+          </font></font><br>
           </font></font></li>
         <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">If 
           the installation went smoothly, then try running some test examples 
           with the command<br>
           <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
-          BOPT=g slepc_testexamples</font><br>
+          testexamples</font><br>
           </font></font><font size="2">Examine the output for any obvious errors 
           or problems.<br>
           </font></font></li>
-        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">The 
+        <li><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">If PETSc was configured with Fortran support, the SLEPc  
           Fortran libraries are built automatically during the installation outlined 
           above. To compile and test the Fortran examples, use the command<br>
           </font><font face="Arial, Helvetica, sans-serif"><font size="2"><font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
-          BOPT=g slepc_testfortran</font></font></font></font></font></li>
+          testfortran</font></font></font></font></font></li>
       </ol>
-      <p align="left">&nbsp;</p>
-      <p align="left"><font face="Arial, Helvetica, sans-serif"><font size="3"><b>Installation 
-        Instructions for Windows Platforms</b></font> </font></p>
       <div align="left"><font face="Arial, Helvetica, sans-serif"> 
-        <p><font size="2">SLEPc can be installed also in Windows machines with 
-          a similar procedure as in the case of PETSc. Follow the instructions 
-          given in the <a href="http://www-unix.mcs.anl.gov/petsc/petsc-2/documentation/installation/win.html" target="_blank">PETSc 
-          Windows installation document.</a></font></p>
         <p>&nbsp;</p>
+
         <p><font size="3"><b>Optional Software</b></font></p>
         <p><font size="2">SLEPc provides an interface to several software packages. 
           These should be installed before installing SLEPc. These packages are 
@@ -127,16 +103,17 @@
         </li>
         <li> 
           <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">Enable 
-            the utilization of the external software from SLEPc by editing the 
-            file <font face="Courier New, Courier, mono">${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages</font>. 
-            For example, to use ARPACK, one would specify the following variables 
-            with the appropriate paths:<br>
+            the utilization of the external software from SLEPc by adding specific command-line parameters when executing <font face="Courier New, Courier, mono">config/configure.py</font>. For example, to use ARPACK, specify the following options (with the appropriate paths):<br>
             <br>
-            <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;ARPACK_INCLUDE 
-            = <br>
-            &nbsp;&nbsp;&nbsp;ARPACK_LIB = -L/home/slepc/soft/ARPACK -lparpack 
-            &#8211;larpack<br>
-            &nbsp;&nbsp;&nbsp;SLEPC_HAVE_ARPACK = -DSLEPC_HAVE_ARPACK</font></font></font></div>
+            <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;
+	config/configure.py --with-arpack-dir=/usr/software/ARPACK <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--with-arpack-flags=-lparpack,-larpack
+            </font></font></font></div>
+        </li>
+        <li> 
+          <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">
+            Build the SLEPc libraries.  <br>
+            </font></font></div>
         </li>
       </ul>
       <div align="left"> 
@@ -160,10 +137,14 @@
           <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.nersc.gov/%7Ekewu/trlan.html" target="_blank">TRLAN</a> 
             (Dynamic Thick Restart Lanczos solver).</font></div>
         </li>
+        <li> 
+          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www-math.cudenver.edu/%7Eaknyazev/software/CG" target="_blank">LOBPCG</a> 
+            (Locally Optimal Block Preconditioned Conjugate Gradient).</font></div>
+        </li>
       </ul>
       <div align="left">
         <p><font size="2" face="Arial, Helvetica, sans-serif">Additional information 
-          about these packages can be found in Appendix B of the SLEPc Users Manual.</font> 
+          about these packages can be found in the SLEPc Users Manual.</font> 
         </p>
         <p>&nbsp;</p>
         <p>&nbsp;</p>
