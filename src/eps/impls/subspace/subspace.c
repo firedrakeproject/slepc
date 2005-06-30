@@ -4,31 +4,15 @@
 
    Method: Subspace Iteration
 
-   Description:
-
-       This solver implements a version of the subspace iteration (or
-       simultaneous iteration) for computing an orthogonal basis of an
-       invariant subspace associated to the dominant eigenpairs. 
-
    Algorithm:
 
-       The implemented algorithm is based on the SRRIT implementation (see
-       reference below).
-
-       The basic subspace iteration is a generalization of the power
-       method to m vectors, enforcing orthogonality between them to avoid
-       linear dependence. In addition, this implementation performs a
-       Rayleigh-Ritz projection procedure in order to improve convergence.
-       Deflation is handled by locking converged eigenvectors. For better
-       performance, orthogonalization and projection are performed only
-       when necessary.
+       Subspace iteration with Rayleigh-Ritz projection and locking,
+       based on the SRRIT implementation.
 
    References:
 
-       [1] G.W. Stewart and Z. Bai, "Algorithm 776. SRRIT - A Fortran 
-       Subroutine to Calculate the Dominant Invariant Subspace of a 
-       Nonsymmetric Matrix", ACM Transactions on Mathematical Software, 
-       23(4), pp. 494-513 (1997).
+       [1] "Subspace Iteration in SLEPc", SLEPc Technical Report STR-3, 
+           available at http://www.grycap.upv.es/slepc.
 
    Last update: June 2004
 

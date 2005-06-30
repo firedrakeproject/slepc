@@ -4,7 +4,7 @@
 
    Method: Power Iteration
 
-   Description:
+   Algorithm:
 
        This solver implements the power iteration for finding dominant
        eigenpairs. It also includes the following well-known methods:
@@ -13,23 +13,12 @@
        - Rayleigh Quotient Iteration (RQI): also with shift-and-invert plus
          a variable shift.
 
-   Algorithm:
-
-       The implemented algorithm is the simple power iteration working with
-       OP, the operator provided by the ST object. Converged eigenpairs are
-       deflated by restriction, so that several eigenpairs can be sought. 
-       Symmetry is preserved in symmetric definite pencils. See the SLEPc
-       users guide for details.
-
-       Variable shifts can be used. There are two possible strategies for
-       updating shift: Rayleigh quotients and Wilkinson shifts.
-
    References:
 
-       [1] B.N. Parlett, "The Symmetric Eigenvalue Problem", SIAM Classics in 
-       Applied Mathematics (1998), pp 61-80 and 159-165.
+       [1] "Single Vector Iteration Methods in SLEPc", SLEPc Technical Report STR-2, 
+           available at http://www.grycap.upv.es/slepc.
 
-   Last update: June 2004
+   Last update: June 2005
 
 */
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
@@ -71,62 +60,6 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
-#if 0
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPowerUpdateShift"
-/*
-   EPSPowerUpdateShift - Computes the new shift to be used in the next
-   iteration of the power method. This function is invoked only when using
-   the option of variable shifts (see EPSPowerSetShiftType).
-*/
-static PetscErrorCode EPSPowerUpdateShift(EPS eps,Vec v,Vec w,PetscScalar* shift)
-{
-  PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
-  Vec            e, z;
-  Mat            A;
-  PetscReal      norm, rt1, rt2, cs1;
-  PetscScalar    alpha1, alpha2, beta1, sn1;
-
-  PetscFunctionBegin;
-  e = eps->work[0];
-  z = eps->work[1];
-  ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
-
-  /* compute the generalized Rayleigh quotient R(v,w) assuming (v,w)_B=1 */
-  ierr = MatMult(A,v,e);CHKERRQ(ierr);
-  ierr = VecDot(w,e,&alpha1);CHKERRQ(ierr);
-
-  /* in the case of Wilkinson the shift is improved */
-  if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
-#if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
-    SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
-#else 
-    /* beta1 is the norm of the residual associated to R(v) */
-    ierr = VecAXPY(e,-alpha1,v);CHKERRQ(ierr);
-    ierr = STNorm(eps->OP,e,&norm);CHKERRQ(ierr);
-    beta1 = norm;
-    
-    /* alfa2 = (e'*A*e)/(beta1*beta1), where e is the residual */
-    ierr = MatMult(A,e,z);CHKERRQ(ierr);
-    ierr = VecDot(e,z,&alpha2);CHKERRQ(ierr);
-    alpha2 = alpha2 / (beta1 * beta1);
-
-    /* choose the eigenvalue of [alfa1 beta1; beta1 alfa2] closest to alpha1 */
-    LAPACKlaev2_(&alpha1,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
-    if (PetscAbsScalar(rt1-alpha1) < PetscAbsScalar(rt2-alpha1)) {
-      *shift = rt1;
-    } else {
-      *shift = rt2;
-    }
-#endif 
-  }
-  else *shift = alpha1;
-
-  PetscFunctionReturn(0);
-}
-#endif 
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_POWER"
@@ -314,9 +247,6 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     /* theta = (v,z)_B */
     ierr = STInnerProduct(eps->OP,v,z,&theta);CHKERRQ(ierr);
 
-    /* theta = (y,w)_B */
-    /* ierr = STInnerProduct(eps->OP,y,w,&theta);CHKERRQ(ierr); */
-
     if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
       /* approximate eigenvalue is the Rayleigh quotient */
@@ -393,6 +323,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     }
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest_left,eps->nconv+1); 
 
     /* purge previously converged eigenvectors */
     ierr = EPSBiOrthogonalize(eps,eps->nconv,eps->V,eps->W,z,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
@@ -427,104 +358,6 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 
   PetscFunctionReturn(0);
 }
-
-#if 0
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_TS_POWER_OLD"
-PetscErrorCode EPSSolve_TS_POWER_OLD(EPS eps)
-{
-  PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
-  int            i;
-  Vec            v, w, y, z, e;
-  PetscReal      relerr;
-  PetscScalar    theta, alpha, rho;
-
-  PetscFunctionBegin;
-  v = eps->V[0];
-  y = eps->AV[0];
-  w = eps->W[0];
-  z = eps->AW[0];
-  e = eps->work[0];
-
-  ierr = VecCopy(eps->vec_initial,y);CHKERRQ(ierr);
-  ierr = VecCopy(eps->vec_initial_left,z);CHKERRQ(ierr);
-
-  eps->nconv = 0;
-  eps->its = 0;
-
-  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
-
-  while (eps->its<eps->max_it) {
-
-    /* deflation of converged eigenvectors */
-    ierr = EPSBiOrthogonalize(eps,eps->nconv,eps->V,eps->W,z,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSBiOrthogonalize(eps,eps->nconv,eps->W,eps->V,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-
-    /* normalize so that (y,z)_B=1  */
-    ierr = VecCopy(y,v);CHKERRQ(ierr);
-    ierr = VecCopy(z,w);CHKERRQ(ierr);
-    ierr = STInnerProduct(eps->OP,y,z,&alpha);CHKERRQ(ierr);
-    if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
-    if (alpha>0.0) {
-      alpha = 1.0/PetscSqrtScalar(alpha);
-      ierr = VecScale(v,alpha);CHKERRQ(ierr);
-      ierr = VecScale(w,alpha);CHKERRQ(ierr);
-    } else {
-      alpha = 1.0/PetscSqrtScalar(-alpha);
-      ierr = VecScale(v,alpha);CHKERRQ(ierr);
-      ierr = VecScale(w,-alpha);CHKERRQ(ierr);
-    }
-
-    /* y = OP v */
-    ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
-    ierr = STApplyTranspose(eps->OP,w,z);CHKERRQ(ierr);
-
-    /* theta = (y,w)_B */
-    ierr = STInnerProduct(eps->OP,y,w,&theta);CHKERRQ(ierr);
-
-    /* compute residual norm */
-    ierr = VecCopy(y,e);CHKERRQ(ierr);
-    ierr = VecAXPY(e,-theta,v);CHKERRQ(ierr);
-    ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-    relerr = relerr / PetscAbsScalar(theta);
-    eps->errest[eps->nconv] = relerr;
-    ierr = VecCopy(z,e);CHKERRQ(ierr);
-    ierr = VecAXPY(e,-theta,w);CHKERRQ(ierr);
-    ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-    relerr = relerr / PetscAbsScalar(theta);
-    eps->errest_left[eps->nconv] = relerr;
-
-    /* update eigenvalue and shift */
-    if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-        ierr = EPSPowerUpdateShift(eps,v,w,&rho);CHKERRQ(ierr);
-        /* change the shift only if rho is not too close to an eigenvalue */
-        if (relerr > 1000*eps->tol) {
-          ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
-        }
-        eps->eigr[eps->nconv] = rho;
-    } else {
-      eps->eigr[eps->nconv] = theta;
-    }
-
-    /* if ||y-theta v||_2 / |theta| < tol, accept eigenpair */
-    if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol) {
-      eps->nconv = eps->nconv + 1;
-      if (eps->nconv==eps->nev) break;
-      v = eps->V[eps->nconv];
-      w = eps->W[eps->nconv];
-    }
-
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest_left,eps->nconv+1); 
-    eps->its = eps->its + 1;
-  }
-
-  if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
-  else eps->reason = EPS_DIVERGED_ITS;
-
-  PetscFunctionReturn(0);
-}
-#endif
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBackTransform_POWER"
