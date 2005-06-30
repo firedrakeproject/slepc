@@ -1,14 +1,20 @@
 
 Markov Model, N=120 (m=15)
 
- Number of iterations of the method: 651
+ Number of iterations of the method: 643
  Solution method: power
 
- Number of requested eigenvalues: 1
+ Number of requested eigenvalues: 2
  Stopping condition: tol=1e-07, maxit=12000
- Number of converged approximate eigenpairs: 1
+ Number of converged approximate eigenpairs: 2
 
            k          ||Ax-kx||/||kx||   ||y'A-ky'||/||ky||
    ----------------- ------------------ --------------------
        1.000000           0.000000           0.000000
+       0.971367           0.000000           0.000000
+
+                   Bi-orthogonality <x,y>                   
+   ---------------------------------------------------------
+            1    1.06641e-07  
+ -8.49047e-08              1  
 

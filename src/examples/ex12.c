@@ -16,6 +16,8 @@ extern int MatMarkovModel( int m, Mat A );
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
+  Vec         v0,temp;         /* initial vector */
+  Vec         *X,*Y;           /* right and left eigenvectors */
   Mat         A;               /* operator matrix */
   EPS         eps;             /* eigenproblem solver context */
   EPSType     type;
@@ -63,6 +65,16 @@ int main( int argc, char **argv )
      Set solver parameters at runtime
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  /*
+     Set the initial vector. This is optional, if not done the initial
+     vector is set to random values
+  */
+  ierr = MatGetVecs(A,&v0,&temp);CHKERRQ(ierr);
+  ierr = VecSet(v0,1.0);CHKERRQ(ierr);
+  ierr = MatMult(A,v0,temp);CHKERRQ(ierr);
+  ierr = EPSSetInitialVector(eps,v0);CHKERRQ(ierr);
+  ierr = EPSSetLeftInitialVector(eps,temp);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
@@ -126,11 +138,29 @@ int main( int argc, char **argv )
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+
+    ierr = VecDuplicateVecs(v0,nconv,&X);
+    ierr = VecDuplicateVecs(temp,nconv,&Y);
+    for (i=0;i<nconv;i++) {
+      ierr = EPSGetRightVector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetLeftVector(eps,i,Y[i],PETSC_NULL);CHKERRQ(ierr);
+    }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,
+         "                   Bi-orthogonality <x,y>                   \n"
+         "   ---------------------------------------------------------\n" );CHKERRQ(ierr);
+
+    ierr = SlepcCheckOrthogonality(X,nconv,Y,nconv,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = VecDestroyVecs(X,nconv);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(Y,nconv);CHKERRQ(ierr);
+
   }
   
   /* 
      Free work space
   */
+  ierr = VecDestroy(v0);CHKERRQ(ierr);
+  ierr = VecDestroy(temp);CHKERRQ(ierr);
   ierr = EPSDestroy(eps);CHKERRQ(ierr);
   ierr = MatDestroy(A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
