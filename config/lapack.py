@@ -7,16 +7,16 @@ import check
 
 def Check(conf):
 
-  functions = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx']
+  functions = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx','gelqf']
 
   if petscconf.SCALAR == 'real':
-    functions += ['orghr','syevr','sygvd']
+    functions += ['orghr','syevr','sygvd','ormlq']
     if petscconf.PRECISION == 'double':
       prefix = 'd'
     else:
       prefix = 's'
   else:
-    functions += ['unghr','heevr','hegvd']
+    functions += ['unghr','heevr','hegvd','unmlq']
     if petscconf.PRECISION == 'double':
       prefix = 'z'
     else:

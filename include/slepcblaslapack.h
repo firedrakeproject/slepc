@@ -62,6 +62,7 @@ PETSC_EXTERN_CXX_BEGIN
 
 #endif
 
+#define BLAStrsm_    SLEPC_BLASLAPACK(trsm,TRSM)
 #define LAPACKlaev2_ SLEPC_BLASLAPACK(laev2,LAEV2)
 #define LAPACKgehrd_ SLEPC_BLASLAPACK(gehrd,GEHRD)
 #define LAPACKlanhs_ SLEPC_BLASLAPACK(lanhs,LANHS)
@@ -72,15 +73,18 @@ PETSC_EXTERN_CXX_BEGIN
 #define LAPACKtrevc_ SLEPC_BLASLAPACK(trevc,TREVC)
 #define LAPACKgeevx_ SLEPC_BLASLAPACK(geevx,GEEVX)
 #define LAPACKggevx_ SLEPC_BLASLAPACK(ggevx,GEEVX)
+#define LAPACKgelqf_ SLEPC_BLASLAPACK(gelqf,GELQF)
 
 #if !defined(PETSC_USE_COMPLEX)
 #define LAPACKorghr_ SLEPC_BLASLAPACK(orghr,ORGHR)
 #define LAPACKsyevr_ SLEPC_BLASLAPACK(syevr,SYEVR)
 #define LAPACKsygvd_ SLEPC_BLASLAPACK(sygvd,SYGVD)
+#define LAPACKormlq_ SLEPC_BLASLAPACK(ormlq,ORMLQ)
 #else
 #define LAPACKorghr_ SLEPC_BLASLAPACK(unghr,UNGHR)
 #define LAPACKsyevr_ SLEPC_BLASLAPACK(heevr,HEEVR)
 #define LAPACKsygvd_ SLEPC_BLASLAPACK(hegvd,HEGVD)
+#define LAPACKormlq_ SLEPC_BLASLAPACK(unmlq,UNMLQ)
 #endif
 
 #define LAPACKlamch_ SLEPC_BLASLAPACKREAL(lamch,LAMCH)
@@ -96,6 +100,9 @@ EXTERN void      LAPACKgehrd_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscSca
 EXTERN void      LAPACKorghr_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 EXTERN void      LAPACKgetri_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 EXTERN void      LAPACKstevr_(const char*,const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+EXTERN void      LAPACKgelqf_(PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+EXTERN void      BLAStrsm_(const char*,const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscBLASInt);
+EXTERN void      LAPACKormlq_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 
 #if !defined(PETSC_USE_COMPLEX)
 EXTERN void      LAPACKhseqr_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
