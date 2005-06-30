@@ -17,10 +17,6 @@ TODO
 
 (06) Nuevos EPS
 
-  b. Lanczos: Diversas versiones con diferentes
-     técnicas de reortogonalización (parcial, selectiva, mixta). Revisar
-     bibliografía e implementaciones (propack, blzpack, lanso, etc).
-
   c. Lanczos no simétrico: Algoritmo implementado en qmrpack.
 
   d. Davidson (y Davidson Generalizado al usar un precondicionado distinto
@@ -31,12 +27,13 @@ TODO
   f. IRA/IRL: basado en implementación de Arpack (Fortran o Matlab) o de
      irbleigs (versión a bloques).
 
-  g. Otros: ABLE, TRQ.
+  g. Otros: ABLE, TRQ, Krylov-Schur.
 
 (07) Gestión de vectores de trabajo
 
-  b. Ahorrar vectores de trabajo en EPSReverseProjection haciendo primero
-     la descomposición QR.
+  c. El usuario debe indicar antes de EPSSolve qué información (vectores)
+     requiere, y en base a esto SLEPc reservará el espacio necesario y hará
+     los cálculos que hagan falta.
 
 (08) Utilidades
 
@@ -78,9 +75,6 @@ TODO
      respecto de los demás) y EPSOrthogExpand (en ese caso crea un vector 
      aleatorio).
 
-  b. Implementar una función que mida la calidad de la ortogonalización 
-     (para debug, similar a la opción -pc_test_null_space).
-
   c. Deflation subspace en el caso de two-sided solvers.
 
 (13) Problemas Relacionados
@@ -108,5 +102,4 @@ BUGS
 DOCUMENTACION
 -------------
 
-- Añadir LOBPCG en el manual.
 
