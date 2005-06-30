@@ -1,3 +1,4 @@
+import sys
 
 def Open(filename):
   global f
