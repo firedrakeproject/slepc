@@ -6,7 +6,6 @@
 
 */
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
-#include "slepcblaslapack.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPlainBiLanczos"
@@ -131,10 +130,6 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
 #define __FUNCT__ "EPSSolve_TS_LANCZOS"
 PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_STEQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"STEQR - Lapack routine is unavailable.");
-#else
   PetscErrorCode ierr;
   int            i,j,k,m,N,*perm,
                  ncv=eps->ncv;
@@ -229,7 +224,6 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
   ierr = PetscFree(eigr);CHKERRQ(ierr);
   ierr = PetscFree(eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif 
 }
 
 

@@ -173,19 +173,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Compute an ncv-step Arnoldi factorization */
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
 
-    /* At this point, H has the following structure
-
-              | *   * | *   *   *   * |
-              |     * | *   *   *   * |
-              | ------|-------------- |
-          H = |       | *   *   *   * |
-              |       | *   *   *   * |
-              |       |     *   *   * |
-              |       |         *   * |
-
-       that is, an upper Hessenberg matrix of order ncv whose principal 
-       submatrix of order nconv is (quasi-)triangular.  */
-
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }

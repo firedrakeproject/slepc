@@ -4,50 +4,18 @@
 
    Method: Explicitly Restarted Symmetric/Hermitian Lanczos
 
-   Description:
-
-       This solver implements the Lanczos method for symmetric (Hermitian)
-       problems, with explicit restart and deflation. When building the 
-       Lanczos factorization, several reorthogonalization strategies can
-       be selected.
-
    Algorithm:
 
-       The implemented algorithm builds a Lanczos factorization of order
-       ncv. Converged eigenpairs are locked and the iteration is restarted
-       with the rest of the columns being the active columns for the next
-       Lanczos factorization. Currently, no filtering is applied to the
-       vector used for restarting.
-
-       The following reorthogonalization schemes are currently implemented:
-
-       - Full reorthogonalization: at each Lanczos step, the corresponding
-       Lanczos vector is orthogonalized with respect to all the previous
-       vectors.
-       
-       - Local reorthogonalization
-       
-       - Selective reorthogonalization
-       
-       - Periodic reorthogonalization
-       
-       - Partial reorthogonalization
+       Lanczos method for symmetric (Hermitian) problems, with explicit 
+       restart and deflation. Several reorthogonalization strategies can
+       be selected.
 
    References:
 
-       [1] B.N. Parlett, "The Symmetric Eigenvalue Problem", SIAM Classics in 
-       Applied Mathematics (1998), ch. 13.
+       [1] "Lanczos Methods in SLEPc", SLEPc Technical Report STR-5, 
+           available at http://www.grycap.upv.es/slepc.
 
-       [2] L. Komzsik, "The Lanczos Method. Evolution and Application", SIAM
-       (2003).
-
-       [3] B.N. Parlett and D.S. Scott, The Lanczos algorithm with selective
-       orthogonalization, Math. Comp., 33 (1979), no. 145, 217-238.
-
-       [4] H.D. Simon, The Lanczos algorithm with partial reorthogonalization,
-       Math. Comp., 42 (1984), no. 165, 115-142.
-
-   Last update: October 2004
+   Last update: June 2005
 
 */
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
@@ -486,22 +454,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     m = ncv;
     ierr = EPSBasicLanczos(eps,T,eps->V,nconv,&m,f,&beta,&breakdown,anorm);CHKERRQ(ierr);
 
-    /* At this point, T has the following structure
-
-              | *     |               |
-              |     * |               |
-              | ------|-------------- |
-          T = |       | *   *         |
-              |       | *   *   *     |
-              |       |     *   *   * |
-              |       |         *   * |
-
-       that is, a real symmetric tridiagonal matrix of order ncv whose 
-       principal submatrix of order nconv is diagonal.  */
-
     /* Extract the tridiagonal block from T. Store the diagonal elements in D 
        and the off-diagonal elements in E  */
-
     n = m - nconv;
     for (i=0;i<n-1;i++) {
       D[i] = PetscRealPart(T[(i+nconv)*(ncv+1)]);
@@ -576,7 +530,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       } else conv[i] = 'N';
     }
 
-    /* Look for unconverged eigenpairs */
+    /* Look for non-converged eigenpairs */
     j = k;
     restart = -1;
     for (i=0;i<n;i++) {
@@ -595,14 +549,14 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     
     if (k<eps->nev) {
       if (lanczos->reorthog == EPSLANCZOS_ORTHOG_SELECTIVE && restart != -1) {
-        /* avoid stagnation in selective reorthogonalization */
+        /* Avoid stagnation in selective reorthogonalization */
 	if (PetscAbsScalar(restart_ritz - ritz[perm[restart]]) < PETSC_MACHINE_EPSILON) {
 	  restart = -1;
 	  restart_ritz = 0;
         } else restart_ritz = ritz[perm[restart]];
       }
       if (restart != -1) {
-	/* use first not converged vector for restarting */
+	/* Use first non-converged vector for restarting */
 	ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
 #ifndef PETSC_USE_COMPLEX
 	ierr = VecMAXPY(eps->AV[k],n,Y+perm[restart]*n,eps->V+nconv);CHKERRQ(ierr);
@@ -613,20 +567,20 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 #endif
 	ierr = VecCopy(eps->AV[k],eps->V[k]);CHKERRQ(ierr);
       } else {
-	/* use random vector for restarting */
+	/* Use random vector for restarting */
 	ierr = SlepcVecSetRandom(eps->V[k]);CHKERRQ(ierr);
 	PetscLogInfo((eps,"Using random vector for restart\n"));
       }
     }
     
-    /* copy converged vectors to V */
+    /* Copy converged vectors to V */
     for (i=nconv;i<k;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
 
     if (k<eps->nev) {
       if (restart == -1 || lanczos->reorthog == EPSLANCZOS_ORTHOG_NONE) {
-        /* reorthonormalize restart vector */
+        /* Reorthonormalize restart vector */
         ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
 	if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
@@ -712,8 +666,8 @@ EXTERN_C_END
 -  reorthog - the type of reorthogonalization
 
    Options Database Key:
-.  -eps_lanczos_orthog - Sets the reorthogonalization type (either 'none' or 
-                           'full')
+.  -eps_lanczos_orthog - Sets the reorthogonalization type (either 'none', 'selective',
+                         'periodic', 'partial' or 'full')
    
    Level: advanced
 
@@ -793,7 +747,7 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN PetscErrorCode EPSSolve_TS_LANCZOS(EPS);
+/*EXTERN PetscErrorCode EPSSolve_TS_LANCZOS(EPS);*/
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -809,15 +763,15 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_LANCZOS));
   eps->data                      = (void *) lanczos;
   eps->ops->solve                = EPSSolve_LANCZOS;
-  eps->ops->solvets              = EPSSolve_TS_LANCZOS;
+/*  eps->ops->solvets              = EPSSolve_TS_LANCZOS;*/
   eps->ops->setup                = EPSSetUp_LANCZOS;
   eps->ops->setfromoptions       = EPSSetFromOptions_LANCZOS;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->view                 = EPSView_LANCZOS;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  if (eps->solverclass==EPS_TWO_SIDE)
+  /*if (eps->solverclass==EPS_TWO_SIDE)
        eps->ops->computevectors       = EPSComputeVectors_Schur;
-  else eps->ops->computevectors       = EPSComputeVectors_Default;
+  else*/ eps->ops->computevectors       = EPSComputeVectors_Default;
   lanczos->reorthog              = EPSLANCZOS_ORTHOG_NONE;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","EPSLanczosSetReorthog_LANCZOS",EPSLanczosSetReorthog_LANCZOS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_LANCZOS",EPSLanczosGetReorthog_LANCZOS);CHKERRQ(ierr);

@@ -3,10 +3,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = lanczos.c lanczos-ts.c
+SOURCEC  = lanczos.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = lanczos.o lanczos-ts.o
+OBJSC    = lanczos.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
