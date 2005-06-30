@@ -12,11 +12,13 @@
 #define EPSPOWER     'power'
 #define EPSSUBSPACE  'subspace'
 #define EPSARNOLDI   'arnoldi'
+#define EPSLANCZOS   'lanczos'
 #define EPSLAPACK    'lapack'
 #define EPSARPACK    'arpack'
 #define EPSBLZPACK   'blzpack'
 #define EPSPLANSO    'planso'
 #define EPSTRLAN     'trlan'
+#define EPSLOBPCG    'lobpcg'
 
 !  Convergence flags.
 !  They sould match the flags in $SLEPC_DIR/include/slepceps.h
@@ -78,5 +80,23 @@
       parameter (EPSPOWER_SHIFT_CONSTANT    =  0)
       parameter (EPSPOWER_SHIFT_RAYLEIGH    =  1)
       parameter (EPSPOWER_SHIFT_WILKINSON   =  2)
+
+      integer EPS_ONE_SIDE
+      integer EPS_TWO_SIDE
+
+      parameter (EPS_ONE_SIDE               =  0)
+      parameter (EPS_TWO_SIDE               =  1)
+
+      integer EPSLANCZOS_REORTHOG_NONE
+      integer EPSLANCZOS_REORTHOG_FULL
+      integer EPSLANCZOS_REORTHOG_SELECTIVE
+      integer EPSLANCZOS_REORTHOG_PERIODIC
+      integer EPSLANCZOS_REORTHOG_PARTIAL
+
+      parameter (EPSLANCZOS_REORTHOG_NONE      =  0)
+      parameter (EPSLANCZOS_REORTHOG_FULL      =  1)
+      parameter (EPSLANCZOS_REORTHOG_SELECTIVE =  2)
+      parameter (EPSLANCZOS_REORTHOG_PERIODIC  =  3)
+      parameter (EPSLANCZOS_REORTHOG_PARTIAL   =  4)
 
 #endif

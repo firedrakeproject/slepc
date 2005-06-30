@@ -12,6 +12,7 @@
 #define STSHIFT     'shift'
 #define STSINV      'sinvert'
 #define STCAYLEY    'cayley'
+#define STFOLD      'fold'
 
       integer STMATMODE_COPY
       integer STMATMODE_INPLACE

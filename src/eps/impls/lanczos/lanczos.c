@@ -383,19 +383,19 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
-    case EPSLANCZOS_ORTHOG_NONE:
+    case EPSLANCZOS_REORTHOG_NONE:
       ierr = EPSSimpleLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
       break;
-    case EPSLANCZOS_ORTHOG_SELECTIVE:
+    case EPSLANCZOS_REORTHOG_SELECTIVE:
       ierr = EPSSelectiveLanczos(eps,T,V,k,m,f,beta,breakdown,anorm);CHKERRQ(ierr);
       break;
-    case EPSLANCZOS_ORTHOG_PARTIAL:
+    case EPSLANCZOS_REORTHOG_PARTIAL:
       ierr = EPSPartialLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
       break;
-    case EPSLANCZOS_ORTHOG_PERIODIC:
+    case EPSLANCZOS_REORTHOG_PERIODIC:
       ierr = EPSPeriodicLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
       break;
-    case EPSLANCZOS_ORTHOG_FULL:
+    case EPSLANCZOS_REORTHOG_FULL:
       ierr = EPSFullLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
       break;
   }
@@ -491,7 +491,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       eps->errest[k] = bnd[perm[i]] / PetscAbsScalar(eps->eigr[k]);    
       if (eps->errest[k] < eps->tol) {
 	      
-	if (lanczos->reorthog == EPSLANCZOS_ORTHOG_NONE) {
+	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_NONE) {
           if (i>0 && PetscAbsScalar((eps->eigr[k]-ritz[perm[i-1]])/eps->eigr[k]) < eps->tol) {
   	    /* Discard repeated eigenvalues */
             conv[i] = 'R';
@@ -508,7 +508,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	}
 #endif	  
 	
-	if (lanczos->reorthog == EPSLANCZOS_ORTHOG_NONE) {
+	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_NONE) {
 	  ierr = VecNorm(eps->AV[k],NORM_2,&norm);CHKERRQ(ierr);
           ierr = VecScale(eps->AV[k],1.0/norm);CHKERRQ(ierr);
           eps->errest[k] = eps->errest[k] / norm;
@@ -548,7 +548,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     }
     
     if (k<eps->nev) {
-      if (lanczos->reorthog == EPSLANCZOS_ORTHOG_SELECTIVE && restart != -1) {
+      if (lanczos->reorthog == EPSLANCZOS_REORTHOG_SELECTIVE && restart != -1) {
         /* Avoid stagnation in selective reorthogonalization */
 	if (PetscAbsScalar(restart_ritz - ritz[perm[restart]]) < PETSC_MACHINE_EPSILON) {
 	  restart = -1;
@@ -579,7 +579,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     }
 
     if (k<eps->nev) {
-      if (restart == -1 || lanczos->reorthog == EPSLANCZOS_ORTHOG_NONE) {
+      if (restart == -1 || lanczos->reorthog == EPSLANCZOS_REORTHOG_NONE) {
         /* Reorthonormalize restart vector */
         ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
 	if (breakdown) {
@@ -639,11 +639,11 @@ PetscErrorCode EPSLanczosSetReorthog_LANCZOS(EPS eps,EPSLanczosReorthogType reor
 
   PetscFunctionBegin;
   switch (reorthog) {
-    case EPSLANCZOS_ORTHOG_NONE:
-    case EPSLANCZOS_ORTHOG_FULL:
-    case EPSLANCZOS_ORTHOG_SELECTIVE:
-    case EPSLANCZOS_ORTHOG_PERIODIC:
-    case EPSLANCZOS_ORTHOG_PARTIAL:
+    case EPSLANCZOS_REORTHOG_NONE:
+    case EPSLANCZOS_REORTHOG_FULL:
+    case EPSLANCZOS_REORTHOG_SELECTIVE:
+    case EPSLANCZOS_REORTHOG_PERIODIC:
+    case EPSLANCZOS_REORTHOG_PARTIAL:
       lanczos->reorthog = reorthog;
       break;
     default:
@@ -747,7 +747,9 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-/*EXTERN PetscErrorCode EPSSolve_TS_LANCZOS(EPS);*/
+/*
+EXTERN PetscErrorCode EPSSolve_TS_LANCZOS(EPS);
+*/
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -772,7 +774,7 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   /*if (eps->solverclass==EPS_TWO_SIDE)
        eps->ops->computevectors       = EPSComputeVectors_Schur;
   else*/ eps->ops->computevectors       = EPSComputeVectors_Default;
-  lanczos->reorthog              = EPSLANCZOS_ORTHOG_NONE;
+  lanczos->reorthog              = EPSLANCZOS_REORTHOG_NONE;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","EPSLanczosSetReorthog_LANCZOS",EPSLanczosSetReorthog_LANCZOS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_LANCZOS",EPSLanczosGetReorthog_LANCZOS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
