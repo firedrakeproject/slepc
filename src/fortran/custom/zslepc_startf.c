@@ -5,21 +5,15 @@
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define slepcinitializefortran_     SLEPCINITIALIZEFORTRAN
-#define slepcsetcommonblock_        SLEPCSETCOMMONBLOCK
 #define slepc_null_function_        SLEPC_NULL_FUNCTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define slepcinitializefortran_     slepcinitializefortran
-#define slepcsetcommonblock_        slepcsetcommonblock
 #define slepc_null_function_        slepc_null_function
 #endif
 
 #if defined(PETSC_HAVE_FORTRAN_UNDERSCORE_UNDERSCORE)
 #define slepc_null_function_  slepc_null_function__
 #endif
-
-EXTERN_C_BEGIN
-extern void PETSC_STDCALL slepcsetcommonblock_(void);
-EXTERN_C_END
 
 /*@C
    SlepcInitializeFortran - Routine that should be called from C after
@@ -43,7 +37,7 @@ EXTERN_C_END
 
 PetscErrorCode SlepcInitializeFortran(void)
 {
-  slepcsetcommonblock_();
+  PetscInitializeFortran();
   return 0;
 }
   

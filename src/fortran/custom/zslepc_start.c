@@ -80,6 +80,9 @@ extern void PXFGETARG(int *,_fcd,int*,int*);
 EXTERN_C_END
 
 extern int SlepcRegisterEvents();
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+extern PetscDLLibraryList DLLibrariesLoaded;
+#endif
 
 EXTERN_C_BEGIN
 /*
@@ -91,6 +94,7 @@ EXTERN_C_BEGIN
 void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
 {
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  char       libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
   PetscTruth found;
 #endif
   *ierr = 1;
@@ -113,7 +117,9 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr
   if (found) {
     *ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);if (*ierr) return;
   } else {
-    SETERRQ1(1,"Unable to locate SLEPc dynamic library %s \n You cannot move the dynamic libraries!\n or remove USE_DYNAMIC_LIBRARIES from ${PETSC_DIR}/bmake/$PETSC_ARCH/petscconf.h\n and rebuild libraries before moving",libs);
+    *ierr = 1;
+    (*PetscErrorPrintf)("Unable to locate SLEPc dynamic library %s \n You cannot move the dynamic libraries!\n or remove USE_DYNAMIC_LIBRARIES from ${PETSC_DIR}/bmake/$PETSC_ARCH/petscconf.h\n and rebuild libraries before moving\n",libs);
+    return;
   }
 #else
   *ierr = STInitializePackage(PETSC_NULL); if (*ierr) return;

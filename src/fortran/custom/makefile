@@ -1,7 +1,7 @@
 
 ALL: lib
 
-CFLAGS   =
+CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_LIB_DIR}"'
 FFLAGS   =
 SOURCEC  = zslepc_start.c zslepc_startf.c zeps.c zst.c
 SOURCEF  = 
