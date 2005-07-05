@@ -187,6 +187,9 @@ if haveblzpack:
 if haveplanso:
   log.Println('PLANSO library flags:')
   log.Println(' '+str.join(' ',plansolibs))
+if havetrlan:
+  log.Println('TRLAN library flags:')
+  log.Println(' '+str.join(' ',trlanlibs))
 if missing:
   log.Println('LAPACK mising functions:')
   log.Print('  ')
