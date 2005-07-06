@@ -163,27 +163,16 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
 #define __FUNCT__ "EPSSolve_ARNOLDI2"
 PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_TREVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
-#else
   PetscErrorCode ierr;
-  int            i,k,mout,info,ncv=eps->ncv;
+  int            i,k,ncv=eps->ncv;
   Vec            f=eps->work[0],x=eps->work[1];
-  PetscScalar    *H=eps->T,*U,*Y,*work;
+  PetscScalar    *H=eps->T,*U,*work;
   PetscReal      beta;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#endif
 
   PetscFunctionBegin;
   ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-#endif
+  ierr = PetscMalloc((ncv+4)*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 
   eps->nconv = 0;
   eps->its = 0;
@@ -218,28 +207,8 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
     /* Sort the remaining columns of the Schur form  */
     ierr = EPSSortDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
-    /* Compute eigenvectors Y of H */
-    ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-    LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
-#else
-    LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
-#endif
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
-
-    /* Compute residual norm estimates as beta*abs(Y(m,:)) */
-    for (i=eps->nconv;i<ncv;i++) { 
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[i] != 0 && i<ncv-1) {
-	eps->errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]) /
-                	 SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]);
-        eps->errest[i+1] = eps->errest[i];
-	i++;
-      } else
-#endif
-      eps->errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) /
-               	       PetscAbsScalar(eps->eigr[i]);
-    }  
+    /* Compute residual norm estimates */
+    ierr = ArnoldiResiduals(H,U,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
 
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */
@@ -267,13 +236,8 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
 #endif
 
   ierr = PetscFree(U);CHKERRQ(ierr);
-  ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
-#endif
 }
 
 EXTERN_C_BEGIN
