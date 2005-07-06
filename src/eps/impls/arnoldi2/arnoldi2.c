@@ -56,9 +56,6 @@ PetscErrorCode EPSSetUp_ARNOLDI2(EPS eps)
   PetscFunctionReturn(0);
 }
 
-extern int countorthog;
-extern int countreorthog;
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBasicArnoldi2"
 /*
@@ -79,7 +76,7 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
   PetscErrorCode ierr;
   int            i,j;
   PetscReal      norm;
-  PetscTruth     breakdown,reort;
+//  PetscTruth     breakdown,reort;
 
   PetscScalar    shh[100],*lhh;
 
@@ -88,7 +85,7 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
   if (m<=100) lhh = shh;
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
 
-  switch (eps->orthog_ref) {
+/*  switch (eps->orthog_ref) {
   case EPS_ORTH_REFINE_NEVER:
     reort = PETSC_FALSE;
     break;
@@ -96,7 +93,7 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
   case EPS_ORTH_REFINE_IFNEEDED:
     reort = PETSC_TRUE;
     break;
-  }
+  } */
 
   for (j=k;j<m;j++) {
     eps->its++;
@@ -105,11 +102,9 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
       ierr = STNormBegin(eps->OP,f,&norm);CHKERRQ(ierr);
     }
 
-    countorthog++;
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
 
-    if (j>k && reort) {
-      countreorthog++;
+    if (j>k) {
       ierr = STMInnerProductBegin(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
     }
     
@@ -119,7 +114,7 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
 
     ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
 
-    if (j>k && reort) {
+    if (j>k) {
       ierr = STMInnerProductEnd(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
       for (i=0;i<j;i++) {
 	H[m*(j-1)+i] += lhh[i];
@@ -144,14 +139,13 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
     }
     
-    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
+/*    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
       reort = *beta < eps->orthog_eta * norm ? PETSC_TRUE : PETSC_FALSE;
-    }
+    } */
   }
 
 
-  if (j>k && reort) {
-    countreorthog++;
+  if (j>k) {
     ierr = STMInnerProduct(eps->OP,m,f,V,lhh);CHKERRQ(ierr);
     for (i=0;i<m;i++) {
       H[m*(m-1)+i] += lhh[i];
