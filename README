@@ -121,9 +121,9 @@
  commercial use, written permission must be granted by the authors.
 
 
- [1] V. Hernandez, J. E. Roman and V. Vidal (2003),
-     SLEPc: Scalable Library for Eigenvalue Problem Computations,
-     Lecture Notes in Computer Science, 2565, pp. 377-391.
+ [1] V. Hernandez, J. E. Roman and V. Vidal (2005),
+     SLEPc: A Scalable and Flexible Toolkit for the Solution of Eigenvalue Problems
+     ACM Trans. Math. Softw. 31(3), 351-362.
 
  [2] V. Hernandez, J. E. Roman and V. Vidal (2002),
      SLEPc Users Manual, Technical Report DSIC-II/24/02, 
