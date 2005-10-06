@@ -80,7 +80,7 @@ PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 PetscErrorCode STMatShellCreate(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
-  int            n, m, N, M;
+  PetscInt       n, m, N, M;
   PetscTruth     hasA, hasB;
 
   PetscFunctionBegin;

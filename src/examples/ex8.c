@@ -61,7 +61,8 @@ int main( int argc, char **argv )
   Mat         A;               /* Grcar matrix */
   Mat         H;               /* eigenvalue problem matrix, H=A^T*A */
   EPS         eps;             /* eigenproblem solver context */
-  int         N=30, n, ierr, i, nconv1, nconv2, col[5], Istart, Iend;
+  PetscInt    N=30, n, Istart, Iend, i, col[5];
+  int         ierr, nconv1, nconv2;
   PetscScalar kl, ks, sigma_1, sigma_n, value[] = { -1, 1, 1, 1, 1 };
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

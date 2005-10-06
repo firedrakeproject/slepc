@@ -250,7 +250,7 @@ PetscErrorCode EPSGetLeftInitialVector(EPS eps,Vec *vec)
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  int            m,n;
+  PetscInt       m,n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);

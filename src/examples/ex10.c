@@ -29,8 +29,8 @@ int main( int argc, char **argv )
   EPSType       type;
   PetscReal     error, tol, re, im;
   PetscScalar   kr, ki;
-  int           n=30, nev, ierr, maxit, i, its, nconv,
-                col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
+  int           nev, ierr, maxit, its, nconv;
+  PetscInt      n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
   PetscScalar   value[3];
   PetscTruth    isShell;
 

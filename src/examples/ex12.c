@@ -23,7 +23,8 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error1, error2, tol, re, im;
   PetscScalar kr, ki;
-  int         N, m=15, nev, ierr, maxit, i, its, nconv;
+  int         nev, ierr, maxit, i, its, nconv;
+  PetscInt    N, m=15;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -192,7 +193,8 @@ int MatMarkovModel( int m, Mat A )
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
   PetscReal pd, pu;
-  int ierr, i, j, jmax, ix=0, Istart, Iend;
+  int ierr;
+  PetscInt i, j, jmax, ix=0, Istart, Iend;
 
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for( i=1; i<=m; i++ ) {

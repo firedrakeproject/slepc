@@ -1049,11 +1049,12 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
 PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
 {
   PetscErrorCode ierr;
-  int            i,*perm;
+  int            i;
+  PetscInt       *perm;
   PetscReal      *values;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(n*sizeof(int),&perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(PetscInt),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscReal),&values);CHKERRQ(ierr);
   for (i=0; i<n; i++) { perm[i] = i;}
 

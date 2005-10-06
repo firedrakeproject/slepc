@@ -17,7 +17,8 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
-  int         N, n=10, m, nev, ierr, maxit, i, j, I, J, its, nconv, Istart, Iend;
+  int         nev, ierr, maxit, its, nconv;
+  PetscInt    N, n=10, m, i, j, I, J, Istart, Iend;
   PetscScalar v, w;
   PetscTruth  flag;
 

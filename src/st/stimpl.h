@@ -43,9 +43,9 @@ struct _p_ST {
   int          (*checknullspace)(ST,int,Vec*);
   
   /*------------------------- Cache Bx product -------------------*/
-  int          xid;
-  int          xstate;
-  Vec          Bx;
+  PetscInt       xid;
+  PetscInt       xstate;
+  Vec            Bx;
 };
 
 EXTERN PetscErrorCode STRegisterAll(char*);

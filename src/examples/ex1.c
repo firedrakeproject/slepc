@@ -15,8 +15,9 @@ int main( int argc, char **argv )
   PetscReal   error, tol,re, im;
   PetscScalar kr, ki;
   Vec         xr, xi;
-  int         n=30, nev, ierr, maxit, i, its, nconv, 
-              col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
+  PetscInt    n=30, i, Istart, Iend, col[3];
+  int         nev, ierr, maxit,its, nconv, 
+              FirstBlock=0, LastBlock=0;
   PetscScalar value[3];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

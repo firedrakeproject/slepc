@@ -21,7 +21,9 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
-  int         size, N, n=10, nev, ierr, maxit, i, its, nconv;
+  PetscMPIInt size;
+  PetscInt    N, n=10;
+  int         nev, ierr, maxit, i, its, nconv;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);

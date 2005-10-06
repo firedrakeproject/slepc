@@ -25,7 +25,7 @@
 PetscErrorCode SlepcVecSetRandom(Vec x)
 {
   PetscErrorCode ierr;
-  int            i,n,low,high;
+  PetscInt       i,n,low,high;
   PetscScalar    *px,t;
 #if defined(PETSC_HAVE_DRAND48)
   static unsigned short seed[3] = { 1, 3, 2 };
@@ -75,7 +75,7 @@ PetscErrorCode SlepcVecSetRandom(Vec x)
 PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
 {
   PetscErrorCode ierr;
-  int            M,N,m,n;
+  PetscInt       M,N,m,n;
   Vec            x,w1,w2;
   MPI_Comm       comm;
   PetscReal      norm;
@@ -173,7 +173,8 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 {
   PetscErrorCode ierr;
-  int            size,m,n;
+  PetscInt       m,n;
+  PetscMPIInt    size;
   MPI_Comm       comm;
   Mat            *M;
   IS             isrow, iscol;

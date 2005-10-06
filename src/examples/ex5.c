@@ -10,7 +10,7 @@ static char help[] = "Eigenvalue problem associated with a Markov model of a ran
 /* 
    User-defined routines
 */
-extern int MatMarkovModel( int m, Mat A );
+extern int MatMarkovModel( PetscInt m, Mat A );
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -22,7 +22,8 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
-  int         N, m=15, nev, ierr, maxit, i, its, nconv;
+  PetscInt    N, m=15;
+  int         nev, ierr, maxit, i, its, nconv;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -161,11 +162,12 @@ int main( int argc, char **argv )
     Note: the code will actually compute the transpose of the stochastic matrix
     that contains the transition probabilities.
 */
-int MatMarkovModel( int m, Mat A )
+int MatMarkovModel( PetscInt m, Mat A )
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
   PetscReal pd, pu;
-  int ierr, i, j, jmax, ix=0, Istart, Iend;
+  int ierr;
+  PetscInt Istart, Iend, i, j, jmax, ix=0;
 
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for( i=1; i<=m; i++ ) {

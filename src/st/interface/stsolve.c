@@ -195,7 +195,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
   Vec            in,out;
-  int            i,M,m,*rows,start,end;
+  PetscInt       i,M,m,*rows,start,end;
   PetscScalar    *array,one = 1.0;
 
   PetscFunctionBegin;

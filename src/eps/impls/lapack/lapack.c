@@ -15,7 +15,7 @@ typedef struct {
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  int            N;
+  PetscInt       N;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
   PetscTruth     flg;
   Mat            A,B;
@@ -62,7 +62,8 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  int            n,size,i,low,high;
+  PetscInt       n,i,low,high;
+  PetscMPIInt    size;
   PetscScalar    *array,*arrayb,*pV,*pW;
   PetscReal      *w;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;

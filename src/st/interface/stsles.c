@@ -22,7 +22,7 @@
 PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  int            its;
+  PetscInt       its;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
@@ -55,7 +55,7 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  int            its;
+  PetscInt       its;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;

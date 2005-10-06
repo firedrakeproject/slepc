@@ -25,7 +25,7 @@
 PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
-  int            N;
+  PetscInt       N;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);

@@ -43,12 +43,14 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
   SETERRQ(PETSC_ERR_SUP,"GEEVX - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscReal      abnrm,*scale;
+  PetscReal      abnrm,*scale,dummy;
   PetscScalar    *work;
   int            ilo,ihi,lwork = 4*n,info;
   char           *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
+#else
+  int            idummy;
 #endif 
 
   PetscFunctionBegin;
@@ -60,12 +62,12 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
   ierr  = PetscMalloc(n*sizeof(PetscReal),&scale);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(2*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,&info,1,1,1,1);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGEEVX %d",info);
+  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,&dummy,&dummy,work,&lwork,rwork,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGEEVX %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,wi,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,&info,1,1,1,1);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGEEVX %d",info);
+  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,wi,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,&dummy,&dummy,work,&lwork,&idummy,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGEEVX %d",info);
 #endif 
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(scale);CHKERRQ(ierr);
@@ -110,9 +112,9 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
   SETERRQ(PETSC_ERR_SUP,"GGEVX - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscReal      *rscale,*lscale,abnrm,bbnrm;
+  PetscReal      *rscale,*lscale,abnrm,bbnrm,dummy;
   PetscScalar    *alpha,*beta,*work;
-  int            i,ilo,ihi,info;
+  int            i,ilo,ihi,idummy,info;
   char           *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -134,16 +136,16 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(6*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,beta,W,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,rwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGGEVX %d",info);
+  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,beta,W,&n,V,&n,&ilo,&ihi,lscale,rscale,&abnrm,&bbnrm,&dummy,&dummy,work,&lwork,rwork,&idummy,&idummy,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGGEVX %d",info);
   for (i=0;i<n;i++) {
     w[i] = alpha[i]/beta[i];
   }
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
   ierr  = PetscMalloc(n*sizeof(PetscReal),&alphai);CHKERRQ(ierr);
-  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,alphai,beta,W,&n,V,&n,&ilo,&ihi, lscale,rscale,&abnrm,&bbnrm,PETSC_NULL,PETSC_NULL,work,&lwork,PETSC_NULL,PETSC_NULL,&info,1,1,1,1);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGGEVX %d",info);
+  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,alphai,beta,W,&n,V,&n,&ilo,&ihi,lscale,rscale,&abnrm,&bbnrm,&dummy,&dummy,work,&lwork,&idummy,&idummy,&info,1,1,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGGEVX %d",info);
   for (i=0;i<n;i++) {
     w[i] = alpha[i]/beta[i];
     wi[i] = alphai[i]/beta[i];
@@ -192,9 +194,9 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
   SETERRQ(PETSC_ERR_SUP,"DSYEVR/ZHEEVR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscReal      abstol = 0.0,dummy;
+  PetscReal      abstol = 0.0,vl,vu;
   PetscScalar    *work;
-  int            m,*isuppz,*iwork,liwork = 10*n,info;
+  int            il,iu,m,*isuppz,*iwork,liwork = 10*n,info;
   char           *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -211,11 +213,11 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
   ierr  = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKsyevr_(jobz,"A","U",&n,A,&n,&dummy,&dummy,PETSC_NULL,PETSC_NULL,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1,1);
+  LAPACKsyevr_(jobz,"A","U",&n,A,&n,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZHEEVR %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKsyevr_(jobz,"A","U",&n,A,&n,&dummy,&dummy,PETSC_NULL,PETSC_NULL,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1,1);
+  LAPACKsyevr_(jobz,"A","U",&n,A,&n,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSYEVR %d",info);
 #endif 
   ierr = PetscFree(isuppz);CHKERRQ(ierr);

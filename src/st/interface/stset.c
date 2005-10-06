@@ -116,7 +116,7 @@ PetscErrorCode STGetType(ST st,STType *meth)
 PetscErrorCode STSetFromOptions(ST st)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   char           type[256];
   PetscTruth     flg;
   const char     *mode_list[3] = { "copy", "inplace", "shell" };

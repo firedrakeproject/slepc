@@ -46,8 +46,8 @@ int main( int argc, char **argv )
   EPSType     type;
   PetscReal   error, tol, re, im;
   PetscScalar delta1, delta2, L, h, kr, ki, value[3];
-  int         N=30, n, nev, ierr, maxit, i, its, nconv, 
-              col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
+  PetscInt    N=30, n, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
+  int         nev, ierr, maxit, its, nconv;
   CTX_BRUSSEL *ctx;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -240,7 +240,8 @@ int main( int argc, char **argv )
 #define __FUNC__ "MatBrussel_Mult"
 int MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
-  int         n, ierr;
+  int         ierr;
+  PetscInt    n;
   PetscScalar *px, *py;
   CTX_BRUSSEL *ctx;
 
@@ -290,7 +291,8 @@ int MatBrussel_Shift( PetscScalar* a, Mat Y )
 int MatBrussel_GetDiagonal(Mat A,Vec diag)
 {
   Vec         d1, d2;
-  int         n, ierr;
+  int         ierr;
+  PetscInt    n;
   PetscScalar *pd;
   MPI_Comm    comm;
   CTX_BRUSSEL *ctx;

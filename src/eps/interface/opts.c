@@ -31,8 +31,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   const char     *orth_list[2] = { "mgs" , "cgs" };
   const char     *ref_list[3] = { "never" , "ifneeded", "always" };
   PetscReal      eta;
-  EPSOrthogonalizationType orth_type;
-  EPSOrthogonalizationRefinementType ref_type;
+  PetscInt       i,orth_type,ref_type;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -68,19 +67,26 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetClass(eps,EPS_TWO_SIDE);CHKERRQ(ierr);}
 
     orth_type = eps->orthog_type;
-    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,2,orth_list[orth_type],(int*)&orth_type,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,2,orth_list[eps->orthog_type],&orth_type,&flg);CHKERRQ(ierr);
     ref_type = eps->orthog_ref;
-    ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[ref_type],(int*)&ref_type,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[eps->orthog_ref],&ref_type,&flg);CHKERRQ(ierr);
     eta = eps->orthog_eta;
     ierr = PetscOptionsReal("-eps_orthog_eta","Parameter of iterative refinement during orthogonalization","EPSSetOrthogonalizationRefinement",eta,&eta,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetOrthogonalization(eps,orth_type,ref_type,eta);CHKERRQ(ierr);
 
-    ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&eps->max_it,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg);CHKERRQ(ierr);
+    if (flg) eps->max_it = i;
     ierr = PetscOptionsReal("-eps_tol","Tolerance","KSPSetTolerances",eps->tol,&eps->tol,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&eps->nev,&flg);CHKERRQ(ierr);
-    if( eps->nev<1 ) SETERRQ(1,"Illegal value for option -eps_nev. Must be > 0");
-    ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&eps->ncv,&flg);CHKERRQ(ierr);
-    if( flg && eps->ncv<1 ) SETERRQ(1,"Illegal value for option -eps_ncv. Must be > 0");
+    ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if(i<1) SETERRQ(1,"Illegal value for option -eps_nev. Must be > 0");
+      eps->nev = i;
+    }
+    ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&i,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (i<1) SETERRQ(1,"Illegal value for option -eps_ncv. Must be > 0");
+      eps->ncv = i;
+    }
 
     /* -----------------------------------------------------------------------*/
     /*

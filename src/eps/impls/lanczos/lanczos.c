@@ -30,7 +30,7 @@ typedef struct {
 PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  int            N;
+  PetscInt       N;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -149,8 +149,8 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
   SETERRQ(PETSC_ERR_SUP,"DSTEVR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  int            i,j,m = *M,n,vl,vu,mout,*isuppz,*iwork,lwork,liwork,info;
-  PetscReal      *D,*E,*ritz,*Y,*work,abstol,norm;
+  int            i,j,m = *M,n,il,iu,mout,*isuppz,*iwork,lwork,liwork,info;
+  PetscReal      *D,*E,*ritz,*Y,*work,abstol,vl,vu,norm;
   PetscTruth     conv;
 
   PetscFunctionBegin;
@@ -188,7 +188,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
     ritz[n-1] = PetscRealPart(T[(n-1+k)*(m+1)]);
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
-    LAPACKstevr_("V","A",&n,D,E,&vl,&vu,PETSC_NULL,PETSC_NULL,&abstol,&mout,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+    LAPACKstevr_("V","A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&mout,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %i",info);
     
     /* Estimate ||A|| */
@@ -413,11 +413,11 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
   int            nconv,i,j,k,n,m,*perm,restart,
-                 *isuppz,*iwork,mout,lwork,liwork,vl,vu,info,
+                 *isuppz,*iwork,mout,lwork,liwork,il,iu,info,
                  ncv=eps->ncv;
   Vec            f=eps->work[0];
   PetscScalar    *T=eps->T;
-  PetscReal      *ritz,*Y,*bnd,*D,*E,*work,anorm,beta,norm,abstol,restart_ritz;
+  PetscReal      *ritz,*Y,*bnd,*D,*E,*work,anorm,beta,norm,abstol,vl,vu,restart_ritz;
   PetscTruth     breakdown;
   char           *conv;
 
@@ -464,7 +464,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     D[n-1] = PetscRealPart(T[(n-1+nconv)*(ncv+1)]);
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
-    LAPACKstevr_("V","A",&n,D,E,&vl,&vu,PETSC_NULL,PETSC_NULL,&abstol,&mout,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+    LAPACKstevr_("V","A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&mout,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEVR %i",info);
 
     /* Estimate ||A|| */
@@ -621,11 +621,13 @@ PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
   PetscErrorCode ierr;
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscTruth     flg;
+  PetscInt       i;
   const char     *list[5] = { "none", "full", "selective", "periodic", "partial" };
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("LANCZOS options");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",list,5,list[lanczos->reorthog],(int*)&lanczos->reorthog,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",list,5,list[lanczos->reorthog],&i,&flg);CHKERRQ(ierr);
+  if (flg) lanczos->reorthog = i;
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
