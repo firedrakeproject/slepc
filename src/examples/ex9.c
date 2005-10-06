@@ -27,9 +27,9 @@ static char help[] = "Solves a problem associated to the Brusselator wave model 
 /* 
    Matrix operations
 */
-extern int MatBrussel_Mult(Mat,Vec,Vec);
-extern int MatBrussel_Shift(PetscScalar*,Mat);
-extern int MatBrussel_GetDiagonal(Mat,Vec);
+PetscErrorCode MatBrussel_Mult(Mat,Vec,Vec);
+PetscErrorCode MatBrussel_Shift(PetscScalar*,Mat);
+PetscErrorCode MatBrussel_GetDiagonal(Mat,Vec);
 
 typedef struct {
   Mat         T;
@@ -41,14 +41,16 @@ typedef struct {
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         A;               /* eigenvalue problem matrix */
-  EPS         eps;             /* eigenproblem solver context */
-  EPSType     type;
-  PetscReal   error, tol, re, im;
-  PetscScalar delta1, delta2, L, h, kr, ki, value[3];
-  PetscInt    N=30, n, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
-  int         nev, ierr, maxit, its, nconv;
-  CTX_BRUSSEL *ctx;
+  Mat         	 A;		  /* eigenvalue problem matrix */
+  EPS         	 eps;		  /* eigenproblem solver context */
+  EPSType     	 type;
+  PetscReal   	 error, tol, re, im;
+  PetscScalar 	 delta1, delta2, L, h, kr, ki, value[3];
+  PetscInt    	 N=30, n, i, col[3], Istart, Iend;
+  int         	 nev, maxit, its, nconv;
+  PetscTruth     FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
+  PetscErrorCode ierr;
+  CTX_BRUSSEL    *ctx;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -238,13 +240,14 @@ int main( int argc, char **argv )
 
 #undef __FUNC__
 #define __FUNC__ "MatBrussel_Mult"
-int MatBrussel_Mult(Mat A,Vec x,Vec y)
+PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
-  int         ierr;
-  PetscInt    n;
-  PetscScalar *px, *py;
-  CTX_BRUSSEL *ctx;
+  PetscErrorCode ierr;
+  PetscInt       n;
+  PetscScalar    *px, *py;
+  CTX_BRUSSEL    *ctx;
 
+  PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArray(x,&px);CHKERRQ(ierr);
@@ -270,17 +273,17 @@ int MatBrussel_Mult(Mat A,Vec x,Vec y)
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "MatBrussel_Shift"
-int MatBrussel_Shift( PetscScalar* a, Mat Y )
+PetscErrorCode MatBrussel_Shift( PetscScalar* a, Mat Y )
 {
-  CTX_BRUSSEL *ctx;
-  int         ierr;
+  CTX_BRUSSEL    *ctx;
+  PetscErrorCode ierr;
 
+  PetscFunctionBegin;
   ierr = MatShellGetContext( Y, (void**)&ctx ); CHKERRQ(ierr);
   ctx->sigma += *a;
   PetscFunctionReturn(0);
@@ -290,13 +293,14 @@ int MatBrussel_Shift( PetscScalar* a, Mat Y )
 #define __FUNC__ "MatBrussel_GetDiagonal"
 int MatBrussel_GetDiagonal(Mat A,Vec diag)
 {
-  Vec         d1, d2;
-  int         ierr;
-  PetscInt    n;
-  PetscScalar *pd;
-  MPI_Comm    comm;
-  CTX_BRUSSEL *ctx;
+  Vec            d1, d2;
+  PetscErrorCode ierr;
+  PetscInt       n;
+  PetscScalar    *pd;
+  MPI_Comm       comm;
+  CTX_BRUSSEL    *ctx;
 
+  PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
@@ -310,8 +314,7 @@ int MatBrussel_GetDiagonal(Mat A,Vec diag)
   ierr = VecDestroy(d1);CHKERRQ(ierr);
   ierr = VecDestroy(d2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 
 

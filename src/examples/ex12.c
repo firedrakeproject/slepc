@@ -10,7 +10,7 @@ static char help[] = "Solves the same eigenproblem as in example ex5, but comput
 /* 
    User-defined routines
 */
-extern int MatMarkovModel( int m, Mat A );
+PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -189,13 +189,14 @@ int main( int argc, char **argv )
     Note: the code will actually compute the transpose of the stochastic matrix
     that contains the transition probabilities.
 */
-int MatMarkovModel( int m, Mat A )
+PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
-  PetscReal pd, pu;
-  int ierr;
-  PetscInt i, j, jmax, ix=0, Istart, Iend;
+  PetscReal       pd, pu;
+  PetscErrorCode  ierr;
+  PetscInt        i, j, jmax, ix=0, Istart, Iend;
 
+  PetscFunctionBegin;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for( i=1; i<=m; i++ ) {
     jmax = m-i+1;
@@ -232,6 +233,6 @@ int MatMarkovModel( int m, Mat A )
   }
   ierr = MatAssemblyBegin( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
   ierr = MatAssemblyEnd( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
-  return 0;
+  PetscFunctionReturn(0);
 }
 

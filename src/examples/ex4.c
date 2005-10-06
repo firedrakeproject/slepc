@@ -10,15 +10,16 @@ static char help[] = "Solves an standard eigensystem Ax=kx with the matrix loade
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         A;               /* operator matrix */
-  EPS         eps;             /* eigenproblem solver context */
-  EPSType     type;
-  PetscReal   error, tol, re, im;
-  PetscScalar kr, ki;
-  int         nev, ierr, maxit, i, its, nconv;
-  char        filename[256];
-  PetscViewer viewer;
-  PetscTruth  flg;
+  Mat         	 A;		  /* operator matrix */
+  EPS         	 eps;		  /* eigenproblem solver context */
+  EPSType     	 type;
+  PetscReal   	 error, tol, re, im;
+  PetscScalar 	 kr, ki;
+  PetscErrorCode ierr;
+  int         	 nev, maxit, i, its, nconv;
+  char        	 filename[256];
+  PetscViewer 	 viewer;
+  PetscTruth  	 flg;
 
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

@@ -9,16 +9,17 @@ static char help[] = "Standard symmetric eigenproblem corresponding to the Lapla
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         A;               /* operator matrix */
-  EPS         eps;             /* eigenproblem solver context */
-  EPSType     type;
-  PetscReal   error, tol,re, im;
-  PetscScalar kr, ki;
-  Vec         xr, xi;
-  PetscInt    n=30, i, Istart, Iend, col[3];
-  int         nev, ierr, maxit,its, nconv, 
-              FirstBlock=0, LastBlock=0;
-  PetscScalar value[3];
+  Mat         	 A;		  /* operator matrix */
+  EPS         	 eps;		  /* eigenproblem solver context */
+  EPSType     	 type;
+  PetscReal   	 error, tol,re, im;
+  PetscScalar 	 kr, ki;
+  Vec         	 xr, xi;
+  PetscErrorCode ierr;
+  PetscInt    	 n=30, i, Istart, Iend, col[3];
+  int            nev, maxit,its, nconv;
+  PetscTruth   	 FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
+  PetscScalar 	 value[3];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

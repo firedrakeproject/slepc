@@ -39,19 +39,19 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
 */
 #undef __FUNCT__
 #define __FUNCT__ "MatSVD_Mult"
-int MatSVD_Mult(Mat H,Vec x,Vec y)
+PetscErrorCode MatSVD_Mult(Mat H,Vec x,Vec y)
 {
-  Mat      A;
-  Vec      w;
-  int      ierr;
+  Mat            A;
+  Vec            w;
+  PetscErrorCode ierr;
 
+  PetscFunctionBegin;
   ierr = MatShellGetContext(H,(void**)&A);CHKERRQ(ierr);
   ierr = MatGetVecs(A,PETSC_NULL,&w);CHKERRQ(ierr);
   ierr = MatMult(A,x,w);CHKERRQ(ierr);
   ierr = MatMultTranspose(A,w,y);CHKERRQ(ierr);
   ierr = VecDestroy(w);CHKERRQ(ierr);
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__

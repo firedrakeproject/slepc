@@ -10,7 +10,7 @@ static char help[] = "Solves the same eigenproblem as in example ex2, but using 
 /* 
    User-defined routines
 */
-extern int MatLaplacian2D_Mult( Mat A, Vec x, Vec y );
+PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y );
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -22,8 +22,9 @@ int main( int argc, char **argv )
   PetscReal   error, tol, re, im;
   PetscScalar kr, ki;
   PetscMPIInt size;
+  PetscErrorCode ierr;
   PetscInt    N, n=10;
-  int         nev, ierr, maxit, i, its, nconv;
+  int         nev, maxit, i, its, nconv;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
@@ -173,12 +174,14 @@ static void tv( int nx, PetscScalar *x, PetscScalar *y )
  
     The subroutine TV is called to compute y<--T*x.
  */
-int MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
+PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
 {
-  void        *ctx;
-  int         ierr, nx, lo, j, one=1;
-  PetscScalar *px, *py, dmone=-1.0;
+  void           *ctx;
+  PetscErrorCode ierr;
+  int            nx, lo, j, one=1;
+  PetscScalar    *px, *py, dmone=-1.0;
   
+  PetscFunctionBegin;
   ierr = MatShellGetContext( A, &ctx ); CHKERRQ(ierr);
   nx = *(int *)ctx;
   ierr = VecGetArray( x, &px ); CHKERRQ(ierr);
@@ -200,7 +203,6 @@ int MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
 
   ierr = VecRestoreArray( x, &px ); CHKERRQ(ierr);
   ierr = VecRestoreArray( y, &py ); CHKERRQ(ierr);
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 

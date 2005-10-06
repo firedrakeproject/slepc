@@ -10,21 +10,22 @@ static char help[] = "Eigenvalue problem associated with a Markov model of a ran
 /* 
    User-defined routines
 */
-extern int MatMarkovModel( PetscInt m, Mat A );
+PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Vec         v0;              /* initial vector */
-  Mat         A;               /* operator matrix */
-  EPS         eps;             /* eigenproblem solver context */
-  EPSType     type;
-  PetscReal   error, tol, re, im;
-  PetscScalar kr, ki;
-  PetscInt    N, m=15;
-  int         nev, ierr, maxit, i, its, nconv;
-
+  Vec         	 v0;		  /* initial vector */
+  Mat         	 A;		  /* operator matrix */
+  EPS         	 eps;		  /* eigenproblem solver context */
+  EPSType     	 type;
+  PetscReal   	 error, tol, re, im;
+  PetscScalar 	 kr, ki;
+  PetscInt    	 N, m=15;
+  int         	 nev, maxit, i, its, nconv;
+  PetscErrorCode ierr;
+  
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,PETSC_NULL);CHKERRQ(ierr);
@@ -162,13 +163,14 @@ int main( int argc, char **argv )
     Note: the code will actually compute the transpose of the stochastic matrix
     that contains the transition probabilities.
 */
-int MatMarkovModel( PetscInt m, Mat A )
+PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
-  PetscReal pd, pu;
-  int ierr;
-  PetscInt Istart, Iend, i, j, jmax, ix=0;
+  PetscReal       pd, pu;
+  PetscErrorCode  ierr;
+  PetscInt        Istart, Iend, i, j, jmax, ix=0;
 
+  PetscFunctionBegin;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for( i=1; i<=m; i++ ) {
     jmax = m-i+1;
@@ -205,6 +207,6 @@ int MatMarkovModel( PetscInt m, Mat A )
   }
   ierr = MatAssemblyBegin( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
   ierr = MatAssemblyEnd( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
-  return 0;
+  PetscFunctionReturn(0);
 }
 

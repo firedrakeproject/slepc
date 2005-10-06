@@ -12,27 +12,28 @@ typedef struct {
 } SampleShellST;
 
 /* Declare routines for user-provided spectral transformation */
-extern int SampleShellSTCreate(SampleShellST**);
-extern int SampleShellSTSetUp(SampleShellST*,ST);
-extern int SampleShellSTApply(void*,Vec,Vec);
-extern int SampleShellSTBackTransform(void*,PetscScalar*,PetscScalar*);
-extern int SampleShellSTDestroy(SampleShellST*);
+PetscErrorCode SampleShellSTCreate(SampleShellST**);
+PetscErrorCode SampleShellSTSetUp(SampleShellST*,ST);
+PetscErrorCode SampleShellSTApply(void*,Vec,Vec);
+PetscErrorCode SampleShellSTBackTransform(void*,PetscScalar*,PetscScalar*);
+PetscErrorCode SampleShellSTDestroy(SampleShellST*);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat           A;               /* operator matrix */
-  EPS           eps;             /* eigenproblem solver context */
-  ST            st;              /* spectral transformation context */
-  SampleShellST *shell;          /* user-defined spectral transform context */
-  EPSType       type;
-  PetscReal     error, tol, re, im;
-  PetscScalar   kr, ki;
-  int           nev, ierr, maxit, its, nconv;
-  PetscInt      n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
-  PetscScalar   value[3];
-  PetscTruth    isShell;
+  Mat            A;		  /* operator matrix */
+  EPS            eps;		  /* eigenproblem solver context */
+  ST             st;		  /* spectral transformation context */
+  SampleShellST  *shell;	  /* user-defined spectral transform context */
+  EPSType        type;
+  PetscReal      error, tol, re, im;
+  PetscScalar    kr, ki;
+  PetscErrorCode ierr;
+  int            nev, maxit, its, nconv;
+  PetscInt       n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
+  PetscScalar    value[3];
+  PetscTruth     isShell;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -203,16 +204,17 @@ int main( int argc, char **argv )
    Output Parameter:
 .  shell - user-defined spectral transformation context
 */
-int SampleShellSTCreate(SampleShellST **shell)
+PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
 {
-  SampleShellST *newctx;
-  int           ierr;
+  SampleShellST  *newctx;
+  PetscErrorCode ierr;
 
+  PetscFunctionBegin;
   ierr   = PetscNew(SampleShellST,&newctx);CHKERRQ(ierr);
   ierr   = KSPCreate(PETSC_COMM_WORLD,&newctx->ksp);CHKERRQ(ierr);
   ierr   = KSPAppendOptionsPrefix(newctx->ksp,"st_"); CHKERRQ(ierr);
   *shell = newctx;
-  return 0;
+  PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__  
@@ -234,17 +236,17 @@ int SampleShellSTCreate(SampleShellST **shell)
    used for the solution of linear systems with A is handled via the
    user-defined context SampleShellST.
 */
-int SampleShellSTSetUp(SampleShellST *shell,ST st)
+PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
 {
-  Mat  A,B;
-  int  ierr;
+  Mat            A,B;
+  PetscErrorCode ierr;
 
+  PetscFunctionBegin;
   ierr = STGetOperators( st, &A, &B ); CHKERRQ(ierr);
   if (B) { SETERRQ(0,"Warning: This transformation is not intended for generalized problems"); }
   ierr = KSPSetOperators(shell->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__  
@@ -265,14 +267,14 @@ int SampleShellSTSetUp(SampleShellST *shell,ST st)
    therefore it is of little use, merely as an example of working with
    a STSHELL.
 */
-int SampleShellSTApply(void *ctx,Vec x,Vec y)
+PetscErrorCode SampleShellSTApply(void *ctx,Vec x,Vec y)
 {
-  SampleShellST *shell = (SampleShellST*)ctx;
-  int           ierr;
+  SampleShellST  *shell = (SampleShellST*)ctx;
+  PetscErrorCode ierr;
 
+  PetscFunctionBegin;
   ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__  
@@ -295,11 +297,11 @@ int SampleShellSTApply(void *ctx,Vec x,Vec y)
    order to retrieve the eigenvalues of the original problem. In this
    example, simply set k_i = 1/k_i.
 */
-int SampleShellSTBackTransform(void *ctx,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode SampleShellSTBackTransform(void *ctx,PetscScalar *eigr,PetscScalar *eigi)
 {
+  PetscFunctionBegin;
   *eigr = 1.0 / *eigr;
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__  
@@ -311,14 +313,14 @@ int SampleShellSTBackTransform(void *ctx,PetscScalar *eigr,PetscScalar *eigi)
    Input Parameter:
 .  shell - user-defined spectral transformation context
 */
-int SampleShellSTDestroy(SampleShellST *shell)
+PetscErrorCode SampleShellSTDestroy(SampleShellST *shell)
 {
-  int ierr;
+  PetscErrorCode ierr;
 
+  PetscFunctionBegin;
   ierr = KSPDestroy(shell->ksp);CHKERRQ(ierr);
   ierr = PetscFree(shell);CHKERRQ(ierr);
-
-  return 0;
+  PetscFunctionReturn(0);
 }
 
 
