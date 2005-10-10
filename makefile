@@ -14,7 +14,7 @@ include ${SLEPC_DIR}/bmake/slepc_common
 all:
 	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkpetsc_dir
 	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkslepc_dir
-	-@${OMAKE} all_build 2>&1 | tee make_log_${PETSC_ARCH}
+	-@export OTHERLIBS="-lpetscksp" ; ${OMAKE} all_build 2>&1 | tee make_log_${PETSC_ARCH}
 	-@egrep -i "( error | error:)" make_log_${PETSC_ARCH} > /dev/null; if [ "$$?" = "0" ]; then \
            echo "********************************************************************"; \
            echo "  Error during compile, check make_log_${PETSC_ARCH}"; \
