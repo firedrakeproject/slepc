@@ -10,7 +10,7 @@
 #define T3DMPI_FORTRAN
 #define T3EMPI_FORTRAN
 
-#include "src/fortran/custom/zpetsc.h" 
+#include "zpetsc.h" 
 #include "slepc.h"
 #include "slepcst.h"
 #include "slepceps.h"

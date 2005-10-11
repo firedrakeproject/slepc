@@ -214,7 +214,7 @@ deletemanualpages: chk_loc
 
 # Builds Fortran stub files
 allfortranstubs:
-	-@${PETSC_DIR}/maint/generatefortranstubs.py ${BFORT}
+	-@${SLEPC_DIR}/config/generatefortranstubs.py ${BFORT}
 
 # -------------------------------------------------------------------------------
 #

@@ -1,5 +1,5 @@
 
-DIRS     = eps st sys fortran examples 
+DIRS     = eps st sys examples 
 
 LOCDIR   = src/
 
