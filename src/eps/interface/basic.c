@@ -241,7 +241,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->solverclass     = (EPSClass)0;
 
   eps->vec_initial     = 0;
-  eps->vec_initial_set = PETSC_FALSE;
   eps->vec_initial_left= 0;
   eps->V               = 0;
   eps->AV              = 0;

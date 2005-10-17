@@ -67,14 +67,14 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Create random initial vectors if not set */
   /* right */
   ierr = EPSGetInitialVector(eps,&v0);CHKERRQ(ierr);
-  if (!eps->vec_initial_set && !v0) {
+  if (!v0) {
     ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(v0);CHKERRQ(ierr);
     eps->vec_initial = v0;
   }
   /* left */
   ierr = EPSGetLeftInitialVector(eps,&w0);CHKERRQ(ierr);
-  if (!eps->vec_initial_left_set && !w0) {
+  if (!w0) {
     ierr = MatGetVecs(A,PETSC_NULL,&w0);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(w0);CHKERRQ(ierr);
     eps->vec_initial_left = w0;
@@ -134,7 +134,6 @@ PetscErrorCode EPSSetInitialVector(EPS eps,Vec vec)
   }
   eps->vec_initial = vec;
   ierr = PetscObjectReference((PetscObject)eps->vec_initial);CHKERRQ(ierr);
-  eps->vec_initial_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -196,7 +195,6 @@ PetscErrorCode EPSSetLeftInitialVector(EPS eps,Vec vec)
   }
   eps->vec_initial_left = vec;
   ierr = PetscObjectReference((PetscObject)eps->vec_initial_left);CHKERRQ(ierr);
-  eps->vec_initial_left_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -269,11 +267,11 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   eps->setupcalled = 0;  /* so that next solve call will call setup */
 
   /* Destroy randomly generated initial vectors */
-  if (!eps->vec_initial_set && eps->vec_initial) {
+  if (eps->vec_initial) {
     ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
     eps->vec_initial = PETSC_NULL;
   }
-  if (!eps->vec_initial_left_set && eps->vec_initial_left) {
+  if (eps->vec_initial_left) {
     ierr = VecDestroy(eps->vec_initial_left);CHKERRQ(ierr);
     eps->vec_initial_left = PETSC_NULL;
   }

@@ -69,9 +69,7 @@ struct _p_EPS {
 
   int        setupcalled;
   PetscTruth isgeneralized,
-             ishermitian,
-             vec_initial_set,
-             vec_initial_left_set;
+             ishermitian;
   EPSConvergedReason reason;     
 
   int        (*monitor[MAXEPSMONITORS])(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*); 
