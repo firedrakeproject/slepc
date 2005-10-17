@@ -45,7 +45,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
                EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
 
-typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH } EPSOrthogonalizationType;
+typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH, EPS_DCGS_ORTH } EPSOrthogonalizationType;
 typedef enum { EPS_ORTH_REFINE_NEVER, EPS_ORTH_REFINE_IFNEEDED,
                EPS_ORTH_REFINE_ALWAYS } EPSOrthogonalizationRefinementType;
 

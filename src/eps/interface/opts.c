@@ -28,7 +28,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscErrorCode ierr;
   char           type[256];
   PetscTruth     flg;
-  const char     *orth_list[2] = { "mgs" , "cgs" };
+  const char     *orth_list[3] = { "mgs" , "cgs", "dcgs" };
   const char     *ref_list[3] = { "never" , "ifneeded", "always" };
   PetscReal      eta;
   PetscInt       i,orth_type,ref_type;
@@ -67,7 +67,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetClass(eps,EPS_TWO_SIDE);CHKERRQ(ierr);}
 
     orth_type = eps->orthog_type;
-    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,2,orth_list[eps->orthog_type],&orth_type,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,3,orth_list[eps->orthog_type],&orth_type,&flg);CHKERRQ(ierr);
     ref_type = eps->orthog_ref;
     ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[eps->orthog_ref],&ref_type,&flg);CHKERRQ(ierr);
     eta = eps->orthog_eta;
@@ -574,6 +574,7 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
   switch (type) {
     case EPS_CGS_ORTH:
     case EPS_MGS_ORTH:
+    case EPS_DCGS_ORTH:
       eps->orthog_type = type;
       break;
     default:

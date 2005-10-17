@@ -203,6 +203,61 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   PetscFunctionReturn(0);
 }
 
+extern PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
+extern PetscErrorCode VecMDotEnd(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
+
+/*
+    Orthogonalization routine using delayed classical Gram-Schmidt with refinement.
+ */
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDelayedGramSchmidtOrthogonalization"
+static PetscErrorCode EPSDelayedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  int            j;
+  PetscScalar    shh[100],*lhh;
+  Vec            w;
+
+  PetscFunctionBegin;
+
+  if (W) SETERRQ(1,"DCGS2 does not work with biorthogonalization");
+
+  /* Don't allocate small arrays */
+  if (n<=100) lhh = shh;
+  else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+  
+  /*** First orthogonalization ***/
+
+  /* h = W^* v */
+  /* q = v - V h */
+  ierr = VecMDot(n,v,V,H);CHKERRQ(ierr);
+
+  if (n>1) {
+    ierr = VecMDot(n-1,V[n-1],V,lhh);CHKERRQ(ierr);
+    for (j=0;j<n-1;j++) {
+      H[j] += lhh[j];
+    }
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,n-1,lhh,V);CHKERRQ(ierr);
+    ierr = VecAXPY(V[n-1],-1.0,w);CHKERRQ(ierr);
+  }
+  
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);
+  ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
+  
+  /* compute norm of v */
+  if (norm) { 
+    ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); 
+    if (hnorm) *hnorm = *norm;
+  }
+  
+  if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSOrthogonalize"
 /*@
@@ -274,6 +329,9 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
         break;
       case EPS_MGS_ORTH:
         ierr = EPSModifiedGramSchmidtOrthogonalization(eps,n,V,PETSC_NULL,v,h,hnrm,nrm);CHKERRQ(ierr);
+        break;
+      case EPS_DCGS_ORTH:
+        ierr = EPSDelayedGramSchmidtOrthogonalization(eps,n,V,PETSC_NULL,v,h,hnrm,nrm);CHKERRQ(ierr);        
         break;
       default:
         SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
