@@ -28,7 +28,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscErrorCode ierr;
   char           type[256];
   PetscTruth     flg;
-  const char     *orth_list[3] = { "mgs" , "cgs", "dcgs" };
+  const char     *orth_list[3] = { "mgs" , "cgs", "ncgs" };
   const char     *ref_list[3] = { "never" , "ifneeded", "always" };
   PetscReal      eta;
   PetscInt       i,orth_type,ref_type;
@@ -574,7 +574,7 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
   switch (type) {
     case EPS_CGS_ORTH:
     case EPS_MGS_ORTH:
-    case EPS_DCGS_ORTH:
+    case EPS_NCGS_ORTH:
       eps->orthog_type = type;
       break;
     default:
