@@ -100,7 +100,6 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
   PetscErrorCode ierr;
   int            i,j;
   PetscReal      norm;
-//  PetscTruth     breakdown,reort;
   Vec            w;
 
   PetscScalar    shh[100],*lhh;
@@ -111,35 +110,16 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
   ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
 
-/*  switch (eps->orthog_ref) {
-  case EPS_ORTH_REFINE_NEVER:
-    reort = PETSC_FALSE;
-    break;
-  case EPS_ORTH_REFINE_ALWAYS:
-  case EPS_ORTH_REFINE_IFNEEDED:
-    reort = PETSC_TRUE;
-    break;
-  } */
-
   for (j=k;j<m;j++) {
     eps->its++;
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
-      ierr = STNormBegin(eps->OP,f,&norm);CHKERRQ(ierr);
-    }
 
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
-
     if (j>k) {
       ierr = STMInnerProductBegin(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
     }
     
-    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
-      ierr = STNormEnd(eps->OP,f,&norm);CHKERRQ(ierr);
-    }
-
     ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
-
     if (j>k) {
       ierr = STMInnerProductEnd(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
       for (i=0;i<j;i++) {
@@ -148,11 +128,6 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
       ierr = VecSet(w,0.0);CHKERRQ(ierr);
       ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
       ierr = VecAXPY(V[j],-1.0,w);CHKERRQ(ierr);
-/*      ierr = STNorm(eps->OP,V[j],beta);CHKERRQ(ierr);  
-      t = 1 / *beta;
-      printf("beta %e\n",*beta);
-      ierr = VecScale(&t,V[j]);CHKERRQ(ierr);
-      H[m*(j-1)+j] = *beta; */
     }
     
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
@@ -164,12 +139,7 @@ static PetscErrorCode EPSBasicArnoldi2(EPS eps,PetscScalar *H,Vec *V,int k,int m
       H[m*j+j+1] = *beta;
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
     }
-    
-/*    if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
-      reort = *beta < eps->orthog_eta * norm ? PETSC_TRUE : PETSC_FALSE;
-    } */
   }
-
 
   if (j>k) {
     ierr = STMInnerProduct(eps->OP,m,f,V,lhh);CHKERRQ(ierr);
