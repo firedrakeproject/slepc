@@ -349,6 +349,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   PetscScalar    *H=eps->T,*U,*work;
   PetscReal      beta;
   const char     *pre;
+  PetscTruth     orthog;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -365,6 +366,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,eps->its,eps->V[0]);CHKERRQ(ierr);
   
+  ierr = PetscOptionsHasName(PETSC_NULL,"-orthog",&orthog);CHKERRQ(ierr);
   /* Restart loop */
   while (eps->its<eps->max_it) {
 
@@ -401,11 +403,11 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
        including the restart vector: V(:,idx) = V*U(:,idx) */
     k = eps->nconv;
     while (k<ncv && eps->errest[k]<eps->tol) k++;
-    for (i=eps->nconv;i<=k && i<ncv;i++) {
+    for (i=eps->nconv;(i<=k || orthog) && i<ncv;i++) {
       ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
       ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
     }
-    for (i=eps->nconv;i<=k && i<ncv;i++) {
+    for (i=eps->nconv;(i<=k || orthog) && i<ncv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     eps->nconv = k;
