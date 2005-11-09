@@ -401,11 +401,11 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
        including the restart vector: V(:,idx) = V*U(:,idx) */
     k = eps->nconv;
     while (k<ncv && eps->errest[k]<eps->tol) k++;
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<=k && i<ncv;i++) {
       ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
       ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
     }
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<=k && i<ncv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     eps->nconv = k;
