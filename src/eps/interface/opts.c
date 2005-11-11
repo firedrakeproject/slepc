@@ -72,7 +72,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[eps->orthog_ref],&ref_type,&flg);CHKERRQ(ierr);
     eta = eps->orthog_eta;
     ierr = PetscOptionsReal("-eps_orthog_eta","Parameter of iterative refinement during orthogonalization","EPSSetOrthogonalizationRefinement",eta,&eta,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSSetOrthogonalization(eps,orth_type,ref_type,eta);CHKERRQ(ierr);
+    ierr = EPSSetOrthogonalization(eps,(EPSOrthogonalizationType)orth_type,(EPSOrthogonalizationRefinementType)ref_type,eta);CHKERRQ(ierr);
 
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg);CHKERRQ(ierr);
     if (flg) eps->max_it = i;

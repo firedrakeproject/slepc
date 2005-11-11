@@ -266,7 +266,7 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
     } else if (j>1) {
       ierr = VecMDot(j-1,f,eps->V,omega);CHKERRQ(ierr);
       for (i=0;i<j-1 && !reorthog;i++) 
-	if (PetscAbsScalar(omega[i]) > PETSC_SQRT_MACHINE_EPSILON/sqrt((double)j)) {
+	if (PetscAbsScalar(omega[i]) > PETSC_SQRT_MACHINE_EPSILON/sqrt((PetscReal)j)) {
 	  reorthog = PETSC_TRUE;
 	}
       if (reorthog) {
@@ -627,7 +627,7 @@ PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("LANCZOS options");CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",list,5,list[lanczos->reorthog],&i,&flg);CHKERRQ(ierr);
-  if (flg) lanczos->reorthog = i;
+  if (flg) lanczos->reorthog = (EPSLanczosReorthogType)i;
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

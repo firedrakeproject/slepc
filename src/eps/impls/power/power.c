@@ -386,7 +386,7 @@ PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("POWER options");CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",shift_list,3,shift_list[power->shift_type],&i,&flg);CHKERRQ(ierr);
-  if (flg ) power->shift_type = i;
+  if (flg ) power->shift_type = (EPSPowerShiftType)i;
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
     ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
   }
