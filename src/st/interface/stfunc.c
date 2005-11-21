@@ -48,7 +48,7 @@ PetscErrorCode STInitializePackage(char *path) {
   if (opt) {
     ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogInfoDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
+      ierr = PetscVerboseInfoDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
@@ -399,7 +399,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
   STType            cstr;
-  char*             str;
+  const char*       str;
   PetscTruth        isascii,isstring;
   PetscViewerFormat format;
 
@@ -522,7 +522,7 @@ M*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "STRegister"
-PetscErrorCode STRegister(char *sname,char *path,char *name,int (*function)(ST))
+PetscErrorCode STRegister(const char *sname,const char *path,const char *name,int (*function)(ST))
 {
   PetscErrorCode ierr;
   char           fullname[256];

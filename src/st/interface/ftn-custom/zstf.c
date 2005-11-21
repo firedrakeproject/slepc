@@ -39,7 +39,7 @@ void PETSC_STDCALL stsettype_(ST *st,CHAR type PETSC_MIXED_LEN(len),PetscErrorCo
 
 void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  char *tname;
+  const char *tname;
 
   *ierr = STGetType(*st,&tname);
 #if defined(PETSC_USES_CPTOFCD)

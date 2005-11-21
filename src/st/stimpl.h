@@ -49,7 +49,7 @@ struct _p_ST {
 };
 
 EXTERN PetscErrorCode STRegisterAll(char*);
-EXTERN PetscErrorCode STRegister(char*,char*,char*,int(*)(ST));
+EXTERN PetscErrorCode STRegister(const char*,const char*,const char*,int(*)(ST));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,0)
 #else

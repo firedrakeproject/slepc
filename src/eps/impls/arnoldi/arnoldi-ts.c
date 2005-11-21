@@ -19,7 +19,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   Vec            *Qr=eps->V, *Ql=eps->W;
   PetscScalar    *Hr=eps->T,*Ur,*work;
   PetscScalar    *Hl=eps->Tl,*Ul;
-  PetscReal      beta,gamma;
+  PetscReal      beta,g;
   PetscScalar    *eigr,*eigi,*aux;
 
   PetscFunctionBegin;
@@ -45,7 +45,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
 
     /* Compute an ncv-step Arnoldi factorization for both A and A' */
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,ncv,fr,&beta);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,ncv,fl,&gamma);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,ncv,fl,&g);CHKERRQ(ierr);
 
     ierr = EPSBiOrthogonalize(eps,ncv,Qr,Ql,fr,aux,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<ncv;i++) {
@@ -53,7 +53,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
     }
     ierr = EPSBiOrthogonalize(eps,ncv,Ql,Qr,fl,aux,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<ncv;i++) {
-      Hl[ncv*(ncv-1)+i] += gamma * aux[i];
+      Hl[ncv*(ncv-1)+i] += g * aux[i];
     }
 
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
@@ -71,7 +71,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
 
     /* Compute residual norm estimates */
     ierr = ArnoldiResiduals(Hr,Ur,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(Hl,Ul,gamma,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(Hl,Ul,g,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
 
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx) */

@@ -46,7 +46,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
   PetscReal      abnrm,*scale,dummy;
   PetscScalar    *work;
   int            ilo,ihi,lwork = 4*n,info;
-  char           *jobvr,*jobvl;
+  const char     *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #else
@@ -115,7 +115,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
   PetscReal      *rscale,*lscale,abnrm,bbnrm,dummy;
   PetscScalar    *alpha,*beta,*work;
   int            i,ilo,ihi,idummy,info;
-  char           *jobvr,*jobvl;
+  const char     *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
   int            lwork = 2*n;
@@ -197,7 +197,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
   PetscReal      abstol = 0.0,vl,vu;
   PetscScalar    *work;
   int            il,iu,m,*isuppz,*iwork,liwork = 10*n,info;
-  char           *jobz;
+  const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
   int            lwork = 18*n,lrwork = 24*n;
@@ -264,7 +264,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
   PetscScalar    *work;
   int            itype = 1,*iwork,info,
                  liwork = V ? 5*n+3 : 1;
-  char           *jobz;
+  const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
   int            lwork  = V ? n*n+2*n     : n+1,

@@ -80,7 +80,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (breakdown) {
-      PetscLogInfo((eps,"Breakdown in Arnoldi method (norm=%g)\n",norm));
+      PetscVerboseInfo((eps,"Breakdown in Arnoldi method (norm=%g)\n",norm));
       ierr = EPSGetStartVector(eps,j,V[j+1]);CHKERRQ(ierr);
     } else {
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
@@ -407,9 +407,11 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
       ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
       ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
     }
+    if (i<ncv) SETERRQ(1,"KK");
     for (i=eps->nconv;(i<=k || orthog) && i<ncv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
+    if (i<ncv) SETERRQ(1,"KK");
     eps->nconv = k;
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);

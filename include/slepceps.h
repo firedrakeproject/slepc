@@ -33,8 +33,7 @@ typedef struct _p_EPS* EPS;
 #define EPSPLANSO    "planso"
 #define EPSTRLAN     "trlan"
 #define EPSLOBPCG    "lobpcg"
-
-typedef char * EPSType;
+#define EPSType const char*
 
 typedef enum { EPS_HEP=1,  EPS_GHEP,
                EPS_NHEP,   EPS_GNHEP } EPSProblemType;

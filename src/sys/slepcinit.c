@@ -131,7 +131,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
 #endif
 
   SlepcInitializeCalled = PETSC_TRUE;
-  PetscLogInfo((0,"SlepcInitialize: SLEPc successfully started\n"));
+  PetscVerboseInfo((0,"SlepcInitialize: SLEPc successfully started\n"));
   PetscFunctionReturn(info);
 }
 
@@ -152,7 +152,7 @@ PetscErrorCode SlepcFinalize(void)
   PetscErrorCode info=0;
   
   PetscFunctionBegin;
-  PetscLogInfo((0,"SlepcFinalize: SLEPc successfully ended!\n"));
+  PetscVerboseInfo((0,"SlepcFinalize: SLEPc successfully ended!\n"));
 
   if (SlepcBeganPetsc) {
     info = PetscFinalize();CHKERRQ(info);

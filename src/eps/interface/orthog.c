@@ -54,7 +54,7 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0 || lindep) { 
-      PetscLogInfo((eps,"EPSQRDecomposition: Linearly dependent vector found, generating a new random vector\n"));
+      PetscVerboseInfo((eps,"EPSQRDecomposition: Linearly dependent vector found, generating a new random vector\n"));
       ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
       ierr = STNorm(eps->OP,V[k],&norm);CHKERRQ(ierr);
     }
@@ -116,7 +116,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   /* if ||q|| < eta ||h|| */
   if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
       eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
-    PetscLogInfo((eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
+    PetscVerboseInfo((eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
 
     /* s = W^* q */
     /* q = q - V s  ;  h = h + s */
@@ -234,7 +234,7 @@ PetscErrorCode EPSModifiedGramSchmidtOrthogonalization(EPS eps,int n,Vec *V,Vec 
   /* if ||q|| < eta ||h|| */
   if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
       eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
-    PetscLogInfo((eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
+    PetscVerboseInfo((eps,"EPSModifiedGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
     for (j=0; j<n; j++) {
       /* alpha = ( v, v_j ) */
       ierr = STInnerProduct(eps->OP,v,W[j],&alpha);CHKERRQ(ierr);

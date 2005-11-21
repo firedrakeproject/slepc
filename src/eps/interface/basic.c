@@ -44,7 +44,7 @@ PetscErrorCode EPSInitializePackage(char *path) {
   if (opt) {
     ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogInfoDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
+      ierr = PetscVerboseInfoDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
@@ -90,8 +90,8 @@ PetscErrorCode EPSInitializePackage(char *path) {
 PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  char        *type, *which;
-  PetscTruth  isascii;
+  const char     *type, *which;
+  PetscTruth     isascii;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -407,7 +407,7 @@ M*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRegister"
-PetscErrorCode EPSRegister(char *sname,char *path,char *name,int (*function)(EPS))
+PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,int (*function)(EPS))
 {
   PetscErrorCode ierr;
   char           fullname[256];
