@@ -162,9 +162,8 @@ static PetscErrorCode EPSBasicArnoldi3(EPS eps,PetscScalar *H,Vec *V,int k,int m
 {
   PetscErrorCode ierr;
   int            i,j;
-  PetscReal      norm;
   Vec            w;
-  PetscScalar    shh[100],*lhh;
+  PetscScalar    norm,shh[100],*lhh;
 
   if (m<=100) lhh = shh;
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
@@ -219,9 +218,8 @@ static PetscErrorCode EPSBasicArnoldi4(EPS eps,PetscScalar *H,Vec *V,int k,int m
 {
   PetscErrorCode ierr;
   int            i,j;
-  PetscReal      norm;
   Vec            w;
-  PetscScalar    shh[100],*lhh;
+  PetscScalar    norm,shh[100],*lhh;
 
   if (m<=100) lhh = shh;
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
