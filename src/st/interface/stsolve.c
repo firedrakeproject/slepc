@@ -454,17 +454,13 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
-/*
-PetscErrorCode VecMDotBegin(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
-PetscErrorCode VecMDotEnd(PetscInt nv,Vec x,const Vec y[],PetscScalar *result);
-*/
-
 #undef __FUNCT__  
 #define __FUNCT__ "STMInnerProductBegin"
 PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
   int            i;
+  PetscTruth     mdot;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -487,16 +483,24 @@ PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscSc
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_B_HERMITIAN:
-/*    ierr = VecMDotBegin(n,st->w,y,p);CHKERRQ(ierr); */
-    for (i=0;i<n;i++) {
-      ierr = VecDotBegin(x,y[i],p+i);CHKERRQ(ierr);
+    ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
+    if (mdot) {
+      ierr = VecMDotBegin(n,st->w,y,p);CHKERRQ(ierr);
+    } else {
+      for (i=0;i<n;i++) {
+	ierr = VecDotBegin(st->w,y[i],p+i);CHKERRQ(ierr);
+      }
     }
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-/*    ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr); */
-    for (i=0;i<n;i++) {
-      ierr = VecTDotBegin(x,y[i],p+i);CHKERRQ(ierr);
+    ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
+    if (mdot) {
+      ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr);
+    } else {
+      for (i=0;i<n;i++) {
+	ierr = VecTDotBegin(st->w,y[i],p+i);CHKERRQ(ierr);
+      }
     }
     break;
   }
@@ -510,6 +514,7 @@ PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScal
 {
   PetscErrorCode ierr;
   int            i;
+  PetscTruth     mdot;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -522,16 +527,24 @@ PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScal
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_B_HERMITIAN:
-/*  ierr = VecMDotEnd(n,st->w,y,p);CHKERRQ(ierr); */
-    for (i=0;i<n;i++) {
-      ierr = VecDotEnd(x,y[i],p+i);CHKERRQ(ierr);
+    ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
+    if (mdot) {
+      ierr = VecMDotEnd(n,st->w,y,p);CHKERRQ(ierr);
+    } else {
+      for (i=0;i<n;i++) {
+	ierr = VecDotEnd(st->w,y[i],p+i);CHKERRQ(ierr);
+      }
     }
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-/*  ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr); */
-    for (i=0;i<n;i++) {
-      ierr = VecTDotEnd(x,y[i],p+i);CHKERRQ(ierr);
+    ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
+    if (mdot) {
+      ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr);
+    } else {
+      for (i=0;i<n;i++) {
+	ierr = VecTDotEnd(st->w,y[i],p+i);CHKERRQ(ierr);
+      }
     }
     break;
   }
