@@ -239,7 +239,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 
     /* 2. T(:,idx) = V' * AV(:,idx) */
     for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecMDot(ncv,eps->AV[i],eps->V,T+i*ncv);CHKERRQ(ierr);
+      ierr = VecMDot(eps->AV[i],ncv,eps->V,T+i*ncv);CHKERRQ(ierr);
     }
 
     /* 3. Reduce projected matrix to Hessenberg form: [U,T] = hess(T) */

@@ -279,7 +279,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
       if (W) w = W[i];
       else w = V[i];
     }
-    ierr = VecMDot(nv,w,V,vals);CHKERRQ(ierr);
+    ierr = VecMDot(w,nv,V,vals);CHKERRQ(ierr);
     for (j=0;j<nv;j++) {
       if (lev) *lev += (j==i)? (vals[j]-1.0)*(vals[j]-1.0): vals[j]*vals[j];
       else { 

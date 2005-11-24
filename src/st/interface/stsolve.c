@@ -443,11 +443,11 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_B_HERMITIAN:
-    ierr = VecMDot(n,st->w,y,p);CHKERRQ(ierr);
+    ierr = VecMDot(st->w,n,y,p);CHKERRQ(ierr);
     break;
   case STINNER_SYMMETRIC:
   case STINNER_B_SYMMETRIC:
-    ierr = VecMTDot(n,st->w,y,p);CHKERRQ(ierr);
+    ierr = VecMTDot(st->w,n,y,p);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
@@ -485,7 +485,7 @@ PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscSc
   case STINNER_B_HERMITIAN:
     ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
     if (mdot) {
-      ierr = VecMDotBegin(n,st->w,y,p);CHKERRQ(ierr);
+      ierr = VecMDotBegin(st->w,n,y,p);CHKERRQ(ierr);
     } else {
       for (i=0;i<n;i++) {
 	ierr = VecDotBegin(st->w,y[i],p+i);CHKERRQ(ierr);
@@ -496,7 +496,7 @@ PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscSc
   case STINNER_B_SYMMETRIC:
     ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
     if (mdot) {
-      ierr = VecMTDotBegin(n,st->w,y,p);CHKERRQ(ierr);
+      ierr = VecMTDotBegin(st->w,n,y,p);CHKERRQ(ierr);
     } else {
       for (i=0;i<n;i++) {
 	ierr = VecTDotBegin(st->w,y[i],p+i);CHKERRQ(ierr);
@@ -529,7 +529,7 @@ PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScal
   case STINNER_B_HERMITIAN:
     ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
     if (mdot) {
-      ierr = VecMDotEnd(n,st->w,y,p);CHKERRQ(ierr);
+      ierr = VecMDotEnd(st->w,n,y,p);CHKERRQ(ierr);
     } else {
       for (i=0;i<n;i++) {
 	ierr = VecDotEnd(st->w,y[i],p+i);CHKERRQ(ierr);
@@ -540,7 +540,7 @@ PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScal
   case STINNER_B_SYMMETRIC:
     ierr = PetscOptionsHasName(st->prefix,"-mdot",&mdot);CHKERRQ(ierr);
     if (mdot) {
-      ierr = VecMTDotEnd(n,st->w,y,p);CHKERRQ(ierr);
+      ierr = VecMTDotEnd(st->w,n,y,p);CHKERRQ(ierr);
     } else {
       for (i=0;i<n;i++) {
 	ierr = VecTDotEnd(st->w,y[i],p+i);CHKERRQ(ierr);

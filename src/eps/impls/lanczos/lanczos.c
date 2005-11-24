@@ -264,7 +264,7 @@ static PetscErrorCode EPSPeriodicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int
     if (reorthog) {
       reorthog = PETSC_FALSE;
     } else if (j>1) {
-      ierr = VecMDot(j-1,f,eps->V,omega);CHKERRQ(ierr);
+      ierr = VecMDot(f,j-1,eps->V,omega);CHKERRQ(ierr);
       for (i=0;i<j-1 && !reorthog;i++) 
 	if (PetscAbsScalar(omega[i]) > PETSC_SQRT_MACHINE_EPSILON/sqrt((PetscReal)j)) {
 	  reorthog = PETSC_TRUE;
@@ -326,7 +326,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 	}
       reorthog = PETSC_FALSE;
     } else if (j>1) {
-      ierr = VecMDot(j-1,f,eps->V,omega);CHKERRQ(ierr);
+      ierr = VecMDot(f,j-1,eps->V,omega);CHKERRQ(ierr);
       for (i=0;i<j-1;i++) {
         omega[i] /= norm;
 	which[i] = PETSC_FALSE;
