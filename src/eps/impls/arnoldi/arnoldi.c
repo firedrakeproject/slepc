@@ -291,46 +291,44 @@ static PetscErrorCode EPSBasicArnoldi5(EPS eps,PetscScalar *H,Vec *V,int k,int m
 {
   PetscErrorCode ierr;
   int            i,j;
-  Vec            w;
+  Vec            w,u;
   PetscScalar    shh[100],*lhh;
-  PetscReal      norm,norm2;
+  PetscReal      norm;
 
   PetscFunctionBegin;
 
   if (m<=100) lhh = shh;
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
   ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
 
   for (j=k;j<m;j++) {
     eps->its++;
     if (j>k) {
-      ierr = VecCopy(f,w);CHKERRQ(ierr);
+      ierr = VecCopy(f,u);CHKERRQ(ierr);
     }
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
     if (j>k) {
-      ierr = STNormBegin(eps->OP,w,&norm2);CHKERRQ(ierr);
+      ierr = STNormBegin(eps->OP,u,&norm);CHKERRQ(ierr);
     }
     ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
     if (j>k) {
-      ierr = STNormEnd(eps->OP,w,&norm2);CHKERRQ(ierr);
-      H[(j-1)*m+j] = norm2;
-      if (fabs(norm2-norm)/norm2 > PETSC_SQRT_MACHINE_EPSILON) {
-        ierr = VecScale(w,1.0/norm2);CHKERRQ(ierr);
-	ierr = VecCopy(w,V[j]);CHKERRQ(ierr);
-    
-        ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-        ierr = STMInnerProduct(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
-      }
+      ierr = STNormEnd(eps->OP,u,&norm);CHKERRQ(ierr);
+      H[(j-1)*m+j] = norm;
     }
         
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
     ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
     ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
 
+    if (j>k) {
+      ierr = VecScale(u,1.0/norm);CHKERRQ(ierr);
+      ierr = VecCopy(u,V[j]);CHKERRQ(ierr);
+    }
+    
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,lhh);CHKERRQ(ierr);
     ierr = STNormBegin(eps->OP,f,&norm);CHKERRQ(ierr);
     ierr = STMInnerProductEnd(eps->OP,j+1,f,V,lhh);CHKERRQ(ierr);
@@ -356,6 +354,7 @@ static PetscErrorCode EPSBasicArnoldi5(EPS eps,PetscScalar *H,Vec *V,int k,int m
 
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   ierr = VecDestroy(w);CHKERRQ(ierr);
+  ierr = VecDestroy(u);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
