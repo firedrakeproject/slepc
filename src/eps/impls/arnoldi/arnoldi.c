@@ -342,19 +342,98 @@ static PetscErrorCode EPSBasicArnoldi5(EPS eps,PetscScalar *H,Vec *V,int k,int m
     ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
   
     if (j < m-1) {
-      H[m*j+j+1] = norm;
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
       ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
     }
   }
 
-  ierr = STNorm(eps->OP,f,&norm);CHKERRQ(ierr);
-  ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
-  *beta = norm;
+  ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
+  ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
 
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   ierr = VecDestroy(w);CHKERRQ(ierr);
   ierr = VecDestroy(u);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBasicArnoldi6"
+static PetscErrorCode EPSBasicArnoldi6(EPS eps,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
+{
+  PetscErrorCode ierr;
+  int            i,j;
+  Vec            w,u,t;
+  PetscScalar    shh[100],*lhh;
+  PetscReal      norm1,norm2,norm3;
+
+  PetscFunctionBegin;
+
+  if (m<=100) lhh = shh;
+  else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
+
+  for (j=k;j<m;j++) {
+    eps->its++;
+
+    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+    ierr = STMInnerProduct(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    ierr = STMInnerProduct(eps->OP,j,u,V,lhh);CHKERRQ(ierr);
+    ierr = STNorm(eps->OP,f,&norm1);CHKERRQ(ierr);
+    ierr = STNorm(eps->OP,u,&norm2);CHKERRQ(ierr);
+    ierr = STNorm(eps->OP,t,&norm3);CHKERRQ(ierr);
+    
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
+    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+    if (j < m-1) {
+      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
+      ierr = STNorm(eps->OP,f,&norm1);CHKERRQ(ierr); /************/
+      ierr = VecScale(V[j+1],1.0/norm1);CHKERRQ(ierr);
+    }
+    
+    if (j > k) {
+      ierr = VecSet(w,0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
+      ierr = VecAXPY(u,-1.0,w);CHKERRQ(ierr);    
+      ierr = VecCopy(u,V[j]);CHKERRQ(ierr);
+      ierr = VecScale(V[j],1.0/norm2);CHKERRQ(ierr);
+      for (i=0;i<j;i++) 
+	H[m*(j-1)+i] += lhh[i];
+    }
+
+    if (j > k+1) {
+      ierr = VecCopy(t,V[j-1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j-1],1.0/norm3);CHKERRQ(ierr);
+      ierr = H[m*(j-2)+j-1] = norm3;
+    }
+
+    ierr = VecCopy(u,t);CHKERRQ(ierr);
+    ierr = VecCopy(f,u);CHKERRQ(ierr);
+  }
+
+  ierr = STNorm(eps->OP,t,&norm1);CHKERRQ(ierr);
+  ierr = VecScale(t,1.0/norm1);CHKERRQ(ierr);
+  ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
+  H[m*(m-2)+m-1] = norm1;
+
+  ierr = STMInnerProduct(eps->OP,m,f,V,lhh);CHKERRQ(ierr);
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,m,lhh,V);CHKERRQ(ierr);
+  ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+  for (i=0;i<m;i++) 
+    H[m*(m-1)+i] += lhh[i];
+  ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
+  ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
+
+  if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  ierr = VecDestroy(u);CHKERRQ(ierr);
+  ierr = VecDestroy(t);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -459,10 +538,13 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     case 5:
       ierr = EPSBasicArnoldi5(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
+    case 6:
+      ierr = EPSBasicArnoldi6(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      break;
     default:
       SETERRQ(1,"Unknown Arnoldi method");
     }    
-     
+    
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
