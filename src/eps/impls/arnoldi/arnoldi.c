@@ -396,12 +396,6 @@ static PetscErrorCode EPSBasicArnoldi6(EPS eps,PetscScalar *H,Vec *V,int k,int m
       for (i=0;i<j;i++)
         H[m*(j-1)+i] += lhh[i];
         
-    if (j>k+1) {
-      ierr = VecCopy(u,V[j-1]);CHKERRQ(ierr);
-      ierr = VecScale(V[j-1],1.0/norm2);CHKERRQ(ierr);
-      H[m*(j-2)+j-1] = norm2;
-    }
-
       ierr = VecCopy(V[j],t);CHKERRQ(ierr);
       ierr = VecScale(V[j],1.0/norm1);CHKERRQ(ierr);
       ierr = VecScale(f,1.0/norm1);CHKERRQ(ierr);
@@ -410,6 +404,12 @@ static PetscErrorCode EPSBasicArnoldi6(EPS eps,PetscScalar *H,Vec *V,int k,int m
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
     ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
     ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+
+    if (j>k+1) {
+      ierr = VecCopy(u,V[j-1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j-1],1.0/norm2);CHKERRQ(ierr);
+      H[m*(j-2)+j-1] = norm2;
+    }
 
     if (j<m-1) {
       ierr = VecCopy(f,V[j+1]);
