@@ -254,6 +254,8 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(A,MAT_COOKIE,2);
   if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
+  PetscCheckSameComm(eps,1,A,2);
+  if (B) PetscCheckSameComm(eps,1,B,3);
 
   /* Check for square matrices */
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);

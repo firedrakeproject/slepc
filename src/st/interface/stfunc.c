@@ -186,6 +186,8 @@ PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(A,MAT_COOKIE,2);
   if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
+  PetscCheckSameComm(st,1,A,2);
+  if (B) PetscCheckSameComm(st,1,B,3);
   st->A = A;
   st->B = B;
   st->setupcalled = 0;
