@@ -379,11 +379,17 @@ static PetscErrorCode EPSBasicArnoldi6(EPS eps,PetscScalar *H,Vec *V,int k,int m
     eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
-    ierr = STMInnerProduct(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
-      ierr = STMInnerProduct(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
-      ierr = STInnerProduct(eps->OP,V[j],V[j],&norm1);CHKERRQ(ierr); 
-      ierr = STNorm(eps->OP,u,&norm2);CHKERRQ(ierr); 
+      ierr = STMInnerProductBegin(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
+      ierr = STInnerProductBegin(eps->OP,V[j],V[j],&norm1);CHKERRQ(ierr); 
+      ierr = STNormBegin(eps->OP,u,&norm2);CHKERRQ(ierr); 
+    }
+    ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    if (j>k) { 
+      ierr = STMInnerProductEnd(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
+      ierr = STInnerProductEnd(eps->OP,V[j],V[j],&norm1);CHKERRQ(ierr); 
+      ierr = STNormEnd(eps->OP,u,&norm2);CHKERRQ(ierr); 
       
       H[m*j+j] = H[m*j+j]/norm1;
       norm1 = PetscSqrtScalar(norm1);
