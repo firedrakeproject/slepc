@@ -77,6 +77,7 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   int            j;
   PetscScalar    shh[100],*lhh;
   Vec            w;
+  PetscTruth     refinement;
 
   PetscFunctionBegin;
 
@@ -96,44 +97,66 @@ static PetscErrorCode EPSClassicalGramSchmidtOrthogonalization(EPS eps,int n,Vec
   ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);
   ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
   
-  /* compute hnorm */
-  if (hnorm) {
+  switch (eps->orthog_ref) {
+  case EPS_ORTH_REFINE_IFNEEDED:
+    /* compute hnorm */
     *hnorm = 0.0;
-    for (j=0; j<n; j++) {
+    for (j=0; j<n; j++)
       *hnorm += PetscRealPart(H[j] * PetscConj(H[j]));
-    }
     *hnorm = sqrt(*hnorm);
-  }
-  
-  /* compute norm of v for refinement or linear dependence checking */
-  if (eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED ||
-      (eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS && hnorm) ) {
+    /* compute norm of v for refinement */
     ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);  
+    /* if ||q|| < eta ||h|| */
+    if (*norm < eps->orthog_eta * *hnorm) {
+      *hnorm = *norm;
+      refinement = PETSC_TRUE;
+    } else refinement = PETSC_FALSE;
+    break;
+
+  case EPS_ORTH_REFINE_ALWAYS:
+    /* compute norm of v for linear dependence checking */
+    if (hnorm) {
+      ierr = STNorm(eps->OP,v,hnorm);CHKERRQ(ierr); 
+    }
+    refinement = PETSC_TRUE;
+    break;
+
+  case EPS_ORTH_REFINE_NEVER:
+    /* compute hnorm for linear dependence checking */
+    if (hnorm) {
+      *hnorm = 0.0;
+      for (j=0; j<n; j++)
+	*hnorm += PetscRealPart(H[j] * PetscConj(H[j]));
+      *hnorm = sqrt(*hnorm);
+    }
+    /* compute norm of v */
+    if (norm) { 
+      ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); 
+    }
+    refinement = PETSC_FALSE;
+    break;
   }
 
   /*** Second orthogonalization if necessary ***/
-  
-  /* if ||q|| < eta ||h|| */
-  if ((eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED && *norm < eps->orthog_eta * *hnorm) || 
-      eps->orthog_ref == EPS_ORTH_REFINE_ALWAYS) {
-    PetscVerboseInfo((eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
 
+  if (refinement) {
+    PetscVerboseInfo((eps,"EPSClassicalGramSchmidtOrthogonalization:Performing iterative refinement wnorm %g hnorm %g\n",norm ? *norm : 0,hnorm ? *hnorm : 0));
     /* s = W^* q */
     /* q = q - V s  ;  h = h + s */
     ierr = STMInnerProduct(eps->OP,n,v,W,lhh);CHKERRQ(ierr);
-    for (j=0;j<n;j++) {
+    for (j=0;j<n;j++)
       H[j] += lhh[j];
-    }
+
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
     ierr = VecMAXPY(w,n,lhh,V);CHKERRQ(ierr);
     ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
 
-    if (hnorm) *hnorm = *norm;
+    /* recompute norm of v */
+    if (norm) { 
+      ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); 
+    }
   }
-  
-  /* compute norm of v */
-  if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
-  
+          
   if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
