@@ -293,7 +293,8 @@ static PetscErrorCode EPSBasicArnoldi5(EPS eps,PetscScalar *H,Vec *V,int k,int m
   int            i,j;
   Vec            w,u;
   PetscScalar    shh[100],*lhh;
-  PetscReal      norm;
+  PetscReal      norm,hnorm;
+  PetscTruth     refinement = PETSC_FALSE;
 
   PetscFunctionBegin;
 
@@ -304,46 +305,68 @@ static PetscErrorCode EPSBasicArnoldi5(EPS eps,PetscScalar *H,Vec *V,int k,int m
 
   for (j=k;j<m;j++) {
     eps->its++;
-    if (j>k) {
-      ierr = VecCopy(f,u);CHKERRQ(ierr);
-    }
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
-    if (j>k) {
+    if (refinement) {
       ierr = STNormBegin(eps->OP,u,&norm);CHKERRQ(ierr);
     }
     ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
-    if (j>k) {
+    if (refinement) {
       ierr = STNormEnd(eps->OP,u,&norm);CHKERRQ(ierr);
-      H[(j-1)*m+j] = norm;
     }
         
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
     ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
     ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
 
-    if (j>k) {
+    if (refinement) {
+      H[(j-1)*m+j] = norm;
       ierr = VecScale(u,1.0/norm);CHKERRQ(ierr);
       ierr = VecCopy(u,V[j]);CHKERRQ(ierr);
     }
     
-    ierr = STMInnerProductBegin(eps->OP,j+1,f,V,lhh);CHKERRQ(ierr);
-    ierr = STNormBegin(eps->OP,f,&norm);CHKERRQ(ierr);
-    ierr = STMInnerProductEnd(eps->OP,j+1,f,V,lhh);CHKERRQ(ierr);
-    ierr = STNormEnd(eps->OP,f,&norm);CHKERRQ(ierr);
+    switch (eps->orthog_ref) {
+    case EPS_ORTH_REFINE_IFNEEDED:
+      hnorm = 0.0;
+      for (i=0; i<=j; i++)
+	hnorm += PetscRealPart(H[m*j+i] * PetscConj(H[m*j+i]));
+      hnorm = sqrt(hnorm);
+      ierr = STNorm(eps->OP,f,&norm);CHKERRQ(ierr);
+      if (norm < eps->orthog_eta * hnorm) {
+        refinement = PETSC_TRUE;
+        ierr = STMInnerProduct(eps->OP,j+1,f,V,lhh);CHKERRQ(ierr);
+      } else refinement = PETSC_FALSE;
+      break;
+      
+    case EPS_ORTH_REFINE_ALWAYS:
+      ierr = STMInnerProductBegin(eps->OP,j+1,f,V,lhh);CHKERRQ(ierr);
+      ierr = STNormBegin(eps->OP,f,&norm);CHKERRQ(ierr);
+      ierr = STMInnerProductEnd(eps->OP,j+1,f,V,lhh);CHKERRQ(ierr);
+      ierr = STNormEnd(eps->OP,f,&norm);CHKERRQ(ierr);
+      refinement = PETSC_TRUE;
+      break;
+      
+    case EPS_ORTH_REFINE_NEVER:
+      refinement = PETSC_FALSE;
+      break;
+    }
 
-    for (i=0;i<=j;i++) 
-      H[m*j+i] += lhh[i];
-  
-    ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,j+1,lhh,V);CHKERRQ(ierr);
-    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+    if (refinement) {
+      for (i=0;i<=j;i++) 
+	H[m*j+i] += lhh[i];
+
+      ierr = VecSet(w,0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(w,j+1,lhh,V);CHKERRQ(ierr);
+      ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+    }
   
     if (j < m-1) {
+      H[m*j+j+1] = norm;
+      ierr = VecCopy(f,u);CHKERRQ(ierr);
+      ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
-      ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
     }
   }
 
