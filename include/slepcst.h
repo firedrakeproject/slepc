@@ -47,7 +47,7 @@ EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
 EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);
 
-EXTERN PetscErrorCode STCheckNullSpace(ST,int,Vec*);
+EXTERN PetscErrorCode STCheckNullSpace(ST,int,const Vec[]);
 
 EXTERN PetscErrorCode STGetNumberLinearIterations(ST,int*);
 EXTERN PetscErrorCode STResetNumberLinearIterations(ST);

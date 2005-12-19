@@ -186,7 +186,7 @@ PetscErrorCode STResetNumberLinearIterations(ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace_Default"
-PetscErrorCode STCheckNullSpace_Default(ST st,int n,Vec* V)
+PetscErrorCode STCheckNullSpace_Default(ST st,int n,const Vec V[])
 {
   PetscErrorCode ierr;
   int            i,c;
@@ -224,7 +224,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,int n,Vec* V)
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace"
 /*@C
-   STCheckNullSpace - Given a set of vectors, this function test each of
+   STCheckNullSpace - Given a set of vectors, this function tests each of
    them to be a nullspace vector of the coefficient matrix of the associated
    KSP object. All these nullspace vectors are passed to the KSP object.
 
@@ -243,7 +243,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,int n,Vec* V)
 
 .seealso: EPSAttachDeflationSpace()
 @*/
-PetscErrorCode STCheckNullSpace(ST st,int n,Vec* V)
+PetscErrorCode STCheckNullSpace(ST st,int n,const Vec V[])
 {
   PetscErrorCode ierr;
 

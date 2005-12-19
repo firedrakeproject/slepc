@@ -40,7 +40,7 @@ struct _p_ST {
   void         *data;
   int          setupcalled;
   int          lineariterations;
-  int          (*checknullspace)(ST,int,Vec*);
+  int          (*checknullspace)(ST,int,const Vec[]);
   
   /*------------------------- Cache Bx product -------------------*/
   PetscInt       xid;
@@ -60,7 +60,7 @@ EXTERN PetscErrorCode STApplyB_Default(ST,Vec,Vec);
 EXTERN PetscErrorCode STView_Default(ST,PetscViewer);
 EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
-EXTERN PetscErrorCode STCheckNullSpace_Default(ST,int,Vec*);
+EXTERN PetscErrorCode STCheckNullSpace_Default(ST,int,const Vec[]);
 EXTERN PetscErrorCode STMatShellCreate(ST st,Mat *mat);
 
 #endif
