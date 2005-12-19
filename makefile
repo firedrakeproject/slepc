@@ -221,12 +221,14 @@ allfortranstubs:
 # Some macros to check if the fortran interface is up-to-date.
 #
 countfortranfunctions: 
-	-@cd ${SLEPC_DIR}/src/fortran; egrep '^void' custom/*.c auto/*.c | \
-	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f2 | uniq | egrep -v "(^$$|Petsc)" | \
-	sed "s/_$$//" | sort > /tmp/countfortranfunctions
+	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto` \
+	`find ${SLEPC_DIR}/src -name ftn-custom`; do cd $$D; \
+	egrep '^void' *.c | \
+	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f3 | uniq | egrep -v "(^$$|Petsc)" | \
+	sed "s/_$$//"; cd -; done | sort > /tmp/countfortranfunctions
 
 countcfunctions:
-	-@ grep extern ${SLEPC_DIR}/include/*.h *.h | grep "(" | tr -s ' ' | \
+	-@ grep "EXTERN " ${SLEPC_DIR}/include/*.h | grep "(" | tr -s ' ' | \
 	cut -d'(' -f1 | cut -d' ' -f3 | grep -v "\*" | tr -s '\012' |  \
 	tr 'A-Z' 'a-z' |  sort > /tmp/countcfunctions
 
@@ -241,22 +243,27 @@ checkbadfortranstubs:
 	-@echo "========================================="
 	-@echo "Functions with MPI_Comm as an Argument"
 	-@echo "========================================="
-	-@cd ${SLEPC_DIR}/src/fortran/auto; grep '^void' *.c | grep 'MPI_Comm' | \
-	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3
+	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
+	grep '^void' *.c | grep 'MPI_Comm' | \
+	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; cd -; done
 	-@echo "========================================="
 	-@echo "Functions with a String as an Argument"
 	-@echo "========================================="
-	-@cd ${SLEPC_DIR}/src/fortran/auto; grep '^void' *.c | grep 'char \*' | \
-	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3
+	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
+	grep '^void' *.c | grep 'char \*' | \
+	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; cd -; done
 	-@echo "========================================="
 	-@echo "Functions with Pointers to PETSc Objects as Argument"
 	-@echo "========================================="
-	-@cd ${SLEPC_DIR}/src/fortran/auto; \
-	_p_OBJ=`grep _p_ ${SLEPC_DIR}/include/*.h | tr -s ' ' | \
+	-@_p_OBJ=`grep _p_ ${PETSC_DIR}/include/*.h | tr -s ' ' | \
 	cut -d' ' -f 3 | tr -s '\012' | grep -v '{' | cut -d'*' -f1 | \
 	sed "s/_p_//g" | tr -s '\012 ' ' *|' ` ; \
-	for OBJ in $$_p_OBJ; do \
+	_p_OBJS=`grep _p_ ${SLEPC_DIR}/include/*.h | tr -s ' ' | \
+	cut -d' ' -f 3 | tr -s '\012' | grep -v '{' | cut -d'*' -f1 | \
+	sed "s/_p_//g" | tr -s '\012 ' ' *|' ` ; \
+	for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
+	for OBJ in $$_p_OBJ $$_p_OBJS; do \
 	grep "$$OBJ \*" *.c | tr -s ' ' | tr -s ':' ' ' | \
-	cut -d'(' -f1 | cut -d' ' -f1,3; \
-	done 
+	cut -d'(' -f1 | cut -d' ' -f1,4; \
+	done; cd -; done
 
