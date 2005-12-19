@@ -13,7 +13,7 @@
 
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
-.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring
+.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring)
 -  mctx    - [optional] context for private data for the
              monitor routine (use PETSC_NULL if no context is desired)
 
@@ -42,7 +42,7 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
    Level: intermediate
 
-.seealso: EPSDefaultEstimatesMonitor(), EPSClearMonitor()
+.seealso: EPSDefaultMonitor(), EPSClearMonitor()
 @*/
 PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*), void *mctx)
 {
@@ -58,7 +58,7 @@ PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,Pe
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSClearMonitor"
-/*@C
+/*@
    EPSClearMonitor - Clears all monitors for an EPS object.
 
    Collective on EPS
@@ -68,7 +68,7 @@ PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,Pe
 
    Options Database Key:
 .    -eps_cancelmonitors - Cancels all monitors that have been hardwired 
-      into a code by calls to EPSSetMonitor() or EPSSetValuesMonitor(), 
+      into a code by calls to EPSSetMonitor(),
       but does not cancel those set via the options database.
 
    Level: intermediate
@@ -86,7 +86,7 @@ PetscErrorCode EPSClearMonitor(EPS eps)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetMonitorContext"
 /*@C
-   EPSGetMonitorContext - Gets the estimates monitor context, as set by 
+   EPSGetMonitorContext - Gets the monitor context, as set by 
    EPSSetMonitor() for the FIRST monitor only.
 
    Not Collective
@@ -99,7 +99,7 @@ PetscErrorCode EPSClearMonitor(EPS eps)
 
    Level: intermediate
 
-.seealso: EPSSetMonitor(), EPSDefaultEstimatesMonitor()
+.seealso: EPSSetMonitor(), EPSDefaultMonitor()
 @*/
 PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 {
@@ -112,7 +112,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDefaultMonitor"
 /*@C
-   EPSDefaultEstimatesMonitor - Print the current approximate values and 
+   EPSDefaultMonitor - Print the current approximate values and 
    error estimates at each iteration of the eigensolver.
 
    Collective on EPS
@@ -218,3 +218,4 @@ PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
   ierr = PetscFree(y);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 } 
+

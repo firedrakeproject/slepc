@@ -11,16 +11,16 @@
 #define epscreate_                  EPSCREATE
 #define epssettype_                 EPSSETTYPE           
 #define epsgettype_                 EPSGETTYPE
-#define epsdefaultestimatesmonitor_ EPSDEFAULTESTIMATESMONITOR
-#define epsdefaultvaluesmonitor_    EPSDEFAULTVALUESMONITOR
+#define epsdefaultmonitor_          EPSDEFAULTMONITOR
 #define epssetmonitor_              EPSSETMONITOR
-#define epssetvaluesmonitor_        EPSSETVALUESMONITOR
-#define epssetst_                   EPSSETST
+#define epsgetst_                   EPSGETST
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
+#define epsgetclass_                EPSGETCLASS
+#define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epsgetorthogonalization_    EPSGETORTHOGONALIZATION
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
-#define epslanczosgetorthog_        EPSLANCZOSGETORTHOG
+#define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                    epsview
 #define epssetoptionsprefix_        epssetoptionsprefix
@@ -29,13 +29,13 @@
 #define epscreate_                  epscreate
 #define epssettype_                 epssettype           
 #define epsgettype_                 epsgettype
-#define epsdefaultestimatesmonitor_ epsdefaultestimatesmonitor
-#define epsdefaultvaluesmonitor_    epsdefaultvaluesmonitor
+#define epsdefaultmonitor_          epsdefaultmonitor
 #define epssetmonitor_              epssetmonitor
-#define epssetvaluesmonitor_        epssetvaluesmonitor
-#define epssetst_                   epssetst
+#define epsgetst_                   epsgetst
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
+#define epsgetclass_                epsgetclass
+#define epsgetconvergedreason_      epsgetconvergedreason
 #define epsgetorthogonalization_    epsgetorthogonalization
 #define epspowergetshifttype_       epspowergetshifttype
 #define epslanczosgetreorthog_      epslanczosgetreorthog
@@ -162,6 +162,16 @@ void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,int *ierr)
 void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,int *ierr)
 {
   *ierr = EPSGetProblemType(*eps,type);
+}
+
+void PETSC_STDCALL epsgetclass_(EPS *eps,EPSClass *cl,int *ierr)
+{
+  *ierr = EPSGetClass(*eps,cl);
+}
+
+void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,int *ierr)
+{
+  *ierr = EPSGetConvergedReason(*eps,reason);
 }
 
 void PETSC_STDCALL epsgetorthogonalization_(EPS *eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement,PetscReal *eta,int *ierr)
