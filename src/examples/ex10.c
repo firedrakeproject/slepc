@@ -38,8 +38,7 @@ int main( int argc, char **argv )
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem (shell-enabled), n=%d\n\n",n);
-         CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem (shell-enabled), n=%d\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -100,7 +99,8 @@ int main( int argc, char **argv )
     ierr = SampleShellSTCreate(&shell);CHKERRQ(ierr);
 
     /* (Required) Set the user-defined routine for applying the operator */
-    ierr = STShellSetApply(st,SampleShellSTApply,(void*)shell);CHKERRQ(ierr);
+    ierr = STShellSetApply(st,SampleShellSTApply);CHKERRQ(ierr);
+    ierr = STShellSetContext(st,shell);CHKERRQ(ierr);
 
     /* (Optional) Set the user-defined routine for back-transformation */
     ierr = STShellSetBackTransform(st,SampleShellSTBackTransform);CHKERRQ(ierr);
@@ -118,8 +118,7 @@ int main( int argc, char **argv )
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);
-         CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
@@ -127,11 +126,9 @@ int main( int argc, char **argv )
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %d\n",nev);
-         CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %d\n",nev);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);
-         CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
@@ -141,8 +138,7 @@ int main( int argc, char **argv )
      Get number of converged approximate eigenpairs
   */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %d\n\n",nconv);
-         CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
     /*
@@ -192,7 +188,7 @@ int main( int argc, char **argv )
 }
 
 /***********************************************************************/
-/*          Routines for a user-defined shell transformation           */
+/*     Routines for a user-defined shell spectral transformation       */
 /***********************************************************************/
 
 #undef __FUNCT__  
@@ -242,7 +238,7 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = STGetOperators( st, &A, &B ); CHKERRQ(ierr);
+  ierr = STGetOperators(st,&A,&B);CHKERRQ(ierr);
   if (B) { SETERRQ(0,"Warning: This transformation is not intended for generalized problems"); }
   ierr = KSPSetOperators(shell->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
@@ -256,7 +252,7 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
    user-provided spectral transformation.
 
    Input Parameters:
-.  ctx - optional user-defined context, as set by STShellSetApply()
+.  ctx - optional user-defined context, as set by STShellSetContext()
 .  x - input vector
 
    Output Parameter:
@@ -284,7 +280,7 @@ PetscErrorCode SampleShellSTApply(void *ctx,Vec x,Vec y)
    user-provided spectral transformation.
 
    Input Parameters:
-.  ctx  - optional user-defined context, as set by STShellSetApply()
+.  ctx  - optional user-defined context, as set by STShellSetContext()
 .  eigr - pointer to real part of eigenvalues
 .  eigi - pointer to imaginary part of eigenvalues
 

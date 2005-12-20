@@ -74,11 +74,13 @@ EXTERN PetscErrorCode STNormEnd(ST st,Vec,PetscReal*);
 
 /* --------- options specific to particular spectral transformations-------- */
 
-EXTERN PetscErrorCode STShellSetApply(ST, int (*)(void*,Vec,Vec), void*);
-EXTERN PetscErrorCode STShellSetApplyTranspose(ST, int (*)(void*,Vec,Vec), void*);
-EXTERN PetscErrorCode STShellSetBackTransform(ST, int (*)(void*,PetscScalar*,PetscScalar*));
-EXTERN PetscErrorCode STShellSetName(ST,char*);
-EXTERN PetscErrorCode STShellGetName(ST,char**);
+EXTERN PetscErrorCode STShellGetContext(ST st,void **ctx);
+EXTERN PetscErrorCode STShellSetContext(ST st,void *ctx);
+EXTERN PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(void*,Vec,Vec));
+EXTERN PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(void*,Vec,Vec));
+EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(void*,PetscScalar*,PetscScalar*));
+EXTERN PetscErrorCode STShellSetName(ST,const char[]);
+EXTERN PetscErrorCode STShellGetName(ST,char*[]);
 
 EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
