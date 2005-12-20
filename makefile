@@ -225,7 +225,7 @@ countfortranfunctions:
 	`find ${SLEPC_DIR}/src -name ftn-custom`; do cd $$D; \
 	egrep '^void' *.c | \
 	cut -d'(' -f1 | tr -s  ' ' | cut -d' ' -f3 | uniq | egrep -v "(^$$|Petsc)" | \
-	sed "s/_$$//"; cd -; done | sort > /tmp/countfortranfunctions
+	sed "s/_$$//"; done | sort > /tmp/countfortranfunctions
 
 countcfunctions:
 	-@ grep "EXTERN " ${SLEPC_DIR}/include/*.h | grep "(" | tr -s ' ' | \
@@ -245,13 +245,13 @@ checkbadfortranstubs:
 	-@echo "========================================="
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
 	grep '^void' *.c | grep 'MPI_Comm' | \
-	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; cd -; done
+	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; done
 	-@echo "========================================="
 	-@echo "Functions with a String as an Argument"
 	-@echo "========================================="
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto`; do cd $$D; \
 	grep '^void' *.c | grep 'char \*' | \
-	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; cd -; done
+	tr -s ' ' | tr -s ':' ' ' |cut -d'(' -f1 | cut -d' ' -f1,3; done
 	-@echo "========================================="
 	-@echo "Functions with Pointers to PETSc Objects as Argument"
 	-@echo "========================================="
@@ -265,5 +265,5 @@ checkbadfortranstubs:
 	for OBJ in $$_p_OBJ $$_p_OBJS; do \
 	grep "$$OBJ \*" *.c | tr -s ' ' | tr -s ':' ' ' | \
 	cut -d'(' -f1 | cut -d' ' -f1,4; \
-	done; cd -; done
+	done; done
 
