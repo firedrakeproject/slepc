@@ -60,7 +60,8 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
-  char        bmat[1], *which, howmny[] = "A";
+  char        bmat[1], howmny[] = "A";
+  const char  *which;
   int         i, n, iparam[11], ipntr[14], ido, info, ierr;
   PetscScalar sigmar = 0.0, sigmai, *pV, *resid;
   Vec         x, y, w;
