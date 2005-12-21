@@ -42,6 +42,26 @@
 #endif
 
 EXTERN_C_BEGIN
+static void (PETSC_STDCALL *f1)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,int*);
+/*
+   These are not usually called from Fortran but allow Fortran users 
+   to transparently set these monitors from .F code, hence no STDCALL
+*/
+void epsdefaultmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = EPSDefaultMonitor(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+}
+EXTERN_C_END
+ 
+/* These are not extern C because they are passed into non-extern C user level functions */
+static PetscErrorCode ourmonitor(EPS eps,int i,int nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,int l,void* ctx)
+{
+  int ierr = 0;
+  (*f1)(&eps,&i,&nc,er,ei,d,&l,ctx,&ierr);CHKERRQ(ierr);
+  return 0;
+}
+
+EXTERN_C_BEGIN
 
 void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer, PetscErrorCode *ierr)
 {
@@ -75,8 +95,7 @@ void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),PetscErro
   FIXRETURNCHAR(name,len);
 }
 
-void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),
-                                        PetscErrorCode *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -85,8 +104,7 @@ void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),
-                                           PetscErrorCode *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -99,27 +117,7 @@ void PETSC_STDCALL epscreate_(MPI_Comm *comm,EPS *eps,PetscErrorCode *ierr){
   *ierr = EPSCreate((MPI_Comm)PetscToPointerComm(*comm),eps);
 }
 
-/*
-        These are not usually called from Fortran but allow Fortran users 
-   to transparently set these monitors from .F code
-   
-   functions, hence no STDCALL
-*/
-void  epsdefaultmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
-{
-  *ierr = EPSDefaultMonitor(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
-}
- 
-static void (PETSC_STDCALL *f1)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,int*);
-static int ourmonitor(EPS eps,int i,int nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,int l,void* ctx)
-{
-  int ierr = 0;
-  (*f1)(&eps,&i,&nc,er,ei,d,&l,ctx,&ierr);CHKERRQ(ierr);
-  return 0;
-}
-
-void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,int*),
-                    void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,int *),PetscErrorCode *ierr)
+void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,int*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,int *),PetscErrorCode *ierr)
 {
   if ((void(*)())monitor == (void(*)())epsdefaultmonitor_) {
     *ierr = EPSSetMonitor(*eps,EPSDefaultMonitor,0);

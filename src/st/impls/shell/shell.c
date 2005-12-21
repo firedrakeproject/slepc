@@ -20,7 +20,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "STShellGetContext"
-/*@
+/*@C
     STShellGetContext - Returns the user-provided context associated with a shell ST
 
     Not Collective
