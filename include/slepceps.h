@@ -136,9 +136,6 @@ EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec);
 EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,int,Vec);
 
-EXTERN PetscErrorCode STPreSolve(ST,EPS);
-EXTERN PetscErrorCode STPostSolve(ST,EPS);
-
 /* --------- options specific to particular eigensolvers -------- */
 
 typedef enum { EPSPOWER_SHIFT_CONSTANT, EPSPOWER_SHIFT_RAYLEIGH,

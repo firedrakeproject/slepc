@@ -33,6 +33,7 @@ EXTERN PetscErrorCode STApplyB(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyNoB(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
+EXTERN PetscErrorCode STPostSolve(ST);
 
 EXTERN PetscErrorCode STInitializePackage(char*);
 

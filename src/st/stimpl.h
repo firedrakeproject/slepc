@@ -17,7 +17,6 @@ struct _STOps {
   int          (*applytrans)(ST,Vec,Vec);
   int          (*setshift)(ST,PetscScalar);
   int          (*setfromoptions)(ST);
-  int          (*presolve)(ST);  
   int          (*postsolve)(ST);  
   int          (*backtr)(ST,PetscScalar*,PetscScalar*);  
   int          (*destroy)(ST);

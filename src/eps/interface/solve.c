@@ -51,7 +51,6 @@ PetscErrorCode EPSSolve(EPS eps)
   eps->evecsavailable = PETSC_FALSE;
 
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
-  ierr = STPreSolve(eps->OP,eps);CHKERRQ(ierr);
 
   switch (eps->solverclass) {
     case EPS_ONE_SIDE:
@@ -66,7 +65,7 @@ PetscErrorCode EPSSolve(EPS eps)
       SETERRQ(1,"Wrong value of eps->solverclass");
   }
 
-  ierr = STPostSolve(eps->OP,eps);CHKERRQ(ierr);
+  ierr = STPostSolve(eps->OP);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
   if (!eps->reason) {

@@ -772,57 +772,21 @@ PetscErrorCode STSetUp(ST st)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STPreSolve"
-/*
-   STPreSolve - Optional pre-solve phase, intended for any actions that 
-   must be performed on the ST object before the eigensolver starts iterating.
-
-   Collective on ST
-
-   Input Parameters:
-   st  - the spectral transformation context
-   eps - the eigenproblem solver context
-
-   Level: developer
-
-   Sample of Usage:
-
-    STPreSolve(st,eps);
-    EPSSolve(eps,its);
-    STPostSolve(st,eps);
-*/
-PetscErrorCode STPreSolve(ST st,EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-
-  if (st->ops->presolve) {
-    ierr = (*st->ops->presolve)(st);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STPostSolve"
-/*
+/*@
    STPostSolve - Optional post-solve phase, intended for any actions that must 
    be performed on the ST object after the eigensolver has finished.
 
    Collective on ST
 
    Input Parameters:
-   st  - the spectral transformation context
-   eps - the eigenproblem solver context
+.  st  - the spectral transformation context
 
-   Sample of Usage:
+   Level: developer
 
-    STPreSolve(st,eps);
-    EPSSolve(eps,its);
-    STPostSolve(st,eps);
-*/
-PetscErrorCode STPostSolve(ST st,EPS eps)
+.seealso: EPSSolve()
+@*/
+PetscErrorCode STPostSolve(ST st)
 {
   PetscErrorCode ierr;
 

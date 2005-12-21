@@ -92,8 +92,8 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STPost_Sinvert"
-PetscErrorCode STPost_Sinvert(ST st)
+#define __FUNCT__ "STPostSolve_Sinvert"
+PetscErrorCode STPostSolve_Sinvert(ST st)
 {
   PetscErrorCode ierr;
 
@@ -218,7 +218,7 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->applyB         = STApplyB_Sinvert;
   st->ops->applynoB       = STApplyNoB_Sinvert;
   st->ops->applytrans     = STApplyTranspose_Sinvert;
-  st->ops->postsolve      = STPost_Sinvert;
+  st->ops->postsolve      = STPostSolve_Sinvert;
   st->ops->backtr         = STBackTransform_Sinvert;
   st->ops->setup          = STSetUp_Sinvert;
   st->ops->setshift       = STSetShift_Sinvert;

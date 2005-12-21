@@ -128,8 +128,8 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscScalar *eigr,PetscScalar *eigi)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STPost_Cayley"
-PetscErrorCode STPost_Cayley(ST st)
+#define __FUNCT__ "STPostSolve_Cayley"
+PetscErrorCode STPostSolve_Cayley(ST st)
 {
   PetscErrorCode ierr;
 
@@ -368,7 +368,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->applyB         = STApplyB_Cayley;
   st->ops->applynoB       = STApplyNoB_Cayley;
   st->ops->applytrans     = STApplyTranspose_Cayley;
-  st->ops->postsolve      = STPost_Cayley;
+  st->ops->postsolve      = STPostSolve_Cayley;
   st->ops->backtr         = STBackTransform_Cayley;
   st->ops->setfromoptions = STSetFromOptions_Cayley;
   st->ops->setup          = STSetUp_Cayley;
