@@ -223,7 +223,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,int n,const Vec V[])
 
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace"
-/*@C
+/*@
    STCheckNullSpace - Given a set of vectors, this function tests each of
    them to be a nullspace vector of the coefficient matrix of the associated
    KSP object. All these nullspace vectors are passed to the KSP object.
