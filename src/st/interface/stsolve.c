@@ -286,6 +286,23 @@ PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STNormBegin"
+/*@
+   STNormBegin - Starts a split phase norm computation.
+
+   Input Parameters:
++  st   - the spectral transformation context
+.  x    - input vector
+-  norm - where the result will go
+
+   Level: developer
+
+   Notes:
+   Each call to STNormBegin() should be paired with a call to STNormEnd().
+
+.seealso: STNormEnd(), STNorm(), STInnerProduct(), STMInnerProduct(), 
+          STInnerProductBegin(), STInnerProductEnd()
+
+@*/
 PetscErrorCode STNormBegin(ST st,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
@@ -303,6 +320,25 @@ PetscErrorCode STNormBegin(ST st,Vec x,PetscReal *norm)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STNormEnd"
+/*@
+   STNormEnd - Ends a split phase norm computation.
+
+   Input Parameters:
++  st   - the spectral transformation context
+-  x    - input vector
+
+   Output Parameter:
+.  norm - the computed norm
+
+   Level: developer
+
+   Notes:
+   Each call to STNormBegin() should be paired with a call to STNormEnd().
+
+.seealso: STNormBegin(), STNorm(), STInnerProduct(), STMInnerProduct(), 
+          STInnerProductBegin(), STInnerProductEnd()
+
+@*/
 PetscErrorCode STNormEnd(ST st,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
@@ -392,6 +428,108 @@ PetscErrorCode STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STInnerProductBegin"
+/*@
+   STInnerProductBegin - Starts a split phase inner product computation.
+
+   Input Parameters:
++  st - the spectral transformation context
+.  x  - the first vector
+.  y  - the second vector
+-  p  - where the result will go
+
+   Level: developer
+
+   Notes:
+   Each call to STInnerProductBegin() should be paired with a call to STInnerProductEnd().
+
+.seealso: STInnerProductEnd(), STInnerProduct(), STNorm(), STNormBegin(), 
+          STNormEnd(), STMInnerProduct() 
+
+@*/
+PetscErrorCode STInnerProductBegin(ST st,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidScalarPointer(p,4);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_SYMMETRIC:
+    ierr = VecCopy(x,st->w);CHKERRQ(ierr);
+    break;
+  case STINNER_B_HERMITIAN:
+  case STINNER_B_SYMMETRIC:
+    ierr = STApplyB(st,x,st->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecDotBegin(st->w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    ierr = VecTDotBegin(st->w,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STInnerProductEnd"
+/*@
+   STInnerProductEnd - Ends a split phase inner product computation.
+
+   Input Parameters:
++  st - the spectral transformation context
+.  x  - the first vector
+-  y  - the second vector
+
+   Output Parameter:
+.  p  - result of the inner product
+
+   Level: developer
+
+   Notes:
+   Each call to STInnerProductBegin() should be paired with a call to STInnerProductEnd().
+
+.seealso: STInnerProductBegin(), STInnerProduct(), STNorm(), STNormBegin(), 
+          STNormEnd(), STMInnerProduct() 
+
+@*/
+PetscErrorCode STInnerProductEnd(ST st,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidScalarPointer(p,4);
+  
+  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  switch (st->bilinear_form) {
+  case STINNER_HERMITIAN:
+  case STINNER_B_HERMITIAN:
+    ierr = VecDotEnd(st->w,y,p);CHKERRQ(ierr);
+    break;
+  case STINNER_SYMMETRIC:
+  case STINNER_B_SYMMETRIC:
+    ierr = VecTDotEnd(st->w,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STMInnerProduct"
 /*@
    STMInnerProduct - Computes the inner products a vector x with a set of
@@ -401,8 +539,9 @@ PetscErrorCode STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
 
    Input Parameters:
 +  st - the spectral transformation context
-.  x  - input vector
--  Y  - input vectors
+.  n  - number of vectors in y
+.  x  - the first input vector
+-  y  - array of vectors
 
    Output Parameter:
 .  p - result of the inner products
@@ -456,6 +595,25 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
 
 #undef __FUNCT__  
 #define __FUNCT__ "STMInnerProductBegin"
+/*@
+   STMInnerProductBegin - Starts a split phase multiple inner product computation.
+
+   Input Parameters:
++  st - the spectral transformation context
+.  n  - number of vectors in y
+.  x  - the first input vector
+.  y  - array of vectors
+-  p  - where the result will go
+
+   Level: developer
+
+   Notes:
+   Each call to STMInnerProductBegin() should be paired with a call to STMInnerProductEnd().
+
+.seealso: STMInnerProductEnd(), STMInnerProduct(), STNorm(), STNormBegin(), 
+          STNormEnd(), STInnerProduct() 
+
+@*/
 PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
@@ -510,6 +668,27 @@ PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscSc
 
 #undef __FUNCT__  
 #define __FUNCT__ "STMInnerProductEnd"
+/*@
+   STMInnerProductEnd - Ends a split phase multiple inner product computation.
+
+   Input Parameters:
++  st - the spectral transformation context
+.  n  - number of vectors in y
+.  x  - the first input vector
+-  y  - array of vectors
+
+   Output Parameter:
+.  p - result of the inner products
+
+   Level: developer
+
+   Notes:
+   Each call to STMInnerProductBegin() should be paired with a call to STMInnerProductEnd().
+
+.seealso: STMInnerProductBegin(), STMInnerProduct(), STNorm(), STNormBegin(), 
+          STNormEnd(), STInnerProduct() 
+
+@*/
 PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
@@ -546,70 +725,6 @@ PetscErrorCode STMInnerProductEnd(ST st,PetscInt n,Vec x,const Vec y[],PetscScal
 	ierr = VecTDotEnd(st->w,y[i],p+i);CHKERRQ(ierr);
       }
     }
-    break;
-  }
-  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STInnerProductBegin"
-PetscErrorCode STInnerProductBegin(ST st,Vec x,Vec y,PetscScalar *p)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
-  PetscValidScalarPointer(p,4);
-  
-  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
-  switch (st->bilinear_form) {
-  case STINNER_HERMITIAN:
-  case STINNER_SYMMETRIC:
-    ierr = VecCopy(x,st->w);CHKERRQ(ierr);
-    break;
-  case STINNER_B_HERMITIAN:
-  case STINNER_B_SYMMETRIC:
-    ierr = STApplyB(st,x,st->w);CHKERRQ(ierr);
-    break;
-  }
-  switch (st->bilinear_form) {
-  case STINNER_HERMITIAN:
-  case STINNER_B_HERMITIAN:
-    ierr = VecDotBegin(st->w,y,p);CHKERRQ(ierr);
-    break;
-  case STINNER_SYMMETRIC:
-  case STINNER_B_SYMMETRIC:
-    ierr = VecTDotBegin(st->w,y,p);CHKERRQ(ierr);
-    break;
-  }
-  ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STInnerProductEnd"
-PetscErrorCode STInnerProductEnd(ST st,Vec x,Vec y,PetscScalar *p)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
-  PetscValidScalarPointer(p,4);
-  
-  ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
-  switch (st->bilinear_form) {
-  case STINNER_HERMITIAN:
-  case STINNER_B_HERMITIAN:
-    ierr = VecDotEnd(st->w,y,p);CHKERRQ(ierr);
-    break;
-  case STINNER_SYMMETRIC:
-  case STINNER_B_SYMMETRIC:
-    ierr = VecTDotEnd(st->w,y,p);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
