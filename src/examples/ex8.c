@@ -1,5 +1,5 @@
 
-static char help[] = "Estimates the 2-norm condition number of a matrix A, that is, the ratio of the largest  to the smallest singular values of A. "
+static char help[] = "Estimates the 2-norm condition number of a matrix A, that is, the ratio of the largest to the smallest singular values of A. "
   "The matrix is a Grcar matrix.\n\n"
   "The command line options are:\n\n"
   "  -n <n>, where <n> = matrix dimension.\n\n";
@@ -118,11 +118,6 @@ int main( int argc, char **argv )
   /*
      Set solver parameters at runtime
   */
-#ifdef SLEPC_HAVE_ARPACK
-  ierr = EPSSetType(eps, EPSARPACK);CHKERRQ(ierr);
-#else
-  ierr = EPSSetType(eps, EPSLAPACK);CHKERRQ(ierr);
-#endif
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSSetDimensions(eps,1,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,PETSC_DEFAULT,1000);CHKERRQ(ierr);
@@ -175,7 +170,7 @@ int main( int argc, char **argv )
     ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge!\n\n");CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge! Try running with a larger value -eps_ncv\n\n");CHKERRQ(ierr);
   }   
  
   /* 
