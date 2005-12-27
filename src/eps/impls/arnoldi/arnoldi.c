@@ -387,8 +387,8 @@ static PetscErrorCode EPSBasicArnoldi6(EPS eps,PetscScalar *H,Vec *V,int k,int m
   PetscErrorCode ierr;
   int            i,j;
   Vec            w,u,t;
-  PetscScalar    shh[100],*lhh;
-  PetscReal      norm1,norm2;
+  PetscScalar    shh[100],*lhh,norm1;
+  PetscReal      norm2;
 
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
@@ -446,10 +446,10 @@ static PetscErrorCode EPSBasicArnoldi6(EPS eps,PetscScalar *H,Vec *V,int k,int m
     }
   }
 
-  ierr = STNorm(eps->OP,t,&norm1);CHKERRQ(ierr);
-  ierr = VecScale(t,1.0/norm1);CHKERRQ(ierr);
+  ierr = STNorm(eps->OP,t,&norm2);CHKERRQ(ierr);
+  ierr = VecScale(t,1.0/norm2);CHKERRQ(ierr);
   ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
-  H[m*(m-2)+m-1] = norm1;
+  H[m*(m-2)+m-1] = norm2;
 
   ierr = STMInnerProduct(eps->OP,m,f,V,lhh);CHKERRQ(ierr);
   
