@@ -8,13 +8,6 @@
 !  The command line options are:
 !    -n <n>, where <n> = number of grid points = matrix size
 !
-!/*T
-!  Concepts: SLEPc - Basic functionality
-!  Routines: SlepcInitialize(); SlepcFinalize();
-!  Routines: EPSCreate(); EPSSetFromOptions();
-!  Routines: EPSSolve(); EPSDestroy();
-!T*/ 
-!
 ! ---------------------------------------------------------------------- 
 !
       program main
@@ -37,7 +30,7 @@
       Mat          A
       EPS          eps
       EPSType      type
-      PetscReal    tol, error
+      PetscReal    tol, error, re, im
       PetscScalar  kr, ki
       integer      rank, n, nev, ierr, maxit, i, its, nconv
       integer      col(3), Istart, Iend
@@ -56,7 +49,7 @@
       if (rank .eq. 0) then
         write(*,100) n
       endif
- 100  format ('1-D Laplacian Eigenproblem, n =',i6)
+ 100  format (/'1-D Laplacian Eigenproblem, n =',I3)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -119,27 +112,26 @@
       call EPSSolve(eps,ierr) 
       call EPSGetIterationNumber(eps,its,ierr)
       if (rank .eq. 0) then
-        write(*,*)
-        write(*,140) its
+        write(*,110) its
       endif
- 140  format (' Number of iterations of the method: ',I4)
+ 110  format (/' Number of iterations of the method:',I4)
   
 !     ** Optional: Get some information from the solver and display it
       call EPSGetType(eps,type,ierr)
       if (rank .eq. 0) then
-        write(*,110) type
+        write(*,120) type
       endif
- 110  format (' Solution method: ',A)
+ 120  format (' Solution method: ',A)
       call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
-        write(*,120) nev
+        write(*,130) nev
       endif
- 120  format (' Number of requested eigenvalues:',I2)
+ 130  format (/' Number of requested eigenvalues:',I2)
       call EPSGetTolerances(eps,tol,maxit,ierr)
       if (rank .eq. 0) then
-        write(*,130) tol, maxit
+        write(*,140) tol, maxit
       endif
- 130  format (' Stopping condition: tol=',1PE10.4,', maxit=',I6)
+ 140  format (' Stopping condition: tol=',1P,E10.4,', maxit=',I4)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up
@@ -150,11 +142,10 @@
       if (rank .eq. 0) then
         write(*,150) nconv
       endif
- 150  format (' Number of converged approximate eigenpairs:',I2)
+ 150  format (' Number of converged eigenpairs:',I2/)
 
 !     ** Display eigenvalues and relative errors
       if (nconv.gt.0 .and. rank.eq.0) then
-        write(*,*)
         write(*,*) '         k          ||Ax-kx||/||kx||'
         write(*,*) ' ----------------- ------------------'
         do i=0,nconv-1
@@ -165,16 +156,24 @@
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)
 
-          if (ki.ne.0.D0) then
-            write(*,180) kr, ki, error
+#if !defined(PETSC_USE_COMPLEX)
+          re = PetscRealPart(kr);
+          im = PetscImaginaryPart(kr);
+#else
+          re = kr;
+          im = ki;
+#endif 
+          if (im.ne.0.D0) then
+            write(*,160) re, im, error
+ 160        format (1P,E11.4,E11.4,' j ',E12.4)
           else
-            write(*,190) kr, error
+            write(*,170) re, error
+ 170        format (1P,'   ',E12.4,'       ',E12.4)
           endif
+
         enddo
         write(*,*)
       endif
- 180  format (1P,E11.4,E11.4,' j ',E12.4)
- 190  format (1P,'   ',E12.4,'       ',E12.4)
 
 !     ** Free work space
       call EPSDestroy(eps,ierr)

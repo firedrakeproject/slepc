@@ -9,13 +9,6 @@
 !  The command line options are:
 !    -m <m>, where <m> is the number of 2x2 blocks, i.e. matrix size N=2*m
 !
-!/*T
-!  Concepts: SLEPc - Basic functionality
-!  Routines: SlepcInitialize(); SlepcFinalize();
-!  Routines: EPSCreate(); EPSSetFromOptions();
-!  Routines: EPSSolve(); EPSDestroy();
-!T*/ 
-!
 ! ---------------------------------------------------------------------- 
 !
       program main
@@ -151,8 +144,8 @@
             write(*,'(1P,A,E12.4,A,E12.4)') '   ', kr, '       ', error
           endif
         enddo
-        write(*,*)
       endif
+      write(*,*)
 
 !     ** Free work space
       call EPSDestroy(eps,ierr)
