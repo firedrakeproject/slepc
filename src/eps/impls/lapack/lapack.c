@@ -43,7 +43,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       ierr = MatShift(la->A,shift);CHKERRQ(ierr);
     }
   } else {
-    PetscInfo(eps,"EPSSetup_LAPACK: Using slow explicit operator\n");
+    PetscInfo(eps,"Using slow explicit operator\n");
     la->A = PETSC_NULL;
     la->B = PETSC_NULL;
     ierr = STComputeExplicitOperator(eps->OP,&la->OP);CHKERRQ(ierr);

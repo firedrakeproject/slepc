@@ -270,7 +270,7 @@ PetscErrorCode STNorm(ST st,Vec x,PetscReal *norm)
   ierr = STInnerProduct(st,x,x,&p);CHKERRQ(ierr);
 
   if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-    PetscInfo(st,"STNorm: Zero norm, either the vector is zero or a semi-inner product is being used\n");
+    PetscInfo(st,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
 
 #if defined(PETSC_USE_COMPLEX)
   if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
@@ -352,7 +352,7 @@ PetscErrorCode STNormEnd(ST st,Vec x,PetscReal *norm)
   ierr = STInnerProductEnd(st,x,x,&p);CHKERRQ(ierr);
 
   if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-    PetscInfo(st,"STNorm: Zero norm, either the vector is zero or a semi-inner product is being used\n");
+    PetscInfo(st,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
 
 #if defined(PETSC_USE_COMPLEX)
   if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
@@ -752,7 +752,7 @@ PetscErrorCode STSetUp(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
 
-  PetscInfo(st,"STSetUp:Setting up new ST\n");
+  PetscInfo(st,"Setting up new ST\n");
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!st->A) {SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
