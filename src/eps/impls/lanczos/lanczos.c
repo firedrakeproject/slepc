@@ -544,7 +544,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 
     if (breakdown) {
       restart = -1;
-      PetscVerboseInfo((eps,"Breakdown in Lanczos method (norm=%g)\n",beta));
+      PetscInfo1(eps,"Breakdown in Lanczos method (norm=%g)\n",beta);
     }
     
     if (k<eps->nev) {
@@ -569,7 +569,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       } else {
 	/* Use random vector for restarting */
 	ierr = SlepcVecSetRandom(eps->V[k]);CHKERRQ(ierr);
-	PetscVerboseInfo((eps,"Using random vector for restart\n"));
+	PetscInfo(eps,"Using random vector for restart\n");
       }
     }
     
@@ -584,7 +584,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
         ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
 	if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
-	  PetscVerboseInfo((eps,"Unable to generate more start vectors\n"));
+	  PetscInfo(eps,"Unable to generate more start vectors\n");
 	} else {
           ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
 	}

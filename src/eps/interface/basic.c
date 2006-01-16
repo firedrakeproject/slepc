@@ -44,7 +44,7 @@ PetscErrorCode EPSInitializePackage(char *path) {
   if (opt) {
     ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscVerboseInfoDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */

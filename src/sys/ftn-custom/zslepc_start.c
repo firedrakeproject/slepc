@@ -70,8 +70,8 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr
 #endif
 
   SlepcInitializeCalled = PETSC_TRUE;
-  *ierr = PetscVerboseInfo((0,"SlepcInitialize: SLEPc successfully started from Fortran\n"));
-  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscVerboseInfo()");return;}
+  *ierr = PetscInfo(0,"SlepcInitialize: SLEPc successfully started from Fortran\n");
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return;}
 
 }  
 

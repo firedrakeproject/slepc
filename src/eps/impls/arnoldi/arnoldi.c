@@ -80,7 +80,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (breakdown) {
-      PetscVerboseInfo((eps,"Breakdown in Arnoldi method (norm=%g)\n",norm));
+      PetscInfo1(eps,"Breakdown in Arnoldi method (norm=%g)\n",norm);
       ierr = EPSGetStartVector(eps,j,V[j+1]);CHKERRQ(ierr);
     } else {
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);

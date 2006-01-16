@@ -48,7 +48,7 @@ PetscErrorCode STInitializePackage(char *path) {
   if (opt) {
     ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscVerboseInfoDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
