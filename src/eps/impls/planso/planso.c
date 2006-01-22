@@ -29,7 +29,7 @@ PetscErrorCode EPSSetUp_PLANSO(EPS eps)
 
   ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
   pl->lwork = 5*n+1+4*eps->ncv+PetscMax(n,eps->ncv+1);
-  if (pl->work)  { ierr = PetscFree(pl->work);CHKERRQ(ierr); }
+  ierr = PetscFree(pl->work);CHKERRQ(ierr);
   ierr = PetscMalloc(pl->lwork*sizeof(PetscReal),&pl->work);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
@@ -112,8 +112,8 @@ PetscErrorCode EPSDestroy_PLANSO(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (pl->work)  { ierr = PetscFree(pl->work);CHKERRQ(ierr); }
-  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = PetscFree(pl->work);CHKERRQ(ierr);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

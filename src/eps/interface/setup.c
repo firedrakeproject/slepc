@@ -84,7 +84,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
 
   /* DSV is equal to the columns of DS followed by the ones in V */
-  if (eps->DSV) { ierr = PetscFree(eps->DSV);CHKERRQ(ierr); }
+  ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv+eps->nds)*sizeof(Vec),&eps->DSV);CHKERRQ(ierr);    
   for (i = 0; i < eps->nds; i++) eps->DSV[i] = eps->DS[i];
   for (i = 0; i < eps->ncv; i++) eps->DSV[i+eps->nds] = eps->V[i];

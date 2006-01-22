@@ -12,7 +12,7 @@ PetscErrorCode EPSDestroy_Default(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
 
   /* free work vectors */
   ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);

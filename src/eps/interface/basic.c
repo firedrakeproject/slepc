@@ -449,17 +449,9 @@ PetscErrorCode EPSDestroy(EPS eps)
     ierr = (*eps->ops->destroy)(eps); CHKERRQ(ierr);
   }
   
-  if (eps->T) {
-    ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  }
-  
-  if (eps->Tl) {
-    ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
-  }
-  
-  if (eps->perm) {
-    ierr = PetscFree(eps->perm);CHKERRQ(ierr);
-  }
+  ierr = PetscFree(eps->T);CHKERRQ(ierr);
+  ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
+  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
 
   if (eps->vec_initial) {
     ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
@@ -473,9 +465,7 @@ PetscErrorCode EPSDestroy(EPS eps)
     ierr = VecDestroyVecs(eps->DS, eps->nds);
   }
   
-  if (eps->DSV) {
-    ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
-  }
+  ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
 
   PetscLogObjectDestroy(eps);
   PetscHeaderDestroy(eps);

@@ -51,10 +51,10 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
       SETERRQ(1,"Wrong value of eps->which");
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
+  ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   if (eps->solverclass==EPS_TWO_SIDE) {
-    if (eps->Tl) { ierr = PetscFree(eps->Tl);CHKERRQ(ierr); }  
+    ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   }

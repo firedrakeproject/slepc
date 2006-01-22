@@ -60,7 +60,7 @@ PetscErrorCode STSetType(ST st,STType type)
   /* Determine the STCreateXXX routine for a particular type */
   ierr =  PetscFListFind(st->comm, STList, type,(void (**)(void)) &r );CHKERRQ(ierr);
   if (!r) SETERRQ1(1,"Unable to find requested ST type %s",type);
-  if (st->data) {ierr = PetscFree(st->data);CHKERRQ(ierr);}
+  ierr = PetscFree(st->data);CHKERRQ(ierr);
 
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 

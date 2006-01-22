@@ -110,10 +110,7 @@ PetscErrorCode EPSSolve(EPS eps)
 #endif
 
   /* sort eigenvalues according to eps->which parameter */
-  if (eps->perm) {
-    ierr = PetscFree(eps->perm); CHKERRQ(ierr);
-    eps->perm = PETSC_NULL;
-  }
+  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   if (eps->nconv > 0) {
     ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
     ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);

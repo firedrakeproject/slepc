@@ -124,8 +124,8 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (tr->work)  { ierr = PetscFree(tr->work);CHKERRQ(ierr); }
-  if (eps->data) {ierr = PetscFree(eps->data);CHKERRQ(ierr);}
+  ierr = PetscFree(tr->work);CHKERRQ(ierr);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -170,7 +170,7 @@ PetscErrorCode EPSDestroy_LAPACK(EPS eps)
   if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
   if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
   if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }
-  if (eps->data) { ierr = PetscFree(eps->data);CHKERRQ(ierr); }
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

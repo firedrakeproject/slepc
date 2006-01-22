@@ -137,7 +137,7 @@ PetscErrorCode STDestroy_Shell(ST st)
   ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  if (shell->name) {ierr = PetscFree(shell->name);CHKERRQ(ierr);}
+  ierr = PetscFree(shell->name);CHKERRQ(ierr);
   ierr = PetscFree(shell);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

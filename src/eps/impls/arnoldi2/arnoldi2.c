@@ -50,7 +50,7 @@ PetscErrorCode EPSSetUp_ARNOLDI2(EPS eps)
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  if (eps->T) { ierr = PetscFree(eps->T);CHKERRQ(ierr); }  
+  ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
