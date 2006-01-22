@@ -360,7 +360,6 @@ PetscErrorCode STCreate_Cayley(ST st)
 
   PetscFunctionBegin;
   ierr = PetscNew(ST_CAYLEY,&ctx); CHKERRQ(ierr);
-  PetscMemzero(ctx,sizeof(ST_CAYLEY));
   PetscLogObjectMemory(st,sizeof(ST_CAYLEY));
   st->data                = (void *) ctx;
 

@@ -763,7 +763,6 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_LANCZOS,&lanczos);CHKERRQ(ierr);
-  PetscMemzero(lanczos,sizeof(EPS_LANCZOS));
   PetscLogObjectMemory(eps,sizeof(EPS_LANCZOS));
   eps->data                      = (void *) lanczos;
   eps->ops->solve                = EPSSolve_LANCZOS;

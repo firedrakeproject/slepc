@@ -236,7 +236,6 @@ PetscErrorCode STCreate_Fold(ST st)
   PetscFunctionBegin;
 
   ierr = PetscNew(ST_FOLD,&ctx); CHKERRQ(ierr);
-  PetscMemzero(ctx,sizeof(ST_FOLD));
   PetscLogObjectMemory(st,sizeof(ST_FOLD));
   st->data		  = (void *) ctx;
 

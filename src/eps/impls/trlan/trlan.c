@@ -140,7 +140,6 @@ PetscErrorCode EPSCreate_TRLAN(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_TRLAN,&trlan);CHKERRQ(ierr);
-  PetscMemzero(trlan,sizeof(EPS_TRLAN));
   PetscLogObjectMemory(eps,sizeof(EPS_TRLAN));
   eps->data                      = (void *) trlan;
   eps->ops->solve                = EPSSolve_TRLAN;

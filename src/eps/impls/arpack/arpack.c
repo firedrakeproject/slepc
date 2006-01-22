@@ -290,7 +290,6 @@ PetscErrorCode EPSCreate_ARPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_ARPACK,&arpack);CHKERRQ(ierr);
-  PetscMemzero(arpack,sizeof(EPS_ARPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_ARPACK));
   eps->data                      = (void *) arpack;
   eps->ops->solve                = EPSSolve_ARPACK;

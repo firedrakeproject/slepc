@@ -488,7 +488,6 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_BLZPACK,&blzpack);CHKERRQ(ierr);
-  PetscMemzero(blzpack,sizeof(EPS_BLZPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_BLZPACK));
   eps->data                      = (void *) blzpack;
   eps->ops->solve                = EPSSolve_BLZPACK;

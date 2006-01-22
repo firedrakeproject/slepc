@@ -529,7 +529,6 @@ PetscErrorCode EPSCreate_POWER(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_POWER,&power);CHKERRQ(ierr);
-  PetscMemzero(power,sizeof(EPS_POWER));
   PetscLogObjectMemory(eps,sizeof(EPS_POWER));
   eps->data                      = (void *) power;
   eps->ops->solve                = EPSSolve_POWER;

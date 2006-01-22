@@ -222,7 +222,6 @@ PetscErrorCode EPSCreate_LOBPCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_LOBPCG,&lobpcg);CHKERRQ(ierr);
-  PetscMemzero(lobpcg,sizeof(EPS_LOBPCG));
   PetscLogObjectMemory(eps,sizeof(EPS_LOBPCG));
   HYPRE_ParCSRSetupInterpreter(&lobpcg->interpreter);
   lobpcg->interpreter.Matvec = EPSFunctA;

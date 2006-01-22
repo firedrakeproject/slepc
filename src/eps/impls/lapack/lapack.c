@@ -185,7 +185,6 @@ PetscErrorCode EPSCreate_LAPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_LAPACK,&la);CHKERRQ(ierr);
-  PetscMemzero(la,sizeof(EPS_LAPACK));
   PetscLogObjectMemory(eps,sizeof(EPS_LAPACK));
   eps->data                      = (void *) la;
   eps->ops->solve                = EPSSolve_LAPACK;

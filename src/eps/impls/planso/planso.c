@@ -128,7 +128,6 @@ PetscErrorCode EPSCreate_PLANSO(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNew(EPS_PLANSO,&planso);CHKERRQ(ierr);
-  PetscMemzero(planso,sizeof(EPS_PLANSO));
   PetscLogObjectMemory(eps,sizeof(EPS_PLANSO));
   eps->data                      = (void *) planso;
   eps->ops->solve                = EPSSolve_PLANSO;
