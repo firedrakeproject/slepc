@@ -30,8 +30,6 @@ info:
 	-@echo "=========================================="
 	-@echo On `date` on `hostname`
 	-@echo Machine characteristics: `uname -a`
-	-@echo "config/configure.py run at " ${CONFIGURE_RUN_TIME}
-	-@echo "config/configure.py options " ${CONFIGURE_OPTIONS}
 	-@echo "-----------------------------------------"
 	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
 	-@echo "Using PETSc directory: ${PETSC_DIR}"
@@ -41,20 +39,20 @@ info:
 	-@echo "-----------------------------------------"
 	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
 	-@echo "-----------------------------------------"
+	-@echo "Using configure options " ${CONFIGURE_OPTIONS}
 	-@echo "Using configuration flags:"
 	-@grep "\#define " ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf.h
 	-@echo "-----------------------------------------"
 	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_INCLUDE}"
-	-@echo "Using PETSc/SLEPc flags: ${PETSCFLAGS} ${PCONF}"
 	-@echo "------------------------------------------"
-	-@echo "Using C/C++ compiler: ${CC} ${COPTFLAGS} ${CPPFLAGS}"
+	-@echo "Using C/C++ compiler: ${PCC} ${PCC_FLAGS} ${COPTFLAGS} ${CFLAGS}"
 	-@echo "C/C++ Compiler version: " `${CCV}`
 	-@if [ "${FC}" != "" ]; then \
-	   echo "Using Fortran compiler: ${FC} ${FOPTFLAGS} ${FPPFLAGS}";\
+	   echo "Using Fortran compiler: ${FC} ${FC_FLAGS} ${FFLAGS} ${FPP_FLAGS}";\
 	   echo "Fortran Compiler version: " `${FCV}`;\
          fi
 	-@echo "-----------------------------------------"
-	-@echo "Using C/C++ linker: ${CC_LINKER}"
+	-@echo "Using C/C++ linker: ${PCC_LINKER}"
 	-@if [ "${FC}" != "" ]; then \
 	   echo "Using Fortran linker: ${FC_LINKER}";\
          fi
