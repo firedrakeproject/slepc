@@ -82,6 +82,8 @@ struct _p_EPS {
   EPSOrthogonalizationRefinementType orthog_ref;   /* refinement method */
   PetscReal               orthog_eta;
   PetscTruth              ds_ortho;    /* if vectors in DS have to be orthonormalized */  
+  int         count_reorthog;
+  PetscScalar level_orthog;
 };
 
 #define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \

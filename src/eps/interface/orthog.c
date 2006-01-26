@@ -225,6 +225,7 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
     break;
   case EPS_ORTH_REFINE_ALWAYS:
     ierr = EPSOrthogonalizeGS(eps,n,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr); 
+    eps->count_reorthog++;
     ierr = EPSOrthogonalizeGS(eps,n,V,v,c,hnrm,nrm,w);CHKERRQ(ierr); 
     for (j=0;j<n;j++)
       h[j] += c[j];
@@ -235,6 +236,7 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
     /* if ||q|| < eta ||h|| */
     if (*nrm < eps->orthog_eta * *hnrm) {
       *hnrm = *nrm;
+      eps->count_reorthog++;
       ierr = EPSOrthogonalizeGS(eps,n,V,v,c,PETSC_NULL,nrm,w);CHKERRQ(ierr); 
       for (j=0;j<n;j++)
 	h[j] += c[j];
