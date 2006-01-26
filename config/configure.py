@@ -136,7 +136,7 @@ log.Write('Python version:\n' + sys.version)
 log.Write('='*80)
 
 # Check if PETSc is working
-log.Println('Checking PETSc library...')
+log.Println('Checking PETSc installation...')
 if not check.Link([],[],[]):
   log.Exit('ERROR: PETSc is not installed correctly')
 
@@ -191,7 +191,7 @@ if havetrlan:
   log.Println('TRLAN library flags:')
   log.Println(' '+str.join(' ',trlanlibs))
 if missing:
-  log.Println('LAPACK mising functions:')
+  log.Println('LAPACK missing functions:')
   log.Print('  ')
   for i in missing: log.Print(i)
   log.Println('')
