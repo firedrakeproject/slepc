@@ -574,7 +574,6 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
   switch (type) {
     case EPS_CGS_ORTH:
     case EPS_MGS_ORTH:
-    case EPS_NCGS_ORTH:
       eps->orthog_type = type;
       break;
     default:
