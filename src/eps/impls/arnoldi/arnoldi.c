@@ -64,10 +64,10 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
    the columns of V. On exit, beta contains the B-norm of f and the next 
    Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
-PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,int k,int m,Vec f,PetscReal *beta)
+PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta)
 {
   PetscErrorCode ierr;
-  int            j;
+  int            j,m = *M;
   PetscReal      norm;
   PetscTruth     breakdown;
 
@@ -80,8 +80,11 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (breakdown) {
+      eps->count_breakdown++;
       PetscInfo1(eps,"Breakdown in Arnoldi method (norm=%g)\n",norm);
-      ierr = EPSGetStartVector(eps,j,V[j+1]);CHKERRQ(ierr);
+      *M = j+1;
+      *beta = norm;
+      PetscFunctionReturn(0);
     } else {
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
     }
@@ -750,17 +753,17 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,ncv=eps->ncv,type=1;
+  int            i,j,k,ncv,type=1;
   Vec            f=eps->work[0];
-  PetscScalar    *H=eps->T,*U,*work;
+  PetscScalar    *H,*U,*work;
   PetscReal      beta,lev;
   const char     *pre;
   PetscTruth     orthog;
 
   PetscFunctionBegin;
-  ierr = PetscMemzero(H,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
-  ierr = PetscMalloc((ncv+4)*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&H);CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
+  ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   
   ierr = PetscObjectGetOptionsPrefix((PetscObject)eps,&pre);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(pre,"-arnoldi",&type,PETSC_NULL);CHKERRQ(ierr);
@@ -776,38 +779,44 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   /* Restart loop */
   while (eps->its<eps->max_it) {
 
+    ncv = eps->ncv;
     /* Compute an ncv-step Arnoldi factorization */
     switch (type) {
     case 1:
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,eps->T,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
       break;    
     case 2:
-      ierr = EPSBasicArnoldi2(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi2(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 3:
-      ierr = EPSBasicArnoldi3(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi3(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 4:
-      ierr = EPSBasicArnoldi4(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi4(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 5:
-      ierr = EPSBasicArnoldi5(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi5(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 6:
-      ierr = EPSBasicArnoldi6(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi6(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 7:
-      ierr = EPSBasicArnoldi7(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi7(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 8:
-      ierr = EPSBasicArnoldi8(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi8(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     default:
       SETERRQ(1,"Unknown Arnoldi method");
     }    
+
+    /* create a square H */
+    for (i=0;i<ncv;i++)
+      for (j=0;j<ncv;j++)
+        H[j*ncv+i] = eps->T[j*eps->ncv+i];
     
     if (orthog) {
-      ierr = SlepcCheckOrthogonality(eps->V,eps->ncv,eps->V,eps->ncv,PETSC_NULL,&lev);CHKERRQ(ierr);
+      ierr = SlepcCheckOrthogonality(eps->V,ncv,eps->V,ncv,PETSC_NULL,&lev);CHKERRQ(ierr);
       if (lev > eps->level_orthog) eps->level_orthog = lev;
     }
     
@@ -845,6 +854,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 #endif
 
+  ierr = PetscFree(H);CHKERRQ(ierr);
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);

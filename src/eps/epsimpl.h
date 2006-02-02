@@ -83,6 +83,7 @@ struct _p_EPS {
   PetscReal               orthog_eta;
   PetscTruth              ds_ortho;    /* if vectors in DS have to be orthonormalized */  
   int         count_reorthog;
+  int         count_breakdown;
   PetscScalar level_orthog;
 };
 
@@ -115,7 +116,7 @@ EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 
 /* Private functions of the solver implementations */
 
-EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int,Vec,PetscReal*);
+EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int*,Vec,PetscReal*);
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 
 #endif

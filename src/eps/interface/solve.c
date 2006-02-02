@@ -49,6 +49,7 @@ PetscErrorCode EPSSolve(EPS eps)
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   ierr = STResetNumberLinearIterations(eps->OP);
   eps->count_reorthog = 0;
+  eps->count_breakdown = 0;
   eps->level_orthog = 0;
   eps->evecsavailable = PETSC_FALSE;
 

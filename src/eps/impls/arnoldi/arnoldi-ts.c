@@ -44,8 +44,8 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   while (eps->its<eps->max_it) {
 
     /* Compute an ncv-step Arnoldi factorization for both A and A' */
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,ncv,fr,&beta);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,ncv,fl,&g);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,&ncv,fr,&beta);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,&ncv,fl,&g);CHKERRQ(ierr);
 
     ierr = EPSBiOrthogonalize(eps,ncv,Qr,Ql,fr,aux,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<ncv;i++) {
