@@ -812,7 +812,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* create a square H */
     for (i=0;i<ncv;i++)
-      for (j=0;j<ncv;j++)
+      for (j=eps->nconv;j<ncv;j++)
         H[j*ncv+i] = eps->T[j*eps->ncv+i];
     
     if (orthog) {
