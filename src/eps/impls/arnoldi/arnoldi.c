@@ -807,6 +807,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   PetscTruth     orthog;
 
   PetscFunctionBegin;
+  ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&H);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
@@ -873,6 +874,11 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Sort the remaining columns of the Schur form */
     ierr = EPSSortDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+
+    /* move results form H to eps->T */
+    for (i=0;i<ncv;i++)
+      for (j=eps->nconv;j<ncv;j++)
+        eps->T[j*eps->ncv+i] = H[j*ncv+i];
 
     /* Compute residual norm estimates */
     ierr = ArnoldiResiduals(H,U,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
