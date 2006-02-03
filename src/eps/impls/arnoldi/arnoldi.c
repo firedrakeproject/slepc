@@ -30,9 +30,11 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->nev > N) eps->nev = N;
   if (eps->ncv) {
+    if (eps->ncv > N) eps->ncv = N;
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
+  
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
