@@ -231,8 +231,8 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
   }
 
   /* free work space */
-  if (allocatedc) { ierr = PetscFree(h);CHKERRQ(ierr); }
-  if (allocatedh) { ierr = PetscFree(c);CHKERRQ(ierr); }
+  if (allocatedc) { ierr = PetscFree(c);CHKERRQ(ierr); }
+  if (allocatedh) { ierr = PetscFree(h);CHKERRQ(ierr); }
   if (w) { ierr = VecDestroy(w);CHKERRQ(ierr); }
         
   ierr = PetscLogEventEnd(EPS_Orthogonalize,eps,0,0,0);CHKERRQ(ierr);
