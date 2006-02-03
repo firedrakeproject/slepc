@@ -801,16 +801,15 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,j,k,ncv,type=1;
+  int            i,k,ncv,type=1;
   Vec            f=eps->work[0];
-  PetscScalar    *H,*U,*work;
+  PetscScalar    *H=eps->T,*U,*work;
   PetscReal      beta,lev;
   const char     *pre;
   PetscTruth     orthog;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&H);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   
@@ -826,7 +825,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   
   ierr = PetscOptionsHasName(PETSC_NULL,"-orthog",&orthog);CHKERRQ(ierr);
   /* Restart loop */
-  while (eps->its<eps->max_it) {
+  while (eps->reason == EPS_CONVERGED_ITERATING) {
 
     ncv = eps->ncv;
     /* Compute an ncv-step Arnoldi factorization */
@@ -858,12 +857,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     default:
       SETERRQ(1,"Unknown Arnoldi method");
     }    
-
-    /* create a square H */
-    for (i=0;i<ncv;i++)
-      for (j=eps->nconv;j<ncv;j++)
-        H[j*ncv+i] = eps->T[j*eps->ncv+i];
-    
+   
     if (orthog) {
       ierr = SlepcCheckOrthogonality(eps->V,ncv,eps->V,ncv,PETSC_NULL,&lev);CHKERRQ(ierr);
       if (lev > eps->level_orthog) eps->level_orthog = lev;
@@ -876,11 +870,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Sort the remaining columns of the Schur form */
     ierr = EPSSortDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
-
-    /* move results form H to eps->T */
-    for (i=0;i<ncv;i++)
-      for (j=eps->nconv;j<ncv;j++)
-        eps->T[j*eps->ncv+i] = H[j*ncv+i];
 
     /* Compute residual norm estimates */
     ierr = ArnoldiResiduals(H,U,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
@@ -899,16 +888,15 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     eps->nconv = k;
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
-    if (eps->nconv >= eps->nev) break;
+    if (ncv < eps->ncv) eps->reason = EPS_DIVERGED_BREAKDOWN;
+    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
+    if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
   
-  if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
-  else eps->reason = EPS_DIVERGED_ITS;
 #if defined(PETSC_USE_COMPLEX)
   for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
 #endif
 
-  ierr = PetscFree(H);CHKERRQ(ierr);
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
