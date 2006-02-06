@@ -745,6 +745,104 @@ static PetscErrorCode EPSBasicArnoldi8(EPS eps,PetscScalar *H,Vec *V,int k,int *
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSBasicArnoldi9"
+static PetscErrorCode EPSBasicArnoldi9(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta)
+{
+  PetscErrorCode ierr;
+  int            i,j,m = *M;
+  Vec            w,t,u;
+  PetscScalar    sc[100],*c,fdot,tdot;
+  PetscReal      fnorm,tnorm,norm,sum;
+
+  PetscFunctionBegin;
+
+  if (m<=100) c = sc;
+  else { ierr = PetscMalloc(m*sizeof(PetscScalar),&c);CHKERRQ(ierr); }
+  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
+
+  for (j=k;j<m;j++) {
+    eps->its++;
+    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+    /* h = (V^T , f) ; fdot = (f , f) */
+    /* c = (V^T , t) ; tdot = (t , t) */
+    /* norm = |u| */
+    ierr = STMInnerProduct(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    ierr = STInnerProduct(eps->OP,f,f,&fdot);CHKERRQ(ierr);
+    if (j>k) {
+      ierr = STMInnerProduct(eps->OP,j,t,V,c);CHKERRQ(ierr);
+      ierr = STInnerProduct(eps->OP,t,t,&tdot);CHKERRQ(ierr);
+    }
+    if (j>k+1) {
+      ierr = STNorm(eps->OP,u,&norm);CHKERRQ(ierr);
+    }
+      
+    /* f = f - V h */
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
+    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+    /* fnorm = |f| */
+    for (sum=0.0,i=0; i<=j; i++) sum += PetscRealPart(H[m*j+i] * PetscConj(H[m*j+i])); 
+    fnorm = PetscRealPart(fdot)-sum;
+    if (fnorm >= 0.0) fnorm = sqrt(fnorm);
+    else { ierr = STNorm(eps->OP,f,&fnorm);CHKERRQ(ierr); }
+    
+    if (j>k) {
+      /* t = t - V c ; h = h + c*/
+      ierr = VecSet(w,0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(w,j,c,V);CHKERRQ(ierr);
+      ierr = VecAXPY(t,-1.0,w);CHKERRQ(ierr);
+      for (i=0;i<j;i++)	H[m*(j-1)+i] += c[i];
+      /* tnorm = |t| */
+      for (sum=0.0,i=0; i<j; i++) sum += PetscRealPart(c[i] * PetscConj(c[i])); 
+      tnorm = PetscRealPart(tdot)-sum;
+      if (tnorm >= 0.0) tnorm = sqrt(tnorm);
+      else { ierr = STNorm(eps->OP,t,&tnorm);CHKERRQ(ierr); }
+      /* v_j = t / |t|  */
+      ierr = VecCopy(t,V[j]);CHKERRQ(ierr);
+      ierr = VecScale(V[j],1.0/tnorm);CHKERRQ(ierr);      
+    }
+    
+    if (j>k+1) {
+      /* v_j-1 = u / |u|  */
+      ierr = VecCopy(u,V[j-1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j-1],1.0/norm);CHKERRQ(ierr);
+      H[m*(j-2)+j-1] = norm;
+    }
+    
+    if (j<m-1) {
+      /* v_j+1 = f / |f| */
+      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j+1],1.0/fnorm);CHKERRQ(ierr);
+      /* u = t ; t = f */
+      ierr = VecCopy(t,u);CHKERRQ(ierr);
+      ierr = VecCopy(f,t);CHKERRQ(ierr);
+    }
+  }  
+  
+  ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
+  ierr = STNorm(eps->OP,V[m-1],&norm);CHKERRQ(ierr);
+  ierr = VecScale(V[m-1],1.0/norm);CHKERRQ(ierr);  
+  H[m*(m-1)-1] = norm;
+
+  ierr = STMInnerProduct(eps->OP,m,f,V,c);CHKERRQ(ierr);
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,m,c,V);CHKERRQ(ierr);
+  ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+  for (i=0;i<m;i++) H[m*(m-1)+i] += c[i];
+  ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
+  
+  if (m>100) { ierr = PetscFree(c);CHKERRQ(ierr); }
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  ierr = VecDestroy(u);CHKERRQ(ierr);
+  ierr = VecDestroy(t);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "ArnoldiResiduals"
 /*
    EPSArnoldiResiduals - Computes the 2-norm of the residual vectors from
@@ -831,28 +929,31 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Compute an ncv-step Arnoldi factorization */
     switch (type) {
     case 1:
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,eps->T,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
       break;    
     case 2:
-      ierr = EPSBasicArnoldi2(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi2(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 3:
-      ierr = EPSBasicArnoldi3(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi3(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 4:
-      ierr = EPSBasicArnoldi4(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi4(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 5:
-      ierr = EPSBasicArnoldi5(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi5(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 6:
-      ierr = EPSBasicArnoldi6(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi6(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 7:
-      ierr = EPSBasicArnoldi7(eps,eps->T,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi7(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
       break;
     case 8:
-      ierr = EPSBasicArnoldi8(eps,eps->T,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi8(eps,H,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
+      break;
+    case 9:
+      ierr = EPSBasicArnoldi9(eps,H,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
       break;
     default:
       SETERRQ(1,"Unknown Arnoldi method");
