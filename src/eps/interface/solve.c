@@ -51,6 +51,7 @@ PetscErrorCode EPSSolve(EPS eps)
   eps->count_reorthog = 0;
   eps->count_breakdown = 0;
   eps->level_orthog = 0;
+  eps->nv = eps->ncv;
   eps->evecsavailable = PETSC_FALSE;
 
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
@@ -1141,11 +1142,11 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
 .seealso: EPSGetInitialVector()
 
 @*/
-PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec)
+PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
-  PetscTruth     breakdown;
   PetscReal      norm;
+  PetscTruth     lindep;
   Vec            w;
   
   PetscFunctionBegin;
@@ -1155,8 +1156,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec)
   /* For the first step, use the initial vector, otherwise a random one */
   if (i==0) {
     w = eps->vec_initial;
-  }
-  else {
+  } else {
     ierr = VecDuplicate(eps->vec_initial,&w);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(w);CHKERRQ(ierr);
   }
@@ -1165,11 +1165,13 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec)
   ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-  if (breakdown) {
-    if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); }
+  ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+  if (breakdown) *breakdown = lindep;
+  else if (lindep) {
+    if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); } 
     else { SETERRQ(1,"Unable to generate more start vectors"); }
   }
+  
   ierr = VecScale(vec,1/norm);CHKERRQ(ierr);
 
   if (i!=0) {

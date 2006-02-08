@@ -179,7 +179,7 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
   EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
 
   /* Get the starting Arnoldi vector */
-  ierr = EPSGetStartVector(eps,eps->its,eps->V[0]);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,eps->its,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   
   /* Restart loop */
   while (eps->its<eps->max_it) {
@@ -202,13 +202,13 @@ PetscErrorCode EPSSolve_ARNOLDI2(EPS eps)
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
-    ierr = EPSDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(ncv,eps->nconv,H,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Sort the remaining columns of the Schur form  */
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(ncv,eps->nconv,H,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
-    ierr = ArnoldiResiduals(H,U,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(H,ncv,U,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
 
     /* Look for converged eigenpairs. If necessary, reorder the Arnoldi 
        factorization so that all converged eigenvalues are first */

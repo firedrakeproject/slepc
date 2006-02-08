@@ -778,6 +778,17 @@ static PetscErrorCode EPSBasicArnoldi9(EPS eps,PetscScalar *H,Vec *V,int k,int *
     }
     if (j>k+1) {
       ierr = STNorm(eps->OP,u,&norm);CHKERRQ(ierr);
+      /* check breakdown */
+      if (norm < eps->orthog_eta * tnorm) {
+	eps->count_breakdown++;
+	PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,norm);
+	*M = j-1;
+	ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
+	if (m>100) { ierr = PetscFree(c);CHKERRQ(ierr); }
+	ierr = VecDestroy(w);CHKERRQ(ierr);
+	ierr = VecDestroy(u);CHKERRQ(ierr);
+	PetscFunctionReturn(0);
+      }      
     }
       
     /* f = f - V h */
@@ -854,7 +865,7 @@ static PetscErrorCode EPSBasicArnoldi9(EPS eps,PetscScalar *H,Vec *V,int k,int *
    |beta*y(end,i)| where beta is the norm of f and y is the corresponding 
    eigenvector of H.
 */
-PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int nconv,int ncv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
+PetscErrorCode ArnoldiResiduals(PetscScalar *H,int ldh,PetscScalar *U,PetscReal beta,int nconv,int ncv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -872,9 +883,9 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int
   /* Compute eigenvectors Y of H */
   ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
+  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ldh,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
 #else
-  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ncv,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ldh,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
@@ -899,12 +910,12 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscScalar *U,PetscReal beta,int
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,ncv,type=1;
+  int            i,k,type=1;
   Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*work;
   PetscReal      beta,lev;
   const char     *pre;
-  PetscTruth     orthog;
+  PetscTruth     orthog,breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -916,80 +927,86 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
   eps->nconv = 0;
   eps->its = 0;
-  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
+  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
 
   /* Get the starting Arnoldi vector */
-  ierr = EPSGetStartVector(eps,eps->its,eps->V[0]);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   
   ierr = PetscOptionsHasName(PETSC_NULL,"-orthog",&orthog);CHKERRQ(ierr);
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
-    ncv = eps->ncv;
+    eps->nv = eps->ncv;
     /* Compute an ncv-step Arnoldi factorization */
     switch (type) {
     case 1:
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&eps->nv,f,&beta);CHKERRQ(ierr);
       break;    
     case 2:
-      ierr = EPSBasicArnoldi2(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi2(eps,H,eps->V,eps->nconv,eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     case 3:
-      ierr = EPSBasicArnoldi3(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi3(eps,H,eps->V,eps->nconv,eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     case 4:
-      ierr = EPSBasicArnoldi4(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi4(eps,H,eps->V,eps->nconv,eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     case 5:
-      ierr = EPSBasicArnoldi5(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi5(eps,H,eps->V,eps->nconv,eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     case 6:
-      ierr = EPSBasicArnoldi6(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi6(eps,H,eps->V,eps->nconv,eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     case 7:
-      ierr = EPSBasicArnoldi7(eps,H,eps->V,eps->nconv,ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi7(eps,H,eps->V,eps->nconv,eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     case 8:
-      ierr = EPSBasicArnoldi8(eps,H,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi8(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     case 9:
-      ierr = EPSBasicArnoldi9(eps,H,eps->V,eps->nconv,&ncv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi9(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta);CHKERRQ(ierr);
       break;
     default:
       SETERRQ(1,"Unknown Arnoldi method");
     }    
-   
+     
     if (orthog) {
-      ierr = SlepcCheckOrthogonality(eps->V,ncv,eps->V,ncv,PETSC_NULL,&lev);CHKERRQ(ierr);
+      ierr = SlepcCheckOrthogonality(eps->V,eps->nv,eps->V,eps->nv,PETSC_NULL,&lev);CHKERRQ(ierr);
       if (lev > eps->level_orthog) eps->level_orthog = lev;
     }
     
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
-    ierr = PetscMemzero(U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
-    ierr = EPSDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = PetscMemzero(U,eps->nv*eps->nv*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<eps->nv;i++) { U[i*(eps->nv+1)] = 1.0; }
+    ierr = EPSDenseSchur(eps->nv,eps->nconv,H,eps->ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,H,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(eps->nv,eps->nconv,H,eps->ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
-    ierr = ArnoldiResiduals(H,U,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(H,eps->ncv,U,beta,eps->nconv,eps->nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
     
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx) */
     k = eps->nconv;
-    while (k<ncv && eps->errest[k]<eps->tol) k++;
-    for (i=eps->nconv;i<=k && i<ncv;i++) {
+    while (k<eps->nv && eps->errest[k]<eps->tol) k++;
+    for (i=eps->nconv;i<=k && i<eps->nv;i++) {
       ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AV[i],eps->nv,U+eps->nv*i,eps->V);CHKERRQ(ierr);
     }
-    for (i=eps->nconv;i<=k && i<ncv;i++) {
+    for (i=eps->nconv;i<=k && i<eps->nv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     eps->nconv = k;
 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
-    if (ncv < eps->ncv) eps->reason = EPS_DIVERGED_BREAKDOWN;
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
+    if (eps->nv < eps->ncv) {
+      ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
+      if (breakdown) {
+        eps->reason = EPS_DIVERGED_BREAKDOWN;
+	PetscInfo(eps,"Unable to generate more start vectors\n");
+      }
+    }
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }

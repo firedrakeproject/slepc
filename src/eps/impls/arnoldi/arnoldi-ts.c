@@ -37,7 +37,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
 
   /* Get the starting Arnoldi vector */
-  ierr = EPSGetStartVector(eps,eps->its,Qr[0]);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,eps->its,Qr[0],PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,eps->its,Ql[0]);CHKERRQ(ierr);
   
   /* Restart loop */
@@ -59,19 +59,19 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(Ur,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { Ur[i*(ncv+1)] = 1.0; }
-    ierr = EPSDenseSchur(ncv,eps->nconv,Hr,Ur,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(ncv,eps->nconv,Hr,ncv,Ur,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     ierr = PetscMemzero(Ul,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { Ul[i*(ncv+1)] = 1.0; }
-    ierr = EPSDenseSchur(ncv,eps->nconv,Hl,Ul,eigr,eigi);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(ncv,eps->nconv,Hl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,Hr,Ur,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,Hl,Ul,eigr,eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(ncv,eps->nconv,Hr,ncv,Ur,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(ncv,eps->nconv,Hl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
-    ierr = ArnoldiResiduals(Hr,Ur,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(Hl,Ul,g,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(Hr,ncv,Ur,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(Hl,ncv,Ul,g,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
 
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx) */

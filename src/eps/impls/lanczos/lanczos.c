@@ -437,7 +437,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0]);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   
   abstol = 2.0*LAPACKlamch_("S",1);
   anorm = 1.0;
@@ -448,7 +448,6 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,ncv);
   
   /* Restart loop */
-  eps->reason = EPS_CONVERGED_ITERATING;
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     /* Compute an ncv-step Lanczos factorization */
     m = ncv;
@@ -566,10 +565,6 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	}
 #endif
 	ierr = VecCopy(eps->AV[k],eps->V[k]);CHKERRQ(ierr);
-      } else {
-	/* Use random vector for restarting */
-	ierr = SlepcVecSetRandom(eps->V[k]);CHKERRQ(ierr);
-	PetscInfo(eps,"Using random vector for restart\n");
       }
     }
     
@@ -579,15 +574,24 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     }
 
     if (k<eps->nev) {
-      if (restart == -1 || lanczos->reorthog == EPSLANCZOS_REORTHOG_NONE) {
+      if (restart == -1) {
+	/* Use random vector for restarting */
+	PetscInfo(eps,"Using random vector for restart\n");
+	ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
+      } else switch (lanczos->reorthog) {
+      case EPSLANCZOS_REORTHOG_NONE:
+      case EPSLANCZOS_REORTHOG_PERIODIC:
+      case EPSLANCZOS_REORTHOG_PARTIAL:
         /* Reorthonormalize restart vector */
-        ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-	if (breakdown) {
-          eps->reason = EPS_DIVERGED_BREAKDOWN;
-	  PetscInfo(eps,"Unable to generate more start vectors\n");
-	} else {
-          ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
-	}
+	ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+	ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
+	break;
+      default:
+         breakdown = PETSC_FALSE;
+      }
+      if (breakdown) {
+	eps->reason = EPS_DIVERGED_BREAKDOWN;
+	PetscInfo(eps,"Unable to generate more start vectors\n");
       }
     }
 

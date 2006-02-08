@@ -44,7 +44,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
                EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
 
-typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH, EPS_NCGS_ORTH } EPSOrthogonalizationType;
+typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH } EPSOrthogonalizationType;
 typedef enum { EPS_ORTH_REFINE_NEVER, EPS_ORTH_REFINE_IFNEEDED,
                EPS_ORTH_REFINE_ALWAYS } EPSOrthogonalizationRefinementType;
 
@@ -127,13 +127,13 @@ EXTERN PetscErrorCode EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,Pe
 EXTERN PetscErrorCode EPSDenseGNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseHEP(int,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseGHEP(int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
-EXTERN PetscErrorCode EPSDenseSchur(int,int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
-EXTERN PetscErrorCode EPSSortDenseSchur(int,int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSDenseSchur(int,int,PetscScalar*,int,PetscScalar*,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSSortDenseSchur(int,int,PetscScalar*,int,PetscScalar*,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSBiOrthogonalize(EPS,int,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
-EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec);
+EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,int,Vec);
 
 /* --------- options specific to particular eigensolvers -------- */

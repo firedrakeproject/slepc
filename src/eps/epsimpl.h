@@ -35,6 +35,7 @@ struct _p_EPS {
   int        max_it,            /* maximum number of iterations */
              nev,               /* number of eigenvalues to compute */
              ncv,               /* number of basis vectors */
+	     nv,
              allocated_ncv,     /* number of basis vectors allocated */
              nds;               /* number of basis vectors of deflation space */
   PetscReal  tol;               /* tolerance */
@@ -117,6 +118,6 @@ EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 /* Private functions of the solver implementations */
 
 EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int*,Vec,PetscReal*);
-EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
+EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,int,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 
 #endif

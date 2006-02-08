@@ -72,6 +72,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1, anorm;
   PetscScalar    theta, rho, delta, sigma, alpha2, beta1, sn1;
+  PetscTruth     breakdown;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -88,7 +89,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     }
   }
 
-  ierr = EPSGetStartVector(eps,0,v);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
@@ -97,7 +98,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
   for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
 
-  while (eps->its<eps->max_it) {
+  while (eps->reason == EPS_CONVERGED_ITERATING) {
 
     /* y = OP v */
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
@@ -193,14 +194,17 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) break;
       v = eps->V[eps->nconv];
-      ierr = EPSGetStartVector(eps,eps->nconv,v);CHKERRQ(ierr);
+      ierr = EPSGetStartVector(eps,eps->nconv,v,&breakdown);CHKERRQ(ierr);
+      if (breakdown) {
+        eps->reason = EPS_DIVERGED_BREAKDOWN;
+	PetscInfo(eps,"Unable to generate more start vectors\n");
+      }
     }
 
     eps->its = eps->its + 1;
+    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
+    if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
-
-  if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
-  else eps->reason = EPS_DIVERGED_ITS;
 
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
     ierr = PetscFree(SV);CHKERRQ(ierr);
@@ -228,7 +232,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   w = eps->W[0];
   z = eps->AW[0];
 
-  ierr = EPSGetStartVector(eps,0,v);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,0,w);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
@@ -345,7 +349,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) break;
       v = eps->V[eps->nconv];
-      ierr = EPSGetStartVector(eps,eps->nconv,v);CHKERRQ(ierr);
+      ierr = EPSGetStartVector(eps,eps->nconv,v,PETSC_NULL);CHKERRQ(ierr);
       w = eps->W[eps->nconv];
       ierr = EPSGetLeftStartVector(eps,eps->nconv,w);CHKERRQ(ierr);
     }

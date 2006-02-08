@@ -336,7 +336,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 
 .seealso: EPSSortDenseSchur()
 @*/
-PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_HSEQR)
   PetscFunctionBegin;
@@ -354,24 +354,24 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,PetscScalar *Z,PetscScal
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ilo = k+1;
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&n,wr,wi,Z,&n,work,&lwork,&info,1,1);
+  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&ldh,wr,wi,Z,&n,work,&lwork,&info,1,1);
   for (j=0;j<k;j++) {
-    if (j==n-1 || H[j*n+j+1] == 0.0) { 
+    if (j==n-1 || H[j*ldh+j+1] == 0.0) { 
       /* real eigenvalue */
-      wr[j] = H[j*n+j];
+      wr[j] = H[j*ldh+j];
       wi[j] = 0.0;
     } else {
       /* complex eigenvalue */
-      wr[j] = H[j*n+j];
-      wr[j+1] = H[j*n+j];
-      wi[j] = sqrt(PetscAbsReal(H[j*n+j+1])) *
-              sqrt(PetscAbsReal(H[(j+1)*n+j]));
+      wr[j] = H[j*ldh+j];
+      wr[j+1] = H[j*ldh+j];
+      wi[j] = sqrt(PetscAbsReal(H[j*ldh+j+1])) *
+              sqrt(PetscAbsReal(H[(j+1)*ldh+j]));
       wi[j+1] = -wi[j];
       j++;
     }
   }
 #else
-  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&n,wr,Z,&n,work,&lwork,&info,1,1);
+  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&ldh,wr,Z,&n,work,&lwork,&info,1,1);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
 
@@ -414,7 +414,7 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,PetscScalar *Z,PetscScal
 
 .seealso: EPSDenseSchur()
 @*/
-PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
@@ -447,20 +447,20 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,Petsc
     if (maxpos) {
       ifst = maxpos + 1;
       ilst = i + 1;
-      LAPACKtrexc_("V",&n,T,&n,Z,&n,&ifst,&ilst,work,&info,1);
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info,1);
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       
       for (j=k;j<n;j++) {
-        if (j==n-1 || T[j*n+j+1] == 0.0) { 
+        if (j==n-1 || T[j*ldt+j+1] == 0.0) { 
           /* real eigenvalue */
-          wr[j] = T[j*n+j];
+          wr[j] = T[j*ldt+j];
           wi[j] = 0.0;
         } else {
           /* complex eigenvalue */
-          wr[j] = T[j*n+j];
-          wr[j+1] = T[j*n+j];
-          wi[j] = sqrt(PetscAbsReal(T[j*n+j+1])) *
-                  sqrt(PetscAbsReal(T[(j+1)*n+j]));
+          wr[j] = T[j*ldt+j];
+          wr[j+1] = T[j*ldt+j];
+          wi[j] = sqrt(PetscAbsReal(T[j*ldt+j+1])) *
+                  sqrt(PetscAbsReal(T[(j+1)*ldt+j]));
           wi[j+1] = -wi[j];
           j++;
         }
@@ -486,11 +486,11 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,PetscScalar *Z,Petsc
     if (maxpos) {
       ifst = maxpos + 1;
       ilst = i + 1;
-      LAPACKtrexc_("V",&n,T,&n,Z,&n,&ifst,&ilst,&info,1);
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info,1);
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
 
       for (j=k;j<n;j++) {
-        wr[j] = T[j*(n+1)];
+        wr[j] = T[j*(ldt+1)];
       }
     }
   }
