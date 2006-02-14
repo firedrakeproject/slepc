@@ -35,7 +35,7 @@ struct _p_EPS {
   int        max_it,            /* maximum number of iterations */
              nev,               /* number of eigenvalues to compute */
              ncv,               /* number of basis vectors */
-	     nv,
+	     nv,                /* number of available basis vectors (<= ncv) */
              allocated_ncv,     /* number of basis vectors allocated */
              nds;               /* number of basis vectors of deflation space */
   PetscReal  tol;               /* tolerance */

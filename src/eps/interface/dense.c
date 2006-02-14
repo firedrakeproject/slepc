@@ -305,8 +305,9 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
    Not Collective
 
    Input Parameters:
-+  n  - dimension of the matrix 
--  k  - first active column
++  n   - dimension of the matrix 
+.  k   - first active column
+-  ldh - leading dimension of H
 
    Input/Output Parameters:
 +  H  - on entry, the upper Hessenber matrix; on exit, the upper 
@@ -389,8 +390,9 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
    Not Collective
 
    Input Parameters:
-+  n  - dimension of the matrix 
--  k  - first active column
++  n   - dimension of the matrix 
+.  k   - first active column
+-  ldh - leading dimension of H
 
    Input/Output Parameters:
 +  T  - the upper (quasi-)triangular matrix

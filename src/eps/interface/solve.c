@@ -1125,14 +1125,19 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
 +  eps - the eigensolver context
 -  i   - index of the Arnoldi/Lanczos step
 
-   Output Parameter:
-.  vec - the start vector
+   Output Parameters:
++  vec - the start vector
+-  breakdown - flag indicating that a breakdown has occurred
 
    Notes:
    The start vector is computed from another vector: for the first step (i=0),
    the initial vector is used (see EPSGetInitialVector()); otherwise a random
    vector is created. Then this vector is forced to be in the range of OP and
    orthonormalized with respect to all V-vectors up to i-1.
+
+   The flag breakdown is set to true if either i=0 and the vector belongs to the
+   deflation space, or i>0 and the vector is linearly dependent with respect
+   to the V-vectors.
 
    The caller must pass a vector already allocated with dimensions conforming
    to the initial vector. This vector is overwritten.
