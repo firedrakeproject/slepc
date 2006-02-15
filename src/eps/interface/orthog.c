@@ -197,11 +197,13 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
   switch (eps->orthog_ref) {
   case EPS_ORTH_REFINE_NEVER:
     ierr = EPSOrthogonalizeGS(eps,n,V,v,h,onrm,PETSC_NULL,w);CHKERRQ(ierr);
+    /* compute |v| */
+    if (nrm) { ierr = STNorm(eps->OP,v,nrm);CHKERRQ(ierr); }
     break;
   case EPS_ORTH_REFINE_ALWAYS:
     ierr = EPSOrthogonalizeGS(eps,n,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr); 
     eps->count_reorthog++;
-    ierr = EPSOrthogonalizeGS(eps,n,V,v,c,onrm,PETSC_NULL,w);CHKERRQ(ierr); 
+    ierr = EPSOrthogonalizeGS(eps,n,V,v,c,onrm,nrm,w);CHKERRQ(ierr); 
     for (j=0;j<n;j++)
       h[j] += c[j];
     break;
@@ -220,9 +222,6 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
   default:
     SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
-
-  /* compute |v| */
-  if (nrm) { ierr = STNorm(eps->OP,v,nrm);CHKERRQ(ierr); }
 
   /* check linear dependence */
   if (lindep) {
