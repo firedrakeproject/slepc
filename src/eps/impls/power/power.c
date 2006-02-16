@@ -291,7 +291,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
         if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
-#if defined(SLEPC_MISSING_LAPACK_TREVC_LAEV2)
+#if defined(SLEPC_MISSING_LAPACK_LAEV2)
           SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
           /* beta1 is the norm of the residual associated to R(v,w) */
