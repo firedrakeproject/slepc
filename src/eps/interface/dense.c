@@ -392,7 +392,7 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
    Input Parameters:
 +  n   - dimension of the matrix 
 .  k   - first active column
--  ldh - leading dimension of H
+-  ldt - leading dimension of T
 
    Input/Output Parameters:
 +  T  - the upper (quasi-)triangular matrix
