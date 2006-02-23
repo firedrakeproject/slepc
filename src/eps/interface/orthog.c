@@ -66,6 +66,8 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
   PetscFunctionReturn(0);
 }
 
+PetscTruth compute_norm = PETSC_FALSE;
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSOrthogonalizeGS"
 PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec w)
@@ -104,6 +106,9 @@ PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,Pets
   /* compute |v| and |v'| */
   if (onorm) *onorm = sqrt(PetscRealPart(alpha));
   if (norm) {
+    if (compute_norm) {
+      ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
+    } else {
     sum = 0.0;
     for (j=0; j<n; j++)
       sum += PetscRealPart(H[j] * PetscConj(H[j]));
@@ -111,6 +116,7 @@ PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,Pets
     if (*norm < 0.0) {
       ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
     } else *norm = sqrt(*norm);
+    }
   }
   PetscFunctionReturn(0);
 }
