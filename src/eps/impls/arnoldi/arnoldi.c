@@ -433,6 +433,11 @@ static PetscErrorCode EPSBasicArnoldi6(EPS eps,PetscScalar *H,Vec *V,int k,int *
 	PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,norm2);
 	*M = j-1;
 	*beta = norm2;
+
+	if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+	ierr = VecDestroy(w);CHKERRQ(ierr);
+	ierr = VecDestroy(u);CHKERRQ(ierr);
+	ierr = VecDestroy(t);CHKERRQ(ierr);
 	PetscFunctionReturn(0);
       }
     }
