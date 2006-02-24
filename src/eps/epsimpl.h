@@ -86,6 +86,7 @@ struct _p_EPS {
   int         count_reorthog;
   int         count_breakdown;
   PetscScalar level_orthog;
+  PetscTruth  compute_norm;
 };
 
 #define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \
