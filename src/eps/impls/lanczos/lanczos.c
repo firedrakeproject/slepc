@@ -97,9 +97,9 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSimpleLanczos"
+#define __FUNCT__ "EPSLocalLanczos"
 /*
-   EPSSimpleLanczos - Local reorthogonalization.
+   EPSLocalLanczos - Local reorthogonalization.
 
    This is the simplest variant. At each Lanczos step, the corresponding Lanczos vector 
    is orthogonalized with respect to the two previous Lanczos vectors, according to
@@ -107,7 +107,7 @@ static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,
    orthogonality that occurs in finite-precision arithmetic and, therefore, the 
    generated vectors are not guaranteed to be (semi-)orthogonal.
 */
-static PetscErrorCode EPSSimpleLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   int            j,m = *M;
@@ -383,8 +383,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
-    case EPSLANCZOS_REORTHOG_NONE:
-      ierr = EPSSimpleLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
+    case EPSLANCZOS_REORTHOG_LOCAL:
+      ierr = EPSLocalLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
       break;
     case EPSLANCZOS_REORTHOG_SELECTIVE:
       ierr = EPSSelectiveLanczos(eps,T,V,k,m,f,beta,breakdown,anorm);CHKERRQ(ierr);
@@ -490,7 +490,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       eps->errest[k] = bnd[perm[i]] / PetscAbsScalar(eps->eigr[k]);    
       if (eps->errest[k] < eps->tol) {
 	      
-	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_NONE) {
+	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_LOCAL) {
           if (i>0 && PetscAbsScalar((eps->eigr[k]-ritz[perm[i-1]])/eps->eigr[k]) < eps->tol) {
   	    /* Discard repeated eigenvalues */
             conv[i] = 'R';
@@ -507,7 +507,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	}
 #endif	  
 	
-	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_NONE) {
+	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_LOCAL) {
 	  ierr = VecNorm(eps->AV[k],NORM_2,&norm);CHKERRQ(ierr);
           ierr = VecScale(eps->AV[k],1.0/norm);CHKERRQ(ierr);
           eps->errest[k] = eps->errest[k] / norm;
@@ -579,7 +579,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	PetscInfo(eps,"Using random vector for restart\n");
 	ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       } else switch (lanczos->reorthog) {
-      case EPSLANCZOS_REORTHOG_NONE:
+      case EPSLANCZOS_REORTHOG_LOCAL:
       case EPSLANCZOS_REORTHOG_PERIODIC:
       case EPSLANCZOS_REORTHOG_PARTIAL:
         /* Reorthonormalize restart vector */
@@ -618,6 +618,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 #endif 
 }
 
+static const char *lanczoslist[5] = { "local", "full", "selective", "periodic", "partial" };
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetFromOptions_LANCZOS"
 PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
@@ -626,11 +628,10 @@ PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscTruth     flg;
   PetscInt       i;
-  const char     *list[5] = { "none", "full", "selective", "periodic", "partial" };
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("LANCZOS options");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",list,5,list[lanczos->reorthog],&i,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",lanczoslist,5,lanczoslist[lanczos->reorthog],&i,&flg);CHKERRQ(ierr);
   if (flg) lanczos->reorthog = (EPSLanczosReorthogType)i;
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -645,7 +646,7 @@ PetscErrorCode EPSLanczosSetReorthog_LANCZOS(EPS eps,EPSLanczosReorthogType reor
 
   PetscFunctionBegin;
   switch (reorthog) {
-    case EPSLANCZOS_REORTHOG_NONE:
+    case EPSLANCZOS_REORTHOG_LOCAL:
     case EPSLANCZOS_REORTHOG_FULL:
     case EPSLANCZOS_REORTHOG_SELECTIVE:
     case EPSLANCZOS_REORTHOG_PERIODIC:
@@ -672,7 +673,7 @@ EXTERN_C_END
 -  reorthog - the type of reorthogonalization
 
    Options Database Key:
-.  -eps_lanczos_orthog - Sets the reorthogonalization type (either 'none', 'selective',
+.  -eps_lanczos_orthog - Sets the reorthogonalization type (either 'local', 'selective',
                          'periodic', 'partial' or 'full')
    
    Level: advanced
@@ -742,14 +743,13 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscTruth     isascii;
-  const char     *list[5] = { "none", "full" , "selective", "periodic", "partial" };
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
     SETERRQ1(1,"Viewer type %s not supported for EPSLANCZOS",((PetscObject)viewer)->type_name);
   }  
-  ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",list[lanczos->reorthog]);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",lanczoslist[lanczos->reorthog]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -779,7 +779,7 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   /*if (eps->solverclass==EPS_TWO_SIDE)
        eps->ops->computevectors       = EPSComputeVectors_Schur;
   else*/ eps->ops->computevectors       = EPSComputeVectors_Default;
-  lanczos->reorthog              = EPSLANCZOS_REORTHOG_NONE;
+  lanczos->reorthog              = EPSLANCZOS_REORTHOG_LOCAL;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","EPSLanczosSetReorthog_LANCZOS",EPSLanczosSetReorthog_LANCZOS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_LANCZOS",EPSLanczosGetReorthog_LANCZOS);CHKERRQ(ierr);
   PetscFunctionReturn(0);

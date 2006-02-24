@@ -144,7 +144,7 @@ typedef enum { EPSPOWER_SHIFT_CONSTANT, EPSPOWER_SHIFT_RAYLEIGH,
 EXTERN PetscErrorCode EPSPowerSetShiftType(EPS,EPSPowerShiftType);
 EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
 
-typedef enum { EPSLANCZOS_REORTHOG_NONE, 
+typedef enum { EPSLANCZOS_REORTHOG_LOCAL, 
                EPSLANCZOS_REORTHOG_FULL,
                EPSLANCZOS_REORTHOG_SELECTIVE,
                EPSLANCZOS_REORTHOG_PERIODIC,
