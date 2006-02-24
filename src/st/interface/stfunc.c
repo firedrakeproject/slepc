@@ -442,7 +442,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
         case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
         case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
-        default:                        SETERRQ(1,"Wrong structure flag");break;
+        default:                        SETERRQ(1,"Wrong structure flag");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"Matrices A and B have %s\n",str);CHKERRQ(ierr);
     }
