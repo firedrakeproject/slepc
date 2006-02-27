@@ -4,8 +4,8 @@ import commands
 
 import petscconf
 import log
- 
-def Link(functions,callbacks,flags):
+
+def LinkWithOutput(functions,callbacks,flags):
   os.chdir('config')
   cfile = open('checklink.c','w')
   cfile.write('#include "petsc.h"\n')
@@ -31,29 +31,47 @@ def Link(functions,callbacks,flags):
   (result, output) = commands.getstatusoutput(petscconf.MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
   os.chdir(os.pardir)
   if result:
-    log.Write(output)
-    return 0
+    return (0, output)
   else:
-    return 1
+    return (1, output)  
+ 
+def Link(functions,callbacks,flags):
+  (result, output) = LinkWithOutput(functions,callbacks,flags)
+  if result == 0:
+    log.Write(output)
+  return result
 
 def FortranLink(functions,callbacks,flags):
-  log.Write('=== With linker flags: '+str.join(' ',flags))
+
   f = []
   for i in functions:
     f.append(i+'_')
   c = []
   for i in callbacks:
-    c.append(i+'_')  
-  if Link(f,c,flags): return 'UNDERSCORE'
+    c.append(i+'_')
+  (result, output1) = LinkWithOutput(f,c,flags) 
+  if result: return ('UNDERSCORE','')
+
   f = []
   for i in functions:
     f.append(i.upper())
   c = []
   for i in callbacks:
     c.append(i.upper())  
-  if Link(f,c,flags): return 'CAPS'
-  if Link(functions,callbacks,flags): return 'STDCALL'
-  return ''
+  (result, output2) = LinkWithOutput(f,c,flags) 
+  if result: return ('CAPS','')
+
+  (result, output3) = LinkWithOutput(functions,callbacks,flags) 
+  if result: return ('STDCALL','')
+  
+  output =  '=== With linker flags: '+str.join(' ',flags)
+  output += '\n====== With underscore Fortran names\n'
+  output += output1
+  output += '\n====== With capital Fortran names\n'
+  output += output2
+  output += '\n====== With unmodified Fortran names\n'
+  output += output3+'\n'
+  return ('',output)
 
 def GenerateGuesses(name):
   installdirs = ['/usr/local','/opt']
@@ -77,21 +95,25 @@ def GenerateGuesses(name):
 def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
   log.Println('Checking '+name+' library...')
 
-  mangling = 0
+  error = ''
+  mangling = ''
   for d in dirs:
     for l in libs:
       if d:
 	flags = ['-L' + d] + l
       else:
 	flags = l
-      mangling = FortranLink(functions,callbacks,flags)
+      (mangling, output) = FortranLink(functions,callbacks,flags)
+      error += output
       if mangling: break
     if mangling: break    
 
   if not mangling:
+    log.Write(error);
     print 'ERROR: Unable to link with library',name
     print 'ERROR: In directories',dirs
     print 'ERROR: With flags',libs
+    print 'ERROR: See "configure_log_' + petscconf.ARCH + '" file for details'
     sys.exit(1)
     
 
