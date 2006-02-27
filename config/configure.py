@@ -137,6 +137,10 @@ log.Write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
+if petscconf.VERSION != '2.3.1':
+  log.Exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
+if petscconf.RELEASE != '1':
+  log.Println('WARNING: using PETSc development version')
 if not check.Link([],[],[]):
   log.Exit('ERROR: PETSc is not installed correctly')
 
