@@ -156,7 +156,7 @@
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)
 
-#if !defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_COMPLEX)
           re = PetscRealPart(kr);
           im = PetscImaginaryPart(kr);
 #else
