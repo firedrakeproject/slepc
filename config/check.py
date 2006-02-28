@@ -6,42 +6,38 @@ import petscconf
 import log
 
 def LinkWithOutput(functions,callbacks,flags):
-  os.chdir('config')
-  cfile = open('checklink.c','w')
-  cfile.write('#include "petsc.h"\n')
-
-  cfile.write('EXTERN_C_BEGIN\n')
+  code = '#include "petsc.h"\n'
+  code += 'EXTERN_C_BEGIN\n'
   for f in functions:
-    cfile.write('EXTERN int\n')
-    cfile.write(f)
-    cfile.write('();\n')
-  cfile.write('EXTERN_C_END\n')
+    code += 'EXTERN int\n' + f + '();\n'
+  code += 'EXTERN_C_END\n'
   
   for c in callbacks:
-    cfile.write('int ')    
-    cfile.write(c)
-    cfile.write('() { return 0; } \n')    
+    code += 'int '+ c + '() { return 0; } \n'
 
-  cfile.write('int main() {\n')
+  code += 'int main() {\n'
   for f in functions:
-    cfile.write(f)
-    cfile.write('();\n')
-  cfile.write('return 0;\n}\n')
+    code += f + '();\n'
+  code += 'return 0;\n}\n'
+  
+  os.chdir('config')
+  cfile = open('checklink.c','w')
+  cfile.write(code)
   cfile.close()
   (result, output) = commands.getstatusoutput(petscconf.MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
   os.chdir(os.pardir)
   if result:
-    return (0, output)
+    return (0,code + output)
   else:
-    return (1, output)  
+    return (1,code + output)  
  
 def Link(functions,callbacks,flags):
   (result, output) = LinkWithOutput(functions,callbacks,flags)
-  if result == 0:
-    log.Write(output)
+  log.Write(output)
   return result
 
 def FortranLink(functions,callbacks,flags):
+  output =  '\n=== With linker flags: '+str.join(' ',flags)
 
   f = []
   for i in functions:
@@ -50,7 +46,8 @@ def FortranLink(functions,callbacks,flags):
   for i in callbacks:
     c.append(i+'_')
   (result, output1) = LinkWithOutput(f,c,flags) 
-  if result: return ('UNDERSCORE','')
+  output1 = '\n====== With underscore Fortran names\n' + output1
+  if result: return ('UNDERSCORE',output1)
 
   f = []
   for i in functions:
@@ -59,19 +56,14 @@ def FortranLink(functions,callbacks,flags):
   for i in callbacks:
     c.append(i.upper())  
   (result, output2) = LinkWithOutput(f,c,flags) 
-  if result: return ('CAPS','')
+  output2 = '\n====== With capital Fortran names\n' + output2
+  if result: return ('CAPS',output2)
 
   (result, output3) = LinkWithOutput(functions,callbacks,flags) 
-  if result: return ('STDCALL','')
+  output3 = '\n====== With unmodified Fortran names\n' + output3
+  if result: return ('STDCALL',output3)
   
-  output =  '=== With linker flags: '+str.join(' ',flags)
-  output += '\n====== With underscore Fortran names\n'
-  output += output1
-  output += '\n====== With capital Fortran names\n'
-  output += output2
-  output += '\n====== With unmodified Fortran names\n'
-  output += output3+'\n'
-  return ('',output)
+  return ('',output + output1 + output2 + output3)
 
 def GenerateGuesses(name):
   installdirs = ['/usr/local','/opt']
@@ -93,6 +85,7 @@ def GenerateGuesses(name):
   return dirs
 
 def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
+  log.Write('='*80)
   log.Println('Checking '+name+' library...')
 
   error = ''
@@ -108,7 +101,9 @@ def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
       if mangling: break
     if mangling: break    
 
-  if not mangling:
+  if mangling:
+    log.Write(output);
+  else:
     log.Write(error);
     print 'ERROR: Unable to link with library',name
     print 'ERROR: In directories',dirs

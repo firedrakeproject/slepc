@@ -155,6 +155,7 @@ if not os.path.exists(archdir):
 slepcconf = open(os.sep.join([archdir,'slepcconf']),'w')
 
 # Check for missing LAPACK functions
+log.Write('='*80)
 log.Println('Checking LAPACK library...')
 missing = lapack.Check(slepcconf)
 
