@@ -1,8 +1,14 @@
 
 Ising Model Eigenproblem, m=    30, (N=2*m)
 
- Number of iterations of the method:  112
+ Number of iterations of the method:  780
  Solution method: arnoldi                                                                         
  Number of requested eigenvalues: 1
- Stopping condition: tol=1.0000E-07, maxit=   100
- Number of converged eigenpairs: 0
+ Stopping condition: tol=1.0000E-05, maxit=  1000
+ Number of converged eigenpairs: 2
+ 
+            k          ||Ax-kx||/||kx||
+    ----------------- ------------------
+ 9.8907E-01 1.4742E-01 j   1.5747E-05
+ 9.8907E-01-1.4742E-01 j   1.5747E-05
+ 
