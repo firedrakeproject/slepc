@@ -26,7 +26,7 @@ ex1: ex1.o chkopts
 	${RM} ex1.o
 
 ex1f: ex1f.o chkopts
-	-${FLINKER} -o ex1f ex1f.o ${SLEPC_FORTRAN_LIB} ${SLEPC_LIB}
+	-${FLINKER} -o ex1f ex1f.o ${SLEPC_LIB}
 	${RM} ex1f.o
 
 ex2: ex2.o chkopts
@@ -46,7 +46,7 @@ ex5: ex5.o chkopts
 	${RM} ex5.o
 
 ex6f: ex6f.o mvmisg.o chkopts
-	-${FLINKER} -o ex6f ex6f.o mvmisg.o ${SLEPC_FORTRAN_LIB} ${SLEPC_LIB}
+	-${FLINKER} -o ex6f ex6f.o mvmisg.o ${SLEPC_LIB}
 	${RM} ex6f.o mvmisg.o
 
 ex7: ex7.o chkopts
