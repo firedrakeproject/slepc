@@ -13,7 +13,7 @@
        [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4, 
            available at http://www.grycap.upv.es/slepc.
 
-   Last update: June 2005
+   Last update: Feb 2006
 
 */
 #include "src/eps/epsimpl.h"
@@ -104,6 +104,12 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDelayedArnoldi"
+/*
+   EPSDelayedArnoldi - This function is equivalent to EPSBasicArnoldi but
+   performs the computation in a different way. The main idea is that
+   reorthogonalization is delayed to the next Arnoldi step. This version is
+   more scalable but in some case may be less robust numerically.
+*/
 static PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta)
 {
   PetscErrorCode ierr;
@@ -356,7 +362,7 @@ PetscErrorCode EPSSetFromOptions_ARNOLDI(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("ARNOLDI options");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-eps_arnoldi_delayed","Arnoldi delayed reorthogonalization","EPSArnoldiSetDelayed",PETSC_FALSE,&arnoldi->delayed,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",PETSC_FALSE,&arnoldi->delayed,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -377,18 +383,23 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "EPSArnoldiSetDelayed"
 /*@
-   EPSArnoldiSetDelayed - Uses the delayed reorthogonalization during the Arnoldi
-   iteration. 
+   EPSArnoldiSetDelayed - Activates or deactivates delayed reorthogonalization 
+   in the Arnoldi iteration. 
 
    Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  delayed - the type of reorthogonalization
+-  delayed - boolean flag for toggling delayed reorthogonalization
 
    Options Database Key:
-.  -eps_lanczos_delayed - Sets the reorthogonalization type
+.  -eps_arnoldi_delayed - Activates delayed reorthogonalization in Arnoldi
    
+   Note:
+   Delayed reorthogonalization is an aggressive optimization for the Arnoldi
+   eigensolver than may provide better scalability, but it is sometimes less 
+   robust than the default algorithm.
+
    Level: advanced
 
 .seealso: EPSArnoldiGetDelayed()
@@ -399,7 +410,7 @@ PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscTruth delayed)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSLanczosSetDelayed_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,delayed);CHKERRQ(ierr);
   }
@@ -431,11 +442,11 @@ EXTERN_C_END
 .  eps - the eigenproblem solver context
 
    Input Parameter:
-.  delayed - the type of reorthogonalization
+.  delayed - boolean flag indicating if delayed reorthogonalization has been enabled
 
    Level: advanced
 
-.seealso: EPSLanczosSetDelayed()
+.seealso: EPSArnoldiSetDelayed()
 @*/
 PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscTruth *delayed)
 {
@@ -492,8 +503,8 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   arnoldi->delayed               = PETSC_FALSE;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_LANCZOS",EPSLanczosSetReorthog_ARNOLDI);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_LANCZOS",EPSLanczosGetReorthog_ARNOLDI);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_ARNOLDI",EPSArnoldiSetReorthog_ARNOLDI);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_ARNOLDI",EPSArnoldiGetReorthog_ARNOLDI);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
