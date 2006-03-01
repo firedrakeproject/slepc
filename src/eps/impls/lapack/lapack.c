@@ -17,7 +17,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       N;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  PetscTruth     flg;
+  PetscTruth     flg,isshella,isshellb;
   Mat            A,B;
   PetscScalar    shift;
   
@@ -31,9 +31,14 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
-  if (flg) {
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)A,MATSHELL,&isshella);CHKERRQ(ierr);
+  if (eps->isgeneralized) {
+    ierr = PetscTypeCompare((PetscObject)B,MATSHELL,&isshellb);CHKERRQ(ierr);
+  } else isshellb = PETSC_FALSE;
+  
+  if (flg && !isshella && !isshellb) {
     la->OP = PETSC_NULL;
-    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = SlepcMatConvertSeqDense(A,&la->A);CHKERRQ(ierr);
     if (eps->isgeneralized) {
       ierr = SlepcMatConvertSeqDense(B,&la->B);CHKERRQ(ierr);
