@@ -39,8 +39,10 @@ info:
 	-@echo "-----------------------------------------"
 	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
 	-@echo "-----------------------------------------"
-	-@echo "Using configure options " ${CONFIGURE_OPTIONS}
-	-@echo "Using configuration flags:"
+	-@echo "Using PETSc configure options " ${CONFIGURE_OPTIONS}
+	-@echo "Using SLEPc configuration flags:"
+	-@cat ${SLEPC_DIR}/bmake/${PETSC_ARCH}/slepcconf
+	-@echo "Using PETSc configuration flags:"
 	-@grep "\#define " ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf.h
 	-@echo "-----------------------------------------"
 	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_INCLUDE}"
