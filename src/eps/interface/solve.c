@@ -50,7 +50,6 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = STResetNumberLinearIterations(eps->OP);
   eps->count_reorthog = 0;
   eps->count_breakdown = 0;
-  eps->level_orthog = 0;
   eps->nv = eps->ncv;
   eps->evecsavailable = PETSC_FALSE;
 

@@ -923,9 +923,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   int            i,k,type=1;
   Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*work;
-  PetscReal      beta,lev;
+  PetscReal      beta;
   const char     *pre;
-  PetscTruth     orthog,breakdown;
+  PetscTruth     breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -942,7 +942,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   
-  ierr = PetscOptionsHasName(PETSC_NULL,"-orthog",&orthog);CHKERRQ(ierr);
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
@@ -979,11 +978,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     default:
       SETERRQ(1,"Unknown Arnoldi method");
     }    
-    
-    if (orthog) {
-      ierr = SlepcCheckOrthogonality(eps->V,eps->nv,eps->V,eps->nv,PETSC_NULL,&lev);CHKERRQ(ierr);
-      if (lev > eps->level_orthog) eps->level_orthog = lev;
-    }
     
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(U,eps->nv*eps->nv*sizeof(PetscScalar));CHKERRQ(ierr);

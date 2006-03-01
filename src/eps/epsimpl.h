@@ -79,14 +79,12 @@ struct _p_EPS {
   int        numbermonitors; 
 
   /* --------------- Orthogonalization --------------------- */
-  EPSOrthogonalizationType           orthog_type; /* which orthogonalization to use */
+  EPSOrthogonalizationType orthog_type; /* which orthogonalization to use */
   EPSOrthogonalizationRefinementType orthog_ref;   /* refinement method */
-  PetscReal               orthog_eta;
-  PetscTruth              ds_ortho;    /* if vectors in DS have to be orthonormalized */  
-  int         count_reorthog;
-  int         count_breakdown;
-  PetscScalar level_orthog;
-  PetscTruth  compute_norm;
+  PetscReal  orthog_eta;
+  PetscTruth ds_ortho;    /* if vectors in DS have to be orthonormalized */  
+  int        count_reorthog; /* count number of reorthogonalizations */
+  int        count_breakdown; /* count number of breakdowns */
 };
 
 #define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \

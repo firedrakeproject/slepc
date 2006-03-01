@@ -104,9 +104,6 @@ PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,Pets
   /* compute |v| and |v'| */
   if (onorm) *onorm = sqrt(PetscRealPart(alpha));
   if (norm) {
-    if (eps->compute_norm) {
-      ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
-    } else {
     sum = 0.0;
     for (j=0; j<n; j++)
       sum += PetscRealPart(H[j] * PetscConj(H[j]));
@@ -114,7 +111,6 @@ PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,Pets
     if (*norm < 0.0) {
       ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
     } else *norm = sqrt(*norm);
-    }
   }
   PetscFunctionReturn(0);
 }

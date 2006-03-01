@@ -544,6 +544,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     if (breakdown) {
       restart = -1;
       PetscInfo1(eps,"Breakdown in Lanczos method (norm=%g)\n",beta);
+      eps->count_breakdown++;
     }
     
     if (k<eps->nev) {
