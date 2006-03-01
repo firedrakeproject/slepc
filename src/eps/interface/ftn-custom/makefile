@@ -8,6 +8,6 @@ OBJSC    = zepsf.o
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepcfortran
+LIBBASE  = libslepc
 LOCDIR   = src/eps/interface/ftn-custom/
 include ${SLEPC_DIR}/bmake/slepc_common  

@@ -65,7 +65,7 @@ def FixDir(dir):
     outbuf +=  'SOURCEF  =\n'
     outbuf +=  'SOURCEH  =\n'
     outbuf +=  'DIRS     =\n'
-    outbuf +=  libbase + 'fortran\n'
+    outbuf +=  libbase + '\n'
     outbuf +=  locdir + '\n'
 #    outbuf +=  'include ${PETSC_DIR}/bmake/common/base\n'
 #    outbuf +=  'include ${PETSC_DIR}/bmake/common/test\n'

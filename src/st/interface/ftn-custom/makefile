@@ -8,6 +8,6 @@ OBJSC    = zstf.o
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepcfortran
+LIBBASE  = libslepc
 LOCDIR   = src/st/interface/ftn-custom/
 include ${SLEPC_DIR}/bmake/slepc_common  
