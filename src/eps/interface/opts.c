@@ -26,12 +26,13 @@
 PetscErrorCode EPSSetFromOptions(EPS eps)
 {
   PetscErrorCode ierr;
-  char           type[256];
+  char           type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscTruth     flg;
   const char     *orth_list[3] = { "mgs" , "cgs", "ncgs" };
   const char     *ref_list[3] = { "never" , "ifneeded", "always" };
   PetscReal      eta;
   PetscInt       i,orth_type,ref_type;
+  PetscViewer    monviewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -100,9 +101,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     /*
       Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsName("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSSetMonitor",&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSSetMonitor","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = EPSSetMonitor(eps,EPSDefaultMonitor,PETSC_NULL);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(eps->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = EPSSetMonitor(eps,EPSDefaultMonitor,monviewer);CHKERRQ(ierr);
     }
     ierr = PetscOptionsName("-eps_xmonitor","Monitor error estimates graphically","EPSSetMonitor",&flg);CHKERRQ(ierr); 
     if (flg) {
