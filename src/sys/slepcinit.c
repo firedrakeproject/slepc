@@ -18,8 +18,13 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 
   info = (*PetscHelpPrintf)(comm,"--------------------------------------------\
 ------------------------------\n"); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,"\t   %s\n",SLEPC_VERSION_NUMBER); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,"%s",SLEPC_AUTHOR_INFO); CHKERRQ(info);
+#if (PETSC_VERSION_RELEASE == 1)
+  info = (*PetscHelpPrintf)(comm,"SLEPc Release Version %d.%d.%d-%d, %s\n",
+#else
+  info = (*PetscHelpPrintf)(comm,"SLEPc Development Version %d.%d.%d-%d, %s\n",
+#endif
+    SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_SUBMINOR,SLEPC_VERSION_PATCH,SLEPC_VERSION_PATCH_DATE); CHKERRQ(info);
+  info = (*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO); CHKERRQ(info);
   info = (*PetscHelpPrintf)(comm,"See docs/manual.html for help. \n"); CHKERRQ(info);
 #if !defined(PARCH_win32)
   info = (*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR); CHKERRQ(info);
