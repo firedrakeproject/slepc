@@ -19,7 +19,8 @@ def Write(string):
   f.write('\n')
   
 def Exit(string):
-  Println(string)
+  f.write(string)
+  f.write('\n')
   f.close()
   sys.exit(string)
 
