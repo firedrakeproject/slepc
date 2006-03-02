@@ -63,7 +63,8 @@ int main( int argc, char **argv )
   EPS         eps;             /* eigenproblem solver context */
   PetscInt    N=30, n, Istart, Iend, i, col[5];
   int         ierr, nconv1, nconv2;
-  PetscScalar kl, ks, sigma_1, sigma_n, value[] = { -1, 1, 1, 1, 1 };
+  PetscScalar kl, ks, value[] = { -1, 1, 1, 1, 1 };
+  PetscReal   sigma_1, sigma_n;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -164,13 +165,13 @@ int main( int argc, char **argv )
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
-    sigma_1 = PetscSqrtScalar(kl);
-    sigma_n = PetscSqrtScalar(ks);
+    sigma_1 = sqrt(PetscRealPart(kl));
+    sigma_n = sqrt(PetscRealPart(ks));
 
     ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge! Try running with a larger value -eps_ncv\n\n");CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge! Try running with a larger value for -eps_ncv\n\n");CHKERRQ(ierr);
   }   
  
   /* 
