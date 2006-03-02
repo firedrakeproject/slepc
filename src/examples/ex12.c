@@ -16,15 +16,16 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Vec         v0,temp;         /* initial vector */
-  Vec         *X,*Y;           /* right and left eigenvectors */
-  Mat         A;               /* operator matrix */
-  EPS         eps;             /* eigenproblem solver context */
-  EPSType     type;
-  PetscReal   error1, error2, tol, re, im;
-  PetscScalar kr, ki;
-  int         nev, ierr, maxit, i, its, nconv;
-  PetscInt    N, m=15;
+  PetscErrorCode ierr;
+  Vec         	 v0,temp;	  /* initial vector */
+  Vec         	 *X,*Y; 	  /* right and left eigenvectors */
+  Mat         	 A;		  /* operator matrix */
+  EPS         	 eps;		  /* eigenproblem solver context */
+  EPSType     	 type;
+  PetscReal   	 error1, error2, tol, re, im;
+  PetscScalar 	 kr, ki;
+  int         	 nev, maxit, i, its, nconv;
+  PetscInt    	 N, m=15;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

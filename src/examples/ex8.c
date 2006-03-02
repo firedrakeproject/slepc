@@ -58,13 +58,14 @@ PetscErrorCode MatSVD_Mult(Mat H,Vec x,Vec y)
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         A;               /* Grcar matrix */
-  Mat         H;               /* eigenvalue problem matrix, H=A^T*A */
-  EPS         eps;             /* eigenproblem solver context */
-  PetscInt    N=30, n, Istart, Iend, i, col[5];
-  int         ierr, nconv1, nconv2;
-  PetscScalar kl, ks, value[] = { -1, 1, 1, 1, 1 };
-  PetscReal   sigma_1, sigma_n;
+  PetscErrorCode ierr;
+  Mat         	 A;		  /* Grcar matrix */
+  Mat         	 H;		  /* eigenvalue problem matrix, H=A^T*A */
+  EPS         	 eps;		  /* eigenproblem solver context */
+  PetscInt    	 N=30, n, Istart, Iend, i, col[5];
+  int         	 nconv1, nconv2;
+  PetscScalar 	 kl, ks, value[] = { -1, 1, 1, 1, 1 };
+  PetscReal   	 sigma_1, sigma_n;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
