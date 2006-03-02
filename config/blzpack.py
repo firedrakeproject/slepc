@@ -9,10 +9,10 @@ def Check(conf,directory,libs):
   if petscconf.SCALAR == 'complex':
     sys.exit('ERROR: BLZPACK does not support complex numbers.') 
   
-  if petscconf.PRECISION == 'double':
-    functions = ['blzdrd']
-  else:
+  if petscconf.PRECISION == 'single':
     functions = ['blzdrs']
+  else:
+    functions = ['blzdrd']
 
   if libs:
     libs = [libs]

@@ -2,7 +2,6 @@
 ALL: lib
 
 #requirespackage   'SLEPC_HAVE_TRLAN'
-#requiresprecision double
 #requiresscalar    real
 
 CFLAGS   =

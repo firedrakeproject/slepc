@@ -11,16 +11,16 @@ def Check(conf):
 
   if petscconf.SCALAR == 'real':
     functions += ['orghr','syevr','sygvd','ormlq']
-    if petscconf.PRECISION == 'double':
-      prefix = 'd'
-    else:
+    if petscconf.PRECISION == 'single':
       prefix = 's'
+    else:
+      prefix = 'd'
   else:
     functions += ['unghr','heevr','hegvd','unmlq']
-    if petscconf.PRECISION == 'double':
-      prefix = 'z'
-    else:
+    if petscconf.PRECISION == 'single':
       prefix = 'c'
+    else:
+      prefix = 'z'
   
   missing = []
   conf.write('SLEPC_MISSING_LAPACK =')
@@ -40,10 +40,10 @@ def Check(conf):
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i.upper())
 
 
-  if petscconf.PRECISION == 'double':
-    functions = ['dlamch','dstevr']
-  else:
+  if petscconf.PRECISION == 'single':
     functions = ['slamch','sstevr']
+  else:
+    functions = ['dlamch','dstevr']
 
   for i in functions:
     f =  '#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)\n'

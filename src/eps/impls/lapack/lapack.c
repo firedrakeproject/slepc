@@ -37,6 +37,8 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = PetscTypeCompare((PetscObject)B,MATSHELL,&isshellb);CHKERRQ(ierr);
   } else isshellb = PETSC_FALSE;
   
+  /* PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
+  PetscPopErrorHandler(); */
   if (flg && !isshella && !isshellb) {
     la->OP = PETSC_NULL;
     ierr = SlepcMatConvertSeqDense(A,&la->A);CHKERRQ(ierr);

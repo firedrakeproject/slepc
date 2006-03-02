@@ -9,15 +9,15 @@ def Check(conf,directory,libs):
   if petscconf.MPIUNI:
 
     if petscconf.SCALAR == 'real':
-      if petscconf.PRECISION == 'double':
-	functions = ['dnaupd','dneupd','dsaupd','dseupd']
-      else:
+      if petscconf.PRECISION == 'single':
 	functions = ['snaupd','sneupd','dsaupd','dseupd']
-    else:
-      if petscconf.PRECISION == 'double':
-	functions = ['znaupd','zneupd']
       else:
+	functions = ['dnaupd','dneupd','dsaupd','dseupd']
+    else:
+      if petscconf.PRECISION == 'single':
 	functions = ['cnaupd','cneupd']
+      else:
+	functions = ['znaupd','zneupd']
 
     if libs:
       libs = [libs]
@@ -27,15 +27,15 @@ def Check(conf,directory,libs):
   else:
 
     if petscconf.SCALAR == 'real':
-      if petscconf.PRECISION == 'double':
-	functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
-      else:
+      if petscconf.PRECISION == 'single':
 	functions = ['psnaupd','psneupd','pdsaupd','pdseupd']
-    else:
-      if petscconf.PRECISION == 'double':
-	functions = ['pznaupd','pzneupd']
       else:
+	functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
+    else:
+      if petscconf.PRECISION == 'single':
 	functions = ['pcnaupd','pcneupd']
+      else:
+	functions = ['pznaupd','pzneupd']
 
     if libs:
       libs = [libs]
