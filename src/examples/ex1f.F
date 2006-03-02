@@ -30,7 +30,7 @@
       Mat          A
       EPS          eps
       EPSType      type
-      PetscReal    tol, error, re, im
+      PetscReal    tol, error
       PetscScalar  kr, ki
       integer      rank, n, nev, ierr, maxit, i, its, nconv
       integer      col(3), Istart, Iend
@@ -156,20 +156,8 @@
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)
 
-#if defined(PETSC_USE_COMPLEX)
-          re = PetscRealPart(kr);
-          im = PetscImaginaryPart(kr);
-#else
-          re = kr;
-          im = ki;
-#endif 
-          if (im.ne.0.D0) then
-            write(*,160) re, im, error
- 160        format (1P,E11.4,E11.4,' j ',E12.4)
-          else
-            write(*,170) re, error
- 170        format (1P,'   ',E12.4,'       ',E12.4)
-          endif
+          write(*,160) PetscRealPart(kr), error
+ 160      format (1P,'   ',E12.4,'       ',E12.4)
 
         enddo
         write(*,*)
