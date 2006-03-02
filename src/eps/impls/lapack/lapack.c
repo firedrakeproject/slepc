@@ -14,10 +14,10 @@ typedef struct {
 #define __FUNCT__ "EPSSetUp_LAPACK"
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
-  PetscErrorCode ierr;
+  PetscErrorCode ierr,ierra,ierrb;
   PetscInt       N;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  PetscTruth     flg,isshella,isshellb;
+  PetscTruth     flg;
   Mat            A,B;
   PetscScalar    shift;
   
@@ -32,34 +32,35 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)A,MATSHELL,&isshella);CHKERRQ(ierr);
-  if (eps->isgeneralized) {
-    ierr = PetscTypeCompare((PetscObject)B,MATSHELL,&isshellb);CHKERRQ(ierr);
-  } else isshellb = PETSC_FALSE;
   
-  /* PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
-  PetscPopErrorHandler(); */
-  if (flg && !isshella && !isshellb) {
+  if (flg) {
     la->OP = PETSC_NULL;
-    ierr = SlepcMatConvertSeqDense(A,&la->A);CHKERRQ(ierr);
+    PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
+    ierra = SlepcMatConvertSeqDense(A,&la->A);CHKERRQ(ierr);
     if (eps->isgeneralized) {
-      ierr = SlepcMatConvertSeqDense(B,&la->B);CHKERRQ(ierr);
-    } else la->B = PETSC_NULL;
-    ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
-    if (shift != 0.0) {
-      ierr = MatShift(la->A,shift);CHKERRQ(ierr);
+      ierrb = SlepcMatConvertSeqDense(B,&la->B);CHKERRQ(ierr);
+    } else {
+      ierrb = 0;
+      la->B = PETSC_NULL;
     }
-  } else {
-    PetscInfo(eps,"Using slow explicit operator\n");
-    la->A = PETSC_NULL;
-    la->B = PETSC_NULL;
-    ierr = STComputeExplicitOperator(eps->OP,&la->OP);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)la->OP,MATSEQDENSE,&flg);CHKERRQ(ierr);
-    if (!flg) {
-      ierr = SlepcMatConvertSeqDense(la->OP,&la->OP);CHKERRQ(ierr);
+    PetscPopErrorHandler();
+    if (ierra == 0 && ierrb == 0) {
+      ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
+      if (shift != 0.0) {
+	ierr = MatShift(la->A,shift);CHKERRQ(ierr);
+      }
+      ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+      PetscFunctionReturn(0);
     }
   }
-
+  PetscInfo(eps,"Using slow explicit operator\n");
+  la->A = PETSC_NULL;
+  la->B = PETSC_NULL;
+  ierr = STComputeExplicitOperator(eps->OP,&la->OP);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)la->OP,MATSEQDENSE,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    ierr = SlepcMatConvertSeqDense(la->OP,&la->OP);CHKERRQ(ierr);
+  }
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
