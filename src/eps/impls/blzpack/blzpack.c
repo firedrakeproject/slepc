@@ -45,7 +45,8 @@ const char* blzpack_error[33] = {
 PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  int            listor, lrstor, ncuv, N, n, k1, k2, k3, k4;
+  PetscInt       N, n;
+  int            listor, lrstor, ncuv, k1, k2, k3, k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscTruth     flg;
   KSP            ksp;
@@ -114,8 +115,9 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data; 
-  int            i, n, nneig, lflag, nvopu;      
+  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  PetscInt       n, nn;
+  int            i, nneig, lflag, nvopu;      
   Vec            x, y;                           
   PetscScalar    sigma,*pV;                      
   Mat            A;                              
@@ -201,7 +203,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCGetFactoredMatrix(pc,&A);CHKERRQ(ierr);
-      ierr = MatGetInertia(A,&nneig,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatGetInertia(A,&nn,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      nneig = nn;
       break;
     case 4:  
       /* copy the initial vector */
@@ -293,7 +296,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
-  int            bs,n;
+  PetscInt       bs,n;
   PetscReal      interval[2];
   PetscTruth     flg;
   KSP            ksp;

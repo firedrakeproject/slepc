@@ -9,7 +9,8 @@
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  int            N, n, ncv;
+  PetscInt       N, n;
+  int            ncv;
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
@@ -59,10 +60,12 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 #define __FUNCT__ "EPSSolve_ARPACK"
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
+  PetscErrorCode ierr;
   EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
   char        bmat[1], howmny[] = "A";
   const char  *which;
-  int         i, n, iparam[11], ipntr[14], ido, info, ierr;
+  PetscInt    nn;
+  int         i, n, iparam[11], ipntr[14], ido, info;
   PetscScalar sigmar = 0.0, sigmai, *pV, *resid;
   Vec         x, y, w;
   Mat         A,B;
@@ -72,7 +75,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscFunctionBegin;
 
   fcomm = MPI_Comm_c2f(eps->comm);
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
+  n = nn;
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);

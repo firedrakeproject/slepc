@@ -12,7 +12,7 @@ static EPS globaleps;
 PetscErrorCode EPSSetUp_PLANSO(EPS eps)
 {
   PetscErrorCode ierr;
-  int            n;
+  PetscInt       n;
   EPS_PLANSO     *pl = (EPS_PLANSO *)eps->data;
 
   PetscFunctionBegin;
@@ -74,6 +74,7 @@ int PLANopm_(int *n,PetscReal *q, PetscReal *s,MPI_Comm* c)
 PetscErrorCode EPSSolve_PLANSO(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscInt       nn;
   int            i, n, msglvl, lohi,info;
   PetscReal      condm;
   EPS_PLANSO     *pl = (EPS_PLANSO *)eps->data;
@@ -81,7 +82,8 @@ PetscErrorCode EPSSolve_PLANSO(EPS eps)
   
   PetscFunctionBegin;
 
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
+  n = nn;
   
   if (eps->which==EPS_LARGEST_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;

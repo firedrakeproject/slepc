@@ -53,7 +53,7 @@ EXTERN_C_BEGIN
 EXTERN void	 BLZpack_(int*,PetscReal*,PetscScalar*,int*,PetscScalar*,
         		  PetscScalar*,int*,int*,PetscScalar*,PetscScalar*);
 
-EXTERN int	 BLZistorr_(int*,char*,int);
+EXTERN int	 BLZistorr_(int*,const char*,int);
 EXTERN PetscReal BLZrstorr_(PetscReal*,char*,int);
 
 EXTERN_C_END

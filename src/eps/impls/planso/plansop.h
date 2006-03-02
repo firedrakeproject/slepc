@@ -36,7 +36,7 @@ EXTERN_C_BEGIN
 
 EXTERN void  PLANdr2_(int*,int*,int*,int*,PetscReal*,
                       PetscReal*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,
-                      int*,int*,MPI_Comm*);
+                      int*,int*,MPI_Fint*);
 
 EXTERN_C_END
 

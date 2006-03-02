@@ -12,11 +12,11 @@ static EPS globaleps;
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  int            n;
+  PetscInt       n;
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr); 
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
@@ -45,8 +45,9 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 #define __FUNCT__ "MatMult_TRLAN"
 static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,int *ldy)
 {
-  Vec       x,y;
-  int       i,ierr;
+  PetscErrorCode ierr;
+  Vec            x,y;
+  int            i;
 
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
@@ -66,13 +67,16 @@ static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,i
 #define __FUNCT__ "EPSSolve_TRLAN"
 PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
-  int         ipar[32], i, n, lohi, stat, ierr;
-  EPS_TRLAN   *tr = (EPS_TRLAN *)eps->data;
-  PetscScalar *pV;
+  PetscErrorCode ierr;
+  PetscInt       nn;				   
+  int            ipar[32], i, n, lohi, stat; 
+  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;	   
+  PetscScalar    *pV;				   
   
   PetscFunctionBegin;
 
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
+  n = nn;
   
   if (eps->which==EPS_LARGEST_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
