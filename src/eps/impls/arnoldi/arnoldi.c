@@ -134,7 +134,7 @@ static PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int 
     if (j>k) { 
       eps->count_reorthog++;
       ierr = STMInnerProductBegin(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
-      ierr = STInnerProductBegin(eps->OP,V[j],V[j],&norm1);CHKERRQ(ierr); 
+      ierr = STInnerProductBegin(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
     if (j>k+1) {
       ierr = STNormBegin(eps->OP,u,&norm2);CHKERRQ(ierr); 
@@ -162,7 +162,7 @@ static PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int 
     }
     
     if (j>k) {      
-      norm1 = PetscSqrtScalar(dot);
+      norm1 = sqrt(PetscRealPart(dot));
       for (i=0;i<j;i++)
 	H[m*j+i] = H[m*j+i]/norm1;
       H[m*j+j] = H[m*j+j]/dot;
@@ -503,8 +503,8 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   arnoldi->delayed               = PETSC_FALSE;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_ARNOLDI",EPSArnoldiSetReorthog_ARNOLDI);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_ARNOLDI",EPSArnoldiGetReorthog_ARNOLDI);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_ARNOLDI",EPSArnoldiSetDelayed_ARNOLDI);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_ARNOLDI",EPSArnoldiGetDelayed_ARNOLDI);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
