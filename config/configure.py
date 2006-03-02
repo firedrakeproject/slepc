@@ -139,6 +139,8 @@ log.Write('='*80)
 log.Println('Checking PETSc installation...')
 if petscconf.VERSION != '2.3.1':
   log.Exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
+if petscconf.PRECISION == 'longdouble':
+  log.Exit('ERROR: This SLEPc version does not work with longdouble precision')
 if petscconf.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
 if not check.Link([],[],[]):
