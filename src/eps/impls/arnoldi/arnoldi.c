@@ -16,7 +16,7 @@
    Last update: Feb 2006
 
 */
-#include "src/eps/epsimpl.h"
+#include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
 typedef struct {

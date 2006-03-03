@@ -76,6 +76,12 @@ build:
 	-@echo "========================================="
 
 # Builds SLEPc test examples for a given architecture
+test: 
+	-@echo "Running test examples to verify correct installation"
+	@cd src/examples; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ex1.PETSc runex1_1
+	@if [ "${FC}" != "" ]; then cd src/examples; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} ex1f.PETSc runex1f_1; fi;
+	-@echo "Completed test examples"
+
 testexamples: info
 	-@echo "BEGINNING TO COMPILE AND RUN SLEPc TEST EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"

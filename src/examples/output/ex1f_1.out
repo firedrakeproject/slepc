@@ -1,10 +1,11 @@
-1-D Laplacian Eigenproblem, n =    30
 
- Number of iterations of the method:   112
+1-D Laplacian Eigenproblem, n = 30 (Fortran)
+
+ Number of iterations of the method: 112
  Solution method: lanczos                                                                         
  Number of requested eigenvalues: 1
- Stopping condition: tol=1.0000E-07, maxit=   100
- Number of converged approximate eigenpairs: 1
+ Stopping condition: tol=1.0000E-07, maxit= 100
+ Number of converged eigenpairs: 1
 
           k          ||Ax-kx||/||kx||
   ----------------- ------------------
