@@ -10,8 +10,8 @@
 #define SLEPC_VERSION_MINOR      3
 #define SLEPC_VERSION_SUBMINOR   1
 #define SLEPC_VERSION_PATCH      0
-#define SLEPC_VERSION_PATCH_DATE "Oct 6, 2005"
-#define SLEPC_VERSION_DATE       "Oct 6, 2005"
+#define SLEPC_VERSION_DATE       "March 3, 2006"
+#define SLEPC_VERSION_PATCH_DATE "March 3, 2006"
 #define SLEPC_AUTHOR_INFO        "        The SLEPc Team\n\
    slepc-maint@grycap.upv.es\n\
  http://www.grycap.upv.es/slepc\n"
