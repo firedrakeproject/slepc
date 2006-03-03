@@ -6,7 +6,7 @@ import petscconf
 import log
 
 def LinkWithOutput(functions,callbacks,flags):
-  code = '#include "petsc.h"\n'
+  code = '#include "petscksp.h"\n'
   code += 'EXTERN_C_BEGIN\n'
   for f in functions:
     code += 'EXTERN int\n' + f + '();\n'
