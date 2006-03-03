@@ -17,6 +17,9 @@ def LinkWithOutput(functions,callbacks,flags):
 
   code += 'int main() {\n'
   code += 'PetscInitialize(PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);\n'
+  code += 'VecCreate(PETSC_NULL,PETSC_NULL);\n'
+  code += 'MatCreate(PETSC_NULL,PETSC_NULL);\n'
+  code += 'KSPCreate(PETSC_NULL,PETSC_NULL);\n'
   for f in functions:
     code += f + '();\n'
   code += 'return 0;\n}\n'
