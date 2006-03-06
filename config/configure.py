@@ -108,26 +108,40 @@ for i in sys.argv[1:]:
     sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
 
 # Check if enviroment is ok
-# and get some information about PETSc configuration
 print 'Checking environment...'
-
 if 'SLEPC_DIR' not in os.environ:
   sys.exit('ERROR: SLEPC_DIR enviroment variable is not set')
 slepcdir = os.environ['SLEPC_DIR']
 if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'bmake'])):
   sys.exit('ERROR: SLEPC_DIR enviroment variable is not valid')
-os.chdir(slepcdir);
-
+os.chdir(slepcdir)
 if 'PETSC_DIR' not in os.environ:
   sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
 petscdir = os.environ['PETSC_DIR']
 if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bmake'])):
   sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
 
+# Check some information about PETSc configuration
 petscconf.Load(petscdir)
+if petscconf.VERSION != '2.3.1':
+  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
+if not petscconf.PRECISION in ['double','single','matsingle']:
+  sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
 
+# Create architecture directory and configuration file
+archdir = os.sep.join([slepcdir,'bmake',petscconf.ARCH])
+if not os.path.exists(archdir):
+  try:
+    os.mkdir(archdir)
+  except:
+    sys.exit('ERROR: cannot create architecture directory ' + archdir)
+try:
+  slepcconf = open(os.sep.join([archdir,'slepcconf']),'w')
+except:
+  sys.exit('ERROR: cannot create configuration file in ' + archdir)
+
+# Open log file
 log.Open('configure_log_' + petscconf.ARCH)
-
 log.Write('='*80)
 log.Write('Starting Configure Run at '+time.ctime(time.time()))
 log.Write('Configure Options: '+str.join(' ',sys.argv))
@@ -137,28 +151,12 @@ log.Write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
-if petscconf.VERSION != '2.3.1':
-  log.Exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
-if not petscconf.PRECISION in ['double','single','matsingle']:
-  log.Exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
 if petscconf.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
 if not check.Link([],[],[]):
-  log.Exit('ERROR: PETSc is not installed correctly')
-
-# Create architecture directory
-archdir = os.sep.join([slepcdir,'bmake',petscconf.ARCH])
-if not os.path.exists(archdir):
-  try:
-    os.mkdir(archdir)
-  except:
-    log.Exit('ERROR: cannot create architecture directory ' + archdir)
-
-slepcconf = open(os.sep.join([archdir,'slepcconf']),'w')
+  log.Exit('ERROR: Unable to link with PETSc')
 
 # Check for missing LAPACK functions
-log.Write('='*80)
-log.Println('Checking LAPACK library...')
 missing = lapack.Check(slepcconf)
 
 # Check for external packages

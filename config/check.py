@@ -106,14 +106,13 @@ def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
     if mangling: break    
 
   if mangling:
-    log.Write(output);
+    log.Write(output)
   else:
-    log.Write(error);
-    print 'ERROR: Unable to link with library',name
+    log.Write(error)
+    log.Println('ERROR: Unable to link with library '+ name)
     print 'ERROR: In directories',dirs
-    print 'ERROR: With flags',libs
-    print 'ERROR: See "configure_log_' + petscconf.ARCH + '" file for details'
-    sys.exit(1)
+    print 'ERROR: With flags',libs,
+    log.Exit('')
     
 
   conf.write('SLEPC_HAVE_' + name + ' = -DSLEPC_HAVE_' + name + ' -DSLEPC_' + name + '_HAVE_'+mangling+'\n')

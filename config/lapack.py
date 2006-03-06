@@ -6,6 +6,8 @@ import log
 import check
 
 def Check(conf):
+  log.Write('='*80)
+  log.Println('Checking LAPACK library...')
 
   functions = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx','gelqf']
 

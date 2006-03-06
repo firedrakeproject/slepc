@@ -1,5 +1,7 @@
 import sys
 
+import petscconf
+
 def Open(filename):
   global f
   f = open(filename,'w')
@@ -22,5 +24,6 @@ def Exit(string):
   f.write(string)
   f.write('\n')
   f.close()
-  sys.exit(string)
+  print string
+  sys.exit('ERROR: See "configure_log_' + petscconf.ARCH + '" file for details')
 

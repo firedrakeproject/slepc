@@ -47,14 +47,14 @@ def Load(petscdir):
       l = l.split()
       if len(l) == 3:
         if l[1] == 'PETSC_VERSION_RELEASE':
-	  RELEASE = l[2];
+	  RELEASE = l[2]
 	if l[1] == 'PETSC_VERSION_MAJOR':
-          major = l[2];
+          major = l[2]
 	elif l[1] == 'PETSC_VERSION_MINOR':
-          minor = l[2];
+          minor = l[2]
 	elif l[1] == 'PETSC_VERSION_SUBMINOR':
-          subminor = l[2];
+          subminor = l[2]
     f.close()
-    VERSION = major + '.' + minor + '.' + subminor;
+    VERSION = major + '.' + minor + '.' + subminor
   except:
     sys.exit('ERROR: file error while reading PETSC version')
