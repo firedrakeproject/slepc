@@ -145,9 +145,11 @@
  150  format (' Number of converged eigenpairs:',I2/)
 
 !     ** Display eigenvalues and relative errors
-      if (nconv.gt.0 .and. rank.eq.0) then
-        write(*,*) '         k          ||Ax-kx||/||kx||'
-        write(*,*) ' ----------------- ------------------'
+      if (nconv.gt.0) then
+        if (rank .eq. 0) then
+          write(*,*) '         k          ||Ax-kx||/||kx||'
+          write(*,*) ' ----------------- ------------------'
+	endif
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
@@ -155,12 +157,15 @@
 
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)
-
-          write(*,160) PetscRealPart(kr), error
+          if (rank .eq. 0) then
+            write(*,160) PetscRealPart(kr), error
+	  endif
  160      format (1P,'   ',E12.4,'       ',E12.4)
 
         enddo
-        write(*,*)
+        if (rank .eq. 0) then
+          write(*,*)
+	endif
       endif
 
 !     ** Free work space
