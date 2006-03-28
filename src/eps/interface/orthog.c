@@ -88,29 +88,33 @@ PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,Pets
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
     ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);
     ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
+    /* compute |v| and |v'| */
+    if (onorm) *onorm = sqrt(PetscRealPart(alpha));
+    if (norm) {
+      sum = 0.0;
+      for (j=0; j<n; j++)
+	sum += PetscRealPart(H[j] * PetscConj(H[j]));
+      *norm = PetscRealPart(alpha)-sum;
+      if (*norm < 0.0) {
+	ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
+	eps->count_reorthog++;
+      } else *norm = sqrt(*norm);
+    }
     break;
   case EPS_MGS_ORTH:
-    if (onorm || norm) { ierr = STInnerProduct(eps->OP,v,v,&alpha);CHKERRQ(ierr); }
+    /* compute |v| */
+    if (onorm) { ierr = STNorm(eps->OP,v,onorm);CHKERRQ(ierr); }
     for (j=0; j<n; j++) {
       /* h_j = ( v, v_j ) */
       ierr = STInnerProduct(eps->OP,v,V[j],&H[j]);CHKERRQ(ierr);
       /* v <- v - h_j v_j */
       ierr = VecAXPY(v,-H[j],V[j]);CHKERRQ(ierr);
     }
+    /* compute |v'| */
+    if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
     break;
   default:
     SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
-  }
-  /* compute |v| and |v'| */
-  if (onorm) *onorm = sqrt(PetscRealPart(alpha));
-  if (norm) {
-    sum = 0.0;
-    for (j=0; j<n; j++)
-      sum += PetscRealPart(H[j] * PetscConj(H[j]));
-    *norm = PetscRealPart(alpha)-sum;
-    if (*norm < 0.0) {
-      ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
-    } else *norm = sqrt(*norm);
   }
   PetscFunctionReturn(0);
 }
