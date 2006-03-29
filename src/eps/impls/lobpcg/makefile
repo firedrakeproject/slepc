@@ -4,6 +4,7 @@ ALL: lib
 #requirespackage  'PETSC_HAVE_HYPRE'
 #requiresprecision double
 #requiresscalar    real
+#requireslanguage CONLY
 
 CFLAGS   = ${HYPRE_INCLUDE}
 FFLAGS   =
