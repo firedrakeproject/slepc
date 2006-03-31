@@ -21,6 +21,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   PetscScalar    *Hl=eps->Tl,*Ul;
   PetscReal      beta,g;
   PetscScalar    *eigr,*eigi,*aux;
+  PetscTruth     breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(Hr,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -44,8 +45,8 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   while (eps->its<eps->max_it) {
 
     /* Compute an ncv-step Arnoldi factorization for both A and A' */
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,&ncv,fr,&beta);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,&ncv,fl,&g);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,&ncv,fr,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,&ncv,fl,&g,&breakdown);CHKERRQ(ierr);
 
     ierr = EPSBiOrthogonalize(eps,ncv,Qr,Ql,fr,aux,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<ncv;i++) {

@@ -116,7 +116,8 @@ EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 
 /* Private functions of the solver implementations */
 
-EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int*,Vec,PetscReal*);
+EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,int,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 
 #endif

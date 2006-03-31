@@ -70,12 +70,11 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
    the columns of V. On exit, beta contains the B-norm of f and the next 
    Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
-PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta)
+PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   int            j,m = *M;
   PetscReal      norm;
-  PetscTruth     breakdown;
 
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
@@ -83,11 +82,10 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
     else { ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,&breakdown);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
-    if (breakdown) {
+    if (*breakdown) {
       eps->count_breakdown++;
-      PetscInfo1(eps,"Breakdown in Arnoldi method (norm=%g)\n",norm);
       *M = j+1;
       *beta = norm;
       PetscFunctionReturn(0);
@@ -110,7 +108,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
    reorthogonalization is delayed to the next Arnoldi step. This version is
    more scalable but in some case may be less robust numerically.
 */
-static PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta)
+PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   int            i,j,m=*M;
@@ -148,8 +146,8 @@ static PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int 
     if (j>k+1) {
       ierr = STNormEnd(eps->OP,u,&norm2);CHKERRQ(ierr); 
       if (norm2 < eps->orthog_eta * norm1) {
+        *breakdown = PETSC_TRUE;
 	eps->count_breakdown++;
-	PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,norm2);
 	*M = j-1;
 	*beta = norm2;
 
@@ -212,7 +210,8 @@ static PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int 
 
   ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
   ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
-
+  *breakdown = PETSC_FALSE;
+  
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   ierr = VecDestroy(w);CHKERRQ(ierr);
   ierr = VecDestroy(u);CHKERRQ(ierr);
@@ -303,9 +302,12 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;
     if (arnoldi->delayed) {
-      ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&eps->nv,f,&beta);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+    }
+    if (breakdown) {
+      PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,beta);
     }
 
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
