@@ -114,7 +114,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
   int            i,j,m=*M;
   Vec            w,u,t;
   PetscScalar    shh[100],*lhh,dot;
-  PetscReal      norm1,norm2;
+  PetscReal      norm1=0.0,norm2;
 
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
