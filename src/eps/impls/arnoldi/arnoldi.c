@@ -128,6 +128,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
     eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
+    eps->count_orthog++;
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
       eps->count_reorthog++;
@@ -221,6 +222,63 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSDelayedArnoldi1"
+PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+{
+  PetscErrorCode ierr;
+  int            i,j,m=*M;
+  Vec            w;
+  PetscScalar    dot;
+  PetscReal      norm=0.0;
+
+  PetscFunctionBegin;
+  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
+
+  for (j=k;j<m;j++) {
+    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    eps->its++;
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+    eps->count_orthog++;
+    ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    if (j>k) { 
+      ierr = STInnerProductBegin(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
+    }
+    
+    ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    if (j>k) { 
+      ierr = STInnerProductEnd(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
+    }
+    
+    if (j>k) {      
+      norm = sqrt(PetscRealPart(dot));
+      ierr = VecScale(V[j],1.0/norm);CHKERRQ(ierr);
+      H[m*(j-1)+j] = norm;
+
+      for (i=0;i<j;i++)
+	H[m*j+i] = H[m*j+i]/norm;
+      H[m*j+j] = H[m*j+j]/dot;      
+      ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
+    }
+
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
+    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+
+    if (j<m-1) {
+      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
+    }
+  }
+
+  ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
+  ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
+  *breakdown = PETSC_FALSE;
+  
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "ArnoldiResiduals"
 /*
    EPSArnoldiResiduals - Computes the 2-norm of the residual vectors from
@@ -281,10 +339,11 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*work;
   PetscReal      beta;
-  PetscTruth     breakdown;
+  PetscTruth     breakdown,delayed1;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHasName(eps->prefix,"-delayed1",&delayed1);CHKERRQ(ierr);
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
@@ -301,7 +360,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;
-    if (arnoldi->delayed) {
+    if (delayed1) {
+      ierr = EPSDelayedArnoldi1(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+    } else if (arnoldi->delayed) {
       ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);

@@ -83,8 +83,10 @@ struct _p_EPS {
   EPSOrthogonalizationRefinementType orthog_ref;   /* refinement method */
   PetscReal  orthog_eta;
   PetscTruth ds_ortho;    /* if vectors in DS have to be orthonormalized */  
+  int        count_orthog; /* count number of orthogonalizations */
   int        count_reorthog; /* count number of reorthogonalizations */
   int        count_breakdown; /* count number of breakdowns */
+  PetscScalar level_orthog;
 };
 
 #define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \
@@ -118,6 +120,7 @@ EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 
 EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,int,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 
 #endif
