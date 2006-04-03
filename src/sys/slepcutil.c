@@ -260,42 +260,25 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 {
   PetscErrorCode ierr;
   int            i,j;
-  PetscScalar    *vals;
-  Vec            w;
-  MPI_Comm       comm;
+  PetscScalar    *v,sum;
 
   PetscFunctionBegin;
+
   if (nv<=0 || nw<=0) PetscFunctionReturn(0);
-  ierr = PetscObjectGetComm((PetscObject)V[0],&comm);CHKERRQ(ierr);
-  ierr = PetscMalloc(nv*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
-  if (B) { ierr = VecDuplicate(V[0],&w);CHKERRQ(ierr); }
-  if (lev) *lev = 0.0;
-  for (i=0;i<nw;i++) {
-    if (B) {
-      if (W) { ierr = MatMultTranspose(B,W[i],w);CHKERRQ(ierr); }
-      else { ierr = MatMultTranspose(B,V[i],w);CHKERRQ(ierr); }
-    }
-    else {
-      if (W) w = W[i];
-      else w = V[i];
-    }
-    ierr = VecMDot(w,nv,V,vals);CHKERRQ(ierr);
+  ierr = PetscMalloc(nv*nv*sizeof(PetscScalar),&v);CHKERRQ(ierr);
+  sum = 0.0;
+  for (i=0;i<nv;i++) {
+    ierr = VecMDot(V[i],nv,V,v+i*nv);CHKERRQ(ierr);
+    v[i*nv+i] = v[i*nv+i] - 1.0;
     for (j=0;j<nv;j++) {
-      if (lev) *lev += (j==i)? (vals[j]-1.0)*(vals[j]-1.0): vals[j]*vals[j];
-      else { 
-#ifndef PETSC_USE_COMPLEX
-        ierr = PetscPrintf(comm," %12g  ",vals[j]);CHKERRQ(ierr); 
-#else
-        ierr = PetscPrintf(comm," %12g%+12gi ",PetscRealPart(vals[j]),PetscImaginaryPart(vals[j]));CHKERRQ(ierr);     
-#endif
-      }
+      sum = sum + v[i*nv+j] * v[i*nv+j];
     }
-    if (!lev) { ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr); }
   }
-  ierr = PetscFree(vals);CHKERRQ(ierr);
-  if (B) { ierr = VecDestroy(w);CHKERRQ(ierr); }
-  if (lev) *lev = PetscSqrtScalar(*lev);
+  *lev = PetscSqrtScalar(sum);
+/*  *lev = dlange_("F",&nv,&nv,v,&nv,PETSC_NULL); */
+  ierr = PetscFree(v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 
 
