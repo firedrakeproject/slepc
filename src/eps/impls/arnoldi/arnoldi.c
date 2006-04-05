@@ -85,7 +85,6 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
     ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (*breakdown) {
-      eps->count_breakdown++;
       *M = j+1;
       *beta = norm;
       PetscFunctionReturn(0);
@@ -148,7 +147,6 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
       ierr = STNormEnd(eps->OP,u,&norm2);CHKERRQ(ierr); 
       if (norm2 < eps->orthog_eta * norm1) {
         *breakdown = PETSC_TRUE;
-	eps->count_breakdown++;
 	*M = j-1;
 	*beta = norm2;
 
@@ -339,11 +337,10 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*work;
   PetscReal      beta;
-  PetscTruth     breakdown,delayed1;
+  PetscTruth     breakdown;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHasName(eps->prefix,"-delayed1",&delayed1);CHKERRQ(ierr);
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
@@ -360,14 +357,15 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;
-    if (delayed1) {
-      ierr = EPSDelayedArnoldi1(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
-    } else if (arnoldi->delayed) {
-      ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
-    } else {
+    if (!arnoldi->delayed) {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+    } else if (eps->orthog_ref == EPS_ORTH_REFINE_NEVER) {
+      ierr = EPSDelayedArnoldi1(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+    } else {
+      ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
     if (breakdown) {
+      eps->count_breakdown++;
       PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,beta);
     }
 
