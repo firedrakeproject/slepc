@@ -150,7 +150,8 @@ typedef enum { EPSLANCZOS_REORTHOG_LOCAL,
                EPSLANCZOS_REORTHOG_FULL,
                EPSLANCZOS_REORTHOG_SELECTIVE,
                EPSLANCZOS_REORTHOG_PERIODIC,
-               EPSLANCZOS_REORTHOG_PARTIAL } EPSLanczosReorthogType;
+               EPSLANCZOS_REORTHOG_PARTIAL, 
+	       EPSLANCZOS_REORTHOG_DELAYED } EPSLanczosReorthogType;
 
 EXTERN PetscErrorCode EPSLanczosSetReorthog(EPS,EPSLanczosReorthogType);
 EXTERN PetscErrorCode EPSLanczosGetReorthog(EPS,EPSLanczosReorthogType*);
