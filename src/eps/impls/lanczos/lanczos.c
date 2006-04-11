@@ -19,6 +19,7 @@
 
 */
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
+#include "src/st/stimpl.h"
 #include "slepcblaslapack.h"
 
 typedef struct {
@@ -320,16 +321,21 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
     ierr = VecDot(V[j],f,&alpha);CHKERRQ(ierr);
     ierr = VecAXPY(f,-alpha,V[j]);CHKERRQ(ierr);
     T[m*j+j] = a[j-k] = alpha;
-    ierr = STNorm(eps->OP,f,&b[j-k+1]);CHKERRQ(ierr);
-    update_omega(omega,omega_old,j-k,a,b,eps1,anorm);
+    
     reorth = PETSC_FALSE;
-    for (i=0;i<j-k;i++) {
-      if (omega[i] > delta) reorth = PETSC_TRUE;
+    if (j>k) {
+      ierr = STNorm(eps->OP,f,&b[j-k+1]);CHKERRQ(ierr);
+      update_omega(omega,omega_old,j-k,a,b,eps1,anorm);
+      for (i=0;i<j-k;i++) {
+	if (omega[i] > delta) reorth = PETSC_TRUE;
+      }
     }
-    if (j>k && (reorth || force_reorth)) {
+    
+    if (reorth || force_reorth) {
       if (force_reorth) force_reorth = PETSC_FALSE;
       else force_reorth = PETSC_TRUE;
       if (lanczos->reorthog == EPSLANCZOS_REORTHOG_PERIODIC) {
+        eps->OP->lineariterations++;
 	ierr = EPSOrthogonalize(eps,j+1,V,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
 	for (i=0;i<j-k;i++)
           omega[i] = eps1;
@@ -339,6 +345,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
     } else {
       ierr = EPSOrthogonalize(eps,k,V,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
     }
+    
     if (*breakdown) {
       *M = j+1;
       break;
