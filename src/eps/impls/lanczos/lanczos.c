@@ -297,7 +297,7 @@ static void compute_int(PetscTruth *which,PetscReal *mu,int j,PetscReal delta,Pe
   PetscReal  max;
   PetscTruth found;
   
-  PetscFunctionBegin;
+  PetscFunctionBegin;  
   /* initialize which */
   found = PETSC_FALSE;
   max = 0.0;
@@ -397,35 +397,44 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 
       if (reorth || force_reorth) {
 	eps->OP->lineariterations++;
-	if (force_reorth) force_reorth = PETSC_FALSE;
-	else force_reorth = PETSC_TRUE;
 	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_PERIODIC) {
 	  /* Periodic reorthogonalization */
-          ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-	  ierr = EPSOrthogonalize(eps,j+1,V,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
+	  if (force_reorth) force_reorth = PETSC_FALSE;
+	  else force_reorth = PETSC_TRUE;
+	  ierr = EPSOrthogonalize(eps,eps->nds+j+1,eps->DSV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
 	  for (i=0;i<j-k;i++)
             omega[i] = eps1;
 	} else {
 	  /* Partial reorthogonalization */
-	  compute_int(which,omega,j-k,delta,eta);
-	  nv = 0;
-	  for (i=0;i<j-k;i++) 
-	    if (which[i]) {
-	      omega[i] = eps1;
-	      VV[nv] = eps->V[i+k];
+	  if (force_reorth) force_reorth = PETSC_FALSE;
+	  else {
+	    force_reorth = PETSC_TRUE;
+	    compute_int(which,omega,j-k,delta,eta);
+	    nv = 0;
+	    for (i=0;i<eps->nds;i++) {
+	      VV[nv] = eps->DS[i];
 	      nv++;
 	    }
-	  for (i=0;i<k;i++) {
-	    VV[nv] = eps->V[i];
-	    nv++;
-	  }
-          ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+	    for (i=0;i<k;i++) {
+	      VV[nv] = eps->V[i];
+	      nv++;
+	    }
+	    for (i=0;i<j-k;i++) 
+	      if (which[i]) {
+		omega[i] = eps1;
+		VV[nv] = eps->V[i+k];
+		nv++;
+	      }
+	  } 
+/*	  for (i=0;i<j-k;i++) 
+	    if (which[i]) printf("X");
+	    else printf(".");
+	  printf("\n");*/
 	  ierr = EPSOrthogonalize(eps,nv,VV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);	
-	}
+	}	
       } else {
         /* Deflation with locked vectors */
-        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-	ierr = EPSOrthogonalize(eps,k,V,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
+	ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
       }
     }
     if (*breakdown || norm < n*anorm*PETSC_MACHINE_EPSILON) {
@@ -556,6 +565,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   
   abstol = 2.0*LAPACKlamch_("S",1);
   anorm = 1.0;
+  ierr = PetscOptionsGetReal(PETSC_NULL,"-anorm",&anorm,PETSC_NULL);CHKERRQ(ierr);
   nconv = 0;
   eps->its = 0;
   restart_ritz = 0.0;
