@@ -238,8 +238,8 @@ int main( int argc, char **argv )
   return 0;
 }
 
-#undef __FUNC__
-#define __FUNC__ "MatBrussel_Mult"
+#undef __FUNCT__
+#define __FUNCT__ "MatBrussel_Mult"
 PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -289,8 +289,8 @@ PetscErrorCode MatBrussel_Shift( PetscScalar* a, Mat Y )
   PetscFunctionReturn(0);
 }
 
-#undef __FUNC__
-#define __FUNC__ "MatBrussel_GetDiagonal"
+#undef __FUNCT__
+#define __FUNCT__ "MatBrussel_GetDiagonal"
 int MatBrussel_GetDiagonal(Mat A,Vec diag)
 {
   Vec            d1, d2;
