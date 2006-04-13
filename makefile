@@ -273,3 +273,9 @@ checkbadfortranstubs:
 	cut -d'(' -f1 | cut -d' ' -f1,4; \
 	done; done
 
+# Generate tags with Exuberant Ctags 5.5.4
+ctags:
+	-@ctags -R --exclude="examples" --languages=-HTML,Make --fortran-kinds=-l include src
+	-@egrep -v __FUNCT__\|PetscToPointer\|PetscFromPointer\|PetscRmPointer tags > tags-tmp
+	-@mv tags-tmp tags
+
