@@ -3,8 +3,8 @@
   Necessary routines in BLAS and LAPACK not included in petscblaslapack.f
 
 */
-#if !defined(_SLEPCBLASLAPACK_H)
-#define _SLEPCBLASLAPACK_H
+#if !defined(__SLEPCBLASLAPACK_H)
+#define __SLEPCBLASLAPACK_H
 #include "petscblaslapack.h"
 PETSC_EXTERN_CXX_BEGIN
 
