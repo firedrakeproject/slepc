@@ -364,10 +364,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     } else {
       ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
-    if (breakdown) {
-      eps->count_breakdown++;
-      PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,beta);
-    }
 
     /* Reduce H to (quasi-)triangular form, H <- U H U' */
     ierr = PetscMemzero(U,eps->nv*eps->nv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -394,7 +390,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     eps->nconv = k;
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
-    if (eps->nv < eps->ncv) {
+    if (breakdown) {
+      eps->count_breakdown++;
+      PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,beta);
       ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       if (breakdown) {
         eps->reason = EPS_DIVERGED_BREAKDOWN;
