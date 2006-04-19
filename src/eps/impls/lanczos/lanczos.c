@@ -188,8 +188,6 @@ static PetscErrorCode EPSDelayedLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int 
       ierr = VecSet(w,0.0);CHKERRQ(ierr);
       ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
       ierr = VecAXPY(t,-1.0,w);CHKERRQ(ierr);
-      for (i=0;i<j;i++)
-        H[m*(j-1)+i] += lhh[i];
     }
 
     if (j>k+1) {
@@ -215,8 +213,6 @@ static PetscErrorCode EPSDelayedLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int 
   ierr = VecSet(w,0.0);CHKERRQ(ierr);
   ierr = VecMAXPY(w,m,lhh,V);CHKERRQ(ierr);
   ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
-  for (i=0;i<m;i++)
-    H[m*(m-1)+i] += lhh[i];
 
   ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
   ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
@@ -376,10 +372,10 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
 
     n = j-k+1;
     for (i=0;i<n-1;i++) {
-      ritz[i] = PetscRealPart(T[(i+k)*(m+1)]);
+      D[i] = PetscRealPart(T[(i+k)*(m+1)]);
       E[i] = PetscRealPart(T[(i+k)*(m+1)+1]);
     }
-    ritz[n-1] = PetscRealPart(T[(n-1+k)*(m+1)]);
+    D[n-1] = PetscRealPart(T[(n-1+k)*(m+1)]);
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
     LAPACKstevr_("V","A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&mout,ritz,Y,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
