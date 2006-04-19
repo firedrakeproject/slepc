@@ -123,7 +123,6 @@ EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,Vec*,int,int*,Vec,Petsc
 EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,int,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 
-EXTERN PetscErrorCode EPSOrthogonalize1(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
-EXTERN PetscErrorCode EPSOrthogonalize2(EPS,int,Vec*,Vec,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscTruth*,Vec);
+EXTERN PetscErrorCode EPSOrthogonalize2(EPS,int,Vec*,Vec,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*);
 
 #endif
