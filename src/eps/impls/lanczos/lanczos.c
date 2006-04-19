@@ -71,7 +71,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
    In this variant, at each Lanczos step, the corresponding Lanczos vector 
    is orthogonalized with respect to all the previous Lanczos vectors.
 */
-PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+static PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   int            j,m = *M;
@@ -107,6 +107,126 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,P
   if (m>100 && eps->orthog_ref !=EPS_ORTH_REFINE_NEVER) {
     ierr = PetscFree(c);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDelayedLanczos"
+/*
+   EPSDelayedLanczos - This function is equivalent to EPSFullLanczos but
+   performs the computation in a different way. The main idea is that
+   reorthogonalization is delayed to the next Lanczos step. This version is
+   more scalable but in some case may be less robust numerically.
+*/
+static PetscErrorCode EPSDelayedLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+{
+  PetscErrorCode ierr;
+  int            i,j,m=*M;
+  Vec            w,u,t;
+  PetscScalar    shh[100],*lhh,dot;
+  PetscReal      norm1=0.0,norm2;
+
+  PetscFunctionBegin;
+  if (m<=100) lhh = shh;
+  else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
+
+  for (j=k;j<m;j++) {
+    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    eps->its++;
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+    eps->count_orthog++;
+    ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    if (j>k) { 
+      eps->count_reorthog++;
+      ierr = STMInnerProductBegin(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
+      ierr = STInnerProductBegin(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
+    }
+    if (j>k+1) {
+      ierr = STNormBegin(eps->OP,u,&norm2);CHKERRQ(ierr); 
+    }
+    
+    ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    if (j>k) { 
+      ierr = STMInnerProductEnd(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
+      ierr = STInnerProductEnd(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
+    }
+    if (j>k+1) {
+      ierr = STNormEnd(eps->OP,u,&norm2);CHKERRQ(ierr); 
+      if (norm2 < eps->orthog_eta * norm1) {
+        *breakdown = PETSC_TRUE;
+	*M = j-1;
+	*beta = norm2;
+
+	if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+	ierr = VecDestroy(w);CHKERRQ(ierr);
+	ierr = VecDestroy(u);CHKERRQ(ierr);
+	ierr = VecDestroy(t);CHKERRQ(ierr);
+	PetscFunctionReturn(0);
+      }
+    }
+    
+    if (j>k) {      
+      norm1 = sqrt(PetscRealPart(dot));
+      for (i=0;i<j;i++)
+	H[m*j+i] = H[m*j+i]/norm1;
+      H[m*j+j] = H[m*j+j]/dot;
+      
+      ierr = VecCopy(V[j],t);CHKERRQ(ierr);
+      ierr = VecScale(V[j],1.0/norm1);CHKERRQ(ierr);
+      ierr = VecScale(f,1.0/norm1);CHKERRQ(ierr);
+    }
+
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
+    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+
+    if (j>k) {
+      ierr = VecSet(w,0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
+      ierr = VecAXPY(t,-1.0,w);CHKERRQ(ierr);
+      for (i=0;i<j;i++)
+        H[m*(j-1)+i] += lhh[i];
+    }
+
+    if (j>k+1) {
+      ierr = VecCopy(u,V[j-1]);CHKERRQ(ierr);
+      ierr = VecScale(V[j-1],1.0/norm2);CHKERRQ(ierr);
+      H[m*(j-2)+j-1] = norm2;
+    }
+
+    if (j<m-1) {
+      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
+      ierr = VecCopy(t,u);CHKERRQ(ierr);
+    }
+  }
+
+  ierr = STNorm(eps->OP,t,&norm2);CHKERRQ(ierr);
+  ierr = VecScale(t,1.0/norm2);CHKERRQ(ierr);
+  ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
+  H[m*(m-2)+m-1] = norm2;
+
+  eps->count_reorthog++;
+  ierr = STMInnerProduct(eps->OP,m,f,V,lhh);CHKERRQ(ierr);
+  
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,m,lhh,V);CHKERRQ(ierr);
+  ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+  for (i=0;i<m;i++)
+    H[m*(m-1)+i] += lhh[i];
+
+  ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
+  ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
+  *breakdown = PETSC_FALSE;
+  
+  if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  ierr = VecDestroy(u);CHKERRQ(ierr);
+  ierr = VecDestroy(t);CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 
@@ -578,7 +698,13 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m
       if (eps->orthog_ref == EPS_ORTH_REFINE_NEVER) {
         ierr = EPSDelayedArnoldi1(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);       
       } else {
-        ierr = EPSDelayedArnoldi(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
+	switch (type) {
+	case 1:
+          ierr = EPSDelayedLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
+          break;
+	default:
+          ierr = EPSDelayedArnoldi(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
+	}
       }
       break;
     default:
