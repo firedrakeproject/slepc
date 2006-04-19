@@ -192,18 +192,19 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     /* if relerr<tol, accept eigenpair */
     if (relerr<eps->tol) {
       eps->nconv = eps->nconv + 1;
-      if (eps->nconv==eps->nev) break;
-      v = eps->V[eps->nconv];
-      ierr = EPSGetStartVector(eps,eps->nconv,v,&breakdown);CHKERRQ(ierr);
-      if (breakdown) {
-        eps->reason = EPS_DIVERGED_BREAKDOWN;
-	PetscInfo(eps,"Unable to generate more start vectors\n");
+      if (eps->nconv==eps->nev) eps->reason = EPS_CONVERGED_TOL;
+      else {
+	v = eps->V[eps->nconv];
+	ierr = EPSGetStartVector(eps,eps->nconv,v,&breakdown);CHKERRQ(ierr);
+	if (breakdown) {
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+	  PetscInfo(eps,"Unable to generate more start vectors\n");
+	}
       }
     }
 
     eps->its = eps->its + 1;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-    if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
 
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
