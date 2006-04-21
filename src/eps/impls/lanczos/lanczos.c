@@ -518,7 +518,6 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 	ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
       }
     }
-    printf("[%i] anorm %e\n",eps->its,anorm);
     if (*breakdown || norm < n*anorm*PETSC_MACHINE_EPSILON) {
       *M = j+1;
       break;
