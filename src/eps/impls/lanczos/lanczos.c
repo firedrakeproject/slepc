@@ -787,17 +787,11 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	/* Use random vector for restarting */
 	PetscInfo(eps,"Using random vector for restart\n");
 	ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
-      } else switch (lanczos->reorthog) {
-      case EPSLANCZOS_REORTHOG_LOCAL:
-      case EPSLANCZOS_REORTHOG_PERIODIC:
-      case EPSLANCZOS_REORTHOG_PARTIAL:
+      } else if (lanczos->reorthog == EPSLANCZOS_REORTHOG_LOCAL) {
         /* Reorthonormalize restart vector */
 	ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
 	ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
-	break;
-      default:
-         breakdown = PETSC_FALSE;
-      }
+      } else breakdown = PETSC_FALSE;
       if (breakdown) {
 	eps->reason = EPS_DIVERGED_BREAKDOWN;
 	PetscInfo(eps,"Unable to generate more start vectors\n");
