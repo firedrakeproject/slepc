@@ -307,6 +307,23 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "gershgorin"
+static PetscReal gershgorin(int n,PetscScalar *alpha,PetscScalar *beta)
+{
+  int       i;
+  PetscReal anorm,c;
+  
+  PetscFunctionBegin;
+  anorm = PetscAbsScalar(alpha[0]) + PetscAbsScalar(beta[1]);
+  for (i=0;i<n;i++) {
+    c = PetscAbsScalar(alpha[i]) + PetscMax(PetscAbsScalar(beta[i]),PetscAbsScalar(beta[i+1]));
+    if (c>anorm) anorm = c;
+  }
+  PetscFunctionReturn(anorm);
+}
+
+
+#undef __FUNCT__  
 #define __FUNCT__ "update_omega"
 static void update_omega(PetscReal *omega,PetscReal *omega_old,int j,PetscScalar *alpha,PetscScalar *beta,PetscReal eps1,PetscReal anorm)
 {
@@ -405,7 +422,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
   int            i,j,n,l,nv,m = *M;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta;
   PetscScalar    alpha,*a,la[100],*b,lb[101];
-  PetscTruth     *which,lwhich[100],reorth,force_reorth = PETSC_FALSE,fro = PETSC_FALSE;;
+  PetscTruth     *which,lwhich[100],reorth,force_reorth = PETSC_FALSE,fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
   Vec            *VV,lVV[100];
 
   PetscFunctionBegin;
@@ -432,6 +449,10 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
   eps1 = sqrt((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
   delta = PETSC_SQRT_MACHINE_EPSILON/sqrt((PetscReal)eps->ncv);
   eta = pow(PETSC_MACHINE_EPSILON,3.0/4.0)/sqrt((PetscReal)eps->ncv);
+  if (anorm < 0.0) {
+    anorm = 1.0;
+    estimate_anorm = PETSC_TRUE;
+  }
   
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
@@ -453,6 +474,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
       reorth = PETSC_FALSE;
       if (j>k) {
 	ierr = STNorm(eps->OP,f,&b[j-k+1]);CHKERRQ(ierr);
+	if (estimate_anorm) anorm = gershgorin(j-k,a,b);
 	update_omega(omega,omega_old,j-k,a,b,eps1,anorm);
 	for (i=0;i<j-k;i++)
 	  if (PetscAbsScalar(omega[i]) > delta) reorth = PETSC_TRUE;
@@ -496,6 +518,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 	ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
       }
     }
+    printf("[%i] anorm %e\n",eps->its,anorm);
     if (*breakdown || norm < n*anorm*PETSC_MACHINE_EPSILON) {
       *M = j+1;
       break;
@@ -623,7 +646,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   
   abstol = 2.0*LAPACKlamch_("S",1);
-  anorm = 1.0;
+  anorm = -1.0;
   ierr = PetscOptionsGetReal(PETSC_NULL,"-anorm",&anorm,PETSC_NULL);CHKERRQ(ierr);
   nconv = 0;
   eps->its = 0;
