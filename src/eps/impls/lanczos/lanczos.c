@@ -384,7 +384,7 @@ static PetscErrorCode EPSSelectiveLanczos2(EPS eps,PetscScalar *T,Vec *V,int k,i
   int            i,j,m = *M,n,nritz=0,nritzo,il,iu,mout,*isuppz,*iwork,lwork,liwork,info;
   PetscReal      *D,*E,*ritz,*Y,*work,abstol,vl,vu,norm;
   Vec            *VV,lVV[100];
-  PetscScalar    alpha;
+  PetscScalar    h[2],c[2];
 
   PetscFunctionBegin;
   ierr = PetscMalloc(m*sizeof(PetscReal),&D);CHKERRQ(ierr);
@@ -409,12 +409,12 @@ static PetscErrorCode EPSSelectiveLanczos2(EPS eps,PetscScalar *T,Vec *V,int k,i
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     eps->its++;
     if (j>k) {
-      ierr = VecAXPY(f,-norm,V[j-1]);CHKERRQ(ierr);
+      ierr = EPSOrthogonalize2(eps,2,V+j-1,f,h,c,&norm,breakdown);CHKERRQ(ierr);
+      T[m*j+j] = h[1];     
+    } else {
+      ierr = EPSOrthogonalize2(eps,1,V+j,f,h,c,&norm,breakdown);CHKERRQ(ierr);        
+      T[m*j+j] = h[0];     
     }
-    ierr = VecDot(V[j],f,&alpha);CHKERRQ(ierr);
-    ierr = VecAXPY(f,-alpha,V[j]);CHKERRQ(ierr);
-    T[m*j+j] = alpha;
-    ierr = STNorm(eps->OP,f,&norm);CHKERRQ(ierr);
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
     n = j-k+1;
@@ -532,7 +532,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
   Mat            A;
   int            i,j,n,l,nv,m = *M;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta;
-  PetscScalar    alpha,*a,la[100],*b,lb[101];
+  PetscScalar    *a,la[100],*b,lb[101],h[2],c[2];
   PetscTruth     *which,lwhich[100],reorth,force_reorth = PETSC_FALSE,fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
   Vec            *VV,lVV[100];
 
@@ -575,16 +575,17 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
     } else {
       /* Lanczos step */
       if (j>k) {
-	ierr = VecAXPY(f,-norm,V[j-1]);CHKERRQ(ierr);
+        ierr = EPSOrthogonalize2(eps,2,V+j-1,f,h,c,&norm,breakdown);CHKERRQ(ierr);
+	T[m*j+j] = a[j-k] = h[1];     
+      } else {
+        ierr = EPSOrthogonalize2(eps,1,V+j,f,h,c,&norm,breakdown);CHKERRQ(ierr);        
+	T[m*j+j] = a[j-k] = h[0];     
       }
-      ierr = VecDot(V[j],f,&alpha);CHKERRQ(ierr);
-      ierr = VecAXPY(f,-alpha,V[j]);CHKERRQ(ierr);
-      T[m*j+j] = a[j-k] = alpha;
-
+      
       /* Check if reorthogonalization is needed */
       reorth = PETSC_FALSE;
       if (j>k) {
-	ierr = STNorm(eps->OP,f,&b[j-k+1]);CHKERRQ(ierr);
+        b[j-k+1] = norm;
 	if (estimate_anorm) anorm = gershgorin(j-k,a,b);
 	update_omega(omega,omega_old,j-k,a,b,eps1,anorm);
 	for (i=0;i<j-k;i++)
@@ -625,8 +626,10 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 	  ierr = EPSOrthogonalize(eps,nv,VV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);	
 	}	
       } else {
-        /* Deflation with locked vectors */
-	ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
+        if (eps->nds+k>0) {
+          /* Deflation with locked vectors */
+	  ierr = EPSOrthogonalize(eps,eps->nds+k,eps->DSV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
+        } else *breakdown = PETSC_FALSE;
       }
     }
     if (*breakdown || norm < n*anorm*PETSC_MACHINE_EPSILON) {
