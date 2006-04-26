@@ -305,23 +305,6 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "gershgorin"
-static PetscReal gershgorin(int n,PetscScalar *alpha,PetscScalar *beta)
-{
-  int       i;
-  PetscReal anorm,c;
-  
-  PetscFunctionBegin;
-  anorm = PetscAbsScalar(alpha[0]) + PetscAbsScalar(beta[1]);
-  for (i=0;i<n;i++) {
-    c = PetscAbsScalar(alpha[i]) + PetscMax(PetscAbsScalar(beta[i]),PetscAbsScalar(beta[i+1]));
-    if (c>anorm) anorm = c;
-  }
-  PetscFunctionReturn(anorm);
-}
-
-
-#undef __FUNCT__  
 #define __FUNCT__ "update_omega"
 static void update_omega(PetscReal *omega,PetscReal *omega_old,int j,PetscScalar *alpha,PetscScalar *beta,PetscReal eps1,PetscReal anorm)
 {
@@ -624,12 +607,13 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 	ierr = PetscLogEventEnd(EPS_Orthogonalize,eps,0,0,0);CHKERRQ(ierr);
 	T[m*j+j] = a[j-k] = w[1];
       }
+      b[j-k+1] = norm;
       
       /* Check if reorthogonalization is needed */
       reorth = PETSC_FALSE;
       if (j>k) {
-        b[j-k+1] = norm;
-	if (estimate_anorm) anorm = gershgorin(j-k,a,b);
+ 	if (estimate_anorm) 
+	  anorm = PetscMax(anorm,PetscAbsScalar(a[j-k])+norm+b[j-k]);
 	update_omega(omega,omega_old,j-k,a,b,eps1,anorm);
 	for (i=0;i<j-k;i++)
 	  if (PetscAbsScalar(omega[i]) > delta) reorth = PETSC_TRUE;
