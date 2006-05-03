@@ -172,22 +172,25 @@ PetscErrorCode EPSOrthogonalize2(EPS eps,int n,Vec *V,Vec v,PetscScalar *h,Petsc
       } else {
         *onrm = *nrm;
         ierr = EPSOrthogonalizeGS(eps,n,V,v,c,PETSC_NULL,nrm,w);CHKERRQ(ierr); 
-      }      
-    }
-    /* allow a third reorthogonalization */
-    if (*nrm < eps->orthog_eta * *onrm) {
-      ierr = PetscMalloc(n*sizeof(PetscScalar),&c2);CHKERRQ(ierr);
-      PetscInfo2(eps,"Performing second iterative refinement onorm %g norm %g\n",*onrm,*nrm);
-      eps->count_reorthog++;
-      if (eps->orthog_type == EPS_CGS_ORTH) {
-        ierr = EPSOrthogonalizeGS(eps,n,V,v,c,onrm,nrm,w);CHKERRQ(ierr); 
-      } else {
-        *onrm = *nrm;
-        ierr = EPSOrthogonalizeGS(eps,n,V,v,c,PETSC_NULL,nrm,w);CHKERRQ(ierr); 
-      }      
+      }   
+      /* allow a third reorthogonalization */
+      if (*nrm < eps->orthog_eta * *onrm) {
+	ierr = PetscMalloc(n*sizeof(PetscScalar),&c2);CHKERRQ(ierr);
+	PetscInfo2(eps,"Performing second iterative refinement onorm %g norm %g\n",*onrm,*nrm);
+	eps->count_reorthog++;
+	if (eps->orthog_type == EPS_CGS_ORTH) {
+          ierr = EPSOrthogonalizeGS(eps,n,V,v,c2,onrm,nrm,w);CHKERRQ(ierr); 
+	} else {
+          *onrm = *nrm;
+          ierr = EPSOrthogonalizeGS(eps,n,V,v,c2,PETSC_NULL,nrm,w);CHKERRQ(ierr); 
+	}      
+	for (j=0;j<n;j++)
+	  c[j] += c2[j];
+	ierr = PetscFree(c2);CHKERRQ(ierr);
+      }
+    } else {
       for (j=0;j<n;j++)
-	c[j] += c2[j];
-      ierr = PetscFree(c2);CHKERRQ(ierr);
+	c[j] = 0.0;
     }
     break;
   default:
@@ -196,15 +199,10 @@ PetscErrorCode EPSOrthogonalize2(EPS eps,int n,Vec *V,Vec v,PetscScalar *h,Petsc
   
   /* check linear dependence */
   if (lindep) {
-    switch (eps->orthog_ref) {
-    case EPS_ORTH_REFINE_NEVER:
-      if (*nrm < PETSC_SQRT_MACHINE_EPSILON) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE;
-      break;
-    default:
-      if (*nrm < eps->orthog_eta * *onrm) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE;
-    }
+    if (eps->orthog_ref != EPS_ORTH_REFINE_NEVER && *nrm < eps->orthog_eta * *onrm) 
+      *lindep = PETSC_TRUE;
+    else
+      *lindep = PETSC_FALSE;
   }
 
   if (eps->orthog_type == EPS_CGS_ORTH) { 
@@ -278,7 +276,7 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
   }
 
   /* orthogonalization */
-  ierr = EPSOrthogonalize2(eps,n,V,v,h,c,norm,lindep);CHKERRQ(ierr);
+  ierr = EPSOrthogonalize2(eps,n,V,v,h,c,norm,lindep);CHKERRQ(ierr);  
   if (eps->orthog_ref !=EPS_ORTH_REFINE_NEVER)
     for (j=0;j<n;j++)
       h[j] += c[j];
