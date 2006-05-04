@@ -85,6 +85,7 @@ struct _p_EPS {
   PetscTruth ds_ortho;    /* if vectors in DS have to be orthonormalized */  
   int        count_orthog; /* count number of orthogonalizations */
   int        count_reorthog; /* count number of reorthogonalizations */
+  int        count_orthog_dots; /* count number of dots products in orthogonalization */
   int        count_breakdown; /* count number of breakdowns */
   PetscScalar level_orthog;
 };
@@ -122,7 +123,5 @@ EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int*,
 EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,int,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
-
-EXTERN PetscErrorCode EPSOrthogonalize2(EPS,int,Vec*,Vec,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*);
 
 #endif
