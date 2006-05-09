@@ -1,7 +1,7 @@
 
-static char help[] = "Solves a generalized eigensystem Ax=kBx with matrices loaded from a file.\n\n"
+static char help[] = "Solves a generalized eigensystem Ax=kBx with matrices loaded from a file.\n"
   "This example works for both real and complex numbers.\n\n"
-  "The command line options are:\n\n"
+  "The command line options are:\n"
   "  -f1 <filename>, where <filename> = matrix (A) file in PETSc binary form.\n"
   "  -f2 <filename>, where <filename> = matrix (B) file in PETSc binary form.\n\n";
 

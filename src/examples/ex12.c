@@ -2,7 +2,7 @@
 static char help[] = "Solves the same eigenproblem as in example ex5, but computing also left eigenvectors. "
   "It is a Markov model of a random walk on a triangular grid. "
   "A standard nonsymmetric eigenproblem with real eigenvalues. The rightmost eigenvalue is known to be 1.\n\n"
-  "The command line options are:\n\n"
+  "The command line options are:\n"
   "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
 
 #include "slepceps.h"

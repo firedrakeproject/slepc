@@ -1,7 +1,7 @@
 
 static char help[] = "Standard symmetric eigenproblem corresponding to the Laplacian operator in 2 dimensions.\n\n"
-  "The command line options are:\n\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n\n"
+  "The command line options are:\n"
+  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
 
 #include "slepceps.h"

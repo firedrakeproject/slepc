@@ -1,6 +1,6 @@
 
 static char help[] = "Solves a problem associated to the Brusselator wave model in chemical reactions, illustrating the use of shell matrices.\n\n"
-  "The command line options are:\n\n"
+  "The command line options are:\n"
   "  -n <n>, where <n> = block dimension of the 2x2 block matrix.\n"
   "  -L <L>, where <L> = bifurcation parameter.\n"
   "  -alpha <alpha>, -beta <beta>, -delta1 <delta1>,  -delta2 <delta2>,\n"

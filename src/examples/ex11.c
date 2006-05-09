@@ -1,8 +1,8 @@
 
 static char help[] = "Computes the smallest nonzero eigenvalue of the Laplacian of a graph.\n\n"
   "This example illustrates EPSAttachDeflationSpace(). The example graph corresponds to a "
-  "2-D regular mesh. The command line options are:\n\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n\n"
+  "2-D regular mesh. The command line options are:\n"
+  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
 
 #include "slepceps.h"

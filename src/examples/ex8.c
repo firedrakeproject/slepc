@@ -1,7 +1,7 @@
 
 static char help[] = "Estimates the 2-norm condition number of a matrix A, that is, the ratio of the largest to the smallest singular values of A. "
   "The matrix is a Grcar matrix.\n\n"
-  "The command line options are:\n\n"
+  "The command line options are:\n"
   "  -n <n>, where <n> = matrix dimension.\n\n";
 
 #include "slepceps.h"
