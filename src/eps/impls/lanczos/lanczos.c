@@ -19,7 +19,6 @@
 
 */
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
-#include "src/st/stimpl.h"
 #include "slepcblaslapack.h"
 
 typedef struct {
@@ -429,7 +428,6 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
       }
 
       if (reorth || force_reorth) {
-	eps->OP->lineariterations++;
 	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_PERIODIC) {
 	  /* Periodic reorthogonalization */
 	  if (force_reorth) force_reorth = PETSC_FALSE;
@@ -489,6 +487,83 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSDelayedNormLocalLanczos"
+static PetscErrorCode EPSDelayedNormLocalLanczos(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+{
+  PetscErrorCode ierr;
+  int            i,j,m=*M;
+  Vec            w;
+  PetscScalar    beta_old,alpha,dot;
+  PetscReal      norm=0.0;
+
+  PetscFunctionBegin;
+  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
+
+  /* first iteration */
+  ierr = STApply(eps->OP,V[k],f);CHKERRQ(ierr);
+  eps->its++;
+  ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+  eps->count_orthog++;
+  ierr = STMInnerProduct(eps->OP,k+1,f,V,H+m*k);CHKERRQ(ierr);
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,k+1,H+m*k,V);CHKERRQ(ierr);
+  ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+  
+  ierr = VecCopy(f,V[k+1]);CHKERRQ(ierr);
+
+  for (j=k+1;j<m;j++) {
+    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    eps->its++;
+    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+    eps->count_orthog++;
+    ierr = STInnerProductBegin(eps->OP,V[j-1],f,&beta_old);CHKERRQ(ierr);
+    ierr = STInnerProductBegin(eps->OP,V[j],f,&alpha);CHKERRQ(ierr);
+    ierr = STInnerProductBegin(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
+    if (k>0) {
+      ierr = STMInnerProductBegin(eps->OP,k,f,V,H+m*j);CHKERRQ(ierr);
+    }
+
+    ierr = STInnerProductEnd(eps->OP,V[j-1],f,&beta_old);CHKERRQ(ierr);
+    ierr = STInnerProductEnd(eps->OP,V[j],f,&alpha);CHKERRQ(ierr);
+    ierr = STInnerProductEnd(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
+    if (k>0) {
+      ierr = STMInnerProductEnd(eps->OP,k,f,V,H+m*j);CHKERRQ(ierr);
+    }
+        
+    norm = sqrt(PetscRealPart(dot));
+    ierr = VecScale(V[j],1.0/norm);CHKERRQ(ierr);
+    H[m*(j-1)+j] = norm;
+
+    H[m*j+j-1] = beta_old/norm;
+    H[m*j+j] = alpha/dot;      
+    for (i=0;i<k;i++)
+      H[m*j+i] = H[m*j+i]/norm;
+    ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
+
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    ierr = VecAXPY(w,H[m*j+j-1],V[j-1]);CHKERRQ(ierr);
+    ierr = VecAXPY(w,H[m*j+j],V[j]);CHKERRQ(ierr);    
+    if (k>0) {
+      ierr = VecMAXPY(w,k,H+m*j,V);CHKERRQ(ierr);
+    }
+    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+       
+    if (j<m-1) {
+      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
+    }
+  }
+
+  ierr = STNorm(eps->OP,f,beta);CHKERRQ(ierr);
+  ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
+  *breakdown = PETSC_FALSE;
+  
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSBasicLanczos"
 /*
    EPSBasicLanczos - Computes an m-step Lanczos factorization. The first k
@@ -515,7 +590,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
     case EPSLANCZOS_REORTHOG_LOCAL:
-      ierr = EPSLocalLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
+//      ierr = EPSLocalLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedNormLocalLanczos(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
       break;
     case EPSLANCZOS_REORTHOG_SELECTIVE:
       ierr = EPSSelectiveLanczos(eps,T,V,k,m,f,beta,breakdown,anorm);CHKERRQ(ierr);
@@ -593,6 +669,14 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     /* Compute an ncv-step Lanczos factorization */
     m = ncv;
     ierr = EPSBasicLanczos(eps,T,eps->V,nconv,&m,f,&beta,&breakdown,anorm);CHKERRQ(ierr);
+
+/*    for (i=0;i<eps->ncv;i++) {
+      for (j=0;j<eps->ncv;j++) {
+        printf("% e ",T[j*eps->ncv+i]);
+      }
+      printf("\n");
+    }
+    printf("beta=% e \n",beta);*/
 
     if (orthog) {
       ierr = SlepcCheckOrthogonality(eps->V+nconv,m - nconv,eps->V+nconv,m - nconv,PETSC_NULL,&lev);CHKERRQ(ierr);
