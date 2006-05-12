@@ -102,7 +102,7 @@ static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar 
       for (j=0; j<n; j++)
 	sum += PetscRealPart(H[j] * PetscConj(H[j]));
       *norm = PetscRealPart(alpha)-sum;
-      if (*norm < 0.0) {
+      if (*norm < 0.0 || eps->compute_norm) {
 	ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
       } else *norm = sqrt(*norm);
     }
