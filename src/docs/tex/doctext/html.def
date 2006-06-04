@@ -25,7 +25,7 @@ e_synopsis %n</PRE>%n
 em_dash    
 eop        %n</BODY></HTML>%n
 bop        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">%n<HTML>%n\
-<HEAD>%n<META NAME="GENERATOR" CONTENT="DOCTEXT">%n<link rel="stylesheet" href="/slepc/vinculs.css" type="text/css">%n
+<HEAD>%n<META NAME="GENERATOR" CONTENT="DOCTEXT">%n<link rel="stylesheet" href="/slepc/slepc.css" type="text/css">%n
 # Arglist form   this is for + . . - lists
 s_arg_list %n<TABLE border="0" cellpadding="0" cellspacing="0">
 s_arg_inlist %n<TR><TD WIDTH=40></TD><TD ALIGN=LEFT VALIGN=TOP><B>

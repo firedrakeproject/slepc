@@ -1,11 +1,12 @@
-<HTML>
-<HEAD>
-<link rel="stylesheet" href="/slepc/vinculs.css" type="text/css">
-<TITLE>Eigenvalue Problem Solvers - EPS</TITLE>
-</HEAD>
-<BODY BGCOLOR="FFFFFF">
-<font face="Arial, Helvetica, sans-serif" size="2">
-<H2>Eigenvalue Problem Solvers - EPS</H2>
+<html>
+<head>
+  <link rel="stylesheet" href="/slepc/slepc.css" type="text/css">
+  <title>Eigenvalue Problem Solvers - EPS</title>
+</head>
+
+<body class="manpageindex">
+
+<h2>Eigenvalue Problem Solvers - EPS</h2>
 
 <p>
 The Eigenvalue Problem Solver (EPS) is the main object provided by SLEPc. It is used to specify an eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the eigensolvers included in the package. 
@@ -14,7 +15,7 @@ The Eigenvalue Problem Solver (EPS) is the main object provided by SLEPc. It is 
 Conceptually, the level of abstraction occupied by EPS is similar to other solvers in PETSc such as SNES for solving non-linear systems of equations.
 </p>
 <p>
-EPS users can set various options at runtime via the options database (e.g., <font style ="font-family: monospace">-eps_nev 4 -eps_type arnoldi</font>).  
+EPS users can set various options at runtime via the options database (e.g., <code>-eps_nev 4 -eps_type arnoldi</code>).  
 Options can also be set directly in application codes by calling the corresponding routines (e.g., <a href="EPSSetDimensions.html">EPSSetDimensions</a>() / <a href="EPSSetType.html">EPSSetType</a>()).
 </p>
 

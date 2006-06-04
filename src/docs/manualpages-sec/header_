@@ -1,7 +1,6 @@
-<HTML>
-<HEAD>
-<link rel="stylesheet" href="/slepc/vinculs.css" type="text/css">
-<TITLE>Generic SLEPc Manual Pages</TITLE>
-</HEAD>
-<BODY BGCOLOR="FFFFFF">
-<font face="Arial, Helvetica, sans-serif" size="2">
+<html>
+<head>
+<link rel="stylesheet" href="/slepc/slepc.css" type="text/css">
+<title>Generic SLEPc Manual Pages</title>
+</head>
+<body>

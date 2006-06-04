@@ -11,6 +11,16 @@ chkslepc_dir:
           echo "******************************************************" ; \
         fi
 
+slepc_manualpages:
+	-@if [ "${MANSEC}" != "" ] ; then \
+	  DOCTEXT_PATH=${PETSC_DIR}/src/docs/tex/doctext; export DOCTEXT_PATH; \
+	  ${DOCTEXT} -html \
+		-mpath ${LOC}/docs/manualpages/${MANSEC} -heading SLEPc \
+		-defn ${SLEPC_DIR}/src/docs/tex/doctext/html.def \
+		-locdir ${LOCDIR} -mapref ${LOC}/docs/manualpages/manualpages.cit \
+		${SOURCEC} ${SOURCEH}; \
+		chmod -f g+w ${LOC}/docs/manualpages/${MANSEC}/* ; fi 
+
 slepc_html:
 	-@sed -e s?man+../?man+ROOT/docs/manualpages/? ${LOC}/docs/manualpages/manualpages.cit > /tmp/$$USER.htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> /tmp/$$USER.htmlmap

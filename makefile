@@ -179,29 +179,17 @@ chk_loc:
 	  echo " Please specify LOC variable for eg: make allmanualpages LOC=/sandbox/petsc"; \
 	  echo "******************************************************";  false; fi
 
-chk_concepts_dir: chk_loc
-	@if [ ! -d "${LOC}/docs/manualpages/concepts" ]; then \
-	  echo Making directory ${LOC}/docs/manualpages/concepts for library; ${MKDIR} ${LOC}/docs/manualpages/concepts; fi
-
 # Builds all the documentation
 alldoc: alldoc1 alldoc2
 
 # Build everything that goes into 'doc' dir except html sources
-alldoc1: chk_loc deletemanualpages chk_concepts_dir
+alldoc1: chk_loc deletemanualpages
 	-${OMAKE} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
-#	cd src/docs/tex/manual; ${OMAKE} manual.pdf LOC=${LOC}
-	-${OMAKE} ACTION=manualpages tree_basic LOC=${LOC}
+	-${OMAKE} ACTION=slepc_manualpages tree_basic LOC=${LOC}
 	-${PETSC_DIR}/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
 	-${OMAKE} ACTION=manexamples tree_basic LOC=${LOC}
-	-${OMAKE} manconcepts LOC=${LOC}
-	-${OMAKE} ACTION=getexlist tree_basic LOC=${LOC}
-	-${OMAKE} ACTION=exampleconcepts tree_basic LOC=${LOC}
-	-@touch ${LOC}/docs/exampleconcepts
-	-${PETSC_DIR}/maint/helpindex.py ${SLEPC_DIR} ${LOC}
-#	-grep -h Polymorphic include/*.h | grep -v '#define ' | sed "s?PetscPolymorphic[a-zA-Z]*(??g" | cut -f1 -d"{" > tmppoly
-#	-${PETSC_DIR}/maint/processpoly.py ${SLEPC_DIR} ${LOC}
 
 # Builds .html versions of the source
 # html overwrites some stuff created by update-docs - hence this is done later.
@@ -213,8 +201,6 @@ alldoc2: chk_loc
 deletemanualpages: chk_loc
 	-@if [ -d ${LOC} -a -d ${LOC}/docs/manualpages ]; then \
           find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \; ;\
-          ${RM} ${LOC}/docs/exampleconcepts ;\
-          ${RM} ${LOC}/docs/manconcepts ;\
           ${RM} ${LOC}/docs/manualpages/manualpages.cit ;\
         fi
 

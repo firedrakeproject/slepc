@@ -1,17 +1,18 @@
-<HTML>
-<HEAD>
-<link rel="stylesheet" href="/slepc/vinculs.css" type="text/css">
-<TITLE>Spectral Transformation - ST</TITLE>
-</HEAD>
-<BODY BGCOLOR="FFFFFF">
-<font face="Arial, Helvetica, sans-serif" size="2">
-<H2>Spectral Transformation - ST</H2>
+<html>
+<head>
+  <link rel="stylesheet" href="/slepc/slepc.css" type="text/css">
+  <title>Spectral Transformation - ST</title>
+</head>
+
+<body class="manpageindex">
+
+<h2>Spectral Transformation - ST</h2>
 
 <p>
 The other main SLEPc object is the Spectral Transformation (ST), which encapsulates the functionality required for acceleration techniques based on the transformation of the spectrum. As explained in the SLEPc Users Manual, the eigensolvers implemented in EPS work by applying an operator to a set of vectors and this operator can adopt different forms. The ST object handles all the different possibilities in a uniform way, so that the solver can proceed without knowing which transformation has been selected. 
 </p>
 <p>
-The type of spectral transformation can be specified at run time (e.g., <font style ="font-family: monospace">-st_type sinvert</font>) as well as several parameters such as the value of the shift (e.g., <font style ="font-family: monospace">-st_shift 1.5</font>).
+The type of spectral transformation can be specified at run time (e.g., <code>-st_type sinvert</code>) as well as several parameters such as the value of the shift (e.g., <code>-st_shift 1.5</code>).
 </p>
 <p>
 ST objects are always related to EPS objects. Users should not create a standalone ST object.

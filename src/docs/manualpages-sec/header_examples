@@ -1,11 +1,12 @@
-<HTML>
-<HEAD>
-<link rel="stylesheet" href="/slepc/vinculs.css" type="text/css">
-<TITLE>SLEPc examples</TITLE>
-</HEAD>
-<BODY BGCOLOR="FFFFFF">
-<font face="Arial, Helvetica, sans-serif" size="2">
-<H2>SLEPc examples</H2>
+<html>
+<head>
+  <link rel="stylesheet" href="/slepc/slepc.css" type="text/css">
+  <title>SLEPc examples</title>
+</head>
+
+<body class="manpageindex">
+
+<h2>SLEPc examples</h2>
 
 <P>These are examples for solving eigenvalue problems using the EPS object.
 <P>

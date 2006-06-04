@@ -1,10 +1,11 @@
 <html>
 <head>
-<link rel="stylesheet" href="/slepc/vinculs.css" type="text/css">
-<title>SLEPc System Routines</title>
+  <link rel="stylesheet" href="/slepc/slepc.css" type="text/css">
+  <title>SLEPc System Routines</title>
 </head>
-<body BGCOLOR="FFFFFF">
-<font face="Arial, Helvetica, sans-serif" size="2">
+
+<body class="manpageindex">
+
 <h2>SLEPc System routines</h2>
 
 <p>SLEPc provides a variety of "system" level routines. These routines are generally tools used by other SLEPc routines and are not intended for application programmers (except the basic <a href="SlepcInitialize.html">SlepcInitialize</a>() / <a href="SlepcFinalize.html">SlepcFinalize</a>()). 
