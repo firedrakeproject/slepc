@@ -218,7 +218,7 @@ int main( int argc, char **argv )
       } else {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",re); CHKERRQ(ierr);
       }
-      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12f\n",error);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
   }

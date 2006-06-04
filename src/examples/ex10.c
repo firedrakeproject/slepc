@@ -167,9 +167,9 @@ int main( int argc, char **argv )
       im = ki;
 #endif 
       if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12f\n",re,im,error);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",re,im,error);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12f\n",re,error);CHKERRQ(ierr); 
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
