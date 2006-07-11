@@ -349,10 +349,10 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       }
       /* Orthonormalize vectors */
       for (i=eps->nconv;i<ncv;i++) {
-        ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
-          ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+          ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         }
         ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
       }

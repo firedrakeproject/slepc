@@ -129,7 +129,7 @@ EXTERN PetscErrorCode EPSDenseGHEP(int,PetscScalar*,PetscScalar*,PetscReal*,Pets
 EXTERN PetscErrorCode EPSDenseSchur(int,int,PetscScalar*,int,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSSortDenseSchur(int,int,PetscScalar*,int,PetscScalar*,PetscScalar*,PetscScalar*);
 
-EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSBiOrthogonalize(EPS,int,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec,PetscTruth*);

@@ -87,7 +87,7 @@ struct _p_EPS {
   int        count_reorthog; /* count number of reorthogonalizations */
   int        count_orthog_dots; /* count number of dots products in orthogonalization */
   int        count_breakdown; /* count number of breakdowns */
-  PetscScalar level_orthog;
+  PetscReal  level_orthog;
   PetscTruth compute_norm;
 };
 

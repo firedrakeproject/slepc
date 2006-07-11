@@ -81,8 +81,8 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
     if (trans) { ierr = STApplyTranspose(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     else { ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,j+1,V,V[j+1],H+m*j,&norm,breakdown);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,j+1,PETSC_NULL,V,V[j+1],H+m*j,&norm,breakdown);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (*breakdown) {
       *M = j+1;
@@ -94,8 +94,8 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   eps->its++;
-  ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSOrthogonalize(eps,m,V,f,H+m*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSOrthogonalize(eps,m,PETSC_NULL,V,f,H+m*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -125,7 +125,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     eps->count_orthog++;
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
@@ -235,7 +235,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     eps->count_orthog++;
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);

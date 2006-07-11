@@ -49,8 +49,8 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
   for (k=m; k<n; k++) {
 
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
-    if (R) { ierr = EPSOrthogonalize(eps,k,V,V[k],&R[0+ldr*k],&norm,&lindep);CHKERRQ(ierr); }
-    else   { ierr = EPSOrthogonalize(eps,k,V,V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); }
+    if (R) { ierr = EPSOrthogonalize(eps,k,PETSC_NULL,V,V[k],&R[0+ldr*k],&norm,&lindep);CHKERRQ(ierr); }
+    else   { ierr = EPSOrthogonalize(eps,k,PETSC_NULL,V,V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0 || lindep) { 
@@ -71,7 +71,7 @@ PetscErrorCode EPSQRDecomposition(EPS eps,Vec *V,int m,int n,PetscScalar *R,int 
 */
 #undef __FUNCT__  
 #define __FUNCT__ "EPSOrthogonalizeGS"
-static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec w)
+static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec w)
 {
   PetscErrorCode ierr;
   int            j;
@@ -79,46 +79,74 @@ static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar 
   PetscReal      sum;
   
   PetscFunctionBegin;
-  /* orthogonalize */
   switch (eps->orthog_type) {
+  
   case EPS_CGS_ORTH:
     /* h = W^* v ; alpha = (v , v) */
-    eps->count_orthog_dots+=n;
-    ierr = STMInnerProductBegin(eps->OP,n,v,V,H);CHKERRQ(ierr);
-    if (onorm || norm) { 
-      eps->count_orthog_dots++;
-      ierr = STInnerProductBegin(eps->OP,v,v,&alpha);CHKERRQ(ierr); 
+    if (which) { /* use select array */
+      for (j=0; j<n; j++) 
+        if (which[j]) { 
+	  eps->count_orthog_dots++;
+	  ierr = STInnerProductBegin(eps->OP,v,V[j],&H[j]);CHKERRQ(ierr); 
+	}
+      if (onorm || norm) {
+	eps->count_orthog_dots++;
+	ierr = STInnerProductBegin(eps->OP,v,v,&alpha);CHKERRQ(ierr); 
+      }
+      for (j=0; j<n; j++) 
+        if (which[j]) { ierr = STInnerProductEnd(eps->OP,v,V[j],&H[j]);CHKERRQ(ierr); }
+      if (onorm || norm) { ierr = STInnerProductEnd(eps->OP,v,v,&alpha);CHKERRQ(ierr); }
+    } else { /* merge comunications */
+      if (onorm || norm) {
+	eps->count_orthog_dots+=n+1;
+	ierr = STMInnerProductBegin(eps->OP,n,v,V,H);CHKERRQ(ierr);
+	ierr = STInnerProductBegin(eps->OP,v,v,&alpha);CHKERRQ(ierr); 
+	ierr = STMInnerProductEnd(eps->OP,n,v,V,H);CHKERRQ(ierr);
+	ierr = STInnerProductEnd(eps->OP,v,v,&alpha);CHKERRQ(ierr);
+      } else { /* use simpler function */ 
+        eps->count_orthog_dots+=n;
+        ierr = STMInnerProduct(eps->OP,n,v,V,H);CHKERRQ(ierr);
+      }
     }
-    ierr = STMInnerProductEnd(eps->OP,n,v,V,H);CHKERRQ(ierr);
-    if (onorm || norm) { ierr = STInnerProductEnd(eps->OP,v,v,&alpha);CHKERRQ(ierr); }
+
     /* q = v - V h */
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);
+    if (which) {
+      for (j=0; j<n; j++) 
+        if (which[j]) { ierr = VecAXPY(w,H[j],V[j]);CHKERRQ(ierr); }
+    } else {
+      ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);  
+    }
     ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
+    
     /* compute |v| and |v'| */
     if (onorm) *onorm = sqrt(PetscRealPart(alpha));
     if (norm) {
       sum = 0.0;
       for (j=0; j<n; j++)
-	sum += PetscRealPart(H[j] * PetscConj(H[j]));
+        if (!which || which[j])
+	  sum += PetscRealPart(H[j] * PetscConj(H[j]));
       *norm = PetscRealPart(alpha)-sum;
       if (*norm < 0.0 || eps->compute_norm) {
 	ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
       } else *norm = sqrt(*norm);
     }
     break;
+    
   case EPS_MGS_ORTH:
     /* compute |v| */
     if (onorm) { ierr = STNorm(eps->OP,v,onorm);CHKERRQ(ierr); }
-    for (j=0; j<n; j++) {
-      /* h_j = ( v, v_j ) */
-      ierr = STInnerProduct(eps->OP,v,V[j],&H[j]);CHKERRQ(ierr);
-      /* v <- v - h_j v_j */
-      ierr = VecAXPY(v,-H[j],V[j]);CHKERRQ(ierr);
-    }
+    for (j=0; j<n; j++)
+      if (!which || which[j]) {
+	/* h_j = ( v, v_j ) */
+	ierr = STInnerProduct(eps->OP,v,V[j],&H[j]);CHKERRQ(ierr);
+	/* v <- v - h_j v_j */
+	ierr = VecAXPY(v,-H[j],V[j]);CHKERRQ(ierr);
+      }
     /* compute |v'| */
     if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
     break;
+    
   default:
     SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
   }
@@ -158,13 +186,13 @@ static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,Vec *V,Vec v,PetscScalar 
 
 .seealso: EPSSetOrthogonalization(), EPSBiOrthogonalize()
 @*/
-PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
+PetscErrorCode EPSOrthogonalize(EPS eps,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
 {
   PetscErrorCode ierr;
   Vec            w = PETSC_NULL;
   PetscScalar    lh[100],*h,lc[100],*c;
   PetscTruth     allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE;
-  PetscReal      lonrm,*onrm,lnrm,*nrm;
+  PetscReal      onrm,nrm;
   int            j,k;
   PetscFunctionBegin;
   if (n==0) {
@@ -193,63 +221,63 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,Vec *V,Vec v,PetscScalar *H,PetscR
     ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
   }
 
-  /* retrieve onrm and nrm for linear dependence check or conditional refinement */
-  if (lindep || eps->orthog_ref == EPS_ORTH_REFINE_IFNEEDED) {
-    onrm = &lonrm;
-    if (norm) nrm = norm;
-    else nrm = &lnrm;
-  } else {
-    onrm = PETSC_NULL;
-    nrm = norm;
-  }
-
   /* orthogonalize and compute onorm */
   eps->count_orthog++;
   switch (eps->orthog_ref) {
+  
   case EPS_ORTH_REFINE_NEVER:
-    ierr = EPSOrthogonalizeGS(eps,n,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr);
+    ierr = EPSOrthogonalizeGS(eps,n,which,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr);
     /* compute |v| */
-    if (nrm) { ierr = STNorm(eps->OP,v,nrm);CHKERRQ(ierr); }
+    if (norm) { ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr); }
+    /* linear dependence check does not work without refinement */
+    if (lindep) *lindep = PETSC_FALSE;
     break;
+    
   case EPS_ORTH_REFINE_ALWAYS:
-    ierr = EPSOrthogonalizeGS(eps,n,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr); 
+    ierr = EPSOrthogonalizeGS(eps,n,which,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr); 
     eps->count_reorthog++;
-    ierr = EPSOrthogonalizeGS(eps,n,V,v,c,onrm,nrm,w);CHKERRQ(ierr); 
-    for (j=0;j<n;j++)
-      h[j] += c[j];
+    if (lindep) {
+      ierr = EPSOrthogonalizeGS(eps,n,which,V,v,c,&onrm,&nrm,w);CHKERRQ(ierr);
+      if (norm) *norm = nrm;
+      if (nrm < eps->orthog_eta * onrm) *lindep = PETSC_TRUE;
+      else *lindep = PETSC_FALSE;
+    } else {
+      ierr = EPSOrthogonalizeGS(eps,n,which,V,v,c,PETSC_NULL,norm,w);CHKERRQ(ierr);
+    }
+    for (j=0;j<n;j++) 
+      if (!which || which[j]) h[j] += c[j];
     break;
+  
   case EPS_ORTH_REFINE_IFNEEDED:
-    ierr = EPSOrthogonalizeGS(eps,n,V,v,h,onrm,nrm,w);CHKERRQ(ierr); 
+    ierr = EPSOrthogonalizeGS(eps,n,which,V,v,h,&onrm,&nrm,w);CHKERRQ(ierr); 
     /* ||q|| < eta ||h|| */
     k = 1;
-    while (k<3 && *nrm < eps->orthog_eta * *onrm) {
+    while (k<3 && nrm < eps->orthog_eta * onrm) {
       k++;
       eps->count_reorthog++;
       switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
-        ierr = EPSOrthogonalizeGS(eps,n,V,v,c,onrm,nrm,w);CHKERRQ(ierr); 
+        ierr = EPSOrthogonalizeGS(eps,n,which,V,v,c,&onrm,&nrm,w);CHKERRQ(ierr); 
         break;
       case EPS_MGS_ORTH:
-        *onrm = *nrm;
-        ierr = EPSOrthogonalizeGS(eps,n,V,v,c,PETSC_NULL,nrm,w);CHKERRQ(ierr); 
+        onrm = nrm;
+        ierr = EPSOrthogonalizeGS(eps,n,which,V,v,c,PETSC_NULL,&nrm,w);CHKERRQ(ierr); 
 	break;
       default:
 	SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
       }        
-      for (j=0;j<n;j++)
-	h[j] += c[j];
+      for (j=0;j<n;j++) 
+	if (!which || which[j]) h[j] += c[j];
     }
+    if (norm) *norm = nrm;
+    if (lindep) {
+      if (nrm < eps->orthog_eta * onrm) *lindep = PETSC_TRUE;
+      else *lindep = PETSC_FALSE;
+    }
+        
     break;
   default:
     SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
-  }
-
-  /* check linear dependence */
-  if (lindep) {
-    if (eps->orthog_ref != EPS_ORTH_REFINE_NEVER && *nrm < eps->orthog_eta * *onrm)
-      *lindep = PETSC_TRUE;
-    else 
-      *lindep = PETSC_FALSE;
   }
 
   /* free work space */

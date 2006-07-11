@@ -1171,7 +1171,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = EPSOrthogonalize(eps,i+eps->nds,eps->DSV,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep) {
     if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); } 
@@ -1239,7 +1239,7 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,int i,Vec vec)
   ierr = STApplyTranspose(eps->OP,w,vec);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = EPSOrthogonalize(eps,i,eps->W,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+  ierr = EPSOrthogonalize(eps,i,PETSC_NULL,eps->W,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
   if (breakdown) {
     if (i==0) { SETERRQ(1,"Left initial vector is zero"); }
     else { SETERRQ(1,"Unable to generate more left start vectors"); }

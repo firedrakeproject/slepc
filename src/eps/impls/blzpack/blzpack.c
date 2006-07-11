@@ -173,7 +173,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 	} else {
           ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
 	}
-        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);	
       }

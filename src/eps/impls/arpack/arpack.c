@@ -174,13 +174,13 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]); CHKERRQ(ierr);
       if (ido == 1 || ido == -1) { /* Y=OP*X */
         ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
-        ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);
+        ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);
         if (ido == 1 && iparam[6] == 2) { /* X=A*X */
           w = eps->work[0];
           ierr = STGetOperators(eps->OP,&A,PETSC_NULL); CHKERRQ(ierr);
           ierr = MatMult(A,x,w); CHKERRQ(ierr); 
           ierr = VecCopy(w,x); CHKERRQ(ierr);
-          ierr = EPSOrthogonalize(eps,eps->nds,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);	  
+          ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);	  
 	}
       } else if (ido == 2) { /* Y=B*X */
 	ierr = STGetOperators(eps->OP,PETSC_NULL,&B); CHKERRQ(ierr);

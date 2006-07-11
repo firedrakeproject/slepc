@@ -180,9 +180,9 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       for (i=0;i<eps->nconv;i++) {
         if(PetscAbsScalar(rho-eps->eigr[i])>(eps->its+1)*anorm/1000) SV[nsv++]=eps->V[i];
       }
-      ierr = EPSOrthogonalize(eps,nsv,SV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSOrthogonalize(eps,nsv,PETSC_NULL,SV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
     } else {
-      ierr = EPSOrthogonalize(eps,eps->nds+eps->nconv,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSOrthogonalize(eps,eps->nds+eps->nconv,PETSC_NULL,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
     }
 
     /* v = y/||y||_B */
