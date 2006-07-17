@@ -112,7 +112,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
   PetscErrorCode ierr;
   int            i,j,m=*M;
   Vec            w,u,t;
-  PetscScalar    shh[100],*lhh,dot;
+  PetscScalar    shh[100],*lhh,dot,dot2;
   PetscReal      norm1=0.0,norm2;
 
   PetscFunctionBegin;
@@ -136,6 +136,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
     }
     if (j>k+1) {
       ierr = STNormBegin(eps->OP,u,&norm2);CHKERRQ(ierr); 
+      ierr = VecDotBegin(u,V[j-2],&dot2);CHKERRQ(ierr);
     }
     
     ierr = STMInnerProductEnd(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
@@ -144,8 +145,9 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
       ierr = STInnerProductEnd(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
     if (j>k+1) {
-      ierr = STNormEnd(eps->OP,u,&norm2);CHKERRQ(ierr); 
-      if (norm2 < eps->orthog_eta * norm1) {
+      ierr = STNormEnd(eps->OP,u,&norm2);CHKERRQ(ierr);
+      ierr = VecDotEnd(u,V[j-2],&dot2);CHKERRQ(ierr);
+      if (PetscAbsScalar(dot2/norm2) > PETSC_MACHINE_EPSILON) {
         *breakdown = PETSC_TRUE;
 	*M = j-1;
 	*beta = norm2;
