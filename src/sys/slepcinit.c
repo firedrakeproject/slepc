@@ -135,6 +135,11 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
   ierr = EPSInitializePackage(PETSC_NULL); CHKERRQ(ierr);
 #endif
 
+#if defined(PETSC_HAVE_DRAND48)
+  /* work-around for Cygwin drand48() initialization bug */
+  srand48(0);
+#endif
+
   SlepcInitializeCalled = PETSC_TRUE;
   PetscInfo(0,"SLEPc successfully started\n");
   PetscFunctionReturn(info);
