@@ -1173,7 +1173,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   /* Orthonormalize the vector with respect to previous vectors */
   ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
-  else if (lindep) {
+  else if (lindep || norm == 0.0) {
     if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); } 
     else { SETERRQ(1,"Unable to generate more start vectors"); }
   }
