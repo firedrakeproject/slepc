@@ -25,6 +25,7 @@ typedef struct _p_EPS* EPS;
 #define EPSSUBSPACE  "subspace"
 #define EPSARNOLDI   "arnoldi"
 #define EPSLANCZOS   "lanczos"
+#define EPSKRYLOVSCHUR "krylovschur"
 #define EPSLAPACK    "lapack"
 /* the next ones are interfaces to external libraries */
 #define EPSARPACK    "arpack"
