@@ -60,6 +60,8 @@ static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,i
     ierr = VecResetArray(x);CHKERRQ(ierr);
     ierr = VecResetArray(y);CHKERRQ(ierr);	
   }
+  ierr = VecDestroy(x);CHKERRQ(ierr);
+  ierr = VecDestroy(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -101,7 +103,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   tr->work[0] = eps->tol;  /* relative tolerance on residual norms */
 
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=0.0;
-  ierr = VecCopy(eps->vec_initial,eps->V[0]);CHKERRQ(ierr); 
+  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
 
   TRLan_ ( MatMult_TRLAN, ipar, &n, &eps->ncv, eps->eigr, pV, &n, tr->work, &tr->lwork );
