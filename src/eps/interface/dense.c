@@ -416,43 +416,100 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
 
 .seealso: EPSDenseSchur()
 @*/
-PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,EPSWhich which)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
-  int i,j,ifst,ilst,info,maxpos;
+  int i,j,ifst,ilst,info,pos;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar *work;
   PetscErrorCode ierr;
 #endif
-  PetscReal   max,m;
+  PetscReal   value,v;
   
   PetscFunctionBegin;
-
 #if !defined(PETSC_USE_COMPLEX)
-
   ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#endif
   
   for (i=k;i<n-1;i++) {
-    max = SlepcAbsEigenvalue(wr[i],wi[i]);
-    maxpos = 0;
-    for (j=i+1;j<n;j++) {
-      m = SlepcAbsEigenvalue(wr[j],wi[j]);
-      if (m > max) {
-        max = m;
-        maxpos = j;
-      }
-      if (wi[j] != 0) j++;
+    switch(which) {
+      case EPS_LARGEST_MAGNITUDE:
+      case EPS_SMALLEST_MAGNITUDE:
+	value = SlepcAbsEigenvalue(wr[i],wi[i]);
+	break;
+      case EPS_LARGEST_REAL:
+      case EPS_SMALLEST_REAL:
+	value = PetscRealPart(wr[i]);
+	break;
+      case EPS_LARGEST_IMAGINARY:
+      case EPS_SMALLEST_IMAGINARY:
+#if !defined(PETSC_USE_COMPLEX)
+	value = PetscAbsReal(wi[i]);
+#else
+        value = PetscImaginaryPart(wr[i]);
+#endif
+	break;
+      default: SETERRQ(1,"Wrong value of which");
     }
-    if (maxpos) {
-      ifst = maxpos + 1;
+    pos = 0;
+    for (j=i+1;j<n;j++) {
+      switch(which) {
+	case EPS_LARGEST_MAGNITUDE:
+	case EPS_SMALLEST_MAGNITUDE:
+	  v = SlepcAbsEigenvalue(wr[j],wi[j]);
+	  break;
+	case EPS_LARGEST_REAL:
+	case EPS_SMALLEST_REAL:
+	  v = PetscRealPart(wr[j]);
+	  break;
+	case EPS_LARGEST_IMAGINARY:
+	case EPS_SMALLEST_IMAGINARY:
+#if !defined(PETSC_USE_COMPLEX)
+	  v = PetscAbsReal(wi[j]);
+#else
+          v = PetscImaginaryPart(wr[j]);
+#endif
+	  break;
+	default: SETERRQ(1,"Wrong value of which");
+      }
+      switch(which) {
+	case EPS_LARGEST_MAGNITUDE:
+	case EPS_LARGEST_REAL:
+	case EPS_LARGEST_IMAGINARY:
+	  if (v > value) {
+            value = v;
+            pos = j;
+	  }
+	  break;
+	case EPS_SMALLEST_MAGNITUDE:
+	case EPS_SMALLEST_REAL:
+	case EPS_SMALLEST_IMAGINARY:
+	  if (v < value) {
+            value = v;
+            pos = j;
+	  }
+	  break;
+	default: SETERRQ(1,"Wrong value of which");
+      }
+#if !defined(PETSC_USE_COMPLEX)
+      if (wi[j] != 0) j++;
+#endif
+    }
+    if (pos) {
+      ifst = pos + 1;
       ilst = i + 1;
+#if !defined(PETSC_USE_COMPLEX)
       LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info,1);
+#else
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info,1);
+#endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       
       for (j=k;j<n;j++) {
+#if !defined(PETSC_USE_COMPLEX)
         if (j==n-1 || T[j*ldt+j+1] == 0.0) { 
           /* real eigenvalue */
           wr[j] = T[j*ldt+j];
@@ -466,39 +523,19 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
           wi[j+1] = -wi[j];
           j++;
         }
-      }
-    }
-    if (wi[i] != 0) i++;
-  }
-  
-  ierr = PetscFree(work);CHKERRQ(ierr);
-
-#else /* PETSC_USE_COMPLEX */
-
-  for (i=k;i<n-1;i++) {
-    max = SlepcAbsEigenvalue(wr[i],wi[i]);
-    maxpos = 0;
-    for (j=i+1;j<n;j++) {
-      m = SlepcAbsEigenvalue(wr[j],wi[j]);
-      if (m > max) {
-        max = m;
-        maxpos = j;
-      }
-    }
-    if (maxpos) {
-      ifst = maxpos + 1;
-      ilst = i + 1;
-      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info,1);
-      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-
-      for (j=k;j<n;j++) {
+#else
         wr[j] = T[j*(ldt+1)];
+#endif
       }
     }
-  }
-
+#if !defined(PETSC_USE_COMPLEX)
+    if (wi[i] != 0) i++;
 #endif
+  }
   
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree(work);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 
 #endif 

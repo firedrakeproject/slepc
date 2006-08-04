@@ -19,8 +19,6 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
-  if (eps->which!=EPS_LARGEST_MAGNITUDE)
-    SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
@@ -84,7 +82,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
     ierr = EPSDenseSchur(eps->nv,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
     
     /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(eps->nv,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(eps->nv,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
     ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,eps->nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
