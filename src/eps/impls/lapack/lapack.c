@@ -108,7 +108,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 #endif
     ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
     if (!eps->isgeneralized) {
-      ierr = EPSDenseHEP(n,array,w,pV);CHKERRQ(ierr);
+      ierr = EPSDenseHEP(n,array,n,w,pV);CHKERRQ(ierr);
     } else {
       ierr = MatGetArray(la->B,&arrayb);CHKERRQ(ierr);
       ierr = EPSDenseGHEP(n,array,arrayb,w,pV);CHKERRQ(ierr);  

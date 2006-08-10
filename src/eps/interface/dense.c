@@ -169,8 +169,9 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
    Not Collective
 
    Input Parameters:
-+  n  - dimension of the eigenproblem
--  A  - pointer to the array containing the matrix values
++  n   - dimension of the eigenproblem
+.  A   - pointer to the array containing the matrix values
+-  lda - leading dimension of A
 
    Output Parameters:
 +  w  - pointer to the array to store the computed eigenvalues
@@ -187,7 +188,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
 
 .seealso: EPSDenseNHEP(), EPSDenseGNHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
+PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYEVR) || defined(SLEPC_MISSING_LAPACK_HEEVR)
   PetscFunctionBegin;
@@ -213,11 +214,11 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,PetscReal *w,PetscScalar *V)
   ierr  = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKsyevr_(jobz,"A","U",&n,A,&n,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1,1);
+  LAPACKsyevr_(jobz,"A","L",&n,A,&lda,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZHEEVR %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKsyevr_(jobz,"A","U",&n,A,&n,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1,1);
+  LAPACKsyevr_(jobz,"A","L",&n,A,&lda,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSYEVR %d",info);
 #endif 
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
@@ -297,6 +298,64 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSDenseHessenberg"
+/*@
+   EPSDenseHessenberg - Computes the Hessenberg form of a dense matrix.
+
+   Not Collective
+
+   Input Parameters:
++  n     - dimension of the matrix 
+.  k     - first active column
+-  lda   - leading dimension of A
+
+   Input/Output Parameters:
++  A  - on entry, the full matrix; on exit, the upper Hessenberg matrix (H)
+-  Q  - on exit, orthogonal matrix of vectors A = Q*H*Q'
+
+   Notes:
+   Only active columns (from k to n) are computed. 
+
+   Both A and Q are overwritten.
+   
+   This routine uses LAPACK routines xGEHRD and xORGHR/xUNGHR.
+
+   Level: developer
+
+.seealso: EPSDenseSchur(), EPSSortDenseSchur(), EPSDenseTridiagonal()
+@*/
+PetscErrorCode EPSDenseHessenberg(int n,int k,PetscScalar *A,int lda,PetscScalar *Q)
+{
+#if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(SLEPC_MISSING_LAPACK_UNGHR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"GEHRD,ORGHR/UNGHR - Lapack routines are unavailable.");
+#else
+  PetscScalar    *tau,*work;
+  PetscErrorCode ierr;
+  int            i,j,ilo,lwork,info;
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
+  lwork = n;
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ilo = k+1;
+  LAPACKgehrd_(&n,&ilo,&n,A,&lda,tau,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
+  for (j=0;j<n-1;j++) {
+    for (i=j+2;i<n;i++) {
+      Q[i+j*n] = A[i+j*lda];
+      A[i+j*lda] = 0.0;
+    }      
+  }
+  LAPACKorghr_(&n,&ilo,&n,Q,&n,tau,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
+  ierr = PetscFree(tau);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSDenseSchur"
 /*@
    EPSDenseSchur - Computes the upper (quasi-)triangular form of a dense 
@@ -335,7 +394,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 
    Level: developer
 
-.seealso: EPSSortDenseSchur()
+.seealso: EPSDenseHessenberg(), EPSSortDenseSchur(), EPSDenseTridiagonal()
 @*/
 PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
@@ -414,7 +473,7 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
 
    Level: developer
 
-.seealso: EPSDenseSchur()
+.seealso: EPSDenseHessenberg(), EPSDenseSchur(), EPSDenseTridiagonal()
 @*/
 PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,EPSWhich which)
 {
@@ -539,4 +598,64 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
   PetscFunctionReturn(0);
 
 #endif 
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDenseTridiagonal"
+/*@
+   EPSDenseTridiagonal - Solves a real tridiagonal Hermitian Eigenvalue Problem.
+
+   Not Collective
+
+   Input Parameters:
++  n   - dimension of the eigenproblem
+.  A   - pointer to the array containing the matrix values
+-  lda - leading dimension of A
+
+   Output Parameters:
++  w  - pointer to the array to store the computed eigenvalues
+-  V  - pointer to the array to store the eigenvectors
+
+   Notes:
+   If V is PETSC_NULL then the eigenvectors are not computed.
+
+   This routine use LAPACK routines DSTEVR.
+
+   Level: developer
+
+.seealso: EPSDenseNHEP(), EPSDenseHEP(), EPSDenseGNHEP(), EPSDenseGHEP()
+@*/
+PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,PetscReal *V)
+{
+#if defined(SLEPC_MISSING_LAPACK_STEVR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"DSTEVR - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscReal      abstol = 0.0,vl,vu,*D,*E,*work;
+  int            i,il,iu,m,*isuppz,lwork = 20*n,*iwork,liwork = 10*n,info;
+  const char     *jobz;
+
+  PetscFunctionBegin;
+  if (V) jobz = "V";
+  else jobz = "N";
+  ierr = PetscMalloc(n*sizeof(PetscReal),&D);CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(PetscReal),&E);CHKERRQ(ierr);
+  ierr = PetscMalloc(2*n*sizeof(int),&isuppz);CHKERRQ(ierr);
+  ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+  for (i=0;i<n-1;i++) {
+    D[i] = A[i*(lda+1)];
+    E[i] = A[i*(lda+1)+1];
+  }
+  D[n-1] = A[(n-1)*(lda+1)];
+  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
+  ierr = PetscFree(D);CHKERRQ(ierr);
+  ierr = PetscFree(E);CHKERRQ(ierr);
+  ierr = PetscFree(isuppz);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(iwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
 }

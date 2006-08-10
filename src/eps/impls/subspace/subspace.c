@@ -182,13 +182,10 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 #define __FUNCT__ "EPSSolve_SUBSPACE"
 PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(SLEPC_MISSING_LAPACK_UNGHR)
-  SETERRQ(PETSC_ERR_SUP,"GEHRD,ORGHR/UNGHR - Lapack routines are unavailable.");
-#else
   PetscErrorCode ierr;
-  int            i,j,ilo,lwork,info,ngrp,nogrp,*itrsd,*itrsdold,
-                 nxtsrr,idsrr,*iwork,idort,nxtort,ncv = eps->ncv;
-  PetscScalar    *T=eps->T,*U,*tau,*work;
+  int            i,ngrp,nogrp,*itrsd,*itrsdold,
+                 nxtsrr,idsrr,idort,nxtort,ncv = eps->ncv;
+  PetscScalar    *T=eps->T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond;
   PetscTruth     breakdown;
   /* Parameters */
@@ -207,12 +204,8 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsdold);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*ncv,&tau);CHKERRQ(ierr);
-  lwork = ncv*ncv;
-  ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(int)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(int)*ncv,&itrsdold);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(int)*ncv,&iwork);CHKERRQ(ierr);
 
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=0;i<ncv;i++) {
@@ -243,17 +236,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     }
 
     /* 3. Reduce projected matrix to Hessenberg form: [U,T] = hess(T) */
-    ilo = eps->nconv + 1;
-    LAPACKgehrd_(&ncv,&ilo,&ncv,T,&ncv,tau,work,&lwork,&info);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
-    for (j=0;j<ncv-1;j++) {
-      for (i=j+2;i<ncv;i++) {
-        U[i+j*ncv] = T[i+j*ncv];
-        T[i+j*ncv] = 0.0;
-      }      
-    }
-    LAPACKorghr_(&ncv,&ilo,&ncv,U,&ncv,tau,work,&lwork,&info);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
+    ierr = EPSDenseHessenberg(ncv,eps->nconv,T,ncv,U);CHKERRQ(ierr);
     
     /* 4. Reduce T to quasi-triangular (Schur) form */
     ierr = EPSDenseSchur(ncv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
@@ -363,17 +346,13 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(rsd);CHKERRQ(ierr);
   ierr = PetscFree(rsdold);CHKERRQ(ierr);
-  ierr = PetscFree(tau);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(itrsd);CHKERRQ(ierr);
   ierr = PetscFree(itrsdold);CHKERRQ(ierr);
-  ierr = PetscFree(iwork);CHKERRQ(ierr);
 
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 
   PetscFunctionReturn(0);
-#endif 
 }
 
 EXTERN_C_BEGIN

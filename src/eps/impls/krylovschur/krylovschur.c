@@ -36,19 +36,22 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,lwork,info,ilo,l=0;
+  int            i,j,k,l,n,lwork,*perm;
   Vec            u=eps->work[0];
-  PetscScalar    *S=eps->T,*Q,*tau,*work,*b;
+  PetscScalar    *S=eps->T,*Q,*work,*b;
   PetscReal      beta;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&b);CHKERRQ(ierr);
   lwork = (eps->ncv+4)*eps->ncv;
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  if (!eps->ishermitian) {
+    ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  } else {
+    ierr = PetscMalloc(eps->ncv*sizeof(int),&perm);CHKERRQ(ierr);
+  }
   
   eps->nconv = 0;
   eps->its = 0;
@@ -66,50 +69,79 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
-    /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
-    if (l==0) {
-      ierr = PetscMemzero(Q,eps->nv*eps->nv*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<eps->nv;i++) 
-        Q[i*(eps->nv+1)] = 1.0;
-    } else {
-      ilo = eps->nconv+1;
-      LAPACKgehrd_(&eps->nv,&ilo,&eps->nv,S,&eps->ncv,tau,work,&lwork,&info);
-      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
-      ierr = PetscMemcpy(Q,S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-      LAPACKorghr_(&eps->nv,&ilo,&eps->nv,Q,&eps->ncv,tau,work,&lwork,&info);
-      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
+    if (!eps->ishermitian) {
+      n = eps->nv; /* size of Q */
+      if (l==0) {
+        ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+        for (i=0;i<n;i++) 
+          Q[i*(n+1)] = 1.0;
+      } else {
+        /* Reduce S to Hessenberg form, S <- Q S Q' */
+        ierr = EPSDenseHessenberg(n,eps->nconv,S,eps->ncv,Q);CHKERRQ(ierr);
+      }
+      /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
+      ierr = EPSDenseSchur(n,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
+      /* Sort the remaining columns of the Schur form */
+      ierr = EPSSortDenseSchur(n,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
+      /* Compute residual norm estimates */
+      ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,n,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+   } else {
+      n = eps->nv-eps->nconv; /* size of Q */
+      /* Reduce S to diagonal form, S <- Q S Q' */
+      if (l==0) {
+	ierr = EPSDenseTridiagonal(n,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q+eps->nconv*n);CHKERRQ(ierr);
+      } else {
+	ierr = EPSDenseHEP(n,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q+eps->nconv*n);CHKERRQ(ierr);
+      }
+      /* Sort the remaining columns of the Schur form */
+      if (eps->which != EPS_SMALLEST_REAL) {  
+        ierr = EPSSortEigenvalues(n,eps->eigr+eps->nconv,eps->eigi+eps->nconv,eps->which,n,perm);CHKERRQ(ierr);
+	for (i=eps->nconv;i<eps->nv;i++)
+	  S[i*(eps->ncv+1)] = eps->eigr[i];
+        for (i=0;i<n;i++)
+	  eps->eigr[i+eps->nconv] = S[(perm[i]+eps->nconv)*(eps->ncv+1)];
+	ierr = PetscMemcpy(S,Q+eps->nconv*n,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+        for (j=0;j<n;j++)
+          for (i=0;i<n;i++)
+            Q[(j+eps->nconv)*n+i] = S[perm[j]*n+i];
+      }
+      /* rebuild S from eigr */
+      for (i=eps->nconv;i<eps->nv;i++) {
+	S[i*(eps->ncv+1)] = eps->eigr[i];
+	for (j=i+1;j<eps->ncv;j++)
+	  S[i*eps->ncv+j] = 0.0;
+      }
+      /* Compute residual norm estimates */ 
+      for (i=eps->nconv;i<eps->nv;i++)
+        eps->errest[i] = beta*PetscAbsScalar(Q[(i+1)*n-1]) / PetscAbsScalar(eps->eigr[i]);
     }
-    ierr = EPSDenseSchur(eps->nv,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    
-    /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(eps->nv,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
-
-    /* Compute residual norm estimates */
-    ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,eps->nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
 
     /* Check convergence */
     k = eps->nconv;
-    while (k<eps->nv && eps->errest[k]<eps->tol) k++;
+    while (k<eps->nv && eps->errest[k]<eps->tol) k++;    
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
-    /* update l */
+    /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = (eps->nv-k)/2;
 #if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[k+l-1] > 0) {
+      if (eps->eigi[k+l-1-eps->nconv] > 0) {
         if (k+l<eps->nv-1) l = l+1;
 	else l = l-1;
       }
 #endif
     }
-    
-    /* Lock converged eigenpairs and update the corresponding vectors,
-       V(:,idx) = V*Q(:,idx) */
+           
+    /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     for (i=eps->nconv;i<k+l;i++) {
       ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[i],eps->nv,Q+eps->nv*i,eps->V);CHKERRQ(ierr);
+      if (!eps->ishermitian) {
+        ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V);CHKERRQ(ierr);        
+      } else {
+        ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V+eps->nconv);CHKERRQ(ierr);
+      }
     }
     for (i=eps->nconv;i<k+l;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
@@ -131,11 +163,11 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
       } else {
         /* update the Arnoldi-Schur decomposition */
 	for (i=k;i<k+l;i++) {
-          S[i*eps->ncv+k+l] = Q[i*eps->nv+eps->nv-1]*beta;
+          S[i*eps->ncv+k+l] = Q[(i+1)*n-1]*beta;
 	}
 	ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
       }
-    }    
+    }
   } 
   
 #if defined(PETSC_USE_COMPLEX)
@@ -143,9 +175,12 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 #endif
 
   ierr = PetscFree(Q);CHKERRQ(ierr);
-  ierr = PetscFree(tau);CHKERRQ(ierr);
   ierr = PetscFree(b);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  if (!eps->ishermitian) {
+    ierr = PetscFree(work);CHKERRQ(ierr);
+  } else {
+    ierr = PetscFree(perm);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
