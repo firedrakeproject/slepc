@@ -926,20 +926,25 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = VecNorm(xr, NORM_2, &er); CHKERRQ(ierr);
-    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+    if (PetscAbsScalar(kr) > norm) {
       *error =  norm / (PetscAbsScalar(kr) * er);
     } else {
       *error = norm / er;
     }
 #ifndef PETSC_USE_COMPLEX
   } else {
-    ierr = VecDuplicate(xi, &u); CHKERRQ(ierr);  
-    ierr = VecCopy(xi, u); CHKERRQ(ierr);  
-    ierr = VecAXPBY(u, kr, -ki, xr); CHKERRQ(ierr);   
-    ierr = VecNorm(u, NORM_2, &er); CHKERRQ(ierr);  
-    ierr = VecAXPBY(xi, kr, ki, xr);  CHKERRQ(ierr);      
-    ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
-    ierr = VecDestroy(u); CHKERRQ(ierr);  
+    if (SlepcAbsEigenvalue(kr,ki) > norm) {
+      ierr = VecDuplicate(xi, &u); CHKERRQ(ierr);  
+      ierr = VecCopy(xi, u); CHKERRQ(ierr);  
+      ierr = VecAXPBY(u, kr, -ki, xr); CHKERRQ(ierr);   
+      ierr = VecNorm(u, NORM_2, &er); CHKERRQ(ierr);  
+      ierr = VecAXPBY(xi, kr, ki, xr);  CHKERRQ(ierr);      
+      ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
+      ierr = VecDestroy(u); CHKERRQ(ierr);  
+    } else {
+      ierr = VecDot(xr, xr, &er); CHKERRQ(ierr);  
+      ierr = VecDot(xi, xi, &ei); CHKERRQ(ierr);  
+    }
     *error = norm / SlepcAbsEigenvalue(er, ei);
   }
 #endif    

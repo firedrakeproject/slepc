@@ -297,6 +297,7 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,int ldh,PetscScalar *U,PetscReal 
   PetscErrorCode ierr;
   int            i,mout,info;
   PetscScalar    *Y=work+4*ncv;
+  PetscReal      w;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=(PetscReal*)(work+3*ncv);
 #endif
@@ -316,13 +317,20 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,int ldh,PetscScalar *U,PetscReal 
   for (i=nconv;i<ncv;i++) { 
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi[i] != 0 && i<ncv-1) {
-        errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]) /
-                	 SlepcAbsEigenvalue(eigr[i],eigi[i]);
-        errest[i+1] = errest[i];
-        i++;
+      errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]);
+      w = SlepcAbsEigenvalue(eigr[i],eigi[i]);
+      if (w > errest[i]) 
+	errest[i] = errest[i] / w;
+      errest[i+1] = errest[i];
+      i++;
     } else
 #endif
-    errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]) / PetscAbsScalar(eigr[i]);
+    {
+      errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]);
+      w = PetscAbsScalar(eigr[i]);
+      if (w > errest[i]) 
+	errest[i] = errest[i] / w;
+    }
   }  
   PetscFunctionReturn(0);
 #endif
