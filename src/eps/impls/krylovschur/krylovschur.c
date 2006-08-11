@@ -19,6 +19,8 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
+  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
+    SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
@@ -39,7 +41,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   int            i,j,k,l,n,lwork,*perm;
   Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*work,*b;
-  PetscReal      beta;
+  PetscReal      beta,*ritz;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
@@ -50,6 +52,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   if (!eps->ishermitian) {
     ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   } else {
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(int),&perm);CHKERRQ(ierr);
   }
   
@@ -89,17 +92,24 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
       n = eps->nv-eps->nconv; /* size of Q */
       /* Reduce S to diagonal form, S <- Q S Q' */
       if (l==0) {
-	ierr = EPSDenseTridiagonal(n,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q+eps->nconv*n);CHKERRQ(ierr);
+	ierr = EPSDenseTridiagonal(n,S+eps->nconv*(eps->ncv+1),eps->ncv,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
       } else {
-	ierr = EPSDenseHEP(n,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q+eps->nconv*n);CHKERRQ(ierr);
+	ierr = EPSDenseHEP(n,S+eps->nconv*(eps->ncv+1),eps->ncv,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
       }
       /* Sort the remaining columns of the Schur form */
-      if (eps->which != EPS_SMALLEST_REAL) {  
-        ierr = EPSSortEigenvalues(n,eps->eigr+eps->nconv,eps->eigi+eps->nconv,eps->which,n,perm);CHKERRQ(ierr);
-	for (i=eps->nconv;i<eps->nv;i++)
-	  S[i*(eps->ncv+1)] = eps->eigr[i];
+      if (eps->which == EPS_SMALLEST_REAL) {
+	for (i=0;i<n;i++)
+	  eps->eigr[i+eps->nconv] = ritz[i];
+      } else {
+#ifdef PETSC_USE_COMPLEX
+	for (i=0;i<n;i++)
+	  eps->eigr[i+eps->nconv] = ritz[i];
+	ierr = EPSSortEigenvalues(n,eps->eigr+eps->nconv,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
+#else
+	ierr = EPSSortEigenvalues(n,ritz,eps->eigi+eps->nconv,eps->which,n,perm);CHKERRQ(ierr);
+#endif
         for (i=0;i<n;i++)
-	  eps->eigr[i+eps->nconv] = S[(perm[i]+eps->nconv)*(eps->ncv+1)];
+	  eps->eigr[i+eps->nconv] = ritz[perm[i]];
 	ierr = PetscMemcpy(S,Q+eps->nconv*n,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
         for (j=0;j<n;j++)
           for (i=0;i<n;i++)
@@ -179,6 +189,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   if (!eps->ishermitian) {
     ierr = PetscFree(work);CHKERRQ(ierr);
   } else {
+    ierr = PetscFree(ritz);CHKERRQ(ierr);
     ierr = PetscFree(perm);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

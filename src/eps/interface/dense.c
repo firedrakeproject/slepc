@@ -625,7 +625,7 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 
 .seealso: EPSDenseNHEP(), EPSDenseHEP(), EPSDenseGNHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,PetscReal *V)
+PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_STEVR)
   PetscFunctionBegin;
@@ -635,22 +635,42 @@ PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,Pet
   PetscReal      abstol = 0.0,vl,vu,*D,*E,*work;
   int            i,il,iu,m,*isuppz,lwork = 20*n,*iwork,liwork = 10*n,info;
   const char     *jobz;
-
+#if defined(PETSC_USE_COMPLEX)
+  int            j;
+  PetscReal      *VV;
+#endif
+  
   PetscFunctionBegin;
-  if (V) jobz = "V";
-  else jobz = "N";
+  if (V) {
+    jobz = "V";
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc(n*n*sizeof(PetscReal),&VV);CHKERRQ(ierr);
+#endif
+  } else jobz = "N";
   ierr = PetscMalloc(n*sizeof(PetscReal),&D);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscReal),&E);CHKERRQ(ierr);
   ierr = PetscMalloc(2*n*sizeof(int),&isuppz);CHKERRQ(ierr);
   ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
   for (i=0;i<n-1;i++) {
-    D[i] = A[i*(lda+1)];
-    E[i] = A[i*(lda+1)+1];
+    D[i] = PetscRealPart(A[i*(lda+1)]);
+    E[i] = PetscRealPart(A[i*(lda+1)+1]);
   }
-  D[n-1] = A[(n-1)*(lda+1)];
+  D[n-1] = PetscRealPart(A[(n-1)*(lda+1)]);
+#if defined(PETSC_USE_COMPLEX)
+  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,VV,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+#else
   LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+#endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
+#if defined(PETSC_USE_COMPLEX)
+  if (V) {
+    for (i=0;i<n;i++) 
+      for (j=0;j<n;j++)
+        V[i*n+j] = VV[i*n+j];
+    ierr = PetscFree(VV);CHKERRQ(ierr);
+  }
+#endif
   ierr = PetscFree(D);CHKERRQ(ierr);
   ierr = PetscFree(E);CHKERRQ(ierr);
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
