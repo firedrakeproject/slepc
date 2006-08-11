@@ -90,7 +90,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = EPSOrthogonalize(eps,j+1,which,V,f,T+m*j,&norm,breakdown);CHKERRQ(ierr);
@@ -137,7 +137,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
     /* Lanczos step */
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     eps->its++;
-    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = EPSOrthogonalize(eps,j+1,which,V,f,T+m*j,&norm,breakdown);CHKERRQ(ierr);
