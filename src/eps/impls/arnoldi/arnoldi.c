@@ -41,6 +41,8 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
+  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
+    SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
