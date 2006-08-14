@@ -449,9 +449,10 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
    Not Collective
 
    Input Parameters:
-+  n   - dimension of the matrix 
-.  k   - first active column
--  ldt - leading dimension of T
++  n     - dimension of the matrix 
+.  k     - first active column
+.  ldt   - leading dimension of T
+-  which - eigenvalue sort order
 
    Input/Output Parameters:
 +  T  - the upper (quasi-)triangular matrix
@@ -463,9 +464,9 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
 
    Notes:
    This function reorders the eigenvalues in wr,wi located in positions k
-   to n in descending order of magnitude. The Schur decomposition Z*T*Z^T,
-   is also reordered by means of rotations so that eigenvalues in the
-   diagonal blocks of T follow the same order.
+   to n according to the sort order specified in which. The Schur 
+   decomposition Z*T*Z^T, is also reordered by means of rotations so that 
+   eigenvalues in the diagonal blocks of T follow the same order.
 
    Both T and Z are overwritten.
    
