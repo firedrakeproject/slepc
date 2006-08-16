@@ -479,7 +479,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   anorm = -1.0;
   nconv = 0;
   eps->its = 0;
-  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
+  for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
   EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,ncv);
   
   /* Restart loop */

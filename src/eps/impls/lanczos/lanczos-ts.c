@@ -157,6 +157,7 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
   
   eps->nconv = 0;
   eps->its = 0;
+  for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
   EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   

@@ -357,6 +357,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   
   eps->nconv = 0;
   eps->its = 0;
+  for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
   EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
 
   /* Get the starting Arnoldi vector */
@@ -413,10 +414,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
   
-#if defined(PETSC_USE_COMPLEX)
-  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
-#endif
-
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -58,6 +58,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   
   eps->nconv = 0;
   eps->its = 0;
+  for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
   EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
 
   /* Get the starting Arnoldi vector */
@@ -179,10 +180,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
       }
     }
   } 
-  
-#if defined(PETSC_USE_COMPLEX)
-  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
-#endif
 
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(b);CHKERRQ(ierr);
