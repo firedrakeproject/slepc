@@ -108,7 +108,7 @@ def processDir(arg,dirname,names):
     if status:
       raise RuntimeError('Error running bfort '+output)
     FixDir(outdir)
-  for name in ['SCCS', 'output', 'BitKeeper', 'examples', 'externalpackages', 'bilinear', 'ftn-auto','fortran']:
+  for name in ['CVS', 'SCCS', 'output', 'BitKeeper', 'examples', 'externalpackages', 'bilinear', 'ftn-auto','fortran']:
     if name in names:
       names.remove(name)
   return
