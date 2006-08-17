@@ -138,7 +138,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
     else {
       l = (eps->nv-k)/2;
 #if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[k+l-1-eps->nconv] > 0) {
+      if (S[(k+l-1)*(eps->ncv+1)+1] != 0.0) {
         if (k+l<eps->nv-1) l = l+1;
 	else l = l-1;
       }
