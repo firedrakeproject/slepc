@@ -145,13 +145,8 @@ int main( int argc, char **argv )
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
 
   /*
-     Force to use ARPACK if it is installed and ask for the rightmost eigenvalues
+     Ask for the rightmost eigenvalues
   */
-#if defined(SLEPC_HAVE_ARPACK)
-  ierr = EPSSetType(eps,EPSARPACK);CHKERRQ(ierr);
-#else
-  ierr = EPSSetType(eps, EPSLAPACK);CHKERRQ(ierr);
-#endif
   ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
 
   /*
