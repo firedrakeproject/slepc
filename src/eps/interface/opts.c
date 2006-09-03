@@ -542,15 +542,16 @@ PetscErrorCode EPSGetClass(EPS eps,EPSClass *cl)
 #define __FUNCT__ "EPSSetOrthogonalization"
 /*@
    EPSSetOrthogonalization - Specifies the type of orthogonalization technique
-   to be used inside the eigensolver.
+   to be used inside the eigensolver (classical or modified Gram-Schmidt with
+   or without refinement).
 
    Collective on EPS
 
    Input Parameters:
 +  eps        - the eigensolver context 
-.  type       - a known type of orthogonalization
+.  type       - the type of orthogonalization technique
 .  refinement - type of refinement
--  eta        - parameter for dynamic refinement
+-  eta        - parameter for selective refinement
 
    Options Database Keys:
 +  -eps_orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt
@@ -558,16 +559,17 @@ PetscErrorCode EPSGetClass(EPS eps,EPSClass *cl)
                               or mgs for Modified Gram-Schmidt orthogonalization
 .  -eps_orthog_refinement <type> -  Where <type> is one of never, ifneeded
                               (default) or always 
--  -eps_orthog_eta <eta> -  For setting the value of eta (or PETSC_DEFAULT)
+-  -eps_orthog_eta <eta> -  For setting the value of eta
     
    Notes:  
-   The value of eta is used only when refinement type is "ifneeded". 
+   The default settings work well for most problems. 
 
-   The default orthogonalization technique 
-   works well for most problems. MGS is numerically more robust than CGS,
-   but CGS may give better scalability.
+   The parameter eta should be a real value between 0 and 1 (or PETSC_DEFAULT).
+   The value of eta is used only when the refinement type is "ifneeded". 
 
-   Level: intermediate
+   When using several processors, MGS is likely to result in bad scalability.
+
+   Level: advanced
 
 .seealso: EPSOrthogonalize(), EPSGetOrthogonalization()
 @*/
@@ -592,7 +594,7 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
     default:
       SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown refinement type");
   }
-  if (eta != PETSC_DEFAULT && eta <= 0.0) {
+  if (eta != PETSC_DEFAULT && eta <= 0.0 && eta > 1.0) {
     SETERRQ(PETSC_ERR_ARG_WRONG,"Invalid eta value");    
   }
   eps->orthog_eta = eta;
@@ -602,7 +604,7 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetOrthogonalization"
 /*@C
-   EPSGetOrthogonalization - Gets the orthogonalization type from the 
+   EPSGetOrthogonalization - Gets the orthogonalization settings from the 
    EPS object.
 
    Not Collective
@@ -613,11 +615,11 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
    Output Parameter:
 +  type       - type of orthogonalization technique
 .  refinement - type of refinement
--  eta        - parameter for dynamic refinement
+-  eta        - parameter for selective refinement
 
-   Level: intermediate
+   Level: advanced
 
-.seealso: EPSSetOrthogonalization()
+.seealso: EPSOrthogonalize(), EPSSetOrthogonalization()
 @*/
 PetscErrorCode EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement, PetscReal *eta)
 {

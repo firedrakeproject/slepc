@@ -1,6 +1,6 @@
 /*
      EPS routines related to orthogonalization.
-     See the SLEPc users manual for a detailed explanation.
+     See the SLEPc Technical Report STR-1 for a detailed explanation.
 */
 #include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
@@ -161,18 +161,20 @@ static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,PetscTruth *which,Vec *V,
    Collective on EPS
 
    Input Parameters:
-+  eps - the eigenproblem solver context
-.  n - number of columns of V
--  V - set of vectors
++  eps    - the eigenproblem solver context
+.  n      - number of columns of V
+.  which  - logical array indicating columns of V to be used
+-  V      - set of vectors
 
    Input/Output Parameter:
-.  v - vector to be orthogonalized
+.  v      - (input) vector to be orthogonalized and (output) result of 
+            orthogonalization
 
    Output Parameter:
-+  H  - coefficients computed during orthogonalization
-.  norm - norm of the vector after being orthogonalized
++  H      - coefficients computed during orthogonalization
+.  norm   - norm of the vector after being orthogonalized
 -  lindep - flag indicating that refinement did not improve the quality
-   of orthogonalization
+            of orthogonalization
 
    Notes:
    This function applies an orthogonal projector to project vector v onto the

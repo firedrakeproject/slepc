@@ -105,7 +105,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
    EPSDelayedArnoldi - This function is equivalent to EPSBasicArnoldi but
    performs the computation in a different way. The main idea is that
    reorthogonalization is delayed to the next Arnoldi step. This version is
-   more scalable but in some case may be less robust numerically.
+   more scalable but in some cases convergence may stagnate.
 */
 PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
@@ -223,6 +223,10 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDelayedArnoldi1"
+/*
+   EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi1,
+   but without reorthogonalization (only delayed normalization).
+*/
 PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
@@ -456,15 +460,15 @@ EXTERN_C_END
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  delayed - boolean flag for toggling delayed reorthogonalization
+-  delayed - boolean flag
 
    Options Database Key:
 .  -eps_arnoldi_delayed - Activates delayed reorthogonalization in Arnoldi
    
    Note:
    Delayed reorthogonalization is an aggressive optimization for the Arnoldi
-   eigensolver than may provide better scalability, but it is sometimes less 
-   robust than the default algorithm.
+   eigensolver than may provide better scalability, but sometimes makes the
+   solver converge less than the default algorithm.
 
    Level: advanced
 
