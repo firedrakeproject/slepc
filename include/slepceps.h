@@ -34,6 +34,7 @@ typedef struct _p_EPS* EPS;
 #define EPSTRLAN     "trlan"
 #define EPSLOBPCG    "lobpcg"
 #define EPSType const char*
+#define EPSPRIMME    "primme"
 
 typedef enum { EPS_HEP=1,  EPS_GHEP,
                EPS_NHEP,   EPS_GNHEP } EPSProblemType;
@@ -162,6 +163,37 @@ EXTERN PetscErrorCode EPSLanczosGetReorthog(EPS,EPSLanczosReorthogType*);
 EXTERN PetscErrorCode EPSBlzpackSetBlockSize(EPS,int);
 EXTERN PetscErrorCode EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);
 EXTERN PetscErrorCode EPSBlzpackSetNSteps(EPS,int);
+
+typedef enum {
+  EPSPRIMME_thick,
+  EPSPRIMME_dtr
+} EPS_primme_restartscheme;
+
+typedef enum {
+  EPSPRIMME_DEFAULT_MIN_TIME,
+  EPSPRIMME_DEFAULT_MIN_MATVECS,
+  EPSPRIMME_Arnoldi,
+  EPSPRIMME_GD,
+  EPSPRIMME_GD_plusK,
+  EPSPRIMME_GD_Olsen_plusK,
+  EPSPRIMME_JD_Olsen_plusK,
+  EPSPRIMME_RQI,
+  EPSPRIMME_JDQR,
+  EPSPRIMME_JDQMR,
+  EPSPRIMME_JDQMR_ETol,
+  EPSPRIMME_SUBSPACE_ITERATION,
+  EPSPRIMME_LOBPCG_OrthoBasis,
+  EPSPRIMME_LOBPCG_OrthoBasis_Window
+} EPS_primme_preset_method;
+
+EXTERN PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,int bs);
+EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPS_primme_preset_method method);
+EXTERN PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPS_primme_restartscheme scheme);
+EXTERN PetscErrorCode EPSPRIMMESetPrecond(EPS eps, int pre);
+EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,int *bs);
+EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPS_primme_preset_method *method);
+EXTERN PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPS_primme_restartscheme *scheme);
+EXTERN PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, int *pre);
 
 PETSC_EXTERN_CXX_END
 #endif

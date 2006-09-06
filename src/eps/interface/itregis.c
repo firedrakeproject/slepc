@@ -23,6 +23,9 @@ EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #if defined(PETSC_HAVE_HYPRE) && !defined(PETSC_USE_COMPLEX)
 EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
 #endif
+#if defined(SLEPC_HAVE_PRIMME)
+EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
+#endif
 EXTERN_C_END
   
 /*
@@ -79,6 +82,10 @@ PetscErrorCode EPSRegisterAll(char *path)
 #if defined(PETSC_HAVE_HYPRE) && !defined(PETSC_USE_COMPLEX) && !defined(PETSC_CLANGUAGE_CXX)
   ierr = EPSRegisterDynamic(EPSLOBPCG, path,"EPSCreate_LOBPCG", 
 		  EPSCreate_LOBPCG);CHKERRQ(ierr);
+#endif
+#if defined(SLEPC_HAVE_PRIMME)
+  ierr = EPSRegisterDynamic(EPSPRIMME, path, "EPSCreate_PRIMME", 
+                            EPSCreate_PRIMME);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }

@@ -12,6 +12,7 @@ import blzpack
 import planso
 import trlan  
 import lapack
+import primme
 
 if not hasattr(sys, 'version_info') or not sys.version_info[1] >= 2:
   print '**** You must have Python version 2.2 or higher to run config/configure.py ******'
@@ -50,6 +51,8 @@ plansolibs = []
 havetrlan = 0
 trlandir = ''
 trlanlibs = []
+haveprimme = 0
+primmedir = ''
 
 for i in sys.argv[1:]:
   if   i.startswith('--with-arpack-dir='):
@@ -84,6 +87,11 @@ for i in sys.argv[1:]:
     havetrlan = 1
   elif i.startswith('--with-trlan'):
     havetrlan = not i.endswith('=0')
+  elif i.startswith('--with-primme-dir'):
+    primmedir = i.split('=')[1]
+    haveprimme = 1
+  elif i.startswith('--with-primme'):
+    haveprimme = not i.endswith('=0')
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
@@ -103,6 +111,9 @@ for i in sys.argv[1:]:
     print '  --with-trlan                     : Indicate if you wish to test for TRLAN'
     print '  --with-trlan-dir=<dir>           : Indicate the directory for TRLAN libraries'
     print '  --with-trlan-flags=<flags>       : Indicate comma-separated flags for linking TRLAN'
+    print 'PRIMME:'
+    print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
+    print '  --with-primme                    : Indicate if you wish to test for PRIMME'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
@@ -168,6 +179,8 @@ if haveplanso:
   plansolibs = planso.Check(slepcconf,plansodir,plansolibs)
 if havetrlan:
   trlanlibs = trlan.Check(slepcconf,trlandir,trlanlibs)
+if haveprimme:
+  primmelibs = primme.Check(slepcconf,primmedir)
 
 slepcconf.close()
 
@@ -195,6 +208,9 @@ if haveplanso:
 if havetrlan:
   log.Println('TRLAN library flags:')
   log.Println(' '+str.join(' ',trlanlibs))
+if haveprimme:
+  log.Println('PRIMME library flags:')
+  log.Println(' '+str.join(' ',primmelibs))
 if missing:
   log.Println('LAPACK missing functions:')
   log.Print('  ')
