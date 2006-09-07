@@ -112,8 +112,8 @@ for i in sys.argv[1:]:
     print '  --with-trlan-dir=<dir>           : Indicate the directory for TRLAN libraries'
     print '  --with-trlan-flags=<flags>       : Indicate comma-separated flags for linking TRLAN'
     print 'PRIMME:'
-    print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
     print '  --with-primme                    : Indicate if you wish to test for PRIMME'
+    print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
@@ -134,8 +134,8 @@ if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bma
 
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
-if petscconf.VERSION != '2.3.1':
-  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
+#if petscconf.VERSION != '2.3.1':
+#  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
 if not petscconf.PRECISION in ['double','single','matsingle']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
 

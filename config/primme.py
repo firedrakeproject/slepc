@@ -13,7 +13,7 @@ def Check(conf,directory):
     sys.exit('ERROR: PRIMME does not support single precision.')
  
   if not directory:
-    sys.exit('ERROR: I cannot guess where is PRIMME directory.')
+    sys.exit('ERROR: I cannot guess where the PRIMME directory is.')
 
   functions = ['primme_set_method','primme_Free','primme_initialize']
   if petscconf.SCALAR == 'real':
