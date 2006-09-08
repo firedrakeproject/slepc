@@ -53,6 +53,7 @@ trlandir = ''
 trlanlibs = []
 haveprimme = 0
 primmedir = ''
+primmelibs = []
 
 for i in sys.argv[1:]:
   if   i.startswith('--with-arpack-dir='):
@@ -92,6 +93,9 @@ for i in sys.argv[1:]:
     haveprimme = 1
   elif i.startswith('--with-primme'):
     haveprimme = not i.endswith('=0')
+  elif i.startswith('--with-primme-flags='):
+    primmelibs = i.split('=')[1].split(',')
+    haveprimme = 1
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
@@ -114,6 +118,7 @@ for i in sys.argv[1:]:
     print 'PRIMME:'
     print '  --with-primme                    : Indicate if you wish to test for PRIMME'
     print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
+    print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
@@ -180,7 +185,7 @@ if haveplanso:
 if havetrlan:
   trlanlibs = trlan.Check(slepcconf,trlandir,trlanlibs)
 if haveprimme:
-  primmelibs = primme.Check(slepcconf,primmedir)
+  primmelibs = primme.Check(slepcconf,primmedir,primmelibs)
 
 slepcconf.close()
 

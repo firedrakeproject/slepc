@@ -1,6 +1,8 @@
 
 ALL: lib
 
+#requirespackage   'SLEPC_HAVE_PRIMME'
+
 CFLAGS   = ${PRIMME_FLAGS}
 FFLAGS   =
 SOURCEC  = primmes.c

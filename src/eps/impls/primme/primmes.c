@@ -19,7 +19,8 @@ typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
   Mat A;                          /* problem matrix */
-  Vec M;                          /* store reciprocal A diagonal */ 
+  Vec M;                          /* store reciprocal A diagonal */
+  Vec x,y;                        /* auxiliar vectors */ 
 } EPS_PRIMME;
 
 void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme);
@@ -36,8 +37,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       N, n, numProcs, procID;
-  PetscScalar    *a; 
-  Mat B;
+  PetscScalar    *a;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
 
@@ -54,18 +54,18 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
-  ierr = STGetOperators(eps->OP, &ops->A, &B);
+  ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
   if (!ops->A) SETERRQ(PETSC_ERR_SUP,"PRIMME needs a matrix A");
-  if (B) SETERRQ(PETSC_ERR_SUP,"PRIMME doesn't solve generalized problem");
-
   if (!eps->ishermitian)
-    SETERRQ(PETSC_ERR_SUP,"PRIMME was only built for Hermitian problems");
+    SETERRQ(PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
+  if (eps->isgeneralized)
+    SETERRQ(PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
 
   /* Transfer SLEPc options to PRIMME options */
   primme->n = N;
   primme->nLocal = n;
   primme->numEvals = eps->nev; 
-  primme->matrix = &ops->A;
+  primme->matrix = ops;
   primme->initSize = 1;
   /* primme->maxBasisSize = eps->ncv; */
   primme->maxMatvecs = eps->max_it; 
@@ -102,10 +102,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     ierr = VecDuplicate(eps->vec_initial, &ops->M); CHKERRQ(ierr);
     ierr = MatGetDiagonal(ops->A, ops->M); CHKERRQ(ierr);
     ierr = VecReciprocal(ops->M); CHKERRQ(ierr);
-    primme->preconditioner = &ops->M;
+    primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
 
+  /* Prepare auxiliar vectors */ 
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,N,PETSC_NULL,&ops->x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,N,PETSC_NULL,&ops->y);CHKERRQ(ierr);
+ 
   PetscFunctionReturn(0);
 }
 
@@ -127,7 +131,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 #ifndef PETSC_USE_COMPLEX
   ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
 #else
-  /* In order to optimize memory, we are going to use eps->eigr and eps->eigr like a (double*) */
+  /* In order to optimize memory, we are going to use eps->eigr like a (double*) */
   ierr = zprimme((double*)eps->eigr, (Complex_Z*)a, (double*)eps->errest, &ops->primme);
 #endif
   ierr = VecRestoreArray(eps->V[0], &a); CHKERRQ(ierr);
@@ -172,34 +176,30 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
 void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme)
 {
-  int i, ierr, N = primme->n;
-  Vec x,y;
-  Mat *A = (Mat*)(primme->matrix);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,primme->nLocal,N,PETSC_NULL,&x);/*CHKERRQ(ierr);*/
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,primme->nLocal,N,PETSC_NULL,&y);/*CHKERRQ(ierr);*/
+  PetscErrorCode ierr; int i, N = primme->n;
+  EPS_PRIMME *ops = (EPS_PRIMME *)primme->matrix; 
+  Vec x = ops->x, y = ops->y;
+  Mat A = ops->A;
 
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
     ierr = VecPlaceArray(x, (PetscScalar*)in+N*i );/*CHKERRQ(ierr);*/
     ierr = VecPlaceArray(y, (PetscScalar*)out+N*i );/*CHKERRQ(ierr);*/
 
-    ierr = MatMult(*A, x, y);/*CHKERRQ(ierr);*/
+    ierr = MatMult(A, x, y);/*CHKERRQ(ierr);*/
     
     ierr = VecResetArray(x);/*CHKERRQ(ierr);*/
     ierr = VecResetArray(y);/*CHKERRQ(ierr);*/
   }
-
-  ierr = VecDestroy(x);/*CHKERRQ(ierr);*/
-  ierr = VecDestroy(y);/*CHKERRQ(ierr);*/
 }
 
 void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme)
 {
-  int i, ierr, N = primme->n;
-  Vec x,y,M = *(Vec*)(primme->preconditioner);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,primme->nLocal,N,PETSC_NULL,&x);/*CHKERRQ(ierr);*/
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,primme->nLocal,N,PETSC_NULL,&y);/*CHKERRQ(ierr);*/
-
+  PetscErrorCode ierr; int i, N = primme->n;
+  EPS_PRIMME *ops = (EPS_PRIMME *)primme->matrix; 
+  Vec x = ops->x, y = ops->y;
+  Vec M = ops->M;
+ 
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
     ierr = VecPlaceArray(x, (PetscScalar*)in+N*i );/*CHKERRQ(ierr);*/
@@ -210,9 +210,6 @@ void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockS
     ierr = VecResetArray(x);/*CHKERRQ(ierr);*/
     ierr = VecResetArray(y);/*CHKERRQ(ierr);*/
   }
-
-  ierr = VecDestroy(x);/*CHKERRQ(ierr);*/
-  ierr = VecDestroy(y);/*CHKERRQ(ierr);*/
 } 
 
 
@@ -227,6 +224,8 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   
   primme_Free(&ops->primme);
+  ierr = VecDestroy(ops->x);CHKERRQ(ierr);
+  ierr = VecDestroy(ops->y);CHKERRQ(ierr);
   ierr = PetscFree(eps->data); CHKERRQ(ierr);
   ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
  
@@ -237,8 +236,21 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 #define __FUNCT__ "EPSView_PRIMME"
 PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
+  PetscErrorCode ierr; PetscTruth isascii;
+  primme_params *primme = &((EPS_PRIMME *)eps->data)->primme;
+ 
   PetscFunctionBegin;
-  SETERRQ1(1,"Viewer type %s not supported for PRIMME",((PetscObject)viewer)->type_name);
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) {
+    SETERRQ1(1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
+  }
+  
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method num. of outer iterations: %d\n",primme->stats.numOuterIterations);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method num. of restarts: %d\n",primme->stats.numRestarts);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method num. of matrix vector products: %d\n",primme->stats.numMatvecs);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method elapsed time: %f\n",primme->stats.elapsedTime);CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 
@@ -740,6 +752,8 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   primme->method = DEFAULT_MIN_TIME;
   primme->A = 0;
   primme->M = 0;
+  primme->x = 0;
+  primme->y = 0;
    
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
