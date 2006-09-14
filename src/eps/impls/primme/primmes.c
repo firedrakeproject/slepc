@@ -263,39 +263,40 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   PetscInt       op;
   PetscTruth     flg;
   const char *methodList[] = {
-    "DEFAULT_MIN_TIME",
-    "DEFAULT_MIN_MATVECS",
-    "Arnoldi",
-    "GD",
-    "GD_plusK",
-    "GD_Olsen_plusK",
-    "JD_Olsen_plusK",
-    "RQI",
-    "JDQR",
-    "JDQMR",
-    "JDQMR_ETol",
-    "SUBSPACE_ITERATION",
-    "LOBPCG_OrthoBasis",
-    "LOBPCG_OrthoBasis_Window"
+    "default_min_time",
+    "default_min_matvecs",
+    "arnoldi",
+    "gd",
+    "gd_plusk",
+    "gd_olsen_plusk",
+    "jd_olsen_plusk",
+    "rqi",
+    "jdqr",
+    "jdqmr",
+    "jdqmr_etol",
+    "subspace_iteration",
+    "lobpcg_orthobasis",
+    "lobpcg_orthobasis_window"
   }, *restartList[] = {"thick", "dtr"},
   *precondList[] = {"none", "diagonal"};
-  EPS_primme_preset_method methodN[] = {
+  EPSPRIMMEMethod methodN[] = {
     EPSPRIMME_DEFAULT_MIN_TIME,
     EPSPRIMME_DEFAULT_MIN_MATVECS,
-    EPSPRIMME_Arnoldi,
+    EPSPRIMME_ARNOLDI,
     EPSPRIMME_GD,
-    EPSPRIMME_GD_plusK,
-    EPSPRIMME_GD_Olsen_plusK,
-    EPSPRIMME_JD_Olsen_plusK,
+    EPSPRIMME_GD_PLUSK,
+    EPSPRIMME_GD_OLSEN_PLUSK,
+    EPSPRIMME_JD_OlSEN_PLUSK,
     EPSPRIMME_RQI,
     EPSPRIMME_JDQR,
     EPSPRIMME_JDQMR,
-    EPSPRIMME_JDQMR_ETol,
+    EPSPRIMME_JDQMR_ETOL,
     EPSPRIMME_SUBSPACE_ITERATION,
-    EPSPRIMME_LOBPCG_OrthoBasis,
-    EPSPRIMME_LOBPCG_OrthoBasis_Window
+    EPSPRIMME_LOBPCG_ORTHOBASIS,
+    EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
   };
-  EPS_primme_restartscheme restartN[] = {EPSPRIMME_thick, EPSPRIMME_dtr};
+  EPSPRIMMERestart restartN[] = {EPSPRIMME_THICK, EPSPRIMME_DTR};
+  EPSPRIMMEPrecond precondN[] = {EPSPRIMME_NONE, EPSPRIMME_DIAGONAL};
 
   PetscFunctionBegin;
   
@@ -313,7 +314,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   if (flg) {ierr = EPSPRIMMESetRestart(eps, restartN[op]);CHKERRQ(ierr);}
   ierr = PetscOptionsEList("-eps_primme_precond","set precondition",
                            "EPSPRIMMESetPrecond",precondList,2,precondList[0],&op,&flg); CHKERRQ(ierr);
-  if (flg) {ierr = EPSPRIMMESetPrecond(eps, op);CHKERRQ(ierr);}
+  if (flg) {ierr = EPSPRIMMESetPrecond(eps, precondN[op]);CHKERRQ(ierr);}
   
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   
@@ -428,7 +429,7 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,int *bs)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetMethod_PRIMME"
-PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps, EPS_primme_preset_method method)
+PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps, EPSPRIMMEMethod method)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
@@ -450,9 +451,11 @@ EXTERN_C_END
 
    Input Parameters:
     +  eps - the eigenproblem solver context
-    -  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETol),
-    EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_Olsen_plusK), EPSPRIMME_Arnoldi, EPSPRIMME_GD, EPSPRIMME_GD_plusK, EPSPRIMME_GD_Olsen_plusK, EPSPRIMME_JD_Olsen_plusK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR,
-    EPSPRIMME_JDQMR_ETol, EPSPRIMME_SUBSPACE_ITERATION, EPSPRIMME_LOBPCG_OrthoBasis, EPSPRIMME_LOBPCG_OrthoBasis_Window
+    -  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
+    EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
+    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, EPSPRIMME_JD_OlSEN_PLUSK,
+    EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
+    EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
    Options Database Key:
     .  -eps_primme_set_method - Sets the method for the PRIMME library.
@@ -462,9 +465,9 @@ EXTERN_C_END
    Level: advanced
 .seealso: EPSPRIMMEGetMethod()  
 @*/
-PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPS_primme_preset_method method)
+PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPS_primme_preset_method);
+  PetscErrorCode ierr, (*f)(EPS,EPSPRIMMEMethod);
 
   PetscFunctionBegin;
   
@@ -481,13 +484,13 @@ PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPS_primme_preset_method method)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMEGetMethod_PRIMME"
-PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps, EPS_primme_preset_method *method)
+PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps, EPSPRIMMEMethod *method)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
   PetscFunctionBegin;
 
-  if (method) *method = (EPS_primme_preset_method)ops->method;
+  if (method) *method = (EPSPRIMMEMethod)ops->method;
   
   PetscFunctionReturn(0);
 }
@@ -504,16 +507,18 @@ EXTERN_C_END
     .  eps - the eigenproblem solver context
     
    Output Parameters: 
-    .  method - method that will be used by PRIMME. It must be one of next them: DEFAULT_MIN_TIME(JDQMR_ETol),
-    DEFAULT_MIN_MATVECS(GD_Olsen_plusK), Arnoldi, GD, GD_plusK, GD_Olsen_plusK, JD_Olsen_plusK, RQI, JDQR, JDQMR,
-    JDQMR_ETol, SUBSPACE_ITERATION, LOBPCG_OrthoBasis, LOBPCG_OrthoBasis_Window
+    .  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
+    EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
+    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, EPSPRIMME_JD_OlSEN_PLUSK,
+    EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
+    EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
     Level: advanced
 .seealso: EPSPRIMMESetMethod()
 @*/
-PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPS_primme_preset_method *method)
+PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPS_primme_preset_method*);
+  PetscErrorCode ierr, (*f)(EPS,EPSPRIMMEMethod*);
 
   PetscFunctionBegin;
   
@@ -529,7 +534,7 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPS_primme_preset_method *method)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetRestart_PRIMME"
-PetscErrorCode EPSPRIMMESetRestart_PRIMME(EPS eps, EPS_primme_restartscheme scheme)
+PetscErrorCode EPSPRIMMESetRestart_PRIMME(EPS eps, EPSPRIMMERestart scheme)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
@@ -551,8 +556,8 @@ EXTERN_C_END
 
    Input Parameters:
     +  eps - the eigenproblem solver context
-    -  scheme - possible values are: EPSPRIMME_thick(thick restarting) is the most efficient and robust
-    in the general case, and EPSPRIMME_dtr(dynamic thick restarting) helpful without 
+    -  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
+    in the general case, and EPSPRIMME_DTR(dynamic thick restarting) helpful without 
     preconditioning but it is expensive to implement.
 
    Options Database Key:
@@ -561,9 +566,9 @@ EXTERN_C_END
     Level: advanced
 
 @*/
-PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPS_primme_restartscheme scheme)
+PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPSPRIMMERestart scheme)
 {
-  PetscErrorCode ierr, (*f)(EPS, EPS_primme_restartscheme);
+  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMERestart);
 
   PetscFunctionBegin;
   
@@ -580,13 +585,13 @@ PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPS_primme_restartscheme scheme)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMEGetRestart_PRIMME"
-    PetscErrorCode EPSPRIMMEGetRestart_PRIMME(EPS eps, EPS_primme_restartscheme *scheme)
+    PetscErrorCode EPSPRIMMEGetRestart_PRIMME(EPS eps, EPSPRIMMERestart *scheme)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
   PetscFunctionBegin;
   
-  if (scheme) *scheme = (EPS_primme_restartscheme)ops->primme.restartingParams.scheme;
+  if (scheme) *scheme = (EPSPRIMMERestart)ops->primme.restartingParams.scheme;
   
   PetscFunctionReturn(0);
 }
@@ -603,16 +608,16 @@ EXTERN_C_END
     .  eps - the eigenproblem solver context
     
     Output Parameters:  
-    .  scheme - possible values are: EPSPRIMME_thick(thick restarting) is the most efficient and robust
-    in the general case, and EPSPRIMME_dtr(dynamic thick restarting) helpful without 
+    .  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
+    in the general case, and EPSPRIMME_DTR(dynamic thick restarting) helpful without 
     preconditioning but it is expensive to implement.
 
     Level: advanced
 .seealso: EPSPRIMMESetRestart()
 @*/
-PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPS_primme_restartscheme *scheme)
+PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPSPRIMMERestart *scheme)
 {
-  PetscErrorCode ierr, (*f)(EPS, EPS_primme_restartscheme*);
+  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMERestart*);
 
   PetscFunctionBegin;
   
@@ -629,16 +634,14 @@ PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPS_primme_restartscheme *scheme)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetPrecond_PRIMME"
-PetscErrorCode EPSPRIMMESetPrecond_PRIMME(EPS eps, int pre)
+    PetscErrorCode EPSPRIMMESetPrecond_PRIMME(EPS eps, EPSPRIMMEPrecond precond)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
   PetscFunctionBegin;
 
-  if (pre == PETSC_DEFAULT) ops->primme.correctionParams.precondition = 0;
-  else if (pre != 0 && pre != 1) {
-    SETERRQ(1, "PRIMME: wrong precondition value (allowed 0 or 1)");
-  } else ops->primme.correctionParams.precondition = pre;
+  if (precond == EPSPRIMME_NONE) ops->primme.correctionParams.precondition = 0;
+  else ops->primme.correctionParams.precondition = 1;
   
   PetscFunctionReturn(0);
 }
@@ -653,7 +656,7 @@ EXTERN_C_END
 
    Input Parameters:
     +  eps - the eigenproblem solver context
-    -  pre - posible values are: 0, no preconditioning and 1, diagonal matrix for preconditioning
+    -  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
 
    Options Database Key:
     .  -eps_primme_precond - Sets either none or the diagonal matrix like preconditioner for the PRIMME library
@@ -662,17 +665,18 @@ EXTERN_C_END
       The default values is 0, i. e., no preconditioning.
     
     Level: advanced
+.seealso: EPSPRIMMEGetPrecond()
 @*/
-PetscErrorCode EPSPRIMMESetPrecond(EPS eps, int pre)
+PetscErrorCode EPSPRIMMESetPrecond(EPS eps, EPSPRIMMEPrecond precond)
 {
-  PetscErrorCode ierr, (*f)(EPS, int);
+  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMEPrecond);
 
   PetscFunctionBegin;
   
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMESetPrecond_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
-    ierr = (*f)(eps, pre);CHKERRQ(ierr);
+    ierr = (*f)(eps, precond);CHKERRQ(ierr);
   }
   
   PetscFunctionReturn(0);
@@ -682,13 +686,14 @@ PetscErrorCode EPSPRIMMESetPrecond(EPS eps, int pre)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMEGetPrecond_PRIMME"
-    PetscErrorCode EPSPRIMMEGetPrecond_PRIMME(EPS eps, int *pre)
+    PetscErrorCode EPSPRIMMEGetPrecond_PRIMME(EPS eps, EPSPRIMMEPrecond *precond)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
   PetscFunctionBegin;
 
-  if (pre) *pre = ops->primme.correctionParams.precondition;
+  if (precond)
+    *precond = ops->primme.correctionParams.precondition ? EPSPRIMME_DIAGONAL : EPSPRIMME_NONE;
   
   PetscFunctionReturn(0);
 }
@@ -705,21 +710,21 @@ EXTERN_C_END
     .  eps - the eigenproblem solver context
     
   Output Parameters:
-    .  pre - posible values are: 0, no preconditioning and 1, diagonal matrix for preconditioning
+    .  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
 
     Level: advanced
-.seealso: EPSPRIMMEGetPrecond()
+.seealso: EPSPRIMMESetPrecond()
 @*/
-PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, int *pre)
+PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, EPSPRIMMEPrecond *precond)
 {
-  PetscErrorCode ierr, (*f)(EPS, int*);
+  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMEPrecond*);
 
   PetscFunctionBegin;
   
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMEGetPrecond_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
-    ierr = (*f)(eps, pre);CHKERRQ(ierr);
+    ierr = (*f)(eps, precond);CHKERRQ(ierr);
   }
   
   PetscFunctionReturn(0);

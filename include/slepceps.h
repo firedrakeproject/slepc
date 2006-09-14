@@ -165,35 +165,40 @@ EXTERN PetscErrorCode EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);
 EXTERN PetscErrorCode EPSBlzpackSetNSteps(EPS,int);
 
 typedef enum {
-  EPSPRIMME_thick,
-  EPSPRIMME_dtr
-} EPS_primme_restartscheme;
+  EPSPRIMME_THICK,
+  EPSPRIMME_DTR
+} EPSPRIMMERestart;
 
 typedef enum {
   EPSPRIMME_DEFAULT_MIN_TIME,
   EPSPRIMME_DEFAULT_MIN_MATVECS,
-  EPSPRIMME_Arnoldi,
+  EPSPRIMME_ARNOLDI,
   EPSPRIMME_GD,
-  EPSPRIMME_GD_plusK,
-  EPSPRIMME_GD_Olsen_plusK,
-  EPSPRIMME_JD_Olsen_plusK,
+  EPSPRIMME_GD_PLUSK,
+  EPSPRIMME_GD_OLSEN_PLUSK,
+  EPSPRIMME_JD_OlSEN_PLUSK,
   EPSPRIMME_RQI,
   EPSPRIMME_JDQR,
   EPSPRIMME_JDQMR,
-  EPSPRIMME_JDQMR_ETol,
+  EPSPRIMME_JDQMR_ETOL,
   EPSPRIMME_SUBSPACE_ITERATION,
-  EPSPRIMME_LOBPCG_OrthoBasis,
-  EPSPRIMME_LOBPCG_OrthoBasis_Window
-} EPS_primme_preset_method;
+  EPSPRIMME_LOBPCG_ORTHOBASIS,
+  EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
+} EPSPRIMMEMethod;
+
+typedef enum {
+  EPSPRIMME_NONE,
+  EPSPRIMME_DIAGONAL
+} EPSPRIMMEPrecond;
 
 EXTERN PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,int bs);
-EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPS_primme_preset_method method);
-EXTERN PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPS_primme_restartscheme scheme);
-EXTERN PetscErrorCode EPSPRIMMESetPrecond(EPS eps, int pre);
+EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method);
+EXTERN PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPSPRIMMERestart scheme);
+EXTERN PetscErrorCode EPSPRIMMESetPrecond(EPS eps, EPSPRIMMEPrecond precond);
 EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,int *bs);
-EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPS_primme_preset_method *method);
-EXTERN PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPS_primme_restartscheme *scheme);
-EXTERN PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, int *pre);
+EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method);
+EXTERN PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPSPRIMMERestart *scheme);
+EXTERN PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, EPSPRIMMEPrecond *precond);
 
 PETSC_EXTERN_CXX_END
 #endif
