@@ -173,12 +173,6 @@ chk_slepc_dir:
 # SLEPc users should not generally need to use these commands.
 #
 
-chk_loc:
-	@if [ ${LOC}foo = foo ] ; then \
-	  echo "*********************** ERROR ************************" ; \
-	  echo " Please specify LOC variable for eg: make allmanualpages LOC=/sandbox/petsc"; \
-	  echo "******************************************************";  false; fi
-
 # Builds all the documentation
 alldoc: alldoc1 alldoc2
 
