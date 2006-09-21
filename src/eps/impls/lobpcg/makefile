@@ -8,10 +8,10 @@ ALL: lib
 
 CFLAGS   = ${HYPRE_INCLUDE}
 FFLAGS   =
-SOURCEC  = lobpcg.c
+SOURCEC  = lobpcg.c petsc-interface.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = lobpcg.o
+OBJSC    = lobpcg.o petsc-interface.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
