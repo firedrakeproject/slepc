@@ -3,7 +3,7 @@
        This file implements a wrapper to the LOBPCG solver from HYPRE package
 */
 #include "src/eps/epsimpl.h"
-#include "petsc-interface.h"
+#include "src/contrib/blopex/petsc-interface/petsc-interface.h"
 #include "lobpcg.h"
 #include "interpreter.h"
 #include "multivector.h"
@@ -119,7 +119,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscErrorCode  ierr;
   EPS_LOBPCG      *lobpcg = (EPS_LOBPCG *)eps->data;
   int             info,i;
-  mv_TempMultiVectorPtr mv;
+  mv_TempMultiVector *mv;
   
   PetscFunctionBegin;
   info = lobpcg_solve(lobpcg->eigenvectors,eps,OperatorAMultiVector,

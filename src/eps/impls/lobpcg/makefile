@@ -1,17 +1,17 @@
 
 ALL: lib
 
-#requirespackage  'PETSC_HAVE_HYPRE'
+#requirespackage  'PETSC_HAVE_BLOPEX'
 #requiresprecision double
 #requiresscalar    real
 #requireslanguage CONLY
 
-CFLAGS   = ${HYPRE_INCLUDE}
+CFLAGS   = ${BLOPEX_INCLUDE}
 FFLAGS   =
-SOURCEC  = lobpcg.c petsc-interface.c
+SOURCEC  = lobpcg.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = lobpcg.o petsc-interface.o
+OBJSC    = lobpcg.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
