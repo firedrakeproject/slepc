@@ -93,9 +93,9 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   
   /* Copy vec_initial to V[0] vector */
-  ierr = VecGetArray(eps->vec_initial, &a); CHKERRQ(ierr); 
+  /* ierr = VecGetArray(eps->vec_initial, &a); CHKERRQ(ierr); */
   ierr = VecCopy(eps->vec_initial, eps->V[0]); CHKERRQ(ierr);
-  ierr = VecRestoreArray(eps->vec_initial, &a); CHKERRQ(ierr);
+  /*ierr = VecRestoreArray(eps->vec_initial, &a); CHKERRQ(ierr);*/
  
   if (primme->correctionParams.precondition == 1 ) {
     /* Calc reciprocal A diagonal */
