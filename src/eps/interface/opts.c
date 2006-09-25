@@ -37,7 +37,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscOptionsBegin(eps->comm,eps->prefix,"Eigenproblem Solver (EPS) Options","EPS");CHKERRQ(ierr);
-    ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(eps->type_name?eps->type_name:EPSARNOLDI),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(eps->type_name?eps->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSSetType(eps,type);CHKERRQ(ierr);
     }
@@ -55,11 +55,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       Set the type if it was never set.
     */
     if (!eps->type_name) {
-      if (eps->ishermitian) {
-        ierr = EPSSetType(eps,EPSLANCZOS);CHKERRQ(ierr);
-      } else {
-        ierr = EPSSetType(eps,EPSARNOLDI);CHKERRQ(ierr);
-      }      
+      ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     }
 
     ierr = PetscOptionsTruthGroupBegin("-eps_oneside","one-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);

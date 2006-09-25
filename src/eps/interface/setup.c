@@ -42,7 +42,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Set default solver type */
   if (!eps->type_name) {
-    ierr = EPSSetType(eps,EPSARNOLDI);CHKERRQ(ierr);
+    ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
 
   /* Set default eta for orthogonalization */

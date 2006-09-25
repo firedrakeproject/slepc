@@ -1,5 +1,5 @@
 
-2-D Laplacian Eigenproblem, N=100 (10x10 grid)
+Generalized Symmetric Eigenproblem, N=100 (10x10 grid), null(B)=0
 
  Number of iterations of the method: 40
  Solution method: krylovschur
@@ -8,9 +8,9 @@
  Stopping condition: tol=1e-07, maxit=100
  Number of converged approximate eigenpairs: 3
 
-           k          ||Ax-kx||/||kx||
+           k          ||Ax-kBx||/||kx||
    ----------------- ------------------
-       7.837972        2.44601e-10
-       7.601493        3.79697e-09
-       7.365014        3.12281e-08
+       1.959493           0.000000
+       1.900373           0.000000
+       1.841254           0.000000
 

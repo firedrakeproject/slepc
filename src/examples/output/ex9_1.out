@@ -1,15 +1,15 @@
 
 Brusselator wave model, n=30
 
- Number of iterations of the method: 1
- Solution method: lapack
+ Number of iterations of the method: 102
+ Solution method: krylovschur
 
  Number of requested eigenvalues: 1
- Stopping condition: tol=0, maxit=0
+ Stopping condition: tol=1e-07, maxit=100
  Number of converged approximate eigenpairs: 2
 
            k             ||Ax-kx||/||kx||
   --------------------- ------------------
-  0.000193 +2.139385 i     0.000000
-  0.000193 -2.139385 i     0.000000
+  0.000193 +2.139385 i  2.91491e-07
+  0.000193 -2.139385 i  2.91491e-07
 

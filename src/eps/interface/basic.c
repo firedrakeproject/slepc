@@ -206,7 +206,7 @@ static PetscErrorCode EPSPublish_Petsc(PetscObject object)
 .  eps - location to put the EPS context
 
    Note:
-   The default EPS type is EPSARNOLDI
+   The default EPS type is EPSKRYLOVSCHUR
 
    Level: beginner
 
@@ -295,7 +295,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
     
    Notes:  
    See "slepc/include/slepceps.h" for available methods. The default
-   is EPSARNOLDI.
+   is EPSKRYLOVSCHUR.
 
    Normally, it is best to use the EPSSetFromOptions() command and
    then set the EPS type from the options database rather than by using

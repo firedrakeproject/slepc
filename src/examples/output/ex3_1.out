@@ -1,14 +1,16 @@
 
 2-D Laplacian Eigenproblem (matrix-free version), N=100 (10x10 grid)
 
- Number of iterations of the method: 64
- Solution method: lanczos
+ Number of iterations of the method: 40
+ Solution method: krylovschur
 
  Number of requested eigenvalues: 1
  Stopping condition: tol=1e-07, maxit=100
- Number of converged eigenpairs: 1
+ Number of converged eigenpairs: 3
 
            k          ||Ax-kx||/||kx||
    ----------------- ------------------
-       7.837972           0.000000
+       7.837972        2.44601e-10
+       7.601493        3.79697e-09
+       7.365014        3.12281e-08
 
