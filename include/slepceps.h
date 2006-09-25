@@ -30,7 +30,6 @@ typedef struct _p_EPS* EPS;
 /* the next ones are interfaces to external libraries */
 #define EPSARPACK    "arpack"
 #define EPSBLZPACK   "blzpack"
-#define EPSPLANSO    "planso"
 #define EPSTRLAN     "trlan"
 #define EPSBLOPEX    "blopex"
 #define EPSType const char*

@@ -14,9 +14,6 @@ EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
 #if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
 EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
 #endif
-#if defined(SLEPC_HAVE_PLANSO) && !defined(PETSC_USE_COMPLEX)
-EXTERN PetscErrorCode EPSCreate_PLANSO(EPS);
-#endif
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
 EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
@@ -70,10 +67,6 @@ PetscErrorCode EPSRegisterAll(char *path)
 #if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
   ierr = EPSRegisterDynamic(EPSBLZPACK, path,"EPSCreate_BLZPACK", 
 		  EPSCreate_BLZPACK);CHKERRQ(ierr);
-#endif
-#if defined(SLEPC_HAVE_PLANSO) && !defined(PETSC_USE_COMPLEX)
-  ierr = EPSRegisterDynamic(EPSPLANSO, path,"EPSCreate_PLANSO", 
-		  EPSCreate_PLANSO);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
   ierr = EPSRegisterDynamic(EPSTRLAN, path,"EPSCreate_TRLAN", 
