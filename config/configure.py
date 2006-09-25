@@ -9,7 +9,6 @@ import log
 import check
 import arpack
 import blzpack
-import planso
 import trlan  
 import lapack
 import primme
@@ -45,9 +44,6 @@ arpacklibs = []
 haveblzpack = 0
 blzpackdir = ''
 blzpacklibs = []
-haveplanso = 0
-plansodir = ''
-plansolibs = []
 havetrlan = 0
 trlandir = ''
 trlanlibs = []
@@ -72,14 +68,6 @@ for i in sys.argv[1:]:
     haveblzpack = 1
   elif i.startswith('--with-blzpack'):
     haveblzpack = not i.endswith('=0')
-  elif i.startswith('--with-planso-dir='):
-    plansodir = i.split('=')[1]
-    haveplanso = 1
-  elif i.startswith('--with-planso-flags='):
-    plansolibs = i.split('=')[1].split(',')
-    haveplanso = 1
-  elif i.startswith('--with-planso'):
-    haveplanso = not i.endswith('=0')
   elif i.startswith('--with-trlan-dir='):
     trlandir = i.split('=')[1]
     havetrlan = 1
@@ -107,10 +95,6 @@ for i in sys.argv[1:]:
     print '  --with-blzpack                   : Indicate if you wish to test for BLZPACK'
     print '  --with-blzpack-dir=<dir>         : Indicate the directory for BLZPACK libraries'
     print '  --with-blzpack-flags=<flags>     : Indicate comma-separated flags for linking BLZPACK'
-    print 'PLANSO:'
-    print '  --with-planso                    : Indicate if you wish to test for PLANSO'
-    print '  --with-planso-dir=<dir>          : Indicate the directory for PLANSO libraries'
-    print '  --with-planso-flags=<flags>      : Indicate comma-separated flags for linking PLANSO'
     print 'TRLAN:'
     print '  --with-trlan                     : Indicate if you wish to test for TRLAN'
     print '  --with-trlan-dir=<dir>           : Indicate the directory for TRLAN libraries'
@@ -180,8 +164,6 @@ if havearpack:
   arpacklibs = arpack.Check(slepcconf,arpackdir,arpacklibs)
 if haveblzpack:
   blzpacklibs = blzpack.Check(slepcconf,blzpackdir,blzpacklibs)
-if haveplanso:
-  plansolibs = planso.Check(slepcconf,plansodir,plansolibs)
 if havetrlan:
   trlanlibs = trlan.Check(slepcconf,trlandir,trlanlibs)
 if haveprimme:
@@ -207,9 +189,6 @@ if havearpack:
 if haveblzpack:
   log.Println('BLZPACK library flags:')
   log.Println(' '+str.join(' ',blzpacklibs))
-if haveplanso:
-  log.Println('PLANSO library flags:')
-  log.Println(' '+str.join(' ',plansolibs))
 if havetrlan:
   log.Println('TRLAN library flags:')
   log.Println(' '+str.join(' ',trlanlibs))
