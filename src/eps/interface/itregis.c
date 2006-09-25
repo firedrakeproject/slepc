@@ -80,7 +80,7 @@ PetscErrorCode EPSRegisterAll(char *path)
 		  EPSCreate_TRLAN);CHKERRQ(ierr);
 #endif
 #if defined(PETSC_HAVE_BLOPEX) && !defined(PETSC_USE_COMPLEX) && !defined(PETSC_CLANGUAGE_CXX)
-  ierr = EPSRegisterDynamic(EPSLOBPCG, path,"EPSCreate_LOBPCG", 
+  ierr = EPSRegisterDynamic(EPSBLOPEX, path,"EPSCreate_LOBPCG", 
 		  EPSCreate_LOBPCG);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
