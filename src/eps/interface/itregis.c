@@ -18,7 +18,7 @@ EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
 EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
 #if defined(PETSC_HAVE_BLOPEX) && !defined(PETSC_USE_COMPLEX)
-EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
+EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
 EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
@@ -73,8 +73,8 @@ PetscErrorCode EPSRegisterAll(char *path)
 		  EPSCreate_TRLAN);CHKERRQ(ierr);
 #endif
 #if defined(PETSC_HAVE_BLOPEX) && !defined(PETSC_USE_COMPLEX) && !defined(PETSC_CLANGUAGE_CXX)
-  ierr = EPSRegisterDynamic(EPSBLOPEX, path,"EPSCreate_LOBPCG", 
-		  EPSCreate_LOBPCG);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSBLOPEX, path,"EPSCreate_BLOPEX", 
+		  EPSCreate_BLOPEX);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
   ierr = EPSRegisterDynamic(EPSPRIMME, path, "EPSCreate_PRIMME", 

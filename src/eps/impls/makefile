@@ -2,7 +2,7 @@
 ALL: lib
 
 LIBBASE  = libslepc
-DIRS     = power subspace arnoldi lanczos krylovschur lapack arpack blzpack trlan lobpcg primme
+DIRS     = power subspace arnoldi lanczos krylovschur lapack arpack blzpack trlan blopex primme
 LOCDIR   = src/eps/impls/
 MANSEC   = EPS
 
