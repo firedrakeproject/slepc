@@ -72,7 +72,7 @@ PetscErrorCode EPSRegisterAll(char *path)
   ierr = EPSRegisterDynamic(EPSTRLAN, path,"EPSCreate_TRLAN", 
 		  EPSCreate_TRLAN);CHKERRQ(ierr);
 #endif
-#if defined(PETSC_HAVE_BLOPEX) && !defined(PETSC_USE_COMPLEX) && !defined(PETSC_CLANGUAGE_CXX)
+#if defined(PETSC_HAVE_BLOPEX) && !defined(PETSC_USE_COMPLEX)
   ierr = EPSRegisterDynamic(EPSBLOPEX, path,"EPSCreate_BLOPEX", 
 		  EPSCreate_BLOPEX);CHKERRQ(ierr);
 #endif

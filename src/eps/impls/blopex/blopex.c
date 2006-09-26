@@ -132,9 +132,9 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   if (info==-1) eps->reason = EPS_DIVERGED_ITS;
   else eps->reason = EPS_CONVERGED_TOL;
   
-  mv = mv_MultiVectorGetData(blopex->eigenvectors);
+  mv = (mv_TempMultiVector*)mv_MultiVectorGetData(blopex->eigenvectors);
   for (i=0;i<eps->nconv;i++) {
-    ierr = VecCopy(mv->vector[i],eps->V[i]);CHKERRQ(ierr);
+    ierr = VecCopy((Vec)mv->vector[i],eps->V[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
