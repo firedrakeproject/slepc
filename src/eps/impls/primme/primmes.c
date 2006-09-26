@@ -3,7 +3,7 @@
        This file implements a wrapper to the PRIMME library
 */
 
-#include "src/eps/epsimpl.h"
+#include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
 
 EXTERN_C_BEGIN
 #include "primme.h"
@@ -23,11 +23,10 @@ typedef struct {
   Vec x,y;                        /* auxiliar vectors */ 
 } EPS_PRIMME;
 
-void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme);
-void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme);
-void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme);
+static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme);
+static void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme);
 
-void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme) {
+static void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme) {
   MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, PETSC_COMM_WORLD);
 }
 
@@ -37,7 +36,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       N, n, numProcs, procID;
-  PetscScalar    *a;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
 
@@ -93,9 +91,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   
   /* Copy vec_initial to V[0] vector */
-  /* ierr = VecGetArray(eps->vec_initial, &a); CHKERRQ(ierr); */
   ierr = VecCopy(eps->vec_initial, eps->V[0]); CHKERRQ(ierr);
-  /*ierr = VecRestoreArray(eps->vec_initial, &a); CHKERRQ(ierr);*/
  
   if (primme->correctionParams.precondition == 1 ) {
     /* Calc reciprocal A diagonal */
@@ -118,10 +114,11 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 PetscErrorCode EPSSolve_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_PRIMME    *ops = (EPS_PRIMME *)eps->data;
-  PetscScalar   *a;
+  EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
+  PetscScalar    *a;
 #ifdef PETSC_USE_COMPLEX
-  int i;
+  int            i;
+  PetscReal      *evals;
 #endif
 
   PetscFunctionBegin;
@@ -131,8 +128,12 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 #ifndef PETSC_USE_COMPLEX
   ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
 #else
-  /* In order to optimize memory, we are going to use eps->eigr like a (double*) */
-  ierr = zprimme((double*)eps->eigr, (Complex_Z*)a, (double*)eps->errest, &ops->primme);
+  /* PRIMME return real eigenvalues, but SLEPc work with complex ones */
+  ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals); CHKERRQ(ierr);
+  ierr = zprimme(evals, (Complex_Z*)a, eps->errest, &ops->primme);
+  for (i=0;i<eps->ncv;i++)
+    eps->eigr[i] = evals[i];
+  ierr = PetscFree(evals); CHKERRQ(ierr);
 #endif
   ierr = VecRestoreArray(eps->V[0], &a); CHKERRQ(ierr);
   
@@ -161,55 +162,56 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   eps->reason = EPS_CONVERGED_TOL;
   eps->its = ops->primme.stats.numMatvecs;
 
-#ifdef PETSC_USE_COMPLEX
-  /* PRIMME return real eigenvalues, but SLEPc work with complex ones, so we must cast them */
-  ierr = PetscMalloc(eps->nconv*sizeof(PetscScalar), &a); CHKERRQ(ierr);
-  for(i=0; i<eps->nconv; i++)
-    a[i] = PetscScalar(((double*)eps->eigr)[i], 0.0);
-  ierr = PetscFree(eps->eigr); CHKERRQ(ierr);
-  eps->eigr = a;
-#else
+#ifndef PETSC_USE_COMPLEX
   ierr = PetscMemzero(eps->eigi, eps->nconv*sizeof(double)); CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
 
-void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme)
+#undef __FUNCT__  
+#define __FUNCT__ "multMatvec_PRIMME"
+static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme)
 {
   PetscErrorCode ierr; int i, N = primme->n;
   EPS_PRIMME *ops = (EPS_PRIMME *)primme->matrix; 
   Vec x = ops->x, y = ops->y;
   Mat A = ops->A;
 
+  PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x, (PetscScalar*)in+N*i );/*CHKERRQ(ierr);*/
-    ierr = VecPlaceArray(y, (PetscScalar*)out+N*i );/*CHKERRQ(ierr);*/
+    ierr = VecPlaceArray(x, (PetscScalar*)in+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(y, (PetscScalar*)out+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
 
-    ierr = MatMult(A, x, y);/*CHKERRQ(ierr);*/
+    ierr = MatMult(A, x, y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
     
-    ierr = VecResetArray(x);/*CHKERRQ(ierr);*/
-    ierr = VecResetArray(y);/*CHKERRQ(ierr);*/
+    ierr = VecResetArray(x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
   }
+  PetscFunctionReturnVoid();
 }
 
-void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme)
+#undef __FUNCT__  
+#define __FUNCT__ "applyPreconditioner_PRIMME"
+static void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme)
 {
   PetscErrorCode ierr; int i, N = primme->n;
   EPS_PRIMME *ops = (EPS_PRIMME *)primme->matrix; 
   Vec x = ops->x, y = ops->y;
   Vec M = ops->M;
  
+  PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x, (PetscScalar*)in+N*i );/*CHKERRQ(ierr);*/
-    ierr = VecPlaceArray(y, (PetscScalar*)out+N*i );/*CHKERRQ(ierr);*/
+    ierr = VecPlaceArray(x, (PetscScalar*)in+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(y, (PetscScalar*)out+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
 
-    ierr = VecPointwiseMult(y, M, x);/*CHKERRQ(ierr);*/
+    ierr = VecPointwiseMult(y, M, x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
     
-    ierr = VecResetArray(x);/*CHKERRQ(ierr);*/
-    ierr = VecResetArray(y);/*CHKERRQ(ierr);*/
+    ierr = VecResetArray(x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
   }
+  PetscFunctionReturnVoid();
 } 
 
 
@@ -242,7 +244,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
+    SETERRQ1(1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
   }
   
   ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
@@ -341,7 +343,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetBlockSize"
-/*@C
+/*@
     EPSPRIMMESetBlockSize - The maximum block size the code will try to use. The user should set
     this based on the architecture specifics of the target computer, 
     as well as any a priori knowledge of multiplicities. The code does 
@@ -396,7 +398,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMEGetBlockSize"
-/*@C
+/*@
     EPSPRIMMEGetBlockSize - Get the maximum block size the code will try to use. 
     
     Collective on EPS
@@ -444,7 +446,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetMethod"
-/*@C
+/*@
    EPSPRIMMESetMethod - Sets the method for the PRIMME library.
 
    Collective on EPS
@@ -549,7 +551,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetRestart"
-/*@C
+/*@
     EPSPRIMMESetRestart - Sets the restarting scheme for the PRIMME library.
 
     Collective on EPS
@@ -649,7 +651,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetPrecond"
-/*@C
+/*@
     EPSPRIMMESetPrecond - Sets either none or the diagonal matrix like preconditioner for the PRIMME library.
 
     Collective on EPS
