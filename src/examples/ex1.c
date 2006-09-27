@@ -9,17 +9,17 @@ static char help[] = "Standard symmetric eigenproblem corresponding to the Lapla
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 A;		  /* operator matrix */
-  EPS         	 eps;		  /* eigenproblem solver context */
-  EPSType     	 type;
-  PetscReal   	 error, tol,re, im;
-  PetscScalar 	 kr, ki;
-  Vec         	 xr, xi;
+  Mat            A;           /* operator matrix */
+  EPS            eps;         /* eigenproblem solver context */
+  EPSType        type;
+  PetscReal      error, tol,re, im;
+  PetscScalar    kr, ki;
+  Vec            xr, xi;
   PetscErrorCode ierr;
-  PetscInt    	 n=30, i, Istart, Iend, col[3];
+  PetscInt       n=30, i, Istart, Iend, col[3];
   int            nev, maxit,its, nconv;
-  PetscTruth   	 FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
-  PetscScalar 	 value[3];
+  PetscTruth     FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
+  PetscScalar    value[3];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -92,7 +92,6 @@ int main( int argc, char **argv )
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %d\n",nev);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);CHKERRQ(ierr);
-
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
