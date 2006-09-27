@@ -123,8 +123,8 @@ if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bma
 
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
-#if petscconf.VERSION != '2.3.1':
-#  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
+if petscconf.VERSION < '2.3.1':
+  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
 if not petscconf.PRECISION in ['double','single','matsingle']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
 
@@ -151,6 +151,8 @@ log.Write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
+if petscconf.VERSION > '2.3.2':
+  log.Println('WARNING: PETSc version '+petscconf.VERSION+' is newer than SLEPc version')
 if petscconf.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
 if not check.Link([],[],[]):
