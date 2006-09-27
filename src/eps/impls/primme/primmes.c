@@ -73,16 +73,16 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->globalSumDouble = par_GlobalSumDouble;
 
   switch(eps->which) {
-    case EPS_LARGEST_MAGNITUDE:
+    case EPS_LARGEST_REAL:
       primme->target = primme_largest;
       break;
 
-    case EPS_SMALLEST_MAGNITUDE:
+    case EPS_SMALLEST_REAL:
       primme->target = primme_smallest;
       break;
        
     default:
-      SETERRQ(PETSC_ERR_SUP,"PRIMME only allows EPS_LARGEST_MAGNITUDE and EPS_SMALLEST_MAGNITUDE for 'which' value");
+      SETERRQ(PETSC_ERR_SUP,"PRIMME only allows EPS_LARGEST_REAL and EPS_SMALLEST_REAL for 'which' value");
       break;   
   }
   primme_set_method(ops->method, primme);
@@ -305,7 +305,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   ierr = PetscOptionsHead("PRIMME options");CHKERRQ(ierr);
 
   op = ops->primme.maxBlockSize; 
-  ierr = PetscOptionsInt("-eps_primme_maxBlockSize"," Max block size","EPSPRIMMESetBlockSize",op,&op,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_primme_block_size"," maximum block size","EPSPRIMMESetBlockSize",op,&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetBlockSize(eps,op);CHKERRQ(ierr);}
   op = 0;
   ierr = PetscOptionsEList("-eps_primme_method","set method for solving the eigenproblem",
