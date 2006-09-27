@@ -35,7 +35,8 @@ static void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme
 PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N, n, numProcs, procID;
+  PetscInt       N, n;
+  int            numProcs, procID;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
 

@@ -287,7 +287,8 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
   Mat            A;
-  int            i,j,n,m = *M;
+  int            i,j,m = *M;
+  PetscInt       n;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta,*b,lb[101],*a,la[100];
   PetscTruth     *which,lwhich[100],*which2,lwhich2[100],
                  reorth = PETSC_FALSE,force_reorth = PETSC_FALSE,fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
