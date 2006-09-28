@@ -16,7 +16,7 @@ int main( int argc, char **argv )
   PetscReal   	 error, tol, re, im;
   PetscScalar 	 kr, ki;
   PetscErrorCode ierr;
-  PetscInt    	 N, n=10, m, Istart, Iend, I, J;
+  PetscInt    	 N, n=10, m, Istart, Iend, II, J;
   int         	 nev, maxit, i, j, its, nconv;
   PetscScalar 	 v;
   PetscTruth  	 flag;
@@ -38,13 +38,13 @@ int main( int argc, char **argv )
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for( I=Istart; I<Iend; I++ ) { 
-    v = -1.0; i = I/n; j = I-i*n;  
-    if(i>0) { J=I-n; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
-    if(i<m-1) { J=I+n; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
-    if(j>0) { J=I-1; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
-    if(j<n-1) { J=I+1; MatSetValues(A,1,&I,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
-    v=4.0; MatSetValues(A,1,&I,1,&I,&v,INSERT_VALUES);CHKERRQ(ierr);
+  for( II=Istart; II<Iend; II++ ) { 
+    v = -1.0; i = II/n; j = II-i*n;  
+    if(i>0) { J=II-n; MatSetValues(A,1,&II,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
+    if(i<m-1) { J=II+n; MatSetValues(A,1,&II,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
+    if(j>0) { J=II-1; MatSetValues(A,1,&II,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
+    if(j<n-1) { J=II+1; MatSetValues(A,1,&II,1,&J,&v,INSERT_VALUES);CHKERRQ(ierr); }
+    v=4.0; MatSetValues(A,1,&II,1,&II,&v,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
