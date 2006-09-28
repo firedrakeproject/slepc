@@ -48,9 +48,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Check some constrains and set some default values */ 
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
-  if (!eps->ncv) eps->ncv = eps->nev+primme->maxBlockSize;
-  if (eps->ncv < eps->nev+primme->maxBlockSize)
-    SETERRQ(PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
+
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
   ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
@@ -66,7 +64,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->numEvals = eps->nev; 
   primme->matrix = ops;
   primme->initSize = 1;
-  /* primme->maxBasisSize = eps->ncv; */
   primme->maxMatvecs = eps->max_it; 
   primme->eps = eps->tol; 
   primme->numProcs = numProcs; 
@@ -86,15 +83,22 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       SETERRQ(PETSC_ERR_SUP,"PRIMME only allows EPS_LARGEST_REAL and EPS_SMALLEST_REAL for 'which' value");
       break;   
   }
+  
   primme_set_method(ops->method, primme);
   
+  /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
+  if (eps->ncv) primme->maxBasisSize = eps->ncv;
+  else eps->ncv = primme->maxBasisSize;
+  if (eps->ncv < eps->nev+primme->maxBlockSize)  
+    SETERRQ(PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
+
   /* Set workspace */
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
-  
+
   /* Copy vec_initial to V[0] vector */
   ierr = VecCopy(eps->vec_initial, eps->V[0]); CHKERRQ(ierr);
  
-  if (primme->correctionParams.precondition == 1 ) {
+  if (primme->correctionParams.precondition) {
     /* Calc reciprocal A diagonal */
     ierr = VecDuplicate(eps->vec_initial, &ops->M); CHKERRQ(ierr);
     ierr = MatGetDiagonal(ops->A, ops->M); CHKERRQ(ierr);
@@ -241,18 +245,36 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr; PetscTruth isascii;
   primme_params *primme = &((EPS_PRIMME *)eps->data)->primme;
- 
+  const char *methodList[] = {
+    "default_min_time",
+    "default_min_matvecs",
+    "arnoldi",
+    "gd",
+    "gd_plusk",
+    "gd_olsen_plusk",
+    "jd_olsen_plusk",
+    "rqi",
+    "jdqr",
+    "jdqmr",
+    "jdqmr_etol",
+    "subspace_iteration",
+    "lobpcg_orthobasis",
+    "lobpcg_orthobasis_window"
+  },*precondList[] = {"none", "diagonal"};
+  EPSPRIMMEMethod methodN=0;
+  EPSPRIMMEPrecond precondN=0;
+  
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
     SETERRQ1(1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
   }
   
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method num. of outer iterations: %d\n",primme->stats.numOuterIterations);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method num. of restarts: %d\n",primme->stats.numRestarts);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method num. of matrix vector products: %d\n",primme->stats.numMatvecs);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME method elapsed time: %f\n",primme->stats.elapsedTime);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
+  ierr = EPSPRIMMEGetMethod(eps, &methodN);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver method: %s\n", methodList[methodN]);CHKERRQ(ierr);
+  ierr = EPSPRIMMEGetPrecond(eps, &precondN);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver preconditioning: %s\n", precondList[precondN]);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -280,8 +302,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
     "subspace_iteration",
     "lobpcg_orthobasis",
     "lobpcg_orthobasis_window"
-  }, *restartList[] = {"thick", "dtr"},
-  *precondList[] = {"none", "diagonal"};
+  },*precondList[] = {"none", "diagonal"};
   EPSPRIMMEMethod methodN[] = {
     EPSPRIMME_DEFAULT_MIN_TIME,
     EPSPRIMME_DEFAULT_MIN_MATVECS,
@@ -298,7 +319,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
     EPSPRIMME_LOBPCG_ORTHOBASIS,
     EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
   };
-  EPSPRIMMERestart restartN[] = {EPSPRIMME_THICK, EPSPRIMME_DTR};
   EPSPRIMMEPrecond precondN[] = {EPSPRIMME_NONE, EPSPRIMME_DIAGONAL};
 
   PetscFunctionBegin;
@@ -312,9 +332,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   ierr = PetscOptionsEList("-eps_primme_method","set method for solving the eigenproblem",
                            "EPSPRIMMESetMethod",methodList,14,methodList[0],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetMethod(eps, methodN[op]);CHKERRQ(ierr);}
-  ierr = PetscOptionsEList("-eps_primme_restart","set the restarting scheme",
-                           "EPSPRIMMESetRestart",restartList,2,restartList[0],&op,&flg); CHKERRQ(ierr);
-  if (flg) {ierr = EPSPRIMMESetRestart(eps, restartN[op]);CHKERRQ(ierr);}
   ierr = PetscOptionsEList("-eps_primme_precond","set precondition",
                            "EPSPRIMMESetPrecond",precondList,2,precondList[0],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetPrecond(eps, precondN[op]);CHKERRQ(ierr);}
@@ -534,105 +551,6 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMESetRestart_PRIMME"
-PetscErrorCode EPSPRIMMESetRestart_PRIMME(EPS eps, EPSPRIMMERestart scheme)
-{
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
-
-  PetscFunctionBegin;
-  
-  if (scheme == PETSC_DEFAULT) ops->primme.restartingParams.scheme = primme_thick;
-  else ops->primme.restartingParams.scheme = (primme_restartscheme)scheme;
-  
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMESetRestart"
-/*@
-    EPSPRIMMESetRestart - Sets the restarting scheme for the PRIMME library.
-
-    Collective on EPS
-
-   Input Parameters:
-+  eps - the eigenproblem solver context
--  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
-    in the general case, and EPSPRIMME_DTR(dynamic thick restarting) helpful without 
-    preconditioning but it is expensive to implement.
-
-   Options Database Key:
-.  -eps_primme_restart - Sets the restarting scheme for the PRIMME library
-
-    Level: advanced
-
-@*/
-PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPSPRIMMERestart scheme)
-{
-  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMERestart);
-
-  PetscFunctionBegin;
-  
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMESetRestart_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps, scheme);CHKERRQ(ierr);
-  }
-  
-  PetscFunctionReturn(0);
-}
-
-
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMEGetRestart_PRIMME"
-    PetscErrorCode EPSPRIMMEGetRestart_PRIMME(EPS eps, EPSPRIMMERestart *scheme)
-{
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
-
-  PetscFunctionBegin;
-  
-  if (scheme) *scheme = (EPSPRIMMERestart)ops->primme.restartingParams.scheme;
-  
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMEGetRestart"
-/*@C
-    EPSPRIMMEGetRestart - Gets the restarting scheme for the PRIMME library.
-
-    Non Collective on EPS
-
-   Input Parameters:
-.  eps - the eigenproblem solver context
-    
-    Output Parameters:  
-.  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
-    in the general case, and EPSPRIMME_DTR(dynamic thick restarting) helpful without 
-    preconditioning but it is expensive to implement.
-
-    Level: advanced
-.seealso: EPSPRIMMESetRestart()
-@*/
-PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPSPRIMMERestart *scheme)
-{
-  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMERestart*);
-
-  PetscFunctionBegin;
-  
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMEGetRestart_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps, scheme);CHKERRQ(ierr);
-  }
-  
-  PetscFunctionReturn(0);
-}
-
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -765,13 +683,11 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
    
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetRestart_C","EPSPRIMMESetRestart_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr); 
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetPrecond_PRIMME);CHKERRQ(ierr); 
   
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","EPSPRIMMEGetBlockSize_PRIMME",EPSPRIMMEGetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","EPSPRIMMEGetMethod_PRIMME",EPSPRIMMEGetMethod_PRIMME);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetRestart_C","EPSPRIMMEGetRestart_PRIMME",EPSPRIMMEGetMethod_PRIMME);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetPrecond_C","EPSPRIMMEGetPrecond_PRIMME",EPSPRIMMEGetMethod_PRIMME);CHKERRQ(ierr); 
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetPrecond_C","EPSPRIMMEGetPrecond_PRIMME",EPSPRIMMEGetPrecond_PRIMME);CHKERRQ(ierr); 
 
   PetscFunctionReturn(0);
 }

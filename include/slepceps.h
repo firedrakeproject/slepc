@@ -164,11 +164,6 @@ EXTERN PetscErrorCode EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);
 EXTERN PetscErrorCode EPSBlzpackSetNSteps(EPS,int);
 
 typedef enum {
-  EPSPRIMME_THICK,
-  EPSPRIMME_DTR
-} EPSPRIMMERestart;
-
-typedef enum {
   EPSPRIMME_DEFAULT_MIN_TIME,
   EPSPRIMME_DEFAULT_MIN_MATVECS,
   EPSPRIMME_ARNOLDI,
@@ -192,11 +187,9 @@ typedef enum {
 
 EXTERN PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,int bs);
 EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method);
-EXTERN PetscErrorCode EPSPRIMMESetRestart(EPS eps, EPSPRIMMERestart scheme);
 EXTERN PetscErrorCode EPSPRIMMESetPrecond(EPS eps, EPSPRIMMEPrecond precond);
 EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,int *bs);
 EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method);
-EXTERN PetscErrorCode EPSPRIMMEGetRestart(EPS eps, EPSPRIMMERestart *scheme);
 EXTERN PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, EPSPRIMMEPrecond *precond);
 
 PETSC_EXTERN_CXX_END
