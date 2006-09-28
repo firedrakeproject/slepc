@@ -1,6 +1,7 @@
 
 /*                       
        This file implements a wrapper to the PRIMME library
+       Contributed by Eloy Romero
 */
 
 #include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
@@ -19,7 +20,7 @@ typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
   Mat A;                          /* problem matrix */
-  Vec M;                          /* store reciprocal A diagonal */
+  Vec w;                          /* store reciprocal A diagonal */
   Vec x,y;                        /* auxiliar vectors */ 
 } EPS_PRIMME;
 
@@ -27,7 +28,7 @@ static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSiz
 static void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme);
 
 static void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme) {
-  MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, PETSC_COMM_WORLD);
+  MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, ((EPS)(primme->commInfo))->comm);
 }
 
 #undef __FUNCT__  
@@ -42,17 +43,17 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   PetscFunctionBegin;
 
-  MPI_Comm_size(PETSC_COMM_WORLD, &numProcs);
-  MPI_Comm_rank(PETSC_COMM_WORLD, &procID);
+  MPI_Comm_size(eps->comm,&numProcs);
+  MPI_Comm_rank(eps->comm,&procID);
   
-  /* Check some constrains and set some default values */ 
+  /* Check some constraints and set some default values */ 
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
 
   if (!eps->max_it) eps->max_it = PetscMax(100,N);
   if (!eps->tol) eps->tol = 1.e-7;
   ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
-  if (!ops->A) SETERRQ(PETSC_ERR_SUP,"PRIMME needs a matrix A");
+  if (!ops->A) SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized)
@@ -63,6 +64,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->nLocal = n;
   primme->numEvals = eps->nev; 
   primme->matrix = ops;
+  primme->commInfo = eps;
   primme->initSize = 1;
   primme->maxMatvecs = eps->max_it; 
   primme->eps = eps->tol; 
@@ -100,14 +102,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
  
   if (primme->correctionParams.precondition) {
     /* Calc reciprocal A diagonal */
-    ierr = VecDuplicate(eps->vec_initial, &ops->M); CHKERRQ(ierr);
-    ierr = MatGetDiagonal(ops->A, ops->M); CHKERRQ(ierr);
-    ierr = VecReciprocal(ops->M); CHKERRQ(ierr);
+    ierr = VecDuplicate(eps->vec_initial, &ops->w); CHKERRQ(ierr);
+    ierr = MatGetDiagonal(ops->A, ops->w); CHKERRQ(ierr);
+    ierr = VecReciprocal(ops->w); CHKERRQ(ierr);
     primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
 
-  /* Prepare auxiliar vectors */ 
+  /* Prepare auxiliary vectors */ 
   ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,N,PETSC_NULL,&ops->x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,N,PETSC_NULL,&ops->y);CHKERRQ(ierr);
  
@@ -133,7 +135,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 #ifndef PETSC_USE_COMPLEX
   ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
 #else
-  /* PRIMME return real eigenvalues, but SLEPc work with complex ones */
+  /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
   ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals); CHKERRQ(ierr);
   ierr = zprimme(evals, (Complex_Z*)a, eps->errest, &ops->primme);
   for (i=0;i<eps->ncv;i++)
@@ -177,10 +179,12 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 #define __FUNCT__ "multMatvec_PRIMME"
 static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme)
 {
-  PetscErrorCode ierr; int i, N = primme->n;
-  EPS_PRIMME *ops = (EPS_PRIMME *)primme->matrix; 
-  Vec x = ops->x, y = ops->y;
-  Mat A = ops->A;
+  PetscErrorCode ierr;
+  int            i, N = primme->n;
+  EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
+  Vec            x = ops->x;
+  Vec            y = ops->y;
+  Mat            A = ops->A;
 
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
@@ -200,10 +204,12 @@ static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSiz
 #define __FUNCT__ "applyPreconditioner_PRIMME"
 static void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme)
 {
-  PetscErrorCode ierr; int i, N = primme->n;
-  EPS_PRIMME *ops = (EPS_PRIMME *)primme->matrix; 
-  Vec x = ops->x, y = ops->y;
-  Vec M = ops->M;
+  PetscErrorCode ierr;
+  int            i, N = primme->n;
+  EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
+  Vec            x = ops->x;
+  Vec            y = ops->y;
+  Vec            w = ops->w;
  
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
@@ -211,7 +217,7 @@ static void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int 
     ierr = VecPlaceArray(x, (PetscScalar*)in+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
     ierr = VecPlaceArray(y, (PetscScalar*)out+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
 
-    ierr = VecPointwiseMult(y, M, x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPointwiseMult(y, w, x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
     
     ierr = VecResetArray(x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
     ierr = VecResetArray(y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
@@ -231,6 +237,7 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   
   primme_Free(&ops->primme);
+  if (ops->w) ierr = VecDestroy(ops->w); CHKERRQ(ierr);
   ierr = VecDestroy(ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(ops->y);CHKERRQ(ierr);
   ierr = PetscFree(eps->data); CHKERRQ(ierr);
@@ -243,7 +250,8 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 #define __FUNCT__ "EPSView_PRIMME"
 PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr; PetscTruth isascii;
+  PetscErrorCode ierr;
+  PetscTruth isascii;
   primme_params *primme = &((EPS_PRIMME *)eps->data)->primme;
   const char *methodList[] = {
     "default_min_time",
@@ -260,9 +268,10 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
     "subspace_iteration",
     "lobpcg_orthobasis",
     "lobpcg_orthobasis_window"
-  },*precondList[] = {"none", "diagonal"};
-  EPSPRIMMEMethod methodN=0;
-  EPSPRIMMEPrecond precondN=0;
+  };
+  const char *precondList[] = {"none", "diagonal"};
+  EPSPRIMMEMethod methodN;
+  EPSPRIMMEPrecond precondN;
   
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
@@ -295,14 +304,14 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
     "gd_plusk",
     "gd_olsen_plusk",
     "jd_olsen_plusk",
-    "rqi",
-    "jdqr",
+    "rqi", "jdqr",
     "jdqmr",
     "jdqmr_etol",
     "subspace_iteration",
     "lobpcg_orthobasis",
     "lobpcg_orthobasis_window"
-  },*precondList[] = {"none", "diagonal"};
+  };
+  const char *precondList[] = {"none", "diagonal"};
   EPSPRIMMEMethod methodN[] = {
     EPSPRIMME_DEFAULT_MIN_TIME,
     EPSPRIMME_DEFAULT_MIN_MATVECS,
@@ -332,7 +341,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   ierr = PetscOptionsEList("-eps_primme_method","set method for solving the eigenproblem",
                            "EPSPRIMMESetMethod",methodList,14,methodList[0],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetMethod(eps, methodN[op]);CHKERRQ(ierr);}
-  ierr = PetscOptionsEList("-eps_primme_precond","set precondition",
+  ierr = PetscOptionsEList("-eps_primme_precond","set preconditioner type",
                            "EPSPRIMMESetPrecond",precondList,2,precondList[0],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetPrecond(eps, precondN[op]);CHKERRQ(ierr);}
   
@@ -362,7 +371,8 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetBlockSize"
 /*@
-    EPSPRIMMESetBlockSize - The maximum block size the code will try to use. The user should set
+    EPSPRIMMESetBlockSize - The maximum block size the code will try to use. 
+    The user should set
     this based on the architecture specifics of the target computer, 
     as well as any a priori knowledge of multiplicities. The code does 
     NOT require BlockSize > 1 to find multiple eigenvalues.  For some 
@@ -375,11 +385,11 @@ EXTERN_C_END
 -  bs - block size
 
    Options Database Key:
-.  -eps_primme_maxBlockSize - Sets the max allowed block size value
+.  -eps_primme_block_size - Sets the max allowed block size value
 
-   Note:
-+   If it doesn't set it keeps the value established by primme_initialize.
--   Inner iterations of QMR are not performed in a block fashion. Every correction equation from a block is solved independently.
+   Notes:
+   If the block size is not set, the value established by primme_initialize
+   is used.
 
    Level: advanced
 .seealso: EPSPRIMMEGetBlockSize()
@@ -445,7 +455,6 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,int *bs)
   PetscFunctionReturn(0);
 }
 
-
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetMethod_PRIMME"
@@ -471,16 +480,19 @@ EXTERN_C_END
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
+-  method - method that will be used by PRIMME. It must be one of:
+    EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
     EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
-    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, EPSPRIMME_JD_OlSEN_PLUSK,
-    EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
+    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, 
+    EPSPRIMME_JD_OlSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
+    EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
     EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
    Options Database Key:
 .  -eps_primme_set_method - Sets the method for the PRIMME library.
 
-   Note: If it doesn't set it does EPSPRIMME_DEFAULT_MIN_TIME.
+   Note:
+   If not set, the method defaults to EPSPRIMME_DEFAULT_MIN_TIME.
 
    Level: advanced
 .seealso: EPSPRIMMEGetMethod()  
@@ -499,7 +511,6 @@ PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method)
   
   PetscFunctionReturn(0);
 }
-
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -527,10 +538,12 @@ EXTERN_C_END
 .  eps - the eigenproblem solver context
     
    Output Parameters: 
-.  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
+.  method - method that will be used by PRIMME. It must be one of:
+    EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
     EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
-    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, EPSPRIMME_JD_OlSEN_PLUSK,
-    EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
+    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, 
+    EPSPRIMME_JD_OlSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
+    EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
     EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
     Level: advanced
@@ -571,19 +584,21 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetPrecond"
 /*@
-    EPSPRIMMESetPrecond - Sets either none or the diagonal matrix like preconditioner for the PRIMME library.
+    EPSPRIMMESetPrecond - Sets the preconditioner to be used in the PRIMME
+    library. Currently, only diagonal preconditioning is supported.
 
     Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
+-  precond - either EPSPRIMME_NONE (no preconditioning) or EPSPRIMME_DIAGONAL
+   (diagonal preconditioning)
 
    Options Database Key:
-.  -eps_primme_precond - Sets either none or the diagonal matrix like preconditioner for the PRIMME library
+.  -eps_primme_precond - Sets either 'none' or 'diagonal' preconditioner
 
     Note:
-      The default values is 0, i. e., no preconditioning.
+    The default is no preconditioning.
     
     Level: advanced
 .seealso: EPSPRIMMEGetPrecond()
@@ -623,7 +638,8 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMEGetPrecond"
 /*@C
-    EPSPRIMMEGetPrecond - Gets if the diagonal matrix is going to use like preconditioner for the PRIMME library.
+    EPSPRIMMEGetPrecond - Gets the preconditioner to be used in the PRIMME
+    library.
 
     Collective on EPS
 
@@ -631,7 +647,8 @@ EXTERN_C_END
 .  eps - the eigenproblem solver context
     
   Output Parameters:
-.  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
+.  precond - either EPSPRIMME_NONE (no preconditioning) or EPSPRIMME_DIAGONAL
+   (diagonal preconditioning)
 
     Level: advanced
 .seealso: EPSPRIMMESetPrecond()
@@ -676,10 +693,6 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->method = DEFAULT_MIN_TIME;
-  primme->A = 0;
-  primme->M = 0;
-  primme->x = 0;
-  primme->y = 0;
    
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
@@ -688,6 +701,8 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","EPSPRIMMEGetBlockSize_PRIMME",EPSPRIMMEGetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","EPSPRIMMEGetMethod_PRIMME",EPSPRIMMEGetMethod_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetPrecond_C","EPSPRIMMEGetPrecond_PRIMME",EPSPRIMMEGetPrecond_PRIMME);CHKERRQ(ierr); 
+
+  eps->which = EPS_LARGEST_REAL;
 
   PetscFunctionReturn(0);
 }
