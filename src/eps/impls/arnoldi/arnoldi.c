@@ -127,10 +127,8 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
     eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
-    eps->count_orthog++;
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
-      eps->count_reorthog++;
       ierr = STMInnerProductBegin(eps->OP,j,V[j],V,lhh);CHKERRQ(ierr);
       ierr = STInnerProductBegin(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
@@ -200,7 +198,6 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
   ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
   H[m*(m-2)+m-1] = norm2;
 
-  eps->count_reorthog++;
   ierr = STMInnerProduct(eps->OP,m,f,V,lhh);CHKERRQ(ierr);
   
   ierr = VecSet(w,0.0);CHKERRQ(ierr);
@@ -243,7 +240,6 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec
     eps->its++;
     ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
-    eps->count_orthog++;
     ierr = STMInnerProductBegin(eps->OP,j+1,f,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = STInnerProductBegin(eps->OP,V[j],V[j],&dot);CHKERRQ(ierr); 
@@ -406,7 +402,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
     if (breakdown) {
-      eps->count_breakdown++;
       PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,beta);
       ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       if (breakdown) {

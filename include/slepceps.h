@@ -89,7 +89,7 @@ EXTERN PetscErrorCode EPSSetMonitor(EPS,int (*)(EPS,int,int,PetscScalar*,PetscSc
 EXTERN PetscErrorCode EPSClearMonitor(EPS);
 EXTERN PetscErrorCode EPSGetMonitorContext(EPS,void **);
 EXTERN PetscErrorCode EPSGetIterationNumber(EPS,int*);
-EXTERN PetscErrorCode EPSGetNumberLinearIterations(EPS eps,int*);
+EXTERN PetscErrorCode EPSGetOperationCounters(EPS,int*,int*,int*);
 
 EXTERN PetscErrorCode EPSSetInitialVector(EPS,Vec);
 EXTERN PetscErrorCode EPSGetInitialVector(EPS,Vec*);

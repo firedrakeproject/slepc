@@ -135,10 +135,10 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STGetNumberLinearIterations"
+#define __FUNCT__ "STGetOperationCounters"
 /*@
-   STGetNumberLinearIterations - Gets the total number of linear iterations
-   used by the ST object.
+   STGetOperationCounters - Gets the total number of operator applications,
+   inner product operations and linear iterations used by the ST object.
 
    Not Collective
 
@@ -146,25 +146,31 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 .  st - the spectral transformation context
 
    Output Parameter:
-.  lits - number of linear iterations
++  ops  - number of operator applications
+.  dots - number of inner product operations
+-  lits - number of linear iterations
 
+   Notes:
+   If not needed any 
+   
    Level: intermediate
 
-.seealso: STResetNumberLinearIterations()
+.seealso: STResetOperationCounters()
 @*/
-PetscErrorCode STGetNumberLinearIterations(ST st,int* lits)
+PetscErrorCode STGetOperationCounters(ST st,int* ops,int* dots,int* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidIntPointer(lits,2);
-  *lits = st->lineariterations;
+  if (ops) *ops = st->applys;
+  if (dots) *dots = st->innerproducts;
+  if (lits) *lits = st->lineariterations;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STResetNumberLinearIterations"
+#define __FUNCT__ "STResetOperationCounters"
 /*@
-   STResetNumberLinearIterations - Resets the counter for total number of 
+   STResetOperationCounters - Resets the counter for total number of 
    linear iterations used by the ST object.
 
    Collective on ST
@@ -174,13 +180,15 @@ PetscErrorCode STGetNumberLinearIterations(ST st,int* lits)
 
    Level: intermediate
 
-.seealso: STGetNumberLinearIterations()
+.seealso: STGetOperationCounters()
 @*/
-PetscErrorCode STResetNumberLinearIterations(ST st)
+PetscErrorCode STResetOperationCounters(ST st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   st->lineariterations = 0;
+  st->applys = 0;
+  st->innerproducts = 0;
   PetscFunctionReturn(0);
 }
 

@@ -86,11 +86,9 @@ static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,PetscTruth *which,Vec *V,
     if (which) { /* use select array */
       for (j=0; j<n; j++) 
         if (which[j]) { 
-	  eps->count_orthog_dots++;
 	  ierr = STInnerProductBegin(eps->OP,v,V[j],&H[j]);CHKERRQ(ierr); 
 	}
       if (onorm || norm) {
-	eps->count_orthog_dots++;
 	ierr = STInnerProductBegin(eps->OP,v,v,&alpha);CHKERRQ(ierr); 
       }
       for (j=0; j<n; j++) 
@@ -98,13 +96,11 @@ static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,PetscTruth *which,Vec *V,
       if (onorm || norm) { ierr = STInnerProductEnd(eps->OP,v,v,&alpha);CHKERRQ(ierr); }
     } else { /* merge comunications */
       if (onorm || norm) {
-	eps->count_orthog_dots+=n+1;
 	ierr = STMInnerProductBegin(eps->OP,n,v,V,H);CHKERRQ(ierr);
 	ierr = STInnerProductBegin(eps->OP,v,v,&alpha);CHKERRQ(ierr); 
 	ierr = STMInnerProductEnd(eps->OP,n,v,V,H);CHKERRQ(ierr);
 	ierr = STInnerProductEnd(eps->OP,v,v,&alpha);CHKERRQ(ierr);
       } else { /* use simpler function */ 
-        eps->count_orthog_dots+=n;
         ierr = STMInnerProduct(eps->OP,n,v,V,H);CHKERRQ(ierr);
       }
     }
@@ -127,7 +123,7 @@ static PetscErrorCode EPSOrthogonalizeGS(EPS eps,int n,PetscTruth *which,Vec *V,
         if (!which || which[j])
 	  sum += PetscRealPart(H[j] * PetscConj(H[j]));
       *norm = PetscRealPart(alpha)-sum;
-      if (*norm < 0.0 || eps->compute_norm) {
+      if (*norm < 0.0) {
 	ierr = STNorm(eps->OP,v,norm);CHKERRQ(ierr);
       } else *norm = sqrt(*norm);
     }
@@ -224,7 +220,6 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,PetscTruth *which,Vec *V,Vec v,Pet
   }
 
   /* orthogonalize and compute onorm */
-  eps->count_orthog++;
   switch (eps->orthog_ref) {
   
   case EPS_ORTH_REFINE_NEVER:
@@ -237,7 +232,6 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,PetscTruth *which,Vec *V,Vec v,Pet
     
   case EPS_ORTH_REFINE_ALWAYS:
     ierr = EPSOrthogonalizeGS(eps,n,which,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr); 
-    eps->count_reorthog++;
     if (lindep) {
       ierr = EPSOrthogonalizeGS(eps,n,which,V,v,c,&onrm,&nrm,w);CHKERRQ(ierr);
       if (norm) *norm = nrm;
@@ -256,7 +250,6 @@ PetscErrorCode EPSOrthogonalize(EPS eps,int n,PetscTruth *which,Vec *V,Vec v,Pet
     k = 1;
     while (k<3 && nrm < eps->orthog_eta * onrm) {
       k++;
-      eps->count_reorthog++;
       switch (eps->orthog_type) {
       case EPS_CGS_ORTH:
         ierr = EPSOrthogonalizeGS(eps,n,which,V,v,c,&onrm,&nrm,w);CHKERRQ(ierr); 

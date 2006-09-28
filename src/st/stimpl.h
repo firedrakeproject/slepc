@@ -39,6 +39,8 @@ struct _p_ST {
   void         *data;
   int          setupcalled;
   int          lineariterations;
+  int          applys;
+  int          innerproducts;
   int          (*checknullspace)(ST,int,const Vec[]);
   
   /*------------------------- Cache Bx product -------------------*/

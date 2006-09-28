@@ -164,7 +164,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
 	/* start a new Arnoldi factorization */
-	eps->count_breakdown++;
 	PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%i norm=%g)\n",eps->its,beta);
 	ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
 	if (breakdown) {

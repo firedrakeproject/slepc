@@ -73,7 +73,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
    orthogonality that occurs in finite-precision arithmetic and, therefore, the 
    generated vectors are not guaranteed to be (semi-)orthogonal.
 */
-static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   int            i,j,m = *M;
@@ -568,7 +568,6 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     if (breakdown) {
       restart = -1;
       PetscInfo2(eps,"Breakdown in Lanczos method (it=%i norm=%g)\n",eps->its,beta);
-      eps->count_breakdown++;
     }
     
     if (k<eps->nev) {

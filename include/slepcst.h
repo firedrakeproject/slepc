@@ -50,8 +50,8 @@ EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode STCheckNullSpace(ST,int,const Vec[]);
 
-EXTERN PetscErrorCode STGetNumberLinearIterations(ST,int*);
-EXTERN PetscErrorCode STResetNumberLinearIterations(ST);
+EXTERN PetscErrorCode STGetOperationCounters(ST,int*,int*,int*);
+EXTERN PetscErrorCode STResetOperationCounters(ST);
 
 typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
                STMATMODE_SHELL } STMatMode;

@@ -47,11 +47,7 @@ PetscErrorCode EPSSolve(EPS eps)
   eps->reason = EPS_CONVERGED_ITERATING;
 
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
-  ierr = STResetNumberLinearIterations(eps->OP);
-  eps->count_orthog = 0;
-  eps->count_reorthog = 0;
-  eps->count_orthog_dots = 0;
-  eps->count_breakdown = 0;
+  ierr = STResetOperationCounters(eps->OP);
   eps->nv = eps->ncv;
   eps->evecsavailable = PETSC_FALSE;
 
@@ -183,11 +179,11 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetNumberLinearIterations"
+#define __FUNCT__ "EPSGetOperationCounters"
 /*@
-   EPSGetNumberLinearIterations - Gets the total number of iterations
-   required by the linear solves associated to the ST object during the 
-   last EPSSolve() call.
+   EPSGetOperationCounters - Gets the total number of operator applications,
+   inner product operations and linear iterations used by the ST object 
+   during the last EPSSolve() call.
 
    Not Collective
 
@@ -195,7 +191,9 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
 .  eps - EPS context
 
    Output Parameter:
-.  lits - number of linear iterations
++  ops  - number of operator applications
+.  dots - number of inner product operations
+-  lits - number of linear iterations
 
    Notes:
    When the eigensolver algorithm invokes STApply() then a linear system 
@@ -203,17 +201,16 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
    transformation). The number of iterations required in this solve is
    accumulated into a counter whose value is returned by this function.
 
-   The iteration counter is reset to zero at each successive call to EPSSolve().
+   These counters are reset to zero at each successive call to EPSSolve().
 
    Level: intermediate
 
 @*/
-PetscErrorCode EPSGetNumberLinearIterations(EPS eps,int* lits)
+PetscErrorCode EPSGetOperationCounters(EPS eps,int* ops,int* dots,int* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidIntPointer(lits,2);
-  STGetNumberLinearIterations(eps->OP, lits);
+  STGetOperationCounters(eps->OP,ops,dots,lits);
   PetscFunctionReturn(0);
 }
 
@@ -241,7 +238,8 @@ PetscErrorCode EPSGetConverged(EPS eps,int *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (nconv) *nconv = eps->nconv;
+  PetscValidIntPointer(nconv,2);
+  *nconv = eps->nconv;
   PetscFunctionReturn(0);
 }
 
@@ -277,6 +275,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidIntPointer(reason,2);
   *reason = eps->reason;
   PetscFunctionReturn(0);
 }

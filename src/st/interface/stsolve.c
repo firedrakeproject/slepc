@@ -38,6 +38,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
+  st->applys++;
   ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -403,6 +404,7 @@ PetscErrorCode STInnerProduct(ST st,Vec x,Vec y,PetscScalar *p)
   PetscValidScalarPointer(p,4);
   
   ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  st->innerproducts++;
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_SYMMETRIC:
@@ -458,6 +460,7 @@ PetscErrorCode STInnerProductBegin(ST st,Vec x,Vec y,PetscScalar *p)
   PetscValidScalarPointer(p,4);
   
   ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  st->innerproducts++;
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_SYMMETRIC:
@@ -569,6 +572,7 @@ PetscErrorCode STMInnerProduct(ST st,PetscInt n,Vec x,const Vec y[],PetscScalar 
   PetscValidScalarPointer(p,5);
   
   ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  st->innerproducts += n;
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_SYMMETRIC:
@@ -626,6 +630,7 @@ PetscErrorCode STMInnerProductBegin(ST st,PetscInt n,Vec x,const Vec y[],PetscSc
   PetscValidScalarPointer(p,5);
   
   ierr = PetscLogEventBegin(ST_InnerProduct,st,x,0,0);CHKERRQ(ierr);
+  st->innerproducts += n;
   switch (st->bilinear_form) {
   case STINNER_HERMITIAN:
   case STINNER_SYMMETRIC:
