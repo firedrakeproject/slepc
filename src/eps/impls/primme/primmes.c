@@ -358,11 +358,11 @@ EXTERN_C_END
 -  bs - block size
 
    Options Database Key:
-    .  -eps_primme_maxBlockSize - Sets the max allowed block size value
+.  -eps_primme_maxBlockSize - Sets the max allowed block size value
 
    Note:
-    +   If it doesn't set it keeps the value established by primme_initialize.
-    -   Inner iterations of QMR are not performed in a block fashion. Every correction equation from a block is solved independently.
++   If it doesn't set it keeps the value established by primme_initialize.
+-   Inner iterations of QMR are not performed in a block fashion. Every correction equation from a block is solved independently.
 
    Level: advanced
 .seealso: EPSPRIMMEGetBlockSize()
@@ -405,10 +405,10 @@ EXTERN_C_END
     Collective on EPS
 
    Input Parameters:
-    .  eps - the eigenproblem solver context
+.  eps - the eigenproblem solver context
     
    Output Parameters:  
-    .  bs - returned block size 
+.  bs - returned block size 
 
    Level: advanced
 .seealso: EPSPRIMMESetBlockSize()
@@ -453,15 +453,15 @@ EXTERN_C_END
    Collective on EPS
 
    Input Parameters:
-    +  eps - the eigenproblem solver context
-    -  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
++  eps - the eigenproblem solver context
+-  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
     EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
     EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, EPSPRIMME_JD_OlSEN_PLUSK,
     EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
     EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
    Options Database Key:
-    .  -eps_primme_set_method - Sets the method for the PRIMME library.
+.  -eps_primme_set_method - Sets the method for the PRIMME library.
 
    Note: If it doesn't set it does EPSPRIMME_DEFAULT_MIN_TIME.
 
@@ -507,10 +507,10 @@ EXTERN_C_END
     Mon Collective on EPS
 
    Input Parameters:
-    .  eps - the eigenproblem solver context
+.  eps - the eigenproblem solver context
     
    Output Parameters: 
-    .  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
+.  method - method that will be used by PRIMME. It must be one of next them: EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
     EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
     EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, EPSPRIMME_JD_OlSEN_PLUSK,
     EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
@@ -558,13 +558,13 @@ EXTERN_C_END
     Collective on EPS
 
    Input Parameters:
-    +  eps - the eigenproblem solver context
-    -  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
++  eps - the eigenproblem solver context
+-  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
     in the general case, and EPSPRIMME_DTR(dynamic thick restarting) helpful without 
     preconditioning but it is expensive to implement.
 
    Options Database Key:
-    .  -eps_primme_restart - Sets the restarting scheme for the PRIMME library
+.  -eps_primme_restart - Sets the restarting scheme for the PRIMME library
 
     Level: advanced
 
@@ -608,10 +608,10 @@ EXTERN_C_END
     Non Collective on EPS
 
    Input Parameters:
-    .  eps - the eigenproblem solver context
+.  eps - the eigenproblem solver context
     
     Output Parameters:  
-    .  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
+.  scheme - possible values are: EPSPRIMME_THICK(thick restarting) is the most efficient and robust
     in the general case, and EPSPRIMME_DTR(dynamic thick restarting) helpful without 
     preconditioning but it is expensive to implement.
 
@@ -658,11 +658,11 @@ EXTERN_C_END
     Collective on EPS
 
    Input Parameters:
-    +  eps - the eigenproblem solver context
-    -  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
++  eps - the eigenproblem solver context
+-  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
 
    Options Database Key:
-    .  -eps_primme_precond - Sets either none or the diagonal matrix like preconditioner for the PRIMME library
+.  -eps_primme_precond - Sets either none or the diagonal matrix like preconditioner for the PRIMME library
 
     Note:
       The default values is 0, i. e., no preconditioning.
@@ -710,10 +710,10 @@ EXTERN_C_END
     Collective on EPS
 
    Input Parameters:
-    .  eps - the eigenproblem solver context
+.  eps - the eigenproblem solver context
     
   Output Parameters:
-    .  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
+.  precond - posible values are: EPSPRIMME_NONE, no preconditioning and EPSPRIMME_DIAGONAL, diagonal matrix for preconditioning
 
     Level: advanced
 .seealso: EPSPRIMMESetPrecond()
