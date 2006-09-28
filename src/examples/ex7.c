@@ -83,7 +83,7 @@ int main( int argc, char **argv )
   */
   ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
-  ierr = EPSGetNumberLinearIterations(eps, &lits);CHKERRQ(ierr);
+  ierr = EPSGetOperationCounters(eps,PETSC_NULL,PETSC_NULL,&lits);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of linear iterations of the method: %d\n",lits);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
