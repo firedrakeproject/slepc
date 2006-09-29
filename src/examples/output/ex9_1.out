@@ -1,7 +1,7 @@
 
 Brusselator wave model, n=30
 
- Number of iterations of the method: 102
+ Number of iterations of the method: 12
  Solution method: krylovschur
 
  Number of requested eigenvalues: 1

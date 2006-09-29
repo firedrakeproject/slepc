@@ -60,8 +60,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
       SETERRQ(0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   }
   else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!eps->tol) eps->tol = 1.e-7;
+  if (!eps->max_it) eps->max_it = PetscMax(1000,N);
 
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
@@ -155,7 +154,6 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   blz->rstor[2]  = eps->tol;     /* threshold for convergence */
 
   lflag = 0;           /* reverse communication interface flag */
-  eps->its  = 0;
 
   do {
 
@@ -223,7 +221,6 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 
   for (i=0;i<eps->nconv;i++) {
     eps->eigr[i]=blz->eig[i];
-    eps->eigi[i]=0.0;
   }
 
   if (lflag!=0) { 

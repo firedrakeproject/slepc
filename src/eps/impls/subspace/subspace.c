@@ -29,13 +29,11 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->nev > N) eps->nev = N;
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!eps->tol) eps->tol = 1.e-7;
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -184,7 +182,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
   int            i,ngrp,nogrp,*itrsd,*itrsdold,
-                 nxtsrr,idsrr,idort,nxtort,ncv = eps->ncv;
+                 nxtsrr,idsrr,idort,nxtort,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond;
   PetscTruth     breakdown;
@@ -199,8 +197,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
                                      can be tolerated in orthogonalization */
 
   PetscFunctionBegin;
-  eps->its = 0;
-  eps->nconv = 0;
+  its = 0;
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsdold);CHKERRQ(ierr);
@@ -210,15 +207,14 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=0;i<ncv;i++) {
     ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
-    eps->eigr[i] = 0.0;
-    eps->eigi[i] = 0.0;
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }
   ierr = EPSQRDecomposition(eps,eps->V,0,ncv,PETSC_NULL,0);CHKERRQ(ierr);
   
   while (eps->its<eps->max_it) {
-
+    eps->its++;
+    
     /* Find group in previously computed eigenvalues */
     ierr = EPSFindGroup(eps->nconv,ncv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
@@ -274,7 +270,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   
     /* Convergence check */
     for (i=0;i<ncv;i++) { itrsdold[i] = itrsd[i]; }
-    for (i=eps->nconv;i<ncv;i++) { itrsd[i] = eps->its; }
+    for (i=eps->nconv;i<ncv;i++) { itrsd[i] = its; }
     
     for (;;) {
       /* Find group in currently computed eigenvalues */
@@ -290,31 +286,31 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     if (eps->nconv>=eps->nev) break;
     
     /* Compute nxtsrr (iteration of next projection step) */
-    nxtsrr = PetscMin(eps->max_it,PetscMax((int)floor(stpfac*eps->its), init));
+    nxtsrr = PetscMin(eps->max_it,PetscMax((int)floor(stpfac*its), init));
     
     if (ngrp!=nogrp || ngrp==0 || arsd>=oarsd) {
-      idsrr = nxtsrr - eps->its;
+      idsrr = nxtsrr - its;
     } else {
       idsrr = (int)floor(alpha+beta*(itrsdold[eps->nconv]-itrsd[eps->nconv])*log(arsd/eps->tol)/log(arsd/oarsd));
       idsrr = PetscMax(1,idsrr);
     }
-    nxtsrr = PetscMin(nxtsrr,eps->its+idsrr);
+    nxtsrr = PetscMin(nxtsrr,its+idsrr);
 
     /* Compute nxtort (iteration of next orthogonalization step) */
     ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv);CHKERRQ(ierr);
     ierr = EPSHessCond(U,ncv,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(int)floor(orttol/PetscMax(1,log10(tcond))));    
-    nxtort = PetscMin(eps->its+idort, nxtsrr);
+    nxtort = PetscMin(its+idort, nxtsrr);
 
     /* V(:,idx) = AV(:,idx) */
     for (i=eps->nconv;i<ncv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
-    eps->its++;
+    its++;
 
     /* Orthogonalization loop */
     do {
-      while (eps->its<nxtort) {
+      while (its<nxtort) {
       
         /* AV(:,idx) = OP * V(:,idx) */
         for (i=eps->nconv;i<ncv;i++) {
@@ -328,7 +324,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
           ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
         }
       
-        eps->its++;
+        its++;
       }
       /* Orthonormalize vectors */
       for (i=eps->nconv;i<ncv;i++) {
@@ -339,8 +335,8 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
         }
         ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
       }
-      nxtort = PetscMin(eps->its+idort,nxtsrr);
-    } while (eps->its<nxtsrr);
+      nxtort = PetscMin(its+idort,nxtsrr);
+    } while (its<nxtsrr);
   }
 
   ierr = PetscFree(U);CHKERRQ(ierr);

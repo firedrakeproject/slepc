@@ -45,7 +45,6 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   }
   else eps->ncv = eps->nev;
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*N);
-  if (!eps->tol) eps->tol = 1.e-7;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
@@ -93,12 +92,8 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
-  eps->nconv = 0;
-  eps->its = 0;
-
-  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
-
   while (eps->reason == EPS_CONVERGED_ITERATING) {
+    eps->its = eps->its + 1;
 
     /* y = OP v */
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
@@ -178,7 +173,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
       nsv = eps->nds;
       for (i=0;i<eps->nconv;i++) {
-        if(PetscAbsScalar(rho-eps->eigr[i])>(eps->its+1)*anorm/1000) SV[nsv++]=eps->V[i];
+        if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) SV[nsv++]=eps->V[i];
       }
       ierr = EPSOrthogonalize(eps,nsv,PETSC_NULL,SV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
     } else {
@@ -203,7 +198,6 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       }
     }
 
-    eps->its = eps->its + 1;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
   }
 
@@ -220,7 +214,6 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  int            i;
   Vec            v, w, y, z, e;
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1;
@@ -238,13 +231,9 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
-  eps->nconv = 0;
-  eps->its = 0;
-
-  for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
-
   while (eps->its<eps->max_it) {
-
+    eps->its++;
+    
     /* y = OP v, z = OP' w */
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
     ierr = STApplyTranspose(eps->OP,w,z);CHKERRQ(ierr);
@@ -354,8 +343,6 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       w = eps->W[eps->nconv];
       ierr = EPSGetLeftStartVector(eps,eps->nconv,w);CHKERRQ(ierr);
     }
-
-    eps->its = eps->its + 1;
   }
 
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;

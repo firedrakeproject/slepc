@@ -121,7 +121,6 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
     }
     ierr = PetscFree(w);CHKERRQ(ierr);
 #endif    
-    for (i=0;i<n;i++) eps->eigi[i]=0.0;
   } else {
     ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
     if (!eps->isgeneralized) {

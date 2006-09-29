@@ -50,8 +50,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
 
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!eps->tol) eps->tol = 1.e-7;
+  if (!eps->max_it) eps->max_it = PetscMax(1000,N);
   ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
   if (!ops->A) SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian)

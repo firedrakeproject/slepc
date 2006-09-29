@@ -93,10 +93,9 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = KSPSetUp(blopex->ksp);CHKERRQ(ierr);
 
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
   eps->ncv = eps->nev = PetscMin(eps->nev,N);
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
   
-  if (!eps->tol) eps->tol = 1.e-7;
   blopex->tol.absolute = eps->tol;
   blopex->tol.relative = 1e-50;
   

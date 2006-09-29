@@ -32,6 +32,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   int            i;   
   Vec            v0,w0;  
   Mat            A,B; 
+  PetscInt       N;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -77,6 +78,11 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = SlepcVecSetRandom(w0);CHKERRQ(ierr);
     eps->vec_initial_left = w0;
   }
+
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
+  if (eps->nev > N) eps->nev = N;
+  if (eps->ncv > N) eps->ncv = N;
+  if (!eps->tol) eps->tol = 1.e-7;
 
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 

@@ -17,13 +17,9 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
-    if (eps->ncv>N) SETERRQ(1,"The value of ncv cannot be larger than N"); 
-  }
-  else /* set default value of ncv */
+  } else /* set default value of ncv */
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
-
   if (!eps->max_it) eps->max_it = PetscMax(300,(int)(2*N/eps->ncv));
-  if (!eps->tol) eps->tol = 1.e-7;
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
@@ -35,8 +31,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 #else
   if( eps->ishermitian ) {
     ar->lworkl = ncv*(ncv+8);
-  }
-  else {
+  } else {
     ar->lworkl = 3*ncv*ncv+6*ncv;
     ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
     ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
@@ -65,7 +60,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   char        bmat[1], howmny[] = "A";
   const char  *which;
   PetscInt    nn;
-  int         i, n, iparam[11], ipntr[14], ido, info;
+  int         n, iparam[11], ipntr[14], ido, info;
   PetscScalar sigmar = 0.0, sigmai, *pV, *resid;
   Vec         x, y, w;
   Mat         A,B;
@@ -139,13 +134,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     }
 #endif
 
-#if !defined(PETSC_USE_COMPLEX)
-    if (eps->ishermitian)
-#endif
-      for (i=0;i<eps->ncv;i++) eps->eigi[i]=0.0;
-
-  eps->its = 0;
-
+  eps->its = iparam[2];
   do {
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -153,21 +142,29 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
+      if (eps->its != iparam[2]) {
+	eps->its = iparam[2];
+	EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
+      }
     }
     else {
       ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
+      if (eps->its != iparam[2]) {
+	eps->its = iparam[2];
+	EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
+      }	
     }
 #else
     ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
-    EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
+    if (eps->its != iparam[2]) {
+      eps->its = iparam[2];
+      EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
+    }
 #endif
-    eps->its++;
     
     if (ido >= -1 && ido <= 2) {
       ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]); CHKERRQ(ierr);

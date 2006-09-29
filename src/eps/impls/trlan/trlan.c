@@ -21,8 +21,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
-  if (!eps->max_it) eps->max_it = PetscMax(100,n);
-  if (!eps->tol) eps->tol = 1.e-7;
+  if (!eps->max_it) eps->max_it = PetscMax(1000,n);
   
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
@@ -114,7 +113,6 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   eps->nconv  = ipar[3];
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
-  for (i=0;i<eps->nconv;i++) eps->eigi[i]=0.0;
   
   if (stat!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);}
 

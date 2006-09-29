@@ -1,7 +1,7 @@
 
 1-D Laplacian Eigenproblem, n = 30 (Fortran)
 
- Number of iterations of the method:  40
+ Number of iterations of the method:   4
  Solution method: krylovschur                                                                     
  Number of requested eigenvalues: 1
  Stopping condition: tol=1.0000E-07, maxit= 100

@@ -32,26 +32,18 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->nev > N) eps->nev = N;
   if (eps->ncv) {
-    if (eps->ncv > N) eps->ncv = N;
     if (eps->ncv<eps->nev+1) SETERRQ(1,"The value of ncv must be at least nev+1"); 
   }
   else eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
-  
-  if (!eps->max_it) eps->max_it = PetscMax(100,N);
-  if (!eps->tol) eps->tol = 1.e-7;
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(1,"Wrong value of eps->which");
+
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  if (eps->solverclass==EPS_TWO_SIDE) {
-    ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
-    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
-  }
-  else { ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr); }
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -77,11 +69,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(int),&perm);CHKERRQ(ierr);
   }
-  
-  eps->nconv = 0;
-  eps->its = 0;
-  for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
-  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -89,6 +76,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
+    eps->its++;
 
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;

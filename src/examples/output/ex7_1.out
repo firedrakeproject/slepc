@@ -2,7 +2,7 @@
 Generalized eigenproblem stored in file.
 
  Reading REAL matrices from binary files...
- Number of iterations of the method: 32
+ Number of iterations of the method: 3
  Number of linear iterations of the method: 165
  Solution method: krylovschur
 

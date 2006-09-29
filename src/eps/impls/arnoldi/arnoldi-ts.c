@@ -33,17 +33,13 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eigi);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&aux);CHKERRQ(ierr);
 
-  eps->nconv = 0;
-  eps->its = 0;
-  for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
-  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
-
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,eps->its,Qr[0],PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,eps->its,Ql[0]);CHKERRQ(ierr);
   
   /* Restart loop */
   while (eps->its<eps->max_it) {
+    eps->its++;
 
     /* Compute an ncv-step Arnoldi factorization for both A and A' */
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,&ncv,fr,&beta,&breakdown);CHKERRQ(ierr);
