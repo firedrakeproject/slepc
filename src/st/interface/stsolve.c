@@ -123,6 +123,7 @@ PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
   ierr = PetscLogEventBegin(ST_ApplyNoB,st,x,y,0);CHKERRQ(ierr);
+  st->applys++;
   ierr = (*st->ops->applynoB)(st,x,y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_ApplyNoB,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

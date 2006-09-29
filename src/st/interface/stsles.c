@@ -151,7 +151,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 -  lits - number of linear iterations
 
    Notes:
-   If not needed any 
+   Any output parameter may be PETSC_NULL on input if not needed. 
    
    Level: intermediate
 
@@ -170,8 +170,9 @@ PetscErrorCode STGetOperationCounters(ST st,int* ops,int* dots,int* lits)
 #undef __FUNCT__  
 #define __FUNCT__ "STResetOperationCounters"
 /*@
-   STResetOperationCounters - Resets the counter for total number of 
-   linear iterations used by the ST object.
+   STResetOperationCounters - Resets the counters for operator applications,
+   inner product operations and total number of linear iterations used by 
+   the ST object.
 
    Collective on ST
 
