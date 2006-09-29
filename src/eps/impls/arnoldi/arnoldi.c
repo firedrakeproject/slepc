@@ -13,7 +13,7 @@
        [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4, 
            available at http://www.grycap.upv.es/slepc.
 
-   Last update: Feb 2006
+   Last update: Oct 2006
 
 */
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
