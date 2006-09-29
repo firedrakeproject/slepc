@@ -236,11 +236,13 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   
+  if (ops->primme.correctionParams.precondition) {
+    ierr = VecDestroy(ops->w);CHKERRQ(ierr);
+  }
   primme_Free(&ops->primme);
-  if (ops->w) ierr = VecDestroy(ops->w); CHKERRQ(ierr);
   ierr = VecDestroy(ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(ops->y);CHKERRQ(ierr);
-  ierr = PetscFree(eps->data); CHKERRQ(ierr);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
  
   PetscFunctionReturn(0);
