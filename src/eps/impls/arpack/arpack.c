@@ -134,7 +134,6 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     }
 #endif
 
-  eps->its = iparam[2];
   do {
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -142,28 +141,16 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      if (eps->its != iparam[2]) {
-	eps->its = iparam[2];
-	EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
-      }
     }
     else {
       ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
                 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
-      if (eps->its != iparam[2]) {
-	eps->its = iparam[2];
-	EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
-      }	
     }
 #else
     ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
-    if (eps->its != iparam[2]) {
-      eps->its = iparam[2];
-      EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
-    }
 #endif
     
     if (ido >= -1 && ido <= 2) {
@@ -192,6 +179,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   } while (ido != 99);
 
   eps->nconv = iparam[4];
+  eps->its = iparam[2];
   
   if (info==3) { SETERRQ(1,"No shift could be applied in xxAUPD.\n"
                            "Try increasing the size of NCV relative to NEV."); }
@@ -202,6 +190,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   if (eps->nconv > 0) {
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
+      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
       ARseupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,  
         	 pV, &n, &sigmar, 
         	 bmat, &n, which, &eps->nev, &eps->tol,
@@ -209,6 +198,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
     else {
+      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
       ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
         	 pV, &n, &sigmar, &sigmai, ar->workev, 
         	 bmat, &n, which, &eps->nev, &eps->tol,
@@ -216,6 +206,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
 #else
+    EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
     ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,
                pV, &n, &sigmar, ar->workev, 
                bmat, &n, which, &eps->nev, &eps->tol,
