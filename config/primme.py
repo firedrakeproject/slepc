@@ -9,6 +9,9 @@ import check
 
 def Check(conf,directory,libs):
   
+  log.Write('='*80)
+  log.Println('Checking PRIMME library...')
+
   if petscconf.PRECISION == 'single':
     sys.exit('ERROR: PRIMME does not support single precision.')
  
@@ -16,25 +19,33 @@ def Check(conf,directory,libs):
   if petscconf.SCALAR == 'real':
     functions += ['dprimme']
     include = 'DPRIMME'
-    lib = str.join(' ', libs) + ' -ldprimme'
+    if not libs:
+      libs = ['-ldprimme']
   else:
     functions += ['zprimme']
     include = 'ZPRIMME'
-    lib = str.join(' ', libs) + ' -lzprimme'
+    if not libs:
+      libs = ['-lzprimme']
     
   if directory:
-    directory = [directory]
+    dirs = [directory]
   else:
-    directory = check.GenerateGuesses('PRIMME')
+    dirs = check.GenerateGuesses('Primme')
 
-  for dir in directory:
-    flags = ['-I' + dir + '/' + include]
-    libs =  ['-L' + dir + ' ' + lib]
-    if check.Link(functions,[],flags+libs):
+  for d in dirs:
+    if d:
+      l = ['-L' + d] + libs
+      f = ['-I' + d + '/' + include]
+    else:
+      l =  libs
+      f = []
+    if check.Link(functions,[],l+f):
       conf.write('SLEPC_HAVE_PRIMME = -DSLEPC_HAVE_PRIMME\n')
-      conf.write('PRIMME_LIB =' + str.join(' ', libs) + '\n')
-      conf.write('PRIMME_FLAGS =' + str.join(' ', flags) + '\n')
-      return flags + libs 
+      conf.write('PRIMME_LIB =' + str.join(' ', l) + '\n')
+      conf.write('PRIMME_FLAGS =' + str.join(' ', f) + '\n')
+      return l+f 
 
-  sys.exit('ERROR: PRIMME link test failed.')
-
+    log.Println('ERROR: Unable to link with PRIMME library')
+    print 'ERROR: In directories',dirs
+    print 'ERROR: With flags',libs,
+    log.Exit('')
