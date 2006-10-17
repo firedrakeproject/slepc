@@ -49,17 +49,6 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyB_Shift"
-PetscErrorCode STApplyB_Shift(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecCopy( x, y ); CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Shift"
 PetscErrorCode STBackTransform_Shift(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -102,8 +91,7 @@ PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
   st->ops->apply       = STApply_Shift;
-  st->ops->applyB      = STApplyB_Shift;
-  st->ops->applynoB    = STApply_Shift;
+  st->ops->applyB      = STApplyB_Default;
   st->ops->applytrans  = STApplyTranspose_Shift;
   st->ops->backtr      = STBackTransform_Shift;
   st->ops->setup       = STSetUp_Shift;

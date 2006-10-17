@@ -78,17 +78,6 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyB_Fold"
-PetscErrorCode STApplyB_Fold(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecCopy( x, y ); CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Fold"
 PetscErrorCode STBackTransform_Fold(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -240,8 +229,7 @@ PetscErrorCode STCreate_Fold(ST st)
   st->data		  = (void *) ctx;
 
   st->ops->apply	  = STApply_Fold;
-  st->ops->applyB	  = STApplyB_Fold;
-  st->ops->applynoB	  = STApply_Fold;
+  st->ops->applyB	  = STApplyB_Default;
   st->ops->applytrans     = STApplyTranspose_Fold;
   st->ops->backtr	  = STBackTransform_Fold;
   st->ops->setup	  = STSetUp_Fold;

@@ -306,3 +306,30 @@ PetscErrorCode STSetBilinearForm(ST st,STBilinearForm form)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "STGetBilinearForm"
+/*@C
+   STGetBilinearForm - Retrieves the bilinear form to be used for
+   inner products in eigensolvers.
+
+   Collective on ST
+
+   Input Parameter:
+.  st    - the spectral transformation context
+
+   Output Parameter:
+.  form  - the type of bilinear form
+
+   Level: developer
+
+.seealso: STInnerProduct(), STNorm(), EPSSetProblemType()
+@*/
+PetscErrorCode STGetBilinearForm(ST st,STBilinearForm *form)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidPointer(form,2);
+  *form = st->bilinear_form;
+  PetscFunctionReturn(0);
+}
+

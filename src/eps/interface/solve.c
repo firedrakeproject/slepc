@@ -1141,8 +1141,9 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
    Notes:
    The start vector is computed from another vector: for the first step (i=0),
    the initial vector is used (see EPSGetInitialVector()); otherwise a random
-   vector is created. Then this vector is forced to be in the range of OP and
-   orthonormalized with respect to all V-vectors up to i-1.
+   vector is created. Then this vector is forced to be in the range of OP (only
+   for generalized definite problems) and orthonormalized with respect to all
+   V-vectors up to i-1.
 
    The flag breakdown is set to true if either i=0 and the vector belongs to the
    deflation space, or i>0 and the vector is linearly dependent with respect
@@ -1161,6 +1162,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   PetscErrorCode ierr;
   PetscReal      norm;
   PetscTruth     lindep;
+  STBilinearForm form;
   Vec            w;
   
   PetscFunctionBegin;
@@ -1175,8 +1177,13 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
     ierr = SlepcVecSetRandom(w);CHKERRQ(ierr);
   }
 
-  /* Force the vector to be in the range of OP */
-  ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
+  /* Force the vector to be in the range of OP for definite generalized problems */
+  ierr = STGetBilinearForm(eps->OP,&form);CHKERRQ(ierr);
+  if (form == STINNER_B_HERMITIAN) {
+    ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
+  } else {
+    ierr = VecCopy(w,vec);CHKERRQ(ierr);
+  }
 
   /* Orthonormalize the vector with respect to previous vectors */
   ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);

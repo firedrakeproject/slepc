@@ -42,33 +42,6 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyNoB_Sinvert"
-PetscErrorCode STApplyNoB_Sinvert(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = STAssociatedKSPSolve(st,x,y);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STApplyB_Sinvert"
-PetscErrorCode STApplyB_Sinvert(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if( st->B ) {
-    ierr = MatMult( st->B, x, y ); CHKERRQ(ierr);
-  }
-  else {
-    ierr = VecCopy( x, y ); CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Sinvert"
 PetscErrorCode STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -215,8 +188,7 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->data                = 0;
 
   st->ops->apply          = STApply_Sinvert;
-  st->ops->applyB         = STApplyB_Sinvert;
-  st->ops->applynoB       = STApplyNoB_Sinvert;
+  st->ops->applyB         = STApplyB_Default;
   st->ops->applytrans     = STApplyTranspose_Sinvert;
   st->ops->postsolve      = STPostSolve_Sinvert;
   st->ops->backtr         = STBackTransform_Sinvert;

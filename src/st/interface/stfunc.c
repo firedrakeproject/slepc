@@ -6,7 +6,7 @@
 #include "src/st/stimpl.h"            /*I "slepcst.h" I*/
 
 PetscCookie ST_COOKIE = 0;
-PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyB = 0, ST_ApplyNoB = 0, ST_ApplyTranspose = 0, ST_InnerProduct = 0;
+PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyB = 0, ST_ApplyTranspose = 0, ST_InnerProduct = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "STInitializePackage"
@@ -40,7 +40,6 @@ PetscErrorCode STInitializePackage(char *path) {
   ierr = PetscLogEventRegister(&ST_SetUp,"STSetUp",ST_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_Apply,"STApply",ST_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_ApplyB,"STApplyB",ST_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&ST_ApplyNoB,"STApplyNoB",ST_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_ApplyTranspose,"STApplyTranspose",ST_COOKIE); CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_InnerProduct,"STInnerProduct",ST_COOKIE);CHKERRQ(ierr);
   /* Process info exclusions */

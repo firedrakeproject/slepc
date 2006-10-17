@@ -23,7 +23,7 @@
 
    Level: developer
 
-.seealso: STApplyB(), STApplyNoB()
+.seealso: STApplyB()
 @*/
 PetscErrorCode STApply(ST st,Vec x,Vec y)
 {
@@ -60,7 +60,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 
    Level: developer
 
-.seealso: STApply(), STApplyNoB()
+.seealso: STApply()
 @*/
 PetscErrorCode STApplyB(ST st,Vec x,Vec y)
 {
@@ -90,42 +90,18 @@ PetscErrorCode STApplyB(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyNoB"
-/*@
-   STApplyNoB - Applies the spectral transformation operator to a vector 
-   which has already been multiplied by matrix B. For instance, this routine
-   would perform the operation y =(A - sB)^-1 x in the case of the 
-   shift-and-invert tranformation and generalized eigenproblem.
-
-   Collective on ST and Vec
-
-   Input Parameters:
-+  st - the spectral transformation context
--  x  - input vector, where it is assumed that x=Bw for some vector w
-
-   Output Parameter:
-.  y - output vector
-
-   Level: developer
-
-.seealso: STApply(), STApplyB()
-@*/
-PetscErrorCode STApplyNoB(ST st,Vec x,Vec y)
+#define __FUNCT__ "STApplyB_Default"
+PetscErrorCode STApplyB_Default(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
-  if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
-
-  if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
-
-  ierr = PetscLogEventBegin(ST_ApplyNoB,st,x,y,0);CHKERRQ(ierr);
-  st->applys++;
-  ierr = (*st->ops->applynoB)(st,x,y);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(ST_ApplyNoB,st,x,y,0);CHKERRQ(ierr);
+  if( st->B ) {
+    ierr = MatMult( st->B, x, y ); CHKERRQ(ierr);
+  }
+  else {
+    ierr = VecCopy( x, y ); CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -13,7 +13,6 @@ struct _STOps {
   int          (*setup)(ST);
   int          (*apply)(ST,Vec,Vec);
   int          (*applyB)(ST,Vec,Vec);
-  int          (*applynoB)(ST,Vec,Vec);
   int          (*applytrans)(ST,Vec,Vec);
   int          (*setshift)(ST,PetscScalar);
   int          (*setfromoptions)(ST);

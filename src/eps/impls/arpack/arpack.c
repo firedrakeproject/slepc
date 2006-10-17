@@ -56,17 +56,20 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_ARPACK *ar = (EPS_ARPACK *)eps->data;
-  char        bmat[1], howmny[] = "A";
-  const char  *which;
-  PetscInt    nn;
-  int         n, iparam[11], ipntr[14], ido, info;
-  PetscScalar sigmar = 0.0, sigmai, *pV, *resid;
-  Vec         x, y, w;
-  Mat         A,B;
-  PetscTruth  isSinv,isShift,rvec;
-  MPI_Fint    fcomm;
-  
+  EPS_ARPACK  	 *ar = (EPS_ARPACK *)eps->data;
+  char        	 bmat[1], howmny[] = "A";
+  const char  	 *which;
+  PetscInt    	 nn;
+  int         	 n, iparam[11], ipntr[14], ido, info;
+  PetscScalar 	 sigmar, *pV, *resid;
+  Vec         	 x, y, w = eps->work[0];
+  Mat         	 A;
+  PetscTruth  	 isSinv, isShift, rvec;
+  MPI_Fint    	 fcomm;
+  STBilinearForm form;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    sigmai = 0.0;
+#endif
   PetscFunctionBegin;
 
   fcomm = MPI_Comm_c2f(eps->comm);
@@ -94,20 +97,27 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         5   [ 4  'G' ]    [ 3  'G' ]
         6   [ 5  'G' ]    [ 4  'G' ]
    */
-  bmat[0] = 'I';
-  iparam[6] = 1;
-  if (eps->ishermitian && eps->isgeneralized) {
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
-    if (isSinv) {
-      bmat[0] = 'G';
-      iparam[6] = 3;
-      ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
-      sigmai = 0.0;
-    } else if (isShift) {
-      bmat[0] = 'G';
-      iparam[6] = 2;
-    }
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
+  ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
+  ierr = STGetBilinearForm(eps->OP,&form);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+
+  if (isSinv) { 
+    /* shift-and-invert mode */
+    iparam[6] = 3;
+    if (form == STINNER_B_HERMITIAN) bmat[0] = 'G';
+    else bmat[0] = 'I';
+  } else if (isShift && form == STINNER_B_HERMITIAN) {
+    /* generalized shift mode with B positive definite */
+    iparam[6] = 2;
+    bmat[0] = 'G';
+  } else { 
+    /* regular mode */
+    if (eps->ishermitian && eps->isgeneralized)
+      SETERRQ(PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
+    iparam[6] = 1;
+    bmat[0] = 'I';
   }
  
 #if !defined(PETSC_USE_COMPLEX)
@@ -153,23 +163,42 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
 #endif
     
-    if (ido >= -1 && ido <= 2) {
-      ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]); CHKERRQ(ierr);
-      ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]); CHKERRQ(ierr);
-      if (ido == 1 || ido == -1) { /* Y=OP*X */
-        ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
-        ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);
-        if (ido == 1 && iparam[6] == 2) { /* X=A*X */
-          w = eps->work[0];
-          ierr = STGetOperators(eps->OP,&A,PETSC_NULL); CHKERRQ(ierr);
-          ierr = MatMult(A,x,w); CHKERRQ(ierr); 
-          ierr = VecCopy(w,x); CHKERRQ(ierr);
-          ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,x,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRQ(ierr);	  
-	}
-      } else if (ido == 2) { /* Y=B*X */
-	ierr = STGetOperators(eps->OP,PETSC_NULL,&B); CHKERRQ(ierr);
-	ierr = MatMult(B,x,y); CHKERRQ(ierr); 
+    if (ido == -1 || ido == 1 || ido == 2) {
+      if (ido == 1 && iparam[6] == 3 && bmat[0] == 'G') {
+        /* special case for shift-and-invert with B semi-positive definite*/
+        ierr = VecPlaceArray(x,&ar->workd[ipntr[2]-1]); CHKERRQ(ierr);
+      } else {
+        ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]); CHKERRQ(ierr);
       }
+      ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]); CHKERRQ(ierr);
+      
+      if (ido == -1) { 
+        /* Y = OP * X for for the initialization phase to 
+	   force the starting vector into the range of OP */
+	ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
+      } else if (ido == 2) {
+        /* Y = B * X */
+	ierr = STApplyB(eps->OP,x,y); CHKERRQ(ierr);
+      } else { /* ido == 1 */
+        if (iparam[6] == 3 && bmat[0] == 'G') {
+          /* Y = OP * X for shift-and-invert with B semi-positive definite */
+	  ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
+	} else if (iparam[6] == 2) {
+          /* X=A*X Y=B^-1*X for shift with B positive definite */
+	  ierr = MatMult(A,x,y);CHKERRQ(ierr);
+	  if (sigmar != 0.0) {
+	    ierr = STApplyB(eps->OP,x,w);CHKERRQ(ierr);
+            ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
+	  }
+          ierr = VecCopy(y,x); CHKERRQ(ierr);
+          ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
+	} else  {
+          /* Y = OP * X */
+	  ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);        
+	}
+        ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      }
+            
       ierr = VecResetArray(x); CHKERRQ(ierr);
       ierr = VecResetArray(y); CHKERRQ(ierr);
     } else if (ido != 99) {
@@ -238,15 +267,13 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscTruth     isShift,isSinv;
+  PetscTruth     isSinv;
 
   PetscFunctionBegin;
-  if (eps->ishermitian && eps->isgeneralized) {
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
-    if (isSinv || isShift) PetscFunctionReturn(0);
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+  if (!isSinv) {
+    ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   }
-  ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

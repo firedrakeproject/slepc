@@ -30,7 +30,6 @@ EXTERN PetscErrorCode STView(ST,PetscViewer);
 
 EXTERN PetscErrorCode STApply(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyB(ST,Vec,Vec);
-EXTERN PetscErrorCode STApplyNoB(ST,Vec,Vec);
 EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 EXTERN PetscErrorCode STPostSolve(ST);
@@ -39,6 +38,7 @@ EXTERN PetscErrorCode STInitializePackage(char*);
 
 EXTERN PetscErrorCode STSetKSP(ST,KSP);
 EXTERN PetscErrorCode STGetKSP(ST,KSP*);
+EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 EXTERN PetscErrorCode STSetShift(ST,PetscScalar);
 EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 
@@ -62,6 +62,7 @@ EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
 typedef enum { STINNER_HERMITIAN, STINNER_SYMMETRIC,
                STINNER_B_HERMITIAN, STINNER_B_SYMMETRIC } STBilinearForm;
 EXTERN PetscErrorCode STSetBilinearForm(ST,STBilinearForm);
+EXTERN PetscErrorCode STGetBilinearForm(ST,STBilinearForm*);
 
 EXTERN PetscErrorCode STInnerProduct(ST st,Vec,Vec,PetscScalar*);
 EXTERN PetscErrorCode STInnerProductBegin(ST st,Vec,Vec,PetscScalar*);

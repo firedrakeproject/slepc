@@ -13,6 +13,7 @@
 #define stgetoptionsprefix_       STGETOPTIONSPREFIX
 #define stview_                   STVIEW
 #define stgetmatmode_             STGETMATMODE
+#define stgetbilinearform_        STGETBILINEARFORM
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define stsettype_                stsettype
 #define stgettype_                stgettype
@@ -24,6 +25,7 @@
 #define stgetoptionsprefix_       stgetoptionsprefix
 #define stview_                   stview
 #define stgetmatmode_             stgetmatmode
+#define stgetbilinearform_        stgetbilinearform
 #endif
 
 EXTERN_C_BEGIN
@@ -117,6 +119,11 @@ void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)
 void PETSC_STDCALL  stgetmatmode_(ST *st,STMatMode *mode,int *ierr)
 {
   *ierr = STGetMatMode(*st,mode);
+}
+
+void PETSC_STDCALL  stgetbilinearform_(ST *st,STBilinearForm *form,int *ierr)
+{
+  *ierr = STGetBilinearForm(*st,form);
 }
 
 EXTERN_C_END

@@ -64,18 +64,18 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
-  if (blz->slice) {
+  if (blz->slice || eps->isgeneralized) {
     ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&flg);CHKERRQ(ierr);
     if (!flg)
-      SETERRQ(PETSC_ERR_SUP,"Shift-and-invert ST is needed for spectrum slicing");
+      SETERRQ(PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
     ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
     if (!flg)
-      SETERRQ(PETSC_ERR_SUP,"Preonly KSP is needed for spectrum slicing");
+      SETERRQ(PETSC_ERR_SUP,"Preonly KSP is needed for generalized problems or spectrum slicing");
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)pc,PCCHOLESKY,&flg);CHKERRQ(ierr);
     if (!flg)
-      SETERRQ(PETSC_ERR_SUP,"Cholesky PC is needed for spectrum slicing");
+      SETERRQ(PETSC_ERR_SUP,"Cholesky PC is needed for generalized problems or spectrum slicing");
   }
   if (eps->which!=EPS_SMALLEST_REAL)
     SETERRQ(1,"Wrong value of eps->which");
@@ -130,8 +130,15 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
-  if (blz->slice) { ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr); }
-  else sigma = 0.0;              /* shift of origin */
+  if (eps->isgeneralized && !blz->slice) { 
+    ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr); /* shift of origin */
+    blz->rstor[0]  = sigma;        /* lower limit of eigenvalue interval */
+    blz->rstor[1]  = sigma;        /* upper limit of eigenvalue interval */
+  } else {
+    sigma = 0.0;
+    blz->rstor[0]  = blz->initial; /* lower limit of eigenvalue interval */
+    blz->rstor[1]  = blz->final;   /* upper limit of eigenvalue interval */
+  }
   nneig = 0;                     /* no. of eigs less than sigma */
 
   blz->istor[0]  = n;            /* number of rows of U, V, X*/
@@ -142,15 +149,13 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   blz->istor[5]  = blz->nsteps;  /* maximun number of steps per run */
   blz->istor[6]  = 1;            /* number of starting vectors as input */
   blz->istor[7]  = 0;            /* number of eigenpairs given as input */
-  blz->istor[8]  = blz->slice;   /* problem type */
+  blz->istor[8]  = (blz->slice || eps->isgeneralized) ? 1 : 0;   /* problem type */
   blz->istor[9]  = blz->slice;   /* spectrum slicing */
-  blz->istor[10] = blz->slice;   /* solutions refinement (purify) */
+  blz->istor[10] = eps->isgeneralized ? 1 : 0;   /* solutions refinement (purify) */
   blz->istor[11] = 0;            /* level of printing */
   blz->istor[12] = 6;            /* file unit for output */
   blz->istor[13] = MPI_Comm_c2f(eps->comm);    /* communicator */
 
-  blz->rstor[0]  = blz->initial; /* lower limit of eigenvalue interval */
-  blz->rstor[1]  = blz->final;   /* upper limit of eigenvalue interval */
   blz->rstor[2]  = eps->tol;     /* threshold for convergence */
 
   lflag = 0;           /* reverse communication interface flag */
@@ -166,8 +171,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
         ierr = VecPlaceArray( y, blz->v+i*n );CHKERRQ(ierr);
-        if (blz->slice) { 
-          ierr = STApplyNoB( eps->OP, x, y ); CHKERRQ(ierr);
+        if (blz->slice || eps->isgeneralized) { 
+          ierr = STAssociatedKSPSolve( eps->OP, x, y );CHKERRQ(ierr);
 	} else {
           ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
 	}
@@ -197,6 +202,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       break;
     case 3:  
       /* update shift */
+      PetscInfo1(eps,"Factorization update (sigma=%g)\n",sigma);
       ierr = STSetShift(eps->OP,sigma);CHKERRQ(ierr);
       ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
@@ -207,7 +213,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     case 4:  
       /* copy the initial vector */
       ierr = VecPlaceArray(x,blz->v);CHKERRQ(ierr);
-      ierr = VecCopy(eps->vec_initial,x);CHKERRQ(ierr); 
+      ierr = EPSGetStartVector(eps,0,x,PETSC_NULL);CHKERRQ(ierr);
       ierr = VecResetArray(x);CHKERRQ(ierr);
       break;
     }
@@ -244,7 +250,7 @@ PetscErrorCode EPSBackTransform_BLZPACK(EPS eps)
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
 
   PetscFunctionBegin;
-  if (!blz->slice) {
+  if (!blz->slice && !eps->isgeneralized) {
     ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -319,7 +325,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
     ierr = EPSBlzpackSetInterval(eps,interval[0],interval[1]);CHKERRQ(ierr);
   }
 
-  if (blz->slice) {
+  if (blz->slice || eps->isgeneralized) {
     ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
     ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
@@ -383,12 +389,14 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSBlzpackSetInterval_BLZPACK"
 PetscErrorCode EPSBlzpackSetInterval_BLZPACK(EPS eps,PetscReal initial,PetscReal final)
 {
+  PetscErrorCode ierr;
   EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;;
 
   PetscFunctionBegin;
   blz->initial    = initial;
   blz->final      = final;
   blz->slice      = 1;
+  ierr = STSetShift(eps->OP,initial);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

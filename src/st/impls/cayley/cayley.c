@@ -64,17 +64,6 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyNoB_Cayley"
-PetscErrorCode STApplyNoB_Cayley(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = STAssociatedKSPSolve(st,x,y);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STApplyB_Cayley"
 PetscErrorCode STApplyB_Cayley(ST st,Vec x,Vec y)
 {
@@ -365,7 +354,6 @@ PetscErrorCode STCreate_Cayley(ST st)
 
   st->ops->apply          = STApply_Cayley;
   st->ops->applyB         = STApplyB_Cayley;
-  st->ops->applynoB       = STApplyNoB_Cayley;
   st->ops->applytrans     = STApplyTranspose_Cayley;
   st->ops->postsolve      = STPostSolve_Cayley;
   st->ops->backtr         = STBackTransform_Cayley;
