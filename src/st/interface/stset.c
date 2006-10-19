@@ -296,7 +296,7 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 
    Level: developer
 
-.seealso: STInnerProduct(), STNorm(), EPSSetProblemType()
+.seealso: STGetBilinearForm(), STInnerProduct(), STNorm(), EPSSetProblemType() 
 @*/
 PetscErrorCode STSetBilinearForm(ST st,STBilinearForm form)
 {
@@ -322,7 +322,7 @@ PetscErrorCode STSetBilinearForm(ST st,STBilinearForm form)
 
    Level: developer
 
-.seealso: STInnerProduct(), STNorm(), EPSSetProblemType()
+.seealso: STSetBilinearForm(), STInnerProduct(), STNorm(), EPSSetProblemType()
 @*/
 PetscErrorCode STGetBilinearForm(ST st,STBilinearForm *form)
 {
