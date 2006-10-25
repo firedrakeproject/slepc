@@ -45,7 +45,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*n*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
@@ -78,7 +78,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-  ierr = VecGetArray(eps->vec_initial,&resid);CHKERRQ(ierr);
+  ierr = VecCopy(eps->vec_initial,eps->work[1]);CHKERRQ(ierr);
+  ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
   
   ido  = 0;            /* first call to reverse communication interface */
   info = 1;            /* indicates a initial vector is provided */
@@ -246,7 +247,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   }
 
   ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);
-  ierr = VecRestoreArray( eps->vec_initial, &resid ); CHKERRQ(ierr);
+  ierr = VecRestoreArray( eps->work[1], &resid ); CHKERRQ(ierr);
   if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 
