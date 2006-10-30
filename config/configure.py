@@ -79,11 +79,11 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-primme-dir'):
     primmedir = i.split('=')[1]
     haveprimme = 1
-  elif i.startswith('--with-primme'):
-    haveprimme = not i.endswith('=0')
   elif i.startswith('--with-primme-flags='):
     primmelibs = i.split('=')[1].split(',')
     haveprimme = 1
+  elif i.startswith('--with-primme'):
+    haveprimme = not i.endswith('=0')
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80

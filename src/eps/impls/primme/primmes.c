@@ -11,12 +11,6 @@ EXTERN_C_BEGIN
 #include "primme.h"
 EXTERN_C_END
 
-#ifndef PETSC_USE_COMPLEX
-typedef double PRIMMEScalar;
-#else
-typedef Complex_Z PRIMMEScalar;
-#endif
-
 typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
@@ -25,8 +19,45 @@ typedef struct {
   Vec x,y;                        /* auxiliar vectors */ 
 } EPS_PRIMME;
 
-static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme);
-static void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme);
+const char *methodList[] = {
+  "dynamic",
+  "default_min_time",
+  "default_min_matvecs",
+  "arnoldi",
+  "gd",
+  "gd_plusk",
+  "gd_olsen_plusk",
+  "jd_olsen_plusk",
+  "rqi",
+  "jdqr",
+  "jdqmr",
+  "jdqmr_etol",
+  "subspace_iteration",
+  "lobpcg_orthobasis",
+  "lobpcg_orthobasis_window"
+};
+const char *precondList[] = {"none", "diagonal"};
+EPSPRIMMEMethod methodN[] = {
+  EPSPRIMME_DYNAMIC,
+  EPSPRIMME_DEFAULT_MIN_TIME,
+  EPSPRIMME_DEFAULT_MIN_MATVECS,
+  EPSPRIMME_ARNOLDI,
+  EPSPRIMME_GD,
+  EPSPRIMME_GD_PLUSK,
+  EPSPRIMME_GD_OLSEN_PLUSK,
+  EPSPRIMME_JD_OLSEN_PLUSK,
+  EPSPRIMME_RQI,
+  EPSPRIMME_JDQR,
+  EPSPRIMME_JDQMR,
+  EPSPRIMME_JDQMR_ETOL,
+  EPSPRIMME_SUBSPACE_ITERATION,
+  EPSPRIMME_LOBPCG_ORTHOBASIS,
+  EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
+};
+EPSPRIMMEPrecond precondN[] = {EPSPRIMME_NONE, EPSPRIMME_DIAGONAL};
+
+static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme);
+static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme);
 
 static void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme) {
   MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, ((EPS)(primme->commInfo))->comm);
@@ -70,7 +101,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->eps = eps->tol; 
   primme->numProcs = numProcs; 
   primme->procID = procID;
-  primme->globalSumDouble = par_GlobalSumDouble;
 
   switch(eps->which) {
     case EPS_LARGEST_REAL:
@@ -86,7 +116,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       break;   
   }
   
-  primme_set_method(ops->method, primme);
+  if (primme_set_method(ops->method, primme) < 0)
+    SETERRQ(PETSC_ERR_SUP,"PRIMME method not valid");
   
   /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
   if (eps->ncv) primme->maxBasisSize = eps->ncv;
@@ -132,6 +163,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   /* Call PRIMME solver */
   ierr = VecGetArray(eps->V[0], &a); CHKERRQ(ierr);
+
 #ifndef PETSC_USE_COMPLEX
   ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
 #else
@@ -178,7 +210,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "multMatvec_PRIMME"
-static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, primme_params *primme)
+static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme)
 {
   PetscErrorCode ierr;
   int            i, N = primme->n;
@@ -203,7 +235,7 @@ static void multMatvec_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSiz
 
 #undef __FUNCT__  
 #define __FUNCT__ "applyPreconditioner_PRIMME"
-static void applyPreconditioner_PRIMME(PRIMMEScalar *in, PRIMMEScalar *out, int *blockSize, struct primme_params *primme)
+static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme)
 {
   PetscErrorCode ierr;
   int            i, N = primme->n;
@@ -256,26 +288,9 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscTruth isascii;
   primme_params *primme = &((EPS_PRIMME *)eps->data)->primme;
-  const char *methodList[] = {
-    "default_min_time",
-    "default_min_matvecs",
-    "arnoldi",
-    "gd",
-    "gd_plusk",
-    "gd_olsen_plusk",
-    "jd_olsen_plusk",
-    "rqi",
-    "jdqr",
-    "jdqmr",
-    "jdqmr_etol",
-    "subspace_iteration",
-    "lobpcg_orthobasis",
-    "lobpcg_orthobasis_window"
-  };
-  const char *precondList[] = {"none", "diagonal"};
-  EPSPRIMMEMethod methodN;
-  EPSPRIMMEPrecond precondN;
-  
+  EPSPRIMMEMethod methodn;
+  EPSPRIMMEPrecond precondn;
+
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
@@ -283,10 +298,10 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   }
   
   ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
-  ierr = EPSPRIMMEGetMethod(eps, &methodN);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver method: %s\n", methodList[methodN]);CHKERRQ(ierr);
-  ierr = EPSPRIMMEGetPrecond(eps, &precondN);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver preconditioning: %s\n", precondList[precondN]);CHKERRQ(ierr);
+  ierr = EPSPRIMMEGetMethod(eps, &methodn);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver method: %s\n", methodList[methodn]);CHKERRQ(ierr);
+  ierr = EPSPRIMMEGetPrecond(eps, &precondn);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver preconditioning: %s\n", precondList[precondn]);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -299,40 +314,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   EPS_PRIMME    *ops = (EPS_PRIMME *)eps->data;
   PetscInt       op;
   PetscTruth     flg;
-  const char *methodList[] = {
-    "default_min_time",
-    "default_min_matvecs",
-    "arnoldi",
-    "gd",
-    "gd_plusk",
-    "gd_olsen_plusk",
-    "jd_olsen_plusk",
-    "rqi",
-    "jdqr",
-    "jdqmr",
-    "jdqmr_etol",
-    "subspace_iteration",
-    "lobpcg_orthobasis",
-    "lobpcg_orthobasis_window"
-  };
-  const char *precondList[] = {"none", "diagonal"};
-  EPSPRIMMEMethod methodN[] = {
-    EPSPRIMME_DEFAULT_MIN_TIME,
-    EPSPRIMME_DEFAULT_MIN_MATVECS,
-    EPSPRIMME_ARNOLDI,
-    EPSPRIMME_GD,
-    EPSPRIMME_GD_PLUSK,
-    EPSPRIMME_GD_OLSEN_PLUSK,
-    EPSPRIMME_JD_OlSEN_PLUSK,
-    EPSPRIMME_RQI,
-    EPSPRIMME_JDQR,
-    EPSPRIMME_JDQMR,
-    EPSPRIMME_JDQMR_ETOL,
-    EPSPRIMME_SUBSPACE_ITERATION,
-    EPSPRIMME_LOBPCG_ORTHOBASIS,
-    EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
-  };
-  EPSPRIMMEPrecond precondN[] = {EPSPRIMME_NONE, EPSPRIMME_DIAGONAL};
 
   PetscFunctionBegin;
   
@@ -343,7 +324,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   if (flg) {ierr = EPSPRIMMESetBlockSize(eps,op);CHKERRQ(ierr);}
   op = 0;
   ierr = PetscOptionsEList("-eps_primme_method","set method for solving the eigenproblem",
-                           "EPSPRIMMESetMethod",methodList,14,methodList[0],&op,&flg); CHKERRQ(ierr);
+                           "EPSPRIMMESetMethod",methodList,15,methodList[0],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetMethod(eps, methodN[op]);CHKERRQ(ierr);}
   ierr = PetscOptionsEList("-eps_primme_precond","set preconditioner type",
                            "EPSPRIMMESetPrecond",precondList,2,precondList[0],&op,&flg); CHKERRQ(ierr);
@@ -468,9 +449,9 @@ PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps, EPSPRIMMEMethod method)
 
   PetscFunctionBegin;
 
-  if (method == PETSC_DEFAULT) ops->method = DEFAULT_MIN_TIME;
+  if (method == PETSC_DEFAULT) ops->method = DYNAMIC;
   else ops->method = (primme_preset_method)method;
-  
+
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -485,10 +466,10 @@ EXTERN_C_END
    Input Parameters:
 +  eps - the eigenproblem solver context
 -  method - method that will be used by PRIMME. It must be one of:
-    EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
+    EPSPRIMME_DYNAMIC, EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
     EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
     EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, 
-    EPSPRIMME_JD_OlSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
+    EPSPRIMME_JD_OLSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
     EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
     EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
@@ -496,7 +477,7 @@ EXTERN_C_END
 .  -eps_primme_set_method - Sets the method for the PRIMME library.
 
    Note:
-   If not set, the method defaults to EPSPRIMME_DEFAULT_MIN_TIME.
+   If not set, the method defaults to EPSPRIMME_DYNAMIC.
 
    Level: advanced
 .seealso: EPSPRIMMEGetMethod()  
@@ -525,8 +506,9 @@ PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps, EPSPRIMMEMethod *method)
 
   PetscFunctionBegin;
 
-  if (method) *method = (EPSPRIMMEMethod)ops->method;
-  
+  if (method)
+    *method = (EPSPRIMMEMethod)ops->method;
+
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -543,10 +525,10 @@ EXTERN_C_END
     
    Output Parameters: 
 .  method - method that will be used by PRIMME. It must be one of:
-    EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
+    EPSPRIMME_DYNAMIC, EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
     EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
     EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, 
-    EPSPRIMME_JD_OlSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
+    EPSPRIMME_JD_OLSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
     EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
     EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
@@ -696,8 +678,8 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
 
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
-  primme->method = DEFAULT_MIN_TIME;
-   
+  primme->primme.globalSumDouble = par_GlobalSumDouble;
+  primme->method = DYNAMIC;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetPrecond_PRIMME);CHKERRQ(ierr); 

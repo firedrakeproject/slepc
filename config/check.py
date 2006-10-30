@@ -29,6 +29,8 @@ def LinkWithOutput(functions,callbacks,flags):
   cfile.write(code)
   cfile.close()
   (result, output) = commands.getstatusoutput(petscconf.MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
+  if os.path.exists('checklink.o'):
+    os.unlink('checklink.o')
   os.chdir(os.pardir)
   if result:
     return (0,code + output)
