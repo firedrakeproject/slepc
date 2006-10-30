@@ -5,6 +5,7 @@
 */
 
 #include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
+#include "src/st/stimpl.h"
 
 EXTERN_C_BEGIN
 #include "primme.h"
@@ -166,7 +167,8 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   eps->nconv = ops->primme.initSize>=0?ops->primme.initSize:0;
   eps->reason = EPS_CONVERGED_TOL;
-  eps->its = ops->primme.stats.numMatvecs;
+  eps->its = ops->primme.stats.numOuterIterations;
+  eps->OP->applys = ops->primme.stats.numMatvecs;
 
 #ifndef PETSC_USE_COMPLEX
   ierr = PetscMemzero(eps->eigi, eps->nconv*sizeof(double)); CHKERRQ(ierr);
