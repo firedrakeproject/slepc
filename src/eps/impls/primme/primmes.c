@@ -96,7 +96,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->numEvals = eps->nev; 
   primme->matrix = ops;
   primme->commInfo = eps;
-  primme->initSize = 1;
   primme->maxMatvecs = eps->max_it; 
   primme->eps = eps->tol; 
   primme->numProcs = numProcs; 
@@ -128,9 +127,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Set workspace */
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
 
-  /* Copy vec_initial to V[0] vector */
-  ierr = VecCopy(eps->vec_initial, eps->V[0]); CHKERRQ(ierr);
- 
   if (primme->correctionParams.precondition) {
     /* Calc reciprocal A diagonal */
     ierr = VecDuplicate(eps->vec_initial, &ops->w); CHKERRQ(ierr);
@@ -161,9 +157,16 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   PetscFunctionBegin;
 
+  /* Reset some parameters left from previous runs */
+  ops->primme.aNorm    = 0.0;
+  ops->primme.initSize = 1;
+  ops->primme.iseed[0] = -1;
+
+  /* Copy vec_initial to V[0] vector */
+  ierr = VecCopy(eps->vec_initial, eps->V[0]); CHKERRQ(ierr);
+ 
   /* Call PRIMME solver */
   ierr = VecGetArray(eps->V[0], &a); CHKERRQ(ierr);
-
 #ifndef PETSC_USE_COMPLEX
   ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
 #else
@@ -197,14 +200,11 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
       break;
   }
 
-  eps->nconv = ops->primme.initSize>=0?ops->primme.initSize:0;
-  eps->reason = EPS_CONVERGED_TOL;
+  eps->nconv = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
+  eps->reason = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL : EPS_DIVERGED_ITS;
   eps->its = ops->primme.stats.numOuterIterations;
   eps->OP->applys = ops->primme.stats.numMatvecs;
 
-#ifndef PETSC_USE_COMPLEX
-  ierr = PetscMemzero(eps->eigi, eps->nconv*sizeof(double)); CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
 }
 
