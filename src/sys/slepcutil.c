@@ -217,14 +217,6 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SlepcQuietErrorHandler"
-PetscErrorCode SlepcQuietErrorHandler(int line,const char *fun,const char* file,const char *dir,PetscErrorCode n,int p,const char *mess,void *ctx)
-{
-  PetscFunctionBegin;
-  PetscFunctionReturn(n);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "SlepcCheckOrthogonality"
 /*@
    SlepcCheckOrthogonality - Checks (or prints) the level of orthogonality
