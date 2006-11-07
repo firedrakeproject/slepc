@@ -110,6 +110,7 @@ EXTERN PetscErrorCode EPSAllocateSolutionContiguous(EPS);
 EXTERN PetscErrorCode EPSFreeSolutionContiguous(EPS);
 EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
+EXTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 
 /* Private functions of the solver implementations */
