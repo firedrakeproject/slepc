@@ -159,9 +159,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
         ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
       }
     }
-    /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
-     * improve performance when solving a number of related eigenproblems */
-    ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   case STMATMODE_SHELL:
     ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
@@ -176,9 +174,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
         ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
       }
     }
-    /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
-     * improve performance when solving a number of related eigenproblems */
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   if (st->B) { 
    if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
@@ -194,11 +190,23 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  MatStructure   flg;
 
   PetscFunctionBegin;
+  if (!ctx->tau_set) { ctx->tau = newshift; }
+  if (ctx->tau == 0.0 &&  newshift == 0.0) {
+    SETERRQ(1,"Values of shift and antishift cannot be zero simultaneously");
+  }
 
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
+
+  /* Check if the new KSP matrix has the same zero structure */
+  if (st->B && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) {
+    flg = DIFFERENT_NONZERO_PATTERN;
+  } else {
+    flg = SAME_NONZERO_PATTERN;
+  }
 
   switch (st->shift_matrix) {
   case STMATMODE_INPLACE:
@@ -218,10 +226,10 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
         ierr = MatShift(st->A,-newshift);CHKERRQ(ierr);
       }
     }
-    ierr = KSPSetOperators(st->ksp,st->A,st->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
     break;
   case STMATMODE_SHELL:
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
+    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);    
     break;
   default:
     ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN); CHKERRQ(ierr);
@@ -229,12 +237,9 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
       if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
     }
-    /* In the following line, the SAME_NONZERO_PATTERN flag has been used to
-     * improve performance when solving a number of related eigenproblems */
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    
+    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,flg);CHKERRQ(ierr);    
   }
   st->sigma = newshift;
-  if (!ctx->tau_set) { ctx->tau = newshift; }
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

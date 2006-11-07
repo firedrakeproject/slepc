@@ -199,7 +199,15 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  st->str = str;
+  switch (str) {
+    case SAME_NONZERO_PATTERN:
+    case DIFFERENT_NONZERO_PATTERN:
+    case SUBSET_NONZERO_PATTERN:
+      st->str = str;
+      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid matrix structure flag");
+  }
   PetscFunctionReturn(0);
 }
 
