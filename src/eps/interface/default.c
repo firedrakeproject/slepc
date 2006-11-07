@@ -59,6 +59,35 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSComputeVectors_Hermitian"
+/*
+  EPSComputeVectors_Hermitian - Copies the Lanczos vectors as eigenvectors
+  using purification for generalized eigenproblems.
+ */
+PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
+{
+  PetscErrorCode ierr;
+  int            i;
+  PetscReal      norm;
+
+  PetscFunctionBegin;
+  for (i=0;i<eps->nconv;i++) {
+    if (eps->isgeneralized) {
+      /* Purify eigenvectors */
+      ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->AV[i],&norm);CHKERRQ(ierr);
+    } else {
+      ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);  
+    }
+    if (eps->solverclass == EPS_TWO_SIDE) {
+      ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
+    }
+  }
+  eps->evecsavailable = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_Schur"
 /*
   EPSComputeVectors_Schur - Compute eigenvectors from the vectors
@@ -80,11 +109,19 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
+  STBilinearForm form;
+  PetscReal      norm;
+  Vec            w;
   
   PetscFunctionBegin;
   if (eps->ishermitian) {
-    ierr = EPSComputeVectors_Default(eps);CHKERRQ(ierr);
+    ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
     PetscFunctionReturn(0);
+  }
+  
+  ierr = STGetBilinearForm(eps->OP,&form);CHKERRQ(ierr);
+  if (form == STINNER_B_HERMITIAN) {
+    ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   }
 
   ierr = PetscMalloc(nv*nv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
@@ -103,8 +140,16 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* AV = V * Z */
   for (i=0;i<eps->nconv;i++) {
-    ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(eps->AV[i],nv,Z+nv*i,eps->V);CHKERRQ(ierr);
+    if (form == STINNER_B_HERMITIAN) {
+      /* Purify eigenvectors */
+      ierr = VecSet(w,0.0);CHKERRQ(ierr); 
+      ierr = VecMAXPY(w,nv,Z+nv*i,eps->V);CHKERRQ(ierr);
+      ierr = STApply(eps->OP,w,eps->AV[i]);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->AV[i],&norm);CHKERRQ(ierr);
+    } else {
+      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AV[i],nv,Z+nv*i,eps->V);CHKERRQ(ierr);
+    }
   }    
    
   /* left eigenvectors */
@@ -128,6 +173,9 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
+  if (form == STINNER_B_HERMITIAN) {
+    ierr = VecDestroy(w);CHKERRQ(ierr);
+  }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 #endif 

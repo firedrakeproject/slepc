@@ -771,7 +771,7 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   eps->ops->backtransform        = EPSBackTransform_Default;
   /*if (eps->solverclass==EPS_TWO_SIDE)
        eps->ops->computevectors       = EPSComputeVectors_Schur;
-  else*/ eps->ops->computevectors       = EPSComputeVectors_Default;
+  else*/ eps->ops->computevectors       = EPSComputeVectors_Hermitian;
   lanczos->reorthog              = EPSLANCZOS_REORTHOG_LOCAL;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","EPSLanczosSetReorthog_LANCZOS",EPSLanczosSetReorthog_LANCZOS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_LANCZOS",EPSLanczosGetReorthog_LANCZOS);CHKERRQ(ierr);
