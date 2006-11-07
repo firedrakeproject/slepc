@@ -20,10 +20,11 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscTruth     flg;
   Mat            A,B;
   PetscScalar    shift;
+  KSP            ksp;
+  PC             pc;
   
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->nev<1 || eps->nev>N) SETERRQ(1,"Wrong value of nev");
   eps->ncv = N;
 
   if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
@@ -35,7 +36,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   
   if (flg) {
     la->OP = PETSC_NULL;
-    PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
+    PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
     ierra = SlepcMatConvertSeqDense(A,&la->A);CHKERRQ(ierr);
     if (eps->isgeneralized) {
       ierrb = SlepcMatConvertSeqDense(B,&la->B);CHKERRQ(ierr);
@@ -49,6 +50,11 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       if (shift != 0.0) {
 	ierr = MatShift(la->A,shift);CHKERRQ(ierr);
       }
+      /* use dummy pc and ksp to avoid problems when B is not positive definite */
+      ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
       ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
       PetscFunctionReturn(0);
     }
