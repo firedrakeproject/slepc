@@ -154,7 +154,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 #endif 
         }
 	/* update operator according to new shift */
-	PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
+	PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
 	ierr = STSetShift(eps->OP,rho);
 	PetscPopErrorHandler();
 	if (ierr) {
@@ -303,7 +303,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 #endif 
         }
 	/* update operator according to new shift */
-	PetscPushErrorHandler(SlepcQuietErrorHandler,PETSC_NULL);
+	PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
 	ierr = STSetShift(eps->OP,rho);
 	PetscPopErrorHandler();
 	if (ierr) {
