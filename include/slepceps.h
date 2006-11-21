@@ -108,8 +108,8 @@ EXTERN PetscErrorCode EPSLGMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscRe
 EXTERN PetscErrorCode EPSAttachDeflationSpace(EPS,int,Vec*,PetscTruth);
 EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
 
-EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,char*);
-EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,char*);
+EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);
+EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);
 EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
 
 typedef enum {/* converged */

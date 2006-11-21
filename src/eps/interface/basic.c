@@ -528,6 +528,7 @@ PetscErrorCode EPSGetST(EPS eps, ST *st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(st,2);
   *st = eps->OP;
   PetscFunctionReturn(0);
 }

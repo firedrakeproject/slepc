@@ -653,7 +653,7 @@ PetscErrorCode EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EP
 
 .seealso: EPSAppendOptionsPrefix(), EPSGetOptionsPrefix()
 @*/
-PetscErrorCode EPSSetOptionsPrefix(EPS eps,char *prefix)
+PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
@@ -683,7 +683,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,char *prefix)
 
 .seealso: EPSSetOptionsPrefix(), EPSGetOptionsPrefix()
 @*/
-PetscErrorCode EPSAppendOptionsPrefix(EPS eps,char *prefix)
+PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;

@@ -42,8 +42,8 @@ EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 EXTERN PetscErrorCode STSetShift(ST,PetscScalar);
 EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 
-EXTERN PetscErrorCode STSetOptionsPrefix(ST,char*);
-EXTERN PetscErrorCode STAppendOptionsPrefix(ST,char*);
+EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
+EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
 EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
 EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);

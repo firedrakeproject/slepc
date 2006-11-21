@@ -298,13 +298,15 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 
 .seealso: STAppendOptionsPrefix(), STGetOptionsPrefix()
 @*/
-PetscErrorCode STSetOptionsPrefix(ST st,char *prefix)
+PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectSetOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
+  ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
+  ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -329,13 +331,15 @@ PetscErrorCode STSetOptionsPrefix(ST st,char *prefix)
 
 .seealso: STSetOptionsPrefix(), STGetOptionsPrefix()
 @*/
-PetscErrorCode STAppendOptionsPrefix(ST st,char *prefix)
+PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectAppendOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
+  ierr = KSPSetOptionsPrefix(st->ksp,st->prefix);CHKERRQ(ierr);
+  ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
