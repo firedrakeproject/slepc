@@ -2,6 +2,7 @@
 #include "slepc.h" /*I "slepc.h" I*/
 #include "slepceps.h"
 #include "slepcst.h"
+#include "slepcsvd.h"
 #include <stdlib.h>
 
 #undef __FUNCT__  
@@ -134,6 +135,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
 #else
   ierr = STInitializePackage(PETSC_NULL); CHKERRQ(ierr);
   ierr = EPSInitializePackage(PETSC_NULL); CHKERRQ(ierr);
+  ierr = SVDInitializePackage(PETSC_NULL); CHKERRQ(ierr);
 #endif
 
 #if defined(PETSC_HAVE_DRAND48)

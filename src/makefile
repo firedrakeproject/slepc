@@ -1,5 +1,5 @@
 
-DIRS     = eps st sys examples 
+DIRS     = eps st svd sys examples 
 
 LOCDIR   = src/
 
