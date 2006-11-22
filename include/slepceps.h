@@ -15,12 +15,11 @@ extern PetscCookie EPS_COOKIE;
 
    Level: beginner
 
-  Concepts: eigen solvers
-
 .seealso:  EPSCreate(), ST
 S*/
 typedef struct _p_EPS* EPS;
 
+#define EPSType const char*
 #define EPSPOWER     "power"
 #define EPSSUBSPACE  "subspace"
 #define EPSARNOLDI   "arnoldi"
@@ -32,7 +31,6 @@ typedef struct _p_EPS* EPS;
 #define EPSBLZPACK   "blzpack"
 #define EPSTRLAN     "trlan"
 #define EPSBLOPEX    "blopex"
-#define EPSType const char*
 #define EPSPRIMME    "primme"
 
 typedef enum { EPS_HEP=1,  EPS_GHEP,

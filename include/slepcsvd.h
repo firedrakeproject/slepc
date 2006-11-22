@@ -14,8 +14,6 @@ extern PetscCookie SVD_COOKIE;
 
    Level: beginner
 
-  Concepts: singular solvers
-
 .seealso:  SVDCreate()
 S*/
 typedef struct _p_SVD* SVD;
