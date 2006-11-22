@@ -31,10 +31,18 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
   switch (eigen->mode) {
     case SVDEIGENSOLVER_DIRECT:
       ierr = MatMult(svd->A,x,eigen->w);CHKERRQ(ierr);
-      ierr = MatMultTranspose(svd->A,eigen->w,y);CHKERRQ(ierr);
+      if (svd->AT) {
+        ierr = MatMult(svd->AT,eigen->w,y);CHKERRQ(ierr);
+      } else {
+        ierr = MatMultTranspose(svd->A,eigen->w,y);CHKERRQ(ierr);
+      }
       break;
     case SVDEIGENSOLVER_TRANSPOSE:
-      ierr = MatMultTranspose(svd->A,x,eigen->w);CHKERRQ(ierr);
+      if (svd->AT) {
+        ierr = MatMult(svd->AT,x,eigen->w);CHKERRQ(ierr);
+      } else {
+        ierr = MatMultTranspose(svd->A,x,eigen->w);CHKERRQ(ierr);
+      }
       ierr = MatMult(svd->A,eigen->w,y);CHKERRQ(ierr);
       break;
     case SVDEIGENSOLVER_CYCLIC:
@@ -128,7 +136,11 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
       case SVDEIGENSOLVER_TRANSPOSE:
         ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->U[i],PETSC_NULL);CHKERRQ(ierr);
         svd->sigma[i] = sqrt(PetscRealPart(sigma));
-	ierr = MatMultTranspose(svd->A,svd->U[i],svd->V[i]);CHKERRQ(ierr);
+	if (svd->AT) {
+  	  ierr = MatMult(svd->AT,svd->U[i],svd->V[i]);CHKERRQ(ierr);
+	} else {
+  	  ierr = MatMultTranspose(svd->A,svd->U[i],svd->V[i]);CHKERRQ(ierr);
+	}
 	ierr = VecScale(svd->V[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
 	break;
       case SVDEIGENSOLVER_CYCLIC:

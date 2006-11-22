@@ -153,9 +153,12 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 {
   PetscErrorCode ierr;
   SVD            svd;
+  PetscMPIInt    size;
+
 
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
+  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
 
   PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_COOKIE,-1,"SVD",comm,SVDDestroy,SVDView);
   PetscLogObjectCreate(svd);
@@ -167,7 +170,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->type_name   = PETSC_NULL;
   svd->A           = PETSC_NULL;
   svd->AT          = PETSC_NULL;
-  svd->transmode   = SVD_TRANSPOSE_DEFAULT;
+  svd->transmode   = size == 1 ? SVD_TRANSPOSE_DEFAULT : SVD_TRANSPOSE_EXPLICIT;
   svd->sigma       = PETSC_NULL;
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;
