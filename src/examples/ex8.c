@@ -4,13 +4,12 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
   "The command line options are:\n"
   "  -n <n>, where <n> = matrix dimension.\n\n";
 
+#include "slepcsvd.h"
 #include "slepceps.h"
 
 /*
-   This example computes the singular values of A by computing the eigenvalues
-   of A^T*A, where A^T denotes the transpose of A. 
-
-   An nxn Grcar matrix is a nonsymmetric Toeplitz matrix:
+   This example computes the singular values of an nxn Grcar matrix,
+   which is a nonsymmetric Toeplitz matrix:
 
               |  1  1  1  1               |
               | -1  1  1  1  1            |
@@ -22,37 +21,7 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
               |                  -1  1  1 |
               |                     -1  1 |
 
-   Note that working with A^T*A can lead to poor accuracy of the computed
-   singular values when A is ill-conditioned (which is not the case here).
-   Another alternative would be to compute the eigenvalues of
-
-              |  0   A |
-              | A^T  0 |
-
-   but this significantly increases the cost of the solution process.
-
  */
-
-
-/* 
-   Matrix multiply routine
-*/
-#undef __FUNCT__
-#define __FUNCT__ "MatSVD_Mult"
-PetscErrorCode MatSVD_Mult(Mat H,Vec x,Vec y)
-{
-  Mat            A;
-  Vec            w;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(H,(void**)&A);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,PETSC_NULL,&w);CHKERRQ(ierr);
-  ierr = MatMult(A,x,w);CHKERRQ(ierr);
-  ierr = MatMultTranspose(A,w,y);CHKERRQ(ierr);
-  ierr = VecDestroy(w);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -60,11 +29,11 @@ int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
   Mat         	 A;		  /* Grcar matrix */
-  Mat         	 H;		  /* eigenvalue problem matrix, H=A^T*A */
+  SVD            svd;             /* singular value solver context */
   EPS         	 eps;		  /* eigenproblem solver context */
-  PetscInt    	 N=30, n, Istart, Iend, i, col[5];
+  PetscInt    	 N=30, Istart, Iend, i, col[5];
   int         	 nconv1, nconv2;
-  PetscScalar 	 kl, ks, value[] = { -1, 1, 1, 1, 1 };
+  PetscScalar 	 value[] = { -1, 1, 1, 1, 1 };
   PetscReal   	 sigma_1, sigma_n;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -94,35 +63,27 @@ int main( int argc, char **argv )
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* 
-     Now create a symmetric shell matrix H=A^T*A
-  */
-  ierr = MatGetLocalSize(A,PETSC_NULL,&n);CHKERRQ(ierr);
-  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,PETSC_DETERMINE,PETSC_DETERMINE,(void*)A,&H);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(H,MATOP_MULT,(void(*)())MatSVD_Mult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(H,MATOP_MULT_TRANSPOSE,(void(*)())MatSVD_Mult);CHKERRQ(ierr);
-
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-             Create the eigensolver and set the solution method
+             Create the singular value solver and set the solution method
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* 
-     Create eigensolver context
+     Create singular value context
   */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
 
   /* 
-     Set operators. In this case, it is a standard symmetric eigenvalue problem
+     Set operator
   */
-  ierr = EPSSetOperators(eps,H,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
   */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  /* PENDIENTE: utilizar funciones SVD en lugar de EPS*/
+  ierr = SVDEigensolverGetEPS(svd,&eps);CHKERRQ(ierr); 
   ierr = EPSSetDimensions(eps,1,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,PETSC_DEFAULT,1000);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
@@ -132,43 +93,40 @@ int main( int argc, char **argv )
      First request an eigenvalue from one end of the spectrum
   */
   ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = SVDSolve(svd);CHKERRQ(ierr);
   /* 
-     Get number of converged eigenpairs
+     Get number of converged singular values
   */
-  ierr = EPSGetConverged(eps,&nconv1);CHKERRQ(ierr);
-    /* 
-       Get converged eigenpairs: largest eigenvalue is stored in kl. In this
-       example, we are not interested in the eigenvectors
-    */
+  ierr = SVDGetConverged(svd,&nconv1);CHKERRQ(ierr);
+  /* 
+     Get converged singular values: largest singular value is stored in sigma_1.
+     In this example, we are not interested in the singular vectors
+  */
   if (nconv1 > 0) {
-    ierr = EPSGetEigenpair(eps,0,&kl,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDGetSingularTriplet(svd,0,&sigma_1,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   }
 
   /*
      Request an eigenvalue from the other end of the spectrum
   */
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = SVDSolve(svd);CHKERRQ(ierr);
   /* 
      Get number of converged eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv2);CHKERRQ(ierr);
+  ierr = SVDGetConverged(svd,&nconv2);CHKERRQ(ierr);
   /* 
-     Get converged eigenpairs: smallest eigenvalue is stored in ks. In this
-     example, we are not interested in the eigenvectors
+     Get converged singular values: smallest singular value is stored in sigma_n. 
+     As before, we are not interested in the singular vectors
   */
   if (nconv2 > 0) {
-    ierr = EPSGetEigenpair(eps,0,&ks,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDGetSingularTriplet(svd,0,&sigma_n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
-    sigma_1 = sqrt(PetscRealPart(kl));
-    sigma_n = sqrt(PetscRealPart(ks));
-
     ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
   } else {
@@ -178,9 +136,8 @@ int main( int argc, char **argv )
   /* 
      Free work space
   */
-  ierr = EPSDestroy(eps);CHKERRQ(ierr);
+  ierr = SVDDestroy(svd);CHKERRQ(ierr);
   ierr = MatDestroy(A);CHKERRQ(ierr);
-  ierr = MatDestroy(H);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

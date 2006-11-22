@@ -1,6 +1,6 @@
 /*                       
 
-   SLEPc singular value solver: "eigen"
+   SLEPc singular value solver: "eigensolver"
 
    Method: Uses an Hermitian eigensolver for A^T*A, A*A^T or H(A)
 
@@ -11,6 +11,7 @@
 #include "slepceps.h"
 
 typedef struct {
+  SVDEigensolverMode mode;
   EPS eps;
   Mat mat;
   Vec w;
@@ -27,8 +28,20 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   eigen = (SVD_EIGENSOLVER *)svd->data;
-  ierr = MatMult(svd->A,x,eigen->w);CHKERRQ(ierr);
-  ierr = MatMultTranspose(svd->A,eigen->w,y);CHKERRQ(ierr);
+  switch (eigen->mode) {
+    case SVDEIGENSOLVER_DIRECT:
+      ierr = MatMult(svd->A,x,eigen->w);CHKERRQ(ierr);
+      ierr = MatMultTranspose(svd->A,eigen->w,y);CHKERRQ(ierr);
+      break;
+    case SVDEIGENSOLVER_TRANSPOSE:
+      ierr = MatMultTranspose(svd->A,x,eigen->w);CHKERRQ(ierr);
+      ierr = MatMult(svd->A,eigen->w,y);CHKERRQ(ierr);
+      break;
+    case SVDEIGENSOLVER_CYCLIC:
+      SETERRQ(1,"Not implemented :-)");
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
+  }
   PetscFunctionReturn(0);
 }
 
@@ -40,24 +53,34 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   PetscInt        m,n,M,N;
-  Vec             x;
 
   PetscFunctionBegin;
   
   if (eigen->w) { ierr = VecDestroy(eigen->w);CHKERRQ(ierr); } 
-  ierr = MatGetVecs(svd->A,&x,&eigen->w);CHKERRQ(ierr);
-  ierr = VecGetSize(x,&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(x,&n);CHKERRQ(ierr);
-  ierr = VecDestroy(x);CHKERRQ(ierr);
-
   if (eigen->mat) { ierr = MatDestroy(eigen->mat);CHKERRQ(ierr); }
-  ierr = MatCreateShell(svd->comm,n,n,N,N,svd,&eigen->mat);CHKERRQ(ierr);
+
+  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
+  switch (eigen->mode) {
+    case SVDEIGENSOLVER_DIRECT:
+      ierr = MatGetVecs(svd->A,PETSC_NULL,&eigen->w);CHKERRQ(ierr);
+      ierr = MatCreateShell(svd->comm,n,n,N,N,svd,&eigen->mat);CHKERRQ(ierr);
+      break;
+    case SVDEIGENSOLVER_TRANSPOSE:
+      ierr = MatGetVecs(svd->A,&eigen->w,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatCreateShell(svd->comm,m,m,M,M,svd,&eigen->mat);CHKERRQ(ierr);
+      break;
+    case SVDEIGENSOLVER_CYCLIC:
+      SETERRQ(1,"Not implemented :-)");
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
+  }
   ierr = MatShellSetOperation(eigen->mat,MATOP_MULT,(void(*)(void))ShellMatMult_EIGENSOLVER);CHKERRQ(ierr);  
 
   ierr = EPSSetOperators(eigen->eps,eigen->mat,PETSC_NULL);CHKERRQ(ierr);
   /* EPSSetProblemType deberia estar en SVDSetFromOptions
      PENDIENTE: ARREGLAR EL PROBLEMA EN EPS */
-  ierr = EPSSetProblemType(eigen->eps,EPS_NHEP);CHKERRQ(ierr);
+  ierr = EPSSetProblemType(eigen->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetUp(eigen->eps);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
@@ -95,10 +118,24 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   ierr = PetscMalloc(svd->nconv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
     ierr = MatGetVecs(svd->A,svd->V+i,svd->U+i);CHKERRQ(ierr);
-    ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
-    svd->sigma[i] = sqrt(PetscRealPart(sigma));
-    ierr = MatMult(svd->A,svd->V[i],svd->U[i]);CHKERRQ(ierr);
-    ierr = VecScale(svd->U[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
+    switch (eigen->mode) {
+      case SVDEIGENSOLVER_DIRECT:
+        ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
+        svd->sigma[i] = sqrt(PetscRealPart(sigma));
+	ierr = MatMult(svd->A,svd->V[i],svd->U[i]);CHKERRQ(ierr);
+	ierr = VecScale(svd->U[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
+	break;
+      case SVDEIGENSOLVER_TRANSPOSE:
+        ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->U[i],PETSC_NULL);CHKERRQ(ierr);
+        svd->sigma[i] = sqrt(PetscRealPart(sigma));
+	ierr = MatMultTranspose(svd->A,svd->U[i],svd->V[i]);CHKERRQ(ierr);
+	ierr = VecScale(svd->V[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
+	break;
+      case SVDEIGENSOLVER_CYCLIC:
+	SETERRQ(1,"Not implemented :-)");
+      default:
+	SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -107,11 +144,16 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
 #define __FUNCT__ "SVDSetFromOptions_EIGENSOLVER"
 PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
 {
-  PetscErrorCode ierr;
-  SVD_EIGENSOLVER      *eigen = (SVD_EIGENSOLVER *)svd->data;
+  PetscErrorCode  ierr;
+  SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
+  PetscTruth      flg;
+  const char      *mode_list[3] = { "direct" , "transpose", "cyclic" };
+  PetscInt        mode;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EIGEN options");CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigenSolverSetMode",mode_list,3,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
+  if (flg) { eigen->mode = (SVDEigensolverMode)mode; }
   ierr = EPSSetFromOptions(eigen->eps);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -119,8 +161,111 @@ PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDEigenSetEPS_EIGENSOLVER"
-PetscErrorCode SVDEigenSetEPS_EIGENSOLVER(SVD svd,EPS eps)
+#define __FUNCT__ "SVDEigensolverSetMode_EIGENSOLVER"
+PetscErrorCode SVDEigensolverSetMode_EIGENSOLVER(SVD svd,SVDEigensolverMode mode)
+{
+  SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
+
+  PetscFunctionBegin;
+  switch (eigen->mode) {
+    case SVDEIGENSOLVER_DIRECT:
+    case SVDEIGENSOLVER_TRANSPOSE:
+    case SVDEIGENSOLVER_CYCLIC:
+      eigen->mode = mode;
+      svd->setupcalled = 0;
+      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
+  }
+  PetscFunctionReturn(0);
+}
+EXTERN_C_BEGIN
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDEigensolverSetMode"
+/*@
+   SVDEigensolverSetMode - Sets the transformation used in the eigensolver. 
+
+   Collective on SVD
+
+   Input Parameters:
++  svd  - singular value solver context obtained from SVDCreate()
+-  mode - the mode flag, one of SVDEIGENSOLVER_DIRECT, 
+          SVDEIGENSOLVER_TRANSPOSE or SVDEIGENSOLVER_CYCLIC
+
+   Options Database Key:
+.  -svd_eigensolver_mode <mode> - Indicates the mode flag, where <mode> 
+    is one of 'direct', 'transpose' or 'cyclic' (see explanation below).
+
+   Notes:
+   This parameter selects the eigensystem used to compute the SVD:
+   A^T*A (SVDEIGENSOLVER_DIRECT), A*A^T (SVDEIGENSOLVER_TRANSPOSE) 
+   or H(A) = [ 0  A ; A^T 0 ] (SVDEIGENSOLVER_CYCLIC).
+
+   Level: beginner
+
+.seealso: SVDEigensolverGetMode()
+@*/
+PetscErrorCode SVDEigensolverSetMode(SVD svd,SVDEigensolverMode mode)
+{
+  PetscErrorCode ierr, (*f)(SVD,SVDEigensolverMode);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDEigensolverSetMode_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(svd,mode);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "SVDEigensolverGetMode_EIGENSOLVER"
+PetscErrorCode SVDEigensolverGetMode_EIGENSOLVER(SVD svd,SVDEigensolverMode *mode)
+{
+  SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
+
+  PetscFunctionBegin;
+  PetscValidPointer(mode,2);
+  *mode = eigen->mode;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_BEGIN
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDEigensolverGetMode"
+/*@C
+   SVDEigensolverGetMode - Gets the transformation used by the eigensolver. 
+
+   Not collective
+
+   Input Parameters:
++  svd  - singular value solver context obtained from SVDCreate()
+   Output Parameters:
+-  mode - the mode flag
+
+   Level: beginner
+
+.seealso: SVDEigensolverSetMode()
+@*/
+PetscErrorCode SVDEigensolverGetMode(SVD svd,SVDEigensolverMode *mode)
+{
+  PetscErrorCode ierr, (*f)(SVD,SVDEigensolverMode*);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDEigensolverGetMode_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(svd,mode);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "SVDEigensolverSetEPS_EIGENSOLVER"
+PetscErrorCode SVDEigensolverSetEPS_EIGENSOLVER(SVD svd,EPS eps)
 {
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
@@ -137,9 +282,9 @@ PetscErrorCode SVDEigenSetEPS_EIGENSOLVER(SVD svd,EPS eps)
 EXTERN_C_END
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDEigenSetEPS"
+#define __FUNCT__ "SVDEigensolverSetEPS"
 /*@
-   SVDEigenSetEPS - Associates a eigensolver object to the
+   SVDEigensolverSetEPS - Associates a eigensolver object to the
    singular value solver. 
 
    Collective on SVD
@@ -150,15 +295,15 @@ EXTERN_C_END
 
    Level: advanced
 
-.seealso: SVDEigenGetEPS()
+.seealso: SVDEigensolverGetEPS()
 @*/
-PetscErrorCode SVDEigenSetEPS(SVD svd,EPS eps)
+PetscErrorCode SVDEigensolverSetEPS(SVD svd,EPS eps)
 {
   PetscErrorCode ierr, (*f)(SVD,EPS eps);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDEigenSetEPS_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDEigensolverSetEPS_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,eps);CHKERRQ(ierr);
   }
@@ -167,8 +312,8 @@ PetscErrorCode SVDEigenSetEPS(SVD svd,EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDEigenGetEPS_EIGENSOLVER"
-PetscErrorCode SVDEigenGetEPS_EIGENSOLVER(SVD svd,EPS *eps)
+#define __FUNCT__ "SVDEigensolverGetEPS_EIGENSOLVER"
+PetscErrorCode SVDEigensolverGetEPS_EIGENSOLVER(SVD svd,EPS *eps)
 {
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
 
@@ -180,9 +325,9 @@ PetscErrorCode SVDEigenGetEPS_EIGENSOLVER(SVD svd,EPS *eps)
 EXTERN_C_END
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDEigenGetEPS"
-/*@
-   SVDEigenGetEPS - Obtain the eigensolver (EPS) object associated
+#define __FUNCT__ "SVDEigensolverGetEPS"
+/*@C
+   SVDEigensolverGetEPS - Obtain the eigensolver (EPS) object associated
    to the singular value solver object.
 
    Not Collective
@@ -193,15 +338,17 @@ EXTERN_C_END
    Output Parameter:
 .  eps - the eigensolver object
 
-   Level: beginner
+   Level: advanced
+
+.seealso: SVDEigensolverSetEPS()
 @*/
-PetscErrorCode SVDEigenGetEPS(SVD svd,EPS *eps)
+PetscErrorCode SVDEigensolverGetEPS(SVD svd,EPS *eps)
 {
   PetscErrorCode ierr, (*f)(SVD,EPS *eps);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDEigenGetEPS_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDEigensolverGetEPS_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,eps);CHKERRQ(ierr);
   }
@@ -251,13 +398,16 @@ PetscErrorCode SVDCreate_EIGENSOLVER(SVD svd)
   svd->ops->setfromoptions       = SVDSetFromOptions_EIGENSOLVER;
   svd->ops->destroy              = SVDDestroy_EIGENSOLVER;
   svd->ops->view                 = SVDView_EIGENSOLVER;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDEigenSetEPS_C","SVDEigenSetEPS_EIGENSOLVER",SVDEigenSetEPS_EIGENSOLVER);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDEigenGetEPS_C","SVDEigenGetEPS_EIGENSOLVER",SVDEigenGetEPS_EIGENSOLVER);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDEigensolverSetEPS_C","SVDEigensolverSetEPS_EIGENSOLVER",SVDEigensolverSetEPS_EIGENSOLVER);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDEigensolverGetEPS_C","SVDEigensolverGetEPS_EIGENSOLVER",SVDEigensolverGetEPS_EIGENSOLVER);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDEigensolverSetMode_C","SVDEigensolverSetMode_EIGENSOLVER",SVDEigensolverSetMode_EIGENSOLVER);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDEigensolverGetMode_C","SVDEigensolverGetMode_EIGENSOLVER",SVDEigensolverGetMode_EIGENSOLVER);CHKERRQ(ierr);
 
   ierr = EPSCreate(svd->comm,&eigen->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(eigen->eps,svd->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(eigen->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,eigen->eps);
+  eigen->mode = SVDEIGENSOLVER_DIRECT;
   eigen->mat = PETSC_NULL;
   eigen->w = PETSC_NULL;
   PetscFunctionReturn(0);

@@ -4,6 +4,7 @@
 #if !defined(__SLEPCSVD_H)
 #define __SLEPCSVD_H
 #include "slepc.h"
+#include "slepceps.h"
 PETSC_EXTERN_CXX_BEGIN
 
 extern PetscCookie SVD_COOKIE;
@@ -36,5 +37,13 @@ EXTERN PetscErrorCode SVDComputeResidualNorm(SVD,int,PetscReal*);
 EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 EXTERN PetscErrorCode SVDDestroy(SVD);
 EXTERN PetscErrorCode SVDInitializePackage(char*);
+
+typedef enum { SVDEIGENSOLVER_DIRECT, SVDEIGENSOLVER_TRANSPOSE,
+               SVDEIGENSOLVER_CYCLIC } SVDEigensolverMode;
+
+EXTERN PetscErrorCode SVDEigensolverSetMode(SVD,SVDEigensolverMode);
+EXTERN PetscErrorCode SVDEigensolverGetMode(SVD,SVDEigensolverMode*);
+EXTERN PetscErrorCode SVDEigensolverSetEPS(SVD,EPS);
+EXTERN PetscErrorCode SVDEigensolverGetEPS(SVD,EPS*);
 
 #endif

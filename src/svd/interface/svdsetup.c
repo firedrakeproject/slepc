@@ -88,6 +88,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  svd->setupcalled = 0;
   ierr = PetscOptionsBegin(svd->comm,svd->prefix,"Singular Value Solver (SVD) Options","SVD");CHKERRQ(ierr);
 
   ierr = PetscOptionsList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(svd->type_name?svd->type_name:SVDEIGENSOLVER),type,256,&flg);CHKERRQ(ierr);
