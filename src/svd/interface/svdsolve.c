@@ -86,8 +86,8 @@ PetscErrorCode SVDGetConverged(SVD svd,int *nconv)
 
    Output Parameters:
 +  sigma - singular value
-.  U     - left singular vector
--  V     - right singular vector
+.  u     - left singular vector
+-  v     - right singular vector
 
    The index i should be a value between 0 and nconv (see SVDGetConverged()).
    Both U or V can be PETSC_NULL if singular vectors are not required. 
@@ -96,7 +96,7 @@ PetscErrorCode SVDGetConverged(SVD svd,int *nconv)
 
 .seealso: SVDSolve(),  SVDGetConverged()
 @*/
-PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec U, Vec V)
+PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Vec v)
 {
   PetscErrorCode ierr;
 
@@ -110,13 +110,65 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec U, Ve
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   *sigma = svd->sigma[i];
-  if (U) {
-    PetscValidHeaderSpecific(U,VEC_COOKIE,4);
-//    ierr = VecCopy(svd->U[i],U);CHKERRQ(ierr);
+  if (u) {
+    PetscValidHeaderSpecific(u,VEC_COOKIE,4);
+    ierr = VecCopy(svd->U[i],u);CHKERRQ(ierr);
   }
-  if (V) {
-    PetscValidHeaderSpecific(V,VEC_COOKIE,5);   
-//    ierr = VecCopy(svd->V[i],V);CHKERRQ(ierr);
+  if (v) {
+    PetscValidHeaderSpecific(v,VEC_COOKIE,5);   
+    ierr = VecCopy(svd->V[i],v);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDComputeResidualNorm"
+/*@
+   SVDComputeResidualNorm - Computes the norm of the residual vector associated with 
+   the i-th computed singular triplet.
+
+   Collective on EPS
+
+   Input Parameter:
+.  svd - the eigensolver context
+.  i   - the solution index
+
+   Output Parameter:
+.  norm - the residual norm, computed as ||A*v-sigma*u||_2 where sigma is the 
+   singular value, u and v are the left and right singular vectors. 
+
+   Notes:
+   The index i should be a value between 0 and nconv (see SVDGetConverged()).
+
+   Level: beginner
+
+.seealso: SVDSolve(), SVDGetConverged()
+@*/
+PetscErrorCode SVDComputeResidualNorm(SVD svd, int i, PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  Vec            u,v,x;
+  PetscReal      sigma;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidPointer(sigma,3);
+  if (svd->nconv < 0) { 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
+  }
+  if (i<0 || i>=svd->nconv) { 
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+  }
+  
+  ierr = MatGetVecs(svd->A,&v,&u);CHKERRQ(ierr);
+  ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
+  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);
+  ierr = MatMult(svd->A,v,x);CHKERRQ(ierr);
+  ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
+  ierr = VecNorm(x,NORM_2,norm);CHKERRQ(ierr);
+
+  ierr = VecDestroy(v);CHKERRQ(ierr);
+  ierr = VecDestroy(u);CHKERRQ(ierr);
+  ierr = VecDestroy(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

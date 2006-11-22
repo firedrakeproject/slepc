@@ -21,6 +21,7 @@ struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
   Mat       A;		 /* problem matrix */
   PetscReal *sigma;      /* singular values */
+  Vec       *U,*V;       /* left and right singular vectors */
   int       nconv;       /* number of converged values */
   void      *data;	 /* placeholder for misc stuff associated 
         		    with a particular solver */

@@ -40,7 +40,6 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   PetscInt        m,n,M,N;
-  int             ncv;
   Vec             x;
 
   PetscFunctionBegin;
@@ -61,12 +60,6 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   ierr = EPSSetProblemType(eigen->eps,EPS_NHEP);CHKERRQ(ierr);
   ierr = EPSSetUp(eigen->eps);CHKERRQ(ierr);
 
-  ierr = EPSGetDimensions(eigen->eps,PETSC_NULL,&ncv);CHKERRQ(ierr);
-  if (svd->sigma) {
-    ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
-  }
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -77,12 +70,35 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   int             i;
+  PetscScalar     sigma;
   
   PetscFunctionBegin;
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
+
+  if (svd->sigma) { ierr = PetscFree(svd->sigma);CHKERRQ(ierr); }
+  if (svd->U) {
+    for (i=0;i<svd->nconv;i++) {
+      ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
+    }
+    ierr = PetscFree(svd->U);CHKERRQ(ierr);
+  }
+  if (svd->V) {
+    for (i=0;i<svd->nconv;i++) {
+      ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr); 
+    }
+    ierr = PetscFree(svd->V);CHKERRQ(ierr);
+  }
+  
+  ierr = PetscMalloc(svd->nconv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
+  ierr = PetscMalloc(svd->nconv*sizeof(Vec),&svd->U);CHKERRQ(ierr);
+  ierr = PetscMalloc(svd->nconv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = EPSGetValue(eigen->eps,i,svd->sigma+i,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetVecs(svd->A,svd->V+i,svd->U+i);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
+    svd->sigma[i] = sqrt(PetscRealPart(sigma));
+    ierr = MatMult(svd->A,svd->V[i],svd->U[i]);CHKERRQ(ierr);
+    ierr = VecScale(svd->U[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

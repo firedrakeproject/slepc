@@ -167,6 +167,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->type_name   = PETSC_NULL;
   svd->A           = PETSC_NULL;
   svd->sigma       = PETSC_NULL;
+  svd->U           = PETSC_NULL;
+  svd->V           = PETSC_NULL;
   svd->nconv       = -1;
   svd->data        = PETSC_NULL;
   svd->setupcalled = 0;
@@ -192,7 +194,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 PetscErrorCode SVDDestroy(SVD svd)
 {
   PetscErrorCode ierr;
-
+  int            i;
+  
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   if (--svd->refct > 0) PetscFunctionReturn(0);
@@ -203,11 +206,20 @@ PetscErrorCode SVDDestroy(SVD svd)
   if (svd->ops->destroy) {
     ierr = (*svd->ops->destroy)(svd); CHKERRQ(ierr);
   }
-  if (svd->A) {
-    ierr = MatDestroy(svd->A);CHKERRQ(ierr);
+
+  if (svd->A) { ierr = MatDestroy(svd->A);CHKERRQ(ierr);  }
+  if (svd->sigma) { ierr = PetscFree(svd->sigma);CHKERRQ(ierr); }
+  if (svd->U) {
+    for (i=0;i<svd->nconv;i++) {
+      ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
+    }
+    ierr = PetscFree(svd->U);CHKERRQ(ierr);
   }
-  if (svd->sigma) {
-    ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
+  if (svd->V) {
+    for (i=0;i<svd->nconv;i++) {
+      ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr); 
+    }
+    ierr = PetscFree(svd->V);CHKERRQ(ierr);
   }
   
   PetscLogObjectDestroy(svd);
