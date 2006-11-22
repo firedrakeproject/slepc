@@ -202,6 +202,7 @@ PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
   */
   ierr = STInitializePackage(path); CHKERRQ(ierr);
   ierr = EPSInitializePackage(path); CHKERRQ(ierr);
+  ierr = SVDInitializePackage(path); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
