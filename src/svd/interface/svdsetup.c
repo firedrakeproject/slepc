@@ -36,9 +36,64 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDGetOperator"
+#define __FUNCT__ "SVDSetTransposeMode"
 /*@C
-   SVDGetOperator - Get the matrix associated with the singular value problem.
+   SVDSetTransposeMode - Sets how to compute the transpose of the matrix 
+   associated with the singular value problem.
+
+   Collective on SVD and Mat
+
+   Input Parameters:
++  svd  - the singular value solver context
+.  mode - how to compute the transpose, one of SVD_TRANSPOSE_DEFAULT, 
+          SVD_TRANSPOSE_EXPLICIT or SVD_TRANSPOSE_USERDEFINED (see notes below)
+-  mat  - the transpose of the matrix associated with the singular value problem 
+          when mode is SVD_TRANSPOSE_USERDEFINED
+
+   Options Database Key:
+.  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode> 
+    is one of 'default', 'explicit' or 'user'.
+
+   Notes:    
+   The default behaviour is to compute explicitly the transpose matrix in order 
+   to improve parallel perfomance (SVD_TRANSPOSE_EXPLICIT).
+   It reverts to SVD_TRANSPOSE_DEFAULT in sequential runs or when the matrix
+   is a shell one, in this case the PETSc MatMultTranspose() function with the
+   original matrix is used.
+   The user can provide its own transpose with SVD_TRANSPOSE_USERDEFINED, in 
+   this case the PETSc MatMult() function with the specified matrix is used.
+
+   Level: advanced
+   
+   .seealso: SVDSolve(), SVDSetOperator(), SVDGetOperators()
+@*/
+EXTERN PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode,Mat mat)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  if (mode == SVD_TRANSPOSE_USERDEFINED) {
+    PetscValidHeaderSpecific(mat,MAT_COOKIE,3);
+    PetscCheckSameComm(svd,1,mat,2);
+    ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
+  }
+  if (svd->AT) {
+    ierr = MatDestroy(svd->AT);CHKERRQ(ierr);
+  }
+  if (mode == SVD_TRANSPOSE_USERDEFINED) {
+    svd->AT = mat;
+  } else {
+    svd->AT = PETSC_NULL;
+  }
+  svd->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDGetOperators"
+/*@C
+   SVDGetOperators - Get the matrices associated with the singular value problem.
 
    Not collective, though parallel Mats are returned if the SVD is parallel
 
@@ -46,18 +101,24 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 .  svd - the singular value solver context
 
    Output Parameters:
-.  A - the matrix associated with the singular value problem
++  A    - the matrix associated with the singular value problem
+.  mode - how to compute the transpose
+-  AT   - the transpose of this matrix (PETSC_NULL in default mode)
 
-   Level: intermediate
+   Level: advanced
+   
+   Notes:
+   Any output parameter can be PETSC_NULL on input if it is not needed.
 
-.seealso: SVDSetOperator()
+.seealso: SVDSetOperator(), SVDSetTransposeMode()
 @*/
-PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
+PetscErrorCode SVDGetOperators(SVD svd,Mat *A,SVDTransposeMode *mode,Mat *AT)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  PetscValidPointer(A,2);
-  *A = svd->A;
+  if (A) *A = svd->A;
+  if (mode) *mode = svd->transmode;
+  if (AT) *AT = svd->AT;
   PetscFunctionReturn(0);
 }
 

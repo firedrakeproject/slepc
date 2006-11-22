@@ -166,6 +166,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   svd->type_name   = PETSC_NULL;
   svd->A           = PETSC_NULL;
+  svd->AT          = PETSC_NULL;
+  svd->transmode   = SVD_TRANSPOSE_DEFAULT;
   svd->sigma       = PETSC_NULL;
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;
@@ -208,6 +210,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   }
 
   if (svd->A) { ierr = MatDestroy(svd->A);CHKERRQ(ierr);  }
+  if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr);  }
   if (svd->sigma) { ierr = PetscFree(svd->sigma);CHKERRQ(ierr); }
   if (svd->U) {
     for (i=0;i<svd->nconv;i++) {
