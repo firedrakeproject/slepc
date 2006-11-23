@@ -122,37 +122,38 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDComputeResidualNorm"
+#define __FUNCT__ "SVDComputeResidualNorms"
 /*@
-   SVDComputeResidualNorm - Computes the norm of the residual vector associated with 
+   SVDComputeResidualNorm - Computes the norms of the residuals vectors associated with 
    the i-th computed singular triplet.
 
    Collective on EPS
 
    Input Parameter:
-.  svd - the eigensolver context
-.  i   - the solution index
++  svd  - the eigensolver context
+-  i    - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||A*v-sigma*u||_2 where sigma is the 
-   singular value, u and v are the left and right singular vectors. 
++  norm1 - the norm ||A*v-sigma*u||_2 where sigma is the 
+           singular value, u and v are the left and right singular vectors. 
+-  norm2 - the norm ||A*u-sigma*v||_2 with the same sigma, u and v
 
    Notes:
    The index i should be a value between 0 and nconv (see SVDGetConverged()).
+   Both output parameters can be PETSC_NULL on input if not needed.
 
    Level: beginner
 
 .seealso: SVDSolve(), SVDGetConverged()
 @*/
-PetscErrorCode SVDComputeResidualNorm(SVD svd, int i, PetscReal *norm)
+PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscReal *norm2)
 {
   PetscErrorCode ierr;
-  Vec            u,v,x;
+  Vec            u,v,x = PETSC_NULL,y = PETSC_NULL;
   PetscReal      sigma;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  PetscValidPointer(sigma,3);
   if (svd->nconv < 0) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
   }
@@ -161,14 +162,27 @@ PetscErrorCode SVDComputeResidualNorm(SVD svd, int i, PetscReal *norm)
   }
   
   ierr = MatGetVecs(svd->A,&v,&u);CHKERRQ(ierr);
-  ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);
-  ierr = MatMult(svd->A,v,x);CHKERRQ(ierr);
-  ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
-  ierr = VecNorm(x,NORM_2,norm);CHKERRQ(ierr);
+  if (norm1) {
+    ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
+    ierr = MatMult(svd->A,v,x);CHKERRQ(ierr);
+    ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
+    ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
+  }
+  if (norm2) {
+    ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
+    if (svd->AT) {
+      ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
+    } else {
+      ierr = MatMultTranspose(svd->A,u,y);CHKERRQ(ierr);
+    }
+    ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
+    ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
+  }
 
   ierr = VecDestroy(v);CHKERRQ(ierr);
   ierr = VecDestroy(u);CHKERRQ(ierr);
-  ierr = VecDestroy(x);CHKERRQ(ierr);
+  if (x) { ierr = VecDestroy(x);CHKERRQ(ierr); }
+  if (y) { ierr = VecDestroy(y);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }

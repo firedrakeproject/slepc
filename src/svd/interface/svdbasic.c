@@ -92,6 +92,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type;
   PetscTruth     isascii;
+  const char      *mode_list[3] = { "default" , "explicit", "user" };
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -104,10 +105,11 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"SVD Object:\n");CHKERRQ(ierr);
     ierr = SVDGetType(svd,&type);CHKERRQ(ierr);
     if (type) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s",type);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s\n",type);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  method: not yet set\n");CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: %s\n",mode_list[svd->transmode]);CHKERRQ(ierr);
     if (svd->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
@@ -153,12 +155,9 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 {
   PetscErrorCode ierr;
   SVD            svd;
-  PetscMPIInt    size;
-
 
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
 
   PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_COOKIE,-1,"SVD",comm,SVDDestroy,SVDView);
   PetscLogObjectCreate(svd);
@@ -170,7 +169,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->type_name   = PETSC_NULL;
   svd->A           = PETSC_NULL;
   svd->AT          = PETSC_NULL;
-  svd->transmode   = size == 1 ? SVD_TRANSPOSE_DEFAULT : SVD_TRANSPOSE_EXPLICIT;
+  svd->transmode   = SVD_TRANSPOSE_EXPLICIT;
   svd->sigma       = PETSC_NULL;
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;

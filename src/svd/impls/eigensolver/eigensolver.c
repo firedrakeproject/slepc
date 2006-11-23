@@ -14,7 +14,7 @@ typedef struct {
   SVDEigensolverMode mode;
   EPS eps;
   Mat mat;
-  Vec w;
+  Vec x1,x2,y1,y2;
 } SVD_EIGENSOLVER;
 
 #undef __FUNCT__  
@@ -24,29 +24,52 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
   PetscErrorCode  ierr;
   SVD             svd;
   SVD_EIGENSOLVER *eigen;
-
+  PetscScalar     *px,*py;
+  PetscInt        n;
+  
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   eigen = (SVD_EIGENSOLVER *)svd->data;
   switch (eigen->mode) {
     case SVDEIGENSOLVER_DIRECT:
-      ierr = MatMult(svd->A,x,eigen->w);CHKERRQ(ierr);
+      ierr = MatMult(svd->A,x,eigen->x1);CHKERRQ(ierr);
       if (svd->AT) {
-        ierr = MatMult(svd->AT,eigen->w,y);CHKERRQ(ierr);
+        ierr = MatMult(svd->AT,eigen->x1,y);CHKERRQ(ierr);
       } else {
-        ierr = MatMultTranspose(svd->A,eigen->w,y);CHKERRQ(ierr);
+        ierr = MatMultTranspose(svd->A,eigen->x1,y);CHKERRQ(ierr);
       }
       break;
     case SVDEIGENSOLVER_TRANSPOSE:
       if (svd->AT) {
-        ierr = MatMult(svd->AT,x,eigen->w);CHKERRQ(ierr);
+        ierr = MatMult(svd->AT,x,eigen->x1);CHKERRQ(ierr);
       } else {
-        ierr = MatMultTranspose(svd->A,x,eigen->w);CHKERRQ(ierr);
+        ierr = MatMultTranspose(svd->A,x,eigen->x1);CHKERRQ(ierr);
       }
-      ierr = MatMult(svd->A,eigen->w,y);CHKERRQ(ierr);
+      ierr = MatMult(svd->A,eigen->x1,y);CHKERRQ(ierr);
       break;
     case SVDEIGENSOLVER_CYCLIC:
-      SETERRQ(1,"Not implemented :-)");
+      ierr = MatGetLocalSize(svd->A,PETSC_NULL,&n);CHKERRQ(ierr);
+      ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+      ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+      ierr = VecPlaceArray(eigen->x1,px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(eigen->x2,px+n);CHKERRQ(ierr);
+      ierr = VecPlaceArray(eigen->y1,py);CHKERRQ(ierr);
+      ierr = VecPlaceArray(eigen->y2,py+n);CHKERRQ(ierr);
+      
+      ierr = MatMult(svd->A,eigen->x1,eigen->y2);CHKERRQ(ierr);
+      if (svd->AT) {
+        ierr = MatMult(svd->AT,eigen->x2,eigen->y1);CHKERRQ(ierr);
+      } else {
+        ierr = MatMultTranspose(svd->A,eigen->x2,eigen->y1);CHKERRQ(ierr);
+      }
+            
+      ierr = VecResetArray(eigen->x1);CHKERRQ(ierr);
+      ierr = VecResetArray(eigen->x2);CHKERRQ(ierr);
+      ierr = VecResetArray(eigen->y1);CHKERRQ(ierr);
+      ierr = VecResetArray(eigen->y2);CHKERRQ(ierr);
+      ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+      ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+      break;     
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
   }
@@ -60,34 +83,41 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
 {
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
-  PetscInt        m,n,M,N;
+  PetscInt        m,n;
 
   PetscFunctionBegin;
   
-  if (eigen->w) { ierr = VecDestroy(eigen->w);CHKERRQ(ierr); } 
   if (eigen->mat) { ierr = MatDestroy(eigen->mat);CHKERRQ(ierr); }
+  if (eigen->x1) { ierr = VecDestroy(eigen->x1);CHKERRQ(ierr); } 
+  if (eigen->x2) { ierr = VecDestroy(eigen->x2);CHKERRQ(ierr); } 
+  if (eigen->y1) { ierr = VecDestroy(eigen->y1);CHKERRQ(ierr); } 
+  if (eigen->y2) { ierr = VecDestroy(eigen->y2);CHKERRQ(ierr); } 
 
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   switch (eigen->mode) {
     case SVDEIGENSOLVER_DIRECT:
-      ierr = MatGetVecs(svd->A,PETSC_NULL,&eigen->w);CHKERRQ(ierr);
-      ierr = MatCreateShell(svd->comm,n,n,N,N,svd,&eigen->mat);CHKERRQ(ierr);
+      ierr = MatGetVecs(svd->A,PETSC_NULL,&eigen->x1);CHKERRQ(ierr);
+      eigen->x2 = eigen->y1 = eigen->y2 = PETSC_NULL;
+      ierr = MatCreateShell(svd->comm,n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
       break;
     case SVDEIGENSOLVER_TRANSPOSE:
-      ierr = MatGetVecs(svd->A,&eigen->w,PETSC_NULL);CHKERRQ(ierr);
-      ierr = MatCreateShell(svd->comm,m,m,M,M,svd,&eigen->mat);CHKERRQ(ierr);
+      ierr = MatGetVecs(svd->A,&eigen->x1,PETSC_NULL);CHKERRQ(ierr);
+      eigen->x2 = eigen->y1 = eigen->y2 = PETSC_NULL;
+      ierr = MatCreateShell(svd->comm,m,m,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
       break;
     case SVDEIGENSOLVER_CYCLIC:
-      SETERRQ(1,"Not implemented :-)");
+      ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&eigen->x1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,m,PETSC_DECIDE,PETSC_NULL,&eigen->x2);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&eigen->y1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,m,PETSC_DECIDE,PETSC_NULL,&eigen->y2);CHKERRQ(ierr);
+      ierr = MatCreateShell(svd->comm,m+n,m+n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
+      break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
   }
   ierr = MatShellSetOperation(eigen->mat,MATOP_MULT,(void(*)(void))ShellMatMult_EIGENSOLVER);CHKERRQ(ierr);  
 
   ierr = EPSSetOperators(eigen->eps,eigen->mat,PETSC_NULL);CHKERRQ(ierr);
-  /* EPSSetProblemType deberia estar en SVDSetFromOptions
-     PENDIENTE: ARREGLAR EL PROBLEMA EN EPS */
   ierr = EPSSetProblemType(eigen->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetUp(eigen->eps);CHKERRQ(ierr);
 
@@ -100,12 +130,13 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
 {
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
-  int             i;
-  PetscScalar     sigma;
+  int             i,j;
+  PetscInt        n;
+  PetscScalar     sigma,*px;
+  Vec             x;
   
   PetscFunctionBegin;
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
 
   if (svd->sigma) { ierr = PetscFree(svd->sigma);CHKERRQ(ierr); }
   if (svd->U) {
@@ -121,33 +152,64 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
     ierr = PetscFree(svd->V);CHKERRQ(ierr);
   }
   
+  ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
+
   ierr = PetscMalloc(svd->nconv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
   ierr = PetscMalloc(svd->nconv*sizeof(Vec),&svd->U);CHKERRQ(ierr);
   ierr = PetscMalloc(svd->nconv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
-  for (i=0;i<svd->nconv;i++) {
+  for (i=0,j=0;i<svd->nconv;i++) {
     ierr = MatGetVecs(svd->A,svd->V+i,svd->U+i);CHKERRQ(ierr);
-    switch (eigen->mode) {
-      case SVDEIGENSOLVER_DIRECT:
-        ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
-        svd->sigma[i] = sqrt(PetscRealPart(sigma));
+  }
+
+  switch (eigen->mode) {
+    case SVDEIGENSOLVER_DIRECT:
+      for (i=0;i<svd->nconv;i++) {
+	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
+	svd->sigma[i] = sqrt(PetscRealPart(sigma));
 	ierr = MatMult(svd->A,svd->V[i],svd->U[i]);CHKERRQ(ierr);
 	ierr = VecScale(svd->U[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
-	break;
-      case SVDEIGENSOLVER_TRANSPOSE:
-        ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->U[i],PETSC_NULL);CHKERRQ(ierr);
-        svd->sigma[i] = sqrt(PetscRealPart(sigma));
+      }
+      break;
+    case SVDEIGENSOLVER_TRANSPOSE:
+      for (i=0;i<svd->nconv;i++) {
+	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->U[i],PETSC_NULL);CHKERRQ(ierr);
+	svd->sigma[i] = sqrt(PetscRealPart(sigma));
 	if (svd->AT) {
   	  ierr = MatMult(svd->AT,svd->U[i],svd->V[i]);CHKERRQ(ierr);
 	} else {
   	  ierr = MatMultTranspose(svd->A,svd->U[i],svd->V[i]);CHKERRQ(ierr);
 	}
 	ierr = VecScale(svd->V[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
-	break;
-      case SVDEIGENSOLVER_CYCLIC:
-	SETERRQ(1,"Not implemented :-)");
-      default:
-	SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
-    }
+      }
+      break;
+    case SVDEIGENSOLVER_CYCLIC:
+      ierr = MatGetVecs(eigen->mat,&x,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatGetLocalSize(svd->A,PETSC_NULL,&n);CHKERRQ(ierr);
+      for (i=0,j=0;i<svd->nconv;i++) {
+	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
+	if (sigma > 0.0) {
+	  svd->sigma[j] = sigma;
+	  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+	  ierr = VecPlaceArray(eigen->x1,px);CHKERRQ(ierr);
+	  ierr = VecPlaceArray(eigen->x2,px+n);CHKERRQ(ierr);
+	  
+	  ierr = VecCopy(eigen->x1,svd->V[j]);CHKERRQ(ierr);
+	  ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);
+	  
+	  ierr = VecCopy(eigen->x2,svd->U[j]);CHKERRQ(ierr);
+	  ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
+	  
+	  ierr = VecResetArray(eigen->x1);CHKERRQ(ierr);
+	  ierr = VecResetArray(eigen->x2);CHKERRQ(ierr);
+	  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+	  j++;
+	}
+      }
+      svd->nconv = j;
+      ierr = VecDestroy(x);CHKERRQ(ierr);
+      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
   }
   PetscFunctionReturn(0);
 }
@@ -163,7 +225,7 @@ PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
   PetscInt        mode;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EIGEN options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("EIGENSOLVER options");CHKERRQ(ierr);
   ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigenSolverSetMode",mode_list,3,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
   if (flg) { eigen->mode = (SVDEigensolverMode)mode; }
   ierr = EPSSetFromOptions(eigen->eps);
@@ -373,8 +435,10 @@ PetscErrorCode SVDView_EIGENSOLVER(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
+  const char      *mode_list[3] = { "direct" , "transpose", "cyclic" };
 
   PetscFunctionBegin;
+  ierr = PetscViewerASCIIPrintf(viewer,"eigensolver SVD mode: %s\n",mode_list[eigen->mode]);CHKERRQ(ierr);
   ierr = EPSView(eigen->eps,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -389,7 +453,10 @@ PetscErrorCode SVDDestroy_EIGENSOLVER(SVD svd)
   PetscFunctionBegin;
   ierr = EPSDestroy(eigen->eps);CHKERRQ(ierr);
   if (eigen->mat) { ierr = MatDestroy(eigen->mat);CHKERRQ(ierr); }
-  if (eigen->w) { ierr = VecDestroy(eigen->w);CHKERRQ(ierr); }
+  if (eigen->x1) { ierr = VecDestroy(eigen->x1);CHKERRQ(ierr); } 
+  if (eigen->x2) { ierr = VecDestroy(eigen->x2);CHKERRQ(ierr); } 
+  if (eigen->y1) { ierr = VecDestroy(eigen->y1);CHKERRQ(ierr); } 
+  if (eigen->y2) { ierr = VecDestroy(eigen->y2);CHKERRQ(ierr); } 
   PetscFunctionReturn(0);
 }
 
@@ -419,9 +486,13 @@ PetscErrorCode SVDCreate_EIGENSOLVER(SVD svd)
   ierr = EPSSetOptionsPrefix(eigen->eps,svd->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(eigen->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,eigen->eps);
-  eigen->mode = SVDEIGENSOLVER_DIRECT;
+  ierr = EPSSetWhichEigenpairs(eigen->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+  eigen->mode = SVDEIGENSOLVER_CYCLIC;
   eigen->mat = PETSC_NULL;
-  eigen->w = PETSC_NULL;
+  eigen->x1 = PETSC_NULL;
+  eigen->x2 = PETSC_NULL;
+  eigen->y1 = PETSC_NULL;
+  eigen->y2 = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -37,7 +37,7 @@ EXTERN PetscErrorCode SVDSetUp(SVD);
 EXTERN PetscErrorCode SVDSolve(SVD);
 EXTERN PetscErrorCode SVDGetConverged(SVD,int*);
 EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,int,PetscReal*,Vec,Vec);
-EXTERN PetscErrorCode SVDComputeResidualNorm(SVD,int,PetscReal*);
+EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,int,PetscReal*,PetscReal*);
 EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 EXTERN PetscErrorCode SVDDestroy(SVD);
 EXTERN PetscErrorCode SVDInitializePackage(char*);
