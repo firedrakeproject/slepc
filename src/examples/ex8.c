@@ -109,7 +109,7 @@ int main( int argc, char **argv )
   /*
      Request an eigenvalue from the other end of the spectrum
   */
-  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   /* 
      Get number of converged eigenpairs
