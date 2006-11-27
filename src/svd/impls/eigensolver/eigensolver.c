@@ -76,6 +76,23 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "ShellMatGetDiagonal_EIGENSOLVER"
+PetscErrorCode ShellMatGetDiagonal_EIGENSOLVER(Mat B,Vec diag)
+{
+  PetscErrorCode  ierr;
+  SVD             svd;
+  SVD_EIGENSOLVER *eigen;
+  PetscScalar     *px,*py;
+  PetscInt        n;
+  
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
+  eigen = (SVD_EIGENSOLVER *)svd->data;
+  ierr = VecSet(diag,0.0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetUp_EIGENSOLVER"
@@ -111,6 +128,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
       ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&eigen->y1);CHKERRQ(ierr);
       ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,m,PETSC_DECIDE,PETSC_NULL,&eigen->y2);CHKERRQ(ierr);
       ierr = MatCreateShell(svd->comm,m+n,m+n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(eigen->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_EIGENSOLVER);CHKERRQ(ierr);  
       break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
