@@ -234,8 +234,8 @@ PetscErrorCode SVDSetUp(SVD svd)
       ierr = MatTranspose(svd->A,&svd->AT);CHKERRQ(ierr);
       break;
     case SVD_TRANSPOSE_DEFAULT:
-      svd->AT = PETSC_NULL;    
       if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
+      svd->AT = PETSC_NULL;    
       break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
