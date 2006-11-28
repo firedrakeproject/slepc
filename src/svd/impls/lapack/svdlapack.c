@@ -104,6 +104,8 @@ PetscErrorCode SVDCreate_LAPACK(SVD svd)
   PetscFunctionBegin;
   svd->ops->setup = SVDSetup_LAPACK;
   svd->ops->solve = SVDSolve_LAPACK;
+  if (svd->transmode == -1)
+    svd->transmode = SVD_TRANSPOSE_MATMULT; /* don't build the transpose */
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

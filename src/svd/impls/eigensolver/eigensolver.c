@@ -216,9 +216,10 @@ PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
   PetscInt        mode;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EIGENSOLVER options");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(svd->comm,svd->prefix,"EIGENSOLVER Singular Value Solver Options","SVD");CHKERRQ(ierr);
   ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigenSolverSetMode",mode_list,3,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
   if (flg) { eigen->mode = (SVDEigensolverMode)mode; }
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eigen->eps);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

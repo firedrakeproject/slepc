@@ -31,10 +31,6 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
     ierr = MatDestroy(svd->A);CHKERRQ(ierr);
   }
   svd->A = mat;
-  if (svd->AT) {
-    ierr = MatDestroy(svd->AT);CHKERRQ(ierr);
-    svd->AT = PETSC_NULL;
-  }
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -49,21 +45,20 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 
    Input Parameters:
 +  svd  - the singular value solver context
-.  mode - how to compute the transpose, one of SVD_TRANSPOSE_DEFAULT, 
-          SVD_TRANSPOSE_EXPLICIT or SVD_TRANSPOSE_USERDEFINED (see notes below)
+.  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT, 
+          SVD_TRANSPOSE_MATMULT or SVD_TRANSPOSE_USER (see notes below)
 -  mat  - the transpose of the matrix associated with the singular value problem 
-          when mode is SVD_TRANSPOSE_USERDEFINED
+          when mode is SVD_TRANSPOSE_USER
 
    Options Database Key:
 .  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode> 
-    is one of 'default', 'explicit' or 'user'.
+    is one of 'explicit', 'matmult' or 'user'.
 
    Notes:    
    The default behaviour is to compute explicitly the transpose matrix in order 
-   to improve parallel perfomance (SVD_TRANSPOSE_EXPLICIT).
-   It reverts to SVD_TRANSPOSE_DEFAULT in sequential runs or when the matrix
-   is a shell one, in this case the PETSc MatMultTranspose() function with the
-   original matrix is used.
+   to improve perfomance (SVD_TRANSPOSE_EXPLICIT) if the matrix has defined the
+   MatTranspose operation. It reverts to SVD_TRANSPOSE_MATMULT otherwise, in 
+   this case the PETSc MatMultTranspose() function with the original matrix is used.
    The user can provide its own transpose with SVD_TRANSPOSE_USERDEFINED, in 
    this case the PETSc MatMult() function with the specified matrix is used.
 
@@ -77,23 +72,22 @@ EXTERN PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode,Mat mat)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  switch (svd->transmode) {
-    case SVD_TRANSPOSE_USERDEFINED:
+  switch (mode) {
+    case SVD_TRANSPOSE_USER:
       PetscValidHeaderSpecific(mat,MAT_COOKIE,3);
       PetscCheckSameComm(svd,1,mat,2);
       ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
       if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
       svd->AT = mat;
-      break;
     case SVD_TRANSPOSE_EXPLICIT:
-    case SVD_TRANSPOSE_DEFAULT:
-      if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
-      svd->AT = PETSC_NULL;
+    case SVD_TRANSPOSE_MATMULT:
+    case PETSC_DEFAULT:
+      svd->transmode = mode;
+      svd->setupcalled = 0;
       break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
-  svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -153,7 +147,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscErrorCode ierr;
   char           type[256];
   PetscTruth     flg;
-  const char      *mode_list[3] = { "default" , "explicit", "user" };
+  const char      *mode_list[3] = { "explicit", "matmult", "user" };
   PetscInt        mode;
 
   PetscFunctionBegin;
@@ -170,16 +164,15 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDiew",0);CHKERRQ(ierr);
 
-  ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,3,mode_list[svd->transmode],&mode,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,3,svd->transmode == -1 ? mode_list[0] : mode_list[svd->transmode],&mode,&flg);CHKERRQ(ierr);
   if (flg) {
     svd->transmode = (SVDTransposeMode)mode;
   }   
 
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   if (svd->ops->setfromoptions) {
     ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);
   }
-  
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -207,6 +200,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
   int            i;
+  PetscTruth     flg;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -223,18 +217,25 @@ PetscErrorCode SVDSetUp(SVD svd)
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSetOperator must be called first");     
   }
   
+  /* determine how to build the transpose */
+  if (svd->transmode == -1) {
+    ierr = MatHasOperation(svd->A,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);    
+    if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
+    else svd->transmode = SVD_TRANSPOSE_MATMULT;
+  }
+  
   /* build transpose matrix */
   switch (svd->transmode) {
-    case SVD_TRANSPOSE_USERDEFINED:
+    case SVD_TRANSPOSE_USER:
       if (!svd->AT) {
-        SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSetOperator must be called first");     
+        SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSetTransposeOperator must be called first");     
       }
       break;
     case SVD_TRANSPOSE_EXPLICIT:
       if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
       ierr = MatTranspose(svd->A,&svd->AT);CHKERRQ(ierr);
       break;
-    case SVD_TRANSPOSE_DEFAULT:
+    case SVD_TRANSPOSE_MATMULT:
       if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
       svd->AT = PETSC_NULL;    
       break;
