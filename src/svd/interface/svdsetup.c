@@ -206,6 +206,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
+  int            i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -241,8 +242,29 @@ PetscErrorCode SVDSetUp(SVD svd)
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
 
+  /* free memory for previous solution  */
+  if (svd->n) { 
+    ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
+    for (i=0;i<svd->n;i++) {
+      ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
+    }
+    ierr = PetscFree(svd->U);CHKERRQ(ierr);
+    for (i=0;i<svd->n;i++) {
+      ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr); 
+    }
+    ierr = PetscFree(svd->V);CHKERRQ(ierr);
+  }
+
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
+
+  /* allocate memory for solution */
+  ierr = PetscMalloc(svd->n*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
+  ierr = PetscMalloc(svd->n*sizeof(Vec),&svd->U);CHKERRQ(ierr);
+  ierr = PetscMalloc(svd->n*sizeof(Vec),&svd->V);CHKERRQ(ierr);
+  for (i=0;i<svd->n;i++) {
+    ierr = MatGetVecs(svd->A,svd->V+i,svd->U+i);CHKERRQ(ierr);
+  }
 
   ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
   svd->setupcalled = 1;

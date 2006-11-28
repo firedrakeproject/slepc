@@ -3,10 +3,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = #svdlapack.c
+SOURCEC  = svdlapack.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = #svdlapack.o
+OBJSC    = svdlapack.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = SVD

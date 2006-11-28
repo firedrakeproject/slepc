@@ -31,8 +31,8 @@ PetscErrorCode SVDRegisterAll(char *path)
   
   ierr = SVDRegisterDynamic(SVDEIGENSOLVER, path,"SVDCreate_EIGENSOLVER", 
 		  SVDCreate_EIGENSOLVER);CHKERRQ(ierr);
-/*  ierr = SVDRegisterDynamic(SVDLAPACK, path,"SVDCreate_LAPACK", 
-		  SVDCreate_LAPACK);CHKERRQ(ierr);*/
+  ierr = SVDRegisterDynamic(SVDLAPACK, path,"SVDCreate_LAPACK", 
+		  SVDCreate_LAPACK);CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }

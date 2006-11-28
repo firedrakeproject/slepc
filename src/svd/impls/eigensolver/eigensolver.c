@@ -81,14 +81,8 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
 PetscErrorCode ShellMatGetDiagonal_EIGENSOLVER(Mat B,Vec diag)
 {
   PetscErrorCode  ierr;
-  SVD             svd;
-  SVD_EIGENSOLVER *eigen;
-  PetscScalar     *px,*py;
-  PetscInt        n;
   
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
-  eigen = (SVD_EIGENSOLVER *)svd->data;
   ierr = VecSet(diag,0.0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -138,6 +132,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   ierr = EPSSetOperators(eigen->eps,eigen->mat,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eigen->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetUp(eigen->eps);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eigen->eps,PETSC_NULL,&svd->n);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -155,29 +150,7 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   
   PetscFunctionBegin;
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
-
-  if (svd->sigma) { ierr = PetscFree(svd->sigma);CHKERRQ(ierr); }
-  if (svd->U) {
-    for (i=0;i<svd->nconv;i++) {
-      ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
-    }
-    ierr = PetscFree(svd->U);CHKERRQ(ierr);
-  }
-  if (svd->V) {
-    for (i=0;i<svd->nconv;i++) {
-      ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr); 
-    }
-    ierr = PetscFree(svd->V);CHKERRQ(ierr);
-  }
-  
   ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
-
-  ierr = PetscMalloc(svd->nconv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
-  ierr = PetscMalloc(svd->nconv*sizeof(Vec),&svd->U);CHKERRQ(ierr);
-  ierr = PetscMalloc(svd->nconv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
-  for (i=0,j=0;i<svd->nconv;i++) {
-    ierr = MatGetVecs(svd->A,svd->V+i,svd->U+i);CHKERRQ(ierr);
-  }
 
   switch (eigen->mode) {
     case SVDEIGENSOLVER_DIRECT:
@@ -205,8 +178,8 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
       ierr = MatGetLocalSize(svd->A,PETSC_NULL,&n);CHKERRQ(ierr);
       for (i=0,j=0;i<svd->nconv;i++) {
 	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
-	if (sigma > 0.0) {
-	  svd->sigma[j] = sigma;
+	if (PetscRealPart(sigma) > 0.0) {
+	  svd->sigma[j] = PetscRealPart(sigma);
 	  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
 	  ierr = VecPlaceArray(eigen->x1,px);CHKERRQ(ierr);
 	  ierr = VecPlaceArray(eigen->x2,px+n);CHKERRQ(ierr);
