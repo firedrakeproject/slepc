@@ -66,7 +66,7 @@ PetscErrorCode SVDInitializePackage(char *path)
    Collective on SVD
 
    Input Parameters:
-+  svd - the eigenproblem solver context
++  svd - the singular value solver context
 -  viewer - optional visualization context
 
    Options Database Key:
@@ -240,7 +240,7 @@ PetscErrorCode SVDDestroy(SVD svd)
    Collective on SVD
 
    Input Parameters:
-+  svd      - the eigensolver context
++  svd      - the singular value solver context
 -  type     - a known method
 
    Options Database Key:
@@ -301,7 +301,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
    Not Collective
 
    Input Parameter:
-.  svd - the eigensolver context 
+.  svd - the singular value solver context 
 
    Output Parameter:
 .  name - name of SVD method 
@@ -319,7 +319,7 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
 }
 
 /*MC
-   SVDRegisterDynamic - Adds a method to the eigenproblem solver package.
+   SVDRegisterDynamic - Adds a method to the singular value solver package.
 
    Synopsis:
    SVDRegisterDynamic(char *name_solver,char *path,char *name_create,int (*routine_create)(SVD))
