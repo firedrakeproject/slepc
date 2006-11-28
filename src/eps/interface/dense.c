@@ -628,7 +628,7 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 @*/
 PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar *V)
 {
-#if defined(SLEPC_MISSING_LAPACK_STEVR)
+#if defined(SLEPC_MISSING_LAPACK_DSTEVR)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"DSTEVR - Lapack routine is unavailable.");
 #else
