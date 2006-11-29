@@ -178,7 +178,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDSetType(svd,SVDEIGENSOLVER);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDiew",0);CHKERRQ(ierr);
+  ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",0);CHKERRQ(ierr);
 
   ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,2,svd->transmode == PETSC_DEFAULT ? "default" : mode_list[svd->transmode],&mode,&flg);CHKERRQ(ierr);
   if (flg) {
