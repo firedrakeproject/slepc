@@ -89,7 +89,8 @@ PetscErrorCode SVDGetConverged(SVD svd,int *nconv)
 .  u     - left singular vector
 -  v     - right singular vector
 
-   The index i should be a value between 0 and nconv (see SVDGetConverged()).
+   Note:
+   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
    Both U or V can be PETSC_NULL if singular vectors are not required. 
 
    Level: beginner
@@ -124,22 +125,22 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
 #undef __FUNCT__  
 #define __FUNCT__ "SVDComputeResidualNorms"
 /*@
-   SVDComputeResidualNorm - Computes the norms of the residuals vectors associated with 
+   SVDComputeResidualNorm - Computes the norms of the residual vectors associated with 
    the i-th computed singular triplet.
 
    Collective on EPS
 
-   Input Parameter:
+   Input Parameters:
 +  svd  - the eigensolver context
 -  i    - the solution index
 
-   Output Parameter:
+   Output Parameters:
 +  norm1 - the norm ||A*v-sigma*u||_2 where sigma is the 
            singular value, u and v are the left and right singular vectors. 
 -  norm2 - the norm ||A*u-sigma*v||_2 with the same sigma, u and v
 
-   Notes:
-   The index i should be a value between 0 and nconv (see SVDGetConverged()).
+   Note:
+   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
    Both output parameters can be PETSC_NULL on input if not needed.
 
    Level: beginner

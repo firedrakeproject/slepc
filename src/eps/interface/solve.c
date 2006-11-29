@@ -410,7 +410,7 @@ PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is 
    set to zero).
 
-   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
 
@@ -457,7 +457,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
    complex case (e.g. with BOPT=O_complex) the eigenvalue is stored 
    directly in eigr (eigi is set to zero).
 
-   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
 
@@ -512,7 +512,7 @@ PetscErrorCode EPSGetValue(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi)
    complex case (e.g. with BOPT=O_complex) the eigenvector is stored 
    directly in Vr (Vi is set to zero).
 
-   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
 
@@ -583,7 +583,7 @@ PetscErrorCode EPSGetRightVector(EPS eps, int i, Vec Vr, Vec Vi)
    complex case (e.g. with BOPT=O_complex) the eigenvector is stored 
    directly in Wr (Wi is set to zero).
 
-   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
 
@@ -736,7 +736,7 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, int i, PetscReal *errest)
    If k=0 then the residual norm is computed as ||Ax||_2.
 
    Notes:
-   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
 
@@ -819,7 +819,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
    If k=0 then the residual norm is computed as ||y'A||_2.
 
    Notes:
-   The index i should be a value between 0 and nconv (see EPSGetConverged()).
+   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
 
