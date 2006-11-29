@@ -217,7 +217,7 @@ PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(svd->comm,svd->prefix,"EIGENSOLVER Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigenSolverSetMode",mode_list,3,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigensolverSetMode",mode_list,3,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
   if (flg) { eigen->mode = (SVDEigensolverMode)mode; }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eigen->eps);
@@ -250,12 +250,13 @@ EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDEigensolverSetMode"
 /*@
-   SVDEigensolverSetMode - Sets the transformation used in the eigensolver. 
+   SVDEigensolverSetMode - Indicates which is the related eigenvalue 
+   problem that has to be solved in order to compute the SVD.
 
    Collective on SVD
 
    Input Parameters:
-+  svd  - singular value solver context obtained from SVDCreate()
++  svd  - singular value solver
 -  mode - the mode flag, one of SVDEIGENSOLVER_DIRECT, 
           SVDEIGENSOLVER_TRANSPOSE or SVDEIGENSOLVER_CYCLIC
 
@@ -263,7 +264,7 @@ EXTERN_C_BEGIN
 .  -svd_eigensolver_mode <mode> - Indicates the mode flag, where <mode> 
     is one of 'direct', 'transpose' or 'cyclic' (see explanation below).
 
-   Notes:
+   Note:
    This parameter selects the eigensystem used to compute the SVD:
    A^T*A (SVDEIGENSOLVER_DIRECT), A*A^T (SVDEIGENSOLVER_TRANSPOSE) 
    or H(A) = [ 0  A ; A^T 0 ] (SVDEIGENSOLVER_CYCLIC).
@@ -302,14 +303,16 @@ EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDEigensolverGetMode"
 /*@C
-   SVDEigensolverGetMode - Gets the transformation used by the eigensolver. 
+   SVDEigensolverGetMode - Returns the mode flag used to compute the SVD
+   via a related eigenproblem. 
 
    Not collective
 
-   Input Parameters:
-+  svd  - singular value solver context obtained from SVDCreate()
-   Output Parameters:
--  mode - the mode flag
+   Input Parameter:
+.  svd  - singular value solver
+
+   Output Parameter:
+.  mode - the mode flag
 
    Level: beginner
 
@@ -350,13 +353,13 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "SVDEigensolverSetEPS"
 /*@
-   SVDEigensolverSetEPS - Associates a eigensolver object to the
+   SVDEigensolverSetEPS - Associates an eigensolver object (EPS) to the
    singular value solver. 
 
    Collective on SVD
 
    Input Parameters:
-+  svd - singular value solver context obtained from SVDCreate()
++  svd - singular value solver
 -  eps - the eigensolver object
 
    Level: advanced
@@ -393,13 +396,13 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "SVDEigensolverGetEPS"
 /*@C
-   SVDEigensolverGetEPS - Obtain the eigensolver (EPS) object associated
-   to the singular value solver object.
+   SVDEigensolverGetEPS - Retrieve the eigensolver object (EPS) associated
+   to the singular value solver.
 
    Not Collective
 
    Input Parameters:
-.  svd - singular value solver context obtained from SVDCreate()
+.  svd - singular value solver
 
    Output Parameter:
 .  eps - the eigensolver object
