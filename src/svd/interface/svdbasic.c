@@ -92,7 +92,6 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type;
   PetscTruth     isascii;
-  const char      *mode_list[3] = { "explicit", "matmult", "user" };
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -109,7 +108,16 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  method: not yet set\n");CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: %s\n",mode_list[svd->transmode]);CHKERRQ(ierr);
+    switch (svd->transmode) {
+      case SVD_TRANSPOSE_EXPLICIT:
+        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: explicit\n");CHKERRQ(ierr);
+	break;
+      case SVD_TRANSPOSE_MATMULT:
+        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: matmult\n");CHKERRQ(ierr);
+	break;
+      default:
+        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: not yet set\n");CHKERRQ(ierr);
+    }
     if (svd->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
@@ -169,7 +177,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->type_name   = PETSC_NULL;
   svd->A           = PETSC_NULL;
   svd->AT          = PETSC_NULL;
-  svd->transmode   = -1;
+  svd->transmode   = PETSC_DEFAULT;
   svd->sigma       = PETSC_NULL;
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;

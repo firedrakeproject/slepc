@@ -22,16 +22,17 @@ typedef struct _p_SVD* SVD;
 #define SVDType const char*
 #define SVDEIGENSOLVER "eigensolver"
 #define SVDLAPACK      "lapack"
+#define SVDLANCZOS     "lanczos"
 
-typedef enum { SVD_TRANSPOSE_EXPLICIT, SVD_TRANSPOSE_MATMULT,
-               SVD_TRANSPOSE_USER } SVDTransposeMode;
+typedef enum { SVD_TRANSPOSE_EXPLICIT, SVD_TRANSPOSE_MATMULT } SVDTransposeMode;
 
 EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
 EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
 EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
-EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode,Mat);
-EXTERN PetscErrorCode SVDGetOperators(SVD,Mat*,SVDTransposeMode*,Mat*);
+EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
+EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
+EXTERN PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
 EXTERN PetscErrorCode SVDSetFromOptions(SVD);
 EXTERN PetscErrorCode SVDSetUp(SVD);
 EXTERN PetscErrorCode SVDSolve(SVD);

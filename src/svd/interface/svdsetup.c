@@ -16,7 +16,7 @@
 
    Level: beginner
 
-.seealso: SVDSolve(), SVDGetOperators()
+.seealso: SVDSolve(), SVDGetOperator()
 @*/
 PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 {
@@ -45,14 +45,12 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 
    Input Parameters:
 +  svd  - the singular value solver context
-.  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT, 
-          SVD_TRANSPOSE_MATMULT or SVD_TRANSPOSE_USER (see notes below)
--  mat  - the transpose of the matrix associated with the singular value problem 
-          when mode is SVD_TRANSPOSE_USER
+-  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
+          or SVD_TRANSPOSE_MATMULT (see notes below)
 
    Options Database Key:
 .  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode> 
-    is one of 'explicit', 'matmult' or 'user'.
+    is one of 'explicit' or 'matmult'.
 
    Notes:
    In the SVD_TRANSPOSE_EXPLICIT mode, the transpose of the matrix is
@@ -63,29 +61,18 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
    likely to be more inefficient than SVD_TRANSPOSE_EXPLICIT, both in
    sequential and in parallel, but requires less storage.
 
-   The option SVD_TRANSPOSE_USER is reserved for the case that the
-   explicit transpose is already available and provided by the user.
-
    The default is SVD_TRANSPOSE_EXPLICIT if the matrix has defined the
    MatTranspose operation, and SVD_TRANSPOSE_MATMULT otherwise.
    
    Level: advanced
    
-   .seealso: SVDSolve(), SVDSetOperator(), SVDGetOperators()
+   .seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(), SVDGetOperator()
 @*/
-EXTERN PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode,Mat mat)
+PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   switch (mode) {
-    case SVD_TRANSPOSE_USER:
-      PetscValidHeaderSpecific(mat,MAT_COOKIE,3);
-      PetscCheckSameComm(svd,1,mat,2);
-      ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-      if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
-      svd->AT = mat;
     case SVD_TRANSPOSE_EXPLICIT:
     case SVD_TRANSPOSE_MATMULT:
     case PETSC_DEFAULT:
@@ -99,9 +86,9 @@ EXTERN PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode,Mat mat)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDGetOperators"
+#define __FUNCT__ "SVDGetOperator"
 /*@C
-   SVDGetOperators - Get the matrices associated with the singular value problem.
+   SVDGetOperators - Get the matrix associated with the singular value problem.
 
    Not collective, though parallel Mats are returned if the SVD is parallel
 
@@ -109,24 +96,46 @@ EXTERN PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode,Mat mat)
 .  svd - the singular value solver context
 
    Output Parameters:
-+  A    - the matrix associated with the singular value problem
-.  mode - how to compute the transpose
--  AT   - the transpose of this matrix (PETSC_NULL in default mode)
+.  A    - the matrix associated with the singular value problem
 
    Level: advanced
-   
-   Notes:
-   Any output parameter can be PETSC_NULL on input if it is not needed.
 
-.seealso: SVDSetOperator(), SVDSetTransposeMode()
+.seealso: SVDSolve(), SVDSetOperator()
 @*/
-PetscErrorCode SVDGetOperators(SVD svd,Mat *A,SVDTransposeMode *mode,Mat *AT)
+PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  if (A) *A = svd->A;
-  if (mode) *mode = svd->transmode;
-  if (AT) *AT = svd->AT;
+  PetscValidPointer(A,2);
+  *A = svd->A;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDGetTransposeMode"
+/*@
+   SVDGetTransposeMode - Gets the mode use to compute the  transpose 
+   of the matrix associated with the singular value problem.
+
+   Not collective
+
+   Input Parameter:
++  svd  - the singular value solver context
+
+   Output paramter:
++  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
+          or SVD_TRANSPOSE_MATMULT
+   
+   Level: advanced
+   
+   .seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(), SVDGetOperator()
+@*/
+PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidPointer(mode,2);
+  *mode = svd->transmode;
   PetscFunctionReturn(0);
 }
 
@@ -154,8 +163,8 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscErrorCode ierr;
   char           type[256];
   PetscTruth     flg;
-  const char      *mode_list[3] = { "explicit", "matmult", "user" };
-  PetscInt        mode;
+  const char     *mode_list[2] = { "explicit", "matmult" };
+  PetscInt       mode;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -171,7 +180,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDiew",0);CHKERRQ(ierr);
 
-  ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,3,svd->transmode == -1 ? mode_list[0] : mode_list[svd->transmode],&mode,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,2,svd->transmode == PETSC_DEFAULT ? "default" : mode_list[svd->transmode],&mode,&flg);CHKERRQ(ierr);
   if (flg) {
     svd->transmode = (SVDTransposeMode)mode;
   }   
@@ -225,7 +234,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   
   /* determine how to build the transpose */
-  if (svd->transmode == -1) {
+  if (svd->transmode == PETSC_DEFAULT) {
     ierr = MatHasOperation(svd->A,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);    
     if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
     else svd->transmode = SVD_TRANSPOSE_MATMULT;
@@ -233,11 +242,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   
   /* build transpose matrix */
   switch (svd->transmode) {
-    case SVD_TRANSPOSE_USER:
-      if (!svd->AT) {
-        SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSetTransposeOperator must be called first");     
-      }
-      break;
     case SVD_TRANSPOSE_EXPLICIT:
       if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
       ierr = MatTranspose(svd->A,&svd->AT);CHKERRQ(ierr);
