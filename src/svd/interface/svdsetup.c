@@ -38,7 +38,7 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetTransposeMode"
 /*@C
-   SVDSetTransposeMode - Sets how to compute the transpose of the matrix 
+   SVDSetTransposeMode - Sets how to handle the transpose of the matrix 
    associated with the singular value problem.
 
    Collective on SVD and Mat
@@ -54,14 +54,21 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 .  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode> 
     is one of 'explicit', 'matmult' or 'user'.
 
-   Notes:    
-   The default behaviour is to compute explicitly the transpose matrix in order 
-   to improve perfomance (SVD_TRANSPOSE_EXPLICIT) if the matrix has defined the
-   MatTranspose operation. It reverts to SVD_TRANSPOSE_MATMULT otherwise, in 
-   this case the PETSc MatMultTranspose() function with the original matrix is used.
-   The user can provide its own transpose with SVD_TRANSPOSE_USERDEFINED, in 
-   this case the PETSc MatMult() function with the specified matrix is used.
+   Notes:
+   In the SVD_TRANSPOSE_EXPLICIT mode, the transpose of the matrix is
+   explicitly built.
 
+   The option SVD_TRANSPOSE_MATMULT does not build the transpose, but
+   handles it implicitly via MatMultTranspose() operations. This is 
+   likely to be more inefficient than SVD_TRANSPOSE_EXPLICIT, both in
+   sequential and in parallel, but requires less storage.
+
+   The option SVD_TRANSPOSE_USER is reserved for the case that the
+   explicit transpose is already available and provided by the user.
+
+   The default is SVD_TRANSPOSE_EXPLICIT if the matrix has defined the
+   MatTranspose operation, and SVD_TRANSPOSE_MATMULT otherwise.
+   
    Level: advanced
    
    .seealso: SVDSolve(), SVDSetOperator(), SVDGetOperators()
