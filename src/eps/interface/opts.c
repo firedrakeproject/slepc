@@ -672,7 +672,6 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(prefix,2);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
@@ -703,7 +702,6 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(prefix,2);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STAppendOptionsPrefix(eps->OP,prefix); CHKERRQ(ierr);
   PetscFunctionReturn(0);
