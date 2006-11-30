@@ -131,8 +131,11 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
 
   ierr = EPSSetOperators(eigen->eps,eigen->mat,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eigen->eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(eigen->eps,svd->nsv,svd->ncv);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eigen->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
   ierr = EPSSetUp(eigen->eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eigen->eps,PETSC_NULL,&svd->n);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eigen->eps,PETSC_NULL,&svd->ncv);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(eigen->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -149,6 +152,7 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   Vec             x;
   
   PetscFunctionBegin;
+  ierr = EPSSetWhichEigenpairs(eigen->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
 
@@ -220,7 +224,7 @@ PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
   ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigensolverSetMode",mode_list,3,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
   if (flg) { eigen->mode = (SVDEigensolverMode)mode; }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eigen->eps);
+  ierr = EPSSetFromOptions(eigen->eps);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

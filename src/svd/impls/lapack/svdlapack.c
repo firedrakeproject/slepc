@@ -13,7 +13,8 @@ PetscErrorCode SVDSetup_LAPACK(SVD svd)
 
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
-  svd->n = PetscMin(M,N);
+  svd->ncv = PetscMin(M,N);
+  svd->max_it = 1;
   PetscFunctionReturn(0);
 }
 
@@ -104,7 +105,7 @@ PetscErrorCode SVDCreate_LAPACK(SVD svd)
   PetscFunctionBegin;
   svd->ops->setup = SVDSetup_LAPACK;
   svd->ops->solve = SVDSolve_LAPACK;
-  if (svd->transmode == -1)
+  if (svd->transmode == PETSC_DEFAULT)
     svd->transmode = SVD_TRANSPOSE_MATMULT; /* don't build the transpose */
   PetscFunctionReturn(0);
 }

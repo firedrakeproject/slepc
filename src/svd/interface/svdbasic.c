@@ -181,8 +181,14 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->sigma       = PETSC_NULL;
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;
+  svd->vec_initial = PETSC_NULL;
+  svd->which       = SVD_LARGEST;
   svd->n           = 0;
   svd->nconv       = -1;
+  svd->nsv         = 1;    
+  svd->ncv         = PETSC_DECIDE;    
+  svd->max_it      = PETSC_DEFAULT;  
+  svd->tol         = 1e-7;    
   svd->data        = PETSC_NULL;
   svd->setupcalled = 0;
 

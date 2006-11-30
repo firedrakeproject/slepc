@@ -26,13 +26,23 @@ typedef struct _p_SVD* SVD;
 
 typedef enum { SVD_TRANSPOSE_EXPLICIT, SVD_TRANSPOSE_MATMULT } SVDTransposeMode;
 
+typedef enum { SVD_LARGEST, SVD_SMALLEST } SVDWhich;
+
 EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
 EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
 EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
+EXTERN PetscErrorCode SVDSetInitialVector(SVD,Vec);
+EXTERN PetscErrorCode SVDGetInitialVector(SVD,Vec*);
 EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
 EXTERN PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
+EXTERN PetscErrorCode SVDSetDimensions(SVD,int,int);
+EXTERN PetscErrorCode SVDGetDimensions(SVD,int*,int*);
+EXTERN PetscErrorCode SVDSetTolerances(SVD,PetscReal,int);
+EXTERN PetscErrorCode SVDGetTolerances(SVD,PetscReal*,int*);
+EXTERN PetscErrorCode SVDSetWhichSingularTriplets(SVD,SVDWhich);
+EXTERN PetscErrorCode SVDGetWhichSingularTriplets(SVD,SVDWhich*);
 EXTERN PetscErrorCode SVDSetFromOptions(SVD);
 EXTERN PetscErrorCode SVDSetUp(SVD);
 EXTERN PetscErrorCode SVDSolve(SVD);

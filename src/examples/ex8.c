@@ -5,7 +5,6 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
   "  -n <n>, where <n> = matrix dimension.\n\n";
 
 #include "slepcsvd.h"
-#include "slepceps.h"
 
 /*
    This example computes the singular values of an nxn Grcar matrix,
@@ -30,7 +29,6 @@ int main( int argc, char **argv )
   PetscErrorCode ierr;
   Mat         	 A;		  /* Grcar matrix */
   SVD            svd;             /* singular value solver context */
-  EPS         	 eps;		  /* eigenproblem solver context */
   PetscInt    	 N=30, Istart, Iend, i, col[5];
   int         	 nconv1, nconv2;
   PetscScalar 	 value[] = { -1, 1, 1, 1, 1 };
@@ -81,9 +79,7 @@ int main( int argc, char **argv )
      Set solver parameters at runtime
   */
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  /* PENDIENTE: utilizar funciones SVD en lugar de EPS*/
-  ierr = SVDEigensolverGetEPS(svd,&eps);CHKERRQ(ierr); 
-  ierr = EPSSetDimensions(eps,1,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = SVDSetDimensions(svd,1,PETSC_DECIDE);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
@@ -92,7 +88,7 @@ int main( int argc, char **argv )
   /*
      First request an eigenvalue from one end of the spectrum
   */
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+  ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   /* 
      Get number of converged singular values
@@ -109,7 +105,7 @@ int main( int argc, char **argv )
   /*
      Request an eigenvalue from the other end of the spectrum
   */
-  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
+  ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   /* 
      Get number of converged eigenpairs
