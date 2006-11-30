@@ -73,7 +73,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg);CHKERRQ(ierr);
     if (flg) eps->max_it = i;
-    ierr = PetscOptionsReal("-eps_tol","Tolerance","KSPSetTolerances",eps->tol,&eps->tol,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&eps->tol,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,&flg);CHKERRQ(ierr);
     if (flg) {
       if(i<1) SETERRQ(1,"Illegal value for option -eps_nev. Must be > 0");
