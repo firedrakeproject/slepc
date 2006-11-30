@@ -24,8 +24,15 @@ struct _p_SVD {
   SVDTransposeMode transmode;   /* transpose mode */
   PetscReal        *sigma;	/* singular values */
   Vec              *U,*V;	/* left and right singular vectors */
+  Vec              vec_initial; /* initial vector */
   int              n;           /* maximun size of descomposition */
+  SVDWhich         which;       /* which singular values are computed */
   int              nconv;	/* number of converged values */
+  int              nsv;         /* number of requested values */
+  int              ncv;         /* basis size */
+  int              its;         /* iteration counter */
+  int              max_it;      /* max iterations */
+  PetscReal        tol;         /* tolerance */
   void             *data;	/* placeholder for misc stuff associated
                    		   with a particular solver */
   int              setupcalled;
