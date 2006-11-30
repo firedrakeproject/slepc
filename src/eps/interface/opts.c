@@ -191,8 +191,14 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (tol != PETSC_DEFAULT)    eps->tol    = tol;
-  if (maxits != PETSC_DEFAULT) eps->max_it = maxits;
+  if (tol != PETSC_DEFAULT) {
+    if (tol < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    eps->tol = tol;
+  }
+  if (maxits != PETSC_DEFAULT) {
+    if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    eps->max_it = maxits;
+  }
   PetscFunctionReturn(0);
 }
 
