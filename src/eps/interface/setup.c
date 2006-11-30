@@ -133,7 +133,7 @@ PetscErrorCode EPSSetInitialVector(EPS eps,Vec vec)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
   PetscCheckSameComm(eps,1,vec,2);
-  ierr = PetscObjectReference((PetscObject)eps->vec_initial);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)vec);CHKERRQ(ierr);
   if (eps->vec_initial) {
     ierr = VecDestroy(eps->vec_initial); CHKERRQ(ierr);
   }
