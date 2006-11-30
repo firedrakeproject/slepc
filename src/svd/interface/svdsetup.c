@@ -85,15 +85,17 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 PetscErrorCode SVDSetInitialVector(SVD svd,Vec vec)
 {
   PetscErrorCode ierr;
+  PetscReal      norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
   PetscCheckSameComm(svd,1,vec,2);
-  ierr = PetscObjectReference((PetscObject)svd->vec_initial);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)vec);CHKERRQ(ierr);
   if (svd->vec_initial) {
     ierr = VecDestroy(svd->vec_initial); CHKERRQ(ierr);
   }
+  ierr = VecNormalize(vec,&norm);CHKERRQ(ierr);
   svd->vec_initial = vec;
   PetscFunctionReturn(0);
 }
@@ -153,6 +155,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   int            i;
   PetscTruth     flg;
   PetscInt       M,N;
+  PetscReal      norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -193,6 +196,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (!svd->vec_initial) {
     ierr = MatGetVecs(svd->A,&svd->vec_initial,PETSC_NULL);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(svd->vec_initial);CHKERRQ(ierr);
+    ierr = VecNormalize(svd->vec_initial,&norm);CHKERRQ(ierr);
   }
 
   /* call specific solver setup */

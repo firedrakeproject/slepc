@@ -2,7 +2,7 @@
 ALL: lib
 
 LIBBASE  = libslepc
-DIRS     = eigensolver lapack
+DIRS     = eigensolver lapack lanczos
 LOCDIR   = src/svd/impls/
 MANSEC   = SVD
 
