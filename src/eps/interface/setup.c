@@ -133,11 +133,11 @@ PetscErrorCode EPSSetInitialVector(EPS eps,Vec vec)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
   PetscCheckSameComm(eps,1,vec,2);
+  ierr = PetscObjectReference((PetscObject)eps->vec_initial);CHKERRQ(ierr);
   if (eps->vec_initial) {
     ierr = VecDestroy(eps->vec_initial); CHKERRQ(ierr);
   }
   eps->vec_initial = vec;
-  ierr = PetscObjectReference((PetscObject)eps->vec_initial);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -165,6 +165,7 @@ PetscErrorCode EPSGetInitialVector(EPS eps,Vec *vec)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(vec,2);
   *vec = eps->vec_initial;
   PetscFunctionReturn(0);
 }
@@ -194,11 +195,11 @@ PetscErrorCode EPSSetLeftInitialVector(EPS eps,Vec vec)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
   PetscCheckSameComm(eps,1,vec,2);
+  ierr = PetscObjectReference((PetscObject)eps->vec_initial_left);CHKERRQ(ierr);
   if (eps->vec_initial_left) {
     ierr = VecDestroy(eps->vec_initial_left); CHKERRQ(ierr);
   }
   eps->vec_initial_left = vec;
-  ierr = PetscObjectReference((PetscObject)eps->vec_initial_left);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -226,6 +227,7 @@ PetscErrorCode EPSGetLeftInitialVector(EPS eps,Vec *vec)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(vec,2);
   *vec = eps->vec_initial_left;
   PetscFunctionReturn(0);
 }

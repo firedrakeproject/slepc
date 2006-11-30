@@ -322,7 +322,18 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  eps->which = which;
+  switch (which) {
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_SMALLEST_MAGNITUDE:
+    case EPS_LARGEST_REAL:
+    case EPS_SMALLEST_REAL:
+    case EPS_LARGEST_IMAGINARY:
+    case EPS_SMALLEST_IMAGINARY:
+      eps->which = which;
+      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+  }  
   PetscFunctionReturn(0);
 }
 
@@ -351,6 +362,7 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(which,2);
   *which = eps->which;
   PetscFunctionReturn(0);
 }
@@ -461,6 +473,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(type,2);
   *type = eps->problem_type;
   PetscFunctionReturn(0);
 }
@@ -528,6 +541,7 @@ PetscErrorCode EPSGetClass(EPS eps,EPSClass *cl)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(cl,2);
   *cl = eps->solverclass;
   PetscFunctionReturn(0);
 }
@@ -658,6 +672,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(prefix,2);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
@@ -688,6 +703,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(prefix,2);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STAppendOptionsPrefix(eps->OP,prefix); CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -719,6 +735,7 @@ PetscErrorCode EPSGetOptionsPrefix(EPS eps,const char *prefix[])
   PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(prefix,2);
   ierr = PetscObjectGetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
