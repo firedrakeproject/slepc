@@ -118,7 +118,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,int maxits)
     if (maxits == PETSC_DEFAULT) {
       svd->setupcalled = 0;
     } else {
-      if (tol < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+      if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     }
     svd->max_it = maxits;
   }
@@ -253,8 +253,8 @@ PetscErrorCode SVDGetDimensions(SVD svd,int *nsv,int *ncv)
 -     SVD_SMALLEST - smallest singular values
 
     Options Database Keys:
-+   -svd_largest_magnitude - Sets largest singular values
--   -svd_smallest_magnitude - Sets smallest singular values
++   -svd_largest  - Sets largest singular values
+-   -svd_smallest - Sets smallest singular values
     
     Level: intermediate
 
@@ -365,6 +365,11 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   if (flg || flg2) {
     ierr = SVDSetDimensions(svd,i,j);CHKERRQ(ierr);
   }
+
+  ierr = PetscOptionsTruthGroupBegin("-svd_largest","compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
+  if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr); }
+  ierr = PetscOptionsTruthGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
+  if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   if (svd->ops->setfromoptions) {
