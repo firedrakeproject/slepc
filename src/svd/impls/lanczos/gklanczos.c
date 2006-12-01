@@ -2,7 +2,7 @@
 
    SLEPc singular value solver: "lanczos"
 
-   Method: Golub-Kaham-Lanczos bidiagonalization
+   Method: Golub-Kahan-Lanczos bidiagonalization
 
    Last update: Nov 2006
 
@@ -26,8 +26,8 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "cgs2"
-PetscErrorCode cgs2(Vec v, int n, Vec *V)
+#define __FUNCT__ "cgs"
+PetscErrorCode cgs(Vec v, int n, Vec *V)
 {
   PetscErrorCode ierr;
   Vec            w;
@@ -37,11 +37,6 @@ PetscErrorCode cgs2(Vec v, int n, Vec *V)
   if (n>0) {
     ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
     ierr = PetscMalloc(sizeof(PetscScalar)*n,&h);CHKERRQ(ierr);
-
-    ierr = VecMDot(v,n,V,h);CHKERRQ(ierr);
-    ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,n,h,V);CHKERRQ(ierr);
-    ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
 
     ierr = VecMDot(v,n,V,h);CHKERRQ(ierr);
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
@@ -103,37 +98,42 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = VecDuplicateVecs(svd->U[0],svd->n,&U);CHKERRQ(ierr);
   
   ierr = VecCopy(svd->vec_initial,V[0]);CHKERRQ(ierr);
+  ierr = VecNormalize(V[0],&norm1);CHKERRQ(ierr);
   
   svd->nconv = 0;
   for (svd->its=1;svd->its<svd->max_it;svd->its++) {
-    n = svd->n - svd->nconv;
     for (i=svd->nconv;i<svd->n;i++) {
       ierr = MatMult(svd->A,V[i],U[i]);CHKERRQ(ierr);
-      ierr = cgs2(U[i],i,U);CHKERRQ(ierr);
-      ierr = VecNormalize(U[i],alpha+i-svd->nconv);CHKERRQ(ierr);
+//      if (i>svd->nconv) { ierr = VecAXPY(U[i],-beta[i-1],U[i-1]);CHKERRQ(ierr); }
+      ierr = cgs(U[i],i,U);CHKERRQ(ierr);
+      ierr = cgs(U[i],i,U);CHKERRQ(ierr);
+      ierr = VecNormalize(U[i],alpha+i);CHKERRQ(ierr);
 
       if (svd->AT) {
 	ierr = MatMult(svd->AT,U[i],V[i+1]);CHKERRQ(ierr);
       } else {
 	ierr = MatMultTranspose(svd->A,U[i],V[i+1]);CHKERRQ(ierr);
       }
-      ierr = cgs2(V[i+1],i+1,V);CHKERRQ(ierr);
-      ierr = VecNormalize(V[i+1],beta+i-svd->nconv);CHKERRQ(ierr);    
+//      ierr = VecAXPY(V[i+1],-alpha[i],V[i]);CHKERRQ(ierr);
+      ierr = cgs(V[i+1],i+1,V);CHKERRQ(ierr);
+      ierr = cgs(V[i+1],i+1,V);CHKERRQ(ierr);
+      ierr = VecNormalize(V[i+1],beta+i);CHKERRQ(ierr);    
     }
 
+    n = svd->n - svd->nconv;
     ierr = PetscMemzero(PT,sizeof(PetscScalar)*n*n);CHKERRQ(ierr);
     ierr = PetscMemzero(Q,sizeof(PetscScalar)*n*n);CHKERRQ(ierr);
     for (i=0;i<n;i++)
       PT[i*n+i] = Q[i*n+i] = 1.0;
-    dbdsqr_("U",&n,&n,&n,&zero,alpha,beta,PT,&n,Q,&n,PETSC_NULL,&n,work,&info,1);
+    dbdsqr_("U",&n,&n,&n,&zero,alpha+svd->nconv,beta+svd->nconv,PT,&n,Q,&n,PETSC_NULL,&n,work,&info,1);
 
     k = svd->nconv;
     for (i=svd->nconv;i<svd->n;i++) {
-      svd->sigma[i] = alpha[i-svd->nconv];
+      svd->sigma[i] = alpha[i];
       
       ierr = VecSet(svd->V[i],0.0);CHKERRQ(ierr);
-      for (j=0;j<n;j++) {
-	ierr = VecAXPY(svd->V[i],PT[j*n+i-svd->nconv],V[j+svd->nconv]);CHKERRQ(ierr);
+      for (j=svd->nconv;j<svd->n;j++) {
+	ierr = VecAXPY(svd->V[i],PT[(j-svd->nconv)*n+(i-svd->nconv)],V[j]);CHKERRQ(ierr);
       }
       
       ierr = VecSet(svd->U[i],0.0);CHKERRQ(ierr);
@@ -141,13 +141,17 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
       
       ierr = computeres(svd,svd->sigma[i],svd->U[i],svd->V[i],&norm1,&norm2);CHKERRQ(ierr);
       printf("[%i] sigma[%i] = %g error = %g,%g\n",svd->its,i,svd->sigma[i],norm1,norm2);
-      if (norm1+norm2 < svd->tol) {
+      if (sqrt(norm1*norm1+norm2*norm2) < svd->tol) {
         k++;
       } else break;
     }
+    for (i=svd->nconv;i<k;i++) {
+      ierr = VecCopy(svd->V[i],V[i]);CHKERRQ(ierr);
+      ierr = VecCopy(svd->U[i],U[i]);CHKERRQ(ierr);
+    }
     svd->nconv = k;
     if (svd->nconv >= svd->nsv) break;
-    ierr = VecCopy(svd->V[svd->nconv],V[svd->nconv]);CHKERRQ(ierr);
+    ierr = VecCopy(svd->V[svd->nconv],V[svd->nconv]);CHKERRQ(ierr);    
   }
   
   ierr = VecDestroyVecs(V,n+1);CHKERRQ(ierr);
