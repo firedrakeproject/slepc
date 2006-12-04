@@ -100,7 +100,9 @@ int main( int argc, char **argv )
   */
   if (nconv1 > 0) {
     ierr = SVDGetSingularTriplet(svd,0,&sigma_1,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  }
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n");CHKERRQ(ierr);
+  } 
 
   /*
      Request an eigenvalue from the other end of the spectrum
@@ -117,7 +119,9 @@ int main( int argc, char **argv )
   */
   if (nconv2 > 0) {
     ierr = SVDGetSingularTriplet(svd,0,&sigma_n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  }
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n");CHKERRQ(ierr);
+  } 
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
@@ -125,9 +129,7 @@ int main( int argc, char **argv )
   if (nconv1 > 0 && nconv2 > 0) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Process did not converge! Try running with a larger value for -eps_ncv\n\n");CHKERRQ(ierr);
-  }   
+  }  
  
   /* 
      Free work space
