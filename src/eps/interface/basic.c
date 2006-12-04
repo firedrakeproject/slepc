@@ -234,7 +234,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ncv             = 0;
   eps->allocated_ncv   = 0;
   eps->nds             = 0;
-  eps->tol             = 0.0;
+  eps->tol             = 1e-7;
   eps->which           = EPS_LARGEST_MAGNITUDE;
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
@@ -270,7 +270,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->orthog_type     = EPS_CGS_ORTH;
   eps->orthog_ref      = EPS_ORTH_REFINE_IFNEEDED;
-  eps->orthog_eta      = PETSC_DEFAULT;
+  eps->orthog_eta      = 0.7071;
 
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
   PetscLogObjectParent(eps,eps->OP);

@@ -30,8 +30,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscTruth     flg;
   const char     *orth_list[3] = { "mgs" , "cgs", "ncgs" };
   const char     *ref_list[3] = { "never" , "ifneeded", "always" };
-  PetscReal      eta;
-  PetscInt       i,orth_type,ref_type;
+  PetscReal      r;
+  PetscInt       i,j;
   PetscViewer    monviewer;
 
   PetscFunctionBegin;
@@ -63,28 +63,24 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsTruthGroupEnd("-eps_twoside","two-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetClass(eps,EPS_TWO_SIDE);CHKERRQ(ierr);}
 
-    orth_type = eps->orthog_type;
-    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,3,orth_list[eps->orthog_type],&orth_type,&flg);CHKERRQ(ierr);
-    ref_type = eps->orthog_ref;
-    ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalizationRefinement",ref_list,3,ref_list[eps->orthog_ref],&ref_type,&flg);CHKERRQ(ierr);
-    eta = eps->orthog_eta;
-    ierr = PetscOptionsReal("-eps_orthog_eta","Parameter of iterative refinement during orthogonalization","EPSSetOrthogonalizationRefinement",eta,&eta,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSSetOrthogonalization(eps,(EPSOrthogonalizationType)orth_type,(EPSOrthogonalizationRefinementType)ref_type,eta);CHKERRQ(ierr);
+    i = eps->orthog_type;
+    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,3,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
+    j = eps->orthog_ref;
+    ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
+    r = eps->orthog_eta;
+    ierr = PetscOptionsReal("-eps_orthog_eta","Parameter of iterative refinement during orthogonalization","EPSSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetOrthogonalization(eps,(EPSOrthogonalizationType)i,(EPSOrthogonalizationRefinementType)j,r);CHKERRQ(ierr);
 
-    ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg);CHKERRQ(ierr);
-    if (flg) eps->max_it = i;
-    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&eps->tol,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,&flg);CHKERRQ(ierr);
-    if (flg) {
-      if(i<1) SETERRQ(1,"Illegal value for option -eps_nev. Must be > 0");
-      eps->nev = i;
-    }
-    ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&i,&flg);CHKERRQ(ierr);
-    if (flg) {
-      if (i<1) SETERRQ(1,"Illegal value for option -eps_ncv. Must be > 0");
-      eps->ncv = i;
-    }
+    r = i = PETSC_IGNORE;
+    ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(eps,i,r);CHKERRQ(ierr);
 
+    i = j = PETSC_IGNORE;
+    ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetDimensions(eps,i,j);CHKERRQ(ierr);
+    
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()
@@ -181,7 +177,10 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
 -  -eps_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_DEFAULT to retain the default value of any of the tolerances.
+   Use PETSC_IGNORE to retain the default value of any of the tolerances.
+
+   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
+   dependent on the solution method.
 
    Level: intermediate
 
@@ -191,13 +190,21 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (tol != PETSC_DEFAULT) {
-    if (tol < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
-    eps->tol = tol;
+  if (tol != PETSC_IGNORE) {
+    if (tol == PETSC_DEFAULT) {
+      eps->tol = 1e-7;
+    } else {
+      if (tol < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      eps->tol = tol;
+    }
   }
-  if (maxits != PETSC_DEFAULT) {
-    if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
-    eps->max_it = maxits;
+  if (maxits != PETSC_IGNORE) {
+    if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
+      eps->max_it = 0;
+    } else {
+      if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+      eps->max_it = maxits;
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -251,7 +258,7 @@ PetscErrorCode EPSGetDimensions(EPS eps,int *nev,int *ncv)
 -  -eps_ncv <ncv> - Sets the dimension of the subspace
 
    Notes:
-   Use PETSC_DEFAULT to retain the previous value of any parameter.
+   Use PETSC_IGNORE to retain the previous value of any parameter.
 
    Use PETSC_DECIDE for ncv to assign a reasonably good value, which is 
    dependent on the solution method.
@@ -265,15 +272,16 @@ PetscErrorCode EPSSetDimensions(EPS eps,int nev,int ncv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
 
-  if( nev != PETSC_DEFAULT ) {
-    if (nev<1) SETERRQ(1,"Illegal value of nev. Must be > 0");
+  if( nev != PETSC_IGNORE ) {
+    if (nev<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     eps->nev = nev;
     eps->setupcalled = 0;
   }
-  if( ncv != PETSC_DEFAULT ) {
-    if( ncv == PETSC_DECIDE ) eps->ncv = 0;
-    else { 
-      if (ncv<1) SETERRQ(1,"Illegal value of ncv. Must be > 0");
+  if( ncv != PETSC_IGNORE ) {
+    if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
+      eps->ncv = 0;
+    } else {
+      if (ncv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       eps->ncv = ncv;
     }
     eps->setupcalled = 0;
@@ -608,10 +616,12 @@ PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EP
     default:
       SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown refinement type");
   }
-  if (eta != PETSC_DEFAULT && eta <= 0.0 && eta > 1.0) {
-    SETERRQ(PETSC_ERR_ARG_WRONG,"Invalid eta value");    
+  if (eta == PETSC_DEFAULT) {
+    eps->orthog_eta = 0.7071;
+  } else {
+    if (eta <= 0.0 || eta > 1.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");    
+    eps->orthog_eta = eta;
   }
-  eps->orthog_eta = eta;
   PetscFunctionReturn(0);
 }
 

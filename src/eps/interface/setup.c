@@ -45,10 +45,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!eps->type_name) {
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
-
-  /* Set default eta for orthogonalization */
-  if (eps->orthog_eta == PETSC_DEFAULT) 
-    eps->orthog_eta = 0.7071;
   
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   /* Set default problem type */
@@ -82,7 +78,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->nev > N) eps->nev = N;
   if (eps->ncv > N) eps->ncv = N;
-  if (!eps->tol) eps->tol = 1.e-7;
 
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
