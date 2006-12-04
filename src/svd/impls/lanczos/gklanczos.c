@@ -85,7 +85,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   PetscErrorCode ierr;
   PetscReal      *alpha,*beta,norm1,norm2,*work;
   PetscScalar    *Q,*PT;
-  int            i,j,k,n,zero=0,info;
+  int            i,j,k,l,n,zero=0,info;
   Vec            *V,*U;
   
   PetscFunctionBegin;
@@ -111,7 +111,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 //      if (i>svd->nconv) { ierr = VecAXPY(U[i],-beta[i-1],U[i-1]);CHKERRQ(ierr); }
       ierr = cgs(U[i],i,U);CHKERRQ(ierr);
       ierr = cgs(U[i],i,U);CHKERRQ(ierr);
-      ierr = VecNormalize(U[i],alpha+i);CHKERRQ(ierr);
+      ierr = VecNormalize(U[i],alpha+i-svd->nconv);CHKERRQ(ierr);
 
       if (svd->AT) {
 	ierr = MatMult(svd->AT,U[i],V[i+1]);CHKERRQ(ierr);
@@ -121,7 +121,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 //      ierr = VecAXPY(V[i+1],-alpha[i],V[i]);CHKERRQ(ierr);
       ierr = cgs(V[i+1],i+1,V);CHKERRQ(ierr);
       ierr = cgs(V[i+1],i+1,V);CHKERRQ(ierr);
-      ierr = VecNormalize(V[i+1],beta+i);CHKERRQ(ierr);    
+      ierr = VecNormalize(V[i+1],beta+i-svd->nconv);CHKERRQ(ierr);    
     }
 
     n = svd->n - svd->nconv;
@@ -129,19 +129,21 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     ierr = PetscMemzero(Q,sizeof(PetscScalar)*n*n);CHKERRQ(ierr);
     for (i=0;i<n;i++)
       PT[i*n+i] = Q[i*n+i] = 1.0;
-    LAPACKbdsqr_("U",&n,&n,&n,&zero,alpha+svd->nconv,beta+svd->nconv,PT,&n,Q,&n,PETSC_NULL,&n,work,&info,1);
+    LAPACKbdsqr_("U",&n,&n,&n,&zero,alpha,beta,PT,&n,Q,&n,PETSC_NULL,&n,work,&info,1);
 
     k = svd->nconv;
     for (i=svd->nconv;i<svd->n;i++) {
-      svd->sigma[i] = alpha[i];
+      if (svd->which == SVD_SMALLEST) j = n-i+svd->nconv-1;
+      else j = i-svd->nconv;
+      svd->sigma[i] = alpha[j];
       
       ierr = VecSet(svd->V[i],0.0);CHKERRQ(ierr);
-      for (j=svd->nconv;j<svd->n;j++) {
-	ierr = VecAXPY(svd->V[i],PT[(j-svd->nconv)*n+(i-svd->nconv)],V[j]);CHKERRQ(ierr);
+      for (l=0;l<n;l++) {
+	ierr = VecAXPY(svd->V[i],PT[l*n+j],V[l+svd->nconv]);CHKERRQ(ierr);
       }
       
       ierr = VecSet(svd->U[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(svd->U[i],n,Q+(i-svd->nconv)*n,U+svd->nconv);CHKERRQ(ierr);
+      ierr = VecMAXPY(svd->U[i],n,Q+j*n,U+svd->nconv);CHKERRQ(ierr);
       
       ierr = computeres(svd,svd->sigma[i],svd->U[i],svd->V[i],&norm1,&norm2);CHKERRQ(ierr);
 //      printf("[%i] sigma[%i] = %g error = %g,%g\n",svd->its,i,svd->sigma[i],norm1,norm2);
