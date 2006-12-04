@@ -35,7 +35,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = MatConvert(svd->A,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
   ierr = MatGetArray(mat,&pmat);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
-  svd->nconv = n = PetscMin(M,N);
+  n = PetscMin(M,N);
   if (M>=N) {
      pU = PETSC_NULL;
      ierr = PetscMalloc(sizeof(PetscScalar)*N*N,&pVT);CHKERRQ(ierr);
@@ -49,9 +49,9 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(sizeof(PetscReal)*(5*n*n+7*n),&rwork);CHKERRQ(ierr);
-  LAPACKgesdd("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,&qwork,&lwork,rwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,&qwork,&lwork,rwork,iwork,&info,1);
 #else
-  LAPACKgesdd("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,&qwork,&lwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,&qwork,&lwork,iwork,&info,1);
 #endif 
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   lwork = qwork;
@@ -59,10 +59,10 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   
   /* computation */  
 #if defined(PETSC_USE_COMPLEX)
-  LAPACKgesdd("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,work,&lwork,rwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,work,&lwork,rwork,iwork,&info,1);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKgesdd("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,work,&lwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,work,&lwork,iwork,&info,1);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
@@ -87,6 +87,9 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
     ierr = VecRestoreArray(svd->V[i],&pv);CHKERRQ(ierr);
   }
 
+  svd->nconv = n;
+  svd->reason = SVD_CONVERGED_TOL;
+
   ierr = MatRestoreArray(mat,&pmat);CHKERRQ(ierr);
   ierr = MatDestroy(mat);CHKERRQ(ierr);
   if (M>=N) {
@@ -105,8 +108,8 @@ PetscErrorCode SVDCreate_LAPACK(SVD svd)
   PetscFunctionBegin;
   svd->ops->setup = SVDSetup_LAPACK;
   svd->ops->solve = SVDSolve_LAPACK;
-  if (svd->transmode == PETSC_DEFAULT)
-    svd->transmode = SVD_TRANSPOSE_MATMULT; /* don't build the transpose */
+  if (svd->transmode == PETSC_DECIDE)
+    svd->transmode = SVD_TRANSPOSE_IMPLICIT; /* don't build the transpose */
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

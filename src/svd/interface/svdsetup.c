@@ -85,7 +85,6 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 PetscErrorCode SVDSetInitialVector(SVD svd,Vec vec)
 {
   PetscErrorCode ierr;
-  PetscReal      norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -95,7 +94,6 @@ PetscErrorCode SVDSetInitialVector(SVD svd,Vec vec)
   if (svd->vec_initial) {
     ierr = VecDestroy(svd->vec_initial); CHKERRQ(ierr);
   }
-  ierr = VecNormalize(vec,&norm);CHKERRQ(ierr);
   svd->vec_initial = vec;
   PetscFunctionReturn(0);
 }
@@ -155,7 +153,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   int            i;
   PetscTruth     flg;
   PetscInt       M,N;
-  PetscReal      norm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -172,20 +169,19 @@ PetscErrorCode SVDSetUp(SVD svd)
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSetOperator must be called first"); 
   
   /* determine how to build the transpose */
-  if (svd->transmode == PETSC_DEFAULT) {
+  if (svd->transmode == PETSC_DECIDE) {
     ierr = MatHasOperation(svd->A,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);    
     if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
-    else svd->transmode = SVD_TRANSPOSE_MATMULT;
+    else svd->transmode = SVD_TRANSPOSE_IMPLICIT;
   }
   
   /* build transpose matrix */
+  if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
   switch (svd->transmode) {
     case SVD_TRANSPOSE_EXPLICIT:
-      if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
       ierr = MatTranspose(svd->A,&svd->AT);CHKERRQ(ierr);
       break;
-    case SVD_TRANSPOSE_MATMULT:
-      if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
+    case SVD_TRANSPOSE_IMPLICIT:
       svd->AT = PETSC_NULL;    
       break;
     default:
@@ -196,7 +192,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (!svd->vec_initial) {
     ierr = MatGetVecs(svd->A,&svd->vec_initial,PETSC_NULL);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(svd->vec_initial);CHKERRQ(ierr);
-    ierr = VecNormalize(svd->vec_initial,&norm);CHKERRQ(ierr);
   }
 
   /* call specific solver setup */

@@ -36,6 +36,7 @@ struct _p_SVD {
   void             *data;	/* placeholder for misc stuff associated
                    		   with a particular solver */
   int              setupcalled;
+  SVDConvergedReason reason;
 };
 
 EXTERN PetscErrorCode SVDRegisterAll(char *);

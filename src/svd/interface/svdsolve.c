@@ -29,6 +29,7 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
 
   if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
+  svd->reason = SVD_CONVERGED_ITERATING;
 
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
@@ -37,6 +38,75 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = PetscOptionsHasName(svd->prefix,"-svd_view",&flg);CHKERRQ(ierr); 
   if (flg && !PetscPreLoadingOn) { ierr = SVDView(svd,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDGetIterationNumber"
+/*@
+   SVDGetIterationNumber - Gets the current iteration number. If the 
+   call to SVDSolve() is complete, then it returns the number of iterations 
+   carried out by the solution method.
+ 
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  its - number of iterations
+
+   Level: intermediate
+
+   Notes:
+      During the i-th iteration this call returns i-1. If SVDSolve() is 
+      complete, then parameter "its" contains either the iteration number at
+      which convergence was successfully reached, or failure was detected.  
+      Call SVDGetConvergedReason() to determine if the solver converged or 
+      failed and why.
+
+@*/
+PetscErrorCode SVDGetIterationNumber(SVD svd,int *its)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidIntPointer(its,2);
+  *its = svd->its;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDGetConvergedReason"
+/*@C
+   SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was 
+   stopped.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  reason - negative value indicates diverged, positive value converged
+   (see SVDConvergedReason)
+
+   Possible values for reason:
++  SVD_CONVERGED_TOL - converged up to tolerance
+.  SVD_DIVERGED_ITS - required more than its to reach convergence
+-  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
+
+   Level: intermediate
+
+   Notes: Can only be called after the call to SVDSolve() is complete.
+
+.seealso: SVDSetTolerances(), SVDSolve(), SVDConvergedReason
+@*/
+PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidIntPointer(reason,2);
+  *reason = svd->reason;
   PetscFunctionReturn(0);
 }
 
@@ -64,7 +134,7 @@ PetscErrorCode SVDGetConverged(SVD svd,int *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   PetscValidIntPointer(nconv,2);
-  if (svd->nconv < 0) { 
+  if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
   }
   *nconv = svd->nconv;
@@ -104,7 +174,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   PetscValidPointer(sigma,3);
-  if (svd->nconv < 0) { 
+  if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
   }
   if (i<0 || i>=svd->nconv) { 
@@ -137,7 +207,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
    Output Parameters:
 +  norm1 - the norm ||A*v-sigma*u||_2 where sigma is the 
            singular value, u and v are the left and right singular vectors. 
--  norm2 - the norm ||A*u-sigma*v||_2 with the same sigma, u and v
+-  norm2 - the norm ||A^T*u-sigma*v||_2 with the same sigma, u and v
 
    Note:
    The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
@@ -155,7 +225,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  if (svd->nconv < 0) { 
+  if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
   }
   if (i<0 || i>=svd->nconv) { 
@@ -163,7 +233,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
   }
   
   ierr = MatGetVecs(svd->A,&v,&u);CHKERRQ(ierr);
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);
+  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
   if (norm1) {
     ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
     ierr = MatMult(svd->A,v,x);CHKERRQ(ierr);

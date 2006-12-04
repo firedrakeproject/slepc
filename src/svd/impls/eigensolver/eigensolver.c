@@ -31,7 +31,7 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   eigen = (SVD_EIGENSOLVER *)svd->data;
   switch (eigen->mode) {
-    case SVDEIGENSOLVER_DIRECT:
+    case SVDEIGENSOLVER_ATA:
       ierr = MatMult(svd->A,x,eigen->x1);CHKERRQ(ierr);
       if (svd->AT) {
         ierr = MatMult(svd->AT,eigen->x1,y);CHKERRQ(ierr);
@@ -39,7 +39,7 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
         ierr = MatMultTranspose(svd->A,eigen->x1,y);CHKERRQ(ierr);
       }
       break;
-    case SVDEIGENSOLVER_TRANSPOSE:
+    case SVDEIGENSOLVER_AAT:
       if (svd->AT) {
         ierr = MatMult(svd->AT,x,eigen->x1);CHKERRQ(ierr);
       } else {
@@ -106,12 +106,12 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
 
   ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   switch (eigen->mode) {
-    case SVDEIGENSOLVER_DIRECT:
+    case SVDEIGENSOLVER_ATA:
       ierr = MatGetVecs(svd->A,PETSC_NULL,&eigen->x1);CHKERRQ(ierr);
       eigen->x2 = eigen->y1 = eigen->y2 = PETSC_NULL;
       ierr = MatCreateShell(svd->comm,n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
       break;
-    case SVDEIGENSOLVER_TRANSPOSE:
+    case SVDEIGENSOLVER_AAT:
       ierr = MatGetVecs(svd->A,&eigen->x1,PETSC_NULL);CHKERRQ(ierr);
       eigen->x2 = eigen->y1 = eigen->y2 = PETSC_NULL;
       ierr = MatCreateShell(svd->comm,m,m,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
@@ -155,9 +155,9 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   ierr = EPSSetWhichEigenpairs(eigen->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
-
+  ierr = EPSGetConvergedReason(eigen->eps,(EPSConvergedReason*)&svd->reason);
   switch (eigen->mode) {
-    case SVDEIGENSOLVER_DIRECT:
+    case SVDEIGENSOLVER_ATA:
       for (i=0;i<svd->nconv;i++) {
 	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
 	svd->sigma[i] = sqrt(PetscRealPart(sigma));
@@ -165,7 +165,7 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
 	ierr = VecScale(svd->U[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
       }
       break;
-    case SVDEIGENSOLVER_TRANSPOSE:
+    case SVDEIGENSOLVER_AAT:
       for (i=0;i<svd->nconv;i++) {
 	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->U[i],PETSC_NULL);CHKERRQ(ierr);
 	svd->sigma[i] = sqrt(PetscRealPart(sigma));
@@ -216,7 +216,7 @@ PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   PetscTruth      flg;
-  const char      *mode_list[3] = { "direct" , "transpose", "cyclic" };
+  const char      *mode_list[3] = { "ata" , "aat", "cyclic" };
   PetscInt        mode;
 
   PetscFunctionBegin;
@@ -238,8 +238,10 @@ PetscErrorCode SVDEigensolverSetMode_EIGENSOLVER(SVD svd,SVDEigensolverMode mode
 
   PetscFunctionBegin;
   switch (eigen->mode) {
-    case SVDEIGENSOLVER_DIRECT:
-    case SVDEIGENSOLVER_TRANSPOSE:
+    case PETSC_DEFAULT:
+      mode = SVDEIGENSOLVER_CYCLIC;
+    case SVDEIGENSOLVER_ATA:
+    case SVDEIGENSOLVER_AAT:
     case SVDEIGENSOLVER_CYCLIC:
       eigen->mode = mode;
       svd->setupcalled = 0;
@@ -434,7 +436,7 @@ PetscErrorCode SVDView_EIGENSOLVER(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
-  const char      *mode_list[3] = { "direct" , "transpose", "cyclic" };
+  const char      *mode_list[3] = { "ata" , "aat", "cyclic" };
 
   PetscFunctionBegin;
   ierr = PetscViewerASCIIPrintf(viewer,"eigensolver SVD mode: %s\n",mode_list[eigen->mode]);CHKERRQ(ierr);

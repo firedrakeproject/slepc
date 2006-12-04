@@ -41,9 +41,11 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   switch (mode) {
-    case SVD_TRANSPOSE_EXPLICIT:
-    case SVD_TRANSPOSE_MATMULT:
     case PETSC_DEFAULT:
+      mode = PETSC_DECIDE;
+    case SVD_TRANSPOSE_EXPLICIT:
+    case SVD_TRANSPOSE_IMPLICIT:
+    case PETSC_DECIDE:
       svd->transmode = mode;
       svd->setupcalled = 0;
       break;
@@ -97,7 +99,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
    Options Database Keys:
 +  -svd_tol <tol> - Sets the convergence tolerance
 -  -svd_max_it <maxits> - Sets the maximum number of iterations allowed 
-   (use PETSC_DEFAULT to compute a value based on the operator matrix)
+   (use PETSC_DECIDE to compute an educated guess based on basis and matrix sizes)
 
    Notes:
    Use PETSC_IGNORE to retain the previous value of any parameter. 
@@ -111,16 +113,21 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,int maxits)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   if (tol != PETSC_IGNORE) {
-    if (tol < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
-    svd->tol = tol;
+    if (tol == PETSC_DEFAULT) {
+      tol = 1e-7;
+    } else {
+      if (tol < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      svd->tol = tol;
+    }
   }
   if (maxits != PETSC_IGNORE) {
-    if (maxits == PETSC_DEFAULT) {
+    if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
+      svd->max_it = PETSC_DECIDE;
       svd->setupcalled = 0;
     } else {
       if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+      svd->max_it = maxits;
     }
-    svd->max_it = maxits;
   }
   PetscFunctionReturn(0);
 }
@@ -176,8 +183,8 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,int *maxits)
    Notes:
    Use PETSC_IGNORE to retain the previous value of any parameter.
 
-   Use PETSC_DEFAULT for ncv to assign a reasonably good value, which is 
-   dependent on the solution method.
+   Use PETSC_DECIDE for ncv to assign a reasonably good value, which is 
+   dependent on the solution method and the number of singular values required.
 
    Level: intermediate
 
@@ -191,11 +198,14 @@ PetscErrorCode SVDSetDimensions(SVD svd,int nsv,int ncv)
   if (nsv != PETSC_IGNORE) {
     if (nsv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
     svd->nsv = nsv;
-    svd->setupcalled = 0;
   }
   if (ncv != PETSC_IGNORE) {
-    if (ncv<1 && ncv != PETSC_DECIDE) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
-    svd->ncv = ncv;
+    if (ncv == PETSC_DEFAULT || ncv == PETSC_DECIDE) {
+      svd->ncv = PETSC_DECIDE;
+    } else {
+      if (ncv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+      svd->ncv = ncv;
+    }
     svd->setupcalled = 0;
   }
   PetscFunctionReturn(0);
@@ -328,8 +338,8 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 {
   PetscErrorCode ierr;
   char           type[256];
-  PetscTruth     flg,flg2;
-  const char     *mode_list[2] = { "explicit", "matmult" };
+  PetscTruth     flg;
+  const char     *mode_list[2] = { "explicit", "implicit" };
   PetscInt       i,j;
   PetscReal      r;
 
@@ -347,24 +357,20 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",0);CHKERRQ(ierr);
 
-  ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,2,svd->transmode == PETSC_DEFAULT ? "default" : mode_list[svd->transmode],&i,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,2,svd->transmode == PETSC_DECIDE ? "decide" : mode_list[svd->transmode],&i,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDSetTransposeMode(svd,(SVDTransposeMode)i);CHKERRQ(ierr);
   }   
 
   r = i = PETSC_IGNORE;
-  ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,&flg);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol,&r,&flg2);CHKERRQ(ierr);
-  if (flg || flg2) {
-    ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
-  }
+  ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
 
   i = j = PETSC_IGNORE;
-  ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->ncv,&i,&flg);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,&flg2);CHKERRQ(ierr);
-  if (flg || flg2) {
-    ierr = SVDSetDimensions(svd,i,j);CHKERRQ(ierr);
-  }
+  ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->ncv,&i,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDSetDimensions(svd,i,j);CHKERRQ(ierr);
 
   ierr = PetscOptionsTruthGroupBegin("-svd_largest","compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr); }
