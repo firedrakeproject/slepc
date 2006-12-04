@@ -74,7 +74,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSSetTolerances(eps,i,r);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
 
     i = j = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,PETSC_NULL);CHKERRQ(ierr);
@@ -177,7 +177,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
 -  -eps_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_IGNORE to retain the default value of any of the tolerances.
+   Use PETSC_IGNORE for an argument that need not be changed.
 
    Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
    dependent on the solution method.
