@@ -467,6 +467,8 @@ PetscErrorCode EPSDestroy(EPS eps)
   
   ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
 
+  ierr = EPSClearMonitor(eps);CHKERRQ(ierr);
+
   PetscLogObjectDestroy(eps);
   PetscHeaderDestroy(eps);
   PetscFunctionReturn(0);

@@ -14,8 +14,10 @@
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
 .  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring)
--  mctx    - [optional] context for private data for the
+.  mctx    - [optional] context for private data for the
              monitor routine (use PETSC_NULL if no context is desired)
+-  monitordestroy - [optional] routine that frees monitor context
+          (may be PETSC_NULL)
 
    Calling Sequence of monitor:
 $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi, PetscReal* errest, int nest, void *mctx)
@@ -31,8 +33,9 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
    Options Database Keys:
 +    -eps_monitor        - print error estimates at each iteration
+.    -eps_xmonitor       - sets line graph monitor
 -    -eps_cancelmonitors - cancels all monitors that have been hardwired into
-      a code by calls to EPSetMonitor(), but does not cancel those set via
+      a code by calls to EPSSetMonitor(), but does not cancel those set via
       the options database.
 
    Notes:  
@@ -44,7 +47,7 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
 .seealso: EPSDefaultMonitor(), EPSClearMonitor()
 @*/
-PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*), void *mctx)
+PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*), void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -52,7 +55,8 @@ PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,Pe
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS monitors set");
   }
   eps->monitor[eps->numbermonitors]           = monitor;
-  eps->monitorcontext[eps->numbermonitors++]  = (void*)mctx;
+  eps->monitorcontext[eps->numbermonitors]    = (void*)mctx;
+  eps->monitordestroy[eps->numbermonitors++]  = monitordestroy;
   PetscFunctionReturn(0);
 }
 
@@ -77,8 +81,16 @@ PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,Pe
 @*/
 PetscErrorCode EPSClearMonitor(EPS eps)
 {
+  PetscErrorCode ierr;
+  PetscInt       i;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  for (i=0; i<eps->numbermonitors; i++) {
+    if (eps->monitordestroy[i]) {
+      ierr = (*eps->monitordestroy[i])(eps->monitorcontext[i]);CHKERRQ(ierr);
+    }
+  }
   eps->numbermonitors = 0;
   PetscFunctionReturn(0);
 }

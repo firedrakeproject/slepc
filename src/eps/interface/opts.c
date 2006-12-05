@@ -95,11 +95,11 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsString("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSSetMonitor","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIOpen(eps->comm,monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = EPSSetMonitor(eps,EPSDefaultMonitor,monviewer);CHKERRQ(ierr);
+      ierr = EPSSetMonitor(eps,EPSDefaultMonitor,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsName("-eps_xmonitor","Monitor error estimates graphically","EPSSetMonitor",&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = EPSSetMonitor(eps,EPSLGMonitor,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSSetMonitor(eps,EPSLGMonitor,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsTruthGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
