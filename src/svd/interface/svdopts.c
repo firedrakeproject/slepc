@@ -337,11 +337,12 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 PetscErrorCode SVDSetFromOptions(SVD svd)
 {
   PetscErrorCode ierr;
-  char           type[256];
+  char           type[256],monfilename[PETSC_MAX_PATH_LEN];;
   PetscTruth     flg;
   const char     *mode_list[2] = { "explicit", "implicit" };
   PetscInt       i,j;
   PetscReal      r;
+  PetscViewer    monviewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -376,6 +377,21 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr); }
   ierr = PetscOptionsTruthGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsName("-svd_cancelmonitors","Remove any hardwired monitor routines","SVDClearMonitor",&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SVDClearMonitor(svd); CHKERRQ(ierr); 
+  }
+
+  ierr = PetscOptionsString("-svd_monitor","Monitor approximate singular values and error estimates","SVDSetMonitor","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  if (flg) {
+    ierr = PetscViewerASCIIOpen(svd->comm,monfilename,&monviewer);CHKERRQ(ierr);
+    ierr = SVDSetMonitor(svd,SVDDefaultMonitor,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsName("-svd_xmonitor","Monitor error estimates graphically","SVDSetMonitor",&flg);CHKERRQ(ierr); 
+  if (flg) {
+    ierr = SVDSetMonitor(svd,SVDLGMonitor,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   if (svd->ops->setfromoptions) {

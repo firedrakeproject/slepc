@@ -199,9 +199,11 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->its         = 0;
   svd->max_it      = PETSC_DECIDE;  
   svd->tol         = 1e-7;    
+  svd->errest      = PETSC_NULL;
   svd->data        = PETSC_NULL;
   svd->setupcalled = 0;
   svd->reason      = SVD_CONVERGED_ITERATING;
+  svd->numbermonitors = 0;
 
   ierr = PetscPublishAll(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -241,6 +243,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
   if (svd->n) { 
     ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
+    ierr = PetscFree(svd->errest);CHKERRQ(ierr);
     for (i=0;i<svd->n;i++) {
       ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
     }
@@ -252,6 +255,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   }
   if (svd->vec_initial) { ierr = VecDestroy(svd->vec_initial);CHKERRQ(ierr); }
   if (svd->data) { ierr = PetscFree(svd->data);CHKERRQ(ierr); }
+  ierr = SVDClearMonitor(svd);CHKERRQ(ierr);
   
   PetscLogObjectDestroy(svd);
   PetscHeaderDestroy(svd);

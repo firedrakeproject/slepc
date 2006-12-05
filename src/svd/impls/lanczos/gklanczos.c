@@ -101,8 +101,6 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = VecCopy(svd->vec_initial,V[0]);CHKERRQ(ierr);
   ierr = VecNormalize(V[0],&norm1);CHKERRQ(ierr);
   
-  svd->nconv = 0;
-  svd->its = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {
     svd->its++;
 
@@ -146,8 +144,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
       ierr = VecMAXPY(svd->U[i],n,Q+j*n,U+svd->nconv);CHKERRQ(ierr);
       
       ierr = computeres(svd,svd->sigma[i],svd->U[i],svd->V[i],&norm1,&norm2);CHKERRQ(ierr);
-//      printf("[%i] sigma[%i] = %g error = %g,%g\n",svd->its,i,svd->sigma[i],norm1,norm2);
-      if (sqrt(norm1*norm1+norm2*norm2) < svd->tol) {
+      svd->errest[i] = sqrt(norm1*norm1+norm2*norm2);
+      if (svd->errest[i] < svd->tol) {
         k++;
       } else break;
     }
@@ -156,6 +154,9 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
       ierr = VecCopy(svd->U[i],U[i]);CHKERRQ(ierr);
     }
     svd->nconv = k;
+
+    SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);
+
     if (svd->its > svd->max_it) svd->reason = SVD_DIVERGED_ITS;
     if (svd->nconv >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     if (svd->reason == SVD_CONVERGED_ITERATING) {

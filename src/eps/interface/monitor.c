@@ -47,7 +47,8 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
 .seealso: EPSDefaultMonitor(), EPSClearMonitor()
 @*/
-PetscErrorCode EPSSetMonitor(EPS eps, int (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*), void *mctx,PetscErrorCode (*monitordestroy)(void*))
+PetscErrorCode EPSSetMonitor(EPS eps,PetscErrorCode (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),
+                             void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);

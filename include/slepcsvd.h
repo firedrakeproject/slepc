@@ -61,6 +61,13 @@ EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 EXTERN PetscErrorCode SVDDestroy(SVD);
 EXTERN PetscErrorCode SVDInitializePackage(char*);
 
+EXTERN PetscErrorCode SVDSetMonitor(SVD,PetscErrorCode (*)(SVD,int,int,PetscReal*,PetscReal*,int,void*),
+                                    void*,PetscErrorCode (*monitordestroy)(void*));
+EXTERN PetscErrorCode SVDClearMonitor(SVD);
+EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
+EXTERN PetscErrorCode SVDDefaultMonitor(SVD,int,int,PetscReal*,PetscReal*,int,void*);
+EXTERN PetscErrorCode SVDLGMonitor(SVD,int,int,PetscReal*,PetscReal*,int,void*);
+
 typedef enum { SVDEIGENSOLVER_ATA, SVDEIGENSOLVER_AAT,
                SVDEIGENSOLVER_CYCLIC } SVDEigensolverMode;
 

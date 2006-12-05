@@ -210,6 +210,38 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "SVDMonitor_EIGENSOLVER"
+PetscErrorCode SVDMonitor_EIGENSOLVER(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *ctx)
+{
+  int             i,j;
+  SVD             svd = (SVD)ctx;
+  SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
+
+  PetscFunctionBegin;
+
+  if (eigen->mode == SVDEIGENSOLVER_CYCLIC) {
+    nconv = 0;
+    for (i=0,j=0;i<nest;i++) {
+      if (PetscRealPart(eigr[i]) > 0.0) {
+	svd->sigma[j] = PetscRealPart(eigr[i]);
+	svd->errest[j] = errest[i];
+	if (errest[i] < svd->tol) nconv++;
+	j++;
+      }
+    }
+    nest = j;
+  } else {
+    for (i=0,j=0;i<nest;i++) {
+      svd->sigma[i] = sqrt(PetscRealPart(eigr[i]));
+      svd->errest[i] = errest[i];
+    }
+  }
+
+  SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SVDSetFromOptions_EIGENSOLVER"
 PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
 {
@@ -488,6 +520,7 @@ PetscErrorCode SVDCreate_EIGENSOLVER(SVD svd)
   ierr = EPSAppendOptionsPrefix(eigen->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,eigen->eps);
   ierr = EPSSetWhichEigenpairs(eigen->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSetMonitor(eigen->eps,SVDMonitor_EIGENSOLVER,svd,PETSC_NULL);CHKERRQ(ierr);
   eigen->mode = SVDEIGENSOLVER_CYCLIC;
   eigen->mat = PETSC_NULL;
   eigen->x1 = PETSC_NULL;

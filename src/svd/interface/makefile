@@ -3,10 +3,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = svdregis.c svdbasic.c svdopts.c svdsetup.c svdsolve.c
+SOURCEC  = svdregis.c svdbasic.c svdopts.c svdsetup.c svdsolve.c svdmon.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = svdregis.o svdbasic.o svdopts.o svdsetup.o svdsolve.o
+OBJSC    = svdregis.o svdbasic.o svdopts.o svdsetup.o svdsolve.o svdmon.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = SVD

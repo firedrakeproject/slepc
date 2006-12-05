@@ -207,6 +207,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     /* free memory for previous solution  */
     if (svd->n) { 
       ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
+      ierr = PetscFree(svd->errest);CHKERRQ(ierr);
       for (i=0;i<svd->n;i++) {
 	ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
       }
@@ -218,6 +219,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
     /* allocate memory for next solution */
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
+    ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(Vec),&svd->U);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
     for (i=0;i<svd->ncv;i++) {

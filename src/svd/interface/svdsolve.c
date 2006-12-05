@@ -24,12 +24,17 @@ PetscErrorCode SVDSolve(SVD svd)
 {
   PetscErrorCode ierr;
   PetscTruth     flg;
+  int            i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
 
   if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
+  svd->its = 0;
+  svd->nconv = 0;
   svd->reason = SVD_CONVERGED_ITERATING;
+  for (i=0;i<svd->ncv;i++) svd->sigma[i]=svd->errest[i]=0.0;
+  SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);
 
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
