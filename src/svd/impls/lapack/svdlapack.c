@@ -26,7 +26,8 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscInt        M,N,n;
   Mat             mat;
   PetscScalar     *pU,*pVT,*pmat,*pu,*pv,*work,qwork;
-  int             i,j,lwork,*iwork,info;
+  PetscReal       *sigma;
+  int             i,j,k,lwork,*iwork,info;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal       *rwork;
 #endif 
@@ -35,23 +36,25 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = MatConvert(svd->A,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
   ierr = MatGetArray(mat,&pmat);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
-  n = PetscMin(M,N);
   if (M>=N) {
+     n = N;
      pU = PETSC_NULL;
      ierr = PetscMalloc(sizeof(PetscScalar)*N*N,&pVT);CHKERRQ(ierr);
   } else {
+     n = M;
      ierr = PetscMalloc(sizeof(PetscScalar)*M*M,&pU);CHKERRQ(ierr);
      pVT = PETSC_NULL;
   }
 
   /* workspace query & allocation */
+  ierr = PetscMalloc(sizeof(PetscReal)*n,&sigma);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(int)*8*n,&iwork);CHKERRQ(ierr);
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(sizeof(PetscReal)*(5*n*n+7*n),&rwork);CHKERRQ(ierr);
-  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,&qwork,&lwork,rwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,&qwork,&lwork,rwork,iwork,&info,1);
 #else
-  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,&qwork,&lwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,&qwork,&lwork,iwork,&info,1);
 #endif 
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   lwork = qwork;
@@ -59,10 +62,10 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   
   /* computation */  
 #if defined(PETSC_USE_COMPLEX)
-  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,work,&lwork,rwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,work,&lwork,rwork,iwork,&info,1);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKgesdd_("O",&M,&N,pmat,&M,svd->sigma,pU,&M,pVT,&N,work,&lwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,work,&lwork,iwork,&info,1);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
@@ -70,21 +73,19 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   
   /* copy singular vectors */
   for (i=0;i<n;i++) {
-    ierr = VecGetArray(svd->U[i],&pu);CHKERRQ(ierr);
-    ierr = VecGetArray(svd->V[i],&pv);CHKERRQ(ierr);
-    if (M>=N) {
-      for (j=0;j<M;j++)
-        pu[j] = pmat[i*M+j];
-      for (j=0;j<N;j++)
-        pv[j] = pVT[j*N+i];
-    } else {
-      for (j=0;j<M;j++)
-        pu[j] = pU[i*M+j];
-      for (j=0;j<N;j++)
-        pv[j] = pmat[j*N+i];
-    }
-    ierr = VecRestoreArray(svd->U[i],&pu);CHKERRQ(ierr);
-    ierr = VecRestoreArray(svd->V[i],&pv);CHKERRQ(ierr);
+    if (svd->which == SVD_SMALLEST) k = n - i - 1;
+    else k = i;
+    svd->sigma[k] = sigma[i];
+    ierr = VecGetArray(svd->U[k],&pu);CHKERRQ(ierr);
+    ierr = VecGetArray(svd->V[k],&pv);CHKERRQ(ierr);
+    for (j=0;j<M;j++)
+      if (M>=N) pu[j] = pmat[i*M+j];
+      else pu[j] = pU[i*M+j];
+    for (j=0;j<N;j++)
+      if (M>=N) pv[j] = pVT[j*N+i];
+      else pv[j] = pmat[j*M+i];
+    ierr = VecRestoreArray(svd->U[k],&pu);CHKERRQ(ierr);
+    ierr = VecRestoreArray(svd->V[k],&pv);CHKERRQ(ierr);
   }
 
   svd->nconv = n;
@@ -92,6 +93,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 
   ierr = MatRestoreArray(mat,&pmat);CHKERRQ(ierr);
   ierr = MatDestroy(mat);CHKERRQ(ierr);
+  ierr = PetscFree(sigma);CHKERRQ(ierr);
   if (M>=N) {
      ierr = PetscFree(pVT);CHKERRQ(ierr);
   } else {
