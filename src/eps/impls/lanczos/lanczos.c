@@ -594,8 +594,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       }
     }
 
+    EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nconv+n);
     nconv = k;
-    EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nconv+n);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
