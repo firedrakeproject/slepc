@@ -337,7 +337,7 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 PetscErrorCode SVDSetFromOptions(SVD svd)
 {
   PetscErrorCode ierr;
-  char           type[256],monfilename[PETSC_MAX_PATH_LEN];;
+  char           type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscTruth     flg;
   const char     *mode_list[2] = { "explicit", "implicit" };
   PetscInt       i,j;
@@ -380,7 +380,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   ierr = PetscOptionsName("-svd_cancelmonitors","Remove any hardwired monitor routines","SVDClearMonitor",&flg);CHKERRQ(ierr);
   if (flg) {
-    ierr = SVDClearMonitor(svd); CHKERRQ(ierr); 
+    ierr = SVDClearMonitor(svd);CHKERRQ(ierr); 
   }
 
   ierr = PetscOptionsString("-svd_monitor","Monitor approximate singular values and error estimates","SVDSetMonitor","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
