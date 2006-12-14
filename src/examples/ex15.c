@@ -1,0 +1,128 @@
+
+static char help[] = "Singular value decomposition of the Lauchli matrix.\n"
+  "The command line options are:\n"
+  "  -n <n>, where <n> = matrix dimension.\n"
+  "  -mu <mu>, where <mu> = subdiagonal value.\n\n";
+
+#include "slepcsvd.h"
+
+#undef __FUNCT__
+#define __FUNCT__ "main"
+int main( int argc, char **argv )
+{
+  Mat         	 A;		  /* operator matrix */
+  SVD         	 svd;		  /* singular value problem solver context */
+  SVDType     	 type;
+  PetscReal   	 error, tol, sigma, norm1, norm2, mu=PETSC_SQRT_MACHINE_EPSILON;
+  PetscErrorCode ierr;
+  PetscInt       n=100, i, j, start, end;
+  int         	 nsv, maxit, its, nconv;
+
+  SlepcInitialize(&argc,&argv,(char*)0,help);
+
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(PETSC_NULL,"-mu",&mu,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%d x %d) mu=%g\n\n",n+1,n,mu);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                          Build the Lauchli matrix
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
+  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
+
+  ierr = MatGetOwnershipRange(A,&start,&end);CHKERRQ(ierr);
+  for (i=start;i<end;i++) {
+    if (i == 0) {
+      for (j=0;j<n;j++) {
+        ierr = MatSetValue(A,0,j,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = MatSetValue(A,i,i-1,mu,INSERT_VALUES);CHKERRQ(ierr);
+    }
+  }
+  
+  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+          Create the singular value solver and set various options
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  /* 
+     Create singular value solver context
+  */
+  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+
+  /* 
+     Set operator
+  */
+  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+
+  /*
+     Set solver parameters at runtime
+  */
+  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                      Solve the singular value system
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = SVDSolve(svd);CHKERRQ(ierr);
+  ierr = SVDGetIterationNumber(svd, &its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
+
+  /*
+     Optional: Get some information from the solver and display it
+  */
+  ierr = SVDGetType(svd,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
+  ierr = SVDGetDimensions(svd,&nsv,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %d\n",nsv);CHKERRQ(ierr);
+  ierr = SVDGetTolerances(svd,&tol,&maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                    Display solution and clean up
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  /* 
+     Get number of converged singular triplets
+  */
+  ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %d\n\n",nconv);CHKERRQ(ierr);
+
+  if (nconv>0) {
+    /*
+       Display singular values and relative errors
+    */
+    ierr = PetscPrintf(PETSC_COMM_WORLD,
+         "          sigma           residual norm\n"
+         "  --------------------- ------------------\n" );CHKERRQ(ierr);
+    for( i=0; i<nconv; i++ ) {
+      /* 
+         Get converged singular triplets: i-th singular value is stored in sigma
+      */
+      ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+
+      /*
+         Compute the error associated to each singular triplet 
+      */
+      ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
+      error = sqrt(norm1*norm1+norm2*norm2);
+
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",sigma); CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
+    }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+  }
+  
+  /* 
+     Free work space
+  */
+  ierr = SVDDestroy(svd);CHKERRQ(ierr);
+  ierr = MatDestroy(A);CHKERRQ(ierr);
+  ierr = SlepcFinalize();CHKERRQ(ierr);
+  return 0;
+}
