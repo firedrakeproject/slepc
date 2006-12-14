@@ -155,6 +155,7 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   ierr = EPSSetWhichEigenpairs(eigen->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eigen->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(eigen->eps,(EPSConvergedReason*)&svd->reason);
   switch (eigen->mode) {
     case SVDEIGENSOLVER_ATA:
