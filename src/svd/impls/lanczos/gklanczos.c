@@ -126,7 +126,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     }
     
     if (svd->its > svd->max_it) svd->reason = SVD_DIVERGED_ITS;
-    if (svd->nconv >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
+    if (k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       /* compute restart vector */
       if (svd->which == SVD_SMALLEST) j = n-k+svd->nconv-1;

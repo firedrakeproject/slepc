@@ -95,11 +95,11 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(ksp,KSP_COOKIE,2);
   PetscCheckSameComm(st,1,ksp,2);
+  ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
   if (st->ksp) {
     ierr = KSPDestroy(st->ksp);CHKERRQ(ierr);
   }
   st->ksp = ksp;
-  ierr = PetscObjectReference((PetscObject)st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
