@@ -4,7 +4,7 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/examples/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.c
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.c ex13.c ex14.c
 EXAMPLESCH = 
 EXAMPLESF  = ex1f.F ex6f.F mvmisg.f
 
@@ -77,6 +77,10 @@ ex12: ex12.o chkopts
 ex13: ex13.o chkopts
 	-${CLINKER} -o ex13 ex13.o ${SLEPC_LIB}
 	${RM} ex13.o
+
+ex14: ex14.o chkopts
+	-${CLINKER} -o ex14 ex14.o ${SLEPC_LIB}
+	${RM} ex14.o
 
 #------------------------------------------------------------------------------------
 
@@ -169,4 +173,10 @@ runex13_1:
 	   if (${DIFF} output/ex13_1.out ex13_1.tmp) then true; \
 	   else echo "Possible problem with ex13_1, diffs above"; fi; \
 	   ${RM} -f ex13_1.tmp
+
+runex14_1:
+	-@${MPIRUN} -np 1 ex14 -file ${SLEPC_DIR}/src/mat/examples/rdb200.petsc > ex14_1.tmp 2>&1;	  \
+	   if (${DIFF} output/ex14_1.out ex14_1.tmp) then true; \
+	   else echo "Possible problem with ex14_1, diffs above"; fi; \
+	   ${RM} -f ex14_1.tmp
 

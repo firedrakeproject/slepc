@@ -1,0 +1,15 @@
+
+Singular value problem stored in file.
+
+ Reading REAL matrix from a binary file...
+ Number of iterations of the method: 6
+ Solution method: eigensolver
+
+ Number of requested singular values: 1
+ Stopping condition: tol=1e-07, maxit=100
+ Number of converged approximate singular triplets: 1
+
+          sigma           residual norm
+  --------------------- ------------------
+        35.007519        6.86187e-07
+
