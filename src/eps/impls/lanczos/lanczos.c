@@ -245,6 +245,7 @@ static void compute_int(PetscTruth *which,PetscReal *mu,int j,PetscReal delta,Pe
   PetscFunctionBegin;  
   /* initialize which */
   found = PETSC_FALSE;
+  maxpos = 0;
   max = 0.0;
   for (i=0;i<j;i++) {
     if (PetscAbsReal(mu[i]) >= delta) {
