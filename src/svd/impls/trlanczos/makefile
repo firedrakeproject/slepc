@@ -10,7 +10,7 @@ OBJSC    = trlanczos.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = SVD
-LOCDIR   = src/svd/impls/lanczos/
+LOCDIR   = src/svd/impls/trlanczos/
 
 include ${SLEPC_DIR}/bmake/slepc_common
 
