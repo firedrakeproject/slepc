@@ -23,6 +23,7 @@ typedef struct _p_SVD* SVD;
 #define SVDEIGENSOLVER "eigensolver"
 #define SVDLAPACK      "lapack"
 #define SVDLANCZOS     "lanczos"
+#define SVDTRLANCZOS   "trlanczos"
 
 typedef enum { SVD_TRANSPOSE_EXPLICIT, SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode;
 
@@ -68,6 +69,8 @@ EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
 EXTERN PetscErrorCode SVDDefaultMonitor(SVD,int,int,PetscReal*,PetscReal*,int,void*);
 EXTERN PetscErrorCode SVDLGMonitor(SVD,int,int,PetscReal*,PetscReal*,int,void*);
 
+EXTERN PetscErrorCode SVDDense(int,int,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
+
 typedef enum { SVDEIGENSOLVER_ATA, SVDEIGENSOLVER_AAT,
                SVDEIGENSOLVER_CYCLIC } SVDEigensolverMode;
 
@@ -75,5 +78,9 @@ EXTERN PetscErrorCode SVDEigensolverSetMode(SVD,SVDEigensolverMode);
 EXTERN PetscErrorCode SVDEigensolverGetMode(SVD,SVDEigensolverMode*);
 EXTERN PetscErrorCode SVDEigensolverSetEPS(SVD,EPS);
 EXTERN PetscErrorCode SVDEigensolverGetEPS(SVD,EPS*);
+
+EXTERN PetscErrorCode SVDLanczosSetOneSideReorthogonalization(SVD,PetscTruth);
+
+EXTERN PetscErrorCode SVDTRLanczosSetOneSideReorthogonalization(SVD,PetscTruth);
 
 #endif

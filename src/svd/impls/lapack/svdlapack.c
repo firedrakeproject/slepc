@@ -25,9 +25,9 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscErrorCode  ierr;
   PetscInt        M,N,n;
   Mat             mat;
-  PetscScalar     *pU,*pVT,*pmat,*pu,*pv,*work,qwork;
+  PetscScalar     *pU,*pVT,*pmat,*pu,*pv;
   PetscReal       *sigma;
-  int             i,j,k,lwork,*iwork,info;
+  int             i,j,k;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal       *rwork;
 #endif 
@@ -45,32 +45,10 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
      ierr = PetscMalloc(sizeof(PetscScalar)*M*M,&pU);CHKERRQ(ierr);
      pVT = PETSC_NULL;
   }
-
-  /* workspace query & allocation */
   ierr = PetscMalloc(sizeof(PetscReal)*n,&sigma);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(int)*8*n,&iwork);CHKERRQ(ierr);
-  lwork = -1;
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(sizeof(PetscReal)*(5*n*n+7*n),&rwork);CHKERRQ(ierr);
-  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,&qwork,&lwork,rwork,iwork,&info,1);
-#else
-  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,&qwork,&lwork,iwork,&info,1);
-#endif 
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
-  lwork = qwork;
-  ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   
-  /* computation */  
-#if defined(PETSC_USE_COMPLEX)
-  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,work,&lwork,rwork,iwork,&info,1);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-#else
-  LAPACKgesdd_("O",&M,&N,pmat,&M,sigma,pU,&M,pVT,&N,work,&lwork,iwork,&info,1);
-#endif
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
-  ierr = PetscFree(iwork);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  
+  ierr = SVDDense(M,N,pmat,sigma,pU,pVT);CHKERRQ(ierr);
+
   /* copy singular vectors */
   for (i=0;i<n;i++) {
     if (svd->which == SVD_SMALLEST) k = n - i - 1;

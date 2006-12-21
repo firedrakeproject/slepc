@@ -5,6 +5,7 @@ EXTERN_C_BEGIN
 EXTERN PetscErrorCode SVDCreate_EIGENSOLVER(SVD);
 EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
 EXTERN PetscErrorCode SVDCreate_LANCZOS(SVD);
+EXTERN PetscErrorCode SVDCreate_TRLANCZOS(SVD);
 EXTERN_C_END
   
 /*
@@ -36,6 +37,8 @@ PetscErrorCode SVDRegisterAll(char *path)
 		  SVDCreate_LAPACK);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDLANCZOS, path,"SVDCreate_LANCZOS", 
 		  SVDCreate_LANCZOS);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDTRLANCZOS, path,"SVDCreate_TRLANCZOS", 
+		  SVDCreate_TRLANCZOS);CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }
