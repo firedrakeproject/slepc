@@ -394,6 +394,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = IPSetFromOptions(svd->ip);CHKERRQ(ierr);
   if (svd->ops->setfromoptions) {
     ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);
   }

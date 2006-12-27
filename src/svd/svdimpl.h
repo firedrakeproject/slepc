@@ -2,6 +2,7 @@
 #define _SVDIMPL
 
 #include "slepcsvd.h"
+#include "slepcip.h"
 
 extern PetscFList SVDList;
 extern PetscEvent SVD_SetUp, SVD_Solve;
@@ -46,6 +47,7 @@ struct _p_SVD {
                    		   with a particular solver */
   int              setupcalled;
   SVDConvergedReason reason;
+  IP               ip;
   
   int  (*monitor[MAXSVDMONITORS])(SVD,int,int,PetscReal*,PetscReal*,int,void*);
   int  (*monitordestroy[MAXSVDMONITORS])(void*);

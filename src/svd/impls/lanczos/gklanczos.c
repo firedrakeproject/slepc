@@ -111,8 +111,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
       if (lanczos->oneside) {
         if (i>svd->nconv) { ierr = VecAXPY(U[i],-beta[i-svd->nconv-1],U[i-1]);CHKERRQ(ierr); }
       } else {
-        ierr = cgs(U[i],i,U,PETSC_NULL);CHKERRQ(ierr);
-        ierr = cgs(U[i],i,U,alpha+i-svd->nconv);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,U,U[i],PT,alpha+i-svd->nconv,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecScale(U[i],1.0/alpha[i-svd->nconv]);CHKERRQ(ierr);
       }
 
@@ -132,11 +131,10 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
         for (j=0;j<=i;j++) PT[j] = - PT[j] / alpha[i-svd->nconv];
         ierr = VecMAXPY(V[i+1],i+1,PT,V);CHKERRQ(ierr);
 
-        ierr = cgs(V[i+1],i+1,V,beta+i-svd->nconv);CHKERRQ(ierr);
+        ierr = IPOrthogonalizeGS(svd->ip,i+1,PETSC_NULL,V,V[i+1],PT,PETSC_NULL,beta+i-svd->nconv,svd->V[0]);CHKERRQ(ierr);
         ierr = VecScale(V[i+1],1.0/beta[i-svd->nconv]);CHKERRQ(ierr);
       } else {
-        ierr = cgs(V[i+1],i+1,V,PETSC_NULL);CHKERRQ(ierr);
-        ierr = cgs(V[i+1],i+1,V,beta+i-svd->nconv);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(svd->ip,i+1,PETSC_NULL,V,V[i+1],PT,beta+i-svd->nconv,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecScale(V[i+1],1.0/beta[i-svd->nconv]);CHKERRQ(ierr);
       }
     }
@@ -211,8 +209,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   }
   
   /* free working space */
-  ierr = VecDestroyVecs(V,n+1);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(U,n);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(V,svd->n+1);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(U,svd->n);CHKERRQ(ierr);
 
   ierr = PetscFree(alpha);CHKERRQ(ierr);
   ierr = PetscFree(beta);CHKERRQ(ierr);

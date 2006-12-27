@@ -1,0 +1,491 @@
+/*
+     Dot product routines
+*/
+#include "src/ip/ipimpl.h"      /*I "slepcip.h" I*/
+
+#define CHECKWORK(x,w) \
+  if (w) { \
+    PetscMPIInt _flg; \
+    ierr = MPI_Comm_compare(x->comm,w->comm,&_flg);CHKERRQ(ierr); \
+    if ((_flg != MPI_CONGRUENT && _flg != MPI_IDENT) || x->type != w->type || \
+        x->map.N != w->map.N || x->map.n != w->map.n) { \
+      ierr = VecDestroy(w);CHKERRQ(ierr); \
+      ierr = VecDuplicate(x,&w);CHKERRQ(ierr); \
+    } \
+  } else { ierr = VecDuplicate(x,&w);CHKERRQ(ierr); }
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNorm"
+/*@
+   IPNorm - Computes de norm of a vector as the square root of the inner 
+   product (x,x) as defined by IPInnerProduct().
+
+   Collective on IP and Vec
+
+   Input Parameters:
++  ip - the spectral transformation context
+-  x  - input vector
+
+   Output Parameter:
+.  norm - the computed norm
+
+   Notes:
+   This function will usually compute the 2-norm of a vector, ||x||_2. But
+   this behaviour may be different if using a non-standard inner product changed 
+   via IPSetBilinearForm(). For example, if using the B-inner product for 
+   positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B = 
+   sqrt( x^H Bx ).
+
+   Level: developer
+
+.seealso: IPInnerProduct()
+@*/
+PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidPointer(norm,3);
+  
+  ierr = IPInnerProduct(ip,x,x,&p);CHKERRQ(ierr);
+
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
+
+#if defined(PETSC_USE_COMPLEX)
+  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+     SETERRQ(1,"IPNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(PetscRealPart(p));
+#else
+  if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(p);
+#endif
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormBegin"
+/*@
+   IPNormBegin - Starts a split phase norm computation.
+
+   Input Parameters:
++  ip   - the spectral transformation context
+.  x    - input vector
+-  norm - where the result will go
+
+   Level: developer
+
+   Notes:
+   Each call to IPNormBegin() should be paired with a call to IPNormEnd().
+
+.seealso: IPNormEnd(), IPNorm(), IPInnerProduct(), IPMInnerProduct(), 
+          IPInnerProductBegin(), IPInnerProductEnd()
+
+@*/
+PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidPointer(norm,3);
+  
+  ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormEnd"
+/*@
+   IPNormEnd - Ends a split phase norm computation.
+
+   Input Parameters:
++  ip   - the spectral transformation context
+-  x    - input vector
+
+   Output Parameter:
+.  norm - the computed norm
+
+   Level: developer
+
+   Notes:
+   Each call to IPNormBegin() should be paired with a call to IPNormEnd().
+
+.seealso: IPNormBegin(), IPNorm(), IPInnerProduct(), IPMInnerProduct(), 
+          IPInnerProductBegin(), IPInnerProductEnd()
+
+@*/
+PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidPointer(norm,3);
+  
+  ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
+
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
+
+#if defined(PETSC_USE_COMPLEX)
+  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+     SETERRQ(1,"IPNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(PetscRealPart(p));
+#else
+  if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(p);
+#endif
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPInnerProduct"
+/*@
+   IPInnerProduct - Computes the inner product of two vectors.
+
+   Collective on IP and Vec
+
+   Input Parameters:
++  ip - the spectral transformation context
+.  x  - input vector
+-  y  - input vector
+
+   Output Parameter:
+.  p - result of the inner product
+
+   Notes:
+   This function will usually compute the standard dot product of vectors
+   x and y, (x,y)=y^H x. However this behaviour may be different if changed 
+   via IPSetBilinearForm(). This allows use of other inner products such as
+   the indefinite product y^T x for complex symmetric problems or the
+   B-inner product for positive definite B, (x,y)_B=y^H Bx.
+
+   Level: developer
+
+.seealso: IPSetBilinearForm(), IPApplyB(), VecDot(), IPMInnerProduct()
+@*/
+PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidScalarPointer(p,4);
+  CHECKWORK(x,ip->w);
+      
+  ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  ip->innerproducts++;
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_SYMMETRIC:
+    ierr = VecCopy(x,ip->w);CHKERRQ(ierr);
+    break;
+  case IPINNER_B_HERMITIAN:
+  case IPINNER_B_SYMMETRIC:
+//    ierr = IPApplyB(ip,x,ip->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_B_HERMITIAN:
+    ierr = VecDot(ip->w,y,p);CHKERRQ(ierr);
+    break;
+  case IPINNER_SYMMETRIC:
+  case IPINNER_B_SYMMETRIC:
+    ierr = VecTDot(ip->w,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPInnerProductBegin"
+/*@
+   IPInnerProductBegin - Starts a split phase inner product computation.
+
+   Input Parameters:
++  ip - the spectral transformation context
+.  x  - the first vector
+.  y  - the second vector
+-  p  - where the result will go
+
+   Level: developer
+
+   Notes:
+   Each call to IPInnerProductBegin() should be paired with a call to IPInnerProductEnd().
+
+.seealso: IPInnerProductEnd(), IPInnerProduct(), IPNorm(), IPNormBegin(), 
+          IPNormEnd(), IPMInnerProduct() 
+
+@*/
+PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidScalarPointer(p,4);
+  CHECKWORK(x,ip->w);
+  
+  ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  ip->innerproducts++;
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_SYMMETRIC:
+    ierr = VecCopy(x,ip->w);CHKERRQ(ierr);
+    break;
+  case IPINNER_B_HERMITIAN:
+  case IPINNER_B_SYMMETRIC:
+//    ierr = IPApplyB(ip,x,ip->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_B_HERMITIAN:
+    ierr = VecDotBegin(ip->w,y,p);CHKERRQ(ierr);
+    break;
+  case IPINNER_SYMMETRIC:
+  case IPINNER_B_SYMMETRIC:
+    ierr = VecTDotBegin(ip->w,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPInnerProductEnd"
+/*@
+   IPInnerProductEnd - Ends a split phase inner product computation.
+
+   Input Parameters:
++  ip - the spectral transformation context
+.  x  - the first vector
+-  y  - the second vector
+
+   Output Parameter:
+.  p  - result of the inner product
+
+   Level: developer
+
+   Notes:
+   Each call to IPInnerProductBegin() should be paired with a call to IPInnerProductEnd().
+
+.seealso: IPInnerProductBegin(), IPInnerProduct(), IPNorm(), IPNormBegin(), 
+          IPNormEnd(), IPMInnerProduct() 
+
+@*/
+PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidScalarPointer(p,4);
+  
+  ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_B_HERMITIAN:
+    ierr = VecDotEnd(ip->w,y,p);CHKERRQ(ierr);
+    break;
+  case IPINNER_SYMMETRIC:
+  case IPINNER_B_SYMMETRIC:
+    ierr = VecTDotEnd(ip->w,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPMInnerProduct"
+/*@
+   IPMInnerProduct - Computes the inner products a vector x with a set of
+   vectors (columns of Y).
+
+   Collective on IP and Vec
+
+   Input Parameters:
++  ip - the spectral transformation context
+.  n  - number of vectors in y
+.  x  - the first input vector
+-  y  - array of vectors
+
+   Output Parameter:
+.  p - result of the inner products
+
+   Notes:
+   This function will usually compute the standard dot product of x and y_i, 
+   (x,y_i)=y_i^H x, for each column of Y. However this behaviour may be different
+   if changed via IPSetBilinearForm(). This allows use of other inner products 
+   such as the indefinite product y_i^T x for complex symmetric problems or the
+   B-inner product for positive definite B, (x,y_i)_B=y_i^H Bx.
+
+   Level: developer
+
+.seealso: IPSetBilinearForm(), IPApplyB(), VecMDot(), IPInnerProduct()
+@*/
+PetscErrorCode IPMInnerProduct(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidPointer(y,4);
+  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidScalarPointer(p,5);
+  CHECKWORK(x,ip->w);
+  
+  ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  ip->innerproducts += n;
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_SYMMETRIC:
+    ierr = VecCopy(x,ip->w);CHKERRQ(ierr);
+    break;
+  case IPINNER_B_HERMITIAN:
+  case IPINNER_B_SYMMETRIC:
+//    ierr = IPApplyB(ip,x,ip->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_B_HERMITIAN:
+    ierr = VecMDot(ip->w,n,y,p);CHKERRQ(ierr);
+    break;
+  case IPINNER_SYMMETRIC:
+  case IPINNER_B_SYMMETRIC:
+    ierr = VecMTDot(ip->w,n,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPMInnerProductBegin"
+/*@
+   IPMInnerProductBegin - Starts a split phase multiple inner product computation.
+
+   Input Parameters:
++  ip - the spectral transformation context
+.  n  - number of vectors in y
+.  x  - the first input vector
+.  y  - array of vectors
+-  p  - where the result will go
+
+   Level: developer
+
+   Notes:
+   Each call to IPMInnerProductBegin() should be paired with a call to IPMInnerProductEnd().
+
+.seealso: IPMInnerProductEnd(), IPMInnerProduct(), IPNorm(), IPNormBegin(), 
+          IPNormEnd(), IPInnerProduct() 
+
+@*/
+PetscErrorCode IPMInnerProductBegin(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidPointer(y,4);
+  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidScalarPointer(p,5);
+  CHECKWORK(x,ip->w);
+  
+  ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  ip->innerproducts += n;
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_SYMMETRIC:
+    ierr = VecCopy(x,ip->w);CHKERRQ(ierr);
+    break;
+  case IPINNER_B_HERMITIAN:
+  case IPINNER_B_SYMMETRIC:
+//    ierr = IPApplyB(ip,x,ip->w);CHKERRQ(ierr);
+    break;
+  }
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_B_HERMITIAN:
+    ierr = VecMDotBegin(ip->w,n,y,p);CHKERRQ(ierr);
+    break;
+  case IPINNER_SYMMETRIC:
+  case IPINNER_B_SYMMETRIC:
+    ierr = VecMTDotBegin(ip->w,n,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPMInnerProductEnd"
+/*@
+   IPMInnerProductEnd - Ends a split phase multiple inner product computation.
+
+   Input Parameters:
++  ip - the spectral transformation context
+.  n  - number of vectors in y
+.  x  - the first input vector
+-  y  - array of vectors
+
+   Output Parameter:
+.  p - result of the inner products
+
+   Level: developer
+
+   Notes:
+   Each call to IPMInnerProductBegin() should be paired with a call to IPMInnerProductEnd().
+
+.seealso: IPMInnerProductBegin(), IPMInnerProduct(), IPNorm(), IPNormBegin(), 
+          IPNormEnd(), IPInnerProduct() 
+
+@*/
+PetscErrorCode IPMInnerProductEnd(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidPointer(y,4);
+  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidScalarPointer(p,5);
+  
+  ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  switch (ip->bilinear_form) {
+  case IPINNER_HERMITIAN:
+  case IPINNER_B_HERMITIAN:
+    ierr = VecMDotEnd(ip->w,n,y,p);CHKERRQ(ierr);
+    break;
+  case IPINNER_SYMMETRIC:
+  case IPINNER_B_SYMMETRIC:
+    ierr = VecMTDotEnd(ip->w,n,y,p);CHKERRQ(ierr);
+    break;
+  }
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}

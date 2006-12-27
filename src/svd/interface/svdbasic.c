@@ -127,6 +127,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",svd->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",svd->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",svd->tol);CHKERRQ(ierr);
+    ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
     if (svd->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
@@ -177,7 +178,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   PetscValidPointer(outsvd,2);
 
   PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_COOKIE,-1,"SVD",comm,SVDDestroy,SVDView);
-  PetscLogObjectCreate(svd);
   *outsvd = svd;
 
   svd->bops->publish   = SVDPublish_Petsc;
@@ -204,6 +204,9 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->setupcalled = 0;
   svd->reason      = SVD_CONVERGED_ITERATING;
   svd->numbermonitors = 0;
+
+  ierr = IPCreate(comm,&svd->ip);CHKERRQ(ierr);
+  PetscLogObjectParent(svd,svd->ip);
 
   ierr = PetscPublishAll(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -257,7 +260,8 @@ PetscErrorCode SVDDestroy(SVD svd)
   if (svd->data) { ierr = PetscFree(svd->data);CHKERRQ(ierr); }
   ierr = SVDClearMonitor(svd);CHKERRQ(ierr);
   
-  PetscLogObjectDestroy(svd);
+  ierr = IPDestroy(svd->ip);CHKERRQ(ierr);
+  
   PetscHeaderDestroy(svd);
   PetscFunctionReturn(0);
 }
