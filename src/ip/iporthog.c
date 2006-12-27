@@ -1,6 +1,6 @@
 /*
      Routines related to orthogonalization.
-     See the SLEPc Technical Report IPR-1 for a detailed explanation.
+     See the SLEPc Technical Report STR-1 for a detailed explanation.
 */
 #include "src/ip/ipimpl.h"      /*I "slepcip.h" I*/
 #include "slepcblaslapack.h"
@@ -96,7 +96,7 @@ PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,Pets
    Collective on IP
 
    Input Parameters:
-+  ip    - the eigenproblem solver context
++  ip    - the inner product (IP) context
 .  n      - number of columns of V
 .  which  - logical array indicating columns of V to be used
 -  V      - set of vectors
