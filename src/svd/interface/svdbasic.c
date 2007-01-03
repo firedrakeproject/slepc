@@ -204,6 +204,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->setupcalled = 0;
   svd->reason      = SVD_CONVERGED_ITERATING;
   svd->numbermonitors = 0;
+  svd->matvecs = 0;
+  svd->dots = 0;
 
   ierr = IPCreate(comm,&svd->ip);CHKERRQ(ierr);
   PetscLogObjectParent(svd,svd->ip);

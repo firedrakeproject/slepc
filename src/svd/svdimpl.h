@@ -53,6 +53,9 @@ struct _p_SVD {
   int  (*monitordestroy[MAXSVDMONITORS])(void*);
   void *monitorcontext[MAXSVDMONITORS];
   int  numbermonitors;
+  
+  int matvecs;
+  int dots;
 };
 
 EXTERN PetscErrorCode SVDRegisterAll(char *);
