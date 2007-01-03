@@ -42,7 +42,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm,*sigma,*errest;
   PetscScalar    *b,*Q,*PT;
-  PetscInt       *perm;
+  PetscInt       *perm,nrv,strategy=1;
   int            i,j,k,l,n=svd->n;
   Vec            *V,*U;
   char           *conv;
@@ -62,10 +62,13 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   ierr = VecDuplicateVecs(svd->V[0],n+1,&V);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(svd->U[0],n,&U);CHKERRQ(ierr);
   
-  
   /* normalize start vector */
   ierr = VecCopy(svd->vec_initial,V[0]);CHKERRQ(ierr);
   ierr = VecNormalize(V[0],&norm);CHKERRQ(ierr);
+  
+  nrv = n / 2;
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-nrv",&nrv,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-strategy",&strategy,PETSC_NULL);CHKERRQ(ierr);
   
   l = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {
@@ -73,6 +76,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
 
     /* inner loop */
     for (i=l;i<n;i++) {
+      svd->matvecs++;
       ierr = MatMult(svd->A,V[i],U[i]);CHKERRQ(ierr);
       if (lanczos->oneside) {
         if (i==l) {
@@ -83,6 +87,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
           ierr = VecAXPY(U[i],-beta[i-1],U[i-1]);CHKERRQ(ierr);
         }
       } else {
+        svd->dots += svd->nconv + i;
         ierr = cgs(U[i],svd->nconv,svd->U,PETSC_NULL);CHKERRQ(ierr);
         ierr = cgs(U[i],svd->nconv,svd->U,PETSC_NULL);CHKERRQ(ierr);
         ierr = cgs(U[i],i,U,PETSC_NULL);CHKERRQ(ierr);
@@ -90,12 +95,14 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
         ierr = VecScale(U[i],1.0/alpha[i]);CHKERRQ(ierr);
       }
 
+      svd->matvecs++;
       if (svd->AT) {
 	ierr = MatMult(svd->AT,U[i],V[i+1]);CHKERRQ(ierr);
       } else {
 	ierr = MatMultTranspose(svd->A,U[i],V[i+1]);CHKERRQ(ierr);
       }
       if (lanczos->oneside) {
+        svd->dots += svd->nconv + i + 1;
         ierr = cgs(V[i+1],svd->nconv,svd->V,PETSC_NULL);CHKERRQ(ierr);
         ierr = cgs(V[i+1],svd->nconv,svd->V,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecNormBegin(U[i],NORM_2,alpha+i);CHKERRQ(ierr);
@@ -111,6 +118,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
         ierr = cgs(V[i+1],i+1,V,beta+i);CHKERRQ(ierr);
         ierr = VecScale(V[i+1],1.0/beta[i]);CHKERRQ(ierr);
       } else {
+        svd->dots += svd->nconv + i + 1;
         ierr = cgs(V[i+1],svd->nconv,svd->V,PETSC_NULL);CHKERRQ(ierr);
         ierr = cgs(V[i+1],svd->nconv,svd->V,PETSC_NULL);CHKERRQ(ierr);
         ierr = cgs(V[i+1],i+1,V,PETSC_NULL);CHKERRQ(ierr);
@@ -140,20 +148,59 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     ierr = SVDDense(n,n,Q,sigma,PETSC_NULL,PT);CHKERRQ(ierr);
 
     /* compute error estimates */
-    for (i=0;i<n;i++)
-      errest[i] = PetscAbsReal(Q[i*n+n-1]*beta[n-1]);
+    for (i=0;i<n;i++) {
+      errest[i] = PetscAbsScalar(Q[i*n+n-1]) * beta[n-1];
+      if (sigma[i] > svd->tol) errest[i] /= sigma[i];
+    }
     
     /* flag converged values and restart vectors */
     if (svd->which == SVD_SMALLEST) {
-      for (i=0,k=0;errest[i]<svd->tol && i<n;i++,k++) conv[i] = 'U';
-      for (j=n-1;errest[j]<svd->tol && j>i;j--,k++) conv[j] = 'C';
-      l = PetscMin(n/2,n-k-svd->nconv-1);
-      for (k=i;k<j-l;k++) conv[k] = 'N';
-      for (k=j-l;k<=j;k++) conv[k] = 'R';
+      k=0;
+      switch (strategy) {
+      case 1: 
+        // aceptar los convergidos al final de la descomposicion
+        // ignorar el resto de convergidos
+        for (j=n-1;errest[j]<svd->tol && j>=0;j--,k++) conv[j] = 'C';
+        for (;j>=0;j--) conv[j] = 'N';
+        break;
+      case 2: 
+        // aceptar cualquier valor convergido
+        for (i=0;i<n;i++)
+          if (errest[i]<svd->tol) {
+            conv[i] = 'C';
+            k++;
+          } else conv[i] ='N';
+        break;
+      case 3:
+        // aceptar los convergidos al final de la descomposicion
+        // hacer deflacion con los convergidos al principio de la descomposicion
+        // ignorar el resto de convergidos      
+        for (j=n-1;errest[j]<svd->tol && j>0;j--,k++) conv[j] = 'C';
+        for (i=0;errest[i]<svd->tol && i<=j;i++,k++) conv[i] = 'U';
+        for (l=i;l<=j;l++) conv[l] = 'N';
+        break;
+      case 4:
+        // aceptar los convergidos al final de la descomposicion
+        // hacer deflacion con el resto de convergidos      
+        for (j=n-1;errest[j]<svd->tol && j>=0;j--,k++) conv[j] = 'C';
+        for (i=0;i<=j;i++)
+          if (errest[i]<svd->tol) {
+            conv[i] = 'U';
+            k++;
+          } else conv[i] ='N';
+        break;        
+      }
+      // reiniciar con los ultimos l valores no convergidos 
+      l = PetscMin(nrv,n-k-svd->nconv-1);
+      for (i=n-1;i>0 && l>0;i--)
+        if (conv[i] == 'N') {
+	  conv[i] = 'R';
+	  l--;
+	}
     } else {
       for (i=0,k=0;errest[i]<svd->tol && i<svd->n;i++,k++) conv[i] = 'C';
       for (j=svd->n-1;errest[j]<svd->tol && j>i;j--,k++) conv[j] = 'U';
-      l = PetscMin(n/2,n-k-svd->nconv-1);
+      l = PetscMin(nrv,n-k-svd->nconv-1);
       for (k=i;k<i+l;k++) conv[k] = 'R';
       for (k=i+l;k<=j;k++) conv[k] = 'N';
     }
