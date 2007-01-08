@@ -222,7 +222,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   *outeps = 0;
 
   PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_COOKIE,-1,"EPS",comm,EPSDestroy,EPSView);
-  PetscLogObjectCreate(eps);
   *outeps = eps;
 
   eps->bops->publish   = EPSPublish_Petsc;
@@ -469,7 +468,6 @@ PetscErrorCode EPSDestroy(EPS eps)
 
   ierr = EPSClearMonitor(eps);CHKERRQ(ierr);
 
-  PetscLogObjectDestroy(eps);
   PetscHeaderDestroy(eps);
   PetscFunctionReturn(0);
 }

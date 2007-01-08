@@ -94,7 +94,6 @@ PetscErrorCode STDestroy(ST st)
     ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
   }
 
-  PetscLogObjectDestroy(st);
   PetscHeaderDestroy(st);
   PetscFunctionReturn(0);
 }
@@ -135,7 +134,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   *newst = 0;
 
   PetscHeaderCreate(st,_p_ST,struct _STOps,ST_COOKIE,-1,"ST",comm,STDestroy,STView);
-  PetscLogObjectCreate(st);
   st->bops->publish       = STPublish_Petsc;
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 
