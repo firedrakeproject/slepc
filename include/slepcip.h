@@ -19,7 +19,7 @@ EXTERN PetscErrorCode IPView(IP,PetscViewer);
 EXTERN PetscErrorCode IPDestroy(IP);
 
 EXTERN PetscErrorCode IPOrthogonalize(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode IPOrthogonalizeGS(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
+EXTERN PetscErrorCode IPOrthogonalizeGS(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 
 typedef enum { IPINNER_HERMITIAN, IPINNER_SYMMETRIC,
                IPINNER_B_HERMITIAN, IPINNER_B_SYMMETRIC } IPBilinearForm;

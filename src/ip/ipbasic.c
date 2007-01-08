@@ -58,7 +58,8 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->orthog_eta    = 0.7071;
   ip->bilinear_form = IPINNER_HERMITIAN;
   ip->innerproducts = 0;
-  ip->w             = PETSC_NULL;
+  ip->work[0]       = PETSC_NULL;
+  ip->work[1]       = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
@@ -182,7 +183,8 @@ PetscErrorCode IPDestroy(IP ip)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  if (ip->w) { ierr = VecDestroy(ip->w);CHKERRQ(ierr); }
+  if (ip->work[0]) { ierr = VecDestroy(ip->work[0]);CHKERRQ(ierr); }
+  if (ip->work[1]) { ierr = VecDestroy(ip->work[1]);CHKERRQ(ierr); }
   if (--ip->refct <= 0) PetscHeaderDestroy(ip);
   PetscFunctionReturn(0);
 }

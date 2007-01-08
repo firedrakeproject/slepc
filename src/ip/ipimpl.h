@@ -18,7 +18,19 @@ struct _p_IP {
   PetscReal orthog_eta;
   IPBilinearForm bilinear_form;
   int innerproducts;
-  Vec w;
+  Vec work[2]; /* workspace */
 };
+
+/* check if workspace vector is compatible */
+#define IPCHECKWORK(x,w) \
+  if (w) { \
+    PetscMPIInt _flg; \
+    ierr = MPI_Comm_compare(x->comm,w->comm,&_flg);CHKERRQ(ierr); \
+    if ((_flg != MPI_CONGRUENT && _flg != MPI_IDENT) || x->type != w->type || \
+        x->map.N != w->map.N || x->map.n != w->map.n) { \
+      ierr = VecDestroy(w);CHKERRQ(ierr); \
+      ierr = VecDuplicate(x,&w);CHKERRQ(ierr); \
+    } \
+  } else { ierr = VecDuplicate(x,&w);CHKERRQ(ierr); }
 
 #endif

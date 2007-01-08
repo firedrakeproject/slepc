@@ -6,11 +6,32 @@
 #include "slepcblaslapack.h"
 
 /* 
-   IPOrthogonalizeGS - Compute |v'|, |v| and one step of CGS or MGS 
+   IPOrthogonalizeMGS - Compute one step of Modified Gram-Schmidt 
 */
 #undef __FUNCT__  
-#define __FUNCT__ "IPOrthogonalizeGS"
-PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec w)
+#define __FUNCT__ "IPOrthogonalizeMGS"
+static PetscErrorCode IPOrthogonalizeMGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H)
+{
+  PetscErrorCode ierr;
+  int            j;
+  
+  PetscFunctionBegin;
+  for (j=0; j<n; j++)
+    if (!which || which[j]) {
+      /* h_j = ( v, v_j ) */
+      ierr = IPInnerProduct(ip,v,V[j],&H[j]);CHKERRQ(ierr);
+      /* v <- v - h_j v_j */
+      ierr = VecAXPY(v,-H[j],V[j]);CHKERRQ(ierr);
+    }
+  PetscFunctionReturn(0);
+}
+
+/* 
+   IPOrthogonalizeCGS - Compute |v'| (estimated), |v| and one step of CGS with only one global synchronization
+*/
+#undef __FUNCT__  
+#define __FUNCT__ "IPOrthogonalizeCGS"
+static PetscErrorCode IPOrthogonalizeCGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
 {
   PetscErrorCode ierr;
   int            j;
@@ -18,70 +39,77 @@ PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,Pets
   PetscReal      sum;
   
   PetscFunctionBegin;
-  switch (ip->orthog_type) {
-  
-  case IP_CGS_ORTH:
-    /* h = W^* v ; alpha = (v , v) */
-    if (which) { /* use select array */
-      for (j=0; j<n; j++) 
-        if (which[j]) { 
-	  ierr = IPInnerProductBegin(ip,v,V[j],&H[j]);CHKERRQ(ierr); 
-	}
-      if (onorm || norm) {
-	ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
+  /* h = W^* v ; alpha = (v , v) */
+  if (which) { 
+  /* use select array */
+    for (j=0; j<n; j++) 
+      if (which[j]) { 
+        ierr = IPInnerProductBegin(ip,v,V[j],&H[j]);CHKERRQ(ierr); 
       }
-      for (j=0; j<n; j++) 
-        if (which[j]) { ierr = IPInnerProductEnd(ip,v,V[j],&H[j]);CHKERRQ(ierr); }
-      if (onorm || norm) { ierr = IPInnerProductEnd(ip,v,v,&alpha);CHKERRQ(ierr); }
-    } else { /* merge comunications */
-      if (onorm || norm) {
-	ierr = IPMInnerProductBegin(ip,n,v,V,H);CHKERRQ(ierr);
-	ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
-	ierr = IPMInnerProductEnd(ip,n,v,V,H);CHKERRQ(ierr);
-	ierr = IPInnerProductEnd(ip,v,v,&alpha);CHKERRQ(ierr);
-      } else { /* use simpler function */ 
-        ierr = IPMInnerProduct(ip,n,v,V,H);CHKERRQ(ierr);
-      }
+    if (onorm || norm) { ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); }
+    for (j=0; j<n; j++) 
+      if (which[j]) { ierr = IPInnerProductEnd(ip,v,V[j],&H[j]);CHKERRQ(ierr); }
+    if (onorm || norm) { ierr = IPInnerProductEnd(ip,v,v,&alpha);CHKERRQ(ierr); }
+  } else { /* merge comunications */
+    if (onorm || norm) {
+      ierr = IPMInnerProductBegin(ip,n,v,V,H);CHKERRQ(ierr);
+      ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
+      ierr = IPMInnerProductEnd(ip,n,v,V,H);CHKERRQ(ierr);
+      ierr = IPInnerProductEnd(ip,v,v,&alpha);CHKERRQ(ierr);
+    } else { /* use simpler function */ 
+      ierr = IPMInnerProduct(ip,n,v,V,H);CHKERRQ(ierr);
     }
+  }
 
-    /* q = v - V h */
-    ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    if (which) {
-      for (j=0; j<n; j++) 
-        if (which[j]) { ierr = VecAXPY(w,H[j],V[j]);CHKERRQ(ierr); }
-    } else {
-      ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);  
-    }
-    ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
+  IPCHECKWORK(v,ip->work[1]);
+  /* q = v - V h */
+  ierr = VecSet(ip->work[1],0.0);CHKERRQ(ierr);
+  if (which) {
+    for (j=0; j<n; j++) 
+      if (which[j]) { ierr = VecAXPY(ip->work[1],H[j],V[j]);CHKERRQ(ierr); }
+  } else {
+    ierr = VecMAXPY(ip->work[1],n,H,V);CHKERRQ(ierr);  
+  }
+  ierr = VecAXPY(v,-1.0,ip->work[1]);CHKERRQ(ierr);
     
-    /* compute |v| and |v'| */
-    if (onorm) *onorm = sqrt(PetscRealPart(alpha));
-    if (norm) {
-      sum = 0.0;
-      for (j=0; j<n; j++)
-        if (!which || which[j])
-	  sum += PetscRealPart(H[j] * PetscConj(H[j]));
-      *norm = PetscRealPart(alpha)-sum;
-      if (*norm < 0.0) {
-	ierr = IPNorm(ip,v,norm);CHKERRQ(ierr);
-      } else *norm = sqrt(*norm);
-    }
+  /* compute |v| */
+  if (onorm) *onorm = sqrt(PetscRealPart(alpha));
+
+  /* compute |v'| */
+  if (norm) {
+    sum = 0.0;
+    for (j=0; j<n; j++)
+      if (!which || which[j])
+        sum += PetscRealPart(H[j] * PetscConj(H[j]));
+    *norm = PetscRealPart(alpha)-sum;
+    if (*norm < 0.0) {
+      ierr = IPNorm(ip,v,norm);CHKERRQ(ierr);
+    } else *norm = sqrt(*norm);
+  }
+  PetscFunctionReturn(0);
+}
+
+/* 
+   IPOrthogonalizeGS - Compute |v'|, |v| and one step of CGS or MGS 
+*/
+#undef __FUNCT__  
+#define __FUNCT__ "IPOrthogonalizeGS"
+PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  
+  PetscFunctionBegin;
+  switch (ip->orthog_type) {
+  case IP_CGS_ORTH:
+    ierr = IPOrthogonalizeCGS(ip,n,which,V,v,H,onorm,norm);CHKERRQ(ierr);
     break;
-    
   case IP_MGS_ORTH:
     /* compute |v| */
     if (onorm) { ierr = IPNorm(ip,v,onorm);CHKERRQ(ierr); }
-    for (j=0; j<n; j++)
-      if (!which || which[j]) {
-	/* h_j = ( v, v_j ) */
-	ierr = IPInnerProduct(ip,v,V[j],&H[j]);CHKERRQ(ierr);
-	/* v <- v - h_j v_j */
-	ierr = VecAXPY(v,-H[j],V[j]);CHKERRQ(ierr);
-      }
+    ierr = IPOrthogonalizeMGS(ip,n,which,V,v,H);CHKERRQ(ierr);
     /* compute |v'| */
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
     break;
-    
   default:
     SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
   }
@@ -126,7 +154,6 @@ PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,Pets
 PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
 {
   PetscErrorCode ierr;
-  Vec            w = PETSC_NULL;
   PetscScalar    lh[100],*h,lc[100],*c;
   PetscTruth     allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE;
   PetscReal      onrm,nrm;
@@ -154,15 +181,12 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
       allocatedc = PETSC_TRUE;
     }
   }
-  if (ip->orthog_type != IP_MGS_ORTH) {
-    ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
-  }
 
   /* orthogonalize and compute onorm */
   switch (ip->orthog_ref) {
   
   case IP_ORTH_REFINE_NEVER:
-    ierr = IPOrthogonalizeGS(ip,n,which,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr);
+    ierr = IPOrthogonalizeGS(ip,n,which,V,v,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     /* compute |v| */
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
     /* linear dependence check does not work without refinement */
@@ -170,32 +194,32 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
     break;
     
   case IP_ORTH_REFINE_ALWAYS:
-    ierr = IPOrthogonalizeGS(ip,n,which,V,v,h,PETSC_NULL,PETSC_NULL,w);CHKERRQ(ierr); 
+    ierr = IPOrthogonalizeGS(ip,n,which,V,v,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
     if (lindep) {
-      ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,&onrm,&nrm,w);CHKERRQ(ierr);
+      ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
       if (nrm < ip->orthog_eta * onrm) *lindep = PETSC_TRUE;
       else *lindep = PETSC_FALSE;
     } else {
-      ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,PETSC_NULL,norm,w);CHKERRQ(ierr);
+      ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,PETSC_NULL,norm);CHKERRQ(ierr);
     }
     for (j=0;j<n;j++) 
       if (!which || which[j]) h[j] += c[j];
     break;
   
   case IP_ORTH_REFINE_IFNEEDED:
-    ierr = IPOrthogonalizeGS(ip,n,which,V,v,h,&onrm,&nrm,w);CHKERRQ(ierr); 
+    ierr = IPOrthogonalizeGS(ip,n,which,V,v,h,&onrm,&nrm);CHKERRQ(ierr); 
     /* ||q|| < eta ||h|| */
     k = 1;
     while (k<3 && nrm < ip->orthog_eta * onrm) {
       k++;
       switch (ip->orthog_type) {
       case IP_CGS_ORTH:
-        ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,&onrm,&nrm,w);CHKERRQ(ierr); 
+        ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr); 
         break;
       case IP_MGS_ORTH:
         onrm = nrm;
-        ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,PETSC_NULL,&nrm,w);CHKERRQ(ierr); 
+        ierr = IPOrthogonalizeGS(ip,n,which,V,v,c,PETSC_NULL,&nrm);CHKERRQ(ierr); 
 	break;
       default:
 	SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
@@ -217,7 +241,6 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
   /* free work space */
   if (allocatedc) { ierr = PetscFree(c);CHKERRQ(ierr); }
   if (allocatedh) { ierr = PetscFree(h);CHKERRQ(ierr); }
-  if (w) { ierr = VecDestroy(w);CHKERRQ(ierr); }
         
   ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
