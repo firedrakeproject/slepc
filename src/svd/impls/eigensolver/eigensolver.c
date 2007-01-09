@@ -153,10 +153,12 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   
   PetscFunctionBegin;
   ierr = EPSSetWhichEigenpairs(eigen->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
+  if (eigen->mode == SVDEIGENSOLVER_ATA) { ierr = EPSSetInitialVector(eigen->eps,svd->vec_initial);CHKERRQ(ierr); }
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eigen->eps,&svd->its);CHKERRQ(ierr);
-  ierr = EPSGetConvergedReason(eigen->eps,(EPSConvergedReason*)&svd->reason);
+  ierr = EPSGetConvergedReason(eigen->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
+  ierr = EPSGetOperationCounters(eigen->eps,&svd->matvecs,&svd->dots,PETSC_NULL);CHKERRQ(ierr);
   switch (eigen->mode) {
     case SVDEIGENSOLVER_ATA:
       for (i=0;i<svd->nconv;i++) {
