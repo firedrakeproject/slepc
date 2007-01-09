@@ -172,7 +172,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,int *maxits)
    Collective on SVD
 
    Input Parameters:
-+  svd - the singular solver context
++  svd - the singular value solver context
 .  nsv - number of singular values to compute
 -  ncv - the maximum dimension of the subspace to be used by the solver
 
@@ -447,7 +447,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
    Collective on SVD
 
    Input Parameters:
-+  svd - the singular solver context
++  svd - the singular value solver context
 -  prefix - the prefix string to prepend to all SVD option requests
 
    Notes:
@@ -476,7 +476,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
    Not Collective
 
    Input Parameters:
-.  svd - the singular solver context
+.  svd - the singular value solver context
 
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
