@@ -400,3 +400,101 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDSetOptionsPrefix"
+/*@C
+   SVDSetOptionsPrefix - Sets the prefix used for searching for all 
+   SVD options in the database.
+
+   Collective on SVD
+
+   Input Parameters:
++  svd - the singular value solver context
+-  prefix - the prefix string to prepend to all SVD option requests
+
+   Notes:
+   A hyphen (-) must NOT be given at the beginning of the prefix name.
+   The first character of all runtime options is AUTOMATICALLY the
+   hyphen.
+
+   For example, to distinguish between the runtime options for two
+   different SVD contexts, one could call
+.vb
+      SVDSetOptionsPrefix(svd1,"svd1_")
+      SVDSetOptionsPrefix(svd2,"svd2_")
+.ve
+
+   Level: advanced
+
+.seealso: SVDAppendOptionsPrefix(), SVDGetOptionsPrefix()
+@*/
+PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  ierr = PetscObjectSetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
+  PetscFunctionReturn(0);  
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDAppendOptionsPrefix"
+/*@C
+   SVDAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   SVD options in the database.
+
+   Collective on SVD
+
+   Input Parameters:
++  svd - the singular solver context
+-  prefix - the prefix string to prepend to all SVD option requests
+
+   Notes:
+   A hyphen (-) must NOT be given at the beginning of the prefix name.
+   The first character of all runtime options is AUTOMATICALLY the hyphen.
+
+   Level: advanced
+
+.seealso: SVDSetOptionsPrefix(), SVDGetOptionsPrefix()
+@*/
+PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  ierr = PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDGetOptionsPrefix"
+/*@C
+   SVDGetOptionsPrefix - Gets the prefix used for searching for all 
+   SVD options in the database.
+
+   Not Collective
+
+   Input Parameters:
+.  svd - the singular solver context
+
+   Output Parameters:
+.  prefix - pointer to the prefix string used is returned
+
+   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   sufficient length to hold the prefix.
+
+   Level: advanced
+
+.seealso: SVDSetOptionsPrefix(), SVDAppendOptionsPrefix()
+@*/
+PetscErrorCode SVDGetOptionsPrefix(SVD svd,const char *prefix[])
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidPointer(prefix,2);
+  ierr = PetscObjectGetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
