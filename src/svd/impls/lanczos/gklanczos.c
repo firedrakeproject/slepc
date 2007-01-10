@@ -114,7 +114,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
       if (svd->which == SVD_SMALLEST) j = n-i+svd->nconv-1;
       else j = i-svd->nconv;
       svd->sigma[i] = alpha[j];
-      svd->errest[i] = PetscAbsReal(Q[j*n+n-1])*beta[n-1];
+      svd->errest[i] = PetscAbsReal(Q[j*n+n-1])*beta[n-1] / alpha[j];
       if (conv) {
         if (svd->errest[i] < svd->tol) {
           ierr = VecSet(svd->V[i],0.0);CHKERRQ(ierr);
@@ -190,7 +190,7 @@ PetscErrorCode SVDSetFromOptions_LANCZOS(SVD svd)
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(svd->comm,svd->prefix,"LANCZOS Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsName("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSideReorthogonalization",&lanczos->oneside);CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSideReorthogonalization",PETSC_FALSE,&lanczos->oneside,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
