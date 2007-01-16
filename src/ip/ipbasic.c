@@ -64,6 +64,17 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "IPSetOptionsPrefix"
+PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  ierr = PetscObjectSetOptionsPrefix((PetscObject)ip,prefix);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "IPAppendOptionsPrefix"
 PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
 {

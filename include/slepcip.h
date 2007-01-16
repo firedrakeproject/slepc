@@ -11,6 +11,7 @@ typedef struct _p_IP* IP;
 
 EXTERN PetscErrorCode IPInitializePackage(char *path);
 EXTERN PetscErrorCode IPCreate(MPI_Comm,IP*);
+EXTERN PetscErrorCode IPSetOptionsPrefix(IP,const char *);
 EXTERN PetscErrorCode IPAppendOptionsPrefix(IP,const char *);
 EXTERN PetscErrorCode IPSetFromOptions(IP);
 EXTERN PetscErrorCode IPSetOrthogonalization(IP,IPOrthogonalizationType,IPOrthogonalizationRefinementType,PetscReal);

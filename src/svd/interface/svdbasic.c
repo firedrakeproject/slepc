@@ -209,6 +209,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->dots = 0;
 
   ierr = IPCreate(comm,&svd->ip);CHKERRQ(ierr);
+  ierr = IPSetOptionsPrefix(svd->ip,svd->prefix);
+  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");
   PetscLogObjectParent(svd,svd->ip);
 
   ierr = PetscPublishAll(svd);CHKERRQ(ierr);

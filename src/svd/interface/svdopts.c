@@ -432,9 +432,20 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
 {
   PetscErrorCode ierr;
+  PetscTruth     flg;
+  EPS            eps;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
+  ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
+  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)svd,SVDEIGENSOLVER,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SVDEigensolverGetEPS(svd,&eps);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(eps,prefix);CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);  
 }
 
@@ -461,9 +472,20 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
 PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
 {
   PetscErrorCode ierr;
+  PetscTruth     flg;
+  EPS            eps;
+  
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
+  ierr = IPSetOptionsPrefix(svd->ip,svd->prefix);CHKERRQ(ierr);
+  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)svd,SVDEIGENSOLVER,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SVDEigensolverGetEPS(svd,&eps);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(eps,svd->prefix);CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
