@@ -267,6 +267,22 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "SVDComputeRelativeError"
+PetscErrorCode SVDComputeRelativeError(SVD svd, int i, PetscReal *error)
+{
+  PetscErrorCode ierr;
+  PetscReal      sigma,norm1,norm2;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidPointer(error,2);
+  ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
+  *error = sqrt(norm1*norm1+norm2*norm2) / sigma;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SVDGetOperationCounters"
 /*@
    SVDGetOperationCounters - Gets the total number of matrix vector and dot 

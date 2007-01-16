@@ -13,7 +13,7 @@ int main( int argc, char **argv )
   Mat         	 A;		  /* operator matrix */
   SVD         	 svd;		  /* singular value problem solver context */
   SVDType     	 type;
-  PetscReal   	 error, tol, sigma, norm1, norm2, mu=PETSC_SQRT_MACHINE_EPSILON;
+  PetscReal   	 error, tol, sigma, mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscErrorCode ierr;
   PetscInt       n=100, i, j, start, end;
   int         	 nsv, maxit, its, nconv;
@@ -109,8 +109,7 @@ int main( int argc, char **argv )
       /*
          Compute the error associated to each singular triplet 
       */
-      ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
-      error = sqrt(norm1*norm1+norm2*norm2);
+      ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
 
       ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",sigma); CHKERRQ(ierr);
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
