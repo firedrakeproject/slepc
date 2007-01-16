@@ -75,8 +75,7 @@ EXTERN PetscErrorCode SVDLGMonitor(SVD,int,int,PetscReal*,PetscReal*,int,void*);
 
 EXTERN PetscErrorCode SVDDense(int,int,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 
-typedef enum { SVDEIGENSOLVER_ATA, SVDEIGENSOLVER_AAT,
-               SVDEIGENSOLVER_CYCLIC } SVDEigensolverMode;
+typedef enum { SVDEIGENSOLVER_CROSS, SVDEIGENSOLVER_CYCLIC } SVDEigensolverMode;
 
 EXTERN PetscErrorCode SVDEigensolverSetMode(SVD,SVDEigensolverMode);
 EXTERN PetscErrorCode SVDEigensolverGetMode(SVD,SVDEigensolverMode*);

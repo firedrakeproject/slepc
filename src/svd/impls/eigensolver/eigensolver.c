@@ -31,24 +31,12 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   eigen = (SVD_EIGENSOLVER *)svd->data;
   switch (eigen->mode) {
-    case SVDEIGENSOLVER_ATA:
-      ierr = MatMult(svd->A,x,eigen->x1);CHKERRQ(ierr);
-      if (svd->AT) {
-        ierr = MatMult(svd->AT,eigen->x1,y);CHKERRQ(ierr);
-      } else {
-        ierr = MatMultTranspose(svd->A,eigen->x1,y);CHKERRQ(ierr);
-      }
-      break;
-    case SVDEIGENSOLVER_AAT:
-      if (svd->AT) {
-        ierr = MatMult(svd->AT,x,eigen->x1);CHKERRQ(ierr);
-      } else {
-        ierr = MatMultTranspose(svd->A,x,eigen->x1);CHKERRQ(ierr);
-      }
-      ierr = MatMult(svd->A,eigen->x1,y);CHKERRQ(ierr);
+    case SVDEIGENSOLVER_CROSS:
+      ierr = SVDMatMult(svd,PETSC_FALSE,x,eigen->x1);CHKERRQ(ierr);
+      ierr = SVDMatMult(svd,PETSC_TRUE,eigen->x1,y);CHKERRQ(ierr);
       break;
     case SVDEIGENSOLVER_CYCLIC:
-      ierr = MatGetLocalSize(svd->A,PETSC_NULL,&n);CHKERRQ(ierr);
+      ierr = SVDMatGetLocalSize(svd,PETSC_NULL,&n);CHKERRQ(ierr);
       ierr = VecGetArray(x,&px);CHKERRQ(ierr);
       ierr = VecGetArray(y,&py);CHKERRQ(ierr);
       ierr = VecPlaceArray(eigen->x1,px);CHKERRQ(ierr);
@@ -56,12 +44,8 @@ PetscErrorCode ShellMatMult_EIGENSOLVER(Mat B,Vec x, Vec y)
       ierr = VecPlaceArray(eigen->y1,py);CHKERRQ(ierr);
       ierr = VecPlaceArray(eigen->y2,py+n);CHKERRQ(ierr);
       
-      ierr = MatMult(svd->A,eigen->x1,eigen->y2);CHKERRQ(ierr);
-      if (svd->AT) {
-        ierr = MatMult(svd->AT,eigen->x2,eigen->y1);CHKERRQ(ierr);
-      } else {
-        ierr = MatMultTranspose(svd->A,eigen->x2,eigen->y1);CHKERRQ(ierr);
-      }
+      ierr = SVDMatMult(svd,PETSC_FALSE,eigen->x1,eigen->y2);CHKERRQ(ierr);
+      ierr = SVDMatMult(svd,PETSC_TRUE,eigen->x2,eigen->y1);CHKERRQ(ierr);
             
       ierr = VecResetArray(eigen->x1);CHKERRQ(ierr);
       ierr = VecResetArray(eigen->x2);CHKERRQ(ierr);
@@ -95,6 +79,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   PetscInt        m,n;
+  int             i;
 
   PetscFunctionBegin;
   
@@ -104,17 +89,12 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   if (eigen->y1) { ierr = VecDestroy(eigen->y1);CHKERRQ(ierr); } 
   if (eigen->y2) { ierr = VecDestroy(eigen->y2);CHKERRQ(ierr); } 
 
-  ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
+  ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   switch (eigen->mode) {
-    case SVDEIGENSOLVER_ATA:
-      ierr = MatGetVecs(svd->A,PETSC_NULL,&eigen->x1);CHKERRQ(ierr);
+    case SVDEIGENSOLVER_CROSS:
+      ierr = SVDMatGetVecs(svd,PETSC_NULL,&eigen->x1);CHKERRQ(ierr);
       eigen->x2 = eigen->y1 = eigen->y2 = PETSC_NULL;
       ierr = MatCreateShell(svd->comm,n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
-      break;
-    case SVDEIGENSOLVER_AAT:
-      ierr = MatGetVecs(svd->A,&eigen->x1,PETSC_NULL);CHKERRQ(ierr);
-      eigen->x2 = eigen->y1 = eigen->y2 = PETSC_NULL;
-      ierr = MatCreateShell(svd->comm,m,m,PETSC_DETERMINE,PETSC_DETERMINE,svd,&eigen->mat);CHKERRQ(ierr);
       break;
     case SVDEIGENSOLVER_CYCLIC:
       ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&eigen->x1);CHKERRQ(ierr);
@@ -137,6 +117,15 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   ierr = EPSGetDimensions(eigen->eps,PETSC_NULL,&svd->ncv);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eigen->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
+  if (svd->U) {  
+    for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+    ierr = PetscFree(svd->U);CHKERRQ(ierr);
+  }
+  if (eigen->mode==SVDEIGENSOLVER_CYCLIC) {  
+    ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
+    for (i=0;i<svd->ncv;i++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+i);CHKERRQ(ierr); }
+  }
+
   PetscFunctionReturn(0);
 }
 
@@ -153,36 +142,22 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   
   PetscFunctionBegin;
   ierr = EPSSetWhichEigenpairs(eigen->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
-  if (eigen->mode == SVDEIGENSOLVER_ATA) { ierr = EPSSetInitialVector(eigen->eps,svd->vec_initial);CHKERRQ(ierr); }
+  if (eigen->mode == SVDEIGENSOLVER_CROSS && svd->A) { ierr = EPSSetInitialVector(eigen->eps,svd->vec_initial);CHKERRQ(ierr); }
   ierr = EPSSolve(eigen->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eigen->eps,&svd->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eigen->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(eigen->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   ierr = EPSGetOperationCounters(eigen->eps,&svd->matvecs,&svd->dots,PETSC_NULL);CHKERRQ(ierr);
   switch (eigen->mode) {
-    case SVDEIGENSOLVER_ATA:
+    case SVDEIGENSOLVER_CROSS:
       for (i=0;i<svd->nconv;i++) {
 	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
 	svd->sigma[i] = sqrt(PetscRealPart(sigma));
-	ierr = MatMult(svd->A,svd->V[i],svd->U[i]);CHKERRQ(ierr);
-	ierr = VecScale(svd->U[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
-      }
-      break;
-    case SVDEIGENSOLVER_AAT:
-      for (i=0;i<svd->nconv;i++) {
-	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,svd->U[i],PETSC_NULL);CHKERRQ(ierr);
-	svd->sigma[i] = sqrt(PetscRealPart(sigma));
-	if (svd->AT) {
-  	  ierr = MatMult(svd->AT,svd->U[i],svd->V[i]);CHKERRQ(ierr);
-	} else {
-  	  ierr = MatMultTranspose(svd->A,svd->U[i],svd->V[i]);CHKERRQ(ierr);
-	}
-	ierr = VecScale(svd->V[i],1.0/svd->sigma[i]);CHKERRQ(ierr);
       }
       break;
     case SVDEIGENSOLVER_CYCLIC:
       ierr = MatGetVecs(eigen->mat,&x,PETSC_NULL);CHKERRQ(ierr);
-      ierr = MatGetLocalSize(svd->A,PETSC_NULL,&n);CHKERRQ(ierr);
+      ierr = SVDMatGetLocalSize(svd,PETSC_NULL,&n);CHKERRQ(ierr);
       for (i=0,j=0;i<svd->nconv;i++) {
 	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
 	if (PetscRealPart(sigma) > 0.0) {
@@ -251,12 +226,12 @@ PetscErrorCode SVDSetFromOptions_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   PetscTruth      flg;
-  const char      *mode_list[3] = { "ata" , "aat", "cyclic" };
+  const char      *mode_list[2] = { "cross" , "cyclic" };
   PetscInt        mode;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(svd->comm,svd->prefix,"EIGENSOLVER Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigensolverSetMode",mode_list,3,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-svd_eigensolver_mode","Eigensolver SVD mode","SVDEigensolverSetMode",mode_list,2,mode_list[eigen->mode],&mode,&flg);CHKERRQ(ierr);
   if (flg) { eigen->mode = (SVDEigensolverMode)mode; }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eigen->eps);CHKERRQ(ierr);
@@ -274,9 +249,8 @@ PetscErrorCode SVDEigensolverSetMode_EIGENSOLVER(SVD svd,SVDEigensolverMode mode
   PetscFunctionBegin;
   switch (eigen->mode) {
     case PETSC_DEFAULT:
-      mode = SVDEIGENSOLVER_CYCLIC;
-    case SVDEIGENSOLVER_ATA:
-    case SVDEIGENSOLVER_AAT:
+      mode = SVDEIGENSOLVER_CROSS;
+    case SVDEIGENSOLVER_CROSS:
     case SVDEIGENSOLVER_CYCLIC:
       eigen->mode = mode;
       svd->setupcalled = 0;
@@ -298,8 +272,7 @@ EXTERN_C_BEGIN
 
    Input Parameters:
 +  svd  - singular value solver
--  mode - the mode flag, one of SVDEIGENSOLVER_DIRECT, 
-          SVDEIGENSOLVER_TRANSPOSE or SVDEIGENSOLVER_CYCLIC
+-  mode - the mode flag, one of SVDEIGENSOLVER_CROSS or SVDEIGENSOLVER_CYCLIC
 
    Options Database Key:
 .  -svd_eigensolver_mode <mode> - Indicates the mode flag, where <mode> 
@@ -307,8 +280,8 @@ EXTERN_C_BEGIN
 
    Note:
    This parameter selects the eigensystem used to compute the SVD:
-   A^T*A (SVDEIGENSOLVER_DIRECT), A*A^T (SVDEIGENSOLVER_TRANSPOSE) 
-   or H(A) = [ 0  A ; A^T 0 ] (SVDEIGENSOLVER_CYCLIC).
+   A^T*A (SVDEIGENSOLVER_CROSS) or 
+   H(A) = [ 0  A ; A^T 0 ] (SVDEIGENSOLVER_CYCLIC).
 
    Level: beginner
 
@@ -471,7 +444,7 @@ PetscErrorCode SVDView_EIGENSOLVER(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
-  const char      *mode_list[3] = { "ata" , "aat", "cyclic" };
+  const char      *mode_list[2] = { "cross" , "cyclic" };
 
   PetscFunctionBegin;
   ierr = PetscViewerASCIIPrintf(viewer,"eigensolver SVD mode: %s\n",mode_list[eigen->mode]);CHKERRQ(ierr);
@@ -524,7 +497,7 @@ PetscErrorCode SVDCreate_EIGENSOLVER(SVD svd)
   PetscLogObjectParent(svd,eigen->eps);
   ierr = EPSSetWhichEigenpairs(eigen->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetMonitor(eigen->eps,SVDMonitor_EIGENSOLVER,svd,PETSC_NULL);CHKERRQ(ierr);
-  eigen->mode = SVDEIGENSOLVER_CYCLIC;
+  eigen->mode = SVDEIGENSOLVER_CROSS;
   eigen->mat = PETSC_NULL;
   eigen->x1 = PETSC_NULL;
   eigen->x2 = PETSC_NULL;
