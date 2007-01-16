@@ -19,14 +19,83 @@ typedef struct {
 PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
 {
   PetscErrorCode  ierr;
-  PetscInt        M,N;
+  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  PetscInt        N;
+  int             i;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
+  ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
   if (svd->ncv == PETSC_DECIDE)
-    svd->ncv = PetscMin(PetscMin(M,N),PetscMax(2*svd->nsv,10));
+    svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
   if (svd->max_it == PETSC_DECIDE)
-    svd->max_it = PetscMax(PetscMin(M,N)/svd->ncv,100);
+    svd->max_it = PetscMax(N/svd->ncv,100);
+  if (svd->U) {
+    for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+    ierr = PetscFree(svd->U);CHKERRQ(ierr);
+  }
+  if (!lanczos->oneside) {
+    ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
+    for (i=0;i<svd->ncv;i++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+i);CHKERRQ(ierr); }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDTwoSideLanczos"
+static PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec *U,int k,int n,PetscScalar* work)
+{
+  PetscErrorCode ierr;
+  int            i;
+  
+  PetscFunctionBegin;
+  for (i=k;i<n;i++) {
+    ierr = SVDMatMult(svd,PETSC_FALSE,V[i],U[i]);CHKERRQ(ierr);
+    svd->dots += i;
+    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,U,U[i],work,alpha+i-k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = VecScale(U[i],1.0/alpha[i-k]);CHKERRQ(ierr);
+    ierr = SVDMatMult(svd,PETSC_TRUE,U[i],v);CHKERRQ(ierr);
+    svd->dots += i+1;
+    ierr = IPOrthogonalize(svd->ip,i+1,PETSC_NULL,V,v,work,beta+i-k,PETSC_NULL);CHKERRQ(ierr);
+    if (i<n-1) {
+      ierr = VecCopy(v,V[i+1]);CHKERRQ(ierr);
+      ierr = VecScale(V[i+1],1.0/beta[i-k]);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDOneSideLanczos"
+static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec u,Vec u_1,int k,int n,PetscScalar* work)
+{
+  PetscErrorCode ierr;
+  int            i,j;
+  
+  PetscFunctionBegin;
+  for (i=k;i<n;i++) {
+    ierr = SVDMatMult(svd,PETSC_FALSE,V[i],u);CHKERRQ(ierr);
+    if (i>k) { ierr = VecAXPY(u,-beta[i-k-1],u_1);CHKERRQ(ierr); }
+    
+    ierr = SVDMatMult(svd,PETSC_TRUE,u,v);CHKERRQ(ierr);
+    
+    svd->dots += i+1;
+    ierr = VecNormBegin(u,NORM_2,alpha+i-k);CHKERRQ(ierr);
+    ierr = VecMDotBegin(v,i+1,V,work);CHKERRQ(ierr);
+    ierr = VecNormEnd(u,NORM_2,alpha+i-k);CHKERRQ(ierr);
+    ierr = VecMDotEnd(v,i+1,V,work);CHKERRQ(ierr);
+    
+    ierr = VecScale(u,1.0/alpha[i-k]);CHKERRQ(ierr);
+    ierr = VecCopy(u,u_1);CHKERRQ(ierr);
+    ierr = VecScale(v,1.0/alpha[i-k]);CHKERRQ(ierr);
+    for (j=0;j<=i;j++) work[j] = - work[j] / alpha[i-k];
+    ierr = VecMAXPY(v,i+1,work,V);CHKERRQ(ierr);
+
+    ierr = IPOrthogonalizeGS(svd->ip,i+1,PETSC_NULL,V,v,work,PETSC_NULL,beta+i-k);CHKERRQ(ierr);
+    if (i<n-1) {
+      ierr = VecCopy(v,V[i+1]);CHKERRQ(ierr);
+      ierr = VecScale(V[i+1],1.0/beta[i-k]);CHKERRQ(ierr);
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -39,8 +108,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   PetscReal      *alpha,*beta,norm,*work;
   PetscScalar    *Q,*PT;
   PetscInt       *perm;
-  int            i,j,k,l,n,zero=0,info;
-  Vec            *V,*U;
+  int            i,j,k,l,n,zero=0,info,nwork=0;
+  Vec            v,u,u_1,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   
   PetscFunctionBegin;
@@ -50,53 +119,27 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n*svd->n,&Q);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n*svd->n,&PT);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*4*svd->n,&work);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(svd->V[0],svd->n+1,&V);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(svd->U[0],svd->n,&U);CHKERRQ(ierr);
+  ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(Vec)*svd->n,&workV);CHKERRQ(ierr);
+  if (lanczos->oneside) {
+    ierr = SVDMatGetVecs(svd,PETSC_NULL,&u);CHKERRQ(ierr);
+    ierr = SVDMatGetVecs(svd,PETSC_NULL,&u_1);CHKERRQ(ierr);
+  } else {
+    ierr = PetscMalloc(sizeof(Vec)*svd->n,&workU);CHKERRQ(ierr);
+  }
   
   /* normalize start vector */
-  ierr = VecCopy(svd->vec_initial,V[0]);CHKERRQ(ierr);
-  ierr = VecNormalize(V[0],&norm);CHKERRQ(ierr);
+  ierr = VecCopy(svd->vec_initial,svd->V[0]);CHKERRQ(ierr);
+  ierr = VecNormalize(svd->V[0],&norm);CHKERRQ(ierr);
   
   while (svd->reason == SVD_CONVERGED_ITERATING) {
     svd->its++;
 
     /* inner loop */
-    for (i=svd->nconv;i<svd->n;i++) {
-      svd->matvecs++;
-      ierr = MatMult(svd->A,V[i],U[i]);CHKERRQ(ierr);
-      if (lanczos->oneside) {
-        if (i>svd->nconv) { ierr = VecAXPY(U[i],-beta[i-svd->nconv-1],U[i-1]);CHKERRQ(ierr); }
-      } else {
-        svd->dots += i;
-        ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,U,U[i],PT,alpha+i-svd->nconv,PETSC_NULL);CHKERRQ(ierr);
-        ierr = VecScale(U[i],1.0/alpha[i-svd->nconv]);CHKERRQ(ierr);
-      }
-
-      svd->matvecs++;
-      if (svd->AT) {
-	ierr = MatMult(svd->AT,U[i],V[i+1]);CHKERRQ(ierr);
-      } else {
-	ierr = MatMultTranspose(svd->A,U[i],V[i+1]);CHKERRQ(ierr);
-      }
-      if (lanczos->oneside) {
-        svd->dots += i+1;
-        ierr = VecNormBegin(U[i],NORM_2,alpha+i-svd->nconv);CHKERRQ(ierr);
-        ierr = VecMDotBegin(V[i+1],i+1,V,PT);CHKERRQ(ierr);
-        ierr = VecNormEnd(U[i],NORM_2,alpha+i-svd->nconv);CHKERRQ(ierr);
-        ierr = VecMDotEnd(V[i+1],i+1,V,PT);CHKERRQ(ierr);
-        
-        ierr = VecScale(U[i],1.0/alpha[i-svd->nconv]);CHKERRQ(ierr);
-        ierr = VecScale(V[i+1],1.0/alpha[i-svd->nconv]);CHKERRQ(ierr);
-        for (j=0;j<=i;j++) PT[j] = - PT[j] / alpha[i-svd->nconv];
-        ierr = VecMAXPY(V[i+1],i+1,PT,V);CHKERRQ(ierr);
-
-        ierr = IPOrthogonalizeGS(svd->ip,i+1,PETSC_NULL,V,V[i+1],PT,PETSC_NULL,beta+i-svd->nconv);CHKERRQ(ierr);
-        ierr = VecScale(V[i+1],1.0/beta[i-svd->nconv]);CHKERRQ(ierr);
-      } else {
-        svd->dots += i+1;
-        ierr = IPOrthogonalize(svd->ip,i+1,PETSC_NULL,V,V[i+1],PT,beta+i-svd->nconv,PETSC_NULL);CHKERRQ(ierr);
-        ierr = VecScale(V[i+1],1.0/beta[i-svd->nconv]);CHKERRQ(ierr);
-      }
+    if (lanczos->oneside) {
+      ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,v,u,u_1,svd->nconv,svd->n,PT);CHKERRQ(ierr);
+    } else {
+      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv,svd->n,PT);CHKERRQ(ierr);
     }
 
     /* compute SVD of bidiagonal matrix */
@@ -108,76 +151,108 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     LAPACKbdsqr_("U",&n,&n,&n,&zero,alpha,beta,PT,&n,Q,&n,PETSC_NULL,&n,work,&info,1);
 
     /* compute error estimates and converged singular vectors */
-    k = svd->nconv;
+    k = 0;
     conv = PETSC_TRUE;
     for (i=svd->nconv;i<svd->n;i++) {
       if (svd->which == SVD_SMALLEST) j = n-i+svd->nconv-1;
       else j = i-svd->nconv;
       svd->sigma[i] = alpha[j];
-      svd->errest[i] = PetscAbsReal(Q[j*n+n-1])*beta[n-1] / alpha[j];
+      svd->errest[i] = PetscAbsScalar(Q[j*n+n-1])*beta[n-1];
+      if (alpha[j] > svd->tol) svd->errest[i] /= alpha[j];
       if (conv) {
-        if (svd->errest[i] < svd->tol) {
-          ierr = VecSet(svd->V[i],0.0);CHKERRQ(ierr);
-          for (l=0;l<n;l++) {
-            ierr = VecAXPY(svd->V[i],PT[l*n+j],V[l+svd->nconv]);CHKERRQ(ierr);
-          }      
-          ierr = VecSet(svd->U[i],0.0);CHKERRQ(ierr);
-          ierr = VecMAXPY(svd->U[i],n,Q+j*n,U+svd->nconv);CHKERRQ(ierr);
-          k++;
-        } else conv = PETSC_FALSE;
+        if (svd->errest[i] < svd->tol) k++;
+        else conv = PETSC_FALSE;
       }
     }
     
+    /* allocate work space */
+    if (nwork<k) {
+      for (i=nwork;i<k;i++) 
+        if (lanczos->oneside) { ierr = SVDMatGetVecs(svd,workV+i,PETSC_NULL);CHKERRQ(ierr); }
+        else { ierr = SVDMatGetVecs(svd,workV+i,workU+i);CHKERRQ(ierr); }
+      nwork = k;
+    }
+    
+    /* compute converged singular vectors */
+    for (i=0;i<k;i++) {
+      if (svd->which == SVD_SMALLEST) j = n-i-1;
+      else j = i;
+      ierr = VecSet(workV[i],0.0);CHKERRQ(ierr);
+      for (l=0;l<n;l++) {
+        ierr = VecAXPY(workV[i],PT[l*n+j],svd->V[l+svd->nconv]);CHKERRQ(ierr);
+      }      
+      if (!lanczos->oneside) {
+        ierr = VecSet(workU[i],0.0);CHKERRQ(ierr);
+        ierr = VecMAXPY(workU[i],n,Q+j*n,svd->U+svd->nconv);CHKERRQ(ierr);
+      }
+    }
+
     if (svd->its > svd->max_it) svd->reason = SVD_DIVERGED_ITS;
-    if (k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
+    if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       /* compute restart vector */
-      if (svd->which == SVD_SMALLEST) j = n-k+svd->nconv-1;
-      else j = k-svd->nconv;
-      ierr = VecSet(svd->V[k],0.0);CHKERRQ(ierr);
+      if (svd->which == SVD_SMALLEST) j = n-k-1;
+      else j = k;
+      ierr = VecSet(v,0.0);CHKERRQ(ierr);
       for (l=0;l<n;l++) {
-	ierr = VecAXPY(svd->V[k],PT[l*n+j],V[l+svd->nconv]);CHKERRQ(ierr);
+	ierr = VecAXPY(v,PT[l*n+j],svd->V[l+svd->nconv]);CHKERRQ(ierr);
       }      
-      ierr = VecCopy(svd->V[k],V[k]);CHKERRQ(ierr);
+      ierr = VecCopy(v,svd->V[k+svd->nconv]);CHKERRQ(ierr);
     }
     
     /* copy converged singular vectors from temporary space */ 
-    for (i=svd->nconv;i<k;i++) {
-      ierr = VecCopy(svd->V[i],V[i]);CHKERRQ(ierr);
-      ierr = VecCopy(svd->U[i],U[i]);CHKERRQ(ierr);
+    for (i=0;i<k;i++) {
+      ierr = VecCopy(workV[i],svd->V[i+svd->nconv]);CHKERRQ(ierr);
+      if (!lanczos->oneside) {
+        ierr = VecCopy(workU[i],svd->U[i+svd->nconv]);CHKERRQ(ierr);
+      }
     }
-    svd->nconv = k;
+    svd->nconv += k;
     
     SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->n);
   }
   
   /* sort singular triplets */
   ierr = PetscMalloc(sizeof(PetscInt)*svd->nconv,&perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(Vec)*svd->nconv,&permV);CHKERRQ(ierr);
+  if (!lanczos->oneside) { ierr = PetscMalloc(sizeof(Vec)*svd->nconv,&permU);CHKERRQ(ierr); }
   for (i=0;i<svd->nconv;i++) {
     alpha[i] = svd->sigma[i];
     beta[i] = svd->errest[i];
+    permV[i] = svd->V[i];
+    if (!lanczos->oneside) permU[i] = svd->U[i];
     perm[i] = i;
   }
+
   ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,perm);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
     if (svd->which == SVD_SMALLEST) j = perm[i]; 
-    else j = perm[svd->nconv-i-1]; 
+    else j = perm[svd->nconv-i-1];
     svd->sigma[i] = alpha[j];
     svd->errest[i] = beta[j];
-    ierr = VecCopy(V[j],svd->V[i]);CHKERRQ(ierr);
-    ierr = VecCopy(U[j],svd->U[i]);CHKERRQ(ierr);
+    svd->V[i] = permV[j];
+    if (!lanczos->oneside) svd->U[i] = permU[j];
   }
   
   /* free working space */
-  ierr = VecDestroyVecs(V,svd->n+1);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(U,svd->n);CHKERRQ(ierr);
-
+  ierr = VecDestroy(v);CHKERRQ(ierr);
+  for (i=0;i<nwork;i++) { ierr = VecDestroy(workV[i]);CHKERRQ(ierr); }
+  ierr = PetscFree(workV);CHKERRQ(ierr);
+  if (lanczos->oneside) {
+    ierr = VecDestroy(u);CHKERRQ(ierr);
+    ierr = VecDestroy(u_1);CHKERRQ(ierr);
+  } else {
+    for (i=0;i<nwork;i++) { ierr = VecDestroy(workU[i]);CHKERRQ(ierr); }
+    ierr = PetscFree(workU);CHKERRQ(ierr);
+  }
   ierr = PetscFree(alpha);CHKERRQ(ierr);
   ierr = PetscFree(beta);CHKERRQ(ierr);
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(PT);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
+  ierr = PetscFree(permV);CHKERRQ(ierr);
+  if (!lanczos->oneside) { ierr = PetscFree(permU);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -203,7 +278,10 @@ PetscErrorCode SVDLanczosSetOneSideReorthogonalization_LANCZOS(SVD svd,PetscTrut
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
-  lanczos->oneside = oneside;
+  if (lanczos->oneside != oneside) {
+    lanczos->oneside = oneside;
+    svd->setupcalled = 0;
+  }
   PetscFunctionReturn(0);
 }
 EXTERN_C_BEGIN
