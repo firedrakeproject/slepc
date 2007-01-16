@@ -27,10 +27,10 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscValidHeaderSpecific(mat,MAT_COOKIE,2);
   PetscCheckSameComm(svd,1,mat,2);
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  if (svd->A) {
-    ierr = MatDestroy(svd->A);CHKERRQ(ierr);
+  if (svd->OP) {
+    ierr = MatDestroy(svd->OP);CHKERRQ(ierr);
   }
-  svd->A = mat;
+  svd->OP = mat;
   if (svd->vec_initial) {
     ierr = VecDestroy(svd->vec_initial);CHKERRQ(ierr);
     svd->vec_initial = PETSC_NULL;
@@ -61,7 +61,7 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   PetscValidPointer(A,2);
-  *A = svd->A;
+  *A = svd->OP;
   PetscFunctionReturn(0);
 }
 
@@ -165,24 +165,43 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
 
   /* check matrix */
-  if (!svd->A)
+  if (!svd->OP)
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSetOperator must be called first"); 
   
   /* determine how to build the transpose */
   if (svd->transmode == PETSC_DECIDE) {
-    ierr = MatHasOperation(svd->A,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);    
+    ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);    
     if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
     else svd->transmode = SVD_TRANSPOSE_IMPLICIT;
   }
   
   /* build transpose matrix */
+  if (svd->A) { ierr = MatDestroy(svd->A);CHKERRQ(ierr); }
   if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
+  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
   switch (svd->transmode) {
     case SVD_TRANSPOSE_EXPLICIT:
-      ierr = MatTranspose(svd->A,&svd->AT);CHKERRQ(ierr);
+      ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
+      if (!flg) SETERRQ(1,"Matrix does not have defined the MatTranpose operation");
+      if (M>=N) {
+        svd->A = svd->OP;
+        ierr = MatTranspose(svd->OP,&svd->AT);CHKERRQ(ierr);
+      } else {
+        ierr = MatTranspose(svd->OP,&svd->A);CHKERRQ(ierr);
+        svd->AT = svd->OP;
+      }
       break;
     case SVD_TRANSPOSE_IMPLICIT:
-      svd->AT = PETSC_NULL;    
+      ierr = MatHasOperation(svd->OP,MATOP_MULT_TRANSPOSE,&flg);CHKERRQ(ierr);
+      if (!flg) SETERRQ(1,"Matrix does not have defined the MatMultTranpose operation");
+      if (M>=N) {
+        svd->A = svd->OP;
+        svd->AT = PETSC_NULL;    
+      } else {
+        svd->A = PETSC_NULL;
+        svd->AT = svd->OP;
+      }
       break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
@@ -190,14 +209,13 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* set initial vector */
   if (!svd->vec_initial) {
-    ierr = MatGetVecs(svd->A,&svd->vec_initial,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDMatGetVecs(svd,&svd->vec_initial,PETSC_NULL);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(svd->vec_initial);CHKERRQ(ierr);
   }
 
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
 
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
   if (svd->ncv > M || svd->ncv > N)
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
   if (svd->nsv > svd->ncv)
@@ -209,10 +227,6 @@ PetscErrorCode SVDSetUp(SVD svd)
       ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
       ierr = PetscFree(svd->errest);CHKERRQ(ierr);
       for (i=0;i<svd->n;i++) {
-	ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
-      }
-      ierr = PetscFree(svd->U);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) {
 	ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr); 
       }
       ierr = PetscFree(svd->V);CHKERRQ(ierr);
@@ -220,10 +234,9 @@ PetscErrorCode SVDSetUp(SVD svd)
     /* allocate memory for next solution */
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(svd->ncv*sizeof(Vec),&svd->U);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
     for (i=0;i<svd->ncv;i++) {
-      ierr = MatGetVecs(svd->A,svd->V+i,svd->U+i);CHKERRQ(ierr);
+      ierr = SVDMatGetVecs(svd,svd->V+i,PETSC_NULL);CHKERRQ(ierr);
     }
     svd->n = svd->ncv;
   }

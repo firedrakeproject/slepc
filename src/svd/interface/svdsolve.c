@@ -190,7 +190,12 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
   *sigma = svd->sigma[i];
   if (u) {
     PetscValidHeaderSpecific(u,VEC_COOKIE,4);
-    ierr = VecCopy(svd->U[i],u);CHKERRQ(ierr);
+    if (svd->U) {
+      ierr = VecCopy(svd->U[i],u);CHKERRQ(ierr);
+    } else {
+      ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[i],u);CHKERRQ(ierr);
+      ierr = VecScale(u,1.0/svd->sigma[i]);CHKERRQ(ierr);
+    }
   }
   if (v) {
     PetscValidHeaderSpecific(v,VEC_COOKIE,5);   
@@ -239,21 +244,17 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   
-  ierr = MatGetVecs(svd->A,&v,&u);CHKERRQ(ierr);
+  ierr = SVDMatGetVecs(svd,&v,&u);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
   if (norm1) {
     ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
-    ierr = MatMult(svd->A,v,x);CHKERRQ(ierr);
+    ierr = SVDMatMult(svd,PETSC_FALSE,v,x);CHKERRQ(ierr);
     ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
   }
   if (norm2) {
     ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
-    if (svd->AT) {
-      ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
-    } else {
-      ierr = MatMultTranspose(svd->A,u,y);CHKERRQ(ierr);
-    }
+    ierr = SVDMatMult(svd,PETSC_TRUE,u,y);CHKERRQ(ierr);
     ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
   }

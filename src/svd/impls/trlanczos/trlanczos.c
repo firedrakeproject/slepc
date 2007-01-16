@@ -19,16 +19,25 @@ typedef struct {
 PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 {
   PetscErrorCode  ierr;
-  PetscInt        M,N;
+  PetscInt        N;
+  int             i;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
+  ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
   if (svd->ncv == PETSC_DECIDE)
-    svd->ncv = PetscMin(PetscMin(M,N),PetscMax(2*svd->nsv,10));
+    svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
   if (svd->max_it == PETSC_DECIDE)
-    svd->max_it = PetscMax(PetscMin(M,N)/svd->ncv,100);
+    svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->nsv >= svd->ncv)
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger or equal than ncv");
+  if (svd->ncv!=svd->n) {  
+    if (svd->U) {
+      for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+      ierr = PetscFree(svd->U);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
+    for (i=0;i<svd->ncv;i++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+i);CHKERRQ(ierr); }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -85,8 +94,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     
     /* inner loop */
     for (i=l;i<n;i++) {
-      svd->matvecs++;
-      ierr = MatMult(svd->A,V[i],U[i]);CHKERRQ(ierr);
+      ierr = SVDMatMult(svd,PETSC_FALSE,V[i],U[i]);CHKERRQ(ierr);
       if (lanczos->oneside) {
         if (i==l) {
           ierr = VecSet(svd->U[i],0.0);CHKERRQ(ierr);
@@ -101,12 +109,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
         ierr = VecScale(U[i],1.0/alpha[i]);CHKERRQ(ierr);
       }
 
-      svd->matvecs++;
-      if (svd->AT) {
-	ierr = MatMult(svd->AT,U[i],V[i+1]);CHKERRQ(ierr);
-      } else {
-	ierr = MatMultTranspose(svd->A,U[i],V[i+1]);CHKERRQ(ierr);
-      }
+      ierr = SVDMatMult(svd,PETSC_TRUE,U[i],V[i+1]);CHKERRQ(ierr);
       svd->dots += svd->nconv + i + 1;
       if (lanczos->oneside) {
         ierr = VecNormBegin(U[i],NORM_2,alpha+i);CHKERRQ(ierr);

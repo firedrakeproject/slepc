@@ -184,6 +184,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
 
   svd->type_name   = PETSC_NULL;
+  svd->OP          = PETSC_NULL;
   svd->A           = PETSC_NULL;
   svd->AT          = PETSC_NULL;
   svd->transmode   = PETSC_DECIDE;
@@ -244,15 +245,18 @@ PetscErrorCode SVDDestroy(SVD svd)
     ierr = (*svd->ops->destroy)(svd); CHKERRQ(ierr);
   }
 
+  if (svd->OP) { ierr = MatDestroy(svd->OP);CHKERRQ(ierr); }
   if (svd->A) { ierr = MatDestroy(svd->A);CHKERRQ(ierr); }
   if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
   if (svd->n) { 
     ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
     ierr = PetscFree(svd->errest);CHKERRQ(ierr);
-    for (i=0;i<svd->n;i++) {
-      ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
+    if (svd->U) {
+      for (i=0;i<svd->n;i++) {
+        ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
+      }
+      ierr = PetscFree(svd->U);CHKERRQ(ierr);
     }
-    ierr = PetscFree(svd->U);CHKERRQ(ierr);
     for (i=0;i<svd->n;i++) {
       ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr); 
     }

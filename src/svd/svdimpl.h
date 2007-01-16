@@ -28,7 +28,8 @@ struct _SVDOps {
 */
 struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
-  Mat              A;	        /* problem matrix */
+  Mat              OP;          /* problem matrix */
+  Mat              A;	        /* problem matrix (m>n) */
   Mat              AT;          /* transposed matrix */
   SVDTransposeMode transmode;   /* transpose mode */
   PetscReal        *sigma;	/* singular values */
@@ -75,3 +76,8 @@ EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,int(*)(SVD
 	}
 
 #endif
+
+EXTERN PetscErrorCode SVDMatMult(SVD,PetscTruth,Vec,Vec);
+EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
+EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
+EXTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
