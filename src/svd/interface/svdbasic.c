@@ -225,7 +225,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
    Collective on SVD
 
    Input Parameter:
-.  svd - eigensolver context obtained from SVDCreate()
+.  svd - singular value solver context obtained from SVDCreate()
 
    Level: beginner
 

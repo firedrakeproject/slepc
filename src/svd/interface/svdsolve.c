@@ -207,13 +207,13 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
 #undef __FUNCT__  
 #define __FUNCT__ "SVDComputeResidualNorms"
 /*@
-   SVDComputeResidualNorm - Computes the norms of the residual vectors associated with 
+   SVDComputeResidualNorms - Computes the norms of the residual vectors associated with 
    the i-th computed singular triplet.
 
-   Collective on EPS
+   Collective on SVD
 
    Input Parameters:
-+  svd  - the eigensolver context
++  svd  - the singular value solver context
 -  i    - the solution index
 
    Output Parameters:
@@ -227,7 +227,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
 
    Level: beginner
 
-.seealso: SVDSolve(), SVDGetConverged()
+.seealso: SVDSolve(), SVDGetConverged(), SVDComputeRelativeError()
 @*/
 PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscReal *norm2)
 {
@@ -268,6 +268,25 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDComputeRelativeError"
+/*@
+   SVDComputeRelativeError - Computes the relative error bound associated 
+   with the i-th singular triplet.
+
+   Collective on SVD
+
+   Input Parameter:
+.  svd - the singular value solver context
+.  i   - the solution index
+
+   Output Parameter:
+.  error - the relative error bound, computed as ||A*v-sigma*u A^T*u-sigma*v||_2 / sigma 
+   where sigma is the singular value, u and v are the left and right singular vectors.
+   If sigma is too small the relative error is computed as ||A*v-sigma*u A^T*u-sigma*v||_2.
+
+   Level: beginner
+
+.seealso: SVDSolve(), SVDComputeResidualNorms()
+@*/
 PetscErrorCode SVDComputeRelativeError(SVD svd, int i, PetscReal *error)
 {
   PetscErrorCode ierr;
@@ -278,7 +297,8 @@ PetscErrorCode SVDComputeRelativeError(SVD svd, int i, PetscReal *error)
   PetscValidPointer(error,2);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
-  *error = sqrt(norm1*norm1+norm2*norm2) / sigma;
+  *error = sqrt(norm1*norm1+norm2*norm2);
+  if (sigma>*error*10) *error /= sigma;
   PetscFunctionReturn(0);
 }
 
