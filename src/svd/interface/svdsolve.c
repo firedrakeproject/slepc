@@ -275,8 +275,8 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
    Collective on SVD
 
    Input Parameter:
-.  svd - the singular value solver context
-.  i   - the solution index
++  svd - the singular value solver context
+-  i   - the solution index
 
    Output Parameter:
 .  error - the relative error bound, computed as ||A*v-sigma*u A^T*u-sigma*v||_2 / sigma 
