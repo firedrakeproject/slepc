@@ -183,7 +183,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   switch (svd->transmode) {
     case SVD_TRANSPOSE_EXPLICIT:
       ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
-      if (!flg) SETERRQ(1,"Matrix does not have defined the MatTranpose operation");
+      if (!flg) SETERRQ(1,"Matrix has not defined the MatTranpose operation");
       if (M>=N) {
         svd->A = svd->OP;
         ierr = MatTranspose(svd->OP,&svd->AT);CHKERRQ(ierr);
@@ -194,7 +194,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       break;
     case SVD_TRANSPOSE_IMPLICIT:
       ierr = MatHasOperation(svd->OP,MATOP_MULT_TRANSPOSE,&flg);CHKERRQ(ierr);
-      if (!flg) SETERRQ(1,"Matrix does not have defined the MatMultTranpose operation");
+      if (!flg) SETERRQ(1,"Matrix has not defined the MatMultTranpose operation");
       if (M>=N) {
         svd->A = svd->OP;
         svd->AT = PETSC_NULL;    
