@@ -86,7 +86,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_EIGENSOLVER   *eigen = (SVD_EIGENSOLVER *)svd->data;
-  PetscInt          M,m,n,i,j,start,end,ncols,*pos;
+  PetscInt          M,N,m,n,i,j,start,end,ncols,*pos;
   PetscScalar       *work1,*work2,*diag;
   const PetscInt    *cols;
   const PetscScalar *vals;
@@ -100,6 +100,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
   if (eigen->y2) { ierr = VecDestroy(eigen->y2);CHKERRQ(ierr); } 
   eigen->x1 = eigen->x2 = eigen->y1 = eigen->y2 = PETSC_NULL;
 
+  ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   switch (eigen->mode) {
     case SVDEIGENSOLVER_CROSS:
@@ -108,8 +109,8 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
       ierr = MatShellSetOperation(eigen->mat,MATOP_MULT,(void(*)(void))ShellMatMult_EIGENSOLVER);CHKERRQ(ierr);  
       ierr = MatShellSetOperation(eigen->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_EIGENSOLVER);CHKERRQ(ierr);  
       /* compute diagonal from rows and store in eigen->y1 */
-      ierr = PetscMalloc(sizeof(PetscScalar)*n,&work1);CHKERRQ(ierr);
-      ierr = PetscMalloc(sizeof(PetscScalar)*n,&work2);CHKERRQ(ierr);
+      ierr = PetscMalloc(sizeof(PetscScalar)*N,&work1);CHKERRQ(ierr);
+      ierr = PetscMalloc(sizeof(PetscScalar)*N,&work2);CHKERRQ(ierr);
       for (i=0;i<n;i++) work1[i] = work2[i] = 0.0;
       if (svd->AT) {
         ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
@@ -128,7 +129,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
           ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
         }
       }
-      ierr = MPI_Allreduce(work1,work2,n,MPIU_SCALAR,MPI_SUM,svd->comm);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPI_SUM,svd->comm);CHKERRQ(ierr);
       ierr = VecGetOwnershipRange(eigen->y1,&start,&end);CHKERRQ(ierr);
       ierr = VecGetArray(eigen->y1,&diag);CHKERRQ(ierr);
       for (i=start;i<end;i++)
@@ -153,7 +154,6 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
       ierr = MatSetSizes(eigen->mat,m+n,m+n,PETSC_DETERMINE,PETSC_DETERMINE);CHKERRQ(ierr);
       ierr = MatSetFromOptions(eigen->mat);CHKERRQ(ierr);
       ierr = PetscMalloc(sizeof(PetscInt)*n,&pos);CHKERRQ(ierr);
-      ierr = SVDMatGetSize(svd,&M,PETSC_NULL);CHKERRQ(ierr);
       if (svd->AT) {
         ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
         for (i=start;i<end;i++) {
@@ -161,6 +161,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
           j = i + M;
           ierr = MatSetValues(eigen->mat,1,&j,ncols,cols,vals,INSERT_VALUES);CHKERRQ(ierr);
           ierr = MatSetValues(eigen->mat,ncols,cols,1,&j,vals,INSERT_VALUES);CHKERRQ(ierr);
+          ierr = MatRestoreRow(svd->AT,i,&ncols,&cols,&vals);CHKERRQ(ierr);
         }
       } else {
         ierr = MatGetOwnershipRange(svd->A,&start,&end);CHKERRQ(ierr);
@@ -170,6 +171,7 @@ PetscErrorCode SVDSetUp_EIGENSOLVER(SVD svd)
             pos[j] = cols[j] + M;
           ierr = MatSetValues(eigen->mat,1,&i,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
           ierr = MatSetValues(eigen->mat,ncols,pos,1,&i,vals,INSERT_VALUES);CHKERRQ(ierr);
+          ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
         }
       }
       ierr = PetscFree(pos);CHKERRQ(ierr);
@@ -207,9 +209,11 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   int             i,j;
-  PetscInt        m;
+  PetscInt        m,n,idx,start,end;
   PetscScalar     sigma,*px;
   Vec             x;
+  IS              isU,isV;
+  VecScatter      vsU,vsV;
   
   PetscFunctionBegin;
   ierr = EPSSetWhichEigenpairs(eigen->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
@@ -227,7 +231,6 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
       }
       break;
     case SVDEIGENSOLVER_CYCLIC:
-    case SVDEIGENSOLVER_CYCLIC_EXPLICIT:
       ierr = MatGetVecs(eigen->mat,&x,PETSC_NULL);CHKERRQ(ierr);
       ierr = SVDMatGetLocalSize(svd,&m,PETSC_NULL);CHKERRQ(ierr);
       for (i=0,j=0;i<svd->nconv;i++) {
@@ -252,6 +255,40 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
       }
       svd->nconv = j;
       ierr = VecDestroy(x);CHKERRQ(ierr);
+      break;
+    case SVDEIGENSOLVER_CYCLIC_EXPLICIT:
+      ierr = MatGetVecs(eigen->mat,&x,PETSC_NULL);CHKERRQ(ierr);
+      ierr = SVDMatGetSize(svd,&m,PETSC_NULL);CHKERRQ(ierr);
+      
+      ierr = VecGetOwnershipRange(svd->U[0],&start,&end);CHKERRQ(ierr);
+      ierr = ISCreateBlock(svd->comm,end-start,1,&start,&isU);CHKERRQ(ierr);      
+      ierr = VecScatterCreate(x,isU,svd->U[0],PETSC_NULL,&vsU);CHKERRQ(ierr);
+
+      ierr = VecGetOwnershipRange(svd->V[0],&start,&end);CHKERRQ(ierr);
+      idx = start + m;
+      ierr = ISCreateBlock(svd->comm,end-start,1,&idx,&isV);CHKERRQ(ierr);      
+      ierr = VecScatterCreate(x,isV,svd->V[0],PETSC_NULL,&vsV);CHKERRQ(ierr);
+
+      for (i=0,j=0;i<svd->nconv;i++) {
+	ierr = EPSGetEigenpair(eigen->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
+	if (PetscRealPart(sigma) > 0.0) {
+	  svd->sigma[j] = PetscRealPart(sigma);
+	  ierr = VecScatterBegin(x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD,vsU);CHKERRQ(ierr);
+	  ierr = VecScatterBegin(x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD,vsV);CHKERRQ(ierr);
+	  ierr = VecScatterEnd(x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD,vsU);CHKERRQ(ierr);
+	  ierr = VecScatterEnd(x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD,vsV);CHKERRQ(ierr);
+	  ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
+	  ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);	  	  
+	  j++;
+	}
+      }
+      svd->nconv = j;
+      
+      ierr = VecDestroy(x);CHKERRQ(ierr);
+      ierr = ISDestroy(isU);CHKERRQ(ierr);
+      ierr = VecScatterDestroy(vsU);CHKERRQ(ierr);
+      ierr = ISDestroy(isV);CHKERRQ(ierr);
+      ierr = VecScatterDestroy(vsV);CHKERRQ(ierr);
       break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid SVD type"); 
@@ -591,4 +628,3 @@ PetscErrorCode SVDCreate_EIGENSOLVER(SVD svd)
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
-
