@@ -472,7 +472,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
 PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
 {
   PetscErrorCode ierr;
-  PetscTruth     flg;
+  PetscTruth     flg1,flg2,flg3;
   EPS            eps;
   
   PetscFunctionBegin;
@@ -480,9 +480,17 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(svd->ip,svd->prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)svd,SVDEIGENSOLVER,&flg);CHKERRQ(ierr);
-  if (flg) {
+  ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)svd,SVDEIGENSOLVER,&flg3);CHKERRQ(ierr);
+  if (flg1) {
+    ierr = SVDCrossGetEPS(svd,&eps);CHKERRQ(ierr);
+  } else if (flg2) {
+    ierr = SVDCyclicGetEPS(svd,&eps);CHKERRQ(ierr);
+  } else if (flg3) {
     ierr = SVDEigensolverGetEPS(svd,&eps);CHKERRQ(ierr);
+  }
+  if (flg1 || flg2 || flg3) {
     ierr = EPSSetOptionsPrefix(eps,svd->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
   }

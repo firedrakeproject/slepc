@@ -2,6 +2,8 @@
 #include "src/svd/svdimpl.h"  /*I "slepcsvd.h" I*/
 
 EXTERN_C_BEGIN
+EXTERN PetscErrorCode SVDCreate_CROSS(SVD);
+EXTERN PetscErrorCode SVDCreate_CYCLIC(SVD);
 EXTERN PetscErrorCode SVDCreate_EIGENSOLVER(SVD);
 EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
 EXTERN PetscErrorCode SVDCreate_LANCZOS(SVD);
@@ -31,6 +33,10 @@ PetscErrorCode SVDRegisterAll(char *path)
 
   PetscFunctionBegin;
   
+  ierr = SVDRegisterDynamic(SVDCROSS, path,"SVDCreate_CROSS", 
+		  SVDCreate_CROSS);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDCYCLIC, path,"SVDCreate_CYCLIC", 
+		  SVDCreate_CYCLIC);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDEIGENSOLVER, path,"SVDCreate_EIGENSOLVER", 
 		  SVDCreate_EIGENSOLVER);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDLAPACK, path,"SVDCreate_LAPACK", 
