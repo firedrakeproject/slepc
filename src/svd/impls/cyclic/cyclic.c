@@ -2,7 +2,7 @@
 
    SLEPc singular value solver: "cyclic"
 
-   Method: Uses an Hermitian eigensolver for H(A) = [ 0  A ; A^T 0 ]
+   Method: Uses a Hermitian eigensolver for H(A) = [ 0  A ; A^T 0 ]
 
    Last update: Jan 2007
 
@@ -286,19 +286,19 @@ EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDCyclicSetExplicitMatrix"
 /*@
-   SVDCyclicSetExplicitMatrix - Indicates if the eigensolver operator 
+   SVDCyclicSetExplicitMatrix - Indicate if the eigensolver operator 
    H(A) = [ 0  A ; A^T 0 ] must be computed explicitly.
 
    Collective on SVD
 
    Input Parameters:
 +  svd      - singular value solver
--  explicit - boolean flag indicating if H(A) is build explicitly
+-  explicit - boolean flag indicating if H(A) is built explicitly
 
    Options Database Key:
 .  -svd_cyclic_explicitmatrix <boolean> - Indicates the boolean flag
 
-   Level: beginner
+   Level: advanced
 
 .seealso: SVDCyclicGetExplicitMatrix()
 @*/
@@ -332,7 +332,8 @@ EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDCyclicGetExplicitMatrix"
 /*@C
-   SVDCyclicGetExplicitMatrix - Returns the flag indicating if H(A) is build explicitly
+   SVDCyclicGetExplicitMatrix - Returns the flag indicating if H(A) is built explicitly
+
    Not collective
 
    Input Parameter:
@@ -341,7 +342,7 @@ EXTERN_C_BEGIN
    Output Parameter:
 .  explicit - the mode flag
 
-   Level: beginner
+   Level: advanced
 
 .seealso: SVDCyclicSetExplicitMatrix()
 @*/
@@ -380,7 +381,7 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicSetEPS"
 /*@
-   SVDCyclicSetEPS - Associates an eigensolver object (EPS) to the
+   SVDCyclicSetEPS - Associate an eigensolver object (EPS) to the
    singular value solver. 
 
    Collective on SVD
@@ -428,7 +429,7 @@ EXTERN_C_END
 
    Not Collective
 
-   Input Parameters:
+   Input Parameter:
 .  svd - singular value solver
 
    Output Parameter:

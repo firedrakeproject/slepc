@@ -2,7 +2,7 @@
 
    SLEPc singular value solver: "cross"
 
-   Method: Uses an Hermitian eigensolver for A^T*A
+   Method: Uses a Hermitian eigensolver for A^T*A
 
    Last update: Jan 2007
 
@@ -192,7 +192,7 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCrossSetEPS"
 /*@
-   SVDCrossSetEPS - Associates an eigensolver object (EPS) to the
+   SVDCrossSetEPS - Associate an eigensolver object (EPS) to the
    singular value solver. 
 
    Collective on SVD
@@ -240,7 +240,7 @@ EXTERN_C_END
 
    Not Collective
 
-   Input Parameters:
+   Input Parameter:
 .  svd - singular value solver
 
    Output Parameter:
