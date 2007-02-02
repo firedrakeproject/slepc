@@ -9,6 +9,7 @@ extern PetscEvent IP_InnerProduct,IP_Orthogonalize;
 typedef struct _IPOps *IPOps;
 
 struct _IPOps {
+  int dummy;
 };
 
 struct _p_IP {
