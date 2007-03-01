@@ -127,12 +127,14 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",svd->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",svd->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",svd->tol);CHKERRQ(ierr);
-    ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
     if (svd->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
     if (svd->ops->view) {
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
@@ -187,7 +189,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->OP          = PETSC_NULL;
   svd->A           = PETSC_NULL;
   svd->AT          = PETSC_NULL;
-  svd->transmode   = PETSC_DECIDE;
+  svd->transmode   = (SVDTransposeMode)PETSC_DECIDE;
   svd->sigma       = PETSC_NULL;
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;

@@ -66,7 +66,7 @@ PetscErrorCode ShellMatGetDiagonal_EIGENSOLVER(Mat B,Vec diag)
 {
   PetscErrorCode    ierr;
   SVD               svd;
-  SVD_EIGENSOLVER   *eigen = (SVD_EIGENSOLVER *)svd->data;
+  SVD_EIGENSOLVER   *eigen;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
@@ -209,7 +209,7 @@ PetscErrorCode SVDSolve_EIGENSOLVER(SVD svd)
   PetscErrorCode  ierr;
   SVD_EIGENSOLVER *eigen = (SVD_EIGENSOLVER *)svd->data;
   int             i,j;
-  PetscInt        m,n,idx,start,end;
+  PetscInt        m,idx,start,end;
   PetscScalar     sigma,*px;
   Vec             x;
   IS              isU,isV;

@@ -42,7 +42,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   switch (mode) {
     case PETSC_DEFAULT:
-      mode = PETSC_DECIDE;
+      mode = (SVDTransposeMode)PETSC_DECIDE;
     case SVD_TRANSPOSE_EXPLICIT:
     case SVD_TRANSPOSE_IMPLICIT:
     case PETSC_DECIDE:
