@@ -19,13 +19,13 @@ EXTERN PetscErrorCode IPGetOrthogonalization(IP,IPOrthogonalizationType*,IPOrtho
 EXTERN PetscErrorCode IPView(IP,PetscViewer);
 EXTERN PetscErrorCode IPDestroy(IP);
 
-EXTERN PetscErrorCode IPOrthogonalize(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode IPOrthogonalizeGS(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
+EXTERN PetscErrorCode IPOrthogonalize(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*,Vec);
+EXTERN PetscErrorCode IPOrthogonalizeCGS(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
 
-typedef enum { IPINNER_HERMITIAN, IPINNER_SYMMETRIC,
-               IPINNER_B_HERMITIAN, IPINNER_B_SYMMETRIC } IPBilinearForm;
-EXTERN PetscErrorCode IPSetBilinearForm(IP,IPBilinearForm);
-EXTERN PetscErrorCode IPGetBilinearForm(IP,IPBilinearForm*);
+typedef enum { IPINNER_HERMITIAN, IPINNER_SYMMETRIC } IPBilinearForm;
+EXTERN PetscErrorCode IPSetBilinearForm(IP,Mat,IPBilinearForm);
+EXTERN PetscErrorCode IPGetBilinearForm(IP,Mat*,IPBilinearForm*);
+EXTERN PetscErrorCode IPApplyMatrix(IP,Vec,Vec);
 
 EXTERN PetscErrorCode IPInnerProduct(IP ip,Vec,Vec,PetscScalar*);
 EXTERN PetscErrorCode IPInnerProductBegin(IP ip,Vec,Vec,PetscScalar*);
@@ -36,6 +36,9 @@ EXTERN PetscErrorCode IPMInnerProductEnd(IP ip,PetscInt,Vec,const Vec[],PetscSca
 EXTERN PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
 EXTERN PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
 EXTERN PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
+
+EXTERN PetscErrorCode IPGetOperationCounters(IP,int*);
+EXTERN PetscErrorCode IPResetOperationCounters(IP);
 
 PETSC_EXTERN_CXX_END
 #endif

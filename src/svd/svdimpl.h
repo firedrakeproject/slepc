@@ -81,3 +81,5 @@ EXTERN PetscErrorCode SVDMatMult(SVD,PetscTruth,Vec,Vec);
 EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
 EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
+EXTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,int,int,PetscScalar*,Vec,Vec);
+

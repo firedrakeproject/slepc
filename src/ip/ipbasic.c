@@ -7,7 +7,7 @@ PetscCookie IP_COOKIE = 0;
 PetscEvent IP_InnerProduct = 0, IP_Orthogonalize = 0;
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSInitializePackage"
+#define __FUNCT__ "IPInitializePackage"
 PetscErrorCode IPInitializePackage(char *path) 
 {
   static PetscTruth initialized = PETSC_FALSE;
@@ -58,8 +58,8 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->orthog_eta    = 0.7071;
   ip->bilinear_form = IPINNER_HERMITIAN;
   ip->innerproducts = 0;
-  ip->work[0]       = PETSC_NULL;
-  ip->work[1]       = PETSC_NULL;
+  ip->matrix        = PETSC_NULL;
+  ip->work          = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
@@ -194,8 +194,30 @@ PetscErrorCode IPDestroy(IP ip)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  if (ip->work[0]) { ierr = VecDestroy(ip->work[0]);CHKERRQ(ierr); }
-  if (ip->work[1]) { ierr = VecDestroy(ip->work[1]);CHKERRQ(ierr); }
+  if (ip->matrix) { ierr = MatDestroy(ip->matrix);CHKERRQ(ierr); }
+  if (ip->work) { ierr = VecDestroy(ip->work);CHKERRQ(ierr); }
   if (--ip->refct <= 0) PetscHeaderDestroy(ip);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPGetOperationCounters"
+PetscErrorCode IPGetOperationCounters(IP ip,int *dots)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidPointer(dots,2);
+  *dots = ip->innerproducts;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPResetOperationCounters"
+PetscErrorCode IPResetOperationCounters(IP ip)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  ip->innerproducts = 0;
+  PetscFunctionReturn(0);
+}
+

@@ -35,6 +35,7 @@ PetscErrorCode SVDSolve(SVD svd)
   svd->dots = 0;
   svd->nconv = 0;
   svd->reason = SVD_CONVERGED_ITERATING;
+  ierr = IPResetOperationCounters(svd->ip);CHKERRQ(ierr);
   for (i=0;i<svd->ncv;i++) svd->sigma[i]=svd->errest[i]=0.0;
   SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);
 
@@ -325,9 +326,14 @@ PetscErrorCode SVDComputeRelativeError(SVD svd, int i, PetscReal *error)
 @*/
 PetscErrorCode SVDGetOperationCounters(SVD svd,int* matvecs,int* dots)
 {
+  PetscErrorCode ierr;
+  
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   if (matvecs) *matvecs = svd->matvecs; 
-  if (dots) *dots = svd->dots; 
+  if (dots) {
+    ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);
+    *dots += svd->dots;
+  }
   PetscFunctionReturn(0);
 }
