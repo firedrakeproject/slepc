@@ -378,19 +378,19 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = PetscOptionsTruthGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsName("-svd_cancelmonitors","Remove any hardwired monitor routines","SVDClearMonitor",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsName("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",&flg);CHKERRQ(ierr);
   if (flg) {
-    ierr = SVDClearMonitor(svd);CHKERRQ(ierr); 
+    ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); 
   }
 
-  ierr = PetscOptionsString("-svd_monitor","Monitor approximate singular values and error estimates","SVDSetMonitor","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsString("-svd_monitor","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
     ierr = PetscViewerASCIIOpen(svd->comm,monfilename,&monviewer);CHKERRQ(ierr);
-    ierr = SVDSetMonitor(svd,SVDDefaultMonitor,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsName("-svd_xmonitor","Monitor error estimates graphically","SVDSetMonitor",&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsName("-svd_monitor_draw","Monitor error estimates graphically","SVDMonitorSet",&flg);CHKERRQ(ierr); 
   if (flg) {
-    ierr = SVDSetMonitor(svd,SVDLGMonitor,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

@@ -69,12 +69,12 @@ EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 EXTERN PetscErrorCode SVDDestroy(SVD);
 EXTERN PetscErrorCode SVDInitializePackage(char*);
 
-EXTERN PetscErrorCode SVDSetMonitor(SVD,PetscErrorCode (*)(SVD,int,int,PetscReal*,PetscReal*,int,void*),
+EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,int,int,PetscReal*,PetscReal*,int,void*),
                                     void*,PetscErrorCode (*monitordestroy)(void*));
-EXTERN PetscErrorCode SVDClearMonitor(SVD);
+EXTERN PetscErrorCode SVDMonitorCancel(SVD);
 EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
-EXTERN PetscErrorCode SVDDefaultMonitor(SVD,int,int,PetscReal*,PetscReal*,int,void*);
-EXTERN PetscErrorCode SVDLGMonitor(SVD,int,int,PetscReal*,PetscReal*,int,void*);
+EXTERN PetscErrorCode SVDMonitorDefault(SVD,int,int,PetscReal*,PetscReal*,int,void*);
+EXTERN PetscErrorCode SVDMonitorLG(SVD,int,int,PetscReal*,PetscReal*,int,void*);
 
 EXTERN PetscErrorCode SVDDense(int,int,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 

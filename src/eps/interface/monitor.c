@@ -4,9 +4,9 @@
 #include "src/eps/epsimpl.h"   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetMonitor"
+#define __FUNCT__ "EPSMonitorSet"
 /*@C
-   EPSSetMonitor - Sets an ADDITIONAL function to be called at every 
+   EPSMonitorSet - Sets an ADDITIONAL function to be called at every 
    iteration to monitor the error estimates for each requested eigenpair.
       
    Collective on EPS
@@ -29,25 +29,25 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 .  eigi   - imaginary part of the eigenvalues
 .  errest - relative error estimates for each eigenpair
 .  nest   - number of error estimates
--  mctx   - optional monitoring context, as set by EPSSetMonitor()
+-  mctx   - optional monitoring context, as set by EPSMonitorSet()
 
    Options Database Keys:
 +    -eps_monitor        - print error estimates at each iteration
-.    -eps_xmonitor       - sets line graph monitor
--    -eps_cancelmonitors - cancels all monitors that have been hardwired into
-      a code by calls to EPSSetMonitor(), but does not cancel those set via
+.    -eps_monitor_draw   - sets line graph monitor
+-    -eps_monitor_cancel - cancels all monitors that have been hardwired into
+      a code by calls to EPSMonitorSet(), but does not cancel those set via
       the options database.
 
    Notes:  
    Several different monitoring routines may be set by calling
-   EPSSetMonitor() multiple times; all will be called in the 
+   EPSMonitorSet() multiple times; all will be called in the 
    order in which they were set.
 
    Level: intermediate
 
-.seealso: EPSDefaultMonitor(), EPSClearMonitor()
+.seealso: EPSMonitorDefault(), EPSMonitorCancel()
 @*/
-PetscErrorCode EPSSetMonitor(EPS eps,PetscErrorCode (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),
+PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
@@ -62,9 +62,9 @@ PetscErrorCode EPSSetMonitor(EPS eps,PetscErrorCode (*monitor)(EPS,int,int,Petsc
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSClearMonitor"
+#define __FUNCT__ "EPSMonitorCancel"
 /*@
-   EPSClearMonitor - Clears all monitors for an EPS object.
+   EPSMonitorCancel - Clears all monitors for an EPS object.
 
    Collective on EPS
 
@@ -72,15 +72,15 @@ PetscErrorCode EPSSetMonitor(EPS eps,PetscErrorCode (*monitor)(EPS,int,int,Petsc
 .  eps - eigensolver context obtained from EPSCreate()
 
    Options Database Key:
-.    -eps_cancelmonitors - Cancels all monitors that have been hardwired 
-      into a code by calls to EPSSetMonitor(),
+.    -eps_monitor_cancel - Cancels all monitors that have been hardwired 
+      into a code by calls to EPSMonitorSet(),
       but does not cancel those set via the options database.
 
    Level: intermediate
 
-.seealso: EPSSetMonitor()
+.seealso: EPSMonitorSet()
 @*/
-PetscErrorCode EPSClearMonitor(EPS eps)
+PetscErrorCode EPSMonitorCancel(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -123,9 +123,9 @@ PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDefaultMonitor"
+#define __FUNCT__ "EPSMonitorDefault"
 /*@C
-   EPSDefaultMonitor - Print the current approximate values and 
+   EPSMonitorDefault - Print the current approximate values and 
    error estimates at each iteration of the eigensolver.
 
    Collective on EPS
@@ -142,9 +142,9 @@ PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 
    Level: intermediate
 
-.seealso: EPSSetMonitor()
+.seealso: EPSMonitorSet()
 @*/
-PetscErrorCode EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *dummy)
+PetscErrorCode EPSMonitorDefault(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *dummy)
 {
   PetscErrorCode ierr;
   int            i;
@@ -169,8 +169,8 @@ PetscErrorCode EPSDefaultMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,Pet
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSLGMonitor"
-PetscErrorCode EPSLGMonitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *monctx)
+#define __FUNCT__ "EPSMonitorLG"
+PetscErrorCode EPSMonitorLG(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer) monctx;
   PetscDraw      draw;

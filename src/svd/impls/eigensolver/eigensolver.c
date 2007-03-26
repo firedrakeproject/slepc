@@ -618,7 +618,7 @@ PetscErrorCode SVDCreate_EIGENSOLVER(SVD svd)
   ierr = EPSAppendOptionsPrefix(eigen->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,eigen->eps);
   ierr = EPSSetWhichEigenpairs(eigen->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetMonitor(eigen->eps,SVDMonitor_EIGENSOLVER,svd,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(eigen->eps,SVDMonitor_EIGENSOLVER,svd,PETSC_NULL);CHKERRQ(ierr);
   eigen->mode = SVDEIGENSOLVER_CROSS;
   eigen->mat = PETSC_NULL;
   eigen->x1 = PETSC_NULL;

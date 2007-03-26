@@ -320,7 +320,7 @@ PetscErrorCode SVDCreate_CROSS(SVD svd)
   ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,cross->eps);
   ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetMonitor(cross->eps,SVDMonitor_CROSS,svd,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(cross->eps,SVDMonitor_CROSS,svd,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
   ierr = STSetMatMode(st,STMATMODE_SHELL);CHKERRQ(ierr);
   cross->mat = PETSC_NULL;

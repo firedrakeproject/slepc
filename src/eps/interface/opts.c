@@ -85,21 +85,21 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     /*
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()
     */
-    ierr = PetscOptionsName("-eps_cancelmonitors","Remove any hardwired monitor routines","EPSClearMonitor",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = EPSClearMonitor(eps); CHKERRQ(ierr);
+      ierr = EPSMonitorCancel(eps); CHKERRQ(ierr);
     }
     /*
       Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsString("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSSetMonitor","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIOpen(eps->comm,monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = EPSSetMonitor(eps,EPSDefaultMonitor,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsName("-eps_xmonitor","Monitor error estimates graphically","EPSSetMonitor",&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsName("-eps_monitor_draw","Monitor error estimates graphically","EPSMonitorSet",&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = EPSSetMonitor(eps,EPSLGMonitor,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsTruthGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);

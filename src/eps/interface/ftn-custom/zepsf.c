@@ -11,8 +11,9 @@
 #define epscreate_                  EPSCREATE
 #define epssettype_                 EPSSETTYPE           
 #define epsgettype_                 EPSGETTYPE
-#define epsdefaultmonitor_          EPSDEFAULTMONITOR
-#define epssetmonitor_              EPSSETMONITOR
+#define epsmonitordefault_          EPSMONITORDEFAULT
+#define epsmonitorlg_               EPSMONITORLG
+#define epsmonitorset_              EPSMONITORSET
 #define epsgetst_                   EPSGETST
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
@@ -29,9 +30,9 @@
 #define epscreate_                  epscreate
 #define epssettype_                 epssettype           
 #define epsgettype_                 epsgettype
-#define epsdefaultmonitor_          epsdefaultmonitor
-#define epslgmonitor_               epslgmonitor
-#define epssetmonitor_              epssetmonitor
+#define epsmonitordefault_          epsmonitordefault
+#define epsmonitorlg_               epsmonitorlg
+#define epsmonitorset_              epsmonitorset
 #define epsgetst_                   epsgetst
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
@@ -50,14 +51,14 @@ static void (PETSC_STDCALL *f2)(void*,PetscErrorCode*);
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void epsdefaultmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
+void epsmonitordefault_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = EPSDefaultMonitor(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  *ierr = EPSMonitorDefault(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void epslgmonitor_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
+void epsmonitorlg_(EPS *eps,int *it,int *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = EPSLGMonitor(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  *ierr = EPSMonitorLG(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 EXTERN_C_END
  
@@ -132,20 +133,20 @@ void PETSC_STDCALL epscreate_(MPI_Comm *comm,EPS *eps,PetscErrorCode *ierr){
   *ierr = EPSCreate((MPI_Comm)PetscToPointerComm(*comm),eps);
 }
 
-void PETSC_STDCALL epssetmonitor_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,PetscErrorCode*),
+void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,PetscErrorCode*),
                                   void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
 {
-  if ((void(*)())monitor == (void(*)())epsdefaultmonitor_) {
-    *ierr = EPSSetMonitor(*eps,EPSDefaultMonitor,0,0);
-  } else if ((void(*)())monitor == (void(*)())epslgmonitor_) {
-    *ierr = EPSSetMonitor(*eps,EPSLGMonitor,0,0);
+  if ((void(*)())monitor == (void(*)())epsmonitordefault_) {
+    *ierr = EPSMonitorSet(*eps,EPSMonitorDefault,0,0);
+  } else if ((void(*)())monitor == (void(*)())epsmonitorlg_) {
+    *ierr = EPSMonitorSet(*eps,EPSMonitorLG,0,0);
   } else {
     f1  = monitor;
     if (FORTRANNULLFUNCTION(monitordestroy)) {
-      *ierr = EPSSetMonitor(*eps,ourmonitor,mctx,0);
+      *ierr = EPSMonitorSet(*eps,ourmonitor,mctx,0);
     } else {
       f2 = monitordestroy;
-      *ierr = EPSSetMonitor(*eps,ourmonitor,mctx,ourdestroy);
+      *ierr = EPSMonitorSet(*eps,ourmonitor,mctx,ourdestroy);
     }
   }
 }

@@ -4,9 +4,9 @@
 #include "src/svd/svdimpl.h"   /*I "slepcsvd.h" I*/
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSetMonitor"
+#define __FUNCT__ "SVDMonitorSet"
 /*@C
-   SVDSetMonitor - Sets an ADDITIONAL function to be called at every 
+   SVDMonitorSet - Sets an ADDITIONAL function to be called at every 
    iteration to monitor the error estimates for each requested singular triplet.
       
    Collective on SVD
@@ -26,24 +26,24 @@ $     monitor (SVD svd, int its, int nconv, PetscReal *sigma, PetscReal* errest,
 .  sigma  - singular values
 .  errest - relative error estimates for each singular triplet
 .  nest   - number of error estimates
--  mctx   - optional monitoring context, as set by SVDSetMonitor()
+-  mctx   - optional monitoring context, as set by SVDMonitorSet()
 
    Options Database Keys:
 +    -svd_monitor        - print error estimates at each iteration
--    -svd_cancelmonitors - cancels all monitors that have been hardwired into
-      a code by calls to SVDSetMonitor(), but does not cancel those set via
+-    -svd_monitor_cancel - cancels all monitors that have been hardwired into
+      a code by calls to SVDMonitorSet(), but does not cancel those set via
       the options database.
 
    Notes:  
    Several different monitoring routines may be set by calling
-   SVDSetMonitor() multiple times; all will be called in the 
+   SVDMonitorSet() multiple times; all will be called in the 
    order in which they were set.
 
    Level: intermediate
 
-.seealso: SVDDefaultMonitor(), SVDClearMonitor()
+.seealso: SVDMonitorDefault(), SVDMonitorCancel()
 @*/
-PetscErrorCode SVDSetMonitor(SVD svd,PetscErrorCode (*monitor)(SVD,int,int,PetscReal*,PetscReal*,int,void*),
+PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,int,int,PetscReal*,PetscReal*,int,void*),
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
@@ -58,9 +58,9 @@ PetscErrorCode SVDSetMonitor(SVD svd,PetscErrorCode (*monitor)(SVD,int,int,Petsc
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDClearMonitor"
+#define __FUNCT__ "SVDMonitorCancel"
 /*@
-   SVDClearMonitor - Clears all monitors for an SVD object.
+   SVDMonitorCancel - Clears all monitors for an SVD object.
 
    Collective on SVD
 
@@ -68,15 +68,15 @@ PetscErrorCode SVDSetMonitor(SVD svd,PetscErrorCode (*monitor)(SVD,int,int,Petsc
 .  svd - singular value solver context obtained from SVDCreate()
 
    Options Database Key:
-.    -svd_cancelmonitors - Cancels all monitors that have been hardwired 
-      into a code by calls to SVDSetMonitor(),
+.    -svd_monitor_cancel - Cancels all monitors that have been hardwired 
+      into a code by calls to SVDMonitorSet(),
       but does not cancel those set via the options database.
 
    Level: intermediate
 
-.seealso: SVDSetMonitor()
+.seealso: SVDMonitorCancel()
 @*/
-PetscErrorCode SVDClearMonitor(SVD svd)
+PetscErrorCode SVDMonitorCancel(SVD svd)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -96,7 +96,7 @@ PetscErrorCode SVDClearMonitor(SVD svd)
 #define __FUNCT__ "SVDGetMonitorContext"
 /*@C
    SVDGetMonitorContext - Gets the monitor context, as set by 
-   SVDSetMonitor() for the FIRST monitor only.
+   SVDMonitorSet() for the FIRST monitor only.
 
    Not Collective
 
@@ -108,7 +108,7 @@ PetscErrorCode SVDClearMonitor(SVD svd)
 
    Level: intermediate
 
-.seealso: SVDSetMonitor(), SVDDefaultMonitor()
+.seealso: SVDMonitorSet(), SVDMonitorDefault()
 @*/
 PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 {
@@ -119,7 +119,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDDefaultMonitor"
+#define __FUNCT__ "SVDMonitorDefault"
 /*@C
    SVDDefaultMonitor - Print the current approximate values and 
    error estimates at each iteration of the singular value solver.
@@ -137,9 +137,9 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 
    Level: intermediate
 
-.seealso: SVDSetMonitor()
+.seealso: SVDMonitorSet()
 @*/
-PetscErrorCode SVDDefaultMonitor(SVD svd,int its,int nconv,PetscReal *sigma,PetscReal *errest,int nest,void *dummy)
+PetscErrorCode SVDMonitorDefault(SVD svd,int its,int nconv,PetscReal *sigma,PetscReal *errest,int nest,void *dummy)
 {
   PetscErrorCode ierr;
   int            i;
@@ -158,8 +158,8 @@ PetscErrorCode SVDDefaultMonitor(SVD svd,int its,int nconv,PetscReal *sigma,Pets
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDLGMonitor"
-PetscErrorCode SVDLGMonitor(SVD svd,int its,int nconv,PetscReal *sigma,PetscReal *errest,int nest,void *monctx)
+#define __FUNCT__ "SVDMonitorLG"
+PetscErrorCode SVDMonitorLG(SVD svd,int its,int nconv,PetscReal *sigma,PetscReal *errest,int nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer) monctx;
   PetscDraw      draw;

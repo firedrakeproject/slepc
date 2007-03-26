@@ -83,9 +83,9 @@ EXTERN PetscErrorCode EPSGetLeftInvariantSubspace(EPS,Vec*);
 EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,int,PetscReal*);
 EXTERN PetscErrorCode EPSGetErrorEstimateLeft(EPS,int,PetscReal*);
 
-EXTERN PetscErrorCode EPSSetMonitor(EPS,PetscErrorCode (*)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),
+EXTERN PetscErrorCode EPSMonitorSet(EPS,PetscErrorCode (*)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),
                                     void*,PetscErrorCode (*monitordestroy)(void*));
-EXTERN PetscErrorCode EPSClearMonitor(EPS);
+EXTERN PetscErrorCode EPSMonitorCancel(EPS);
 EXTERN PetscErrorCode EPSGetMonitorContext(EPS,void **);
 EXTERN PetscErrorCode EPSGetIterationNumber(EPS,int*);
 EXTERN PetscErrorCode EPSGetOperationCounters(EPS,int*,int*,int*);
@@ -101,8 +101,8 @@ EXTERN PetscErrorCode EPSGetOrthogonalization(EPS,EPSOrthogonalizationType*,EPSO
 EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
 EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);
 
-EXTERN PetscErrorCode EPSDefaultMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
-EXTERN PetscErrorCode EPSLGMonitor(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
+EXTERN PetscErrorCode EPSMonitorDefault(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
+EXTERN PetscErrorCode EPSMonitorLG(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*);
 
 EXTERN PetscErrorCode EPSAttachDeflationSpace(EPS,int,Vec*,PetscTruth);
 EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
