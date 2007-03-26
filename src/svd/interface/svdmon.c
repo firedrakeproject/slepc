@@ -30,6 +30,7 @@ $     monitor (SVD svd, int its, int nconv, PetscReal *sigma, PetscReal* errest,
 
    Options Database Keys:
 +    -svd_monitor        - print error estimates at each iteration
+.    -svd_monitor_draw   - sets line graph monitor
 -    -svd_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to SVDMonitorSet(), but does not cancel those set via
       the options database.
