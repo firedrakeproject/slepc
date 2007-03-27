@@ -129,8 +129,9 @@ void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL epscreate_(MPI_Comm *comm,EPS *eps,PetscErrorCode *ierr){
-  *ierr = EPSCreate((MPI_Comm)PetscToPointerComm(*comm),eps);
+void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
+{
+  *ierr = EPSCreate(MPI_Comm_f2c(*(comm)),eps);
 }
 
 void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,int*,int*,PetscScalar*,PetscScalar*,PetscReal*,int*,void*,PetscErrorCode*),
