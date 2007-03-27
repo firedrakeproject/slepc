@@ -3,9 +3,33 @@
      All routines are simply wrappers to LAPACK routines.
 */
 
-#include "slepcsvd.h"
+#include "slepcsvd.h"        /*I "slepcsvd.h" I*/
 #include "slepcblaslapack.h"
 
+#undef __FUNCT__  
+#define __FUNCT__ "SVDDense"
+/*@
+   SVDDense - Solves a dense singular value problem.
+
+   Not Collective
+
+   Input Parameters:
++  M  - dimension of the problem (rows)
+.  N  - dimension of the problem (colums)
+-  A  - pointer to the array containing the matrix values
+
+   Output Parameters:
++  sigma  - pointer to the array to store the computed singular values
+.  U  - pointer to the array to store left singular vectors
+-  VT  - pointer to the array to store right singular vectors
+
+   Matrix A is overwritten.
+   
+   This routine uses LAPACK routines xGESDD.
+
+   Level: developer
+
+@*/
 PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar* U,PetscScalar* VT)
 {
   PetscErrorCode ierr;

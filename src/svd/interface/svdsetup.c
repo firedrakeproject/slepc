@@ -5,7 +5,7 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetOperator"
-/*@C
+/*@
    SVDSetOperator - Set the matrix associated with the singular value problem.
 
    Collective on SVD and Mat
@@ -41,8 +41,8 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDGetOperator"
-/*@C
-   SVDGetOperators - Get the matrix associated with the singular value problem.
+/*@
+   SVDGetOperator - Get the matrix associated with the singular value problem.
 
    Not collective, though parallel Mats are returned if the SVD is parallel
 

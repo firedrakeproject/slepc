@@ -5,7 +5,7 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetTransposeMode"
-/*@C
+/*@
    SVDSetTransposeMode - Sets how to handle the transpose of the matrix 
    associated with the singular value problem.
 
@@ -57,7 +57,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDGetTransposeMode"
-/*@
+/*@C
    SVDGetTransposeMode - Gets the mode use to compute the  transpose 
    of the matrix associated with the singular value problem.
 
@@ -288,7 +288,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 #undef __FUNCT__  
 #define __FUNCT__ "SVDGetWhichSingularTriplets"
 /*@C
-    SVDGetWhichSingularTriplet - Returns which singular triplets are
+    SVDGetWhichSingularTriplets - Returns which singular triplets are
     to be sought.
 
     Not Collective
