@@ -124,6 +124,10 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
 #define __FUNCT__ "SVDSolve_LANCZOS"
 PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 {
+#if defined(SLEPC_MISSING_LAPACK_BDSQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"BDSQR - Lapack routine is unavailable.");
+#else
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm,*work;
@@ -280,6 +284,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = PetscFree(perm);CHKERRQ(ierr);
   ierr = PetscFree(permV);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  

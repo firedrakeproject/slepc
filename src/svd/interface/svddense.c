@@ -32,6 +32,10 @@
 @*/
 PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar* U,PetscScalar* VT)
 {
+#if defined(SLEPC_MISSING_LAPACK_GESDD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"GESDD - Lapack routine is unavailable.");
+#else
   PetscErrorCode ierr;
   PetscScalar    qwork,*work;
   int            n,info,lwork,*iwork;
@@ -65,4 +69,5 @@ PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar*
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif 
 }
