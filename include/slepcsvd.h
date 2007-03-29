@@ -60,6 +60,7 @@ EXTERN PetscErrorCode SVDGetOptionsPrefix(SVD,const char*[]);
 EXTERN PetscErrorCode SVDSetUp(SVD);
 EXTERN PetscErrorCode SVDSolve(SVD);
 EXTERN PetscErrorCode SVDGetIterationNumber(SVD,int*);
+EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 EXTERN PetscErrorCode SVDGetConverged(SVD,int*);
 EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,int,PetscReal*,Vec,Vec);
 EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,int,PetscReal*,PetscReal*);
@@ -96,5 +97,7 @@ EXTERN PetscErrorCode SVDEigensolverGetEPS(SVD,EPS*);
 EXTERN PetscErrorCode SVDLanczosSetOneSideReorthogonalization(SVD,PetscTruth);
 
 EXTERN PetscErrorCode SVDTRLanczosSetOneSideReorthogonalization(SVD,PetscTruth);
+
+EXTERN PetscErrorCode SVDDense(int,int,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 
 #endif
