@@ -14,7 +14,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
   } else /* set default value of ncv */
@@ -41,7 +41,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscMalloc(ar->lworkl*sizeof(PetscScalar),&ar->workl);CHKERRQ(ierr);
   ierr = PetscFree(ar->select);CHKERRQ(ierr); 
   ierr = PetscMalloc(ncv*sizeof(PetscTruth),&ar->select);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->IV[0],&n); CHKERRQ(ierr);
   ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*n*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
@@ -73,12 +73,12 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscFunctionBegin;
 
   fcomm = MPI_Comm_c2f(eps->comm);
-  ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->IV[0],&nn); CHKERRQ(ierr);
   n = nn;
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-  ierr = VecCopy(eps->vec_initial,eps->work[1]);CHKERRQ(ierr);
+  ierr = VecCopy(eps->IV[0],eps->work[1]);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
   
   ido  = 0;            /* first call to reverse communication interface */

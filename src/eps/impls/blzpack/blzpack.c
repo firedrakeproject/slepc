@@ -53,8 +53,8 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PC             pc;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->IV[0],&n);CHKERRQ(ierr);
   if (eps->ncv) {
     if( eps->ncv < PetscMin(eps->nev+10,eps->nev*2) )
       SETERRQ(0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
@@ -125,7 +125,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   
   PetscFunctionBegin;
 
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->IV[0],&n); CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);

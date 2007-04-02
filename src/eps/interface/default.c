@@ -205,7 +205,7 @@ PetscErrorCode EPSDefaultGetWork(EPS eps, int nw)
       ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
     }
     eps->nwork = nw;
-    ierr = VecDuplicateVecs(eps->vec_initial,nw,&eps->work); CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->IV[0],nw,&eps->work); CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,nw,eps->work);
   }
   

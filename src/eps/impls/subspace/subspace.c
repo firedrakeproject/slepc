@@ -28,7 +28,7 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   PetscInt       N;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
@@ -206,9 +206,11 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscMalloc(sizeof(int)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(int)*ncv,&itrsdold);CHKERRQ(ierr);
 
-  /* Generate a set of random initial vectors and orthonormalize them */
+  /* Generate set of initial vectors and orthonormalize them.
+     Use initial vectors provided by the user if available   */
   for (i=0;i<ncv;i++) {
-    ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
+    if (i<eps->niv) { ierr = VecCopy(eps->IV[i],eps->V[i]);CHKERRQ(ierr); }
+    else { ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr); }
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }

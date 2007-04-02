@@ -172,6 +172,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         break;
       default: SETERRQ(1,"Wrong value of eps->orth_ref");
     }
+    if (eps->useriv) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  number of initial vectors provided by the user: %d\n",eps->niv);CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
@@ -233,20 +236,24 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nev             = 1;
   eps->ncv             = 0;
   eps->allocated_ncv   = 0;
+  eps->niv             = 0;
+  eps->nliv            = 0;
   eps->nds             = 0;
   eps->tol             = 1e-7;
   eps->which           = EPS_LARGEST_MAGNITUDE;
   eps->evecsavailable  = PETSC_FALSE;
+  eps->useriv          = PETSC_FALSE;
+  eps->userliv         = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
   eps->solverclass     = (EPSClass)0;
 
-  eps->vec_initial     = 0;
-  eps->vec_initial_left= 0;
   eps->V               = 0;
   eps->AV              = 0;
   eps->W               = 0;
   eps->AW              = 0;
   eps->T               = 0;
+  eps->IV              = 0;
+  eps->LIV             = 0;
   eps->DS              = 0;
   eps->ds_ortho        = PETSC_TRUE;
   eps->eigr            = 0;
@@ -453,16 +460,16 @@ PetscErrorCode EPSDestroy(EPS eps)
   ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
 
-  if (eps->vec_initial) {
-    ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+  if (eps->niv > 0) {
+    ierr = VecDestroyVecs(eps->IV, eps->niv);CHKERRQ(ierr);
   }
 
-  if (eps->vec_initial_left) {
-    ierr = VecDestroy(eps->vec_initial_left);CHKERRQ(ierr);
+  if (eps->nliv > 0) {
+    ierr = VecDestroyVecs(eps->LIV, eps->nliv);CHKERRQ(ierr);
   }
 
   if (eps->nds > 0) {
-    ierr = VecDestroyVecs(eps->DS, eps->nds);
+    ierr = VecDestroyVecs(eps->DS, eps->nds);CHKERRQ(ierr);
   }
   
   ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
