@@ -22,7 +22,6 @@ typedef struct _p_SVD* SVD;
 #define SVDType const char*
 #define SVDCROSS       "cross"
 #define SVDCYCLIC      "cyclic"
-#define SVDEIGENSOLVER "eigensolver"
 #define SVDLAPACK      "lapack"
 #define SVDLANCZOS     "lanczos"
 #define SVDTRLANCZOS   "trlanczos"
@@ -86,13 +85,6 @@ EXTERN PetscErrorCode SVDCyclicSetExplicitMatrix(SVD,PetscTruth);
 EXTERN PetscErrorCode SVDCyclicGetExplicitMatrix(SVD,PetscTruth*);
 EXTERN PetscErrorCode SVDCyclicSetEPS(SVD,EPS);
 EXTERN PetscErrorCode SVDCyclicGetEPS(SVD,EPS*);
-
-typedef enum { SVDEIGENSOLVER_CROSS, SVDEIGENSOLVER_CYCLIC, SVDEIGENSOLVER_CYCLIC_EXPLICIT } SVDEigensolverMode;
-
-EXTERN PetscErrorCode SVDEigensolverSetMode(SVD,SVDEigensolverMode);
-EXTERN PetscErrorCode SVDEigensolverGetMode(SVD,SVDEigensolverMode*);
-EXTERN PetscErrorCode SVDEigensolverSetEPS(SVD,EPS);
-EXTERN PetscErrorCode SVDEigensolverGetEPS(SVD,EPS*);
 
 EXTERN PetscErrorCode SVDLanczosSetOneSideReorthogonalization(SVD,PetscTruth);
 

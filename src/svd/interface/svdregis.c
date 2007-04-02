@@ -4,7 +4,6 @@
 EXTERN_C_BEGIN
 EXTERN PetscErrorCode SVDCreate_CROSS(SVD);
 EXTERN PetscErrorCode SVDCreate_CYCLIC(SVD);
-EXTERN PetscErrorCode SVDCreate_EIGENSOLVER(SVD);
 EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
 EXTERN PetscErrorCode SVDCreate_LANCZOS(SVD);
 EXTERN PetscErrorCode SVDCreate_TRLANCZOS(SVD);
@@ -37,8 +36,6 @@ PetscErrorCode SVDRegisterAll(char *path)
 		  SVDCreate_CROSS);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDCYCLIC, path,"SVDCreate_CYCLIC", 
 		  SVDCreate_CYCLIC);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDEIGENSOLVER, path,"SVDCreate_EIGENSOLVER", 
-		  SVDCreate_EIGENSOLVER);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDLAPACK, path,"SVDCreate_LAPACK", 
 		  SVDCreate_LAPACK);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDLANCZOS, path,"SVDCreate_LANCZOS", 

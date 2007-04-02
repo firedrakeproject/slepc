@@ -161,7 +161,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* Set default solver type */
   if (!svd->type_name) {
-    ierr = SVDSetType(svd,SVDEIGENSOLVER);CHKERRQ(ierr);
+    ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
   }
 
   /* check matrix */
