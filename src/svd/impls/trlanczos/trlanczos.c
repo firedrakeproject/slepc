@@ -102,7 +102,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm;
-  PetscScalar    *b,*Q,*PT;
+  PetscScalar    *b,*Q,*PT,*swork;
   PetscInt       *perm;
   int            i,j,k,l,m,n,nwork=0;
   Vec            v,wv,wu,*workV,*workU,*permV,*permU;
@@ -115,6 +115,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&b);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n*svd->n,&Q);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n*svd->n,&PT);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&wv);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->U[0],&wu);CHKERRQ(ierr);
@@ -131,9 +132,9 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
 
     /* inner loop */
     if (lanczos->oneside) {
-      ierr = SVDOneSideTRLanczos(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,svd->n,PT,wv,wu);CHKERRQ(ierr);
+      ierr = SVDOneSideTRLanczos(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,svd->n,swork,wv,wu);CHKERRQ(ierr);
     } else {
-      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,svd->n,PT,wv,wu);CHKERRQ(ierr);
+      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,svd->n,swork,wv,wu);CHKERRQ(ierr);
     }
     ierr = VecScale(v,1.0/beta[svd->n-svd->nconv-l-1]);CHKERRQ(ierr);
    
@@ -193,9 +194,8 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
       if (svd->which == SVD_SMALLEST) j = n-i-1;
       else j = i;
       ierr = VecSet(workV[i],0.0);CHKERRQ(ierr);
-      for (m=0;m<n;m++) {
-        ierr = VecAXPY(workV[i],PT[m*n+j],svd->V[m+svd->nconv]);CHKERRQ(ierr);
-      }      
+      for (m=0;m<n;m++) swork[m] = PT[m*n+j];
+      ierr = VecMAXPY(workV[i],n,swork,svd->V+svd->nconv);CHKERRQ(ierr);
       ierr = VecSet(workU[i],0.0);CHKERRQ(ierr);
       ierr = VecMAXPY(workU[i],n,Q+j*n,svd->U+svd->nconv);CHKERRQ(ierr);
     }
@@ -250,6 +250,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   ierr = PetscFree(b);CHKERRQ(ierr);
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(PT);CHKERRQ(ierr);
+  ierr = PetscFree(swork);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   ierr = PetscFree(permV);CHKERRQ(ierr);
   ierr = PetscFree(permU);CHKERRQ(ierr);

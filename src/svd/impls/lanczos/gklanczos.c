@@ -124,16 +124,16 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
 #define __FUNCT__ "SVDSolve_LANCZOS"
 PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 {
-#if defined(SLEPC_MISSING_LAPACK_BDSQR)
+#if defined(SLEPC_MISSING_LAPACK_BDSDC)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"BDSQR - Lapack routine is unavailable.");
+  SETERRQ(PETSC_ERR_SUP,"BDSDC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
-  PetscReal      *alpha,*beta,norm,*work;
-  PetscScalar    *Q,*PT;
+  PetscReal      *alpha,*beta,norm,*work,*Q,*PT;
+  PetscScalar    *swork;
   PetscInt       *perm;
-  int            i,j,k,m,n,zero=0,info,nwork=0;
+  int            i,j,k,m,n,info,nwork=0,*iwork;
   Vec            v,u,u_1,wv,wu,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   
@@ -141,9 +141,11 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   /* allocate working space */
   ierr = PetscMalloc(sizeof(PetscReal)*svd->n,&alpha);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*svd->n,&beta);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n*svd->n,&Q);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n*svd->n,&PT);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscReal)*4*svd->n,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscReal)*svd->n*svd->n,&Q);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscReal)*svd->n*svd->n,&PT);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscReal)*(3*svd->n+4)*svd->n,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(int)*8*svd->n,&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&wv);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(Vec)*svd->n,&workV);CHKERRQ(ierr);
@@ -164,19 +166,19 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 
     /* inner loop */
     if (lanczos->oneside) {
-      ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,v,u,u_1,svd->nconv,svd->n,PT,wv);CHKERRQ(ierr);
+      ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,v,u,u_1,svd->nconv,svd->n,swork,wv);CHKERRQ(ierr);
     } else {
-      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv,svd->n,PT,wv,wu);CHKERRQ(ierr);
+      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv,svd->n,swork,wv,wu);CHKERRQ(ierr);
     }
 
     /* compute SVD of bidiagonal matrix */
     n = svd->n - svd->nconv;
-    ierr = PetscMemzero(PT,sizeof(PetscScalar)*n*n);CHKERRQ(ierr);
-    ierr = PetscMemzero(Q,sizeof(PetscScalar)*n*n);CHKERRQ(ierr);
+    ierr = PetscMemzero(PT,sizeof(PetscReal)*n*n);CHKERRQ(ierr);
+    ierr = PetscMemzero(Q,sizeof(PetscReal)*n*n);CHKERRQ(ierr);
     for (i=0;i<n;i++)
       PT[i*n+i] = Q[i*n+i] = 1.0;
     ierr = PetscLogEventBegin(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
-    LAPACKbdsqr_("U",&n,&n,&n,&zero,alpha,beta,PT,&n,Q,&n,PETSC_NULL,&n,work,&info,1);
+    LAPACKbdsdc_("U","I",&n,alpha,beta,Q,&n,PT,&n,PETSC_NULL,PETSC_NULL,work,iwork,&info,1,1);
     ierr = PetscLogEventEnd(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
 
     /* compute error estimates */
@@ -211,12 +213,16 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
       if (svd->which == SVD_SMALLEST) j = n-i-1;
       else j = i;
       ierr = VecSet(workV[i],0.0);CHKERRQ(ierr);
-      for (m=0;m<n;m++) {
-        ierr = VecAXPY(workV[i],PT[m*n+j],svd->V[m+svd->nconv]);CHKERRQ(ierr);
-      }      
+      for (m=0;m<n;m++) swork[m] = PT[m*n+j];
+      ierr = VecMAXPY(workV[i],n,swork,svd->V+svd->nconv);CHKERRQ(ierr);
       if (!lanczos->oneside) {
         ierr = VecSet(workU[i],0.0);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
         ierr = VecMAXPY(workU[i],n,Q+j*n,svd->U+svd->nconv);CHKERRQ(ierr);
+#else
+        for (m=0;m<n;m++) swork[m] = Q[j*n+m];
+        ierr = VecMAXPY(workU[i],n,swork,svd->U+svd->nconv);CHKERRQ(ierr);        
+#endif
       }
     }
     
@@ -225,9 +231,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
       if (svd->which == SVD_SMALLEST) j = n-k-1;
       else j = k;
       ierr = VecSet(v,0.0);CHKERRQ(ierr);
-      for (m=0;m<n;m++) {
-	ierr = VecAXPY(v,PT[m*n+j],svd->V[m+svd->nconv]);CHKERRQ(ierr);
-      }      
+      for (m=0;m<n;m++) swork[m] = PT[m*n+j];
+      ierr = VecMAXPY(v,m,swork,svd->V+svd->nconv);CHKERRQ(ierr);
       ierr = VecCopy(v,svd->V[svd->nconv+k]);CHKERRQ(ierr);
     }
     
@@ -283,6 +288,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(PT);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscFree(swork);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   ierr = PetscFree(permV);CHKERRQ(ierr);
   PetscFunctionReturn(0);

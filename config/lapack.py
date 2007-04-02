@@ -9,7 +9,7 @@ def Check(conf):
   log.Write('='*80)
   log.Println('Checking LAPACK library...')
 
-  functions = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx','gelqf','gesdd','bdsqr']
+  functions = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx','gelqf','gesdd']
 
   if petscconf.SCALAR == 'real':
     functions += ['orghr','syevr','sygvd','ormlq']
@@ -43,9 +43,9 @@ def Check(conf):
 
 
   if petscconf.PRECISION == 'single':
-    functions = ['slamch','sstevr']
+    functions = ['slamch','sstevr','sbdsdc']
   else:
-    functions = ['dlamch','dstevr']
+    functions = ['dlamch','dstevr','dbdsdc']
 
   for i in functions:
     f =  '#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
