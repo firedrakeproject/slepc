@@ -3,7 +3,7 @@
      All routines are simply wrappers to LAPACK routines.
 */
 
-#include "slepcsvd.h"        /*I "slepcsvd.h" I*/
+#include "src/svd/svdimpl.h"        /*I "slepcsvd.h" I*/
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  
@@ -45,6 +45,7 @@ PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar*
   
   PetscFunctionBegin;
   /* workspace query & allocation */
+  ierr = PetscLogEventBegin(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
   n = PetscMin(M,N);
   ierr = PetscMalloc(sizeof(int)*8*n,&iwork);CHKERRQ(ierr);
   lwork = -1;
@@ -68,6 +69,7 @@ PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar*
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif 
 }

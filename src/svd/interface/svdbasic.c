@@ -5,7 +5,7 @@
 
 PetscFList SVDList = 0;
 PetscCookie SVD_COOKIE = 0;
-PetscEvent SVD_SetUp = 0, SVD_Solve = 0;
+PetscEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDInitializePackage"
@@ -39,6 +39,7 @@ PetscErrorCode SVDInitializePackage(char *path)
   /* Register Events */
   ierr = PetscLogEventRegister(&SVD_SetUp,"SVDSetUp",SVD_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&SVD_Solve,"SVDSolve",SVD_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&SVD_Dense,"SVDDense",SVD_COOKIE);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {

@@ -5,7 +5,7 @@
 #include "slepceps.h"
 
 extern PetscFList EPSList;
-extern PetscEvent EPS_SetUp, EPS_Solve, EPS_Orthogonalize;
+extern PetscEvent EPS_SetUp, EPS_Solve, EPS_Orthogonalize, EPS_Dense;
 
 typedef struct _EPSOps *EPSOps;
 

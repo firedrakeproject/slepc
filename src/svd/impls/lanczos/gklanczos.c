@@ -175,7 +175,9 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     ierr = PetscMemzero(Q,sizeof(PetscScalar)*n*n);CHKERRQ(ierr);
     for (i=0;i<n;i++)
       PT[i*n+i] = Q[i*n+i] = 1.0;
+    ierr = PetscLogEventBegin(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
     LAPACKbdsqr_("U",&n,&n,&n,&zero,alpha,beta,PT,&n,Q,&n,PETSC_NULL,&n,work,&info,1);
+    ierr = PetscLogEventEnd(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;

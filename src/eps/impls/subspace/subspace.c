@@ -63,6 +63,7 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
   PetscReal      hn,hin,*rwork;
   
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(int)*n,&ipiv);CHKERRQ(ierr);
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
@@ -77,6 +78,7 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

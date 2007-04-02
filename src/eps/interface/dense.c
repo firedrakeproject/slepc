@@ -4,7 +4,7 @@
      as arguments are assumed to be square matrices stored in column-major 
      format with a leading dimension equal to the number of rows.
 */
-#include "slepceps.h" /*I "slepceps.h" I*/
+#include "src/eps/epsimpl.h" /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  
@@ -54,6 +54,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 #endif 
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (V) jobvr = "V";
   else jobvr = "N";
   if (W) jobvl = "V";
@@ -71,6 +72,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 #endif 
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(scale);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif 
 }
@@ -125,6 +127,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
 #endif 
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (V) jobvr = "V";
   else jobvr = "N";
   if (W) jobvl = "V";
@@ -157,6 +160,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
   ierr = PetscFree(rscale);CHKERRQ(ierr);
   ierr = PetscFree(lscale);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -207,6 +211,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar
 #endif 
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (V) jobz = "V";
   else jobz = "N";
   ierr  = PetscMalloc(2*n*sizeof(int),&isuppz);CHKERRQ(ierr);
@@ -224,6 +229,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -275,6 +281,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 #endif 
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (V) jobz = "V";
   else jobz = "N";   
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
@@ -293,6 +300,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif 
 }
@@ -335,6 +343,7 @@ PetscErrorCode EPSDenseHessenberg(int n,int k,PetscScalar *A,int lda,PetscScalar
   int            i,j,ilo,lwork,info;
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
   lwork = n;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
@@ -351,6 +360,7 @@ PetscErrorCode EPSDenseHessenberg(int n,int k,PetscScalar *A,int lda,PetscScalar
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
   ierr = PetscFree(tau);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -410,6 +420,7 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
 #endif
   
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   lwork = n;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ilo = k+1;
@@ -436,6 +447,7 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
 
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -490,6 +502,7 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
   PetscReal   value,v;
   
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #endif
@@ -596,6 +609,7 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(work);CHKERRQ(ierr);
 #endif
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 
 #endif 
@@ -642,6 +656,7 @@ PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,Pet
 #endif
   
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (V) {
     jobz = "V";
 #if defined(PETSC_USE_COMPLEX)
@@ -677,6 +692,7 @@ PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,Pet
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
