@@ -497,9 +497,9 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
   int i,j,ifst,ilst,info,pos;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar *work;
-  PetscErrorCode ierr;
 #endif
   PetscReal   value,v;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
