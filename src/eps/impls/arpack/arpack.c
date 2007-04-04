@@ -66,7 +66,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   Mat         	 A;
   PetscTruth  	 isSinv, isShift, rvec;
   MPI_Fint    	 fcomm;
-  STBilinearForm form;
+  IPBilinearForm form;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
@@ -101,15 +101,15 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
-  ierr = STGetBilinearForm(eps->OP,&form);CHKERRQ(ierr);
+  ierr = IPGetBilinearForm(eps->ip,PETSC_NULL,&form);CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
 
   if (isSinv) { 
     /* shift-and-invert mode */
     iparam[6] = 3;
-    if (form == STINNER_B_HERMITIAN) bmat[0] = 'G';
+    if (form == IPINNER_HERMITIAN) bmat[0] = 'G';
     else bmat[0] = 'I';
-  } else if (isShift && form == STINNER_B_HERMITIAN) {
+  } else if (isShift && form == IPINNER_HERMITIAN) {
     /* generalized shift mode with B positive definite */
     iparam[6] = 2;
     bmat[0] = 'G';
