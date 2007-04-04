@@ -51,7 +51,7 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
    inner products.
 
    Input Parameter:
-.  ip    - the spectral transformation context
+.  ip    - the inner product context
 
    Output Parameter:
 +  mat   - the matrix of the bilinear form (may be PETSC_NULL)

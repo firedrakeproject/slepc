@@ -374,7 +374,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,int n,Vec *V,Vec *W,Vec v,P
    Collective on IP
 
    Input Parameters:
-+  ip - the eigenproblem solver context
++  ip - the inner product context
 .  n - number of columns of V
 .  V - set of vectors
 -  W - set of vectors

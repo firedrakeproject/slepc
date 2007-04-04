@@ -524,7 +524,7 @@ PetscErrorCode EPSGetST(EPS eps, ST *st)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetIP"
 /*@
-   EPSSetIP - Associates a inner product object to the
+   EPSSetIP - Associates an inner product object to the
    eigensolver. 
 
    Collective on EPS
@@ -569,7 +569,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
    Output Parameter:
 .  ip - inner product context
 
-   Level: beginner
+   Level: advanced
 
 .seealso: EPSSetIP()
 @*/

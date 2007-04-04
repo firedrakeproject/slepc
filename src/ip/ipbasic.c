@@ -75,9 +75,13 @@ static PetscErrorCode IPPublish_Petsc(PetscObject object)
 .  comm - MPI communicator
 
    Output Parameter:
-.  eps - location to put the IP context
+.  newip - location to put the IP context
 
    Level: beginner
+
+   Note: 
+   IP objects are not intended for normal users but only for
+   advanced user that for instance implement their own solvers.
 
 .seealso: IPDestroy(), IP
 @*/

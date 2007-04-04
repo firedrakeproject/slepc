@@ -420,7 +420,7 @@ PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,i
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetIP"
 /*@
-   SVDSetIP - Associates a inner product object to the
+   SVDSetIP - Associates an inner product object to the
    singular value solver. 
 
    Collective on SVD
@@ -465,7 +465,7 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
    Output Parameter:
 .  ip - inner product context
 
-   Level: beginner
+   Level: advanced
 
 .seealso: SVDSetIP()
 @*/

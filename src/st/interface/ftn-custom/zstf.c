@@ -12,7 +12,6 @@
 #define stgetoptionsprefix_       STGETOPTIONSPREFIX
 #define stview_                   STVIEW
 #define stgetmatmode_             STGETMATMODE
-#define stgetbilinearform_        STGETBILINEARFORM
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define stsettype_                stsettype
 #define stgettype_                stgettype
@@ -23,7 +22,6 @@
 #define stgetoptionsprefix_       stgetoptionsprefix
 #define stview_                   stview
 #define stgetmatmode_             stgetmatmode
-#define stgetbilinearform_        stgetbilinearform
 #endif
 
 EXTERN_C_BEGIN
