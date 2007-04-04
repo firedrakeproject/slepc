@@ -43,7 +43,7 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -53,7 +53,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 {
   PetscErrorCode ierr;
   int            i,j,k,l,n,lwork,*perm;
-  Vec            u=eps->work[0];
+  Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q,*work,*b;
   PetscReal      beta,*ritz;
   PetscTruth     breakdown;

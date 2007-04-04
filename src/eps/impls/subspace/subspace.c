@@ -214,7 +214,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }
-  ierr = EPSQRDecomposition(eps,eps->V,0,ncv,PETSC_NULL,0);CHKERRQ(ierr);
+  ierr = IPQRDecomposition(eps->ip,eps->V,0,ncv,PETSC_NULL,0,eps->work[0]);CHKERRQ(ierr);
   
   while (eps->its<eps->max_it) {
     eps->its++;
@@ -332,10 +332,10 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       }
       /* Orthonormalize vectors */
       for (i=eps->nconv;i<ncv;i++) {
-        ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown,eps->work[0]);CHKERRQ(ierr);
         if (breakdown) {
           ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
-          ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+          ierr = IPOrthogonalize(eps->ip,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown,eps->work[0]);CHKERRQ(ierr);
         }
         ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
       }

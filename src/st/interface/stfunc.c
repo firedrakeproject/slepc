@@ -6,7 +6,7 @@
 #include "src/st/stimpl.h"            /*I "slepcst.h" I*/
 
 PetscCookie ST_COOKIE = 0;
-PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyB = 0, ST_ApplyTranspose = 0, ST_InnerProduct = 0;
+PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyB = 0, ST_ApplyTranspose = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "STInitializePackage"
@@ -41,7 +41,6 @@ PetscErrorCode STInitializePackage(char *path) {
   ierr = PetscLogEventRegister(&ST_Apply,"STApply",ST_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_ApplyB,"STApplyB",ST_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_ApplyTranspose,"STApplyTranspose",ST_COOKIE); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&ST_InnerProduct,"STInnerProduct",ST_COOKIE);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
@@ -63,7 +62,7 @@ PetscErrorCode STInitializePackage(char *path) {
 
 #undef __FUNCT__  
 #define __FUNCT__ "STDestroy"
-/*@C
+/*@
    STDestroy - Destroys ST context that was created with STCreate().
 
    Collective on ST
@@ -144,7 +143,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->setupcalled         = 0;
   st->w                   = 0;
   st->shift_matrix        = STMATMODE_COPY;
-  st->bilinear_form       = STINNER_HERMITIAN;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
   
   ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);

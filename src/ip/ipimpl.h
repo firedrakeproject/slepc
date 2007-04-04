@@ -4,7 +4,7 @@
 #include "slepcip.h"
 
 extern PetscCookie IP_COOKIE;
-extern PetscEvent IP_InnerProduct,IP_Orthogonalize;
+extern PetscEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 
 typedef struct _IPOps *IPOps;
 

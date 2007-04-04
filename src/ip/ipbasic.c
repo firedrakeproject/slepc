@@ -4,10 +4,22 @@
 #include "src/ip/ipimpl.h"      /*I "slepcip.h" I*/
 
 PetscCookie IP_COOKIE = 0;
-PetscEvent IP_InnerProduct = 0, IP_Orthogonalize = 0;
+PetscEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPInitializePackage"
+/*@C
+  IPInitializePackage - This function initializes everything in the IP package. It is called
+  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to IPCreate()
+  when using static libraries.
+
+  Input Parameter:
+  path - The dynamic library path, or PETSC_NULL
+
+  Level: developer
+
+.seealso: SlepcInitialize()
+@*/
 PetscErrorCode IPInitializePackage(char *path) 
 {
   static PetscTruth initialized = PETSC_FALSE;
@@ -24,6 +36,7 @@ PetscErrorCode IPInitializePackage(char *path)
   /* Register Events */
   ierr = PetscLogEventRegister(&IP_Orthogonalize,"IPOrthogonalize",IP_COOKIE); CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&IP_InnerProduct,"IPInnerProduct",IP_COOKIE); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister(&IP_ApplyMatrix,"IPApplyMatrix",IP_COOKIE); CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
@@ -44,9 +57,33 @@ PetscErrorCode IPInitializePackage(char *path)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "IPPublish_Petsc"
+static PetscErrorCode IPPublish_Petsc(PetscObject object)
+{
+  PetscFunctionBegin;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "IPCreate"
+/*@C
+   IPCreate - Creates an IP context.
+
+   Collective on MPI_Comm
+
+   Input Parameter:
+.  comm - MPI communicator
+
+   Output Parameter:
+.  eps - location to put the IP context
+
+   Level: beginner
+
+.seealso: IPDestroy(), IP
+@*/
 PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 {
+  PetscErrorCode ierr;
   IP ip;
 
   PetscFunctionBegin;
@@ -60,11 +97,33 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->innerproducts = 0;
   ip->matrix        = PETSC_NULL;
   ip->work          = PETSC_NULL;
+
+  ip->bops->publish = IPPublish_Petsc;
+  ierr = PetscPublishAll(ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPSetOptionsPrefix"
+/*@C
+   IPSetOptionsPrefix - Sets the prefix used for searching for all 
+   IP options in the database.
+
+   Collective on IP
+
+   Input Parameters:
++  ip - the innerproduct context
+-  prefix - the prefix string to prepend to all IP option requests
+
+   Notes:
+   A hyphen (-) must NOT be given at the beginning of the prefix name.
+   The first character of all runtime options is AUTOMATICALLY the
+   hyphen.
+
+   Level: advanced
+
+.seealso: IPAppendOptionsPrefix()
+@*/
 PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
 {
   PetscErrorCode ierr;
@@ -76,6 +135,24 @@ PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPAppendOptionsPrefix"
+/*@C
+   IPAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   IP options in the database.
+
+   Collective on IP
+
+   Input Parameters:
++  ip - the innerproduct context
+-  prefix - the prefix string to prepend to all IP option requests
+
+   Notes:
+   A hyphen (-) must NOT be given at the beginning of the prefix name.
+   The first character of all runtime options is AUTOMATICALLY the hyphen.
+
+   Level: advanced
+
+.seealso: IPSetOptionsPrefix()
+@*/
 PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
 {
   PetscErrorCode ierr;
@@ -87,6 +164,21 @@ PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPSetFromOptions"
+/*@
+   IPSetFromOptions - Sets IP options from the options database.
+
+   Collective on IP
+
+   Input Parameters:
+.  ip - the innerproduct context
+
+   Notes:  
+   To see all options, run your program with the -help option.
+
+   Level: beginner
+
+.seealso: 
+@*/
 PetscErrorCode IPSetFromOptions(IP ip)
 {
   PetscErrorCode ierr;
@@ -111,6 +203,38 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPSetOrthogonalization"
+/*@
+   IPSetOrthogonalization - Specifies the type of orthogonalization technique
+   to be used (classical or modified Gram-Schmidt with or without refinement).
+
+   Collective on IP
+
+   Input Parameters:
++  ip         - the innerproduct context
+.  type       - the type of orthogonalization technique
+.  refinement - type of refinement
+-  eta        - parameter for selective refinement
+
+   Options Database Keys:
++  -orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt
+                              orthogonalization (default)
+                              or mgs for Modified Gram-Schmidt orthogonalization
+.  -orthog_refinement <type> -  Where <type> is one of never, ifneeded
+                              (default) or always 
+-  -orthog_eta <eta> -  For setting the value of eta
+    
+   Notes:  
+   The default settings work well for most problems. 
+
+   The parameter eta should be a real value between 0 and 1 (or PETSC_DEFAULT).
+   The value of eta is used only when the refinement type is "ifneeded". 
+
+   When using several processors, MGS is likely to result in bad scalability.
+
+   Level: advanced
+
+.seealso: IPOrthogonalize(), IPGetOrthogonalization()
+@*/
 PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrthogonalizationRefinementType refinement, PetscReal eta)
 {
   PetscFunctionBegin;
@@ -142,7 +266,61 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "IPGetOrthogonalization"
+/*@C
+   IPGetOrthogonalization - Gets the orthogonalization settings from the 
+   IP object.
+
+   Not Collective
+
+   Input Parameter:
+.  ip - inner product context 
+
+   Output Parameter:
++  type       - type of orthogonalization technique
+.  refinement - type of refinement
+-  eta        - parameter for selective refinement
+
+   Level: advanced
+
+.seealso: IPOrthogonalize(), IPSetOrthogonalization()
+@*/
+PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement, PetscReal *eta)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  if (type) *type = ip->orthog_type;
+  if (refinement) *refinement = ip->orthog_ref;
+  if (eta) *eta = ip->orthog_eta;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "IPView"
+/*@C
+   IPView - Prints the IP data structure.
+
+   Collective on IP
+
+   Input Parameters:
++  ip - the innerproduct context
+-  viewer - optional visualization context
+
+   Note:
+   The available visualization contexts include
++     PETSC_VIEWER_STDOUT_SELF - standard output (default)
+-     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
+         output where only the first processor opens
+         the file.  All other processors send their 
+         data to the first processor to print. 
+
+   The user can open an alternative visualization context with
+   PetscViewerASCIIOpen() - output to a specified file.
+
+   Level: beginner
+
+.seealso: IPView(), EPSView(), SVDView(), PetscViewerASCIIOpen()
+@*/
 PetscErrorCode IPView(IP ip,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -188,6 +366,18 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPDestroy"
+/*@
+   IPDestroy - Destroys IP context that was created with IPCreate().
+
+   Collective on IP
+
+   Input Parameter:
+.  ip - the inner product context
+
+   Level: beginner
+
+.seealso: IPCreate()
+@*/
 PetscErrorCode IPDestroy(IP ip)
 {
   PetscErrorCode ierr;
@@ -202,6 +392,22 @@ PetscErrorCode IPDestroy(IP ip)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPGetOperationCounters"
+/*@
+   IPGetOperationCounters - Gets the total number of inner product operations 
+   made by the IP object.
+
+   Not Collective
+
+   Input Parameter:
+.  ip - the inner product context
+
+   Output Parameter:
+.  dots - number of inner product operations
+   
+   Level: intermediate
+
+.seealso: IPResetOperationCounters()
+@*/
 PetscErrorCode IPGetOperationCounters(IP ip,int *dots)
 {
   PetscFunctionBegin;
@@ -213,6 +419,19 @@ PetscErrorCode IPGetOperationCounters(IP ip,int *dots)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPResetOperationCounters"
+/*@
+   IPResetOperationCounters - Resets the counters for inner product operations 
+   made by of the IP object.
+
+   Collective on IP
+
+   Input Parameter:
+.  ip - the inner product context
+
+   Level: intermediate
+
+.seealso: IPGetOperationCounters()
+@*/
 PetscErrorCode IPResetOperationCounters(IP ip)
 {
   PetscFunctionBegin;

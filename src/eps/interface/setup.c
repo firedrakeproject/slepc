@@ -90,9 +90,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
       /* orthonormalize vectors in DS if necessary */
-      ierr = EPSQRDecomposition(eps,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
+      ierr = IPQRDecomposition(eps->ip,eps->DS,0,eps->nds,PETSC_NULL,0,PETSC_NULL);CHKERRQ(ierr);
     }
-    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,eps->IV[0],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,eps->IV[0],PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
 
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);

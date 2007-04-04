@@ -5,6 +5,7 @@
 #define __SLEPCEPS_H
 #include "slepc.h"
 #include "slepcst.h"
+#include "slepcip.h"
 PETSC_EXTERN_CXX_BEGIN
 
 extern PetscCookie EPS_COOKIE;
@@ -42,10 +43,6 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
                EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
 
-typedef enum { EPS_MGS_ORTH,  EPS_CGS_ORTH } EPSOrthogonalizationType;
-typedef enum { EPS_ORTH_REFINE_NEVER, EPS_ORTH_REFINE_IFNEEDED,
-               EPS_ORTH_REFINE_ALWAYS } EPSOrthogonalizationRefinementType;
-
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);
 EXTERN PetscErrorCode EPSSetType(EPS,EPSType);
@@ -64,6 +61,8 @@ EXTERN PetscErrorCode EPSInitializePackage(char *);
 
 EXTERN PetscErrorCode EPSSetST(EPS,ST);
 EXTERN PetscErrorCode EPSGetST(EPS,ST*);
+EXTERN PetscErrorCode EPSSetIP(EPS,IP);
+EXTERN PetscErrorCode EPSGetIP(EPS,IP*);
 EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,int);
 EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,int*);
 EXTERN PetscErrorCode EPSSetDimensions(EPS,int,int);
@@ -99,8 +98,6 @@ EXTERN PetscErrorCode EPSGetNumberInitialVectors(EPS,int*,int*);
 
 EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
-EXTERN PetscErrorCode EPSSetOrthogonalization(EPS,EPSOrthogonalizationType,EPSOrthogonalizationRefinementType,PetscReal);
-EXTERN PetscErrorCode EPSGetOrthogonalization(EPS,EPSOrthogonalizationType*,EPSOrthogonalizationRefinementType*,PetscReal*);
 EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
 EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);
 
@@ -134,9 +131,6 @@ EXTERN PetscErrorCode EPSDenseSchur(int,int,PetscScalar*,int,PetscScalar*,PetscS
 EXTERN PetscErrorCode EPSSortDenseSchur(int,int,PetscScalar*,int,PetscScalar*,PetscScalar*,PetscScalar*,EPSWhich);
 EXTERN PetscErrorCode EPSDenseTridiagonal(int,PetscScalar*,int,PetscReal*,PetscScalar*);
 
-EXTERN PetscErrorCode EPSOrthogonalize(EPS,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode EPSBiOrthogonalize(EPS,int,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
-EXTERN PetscErrorCode EPSQRDecomposition(EPS,Vec*,int,int,PetscScalar*,int);
 EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,int,Vec);
 

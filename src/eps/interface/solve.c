@@ -215,7 +215,8 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,int* ops,int* dots,int* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  STGetOperationCounters(eps->OP,ops,dots,lits);
+  STGetOperationCounters(eps->OP,ops,lits);
+  IPGetOperationCounters(eps->ip,dots);
   PetscFunctionReturn(0);
 }
 
@@ -1163,7 +1164,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   PetscErrorCode ierr;
   PetscReal      norm;
   PetscTruth     lindep;
-  STBilinearForm form;
+  IPBilinearForm form;
   Vec            w;
   
   PetscFunctionBegin;
@@ -1179,15 +1180,15 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   }
 
   /* Force the vector to be in the range of OP for definite generalized problems */
-  ierr = STGetBilinearForm(eps->OP,&form);CHKERRQ(ierr);
-  if (form == STINNER_B_HERMITIAN) {
+  ierr = IPGetBilinearForm(eps->ip,PETSC_NULL,&form);CHKERRQ(ierr);
+  if (eps->isgeneralized && form == IPINNER_HERMITIAN) {
     ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
   } else {
     ierr = VecCopy(w,vec);CHKERRQ(ierr);
   }
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = EPSOrthogonalize(eps,i+eps->nds,PETSC_NULL,eps->DSV,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,i+eps->nds,PETSC_NULL,eps->DSV,vec,PETSC_NULL,&norm,&lindep,PETSC_NULL);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); } 
@@ -1255,7 +1256,7 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,int i,Vec vec)
   ierr = STApplyTranspose(eps->OP,w,vec);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = EPSOrthogonalize(eps,i,PETSC_NULL,eps->W,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,i,PETSC_NULL,eps->W,vec,PETSC_NULL,&norm,&breakdown,PETSC_NULL);CHKERRQ(ierr);
   if (breakdown) {
     if (i==0) { SETERRQ(1,"Left initial vector is zero"); }
     else { SETERRQ(1,"Unable to generate more left start vectors"); }

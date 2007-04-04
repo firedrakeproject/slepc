@@ -33,15 +33,15 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
 
   for (j=k;j<m-1;j++) {
 
-    ierr = STInnerProduct(eps->OP,V[j],W[j],&delta[j]);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,V[j],W[j],&delta[j]);CHKERRQ(ierr);
 
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); 
     // deflation
     for (i=0;i<k;i++) {
-      ierr = STInnerProduct(eps->OP,V[j+1],W[i],&coef);CHKERRQ(ierr);
+      ierr = IPInnerProduct(eps->ip,V[j+1],W[i],&coef);CHKERRQ(ierr);
       ierr = VecAXPY(V[j+1],-coef/delta[i],V[i]);CHKERRQ(ierr);
     }
-    ierr = STInnerProduct(eps->OP,V[j+1],W[j],&alpha(j));CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,V[j+1],W[j],&alpha(j));CHKERRQ(ierr);
     alpha(j) = alpha(j)/delta[j]; 
     alphal(j) = alpha(j); 
     if (j>k) {
@@ -53,17 +53,17 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
     if (j>k) { ierr = VecAXPY(V[j+1],-beta(j),V[j-1]);CHKERRQ(ierr); }
     // re-orthogonalization
     for (i=0;i<=j;i++) {
-      ierr = STInnerProduct(eps->OP,V[j+1],W[i],&coef);CHKERRQ(ierr);
+      ierr = IPInnerProduct(eps->ip,V[j+1],W[i],&coef);CHKERRQ(ierr);
       ierr = VecAXPY(V[j+1],-coef/delta[i],V[i]);CHKERRQ(ierr);
     }
-    ierr = STNorm(eps->OP,V[j+1],&norm);CHKERRQ(ierr);  
+    ierr = IPNorm(eps->ip,V[j+1],&norm);CHKERRQ(ierr);  
     rho(j+1) = norm;
     ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
 
     ierr = STApplyTranspose(eps->OP,W[j],W[j+1]);CHKERRQ(ierr); 
     // deflation
     for (i=0;i<k;i++) {
-      ierr = STInnerProduct(eps->OP,W[j+1],V[i],&coef);CHKERRQ(ierr);
+      ierr = IPInnerProduct(eps->ip,W[j+1],V[i],&coef);CHKERRQ(ierr);
       ierr = VecAXPY(W[j+1],-coef/delta[i],W[i]);CHKERRQ(ierr);
     }
 
@@ -71,10 +71,10 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
     if (j>k) { ierr = VecAXPY(W[j+1],-gamma(j),W[j-1]);CHKERRQ(ierr); }
     // re-orthogonalization
     for (i=0;i<=j;i++) {
-      ierr = STInnerProduct(eps->OP,W[j+1],V[i],&coef);CHKERRQ(ierr);
+      ierr = IPInnerProduct(eps->ip,W[j+1],V[i],&coef);CHKERRQ(ierr);
       ierr = VecAXPY(W[j+1],-coef/delta[i],W[i]);CHKERRQ(ierr);
     }
-    ierr = STNorm(eps->OP,W[j+1],&norm);CHKERRQ(ierr);  
+    ierr = IPNorm(eps->ip,W[j+1],&norm);CHKERRQ(ierr);  
     eta(j+1) = norm;
     ierr = VecScale(W[j+1],1.0/norm);CHKERRQ(ierr);
 
@@ -82,15 +82,15 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
   }
 
   // j=m-1
-  ierr = STInnerProduct(eps->OP,V[j],W[j],&delta[j]);CHKERRQ(ierr);
+  ierr = IPInnerProduct(eps->ip,V[j],W[j],&delta[j]);CHKERRQ(ierr);
 
   ierr = STApply(eps->OP,V[j],fv);CHKERRQ(ierr); 
   // deflation
   for (i=0;i<k;i++) {
-    ierr = STInnerProduct(eps->OP,fv,W[i],&coef);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,fv,W[i],&coef);CHKERRQ(ierr);
     ierr = VecAXPY(fv,-coef/delta[i],V[i]);CHKERRQ(ierr);
   }
-  ierr = STInnerProduct(eps->OP,fv,W[j],&alpha(j));CHKERRQ(ierr);
+  ierr = IPInnerProduct(eps->ip,fv,W[j],&alpha(j));CHKERRQ(ierr);
   alpha(j) = alpha(j)/delta[j]; 
   alphal(j) = alpha(j); 
   beta(j) = delta[j]/delta[j-1]*eta(j);
@@ -100,15 +100,15 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
   ierr = VecAXPY(fv,-beta(j),V[j-1]);CHKERRQ(ierr);
   // re-orthogonalization
   for (i=0;i<=j;i++) {
-    ierr = STInnerProduct(eps->OP,fv,W[i],&coef);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,fv,W[i],&coef);CHKERRQ(ierr);
     ierr = VecAXPY(fv,-coef/delta[i],V[i]);CHKERRQ(ierr);
   }
-  ierr = STNorm(eps->OP,fv,betav);CHKERRQ(ierr);  
+  ierr = IPNorm(eps->ip,fv,betav);CHKERRQ(ierr);  
 
   ierr = STApplyTranspose(eps->OP,W[j],fw);CHKERRQ(ierr); 
   // deflation
   for (i=0;i<k;i++) {
-    ierr = STInnerProduct(eps->OP,fw,V[i],&coef);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,fw,V[i],&coef);CHKERRQ(ierr);
     ierr = VecAXPY(fw,-coef/delta[i],W[i]);CHKERRQ(ierr);
   }
 
@@ -116,10 +116,10 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
   ierr = VecAXPY(fw,-gamma(j),W[j-1]);CHKERRQ(ierr);
   // re-orthogonalization
   for (i=0;i<=j;i++) {
-    ierr = STInnerProduct(eps->OP,fw,V[i],&coef);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,fw,V[i],&coef);CHKERRQ(ierr);
     ierr = VecAXPY(fw,-coef/delta[i],W[i]);CHKERRQ(ierr);
   }
-  ierr = STNorm(eps->OP,fw,betaw);CHKERRQ(ierr);  
+  ierr = IPNorm(eps->ip,fw,betaw);CHKERRQ(ierr);  
 
   eps->its++;
   
@@ -152,7 +152,7 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eigi);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0]);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,0,eps->W[0]);CHKERRQ(ierr);
   
   eps->nconv = 0;
@@ -171,19 +171,19 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
     /* Reduce T to (quasi-)triangular form, T <- U T U' */
     ierr = PetscMemzero(U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { U[i*(ncv+1)] = 1.0; }
-    ierr = EPSDenseSchur(ncv,eps->nconv,T,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(ncv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     ierr = PetscMemzero(Ul,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<ncv;i++) { Ul[i*(ncv+1)] = 1.0; }
-    ierr = EPSDenseSchur(ncv,eps->nconv,Tl,Ul,eigr,eigi);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(ncv,eps->nconv,Tl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,T,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,Tl,Ul,eigr,eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(ncv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(ncv,eps->nconv,Tl,ncv,Ul,eigr,eigi,eps->which);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
-    ierr = ArnoldiResiduals(T,U,betav,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(Tl,Ul,betaw,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(T,ncv,U,betav,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(Tl,ncv,Ul,betaw,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
 
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx); W(:,idx) = W*Ul(:,idx) */

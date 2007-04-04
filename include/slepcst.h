@@ -50,7 +50,7 @@ EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode STCheckNullSpace(ST,int,const Vec[]);
 
-EXTERN PetscErrorCode STGetOperationCounters(ST,int*,int*,int*);
+EXTERN PetscErrorCode STGetOperationCounters(ST,int*,int*);
 EXTERN PetscErrorCode STResetOperationCounters(ST);
 
 typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
@@ -58,21 +58,6 @@ typedef enum { STMATMODE_COPY, STMATMODE_INPLACE,
 EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
-
-typedef enum { STINNER_HERMITIAN, STINNER_SYMMETRIC,
-               STINNER_B_HERMITIAN, STINNER_B_SYMMETRIC } STBilinearForm;
-EXTERN PetscErrorCode STSetBilinearForm(ST,STBilinearForm);
-EXTERN PetscErrorCode STGetBilinearForm(ST,STBilinearForm*);
-
-EXTERN PetscErrorCode STInnerProduct(ST st,Vec,Vec,PetscScalar*);
-EXTERN PetscErrorCode STInnerProductBegin(ST st,Vec,Vec,PetscScalar*);
-EXTERN PetscErrorCode STInnerProductEnd(ST st,Vec,Vec,PetscScalar*);
-EXTERN PetscErrorCode STMInnerProduct(ST st,PetscInt,Vec,const Vec[],PetscScalar*);
-EXTERN PetscErrorCode STMInnerProductBegin(ST st,PetscInt,Vec,const Vec[],PetscScalar*);
-EXTERN PetscErrorCode STMInnerProductEnd(ST st,PetscInt,Vec,const Vec[],PetscScalar*);
-EXTERN PetscErrorCode STNorm(ST st,Vec,PetscReal*);
-EXTERN PetscErrorCode STNormBegin(ST st,Vec,PetscReal*);
-EXTERN PetscErrorCode STNormEnd(ST st,Vec,PetscReal*);
 
 /* --------- options specific to particular spectral transformations-------- */
 

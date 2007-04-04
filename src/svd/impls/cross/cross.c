@@ -319,6 +319,7 @@ PetscErrorCode SVDCreate_CROSS(SVD svd)
   ierr = EPSSetOptionsPrefix(cross->eps,svd->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,cross->eps);
+  ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSMonitorSet(cross->eps,SVDMonitor_CROSS,svd,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);

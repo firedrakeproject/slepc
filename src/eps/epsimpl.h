@@ -5,7 +5,7 @@
 #include "slepceps.h"
 
 extern PetscFList EPSList;
-extern PetscEvent EPS_SetUp, EPS_Solve, EPS_Orthogonalize, EPS_Dense;
+extern PetscEvent EPS_SetUp, EPS_Solve, EPS_Dense;
 
 typedef struct _EPSOps *EPSOps;
 
@@ -61,6 +61,7 @@ struct _p_EPS {
   PetscReal   *errest,          /* error estimates */
               *errest_left;     /* left error estimates */
   ST          OP;               /* spectral transformation object */
+  IP          ip;               /* innerproduct object */
   void        *data;            /* placeholder for misc stuff associated 
                                    with a particular solver */
   int         nconv,            /* number of converged eigenvalues */
@@ -81,10 +82,6 @@ struct _p_EPS {
   void       *monitorcontext[MAXEPSMONITORS];
   int        numbermonitors; 
 
-  /* --------------- Orthogonalization --------------------- */
-  EPSOrthogonalizationType orthog_type; /* which orthogonalization to use */
-  EPSOrthogonalizationRefinementType orthog_ref;   /* refinement method */
-  PetscReal  orthog_eta;
   PetscTruth ds_ortho;    /* if vectors in DS have to be orthonormalized */  
 };
 

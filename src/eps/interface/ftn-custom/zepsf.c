@@ -15,11 +15,11 @@
 #define epsmonitorlg_               EPSMONITORLG
 #define epsmonitorset_              EPSMONITORSET
 #define epsgetst_                   EPSGETST
+#define epsgetip_                   EPSGETIP
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetclass_                EPSGETCLASS
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
-#define epsgetorthogonalization_    EPSGETORTHOGONALIZATION
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
 #define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
@@ -34,11 +34,11 @@
 #define epsmonitorlg_               epsmonitorlg
 #define epsmonitorset_              epsmonitorset
 #define epsgetst_                   epsgetst
+#define epsgetip_                   epsgetip
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetclass_                epsgetclass
 #define epsgetconvergedreason_      epsgetconvergedreason
-#define epsgetorthogonalization_    epsgetorthogonalization
 #define epspowergetshifttype_       epspowergetshifttype
 #define epslanczosgetreorthog_      epslanczosgetreorthog
 #endif
@@ -173,6 +173,11 @@ void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,int *ierr)
   *ierr = EPSGetST(*eps,st);
 }
 
+void PETSC_STDCALL epsgetip_(EPS *eps,IP *ip,int *ierr)
+{
+  *ierr = EPSGetIP(*eps,ip);
+}
+
 void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,int *ierr)
 {
   *ierr = EPSGetWhichEigenpairs(*eps,which);
@@ -191,11 +196,6 @@ void PETSC_STDCALL epsgetclass_(EPS *eps,EPSClass *cl,int *ierr)
 void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,int *ierr)
 {
   *ierr = EPSGetConvergedReason(*eps,reason);
-}
-
-void PETSC_STDCALL epsgetorthogonalization_(EPS *eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement,PetscReal *eta,int *ierr)
-{
-  *ierr = EPSGetOrthogonalization(*eps,type,refinement,eta);
 }
 
 void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,int *ierr)

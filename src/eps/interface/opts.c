@@ -28,8 +28,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscErrorCode ierr;
   char           type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscTruth     flg;
-  const char     *orth_list[3] = { "mgs" , "cgs", "ncgs" };
-  const char     *ref_list[3] = { "never" , "ifneeded", "always" };
   PetscReal      r;
   PetscInt       i,j;
   PetscViewer    monviewer;
@@ -62,14 +60,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetClass(eps,EPS_ONE_SIDE);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-eps_twoside","two-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetClass(eps,EPS_TWO_SIDE);CHKERRQ(ierr);}
-
-    i = eps->orthog_type;
-    ierr = PetscOptionsEList("-eps_orthog_type","Orthogonalization method","EPSSetOrthogonalization",orth_list,3,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
-    j = eps->orthog_ref;
-    ierr = PetscOptionsEList("-eps_orthog_refinement","Iterative refinement mode during orthogonalization","EPSSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
-    r = eps->orthog_eta;
-    ierr = PetscOptionsReal("-eps_orthog_eta","Parameter of iterative refinement during orthogonalization","EPSSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSSetOrthogonalization(eps,(EPSOrthogonalizationType)i,(EPSOrthogonalizationRefinementType)j,r);CHKERRQ(ierr);
 
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
@@ -124,6 +114,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
+  ierr = IPSetFromOptions(eps->ip); CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->OP); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -429,22 +420,22 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
     case EPS_HEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_TRUE;
-      ierr = STSetBilinearForm(eps->OP,STINNER_HERMITIAN);CHKERRQ(ierr);
+      ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
       break;      
     case EPS_NHEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_FALSE;
-      ierr = STSetBilinearForm(eps->OP,STINNER_HERMITIAN);CHKERRQ(ierr);
+      ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
       break;
     case EPS_GHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
-      ierr = STSetBilinearForm(eps->OP,STINNER_B_HERMITIAN);CHKERRQ(ierr);
+      ierr = IPSetBilinearForm(eps->ip,B,IPINNER_HERMITIAN);CHKERRQ(ierr);
       break;
     case EPS_GNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
-      ierr = STSetBilinearForm(eps->OP,STINNER_HERMITIAN);CHKERRQ(ierr);
+      ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
       break;
 /*
     case EPS_CSEP: 
@@ -561,101 +552,6 @@ PetscErrorCode EPSGetClass(EPS eps,EPSClass *cl)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetOrthogonalization"
-/*@
-   EPSSetOrthogonalization - Specifies the type of orthogonalization technique
-   to be used inside the eigensolver (classical or modified Gram-Schmidt with
-   or without refinement).
-
-   Collective on EPS
-
-   Input Parameters:
-+  eps        - the eigensolver context 
-.  type       - the type of orthogonalization technique
-.  refinement - type of refinement
--  eta        - parameter for selective refinement
-
-   Options Database Keys:
-+  -eps_orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt
-                              orthogonalization (default)
-                              or mgs for Modified Gram-Schmidt orthogonalization
-.  -eps_orthog_refinement <type> -  Where <type> is one of never, ifneeded
-                              (default) or always 
--  -eps_orthog_eta <eta> -  For setting the value of eta
-    
-   Notes:  
-   The default settings work well for most problems. 
-
-   The parameter eta should be a real value between 0 and 1 (or PETSC_DEFAULT).
-   The value of eta is used only when the refinement type is "ifneeded". 
-
-   When using several processors, MGS is likely to result in bad scalability.
-
-   Level: advanced
-
-.seealso: EPSOrthogonalize(), EPSGetOrthogonalization()
-@*/
-PetscErrorCode EPSSetOrthogonalization(EPS eps,EPSOrthogonalizationType type, EPSOrthogonalizationRefinementType refinement, PetscReal eta)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  switch (type) {
-    case EPS_CGS_ORTH:
-    case EPS_MGS_ORTH:
-      eps->orthog_type = type;
-      break;
-    default:
-      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
-  }
-  switch (refinement) {
-    case EPS_ORTH_REFINE_NEVER:
-    case EPS_ORTH_REFINE_IFNEEDED:
-    case EPS_ORTH_REFINE_ALWAYS:
-      eps->orthog_ref = refinement;
-      break;
-    default:
-      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown refinement type");
-  }
-  if (eta == PETSC_DEFAULT) {
-    eps->orthog_eta = 0.7071;
-  } else {
-    if (eta <= 0.0 || eta > 1.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");    
-    eps->orthog_eta = eta;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSGetOrthogonalization"
-/*@C
-   EPSGetOrthogonalization - Gets the orthogonalization settings from the 
-   EPS object.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - Eigensolver context 
-
-   Output Parameter:
-+  type       - type of orthogonalization technique
-.  refinement - type of refinement
--  eta        - parameter for selective refinement
-
-   Level: advanced
-
-.seealso: EPSOrthogonalize(), EPSSetOrthogonalization()
-@*/
-PetscErrorCode EPSGetOrthogonalization(EPS eps,EPSOrthogonalizationType *type,EPSOrthogonalizationRefinementType *refinement, PetscReal *eta)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (type) *type = eps->orthog_type;
-  if (refinement) *refinement = eps->orthog_ref;
-  if (eta) *eta = eps->orthog_eta;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSSetOptionsPrefix"
 /*@C
    EPSSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -690,6 +586,8 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
+  ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
+  ierr = IPAppendOptionsPrefix(eps->ip,"eps_");CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
  
@@ -720,6 +618,8 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
   ierr = STAppendOptionsPrefix(eps->OP,prefix); CHKERRQ(ierr);
+  ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
+  ierr = IPAppendOptionsPrefix(eps->ip,"eps_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -45,11 +45,11 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,&ncv,fr,&beta,&breakdown);CHKERRQ(ierr);
     ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,&ncv,fl,&g,&breakdown);CHKERRQ(ierr);
 
-    ierr = EPSBiOrthogonalize(eps,ncv,Qr,Ql,fr,aux,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBiOrthogonalize(eps->ip,ncv,Qr,Ql,fr,aux,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<ncv;i++) {
       Hr[ncv*(ncv-1)+i] += beta * aux[i];
     }
-    ierr = EPSBiOrthogonalize(eps,ncv,Ql,Qr,fl,aux,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBiOrthogonalize(eps->ip,ncv,Ql,Qr,fl,aux,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<ncv;i++) {
       Hl[ncv*(ncv-1)+i] += g * aux[i];
     }

@@ -55,9 +55,8 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   if (eps->solverclass==EPS_TWO_SIDE) {
     ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
-    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   }
-  else { ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr); }
+  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -88,10 +87,10 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M
 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
-    ierr = EPSOrthogonalize(eps,j+1,which,V,f,T+m*j,&norm,breakdown);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;
       break;
@@ -134,10 +133,10 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
   for (j=k;j<m;j++) {
     /* Lanczos step */
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
-    ierr = EPSOrthogonalize(eps,j+1,which,V,f,T+m*j,&norm,breakdown);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;
       break;
@@ -169,7 +168,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
     }
 
     if (nritz > 0) {
-      ierr = EPSOrthogonalize(eps,nritz,PETSC_NULL,eps->AV,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,nritz,PETSC_NULL,eps->AV,f,PETSC_NULL,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
       if (*breakdown) {
 	*M = j+1;
 	break;
@@ -324,15 +323,15 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
   
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
     if (fro) {
       /* Lanczos step with full reorthogonalization */
-      ierr = EPSOrthogonalize(eps,j+1,PETSC_NULL,V,f,T+m*j,&norm,breakdown);CHKERRQ(ierr);      
+      ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);      
     } else {
       /* Lanczos step */
       which[j] = PETSC_TRUE;
       if (j-2>=k) which[j-2] = PETSC_FALSE;
-      ierr = EPSOrthogonalize(eps,j+1,which,V,f,T+m*j,&norm,breakdown);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
       a[j-k] = PetscRealPart(T[m*j+j]);
       b[j-k+1] = norm;
       
@@ -355,7 +354,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 	  /* Periodic reorthogonalization */
 	  if (force_reorth) force_reorth = PETSC_FALSE;
 	  else force_reorth = PETSC_TRUE;
-	  ierr = EPSOrthogonalize(eps,j-k,PETSC_NULL,V+k,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);
+	  ierr = IPOrthogonalize(eps->ip,j-k,PETSC_NULL,V+k,f,PETSC_NULL,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
 	  for (i=0;i<j-k;i++)
             omega[i] = eps1;
 	} else {
@@ -367,7 +366,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
 	    for (i=0;i<j-k;i++) 
 	      if (which2[i]) omega[i] = eps1;
 	  }
-	  ierr = EPSOrthogonalize(eps,j-k,which2,V+k,f,PETSC_NULL,&norm,breakdown);CHKERRQ(ierr);	
+	  ierr = IPOrthogonalize(eps->ip,j-k,which2,V+k,f,PETSC_NULL,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);	
 	}	
       }
     }
@@ -422,6 +421,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m
 {
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
+  IPOrthogonalizationRefinementType orthog_ref;
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
@@ -439,7 +439,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
       break;
     case EPSLANCZOS_REORTHOG_DELAYED:
-      if (eps->orthog_ref == EPS_ORTH_REFINE_NEVER) {
+      ierr = IPGetOrthogonalization(eps->ip,PETSC_NULL,&orthog_ref,PETSC_NULL);CHKERRQ(ierr);
+      if (orthog_ref == IP_ORTH_REFINE_NEVER) {
         ierr = EPSDelayedArnoldi1(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);       
       } else {
         ierr = EPSDelayedArnoldi(eps,T,V,k,m,f,beta,breakdown);CHKERRQ(ierr);
@@ -458,7 +459,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
   int            nconv,i,j,k,n,m,*perm,restart,ncv=eps->ncv;
-  Vec            f=eps->work[0];
+  Vec            f=eps->work[1];
   PetscScalar    *T=eps->T,*Y;
   PetscReal      *ritz,*bnd,anorm,beta,norm;
   PetscTruth     breakdown;
@@ -586,7 +587,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       } else if (lanczos->reorthog == EPSLANCZOS_REORTHOG_LOCAL) {
         /* Reorthonormalize restart vector */
-	ierr = EPSOrthogonalize(eps,eps->nds+k,PETSC_NULL,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+	ierr = IPOrthogonalize(eps->ip,eps->nds+k,PETSC_NULL,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown,eps->work[0]);CHKERRQ(ierr);
 	ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
       } else breakdown = PETSC_FALSE;
       if (breakdown) {

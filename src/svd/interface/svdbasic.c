@@ -416,3 +416,64 @@ PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,i
   ierr = PetscFListAdd(&SVDList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDSetIP"
+/*@
+   SVDSetIP - Associates a inner product object to the
+   singular value solver. 
+
+   Collective on SVD
+
+   Input Parameters:
++  svd - singular value solver context obtained from SVDCreate()
+-  ip  - the inner product object
+
+   Note:
+   Use SVDGetIP() to retrieve the inner product context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: SVDGetIP()
+@*/
+PetscErrorCode SVDSetIP(SVD svd,IP ip)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_COOKIE,2);
+  PetscCheckSameComm(svd,1,ip,2);
+  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
+  ierr = IPDestroy(svd->ip); CHKERRQ(ierr);
+  svd->ip = ip;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDGetIP"
+/*@C
+   SVDGetIP - Obtain the inner product object associated
+   to the singular value solver object.
+
+   Not Collective
+
+   Input Parameters:
+.  svd - singular value solver context obtained from SVDCreate()
+
+   Output Parameter:
+.  ip - inner product context
+
+   Level: beginner
+
+.seealso: SVDSetIP()
+@*/
+PetscErrorCode SVDGetIP(SVD svd,IP *ip)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidPointer(ip,2);
+  *ip = svd->ip;
+  PetscFunctionReturn(0);
+}

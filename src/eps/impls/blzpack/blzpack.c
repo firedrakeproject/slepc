@@ -106,6 +106,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   ierr = PetscMalloc(2*eps->ncv*sizeof(PetscReal),&blz->eig);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -176,7 +177,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 	} else {
           ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
 	}
-        ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);	
       }

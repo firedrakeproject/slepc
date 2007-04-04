@@ -3,6 +3,8 @@
 #include "slepc.h"
 PETSC_EXTERN_CXX_BEGIN
 
+extern PetscCookie IP_COOKIE;
+
 typedef enum { IP_MGS_ORTH,  IP_CGS_ORTH } IPOrthogonalizationType;
 typedef enum { IP_ORTH_REFINE_NEVER, IP_ORTH_REFINE_IFNEEDED,
                IP_ORTH_REFINE_ALWAYS } IPOrthogonalizationRefinementType;
@@ -21,6 +23,8 @@ EXTERN PetscErrorCode IPDestroy(IP);
 
 EXTERN PetscErrorCode IPOrthogonalize(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*,Vec);
 EXTERN PetscErrorCode IPOrthogonalizeCGS(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
+EXTERN PetscErrorCode IPBiOrthogonalize(IP,int,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
+EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,int,int,PetscScalar*,int,Vec);
 
 typedef enum { IPINNER_HERMITIAN, IPINNER_SYMMETRIC } IPBilinearForm;
 EXTERN PetscErrorCode IPSetBilinearForm(IP,Mat,IPBilinearForm);

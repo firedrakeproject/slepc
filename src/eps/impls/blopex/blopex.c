@@ -51,7 +51,7 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   
   PetscFunctionBegin;
   ierr = STApply(eps->OP,(Vec)x,(Vec)y);
-  ierr = EPSOrthogonalize(eps,eps->nds,PETSC_NULL,eps->DS,(Vec)y,PETSC_NULL,PETSC_NULL,PETSC_NULL); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,(Vec)y,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]); CHKERRABORT(PETSC_COMM_WORLD,ierr);
   PetscFunctionReturnVoid();
 }
 
@@ -108,6 +108,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

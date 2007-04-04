@@ -4,7 +4,7 @@
 
 #include "slepceps.h"
 
-extern PetscEvent ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyNoB, ST_ApplyTranspose, ST_InnerProduct;
+extern PetscEvent ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyTranspose;
 extern PetscFList STList;
 
 typedef struct _STOps *STOps;
@@ -28,7 +28,6 @@ struct _p_ST {
   Mat            A,B;              /* Matrices which define the eigensystem */
   PetscScalar    sigma;            /* Value of the shift */
   STMatMode      shift_matrix;
-  STBilinearForm bilinear_form;
   MatStructure   str;          /* whether matrices have the same pattern or not */
   Mat            mat;
 
@@ -39,7 +38,6 @@ struct _p_ST {
   int          setupcalled;
   int          lineariterations;
   int          applys;
-  int          innerproducts;
   int          (*checknullspace)(ST,int,const Vec[]);
   
   /*------------------------- Cache Bx product -------------------*/

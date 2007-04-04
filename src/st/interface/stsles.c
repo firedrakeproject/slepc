@@ -137,8 +137,8 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 #undef __FUNCT__  
 #define __FUNCT__ "STGetOperationCounters"
 /*@
-   STGetOperationCounters - Gets the total number of operator applications,
-   inner product operations and linear iterations used by the ST object.
+   STGetOperationCounters - Gets the total number of operator applications
+   and linear solver iterations used by the ST object.
 
    Not Collective
 
@@ -147,8 +147,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 
    Output Parameter:
 +  ops  - number of operator applications
-.  dots - number of inner product operations
--  lits - number of linear iterations
+-  lits - number of linear solver iterations
 
    Notes:
    Any output parameter may be PETSC_NULL on input if not needed. 
@@ -157,12 +156,11 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 
 .seealso: STResetOperationCounters()
 @*/
-PetscErrorCode STGetOperationCounters(ST st,int* ops,int* dots,int* lits)
+PetscErrorCode STGetOperationCounters(ST st,int* ops,int* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (ops) *ops = st->applys;
-  if (dots) *dots = st->innerproducts;
   if (lits) *lits = st->lineariterations;
   PetscFunctionReturn(0);
 }
@@ -189,7 +187,6 @@ PetscErrorCode STResetOperationCounters(ST st)
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   st->lineariterations = 0;
   st->applys = 0;
-  st->innerproducts = 0;
   PetscFunctionReturn(0);
 }
 

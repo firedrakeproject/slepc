@@ -5,7 +5,6 @@
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define stsettype_                STSETTYPE           
 #define stgettype_                STGETTYPE
-#define stdestroy_                STDESTROY
 #define stcreate_                 STCREATE
 #define stgetoperators_           STGETOPERATORS
 #define stsetoptionsprefix_       STSETOPTIONSPREFIX
@@ -17,7 +16,6 @@
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define stsettype_                stsettype
 #define stgettype_                stgettype
-#define stdestroy_                stdestroy
 #define stcreate_                 stcreate
 #define stgetoperators_           stgetoperators
 #define stsetoptionsprefix_       stsetoptionsprefix
@@ -55,14 +53,9 @@ void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),PetscErrorCo
   FIXRETURNCHAR(name,len);
 }
 
-void PETSC_STDCALL stdestroy_(ST *st,PetscErrorCode *ierr)
+void PETSC_STDCALL stcreate_(MPI_Fint *comm,ST *newst,PetscErrorCode *ierr)
 {
-  *ierr = STDestroy(*st);
-}
-
-void PETSC_STDCALL stcreate_(MPI_Comm *comm,ST *newst,PetscErrorCode *ierr)
-{
-  *ierr = STCreate((MPI_Comm)PetscToPointerComm(*comm),newst);
+  *ierr = STCreate(MPI_Comm_f2c(*(comm)),newst);
 }
 
 void PETSC_STDCALL stgetoperators_(ST *st,Mat *mat,Mat *pmat,PetscErrorCode *ierr)
@@ -119,11 +112,6 @@ void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)
 void PETSC_STDCALL  stgetmatmode_(ST *st,STMatMode *mode,int *ierr)
 {
   *ierr = STGetMatMode(*st,mode);
-}
-
-void PETSC_STDCALL  stgetbilinearform_(ST *st,STBilinearForm *form,int *ierr)
-{
-  *ierr = STGetBilinearForm(*st,form);
 }
 
 EXTERN_C_END

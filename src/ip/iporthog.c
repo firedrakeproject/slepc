@@ -152,7 +152,7 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h,lc[100],*c;
-  PetscTruth     allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE;
+  PetscTruth     allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE,allocatedw = PETSC_FALSE;
   PetscReal      onrm,nrm;
   int            j,k;
   PetscFunctionBegin;
@@ -163,7 +163,7 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
   }
   ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
 
-  /* allocate H, c and w if needed */
+  /* allocate H, c and work if needed */
   if (!H) {
     if (n<=100) h = lh;
     else {
@@ -177,6 +177,9 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
       ierr = PetscMalloc(n*sizeof(PetscScalar),&c);CHKERRQ(ierr);
       allocatedc = PETSC_TRUE;
     }
+  }
+  if (ip->orthog_type == IP_CGS_ORTH) {
+    ierr = VecDuplicate(v,&work);CHKERRQ(ierr);
   }
 
   /* orthogonalize and compute onorm */
@@ -238,7 +241,206 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
   /* free work space */
   if (allocatedc) { ierr = PetscFree(c);CHKERRQ(ierr); }
   if (allocatedh) { ierr = PetscFree(h);CHKERRQ(ierr); }
+  if (allocatedw) { ierr = VecDestroy(work);CHKERRQ(ierr); }
         
   ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPQRDecomposition"
+/*@
+   IPQRDecomposition - Compute the QR factorization of a set of vectors.
+
+   Collective on IP
+
+   Input Parameters:
++  ip - the eigenproblem solver context
+.  V - set of vectors
+.  m - starting column
+.  n - ending column
+-  ldr - leading dimension of R
+
+   Output Parameter:
+.  R  - triangular matrix of QR factorization
+
+   Notes:
+   This routine orthonormalizes the columns of V so that V'*V=I up to 
+   working precision. It assumes that the first m columns (from 0 to m-1) 
+   are already orthonormal. The coefficients of the orthogonalization are
+   stored in R so that V*R is equal to the original V.
+
+   In some cases, this routine makes V B-orthonormal, that is, V'*B*V=I.
+
+   If one of the vectors is linearly dependent wrt the rest (at working
+   precision) then it is replaced by a random vector.
+
+   Level: developer
+
+.seealso: IPOrthogonalize(), IPNorm(), IPInnerProduct().
+@*/
+PetscErrorCode IPQRDecomposition(IP ip,Vec *V,int m,int n,PetscScalar *R,int ldr,Vec work)
+{
+  PetscErrorCode ierr;
+  int            k;
+  PetscReal      norm;
+  PetscTruth     lindep;
+  
+  PetscFunctionBegin;
+
+  for (k=m; k<n; k++) {
+
+    /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
+    if (R) { ierr = IPOrthogonalize(ip,k,PETSC_NULL,V,V[k],&R[0+ldr*k],&norm,&lindep,work);CHKERRQ(ierr); }
+    else   { ierr = IPOrthogonalize(ip,k,PETSC_NULL,V,V[k],PETSC_NULL,&norm,&lindep,work);CHKERRQ(ierr); }
+
+    /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
+    if (norm==0.0 || lindep) { 
+      PetscInfo(ip,"Linearly dependent vector found, generating a new random vector\n");
+      ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
+      ierr = IPNorm(ip,V[k],&norm);CHKERRQ(ierr);
+    }
+    ierr = VecScale(V[k],1.0/norm);CHKERRQ(ierr);
+    if (R) R[k+ldr*k] = norm;
+
+  }
+
+  PetscFunctionReturn(0);
+}
+
+/*
+    Biorthogonalization routine using classical Gram-Schmidt with refinement.
+ */
+#undef __FUNCT__  
+#define __FUNCT__ "IPCGSBiOrthogonalization"
+static PetscErrorCode IPCGSBiOrthogonalization(IP ip,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
+{
+#if defined(SLEPC_MISSING_LAPACK_GELQF) || defined(SLEPC_MISSING_LAPACK_ORMLQ)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"xGELQF - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  int            j,ione=1,lwork,info;
+  PetscScalar    shh[100],*lhh,*vw,*tau,one=1.0,*work;
+  Vec            w;
+
+  PetscFunctionBegin;
+
+  /* Don't allocate small arrays */
+  if (n<=100) lhh = shh;
+  else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  ierr = PetscMalloc(n*n*sizeof(PetscScalar),&vw);CHKERRQ(ierr);
+  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+  
+  for (j=0;j<n;j++) {
+    ierr = IPMInnerProduct(ip,n,V[j],W,vw+j*n);CHKERRQ(ierr);
+  }
+  lwork = n;
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGELQF %i",info);
+  
+  /*** First orthogonalization ***/
+
+  /* h = W^* v */
+  /* q = v - V h */
+  ierr = IPMInnerProduct(ip,n,v,W,H);CHKERRQ(ierr);
+  BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n,1,1,1,1);
+  LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info,1,1);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORMLQ %i",info);
+  ierr = VecSet(w,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);
+  ierr = VecAXPY(v,-1.0,w);CHKERRQ(ierr);
+
+  /* compute norm of v */
+  if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
+  
+  if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+  ierr = PetscFree(vw);CHKERRQ(ierr);
+  ierr = PetscFree(tau);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = VecDestroy(w);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPBiOrthogonalize"
+/*@
+   IPBiOrthogonalize - Bi-orthogonalize a vector with respect to a set of vectors.
+
+   Collective on IP
+
+   Input Parameters:
++  ip - the eigenproblem solver context
+.  n - number of columns of V
+.  V - set of vectors
+-  W - set of vectors
+
+   Input/Output Parameter:
+.  v - vector to be orthogonalized
+
+   Output Parameter:
++  H  - coefficients computed during orthogonalization
+-  norm - norm of the vector after being orthogonalized
+
+   Notes:
+   This function applies an oblique projector to project vector v onto the
+   span of the columns of V along the orthogonal complement of the column
+   space of W. 
+
+   On exit, v0 = [V v]*H, where v0 is the original vector v.
+
+   This routine does not normalize the resulting vector.
+
+   Level: developer
+
+.seealso: IPSetOrthogonalization(), IPOrthogonalize()
+@*/
+PetscErrorCode IPBiOrthogonalize(IP ip,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    lh[100],*h;
+  PetscTruth     allocated = PETSC_FALSE;
+  PetscReal      lhnrm,*hnrm,lnrm,*nrm;
+  PetscFunctionBegin;
+  if (n==0) {
+    if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
+  } else {
+    ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
+    
+    /* allocate H if needed */
+    if (!H) {
+      if (n<=100) h = lh;
+      else {
+        ierr = PetscMalloc(n*sizeof(PetscScalar),&h);CHKERRQ(ierr);
+        allocated = PETSC_TRUE;
+      }
+    } else h = H;
+    
+    /* retrieve hnrm and nrm for linear dependence check or conditional refinement */
+    if (ip->orthog_ref == IP_ORTH_REFINE_IFNEEDED) {
+      hnrm = &lhnrm;
+      if (norm) nrm = norm;
+      else nrm = &lnrm;
+    } else {
+      hnrm = PETSC_NULL;
+      nrm = norm;
+    }
+    
+    switch (ip->orthog_type) {
+      case IP_CGS_ORTH:
+        ierr = IPCGSBiOrthogonalization(ip,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
+        break;
+      default:
+        SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+    }
+    
+    if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
+    
+    ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
+  } 
+  PetscFunctionReturn(0);
+}
+

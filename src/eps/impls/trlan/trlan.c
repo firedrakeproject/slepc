@@ -37,6 +37,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -55,7 +56,7 @@ static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,i
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
     ierr = STApply(globaleps->OP,x,y);CHKERRQ(ierr);
-    ierr = EPSOrthogonalize(globaleps,globaleps->nds,PETSC_NULL,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(globaleps,globaleps->nds,PETSC_NULL,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
     ierr = VecResetArray(x);CHKERRQ(ierr);
     ierr = VecResetArray(y);CHKERRQ(ierr);	
   }

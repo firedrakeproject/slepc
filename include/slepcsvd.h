@@ -38,6 +38,8 @@ typedef enum {/* converged */
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 
 EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
+EXTERN PetscErrorCode SVDSetIP(SVD,IP);
+EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
 EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
 EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
 EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);

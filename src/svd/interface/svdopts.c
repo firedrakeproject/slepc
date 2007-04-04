@@ -438,8 +438,6 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
-  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
   if (flg1) {
@@ -451,6 +449,8 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
     ierr = EPSSetOptionsPrefix(eps,prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
   }
+  ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
+  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
 
@@ -483,8 +483,6 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(svd->ip,svd->prefix);CHKERRQ(ierr);
-  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
   if (flg1) {
@@ -496,6 +494,8 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
     ierr = EPSSetOptionsPrefix(eps,svd->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
   }
+  ierr = IPSetOptionsPrefix(svd->ip,svd->prefix);CHKERRQ(ierr);
+  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

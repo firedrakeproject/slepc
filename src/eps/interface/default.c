@@ -109,7 +109,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
-  STBilinearForm form;
+  IPBilinearForm form;
   PetscReal      norm;
   Vec            w;
   
@@ -119,8 +119,8 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     PetscFunctionReturn(0);
   }
   
-  ierr = STGetBilinearForm(eps->OP,&form);CHKERRQ(ierr);
-  if (form == STINNER_B_HERMITIAN) {
+  ierr = IPGetBilinearForm(eps->ip,PETSC_NULL,&form);CHKERRQ(ierr);
+  if (eps->isgeneralized && form == IPINNER_HERMITIAN) {
     ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   }
 
@@ -140,7 +140,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* AV = V * Z */
   for (i=0;i<eps->nconv;i++) {
-    if (form == STINNER_B_HERMITIAN) {
+    if (eps->isgeneralized && form == IPINNER_HERMITIAN) {
       /* Purify eigenvectors */
       ierr = VecSet(w,0.0);CHKERRQ(ierr); 
       ierr = VecMAXPY(w,nv,Z+nv*i,eps->V);CHKERRQ(ierr);
@@ -173,7 +173,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
-  if (form == STINNER_B_HERMITIAN) {
+  if (eps->isgeneralized && form == IPINNER_HERMITIAN) {
     ierr = VecDestroy(w);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;

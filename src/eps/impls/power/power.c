@@ -56,7 +56,11 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
       SETERRQ(PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  if (eps->solverclass==EPS_TWO_SIDE) {
+    ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  } else {
+    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -99,7 +103,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
 
     /* theta = (v,y)_B */
-    ierr = STInnerProduct(eps->OP,v,y,&theta);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,v,y,&theta);CHKERRQ(ierr);
 
     if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
@@ -115,7 +119,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     } else {  /* RQI */
 
       /* delta = ||y||_B */
-      ierr = STNorm(eps->OP,y,&norm);CHKERRQ(ierr);
+      ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
       delta = norm;
 
       /* compute relative error */
@@ -138,7 +142,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
           /* beta1 is the norm of the residual associated to R(v) */
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
           ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
-          ierr = STNorm(eps->OP,v,&norm);CHKERRQ(ierr);
+          ierr = IPNorm(eps->ip,v,&norm);CHKERRQ(ierr);
           beta1 = norm;
     
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
@@ -175,9 +179,9 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       for (i=0;i<eps->nconv;i++) {
         if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) SV[nsv++]=eps->V[i];
       }
-      ierr = EPSOrthogonalize(eps,nsv,PETSC_NULL,SV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,nsv,PETSC_NULL,SV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1]);CHKERRQ(ierr);
     } else {
-      ierr = EPSOrthogonalize(eps,eps->nds+eps->nconv,PETSC_NULL,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds+eps->nconv,PETSC_NULL,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1]);CHKERRQ(ierr);
     }
 
     /* v = y/||y||_B */
@@ -239,7 +243,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     ierr = STApplyTranspose(eps->OP,w,z);CHKERRQ(ierr);
 
     /* theta = (v,z)_B */
-    ierr = STInnerProduct(eps->OP,v,z,&theta);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,v,z,&theta);CHKERRQ(ierr);
 
     if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
@@ -261,7 +265,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     } else {  /* RQI */
 
       /* delta = sqrt(y,z)_B */
-      ierr = STInnerProduct(eps->OP,y,z,&alpha);CHKERRQ(ierr);
+      ierr = IPInnerProduct(eps->ip,y,z,&alpha);CHKERRQ(ierr);
       if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
       delta = PetscSqrtScalar(alpha);
 
@@ -287,7 +291,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
           /* beta1 is the norm of the residual associated to R(v,w) */
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
           ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
-          ierr = STNorm(eps->OP,v,&norm);CHKERRQ(ierr);
+          ierr = IPNorm(eps->ip,v,&norm);CHKERRQ(ierr);
           beta1 = norm;
     
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
@@ -320,13 +324,13 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest_left,eps->nconv+1); 
 
     /* purge previously converged eigenvectors */
-    ierr = EPSBiOrthogonalize(eps,eps->nconv,eps->V,eps->W,z,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSBiOrthogonalize(eps,eps->nconv,eps->W,eps->V,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBiOrthogonalize(eps->ip,eps->nconv,eps->V,eps->W,z,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBiOrthogonalize(eps->ip,eps->nconv,eps->W,eps->V,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     /* normalize so that (y,z)_B=1  */
     ierr = VecCopy(y,v);CHKERRQ(ierr);
     ierr = VecCopy(z,w);CHKERRQ(ierr);
-    ierr = STInnerProduct(eps->OP,y,z,&alpha);CHKERRQ(ierr);
+    ierr = IPInnerProduct(eps->ip,y,z,&alpha);CHKERRQ(ierr);
     if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
     delta = PetscSqrtScalar(PetscAbsScalar(alpha));
     beta = 1.0/PetscConj(alpha/delta);

@@ -5,7 +5,7 @@
 
 PetscFList EPSList = 0;
 PetscCookie EPS_COOKIE = 0;
-PetscEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Orthogonalize = 0, EPS_Dense = 0;
+PetscEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSInitializePackage"
@@ -38,7 +38,6 @@ PetscErrorCode EPSInitializePackage(char *path) {
   /* Register Events */
   ierr = PetscLogEventRegister(&EPS_SetUp,"EPSSetUp",EPS_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&EPS_Solve,"EPSSolve",EPS_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&EPS_Orthogonalize,"EPSOrthogonalize",EPS_COOKIE); CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&EPS_Dense,"EPSDense",EPS_COOKIE); CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
@@ -150,33 +149,12 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
-    switch (eps->orthog_type) {
-      case EPS_MGS_ORTH:
-        ierr = PetscViewerASCIIPrintf(viewer,"modified Gram-Schmidt\n");CHKERRQ(ierr);
-        break;
-      case EPS_CGS_ORTH:
-        ierr = PetscViewerASCIIPrintf(viewer,"classical Gram-Schmidt\n");CHKERRQ(ierr);
-        break;
-      default: SETERRQ(1,"Wrong value of eps->orth_type");
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: ");CHKERRQ(ierr);
-    switch (eps->orthog_ref) {
-      case EPS_ORTH_REFINE_NEVER:
-        ierr = PetscViewerASCIIPrintf(viewer,"never\n");CHKERRQ(ierr);
-        break;
-      case EPS_ORTH_REFINE_IFNEEDED:
-        ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %f)\n",eps->orthog_eta);CHKERRQ(ierr);
-        break;
-      case EPS_ORTH_REFINE_ALWAYS:
-        ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);
-        break;
-      default: SETERRQ(1,"Wrong value of eps->orth_ref");
-    }
     if (eps->useriv) {
       ierr = PetscViewerASCIIPrintf(viewer,"  number of initial vectors provided by the user: %d\n",eps->niv);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = IPView(eps->ip,viewer); CHKERRQ(ierr);
     ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
@@ -261,6 +239,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->errest          = 0;
   eps->errest_left     = 0;
   eps->OP              = 0;
+  eps->ip              = 0;
   eps->data            = 0;
   eps->nconv           = 0;
   eps->its             = 0;
@@ -275,12 +254,12 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->numbermonitors  = 0;
 
-  eps->orthog_type     = EPS_CGS_ORTH;
-  eps->orthog_ref      = EPS_ORTH_REFINE_IFNEEDED;
-  eps->orthog_eta      = 0.7071;
-
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
   PetscLogObjectParent(eps,eps->OP);
+  ierr = IPCreate(comm,&eps->ip); CHKERRQ(ierr);
+  ierr = IPSetOptionsPrefix(eps->ip,eps->prefix);
+  ierr = IPAppendOptionsPrefix(eps->ip,"eps_");
+  PetscLogObjectParent(eps,eps->ip);
   ierr = PetscPublishAll(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -451,6 +430,7 @@ PetscErrorCode EPSDestroy(EPS eps)
   ierr = PetscObjectDepublish(eps);CHKERRQ(ierr);
 
   ierr = STDestroy(eps->OP);CHKERRQ(ierr);
+  ierr = IPDestroy(eps->ip);CHKERRQ(ierr);
 
   if (eps->ops->destroy) {
     ierr = (*eps->ops->destroy)(eps); CHKERRQ(ierr);
@@ -508,9 +488,9 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(st,ST_COOKIE,2);
   PetscCheckSameComm(eps,1,st,2);
+  ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
   ierr = STDestroy(eps->OP); CHKERRQ(ierr);
   eps->OP = st;
-  ierr = PetscObjectReference((PetscObject)eps->OP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -538,6 +518,67 @@ PetscErrorCode EPSGetST(EPS eps, ST *st)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidPointer(st,2);
   *st = eps->OP;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetIP"
+/*@
+   EPSSetIP - Associates a inner product object to the
+   eigensolver. 
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - eigensolver context obtained from EPSCreate()
+-  ip  - the inner product object
+
+   Note:
+   Use EPSGetIP() to retrieve the inner product context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: EPSGetIP()
+@*/
+PetscErrorCode EPSSetIP(EPS eps,IP ip)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_COOKIE,2);
+  PetscCheckSameComm(eps,1,ip,2);
+  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
+  ierr = IPDestroy(eps->ip); CHKERRQ(ierr);
+  eps->ip = ip;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetIP"
+/*@C
+   EPSGetIP - Obtain the inner product object associated
+   to the eigensolver object.
+
+   Not Collective
+
+   Input Parameters:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameter:
+.  ip - inner product context
+
+   Level: beginner
+
+.seealso: EPSSetIP()
+@*/
+PetscErrorCode EPSGetIP(EPS eps,IP *ip)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(ip,2);
+  *ip = eps->ip;
   PetscFunctionReturn(0);
 }
 

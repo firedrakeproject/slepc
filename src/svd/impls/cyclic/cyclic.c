@@ -514,6 +514,7 @@ PetscErrorCode SVDCreate_CYCLIC(SVD svd)
   ierr = EPSSetOptionsPrefix(cyclic->eps,svd->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,cyclic->eps);
+  ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_CYCLIC,svd,PETSC_NULL);CHKERRQ(ierr);
   cyclic->explicit = PETSC_FALSE;
