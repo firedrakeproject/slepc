@@ -180,6 +180,7 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
   }
   if (ip->orthog_type == IP_CGS_ORTH) {
     ierr = VecDuplicate(v,&work);CHKERRQ(ierr);
+    allocatedw = PETSC_TRUE;
   }
 
   /* orthogonalize and compute onorm */
