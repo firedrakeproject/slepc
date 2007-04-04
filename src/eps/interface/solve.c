@@ -1166,6 +1166,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   PetscTruth     lindep;
   IPBilinearForm form;
   Vec            w;
+  Mat            B;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1180,8 +1181,8 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   }
 
   /* Force the vector to be in the range of OP for definite generalized problems */
-  ierr = IPGetBilinearForm(eps->ip,PETSC_NULL,&form);CHKERRQ(ierr);
-  if (eps->isgeneralized && form == IPINNER_HERMITIAN) {
+  ierr = IPGetBilinearForm(eps->ip,&B,&form);CHKERRQ(ierr);
+  if (B && form == IPINNER_HERMITIAN) {
     ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
   } else {
     ierr = VecCopy(w,vec);CHKERRQ(ierr);
