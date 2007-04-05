@@ -134,7 +134,6 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
   ierr = EPSGetConverged(cross->eps,&svd->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
-  ierr = EPSGetOperationCounters(cross->eps,PETSC_NULL,&svd->dots,PETSC_NULL);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cross->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
     svd->sigma[i] = sqrt(PetscRealPart(sigma));

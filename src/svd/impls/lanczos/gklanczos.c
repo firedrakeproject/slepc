@@ -78,11 +78,10 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],u);CHKERRQ(ierr);
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,u,V[i]);CHKERRQ(ierr);
-    svd->dots += i;
-    ierr = VecNormBegin(u,NORM_2,&a);CHKERRQ(ierr);
-    ierr = VecMDotBegin(V[i],i,V,work);CHKERRQ(ierr);
-    ierr = VecNormEnd(u,NORM_2,&a);CHKERRQ(ierr);
-    ierr = VecMDotEnd(V[i],i,V,work);CHKERRQ(ierr);
+    ierr = IPNormBegin(svd->ip,u,&a);CHKERRQ(ierr);
+    ierr = IPMInnerProductBegin(svd->ip,i,V[i],V,work);CHKERRQ(ierr);
+    ierr = IPNormEnd(svd->ip,u,&a);CHKERRQ(ierr);
+    ierr = IPMInnerProductEnd(svd->ip,i,V[i],V,work);CHKERRQ(ierr);
     
     ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
     ierr = VecScale(V[i],1.0/a);CHKERRQ(ierr);
@@ -102,11 +101,10 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     u_1 = temp;
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,u,v);CHKERRQ(ierr);
-  svd->dots += i;
-  ierr = VecNormBegin(u,NORM_2,&a);CHKERRQ(ierr);
-  ierr = VecMDotBegin(v,n,V,work);CHKERRQ(ierr);
-  ierr = VecNormEnd(u,NORM_2,&a);CHKERRQ(ierr);
-  ierr = VecMDotEnd(v,n,V,work);CHKERRQ(ierr);
+  ierr = IPNormBegin(svd->ip,u,&a);CHKERRQ(ierr);
+  ierr = IPMInnerProductBegin(svd->ip,n,v,V,work);CHKERRQ(ierr);
+  ierr = IPNormEnd(svd->ip,u,&a);CHKERRQ(ierr);
+  ierr = IPMInnerProductEnd(svd->ip,n,v,V,work);CHKERRQ(ierr);
     
   ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
   ierr = VecScale(v,1.0/a);CHKERRQ(ierr);

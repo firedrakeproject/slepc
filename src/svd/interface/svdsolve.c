@@ -32,7 +32,6 @@ PetscErrorCode SVDSolve(SVD svd)
   if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
   svd->its = 0;
   svd->matvecs = 0;
-  svd->dots = 0;
   svd->nconv = 0;
   svd->reason = SVD_CONVERGED_ITERATING;
   ierr = IPResetOperationCounters(svd->ip);CHKERRQ(ierr);
@@ -340,7 +339,6 @@ PetscErrorCode SVDGetOperationCounters(SVD svd,int* matvecs,int* dots)
   if (matvecs) *matvecs = svd->matvecs; 
   if (dots) {
     ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);
-    *dots += svd->dots;
   }
   PetscFunctionReturn(0);
 }

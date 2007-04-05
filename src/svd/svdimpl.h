@@ -56,7 +56,6 @@ struct _p_SVD {
   int  numbermonitors;
   
   int matvecs;
-  int dots;
 };
 
 EXTERN PetscErrorCode SVDRegisterAll(char *);

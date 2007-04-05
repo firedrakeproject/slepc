@@ -163,7 +163,7 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
 
   ierr = MatGetVecs(cyclic->mat,&x,PETSC_NULL);CHKERRQ(ierr);
   if (cyclic->explicit) {
-    ierr = EPSGetOperationCounters(cyclic->eps,&svd->matvecs,&svd->dots,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSGetOperationCounters(cyclic->eps,&svd->matvecs,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDMatGetSize(svd,&M,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(svd->U[0],&start,&end);CHKERRQ(ierr);
     ierr = ISCreateBlock(svd->comm,end-start,1,&start,&isU);CHKERRQ(ierr);      
@@ -193,7 +193,6 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
     ierr = ISDestroy(isV);CHKERRQ(ierr);
     ierr = VecScatterDestroy(vsV);CHKERRQ(ierr);
   } else {
-    ierr = EPSGetOperationCounters(cyclic->eps,PETSC_NULL,&svd->dots,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,&m,PETSC_NULL);CHKERRQ(ierr);
     for (i=0,j=0;i<svd->nconv;i++) {
       ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
