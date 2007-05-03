@@ -58,7 +58,7 @@ PetscErrorCode STSetType(ST st,STType type)
   st->setupcalled = 0;
 
   /* Determine the STCreateXXX routine for a particular type */
-  ierr =  PetscFListFind(st->comm, STList, type,(void (**)(void)) &r );CHKERRQ(ierr);
+  ierr =  PetscFListFind(STList, st->comm, type,(void (**)(void)) &r );CHKERRQ(ierr);
   if (!r) SETERRQ1(1,"Unable to find requested ST type %s",type);
   ierr = PetscFree(st->data);CHKERRQ(ierr);
 

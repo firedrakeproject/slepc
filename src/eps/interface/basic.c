@@ -313,7 +313,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
     eps->data = 0;
   }
 
-  ierr = PetscFListFind(eps->comm,EPSList,type,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFListFind(EPSList,eps->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
 
   if (!r) SETERRQ1(1,"Unknown EPS type given: %s",type);
 
