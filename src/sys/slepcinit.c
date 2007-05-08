@@ -3,6 +3,7 @@
 #include "slepceps.h"
 #include "slepcst.h"
 #include "slepcsvd.h"
+#include "slepcksp.h"
 #include "slepcip.h"
 #include <stdlib.h>
 
@@ -70,7 +71,7 @@ PetscTruth  SlepcBeganPetsc = PETSC_FALSE;
 PetscTruth  SlepcInitializeCalled = PETSC_FALSE;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-extern PetscDLLibraryList DLLibrariesLoaded;
+extern PetscDLLibrary DLLibrariesLoaded;
 #endif
 
 #undef __FUNCT__  
@@ -205,6 +206,7 @@ PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
   ierr = STInitializePackage(path); CHKERRQ(ierr);
   ierr = EPSInitializePackage(path); CHKERRQ(ierr);
   ierr = SVDInitializePackage(path); CHKERRQ(ierr);
+  ierr = IPInitializePackage(path); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
