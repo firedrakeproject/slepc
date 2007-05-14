@@ -178,10 +178,10 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
       ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
       if (PetscRealPart(sigma) > 0.0) {
         svd->sigma[j] = PetscRealPart(sigma);
-        ierr = VecScatterBegin(x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD,vsU);CHKERRQ(ierr);
-        ierr = VecScatterBegin(x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD,vsV);CHKERRQ(ierr);
-        ierr = VecScatterEnd(x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD,vsU);CHKERRQ(ierr);
-        ierr = VecScatterEnd(x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD,vsV);CHKERRQ(ierr);
+        ierr = VecScatterBegin(vsU,x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterBegin(vsV,x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsU,x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV,x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
         ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
         ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);	  	  
         j++;
