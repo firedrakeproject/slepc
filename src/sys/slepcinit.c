@@ -3,7 +3,6 @@
 #include "slepceps.h"
 #include "slepcst.h"
 #include "slepcsvd.h"
-#include "slepcksp.h"
 #include "slepcip.h"
 #include <stdlib.h>
 
