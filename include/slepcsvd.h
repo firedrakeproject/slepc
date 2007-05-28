@@ -88,9 +88,9 @@ EXTERN PetscErrorCode SVDCyclicGetExplicitMatrix(SVD,PetscTruth*);
 EXTERN PetscErrorCode SVDCyclicSetEPS(SVD,EPS);
 EXTERN PetscErrorCode SVDCyclicGetEPS(SVD,EPS*);
 
-EXTERN PetscErrorCode SVDLanczosSetOneSideReorthogonalization(SVD,PetscTruth);
+EXTERN PetscErrorCode SVDLanczosSetOneSide(SVD,PetscTruth);
 
-EXTERN PetscErrorCode SVDTRLanczosSetOneSideReorthogonalization(SVD,PetscTruth);
+EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscTruth);
 
 EXTERN PetscErrorCode SVDDense(int,int,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 

@@ -303,15 +303,15 @@ PetscErrorCode SVDSetFromOptions_LANCZOS(SVD svd)
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(svd->comm,svd->prefix,"LANCZOS Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSideReorthogonalization",PETSC_FALSE,&lanczos->oneside,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",PETSC_FALSE,&lanczos->oneside,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_BEGIN
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDLanczosSetOneSideReorthogonalization_LANCZOS"
-PetscErrorCode SVDLanczosSetOneSideReorthogonalization_LANCZOS(SVD svd,PetscTruth oneside)
+#define __FUNCT__ "SVDLanczosSetOneSide_LANCZOS"
+PetscErrorCode SVDLanczosSetOneSide_LANCZOS(SVD svd,PetscTruth oneside)
 {
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
 
@@ -325,14 +325,14 @@ PetscErrorCode SVDLanczosSetOneSideReorthogonalization_LANCZOS(SVD svd,PetscTrut
 EXTERN_C_BEGIN
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDLanczosSetOneSideReorthogonalization"
-PetscErrorCode SVDLanczosSetOneSideReorthogonalization(SVD svd,PetscTruth oneside)
+#define __FUNCT__ "SVDLanczosSetOneSide"
+PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscTruth oneside)
 {
   PetscErrorCode ierr, (*f)(SVD,PetscTruth);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDLanczosSetOneSideReorthogonalization_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDLanczosSetOneSide_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,oneside);CHKERRQ(ierr);
   }
@@ -368,7 +368,7 @@ PetscErrorCode SVDCreate_LANCZOS(SVD svd)
   svd->ops->setfromoptions = SVDSetFromOptions_LANCZOS;
   svd->ops->view           = SVDView_LANCZOS;
   lanczos->oneside         = PETSC_FALSE;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSideReorthogonalization_C","SVDLanczosSetOneSideReorthogonalization_LANCZOS",SVDLanczosSetOneSideReorthogonalization_LANCZOS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","SVDLanczosSetOneSide_LANCZOS",SVDLanczosSetOneSide_LANCZOS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
