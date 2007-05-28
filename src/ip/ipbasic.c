@@ -100,7 +100,9 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->bilinear_form = IPINNER_HERMITIAN;
   ip->innerproducts = 0;
   ip->matrix        = PETSC_NULL;
-  ip->work          = PETSC_NULL;
+  ip->Bx            = PETSC_NULL;
+  ip->xid           = 0;
+  ip->xstate        = 0;
 
   ip->bops->publish = IPPublish_Petsc;
   ierr = PetscPublishAll(ip);CHKERRQ(ierr);
@@ -389,7 +391,7 @@ PetscErrorCode IPDestroy(IP ip)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
   if (ip->matrix) { ierr = MatDestroy(ip->matrix);CHKERRQ(ierr); }
-  if (ip->work) { ierr = VecDestroy(ip->work);CHKERRQ(ierr); }
+  if (ip->Bx) { ierr = VecDestroy(ip->Bx);CHKERRQ(ierr); }
   if (--ip->refct <= 0) PetscHeaderDestroy(ip);
   PetscFunctionReturn(0);
 }
