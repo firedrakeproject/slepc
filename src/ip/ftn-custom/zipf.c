@@ -20,7 +20,7 @@
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL stcreate_(MPI_Fint *comm,IP *newip,PetscErrorCode *ierr)
+void PETSC_STDCALL ipcreate_(MPI_Fint *comm,IP *newip,PetscErrorCode *ierr)
 {
   *ierr = IPCreate(MPI_Comm_f2c(*(comm)),newip);
 }
