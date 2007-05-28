@@ -24,7 +24,7 @@ extern void PETSC_STDCALL petscinitialize_(CHAR filename PETSC_MIXED_LEN(len),Pe
 EXTERN_C_END
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-extern PetscDLLibraryList DLLibrariesLoaded;
+extern PetscDLLibrary DLLibrariesLoaded;
 #endif
 
 EXTERN_C_BEGIN
