@@ -196,7 +196,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
         ierr = VecPlaceArray( y, blz->v+i*n );CHKERRQ(ierr);
-        ierr = STApplyB( eps->OP, x, y ); CHKERRQ(ierr);
+        ierr = IPApplyMatrix(eps->ip, x, y ); CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);	
       }

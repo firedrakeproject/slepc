@@ -19,8 +19,14 @@ struct _p_IP {
   PetscReal orthog_eta;
   IPBilinearForm bilinear_form;
   Mat matrix;
-  Vec work; /* workspace */
   int innerproducts;
+
+  /*------------------------- Cache Bx product -------------------*/
+  PetscInt       xid;
+  PetscInt       xstate;
+  Vec            Bx;
 };
+
+EXTERN PetscErrorCode IPApplyMatrix_Private(IP,Vec);
 
 #endif

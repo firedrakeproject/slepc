@@ -23,7 +23,7 @@
 
    Level: developer
 
-.seealso: STApplyB()
+.seealso: STApplyTranspose()
 @*/
 PetscErrorCode STApply(ST st,Vec x,Vec y)
 {
@@ -45,63 +45,37 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyB"
+#define __FUNCT__ "STGetBilinearForm"
 /*@
-   STApplyB - Applies the B matrix to a vector.
+   STGetBilinearForm - Returns the matrix used in the bilinear form with a semi-definite generalised problem.
 
-   Collective on ST and Vec
+   Collective on ST and Mat
 
    Input Parameters:
-+  st - the spectral transformation context
--  x - input vector
+.  st - the spectral transformation context
 
    Output Parameter:
-.  y - output vector
+.  B - output matrix
 
    Level: developer
-
-.seealso: STApply()
 @*/
-PetscErrorCode STApplyB(ST st,Vec x,Vec y)
+PetscErrorCode STGetBilinearForm(ST st,Mat *B)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
-  if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
-
-  if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
-
-  if (x->id == st->xid && x->state == st->xstate) {
-    ierr = VecCopy(st->Bx, y);CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-  }
-
-  ierr = PetscLogEventBegin(ST_ApplyB,st,x,y,0);CHKERRQ(ierr);
-  ierr = (*st->ops->applyB)(st,x,y);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(ST_ApplyB,st,x,y,0);CHKERRQ(ierr);
-  
-  st->xid = x->id;
-  st->xstate = x->state;
-  ierr = VecCopy(y,st->Bx);CHKERRQ(ierr);  
+  PetscValidPointer(B,2);
+  ierr = (*st->ops->getbilinearform)(st,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyB_Default"
-PetscErrorCode STApplyB_Default(ST st,Vec x,Vec y)
+#define __FUNCT__ "STGetBilinearForm_Default"
+PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  if( st->B ) {
-    ierr = MatMult( st->B, x, y ); CHKERRQ(ierr);
-  }
-  else {
-    ierr = VecCopy( x, y ); CHKERRQ(ierr);
-  }
+  *B = st->B;
   PetscFunctionReturn(0);
 }
 
@@ -238,9 +212,7 @@ PetscErrorCode STSetUp(ST st)
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); }
-  if (st->Bx) { ierr = VecDestroy(st->Bx);CHKERRQ(ierr); }
-  ierr = MatGetVecs(st->A,&st->w,&st->Bx);CHKERRQ(ierr);
-  st->xid = 0; 
+  ierr = MatGetVecs(st->A,&st->w,PETSC_NULL);CHKERRQ(ierr);
   if (st->ops->setup) {
     ierr = (*st->ops->setup)(st); CHKERRQ(ierr);
   }

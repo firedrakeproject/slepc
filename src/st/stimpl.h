@@ -12,7 +12,7 @@ typedef struct _STOps *STOps;
 struct _STOps {
   int          (*setup)(ST);
   int          (*apply)(ST,Vec,Vec);
-  int          (*applyB)(ST,Vec,Vec);
+  int          (*getbilinearform)(ST,Mat*);
   int          (*applytrans)(ST,Vec,Vec);
   int          (*setshift)(ST,PetscScalar);
   int          (*setfromoptions)(ST);
@@ -40,10 +40,6 @@ struct _p_ST {
   int          applys;
   int          (*checknullspace)(ST,int,const Vec[]);
   
-  /*------------------------- Cache Bx product -------------------*/
-  PetscInt       xid;
-  PetscInt       xstate;
-  Vec            Bx;
 };
 
 EXTERN PetscErrorCode STRegisterAll(char*);
@@ -54,7 +50,7 @@ EXTERN PetscErrorCode STRegister(const char*,const char*,const char*,int(*)(ST))
 #define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,d)
 #endif
 
-EXTERN PetscErrorCode STApplyB_Default(ST,Vec,Vec);
+EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 EXTERN PetscErrorCode STView_Default(ST,PetscViewer);
 EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);

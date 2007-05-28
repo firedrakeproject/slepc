@@ -58,6 +58,14 @@ PetscErrorCode EPSSetUp(EPS eps)
     SETERRQ(0,"Warning: Inconsistent EPS state"); 
   }
   
+  if (eps->ispositive) {
+    ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
+    ierr = IPSetBilinearForm(eps->ip,B,IPINNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = MatDestroy(B);CHKERRQ(ierr);
+  } else {
+    ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
+  }
+  
   /* Create random initial vectors if none are available */
   /* right */
   if (eps->niv == 0) {

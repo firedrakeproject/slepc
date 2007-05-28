@@ -35,7 +35,7 @@ typedef struct _p_EPS* EPS;
 #define EPSPRIMME    "primme"
 
 typedef enum { EPS_HEP=1,  EPS_GHEP,
-               EPS_NHEP,   EPS_GNHEP } EPSProblemType;
+               EPS_NHEP,   EPS_GNHEP, EPS_PGNHEP } EPSProblemType;
 
 typedef enum { EPS_ONE_SIDE, EPS_TWO_SIDE } EPSClass;
 

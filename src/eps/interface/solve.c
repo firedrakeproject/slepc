@@ -213,10 +213,14 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
 @*/
 PetscErrorCode EPSGetOperationCounters(EPS eps,int* ops,int* dots,int* lits)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  STGetOperationCounters(eps->OP,ops,lits);
-  IPGetOperationCounters(eps->ip,dots);
+  ierr = STGetOperationCounters(eps->OP,ops,lits);CHKERRQ(ierr);
+  if (dots) {
+    ierr = IPGetOperationCounters(eps->ip,dots);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1164,9 +1168,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   PetscErrorCode ierr;
   PetscReal      norm;
   PetscTruth     lindep;
-  IPBilinearForm form;
   Vec            w;
-  Mat            B;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -1181,8 +1183,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
   }
 
   /* Force the vector to be in the range of OP for definite generalized problems */
-  ierr = IPGetBilinearForm(eps->ip,&B,&form);CHKERRQ(ierr);
-  if (B && form == IPINNER_HERMITIAN) {
+  if (eps->ispositive) {
     ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
   } else {
     ierr = VecCopy(w,vec);CHKERRQ(ierr);

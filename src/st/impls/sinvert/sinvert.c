@@ -194,16 +194,16 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
-  st->data                = 0;
+  st->data                 = 0;
 
-  st->ops->apply          = STApply_Sinvert;
-  st->ops->applyB         = STApplyB_Default;
-  st->ops->applytrans     = STApplyTranspose_Sinvert;
-  st->ops->postsolve      = STPostSolve_Sinvert;
-  st->ops->backtr         = STBackTransform_Sinvert;
-  st->ops->setup          = STSetUp_Sinvert;
-  st->ops->setshift       = STSetShift_Sinvert;
-  st->ops->view           = STView_Default;
+  st->ops->apply           = STApply_Sinvert;
+  st->ops->getbilinearform = STGetBilinearForm_Default;
+  st->ops->applytrans      = STApplyTranspose_Sinvert;
+  st->ops->postsolve       = STPostSolve_Sinvert;
+  st->ops->backtr          = STBackTransform_Sinvert;
+  st->ops->setup           = STSetUp_Sinvert;
+  st->ops->setshift        = STSetShift_Sinvert;
+  st->ops->view            = STView_Default;
   
   st->checknullspace      = STCheckNullSpace_Default;
 

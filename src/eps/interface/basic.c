@@ -249,6 +249,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->work            = 0;
   eps->isgeneralized   = PETSC_FALSE;
   eps->ishermitian     = PETSC_FALSE;
+  eps->ispositive      = PETSC_FALSE;
   eps->setupcalled     = 0;
   eps->reason          = EPS_CONVERGED_ITERATING;
 

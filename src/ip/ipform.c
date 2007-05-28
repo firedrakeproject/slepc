@@ -36,11 +36,12 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
   }
   if (ip->matrix) {
     ierr = MatDestroy(ip->matrix);CHKERRQ(ierr);
-    ierr = VecDestroy(ip->work);CHKERRQ(ierr);
+    ierr = VecDestroy(ip->Bx);CHKERRQ(ierr);
   }
   ip->matrix = mat;
   ip->bilinear_form = form;
-  if (mat) { ierr = MatGetVecs(mat,&ip->work,PETSC_NULL);CHKERRQ(ierr); }
+  ip->xid = ip->xstate = 0;
+  if (mat) { ierr = MatGetVecs(mat,&ip->Bx,PETSC_NULL);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -71,6 +72,23 @@ PetscErrorCode IPGetBilinearForm(IP ip,Mat* mat,IPBilinearForm* form)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "IPApplyMatrix_Private"
+PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (x->id != ip->xid || x->state != ip->xstate) {
+    ierr = PetscLogEventBegin(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
+    ierr = MatMult(ip->matrix,x,ip->Bx);CHKERRQ(ierr);
+    ip->xid = x->id;
+    ip->xstate = x->state;
+    ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);  
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "IPApplyMatrix"
 /*@
    IPApplyMatrix - Multiplies a vector with the matrix associated to the
@@ -98,12 +116,11 @@ PetscErrorCode IPApplyMatrix(IP ip,Vec x,Vec y)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  ierr = PetscLogEventBegin(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
   if (ip->matrix) {
-    ierr = MatMult(ip->matrix,x,y);CHKERRQ(ierr);
+    ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
+    ierr = VecCopy(ip->Bx,y);CHKERRQ(ierr);
   } else {
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }

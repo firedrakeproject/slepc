@@ -46,8 +46,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroup("-eps_non_hermitian","non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsTruthGroup("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-eps_pos_gen_non_hermitian","semi-definite generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetProblemType(eps,EPS_PGNHEP);CHKERRQ(ierr);}
 
     /*
       Set the type if it was never set.
@@ -407,35 +409,34 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 @*/
 PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 {
-  PetscErrorCode ierr;
-  Mat            A,B;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  if (!A) { SETERRQ(1,"Must call EPSSetOperators() first"); }
 
   switch (type) {
     case EPS_HEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_TRUE;
-      ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
+      eps->ispositive = PETSC_FALSE;
       break;      
     case EPS_NHEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_FALSE;
-      ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
+      eps->ispositive = PETSC_FALSE;
       break;
     case EPS_GHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_TRUE;
-      ierr = IPSetBilinearForm(eps->ip,B,IPINNER_HERMITIAN);CHKERRQ(ierr);
+      eps->ispositive = PETSC_TRUE;
       break;
     case EPS_GNHEP:
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
-      ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
+      eps->ispositive = PETSC_FALSE;
+      break;
+    case EPS_PGNHEP:
+      eps->isgeneralized = PETSC_TRUE;
+      eps->ishermitian = PETSC_FALSE;
+      eps->ispositive = PETSC_TRUE;
       break;
 /*
     case EPS_CSEP: 

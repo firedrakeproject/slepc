@@ -90,13 +90,13 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
-  st->ops->apply       = STApply_Shift;
-  st->ops->applyB      = STApplyB_Default;
-  st->ops->applytrans  = STApplyTranspose_Shift;
-  st->ops->backtr      = STBackTransform_Shift;
-  st->ops->setup       = STSetUp_Shift;
-  st->ops->view        = STView_Shift;
-  st->checknullspace   = 0;
+  st->ops->apply           = STApply_Shift;
+  st->ops->getbilinearform = STGetBilinearForm_Default;
+  st->ops->applytrans      = STApplyTranspose_Shift;
+  st->ops->backtr          = STBackTransform_Shift;
+  st->ops->setup           = STSetUp_Shift;
+  st->ops->view            = STView_Shift;
+  st->checknullspace       = 0;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

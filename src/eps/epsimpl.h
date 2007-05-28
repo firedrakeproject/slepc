@@ -74,6 +74,7 @@ struct _p_EPS {
 
   int        setupcalled;
   PetscTruth isgeneralized,
+             ispositive,
              ishermitian;
   EPSConvergedReason reason;     
 

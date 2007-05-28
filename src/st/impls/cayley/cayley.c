@@ -64,14 +64,19 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STApplyB_Cayley"
-PetscErrorCode STApplyB_Cayley(ST st,Vec x,Vec y)
+#define __FUNCT__ "STBilinearMatMult_Cayley"
+PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
-  PetscScalar    tau = ctx->tau;
+  ST             st;
+  ST_CAYLEY      *ctx;
+  PetscScalar    tau;
   
   PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&st);CHKERRQ(ierr);
+  ctx = (ST_CAYLEY *) st->data;
+  tau = ctx->tau;
+  
   if (st->shift_matrix == STMATMODE_INPLACE) { tau = tau + st->sigma; };
 
   if (st->B) {
@@ -85,6 +90,20 @@ PetscErrorCode STApplyB_Cayley(ST st,Vec x,Vec y)
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
     ierr = VecAXPY(y,tau,x);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STGetBilinearForm_Cayley"
+PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,m;
+
+  PetscFunctionBegin;
+  ierr = MatGetLocalSize(st->B,&n,&m);CHKERRQ(ierr);
+  ierr = MatCreateShell(st->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,B);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 }
 
@@ -355,18 +374,18 @@ PetscErrorCode STCreate_Cayley(ST st)
   PetscFunctionBegin;
   ierr = PetscNew(ST_CAYLEY,&ctx); CHKERRQ(ierr);
   PetscLogObjectMemory(st,sizeof(ST_CAYLEY));
-  st->data                = (void *) ctx;
+  st->data                 = (void *) ctx;
 
-  st->ops->apply          = STApply_Cayley;
-  st->ops->applyB         = STApplyB_Cayley;
-  st->ops->applytrans     = STApplyTranspose_Cayley;
-  st->ops->postsolve      = STPostSolve_Cayley;
-  st->ops->backtr         = STBackTransform_Cayley;
-  st->ops->setfromoptions = STSetFromOptions_Cayley;
-  st->ops->setup          = STSetUp_Cayley;
-  st->ops->setshift       = STSetShift_Cayley;
-  st->ops->destroy        = STDestroy_Cayley;
-  st->ops->view           = STView_Cayley;
+  st->ops->apply           = STApply_Cayley;
+  st->ops->getbilinearform = STGetBilinearForm_Cayley;
+  st->ops->applytrans      = STApplyTranspose_Cayley;
+  st->ops->postsolve       = STPostSolve_Cayley;
+  st->ops->backtr          = STBackTransform_Cayley;
+  st->ops->setfromoptions  = STSetFromOptions_Cayley;
+  st->ops->setup           = STSetUp_Cayley;
+  st->ops->setshift        = STSetShift_Cayley;
+  st->ops->destroy         = STDestroy_Cayley;
+  st->ops->view            = STView_Cayley;
   
   st->checknullspace      = STCheckNullSpace_Default;
 

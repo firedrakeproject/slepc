@@ -63,10 +63,9 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   int         	 n, iparam[11], ipntr[14], ido, info;
   PetscScalar 	 sigmar, *pV, *resid;
   Vec         	 x, y, w = eps->work[0];
-  Mat         	 A,B;
+  Mat         	 A;
   PetscTruth  	 isSinv, isShift, rvec;
   MPI_Fint    	 fcomm;
-  IPBilinearForm form;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
@@ -101,15 +100,14 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
-  ierr = IPGetBilinearForm(eps->ip,&B,&form);CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
 
   if (isSinv) { 
     /* shift-and-invert mode */
     iparam[6] = 3;
-    if (B && form == IPINNER_HERMITIAN) bmat[0] = 'G';
+    if (eps->ispositive) bmat[0] = 'G';
     else bmat[0] = 'I';
-  } else if (isShift && B && form == IPINNER_HERMITIAN) {
+  } else if (isShift && eps->ispositive) {
     /* generalized shift mode with B positive definite */
     iparam[6] = 2;
     bmat[0] = 'G';
@@ -179,7 +177,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 	ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
       } else if (ido == 2) {
         /* Y = B * X */
-	ierr = STApplyB(eps->OP,x,y); CHKERRQ(ierr);
+	ierr = IPApplyMatrix(eps->ip,x,y); CHKERRQ(ierr);
       } else { /* ido == 1 */
         if (iparam[6] == 3 && bmat[0] == 'G') {
           /* Y = OP * X for shift-and-invert with B semi-positive definite */
@@ -188,7 +186,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
           /* X=A*X Y=B^-1*X for shift with B positive definite */
 	  ierr = MatMult(A,x,y);CHKERRQ(ierr);
 	  if (sigmar != 0.0) {
-	    ierr = STApplyB(eps->OP,x,w);CHKERRQ(ierr);
+	    ierr = IPApplyMatrix(eps->ip,x,w);CHKERRQ(ierr);
             ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
 	  }
           ierr = VecCopy(y,x); CHKERRQ(ierr);

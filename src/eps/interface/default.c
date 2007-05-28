@@ -109,19 +109,15 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
-  IPBilinearForm form;
   PetscReal      norm;
   Vec            w;
-  Mat            B;
   
   PetscFunctionBegin;
   if (eps->ishermitian) {
     ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  
-  ierr = IPGetBilinearForm(eps->ip,&B,&form);CHKERRQ(ierr);
-  if (B && form == IPINNER_HERMITIAN) {
+  if (eps->ispositive) {
     ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   }
 
@@ -141,7 +137,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* AV = V * Z */
   for (i=0;i<eps->nconv;i++) {
-    if (B && form == IPINNER_HERMITIAN) {
+    if (eps->ispositive) {
       /* Purify eigenvectors */
       ierr = VecSet(w,0.0);CHKERRQ(ierr); 
       ierr = VecMAXPY(w,nv,Z+nv*i,eps->V);CHKERRQ(ierr);
@@ -174,7 +170,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
-  if (B && form == IPINNER_HERMITIAN) {
+  if (eps->ispositive) {
     ierr = VecDestroy(w);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;

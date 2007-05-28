@@ -6,7 +6,7 @@
 #include "src/st/stimpl.h"            /*I "slepcst.h" I*/
 
 PetscCookie ST_COOKIE = 0;
-PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyB = 0, ST_ApplyTranspose = 0;
+PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "STInitializePackage"
@@ -39,7 +39,6 @@ PetscErrorCode STInitializePackage(char *path) {
   /* Register Events */
   ierr = PetscLogEventRegister(&ST_SetUp,"STSetUp",ST_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_Apply,"STApply",ST_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&ST_ApplyB,"STApplyB",ST_COOKIE);CHKERRQ(ierr);
   ierr = PetscLogEventRegister(&ST_ApplyTranspose,"STApplyTranspose",ST_COOKIE); CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
@@ -88,7 +87,6 @@ PetscErrorCode STDestroy(ST st)
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPDestroy(st->ksp);CHKERRQ(ierr); } 
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); } 
-  if (st->Bx) { ierr = VecDestroy(st->Bx);CHKERRQ(ierr); } 
   if (st->shift_matrix != STMATMODE_INPLACE && st->mat) { 
     ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
   }

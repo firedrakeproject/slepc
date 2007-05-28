@@ -228,15 +228,15 @@ PetscErrorCode STCreate_Fold(ST st)
   PetscLogObjectMemory(st,sizeof(ST_FOLD));
   st->data		  = (void *) ctx;
 
-  st->ops->apply	  = STApply_Fold;
-  st->ops->applyB	  = STApplyB_Default;
-  st->ops->applytrans     = STApplyTranspose_Fold;
-  st->ops->backtr	  = STBackTransform_Fold;
-  st->ops->setup	  = STSetUp_Fold;
-  st->ops->view 	  = STView_Fold;
-  st->ops->setfromoptions = STSetFromOptions_Fold;
-  st->ops->destroy	  = STDestroy_Fold;
-  st->checknullspace	  = 0;
+  st->ops->apply	   = STApply_Fold;
+  st->ops->getbilinearform = STGetBilinearForm_Default;
+  st->ops->applytrans      = STApplyTranspose_Fold;
+  st->ops->backtr	   = STBackTransform_Fold;
+  st->ops->setup	   = STSetUp_Fold;
+  st->ops->view 	   = STView_Fold;
+  st->ops->setfromoptions  = STSetFromOptions_Fold;
+  st->ops->destroy	   = STDestroy_Fold;
+  st->checknullspace	   = 0;
   
   ctx->left            = PETSC_FALSE;
   

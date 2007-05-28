@@ -29,7 +29,7 @@ EXTERN PetscErrorCode STSetFromOptions(ST);
 EXTERN PetscErrorCode STView(ST,PetscViewer);
 
 EXTERN PetscErrorCode STApply(ST,Vec,Vec);
-EXTERN PetscErrorCode STApplyB(ST,Vec,Vec);
+EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 EXTERN PetscErrorCode STPostSolve(ST);
