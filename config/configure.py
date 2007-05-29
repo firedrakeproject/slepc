@@ -90,6 +90,7 @@ for i in sys.argv[1:]:
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
+    print '  --prefix=<dir>                   : Specifiy location to install SLEPc (eg. /usr/local)'
     print 'ARPACK:'
     print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
     print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
