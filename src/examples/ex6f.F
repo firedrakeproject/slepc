@@ -151,7 +151,9 @@
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 
+#if defined(PETSC_USE_COMPLEX)
  999  continue
+#endif
       call SlepcFinalize(ierr)
       end
 

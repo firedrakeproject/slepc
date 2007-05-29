@@ -149,7 +149,7 @@
         if (rank .eq. 0) then
           write(*,*) '         k          ||Ax-kx||/||kx||'
           write(*,*) ' ----------------- ------------------'
-	endif
+        endif
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
@@ -159,13 +159,13 @@
           call EPSComputeRelativeError(eps,i,error,ierr)
           if (rank .eq. 0) then
             write(*,160) PetscRealPart(kr), error
-	  endif
+          endif
  160      format (1P,'   ',E12.4,'       ',E12.4)
 
         enddo
         if (rank .eq. 0) then
           write(*,*)
-	endif
+        endif
       endif
 
 !     ** Free work space
