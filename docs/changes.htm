@@ -198,12 +198,55 @@
       </font>
     </td>
   </tr>
+  <tr valign="middle" bgcolor="#fff0d0"> 
+    <td width="138" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      2.3.3 
+      </font>
+    </td>
+    <td width="175" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      2.3.3
+      </font>
+    </td>
+    <td width="75" height="21" align="center"> * </td>
+    <td width="146" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      Jun 2007
+      </font>
+    </td>
+  </tr>
 </table>
 
 <p>&nbsp;</p>
 </tr></td>
 
 <tr><td>
+
+<p>
+<font size="3" face="Arial, Helvetica, sans-serif"><b>
+Changes in Version 2.3.3</font></b>
+</p>
+
+<ul>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    A new solver class, SVD, has been introduced for computing the singular
+    value decomposition of a rectangular matrix. The structure of this new
+    type is very similar to that of EPS, and it simplifies the computation
+    of singular values and vectors. A complete chapter in the users manual
+    is devoted to SVD.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Better support for generalized problems. Eigenvector purification has
+    been added to improve accuracy in the case of generalized eigenproblems
+    with singular B. Also, a new problem type (EPS_PGNHEP) has been added
+    for better addressing generalized problems in which A is non-Hermitian
+    but B is Hermitian and positive definite.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Now 'make install' is available thus facilitating system-wide installation.
+    </font></li>
+</ul>
 
 <p>
 <font size="3" face="Arial, Helvetica, sans-serif"><b>

@@ -90,6 +90,31 @@ reading, one may skip the "advanced usage" sections. </li>
 </font>
 </p>
 
+<p>&nbsp;</p>
+
+<p>
+<b><font size="3" face="Arial, Helvetica, sans-serif">
+When running a SLEPc application I get the message 'Warning: KSP did not converge'
+</font></b>
+</p>
+
+<p>
+<font size="2" face="Arial, Helvetica, sans-serif">
+In many situations, SLEPc uses a KSP linear solver internally during the 
+computation of eigenvalues. This message means that an <i>iterative</i> method is being
+used for solving linear systems and that one of these systems failed to converge.
+This will normally affect the eigenvalue computation, preventing the obtention
+of a correct solution.
+To avoid this situation, one should use a <i>direct</i> solver if the message appears.
+For example:
+<blockquote>
+<code>
+program -st_type sinvert -st_ksp_type preonly -st_pc_type lu
+</code>
+</blockquote>
+</font>
+</p>
+
         </div></td>
   </tr>
 </table>
