@@ -323,7 +323,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,int nev,int ncv)
     
     Level: intermediate
 
-.seealso: EPSGetWhichEigenpairs(), EPSSortEigenvalues()
+.seealso: EPSGetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich
 @*/
 PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
@@ -363,7 +363,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 
     Level: intermediate
 
-.seealso: EPSSetWhichEigenpairs()
+.seealso: EPSSetWhichEigenpairs(), EPSWhich
 @*/
 PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which) 
 {
@@ -405,7 +405,7 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 
    Level: beginner
 
-.seealso: EPSSetOperators(), EPSSetType(), EPSProblemType
+.seealso: EPSSetOperators(), EPSSetType(), EPSGetProblemType(), EPSProblemType
 @*/
 PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 {
@@ -473,7 +473,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 
    Level: intermediate
 
-.seealso: EPSSetProblemType()
+.seealso: EPSSetProblemType(), EPSProblemType
 @*/
 PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 {
@@ -505,10 +505,10 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
    eigenvalues and (right) eigenvectors, whereas two-sided eigensolvers compute
    left eigenvectors as well.
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: EPSGetLeftVector(), EPSComputeRelativeErrorLeft(), EPSSetLeftInitialVector(),
-   EPSClass
+   EPSGetClass(), EPSClass
 @*/
 PetscErrorCode EPSSetClass(EPS eps,EPSClass cl)
 {
@@ -541,7 +541,7 @@ PetscErrorCode EPSSetClass(EPS eps,EPSClass cl)
 
    Level: intermediate
 
-.seealso: EPSSetClass()
+.seealso: EPSSetClass(), EPSClass
 @*/
 PetscErrorCode EPSGetClass(EPS eps,EPSClass *cl)
 {

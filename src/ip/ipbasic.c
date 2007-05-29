@@ -239,7 +239,8 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
    Level: advanced
 
-.seealso: IPOrthogonalize(), IPGetOrthogonalization()
+.seealso: IPOrthogonalize(), IPGetOrthogonalization(), IPOrthogonalizationType,
+          IPOrthogonalizationRefinementType
 @*/
 PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrthogonalizationRefinementType refinement, PetscReal eta)
 {
@@ -289,7 +290,8 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
 
    Level: advanced
 
-.seealso: IPOrthogonalize(), IPSetOrthogonalization()
+.seealso: IPOrthogonalize(), IPSetOrthogonalization(), IPOrthogonalizationType,
+          IPOrthogonalizationRefinementType
 @*/
 PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement, PetscReal *eta)
 {

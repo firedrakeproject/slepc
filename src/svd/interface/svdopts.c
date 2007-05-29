@@ -34,7 +34,8 @@
    
    Level: advanced
    
-   .seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(), SVDGetOperator()
+   .seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(), 
+   SVDGetOperator(), SVDTransposeMode
 @*/
 PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 {
@@ -72,7 +73,8 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
    
    Level: advanced
    
-   .seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(), SVDGetOperator()
+   .seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(), 
+   SVDGetOperator(), SVDTransposeMode
 @*/
 PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
 {
@@ -268,7 +270,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,int *nsv,int *ncv)
     
     Level: intermediate
 
-.seealso: SVDGetWhichSingularTriplets()
+.seealso: SVDGetWhichSingularTriplets(), SVDWhich
 @*/
 PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 {
@@ -304,7 +306,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 
     Level: intermediate
 
-.seealso: SVDSetWhichSingularTriplets()
+.seealso: SVDSetWhichSingularTriplets(), SVDWhich
 @*/
 PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which) 
 {

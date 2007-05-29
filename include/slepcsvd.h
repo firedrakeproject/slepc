@@ -19,6 +19,13 @@ extern PetscCookie SVD_COOKIE;
 S*/
 typedef struct _p_SVD* SVD;
 
+/*E
+    SVDType - String with the name of a SLEPc singular value solver
+
+   Level: beginner
+
+.seealso: SVDSetType(), SVD
+E*/
 #define SVDType const char*
 #define SVDCROSS       "cross"
 #define SVDCYCLIC      "cyclic"
@@ -26,10 +33,33 @@ typedef struct _p_SVD* SVD;
 #define SVDLANCZOS     "lanczos"
 #define SVDTRLANCZOS   "trlanczos"
 
+/*E
+    SVDTransposeMode - determines how to handle the transpose of the matrix
+
+    Level: advanced
+
+.seealso: SVDSetTransposeMode(), SVDGetTransposeMode()
+E*/
 typedef enum { SVD_TRANSPOSE_EXPLICIT, SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode;
 
+/*E
+    SVDWhich - determines whether largest or smallest singular triplets
+    are to be computed
+
+    Level: intermediate
+
+.seealso: SVDSetWhichSingularTriplets(), SVDGetWhichSingularTriplets()
+E*/
 typedef enum { SVD_LARGEST, SVD_SMALLEST } SVDWhich;
 
+/*E
+    SVDConvergedReason - reason a singular value solver was said to 
+         have converged or diverged
+
+   Level: beginner
+
+.seealso: SVDSolve(), SVDGetConvergedReason(), SVDSetTolerances()
+E*/
 typedef enum {/* converged */
               SVD_CONVERGED_TOL                =  2,
               /* diverged */

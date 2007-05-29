@@ -439,7 +439,7 @@ EXTERN_C_END
    
    Level: advanced
 
-.seealso: EPSGetShiftType(), STSetShift()
+.seealso: EPSPowerGetShiftType(), STSetShift(), EPSPowerShiftType
 @*/
 PetscErrorCode EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
 {
@@ -482,7 +482,7 @@ EXTERN_C_END
 
    Level: advanced
 
-.seealso: EPSSetShiftType()
+.seealso: EPSPowerSetShiftType(), EPSPowerShiftType
 @*/
 PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
 {

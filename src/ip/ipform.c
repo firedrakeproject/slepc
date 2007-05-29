@@ -22,7 +22,8 @@
 
    Level: developer
 
-.seealso: IPGetBilinearForm(), IPInnerProduct(), IPNorm(), EPSSetProblemType() 
+.seealso: IPGetBilinearForm(), IPInnerProduct(), IPNorm(), EPSSetProblemType(),
+          IPBilinearForm
 @*/
 PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
 {
@@ -60,7 +61,8 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
 
    Level: developer
 
-.seealso: IPSetBilinearForm(), IPInnerProduct(), IPNorm(), EPSSetProblemType()
+.seealso: IPSetBilinearForm(), IPInnerProduct(), IPNorm(), EPSSetProblemType(),
+          IPBilinearForm
 @*/
 PetscErrorCode IPGetBilinearForm(IP ip,Mat* mat,IPBilinearForm* form)
 {

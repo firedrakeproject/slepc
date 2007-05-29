@@ -118,7 +118,7 @@ static PetscErrorCode STPublish_Petsc(PetscObject object)
 
    Level: beginner
 
-.seealso: STSetUp(), STApply(), STDestroy()
+.seealso: STSetUp(), STApply(), STDestroy(), ST
 @*/
 PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 {

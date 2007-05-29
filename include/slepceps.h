@@ -20,6 +20,13 @@ extern PetscCookie EPS_COOKIE;
 S*/
 typedef struct _p_EPS* EPS;
 
+/*E
+    EPSType - String with the name of a SLEPc eigensolver
+
+   Level: beginner
+
+.seealso: EPSSetType(), EPS
+E*/
 #define EPSType const char*
 #define EPSPOWER     "power"
 #define EPSSUBSPACE  "subspace"
@@ -34,11 +41,32 @@ typedef struct _p_EPS* EPS;
 #define EPSBLOPEX    "blopex"
 #define EPSPRIMME    "primme"
 
+/*E
+    EPSProblemType - determines the type of eigenvalue problem
+
+    Level: beginner
+
+.seealso: EPSSetProblemType(), EPSGetProblemType()
+E*/
 typedef enum { EPS_HEP=1,  EPS_GHEP,
                EPS_NHEP,   EPS_GNHEP, EPS_PGNHEP } EPSProblemType;
 
+/*E
+    EPSClass - determines if the eigensolver is one- or two-sided
+
+    Level: intermediate
+
+.seealso: EPSSetClass(), EPSGetClass()
+E*/
 typedef enum { EPS_ONE_SIDE, EPS_TWO_SIDE } EPSClass;
 
+/*E
+    EPSWhich - determines which part of the spectrum is requested
+
+    Level: intermediate
+
+.seealso: EPSSetWhichEigenpairs(), EPSGetWhichEigenpairs()
+E*/
 typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
                EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
@@ -111,6 +139,14 @@ EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);
 EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);
 EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
 
+/*E
+    EPSConvergedReason - reason an eigensolver was said to 
+         have converged or diverged
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSGetConvergedReason(), EPSSetTolerances()
+E*/
 typedef enum {/* converged */
               EPS_CONVERGED_TOL                =  2,
               /* diverged */
@@ -136,6 +172,13 @@ EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,int,Vec);
 
 /* --------- options specific to particular eigensolvers -------- */
 
+/*E
+    EPSPowerShiftType - determines the type of shift used in the Power iteration
+
+    Level: advanced
+
+.seealso: EPSPowerSetShiftType(), EPSPowerGetShiftType()
+E*/
 typedef enum { EPSPOWER_SHIFT_CONSTANT, EPSPOWER_SHIFT_RAYLEIGH,
                EPSPOWER_SHIFT_WILKINSON } EPSPowerShiftType;
 
@@ -145,6 +188,14 @@ EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
 EXTERN PetscErrorCode EPSArnoldiSetDelayed(EPS,PetscTruth);
 EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscTruth*);
 
+/*E
+    EPSLanczosReorthogType - determines the type of reorthogonalization
+    used in the Lanczos method
+
+    Level: advanced
+
+.seealso: EPSLanczosSetReorthog(), EPSLanczosGetReorthog()
+E*/
 typedef enum { EPSLANCZOS_REORTHOG_LOCAL, 
                EPSLANCZOS_REORTHOG_FULL,
                EPSLANCZOS_REORTHOG_SELECTIVE,
@@ -159,6 +210,13 @@ EXTERN PetscErrorCode EPSBlzpackSetBlockSize(EPS,int);
 EXTERN PetscErrorCode EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);
 EXTERN PetscErrorCode EPSBlzpackSetNSteps(EPS,int);
 
+/*E
+    EPSPRIMMEMethod - determines the method selected in the PRIMME library
+
+    Level: advanced
+
+.seealso: EPSPRIMMESetMethod(), EPSPRIMMEGetMethod()
+E*/
 typedef enum {
   EPSPRIMME_DYNAMIC,
   EPSPRIMME_DEFAULT_MIN_TIME,
@@ -177,6 +235,14 @@ typedef enum {
   EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 } EPSPRIMMEMethod;
 
+/*E
+    EPSPRIMMEPrecond - determines the type of preconditioning
+    used in the PRIMME library
+
+    Level: advanced
+
+.seealso: EPSPRIMMESetPrecond(), EPSPRIMMEGetPrecond()
+E*/
 typedef enum {
   EPSPRIMME_NONE,
   EPSPRIMME_DIAGONAL

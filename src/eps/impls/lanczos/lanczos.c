@@ -673,7 +673,7 @@ EXTERN_C_END
    
    Level: advanced
 
-.seealso: EPSLanczosGetReorthog()
+.seealso: EPSLanczosGetReorthog(), EPSLanczosReorthogType
 @*/
 PetscErrorCode EPSLanczosSetReorthog(EPS eps,EPSLanczosReorthogType reorthog)
 {
@@ -716,7 +716,7 @@ EXTERN_C_END
 
    Level: advanced
 
-.seealso: EPSLanczosSetReorthog()
+.seealso: EPSLanczosSetReorthog(), EPSLanczosReorthogType
 @*/
 PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
 {

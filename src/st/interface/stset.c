@@ -7,7 +7,7 @@
 #include "petscsys.h"
 
 /*
-   Contains the list of registered EPS routines
+   Contains the list of registered ST routines
 */
 PetscFList STList = 0;
 
@@ -250,7 +250,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 
    Level: intermediate
 
-.seealso: STSetOperators(), STSetMatStructure(), STGetMatMode()
+.seealso: STSetOperators(), STSetMatStructure(), STGetMatMode(), STMatMode
 @*/
 PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 {
@@ -276,7 +276,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 
    Level: intermediate
 
-.seealso: STSetMatMode()
+.seealso: STSetMatMode(), STMatMode
 @*/
 PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 {

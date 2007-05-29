@@ -480,7 +480,8 @@ EXTERN_C_END
    If not set, the method defaults to EPSPRIMME_DYNAMIC.
 
    Level: advanced
-.seealso: EPSPRIMMEGetMethod()  
+
+.seealso: EPSPRIMMEGetMethod(), EPSPRIMMEMethod
 @*/
 PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method)
 {
@@ -533,7 +534,8 @@ EXTERN_C_END
     EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
 
     Level: advanced
-.seealso: EPSPRIMMESetMethod()
+
+.seealso: EPSPRIMMESetMethod(), EPSPRIMMEMethod
 @*/
 PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
 {
@@ -587,7 +589,8 @@ EXTERN_C_END
     The default is no preconditioning.
     
     Level: advanced
-.seealso: EPSPRIMMEGetPrecond()
+
+.seealso: EPSPRIMMEGetPrecond(), EPSPRIMMEPrecond
 @*/
 PetscErrorCode EPSPRIMMESetPrecond(EPS eps, EPSPRIMMEPrecond precond)
 {
@@ -637,7 +640,8 @@ EXTERN_C_END
    (diagonal preconditioning)
 
     Level: advanced
-.seealso: EPSPRIMMESetPrecond()
+
+.seealso: EPSPRIMMESetPrecond(), EPSPRIMMEPrecond
 @*/
 PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, EPSPRIMMEPrecond *precond)
 {

@@ -9,14 +9,29 @@ PETSC_EXTERN_CXX_BEGIN
 
 extern PetscCookie ST_COOKIE;
 
+/*S
+     ST - Abstract SLEPc object that manages spectral transformations.
+     This object is accessed only in advanced applications.
+
+   Level: beginner
+
+.seealso:  STCreate(), EPS
+S*/
 typedef struct _p_ST* ST;
 
+/*E
+    STType - String with the name of a SLEPc spectral transformation
+
+   Level: beginner
+
+.seealso: STSetType(), ST
+E*/
+#define STType const char*
 #define STSHELL     "shell"
 #define STSHIFT     "shift"
 #define STSINV      "sinvert"
 #define STCAYLEY    "cayley"
 #define STFOLD      "fold"
-#define STType const char*
 
 EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);
 EXTERN PetscErrorCode STDestroy(ST);
@@ -53,6 +68,14 @@ EXTERN PetscErrorCode STCheckNullSpace(ST,int,const Vec[]);
 EXTERN PetscErrorCode STGetOperationCounters(ST,int*,int*);
 EXTERN PetscErrorCode STResetOperationCounters(ST);
 
+/*E
+    STMatMode - determines how to handle the coefficient matrix associated
+    to the spectral transformation
+
+    Level: intermediate
+
+.seealso: STSetMatMode(), STGetMatMode()
+E*/
 typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
                STMATMODE_SHELL } STMatMode;
 EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
