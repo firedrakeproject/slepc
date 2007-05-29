@@ -50,6 +50,7 @@ trlanlibs = []
 haveprimme = 0
 primmedir = ''
 primmelibs = []
+prefixdir = ''
 
 for i in sys.argv[1:]:
   if   i.startswith('--with-arpack-dir='):
@@ -84,6 +85,8 @@ for i in sys.argv[1:]:
     haveprimme = 1
   elif i.startswith('--with-primme'):
     haveprimme = not i.endswith('=0')
+  elif i.startswith('--prefix='):
+    prefixdir = i.split('=')[1]
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
@@ -123,7 +126,7 @@ if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bma
 
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
-if petscconf.VERSION < '2.3.1':
+if petscconf.VERSION < '2.3.3':
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
 if not petscconf.PRECISION in ['double','single','matsingle']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
@@ -137,6 +140,9 @@ if not os.path.exists(archdir):
     sys.exit('ERROR: cannot create architecture directory ' + archdir)
 try:
   slepcconf = open(os.sep.join([archdir,'slepcconf']),'w')
+  if not prefixdir:
+    prefixdir = slepcdir
+  slepcconf.write('SLEPC_INSTALL_DIR =' + prefixdir +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + archdir)
 
@@ -151,7 +157,7 @@ log.Write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
-if petscconf.VERSION > '2.3.2':
+if petscconf.VERSION > '2.3.3':
   log.Println('WARNING: PETSc version '+petscconf.VERSION+' is newer than SLEPc version')
 if petscconf.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
@@ -178,10 +184,14 @@ log.Println('='*80)
 log.Println('SLEPc Configuration')
 log.Println('='*80)
 log.Println('')
-log.Println('SLEPc directory:')
+log.Println('SLEPc source directory:')
 log.Println(' '+slepcdir)
-log.Println('PETSc directory:')
+log.Println('SLEPc install directory:')
+log.Println(' '+prefixdir)  
+log.Println('PETSc source directory:')
 log.Println(' '+petscdir)
+log.Println('PETSc install directory:')
+log.Println(' '+petscconf.INSTALL_DIR)  
 log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if petscconf.MPIUNI:
   log.Println('  Uniprocessor version without MPI')
