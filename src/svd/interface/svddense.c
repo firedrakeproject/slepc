@@ -56,7 +56,7 @@ PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar*
   LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,&qwork,&lwork,iwork,&info,1);
 #endif 
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
-  lwork = PetscRealPart(qwork);
+  lwork = (int)PetscRealPart(qwork);
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   
   /* computation */  
