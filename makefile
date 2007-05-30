@@ -177,15 +177,22 @@ install:
           if [ ! -d ${SLEPC_INSTALL_DIR} ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR} ; \
           fi;\
-          cp -fr include ${SLEPC_INSTALL_DIR};\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/include ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include ; \
+          fi;\
+          cp -f include/*.h ${SLEPC_INSTALL_DIR}/include;\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude ; \
+          fi;\
+          cp -f include/finclude/*.h ${SLEPC_INSTALL_DIR}/include/finclude;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/bmake ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/bmake ; \
           fi;\
+          cp -f bmake/slepc_common* ${SLEPC_INSTALL_DIR}/bmake;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/bmake/${PETSC_ARCH} ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/bmake/${PETSC_ARCH} ; \
           fi;\
-          cp -fr bmake/slepc_common* ${SLEPC_INSTALL_DIR}/bmake;\
-          cp -fr bmake/${PETSC_ARCH}/slepcconf ${SLEPC_INSTALL_DIR}/bmake/${PETSC_ARCH};\
+          cp -f bmake/${PETSC_ARCH}/slepcconf ${SLEPC_INSTALL_DIR}/bmake/${PETSC_ARCH};\
           if [ ! -d ${SLEPC_INSTALL_DIR}/lib ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
           fi;\
@@ -193,7 +200,7 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH} ; \
           fi;\
           if [ -d lib/${PETSC_ARCH} ]; then \
-            cp -fr lib/${PETSC_ARCH}/* ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH};\
+            cp -f lib/${PETSC_ARCH}/* ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH};\
             ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH}/*.a ;\
             ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
           fi;\
