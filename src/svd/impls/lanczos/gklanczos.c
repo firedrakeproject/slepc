@@ -307,8 +307,8 @@ PetscErrorCode SVDSetFromOptions_LANCZOS(SVD svd)
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_BEGIN
 
+EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDLanczosSetOneSide_LANCZOS"
 PetscErrorCode SVDLanczosSetOneSide_LANCZOS(SVD svd,PetscTruth oneside)
@@ -322,7 +322,7 @@ PetscErrorCode SVDLanczosSetOneSide_LANCZOS(SVD svd,PetscTruth oneside)
   }
   PetscFunctionReturn(0);
 }
-EXTERN_C_BEGIN
+EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDLanczosSetOneSide"
