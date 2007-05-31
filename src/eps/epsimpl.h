@@ -46,23 +46,20 @@ struct _p_EPS {
              ncv,               /* number of basis vectors */
 	     nv,                /* number of available basis vectors (<= ncv) */
              allocated_ncv,     /* number of basis vectors allocated */
-             niv,               /* number of initial vectors */
-             nliv,              /* number of left initial vectors */
              nds;               /* number of basis vectors of deflation space */
   PetscReal  tol;               /* tolerance */
   EPSWhich   which;             /* which part of the spectrum to be sought */
-  PetscTruth evecsavailable,    /* computed eigenvectors */
-             useriv, userliv;   /* initial vectors provided by the user */
+  PetscTruth evecsavailable;    /* computed eigenvectors */
   EPSProblemType problem_type;  /* which kind of problem to be solved */
   EPSClass   solverclass;       /* whether the selected solver is one- or two-sided */
 
   /*------------------------- Working data --------------------------*/
-  Vec         *V,               /* set of basis vectors */
+  Vec         vec_initial,      /* initial vector */
+              vec_initial_left, /* left initial vector for two-sided solvers */
+              *V,               /* set of basis vectors */
               *AV,              /* computed eigenvectors */
               *W,               /* set of left basis vectors */
               *AW,              /* computed left eigenvectors */
-              *IV,              /* initial vectors */
-              *LIV,             /* left initial vectors */
               *DS,              /* deflation space */
               *DSV;             /* deflation space and basis vectors*/
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
