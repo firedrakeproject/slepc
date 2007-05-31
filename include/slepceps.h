@@ -127,12 +127,9 @@ EXTERN PetscErrorCode EPSGetIterationNumber(EPS,int*);
 EXTERN PetscErrorCode EPSGetOperationCounters(EPS,int*,int*,int*);
 
 EXTERN PetscErrorCode EPSSetInitialVector(EPS,Vec);
-EXTERN PetscErrorCode EPSGetInitialVector(EPS,int,Vec*);
+EXTERN PetscErrorCode EPSGetInitialVector(EPS,Vec*);
 EXTERN PetscErrorCode EPSSetLeftInitialVector(EPS,Vec);
-EXTERN PetscErrorCode EPSGetLeftInitialVector(EPS,int,Vec*);
-EXTERN PetscErrorCode EPSClearInitialVectors(EPS);
-EXTERN PetscErrorCode EPSGetNumberInitialVectors(EPS,int*,int*);
-
+EXTERN PetscErrorCode EPSGetLeftInitialVector(EPS,Vec*);
 EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
