@@ -336,7 +336,10 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
     case EPS_SMALLEST_REAL:
     case EPS_LARGEST_IMAGINARY:
     case EPS_SMALLEST_IMAGINARY:
-      eps->which = which;
+      if (eps->which != which) {
+        eps->setupcalled = 0;
+        eps->which = which;
+      }
       break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
