@@ -86,8 +86,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   MPI_Comm_rank(eps->comm,&procID);
   
   /* Check some constraints and set some default values */ 
-  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->IV[0],&n);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
 
   if (!eps->max_it) eps->max_it = PetscMax(1000,N);
   ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
@@ -136,7 +136,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   if (primme->correctionParams.precondition) {
     /* Calc reciprocal A diagonal */
-    ierr = VecDuplicate(eps->IV[0], &ops->w); CHKERRQ(ierr);
+    ierr = VecDuplicate(eps->vec_initial, &ops->w); CHKERRQ(ierr);
     ierr = MatGetDiagonal(ops->A, ops->w); CHKERRQ(ierr);
     ierr = VecReciprocal(ops->w); CHKERRQ(ierr);
     primme->preconditioner = PETSC_NULL;
@@ -169,8 +169,8 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ops->primme.initSize = 1;
   ops->primme.iseed[0] = -1;
 
-  /* Copy the initial vector to V[0] vector */
-  ierr = VecCopy(eps->IV[0], eps->V[0]); CHKERRQ(ierr);
+  /* Copy vec_initial to V[0] vector */
+  ierr = VecCopy(eps->vec_initial, eps->V[0]); CHKERRQ(ierr);
  
   /* Call PRIMME solver */
   ierr = VecGetArray(eps->V[0], &a); CHKERRQ(ierr);

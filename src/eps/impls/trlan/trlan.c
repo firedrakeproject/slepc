@@ -24,7 +24,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->IV[0],&n);CHKERRQ(ierr); 
+  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr); 
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
@@ -38,7 +38,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"Requested method is not available for generalized problems");
 
   tr->restart = 0;
-  ierr = VecGetLocalSize(eps->IV[0],&n); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
   tr->maxlan = eps->nev+PetscMin(eps->nev,6);
   if (tr->maxlan+1-eps->ncv<=0) tr->lwork = tr->maxlan*(tr->maxlan+10);
   else tr->lwork = n*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10);
@@ -85,7 +85,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   
   PetscFunctionBegin;
 
-  ierr = VecGetLocalSize(eps->IV[0],&nn); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
   n = nn;
   
   if (eps->which==EPS_LARGEST_REAL) lohi = 1;

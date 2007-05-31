@@ -100,7 +100,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = KSPSetOperators(blopex->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(blopex->ksp);CHKERRQ(ierr);
 
-  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   eps->ncv = eps->nev = PetscMin(eps->nev,N);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
   
@@ -109,7 +109,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   
   LOBPCG_InitRandomContext();
   PETSCSetupInterpreter(&blopex->ii);
-  blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->IV[0]);
+  blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->vec_initial);
   mv_MultiVectorSetRandom(blopex->eigenvectors,1234);
   
   blopex->blap_fn.dpotrf = PETSC_dpotrf_interface;
