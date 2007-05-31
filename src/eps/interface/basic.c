@@ -1,6 +1,15 @@
 /*
      The basic EPS routines, Create, View, etc. are here.
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
+
 #include "src/eps/epsimpl.h"      /*I "slepceps.h" I*/
 
 PetscFList EPSList = 0;

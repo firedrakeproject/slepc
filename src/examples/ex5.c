@@ -1,3 +1,12 @@
+/*
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*/
 
 static char help[] = "Eigenvalue problem associated with a Markov model of a random walk on a triangular grid. "
   "It is a standard nonsymmetric eigenproblem with real eigenvalues and the rightmost eigenvalue is known to be 1.\n"

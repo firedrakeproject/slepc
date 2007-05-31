@@ -1,3 +1,12 @@
+/*
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*/
 
 static char help[] = "Estimates the 2-norm condition number of a matrix A, that is, the ratio of the largest to the smallest singular values of A. "
   "The matrix is a Grcar matrix.\n\n"

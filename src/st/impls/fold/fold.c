@@ -1,7 +1,16 @@
 /*
     Folding spectral transformation, applies (A + sigma I)^2 as operator, or 
     inv(B)(A + sigma I)^2 for generalized problems
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
+
 #include "src/st/stimpl.h"          /*I "slepcst.h" I*/
 
 typedef struct {

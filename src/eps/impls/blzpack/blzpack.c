@@ -1,7 +1,15 @@
-
-/*                       
+/*
        This file implements a wrapper to the BLZPACK package
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
+
 #include "src/eps/impls/blzpack/blzpackp.h"   /*I "slepceps.h" I*/
 
 const char* blzpack_error[33] = {

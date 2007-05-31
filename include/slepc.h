@@ -2,7 +2,16 @@
    This is the main SLEPc include file (for C and C++).  It is included
    by all other SLEPc include files, so it almost never has to be 
    specifically included.
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
+
 #if !defined(__SLEPC_H)
 #define __SLEPC_H
 

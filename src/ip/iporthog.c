@@ -1,7 +1,16 @@
 /*
      Routines related to orthogonalization.
      See the SLEPc Technical Report STR-1 for a detailed explanation.
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
+
 #include "src/ip/ipimpl.h"      /*I "slepcip.h" I*/
 #include "slepcblaslapack.h"
 

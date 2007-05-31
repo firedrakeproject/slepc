@@ -3,7 +3,16 @@
      All routines are simply wrappers to LAPACK routines. Matrices passed in
      as arguments are assumed to be square matrices stored in column-major 
      format with a leading dimension equal to the number of rows.
+
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
+
 #include "src/eps/epsimpl.h" /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 

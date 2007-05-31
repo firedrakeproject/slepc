@@ -1,3 +1,13 @@
+/*
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*/
+
 static char help[] = "Illustrates the use of shell spectral transformations. "
   "The problem to be solved is the same as ex1.c and"
   "corresponds to the Laplacian operator in 1 dimension.\n\n"

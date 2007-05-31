@@ -1,3 +1,12 @@
+/*
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SLEPc - Scalable Library for Eigenvalue Problem Computations
+      Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+
+      This file is part of SLEPc. See the README file for conditions of use
+      and additional information.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*/
 
 static char help[] = "Solves the same eigenproblem as in example ex2, but using a shell matrix. "
   "The problem is a standard symmetric eigenproblem corresponding to the 2-D Laplacian operator.\n\n"
