@@ -313,8 +313,8 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
 
    Input Parameters:
 +  ip - the spectral transformation context
-.  n  - number of vectors in y
 .  x  - the first input vector
+.  n  - number of vectors in y
 -  y  - array of vectors
 
    Output Parameter:
@@ -331,7 +331,7 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
 
 .seealso: IPSetBilinearForm(), IPApplyB(), VecMDot(), IPInnerProduct()
 @*/
-PetscErrorCode IPMInnerProduct(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
 
@@ -369,8 +369,8 @@ PetscErrorCode IPMInnerProduct(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar 
 
    Input Parameters:
 +  ip - the spectral transformation context
-.  n  - number of vectors in y
 .  x  - the first input vector
+.  n  - number of vectors in y
 .  y  - array of vectors
 -  p  - where the result will go
 
@@ -383,7 +383,7 @@ PetscErrorCode IPMInnerProduct(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar 
           IPNormEnd(), IPInnerProduct() 
 
 @*/
-PetscErrorCode IPMInnerProductBegin(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
 
@@ -421,8 +421,8 @@ PetscErrorCode IPMInnerProductBegin(IP ip,PetscInt n,Vec x,const Vec y[],PetscSc
 
    Input Parameters:
 +  ip - the spectral transformation context
-.  n  - number of vectors in y
 .  x  - the first input vector
+.  n  - number of vectors in y
 -  y  - array of vectors
 
    Output Parameter:
@@ -437,7 +437,7 @@ PetscErrorCode IPMInnerProductBegin(IP ip,PetscInt n,Vec x,const Vec y[],PetscSc
           IPNormEnd(), IPInnerProduct() 
 
 @*/
-PetscErrorCode IPMInnerProductEnd(IP ip,PetscInt n,Vec x,const Vec y[],PetscScalar *p)
+PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
 

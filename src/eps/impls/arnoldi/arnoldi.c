@@ -128,9 +128,9 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
 
-    ierr = IPMInnerProductBegin(eps->ip,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
-      ierr = IPMInnerProductBegin(eps->ip,j,V[j],V,lhh);CHKERRQ(ierr);
+      ierr = IPMInnerProductBegin(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
       ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
     if (j>k+1) {
@@ -138,9 +138,9 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
       ierr = VecDotBegin(u,V[j-2],&dot2);CHKERRQ(ierr);
     }
     
-    ierr = IPMInnerProductEnd(eps->ip,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
-      ierr = IPMInnerProductEnd(eps->ip,j,V[j],V,lhh);CHKERRQ(ierr);
+      ierr = IPMInnerProductEnd(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
       ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
     if (j>k+1) {
@@ -199,7 +199,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
   ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
   H[m*(m-2)+m-1] = norm2;
 
-  ierr = IPMInnerProduct(eps->ip,m,f,V,lhh);CHKERRQ(ierr);
+  ierr = IPMInnerProduct(eps->ip,f,m,V,lhh);CHKERRQ(ierr);
   
   ierr = VecSet(w,0.0);CHKERRQ(ierr);
   ierr = VecMAXPY(w,m,lhh,V);CHKERRQ(ierr);
@@ -240,12 +240,12 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
 
-    ierr = IPMInnerProductBegin(eps->ip,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
     
-    ierr = IPMInnerProductEnd(eps->ip,j+1,f,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }

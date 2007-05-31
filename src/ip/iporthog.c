@@ -59,12 +59,12 @@ PetscErrorCode IPOrthogonalizeCGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,Pet
     if (onorm || norm) { ierr = IPInnerProductEnd(ip,v,v,&alpha);CHKERRQ(ierr); }
   } else { /* merge comunications */
     if (onorm || norm) {
-      ierr = IPMInnerProductBegin(ip,n,v,V,H);CHKERRQ(ierr);
+      ierr = IPMInnerProductBegin(ip,v,n,V,H);CHKERRQ(ierr);
       ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
-      ierr = IPMInnerProductEnd(ip,n,v,V,H);CHKERRQ(ierr);
+      ierr = IPMInnerProductEnd(ip,v,n,V,H);CHKERRQ(ierr);
       ierr = IPInnerProductEnd(ip,v,v,&alpha);CHKERRQ(ierr);
     } else { /* use simpler function */ 
-      ierr = IPMInnerProduct(ip,n,v,V,H);CHKERRQ(ierr);
+      ierr = IPMInnerProduct(ip,v,n,V,H);CHKERRQ(ierr);
     }
   }
 
@@ -133,7 +133,8 @@ static PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec
 +  ip    - the inner product (IP) context
 .  n      - number of columns of V
 .  which  - logical array indicating columns of V to be used
--  V      - set of vectors
+.  V      - set of vectors
+-  work   - workspace vector 
 
    Input/Output Parameter:
 .  v      - (input) vector to be orthogonalized and (output) result of 
@@ -269,7 +270,8 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
 .  V - set of vectors
 .  m - starting column
 .  n - ending column
--  ldr - leading dimension of R
+.  ldr - leading dimension of R
+-  work - workspace vector 
 
    Output Parameter:
 .  R  - triangular matrix of QR factorization
@@ -343,7 +345,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,int n,Vec *V,Vec *W,Vec v,P
   ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
   
   for (j=0;j<n;j++) {
-    ierr = IPMInnerProduct(ip,n,V[j],W,vw+j*n);CHKERRQ(ierr);
+    ierr = IPMInnerProduct(ip,V[j],n,W,vw+j*n);CHKERRQ(ierr);
   }
   lwork = n;
   ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
@@ -355,7 +357,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,int n,Vec *V,Vec *W,Vec v,P
 
   /* h = W^* v */
   /* q = v - V h */
-  ierr = IPMInnerProduct(ip,n,v,W,H);CHKERRQ(ierr);
+  ierr = IPMInnerProduct(ip,v,n,W,H);CHKERRQ(ierr);
   BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n,1,1,1,1);
   LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info,1,1);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORMLQ %i",info);

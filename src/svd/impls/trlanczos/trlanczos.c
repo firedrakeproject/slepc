@@ -65,9 +65,9 @@ static PetscErrorCode SVDOneSideTRLanczos(SVD svd,PetscReal *alpha,PetscReal *be
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
     ierr = IPNormBegin(svd->ip,U[i-1],&a);CHKERRQ(ierr);
-    ierr = IPMInnerProductBegin(svd->ip,i,V[i],V,work);CHKERRQ(ierr);
+    ierr = IPMInnerProductBegin(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
     ierr = IPNormEnd(svd->ip,U[i-1],&a);CHKERRQ(ierr);
-    ierr = IPMInnerProductEnd(svd->ip,i,V[i],V,work);CHKERRQ(ierr);
+    ierr = IPMInnerProductEnd(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
     
     ierr = VecScale(U[i-1],1.0/a);CHKERRQ(ierr);
     ierr = VecScale(V[i],1.0/a);CHKERRQ(ierr);
@@ -85,9 +85,9 @@ static PetscErrorCode SVDOneSideTRLanczos(SVD svd,PetscReal *alpha,PetscReal *be
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,U[n-1],v);CHKERRQ(ierr);
   ierr = IPNormBegin(svd->ip,U[n-1],&a);CHKERRQ(ierr);
-  ierr = IPMInnerProductBegin(svd->ip,n,v,V,work);CHKERRQ(ierr);
+  ierr = IPMInnerProductBegin(svd->ip,v,n,V,work);CHKERRQ(ierr);
   ierr = IPNormEnd(svd->ip,U[n-1],&a);CHKERRQ(ierr);
-  ierr = IPMInnerProductEnd(svd->ip,n,v,V,work);CHKERRQ(ierr);
+  ierr = IPMInnerProductEnd(svd->ip,v,n,V,work);CHKERRQ(ierr);
     
   ierr = VecScale(U[n-1],1.0/a);CHKERRQ(ierr);
   ierr = VecScale(v,1.0/a);CHKERRQ(ierr);
