@@ -39,7 +39,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   PetscInt       N;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }

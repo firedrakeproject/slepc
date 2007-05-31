@@ -41,11 +41,11 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(eps->IV[0],eps->ncv,&eps->V);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(eps->IV[0],eps->ncv,&eps->AV);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->V);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AV);CHKERRQ(ierr);
     if (eps->solverclass == EPS_TWO_SIDE) {
-      ierr = VecDuplicateVecs(eps->IV[0],eps->ncv,&eps->W);CHKERRQ(ierr);
-      ierr = VecDuplicateVecs(eps->IV[0],eps->ncv,&eps->AW);CHKERRQ(ierr);
+      ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->W);CHKERRQ(ierr);
+      ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AW);CHKERRQ(ierr);
     }
     eps->allocated_ncv = eps->ncv;
   }
@@ -133,7 +133,7 @@ PetscErrorCode EPSAllocateSolutionContiguous(EPS eps)
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
-    ierr = VecGetLocalSize(eps->IV[0],&nloc);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->V);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
     for (i=0;i<eps->ncv;i++) {

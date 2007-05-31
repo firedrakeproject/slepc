@@ -32,7 +32,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PC             pc;
   
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   eps->ncv = N;
 
   if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
@@ -94,7 +94,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   PetscFunctionBegin;
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
   
-  ierr = VecGetSize(eps->IV[0],&n);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
 
   if (size == 1) {
     ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);

@@ -39,6 +39,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
   int            i;   
+  Vec            v0,w0;  
   Mat            A,B; 
   PetscInt       N;
   
@@ -75,23 +76,23 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
   }
   
-  /* Create random initial vectors if none are available */
+  /* Create random initial vectors if not set */
   /* right */
-  if (eps->niv == 0) {
-    eps->niv = 1;
-    ierr = PetscMalloc(sizeof(Vec),&eps->IV);CHKERRQ(ierr);    
-    ierr = MatGetVecs(A,&eps->IV[0],PETSC_NULL);CHKERRQ(ierr);
-    ierr = SlepcVecSetRandom(eps->IV[0]);CHKERRQ(ierr);
+  ierr = EPSGetInitialVector(eps,&v0);CHKERRQ(ierr);
+  if (!v0) {
+    ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(v0);CHKERRQ(ierr);
+    eps->vec_initial = v0;
   }
   /* left */
-  if (eps->nliv == 0) {
-    eps->nliv = 1;
-    ierr = PetscMalloc(sizeof(Vec),&eps->LIV);CHKERRQ(ierr);    
-    ierr = MatGetVecs(A,PETSC_NULL,&eps->LIV[0]);CHKERRQ(ierr);
-    ierr = SlepcVecSetRandom(eps->LIV[0]);CHKERRQ(ierr);
+  ierr = EPSGetLeftInitialVector(eps,&w0);CHKERRQ(ierr);
+  if (!w0) {
+    ierr = MatGetVecs(A,PETSC_NULL,&w0);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(w0);CHKERRQ(ierr);
+    eps->vec_initial_left = w0;
   }
 
-  ierr = VecGetSize(eps->IV[0],&N);CHKERRQ(ierr);
+  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->nev > N) eps->nev = N;
   if (eps->ncv > N) eps->ncv = N;
 
@@ -109,7 +110,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       /* orthonormalize vectors in DS if necessary */
       ierr = IPQRDecomposition(eps->ip,eps->DS,0,eps->nds,PETSC_NULL,0,PETSC_NULL);CHKERRQ(ierr);
     }
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,eps->IV[0],PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
 
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);
@@ -122,7 +123,8 @@ PetscErrorCode EPSSetUp(EPS eps)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetInitialVector"
 /*@
-   EPSSetInitialVector - Provides an initial vector.
+   EPSSetInitialVector - Sets the initial vector from which the 
+   eigensolver starts to iterate.
 
    Collective on EPS and Vec
 
@@ -132,30 +134,11 @@ PetscErrorCode EPSSetUp(EPS eps)
 
    Level: intermediate
 
-   Notes:
-   An initial vector is a vector that is used by the eigensolver 
-   to start the iteration.
-
-   If no initial vector is provided, SLEPc creates a random initial
-   vector. This default behaviour is enough for most applications.
-
-   Sometimes, a 'good' initial vector can improve the convergence of
-   the solver. For this, the vector should have rich components in 
-   the direction of the wanted eigenvectors.
-
-   This function can be called several times. This is useful for cases
-   when multiple initial vectors are required. Not all solvers can
-   exploit this feature. The vector is appended to the internal
-   list of initial vectors. For reseting this list, use 
-   EPSClearInitialVectors(). 
-
-.seealso: EPSGetInitialVector(), EPSSetLeftInitialVector(), EPSClearInitialVectors()
+.seealso: EPSGetInitialVector(), EPSSetLeftInitialVector()
 
 @*/
 PetscErrorCode EPSSetInitialVector(EPS eps,Vec vec)
 {
-  int            i;
-  Vec            *tmp;
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
@@ -163,102 +146,47 @@ PetscErrorCode EPSSetInitialVector(EPS eps,Vec vec)
   PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
   PetscCheckSameComm(eps,1,vec,2);
   ierr = PetscObjectReference((PetscObject)vec);CHKERRQ(ierr);
-  if (eps->niv > 0 && eps->useriv==PETSC_FALSE) {
-    ierr = EPSClearInitialVectors(eps);CHKERRQ(ierr);
+  if (eps->vec_initial) {
+    ierr = VecDestroy(eps->vec_initial); CHKERRQ(ierr);
   }
-  eps->useriv = PETSC_TRUE;
-  tmp = eps->IV;
-  ierr = PetscMalloc((eps->niv+1)*sizeof(Vec),&eps->IV);CHKERRQ(ierr);    
-  if (eps->niv > 0) {
-    for (i=0; i<eps->niv; i++) { eps->IV[i] = tmp[i]; }
-    ierr = PetscFree(tmp);CHKERRQ(ierr);    
-  }
-  eps->IV[eps->niv] = vec;
-  eps->niv++;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSGetNumberInitialVectors"
-/*@
-   EPSGetNumberInitialVectors - Gets the number of initial vectors.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigensolver context
-  
-   Output Parameters:
-+  niv  - number of initial vectors
--  nliv - number of left initial vectors
-
-   Notes:
-   An initial vector is a vector that is used by the eigensolver 
-   to start the iteration. Left initial vectors are needed by 
-   two-sided eigensolvers only.
-
-   Use PETSC_NULL for output arguments whose value is not of interest.
-
-   Level: intermediate
-
-.seealso: EPSSetInitialVector(), EPSGetInitialVector(), EPSClearInitialVectors()
-@*/
-PetscErrorCode EPSGetNumberInitialVectors(EPS eps,int *niv,int *nliv)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (niv)  *niv = eps->niv;
-  if (nliv) *nliv = eps->nliv;
+  eps->vec_initial = vec;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetInitialVector"
 /*@
-   EPSGetInitialVector - Gets the i-th initial vector associated with the 
-   eigensolver.
+   EPSGetInitialVector - Gets the initial vector associated with the 
+   eigensolver; if the vector was not set it will return a 0 pointer or
+   a vector randomly generated by EPSSetUp().
 
    Not collective, but vector is shared by all processors that share the EPS
 
-   Input Parameters:
-+  eps - the eigensolver context
--  i   - the index of the initial vector
+   Input Parameter:
+.  eps - the eigensolver context
 
    Output Parameter:
 .  vec - the vector
 
    Level: intermediate
 
-   Notes:
-   An initial vector is a vector that is used by the eigensolver 
-   to start the iteration.
+.seealso: EPSSetInitialVector(), EPSGetLeftInitialVector()
 
-   The index i should be a value between 0 and niv-1 (see 
-   EPSGetNumberInitialVectors()).
-
-   The initial vectors are either user-provided (see EPSSetInitialVector())
-   or randomly generated at EPSSetUp().
-
-.seealso: EPSGetNumberInitialVectors(), EPSSetInitialVector(), EPSGetLeftInitialVector()
 @*/
-PetscErrorCode EPSGetInitialVector(EPS eps,int i,Vec *vec)
+PetscErrorCode EPSGetInitialVector(EPS eps,Vec *vec)
 {
-  PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(vec,3);
-  if (i<0 || i>=eps->niv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
-  }
-  ierr = PetscObjectReference((PetscObject)eps->IV[i]);CHKERRQ(ierr);
-  *vec = eps->IV[i];
+  PetscValidPointer(vec,2);
+  *vec = eps->vec_initial;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetLeftInitialVector"
 /*@
-   EPSSetLeftInitialVector - Provides a left initial vector.
+   EPSSetLeftInitialVector - Sets the initial vector from which the eigensolver 
+   starts to iterate, corresponding to the left recurrence (two-sided solvers).
 
    Collective on EPS and Vec
 
@@ -268,30 +196,11 @@ PetscErrorCode EPSGetInitialVector(EPS eps,int i,Vec *vec)
 
    Level: intermediate
 
-   Notes:
-   An initial vector is a vector that is used by the eigensolver 
-   to start the iteration. Left initial vectors start the left
-   recurrence in two-sided eigensolvers.
+.seealso: EPSGetLeftInitialVector(), EPSSetInitialVector()
 
-   If no initial vector is provided, SLEPc creates a random initial
-   vector. This default behaviour is enough for most applications.
-
-   Sometimes, a 'good' initial vector can improve the convergence of
-   the solver. For this, the vector should have rich components in 
-   the direction of the wanted eigenvectors.
-
-   This function can be called several times. This is useful for cases
-   when multiple initial vectors are required. Not all solvers can
-   exploit this feature. The vector is appended to the internal
-   list of initial vectors. For reseting this list, use 
-   EPSClearInitialVectors(). 
-
-.seealso: EPSGetLeftInitialVector(), EPSSetInitialVector(), EPSClearInitialVectors()
 @*/
 PetscErrorCode EPSSetLeftInitialVector(EPS eps,Vec vec)
 {
-  int            i;
-  Vec            *tmp;
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
@@ -299,105 +208,39 @@ PetscErrorCode EPSSetLeftInitialVector(EPS eps,Vec vec)
   PetscValidHeaderSpecific(vec,VEC_COOKIE,2);
   PetscCheckSameComm(eps,1,vec,2);
   ierr = PetscObjectReference((PetscObject)vec);CHKERRQ(ierr);
-  if (eps->nliv > 0 && eps->useriv==PETSC_FALSE) {
-    ierr = EPSClearInitialVectors(eps);CHKERRQ(ierr);
+  if (eps->vec_initial_left) {
+    ierr = VecDestroy(eps->vec_initial_left); CHKERRQ(ierr);
   }
-  eps->userliv = PETSC_TRUE;
-  tmp = eps->LIV;
-  ierr = PetscMalloc((eps->nliv+1)*sizeof(Vec),&eps->LIV);CHKERRQ(ierr);    
-  if (eps->nliv > 0) {
-    for (i=0; i<eps->nliv; i++) { eps->LIV[i] = tmp[i]; }
-    ierr = PetscFree(tmp);CHKERRQ(ierr);    
-  }
-  eps->LIV[eps->nliv] = vec;
-  eps->nliv++;
+  eps->vec_initial_left = vec;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetLeftInitialVector"
 /*@
-   EPSGetLeftInitialVector - Gets the i-th left initial vector associated 
-   with the eigensolver.
+   EPSGetLeftInitialVector - Gets the left initial vector associated with the 
+   eigensolver; if the vector was not set it will return a 0 pointer or
+   a vector randomly generated by EPSSetUp().
 
    Not collective, but vector is shared by all processors that share the EPS
 
-   Input Parameters:
-+  eps - the eigensolver context
--  i   - the index of the initial vector
+   Input Parameter:
+.  eps - the eigensolver context
 
    Output Parameter:
 .  vec - the vector
 
    Level: intermediate
 
-   Notes:
-   An initial vector is a vector that is used by the eigensolver 
-   to start the iteration. Left initial vectors start the left
-   recurrence in two-sided eigensolvers.
+.seealso: EPSSetLeftInitialVector(), EPSGetLeftInitialVector()
 
-   The index i should be a value between 0 and nliv-1 (see 
-   EPSGetNumberInitialVectors()).
-
-   The initial vectors are either user-provided (see EPSSetLeftInitialVector())
-   or randomly generated at EPSSetUp().
-
-.seealso: EPSGetNumberInitialVectors(), EPSSetLeftInitialVector(), EPSGetInitialVector()
 @*/
-PetscErrorCode EPSGetLeftInitialVector(EPS eps,int i,Vec *vec)
+PetscErrorCode EPSGetLeftInitialVector(EPS eps,Vec *vec)
 {
-  PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(vec,3);
-  if (i<0 || i>=eps->nliv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
-  }
-  ierr = PetscObjectReference((PetscObject)eps->LIV[i]);CHKERRQ(ierr);
-  *vec = eps->LIV[i];
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSClearInitialVectors"
-/*@
-   EPSClearInitialVectors - Resets the list of initial vectors associated 
-   with the eigensolver.
-
-   Collective on EPS
-
-   Input Parameter:
-.  eps - the eigensolver context
-
-   Level: intermediate
-
-   Notes:
-   An initial vector is a vector that is used by the eigensolver 
-   to start the iteration. Left initial vectors start the left
-   recurrence in two-sided eigensolvers.
-
-   This function resets both right and left initial vectors.
-
-   If the initial vectors were randomly generated by EPSSetUp(), this
-   function destroys them so the next time they are freshly created.
-
-.seealso: EPSGetNumberInitialVectors(), EPSSetInitialVector(), EPSGetInitialVector(),
-          EPSSetLeftInitialVector(), EPSGetLeftInitialVector()
-@*/
-PetscErrorCode EPSClearInitialVectors(EPS eps)
-{
-  PetscErrorCode ierr;
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (eps->niv > 0) {
-    ierr = VecDestroyVecs(eps->IV,eps->niv);CHKERRQ(ierr);
-    eps->niv = 0;
-  }
-  if (eps->nliv > 0) {
-    ierr = VecDestroyVecs(eps->LIV,eps->nliv);CHKERRQ(ierr);
-    eps->nliv = 0;
-  }
-  eps->useriv = PETSC_FALSE;
+  PetscValidPointer(vec,2);
+  *vec = eps->vec_initial_left;
   PetscFunctionReturn(0);
 }
 
@@ -444,8 +287,13 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   eps->setupcalled = 0;  /* so that next solve call will call setup */
 
   /* Destroy randomly generated initial vectors */
-  if (eps->useriv==PETSC_FALSE) {
-    ierr = EPSClearInitialVectors(eps);CHKERRQ(ierr);
+  if (eps->vec_initial) {
+    ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
+    eps->vec_initial = PETSC_NULL;
+  }
+  if (eps->vec_initial_left) {
+    ierr = VecDestroy(eps->vec_initial_left);CHKERRQ(ierr);
+    eps->vec_initial_left = PETSC_NULL;
   }
 
   PetscFunctionReturn(0);
