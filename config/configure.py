@@ -162,6 +162,8 @@ if petscconf.VERSION > '2.3.3':
   log.Println('WARNING: PETSc version '+petscconf.VERSION+' is newer than SLEPc version')
 if petscconf.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
+if petscconf.INSTALL_DIR != petscdir:
+  log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
 if not check.Link([],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
@@ -189,10 +191,8 @@ log.Println('SLEPc source directory:')
 log.Println(' '+slepcdir)
 log.Println('SLEPc install directory:')
 log.Println(' '+prefixdir)  
-log.Println('PETSc source directory:')
+log.Println('PETSc directory:')
 log.Println(' '+petscdir)
-log.Println('PETSc install directory:')
-log.Println(' '+petscconf.INSTALL_DIR)  
 log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if petscconf.MPIUNI:
   log.Println('  Uniprocessor version without MPI')

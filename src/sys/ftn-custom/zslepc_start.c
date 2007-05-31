@@ -6,6 +6,8 @@
 #include "slepc.h"
 #include "slepcst.h"
 #include "slepceps.h"
+#include "slepcsvd.h"
+#include "slepcip.h"
 
 extern PetscTruth SlepcBeganPetsc;
 
@@ -67,6 +69,8 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr
 #else
   *ierr = STInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing ST package");return;}
   *ierr = EPSInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing EPS package");return;}
+  *ierr = SVDInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing SVD package");return;}
+  *ierr = IPInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing IP package");return;}
 #endif
 
   SlepcInitializeCalled = PETSC_TRUE;
