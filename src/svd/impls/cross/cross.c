@@ -128,7 +128,7 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
   PetscScalar    sigma;
   
   PetscFunctionBegin;
-  ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetInitialVector(cross->eps,svd->vec_initial);CHKERRQ(ierr);
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(cross->eps,&svd->nconv);CHKERRQ(ierr);
