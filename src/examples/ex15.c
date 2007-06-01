@@ -68,6 +68,11 @@ int main( int argc, char **argv )
      Set operator
   */
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  
+  /*
+     Use thick-restart Lanczos as default solver
+  */
+  ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime

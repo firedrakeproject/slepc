@@ -79,7 +79,7 @@ EXTERN PetscErrorCode SVDRegisterAll(char *);
 	}
 
 #endif
-
+EXTERN PetscErrorCode SVDDestroy_Default(SVD);
 EXTERN PetscErrorCode SVDMatMult(SVD,PetscTruth,Vec,Vec);
 EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
 EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);

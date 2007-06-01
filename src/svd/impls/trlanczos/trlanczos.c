@@ -331,6 +331,7 @@ PetscErrorCode SVDCreate_TRLANCZOS(SVD svd)
   svd->data                = (void *)lanczos;
   svd->ops->setup          = SVDSetUp_TRLANCZOS;
   svd->ops->solve          = SVDSolve_TRLANCZOS;
+  svd->ops->destroy        = SVDDestroy_Default;
   svd->ops->setfromoptions = SVDSetFromOptions_TRLANCZOS;
   svd->ops->view           = SVDView_TRLANCZOS;
   lanczos->oneside         = PETSC_FALSE;

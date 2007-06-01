@@ -286,6 +286,18 @@ PetscErrorCode SVDDestroy(SVD svd)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "SVDDestroy_Default"
+PetscErrorCode SVDDestroy_Default(SVD svd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  ierr = PetscFree(svd->data);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SVDSetType"
 /*@C
    SVDSetType - Selects the particular solver to be used in the SVD object. 

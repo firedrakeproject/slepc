@@ -2,20 +2,22 @@
 Lauchli singular value decomposition, (101 x 100) mu=1e-07
 
  Number of iterations of the method: 1
- Solution method: eigensolver
+ Solution method: trlanczos
 
  Number of requested singular values: 1
  Stopping condition: tol=1e-07, maxit=100
- Number of converged approximate singular triplets: 8
+ Number of converged approximate singular triplets: 10
 
           sigma           residual norm
   --------------------- ------------------
-        10.000000        1.29363e-14
-        0.000000        2.59162e-16
-        0.000000        8.07388e-17
-        0.000000        4.13515e-17
-        0.000000         1.3223e-16
-        0.000000        5.21337e-17
-        0.000000        3.16794e-15
-        0.000000        4.51587e-15
+        10.000000        1.25835e-15
+        0.000000        3.72437e-09
+        0.000000        2.99452e-09
+        0.000000        1.63756e-09
+        0.000000        4.29322e-10
+        0.000000        4.78388e-09
+        0.000000        1.22663e-09
+        0.000000        6.69743e-09
+        0.000000        1.17021e-08
+        0.000000        1.50876e-09
 
