@@ -60,8 +60,7 @@
  The installation procedure of SLEPc is very similar to that of PETSc. Briefly,
  the  environment variable $SLEPC_DIR must be set, then the script configure.py
  is executed and finally the  libraries  are built with the command 'make'. For
- this to work correctly, variables $PETSC_DIR and $PETSC_ARCH must also be  set
- appropriately.
+ this to work correctly, variable $PETSC_DIR must also be set appropriately.
 
  More detailed information about installation can be found in the Users  Manual
  or in the SLEPc home page, including instructions for configuring SLEPc to use
@@ -98,7 +97,7 @@
  Conditions of Use
  -----------------
 
- Copyright (c) 2002-2006, Universidad Politecnica de Valencia, Spain
+ Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
 
  This  software is provided 'as is', with absolutely no warranty, expressed  or
  implied.  Any use is at your own risk. In no event shall the authors be liable
