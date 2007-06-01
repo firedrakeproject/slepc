@@ -420,8 +420,8 @@ PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
-   If the eigenvalue is real, then eigi and Vi are set to zero. In the 
-   complex case (e.g. with BOPT=O_complex) the eigenvalue is stored 
+   If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is 
+   configured with complex scalars the eigenvalue is stored 
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is 
    set to zero).
 
@@ -468,8 +468,8 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
 -  eigi - imaginary part of eigenvalue
 
    Notes:
-   If the eigenvalue is real, then eigi is set to zero. In the 
-   complex case (e.g. with BOPT=O_complex) the eigenvalue is stored 
+   If the eigenvalue is real, then eigi is set to zero. If PETSc is 
+   configured with complex scalars the eigenvalue is stored 
    directly in eigr (eigi is set to zero).
 
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
@@ -523,8 +523,8 @@ PetscErrorCode EPSGetValue(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
-   If the corresponding eigenvalue is real, then Vi is set to zero. In the 
-   complex case (e.g. with BOPT=O_complex) the eigenvector is stored 
+   If the corresponding eigenvalue is real, then Vi is set to zero. If PETSc is 
+   configured with complex scalars the eigenvector is stored 
    directly in Vr (Vi is set to zero).
 
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
@@ -594,8 +594,8 @@ PetscErrorCode EPSGetRightVector(EPS eps, int i, Vec Vr, Vec Vi)
 -  Wi   - imaginary part of eigenvector
 
    Notes:
-   If the corresponding eigenvalue is real, then Wi is set to zero. In the 
-   complex case (e.g. with BOPT=O_complex) the eigenvector is stored 
+   If the corresponding eigenvalue is real, then Wi is set to zero. If PETSc is 
+   configured with complex scalars the eigenvector is stored 
    directly in Wr (Wi is set to zero).
 
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).

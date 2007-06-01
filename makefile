@@ -79,7 +79,7 @@ info:
 build:
 	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
-	-@${OMAKE} BOPT=${BOPT} PETSC_ARCH=${PETSC_ARCH} ACTION=libfast  tree 
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} ACTION=libfast  tree 
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 	-@echo "Completed building SLEPc libraries"
 	-@echo "========================================="

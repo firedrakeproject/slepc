@@ -385,16 +385,21 @@ $     -eps_type my_solver
 
    Level: advanced
 
-   Environmental variables such as ${PETSC_ARCH}, ${SLEPC_DIR}, ${BOPT},
+   Environmental variables such as ${PETSC_ARCH}, ${PETSC_DIR}, ${PETSC_LIB_DIR},
    and others of the form ${any_environmental_variable} occuring in pathname will be 
    replaced with appropriate values.
 
-.seealso: EPSRegisterAll()
+.seealso: EPSRegisterDestroy(), EPSRegisterAll()
 
 M*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRegister"
+/*@C
+  EPSRegister - See EPSRegisterDynamic()
+
+  Level: advanced
+@*/
 PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,int (*function)(EPS))
 {
   PetscErrorCode ierr;
@@ -403,6 +408,30 @@ PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,i
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
   ierr = PetscFListAdd(&EPSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSRegisterDestroy"
+/*@
+   EPSRegisterDestroy - Frees the list of EPS methods that were
+   registered by EPSRegisterDynamic().
+
+   Not Collective
+
+   Level: advanced
+
+.keywords: EPS, register, destroy
+
+.seealso: EPSRegisterDynamic(), EPSRegisterAll()
+@*/
+PetscErrorCode EPSRegisterDestroy(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFListDestroy(&EPSList);CHKERRQ(ierr);
+  ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

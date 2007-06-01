@@ -18,12 +18,6 @@ EXTERN PetscErrorCode SVDCreate_LANCZOS(SVD);
 EXTERN PetscErrorCode SVDCreate_TRLANCZOS(SVD);
 EXTERN_C_END
   
-/*
-    This is used by SVDSetType() to make sure that at least one 
-    SVDRegisterAll() is called. In general, if there is more than one
-    DLL, then SVDRegisterAll() may be called several times.
-*/
-
 #undef __FUNCT__  
 #define __FUNCT__ "SVDRegisterAll"
 /*@C

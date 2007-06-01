@@ -521,13 +521,18 @@ $     -st_type my_solver
 
    Level: advanced
 
-   $SLEPC_DIR, $PETSC_ARCH and $BOPT occuring in pathname will be replaced with appropriate values.
+   $PETSC_DIR, $PETSC_ARCH and $PETSC_LIB_DIR occuring in pathname will be replaced with appropriate values.
 
-.seealso: STRegisterAll(), STRegister()
+.seealso: STRegisterDestroy(), STRegisterAll()
 M*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "STRegister"
+/*@C
+  STRegister - See STRegisterDynamic()
+
+  Level: advanced
+@*/
 PetscErrorCode STRegister(const char *sname,const char *path,const char *name,int (*function)(ST))
 {
   PetscErrorCode ierr;
@@ -536,5 +541,29 @@ PetscErrorCode STRegister(const char *sname,const char *path,const char *name,in
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
   ierr = PetscFListAdd(&STList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STRegisterDestroy"
+/*@
+   STRegisterDestroy - Frees the list of ST methods that were
+   registered by STRegisterDynamic().
+
+   Not Collective
+
+   Level: advanced
+
+.keywords: ST, register, destroy
+
+.seealso: STRegisterDynamic(), STRegisterAll()
+@*/
+PetscErrorCode STRegisterDestroy(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFListDestroy(&STList);CHKERRQ(ierr);
+  ierr = STRegisterAll(PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

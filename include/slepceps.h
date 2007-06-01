@@ -176,6 +176,14 @@ EXTERN PetscErrorCode EPSDenseTridiagonal(int,PetscScalar*,int,PetscReal*,PetscS
 EXTERN PetscErrorCode EPSGetStartVector(EPS,int,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,int,Vec);
 
+EXTERN PetscErrorCode EPSRegister(const char*,const char*,const char*,int(*)(EPS));
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,0)
+#else
+#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,d)
+#endif
+EXTERN PetscErrorCode EPSRegisterDestroy(void);
+
 /* --------- options specific to particular eigensolvers -------- */
 
 /*E

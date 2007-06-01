@@ -90,6 +90,14 @@ EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
 
+EXTERN PetscErrorCode STRegister(const char*,const char*,const char*,int(*)(ST));
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,0)
+#else
+#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,d)
+#endif
+EXTERN PetscErrorCode STRegisterDestroy(void);
+
 /* --------- options specific to particular spectral transformations-------- */
 
 EXTERN PetscErrorCode STShellGetContext(ST st,void **ctx);

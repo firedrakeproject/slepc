@@ -75,8 +75,8 @@ PetscErrorCode SlepcVecSetRandom(Vec x)
    The result of Ax and A^Hx (with a random x) is compared, but they 
    could be equal also for some non-Hermitian matrices.
 
-   This routine will not work with BOPT=O_complex and matrix formats
-   MATSEQSBAIJ or MATMPISBAIJ.
+   This routine will not work with matrix formats MATSEQSBAIJ or MATMPISBAIJ,
+   or when PETSc is configured with complex scalars.
    
    Level: developer
 

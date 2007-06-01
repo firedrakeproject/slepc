@@ -408,12 +408,17 @@ $     -svd_type my_solver
    and others of the form ${any_environmental_variable} occuring in pathname will be 
    replaced with appropriate values.
 
-.seealso: SVDRegisterAll()
+.seealso: SVDRegisterDestroy(), SVDRegisterAll()
 
 M*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDRegister"
+/*@C
+  SVDRegister - See SVDRegisterDynamic()
+
+  Level: advanced
+@*/
 PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,int (*function)(SVD))
 {
   PetscErrorCode ierr;
@@ -422,6 +427,30 @@ PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,i
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
   ierr = PetscFListAdd(&SVDList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDRegisterDestroy"
+/*@
+   SVDRegisterDestroy - Frees the list of SVD methods that were
+   registered by SVDRegisterDynamic().
+
+   Not Collective
+
+   Level: advanced
+
+.keywords: SVD, register, destroy
+
+.seealso: SVDRegisterDynamic(), SVDRegisterAll()
+@*/
+PetscErrorCode SVDRegisterDestroy(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFListDestroy(&SVDList);CHKERRQ(ierr);
+  ierr = SVDRegisterAll(PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

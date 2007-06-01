@@ -69,12 +69,6 @@ struct _p_SVD {
 };
 
 EXTERN PetscErrorCode SVDRegisterAll(char *);
-EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,int(*)(SVD));
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,0)
-#else
-#define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,d)
-#endif
 
 #define SVDMonitor(svd,it,nconv,sigma,errest,nest) \
         { int _ierr,_i,_im = svd->numbermonitors; \

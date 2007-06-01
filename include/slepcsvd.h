@@ -133,4 +133,12 @@ EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscTruth);
 
 EXTERN PetscErrorCode SVDDense(int,int,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 
+EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,int(*)(SVD));
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,0)
+#else
+#define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,d)
+#endif
+EXTERN PetscErrorCode SVDRegisterDestroy(void);
+
 #endif

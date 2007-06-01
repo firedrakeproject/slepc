@@ -34,12 +34,6 @@ EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
 #endif
 EXTERN_C_END
   
-/*
-    This is used by EPSSetType() to make sure that at least one 
-    EPSRegisterAll() is called. In general, if there is more than one
-    DLL, then EPSRegisterAll() may be called several times.
-*/
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRegisterAll"
 /*@C

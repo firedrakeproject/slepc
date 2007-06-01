@@ -101,12 +101,6 @@ struct _p_EPS {
 	}
 
 EXTERN PetscErrorCode EPSRegisterAll(char *);
-EXTERN PetscErrorCode EPSRegister(const char*,const char*,const char*,int(*)(EPS));
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,0)
-#else
-#define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,d)
-#endif
 
 EXTERN PetscErrorCode EPSDestroy_Default(EPS);
 EXTERN PetscErrorCode EPSDefaultGetWork(EPS,int);
