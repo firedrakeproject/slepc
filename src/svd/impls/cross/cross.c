@@ -4,7 +4,7 @@
 
    Method: Uses a Hermitian eigensolver for A^T*A
 
-   Last update: Jan 2007
+   Last update: Jun 2007
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       SLEPc - Scalable Library for Eigenvalue Problem Computations

@@ -4,7 +4,7 @@
 
    Method: Golub-Kahan-Lanczos bidiagonalization
 
-   Last update: Mar 2007
+   Last update: Jun 2007
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       SLEPc - Scalable Library for Eigenvalue Problem Computations
