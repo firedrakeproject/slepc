@@ -6,9 +6,10 @@ Fiedler vector of a 2-D regular mesh, N=100 (10x10 grid)
 
  Number of requested eigenvalues: 1
  Stopping condition: tol=1e-07, maxit=100
- Number of converged approximate eigenpairs: 1
+ Number of converged approximate eigenpairs: 2
 
            k          ||Ax-kx||/||kx||
    ----------------- ------------------
-       0.097887        7.94632e-08
+       0.097887        2.63001e-09
+       0.195774        1.45422e-08
 

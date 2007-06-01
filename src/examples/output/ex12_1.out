@@ -1,7 +1,7 @@
 
 Markov Model, N=120 (m=15)
 
- Number of iterations of the method: 633
+ Number of iterations of the method: 650
  Solution method: power
 
  Number of requested eigenvalues: 2
@@ -10,11 +10,11 @@ Markov Model, N=120 (m=15)
 
            k          ||Ax-kx||/||kx||   ||y'A-ky'||/||ky||
    ----------------- ------------------ --------------------
-       1.000000        1.20109e-07        9.99632e-10
-       0.971367        4.44383e-07        6.65755e-09
+       1.000000        1.20109e-07        9.51884e-10
+       0.971367         5.1101e-07        3.24031e-09
 
                    Bi-orthogonality <x,y>                   
    ---------------------------------------------------------
-            1   -1.03761e-07  
- -1.52499e-07              1  
+            1    1.03574e-07  
+ -8.50008e-08              1  
 
