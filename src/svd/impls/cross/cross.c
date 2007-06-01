@@ -298,6 +298,7 @@ PetscErrorCode SVDDestroy_CROSS(SVD svd)
   if (cross->diag) {
     ierr = VecDestroy(cross->diag);CHKERRQ(ierr);
   }
+  ierr = PetscFree(svd->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

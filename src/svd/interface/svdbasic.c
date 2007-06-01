@@ -276,7 +276,6 @@ PetscErrorCode SVDDestroy(SVD svd)
     ierr = PetscFree(svd->V);CHKERRQ(ierr);
   }
   if (svd->vec_initial) { ierr = VecDestroy(svd->vec_initial);CHKERRQ(ierr); }
-  if (svd->data) { ierr = PetscFree(svd->data);CHKERRQ(ierr); }
   ierr = SVDMonitorCancel(svd);CHKERRQ(ierr);
   
   ierr = IPDestroy(svd->ip);CHKERRQ(ierr);

@@ -492,6 +492,7 @@ PetscErrorCode SVDDestroy_CYCLIC(SVD svd)
     ierr = VecDestroy(cyclic->y1);CHKERRQ(ierr);
     ierr = VecDestroy(cyclic->y2);CHKERRQ(ierr);
   }
+  ierr = PetscFree(svd->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
