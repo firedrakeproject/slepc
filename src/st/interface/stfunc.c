@@ -554,8 +554,6 @@ PetscErrorCode STRegister(const char *sname,const char *path,const char *name,in
 
    Level: advanced
 
-.keywords: ST, register, destroy
-
 .seealso: STRegisterDynamic(), STRegisterAll()
 @*/
 PetscErrorCode STRegisterDestroy(void)

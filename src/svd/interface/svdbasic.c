@@ -452,8 +452,6 @@ PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,i
 
    Level: advanced
 
-.keywords: SVD, register, destroy
-
 .seealso: SVDRegisterDynamic(), SVDRegisterAll()
 @*/
 PetscErrorCode SVDRegisterDestroy(void)

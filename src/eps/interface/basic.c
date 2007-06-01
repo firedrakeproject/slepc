@@ -421,8 +421,6 @@ PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,i
 
    Level: advanced
 
-.keywords: EPS, register, destroy
-
 .seealso: EPSRegisterDynamic(), EPSRegisterAll()
 @*/
 PetscErrorCode EPSRegisterDestroy(void)
