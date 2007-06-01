@@ -334,6 +334,29 @@ EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDLanczosSetOneSide"
+/*@
+   SVDLanczosSetOneSide - Indicate if the variant of the Lanczos method 
+   to be used is one-sided or two-sided.
+
+   Collective on SVD
+
+   Input Parameters:
++  svd     - singular value solver
+-  oneside - boolean flag indicating if the method is one-sided or not
+
+   Options Database Key:
+.  -svd_lanczos_oneside <boolean> - Indicates the boolean flag
+
+   Note:
+   By default, a two-sided variant is selected, which is sometimes slightly
+   more robust. However, the one-sided variant is faster because it avoids 
+   the orthogonalization associated to left singular vectors. It also saves
+   the memory required for storing such vectors.
+
+   Level: advanced
+
+.seealso: SVDTRLanczosSetOneSide()
+@*/
 PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscTruth oneside)
 {
   PetscErrorCode ierr, (*f)(SVD,PetscTruth);
