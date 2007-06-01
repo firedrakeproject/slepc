@@ -11,6 +11,8 @@
         GRyCAP - Grupo de Redes y Computacion de Altas Prestaciones
                 Universidad Politecnica de Valencia, Spain
 
+        VERSION: 2.3.3
+
 
  Overview
  --------
@@ -100,33 +102,28 @@
  Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
 
  This  software is provided 'as is', with absolutely no warranty, expressed  or
- implied.  Any use is at your own risk. In no event shall the authors be liable
+ implied.  Any use is at your own risk. In no event will the authors be  liable
  for  any direct or indirect damages arising in any way out of the use of  this
  software.
- 
- The  user will acknowledge (using references [1] or [2]) the  contribution  of
- SLEPc  in any publication of material dependent upon the use of  the  package. 
- The  user  will reasonably endeavour to notify the authors of the  package  of 
- this publication.
 
- The  user can modify the code but, at no time shall the right or title to  all
- or  any  part  of  this  package pass to the user. Contributions  are  welcome
- relating  to any alteration or addition made to this package for the  purposes
- of  extending the capabilities or enhancing its performance.  Credit  will  be 
- given in the documentation for contributed code.
+ The  user  will  acknowledge  (using reference [1])  the contribution  of  the
+ software in any publication of material dependent on its use.
 
- This  package (or a modified version) may not be sold. It is freely  available
- and  it can be redistributed provided that redistribution comprises all  files
- including this copyright notice. No license is required for research use.  For
- commercial use, written permission must be granted by the authors.
+ The user can modify the code but at no time will the right or title to all  or
+ any part of this software pass to the user. A modified version of the software
+ cannot be redistributed. The software (or a modified version) may not be sold.
 
+ This software is free for academic and research use. This means that a  person
+ working  in  an  academic or research institution such as a  university  or  a
+ government  laboratory  can  use  the software without  formally  requiring  a
+ license.
 
- [1] V. Hernandez, J. E. Roman and V. Vidal (2005),
-     SLEPc: A Scalable and Flexible Toolkit for the Solution of Eigenvalue Problems
-     ACM Trans. Math. Softw. 31(3), 351-362.
+ For commercial use, it is necessary to sign a software license agreement. This
+ includes  all  users working for a private company, even if  the  software  is
+ going  to be used only for in-house research activities. A reasonable  testing
+ period is allowed before asking for the license.
 
- [2] V. Hernandez, J. E. Roman and V. Vidal (2002),
-     SLEPc Users Manual, Technical Report DSIC-II/24/02, 
-     Universidad Politecnica de Valencia, Spain.
-
+ [1] V. Hernandez, J. E. Roman and V. Vidal (2005), SLEPc: A Scalable and 
+     Flexible Toolkit for the Solution of Eigenvalue Problems, ACM Trans. Math.
+     Softw. 31(3), 351-362.
 
