@@ -43,7 +43,7 @@
    
    Level: advanced
    
-   .seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(), 
+.seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(), 
    SVDGetOperator(), SVDTransposeMode
 @*/
 PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
@@ -82,7 +82,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
    
    Level: advanced
    
-   .seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(), 
+.seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(), 
    SVDGetOperator(), SVDTransposeMode
 @*/
 PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
