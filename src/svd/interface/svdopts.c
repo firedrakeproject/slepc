@@ -23,23 +23,23 @@
    Input Parameters:
 +  svd  - the singular value solver context
 -  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
-          or SVD_TRANSPOSE_MATMULT (see notes below)
+          or SVD_TRANSPOSE_IMPLICIT (see notes below)
 
    Options Database Key:
 .  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode> 
-    is one of 'explicit' or 'matmult'.
+    is one of 'explicit' or 'implicit'.
 
    Notes:
    In the SVD_TRANSPOSE_EXPLICIT mode, the transpose of the matrix is
    explicitly built.
 
-   The option SVD_TRANSPOSE_MATMULT does not build the transpose, but
+   The option SVD_TRANSPOSE_IMPLICIT does not build the transpose, but
    handles it implicitly via MatMultTranspose() operations. This is 
    likely to be more inefficient than SVD_TRANSPOSE_EXPLICIT, both in
    sequential and in parallel, but requires less storage.
 
    The default is SVD_TRANSPOSE_EXPLICIT if the matrix has defined the
-   MatTranspose operation, and SVD_TRANSPOSE_MATMULT otherwise.
+   MatTranspose operation, and SVD_TRANSPOSE_IMPLICIT otherwise.
    
    Level: advanced
    
@@ -78,7 +78,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 
    Output paramter:
 +  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
-          or SVD_TRANSPOSE_MATMULT
+          or SVD_TRANSPOSE_IMPLICIT
    
    Level: advanced
    
