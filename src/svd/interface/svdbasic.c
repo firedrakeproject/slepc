@@ -313,7 +313,7 @@ PetscErrorCode SVDDestroy_Default(SVD svd)
     
    Notes:  
    See "slepc/include/slepcsvd.h" for available methods. The default
-   is SVDEIGENSOLVER.
+   is SVDCROSS.
 
    Normally, it is best to use the SVDSetFromOptions() command and
    then set the SVD type from the options database rather than by using
