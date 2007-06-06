@@ -175,7 +175,7 @@ static PetscErrorCode SVDPublish_Petsc(PetscObject object)
 .  svd - location to put the SVD context
 
    Note:
-   The default SVD type is SVDEIGENSOLVER
+   The default SVD type is SVDCROSS
 
    Level: beginner
 

@@ -74,10 +74,10 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
    Not collective
 
    Input Parameter:
-+  svd  - the singular value solver context
+.  svd  - the singular value solver context
 
    Output paramter:
-+  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
+.  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
           or SVD_TRANSPOSE_IMPLICIT
    
    Level: advanced
@@ -103,7 +103,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
    Collective on SVD
 
    Input Parameters:
-+  svd - the singluar value solver context
++  svd - the singular value solver context
 .  tol - the convergence tolerance
 -  maxits - maximum number of iterations to use
 

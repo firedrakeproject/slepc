@@ -145,7 +145,7 @@ PetscErrorCode SVDGetInitialVector(SVD svd,Vec *vec)
    Collective on SVD
 
    Input Parameter:
-.  SVD   - singular value solver context
+.  svd   - singular value solver context
 
    Level: advanced
 
