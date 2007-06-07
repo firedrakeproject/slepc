@@ -133,6 +133,7 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
 
   ierr = EPSSetOperators(cyclic->eps,cyclic->mat,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(cyclic->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
@@ -163,7 +164,6 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
   VecScatter     vsU,vsV;
   
   PetscFunctionBegin;
-  ierr = EPSSetWhichEigenpairs(cyclic->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSolve(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(cyclic->eps,&svd->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(cyclic->eps,&svd->its);CHKERRQ(ierr);

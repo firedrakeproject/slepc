@@ -288,7 +288,10 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
   switch (which) {
     case SVD_LARGEST:
     case SVD_SMALLEST:
-      svd->which = which;
+      if (svd->which != which) {
+        svd->setupcalled = 0;
+        svd->which = which;
+      }
       break;
   default:
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' parameter");    
