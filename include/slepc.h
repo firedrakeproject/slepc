@@ -47,6 +47,8 @@ EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
  
+extern PetscTruth SlepcInitializeCalled;
+
 PETSC_EXTERN_CXX_END
 #endif
 

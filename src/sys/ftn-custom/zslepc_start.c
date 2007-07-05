@@ -19,7 +19,7 @@
 
 extern PetscTruth SlepcBeganPetsc;
 
-static PetscTruth SlepcInitializeCalled=PETSC_FALSE;
+extern PetscTruth SlepcInitializeCalled;
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define petscinitialize_              PETSCINITIALIZE
