@@ -139,5 +139,5 @@ EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,int(*)(SVD
 #endif
 EXTERN PetscErrorCode SVDRegisterDestroy(void);
 
-PETSC_EXTERN_CXX_BEGIN
+PETSC_EXTERN_CXX_END
 #endif
