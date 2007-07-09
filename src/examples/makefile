@@ -104,11 +104,35 @@ runex1_1:
 	   else echo "Possible problem with ex1_1, diffs above"; fi; \
 	   ${RM} -f ex1_1.tmp
 
+testex1: ex1.PETSc
+	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+           echo "Running with batch filesystem; to test run src/examples/ex1 with" ; \
+           echo "your systems batch system"; \
+	else \
+           ${MPIEXEC} -np 1 ./ex1 > ex1_1.tmp 2>&1; \
+	   if (${DIFF} output/ex1_1.out ex1_1.tmp > /dev/null 2>&1) then \
+           echo "C/C++ example src/examples/ex1 run successfully with 1 MPI process"; \
+	   else echo "Possible error running C/C++ src/examples/ex1 with 1 MPI process"; \
+           cat ex1_1.tmp; fi; \
+           ${RM} -f ex1_1.tmp; fi
+
 runex1f_1:
 	-@${MPIEXEC} -np 1 ./ex1f > ex1f_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex1f_1.out ex1f_1.tmp) then true; \
 	   else echo "Possible problem with ex1f_1, diffs above"; fi; \
 	   ${RM} -f ex1f_1.tmp
+
+testex1f: ex1f.PETSc
+	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+	   echo "Running with batch filesystem; to test run src/examples/ex1f with" ; \
+	   echo "your systems batch system"; \
+	else \
+           ${MPIEXEC} -np 1 ./ex1f > ex1f_1.tmp 2>&1; \
+	   if (${DIFF} output/ex1f_1.out ex1f_1.tmp > /dev/null 2>&1) then \
+           echo "Fortran example src/examples/ex1f run successfully with 1 MPI process"; \
+	   else echo "Possible error running Fortran src/examples/ex1f with 1 MPI process"; \
+           cat ex1f_1.tmp; fi; \
+           ${RM} -f ex1f_1.tmp; fi
 
 runex2_1:
 	-@${MPIEXEC} -np 1 ./ex2 > ex2_1.tmp 2>&1;	  \
