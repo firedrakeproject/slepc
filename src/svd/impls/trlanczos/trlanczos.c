@@ -16,6 +16,7 @@
 */
 
 #include "src/svd/svdimpl.h"                /*I "slepcsvd.h" I*/
+#include "src/ip/ipimpl.h"
 #include "slepcblaslapack.h"
 
 typedef struct {
@@ -52,7 +53,8 @@ PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 static PetscErrorCode SVDOneSideTRLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,int nconv,int l,int n,PetscScalar* work,Vec wv,Vec wu)
 {
   PetscErrorCode ierr;
-  PetscReal      a,b;
+  PetscReal      a,b,sum,onorm;
+  PetscScalar    dot;
   int            i,j,k=nconv+l;
 
   PetscFunctionBegin;
@@ -65,8 +67,14 @@ static PetscErrorCode SVDOneSideTRLanczos(SVD svd,PetscReal *alpha,PetscReal *be
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
     ierr = IPNormBegin(svd->ip,U[i-1],&a);CHKERRQ(ierr);
+    if (svd->ip->orthog_ref == IP_ORTH_REFINE_IFNEEDED) {
+      ierr = IPInnerProductBegin(svd->ip,V[i],V[i],&dot);CHKERRQ(ierr);
+    }
     ierr = IPMInnerProductBegin(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
     ierr = IPNormEnd(svd->ip,U[i-1],&a);CHKERRQ(ierr);
+    if (svd->ip->orthog_ref == IP_ORTH_REFINE_IFNEEDED) {
+      ierr = IPInnerProductEnd(svd->ip,V[i],V[i],&dot);CHKERRQ(ierr);
+    }
     ierr = IPMInnerProductEnd(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
     
     ierr = VecScale(U[i-1],1.0/a);CHKERRQ(ierr);
@@ -74,7 +82,30 @@ static PetscErrorCode SVDOneSideTRLanczos(SVD svd,PetscReal *alpha,PetscReal *be
     for (j=0;j<i;j++) work[j] = - work[j] / a;
     ierr = VecMAXPY(V[i],i,work,V);CHKERRQ(ierr);
 
-    ierr = IPOrthogonalizeCGS(svd->ip,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b,wv);CHKERRQ(ierr);
+    switch (svd->ip->orthog_ref) {
+    case IP_ORTH_REFINE_NEVER:
+      ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
+      break;      
+    case IP_ORTH_REFINE_ALWAYS:
+      ierr = IPOrthogonalizeCGS(svd->ip,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b,wv);CHKERRQ(ierr);
+      break;
+    case IP_ORTH_REFINE_IFNEEDED:
+      onorm = sqrt(PetscRealPart(dot)) / a;
+      sum = 0.0;
+      for (j=0;j<i;j++) {
+        sum += PetscRealPart(work[j] * PetscConj(work[j]));
+      }
+      b = PetscRealPart(dot)/(a*a) - sum;
+      if (b>0.0) b = sqrt(b);
+      else {
+        ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
+      }
+      if (b < svd->ip->orthog_eta * onorm) {
+        ierr = IPOrthogonalizeCGS(svd->ip,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b,wv);CHKERRQ(ierr);
+      }
+      break;
+    }
+    
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
   
     ierr = SVDMatMult(svd,PETSC_FALSE,V[i],U[i]);CHKERRQ(ierr);
