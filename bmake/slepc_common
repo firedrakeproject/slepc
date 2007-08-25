@@ -14,5 +14,5 @@ all_dummy:
 
 include ${SLEPC_DIR}/bmake/slepc_common_variables
 include ${SLEPC_DIR}/bmake/slepc_common_rules
-include ${PETSC_DIR}/bmake/common/test
+include ${PETSC_DIR}/conf/test
 

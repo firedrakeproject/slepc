@@ -17,24 +17,12 @@ def Load(petscdir):
   if 'PETSC_ARCH' in os.environ:
     ARCH = os.environ['PETSC_ARCH']
   else:
-    try:
-      f = open(os.sep.join([petscdir,'bmake','petscconf']))
-      ARCH = ''
-      for l in f.readlines():
-	if l.startswith('PETSC_ARCH='):
-	  ARCH = l.split('=')[1].rstrip()
-	  f.close()
-	  break
-      f.close()
-    except:
-      sys.exit('ERROR: PETSc must be configured first')
-    if not ARCH:
-      sys.exit('ERROR: please set enviroment variable PETSC_ARCH')
+    sys.exit('ERROR: please set enviroment variable PETSC_ARCH')
 
   MPIUNI = 0
   
   try:
-    f = open(os.sep.join([petscdir,'bmake',ARCH,'petscconf']))
+    f = open(os.sep.join([petscdir,ARCH,'conf','petscconf']))
     for l in f.readlines():
       (k,v) = l.split('=',1)
       k = k.strip()

@@ -52,7 +52,7 @@ info:
 	-@echo "Using SLEPc configuration flags:"
 	-@cat ${SLEPC_DIR}/bmake/${PETSC_ARCH}/slepcconf
 	-@echo "Using PETSc configuration flags:"
-	-@grep "\#define " ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf.h
+	-@grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h
 	-@echo "-----------------------------------------"
 	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_INCLUDE}"
 	-@echo "------------------------------------------"

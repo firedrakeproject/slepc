@@ -131,7 +131,7 @@ os.chdir(slepcdir)
 if 'PETSC_DIR' not in os.environ:
   sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
 petscdir = os.environ['PETSC_DIR']
-if not os.path.exists(petscdir) or not os.path.exists(os.sep.join([petscdir,'bmake'])):
+if not os.path.exists(petscdir):
   sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
 
 # Check some information about PETSc configuration

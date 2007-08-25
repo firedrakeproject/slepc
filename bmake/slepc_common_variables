@@ -1,4 +1,4 @@
-include ${PETSC_DIR}/bmake/common/variables
+include ${PETSC_DIR}/conf/variables
 include ${SLEPC_DIR}/bmake/${PETSC_ARCH}/slepcconf
 
 SLEPC_LIB_DIR	    = ${SLEPC_DIR}/lib/${PETSC_ARCH}
