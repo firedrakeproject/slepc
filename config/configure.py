@@ -163,6 +163,13 @@ log.Write('Starting Configure Run at '+time.ctime(time.time()))
 log.Write('Configure Options: '+str.join(' ',sys.argv))
 log.Write('Working directory: '+os.getcwd())
 log.Write('Python version:\n' + sys.version)
+log.Write('make: ' + petscconf.MAKE)
+log.Write('PETSc source directory: ' + petscdir)
+log.Write('PETSc install directory: ' + petscconf.INSTALL_DIR)
+log.Write('PETSc version: ' + petscconf.VERSION)
+log.Write('PETSc architecture: ' + petscconf.ARCH)
+log.Write('SLEPc source directory: ' + slepcdir)
+log.Write('SLEPc install directory: ' + prefixdir)
 log.Write('='*80)
 
 # Check if PETSc is working
