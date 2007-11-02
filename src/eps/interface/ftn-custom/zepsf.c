@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "zpetsc.h"
+#include "private/zpetsc.h"
 #include "slepceps.h"
 #include "src/eps/epsimpl.h"
 
@@ -117,7 +117,7 @@ void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),PetscErro
 #else
   *ierr = PetscStrncpy(name,tname,len);
 #endif
-  FIXRETURNCHAR(name,len);
+  FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
 void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -174,7 +174,7 @@ void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
 #else
   *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
 #endif
-  FIXRETURNCHAR(prefix,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,int *ierr)

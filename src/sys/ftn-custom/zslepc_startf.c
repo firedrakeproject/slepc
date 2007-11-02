@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "zpetsc.h" 
+#include "private/zpetsc.h" 
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define slepcinitializefortran_     SLEPCINITIALIZEFORTRAN

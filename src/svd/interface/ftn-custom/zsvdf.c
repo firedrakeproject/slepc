@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "zpetsc.h"
+#include "private/zpetsc.h"
 #include "slepcsvd.h"
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
@@ -113,7 +113,7 @@ void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErro
 #else
   *ierr = PetscStrncpy(name,tname,len);
 #endif
-  FIXRETURNCHAR(name,len);
+  FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
 void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,int *ierr)
@@ -180,7 +180,7 @@ void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len
 #else
   *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
 #endif
-  FIXRETURNCHAR(prefix,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 void PETSC_STDCALL svdgetconvergedreason_(SVD *svd,SVDConvergedReason *reason,PetscErrorCode *ierr)

@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "zpetsc.h"
+#include "private/zpetsc.h"
 #include "slepcst.h"
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
@@ -57,7 +57,7 @@ void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),PetscErrorCo
 #else
   *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
 #endif
-  FIXRETURNCHAR(name,len);
+  FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
 void PETSC_STDCALL stcreate_(MPI_Fint *comm,ST *newst,PetscErrorCode *ierr)
@@ -106,7 +106,7 @@ void PETSC_STDCALL stgetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
 #else
   *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
 #endif
-  FIXRETURNCHAR(prefix,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)

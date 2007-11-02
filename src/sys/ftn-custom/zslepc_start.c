@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "zpetsc.h" 
+#include "private/zpetsc.h" 
 #include "slepc.h"
 #include "slepcst.h"
 #include "slepceps.h"
