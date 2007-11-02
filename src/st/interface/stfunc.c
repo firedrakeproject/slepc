@@ -86,7 +86,7 @@ PetscErrorCode STDestroy(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  if (--st->refct > 0) PetscFunctionReturn(0);
+  if (--((PetscObject)st)->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
   ierr = PetscObjectDepublish(st);CHKERRQ(ierr);
@@ -99,14 +99,6 @@ PetscErrorCode STDestroy(ST st)
   }
 
   PetscHeaderDestroy(st);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STPublish_Petsc"
-static PetscErrorCode STPublish_Petsc(PetscObject object)
-{
-  PetscFunctionBegin;
   PetscFunctionReturn(0);
 }
 
@@ -138,7 +130,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   *newst = 0;
 
   PetscHeaderCreate(st,_p_ST,struct _STOps,ST_COOKIE,-1,"ST",comm,STDestroy,STView);
-  st->bops->publish       = STPublish_Petsc;
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 
   st->A                   = 0;
@@ -150,7 +141,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->shift_matrix        = STMATMODE_COPY;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
   
-  ierr = KSPCreate(st->comm,&st->ksp);CHKERRQ(ierr);
+  ierr = KSPCreate(((PetscObject)st)->comm,&st->ksp);CHKERRQ(ierr);
   ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
@@ -339,7 +330,7 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
-  ierr = KSPSetOptionsPrefix(st->ksp,st->prefix);CHKERRQ(ierr);
+  ierr = KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -411,7 +402,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(st->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)st)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2); 
   PetscCheckSameComm(st,1,viewer,2);
 

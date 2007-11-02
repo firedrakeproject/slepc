@@ -161,7 +161,7 @@ PetscErrorCode EPSMonitorDefault(EPS eps,int its,int nconv,PetscScalar *eigr,Pet
 
   PetscFunctionBegin;
   if (its) {
-    if (!viewer) viewer = PETSC_VIEWER_STDOUT_(eps->comm);
+    if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
     ierr = PetscViewerASCIIPrintf(viewer,"%3d EPS nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -195,7 +195,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,int its,int nconv,PetscScalar *eigr,PetscSca
 
   PetscFunctionBegin;
 
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(eps->comm); }
+  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm); }
 
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);

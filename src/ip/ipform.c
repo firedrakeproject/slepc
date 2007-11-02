@@ -89,11 +89,11 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (x->id != ip->xid || x->state != ip->xstate) {
+  if (((PetscObject)x)->id != ip->xid || ((PetscObject)x)->state != ip->xstate) {
     ierr = PetscLogEventBegin(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
     ierr = MatMult(ip->matrix,x,ip->Bx);CHKERRQ(ierr);
-    ip->xid = x->id;
-    ip->xstate = x->state;
+    ip->xid = ((PetscObject)x)->id;
+    ip->xstate = ((PetscObject)x)->state;
     ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);  

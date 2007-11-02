@@ -310,7 +310,7 @@ PetscErrorCode SVDSetFromOptions_LANCZOS(SVD svd)
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(svd->comm,svd->prefix,"LANCZOS Singular Value Solver Options","SVD");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"LANCZOS Singular Value Solver Options","SVD");CHKERRQ(ierr);
   ierr = PetscOptionsTruth("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",PETSC_FALSE,&lanczos->oneside,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -51,7 +51,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
 
   /* Set default solver type */
-  if (!eps->type_name) {
+  if (!((PetscObject)eps)->type_name) {
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
   

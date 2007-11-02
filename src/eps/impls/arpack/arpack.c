@@ -79,11 +79,11 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #endif
   PetscFunctionBegin;
 
-  fcomm = MPI_Comm_c2f(eps->comm);
+  fcomm = MPI_Comm_c2f(((PetscObject)eps)->comm);
   ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
   n = nn;
-  ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   ierr = VecCopy(eps->vec_initial,eps->work[1]);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);

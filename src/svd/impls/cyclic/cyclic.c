@@ -94,7 +94,7 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   if (cyclic->explicitmatrix) {
     cyclic->x1 = cyclic->x2 = cyclic->y1 = cyclic->y2 = PETSC_NULL;
-    ierr = MatCreate(svd->comm,&cyclic->mat);CHKERRQ(ierr);
+    ierr = MatCreate(((PetscObject)svd)->comm,&cyclic->mat);CHKERRQ(ierr);
     ierr = MatSetSizes(cyclic->mat,m+n,m+n,M+N,M+N);CHKERRQ(ierr);
     ierr = MatSetFromOptions(cyclic->mat);CHKERRQ(ierr);
     if (svd->AT) {
@@ -122,11 +122,11 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
     ierr = MatAssemblyBegin(cyclic->mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(cyclic->mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   } else {
-    ierr = VecCreateMPIWithArray(svd->comm,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(svd->comm,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(svd->comm,m,M,PETSC_NULL,&cyclic->y1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(svd->comm,n,N,PETSC_NULL,&cyclic->y2);CHKERRQ(ierr);
-    ierr = MatCreateShell(svd->comm,m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->y1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->y2);CHKERRQ(ierr);
+    ierr = MatCreateShell(((PetscObject)svd)->comm,m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_CYCLIC);CHKERRQ(ierr);  
     ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_CYCLIC);CHKERRQ(ierr);  
   }
@@ -174,12 +174,12 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
     ierr = EPSGetOperationCounters(cyclic->eps,&svd->matvecs,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDMatGetSize(svd,&M,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(svd->U[0],&start,&end);CHKERRQ(ierr);
-    ierr = ISCreateBlock(svd->comm,end-start,1,&start,&isU);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&start,&isU);CHKERRQ(ierr);      
     ierr = VecScatterCreate(x,isU,svd->U[0],PETSC_NULL,&vsU);CHKERRQ(ierr);
 
     ierr = VecGetOwnershipRange(svd->V[0],&start,&end);CHKERRQ(ierr);
     idx = start + M;
-    ierr = ISCreateBlock(svd->comm,end-start,1,&idx,&isV);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&idx,&isV);CHKERRQ(ierr);      
     ierr = VecScatterCreate(x,isV,svd->V[0],PETSC_NULL,&vsV);CHKERRQ(ierr);
 
     for (i=0,j=0;i<svd->nconv;i++) {
@@ -260,7 +260,7 @@ PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(svd->comm,svd->prefix,"CYCLIC Singular Value Solver Options","SVD");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"CYCLIC Singular Value Solver Options","SVD");CHKERRQ(ierr);
   ierr = PetscOptionsTruth("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",PETSC_FALSE,&cyclic->explicitmatrix,PETSC_NULL);CHKERRQ(ierr);
   if (cyclic->explicitmatrix) {
     /* don't build the transpose */
@@ -518,8 +518,8 @@ PetscErrorCode SVDCreate_CYCLIC(SVD svd)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","SVDCyclicSetExplicitMatrix_CYCLIC",SVDCyclicSetExplicitMatrix_CYCLIC);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","SVDCyclicGetExplicitMatrix_CYCLIC",SVDCyclicGetExplicitMatrix_CYCLIC);CHKERRQ(ierr);
 
-  ierr = EPSCreate(svd->comm,&cyclic->eps);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(cyclic->eps,svd->prefix);CHKERRQ(ierr);
+  ierr = EPSCreate(((PetscObject)svd)->comm,&cyclic->eps);CHKERRQ(ierr);
+  ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
   PetscLogObjectParent(svd,cyclic->eps);
   ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);

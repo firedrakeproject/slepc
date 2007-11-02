@@ -111,7 +111,7 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 
   PetscFunctionBegin;
   ierr = MatGetLocalSize(st->B,&n,&m);CHKERRQ(ierr);
-  ierr = MatCreateShell(st->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,B);CHKERRQ(ierr);
+  ierr = MatCreateShell(((PetscObject)st)->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,B);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 }

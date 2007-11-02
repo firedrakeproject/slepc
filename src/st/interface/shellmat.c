@@ -95,7 +95,7 @@ PetscErrorCode STMatShellCreate(ST st,Mat *mat)
   PetscFunctionBegin;
   ierr = MatGetSize(st->A,&M,&N);CHKERRQ(ierr);  
   ierr = MatGetLocalSize(st->A,&m,&n);CHKERRQ(ierr);  
-  ierr = MatCreateShell(st->comm,m,n,M,N,(void*)st,mat);CHKERRQ(ierr);
+  ierr = MatCreateShell(((PetscObject)st)->comm,m,n,M,N,(void*)st,mat);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))STMatShellMult);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))STMatShellMultTranspose);CHKERRQ(ierr);
 

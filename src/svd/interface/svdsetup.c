@@ -169,7 +169,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
 
   /* Set default solver type */
-  if (!svd->type_name) {
+  if (!((PetscObject)svd)->type_name) {
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
   }
 

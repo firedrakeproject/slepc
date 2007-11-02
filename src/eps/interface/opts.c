@@ -43,8 +43,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = PetscOptionsBegin(eps->comm,eps->prefix,"Eigenproblem Solver (EPS) Options","EPS");CHKERRQ(ierr);
-    ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(eps->type_name?eps->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"Eigenproblem Solver (EPS) Options","EPS");CHKERRQ(ierr);
+    ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSSetType(eps,type);CHKERRQ(ierr);
     }
@@ -63,7 +63,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     /*
       Set the type if it was never set.
     */
-    if (!eps->type_name) {
+    if (!((PetscObject)eps)->type_name) {
       ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     }
 
@@ -95,7 +95,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     */
     ierr = PetscOptionsString("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIOpen(eps->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&monviewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsName("-eps_monitor_draw","Monitor error estimates graphically","EPSMonitorSet",&flg);CHKERRQ(ierr); 

@@ -361,12 +361,12 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   svd->setupcalled = 0;
-  ierr = PetscOptionsBegin(svd->comm,svd->prefix,"Singular Value Solver (SVD) Options","SVD");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"Singular Value Solver (SVD) Options","SVD");CHKERRQ(ierr);
 
-  ierr = PetscOptionsList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(svd->type_name?svd->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDSetType(svd,type);CHKERRQ(ierr);
-  } else if (!svd->type_name) {
+  } else if (!((PetscObject)svd)->type_name) {
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
   }
 
@@ -399,7 +399,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   ierr = PetscOptionsString("-svd_monitor","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
-    ierr = PetscViewerASCIIOpen(svd->comm,monfilename,&monviewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIOpen(((PetscObject)svd)->comm,monfilename,&monviewer);CHKERRQ(ierr);
     ierr = SVDMonitorSet(svd,SVDMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
   }
   ierr = PetscOptionsName("-svd_monitor_draw","Monitor error estimates graphically","SVDMonitorSet",&flg);CHKERRQ(ierr); 
@@ -505,10 +505,10 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
     ierr = SVDCyclicGetEPS(svd,&eps);CHKERRQ(ierr);
   }
   if (flg1 || flg2) {
-    ierr = EPSSetOptionsPrefix(eps,svd->prefix);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
   }
-  ierr = IPSetOptionsPrefix(svd->ip,svd->prefix);CHKERRQ(ierr);
+  ierr = IPSetOptionsPrefix(svd->ip,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -105,7 +105,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(svd->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
   PetscCheckSameComm(svd,1,viewer,2);
 
@@ -154,14 +154,6 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDPublish_Petsc"
-static PetscErrorCode SVDPublish_Petsc(PetscObject object)
-{
-  PetscFunctionBegin;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "SVDCreate"
 /*@C
    SVDCreate - Creates the default SVD context.
@@ -192,10 +184,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_COOKIE,-1,"SVD",comm,SVDDestroy,SVDView);
   *outsvd = svd;
 
-  svd->bops->publish   = SVDPublish_Petsc;
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
 
-  svd->type_name   = PETSC_NULL;
   svd->OP          = PETSC_NULL;
   svd->A           = PETSC_NULL;
   svd->AT          = PETSC_NULL;
@@ -220,7 +210,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->matvecs = 0;
 
   ierr = IPCreate(comm,&svd->ip);CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(svd->ip,svd->prefix);
+  ierr = IPSetOptionsPrefix(svd->ip,((PetscObject)svd)->prefix);
   ierr = IPAppendOptionsPrefix(svd->ip,"svd_");
   PetscLogObjectParent(svd,svd->ip);
 
@@ -249,7 +239,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  if (--svd->refct > 0) PetscFunctionReturn(0);
+  if (--((PetscObject)svd)->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
   ierr = PetscObjectDepublish(svd);CHKERRQ(ierr);
@@ -345,7 +335,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
     svd->data = 0;
   }
 
-  ierr = PetscFListFind(SVDList,svd->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFListFind(SVDList,((PetscObject)svd)->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
 
   if (!r) SETERRQ1(1,"Unknown SVD type given: %s",type);
 
@@ -378,7 +368,7 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  *type = svd->type_name;
+  *type = ((PetscObject)svd)->type_name;
   PetscFunctionReturn(0);
 }
 

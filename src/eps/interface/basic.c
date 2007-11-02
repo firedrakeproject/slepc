@@ -104,7 +104,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(eps->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
   PetscCheckSameComm(eps,1,viewer,2);
 
@@ -172,14 +172,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSPublish_Petsc"
-static PetscErrorCode EPSPublish_Petsc(PetscObject object)
-{
-  PetscFunctionBegin;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSCreate"
 /*@C
    EPSCreate - Creates the default EPS context.
@@ -211,10 +203,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_COOKIE,-1,"EPS",comm,EPSDestroy,EPSView);
   *outeps = eps;
 
-  eps->bops->publish   = EPSPublish_Petsc;
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
 
-  eps->type            = -1;
   eps->max_it          = 0;
   eps->nev             = 1;
   eps->ncv             = 0;
@@ -259,7 +249,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
   PetscLogObjectParent(eps,eps->OP);
   ierr = IPCreate(comm,&eps->ip); CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(eps->ip,eps->prefix);
+  ierr = IPSetOptionsPrefix(eps->ip,((PetscObject)eps)->prefix);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");
   PetscLogObjectParent(eps,eps->ip);
   ierr = PetscPublishAll(eps);CHKERRQ(ierr);
@@ -315,7 +305,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
     eps->data = 0;
   }
 
-  ierr = PetscFListFind(EPSList,eps->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFListFind(EPSList,((PetscObject)eps)->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
 
   if (!r) SETERRQ1(1,"Unknown EPS type given: %s",type);
 
@@ -348,7 +338,7 @@ PetscErrorCode EPSGetType(EPS eps,EPSType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  *type = eps->type_name;
+  *type = ((PetscObject)eps)->type_name;
   PetscFunctionReturn(0);
 }
 
@@ -453,7 +443,7 @@ PetscErrorCode EPSDestroy(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (--eps->refct > 0) PetscFunctionReturn(0);
+  if (--((PetscObject)eps)->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
   ierr = PetscObjectDepublish(eps);CHKERRQ(ierr);

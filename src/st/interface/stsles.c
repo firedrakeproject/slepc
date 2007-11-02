@@ -136,7 +136,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  if (!st->type_name) { SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
+  if (!((PetscObject)st)->type_name) { SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
   if (ksp)  *ksp = st->ksp;
   PetscFunctionReturn(0);
 }
@@ -226,7 +226,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,int n,const Vec V[])
   }
   ierr = VecDestroy(w);CHKERRQ(ierr);
   if (c>0) {
-    ierr = MatNullSpaceCreate(st->comm,PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
+    ierr = MatNullSpaceCreate(((PetscObject)st)->comm,PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
     ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);
     ierr = MatNullSpaceDestroy(nullsp);CHKERRQ(ierr);
   }

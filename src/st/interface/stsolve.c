@@ -168,7 +168,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   ierr = PetscMalloc(m*sizeof(int),&rows);CHKERRQ(ierr);
   for (i=0; i<m; i++) rows[i] = start + i;
 
-  ierr = MatCreateMPIDense(st->comm,m,m,M,M,PETSC_NULL,mat);CHKERRQ(ierr);
+  ierr = MatCreateMPIDense(((PetscObject)st)->comm,m,m,M,M,PETSC_NULL,mat);CHKERRQ(ierr);
 
   for (i=0; i<M; i++) {
     ierr = VecSet(in,0.0);CHKERRQ(ierr);
@@ -215,7 +215,7 @@ PetscErrorCode STSetUp(ST st)
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!st->A) {SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
-  if (!st->type_name) {
+  if (!((PetscObject)st)->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); }

@@ -89,7 +89,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   PetscScalar    *array,*arrayb,*pV,*pW;
   PetscReal      *w;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  MPI_Comm       comm = eps->comm;
+  MPI_Comm       comm = ((PetscObject)eps)->comm;
   
   PetscFunctionBegin;
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);

@@ -446,7 +446,7 @@ PetscErrorCode STCreate_Shell(ST st)
   ierr = PetscLogObjectMemory(st,sizeof(ST_Shell));CHKERRQ(ierr);
 
   st->data           = (void *) shell;
-  st->name           = 0;
+  ((PetscObject)st)->name           = 0;
 
   st->ops->apply     = STApply_Shell;
   st->ops->applytrans= STApplyTranspose_Shell;

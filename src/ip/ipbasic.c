@@ -66,14 +66,6 @@ PetscErrorCode IPInitializePackage(char *path)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "IPPublish_Petsc"
-static PetscErrorCode IPPublish_Petsc(PetscObject object)
-{
-  PetscFunctionBegin;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "IPCreate"
 /*@C
    IPCreate - Creates an IP context.
@@ -113,7 +105,6 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->xid           = 0;
   ip->xstate        = 0;
 
-  ip->bops->publish = IPPublish_Petsc;
   ierr = PetscPublishAll(ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -204,7 +195,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  ierr = PetscOptionsBegin(ip->comm,ip->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)ip)->comm,((PetscObject)ip)->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
   i = ip->orthog_type;
   ierr = PetscOptionsEList("-orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,3,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
   j = ip->orthog_ref;
@@ -345,7 +336,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(ip->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ip)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
   PetscCheckSameComm(ip,1,viewer,2);
 
@@ -403,7 +394,7 @@ PetscErrorCode IPDestroy(IP ip)
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
   if (ip->matrix) { ierr = MatDestroy(ip->matrix);CHKERRQ(ierr); }
   if (ip->Bx) { ierr = VecDestroy(ip->Bx);CHKERRQ(ierr); }
-  if (--ip->refct <= 0) PetscHeaderDestroy(ip);
+  if (--((PetscObject)ip)->refct <= 0) PetscHeaderDestroy(ip);
   PetscFunctionReturn(0);
 }
 

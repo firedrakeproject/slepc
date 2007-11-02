@@ -51,7 +51,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
-  ierr = PetscOptionsHasName(svd->prefix,"-svd_view",&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsHasName(((PetscObject)svd)->prefix,"-svd_view",&flg);CHKERRQ(ierr); 
   if (flg && !PetscPreLoadingOn) { ierr = SVDView(svd,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
 
   PetscFunctionReturn(0);

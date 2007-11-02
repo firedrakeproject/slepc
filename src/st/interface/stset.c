@@ -60,12 +60,12 @@ PetscErrorCode STSetType(ST st,STType type)
   if (match) PetscFunctionReturn(0);
 
   if (st->ops->destroy) {ierr =  (*st->ops->destroy)(st);CHKERRQ(ierr);}
-  ierr = PetscFListDestroy(&st->qlist);CHKERRQ(ierr);
+  ierr = PetscFListDestroy(&((PetscObject)st)->qlist);CHKERRQ(ierr);
   st->data        = 0;
   st->setupcalled = 0;
 
   /* Determine the STCreateXXX routine for a particular type */
-  ierr =  PetscFListFind(STList, st->comm, type,(void (**)(void)) &r );CHKERRQ(ierr);
+  ierr =  PetscFListFind(STList, ((PetscObject)st)->comm, type,(void (**)(void)) &r );CHKERRQ(ierr);
   if (!r) SETERRQ1(1,"Unable to find requested ST type %s",type);
   ierr = PetscFree(st->data);CHKERRQ(ierr);
 
@@ -99,7 +99,7 @@ PetscErrorCode STSetType(ST st,STType type)
 PetscErrorCode STGetType(ST st,STType *meth)
 {
   PetscFunctionBegin;
-  *meth = (STType) st->type_name;
+  *meth = (STType) ((PetscObject)st)->type_name;
   PetscFunctionReturn(0);
 }
 
@@ -133,15 +133,15 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
 
-  ierr = PetscOptionsBegin(st->comm,st->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);
-    ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(st->type_name?st->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)st)->comm,((PetscObject)st)->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);
+    ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = STSetType(st,type);CHKERRQ(ierr);
     }
     /*
       Set the type if it was never set.
     */
-    if (!st->type_name) {
+    if (!((PetscObject)st)->type_name) {
       ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
     }
 

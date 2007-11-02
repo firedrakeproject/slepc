@@ -44,12 +44,12 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
 
-  ierr = PetscOptionsHasName(eps->prefix,"-eps_view_binary",&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsHasName(((PetscObject)eps)->prefix,"-eps_view_binary",&flg);CHKERRQ(ierr); 
   if (flg) {
     Mat A,B;
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-    ierr = MatView(A,PETSC_VIEWER_BINARY_(eps->comm));CHKERRQ(ierr);
-    if (B) ierr = MatView(B,PETSC_VIEWER_BINARY_(eps->comm));CHKERRQ(ierr);
+    ierr = MatView(A,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
+    if (B) ierr = MatView(B,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
   }
 
   /* reset the convergence flag from the previous solves */
@@ -96,7 +96,7 @@ PetscErrorCode EPSSolve(EPS eps)
     KSP ksp;
     Vec w;
     ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
-    ierr = KSPCreate(eps->comm,&ksp);CHKERRQ(ierr);
+    ierr = KSPCreate(((PetscObject)eps)->comm,&ksp);CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
@@ -130,10 +130,10 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsHasName(eps->prefix,"-eps_view",&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsHasName(((PetscObject)eps)->prefix,"-eps_view",&flg);CHKERRQ(ierr); 
   if (flg && !PetscPreLoadingOn) { ierr = EPSView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsHasName(eps->prefix,"-eps_plot_eigs",&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsHasName(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg);CHKERRQ(ierr); 
   if (flg) { 
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",
                              PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);

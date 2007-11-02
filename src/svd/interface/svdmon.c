@@ -157,7 +157,7 @@ PetscErrorCode SVDMonitorDefault(SVD svd,int its,int nconv,PetscReal *sigma,Pets
 
   PetscFunctionBegin;
   if (its) {
-    if (!viewer) viewer = PETSC_VIEWER_STDOUT_(svd->comm);
+    if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
     ierr = PetscViewerASCIIPrintf(viewer,"%3d SVD nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
       ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)",sigma[i],errest[i]);CHKERRQ(ierr);
@@ -183,7 +183,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,int its,int nconv,PetscReal *sigma,PetscReal
 
   PetscFunctionBegin;
 
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(svd->comm); }
+  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm); }
 
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);

@@ -58,8 +58,8 @@ static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,i
   int            i;
 
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(globaleps->comm,*n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,*n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   for (i=0;i<*m;i++) {
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
@@ -101,7 +101,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
   ipar[6]  = eps->max_it;  /* maximum number of MATVECs */
-  ipar[7]  = MPI_Comm_c2f(eps->comm);    /* communicator */
+  ipar[7]  = MPI_Comm_c2f(((PetscObject)eps)->comm);    /* communicator */
   ipar[8]  = 0;            /* verboseness */
   ipar[9]  = 99;           /* Fortran IO unit number used to write log messages */
   ipar[10] = 1;            /* use supplied starting vector */
