@@ -21,7 +21,7 @@
    Collective on IP and Vec
 
    Input Parameters:
-+  ip - the spectral transformation context
++  ip - the inner product context
 -  x  - input vector
 
    Output Parameter:
@@ -71,7 +71,7 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
    IPNormBegin - Starts a split phase norm computation.
 
    Input Parameters:
-+  ip   - the spectral transformation context
++  ip   - the inner product context
 .  x    - input vector
 -  norm - where the result will go
 
@@ -105,7 +105,7 @@ PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
    IPNormEnd - Ends a split phase norm computation.
 
    Input Parameters:
-+  ip   - the spectral transformation context
++  ip   - the inner product context
 -  x    - input vector
 
    Output Parameter:
@@ -155,7 +155,7 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
    Collective on IP and Vec
 
    Input Parameters:
-+  ip - the spectral transformation context
++  ip - the inner product context
 .  x  - input vector
 -  y  - input vector
 
@@ -209,7 +209,7 @@ PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
    IPInnerProductBegin - Starts a split phase inner product computation.
 
    Input Parameters:
-+  ip - the spectral transformation context
++  ip - the inner product context
 .  x  - the first vector
 .  y  - the second vector
 -  p  - where the result will go
@@ -259,7 +259,7 @@ PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
    IPInnerProductEnd - Ends a split phase inner product computation.
 
    Input Parameters:
-+  ip - the spectral transformation context
++  ip - the inner product context
 .  x  - the first vector
 -  y  - the second vector
 
@@ -312,7 +312,7 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
    Collective on IP and Vec
 
    Input Parameters:
-+  ip - the spectral transformation context
++  ip - the inner product context
 .  x  - the first input vector
 .  n  - number of vectors in y
 -  y  - array of vectors
@@ -368,7 +368,7 @@ PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar 
    IPMInnerProductBegin - Starts a split phase multiple inner product computation.
 
    Input Parameters:
-+  ip - the spectral transformation context
++  ip - the inner product context
 .  x  - the first input vector
 .  n  - number of vectors in y
 .  y  - array of vectors
@@ -420,7 +420,7 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
    IPMInnerProductEnd - Ends a split phase multiple inner product computation.
 
    Input Parameters:
-+  ip - the spectral transformation context
++  ip - the inner product context
 .  x  - the first input vector
 .  n  - number of vectors in y
 -  y  - array of vectors
