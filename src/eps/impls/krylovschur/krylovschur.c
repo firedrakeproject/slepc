@@ -56,11 +56,106 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSProjectedKSSymm"
+/*
+   EPSProjectedKSSym - Solves the projected eigenproblem in the Krylov-Schur
+   method (symmetric case).
+
+   On input:
+     l is the number of vectors kept in previous restart (0 means first restart)
+     S is the projected matrix (leading dimension is lds)
+     Q is an orthogonal transformation matrix if l=0 (leading dimension is n)
+
+   Workspace:
+     ritz temporarily stores computed Ritz values
+     perm is used for representing the permutation used for sorting values
+
+   On output:
+     S has (real) Schur form with diagonal blocks sorted appropriately
+     Q contains the accumulated orthogonal transformations used in the process
+*/
+PetscErrorCode EPSProjectedKSSym(EPS eps,int l,PetscScalar *S,int lds,PetscScalar *Q,int n,PetscReal *ritz,int *perm)
+{
+  PetscErrorCode ierr;
+  int            i,j;
+
+  PetscFunctionBegin;
+  /* Reduce S to diagonal form, S <- Q S Q' */
+  if (l==0) {
+    ierr = EPSDenseTridiagonal(n,S+eps->nconv*(lds+1),lds,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
+  } else {
+    ierr = EPSDenseHEP(n,S+eps->nconv*(lds+1),lds,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
+  }
+  /* Sort the remaining columns of the Schur form */
+  if (eps->which == EPS_SMALLEST_REAL) {
+    for (i=0;i<n;i++)
+      eps->eigr[i+eps->nconv] = ritz[i];
+  } else {
+#ifdef PETSC_USE_COMPLEX
+    for (i=0;i<n;i++)
+      eps->eigr[i+eps->nconv] = ritz[i];
+    ierr = EPSSortEigenvalues(n,eps->eigr+eps->nconv,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
+#else
+    ierr = EPSSortEigenvalues(n,ritz,eps->eigi+eps->nconv,eps->which,n,perm);CHKERRQ(ierr);
+#endif
+    for (i=0;i<n;i++)
+      eps->eigr[i+eps->nconv] = ritz[perm[i]];
+    ierr = PetscMemcpy(S,Q+eps->nconv*n,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (j=0;j<n;j++)
+      for (i=0;i<n;i++)
+        Q[(j+eps->nconv)*n+i] = S[perm[j]*n+i];
+  }
+  /* rebuild S from eigr */
+  for (i=eps->nconv;i<eps->nv;i++) {
+    S[i*(eps->ncv+1)] = eps->eigr[i];
+    for (j=i+1;j<eps->ncv;j++)
+      S[i*eps->ncv+j] = 0.0;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSProjectedKSNonsymm"
+/*
+   EPSProjectedKSNonsym - Solves the projected eigenproblem in the Krylov-Schur
+   method (non-symmetric case).
+
+   On input:
+     l is the number of vectors kept in previous restart (0 means first restart)
+     S is the projected matrix (leading dimension is lds)
+     Q is an orthogonal transformation matrix if l=0 (leading dimension is n)
+
+   On output:
+     S has (real) Schur form with diagonal blocks sorted appropriately
+     Q contains the accumulated orthogonal transformations used in the process
+*/
+PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscScalar *Q,int n)
+{
+  PetscErrorCode ierr;
+  int            i;
+
+  PetscFunctionBegin;
+  if (l==0) {
+    ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<n;i++) 
+      Q[i*(n+1)] = 1.0;
+  } else {
+    /* Reduce S to Hessenberg form, S <- Q S Q' */
+    ierr = EPSDenseHessenberg(n,eps->nconv,S,lds,Q);CHKERRQ(ierr);
+  }
+  /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
+  ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  /* Sort the remaining columns of the Schur form */
+  ierr = EPSSortDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_KRYLOVSCHUR"
 PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,j,k,l,n,lwork,*perm;
+  int            i,k,l,n,lwork,*perm;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q,*work,*b;
   PetscReal      beta,*ritz;
@@ -91,58 +186,16 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
-    if (!eps->ishermitian) {
-      n = eps->nv; /* size of Q */
-      if (l==0) {
-        ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-        for (i=0;i<n;i++) 
-          Q[i*(n+1)] = 1.0;
-      } else {
-        /* Reduce S to Hessenberg form, S <- Q S Q' */
-        ierr = EPSDenseHessenberg(n,eps->nconv,S,eps->ncv,Q);CHKERRQ(ierr);
-      }
-      /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
-      ierr = EPSDenseSchur(n,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
-      /* Sort the remaining columns of the Schur form */
-      ierr = EPSSortDenseSchur(n,eps->nconv,S,eps->ncv,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
-      /* Compute residual norm estimates */
-      ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,n,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-   } else {
-      n = eps->nv-eps->nconv; /* size of Q */
-      /* Reduce S to diagonal form, S <- Q S Q' */
-      if (l==0) {
-	ierr = EPSDenseTridiagonal(n,S+eps->nconv*(eps->ncv+1),eps->ncv,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
-      } else {
-	ierr = EPSDenseHEP(n,S+eps->nconv*(eps->ncv+1),eps->ncv,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
-      }
-      /* Sort the remaining columns of the Schur form */
-      if (eps->which == EPS_SMALLEST_REAL) {
-	for (i=0;i<n;i++)
-	  eps->eigr[i+eps->nconv] = ritz[i];
-      } else {
-#ifdef PETSC_USE_COMPLEX
-	for (i=0;i<n;i++)
-	  eps->eigr[i+eps->nconv] = ritz[i];
-	ierr = EPSSortEigenvalues(n,eps->eigr+eps->nconv,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
-#else
-	ierr = EPSSortEigenvalues(n,ritz,eps->eigi+eps->nconv,eps->which,n,perm);CHKERRQ(ierr);
-#endif
-        for (i=0;i<n;i++)
-	  eps->eigr[i+eps->nconv] = ritz[perm[i]];
-	ierr = PetscMemcpy(S,Q+eps->nconv*n,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-        for (j=0;j<n;j++)
-          for (i=0;i<n;i++)
-            Q[(j+eps->nconv)*n+i] = S[perm[j]*n+i];
-      }
-      /* rebuild S from eigr */
-      for (i=eps->nconv;i<eps->nv;i++) {
-	S[i*(eps->ncv+1)] = eps->eigr[i];
-	for (j=i+1;j<eps->ncv;j++)
-	  S[i*eps->ncv+j] = 0.0;
-      }
-      /* Compute residual norm estimates */ 
+    /* Solve projected problem and compute residual norm estimates */ 
+    if (eps->ishermitian) {
+      n = eps->nv-eps->nconv;
+      ierr = EPSProjectedKSSym(eps,l,S,eps->ncv,Q,n,ritz,perm);CHKERRQ(ierr);
       for (i=eps->nconv;i<eps->nv;i++)
         eps->errest[i] = beta*PetscAbsScalar(Q[(i+1)*n-1]) / PetscAbsScalar(eps->eigr[i]);
+    } else { /* non-hermitian */
+      n = eps->nv;
+      ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,n);CHKERRQ(ierr);
+      ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,n,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
     }
 
     /* Check convergence */
