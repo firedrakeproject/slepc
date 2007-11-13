@@ -96,6 +96,8 @@ EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
 
 EXTERN PetscErrorCode EPSInitializePackage(char *);
 
+EXTERN PetscErrorCode EPSSetTarget(EPS,PetscScalar);
+EXTERN PetscErrorCode EPSGetTarget(EPS,PetscScalar*);
 EXTERN PetscErrorCode EPSSetST(EPS,ST);
 EXTERN PetscErrorCode EPSGetST(EPS,ST*);
 EXTERN PetscErrorCode EPSSetIP(EPS,IP);

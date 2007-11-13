@@ -143,16 +143,25 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    switch (eps->which) {
-      case EPS_LARGEST_MAGNITUDE:  which = "largest eigenvalues in magnitude"; break;
-      case EPS_SMALLEST_MAGNITUDE: which = "smallest eigenvalues in magnitude"; break;
-      case EPS_LARGEST_REAL:       which = "largest real parts"; break;
-      case EPS_SMALLEST_REAL:      which = "smallest real parts"; break;
-      case EPS_LARGEST_IMAGINARY:  which = "largest imaginary parts"; break;
-      case EPS_SMALLEST_IMAGINARY: which = "smallest imaginary parts"; break;
-      default: SETERRQ(1,"Wrong value of eps->which");
+    ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
+    if (eps->target_set) {
+#if !defined(PETSC_USE_COMPLEX)
+      ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g\n",eps->target);CHKERRQ(ierr);
+#else
+      ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g+%g i\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
+#endif
+    } else {
+      switch (eps->which) {
+        case EPS_LARGEST_MAGNITUDE:  which = "largest eigenvalues in magnitude"; break;
+        case EPS_SMALLEST_MAGNITUDE: which = "smallest eigenvalues in magnitude"; break;
+        case EPS_LARGEST_REAL:       which = "largest real parts"; break;
+        case EPS_SMALLEST_REAL:      which = "smallest real parts"; break;
+        case EPS_LARGEST_IMAGINARY:  which = "largest imaginary parts"; break;
+        case EPS_SMALLEST_IMAGINARY: which = "smallest imaginary parts"; break;
+        default: SETERRQ(1,"Wrong value of eps->which");
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"%s\n",which);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: %s\n",which);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",eps->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",eps->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
@@ -212,6 +221,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nds             = 0;
   eps->tol             = 1e-7;
   eps->which           = EPS_LARGEST_MAGNITUDE;
+  eps->target          = 0.0;
+  eps->target_set      = PETSC_FALSE;
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
   eps->solverclass     = (EPSClass)0;
@@ -476,6 +487,71 @@ PetscErrorCode EPSDestroy(EPS eps)
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
   PetscHeaderDestroy(eps);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetTarget"
+/*@
+   EPSSetTarget - Sets the value of the target.
+
+   Not collective
+
+   Input Parameters:
++  eps    - eigensolver context
+-  target - the value of the target
+
+   Notes:
+   The target is a scalar value used to determine the portion of the spectrum
+   of interest.
+
+   If the target is not specified, then eigenvalues are computed according to
+   the which parameter (see EPSSetWhichEigenpairs()).
+   
+   If the target is specified, then the sought-after eigenvalues are those
+   closest to the target.
+
+   Level: beginner
+
+.seealso: EPSGetTarget(), EPSSetWhichEigenpairs()
+@*/
+PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  eps->target = target;
+  eps->target_set = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetTarget"
+/*@
+   EPSGetTarget - Gets the value of the target.
+
+   Not collective
+
+   Input Parameter:
+.  eps - eigensolver context
+
+   Output Parameter:
+.  target - the value of the target
+
+   Level: beginner
+
+   Note:
+   If the target was not set by the user, then zero is returned.
+
+.seealso: EPSSetTarget()
+@*/
+PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (target) {
+    if (eps->target_set) *target = eps->target;
+    else *target = 0.0;
+  }
   PetscFunctionReturn(0);
 }
 

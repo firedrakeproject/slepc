@@ -41,17 +41,19 @@ struct _EPSOps {
 struct _p_EPS {
   PETSCHEADER(struct _EPSOps);
   /*------------------------- User parameters --------------------------*/
-  int        max_it,            /* maximum number of iterations */
-             nev,               /* number of eigenvalues to compute */
-             ncv,               /* number of basis vectors */
-	     nv,                /* number of available basis vectors (<= ncv) */
-             allocated_ncv,     /* number of basis vectors allocated */
-             nds;               /* number of basis vectors of deflation space */
-  PetscReal  tol;               /* tolerance */
-  EPSWhich   which;             /* which part of the spectrum to be sought */
-  PetscTruth evecsavailable;    /* computed eigenvectors */
+  int         max_it,           /* maximum number of iterations */
+              nev,              /* number of eigenvalues to compute */
+              ncv,              /* number of basis vectors */
+              nv,               /* number of available basis vectors (<= ncv) */
+              allocated_ncv,    /* number of basis vectors allocated */
+              nds;              /* number of basis vectors of deflation space */
+  PetscScalar target;           /* target value */
+  PetscTruth  target_set;       /* flag indicating if target was specified */
+  PetscReal   tol;              /* tolerance */
+  EPSWhich    which;            /* which part of the spectrum to be sought */
+  PetscTruth  evecsavailable;   /* computed eigenvectors */
   EPSProblemType problem_type;  /* which kind of problem to be solved */
-  EPSClass   solverclass;       /* whether the selected solver is one- or two-sided */
+  EPSClass    solverclass;      /* whether the selected solver is one- or two-sided */
 
   /*------------------------- Working data --------------------------*/
   Vec         vec_initial,      /* initial vector */

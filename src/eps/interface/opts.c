@@ -38,6 +38,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   char           type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscTruth     flg;
   PetscReal      r;
+  PetscScalar    s;
   PetscInt       i,j;
   PetscViewer    monviewer;
 
@@ -115,6 +116,9 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_IMAGINARY);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-eps_smallest_imaginary","compute smallest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
+
+    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);}
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_binary","Save the matrices associated to the eigenproblem","EPSSetFromOptions",0);CHKERRQ(ierr);
