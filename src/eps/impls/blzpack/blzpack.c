@@ -113,6 +113,10 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
   ierr = PetscMalloc(2*eps->ncv*sizeof(PetscReal),&blz->eig);CHKERRQ(ierr);
 
+  if (eps->projection) {
+     ierr = PetscInfo(eps,"Warning: projection type ignored\n");CHKERRQ(ierr);
+  }
+
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -115,6 +115,10 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   blopex->blap_fn.dpotrf = PETSC_dpotrf_interface;
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
 
+  if (eps->projection) {
+     ierr = PetscInfo(eps,"Warning: projection type ignored\n");CHKERRQ(ierr);
+  }
+
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);

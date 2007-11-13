@@ -68,6 +68,15 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsTruthGroupBegin("-eps_ritz","Rayleigh-Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetProjection(eps,EPS_RITZ);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_harmonic","harmonic Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetProjection(eps,EPS_HARMONIC);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_refined","refined Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetProjection(eps,EPS_REFINED);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-eps_refined_harmonic","refined harmonic Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetProjection(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr);}
+
     ierr = PetscOptionsTruthGroupBegin("-eps_oneside","one-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetClass(eps,EPS_ONE_SIDE);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-eps_twoside","two-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
@@ -405,9 +414,11 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 +  -eps_hermitian - Hermitian eigenvalue problem
 .  -eps_gen_hermitian - generalized Hermitian eigenvalue problem
 .  -eps_non_hermitian - non-Hermitian eigenvalue problem
--  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
+.  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
+-  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
+   with positive semi-definite B
     
-   Note:  
+   Notes:  
    Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
    (EPS_NHEP), generalized Hermitian (EPS_GHEP) and generalized non-Hermitian 
    (EPS_GNHEP).
@@ -497,6 +508,71 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidPointer(type,2);
   *type = eps->problem_type;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetProjection"
+/*@
+   EPSSetProjection - Specifies the type of projection to be employed 
+   by the eigensolver.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps  - the eigensolver context
+-  proj - a known type of projection
+
+   Options Database Keys:
++  -eps_ritz - Rayleigh-Ritz projection
+.  -eps_harmonic - hamonic Ritz projection
+.  -eps_refined - refined Ritz projection
+-  -eps_refined_harmonic - refined harmonic Ritz projection
+    
+   Notes:  
+   Not all eigensolvers support all types of projection. See the SLEPc
+   Users Manual for details.
+
+   By default, a standard Rayleigh-Ritz projection is used. Other projections
+   may be useful when computing interior eigenvalues.
+
+   Harmonic-type projections are used in combination with a 'target'.
+
+   Level: beginner
+
+.seealso: EPSSetTarget(), EPSGetProjection(), EPSProjection
+@*/
+PetscErrorCode EPSSetProjection(EPS eps,EPSProjection proj)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  eps->projection = proj;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetProjection"
+/*@C
+   EPSGetProjection - Gets the projection type used by the EPS object.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context 
+
+   Output Parameter:
+.  proj - name of projection type 
+
+   Level: intermediate
+
+.seealso: EPSSetProjection(), EPSProjection
+@*/
+PetscErrorCode EPSGetProjection(EPS eps,EPSProjection *proj)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(proj,2);
+  *proj = eps->projection;
   PetscFunctionReturn(0);
 }
 

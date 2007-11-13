@@ -57,6 +57,12 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
     if (eps->which != EPS_LARGEST_MAGNITUDE)
       SETERRQ(1,"Wrong value of eps->which");
   }
+  if (!eps->projection) {
+    ierr = EPSSetProjection(eps,EPS_RITZ);CHKERRQ(ierr);
+  } else if (eps->projection!=EPS_RITZ) {
+    SETERRQ(PETSC_ERR_SUP,"Unsupported projection type\n");
+  }
+
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);

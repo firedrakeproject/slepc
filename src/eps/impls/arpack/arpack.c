@@ -53,6 +53,10 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*n*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
+  if (eps->projection) {
+     ierr = PetscInfo(eps,"Warning: projection type ignored\n");CHKERRQ(ierr);
+  }
+
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
 
