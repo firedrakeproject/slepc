@@ -477,10 +477,8 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
 
    Input/Output Parameters:
 +  T  - the upper (quasi-)triangular matrix
--  Z  - the orthogonal matrix of Schur vectors
-
-   Output Parameters:
-+  wr - pointer to the array to store the computed eigenvalues
+.  Z  - the orthogonal matrix of Schur vectors
+.  wr - pointer to the array to store the computed eigenvalues
 -  wi - imaginary part of the eigenvalues (only when using real numbers)
 
    Notes:
