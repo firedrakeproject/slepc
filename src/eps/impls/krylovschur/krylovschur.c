@@ -62,6 +62,77 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSTranslateHarmonic"
+/*
+   EPSTranslateHarmonic - Computes a translation of the Krylov decomposition
+   in order to perform a harmonic projection.
+
+   On input:
+     A Krylov decomposition
+
+                    OP * U = U * S + u * b^T
+
+     S is the projected matrix (leading dimension is m)
+     [U, u] is the basis of the Krylov subspace
+     b is assumed to be beta*e_m^T
+
+   Workspace:
+     B is workspace to store a working copy of S and a working vector (last column)
+     ipiv is workspace for pivots (int of length m)
+
+   On output:
+     S is updated as S + g*b', with g = (B-sigma*eye(m))'\b
+     u is updated as u - U*g
+     u is renormalized so beta is updated accordingly
+*/
+PetscErrorCode EPSTranslateHarmonic(EPS eps,PetscScalar *S,int m,PetscScalar *B,Vec *U,Vec u,PetscReal *beta,int *ipiv)
+{
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS) 
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"GETRF,GETRS - Lapack routines are unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscBLASInt   info,one = 1;
+  PetscReal      gamma;
+  int            i;
+
+  PetscFunctionBegin;
+  /* Copy S to workspace B */
+  ierr = PetscMemcpy(B,S,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+  /* Last columns of B stores vectors b and g */
+  ierr = PetscMemzero(B+m*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+  B[(m-1)+m*m] = (PetscScalar)(*beta);
+ 
+  /* g = (B-sigma*eye(m))'\b */
+  for (i=0;i<m;i++) 
+    B[i+i*m] -= eps->target;
+  LAPACKgetrf_(&m,&m,B,&m,ipiv,&info);
+  if (info<0) SETERRQ(PETSC_ERR_LIB,"Bad argument to LU factorization");
+  if (info>0) SETERRQ(PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
+  ierr = PetscLogFlops(2*m*m*m/3);CHKERRQ(ierr);
+  LAPACKgetrs_("C",&m,&one,B,&m,ipiv,B+m*m,&m,&info);
+  if (info) SETERRQ(PETSC_ERR_LIB,"GETRS - Bad solve");
+  ierr = PetscLogFlops(2*m*m-m);CHKERRQ(ierr);
+
+  /* S = S + g*b' */
+  for (i=0;i<m;i++) 
+    S[i+(m-1)*m] = S[i+(m-1)*m] + B[i+m*m]*(*beta);
+
+  /* u = u - U*g */
+  for (i=0;i<m;i++) 
+    B[i+m*m] = -B[i+m*m];
+  ierr = VecMAXPY(u,m,B+m*m,U);CHKERRQ(ierr);        
+
+  /* Renormalize u */
+  ierr = IPNorm(eps->ip,u,&gamma);CHKERRQ(ierr); 
+  ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
+  *beta = (*beta)*gamma;
+
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSProjectedKSSymm"
 /*
    EPSProjectedKSSym - Solves the projected eigenproblem in the Krylov-Schur
@@ -152,7 +223,11 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscSc
   /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
   ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
   /* Sort the remaining columns of the Schur form */
-  ierr = EPSSortDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
+  if (eps->projection==EPS_HARMONIC) {
+    ierr = EPSSortDenseSchurTarget(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->target);CHKERRQ(ierr);    
+  } else {
+    ierr = EPSSortDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
+  }
   PetscFunctionReturn(0);
 }
 
@@ -161,23 +236,23 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscSc
 PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,l,n,lwork,*perm;
+  int            i,j,k,l,n,lwork,*perm;
   Vec            u=eps->work[1];
-  PetscScalar    *S=eps->T,*Q,*work,*b;
+  PetscScalar    *S=eps->T,*B,*Q,*work;
   PetscReal      beta,*ritz;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*(eps->ncv+1)*sizeof(PetscScalar),&B);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&b);CHKERRQ(ierr);
   lwork = (eps->ncv+4)*eps->ncv;
   if (!eps->ishermitian) {
     ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   } else {
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*sizeof(int),&perm);CHKERRQ(ierr);
   }
+  ierr = PetscMalloc(eps->ncv*sizeof(int),&perm);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -191,6 +266,11 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
     eps->nv = eps->ncv;
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
+
+    /* Compute translation of Krylov decomposition if harmonic projection used */ 
+    if (eps->projection==EPS_HARMONIC) {
+      ierr = EPSTranslateHarmonic(eps,S,eps->ncv,B,eps->V,u,&beta,perm);CHKERRQ(ierr);
+    }
 
     /* Solve projected problem and compute residual norm estimates */ 
     if (eps->ishermitian) {
@@ -252,19 +332,33 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 	for (i=k;i<k+l;i++) {
           S[i*eps->ncv+k+l] = Q[(i+1)*n-1]*beta;
 	}
-	ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
+        if (eps->projection==EPS_HARMONIC) {
+          /* force orthogonality of u */
+          ierr = IPOrthogonalize(eps->ip,l,PETSC_NULL,eps->V,u,B+eps->ncv*eps->ncv,&beta,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
+          /* S = S + g*b' */
+          for (i=0;i<l;i++) {
+            for (j=k;j<k+l;j++) {
+              S[i+j*eps->ncv] += B[i+eps->ncv*eps->ncv]*S[k+l+j*eps->ncv];
+            }
+          }
+          ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
+          for (i=k;i<k+l;i++) {
+            S[i*eps->ncv+k+l] *= beta;
+          }
+        }
+        ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
       }
     }
   } 
 
+  ierr = PetscFree(B);CHKERRQ(ierr);
   ierr = PetscFree(Q);CHKERRQ(ierr);
-  ierr = PetscFree(b);CHKERRQ(ierr);
   if (!eps->ishermitian) {
     ierr = PetscFree(work);CHKERRQ(ierr);
   } else {
     ierr = PetscFree(ritz);CHKERRQ(ierr);
-    ierr = PetscFree(perm);CHKERRQ(ierr);
   }
+  ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

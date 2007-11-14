@@ -623,6 +623,117 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSSortDenseSchurTarget"
+/*@
+   EPSSortDenseSchurTarget - Reorders the Schur decomposition computed by
+   EPSDenseSchur().
+
+   Not Collective
+
+   Input Parameters:
++  n     - dimension of the matrix 
+.  k     - first active column
+.  ldt   - leading dimension of T
+-  target - the target value
+
+   Input/Output Parameters:
++  T  - the upper (quasi-)triangular matrix
+.  Z  - the orthogonal matrix of Schur vectors
+.  wr - pointer to the array to store the computed eigenvalues
+-  wi - imaginary part of the eigenvalues (only when using real numbers)
+
+   Notes:
+   This function reorders the eigenvalues in wr,wi located in positions k
+   to n according to increasing distance to the target. The Schur 
+   decomposition Z*T*Z^T, is also reordered by means of rotations so that 
+   eigenvalues in the diagonal blocks of T follow the same order.
+
+   Both T and Z are overwritten.
+   
+   This routine uses LAPACK routines xTREXC.
+
+   Level: developer
+
+.seealso: EPSDenseHessenberg(), EPSDenseSchur(), EPSDenseTridiagonal()
+@*/
+PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,PetscScalar target)
+{
+#if defined(SLEPC_MISSING_LAPACK_TREXC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
+#else
+  int i,j,ifst,ilst,info,pos;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar *work;
+#endif
+  PetscReal   value,v;
+  PetscErrorCode ierr;
+  
+  PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#endif
+  
+  for (i=k;i<n-1;i++) {
+    /* complex target only allowed if scalartype=complex */
+    value = SlepcAbsEigenvalue(wr[i]-target,wi[i]);
+    pos = 0;
+    for (j=i+1;j<n;j++) {
+      v = SlepcAbsEigenvalue(wr[j]-target,wi[j]);
+      if (v < value) {
+        value = v;
+        pos = j;
+      }
+#if !defined(PETSC_USE_COMPLEX)
+      if (wi[j] != 0) j++;
+#endif
+    }
+    if (pos) {
+      ifst = pos + 1;
+      ilst = i + 1;
+#if !defined(PETSC_USE_COMPLEX)
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info,1);
+#else
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info,1);
+#endif
+      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+      
+      for (j=k;j<n;j++) {
+#if !defined(PETSC_USE_COMPLEX)
+        if (j==n-1 || T[j*ldt+j+1] == 0.0) { 
+          /* real eigenvalue */
+          wr[j] = T[j*ldt+j];
+          wi[j] = 0.0;
+        } else {
+          /* complex eigenvalue */
+          wr[j] = T[j*ldt+j];
+          wr[j+1] = T[j*ldt+j];
+          wi[j] = sqrt(PetscAbsReal(T[j*ldt+j+1])) *
+                  sqrt(PetscAbsReal(T[(j+1)*ldt+j]));
+          wi[j+1] = -wi[j];
+          j++;
+        }
+#else
+        wr[j] = T[j*(ldt+1)];
+#endif
+      }
+    }
+#if !defined(PETSC_USE_COMPLEX)
+    if (wi[i] != 0) i++;
+#endif
+  }
+  
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree(work);CHKERRQ(ierr);
+#endif
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+
+#endif 
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSDenseTridiagonal"
 /*@
    EPSDenseTridiagonal - Solves a real tridiagonal Hermitian Eigenvalue Problem.
