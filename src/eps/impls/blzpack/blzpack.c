@@ -139,8 +139,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PetscFunctionBegin;
 
   ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(eps->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
   if (eps->isgeneralized && !blz->slice) { 
@@ -167,7 +167,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   blz->istor[10] = eps->isgeneralized ? 1 : 0;   /* solutions refinement (purify) */
   blz->istor[11] = 0;            /* level of printing */
   blz->istor[12] = 6;            /* file unit for output */
-  blz->istor[13] = MPI_Comm_c2f(eps->comm);    /* communicator */
+  blz->istor[13] = MPI_Comm_c2f(((PetscObject)eps)->comm);    /* communicator */
 
   blz->rstor[2]  = eps->tol;     /* threshold for convergence */
 

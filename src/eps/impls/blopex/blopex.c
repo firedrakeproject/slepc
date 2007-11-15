@@ -191,7 +191,7 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNew(EPS_BLOPEX,&blopex);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_BLOPEX));
-  ierr = KSPCreate(eps->comm,&blopex->ksp);CHKERRQ(ierr);
+  ierr = KSPCreate(((PetscObject)eps)->comm,&blopex->ksp);CHKERRQ(ierr);
   ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(blopex->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(blopex->ksp,"eps_blopex_");CHKERRQ(ierr);
