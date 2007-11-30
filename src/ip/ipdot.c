@@ -48,19 +48,21 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidPointer(norm,3);
   
-  ierr = IPInnerProduct(ip,x,x,&p);CHKERRQ(ierr);
-
-  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-    PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
-
+  if (!ip->matrix && ip->bilinear_form == IPINNER_HERMITIAN) {
+    ierr = VecNorm(x,NORM_2,norm);CHKERRQ(ierr);
+  } else {
+    ierr = IPInnerProduct(ip,x,x,&p);CHKERRQ(ierr);
+    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+      PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-     SETERRQ(1,"IPNorm: The inner product is not well defined");
-  *norm = PetscSqrtScalar(PetscRealPart(p));
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+       SETERRQ(1,"IPNorm: The inner product is not well defined");
+    *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
-  if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
-  *norm = PetscSqrtScalar(p);
+    if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
+    *norm = PetscSqrtScalar(p);
 #endif
+  }
 
   PetscFunctionReturn(0);
 }
@@ -94,7 +96,11 @@ PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidPointer(norm,3);
   
-  ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
+  if (!ip->matrix && ip->bilinear_form == IPINNER_HERMITIAN) {
+    ierr = VecNormBegin(x,NORM_2,norm);CHKERRQ(ierr);
+  } else {
+    ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
+  }
 
   PetscFunctionReturn(0);
 }
@@ -130,19 +136,22 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidPointer(norm,3);
   
-  ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
-
-  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-    PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
+  if (!ip->matrix && ip->bilinear_form == IPINNER_HERMITIAN) {
+    ierr = VecNormEnd(x,NORM_2,norm);CHKERRQ(ierr);
+  } else {
+    ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
+    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+      PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
 
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-     SETERRQ(1,"IPNorm: The inner product is not well defined");
-  *norm = PetscSqrtScalar(PetscRealPart(p));
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+       SETERRQ(1,"IPNorm: The inner product is not well defined");
+    *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
-  if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
-  *norm = PetscSqrtScalar(p);
+    if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
+    *norm = PetscSqrtScalar(p);
 #endif
+  }
 
   PetscFunctionReturn(0);
 }
