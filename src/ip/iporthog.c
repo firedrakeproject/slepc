@@ -188,7 +188,7 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
       allocatedc = PETSC_TRUE;
     }
   }
-  if (ip->orthog_type == IP_CGS_ORTH) {
+  if (!work && ip->orthog_type == IP_CGS_ORTH) {
     ierr = VecDuplicate(v,&work);CHKERRQ(ierr);
     allocatedw = PETSC_TRUE;
   }
