@@ -56,7 +56,8 @@ PetscErrorCode EPSSolve(EPS eps)
   eps->reason = EPS_CONVERGED_ITERATING;
 
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
-  ierr = STResetOperationCounters(eps->OP);
+  ierr = STResetOperationCounters(eps->OP);CHKERRQ(ierr);
+  ierr = IPResetOperationCounters(eps->ip);CHKERRQ(ierr);
   eps->nv = eps->ncv;
   eps->evecsavailable = PETSC_FALSE;
   eps->nconv = 0;
