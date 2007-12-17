@@ -52,18 +52,19 @@ def Check(conf):
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i.upper())
 
 
+  functions = ['stevr','bdsdc']
   if petscconf.PRECISION == 'single':
-    functions = ['slamch','sstevr','sbdsdc']
+    prefix = 's'
   else:
-    functions = ['dlamch','dstevr','dbdsdc']
+    prefix = 'd'
 
   for i in functions:
     f =  '#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
-    f += i + '_\n'
+    f += prefix + i + '_\n'
     f += '#elif defined(PETSC_HAVE_FORTRAN_CAPS)\n'
-    f += i.upper() + '\n'
+    f += prefix.upper() + i.upper() + '\n'
     f += '#else\n'
-    f += i + '\n'
+    f += prefix + i + '\n'
     f += '#endif\n'
    
     log.Write('=== Checking LAPACK '+i+' function...')
