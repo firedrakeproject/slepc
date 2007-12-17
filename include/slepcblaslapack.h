@@ -97,13 +97,11 @@ PETSC_EXTERN_CXX_BEGIN
 #define LAPACKormlq_ SLEPC_BLASLAPACK(unmlq,UNMLQ)
 #endif
 
-#define LAPACKlamch_ SLEPC_BLASLAPACKREAL(lamch,LAMCH)
 #define LAPACKstevr_ SLEPC_BLASLAPACKREAL(stevr,STEVR)
 #define LAPACKbdsdc_ SLEPC_BLASLAPACKREAL(bdsdc,BDSDC)
 
 EXTERN_C_BEGIN
 
-EXTERN PetscReal LAPACKlamch_(const char*,PetscBLASInt);
 EXTERN PetscReal LAPACKlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
 EXTERN PetscReal LAPACKlange_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
 EXTERN void      LAPACKlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
