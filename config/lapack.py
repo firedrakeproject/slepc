@@ -69,7 +69,7 @@ def Check(conf):
    
     log.Write('=== Checking LAPACK '+i+' function...')
     if not check.Link([f],[],[]):
-      missing.append(i)
+      missing.append(prefix + i)
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i.upper())
   
   conf.write('\n')
