@@ -22,7 +22,7 @@ def Load(petscdir):
   MPIUNI = 0
   
   try:
-    f = open(os.sep.join([petscdir,ARCH,'conf','petscconf']))
+    f = open(os.sep.join([petscdir,ARCH,'conf','petscvariables']))
     for l in f.readlines():
       (k,v) = l.split('=',1)
       k = k.strip()
