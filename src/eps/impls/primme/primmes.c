@@ -66,7 +66,7 @@ EPSPRIMMEPrecond precondN[] = {EPSPRIMME_NONE, EPSPRIMME_DIAGONAL};
 static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme);
 static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme);
 
-static void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme) {
+void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme) {
   MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, ((PetscObject)(primme->commInfo))->comm);
 }
 
@@ -335,7 +335,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   if (flg) {ierr = EPSPRIMMESetBlockSize(eps,op);CHKERRQ(ierr);}
   op = 0;
   ierr = PetscOptionsEList("-eps_primme_method","set method for solving the eigenproblem",
-                           "EPSPRIMMESetMethod",methodList,15,methodList[0],&op,&flg); CHKERRQ(ierr);
+                           "EPSPRIMMESetMethod",methodList,15,methodList[1],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetMethod(eps, methodN[op]);CHKERRQ(ierr);}
   ierr = PetscOptionsEList("-eps_primme_precond","set preconditioner type",
                            "EPSPRIMMESetPrecond",precondList,2,precondList[0],&op,&flg); CHKERRQ(ierr);
@@ -460,7 +460,7 @@ PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps, EPSPRIMMEMethod method)
 
   PetscFunctionBegin;
 
-  if (method == PETSC_DEFAULT) ops->method = DYNAMIC;
+  if (method == PETSC_DEFAULT) ops->method = DEFAULT_MIN_TIME;
   else ops->method = (primme_preset_method)method;
 
   PetscFunctionReturn(0);
@@ -488,7 +488,7 @@ EXTERN_C_END
 .  -eps_primme_set_method - Sets the method for the PRIMME library.
 
    Note:
-   If not set, the method defaults to EPSPRIMME_DYNAMIC.
+   If not set, the method defaults to EPSPRIMME_DEFAULT_MIN_TIME.
 
    Level: advanced
 
@@ -694,7 +694,7 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->primme.globalSumDouble = par_GlobalSumDouble;
-  primme->method = DYNAMIC;
+  primme->method = EPSPRIMME_DEFAULT_MIN_TIME;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetPrecond_PRIMME);CHKERRQ(ierr); 
