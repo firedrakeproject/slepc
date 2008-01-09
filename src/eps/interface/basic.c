@@ -219,7 +219,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscValidPointer(outeps,2);
   *outeps = 0;
 
-  PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_COOKIE,-1,"EPS",comm,EPSDestroy,EPSView);
+  ierr = PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_COOKIE,-1,"EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
   *outeps = eps;
 
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);

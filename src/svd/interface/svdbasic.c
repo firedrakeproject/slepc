@@ -181,7 +181,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
 
-  PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_COOKIE,-1,"SVD",comm,SVDDestroy,SVDView);
+  ierr = PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_COOKIE,-1,"SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
   *outsvd = svd;
 
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);

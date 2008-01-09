@@ -93,7 +93,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 
   PetscFunctionBegin;
   PetscValidPointer(newip,2);
-  PetscHeaderCreate(ip,_p_IP,struct _IPOps,IP_COOKIE,-1,"IP",comm,IPDestroy,IPView);
+  ierr = PetscHeaderCreate(ip,_p_IP,struct _IPOps,IP_COOKIE,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
   *newip            = ip;
   ip->orthog_type   = IP_CGS_ORTH;
   ip->orthog_ref    = IP_ORTH_REFINE_IFNEEDED;
