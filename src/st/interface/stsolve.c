@@ -84,6 +84,8 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
 #define __FUNCT__ "STGetBilinearForm_Default"
 PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   *B = st->B;
   if (*B) {
