@@ -64,6 +64,9 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
    Output Parameter:
 .  B - output matrix
 
+   Note:
+   The output matrix B must be destroyed after use.
+   
    Level: developer
 @*/
 PetscErrorCode STGetBilinearForm(ST st,Mat *B)
@@ -83,6 +86,9 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
 {
   PetscFunctionBegin;
   *B = st->B;
+  if (*B) {
+    ierr =  PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
