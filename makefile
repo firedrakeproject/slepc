@@ -233,7 +233,7 @@ alldoc1: chk_loc deletemanualpages
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 	-${OMAKE} ACTION=slepc_manualpages tree_basic LOC=${LOC}
-	-${PETSC_DIR}/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
+	-${PETSC_DIR}/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
 	-${OMAKE} ACTION=manexamples tree_basic LOC=${LOC}
 
 # Builds .html versions of the source
