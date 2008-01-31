@@ -29,14 +29,4 @@
       parameter (STMATMODE_INPLACE       =  1)
       parameter (STMATMODE_SHELL         =  2)
 
-      integer STINNER_HERMITIAN
-      integer STINNER_SYMMETRIC
-      integer STINNER_B_HERMITIAN
-      integer STINNER_B_SYMMETRIC
-
-      parameter (STINNER_HERMITIAN       =  0)
-      parameter (STINNER_SYMMETRIC       =  1)
-      parameter (STINNER_B_HERMITIAN     =  2)
-      parameter (STINNER_B_SYMMETRIC     =  3)
-
 #endif
