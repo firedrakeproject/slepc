@@ -98,7 +98,7 @@ ex15: ex15.o chkopts
 
 ex15f: ex15f.o chkopts
 	-${FLINKER} -o ex15f ex15f.o ${SLEPC_LIB}
-	${RM} ex1f.o
+	${RM} ex15f.o
 
 #------------------------------------------------------------------------------------
 
