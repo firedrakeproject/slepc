@@ -92,13 +92,13 @@
       parameter (EPS_REFINED                =  3)
       parameter (EPS_REFINED_HARMONIC       =  4)
 
-      integer EPSLANCZOS_REORTHOG_NONE
+      integer EPSLANCZOS_REORTHOG_LOCAL
       integer EPSLANCZOS_REORTHOG_FULL
       integer EPSLANCZOS_REORTHOG_SELECTIVE
       integer EPSLANCZOS_REORTHOG_PERIODIC
       integer EPSLANCZOS_REORTHOG_PARTIAL
 
-      parameter (EPSLANCZOS_REORTHOG_NONE      =  0)
+      parameter (EPSLANCZOS_REORTHOG_LOCAL      =  0)
       parameter (EPSLANCZOS_REORTHOG_FULL      =  1)
       parameter (EPSLANCZOS_REORTHOG_SELECTIVE =  2)
       parameter (EPSLANCZOS_REORTHOG_PERIODIC  =  3)
