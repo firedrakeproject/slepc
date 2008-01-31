@@ -21,12 +21,13 @@
 #define EPSSUBSPACE  'subspace'
 #define EPSARNOLDI   'arnoldi'
 #define EPSLANCZOS   'lanczos'
+#define EPSKRYLOVSCHUR 'krylovschur'
 #define EPSLAPACK    'lapack'
 #define EPSARPACK    'arpack'
 #define EPSBLZPACK   'blzpack'
-#define EPSPLANSO    'planso'
 #define EPSTRLAN     'trlan'
-#define EPSLOBPCG    'lobpcg'
+#define EPSBLOPEX    'blopex'
+#define EPSPRIMME    'primme'
 
 !  Convergence flags.
 !  They sould match the flags in $SLEPC_DIR/include/slepceps.h
@@ -66,20 +67,6 @@
       parameter (EPS_SMALLEST_REAL          =  3)
       parameter (EPS_LARGEST_IMAGINARY      =  4)
       parameter (EPS_SMALLEST_IMAGINARY     =  5)
-
-      integer EPS_MGS_ORTH
-      integer EPS_CGS_ORTH
-      
-      parameter (EPS_MGS_ORTH               =  0)
-      parameter (EPS_CGS_ORTH               =  1)
-
-      integer EPS_ORTH_REFINE_NEVER
-      integer EPS_ORTH_REFINE_IFNEEDED
-      integer EPS_ORTH_REFINE_ALWAYS 
-
-      parameter (EPS_ORTH_REFINE_NEVER      =  0)  
-      parameter (EPS_ORTH_REFINE_IFNEEDED   =  1)  
-      parameter (EPS_ORTH_REFINE_ALWAYS     =  2)  
        
       integer EPSPOWER_SHIFT_CONSTANT
       integer EPSPOWER_SHIFT_RAYLEIGH
@@ -94,6 +81,16 @@
 
       parameter (EPS_ONE_SIDE               =  0)
       parameter (EPS_TWO_SIDE               =  1)
+      
+      integer EPS_RITZ
+      integer EPS_HARMONIC
+      integer EPS_REFINED
+      integer EPS_REFINED_HARMONIC
+
+      parameter (EPS_RITZ                   =  1)
+      parameter (EPS_HARMONIC               =  2)
+      parameter (EPS_REFINED                =  3)
+      parameter (EPS_REFINED_HARMONIC       =  4)
 
       integer EPSLANCZOS_REORTHOG_NONE
       integer EPSLANCZOS_REORTHOG_FULL
@@ -106,5 +103,43 @@
       parameter (EPSLANCZOS_REORTHOG_SELECTIVE =  2)
       parameter (EPSLANCZOS_REORTHOG_PERIODIC  =  3)
       parameter (EPSLANCZOS_REORTHOG_PARTIAL   =  4)
+
+      integer EPSPRIMME_DYNAMIC
+      integer EPSPRIMME_DEFAULT_MIN_TIME
+      integer EPSPRIMME_DEFAULT_MIN_MATVECS
+      integer EPSPRIMME_ARNOLDI
+      integer EPSPRIMME_GD
+      integer EPSPRIMME_GD_PLUSK
+      integer EPSPRIMME_GD_OLSEN_PLUSK
+      integer EPSPRIMME_JD_OLSEN_PLUSK
+      integer EPSPRIMME_RQI
+      integer EPSPRIMME_JDQR
+      integer EPSPRIMME_JDQMR
+      integer EPSPRIMME_JDQMR_ETOL
+      integer EPSPRIMME_SUBSPACE_ITERATION
+      integer EPSPRIMME_LOBPCG_ORTHOBASIS
+      integer EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
+
+      parameter (EPSPRIMME_DYNAMIC                  =  0)
+      parameter (EPSPRIMME_DEFAULT_MIN_TIME         =  1)
+      parameter (EPSPRIMME_DEFAULT_MIN_MATVECS      =  2)
+      parameter (EPSPRIMME_ARNOLDI                  =  3)
+      parameter (EPSPRIMME_GD                       =  4)
+      parameter (EPSPRIMME_GD_PLUSK                 =  5)
+      parameter (EPSPRIMME_GD_OLSEN_PLUSK           =  7)
+      parameter (EPSPRIMME_JD_OLSEN_PLUSK           =  8)
+      parameter (EPSPRIMME_RQI                      =  9)
+      parameter (EPSPRIMME_JDQR                     = 10)
+      parameter (EPSPRIMME_JDQMR                    = 11)
+      parameter (EPSPRIMME_JDQMR_ETOL               = 12)
+      parameter (EPSPRIMME_SUBSPACE_ITERATION       = 13)
+      parameter (EPSPRIMME_LOBPCG_ORTHOBASIS        = 14)
+      parameter (EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW = 15)
+
+      integer EPSPRIMME_NONE
+      integer EPSPRIMME_DIAGONAL
+
+      parameter (EPSPRIMME_NONE               =  0)
+      parameter (EPSPRIMME_DIAGONAL           =  1)
 
 #endif

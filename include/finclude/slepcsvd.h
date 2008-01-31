@@ -26,27 +26,26 @@
 !  Convergence flags.
 !  They sould match the flags in $SLEPC_DIR/include/slepcsvd.h
 
-      integer EPS_CONVERGED_TOL        
-      integer EPS_DIVERGED_ITS
-      integer EPS_DIVERGED_BREAKDOWN
-      integer EPS_DIVERGED_NONSYMMETRIC
-      integer EPS_CONVERGED_ITERATING
+      integer SVD_CONVERGED_TOL        
+      integer SVD_DIVERGED_ITS
+      integer SVD_DIVERGED_BREAKDOWN
+      integer SVD_CONVERGED_ITERATING
 
-      parameter (EPS_CONVERGED_TOL          =  2)
-      parameter (EPS_DIVERGED_ITS           = -3)
-      parameter (EPS_DIVERGED_BREAKDOWN     = -4)
-      parameter (EPS_CONVERGED_ITERATING    =  0)
+      parameter (SVD_CONVERGED_TOL          =  2)
+      parameter (SVD_DIVERGED_ITS           = -3)
+      parameter (SVD_DIVERGED_BREAKDOWN     = -4)
+      parameter (SVD_CONVERGED_ITERATING    =  0)
 
       integer SVD_TRANSPOSE_EXPLICIT
       integer SVD_TRANSPOSE_IMPLICIT 
 
-      parameter (SVD_TRANSPOSE_EXPLICIT     =  1)
-      parameter (SVD_TRANSPOSE_IMPLICIT     =  2)
+      parameter (SVD_TRANSPOSE_EXPLICIT     =  0)
+      parameter (SVD_TRANSPOSE_IMPLICIT     =  1)
       
       integer SVD_LARGEST
       integer SVD_SMALLEST
 
-      parameter (SVD_LARGEST                =  1)
-      parameter (SVD_SMALLEST               =  2)
+      parameter (SVD_LARGEST                =  0)
+      parameter (SVD_SMALLEST               =  1)
 
 #endif
