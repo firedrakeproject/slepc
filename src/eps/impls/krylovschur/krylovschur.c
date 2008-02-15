@@ -93,7 +93,6 @@ PetscErrorCode EPSTranslateHarmonic(EPS eps,PetscScalar *S,int m,PetscScalar *B,
 #else
   PetscErrorCode ierr;
   PetscBLASInt   info,one = 1;
-  PetscReal      gamma;
   int            i;
 
   PetscFunctionBegin;
@@ -117,16 +116,6 @@ PetscErrorCode EPSTranslateHarmonic(EPS eps,PetscScalar *S,int m,PetscScalar *B,
   /* S = S + g*b' */
   for (i=0;i<m;i++) 
     S[i+(m-1)*m] = S[i+(m-1)*m] + B[i+m*m]*(*beta);
-
-  /* u = u - U*g */
-  for (i=0;i<m;i++) 
-    B[i+m*m] = -B[i+m*m];
-  ierr = VecMAXPY(u,m,B+m*m,U);CHKERRQ(ierr);        
-
-  /* Renormalize u */
-  ierr = IPNorm(eps->ip,u,&gamma);CHKERRQ(ierr); 
-  ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
-  *beta = (*beta)*gamma;
 
   PetscFunctionReturn(0);
 #endif
@@ -238,9 +227,10 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   PetscErrorCode ierr;
   int            i,j,k,l,n,lwork,*perm;
   Vec            u=eps->work[1];
-  PetscScalar    *S=eps->T,*B,*Q,*work;
-  PetscReal      beta,*ritz;
+  PetscScalar    *S=eps->T,*B,*Q,*work,done=1.0,dmone=-1.0,dzero=0.0;
+  PetscReal      beta,*ritz,gamma,gnorm;
   PetscTruth     breakdown;
+  PetscBLASInt   one=1,ncol;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -284,6 +274,15 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
       ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,n,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
     }
 
+    /* Correct residual norms if harmonic */
+    if (eps->projection==EPS_HARMONIC) {
+      gnorm = 0.0;
+      for (i=0;i<eps->ncv;i++)
+        gnorm = gnorm + B[i+eps->ncv*eps->ncv]*B[i+eps->ncv*eps->ncv];
+      for (i=eps->nconv;i<eps->nv;i++)
+        eps->errest[i] *= sqrt(1.0+gnorm);
+    }
+
     /* Check convergence */
     k = eps->nconv;
     while (k<eps->nv && eps->errest[k]<eps->tol) k++;    
@@ -302,22 +301,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 #endif
     }
            
-    /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    for (i=eps->nconv;i<k+l;i++) {
-      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      if (!eps->ishermitian) {
-        ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V);CHKERRQ(ierr);        
-      } else {
-        ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V+eps->nconv);CHKERRQ(ierr);
-      }
-    }
-    for (i=eps->nconv;i<k+l;i++) {
-      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
-    }
-    eps->nconv = k;
-
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
-    
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
 	/* start a new Arnoldi factorization */
@@ -333,22 +316,56 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
           S[i*eps->ncv+k+l] = Q[(i+1)*n-1]*beta;
 	}
         if (eps->projection==EPS_HARMONIC) {
-          /* force orthogonality of u */
-          ierr = IPOrthogonalize(eps->ip,l,PETSC_NULL,eps->V,u,B+eps->ncv*eps->ncv,&beta,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
-          /* S = S + g*b' */
+          /* compute g^ = -Q(:,idx)'*g
+             compute g~ = (I-Q(:,idx)*Q(:,idx)')*g = g+Q(:,idx)*g^ */
+          ncol = k+l;
+          BLASgemv_("C",&n,&ncol,&dmone,Q,&eps->ncv,B+eps->ncv*eps->ncv,&one,&dzero,B,&one);
+          BLASgemv_("N",&n,&ncol,&done,Q,&eps->ncv,B,&one,&done,B+eps->ncv*eps->ncv,&one);
+
+          /* S = S + g^*b' */
           for (i=0;i<l;i++) {
             for (j=k;j<k+l;j++) {
-              S[i+j*eps->ncv] += B[i+eps->ncv*eps->ncv]*S[k+l+j*eps->ncv];
+              S[i+j*eps->ncv] += B[i]*S[k+l+j*eps->ncv];
             }
           }
-          ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
+
+          /* gamma u^ = u - U*g~ */
+          for (i=0;i<eps->ncv;i++) 
+            B[i+eps->ncv*eps->ncv] = -B[i+eps->ncv*eps->ncv];
+          ierr = VecMAXPY(u,eps->ncv,B+eps->ncv*eps->ncv,eps->V);CHKERRQ(ierr);        
+
+          /* Renormalize u */
+          gnorm = 0.0;
+          for (i=0;i<eps->ncv;i++)
+            gnorm = gnorm + B[i+eps->ncv*eps->ncv]*B[i+eps->ncv*eps->ncv];
+          gamma=sqrt(1.0+gnorm);
+          ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
+
           for (i=k;i<k+l;i++) {
-            S[i*eps->ncv+k+l] *= beta;
+            S[i*eps->ncv+k+l] *= gamma;
           }
         }
-        ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
       }
     }
+    /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
+    for (i=eps->nconv;i<k+l;i++) {
+      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
+      if (!eps->ishermitian) {
+        ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V);CHKERRQ(ierr);        
+      } else {
+        ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V+eps->nconv);CHKERRQ(ierr);
+      }
+    }
+    for (i=eps->nconv;i<k+l;i++) {
+      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
+    }
+    if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
+      ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
+    }
+    eps->nconv = k;
+
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
+    
   } 
 
   ierr = PetscFree(B);CHKERRQ(ierr);
