@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/zpetsc.h"
+#include "private/fortranimpl.h"
 #include "slepceps.h"
 #include "src/eps/epsimpl.h"
 
