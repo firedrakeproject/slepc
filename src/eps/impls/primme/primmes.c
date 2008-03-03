@@ -67,7 +67,8 @@ static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params
 static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme);
 
 void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme) {
-  MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, ((PetscObject)(primme->commInfo))->comm);
+  PetscErrorCode ierr;
+  ierr = MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, ((PetscObject)(primme->commInfo))->comm);CHKERRABORT(((PetscObject)(primme->commInfo))->comm,ierr);
 }
 
 #undef __FUNCT__  
@@ -82,8 +83,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   PetscFunctionBegin;
 
-  MPI_Comm_size(((PetscObject)eps)->comm,&numProcs);
-  MPI_Comm_rank(((PetscObject)eps)->comm,&procID);
+  ierr = MPI_Comm_size(((PetscObject)eps)->comm,&numProcs);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(((PetscObject)eps)->comm,&procID);CHKERRQ(ierr);
   
   /* Check some constraints and set some default values */ 
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
