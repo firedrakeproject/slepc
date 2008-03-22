@@ -12,10 +12,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = krylovschur.c
+SOURCEC  = krylovschur.c ks-symm.c ks-harm.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = krylovschur.o
+OBJSC    = krylovschur.o ks-symm.o ks-harm.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
