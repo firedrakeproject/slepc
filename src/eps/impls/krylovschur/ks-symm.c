@@ -32,7 +32,7 @@
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSProjectedKSSymm"
+#define __FUNCT__ "EPSProjectedKSSym"
 /*
    EPSProjectedKSSym - Solves the projected eigenproblem in the Krylov-Schur
    method (symmetric case).
@@ -40,11 +40,10 @@
    On input:
      l is the number of vectors kept in previous restart (0 means first restart)
      S is the projected matrix (leading dimension is lds)
-     Q is an orthogonal transformation matrix if l=0 (leading dimension is n)
 
    On output:
-     S has (real) Schur form with diagonal blocks sorted appropriately
-     Q contains the accumulated orthogonal transformations used in the process
+     S is diagonal with diagonal elements (eigenvalues) sorted appropriately
+     Q is the eigenvector matrix
 
    Workspace:
      work is workspace to store a working copy of Ritz values and the permutation 
@@ -120,7 +119,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
-    ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
     n = eps->nv-eps->nconv;
@@ -136,15 +134,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
-    else {
-      l = (eps->nv-k)/2;
-#if !defined(PETSC_USE_COMPLEX)
-      if (S[(k+l-1)*(eps->ncv+1)+1] != 0.0) {
-        if (k+l<eps->nv-1) l = l+1;
-        else l = l-1;
-      }
-#endif
-    }
+    else l = (eps->nv-k)/2;
            
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -170,8 +160,9 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     for (i=eps->nconv;i<k+l;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
+    /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
+      ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
     }
     eps->nconv = k;
 
