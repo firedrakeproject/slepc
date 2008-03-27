@@ -179,6 +179,7 @@ typedef enum {/* converged */
 EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
 EXTERN PetscErrorCode EPSSortEigenvalues(int,PetscScalar*,PetscScalar*,EPSWhich,int,int*);
+EXTERN PetscErrorCode EPSSortEigenvaluesReal(int,PetscReal*,EPSWhich,int,int*,PetscReal*);
 EXTERN PetscErrorCode EPSDenseNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseGNHEP(int,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseHEP(int,PetscScalar*,int,PetscReal*,PetscScalar*);

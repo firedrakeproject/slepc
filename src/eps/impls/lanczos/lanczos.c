@@ -475,7 +475,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   int            nconv,i,j,k,n,m,*perm,restart,ncv=eps->ncv;
   Vec            f=eps->work[1];
   PetscScalar    *T=eps->T,*Y;
-  PetscReal      *ritz,*bnd,anorm,beta,norm;
+  PetscReal      *ritz,*bnd,anorm,beta,norm,*work;
   PetscTruth     breakdown;
   char           *conv;
 
@@ -485,6 +485,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscReal)+ncv*sizeof(int),&work);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -520,9 +521,9 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 #ifdef PETSC_USE_COMPLEX
       for (i=0;i<n;i++)
 	eps->eigr[i+nconv] = ritz[i];
-      ierr = EPSSortEigenvalues(n,eps->eigr+nconv,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
+      ierr = EPSSortEigenvaluesReal(n,eps->eigr+nconv,eps->which,n,perm,work);CHKERRQ(ierr);
 #else
-      ierr = EPSSortEigenvalues(n,ritz,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
+      ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,work);CHKERRQ(ierr);
 #endif
     }
 
@@ -623,6 +624,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(bnd);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   ierr = PetscFree(conv);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -1069,7 +1069,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
 
    Level: developer
 
-.seealso: EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
+.seealso: EPSSortEigenvaluesReal(), EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
 @*/
 PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
 {
@@ -1128,13 +1128,80 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
         int tmp;
         SWAP(permout[i], permout[i+1], tmp);
       }
-    i++;
+      i++;
     }
   }
 #endif
 
   ierr = PetscFree(values);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSortEigenvaluesReal"
+/*@
+   EPSSortEigenvaluesReal - Sorts a list of eigenvalues according to a certain
+   criterion (version for real eigenvalues only).
+
+   Not Collective
+
+   Input Parameters:
++  n     - number of eigenvalue in the list
+.  eig   - pointer to the array containing the eigenvalues (real)
+.  which - sorting criterion
+-  nev   - number of wanted eigenvalues
+
+   Output Parameter:
+.  permout - resulting permutation
+
+   Workspace:
+.  work - workspace for storing n real values and n integer values
+
+   Notes:
+   The result is a list of indices in the original eigenvalue array 
+   corresponding to the first nev eigenvalues sorted in the specified
+   criterion
+
+   Level: developer
+
+.seealso: EPSSortEigenvalues(), EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
+@*/
+PetscErrorCode EPSSortEigenvaluesReal(int n,PetscReal *eig,EPSWhich which,int nev,int *permout,PetscReal *work)
+{
+  PetscErrorCode ierr;
+  int            i;
+  PetscReal      *values = work;
+  PetscInt       *perm = (int*)(work+n);
+
+  PetscFunctionBegin;
+  for (i=0; i<n; i++) { perm[i] = i;}
+
+  switch(which) {
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_SMALLEST_MAGNITUDE:
+      for (i=0; i<n; i++) { values[i] = abs(eig[i]); }
+      break;
+    case EPS_LARGEST_REAL:
+    case EPS_SMALLEST_REAL:
+      for (i=0; i<n; i++) { values[i] = eig[i]; }
+      break;
+    default: SETERRQ(1,"Wrong value of which");
+  }
+
+  ierr = PetscSortRealWithPermutation(n,values,perm);CHKERRQ(ierr);
+
+  switch(which) {
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_LARGEST_REAL:
+      for (i=0; i<nev; i++) { permout[i] = perm[n-1-i]; }
+      break;
+    case EPS_SMALLEST_MAGNITUDE:
+    case EPS_SMALLEST_REAL:
+      for (i=0; i<nev; i++) { permout[i] = perm[i]; }
+      break;
+    default: SETERRQ(1,"Wrong value of which");
+  }
   PetscFunctionReturn(0);
 }
 

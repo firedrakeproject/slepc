@@ -39,54 +39,49 @@
 
    On input:
      l is the number of vectors kept in previous restart (0 means first restart)
-     S is the projected matrix (leading dimension is lds)
+     S is the projected matrix (order n, leading dimension is lds)
 
    On output:
      S is diagonal with diagonal elements (eigenvalues) sorted appropriately
-     Q is the eigenvector matrix
+     eig is the sorted list of eigenvalues
+     Q is the eigenvector matrix (order n)
 
    Workspace:
-     work is workspace to store a working copy of Ritz values and the permutation 
-          used for sorting values
+     work is workspace to store 2n reals and 2n integers
 */
-PetscErrorCode EPSProjectedKSSym(EPS eps,int l,PetscScalar *S,int lds,PetscScalar *Q,int n,PetscReal *work)
+PetscErrorCode EPSProjectedKSSym(EPS eps,int n,int l,PetscScalar *S,int lds,PetscScalar *eig,PetscScalar *Q,PetscReal *work)
 {
   PetscErrorCode ierr;
   int            i,j;
   PetscReal      *ritz = work;
-  int            *perm = (int*)(work+n);
+  PetscReal      *worksort = work+n;
+  int            *perm = ((int*)(work+n))+n;
 
   PetscFunctionBegin;
-  /* Reduce S to diagonal form, S <- Q S Q' */
+
+  /* Compute eigendecomposition of S, S <- Q S Q' */
   if (l==0) {
-    ierr = EPSDenseTridiagonal(n,S+eps->nconv*(lds+1),lds,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
+    ierr = EPSDenseTridiagonal(n,S,lds,ritz,Q);CHKERRQ(ierr);
   } else {
-    ierr = EPSDenseHEP(n,S+eps->nconv*(lds+1),lds,ritz,Q+eps->nconv*n);CHKERRQ(ierr);
+    ierr = EPSDenseHEP(n,S,lds,ritz,Q);CHKERRQ(ierr);
   }
-  /* Sort the remaining columns of the Schur form */
-  if (eps->which == EPS_SMALLEST_REAL) {
+
+  /* Sort eigendecomposition according to eps->which */
+  ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,worksort);CHKERRQ(ierr);
+  for (i=0;i<n;i++)
+    eig[i] = ritz[perm[i]];
+  for (j=0;j<n;j++)
     for (i=0;i<n;i++)
-      eps->eigr[i+eps->nconv] = ritz[i];
-  } else {
-#ifdef PETSC_USE_COMPLEX
+      S[i+j*lds] = Q[i+j*n];
+  for (j=0;j<n;j++)
     for (i=0;i<n;i++)
-      eps->eigr[i+eps->nconv] = ritz[i];
-    ierr = EPSSortEigenvalues(n,eps->eigr+eps->nconv,eps->eigi,eps->which,n,perm);CHKERRQ(ierr);
-#else
-    ierr = EPSSortEigenvalues(n,ritz,eps->eigi+eps->nconv,eps->which,n,perm);CHKERRQ(ierr);
-#endif
-    for (i=0;i<n;i++)
-      eps->eigr[i+eps->nconv] = ritz[perm[i]];
-    ierr = PetscMemcpy(S,Q+eps->nconv*n,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (j=0;j<n;j++)
-      for (i=0;i<n;i++)
-        Q[(j+eps->nconv)*n+i] = S[perm[j]*n+i];
-  }
-  /* Rebuild S from eigr */
-  for (i=eps->nconv;i<eps->nv;i++) {
-    S[i*(eps->ncv+1)] = eps->eigr[i];
-    for (j=i+1;j<eps->ncv;j++)
-      S[i*eps->ncv+j] = 0.0;
+      Q[i+j*n] = S[i+perm[j]*lds];
+
+  /* Rebuild S from eig */
+  for (i=0;i<n;i++) {
+    S[i+i*lds] = eig[i];
+    for (j=i+1;j<n;j++)
+      S[j+i*lds] = 0.0;
   }
   PetscFunctionReturn(0);
 }
@@ -105,7 +100,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  lwork = eps->ncv*sizeof(PetscReal) + eps->ncv*sizeof(int);
+  lwork = 2*eps->ncv*sizeof(PetscReal) + 2*eps->ncv*sizeof(int);
   ierr = PetscMalloc(lwork,&work);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
@@ -122,9 +117,9 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 
     /* Solve projected problem and compute residual norm estimates */ 
     n = eps->nv-eps->nconv;
-    ierr = EPSProjectedKSSym(eps,l,S,eps->ncv,Q,n,work);CHKERRQ(ierr);
+    ierr = EPSProjectedKSSym(eps,n,l,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
     for (i=eps->nconv;i<eps->nv;i++)
-      eps->errest[i] = beta*PetscAbsScalar(Q[(i+1)*n-1]) / PetscAbsScalar(eps->eigr[i]);
+      eps->errest[i] = beta*PetscAbsScalar(Q[(i-eps->nconv+1)*n-1]) / PetscAbsScalar(eps->eigr[i]);
 
     /* Check convergence */
     k = eps->nconv;
@@ -148,14 +143,14 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=k;i<k+l;i++) {
-          S[i*eps->ncv+k+l] = Q[(i+1)*n-1]*beta;
+          S[i*eps->ncv+k+l] = Q[(i-eps->nconv+1)*n-1]*beta;
         }
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     for (i=eps->nconv;i<k+l;i++) {
       ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V+eps->nconv);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AV[i],n,Q+(i-eps->nconv)*n,eps->V+eps->nconv);CHKERRQ(ierr);
     }
     for (i=eps->nconv;i<k+l;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
