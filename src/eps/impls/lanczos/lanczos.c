@@ -518,13 +518,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       for (i=0;i<n;i++)
         perm[i] = i;
     } else {
-#ifdef PETSC_USE_COMPLEX
-      for (i=0;i<n;i++)
-	eps->eigr[i+nconv] = ritz[i];
-      ierr = EPSSortEigenvaluesReal(n,eps->eigr+nconv,eps->which,n,perm,work);CHKERRQ(ierr);
-#else
       ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,work);CHKERRQ(ierr);
-#endif
     }
 
     /* Look for converged eigenpairs */
