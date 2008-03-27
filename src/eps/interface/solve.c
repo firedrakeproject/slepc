@@ -1180,7 +1180,7 @@ PetscErrorCode EPSSortEigenvaluesReal(int n,PetscReal *eig,EPSWhich which,int ne
   switch(which) {
     case EPS_LARGEST_MAGNITUDE:
     case EPS_SMALLEST_MAGNITUDE:
-      for (i=0; i<n; i++) { values[i] = abs(eig[i]); }
+      for (i=0; i<n; i++) { values[i] = PetscAbsReal(eig[i]); }
       break;
     case EPS_LARGEST_REAL:
     case EPS_SMALLEST_REAL:
