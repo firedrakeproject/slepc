@@ -67,7 +67,7 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSProjectedKSNonsymm"
+#define __FUNCT__ "EPSProjectedKSNonsym"
 /*
    EPSProjectedKSNonsym - Solves the projected eigenproblem in the Krylov-Schur
    method (non-symmetric case).
@@ -75,11 +75,10 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
    On input:
      l is the number of vectors kept in previous restart (0 means first restart)
      S is the projected matrix (leading dimension is lds)
-     Q is an orthogonal transformation matrix if l=0 (leading dimension is n)
 
    On output:
      S has (real) Schur form with diagonal blocks sorted appropriately
-     Q contains the accumulated orthogonal transformations used in the process
+     Q contains the corresponding Schur vectors
 */
 PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscScalar *Q,int n)
 {
