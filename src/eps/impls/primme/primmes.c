@@ -695,7 +695,7 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->primme.globalSumDouble = par_GlobalSumDouble;
-  primme->method = EPSPRIMME_DEFAULT_MIN_TIME;
+  primme->method = (primme_preset_method)EPSPRIMME_DEFAULT_MIN_TIME;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetPrecond_PRIMME);CHKERRQ(ierr); 
