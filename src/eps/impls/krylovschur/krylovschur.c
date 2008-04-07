@@ -167,7 +167,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     if (eps->projection==EPS_HARMONIC) {
       gnorm = 0.0;
       for (i=0;i<eps->ncv;i++)
-        gnorm = gnorm + g[i]*g[i];
+        gnorm = gnorm + PetscRealPart(g[i])*PetscRealPart(g[i]);
       for (i=eps->nconv;i<eps->nv;i++)
         eps->errest[i] *= sqrt(1.0+gnorm);
     }
