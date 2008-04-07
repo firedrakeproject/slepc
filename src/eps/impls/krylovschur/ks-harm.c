@@ -141,7 +141,7 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,int n,int k,int l,int m,PetscSc
   /* Renormalize u */
   gnorm = 0.0;
   for (i=0;i<n;i++)
-    gnorm = gnorm + PetscRealPart(g[i])*PetscRealPart(g[i]);
+    gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
   gamma = sqrt(1.0+gnorm);
   ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
 
