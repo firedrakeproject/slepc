@@ -50,8 +50,6 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
 
   if (!eps->projection) {
     ierr = EPSSetProjection(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->projection!=EPS_RITZ) {
-    SETERRQ(PETSC_ERR_SUP,"Unsupported projection type\n");
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -347,14 +345,121 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,int ldh,PetscScalar *U,PetscReal 
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSProjectedArnoldi"
+/*
+   EPSProjectedArnoldi - Solves the projected eigenproblem.
+
+   On input:
+     S is the projected matrix (leading dimension is lds)
+
+   On output:
+     S has (real) Schur form with diagonal blocks sorted appropriately
+     Q contains the corresponding Schur vectors (order n, leading dimension n)
+*/
+PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,int lds,PetscScalar *Q,int n)
+{
+  PetscErrorCode ierr;
+  int            i;
+
+  PetscFunctionBegin;
+  /* Initialize orthogonal matrix */
+  ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<n;i++) 
+    Q[i*(n+1)] = 1.0;
+  /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
+  ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  /* Sort the remaining columns of the Schur form */
+  if (eps->projection==EPS_HARMONIC || eps->projection==EPS_REFINED_HARMONIC) {
+    ierr = EPSSortDenseSchurTarget(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->target);CHKERRQ(ierr); 
+  } else {
+    ierr = EPSSortDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSUpdateVector"
+/*
+   EPSUpdateVector - Computes an approximate Schur vector (or eigenvector) by
+   either Ritz extraction (U=U*Q) or refined Ritz extraction 
+
+   On input:
+     k is the index of the vector in the basis
+     U is the orthogonal basis of the subspace used for projecting
+     q contains the corresponding Schur vector of the projected matrix (length n)
+     H is the (extended) projected matrix (size n+1 x n, leading dimension ldh)
+
+   On output:
+     v is the resulting vector
+*/
+PetscErrorCode EPSUpdateVector(EPS eps,int k,Vec *U,PetscScalar *q,int n,PetscScalar *H,int ldh,Vec v)
+{
+#if defined(PETSC_MISSING_LAPACK_GESVD) 
+  SETERRQ(PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscTruth     isrefined;
+  int            i,j;
+  PetscBLASInt   n1,bN,lwork,idummy=1,info;
+  PetscScalar    *B,sdummy,*work;
+  PetscReal      *sigma;
+
+  PetscFunctionBegin;
+  isrefined = eps->projection==EPS_REFINED || eps->projection==EPS_REFINED_HARMONIC;
+  if (!isrefined) {
+    /* Ritz extraction: v = U*q */
+    ierr = VecSet(v,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(v,n,q,U);CHKERRQ(ierr);
+  }
+  else {
+    /* Refined Ritz extraction */
+    n1 = n+1;
+    ierr = PetscMalloc(n1*n*sizeof(PetscScalar),&B);CHKERRQ(ierr);
+    ierr = PetscMalloc(6*n*sizeof(PetscReal),&sigma);CHKERRQ(ierr);
+    lwork = 10*n;
+    ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+    /* copy H to B */
+    for (i=0;i<=n;i++) {
+      for (j=0;j<n;j++) {
+        B[i+j*n1] = H[i+j*ldh];
+      }
+    }
+    /* subtract ritz value from diagonal of B^ */
+    for (i=0;i<n;i++) {
+      B[i+i*n1] -= eps->eigr[k];  /* MISSING: complex case */
+    }
+    /* compute SVD of [H-mu*I] */
+#if !defined(PETSC_USE_COMPLEX)
+    LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,&info);
+#else
+    LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,sigma+n,&info);
+#endif
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+    /* the smallest singular value is the new error estimate */
+    eps->errest[k] = sigma[n-1];
+    /* update vector with right singular vector associated to smallest singular value */
+    for (i=0;i<n;i++)
+      q[i] = B[n-1+i*n1];
+    ierr = VecSet(v,0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(v,n,q,U);CHKERRQ(ierr);
+    /* free workspace */
+    ierr = PetscFree(B);CHKERRQ(ierr);
+    ierr = PetscFree(sigma);CHKERRQ(ierr);
+    ierr = PetscFree(work);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_ARNOLDI"
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
   int            i,k;
   Vec            f=eps->work[1];
-  PetscScalar    *H=eps->T,*U,*work;
-  PetscReal      beta;
+  PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
+  PetscReal      beta,gnorm;
   PetscTruth     breakdown;
   IPOrthogonalizationRefinementType orthog_ref;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
@@ -363,6 +468,12 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  if (eps->projection==EPS_HARMONIC || eps->projection==EPS_REFINED_HARMONIC) {
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
+  }
+  if (eps->projection==EPS_REFINED || eps->projection==EPS_REFINED_HARMONIC) {
+    ierr = PetscMalloc((eps->ncv+1)*eps->ncv*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr);
+  }
   
   ierr = IPGetOrthogonalization(eps->ip,PETSC_NULL,&orthog_ref,PETSC_NULL);CHKERRQ(ierr);
 
@@ -383,24 +494,36 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
       ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
 
-    /* Reduce H to (quasi-)triangular form, H <- U H U' */
-    ierr = PetscMemzero(U,eps->nv*eps->nv*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<eps->nv;i++) { U[i*(eps->nv+1)] = 1.0; }
-    ierr = EPSDenseSchur(eps->nv,eps->nconv,H,eps->ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    if (eps->projection==EPS_REFINED || eps->projection==EPS_REFINED_HARMONIC) {
+      ierr = PetscMemcpy(Hcopy,H,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+      for (i=0;i<eps->nv-1;i++) Hcopy[eps->nv+i*eps->ncv] = 0.0; 
+      Hcopy[eps->nv+(eps->nv-1)*eps->ncv] = beta;
+    }
 
-    /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(eps->nv,eps->nconv,H,eps->ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
+    /* Compute translation of Krylov decomposition if harmonic projection used */ 
+    if (eps->projection==EPS_HARMONIC || eps->projection==EPS_REFINED_HARMONIC) {
+      ierr = EPSTranslateHarmonic(H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+    }
 
-    /* Compute residual norm estimates */
+    /* Solve projected problem and compute residual norm estimates */ 
+    ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,eps->nv);CHKERRQ(ierr);
     ierr = ArnoldiResiduals(H,eps->ncv,U,beta,eps->nconv,eps->nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
     
+    /* Fix residual norms if harmonic */
+    if (eps->projection==EPS_HARMONIC || eps->projection==EPS_REFINED_HARMONIC) {
+      gnorm = 0.0;
+      for (i=0;i<eps->ncv;i++)
+        gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
+      for (i=eps->nconv;i<eps->nv;i++)
+        eps->errest[i] *= sqrt(1.0+gnorm);
+    }
+
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx) */
     k = eps->nconv;
     while (k<eps->nv && eps->errest[k]<eps->tol) k++;
     for (i=eps->nconv;i<=k && i<eps->nv;i++) {
-      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[i],eps->nv,U+eps->nv*i,eps->V);CHKERRQ(ierr);
+      ierr = EPSUpdateVector(eps,i,eps->V,U+i*eps->nv,eps->nv,Hcopy,eps->ncv,eps->AV[i]);CHKERRQ(ierr);
     }
     for (i=eps->nconv;i<=k && i<eps->nv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
@@ -422,6 +545,12 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  if (eps->projection==EPS_HARMONIC || eps->projection==EPS_REFINED_HARMONIC) {
+    ierr = PetscFree(g);CHKERRQ(ierr);
+  }
+  if (eps->projection==EPS_REFINED || eps->projection==EPS_REFINED_HARMONIC) {
+    ierr = PetscFree(Hcopy);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
