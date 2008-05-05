@@ -678,8 +678,8 @@ EXTERN_C_END
 -  reorthog - the type of reorthogonalization
 
    Options Database Key:
-.  -eps_lanczos_orthog - Sets the reorthogonalization type (either 'local', 'selective',
-                         'periodic', 'partial' or 'full')
+.  -eps_lanczos_reorthog - Sets the reorthogonalization type (either 'local', 'selective',
+                         'periodic', 'partial', 'full' or 'delayed')
    
    Level: advanced
 
