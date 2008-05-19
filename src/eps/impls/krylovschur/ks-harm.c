@@ -124,7 +124,7 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,int n,int k,int l,int m,PetscSc
   BLASgemv_("C",&n,&ncol,&dmone,Q,&m,g,&one,&dzero,ghat,&one);
 
   /* S = S + g^*b' */
-  for (i=0;i<l;i++) {
+  for (i=0;i<k+l;i++) {
     for (j=k;j<k+l;j++) {
       S[i+j*m] += ghat[i]*S[k+l+j*m];
     }
