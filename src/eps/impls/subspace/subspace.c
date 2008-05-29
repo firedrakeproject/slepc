@@ -160,7 +160,7 @@ static PetscErrorCode EPSFindGroup(int l,int m,PetscScalar *wr,PetscScalar *wi,P
 static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int m,int ldt,PetscReal *rsd)
 {
   PetscErrorCode ierr;
-  int            i;
+  int            i,k;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    t;
 #endif
@@ -168,7 +168,8 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
     ierr = VecSet(eps->work[0],0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(eps->work[0],m,T+ldt*i,V);CHKERRQ(ierr);
+    if (i==m-1 || T[i+1+(ldt*i)]==0.0) k=i; else k=i+1;
+    ierr = VecMAXPY(eps->work[0],k,T+ldt*i,V);CHKERRQ(ierr);
     ierr = VecWAXPY(eps->work[1],-1.0,eps->work[0],AV[i]);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     ierr = VecDot(eps->work[1],eps->work[1],rsd+i);CHKERRQ(ierr);
@@ -184,7 +185,7 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
     } else if (T[i+1+(ldt*i)]==0.0) {
       rsd[i] = sqrt(rsd[i]);
     } else {
-      rsd[i] = sqrt(rsd[i]+rsd[i+1])/2.0;
+      rsd[i] = sqrt((rsd[i]+rsd[i+1])/2.0);
       rsd[i+1] = rsd[i];
       i++;
     }
