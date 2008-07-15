@@ -85,8 +85,8 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDOneSideTRLanczos"
-static PetscErrorCode SVDOneSideTRLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,int nconv,int l,int n,PetscScalar* work,Vec wv,Vec wu)
+#define __FUNCT__ "SVDOneSideTRLanczosCGS"
+static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,int nconv,int l,int n,PetscScalar* work,Vec wv,Vec wu)
 {
   PetscErrorCode ierr;
   PetscReal      a,b,sum,onorm;
@@ -238,7 +238,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
       if (orthog == IP_MGS_ORTH) {
         ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,svd->n,swork,wv,wu);CHKERRQ(ierr);
       } else {
-        ierr = SVDOneSideTRLanczos(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,svd->n,swork,wv,wu);CHKERRQ(ierr);
+        ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,svd->n,swork,wv,wu);CHKERRQ(ierr);
       }
     } else {
       ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,svd->n,swork,wv,wu);CHKERRQ(ierr);
@@ -341,6 +341,10 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     svd->errest[i] = beta[j];
     svd->V[i] = permV[j];
     svd->U[i] = permU[j];
+    if (lanczos->oneside) {
+      ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,svd->U,svd->U[i],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = VecScale(svd->U[i],1.0/norm);CHKERRQ(ierr);
+    }
   }
   
   /* free working space */

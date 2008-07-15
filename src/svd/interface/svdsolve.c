@@ -186,6 +186,8 @@ PetscErrorCode SVDGetConverged(SVD svd,int *nconv)
 PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Vec v)
 {
   PetscErrorCode ierr;
+  PetscReal      norm;
+  int            j;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -199,12 +201,16 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
   *sigma = svd->sigma[i];
   if (u) {
     PetscValidHeaderSpecific(u,VEC_COOKIE,4);
-    if (svd->U) {
-      ierr = VecCopy(svd->U[i],u);CHKERRQ(ierr);
-    } else {
-      ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[i],u);CHKERRQ(ierr);
-      ierr = VecScale(u,1.0/svd->sigma[i]);CHKERRQ(ierr);
+    if (!svd->U) {
+      ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
+      for (j=0;j<svd->ncv;j++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+j);CHKERRQ(ierr); }
+      for (j=0;j<svd->nconv;j++) {
+        ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(svd->ip,j,PETSC_NULL,svd->U,svd->U[j],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = VecScale(svd->U[j],1.0/norm);CHKERRQ(ierr);
+      }
     }
+    ierr = VecCopy(svd->U[i],u);CHKERRQ(ierr);
   }
   if (v) {
     PetscValidHeaderSpecific(v,VEC_COOKIE,5);   
