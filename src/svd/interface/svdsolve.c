@@ -294,10 +294,10 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
 -  i   - the solution index
 
    Output Parameter:
-.  error - the relative error bound, computed as sqrt(n1^2+n2^2)/(sigma*sqrt(||u||_2^2+||v||_2^2))
+.  error - the relative error bound, computed as sqrt(n1^2+n2^2)/sigma
    where n1 = ||A*v-sigma*u||_2 , n2 = ||A^T*u-sigma*v||_2 , sigma is the singular value, 
    u and v are the left and right singular vectors.
-   If sigma is too small the relative error is computed as sqrt(n1^2+n2^2)/sqrt(||u||_2^2+||v||_2^2).
+   If sigma is too small the relative error is computed as sqrt(n1^2+n2^2).
 
    Level: beginner
 
@@ -306,21 +306,15 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
 PetscErrorCode SVDComputeRelativeError(SVD svd, int i, PetscReal *error)
 {
   PetscErrorCode ierr;
-  PetscReal      sigma,norm1,norm2,norm3,norm4;
-  Vec            u,v;
+  PetscReal      sigma,norm1,norm2;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   PetscValidPointer(error,2);
-  ierr = SVDMatGetVecs(svd,&v,&u);CHKERRQ(ierr);
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
+  ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
-  ierr = VecNorm(u,NORM_2,&norm3);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&norm4);CHKERRQ(ierr);
-  *error = sqrt(norm1*norm1+norm2*norm2) / sqrt(norm3*norm3+norm4*norm4);
+  *error = sqrt(norm1*norm1+norm2*norm2);
   if (sigma>*error) *error /= sigma;
-  ierr = VecDestroy(v);CHKERRQ(ierr);
-  ierr = VecDestroy(u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
