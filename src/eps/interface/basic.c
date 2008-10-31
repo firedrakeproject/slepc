@@ -14,7 +14,7 @@
 
 PetscFList EPSList = 0;
 PetscCookie EPS_COOKIE = 0;
-PetscEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
+PetscLogEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSInitializePackage"
@@ -41,13 +41,13 @@ PetscErrorCode EPSInitializePackage(char *path) {
   if (initialized) PetscFunctionReturn(0);
   initialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscLogClassRegister(&EPS_COOKIE,"Eigenproblem Solver");CHKERRQ(ierr);
+  ierr = PetscCookieRegister("Eigenproblem Solver",&EPS_COOKIE);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = EPSRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister(&EPS_SetUp,"EPSSetUp",EPS_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&EPS_Solve,"EPSSolve",EPS_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&EPS_Dense,"EPSDense",EPS_COOKIE); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSSetUp",EPS_COOKIE,&EPS_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSSolve",EPS_COOKIE,&EPS_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSDense",EPS_COOKIE,&EPS_Dense); CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {

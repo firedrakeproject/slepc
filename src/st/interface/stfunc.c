@@ -13,7 +13,7 @@
 #include "src/st/stimpl.h"            /*I "slepcst.h" I*/
 
 PetscCookie ST_COOKIE = 0;
-PetscEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
+PetscLogEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "STInitializePackage"
@@ -40,13 +40,13 @@ PetscErrorCode STInitializePackage(char *path) {
   if (initialized) PetscFunctionReturn(0);
   initialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscLogClassRegister(&ST_COOKIE,"Spectral Transform");CHKERRQ(ierr);
+  ierr = PetscCookieRegister("Spectral Transform",&ST_COOKIE);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = STRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister(&ST_SetUp,"STSetUp",ST_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&ST_Apply,"STApply",ST_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&ST_ApplyTranspose,"STApplyTranspose",ST_COOKIE); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STSetUp",ST_COOKIE,&ST_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STApply",ST_COOKIE,&ST_Apply);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STApplyTranspose",ST_COOKIE,&ST_ApplyTranspose); CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {

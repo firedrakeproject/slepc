@@ -195,9 +195,9 @@ PetscErrorCode SVDSetUp(SVD svd)
       if (!flg) SETERRQ(1,"Matrix has not defined the MatTranpose operation");
       if (M>=N) {
         svd->A = svd->OP;
-        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
+        ierr = MatTranspose(svd->OP, MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
       } else {
-        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
+        ierr = MatTranspose(svd->OP, MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
         svd->AT = svd->OP;
       }
       break;

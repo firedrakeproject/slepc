@@ -14,7 +14,7 @@
 #include "slepceps.h"
 
 extern PetscFList EPSList;
-extern PetscEvent EPS_SetUp, EPS_Solve, EPS_Dense;
+extern PetscLogEvent EPS_SetUp, EPS_Solve, EPS_Dense;
 
 typedef struct _EPSOps *EPSOps;
 

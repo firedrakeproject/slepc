@@ -13,7 +13,7 @@
 
 #include "slepceps.h"
 
-extern PetscEvent ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyTranspose;
+extern PetscLogEvent ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyTranspose;
 extern PetscFList STList;
 
 typedef struct _STOps *STOps;

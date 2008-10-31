@@ -13,7 +13,7 @@
 #include "src/ip/ipimpl.h"      /*I "slepcip.h" I*/
 
 PetscCookie IP_COOKIE = 0;
-PetscEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
+PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPInitializePackage"
@@ -41,11 +41,11 @@ PetscErrorCode IPInitializePackage(char *path)
   if (initialized) PetscFunctionReturn(0);
   initialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscLogClassRegister(&IP_COOKIE,"Inner product");CHKERRQ(ierr);
+  ierr = PetscCookieRegister("Inner product",&IP_COOKIE);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister(&IP_Orthogonalize,"IPOrthogonalize",IP_COOKIE); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&IP_InnerProduct,"IPInnerProduct",IP_COOKIE); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&IP_ApplyMatrix,"IPApplyMatrix",IP_COOKIE); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPOrthogonalize",IP_COOKIE,&IP_Orthogonalize); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPInnerProduct",IP_COOKIE,&IP_InnerProduct); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPApplyMatrix",IP_COOKIE,&IP_ApplyMatrix); CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {

@@ -14,7 +14,7 @@
 
 PetscFList SVDList = 0;
 PetscCookie SVD_COOKIE = 0;
-PetscEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
+PetscLogEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDInitializePackage"
@@ -42,13 +42,13 @@ PetscErrorCode SVDInitializePackage(char *path)
   if (initialized) PetscFunctionReturn(0);
   initialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscLogClassRegister(&SVD_COOKIE,"Singular Value Solver");CHKERRQ(ierr);
+  ierr = PetscCookieRegister("Singular Value Solver",&SVD_COOKIE);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = SVDRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister(&SVD_SetUp,"SVDSetUp",SVD_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&SVD_Solve,"SVDSolve",SVD_COOKIE);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister(&SVD_Dense,"SVDDense",SVD_COOKIE);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("SVDSetUp",SVD_COOKIE,&SVD_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("SVDSolve",SVD_COOKIE,&SVD_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("SVDDense",SVD_COOKIE,&SVD_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
