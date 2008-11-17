@@ -153,7 +153,7 @@ static PetscErrorCode EPSFindGroup(int l,int m,PetscScalar *wr,PetscScalar *wi,P
 #define __FUNCT__ "EPSSchurResidualNorms"
 /*
    EPSSchurResidualNorms - Computes the column norms of residual vectors
-   OP*V(1:n,l:m) - V*T(1:m,l:m) were on entry, OP*V has been computed and 
+   OP*V(1:n,l:m) - V*T(1:m,l:m), where, on entry, OP*V has been computed and 
    stored in AV. ldt is the leading dimension of T. On exit, rsd(l) to
    rsd(m) contain the computed norms.
 */
