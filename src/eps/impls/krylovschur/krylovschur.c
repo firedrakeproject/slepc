@@ -78,7 +78,7 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 
    On output:
      S has (real) Schur form with diagonal blocks sorted appropriately
-     Q contains the corresponding Schur vectors
+     Q contains the corresponding Schur vectors (order n, leading dimension n)
 */
 PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscScalar *Q,int n)
 {
@@ -86,7 +86,7 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscSc
   int            i;
 
   PetscFunctionBegin;
-  if (l==0) {
+  if (l==0 && eps->projection==EPS_RITZ) {
     ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n;i++) 
       Q[i*(n+1)] = 1.0;
@@ -166,7 +166,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     /* Fix residual norms if harmonic */
     if (eps->projection==EPS_HARMONIC) {
       gnorm = 0.0;
-      for (i=0;i<eps->ncv;i++)
+      for (i=0;i<eps->nv;i++)
         gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
       for (i=eps->nconv;i<eps->nv;i++)
         eps->errest[i] *= sqrt(1.0+gnorm);
