@@ -27,6 +27,8 @@
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
+extern PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,int m,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work);
+
 typedef struct {
   PetscTruth delayed;
 } EPS_ARNOLDI;
@@ -370,7 +372,7 @@ PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,int lds,PetscScalar *Q
   ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
   /* Sort the remaining columns of the Schur form */
   if (eps->projection==EPS_HARMONIC || eps->projection==EPS_REFINED_HARMONIC) {
-    ierr = EPSSortDenseSchurTarget(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->target);CHKERRQ(ierr); 
+    ierr = EPSSortDenseSchurTarget(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->target,eps->which);CHKERRQ(ierr); 
   } else {
     ierr = EPSSortDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
   }

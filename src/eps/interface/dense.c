@@ -634,7 +634,8 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 +  n     - dimension of the matrix 
 .  k     - first active column
 .  ldt   - leading dimension of T
--  target - the target value
+.  target - the target value
+-  which - eigenvalue sort order
 
    Input/Output Parameters:
 +  T  - the upper (quasi-)triangular matrix
@@ -644,9 +645,11 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 
    Notes:
    This function reorders the eigenvalues in wr,wi located in positions k
-   to n according to increasing distance to the target. The Schur 
-   decomposition Z*T*Z^T, is also reordered by means of rotations so that 
-   eigenvalues in the diagonal blocks of T follow the same order.
+   to n according to increasing distance to the target. The parameter which
+   is used to determine if distance is relative to magnitude, real axis,
+   or imaginary axis. The Schur decomposition Z*T*Z^T, is also reordered 
+   by means of rotations so that eigenvalues in the diagonal blocks of T 
+   follow the same order.
 
    Both T and Z are overwritten.
    
@@ -656,7 +659,7 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 
 .seealso: EPSDenseHessenberg(), EPSDenseSchur(), EPSDenseTridiagonal()
 @*/
-PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,PetscScalar target)
+PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,PetscScalar target,EPSWhich which)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
@@ -676,11 +679,46 @@ PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscS
 #endif
   
   for (i=k;i<n-1;i++) {
-    /* complex target only allowed if scalartype=complex */
-    value = SlepcAbsEigenvalue(wr[i]-target,wi[i]);
+    switch(which) {
+      case EPS_LARGEST_MAGNITUDE:
+        /* complex target only allowed if scalartype=complex */
+        value = SlepcAbsEigenvalue(wr[i]-target,wi[i]);
+        break;
+      case EPS_LARGEST_REAL:
+        value = PetscAbsScalar(PetscRealPart(wr[i]-target));
+        break;
+      case EPS_LARGEST_IMAGINARY:
+#if !defined(PETSC_USE_COMPLEX)
+        /* complex target only allowed if scalartype=complex */
+        /*value = PetscAbsReal(wi[i]);*/
+        SETERRQ(1,"Not implemented");
+#else
+        value = PetscImaginaryPart(wr[i]-target);
+#endif
+        break;
+      default: SETERRQ(1,"Wrong value of which");
+    }
     pos = 0;
     for (j=i+1;j<n;j++) {
-      v = SlepcAbsEigenvalue(wr[j]-target,wi[j]);
+      switch(which) {
+        case EPS_LARGEST_MAGNITUDE:
+          /* complex target only allowed if scalartype=complex */
+          v = SlepcAbsEigenvalue(wr[j]-target,wi[j]);
+          break;
+        case EPS_LARGEST_REAL:
+          v = PetscAbsScalar(PetscRealPart(wr[j]-target));
+          break;
+        case EPS_LARGEST_IMAGINARY:
+#if !defined(PETSC_USE_COMPLEX)
+          /* complex target only allowed if scalartype=complex */
+          /*v = PetscAbsReal(wi[j]);*/
+          SETERRQ(1,"Not implemented");
+#else
+          v = PetscImaginaryPart(wr[j]-target);
+#endif
+          break;
+        default: SETERRQ(1,"Wrong value of which");
+      }
       if (v < value) {
         value = v;
         pos = j;
