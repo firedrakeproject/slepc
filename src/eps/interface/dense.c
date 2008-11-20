@@ -685,15 +685,14 @@ PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscS
         value = SlepcAbsEigenvalue(wr[i]-target,wi[i]);
         break;
       case EPS_LARGEST_REAL:
-        value = PetscAbsScalar(PetscRealPart(wr[i]-target));
+        value = PetscAbsReal(PetscRealPart(wr[i]-target));
         break;
       case EPS_LARGEST_IMAGINARY:
 #if !defined(PETSC_USE_COMPLEX)
         /* complex target only allowed if scalartype=complex */
-        /*value = PetscAbsReal(wi[i]);*/
-        SETERRQ(1,"Not implemented");
+        value = PetscAbsReal(wi[i]);
 #else
-        value = PetscImaginaryPart(wr[i]-target);
+        value = PetscAbsReal(PetscImaginaryPart(wr[i]-target));
 #endif
         break;
       default: SETERRQ(1,"Wrong value of which");
@@ -706,15 +705,14 @@ PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscS
           v = SlepcAbsEigenvalue(wr[j]-target,wi[j]);
           break;
         case EPS_LARGEST_REAL:
-          v = PetscAbsScalar(PetscRealPart(wr[j]-target));
+          v = PetscAbsReal(PetscRealPart(wr[j]-target));
           break;
         case EPS_LARGEST_IMAGINARY:
 #if !defined(PETSC_USE_COMPLEX)
           /* complex target only allowed if scalartype=complex */
-          /*v = PetscAbsReal(wi[j]);*/
-          SETERRQ(1,"Not implemented");
+          v = PetscAbsReal(wi[j]);
 #else
-          v = PetscImaginaryPart(wr[j]-target);
+          v = PetscAbsReal(PetscImaginaryPart(wr[j]-target));
 #endif
           break;
         default: SETERRQ(1,"Wrong value of which");
