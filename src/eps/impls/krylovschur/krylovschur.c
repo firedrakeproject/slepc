@@ -31,9 +31,8 @@
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
-extern PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,int m,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work);
-extern PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,int n,int k,int l,int m,PetscScalar *g,PetscScalar *Q,Vec *U,Vec u,PetscScalar *ghat);
 PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps);
+extern PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps);
 extern PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps);
 
 #undef __FUNCT__  
@@ -86,7 +85,7 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscSc
   int            i;
 
   PetscFunctionBegin;
-  if (l==0 && eps->projection==EPS_RITZ) {
+  if (l==0) {
     ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n;i++) 
       Q[i*(n+1)] = 1.0;
@@ -97,11 +96,7 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscSc
   /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
   ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
   /* Sort the remaining columns of the Schur form */
-  if (eps->projection==EPS_HARMONIC) {
-    ierr = EPSSortDenseSchurTarget(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->target,eps->which);CHKERRQ(ierr);
-  } else {
-    ierr = EPSSortDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
-  }
+  ierr = EPSSortDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);    
   PetscFunctionReturn(0);
 }
 
@@ -115,7 +110,15 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   if (eps->ishermitian) {
     ierr = EPSSolve_KRYLOVSCHUR_SYMM(eps);CHKERRQ(ierr);
   } else {
-    ierr = EPSSolve_KRYLOVSCHUR_DEFAULT(eps);CHKERRQ(ierr);
+    switch (eps->projection) {
+      case EPS_RITZ:
+        ierr = EPSSolve_KRYLOVSCHUR_DEFAULT(eps);CHKERRQ(ierr);
+        break;
+      case EPS_HARMONIC:
+        ierr = EPSSolve_KRYLOVSCHUR_HARMONIC(eps);CHKERRQ(ierr);
+        break;
+      default: SETERRQ(PETSC_ERR_SUP,"Unsupported projection type");
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -127,8 +130,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
   PetscErrorCode ierr;
   int            i,k,l,n,lwork;
   Vec            u=eps->work[1];
-  PetscScalar    *S=eps->T,*Q,*g,*work;
-  PetscReal      beta,gnorm;
+  PetscScalar    *S=eps->T,*Q,*work;
+  PetscReal      beta;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
@@ -136,9 +139,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   lwork = (eps->ncv+4)*eps->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  if (eps->projection==EPS_HARMONIC) {
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
-  }
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -153,24 +153,10 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
-    /* Compute translation of Krylov decomposition if harmonic projection used */ 
-    if (eps->projection==EPS_HARMONIC) {
-      ierr = EPSTranslateHarmonic(S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
-    }
-
     /* Solve projected problem and compute residual norm estimates */ 
     n = eps->nv;
     ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,n);CHKERRQ(ierr);
     ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,n,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-
-    /* Fix residual norms if harmonic */
-    if (eps->projection==EPS_HARMONIC) {
-      gnorm = 0.0;
-      for (i=0;i<eps->nv;i++)
-        gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-      for (i=eps->nconv;i<eps->nv;i++)
-        eps->errest[i] *= sqrt(1.0+gnorm);
-    }
 
     /* Check convergence */
     k = eps->nconv;
@@ -204,9 +190,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
         for (i=k;i<k+l;i++) {
           S[i*eps->ncv+k+l] = Q[(i+1)*n-1]*beta;
         }
-        if (eps->projection==EPS_HARMONIC) {
-          ierr = EPSRecoverHarmonic(S,n,k,l,eps->ncv,g,Q,eps->V,u,work);CHKERRQ(ierr);
-        }
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
@@ -228,9 +211,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
 
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
-  if (eps->projection==EPS_HARMONIC) {
-    ierr = PetscFree(g);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
