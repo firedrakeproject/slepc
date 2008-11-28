@@ -16,10 +16,10 @@ ALL: lib
 
 CFLAGS   = ${BLOPEX_INCLUDE}
 FFLAGS   =
-SOURCEC  = blopex.c
+SOURCEC  = blopex.c slepc-interface.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = blopex.o
+OBJSC    = blopex.o slepc-interface.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

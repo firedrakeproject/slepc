@@ -10,20 +10,24 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include "src/st/stimpl.h"
 #include "src/eps/epsimpl.h"
-#include "src/contrib/blopex/petsc-interface/petsc-interface.h"
+#include "slepc-interface.h"
 #include "lobpcg.h"
 #include "interpreter.h"
 #include "multivector.h"
 #include "temp_multivector.h"
+#include <assert.h>
 
 typedef struct {
   lobpcg_Tolerance           tol;
   lobpcg_BLASLAPACKFunctions blap_fn;
   mv_MultiVectorPtr          eigenvectors;
+  mv_MultiVectorPtr          Y;
   mv_InterfaceInterpreter    ii;
   KSP                        ksp;
 } EPS_BLOPEX;
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "Precond_FnSingleVector"
@@ -32,9 +36,13 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   PetscErrorCode  ierr;
   EPS             eps = (EPS)data;
   EPS_BLOPEX      *blopex = (EPS_BLOPEX*)eps->data;
+  PetscInt        lits;
       
   PetscFunctionBegin;
   ierr = KSPSolve(blopex->ksp,(Vec)x,(Vec)y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = KSPGetIterationNumber(blopex->ksp, &lits); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  eps->OP->lineariterations+= lits;
+
   PetscFunctionReturnVoid();
 }
 
@@ -56,10 +64,11 @@ static void OperatorASingleVector(void *data,void *x,void *y)
 {
   PetscErrorCode  ierr;
   EPS		  eps = (EPS)data;
-  
+  Mat             A;
+ 
   PetscFunctionBegin;
-  ierr = STApply(eps->OP,(Vec)x,(Vec)y);
-  ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,(Vec)y,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = STGetOperators(eps->OP,&A,PETSC_NULL); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = MatMult(A,(Vec)x,(Vec)y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
   PetscFunctionReturnVoid();
 }
 
@@ -76,18 +85,45 @@ static void OperatorAMultiVector(void *data,void *x,void *y)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "OperatorBSingleVector"
+static void OperatorBSingleVector(void *data,void *x,void *y)
+{
+  PetscErrorCode  ierr;
+  EPS		  eps = (EPS)data;
+  Mat             B;
+  
+  PetscFunctionBegin;
+  ierr = STGetOperators(eps->OP,PETSC_NULL,&B); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = MatMult(B,(Vec)x,(Vec)y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  PetscFunctionReturnVoid();
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "OperatorBMultiVector"
+static void OperatorBMultiVector(void *data,void *x,void *y)
+{
+  EPS		  eps = (EPS)data;
+  EPS_BLOPEX	  *blopex = (EPS_BLOPEX*)eps->data;
+
+  PetscFunctionBegin;
+  blopex->ii.Eval(OperatorBSingleVector,data,x,y);
+  PetscFunctionReturnVoid();
+}
+
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_BLOPEX"
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
-  Mat             A;
+  Mat             A,B;
   int             N;
   PetscTruth      isShift;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian || eps->isgeneralized) { 
-    SETERRQ(PETSC_ERR_SUP,"blopex only works for standard symmetric problems"); 
+  if (!eps->ishermitian) { 
+    SETERRQ(PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
   }
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
   if (!isShift) {
@@ -96,21 +132,31 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->which!=EPS_SMALLEST_REAL) {
     SETERRQ(1,"Wrong value of eps->which");
   }
-  ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+
+  ierr = KSPSetType(blopex->ksp, KSPPREONLY); CHKERRQ(ierr);
+  ierr = KSPSetFromOptions(blopex->ksp);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = KSPSetOperators(blopex->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = KSPSetUp(blopex->ksp);CHKERRQ(ierr);
 
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   eps->ncv = eps->nev = PetscMin(eps->nev,N);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
+
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   
   blopex->tol.absolute = eps->tol;
   blopex->tol.relative = 1e-50;
   
   LOBPCG_InitRandomContext();
-  PETSCSetupInterpreter(&blopex->ii);
-  blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->vec_initial);
+  SLEPCSetupInterpreter(&blopex->ii);
+  blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
   mv_MultiVectorSetRandom(blopex->eigenvectors,1234);
+
+  if (eps->nds > 0) {
+    blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii, eps->nds, eps->DS);
+  } else
+    blopex->Y = PETSC_NULL;
   
   blopex->blap_fn.dpotrf = PETSC_dpotrf_interface;
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
@@ -119,8 +165,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
      ierr = PetscInfo(eps,"Warning: projection type ignored\n");CHKERRQ(ierr);
   }
 
-  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -128,15 +172,15 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #define __FUNCT__ "EPSSolve_BLOPEX"
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
-  PetscErrorCode  ierr;
   EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
-  int             info,i;
-  mv_TempMultiVector *mv;
+  int             info;
   
   PetscFunctionBegin;
+  
   info = lobpcg_solve(blopex->eigenvectors,eps,OperatorAMultiVector,
-  	PETSC_NULL,PETSC_NULL,eps,Precond_FnMultiVector,NULL,
-        blopex->blap_fn,blopex->tol,eps->max_it,0,&eps->its,
+  	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+        eps,Precond_FnMultiVector,blopex->Y,
+        blopex->blap_fn,blopex->tol,eps->max_it,1,&eps->its,
         eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
   if (info>0) SETERRQ1(PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
 
@@ -144,22 +188,6 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   if (info==-1) eps->reason = EPS_DIVERGED_ITS;
   else eps->reason = EPS_CONVERGED_TOL;
   
-  mv = (mv_TempMultiVector*)mv_MultiVectorGetData(blopex->eigenvectors);
-  for (i=0;i<eps->nconv;i++) {
-    ierr = VecCopy((Vec)mv->vector[i],eps->V[i]);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetFromOptions_BLOPEX"
-PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
-{
-  PetscErrorCode ierr;
-  EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
-
-  PetscFunctionBegin;
-  ierr = KSPSetFromOptions(blopex->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -173,9 +201,12 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
   PetscFunctionBegin;
   ierr = KSPDestroy(blopex->ksp);CHKERRQ(ierr);
   LOBPCG_DestroyRandomContext();
+  SLEPCSetupInterpreterForDignifiedDeath(&blopex->ii);
   mv_MultiVectorDestroy(blopex->eigenvectors);
+  mv_MultiVectorDestroy(blopex->Y);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  ierr = EPSDestroy_Default(eps); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -198,7 +229,7 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->data                      = (void *) blopex;
   eps->ops->solve                = EPSSolve_BLOPEX;
   eps->ops->setup                = EPSSetUp_BLOPEX;
-  eps->ops->setfromoptions       = EPSSetFromOptions_BLOPEX;
+  eps->ops->setfromoptions       = PETSC_NULL;
   eps->ops->destroy              = EPSDestroy_BLOPEX;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
