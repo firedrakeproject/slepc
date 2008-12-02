@@ -364,10 +364,11 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
 
 .seealso: SVDSetType()
 @*/
-PetscErrorCode SVDGetType(SVD svd,SVDType *type)
+PetscErrorCode SVDGetType(SVD svd,const SVDType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidPointer(type,2);
   *type = ((PetscObject)svd)->type_name;
   PetscFunctionReturn(0);
 }

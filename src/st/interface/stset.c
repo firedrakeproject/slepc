@@ -96,10 +96,12 @@ PetscErrorCode STSetType(ST st,STType type)
 .seealso: STSetType()
 
 @*/
-PetscErrorCode STGetType(ST st,STType *meth)
+PetscErrorCode STGetType(ST st,const STType *type)
 {
   PetscFunctionBegin;
-  *meth = (STType) ((PetscObject)st)->type_name;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidPointer(type,2);
+  *type = ((PetscObject)st)->type_name;
   PetscFunctionReturn(0);
 }
 

@@ -44,7 +44,7 @@ E*/
 EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);
 EXTERN PetscErrorCode STDestroy(ST);
 EXTERN PetscErrorCode STSetType(ST,STType);
-EXTERN PetscErrorCode STGetType(ST,STType*);
+EXTERN PetscErrorCode STGetType(ST,const STType*);
 EXTERN PetscErrorCode STSetOperators(ST,Mat,Mat);
 EXTERN PetscErrorCode STGetOperators(ST,Mat*,Mat*);
 EXTERN PetscErrorCode STSetUp(ST);

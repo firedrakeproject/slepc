@@ -356,10 +356,11 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
 
 .seealso: EPSSetType()
 @*/
-PetscErrorCode EPSGetType(EPS eps,EPSType *type)
+PetscErrorCode EPSGetType(EPS eps,const EPSType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(type,2);
   *type = ((PetscObject)eps)->type_name;
   PetscFunctionReturn(0);
 }

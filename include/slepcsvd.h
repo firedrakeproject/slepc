@@ -80,7 +80,7 @@ EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 EXTERN PetscErrorCode SVDSetIP(SVD,IP);
 EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
 EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
-EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
+EXTERN PetscErrorCode SVDGetType(SVD,const SVDType*);
 EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
 EXTERN PetscErrorCode SVDSetInitialVector(SVD,Vec);

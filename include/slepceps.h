@@ -94,7 +94,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);
 EXTERN PetscErrorCode EPSSetType(EPS,EPSType);
-EXTERN PetscErrorCode EPSGetType(EPS,EPSType*);
+EXTERN PetscErrorCode EPSGetType(EPS,const EPSType*);
 EXTERN PetscErrorCode EPSSetProblemType(EPS,EPSProblemType);
 EXTERN PetscErrorCode EPSGetProblemType(EPS,EPSProblemType*);
 EXTERN PetscErrorCode EPSSetProjection(EPS,EPSProjection);
