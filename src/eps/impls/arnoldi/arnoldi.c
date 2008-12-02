@@ -407,7 +407,7 @@ PetscErrorCode EPSUpdateVector(EPS eps,int k,Vec *U,PetscScalar *q,int n,PetscSc
   PetscReal      *sigma;
 
   PetscFunctionBegin;
-  isrefined = eps->projection==EPS_REFINED || eps->projection==EPS_REFINED_HARMONIC;
+  isrefined = (eps->projection==EPS_REFINED || eps->projection==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (!isrefined) {
     /* Ritz extraction: v = U*q */
     ierr = VecSet(v,0.0);CHKERRQ(ierr);
