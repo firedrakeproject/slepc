@@ -260,7 +260,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscScalar *lev)
 {
   PetscErrorCode ierr;
-  int            i,j;
+  PetscInt       i,j;
   PetscScalar    *vals;
   Vec            w;
   MPI_Comm       comm;

@@ -24,7 +24,7 @@
 */
 PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
-  int  info = 0;
+  PetscErrorCode  info = 0;
   
   PetscFunctionBegin;
 
@@ -56,7 +56,7 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 */
 PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
-  int  info = 0;
+  PetscErrorCode  info = 0;
   
   PetscFunctionBegin;
 

@@ -44,7 +44,7 @@ EXTERN_C_BEGIN
     Notes:
     Since this routine is called from Fortran it does not return error codes.
 */
-void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),int *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   char       libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];

@@ -44,7 +44,7 @@ PetscErrorCode SlepcInitializeFortran(void)
   
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL slepcinitializefortran_(int *info)
+void PETSC_STDCALL slepcinitializefortran_(PetscErrorCode *info)
 {
   *info = SlepcInitializeFortran();
 }
