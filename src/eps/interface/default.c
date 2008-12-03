@@ -34,7 +34,7 @@ PetscErrorCode EPSDestroy_Default(EPS eps)
 PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -54,7 +54,7 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
 PetscErrorCode EPSComputeVectors_Default(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
 
   PetscFunctionBegin;
   for (i=0;i<eps->nconv;i++) {
@@ -76,7 +76,7 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
 PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   PetscReal      norm;
 
   PetscFunctionBegin;
@@ -113,7 +113,8 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  int            i,mout,info,nv=eps->nv;
+  PetscInt       i;
+  PetscBLASInt   ncv=eps->ncv,nv=eps->nv,mout,info; 
   PetscScalar    *Z,*work;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -138,9 +139,9 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* right eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&eps->ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info,1,1);
+  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info,1,1);
 #else
-  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&eps->ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info,1,1);
+  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info,1,1);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
@@ -161,9 +162,9 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   /* left eigenvectors */
   if (eps->solverclass == EPS_TWO_SIDE) {
 #if !defined(PETSC_USE_COMPLEX)
-    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&eps->nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info,1,1);
+    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info,1,1);
 #else
-    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&eps->nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info,1,1);
+    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info,1,1);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
@@ -200,7 +201,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   Call this only if no work vectors have been allocated.
 
  */
-PetscErrorCode EPSDefaultGetWork(EPS eps, int nw)
+PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
 {
   PetscErrorCode ierr;
 

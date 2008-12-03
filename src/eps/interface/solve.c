@@ -34,7 +34,7 @@
 PetscErrorCode EPSSolve(EPS eps) 
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   PetscReal      re,im;
   PetscTruth     flg;
   PetscViewer    viewer;
@@ -127,7 +127,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* sort eigenvalues according to eps->which parameter */
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   if (eps->nconv > 0) {
-    ierr = PetscMalloc(sizeof(int)*eps->nconv, &eps->perm); CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscInt)*eps->nconv, &eps->perm); CHKERRQ(ierr);
     ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
   }
 
@@ -184,7 +184,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
 .seealso: EPSGetConvergedReason(), EPSSetTolerances()
 @*/
-PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
+PetscErrorCode EPSGetIterationNumber(EPS eps,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -221,7 +221,7 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,int *its)
    Level: intermediate
 
 @*/
-PetscErrorCode EPSGetOperationCounters(EPS eps,int* ops,int* dots,int* lits)
+PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,PetscInt* lits)
 {
   PetscErrorCode ierr;
 
@@ -254,7 +254,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,int* ops,int* dots,int* lits)
 
 .seealso: EPSSetDimensions()
 @*/
-PetscErrorCode EPSGetConverged(EPS eps,int *nconv)
+PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -334,7 +334,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -383,7 +383,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -435,7 +435,7 @@ PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
 .seealso: EPSGetValue(), EPSGetRightVector(), EPSGetLeftVector(), EPSSolve(), 
           EPSGetConverged(), EPSSetWhichEigenpairs(), EPSGetInvariantSubspace()
 @*/
-PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
+PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
 {
   PetscErrorCode ierr;
 
@@ -482,9 +482,9 @@ PetscErrorCode EPSGetEigenpair(EPS eps, int i, PetscScalar *eigr, PetscScalar *e
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetEigenpair()
 @*/
-PetscErrorCode EPSGetValue(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi)
+PetscErrorCode EPSGetValue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *eigi)
 {
-  int            k;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -537,10 +537,10 @@ PetscErrorCode EPSGetValue(EPS eps, int i, PetscScalar *eigr, PetscScalar *eigi)
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetEigenpair(), EPSGetLeftVector()
 @*/
-PetscErrorCode EPSGetRightVector(EPS eps, int i, Vec Vr, Vec Vi)
+PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
 {
   PetscErrorCode ierr;
-  int            k;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -608,10 +608,10 @@ PetscErrorCode EPSGetRightVector(EPS eps, int i, Vec Vr, Vec Vi)
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetEigenpair(), EPSGetLeftVector()
 @*/
-PetscErrorCode EPSGetLeftVector(EPS eps, int i, Vec Wr, Vec Wi)
+PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 {
   PetscErrorCode ierr;
-  int            k;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -677,7 +677,7 @@ PetscErrorCode EPSGetLeftVector(EPS eps, int i, Vec Wr, Vec Wi)
 
 .seealso: EPSComputeRelativeError()
 @*/
-PetscErrorCode EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
+PetscErrorCode EPSGetErrorEstimate(EPS eps, PetscInt i, PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -716,7 +716,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps, int i, PetscReal *errest)
 
 .seealso: EPSComputeRelativeErrorLeft()
 @*/
-PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, int i, PetscReal *errest)
+PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -760,7 +760,7 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, int i, PetscReal *errest)
 
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
+PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
 {
   PetscErrorCode ierr;
   Vec            u, v, w, xr, xi;
@@ -843,7 +843,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, int i, PetscReal *norm)
 
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSComputeResidualNormLeft(EPS eps, int i, PetscReal *norm)
+PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
 {
   PetscErrorCode ierr;
   Vec            u, v, w, xr, xi;
@@ -922,7 +922,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, int i, PetscReal *norm)
 
 .seealso: EPSSolve(), EPSComputeResidualNorm(), EPSGetErrorEstimate()
 @*/
-PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
+PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
 {
   PetscErrorCode ierr;
   Vec            xr, xi;  
@@ -995,7 +995,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, int i, PetscReal *error)
 
 .seealso: EPSSolve(), EPSComputeResidualNormLeft(), EPSGetErrorEstimateLeft()
 @*/
-PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
+PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error)
 {
   PetscErrorCode ierr;
   Vec            xr, xi;  
@@ -1071,10 +1071,10 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, int i, PetscReal *error)
 
 .seealso: EPSSortEigenvaluesReal(), EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,int nev,int *permout)
+PetscErrorCode EPSSortEigenvalues(PetscInt n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,PetscInt nev,PetscInt *permout)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   PetscInt       *perm;
   PetscReal      *values;
 
@@ -1125,7 +1125,7 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
       if (eig[permout[i]] == eig[permout[i+1]] &&
           eigi[permout[i]] == -eigi[permout[i+1]] &&
           eigi[permout[i]] < 0.0) {
-        int tmp;
+        PetscInt tmp;
         SWAP(permout[i], permout[i+1], tmp);
       }
       i++;
@@ -1167,10 +1167,10 @@ PetscErrorCode EPSSortEigenvalues(int n,PetscScalar *eig,PetscScalar *eigi,EPSWh
 
 .seealso: EPSSortEigenvalues(), EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSSortEigenvaluesReal(int n,PetscReal *eig,EPSWhich which,int nev,int *permout,PetscReal *work)
+PetscErrorCode EPSSortEigenvaluesReal(PetscInt n,PetscReal *eig,EPSWhich which,PetscInt nev,PetscInt *permout,PetscReal *work)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt            i;
   PetscReal      *values = work;
   PetscInt       *perm = (PetscInt*)(work+n);
 
@@ -1240,7 +1240,7 @@ PetscErrorCode EPSSortEigenvaluesReal(int n,PetscReal *eig,EPSWhich which,int ne
 .seealso: EPSGetInitialVector()
 
 @*/
-PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
+PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   PetscReal      norm;
@@ -1274,7 +1274,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
     else { SETERRQ(1,"Unable to generate more start vectors"); }
   }
   
-  ierr = VecScale(vec,1/norm);CHKERRQ(ierr);
+  ierr = VecScale(vec,1.0/norm);CHKERRQ(ierr);
 
   if (i!=0) {
     ierr = VecDestroy(w);CHKERRQ(ierr);
@@ -1311,7 +1311,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,int i,Vec vec,PetscTruth *breakdown)
 .seealso: EPSGetLeftInitialVector()
 
 @*/
-PetscErrorCode EPSGetLeftStartVector(EPS eps,int i,Vec vec)
+PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,Vec vec)
 {
   PetscErrorCode ierr;
   PetscTruth     breakdown;

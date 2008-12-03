@@ -81,7 +81,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  int            i, nsv;
+  PetscInt       i, nsv;
   Vec            v, y, e, *SV;
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1, anorm;

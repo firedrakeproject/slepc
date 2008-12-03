@@ -165,7 +165,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
 .seealso: EPSSetTolerances()
 @*/
-PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
+PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -201,7 +201,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,int *maxits)
 
 .seealso: EPSGetTolerances()
 @*/
-PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
+PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -246,7 +246,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,int maxits)
 
 .seealso: EPSSetDimensions()
 @*/
-PetscErrorCode EPSGetDimensions(EPS eps,int *nev,int *ncv)
+PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -282,7 +282,7 @@ PetscErrorCode EPSGetDimensions(EPS eps,int *nev,int *ncv)
 
 .seealso: EPSGetDimensions()
 @*/
-PetscErrorCode EPSSetDimensions(EPS eps,int nev,int ncv)
+PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);

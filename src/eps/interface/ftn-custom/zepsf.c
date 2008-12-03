@@ -179,47 +179,47 @@ void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,int *ierr)
+void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)
 {
   *ierr = EPSGetST(*eps,st);
 }
 
-void PETSC_STDCALL epsgetip_(EPS *eps,IP *ip,int *ierr)
+void PETSC_STDCALL epsgetip_(EPS *eps,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = EPSGetIP(*eps,ip);
 }
 
-void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,int *ierr)
+void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,PetscErrorCode *ierr)
 {
   *ierr = EPSGetWhichEigenpairs(*eps,which);
 }
 
-void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,int *ierr)
+void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,PetscErrorCode *ierr)
 {
   *ierr = EPSGetProblemType(*eps,type);
 }
 
-void PETSC_STDCALL epsgetprojection_(EPS *eps,EPSProjection *proj,int *ierr)
+void PETSC_STDCALL epsgetprojection_(EPS *eps,EPSProjection *proj,PetscErrorCode *ierr)
 {
   *ierr = EPSGetProjection(*eps,proj);
 }
 
-void PETSC_STDCALL epsgetclass_(EPS *eps,EPSClass *cl,int *ierr)
+void PETSC_STDCALL epsgetclass_(EPS *eps,EPSClass *cl,PetscErrorCode *ierr)
 {
   *ierr = EPSGetClass(*eps,cl);
 }
 
-void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,int *ierr)
+void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,PetscErrorCode *ierr)
 {
   *ierr = EPSGetConvergedReason(*eps,reason);
 }
 
-void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,int *ierr)
+void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,PetscErrorCode *ierr)
 {
   *ierr = EPSPowerGetShiftType(*eps,shift);
 }
 
-void PETSC_STDCALL epslanczosgetreorthog_(EPS *eps,EPSLanczosReorthogType *reorthog,int *ierr)
+void PETSC_STDCALL epslanczosgetreorthog_(EPS *eps,EPSLanczosReorthogType *reorthog,PetscErrorCode *ierr)
 {
   *ierr = EPSLanczosGetReorthog(*eps,reorthog);
 }

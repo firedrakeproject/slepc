@@ -21,7 +21,7 @@
 PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,ncv=eps->ncv;
+  PetscInt       i,k,ncv=eps->ncv;
   Vec            fr=eps->work[0];
   Vec            fl=eps->work[1];
   Vec            *Qr=eps->V, *Ql=eps->W;

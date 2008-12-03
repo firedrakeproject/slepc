@@ -49,13 +49,13 @@
    Workspace:
      work is workspace to store 2n reals and 2n integers
 */
-PetscErrorCode EPSProjectedKSSym(EPS eps,int n,int l,PetscScalar *S,int lds,PetscScalar *eig,PetscScalar *Q,PetscReal *work)
+PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,PetscInt lds,PetscScalar *eig,PetscScalar *Q,PetscReal *work)
 {
   PetscErrorCode ierr;
-  int            i,j;
+  PetscInt       i,j;
   PetscReal      *ritz = work;
   PetscReal      *worksort = work+n;
-  int            *perm = ((int*)(work+n))+n;
+  PetscInt       *perm = ((PetscInt*)(work+n))+n;
 
   PetscFunctionBegin;
 
@@ -91,7 +91,7 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,int n,int l,PetscScalar *S,int lds,Pets
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,l,n,lwork;
+  PetscInt       i,k,l,n,lwork;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q;
   PetscReal      beta,*work;

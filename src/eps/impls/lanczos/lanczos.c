@@ -85,10 +85,10 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
    orthogonality that occurs in finite-precision arithmetic and, therefore, the 
    generated vectors are not guaranteed to be (semi-)orthogonal.
 */
-static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
-  int            i,j,m = *M;
+  PetscInt       i,j,m = *M;
   PetscReal      norm;
   PetscTruth     *which,lwhich[100];
   
@@ -126,10 +126,10 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M
 /*
    EPSSelectiveLanczos - Selective reorthogonalization.
 */
-static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown,PetscReal anorm)
+static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown,PetscReal anorm)
 {
   PetscErrorCode ierr;
-  int            i,j,m = *M,n,nritz=0,nritzo;
+  PetscInt       i,j,m = *M,n,nritz=0,nritzo;
   PetscReal      *ritz,norm;
   PetscScalar    *Y;
   PetscTruth     *which,lwhich[100];
@@ -205,9 +205,9 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,int k,in
 
 #undef __FUNCT__  
 #define __FUNCT__ "update_omega"
-static void update_omega(PetscReal *omega,PetscReal *omega_old,int j,PetscReal *alpha,PetscReal *beta,PetscReal eps1,PetscReal anorm)
+static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscReal *alpha,PetscReal *beta,PetscReal eps1,PetscReal anorm)
 {
-  int            k;
+  PetscInt       k;
   PetscReal      T,binv,temp;
 
   PetscFunctionBegin;
@@ -249,9 +249,9 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,int j,PetscReal *
 
 #undef __FUNCT__  
 #define __FUNCT__ "compute_int"
-static void compute_int(PetscTruth *which,PetscReal *mu,int j,PetscReal delta,PetscReal eta)
+static void compute_int(PetscTruth *which,PetscReal *mu,PetscInt j,PetscReal delta,PetscReal eta)
 {
-  int        i,k,maxpos;
+  PetscInt   i,k,maxpos;
   PetscReal  max;
   PetscTruth found;
   
@@ -293,12 +293,12 @@ static void compute_int(PetscTruth *which,PetscReal *mu,int j,PetscReal delta,Pe
 /*
    EPSPartialLanczos - Partial reorthogonalization.
 */
-static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *M,Vec f,PetscReal *beta, PetscTruth *breakdown,PetscReal anorm)
+static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta, PetscTruth *breakdown,PetscReal anorm)
 {
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
   Mat            A;
-  int            i,j,m = *M;
+  PetscInt       i,j,m = *M;
   PetscInt       n;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta,*b,lb[101],*a,la[100];
   PetscTruth     *which,lwhich[100],*which2,lwhich2[100],
@@ -431,7 +431,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int 
    This function simply calls another function which depends on the selected
    reorthogonalization strategy.
 */
-static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,int k,int *m,Vec f,PetscReal *beta,PetscTruth *breakdown,PetscReal anorm)
+static PetscErrorCode EPSBasicLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k,PetscInt *m,Vec f,PetscReal *beta,PetscTruth *breakdown,PetscReal anorm)
 {
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
@@ -472,7 +472,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
-  int            nconv,i,j,k,n,m,*perm,restart,ncv=eps->ncv;
+  PetscInt       nconv,i,j,k,n,m,*perm,restart,ncv=eps->ncv;
   Vec            f=eps->work[1];
   PetscScalar    *T=eps->T,*Y;
   PetscReal      *ritz,*bnd,anorm,beta,norm,*work;
@@ -483,7 +483,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal)+ncv*sizeof(PetscInt),&work);CHKERRQ(ierr);
 

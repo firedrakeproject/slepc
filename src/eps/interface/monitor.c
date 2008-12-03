@@ -56,7 +56,7 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
 .seealso: EPSMonitorDefault(), EPSMonitorCancel()
 @*/
-PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*),
+PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
@@ -153,10 +153,10 @@ PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 
 .seealso: EPSMonitorSet()
 @*/
-PetscErrorCode EPSMonitorDefault(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *dummy)
+PetscErrorCode EPSMonitorDefault(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   PetscViewer    viewer = (PetscViewer) dummy;
 
   PetscFunctionBegin;
@@ -179,14 +179,15 @@ PetscErrorCode EPSMonitorDefault(EPS eps,int its,int nconv,PetscScalar *eigr,Pet
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSMonitorLG"
-PetscErrorCode EPSMonitorLG(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *monctx)
+PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer) monctx;
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
   PetscReal      *x,*y;
-  int            i,n = eps->nev;
+  PetscInt       i;
+  int            n = eps->nev;
 #if !defined(PETSC_USE_COMPLEX)
   int            p;
   PetscDraw      draw1;

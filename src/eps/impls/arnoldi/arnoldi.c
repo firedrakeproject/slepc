@@ -27,7 +27,7 @@
 #include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
-extern PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,int m,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work);
+extern PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,PetscInt m,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work);
 
 typedef struct {
   PetscTruth delayed;
@@ -80,10 +80,10 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
    the columns of V. On exit, beta contains the B-norm of f and the next 
    Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
-PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
-  int            j,m = *M;
+  PetscInt       j,m = *M;
   PetscReal      norm;
 
   PetscFunctionBegin;
@@ -115,10 +115,10 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,in
    reorthogonalization is delayed to the next Arnoldi step. This version is
    more scalable but in some cases convergence may stagnate.
 */
-PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
-  int            i,j,m=*M;
+  PetscInt       i,j,m=*M;
   Vec            w,u,t;
   PetscScalar    shh[100],*lhh,dot,dot2;
   PetscReal      norm1=0.0,norm2;
@@ -231,10 +231,10 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec 
    EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi1,
    but without reorthogonalization (only delayed normalization).
 */
-PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
-  int            i,j,m=*M;
+  PetscInt       i,j,m=*M;
   Vec            w;
   PetscScalar    dot;
   PetscReal      norm=0.0;
@@ -296,14 +296,14 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,int k,int *M,Vec
    |beta*y(end,i)| where beta is the norm of f and y is the corresponding 
    eigenvector of H.
 */
-PetscErrorCode ArnoldiResiduals(PetscScalar *H,int ldh,PetscScalar *U,PetscReal beta,int nconv,int ncv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
+PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,PetscReal beta,PetscInt nconv,PetscInt ncv_,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  int            i,mout,info;
+  PetscBLASInt   i,mout,info,ldh=ldh_,ncv=ncv_;
   PetscScalar    *Y=work+4*ncv;
   PetscReal      w;
 #if defined(PETSC_USE_COMPLEX)
@@ -358,10 +358,10 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,int ldh,PetscScalar *U,PetscReal 
      S has (real) Schur form with diagonal blocks sorted appropriately
      Q contains the corresponding Schur vectors (order n, leading dimension n)
 */
-PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,int lds,PetscScalar *Q,int n)
+PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt n)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
 
   PetscFunctionBegin;
   /* Initialize orthogonal matrix */
@@ -394,14 +394,14 @@ PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,int lds,PetscScalar *Q
    On output:
      v is the resulting vector
 */
-PetscErrorCode EPSUpdateVector(EPS eps,int k,Vec *U,PetscScalar *q,int n,PetscScalar *H,int ldh,Vec v)
+PetscErrorCode EPSUpdateVector(EPS eps,PetscInt k,Vec *U,PetscScalar *q,PetscInt n_,PetscScalar *H,PetscInt ldh_,Vec v)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD) 
   SETERRQ(PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscTruth     isrefined;
-  int            i,j;
+  PetscBLASInt   i,j,n=n_,ldh=ldh_;
   PetscBLASInt   n1,bN,lwork,idummy=1,info;
   PetscScalar    *B,sdummy,*work;
   PetscReal      *sigma;
@@ -458,7 +458,7 @@ PetscErrorCode EPSUpdateVector(EPS eps,int k,Vec *U,PetscScalar *q,int n,PetscSc
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k;
+  PetscInt       i,k;
   Vec            f=eps->work[1];
   PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
   PetscReal      beta,gnorm;

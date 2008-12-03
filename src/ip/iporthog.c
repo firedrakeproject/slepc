@@ -19,10 +19,10 @@
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPOrthogonalizeMGS"
-static PetscErrorCode IPOrthogonalizeMGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H)
+static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H)
 {
   PetscErrorCode ierr;
-  int            j;
+  PetscInt       j;
   
   PetscFunctionBegin;
   for (j=0; j<n; j++)
@@ -40,10 +40,10 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,int n,PetscTruth *which,Vec *V,Ve
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPOrthogonalizeCGS"
-PetscErrorCode IPOrthogonalizeCGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec work)
+PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec work)
 {
   PetscErrorCode ierr;
-  int            j;
+  PetscInt       j;
   PetscScalar    alpha;
   PetscReal      sum;
   
@@ -100,7 +100,7 @@ PetscErrorCode IPOrthogonalizeCGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,Pet
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPOrthogonalizeGS"
-static PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec work)
+static PetscErrorCode IPOrthogonalizeGS(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm,Vec work)
 {
   PetscErrorCode ierr;
   
@@ -158,13 +158,13 @@ static PetscErrorCode IPOrthogonalizeGS(IP ip,int n,PetscTruth *which,Vec *V,Vec
 
 .seealso: IPSetOrthogonalization(), IPBiOrthogonalize()
 @*/
-PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep,Vec work)
+PetscErrorCode IPOrthogonalize(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep,Vec work)
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h,lc[100],*c;
   PetscTruth     allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE,allocatedw = PETSC_FALSE;
   PetscReal      onrm,nrm;
-  int            j,k;
+  PetscInt       j,k;
   PetscFunctionBegin;
   if (n==0) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
@@ -291,10 +291,10 @@ PetscErrorCode IPOrthogonalize(IP ip,int n,PetscTruth *which,Vec *V,Vec v,PetscS
 
 .seealso: IPOrthogonalize(), IPNorm(), IPInnerProduct().
 @*/
-PetscErrorCode IPQRDecomposition(IP ip,Vec *V,int m,int n,PetscScalar *R,int ldr,Vec work)
+PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar *R,PetscInt ldr,Vec work)
 {
   PetscErrorCode ierr;
-  int            k;
+  PetscInt       k;
   PetscReal      norm;
   PetscTruth     lindep;
   
@@ -325,14 +325,14 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,int m,int n,PetscScalar *R,int ldr
  */
 #undef __FUNCT__  
 #define __FUNCT__ "IPCGSBiOrthogonalization"
-static PetscErrorCode IPCGSBiOrthogonalization(IP ip,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
+static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
 {
 #if defined(SLEPC_MISSING_LAPACK_GELQF) || defined(SLEPC_MISSING_LAPACK_ORMLQ)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"xGELQF - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  int            j,ione=1,lwork,info;
+  PetscBLASInt   j,ione=1,lwork,info,n=n_;
   PetscScalar    shh[100],*lhh,*vw,*tau,one=1.0,*work;
   Vec            w;
 
@@ -410,7 +410,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,int n,Vec *V,Vec *W,Vec v,P
 
 .seealso: IPSetOrthogonalization(), IPOrthogonalize()
 @*/
-PetscErrorCode IPBiOrthogonalize(IP ip,int n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *norm)
+PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h;

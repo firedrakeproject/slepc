@@ -16,10 +16,10 @@
 #include "src/eps/epsimpl.h"
 
 typedef struct {
-  int       maxlan;
-  int       restart;
-  PetscReal *work;
-  int       lwork;
+  PetscBLASInt       maxlan;
+  PetscBLASInt       restart;
+  PetscReal          *work;
+  PetscBLASInt       lwork;
 } EPS_TRLAN;
 
 /*
@@ -37,9 +37,9 @@ typedef struct {
 
 EXTERN_C_BEGIN
 
-extern void  TRLan_ (int(*op)(int*,int*,PetscReal*,int*,PetscReal*,int*),
-                     int*,int*,int*,PetscScalar*,PetscScalar*,int*,PetscReal*,
-		     int*);
+extern void  TRLan_ (PetscBLASInt(*op)(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*),
+                     PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,
+		     PetscBLASInt*);
 
 EXTERN_C_END
 

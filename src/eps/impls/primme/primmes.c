@@ -77,7 +77,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       N, n;
-  int            numProcs, procID;
+  PetscMPIInt    numProcs, procID;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
 
@@ -163,7 +163,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   PetscScalar    *a;
 #ifdef PETSC_USE_COMPLEX
-  int            i;
+  PetscInt       i;
   PetscReal      *evals;
 #endif
 
@@ -225,7 +225,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme)
 {
   PetscErrorCode ierr;
-  int            i, N = primme->n;
+  PetscInt       i, N = primme->n;
   EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
   Vec            x = ops->x;
   Vec            y = ops->y;
@@ -250,7 +250,7 @@ static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params
 static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme)
 {
   PetscErrorCode ierr;
-  int            i, N = primme->n;
+  PetscInt       i, N = primme->n;
   EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
   Vec            x = ops->x;
   Vec            y = ops->y;
@@ -350,7 +350,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetBlockSize_PRIMME"
-PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,int bs)
+PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
@@ -391,9 +391,9 @@ EXTERN_C_END
    Level: advanced
 .seealso: EPSPRIMMEGetBlockSize()
 @*/
-PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,int bs)
+PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs)
 {
-  PetscErrorCode ierr, (*f)(EPS,int);
+  PetscErrorCode ierr, (*f)(EPS,PetscInt);
 
   PetscFunctionBegin;
   
@@ -409,7 +409,7 @@ PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,int bs)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMEGetBlockSize_PRIMME"
-PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,int *bs)
+PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
@@ -437,9 +437,9 @@ EXTERN_C_END
    Level: advanced
 .seealso: EPSPRIMMESetBlockSize()
 @*/
-PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,int *bs)
+PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
 {
-  PetscErrorCode ierr, (*f)(EPS,int*);
+  PetscErrorCode ierr, (*f)(EPS,PetscInt*);
 
   PetscFunctionBegin;
   

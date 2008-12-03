@@ -38,7 +38,7 @@
    Level: developer
 
 @*/
-PetscErrorCode SVDDense(PetscInt M,PetscInt N,PetscScalar* A,PetscReal* sigma,PetscScalar* U,PetscScalar* VT)
+PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,PetscScalar* U,PetscScalar* VT)
 {
 #if defined(SLEPC_MISSING_LAPACK_GESDD)
   PetscFunctionBegin;
@@ -46,7 +46,7 @@ PetscErrorCode SVDDense(PetscInt M,PetscInt N,PetscScalar* A,PetscReal* sigma,Pe
 #else
   PetscErrorCode ierr;
   PetscScalar    qwork,*work;
-  PetscInt       n,info,lwork,*iwork;
+  PetscBLASInt   n,info,lwork,*iwork,M=M_,N=N_;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal       *rwork;
 #endif 

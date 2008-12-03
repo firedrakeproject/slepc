@@ -38,7 +38,7 @@
 PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i;   
+  PetscInt       i;   
   Vec            v0,w0;  
   Mat            A,B; 
   PetscInt       N;
@@ -328,10 +328,10 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
 .seealso: EPSRemoveDeflationSpace()
 @*/
-PetscErrorCode EPSAttachDeflationSpace(EPS eps,int n,Vec *ds,PetscTruth ortho)
+PetscErrorCode EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds,PetscTruth ortho)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   Vec            *tvec;
   
   PetscFunctionBegin;

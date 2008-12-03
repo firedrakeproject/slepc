@@ -21,12 +21,12 @@
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL  epsprimmegetmethod_(EPS *eps,EPSPRIMMEMethod *method, int *__ierr ){
-  *__ierr = EPSPRIMMEGetMethod(*eps,method);
+void PETSC_STDCALL  epsprimmegetmethod_(EPS *eps,EPSPRIMMEMethod *method, PetscErrorCode *ierr ){
+  *ierr = EPSPRIMMEGetMethod(*eps,method);
 }
 
-void PETSC_STDCALL  epsprimmegetprecond_(EPS *eps,EPSPRIMMEPrecond *precond, int *__ierr ){
-  *__ierr = EPSPRIMMEGetPrecond(*eps,precond);
+void PETSC_STDCALL  epsprimmegetprecond_(EPS *eps,EPSPRIMMEPrecond *precond, PetscErrorCode *ierr ){
+  *ierr = EPSPRIMMEGetPrecond(*eps,precond);
 }
 
 EXTERN_C_END

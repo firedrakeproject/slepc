@@ -65,20 +65,20 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
    This routine uses Gaussian elimination with partial pivoting to 
    compute the inverse explicitly. 
 */
-static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
+static PetscErrorCode EPSHessCond(PetscScalar* H,PetscInt n_, PetscReal* cond)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"GETRF,GETRI - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  int            *ipiv,lwork,info;
+  PetscBLASInt   *ipiv,lwork,info,n=n_;
   PetscScalar    *work;
   PetscReal      hn,hin,*rwork;
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(int)*n,&ipiv);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscBLASInt)*n,&ipiv);CHKERRQ(ierr);
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
@@ -110,10 +110,10 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,int n, PetscReal* cond)
    ae   - average of wr(l),...,wr(l+ngrp-1)
    arsd - average of rsd(l),...,rsd(l+ngrp-1)
 */
-static PetscErrorCode EPSFindGroup(int l,int m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,
-  PetscReal grptol,int *ngrp,PetscReal *ctr,PetscReal *ae,PetscReal *arsd)
+static PetscErrorCode EPSFindGroup(PetscInt l,PetscInt m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,
+  PetscReal grptol,PetscInt *ngrp,PetscReal *ctr,PetscReal *ae,PetscReal *arsd)
 {
-  int       i;
+  PetscInt  i;
   PetscReal rmod,rmod1;
 
   PetscFunctionBegin;
@@ -157,10 +157,10 @@ static PetscErrorCode EPSFindGroup(int l,int m,PetscScalar *wr,PetscScalar *wi,P
    stored in AV. ldt is the leading dimension of T. On exit, rsd(l) to
    rsd(m) contain the computed norms.
 */
-static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,int l,int m,int ldt,PetscReal *rsd)
+static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,PetscInt l,PetscInt m,PetscInt ldt,PetscReal *rsd)
 {
   PetscErrorCode ierr;
-  int            i,k;
+  PetscInt       i,k;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    t;
 #endif
@@ -198,19 +198,19 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,ngrp,nogrp,*itrsd,*itrsdold,
+  PetscInt       i,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond;
   PetscTruth     breakdown;
   /* Parameters */
-  int            init = 5;        /* Number of initial iterations */
+  PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5,    /* Max num of iter before next SRR step */
                  alpha = 1.0,     /* Used to predict convergence of next residual */
                  beta = 1.1,      /* Used to predict convergence of next residual */
                  grptol = 1e-8,   /* Tolerance for EPSFindGroup */
                  cnvtol = 1e-6;   /* Convergence criterion for cnv */
-  int            orttol = 2;      /* Number of decimal digits whose loss
+  PetscInt       orttol = 2;      /* Number of decimal digits whose loss
                                      can be tolerated in orthogonalization */
 
   PetscFunctionBegin;
@@ -218,8 +218,8 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsdold);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(int)*ncv,&itrsd);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(int)*ncv,&itrsdold);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
 
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=0;i<ncv;i++) {
@@ -303,12 +303,12 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     if (eps->nconv>=eps->nev) break;
     
     /* Compute nxtsrr (iteration of next projection step) */
-    nxtsrr = PetscMin(eps->max_it,PetscMax((int)floor(stpfac*its), init));
+    nxtsrr = PetscMin(eps->max_it,PetscMax((PetscInt)floor(stpfac*its), init));
     
     if (ngrp!=nogrp || ngrp==0 || arsd>=oarsd) {
       idsrr = nxtsrr - its;
     } else {
-      idsrr = (int)floor(alpha+beta*(itrsdold[eps->nconv]-itrsd[eps->nconv])*log(arsd/eps->tol)/log(arsd/oarsd));
+      idsrr = (PetscInt)floor(alpha+beta*(itrsdold[eps->nconv]-itrsd[eps->nconv])*log(arsd/eps->tol)/log(arsd/oarsd));
       idsrr = PetscMax(1,idsrr);
     }
     nxtsrr = PetscMin(nxtsrr,its+idsrr);
@@ -316,7 +316,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     /* Compute nxtort (iteration of next orthogonalization step) */
     ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv);CHKERRQ(ierr);
     ierr = EPSHessCond(U,ncv,&tcond);CHKERRQ(ierr);
-    idort = PetscMax(1,(int)floor(orttol/PetscMax(1,log10(tcond))));    
+    idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(its+idort, nxtsrr);
 
     /* V(:,idx) = AV(:,idx) */

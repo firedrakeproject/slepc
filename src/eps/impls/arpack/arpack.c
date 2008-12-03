@@ -18,7 +18,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       N, n;
-  int            ncv;
+  PetscInt       ncv;
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
@@ -27,7 +27,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
     if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
   } else /* set default value of ncv */
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
-  if (!eps->max_it) eps->max_it = PetscMax(300,(int)(2*N/eps->ncv));
+  if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*N/eps->ncv));
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
@@ -72,12 +72,17 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   char        	 bmat[1], howmny[] = "A";
   const char  	 *which;
   PetscInt    	 nn;
-  int         	 n, iparam[11], ipntr[14], ido, info;
+  PetscBLASInt   n, iparam[11], ipntr[14], ido, info,
+		 nev=eps->nev,ncv=eps->ncv;
   PetscScalar 	 sigmar, *pV, *resid;
   Vec         	 x, y, w = eps->work[0];
   Mat         	 A;
   PetscTruth  	 isSinv, isShift, rvec;
+#if !define(_petsc_mpi_uni)
   MPI_Fint    	 fcomm;
+#else
+  PetscBLASInt   fcomm;
+#endif
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
@@ -159,18 +164,18 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
-      ARsaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
-                resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+      ARsaupd_( &fcomm, &ido, bmat, &n, which, &nev, &eps->tol,
+                resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
     }
     else {
-      ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
-                resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+      ARnaupd_( &fcomm, &ido, bmat, &n, which, &nev, &eps->tol,
+                resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
                 ar->workl, &ar->lworkl, &info, 1, 2 );
     }
 #else
-    ARnaupd_( &fcomm, &ido, bmat, &n, which, &eps->nev, &eps->tol,
-              resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+    ARnaupd_( &fcomm, &ido, bmat, &n, which, &nev, &eps->tol,
+              resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
 #endif
     
@@ -233,24 +238,24 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
       ARseupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,  
         	 pV, &n, &sigmar, 
-        	 bmat, &n, which, &eps->nev, &eps->tol,
-        	 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+        	 bmat, &n, which, &nev, &eps->tol,
+        	 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
         	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
     else {
       EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
       ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
         	 pV, &n, &sigmar, &sigmai, ar->workev, 
-        	 bmat, &n, which, &eps->nev, &eps->tol,
-        	 resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+        	 bmat, &n, which, &nev, &eps->tol,
+        	 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
         	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
 #else
     EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
     ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,
                pV, &n, &sigmar, ar->workev, 
-               bmat, &n, which, &eps->nev, &eps->tol,
-               resid, &eps->ncv, pV, &n, iparam, ipntr, ar->workd, 
+               bmat, &n, which, &nev, &eps->tol,
+               resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
                ar->workl, &ar->lworkl, ar->rwork, &info, 1, 1, 2 );
 #endif
     if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }

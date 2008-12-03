@@ -56,10 +56,10 @@ EXTERN PetscErrorCode IPGetOrthogonalization(IP,IPOrthogonalizationType*,IPOrtho
 EXTERN PetscErrorCode IPView(IP,PetscViewer);
 EXTERN PetscErrorCode IPDestroy(IP);
 
-EXTERN PetscErrorCode IPOrthogonalize(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*,Vec);
-EXTERN PetscErrorCode IPOrthogonalizeCGS(IP,int,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
-EXTERN PetscErrorCode IPBiOrthogonalize(IP,int,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
-EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,int,int,PetscScalar*,int,Vec);
+EXTERN PetscErrorCode IPOrthogonalize(IP,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*,Vec);
+EXTERN PetscErrorCode IPOrthogonalizeCGS(IP,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
+EXTERN PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
+EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt,Vec);
 
 /*E
     IPBilinearForm - determines the type of bilinear/sesquilinear form
@@ -83,7 +83,7 @@ EXTERN PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
 EXTERN PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
 EXTERN PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
 
-EXTERN PetscErrorCode IPGetOperationCounters(IP,int*);
+EXTERN PetscErrorCode IPGetOperationCounters(IP,PetscInt*);
 EXTERN PetscErrorCode IPResetOperationCounters(IP);
 
 PETSC_EXTERN_CXX_END

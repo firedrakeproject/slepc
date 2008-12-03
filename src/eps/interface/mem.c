@@ -91,7 +91,7 @@ PetscErrorCode EPSFreeSolution(EPS eps)
 PetscErrorCode EPSAllocateSolutionContiguous(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   PetscInt       nloc;
   PetscScalar    *pV,*pW;
 
@@ -170,7 +170,7 @@ PetscErrorCode EPSAllocateSolutionContiguous(EPS eps)
 PetscErrorCode EPSFreeSolutionContiguous(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   PetscScalar    *pV,*pW;
   
   PetscFunctionBegin;

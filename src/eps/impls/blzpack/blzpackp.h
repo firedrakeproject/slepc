@@ -16,15 +16,15 @@
 #include "src/eps/epsimpl.h"
 
 typedef struct {
-  int         block_size;      /* block size */
-  PetscReal   initial,final;   /* computational interval */
-  int         slice;           /* use spectrum slicing */
-  int         nsteps;          /* maximum number of steps per run */
-  int         *istor;
-  PetscReal   *rstor;
-  PetscScalar *u;
-  PetscScalar *v;
-  PetscScalar *eig;
+  PetscBLASInt         block_size;      /* block size */
+  PetscReal            initial,final;   /* computational interval */
+  PetscBLASInt         slice;           /* use spectrum slicing */
+  PetscBLASInt         nsteps;          /* maximum number of steps per run */
+  PetscBLASInt         *istor;
+  PetscReal            *rstor;
+  PetscScalar          *u;
+  PetscScalar          *v;
+  PetscScalar          *eig;
 } EPS_BLZPACK;
 
 /*
@@ -58,10 +58,10 @@ typedef struct {
 
 EXTERN_C_BEGIN
 
-EXTERN void	 BLZpack_(int*,PetscReal*,PetscScalar*,int*,PetscScalar*,
-        		  PetscScalar*,int*,int*,PetscScalar*,PetscScalar*);
+EXTERN void	 BLZpack_(PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,
+        		  PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*);
 
-EXTERN int	 BLZistorr_(int*,const char*,int);
+EXTERN PetscBLASInt BLZistorr_(PetscBLASInt*,const char*,int);
 EXTERN PetscReal BLZrstorr_(PetscReal*,char*,int);
 
 EXTERN_C_END

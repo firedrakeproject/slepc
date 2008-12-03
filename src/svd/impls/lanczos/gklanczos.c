@@ -137,7 +137,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm,*work,*Q,*PT;
   PetscScalar    *swork;
-  PetscInt       i,j,k,m,n,info,nwork=0,*iwork,*perm;
+  PetscBLASInt   n,info,nwork=0,*iwork;
+  PetscInt       i,j,k,m,*perm;
   Vec            v,u,u_1,wv,wu,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   

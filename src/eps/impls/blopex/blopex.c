@@ -117,7 +117,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscErrorCode  ierr;
   EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
   Mat             A,B;
-  int             N;
+  PetscInt        N;
   PetscTruth      isShift;
 
   PetscFunctionBegin;
@@ -172,17 +172,18 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
   EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
-  int             info;
+  int             info,its;
   
   PetscFunctionBegin;
   
   info = lobpcg_solve(blopex->eigenvectors,eps,OperatorAMultiVector,
   	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
-        blopex->blap_fn,blopex->tol,eps->max_it,1,&eps->its,
+        blopex->blap_fn,blopex->tol,eps->max_it,1,&its,
         eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
   if (info>0) SETERRQ1(PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
 
+  eps->its = its;
   eps->nconv = eps->ncv;
   if (info==-1) eps->reason = EPS_DIVERGED_ITS;
   else eps->reason = EPS_CONVERGED_TOL;

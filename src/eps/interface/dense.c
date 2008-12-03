@@ -45,7 +45,7 @@
 
 .seealso: EPSDenseGNHEP(), EPSDenseHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
+PetscErrorCode EPSDenseNHEP(PetscInt n_,PetscScalar *A,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEEVX)
   PetscFunctionBegin;
@@ -54,12 +54,12 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
   PetscErrorCode ierr;
   PetscReal      abnrm,*scale,dummy;
   PetscScalar    *work;
-  int            ilo,ihi,lwork = 4*n,info;
+  PetscBLASInt   ilo,ihi,n=n_,lwork = 4*n,info;
   const char     *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #else
-  int            idummy;
+  PetscBLASInt   idummy;
 #endif 
 
   PetscFunctionBegin;
@@ -116,7 +116,7 @@ PetscErrorCode EPSDenseNHEP(int n,PetscScalar *A,PetscScalar *w,PetscScalar *wi,
 
 .seealso: EPSDenseNHEP(), EPSDenseHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
+PetscErrorCode EPSDenseGNHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscScalar *w,PetscScalar *wi,PetscScalar *V,PetscScalar *W)
 {
 #if defined(SLEPC_MISSING_LAPACK_GGEVX)
   PetscFunctionBegin;
@@ -125,14 +125,14 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
   PetscErrorCode ierr;
   PetscReal      *rscale,*lscale,abnrm,bbnrm,dummy;
   PetscScalar    *alpha,*beta,*work;
-  int            i,ilo,ihi,idummy,info;
+  PetscBLASInt   i,ilo,ihi,idummy,info,n=n_;
   const char     *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-  int            lwork = 2*n;
+  PetscBLASInt   lwork = 2*n;
 #else
   PetscReal      *alphai;
-  int            lwork = 6*n;
+  PetscBLASInt   lwork = 6*n;
 #endif 
 
   PetscFunctionBegin;
@@ -201,7 +201,7 @@ PetscErrorCode EPSDenseGNHEP(int n,PetscScalar *A,PetscScalar *B,PetscScalar *w,
 
 .seealso: EPSDenseNHEP(), EPSDenseGNHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar *V)
+PetscErrorCode EPSDenseHEP(PetscInt n_,PetscScalar *A,PetscInt lda_,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYEVR) || defined(SLEPC_MISSING_LAPACK_HEEVR)
   PetscFunctionBegin;
@@ -210,22 +210,22 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar
   PetscErrorCode ierr;
   PetscReal      abstol = 0.0,vl,vu;
   PetscScalar    *work;
-  int            il,iu,m,*isuppz,*iwork,liwork = 10*n,info;
+  PetscBLASInt   il,iu,m,*isuppz,*iwork,n=n_,lda=lda_,liwork = 10*n,info;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-  int            lwork = 18*n,lrwork = 24*n;
+  PetscBLASInt   lwork = 18*n,lrwork = 24*n;
 #else
-  int            lwork = 26*n;
+  PetscBLASInt   lwork = 26*n;
 #endif 
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (V) jobz = "V";
   else jobz = "N";
-  ierr  = PetscMalloc(2*n*sizeof(int),&isuppz);CHKERRQ(ierr);
+  ierr  = PetscMalloc(2*n*sizeof(PetscBLASInt),&isuppz);CHKERRQ(ierr);
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ierr  = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+  ierr  = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
   LAPACKsyevr_(jobz,"A","L",&n,A,&lda,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1,1);
@@ -270,7 +270,7 @@ PetscErrorCode EPSDenseHEP(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar
 
 .seealso: EPSDenseNHEP(), EPSDenseGNHEP(), EPSDenseHEP()
 @*/
-PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,PetscScalar *V)
+PetscErrorCode EPSDenseGHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYGVD) || defined(SLEPC_MISSING_LAPACK_HEGVD)
   PetscFunctionBegin;
@@ -278,15 +278,15 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 #else
   PetscErrorCode ierr;
   PetscScalar    *work;
-  int            itype = 1,*iwork,info,
+  PetscBLASInt   itype = 1,*iwork,info,n=n_,
                  liwork = V ? 5*n+3 : 1;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-  int            lwork  = V ? n*n+2*n     : n+1,
+  PetscBLASInt   lwork  = V ? n*n+2*n     : n+1,
                  lrwork = V ? 2*n*n+5*n+1 : n;
 #else
-  int            lwork  = V ? 2*n*n+6*n+1 : 2*n+1;
+  PetscBLASInt   lwork  = V ? 2*n*n+6*n+1 : 2*n+1;
 #endif 
 
   PetscFunctionBegin;
@@ -294,7 +294,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
   if (V) jobz = "V";
   else jobz = "N";   
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ierr  = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+  ierr  = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
   LAPACKsygvd_(&itype,jobz,"U",&n,A,&n,B,&n,w,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1);
@@ -341,7 +341,7 @@ PetscErrorCode EPSDenseGHEP(int n,PetscScalar *A,PetscScalar *B,PetscReal *w,Pet
 
 .seealso: EPSDenseSchur(), EPSSortDenseSchur(), EPSDenseTridiagonal()
 @*/
-PetscErrorCode EPSDenseHessenberg(int n,int k,PetscScalar *A,int lda,PetscScalar *Q)
+PetscErrorCode EPSDenseHessenberg(PetscInt n_,PetscInt k,PetscScalar *A,PetscInt lda_,PetscScalar *Q)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(SLEPC_MISSING_LAPACK_UNGHR)
   PetscFunctionBegin;
@@ -349,7 +349,7 @@ PetscErrorCode EPSDenseHessenberg(int n,int k,PetscScalar *A,int lda,PetscScalar
 #else
   PetscScalar    *tau,*work;
   PetscErrorCode ierr;
-  int            i,j,ilo,lwork,info;
+  PetscBLASInt   i,j,ilo,lwork,info,n=n_,lda=lda_;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
@@ -415,17 +415,17 @@ PetscErrorCode EPSDenseHessenberg(int n,int k,PetscScalar *A,int lda,PetscScalar
 
 .seealso: EPSDenseHessenberg(), EPSSortDenseSchur(), EPSDenseTridiagonal()
 @*/
-PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_HSEQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  int ilo,lwork,info;
+  PetscBLASInt ilo,lwork,info,n=n_,ldh=ldh_;
   PetscScalar *work;
 #if !defined(PETSC_USE_COMPLEX)
-  int j;
+  PetscInt j;
 #endif
   
   PetscFunctionBegin;
@@ -495,13 +495,13 @@ PetscErrorCode EPSDenseSchur(int n,int k,PetscScalar *H,int ldh,PetscScalar *Z,P
 
 .seealso: EPSDenseHessenberg(), EPSDenseSchur(), EPSDenseTridiagonal()
 @*/
-PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,EPSWhich which)
+PetscErrorCode EPSSortDenseSchur(PetscInt n_,PetscInt k,PetscScalar *T,PetscInt ldt_,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,EPSWhich which)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
-  int i,j,ifst,ilst,info,pos;
+  PetscBLASInt i,j,ifst,ilst,info,pos,n=n_,ldt=ldt_;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar *work;
 #endif
@@ -659,13 +659,13 @@ PetscErrorCode EPSSortDenseSchur(int n,int k,PetscScalar *T,int ldt,PetscScalar 
 
 .seealso: EPSDenseHessenberg(), EPSDenseSchur(), EPSDenseTridiagonal()
 @*/
-PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,PetscScalar target,EPSWhich which)
+PetscErrorCode EPSSortDenseSchurTarget(PetscInt n_,PetscInt k,PetscScalar *T,PetscInt ldt_,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi,PetscScalar target,EPSWhich which)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
-  int i,j,ifst,ilst,info,pos;
+  PetscBLASInt i,j,ifst,ilst,info,pos,n=n_,ldt=ldt_;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar *work;
 #endif
@@ -794,7 +794,7 @@ PetscErrorCode EPSSortDenseSchurTarget(int n,int k,PetscScalar *T,int ldt,PetscS
 
 .seealso: EPSDenseNHEP(), EPSDenseHEP(), EPSDenseGNHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,PetscScalar *V)
+PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscScalar *A,PetscInt lda_,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_STEVR)
   PetscFunctionBegin;
@@ -802,10 +802,10 @@ PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,Pet
 #else
   PetscErrorCode ierr;
   PetscReal      abstol = 0.0,vl,vu,*D,*E,*work;
-  int            i,il,iu,m,*isuppz,lwork = 20*n,*iwork,liwork = 10*n,info;
+  PetscBLASInt   i,il,iu,m,*isuppz,n=n_,lda=lda_,lwork = 20*n,*iwork,liwork = 10*n,info;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
-  int            j;
+  PetscBLASInt   j;
   PetscReal      *VV;
 #endif
   
@@ -819,9 +819,9 @@ PetscErrorCode EPSDenseTridiagonal(int n,PetscScalar *A,int lda,PetscReal *w,Pet
   } else jobz = "N";
   ierr = PetscMalloc(n*sizeof(PetscReal),&D);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscReal),&E);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*n*sizeof(int),&isuppz);CHKERRQ(ierr);
+  ierr = PetscMalloc(2*n*sizeof(PetscBLASInt),&isuppz);CHKERRQ(ierr);
   ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(liwork*sizeof(int),&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
   for (i=0;i<n-1;i++) {
     D[i] = PetscRealPart(A[i*(lda+1)]);
     E[i] = PetscRealPart(A[i*(lda+1)+1]);

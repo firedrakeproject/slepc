@@ -17,10 +17,10 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPlainBiLanczos"
-static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,Vec *V,Vec *W,PetscScalar *delta,int k,int *M,Vec fv,Vec fw,PetscReal *betav,PetscReal *betaw)
+static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,Vec *V,Vec *W,PetscScalar *delta,PetscInt k,PetscInt *M,Vec fv,Vec fw,PetscReal *betav,PetscReal *betaw)
 {
   PetscErrorCode ierr;
-  int            i,j,m = *M;
+  PetscInt       i,j,m = *M;
   PetscReal      norm;
   PetscScalar    coef;
   //PetscTruth     breakdown = PETSC_FALSE;
@@ -139,7 +139,7 @@ static PetscErrorCode EPSPlainBiLanczos(EPS eps,PetscScalar *T,PetscScalar *Tl,V
 PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,j,k,m,N,*perm,
+  PetscInt       i,j,k,m,N,*perm,
                  ncv=eps->ncv;
   Vec            fv=eps->work[0];
   Vec            fw=eps->work[1];
@@ -154,7 +154,7 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Ul);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&E);CHKERRQ(ierr);
   ierr = PetscMalloc((ncv+4)*ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&delta);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eigr);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&eigi);CHKERRQ(ierr);

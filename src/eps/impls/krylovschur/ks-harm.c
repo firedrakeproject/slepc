@@ -50,17 +50,16 @@
      work is workspace to store a working copy of S and the pivots (int 
      of length m)
 */
-PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,int m,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work)
+PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,PetscInt m_,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS) 
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"GETRF,GETRS - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   info,one = 1;
-  int            i;
+  PetscBLASInt   info,one = 1,m=m_,i;
   PetscScalar    *B = work; 
-  int            *ipiv = (int*)(work+m*m);
+  PetscBLASInt   *ipiv = (PetscBLASInt*)(work+m*m);
 
   PetscFunctionBegin;
   /* Copy S to workspace B */
@@ -110,14 +109,14 @@ PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,int m,PetscScalar tau,PetscSc
    Workspace:
      ghat is workspace to store a vector of length n
 */
-PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,int n,int k,int l,int m,PetscScalar *g,PetscScalar *Q,Vec *U,Vec u,PetscScalar *ghat)
+PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt l,PetscInt m_,PetscScalar *g,PetscScalar *Q,Vec *U,Vec u,PetscScalar *ghat)
 {
   PetscFunctionBegin;
   PetscErrorCode ierr;
-  PetscBLASInt   one=1,ncol=k+l;
+  PetscBLASInt   one=1,ncol=k+l,n=n_,m=m_;
   PetscScalar    done=1.0,dmone=-1.0,dzero=0.0;
   PetscReal      gamma,gnorm;
-  int            i,j;
+  PetscBLASInt   i,j;
 
   PetscFunctionBegin;
 
@@ -167,7 +166,7 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,int n,int k,int l,int m,PetscSc
      S has (real) Schur form with diagonal blocks sorted appropriately
      Q contains the corresponding Schur vectors (order n, leading dimension n)
 */
-PetscErrorCode EPSProjectedKSHarmonic(EPS eps,int l,PetscScalar *S,int lds,PetscScalar *Q,int n)
+PetscErrorCode EPSProjectedKSHarmonic(EPS eps,PetscInt l,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt n)
 {
   PetscErrorCode ierr;
 
@@ -186,7 +185,7 @@ PetscErrorCode EPSProjectedKSHarmonic(EPS eps,int l,PetscScalar *S,int lds,Petsc
 PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,l,n,lwork;
+  PetscInt       i,k,l,n,lwork;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q,*g,*work;
   PetscReal      beta,gnorm;

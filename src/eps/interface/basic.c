@@ -370,7 +370,7 @@ PetscErrorCode EPSGetType(EPS eps,const EPSType *type)
    EPSRegisterDynamic - Adds a method to the eigenproblem solver package.
 
    Synopsis:
-   EPSRegisterDynamic(char *name_solver,char *path,char *name_create,int (*routine_create)(EPS))
+   EPSRegisterDynamic(char *name_solver,char *path,char *name_create,PetscErrorCode (*routine_create)(EPS))
 
    Not Collective
 
@@ -414,7 +414,7 @@ M*/
 
   Level: advanced
 @*/
-PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,int (*function)(EPS))
+PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(EPS))
 {
   PetscErrorCode ierr;
   char           fullname[256];

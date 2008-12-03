@@ -79,10 +79,10 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
      S has (real) Schur form with diagonal blocks sorted appropriately
      Q contains the corresponding Schur vectors (order n, leading dimension n)
 */
-PetscErrorCode EPSProjectedKSNonsym(EPS eps,int l,PetscScalar *S,int lds,PetscScalar *Q,int n)
+PetscErrorCode EPSProjectedKSNonsym(EPS eps,PetscInt l,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt n)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (l==0) {
@@ -128,7 +128,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
 {
   PetscErrorCode ierr;
-  int            i,k,l,n,lwork;
+  PetscInt       i,k,l,n,lwork;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q,*work;
   PetscReal      beta;

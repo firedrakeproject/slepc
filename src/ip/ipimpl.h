@@ -19,7 +19,7 @@ extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 typedef struct _IPOps *IPOps;
 
 struct _IPOps {
-  int dummy;
+  PetscInt dummy;
 };
 
 struct _p_IP {
@@ -29,7 +29,7 @@ struct _p_IP {
   PetscReal orthog_eta;
   IPBilinearForm bilinear_form;
   Mat matrix;
-  int innerproducts;
+  PetscInt innerproducts;
 
   /*------------------------- Cache Bx product -------------------*/
   PetscInt       xid;

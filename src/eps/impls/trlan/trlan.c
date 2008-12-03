@@ -55,11 +55,11 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "MatMult_TRLAN"
-static int MatMult_TRLAN(int *n,int *m,PetscReal *xin,int *ldx,PetscReal *yout,int *ldy)
+static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin,PetscBLASInt *ldx,PetscReal *yout,PetscBLASInt *ldy)
 {
   PetscErrorCode ierr;
   Vec            x,y;
-  int            i;
+  PetscBLASInt            i;
 
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
@@ -83,7 +83,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       nn;				   
-  int            ipar[32], i, n, lohi, stat; 
+  PetscBLASInt   ipar[32], i, n, lohi, stat, ncv=eps->ncv; 
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;	   
   PetscScalar    *pV;				   
   
@@ -118,7 +118,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
 
-  TRLan_ ( MatMult_TRLAN, ipar, &n, &eps->ncv, eps->eigr, pV, &n, tr->work, &tr->lwork );
+  TRLan_ ( MatMult_TRLAN, ipar, &n, &ncv, eps->eigr, pV, &n, tr->work, &tr->lwork );
 
   ierr = VecRestoreArray( eps->V[0], &pV );CHKERRQ(ierr);
 

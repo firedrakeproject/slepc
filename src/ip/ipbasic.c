@@ -416,7 +416,7 @@ PetscErrorCode IPDestroy(IP ip)
 
 .seealso: IPResetOperationCounters()
 @*/
-PetscErrorCode IPGetOperationCounters(IP ip,int *dots)
+PetscErrorCode IPGetOperationCounters(IP ip,PetscInt *dots)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);

@@ -19,15 +19,15 @@ extern PetscLogEvent EPS_SetUp, EPS_Solve, EPS_Dense;
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
-  int  (*solve)(EPS);            /* one-sided solver */
-  int  (*solvets)(EPS);          /* two-sided solver */
-  int  (*setup)(EPS);
-  int  (*setfromoptions)(EPS);
-  int  (*publishoptions)(EPS);
-  int  (*destroy)(EPS);
-  int  (*view)(EPS,PetscViewer);
-  int  (*backtransform)(EPS);
-  int  (*computevectors)(EPS);
+  PetscErrorCode  (*solve)(EPS);            /* one-sided solver */
+  PetscErrorCode  (*solvets)(EPS);          /* two-sided solver */
+  PetscErrorCode  (*setup)(EPS);
+  PetscErrorCode  (*setfromoptions)(EPS);
+  PetscErrorCode  (*publishoptions)(EPS);
+  PetscErrorCode  (*destroy)(EPS);
+  PetscErrorCode  (*view)(EPS,PetscViewer);
+  PetscErrorCode  (*backtransform)(EPS);
+  PetscErrorCode  (*computevectors)(EPS);
 };
 
 /*
@@ -41,7 +41,7 @@ struct _EPSOps {
 struct _p_EPS {
   PETSCHEADER(struct _EPSOps);
   /*------------------------- User parameters --------------------------*/
-  int            max_it,           /* maximum number of iterations */
+  PetscInt       max_it,           /* maximum number of iterations */
                  nev,              /* number of eigenvalues to compute */
                  ncv,              /* number of basis vectors */
                  nv,               /* number of available basis vectors (<= ncv) */
@@ -73,30 +73,30 @@ struct _p_EPS {
   IP          ip;               /* innerproduct object */
   void        *data;            /* placeholder for misc stuff associated 
                                    with a particular solver */
-  int         nconv,            /* number of converged eigenvalues */
+  PetscInt    nconv,            /* number of converged eigenvalues */
               its,              /* number of iterations so far computed */
               *perm;            /* permutation for eigenvalue ordering */
 
   /* ---------------- Default work-area and status vars -------------------- */
-  int        nwork;
+  PetscInt   nwork;
   Vec        *work;
 
-  int        setupcalled;
+  PetscInt   setupcalled;
   PetscTruth isgeneralized,
              ispositive,
              ishermitian;
   EPSConvergedReason reason;     
 
-  int        (*monitor[MAXEPSMONITORS])(EPS,int,int,PetscScalar*,PetscScalar*,PetscReal*,int,void*); 
-  int        (*monitordestroy[MAXEPSMONITORS])(void*);
+  PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*); 
+  PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void*);
   void       *monitorcontext[MAXEPSMONITORS];
-  int        numbermonitors; 
+  PetscInt    numbermonitors; 
 
   PetscTruth ds_ortho;    /* if vectors in DS have to be orthonormalized */  
 };
 
 #define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \
-        { int _ierr,_i,_im = eps->numbermonitors; \
+        { PetscErrorCode _ierr; PetscInt _i,_im = eps->numbermonitors; \
           for ( _i=0; _i<_im; _i++ ) {\
             _ierr=(*eps->monitor[_i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[_i]);\
             CHKERRQ(_ierr); \
@@ -106,7 +106,7 @@ struct _p_EPS {
 EXTERN PetscErrorCode EPSRegisterAll(char *);
 
 EXTERN PetscErrorCode EPSDestroy_Default(EPS);
-EXTERN PetscErrorCode EPSDefaultGetWork(EPS,int);
+EXTERN PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);
 EXTERN PetscErrorCode EPSDefaultFreeWork(EPS);
 EXTERN PetscErrorCode EPSAllocateSolution(EPS);
 EXTERN PetscErrorCode EPSFreeSolution(EPS);
@@ -119,9 +119,9 @@ EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 
 /* Private functions of the solver implementations */
 
-EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,Vec*,int,int*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,int,PetscScalar*,PetscReal,int,int,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
+EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscInt,PetscScalar*,PetscReal,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 
 #endif

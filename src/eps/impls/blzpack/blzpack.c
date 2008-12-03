@@ -54,7 +54,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       N, n;
-  int            listor, lrstor, ncuv, k1, k2, k3, k4;
+  PetscBLASInt   listor, lrstor, ncuv, k1, k2, k3, k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscTruth     flg;
   KSP            ksp;
@@ -95,7 +95,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   listor = 123+k1*12;
   ierr = PetscFree(blz->istor);CHKERRQ(ierr);
-  ierr = PetscMalloc((17+listor)*sizeof(int),&blz->istor);CHKERRQ(ierr);
+  ierr = PetscMalloc((17+listor)*sizeof(PetscBLASInt),&blz->istor);CHKERRQ(ierr);
   blz->istor[14] = listor;
 
   if (blz->slice) lrstor = n*(k2*4+k1*2+k4)+k3;
@@ -129,7 +129,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscInt       n, nn;
-  int            i, nneig, lflag, nvopu;      
+  PetscBLASInt   i, nneig, lflag, nvopu;      
   Vec            x, y;                           
   PetscScalar    sigma,*pV;                      
   Mat            A;                              
@@ -353,7 +353,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBlzpackSetBlockSize_BLZPACK"
-PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,int bs)
+PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 {
   EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;;
 
@@ -384,9 +384,9 @@ EXTERN_C_END
 
 .seealso: EPSBlzpackSetInterval()
 @*/
-PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,int bs)
+PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
 {
-  PetscErrorCode ierr, (*f)(EPS,int);
+  PetscErrorCode ierr, (*f)(EPS,PetscInt);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -458,7 +458,7 @@ PetscErrorCode EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBlzpackSetNSteps_BLZPACK"
-PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,int nsteps)
+PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
 {
   EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;
 
@@ -486,9 +486,9 @@ EXTERN_C_END
    Level: advanced
 
 @*/
-PetscErrorCode EPSBlzpackSetNSteps(EPS eps,int nsteps)
+PetscErrorCode EPSBlzpackSetNSteps(EPS eps,PetscInt nsteps)
 {
-  PetscErrorCode ierr, (*f)(EPS,int);
+  PetscErrorCode ierr, (*f)(EPS,PetscInt);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
