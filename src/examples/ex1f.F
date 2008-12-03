@@ -34,15 +34,16 @@
 !     A     operator matrix
 !     eps   eigenproblem solver context
 
-      Mat          A
-      EPS          eps
-      EPSType      type
-      PetscReal    tol, error
-      PetscScalar  kr, ki
-      integer      rank, n, nev, ierr, maxit, i, its, nconv
-      integer      col(3), Istart, Iend
-      PetscTruth   flg
-      PetscScalar  value(3)
+      Mat            A
+      EPS            eps
+      EPSType        tname
+      PetscReal      tol, error
+      PetscScalar    kr, ki
+      PetscInt       n, i, Istart, Iend, nev, maxit, its, nconv, col(3)
+      PetscMPIInt    rank
+      PetscErrorCode ierr
+      PetscTruth     flg
+      PetscScalar    value(3)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -124,9 +125,9 @@
  110  format (/' Number of iterations of the method:',I4)
   
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(eps,type,ierr)
+      call EPSGetType(eps,tname,ierr)
       if (rank .eq. 0) then
-        write(*,120) type
+        write(*,120) tname
       endif
  120  format (' Solution method: ',A)
       call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,ierr)

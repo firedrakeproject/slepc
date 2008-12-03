@@ -33,13 +33,14 @@
 !     A     operator matrix
 !     svd   singular value solver context
 
-      Mat          A
-      SVD          svd
-      SVDType      type
-      PetscReal    tol, error, sigma, mu
-      integer      n, i, j, Istart, Iend, nsv, rank
-      integer      maxit, its, nconv, ierr
-      PetscTruth   flg
+      Mat            A
+      SVD            svd
+      SVDType        tname
+      PetscReal      tol, error, sigma, mu
+      PetscInt       n, i, j, Istart, Iend, nsv, maxit, its, nconv
+      PetscMPIInt    rank
+      PetscErrorCode ierr
+      PetscTruth     flg
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -107,9 +108,9 @@
  110  format (/' Number of iterations of the method:',I4)
   
 !     ** Optional: Get some information from the solver and display it
-      call SVDGetType(svd,type,ierr)
+      call SVDGetType(svd,tname,ierr)
       if (rank .eq. 0) then
-        write(*,120) type
+        write(*,120) tname
       endif
  120  format (' Solution method: ',A)
       call SVDGetDimensions(svd,nsv,PETSC_NULL_INTEGER,ierr)

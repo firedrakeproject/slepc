@@ -35,13 +35,15 @@
 !     A     operator matrix
 !     eps   eigenproblem solver context
 
-      Mat          A
-      EPS          eps
-      EPSType      type
-      PetscReal    tol, error
-      PetscScalar  kr, ki
-      integer      size, rank, N, m, nev, ierr, maxit, i, its, nconv
-      PetscTruth   flg
+      Mat            A
+      EPS            eps
+      EPSType        tname
+      PetscReal      tol, error
+      PetscScalar    kr, ki
+      PetscInt       N, m, i, nev, maxit, its, nconv
+      PetscMPIInt    sz, rank
+      PetscErrorCode ierr
+      PetscTruth     flg
 
 !     This is the routine to use for matrix-free approach
 !
@@ -56,9 +58,9 @@
       write(*,*) 'This example requires real numbers.'
       goto 999
 #endif
-      call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
+      call MPI_Comm_size(PETSC_COMM_WORLD,sz,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
-      if (size .ne. 1) then
+      if (sz .ne. 1) then
          if (rank .eq. 0) then
             write(*,*) 'This is a uniprocessor example only!'
          endif
@@ -108,9 +110,9 @@
       endif
 
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(eps,type,ierr)
+      call EPSGetType(eps,tname,ierr)
       if (rank .eq. 0) then
-        write(*,'(A,A)') ' Solution method: ', type
+        write(*,'(A,A)') ' Solution method: ', tname
       endif
       call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
@@ -180,11 +182,12 @@
 
 #include "finclude/petsc.h"
 
-      Mat         A
-      Vec         x,y
-      integer     trans,one,ierr,N
-      PetscScalar x_array(1),y_array(1)
-      PetscOffset i_x,i_y
+      Mat            A
+      Vec            x,y
+      integer        trans,one,N
+      PetscScalar    x_array(1),y_array(1)
+      PetscOffset    i_x,i_y
+      PetscErrorCode ierr
 
 !     The actual routine for the matrix-vector product
       external mvmisg
