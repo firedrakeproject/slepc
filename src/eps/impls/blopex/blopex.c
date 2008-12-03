@@ -17,7 +17,6 @@
 #include "interpreter.h"
 #include "multivector.h"
 #include "temp_multivector.h"
-#include <assert.h>
 
 typedef struct {
   lobpcg_Tolerance           tol;

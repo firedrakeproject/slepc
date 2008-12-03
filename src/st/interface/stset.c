@@ -47,7 +47,7 @@ PetscFList STList = 0;
 .seealso: EPSSetType()
 
 @*/
-PetscErrorCode STSetType(ST st,STType type)
+PetscErrorCode STSetType(ST st,const STType type)
 {
   PetscErrorCode ierr,(*r)(ST);
   PetscTruth match;

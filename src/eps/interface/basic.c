@@ -309,7 +309,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
 .seealso: STSetType(), EPSType
 @*/
-PetscErrorCode EPSSetType(EPS eps,EPSType type)
+PetscErrorCode EPSSetType(EPS eps,const EPSType type)
 {
   PetscErrorCode ierr,(*r)(EPS);
   PetscTruth match;

@@ -34,7 +34,7 @@ typedef struct _p_ST* ST;
 
 .seealso: STSetType(), ST
 E*/
-#define STType const char*
+#define STType      char*
 #define STSHELL     "shell"
 #define STSHIFT     "shift"
 #define STSINV      "sinvert"
@@ -43,7 +43,7 @@ E*/
 
 EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);
 EXTERN PetscErrorCode STDestroy(ST);
-EXTERN PetscErrorCode STSetType(ST,STType);
+EXTERN PetscErrorCode STSetType(ST,const STType);
 EXTERN PetscErrorCode STGetType(ST,const STType*);
 EXTERN PetscErrorCode STSetOperators(ST,Mat,Mat);
 EXTERN PetscErrorCode STGetOperators(ST,Mat*,Mat*);

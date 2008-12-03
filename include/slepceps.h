@@ -36,7 +36,7 @@ typedef struct _p_EPS* EPS;
 
 .seealso: EPSSetType(), EPS
 E*/
-#define EPSType const char*
+#define EPSType      char*
 #define EPSPOWER     "power"
 #define EPSSUBSPACE  "subspace"
 #define EPSARNOLDI   "arnoldi"
@@ -93,7 +93,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
 
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);
-EXTERN PetscErrorCode EPSSetType(EPS,EPSType);
+EXTERN PetscErrorCode EPSSetType(EPS,const EPSType);
 EXTERN PetscErrorCode EPSGetType(EPS,const EPSType*);
 EXTERN PetscErrorCode EPSSetProblemType(EPS,EPSProblemType);
 EXTERN PetscErrorCode EPSGetProblemType(EPS,EPSProblemType*);

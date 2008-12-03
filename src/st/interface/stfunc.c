@@ -395,7 +395,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 PetscErrorCode STView(ST st,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
-  STType            cstr;
+  const STType      cstr;
   const char*       str;
   PetscTruth        isascii,isstring;
   PetscViewerFormat format;

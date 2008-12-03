@@ -35,7 +35,7 @@ typedef struct _p_SVD* SVD;
 
 .seealso: SVDSetType(), SVD
 E*/
-#define SVDType const char*
+#define SVDType        char*
 #define SVDCROSS       "cross"
 #define SVDCYCLIC      "cyclic"
 #define SVDLAPACK      "lapack"
@@ -79,7 +79,7 @@ typedef enum {/* converged */
 EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 EXTERN PetscErrorCode SVDSetIP(SVD,IP);
 EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
-EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
+EXTERN PetscErrorCode SVDSetType(SVD,const SVDType);
 EXTERN PetscErrorCode SVDGetType(SVD,const SVDType*);
 EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);

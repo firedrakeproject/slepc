@@ -317,7 +317,7 @@ PetscErrorCode SVDDestroy_Default(SVD svd)
 
 .seealso: SVDType
 @*/
-PetscErrorCode SVDSetType(SVD svd,SVDType type)
+PetscErrorCode SVDSetType(SVD svd,const SVDType type)
 {
   PetscErrorCode ierr,(*r)(SVD);
   PetscTruth match;

@@ -1172,7 +1172,7 @@ PetscErrorCode EPSSortEigenvaluesReal(int n,PetscReal *eig,EPSWhich which,int ne
   PetscErrorCode ierr;
   int            i;
   PetscReal      *values = work;
-  PetscInt       *perm = (int*)(work+n);
+  PetscInt       *perm = (PetscInt*)(work+n);
 
   PetscFunctionBegin;
   for (i=0; i<n; i++) { perm[i] = i;}
