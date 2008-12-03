@@ -156,8 +156,7 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
-  int            i,j;
-  PetscInt       M,m,idx,start,end;
+  PetscInt       i,j,M,m,idx,start,end;
   PetscScalar    sigma,*px;
   Vec            x;
   IS             isU,isV;
@@ -231,9 +230,9 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDMonitor_CYCLIC"
-PetscErrorCode SVDMonitor_CYCLIC(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *ctx)
+PetscErrorCode SVDMonitor_CYCLIC(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  int        i,j;
+  PetscInt   i,j;
   SVD        svd = (SVD)ctx;
 
   PetscFunctionBegin;

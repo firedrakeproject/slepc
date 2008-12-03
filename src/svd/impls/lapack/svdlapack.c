@@ -19,7 +19,7 @@ PetscErrorCode SVDSetup_LAPACK(SVD svd)
 {
   PetscErrorCode  ierr;
   PetscInt        N;
-  int             i;
+  PetscInt        i;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -41,11 +41,10 @@ PetscErrorCode SVDSetup_LAPACK(SVD svd)
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
   PetscErrorCode  ierr;
-  PetscInt        M,N,n;
+  PetscInt        M,N,n,i,j,k;
   Mat             mat;
   PetscScalar     *pU,*pVT,*pmat,*pu,*pv;
   PetscReal       *sigma;
-  int             i,j,k;
   
   PetscFunctionBegin;
   ierr = MatConvert(svd->OP,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);

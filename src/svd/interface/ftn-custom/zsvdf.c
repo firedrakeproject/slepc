@@ -44,26 +44,26 @@
 #endif
 
 EXTERN_C_BEGIN
-static void (PETSC_STDCALL *f1)(SVD*,int*,int*,PetscReal*,PetscReal*,int*,void*,PetscErrorCode*);
+static void (PETSC_STDCALL *f1)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*);
 static void (PETSC_STDCALL *f2)(void*,PetscErrorCode*);
 
 /*
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void svdmonitordefault_(SVD *svd,int *it,int *nconv,PetscReal *sigma,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
+void svdmonitordefault_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorDefault(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
 
-void svdmonitorlg_(SVD *svd,int *it,int *nconv,PetscReal *sigma,PetscReal *errest,int *nest,void *ctx,PetscErrorCode *ierr)
+void svdmonitorlg_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorLG(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
 EXTERN_C_END
 
 /* These are not extern C because they are passed into non-extern C user level functions */
-static PetscErrorCode ourmonitor(SVD svd,int i,int nc,PetscReal *sigma,PetscReal *d,int l,void* ctx)
+static PetscErrorCode ourmonitor(SVD svd,PetscInt i,PetscInt nc,PetscReal *sigma,PetscReal *d,PetscInt l,void* ctx)
 {
   PetscErrorCode ierr = 0;
   (*f1)(&svd,&i,&nc,sigma,d,&l,ctx,&ierr);CHKERRQ(ierr);
@@ -107,7 +107,7 @@ void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErro
   *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
 #if defined(PETSC_USES_CPTOFCD)
   {
-    char *t = _fcdtocp(name); int len1 = _fcdlen(name);
+    char *t = _fcdtocp(name); PetscInt len1 = _fcdlen(name);
     *ierr = PetscStrncpy(t,tname,len1); 
   }
 #else
@@ -116,12 +116,12 @@ void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErro
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,int *ierr)
+void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = SVDGetIP(*svd,ip);
 }
 
-void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,int*,int*,PetscReal*,PetscReal*,int*,void*,PetscErrorCode*),
+void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
                                   void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
 {
   if ((void(*)())monitor == (void(*)())svdmonitordefault_) {
@@ -139,12 +139,12 @@ void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,in
   }
 }
 
-void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode, int *ierr)
+void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode, PetscErrorCode *ierr)
 {
   *ierr = SVDGetTransposeMode(*svd,mode);
 }
 
-void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which, int *ierr)
+void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which, PetscErrorCode *ierr)
 {
   *ierr = SVDGetWhichSingularTriplets(*svd,which);
 }
@@ -174,7 +174,7 @@ void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len
   *ierr = SVDGetOptionsPrefix(*svd,&tname);
 #if defined(PETSC_USES_CPTOFCD)
   {
-    char *t = _fcdtocp(prefix); int len1 = _fcdlen(prefix);
+    char *t = _fcdtocp(prefix); PetscInt len1 = _fcdlen(prefix);
     *ierr = PetscStrncpy(t,tname,len1); if (*ierr) return;
   }
 #else

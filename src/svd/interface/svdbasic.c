@@ -235,7 +235,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 PetscErrorCode SVDDestroy(SVD svd)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -377,7 +377,7 @@ PetscErrorCode SVDGetType(SVD svd,const SVDType *type)
    SVDRegisterDynamic - Adds a method to the singular value solver package.
 
    Synopsis:
-   SVDRegisterDynamic(char *name_solver,char *path,char *name_create,int (*routine_create)(SVD))
+   SVDRegisterDynamic(char *name_solver,char *path,char *name_create,PetscErrorCode (*routine_create)(SVD))
 
    Not Collective
 
@@ -421,7 +421,7 @@ M*/
 
   Level: advanced
 @*/
-PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,int (*function)(SVD))
+PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(SVD))
 {
   PetscErrorCode ierr;
   char           fullname[256];

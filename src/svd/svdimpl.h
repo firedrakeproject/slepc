@@ -20,12 +20,12 @@ extern PetscLogEvent SVD_SetUp, SVD_Solve, SVD_Dense;
 typedef struct _SVDOps *SVDOps;
 
 struct _SVDOps {
-  int  (*solve)(SVD);
-  int  (*setup)(SVD);
-  int  (*setfromoptions)(SVD);
-  int  (*publishoptions)(SVD);
-  int  (*destroy)(SVD);
-  int  (*view)(SVD,PetscViewer);
+  PetscErrorCode  (*solve)(SVD);
+  PetscErrorCode  (*setup)(SVD);
+  PetscErrorCode  (*setfromoptions)(SVD);
+  PetscErrorCode  (*publishoptions)(SVD);
+  PetscErrorCode  (*destroy)(SVD);
+  PetscErrorCode  (*view)(SVD,PetscViewer);
 };
 
 /*
@@ -45,33 +45,33 @@ struct _p_SVD {
   PetscReal        *sigma;	/* singular values */
   Vec              *U,*V;	/* left and right singular vectors */
   Vec              vec_initial; /* initial vector */
-  int              n;           /* maximun size of descomposition */
+  PetscInt         n;           /* maximun size of descomposition */
   SVDWhich         which;       /* which singular values are computed */
-  int              nconv;	/* number of converged values */
-  int              nsv;         /* number of requested values */
-  int              ncv;         /* basis size */
-  int              its;         /* iteration counter */
-  int              max_it;      /* max iterations */
+  PetscInt         nconv;	/* number of converged values */
+  PetscInt         nsv;         /* number of requested values */
+  PetscInt         ncv;         /* basis size */
+  PetscInt         its;         /* iteration counter */
+  PetscInt         max_it;      /* max iterations */
   PetscReal        tol;         /* tolerance */
   PetscReal        *errest;     /* error estimates */
   void             *data;	/* placeholder for misc stuff associated
                    		   with a particular solver */
-  int              setupcalled;
+  PetscInt         setupcalled;
   SVDConvergedReason reason;
   IP               ip;
   
-  int  (*monitor[MAXSVDMONITORS])(SVD,int,int,PetscReal*,PetscReal*,int,void*);
-  int  (*monitordestroy[MAXSVDMONITORS])(void*);
-  void *monitorcontext[MAXSVDMONITORS];
-  int  numbermonitors;
+  PetscErrorCode  (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+  PetscErrorCode  (*monitordestroy[MAXSVDMONITORS])(void*);
+  void            *monitorcontext[MAXSVDMONITORS];
+  PetscInt        numbermonitors;
   
-  int matvecs;
+  PetscInt        matvecs;
 };
 
 EXTERN PetscErrorCode SVDRegisterAll(char *);
 
 #define SVDMonitor(svd,it,nconv,sigma,errest,nest) \
-        { int _ierr,_i,_im = svd->numbermonitors; \
+        { PetscErrorCode _ierr; PetscInt _i,_im = svd->numbermonitors; \
           for ( _i=0; _i<_im; _i++ ) {\
             _ierr=(*svd->monitor[_i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[_i]);\
             CHKERRQ(_ierr); \
@@ -84,5 +84,5 @@ EXTERN PetscErrorCode SVDMatMult(SVD,PetscTruth,Vec,Vec);
 EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
 EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
-EXTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,int,int,PetscScalar*,Vec,Vec);
+EXTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*,Vec,Vec);
 

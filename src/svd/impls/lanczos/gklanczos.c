@@ -28,8 +28,7 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
 {
   PetscErrorCode  ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
-  PetscInt        N;
-  int             i;
+  PetscInt        i,N;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -50,10 +49,10 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDTwoSideLanczos"
-PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec *U,int k,int n,PetscScalar* work,Vec wv,Vec wu)
+PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec *U,PetscInt k,PetscInt n,PetscScalar* work,Vec wv,Vec wu)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
@@ -75,10 +74,10 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDOneSideLanczos"
-static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec u,Vec u_1,int k,int n,PetscScalar* work,Vec wv)
+static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec u,Vec u_1,PetscInt k,PetscInt n,PetscScalar* work,Vec wv)
 {
   PetscErrorCode ierr;
-  int            i,j;
+  PetscInt       i,j;
   PetscReal      a,b;
   Vec            temp;
   
@@ -138,8 +137,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm,*work,*Q,*PT;
   PetscScalar    *swork;
-  PetscInt       *perm;
-  int            i,j,k,m,n,info,nwork=0,*iwork;
+  PetscInt       i,j,k,m,n,info,nwork=0,*iwork,*perm;
   Vec            v,u,u_1,wv,wu,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   
@@ -150,7 +148,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = PetscMalloc(sizeof(PetscReal)*svd->n*svd->n,&Q);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*svd->n*svd->n,&PT);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*(3*svd->n+4)*svd->n,&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(int)*8*svd->n,&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscInt)*8*svd->n,&iwork);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&wv);CHKERRQ(ierr);

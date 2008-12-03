@@ -33,7 +33,7 @@ PetscErrorCode SVDSolve(SVD svd)
 {
   PetscErrorCode ierr;
   PetscTruth     flg;
-  int            i;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -82,7 +82,7 @@ PetscErrorCode SVDSolve(SVD svd)
       failed and why.
 
 @*/
-PetscErrorCode SVDGetIterationNumber(SVD svd,int *its)
+PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -145,7 +145,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
    Level: beginner
 
 @*/
-PetscErrorCode SVDGetConverged(SVD svd,int *nconv)
+PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -183,11 +183,11 @@ PetscErrorCode SVDGetConverged(SVD svd,int *nconv)
 
 .seealso: SVDSolve(),  SVDGetConverged()
 @*/
-PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Vec v)
+PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec u, Vec v)
 {
   PetscErrorCode ierr;
   PetscReal      norm;
-  int            j;
+  PetscInt       j;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -244,7 +244,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, int i, PetscReal *sigma, Vec u, Ve
 
 .seealso: SVDSolve(), SVDGetConverged(), SVDComputeRelativeError()
 @*/
-PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscReal *norm2)
+PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, PetscReal *norm2)
 {
   PetscErrorCode ierr;
   Vec            u,v,x = PETSC_NULL,y = PETSC_NULL;
@@ -303,7 +303,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, int i, PetscReal *norm1, PetscRe
 
 .seealso: SVDSolve(), SVDComputeResidualNorms()
 @*/
-PetscErrorCode SVDComputeRelativeError(SVD svd, int i, PetscReal *error)
+PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
@@ -339,7 +339,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd, int i, PetscReal *error)
    Level: intermediate
 
 @*/
-PetscErrorCode SVDGetOperationCounters(SVD svd,int* matvecs,int* dots)
+PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
 {
   PetscErrorCode ierr;
   

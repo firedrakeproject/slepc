@@ -38,7 +38,7 @@
    Level: developer
 
 @*/
-PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar* U,PetscScalar* VT)
+PetscErrorCode SVDDense(PetscInt M,PetscInt N,PetscScalar* A,PetscReal* sigma,PetscScalar* U,PetscScalar* VT)
 {
 #if defined(SLEPC_MISSING_LAPACK_GESDD)
   PetscFunctionBegin;
@@ -46,7 +46,7 @@ PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar*
 #else
   PetscErrorCode ierr;
   PetscScalar    qwork,*work;
-  int            n,info,lwork,*iwork;
+  PetscInt       n,info,lwork,*iwork;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal       *rwork;
 #endif 
@@ -55,7 +55,7 @@ PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar*
   /* workspace query & allocation */
   ierr = PetscLogEventBegin(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
   n = PetscMin(M,N);
-  ierr = PetscMalloc(sizeof(int)*8*n,&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscInt)*8*n,&iwork);CHKERRQ(ierr);
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(sizeof(PetscReal)*(5*n*n+7*n),&rwork);CHKERRQ(ierr);
@@ -64,7 +64,7 @@ PetscErrorCode SVDDense(int M,int N,PetscScalar* A,PetscReal* sigma,PetscScalar*
   LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,&qwork,&lwork,iwork,&info,1);
 #endif 
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
-  lwork = (int)PetscRealPart(qwork);
+  lwork = (PetscInt)PetscRealPart(qwork);
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   
   /* computation */  

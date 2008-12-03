@@ -87,10 +87,10 @@ EXTERN PetscErrorCode SVDSetInitialVector(SVD,Vec);
 EXTERN PetscErrorCode SVDGetInitialVector(SVD,Vec*);
 EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
 EXTERN PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
-EXTERN PetscErrorCode SVDSetDimensions(SVD,int,int);
-EXTERN PetscErrorCode SVDGetDimensions(SVD,int*,int*);
-EXTERN PetscErrorCode SVDSetTolerances(SVD,PetscReal,int);
-EXTERN PetscErrorCode SVDGetTolerances(SVD,PetscReal*,int*);
+EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt);
+EXTERN PetscErrorCode SVDGetDimensions(SVD,PetscInt*,PetscInt*);
+EXTERN PetscErrorCode SVDSetTolerances(SVD,PetscReal,PetscInt);
+EXTERN PetscErrorCode SVDGetTolerances(SVD,PetscReal*,PetscInt*);
 EXTERN PetscErrorCode SVDSetWhichSingularTriplets(SVD,SVDWhich);
 EXTERN PetscErrorCode SVDGetWhichSingularTriplets(SVD,SVDWhich*);
 EXTERN PetscErrorCode SVDSetFromOptions(SVD);
@@ -99,25 +99,25 @@ EXTERN PetscErrorCode SVDAppendOptionsPrefix(SVD,const char*);
 EXTERN PetscErrorCode SVDGetOptionsPrefix(SVD,const char*[]);
 EXTERN PetscErrorCode SVDSetUp(SVD);
 EXTERN PetscErrorCode SVDSolve(SVD);
-EXTERN PetscErrorCode SVDGetIterationNumber(SVD,int*);
+EXTERN PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);
 EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
-EXTERN PetscErrorCode SVDGetConverged(SVD,int*);
-EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,int,PetscReal*,Vec,Vec);
-EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,int,PetscReal*,PetscReal*);
-EXTERN PetscErrorCode SVDComputeRelativeError(SVD,int,PetscReal*);
-EXTERN PetscErrorCode SVDGetOperationCounters(SVD,int*,int*);
+EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
+EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
+EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,PetscReal*);
+EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
+EXTERN PetscErrorCode SVDGetOperationCounters(SVD,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 EXTERN PetscErrorCode SVDDestroy(SVD);
 EXTERN PetscErrorCode SVDInitializePackage(char*);
 
-EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,int,int,PetscReal*,PetscReal*,int,void*),
+EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
                                     void*,PetscErrorCode (*monitordestroy)(void*));
 EXTERN PetscErrorCode SVDMonitorCancel(SVD);
 EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
-EXTERN PetscErrorCode SVDMonitorDefault(SVD,int,int,PetscReal*,PetscReal*,int,void*);
-EXTERN PetscErrorCode SVDMonitorLG(SVD,int,int,PetscReal*,PetscReal*,int,void*);
+EXTERN PetscErrorCode SVDMonitorDefault(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+EXTERN PetscErrorCode SVDMonitorLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 
-EXTERN PetscErrorCode SVDDense(int,int,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode SVDDense(PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode SVDCrossSetEPS(SVD,EPS);
 EXTERN PetscErrorCode SVDCrossGetEPS(SVD,EPS*);
@@ -131,7 +131,7 @@ EXTERN PetscErrorCode SVDLanczosSetOneSide(SVD,PetscTruth);
 
 EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscTruth);
 
-EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,int(*)(SVD));
+EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,PetscErrorCode(*)(SVD));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,0)
 #else

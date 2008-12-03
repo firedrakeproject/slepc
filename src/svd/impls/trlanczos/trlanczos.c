@@ -28,8 +28,7 @@ typedef struct {
 PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 {
   PetscErrorCode  ierr;
-  PetscInt        N;
-  int             i;
+  PetscInt        i,N;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -50,11 +49,11 @@ PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDOneSideTRLanczosMGS"
-static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,int nconv,int l,int n,PetscScalar* work,Vec wv,Vec wu)
+static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work,Vec wv,Vec wu)
 {
   PetscErrorCode ierr;
   PetscReal      a,b;
-  int            i,k=nconv+l;
+  PetscInt       i,k=nconv+l;
 
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
@@ -86,12 +85,12 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDOneSideTRLanczosCGS"
-static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,int nconv,int l,int n,PetscScalar* work,Vec wv,Vec wu)
+static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work,Vec wv,Vec wu)
 {
   PetscErrorCode ierr;
   PetscReal      a,b,sum,onorm;
   PetscScalar    dot;
-  int            i,j,k=nconv+l;
+  PetscInt       i,j,k=nconv+l;
 
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
@@ -204,8 +203,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm;
   PetscScalar    *b,*Q,*PT,*swork;
-  PetscInt       *perm;
-  int            i,j,k,l,m,n,nwork=0;
+  PetscInt       *perm,i,j,k,l,m,n,nwork=0;
   Vec            v,wv,wu,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   IPOrthogonalizationType orthog;

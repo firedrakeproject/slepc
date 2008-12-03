@@ -159,9 +159,8 @@ PetscErrorCode SVDGetInitialVector(SVD svd,Vec *vec)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
-  int            i;
   PetscTruth     flg;
-  PetscInt       M,N;
+  PetscInt       i,M,N;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);

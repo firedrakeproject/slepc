@@ -119,7 +119,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
 
 .seealso: SVDGetTolerances()
 @*/
-PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,int maxits)
+PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -165,7 +165,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,int maxits)
 
 .seealso: SVDSetTolerances()
 @*/
-PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,int *maxits)
+PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -201,7 +201,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,int *maxits)
 
 .seealso: SVDGetDimensions()
 @*/
-PetscErrorCode SVDSetDimensions(SVD svd,int nsv,int ncv)
+PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -244,7 +244,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,int nsv,int ncv)
 
 .seealso: SVDSetDimensions()
 @*/
-PetscErrorCode SVDGetDimensions(SVD svd,int *nsv,int *ncv)
+PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);

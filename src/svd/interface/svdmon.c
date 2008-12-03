@@ -27,7 +27,7 @@
              monitor routine (use PETSC_NULL if no context is desired)
 
    Calling Sequence of monitor:
-$     monitor (SVD svd, int its, int nconv, PetscReal *sigma, PetscReal* errest, int nest, void *mctx)
+$     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscReal* errest, PetscInt nest, void *mctx)
 
 +  svd    - singular value solver context obtained from SVDCreate()
 .  its    - iteration number
@@ -53,7 +53,7 @@ $     monitor (SVD svd, int its, int nconv, PetscReal *sigma, PetscReal* errest,
 
 .seealso: SVDMonitorDefault(), SVDMonitorCancel()
 @*/
-PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,int,int,PetscReal*,PetscReal*,int,void*),
+PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
@@ -149,10 +149,10 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 
 .seealso: SVDMonitorSet()
 @*/
-PetscErrorCode SVDMonitorDefault(SVD svd,int its,int nconv,PetscReal *sigma,PetscReal *errest,int nest,void *dummy)
+PetscErrorCode SVDMonitorDefault(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
 {
   PetscErrorCode ierr;
-  int            i;
+  PetscInt       i;
   PetscViewer    viewer = (PetscViewer) dummy;
 
   PetscFunctionBegin;
@@ -169,15 +169,15 @@ PetscErrorCode SVDMonitorDefault(SVD svd,int its,int nconv,PetscReal *sigma,Pets
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDMonitorLG"
-PetscErrorCode SVDMonitorLG(SVD svd,int its,int nconv,PetscReal *sigma,PetscReal *errest,int nest,void *monctx)
+PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer) monctx;
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
   PetscReal      *x,*y;
-  int            i,n = svd->nsv;
-  int            p;
+  int            p,n = svd->nsv;
+  PetscInt       i;
   PetscDraw      draw1;
   PetscDrawLG    lg1;
 

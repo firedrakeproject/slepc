@@ -133,7 +133,7 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
-  int            i;
+  PetscInt       i;
   PetscScalar    sigma;
   
   PetscFunctionBegin;
@@ -151,9 +151,9 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDMonitor_CROSS"
-PetscErrorCode SVDMonitor_CROSS(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,int nest,void *ctx)
+PetscErrorCode SVDMonitor_CROSS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  int       i;
+  PetscInt  i;
   SVD       svd = (SVD)ctx;
 
   PetscFunctionBegin;
