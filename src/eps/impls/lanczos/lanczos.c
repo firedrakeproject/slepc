@@ -485,7 +485,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(int),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscReal)+ncv*sizeof(int),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscReal)+ncv*sizeof(PetscInt),&work);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);

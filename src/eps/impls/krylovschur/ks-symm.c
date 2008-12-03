@@ -100,7 +100,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  lwork = 2*eps->ncv*sizeof(PetscReal) + 2*eps->ncv*sizeof(int);
+  lwork = 2*eps->ncv*sizeof(PetscReal) + 2*eps->ncv*sizeof(PetscInt);
   ierr = PetscMalloc(lwork,&work);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
