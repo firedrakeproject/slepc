@@ -55,8 +55,7 @@ int main( int argc, char **argv )
   EPSType     	 type;
   PetscReal   	 error, tol, re, im;
   PetscScalar 	 delta1, delta2, L, h, kr, ki, value[3];
-  PetscInt    	 N=30, n, i, col[3], Istart, Iend;
-  int         	 nev, maxit, its, nconv;
+  PetscInt    	 N=30, n, i, col[3], Istart, Iend, nev, maxit, its, nconv;
   PetscTruth     FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
   CTX_BRUSSEL    *ctx;
@@ -282,7 +281,7 @@ PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatBrussel_Shift"
-PetscErrorCode MatBrussel_Shift( PetscScalar* a, Mat Y )
+PetscErrorCode MatBrussel_Shift(PetscScalar* a,Mat Y)
 {
   CTX_BRUSSEL    *ctx;
   PetscErrorCode ierr;
@@ -295,7 +294,7 @@ PetscErrorCode MatBrussel_Shift( PetscScalar* a, Mat Y )
 
 #undef __FUNCT__
 #define __FUNCT__ "MatBrussel_GetDiagonal"
-int MatBrussel_GetDiagonal(Mat A,Vec diag)
+PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
 {
   Vec            d1, d2;
   PetscErrorCode ierr;

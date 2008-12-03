@@ -24,8 +24,7 @@ int main( int argc, char **argv )
   SVDType     	 type;
   PetscReal   	 error, tol, sigma, mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscErrorCode ierr;
-  PetscInt       n=100, i, j, start, end;
-  int         	 nsv, maxit, its, nconv;
+  PetscInt       n=100, i, j, Istart, Iend, nsv, maxit, its, nconv;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -41,8 +40,8 @@ int main( int argc, char **argv )
   ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
 
-  ierr = MatGetOwnershipRange(A,&start,&end);CHKERRQ(ierr);
-  for (i=start;i<end;i++) {
+  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
     if (i == 0) {
       for (j=0;j<n;j++) {
         ierr = MatSetValue(A,0,j,1.0,INSERT_VALUES);CHKERRQ(ierr);

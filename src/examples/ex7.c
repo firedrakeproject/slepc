@@ -26,7 +26,7 @@ int main( int argc, char **argv )
   PetscReal   	 error, tol, re, im;
   PetscScalar 	 kr, ki;
   PetscErrorCode ierr;
-  int         	 nev, maxit, i, its, lits, nconv;
+  PetscInt    	 nev, maxit, i, its, lits, nconv;
   char        	 filename[256];
   PetscViewer 	 viewer;
   PetscTruth  	 flg;

@@ -38,8 +38,7 @@ int main( int argc, char **argv )
   PetscErrorCode ierr;
   Mat         	 A;		  /* Grcar matrix */
   SVD            svd;             /* singular value solver context */
-  PetscInt    	 N=30, Istart, Iend, i, col[5];
-  int         	 nconv1, nconv2;
+  PetscInt    	 N=30, Istart, Iend, i, col[5], nconv1, nconv2;
   PetscScalar 	 value[] = { -1, 1, 1, 1, 1 };
   PetscReal   	 sigma_1, sigma_n;
 

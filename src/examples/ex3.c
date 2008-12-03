@@ -25,15 +25,14 @@ PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y );
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         A;               /* operator matrix */
-  EPS         eps;             /* eigenproblem solver context */
-  EPSType     type;
-  PetscReal   error, tol, re, im;
-  PetscScalar kr, ki;
-  PetscMPIInt size;
+  Mat            A;               /* operator matrix */
+  EPS            eps;             /* eigenproblem solver context */
+  EPSType        type;
+  PetscReal      error, tol, re, im;
+  PetscScalar    kr, ki;
+  PetscMPIInt    size;
   PetscErrorCode ierr;
-  PetscInt    N, n=10;
-  int         nev, maxit, i, its, nconv;
+  PetscInt       N, n=10, nev, maxit, i, its, nconv;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);

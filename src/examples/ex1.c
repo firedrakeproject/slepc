@@ -25,8 +25,7 @@ int main( int argc, char **argv )
   PetscScalar    kr, ki;
   Vec            xr, xi;
   PetscErrorCode ierr;
-  PetscInt       n=30, i, Istart, Iend, col[3];
-  int            nev, maxit,its, nconv;
+  PetscInt       n=30, i, Istart, Iend, col[3], nev, maxit,its, nconv;
   PetscTruth     FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   PetscScalar    value[3];
 

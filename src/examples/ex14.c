@@ -24,7 +24,7 @@ int main( int argc, char **argv )
   SVDType     	 type;
   PetscReal   	 error, tol, sigma;
   PetscErrorCode ierr;
-  int         	 nsv, maxit, i, its, nconv;
+  PetscInt    	 nsv, maxit, i, its, nconv;
   char        	 filename[256];
   PetscViewer 	 viewer;
   PetscTruth  	 flg;

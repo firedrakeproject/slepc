@@ -33,8 +33,7 @@ int main( int argc, char **argv )
   EPSType     	 type;
   PetscReal   	 error1, error2, tol, re, im;
   PetscScalar 	 kr, ki;
-  int         	 nev, maxit, i, its, nconv;
-  PetscInt    	 N, m=15;
+  PetscInt    	 nev, maxit, i, its, nconv, N, m=15;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

@@ -40,8 +40,7 @@ int main( int argc, char **argv )
   PetscReal      error, tol, re, im;
   PetscScalar    kr, ki;
   PetscErrorCode ierr;
-  int            nev, maxit, its, nconv;
-  PetscInt       n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0;
+  PetscInt       n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0, nev, maxit, its, nconv;
   PetscScalar    value[3];
   PetscTruth     isShell;
 

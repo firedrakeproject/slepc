@@ -29,8 +29,7 @@ int main( int argc, char **argv )
   PetscReal   	 error, tol, re, im;
   PetscScalar 	 kr, ki;
   PetscErrorCode ierr;
-  PetscInt    	 N, n=10, m, Istart, Iend, II, J;
-  int         	 nev, maxit, i, j, its, nconv, nulldim=0;
+  PetscInt    	 N, n=10, m, Istart, Iend, II, J, nev, maxit, i, j, its, nconv, nulldim=0;
   PetscScalar 	 v;
   PetscTruth  	 flag;
 
