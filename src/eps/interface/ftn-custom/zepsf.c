@@ -108,7 +108,7 @@ void PETSC_STDCALL epssettype_(EPS *eps,CHAR type PETSC_MIXED_LEN(len),PetscErro
 
 void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  const char *tname;
+  const EPSType tname;
 
   *ierr = EPSGetType(*eps,&tname);if (*ierr) return;
 #if defined(PETSC_USES_CPTOFCD)

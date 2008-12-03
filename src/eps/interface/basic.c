@@ -99,7 +99,8 @@ PetscErrorCode EPSInitializePackage(char *path) {
 PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  const char     *type, *proj, *which;
+  const EPSType  type;
+  const char     *proj, *which;
   PetscTruth     isascii;
 
   PetscFunctionBegin;

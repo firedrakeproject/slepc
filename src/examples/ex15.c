@@ -21,7 +21,7 @@ int main( int argc, char **argv )
 {
   Mat         	 A;		  /* operator matrix */
   SVD         	 svd;		  /* singular value problem solver context */
-  SVDType     	 type;
+  const SVDType  type;
   PetscReal   	 error, tol, sigma, mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscErrorCode ierr;
   PetscInt       n=100, i, j, Istart, Iend, nsv, maxit, its, nconv;

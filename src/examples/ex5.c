@@ -28,7 +28,7 @@ int main( int argc, char **argv )
   Vec         	 v0;		  /* initial vector */
   Mat         	 A;		  /* operator matrix */
   EPS         	 eps;		  /* eigenproblem solver context */
-  EPSType     	 type;
+  const EPSType  type;
   PetscReal   	 error, tol, re, im;
   PetscScalar 	 kr, ki;
   PetscInt    	 N, m=15, nev, maxit, i, its, nconv;

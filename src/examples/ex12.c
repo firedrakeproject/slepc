@@ -30,7 +30,7 @@ int main( int argc, char **argv )
   Vec         	 *X,*Y; 	  /* right and left eigenvectors */
   Mat         	 A;		  /* operator matrix */
   EPS         	 eps;		  /* eigenproblem solver context */
-  EPSType     	 type;
+  const EPSType  type;
   PetscReal   	 error1, error2, tol, re, im;
   PetscScalar 	 kr, ki;
   PetscInt    	 nev, maxit, i, its, nconv, N, m=15;

@@ -20,7 +20,7 @@ int main( int argc, char **argv )
 {
   Mat            A;           /* operator matrix */
   EPS            eps;         /* eigenproblem solver context */
-  EPSType        type;
+  const EPSType  type;
   PetscReal      error, tol,re, im;
   PetscScalar    kr, ki;
   Vec            xr, xi;

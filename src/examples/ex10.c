@@ -36,7 +36,7 @@ int main( int argc, char **argv )
   EPS            eps;		  /* eigenproblem solver context */
   ST             st;		  /* spectral transformation context */
   SampleShellST  *shell;	  /* user-defined spectral transform context */
-  EPSType        type;
+  const EPSType  type;
   PetscReal      error, tol, re, im;
   PetscScalar    kr, ki;
   PetscErrorCode ierr;

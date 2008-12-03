@@ -100,7 +100,7 @@ PetscErrorCode SVDInitializePackage(char *path)
 PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  const char     *type;
+  const SVDType  type;
   PetscTruth     isascii;
 
   PetscFunctionBegin;
