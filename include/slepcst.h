@@ -71,9 +71,9 @@ EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
 EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);
 
-EXTERN PetscErrorCode STCheckNullSpace(ST,int,const Vec[]);
+EXTERN PetscErrorCode STCheckNullSpace(ST,PetscInt,const Vec[]);
 
-EXTERN PetscErrorCode STGetOperationCounters(ST,int*,int*);
+EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode STResetOperationCounters(ST);
 
 /*E
@@ -90,7 +90,7 @@ EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
 
-EXTERN PetscErrorCode STRegister(const char*,const char*,const char*,int(*)(ST));
+EXTERN PetscErrorCode STRegister(const char*,const char*,const char*,PetscErrorCode(*)(ST));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,0)
 #else

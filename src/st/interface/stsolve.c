@@ -173,7 +173,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   ierr = VecGetSize(out,&M);CHKERRQ(ierr);
   ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(out,&start,&end);CHKERRQ(ierr);
-  ierr = PetscMalloc(m*sizeof(int),&rows);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*sizeof(PetscInt),&rows);CHKERRQ(ierr);
   for (i=0; i<m; i++) rows[i] = start + i;
 
   ierr = MatCreateMPIDense(((PetscObject)st)->comm,m,m,M,M,PETSC_NULL,mat);CHKERRQ(ierr);

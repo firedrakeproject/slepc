@@ -19,16 +19,16 @@ extern PetscFList STList;
 typedef struct _STOps *STOps;
 
 struct _STOps {
-  int          (*setup)(ST);
-  int          (*apply)(ST,Vec,Vec);
-  int          (*getbilinearform)(ST,Mat*);
-  int          (*applytrans)(ST,Vec,Vec);
-  int          (*setshift)(ST,PetscScalar);
-  int          (*setfromoptions)(ST);
-  int          (*postsolve)(ST);  
-  int          (*backtr)(ST,PetscScalar*,PetscScalar*);  
-  int          (*destroy)(ST);
-  int          (*view)(ST,PetscViewer);
+  PetscErrorCode   (*setup)(ST);
+  PetscErrorCode   (*apply)(ST,Vec,Vec);
+  PetscErrorCode   (*getbilinearform)(ST,Mat*);
+  PetscErrorCode   (*applytrans)(ST,Vec,Vec);
+  PetscErrorCode   (*setshift)(ST,PetscScalar);
+  PetscErrorCode   (*setfromoptions)(ST);
+  PetscErrorCode   (*postsolve)(ST);  
+  PetscErrorCode   (*backtr)(ST,PetscScalar*,PetscScalar*);  
+  PetscErrorCode   (*destroy)(ST);
+  PetscErrorCode   (*view)(ST,PetscViewer);
 };
 
 struct _p_ST {
@@ -41,13 +41,13 @@ struct _p_ST {
   Mat            mat;
 
   /*------------------------- Misc data --------------------------*/
-  KSP          ksp;
-  Vec          w;
-  void         *data;
-  int          setupcalled;
-  int          lineariterations;
-  int          applys;
-  int          (*checknullspace)(ST,int,const Vec[]);
+  KSP            ksp;
+  Vec            w;
+  void           *data;
+  PetscInt       setupcalled;
+  PetscInt       lineariterations;
+  PetscInt       applys;
+  PetscErrorCode (*checknullspace)(ST,PetscInt,const Vec[]);
   
 };
 
@@ -57,7 +57,7 @@ EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 EXTERN PetscErrorCode STView_Default(ST,PetscViewer);
 EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
-EXTERN PetscErrorCode STCheckNullSpace_Default(ST,int,const Vec[]);
+EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
 EXTERN PetscErrorCode STMatShellCreate(ST st,Mat *mat);
 
 #endif

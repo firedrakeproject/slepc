@@ -163,7 +163,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 
 .seealso: STResetOperationCounters()
 @*/
-PetscErrorCode STGetOperationCounters(ST st,int* ops,int* lits)
+PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -199,10 +199,10 @@ PetscErrorCode STResetOperationCounters(ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace_Default"
-PetscErrorCode STCheckNullSpace_Default(ST st,int n,const Vec V[])
+PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
 {
   PetscErrorCode ierr;
-  int            i,c;
+  PetscInt       i,c;
   PetscReal      norm;
   Vec            *T,w;
   Mat            A;
@@ -256,7 +256,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,int n,const Vec V[])
 
 .seealso: EPSAttachDeflationSpace()
 @*/
-PetscErrorCode STCheckNullSpace(ST st,int n,const Vec V[])
+PetscErrorCode STCheckNullSpace(ST st,PetscInt n,const Vec V[])
 {
   PetscErrorCode ierr;
 

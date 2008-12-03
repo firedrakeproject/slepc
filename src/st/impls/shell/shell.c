@@ -345,7 +345,7 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(void*,Pets
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetBackTransform_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
-    ierr = (*f)(st,(int (*)(void*,PetscScalar*,PetscScalar*))backtr);CHKERRQ(ierr);
+    ierr = (*f)(st,(PetscErrorCode (*)(void*,PetscScalar*,PetscScalar*))backtr);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

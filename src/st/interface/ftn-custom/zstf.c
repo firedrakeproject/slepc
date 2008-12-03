@@ -116,7 +116,7 @@ void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)
   *ierr = STView(*st,v);
 }
 
-void PETSC_STDCALL  stgetmatmode_(ST *st,STMatMode *mode,int *ierr)
+void PETSC_STDCALL  stgetmatmode_(ST *st,STMatMode *mode,PetscErrorCode *ierr)
 {
   *ierr = STGetMatMode(*st,mode);
 }

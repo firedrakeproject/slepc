@@ -483,7 +483,7 @@ PetscErrorCode STView_Default(ST st,PetscViewer viewer)
    STRegisterDynamic - Adds a method to the spectral transformation package.
 
    Synopsis:
-   STRegisterDynamic(char *name_solver,char *path,char *name_create,int (*routine_create)(ST))
+   STRegisterDynamic(char *name_solver,char *path,char *name_create,PetscErrorCode (*routine_create)(ST))
 
    Not collective
 
@@ -524,7 +524,7 @@ M*/
 
   Level: advanced
 @*/
-PetscErrorCode STRegister(const char *sname,const char *path,const char *name,int (*function)(ST))
+PetscErrorCode STRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(ST))
 {
   PetscErrorCode ierr;
   char           fullname[256];
