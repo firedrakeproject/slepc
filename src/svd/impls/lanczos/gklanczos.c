@@ -137,8 +137,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm,*work,*Q,*PT;
   PetscScalar    *swork;
-  PetscBLASInt   n,info,nwork=0,*iwork;
-  PetscInt       i,j,k,m,*perm;
+  PetscBLASInt   n,info,*iwork;
+  PetscInt       i,j,k,m,nwork=0,*perm;
   Vec            v,u,u_1,wv,wu,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   
@@ -149,7 +149,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = PetscMalloc(sizeof(PetscReal)*svd->n*svd->n,&Q);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*svd->n*svd->n,&PT);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*(3*svd->n+4)*svd->n,&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*8*svd->n,&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscBLASInt)*8*svd->n,&iwork);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&wv);CHKERRQ(ierr);
