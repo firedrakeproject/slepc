@@ -82,8 +82,8 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
 PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       nn;				   
-  PetscBLASInt   ipar[32], i, n, lohi, stat, ncv=eps->ncv; 
+  PetscInt       i,nn;
+  PetscBLASInt   ipar[32], n, lohi, stat, ncv=eps->ncv; 
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;	   
   PetscScalar    *pV;				   
   
