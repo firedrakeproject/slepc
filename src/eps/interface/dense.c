@@ -125,7 +125,8 @@ PetscErrorCode EPSDenseGNHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscScal
   PetscErrorCode ierr;
   PetscReal      *rscale,*lscale,abnrm,bbnrm,dummy;
   PetscScalar    *alpha,*beta,*work;
-  PetscBLASInt   i,ilo,ihi,idummy,info,n=n_;
+  PetscInt       i;
+  PetscBLASInt   ilo,ihi,idummy,info,n=n_;
   const char     *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -349,7 +350,8 @@ PetscErrorCode EPSDenseHessenberg(PetscInt n_,PetscInt k,PetscScalar *A,PetscInt
 #else
   PetscScalar    *tau,*work;
   PetscErrorCode ierr;
-  PetscBLASInt   i,j,ilo,lwork,info,n=n_,lda=lda_;
+  PetscInt       i,j;
+  PetscBLASInt   ilo,lwork,info,n=n_,lda=lda_;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
@@ -422,10 +424,10 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
   SETERRQ(PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt ilo,lwork,info,n=n_,ldh=ldh_;
-  PetscScalar *work;
+  PetscBLASInt   ilo,lwork,info,n=n_,ldh=ldh_;
+  PetscScalar    *work;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscInt j;
+  PetscInt       j;
 #endif
   
   PetscFunctionBegin;
@@ -501,12 +503,13 @@ PetscErrorCode EPSSortDenseSchur(PetscInt n_,PetscInt k,PetscScalar *T,PetscInt 
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
-  PetscBLASInt i,j,ifst,ilst,info,pos,n=n_,ldt=ldt_;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar *work;
-#endif
-  PetscReal   value,v;
   PetscErrorCode ierr;
+  PetscReal      value,v;
+  PetscInt       i,j;
+  PetscBLASInt   ifst,ilst,info,pos,n=n_,ldt=ldt_;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    *work;
+#endif
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
@@ -665,12 +668,13 @@ PetscErrorCode EPSSortDenseSchurTarget(PetscInt n_,PetscInt k,PetscScalar *T,Pet
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
-  PetscBLASInt i,j,ifst,ilst,info,pos,n=n_,ldt=ldt_;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar *work;
-#endif
-  PetscReal   value,v;
   PetscErrorCode ierr;
+  PetscReal      value,v;
+  PetscInt       i,j;
+  PetscBLASInt   ifst,ilst,info,pos,n=n_,ldt=ldt_;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    *work;
+#endif
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
@@ -802,10 +806,11 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscScalar *A,PetscInt lda_,Pets
 #else
   PetscErrorCode ierr;
   PetscReal      abstol = 0.0,vl,vu,*D,*E,*work;
-  PetscBLASInt   i,il,iu,m,*isuppz,n=n_,lda=lda_,lwork = 20*n,*iwork,liwork = 10*n,info;
+  PetscInt       i;
+  PetscBLASInt   il,iu,m,*isuppz,n=n_,lda=lda_,lwork = 20*n,*iwork,liwork = 10*n,info;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
-  PetscBLASInt   j;
+  PetscInt       j;
   PetscReal      *VV;
 #endif
   
