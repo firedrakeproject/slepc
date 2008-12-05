@@ -15,6 +15,7 @@
 #define ipcreate_                 IPCREATE
 #define ipsetoptionsprefix_       IPSETOPTIONSPREFIX
 #define ipappendoptionsprefix_    IPAPPENDOPTIONSPREFIX
+#define ipgetoptionsprefix_       IGSETOPTIONSPREFIX
 #define ipgetorthogonalization_   IPGETORTHOGONALIZATION
 #define ipview_                   IPVIEW
 #define ipgetbilinarform_         IPGETBILINARFORM
@@ -22,6 +23,7 @@
 #define ipcreate_                 ipcreate
 #define ipsetoptionsprefix_       ipsetoptionsprefix
 #define ipappendoptionsprefix_    ipappendoptionsprefix
+#define ipgetoptionsprefix_       ipgetoptionsprefix
 #define ipgetorthogonalization_   ipgetorthogonalization
 #define ipview_                   ipview
 #define ipgetbilinarform_         ipgetbilinarform
@@ -52,6 +54,22 @@ void PETSC_STDCALL ipappendoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len
   FIXCHAR(prefix,len,t);
   *ierr = IPAppendOptionsPrefix(*ip,t);
   FREECHAR(prefix,t);
+}
+
+void PETSC_STDCALL ipgetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  const char *tname;
+
+  *ierr = IPGetOptionsPrefix(*ip,&tname);
+#if defined(PETSC_USES_CPTOFCD)
+  {
+    char *t = _fcdtocp(prefix); int len1 = _fcdlen(prefix);
+    *ierr = PetscStrncpy(t,tname,len1); if (*ierr) return;
+  }
+#else
+  *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
+#endif
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement,PetscReal *eta,PetscErrorCode *ierr)

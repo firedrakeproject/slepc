@@ -168,6 +168,38 @@ PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "IPGetOptionsPrefix"
+/*@C
+   IPGetOptionsPrefix - Gets the prefix used for searching for all 
+   IP options in the database.
+
+   Not Collective
+
+   Input Parameters:
+.  ip - the innerproduct context
+
+   Output Parameters:
+.  prefix - pointer to the prefix string used is returned
+
+   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   sufficient length to hold the prefix.
+
+   Level: advanced
+
+.seealso: IPSetOptionsPrefix(), IPAppendOptionsPrefix()
+@*/
+PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
+{
+ PetscErrorCode ierr;
+ PetscFunctionBegin;
+ PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+ PetscValidPointer(prefix,2);
+ ierr = PetscObjectGetOptionsPrefix((PetscObject)ip, prefix);CHKERRQ(ierr);
+ PetscFunctionReturn(0);
+}
+
+
 #undef __FUNCT__  
 #define __FUNCT__ "IPSetFromOptions"
 /*@
