@@ -39,8 +39,6 @@ typedef struct {
 #define SLEPC_ARPACK(lcase,ucase) lcase
 #endif
 
-#if !defined(_petsc_mpi_uni)
-
 #if !defined(PETSC_USE_COMPLEX)
 
 /*
@@ -83,56 +81,7 @@ typedef struct {
 
 #endif
 
-#else
-/* _petsc_mpi_uni */
-
-#if !defined(PETSC_USE_COMPLEX)
-
-/*
-    These are real case 
-*/
-
-#if defined(PETSC_USE_SINGLE) 
-/*
-   For these machines we must call the single precision Fortran version
-*/
-#define ARnaupd__ SLEPC_ARPACK(snaupd,SNAUPD)
-#define ARneupd__ SLEPC_ARPACK(sneupd,SNEUPD)
-#define ARsaupd__ SLEPC_ARPACK(ssaupd,SSAUPD)
-#define ARseupd__ SLEPC_ARPACK(sseupd,SSEUPD)
-
-#else
-
-#define ARnaupd__ SLEPC_ARPACK(dnaupd,DNAUPD)
-#define ARneupd__ SLEPC_ARPACK(dneupd,DNEUPD)
-#define ARsaupd__ SLEPC_ARPACK(dsaupd,DSAUPD)
-#define ARseupd__ SLEPC_ARPACK(dseupd,DSEUPD)
-
-#endif
-
-#else
-/*
-   Complex 
-*/
-#if defined(PETSC_USE_SINGLE) 
-
-#define ARnaupd__ SLEPC_ARPACK(cnaupd,CNAUPD)
-#define ARneupd__ SLEPC_ARPACK(cneupd,CNEUPD)
-
-#else
-
-#define ARnaupd__ SLEPC_ARPACK(znaupd,ZNAUPD)
-#define ARneupd__ SLEPC_ARPACK(zneupd,ZNEUPD)
-
-#endif
-
-#endif
-
-#endif
-
 EXTERN_C_BEGIN
-
-#if !defined(_petsc_mpi_uni)
 
 EXTERN void   ARsaupd_(MPI_Fint*,PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
@@ -158,39 +107,6 @@ EXTERN void   ARneupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscScalar*,Pets
                        PetscScalar*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,
                        PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,
                        PetscReal*,PetscBLASInt*,int,int,int);
-#endif
-
-#else
-/* _petsc_mpi_uni */
-
-EXTERN void   ARsaupd__(PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,
-                        PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,
-                        PetscBLASInt*,int,int);
-#define ARsaupd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) ARsaupd__(b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) 
-EXTERN void   ARseupd__(PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,char*,PetscBLASInt*,
-                        const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,
-                        PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,int,int,int);
-#define ARseupd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z) ARseupd__(b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z) 
-
-#if !defined(PETSC_USE_COMPLEX)
-EXTERN void   ARnaupd__(PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,
-                        PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,
-                        PetscBLASInt*,int,int);
-#define ARnaupd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) ARnaupd__(b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) 
-EXTERN void   ARneupd__(PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,
-                        PetscReal*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,
-                        PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,int,int,int);
-#define ARneupd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,a1,a2,a3) ARneupd__(b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,a1,a2,a3) 
-#else
-EXTERN void   ARnaupd__(PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,
-                        PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,int,int);
-#define ARnaupd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t) ARnaupd__(b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t) 
-EXTERN void   ARneupd__(PetscTruth*,char*,PetscTruth*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,char*,PetscBLASInt*,
-                        const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,
-                        PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,int,int,int);
-#define ARneupd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,a1,a2) ARneupd__(b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,a1,a2) 
-#endif
-
 #endif
 
 EXTERN_C_END

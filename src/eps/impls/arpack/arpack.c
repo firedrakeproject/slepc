@@ -78,17 +78,13 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   Vec         	 x, y, w = eps->work[0];
   Mat         	 A;
   PetscTruth  	 isSinv, isShift, rvec;
-#if !define(_petsc_mpi_uni)
-  MPI_Fint    	 fcomm;
-#else
   PetscBLASInt   fcomm;
-#endif
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
   PetscFunctionBegin;
 
-  fcomm = MPI_Comm_c2f(((PetscObject)eps)->comm);
+  fcomm = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm));
   ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
   n = nn;
   ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
