@@ -299,6 +299,38 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "EPSGetOperators"
+/*@
+   EPSGetOperators - Gets the matrices associated with the eigensystem.
+
+   Collective on EPS and Mat
+
+   Input Parameter:
+.  eps - the EPS context
+
+   Output Parameters:
++  A  - the matrix associated with the eigensystem
+-  B  - the second matrix in the case of generalized eigenproblems
+
+   Level: intermediate
+
+.seealso: EPSSolve(), EPSGetST(), STGetOperators(), STSetOperators()
+@*/
+PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
+{
+  PetscErrorCode ierr;
+  ST             st;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (A) PetscValidPointer(A,2);
+  if (B) PetscValidPointer(B,3);
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = STGetOperators(st,A,B);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAttachDeflationSpace"
 /*@

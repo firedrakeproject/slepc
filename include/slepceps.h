@@ -102,6 +102,7 @@ EXTERN PetscErrorCode EPSGetProjection(EPS,EPSProjection*);
 EXTERN PetscErrorCode EPSSetClass(EPS,EPSClass);
 EXTERN PetscErrorCode EPSGetClass(EPS,EPSClass*);
 EXTERN PetscErrorCode EPSSetOperators(EPS,Mat,Mat);
+EXTERN PetscErrorCode EPSGetOperators(EPS,Mat*,Mat*);
 EXTERN PetscErrorCode EPSSetFromOptions(EPS);
 EXTERN PetscErrorCode EPSSetUp(EPS);
 EXTERN PetscErrorCode EPSSolve(EPS);
