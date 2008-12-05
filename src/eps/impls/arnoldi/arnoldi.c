@@ -401,8 +401,8 @@ PetscErrorCode EPSUpdateVector(EPS eps,PetscInt k,Vec *U,PetscScalar *q,PetscInt
 #else
   PetscErrorCode ierr;
   PetscTruth     isrefined;
-  PetscBLASInt   i,j,n=n_,ldh=ldh_;
-  PetscBLASInt   n1,bN,lwork,idummy=1,info;
+  PetscInt       i,j;
+  PetscBLASInt   n1,lwork,idummy=1,info,n=n_,ldh=ldh_;
   PetscScalar    *B,sdummy,*work;
   PetscReal      *sigma;
 
