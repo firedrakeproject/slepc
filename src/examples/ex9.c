@@ -120,7 +120,7 @@ int main( int argc, char **argv )
      Fill the remaining information in the shell matrix context
      and create auxiliary vectors
   */
-  h = 1.0 / (double)(N+1);
+  h = 1.0 / (PetscReal)(N+1);
   ctx->tau1 = delta1 / ((h*L)*(h*L));
   ctx->tau2 = delta2 / ((h*L)*(h*L));
   ctx->sigma = 0.0;

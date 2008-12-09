@@ -48,7 +48,7 @@ PetscErrorCode SlepcVecSetRandom(Vec x)
 #if defined(PETSC_HAVE_DRAND48)
     t = erand48(seed);
 #elif defined(PETSC_HAVE_RAND)
-    t = rand()/(double)((unsigned int)RAND_MAX+1);
+    t = rand()/(PetscReal)((unsigned int)RAND_MAX+1);
 #else
     t = 0.5;
 #endif
