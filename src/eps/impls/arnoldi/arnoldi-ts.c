@@ -13,7 +13,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/epsimpl.h"
+#include "private/epsimpl.h"
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  

@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/st/stimpl.h"            /*I "slepcst.h" I*/
+#include "private/stimpl.h"            /*I "slepcst.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "STApply"

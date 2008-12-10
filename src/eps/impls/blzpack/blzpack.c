@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/impls/blzpack/blzpackp.h"   /*I "slepceps.h" I*/
+#include "src/eps/impls/blzpack/blzpackp.h"
 
 const char* blzpack_error[33] = {
   "",

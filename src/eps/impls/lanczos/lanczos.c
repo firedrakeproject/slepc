@@ -26,7 +26,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
+#include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
 typedef struct {

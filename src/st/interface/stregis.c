@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/st/stimpl.h"          /*I   "slepcst.h"   I*/
+#include "private/stimpl.h"          /*I   "slepcst.h"   I*/
 
 EXTERN_C_BEGIN
 EXTERN PetscErrorCode STCreate_Shell(ST);

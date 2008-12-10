@@ -11,7 +11,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/ip/ipimpl.h"      /*I "slepcip.h" I*/
+#include "private/ipimpl.h"      /*I "slepcip.h" I*/
 #include "slepcblaslapack.h"
 
 /* 

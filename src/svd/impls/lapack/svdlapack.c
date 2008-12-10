@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/svd/svdimpl.h"
+#include "private/svdimpl.h"
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  

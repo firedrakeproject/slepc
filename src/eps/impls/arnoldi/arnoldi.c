@@ -24,7 +24,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/epsimpl.h"                /*I "slepceps.h" I*/
+#include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
 extern PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,PetscInt m,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work);

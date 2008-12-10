@@ -10,8 +10,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/st/stimpl.h"
-#include "src/eps/epsimpl.h"
+#include "private/stimpl.h"
+#include "private/epsimpl.h"
 #include "slepc-interface.h"
 #include "lobpcg.h"
 #include "interpreter.h"

@@ -11,7 +11,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/svd/svdimpl.h"        /*I "slepcsvd.h" I*/
+#include "private/svdimpl.h"        /*I "slepcsvd.h" I*/
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  

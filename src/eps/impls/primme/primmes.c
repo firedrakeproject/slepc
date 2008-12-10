@@ -11,8 +11,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/epsimpl.h"    /*I "slepceps.h" I*/
-#include "src/st/stimpl.h"
+#include "private/epsimpl.h"    /*I "slepceps.h" I*/
+#include "private/stimpl.h"
 
 EXTERN_C_BEGIN
 #include "primme.h"

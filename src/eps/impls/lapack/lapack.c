@@ -11,7 +11,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/epsimpl.h"
+#include "private/epsimpl.h"
 #include "slepcblaslapack.h"
 
 typedef struct {

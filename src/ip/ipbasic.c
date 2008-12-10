@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/ip/ipimpl.h"      /*I "slepcip.h" I*/
+#include "private/ipimpl.h"      /*I "slepcip.h" I*/
 
 PetscCookie IP_COOKIE = 0;
 PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;

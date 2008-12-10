@@ -12,11 +12,11 @@ CFLAGS   =
 FFLAGS   =
 SOURCEC  =
 SOURCEF  =
-SOURCEH  = slepc.h slepceps.h slepcst.h slepcsvd.h slepcip.h slepcversion.h slepcblaslapack.h
+SOURCEH  = epsimpl.h stimpl.h svdimpl.h ipimpl.h
 OBJSC    =
 OBJSF    =
 LIBBASE  = libslepc
-DIRS     = finclude private
+DIRS     = 
 LOCDIR   = include/
 MANSEC   = 
 

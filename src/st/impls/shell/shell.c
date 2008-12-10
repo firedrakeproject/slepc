@@ -12,7 +12,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/st/stimpl.h"        /*I "slepcst.h" I*/
+#include "private/stimpl.h"        /*I "slepcst.h" I*/
 #include "slepceps.h"
 
 EXTERN_C_BEGIN 

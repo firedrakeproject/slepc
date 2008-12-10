@@ -10,7 +10,7 @@
 
 #include "private/fortranimpl.h"
 #include "slepceps.h"
-#include "src/eps/epsimpl.h"
+#include "private/epsimpl.h"
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define epsview_                    EPSVIEW

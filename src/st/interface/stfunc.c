@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/st/stimpl.h"            /*I "slepcst.h" I*/
+#include "private/stimpl.h"            /*I "slepcst.h" I*/
 
 PetscCookie ST_COOKIE = 0;
 PetscLogEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;

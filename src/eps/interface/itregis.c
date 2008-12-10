@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/epsimpl.h"  /*I "slepceps.h" I*/
+#include "private/epsimpl.h"  /*I "slepceps.h" I*/
 
 EXTERN_C_BEGIN
 EXTERN PetscErrorCode EPSCreate_POWER(EPS);

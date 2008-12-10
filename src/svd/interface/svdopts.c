@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/svd/svdimpl.h"      /*I "slepcsvd.h" I*/
+#include "private/svdimpl.h"      /*I "slepcsvd.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetTransposeMode"

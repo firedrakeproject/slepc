@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/epsimpl.h"      /*I "slepceps.h" I*/
+#include "private/epsimpl.h"      /*I "slepceps.h" I*/
 
 PetscFList EPSList = 0;
 PetscCookie EPS_COOKIE = 0;
