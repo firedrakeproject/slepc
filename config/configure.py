@@ -125,7 +125,7 @@ print 'Checking environment...'
 if 'SLEPC_DIR' not in os.environ:
   sys.exit('ERROR: SLEPC_DIR enviroment variable is not set')
 slepcdir = os.environ['SLEPC_DIR']
-if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'bmake'])):
+if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'conf'])):
   sys.exit('ERROR: SLEPC_DIR enviroment variable is not valid')
 os.chdir(slepcdir)
 if 'PETSC_DIR' not in os.environ:
@@ -142,22 +142,28 @@ if not petscconf.PRECISION in ['double','single','matsingle']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
 
 # Create architecture directory and configuration file
-archdir = os.sep.join([slepcdir,'bmake',petscconf.ARCH])
+archdir = os.sep.join([slepcdir,petscconf.ARCH])
 if not os.path.exists(archdir):
   try:
     os.mkdir(archdir)
   except:
     sys.exit('ERROR: cannot create architecture directory ' + archdir)
+confdir = os.sep.join([archdir,'conf'])
+if not os.path.exists(confdir):
+  try:
+    os.mkdir(confdir)
+  except:
+    sys.exit('ERROR: cannot create configuration directory ' + confdir)
 try:
-  slepcconf = open(os.sep.join([archdir,'slepcconf']),'w')
+  slepcconf = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
     prefixdir = slepcdir
   slepcconf.write('SLEPC_INSTALL_DIR =' + prefixdir +'\n')
 except:
-  sys.exit('ERROR: cannot create configuration file in ' + archdir)
+  sys.exit('ERROR: cannot create configuration file in ' + confdir)
 
 # Open log file
-log.Open('configure_log_' + petscconf.ARCH)
+log.Open(os.sep.join([confdir,'configure.log']))
 log.Write('='*80)
 log.Write('Starting Configure Run at '+time.ctime(time.time()))
 log.Write('Configure Options: '+str.join(' ',sys.argv))

@@ -19,4 +19,4 @@ SOURCEH  =
 DIRS     =
 LIBBASE  = libslepc
 LOCDIR   = src/sys/ftn-custom/
-include ${SLEPC_DIR}/bmake/slepc_common  
+include ${SLEPC_DIR}/conf/slepc_common  

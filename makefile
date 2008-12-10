@@ -15,7 +15,7 @@ ALL: all
 LOCDIR = .
 DIRS   = src include docs 
 
-include ${SLEPC_DIR}/bmake/slepc_common
+include ${SLEPC_DIR}/conf/slepc_common
 
 #
 # Basic targets to build SLEPc libraries.
@@ -23,11 +23,11 @@ include ${SLEPC_DIR}/bmake/slepc_common
 all:
 	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkpetsc_dir
 	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkslepc_dir
-	-@${OMAKE} all_build 2>&1 | tee make_log_${PETSC_ARCH}
-	-@egrep -i "( error | error:)" make_log_${PETSC_ARCH} > /dev/null; if [ "$$?" = "0" ]; then \
+	-@${OMAKE} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
+	-@egrep -i "( error | error:)" ${PETSC_ARCH}/conf/make.log > /dev/null; if [ "$$?" = "0" ]; then \
            echo "********************************************************************"; \
-           echo "  Error during compile, check make_log_${PETSC_ARCH}"; \
-           echo "  Send it and configure.log to slepc-maint@grycap.upv.es";\
+           echo "  Error during compile, check ${PETSC_ARCH}/conf/make.log"; \
+           echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es";\
            echo "********************************************************************"; \
            exit 1; fi
 	
@@ -50,7 +50,7 @@ info:
 	-@echo "-----------------------------------------"
 	-@echo "Using PETSc configure options " ${CONFIGURE_OPTIONS}
 	-@echo "Using SLEPc configuration flags:"
-	-@cat ${SLEPC_DIR}/bmake/${PETSC_ARCH}/slepcconf
+	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
 	-@echo "Using PETSc configuration flags:"
 	-@grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h
 	-@echo "-----------------------------------------"
@@ -84,13 +84,14 @@ build:
 	-@echo "Completed building SLEPc libraries"
 	-@echo "========================================="
 
-# Builds SLEPc test examples for a given architecture
+# Simple test examples for checking a correct installation
 test: 
 	-@echo "Running test examples to verify correct installation"
 	@cd src/examples; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testex1
 	@if [ "${FC}" != "" ]; then cd src/examples; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} testex1f; fi;
 	-@echo "Completed test examples"
 
+# Builds SLEPc test examples for C
 testexamples: info
 	-@echo "BEGINNING TO COMPILE AND RUN SLEPc TEST EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
@@ -101,7 +102,7 @@ testexamples: info
 	-@echo "Completed compiling and running test examples"
 	-@echo "========================================="
 
-# Builds SLEPc test examples for a given architecture
+# Builds SLEPc test examples for Fortran
 testfortran: info
 	-@echo "BEGINNING TO COMPILE AND RUN SLEPc FORTRAN TEST EXAMPLES"
 	-@echo "========================================="
@@ -118,7 +119,7 @@ testfortran: info
 	-@
 	-@echo "========================================="
 
-# Builds SLEPc test examples for a given architecture
+# Uni-processor examples in C
 testexamples_uni: info
 	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
@@ -129,7 +130,7 @@ testexamples_uni: info
 	-@echo "Completed compiling and running uniprocessor test examples"
 	-@echo "========================================="
 
-# Builds SLEPc test examples for a given architecture
+# Uni-processor examples in Fortran
 testfortran_uni: info
 	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR FORTRAN EXAMPLES"
 	-@echo "Due to different numerical round-off on certain"
@@ -137,7 +138,7 @@ testfortran_uni: info
 	-@echo "========================================="
 	-@if [ "${FC}" != "" ]; then \
             ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=testexamples_Fortran_MPIUni  tree; \
-            echo "Completed compiling and running uniprocessor fortran test examples"; \
+            echo "Completed compiling and running uniprocessor Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
           fi
@@ -194,23 +195,23 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude ; \
           fi;\
           cp -f include/finclude/*.h ${SLEPC_INSTALL_DIR}/include/finclude;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/bmake ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/bmake ; \
+          if [ ! -d ${SLEPC_INSTALL_DIR}/conf ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/conf ; \
           fi;\
-          cp -f bmake/slepc_common* ${SLEPC_INSTALL_DIR}/bmake;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/bmake/${PETSC_ARCH} ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/bmake/${PETSC_ARCH} ; \
+          cp -f conf/slepc_common* ${SLEPC_INSTALL_DIR}/conf;\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/${PETSC_ARCH} ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH} ; \
           fi;\
-          cp -f bmake/${PETSC_ARCH}/slepcconf ${SLEPC_INSTALL_DIR}/bmake/${PETSC_ARCH};\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/lib ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
+          if [ ! -d ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/conf ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/conf ; \
           fi;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH} ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH} ; \
+          cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/conf;\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib ; \
           fi;\
-          if [ -d lib/${PETSC_ARCH} ]; then \
-            cp -f lib/${PETSC_ARCH}/* ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH};\
-            ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH}/*.a ;\
+          if [ -d ${PETSC_ARCH}/lib ]; then \
+            cp -f ${PETSC_ARCH}/lib/* ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib;\
+            ${RANLIB} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib/*.a ;\
             ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
           fi;\
           echo "sh/bash: SLEPC_DIR="${SLEPC_INSTALL_DIR}"; export SLEPC_DIR";\
@@ -255,7 +256,7 @@ allfortranstubs:
 
 # -------------------------------------------------------------------------------
 #
-# Some macros to check if the fortran interface is up-to-date.
+# Some macros to check if the Fortran interface is up-to-date.
 #
 countfortranfunctions: 
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto` \
@@ -270,7 +271,7 @@ countcfunctions:
 	tr 'A-Z' 'a-z' |  sort > /tmp/countcfunctions
 
 difffortranfunctions: countfortranfunctions countcfunctions
-	-@echo -------------- Functions missing in the fortran interface ---------------------
+	-@echo -------------- Functions missing in the Fortran interface ---------------------
 	-@${DIFF} /tmp/countcfunctions /tmp/countfortranfunctions | grep "^<" | cut -d' ' -f2
 	-@echo ----------------- Functions missing in the C interface ------------------------
 	-@${DIFF} /tmp/countcfunctions /tmp/countfortranfunctions | grep "^>" | cut -d' ' -f2

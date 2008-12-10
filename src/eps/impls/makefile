@@ -15,6 +15,6 @@ DIRS     = power subspace arnoldi lanczos krylovschur lapack arpack blzpack trla
 LOCDIR   = src/eps/impls/
 MANSEC   = EPS
 
-include ${SLEPC_DIR}/bmake/slepc_common
+include ${SLEPC_DIR}/conf/slepc_common
 
 

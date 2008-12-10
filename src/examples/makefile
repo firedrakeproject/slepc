@@ -30,7 +30,7 @@ TESTEXAMPLES_FORTRAN_MPIUNI  = ex6f.PETSc runex6f_1 ex6f.rm
 
 TESTEXAMPLES_C_X11_MPIUNI  = ex3.PETSc runex3_1 ex3.rm
 
-include ${SLEPC_DIR}/bmake/slepc_common
+include ${SLEPC_DIR}/conf/slepc_common
 
 ex1: ex1.o chkopts
 	-${CLINKER} -o ex1 ex1.o ${SLEPC_LIB}

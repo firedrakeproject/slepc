@@ -21,6 +21,6 @@ DIRS     =
 MANSEC   = ST
 LOCDIR   = src/st/impls/sinvert/
 
-include ${SLEPC_DIR}/bmake/slepc_common
+include ${SLEPC_DIR}/conf/slepc_common
 
 

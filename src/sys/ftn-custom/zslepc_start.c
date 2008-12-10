@@ -71,7 +71,7 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErro
     *ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);if (*ierr) return;
   } else {
     *ierr = 1;
-    (*PetscErrorPrintf)("Unable to locate SLEPc dynamic library %s \n You cannot move the dynamic libraries!\n or remove USE_DYNAMIC_LIBRARIES from ${PETSC_DIR}/bmake/$PETSC_ARCH/petscconf.h\n and rebuild libraries before moving\n",libs);
+    (*PetscErrorPrintf)("Unable to locate SLEPc dynamic library %s \n",libs);
     return;
   }
 #else

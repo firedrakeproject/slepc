@@ -1,7 +1,7 @@
 include ${PETSC_DIR}/conf/variables
-include ${SLEPC_DIR}/bmake/${PETSC_ARCH}/slepcconf
+include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
 
-SLEPC_LIB_DIR	    = ${SLEPC_DIR}/lib/${PETSC_ARCH}
+SLEPC_LIB_DIR	    = ${SLEPC_DIR}/${PETSC_ARCH}/lib
 SLEPC_INCLUDE       = -I${SLEPC_DIR} -I${SLEPC_DIR}/include
 CC_INCLUDES         = ${PETSC_INCLUDE} ${SLEPC_INCLUDE}
 FC_INCLUDES         = ${PETSC_INCLUDE} ${SLEPC_INCLUDE}

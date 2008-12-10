@@ -20,7 +20,7 @@ DIRS      =
 MANSEC    = 
 LOCDIR    = include/finclude/
 
-include ${SLEPC_DIR}/bmake/slepc_common
+include ${SLEPC_DIR}/conf/slepc_common
 
 runexamples:
 

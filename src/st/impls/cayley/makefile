@@ -21,6 +21,6 @@ DIRS     =
 MANSEC   = ST
 LOCDIR   = src/st/impls/cayley/
 
-include ${SLEPC_DIR}/bmake/slepc_common
+include ${SLEPC_DIR}/conf/slepc_common
 
 

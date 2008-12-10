@@ -23,6 +23,6 @@ DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/impls/arpack/
 
-include ${SLEPC_DIR}/bmake/slepc_common
+include ${SLEPC_DIR}/conf/slepc_common
 
 

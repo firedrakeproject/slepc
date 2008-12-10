@@ -35,5 +35,5 @@ def Exit(string):
   f.write('\n')
   f.close()
   print string
-  sys.exit('ERROR: See "configure_log_' + petscconf.ARCH + '" file for details')
+  sys.exit('ERROR: See "' + petscconf.ARCH + '/conf/configure.log" file for details')
 

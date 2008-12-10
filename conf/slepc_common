@@ -1,9 +1,7 @@
 #
 # SLEPc uses the portable makefile system provided by the PETSc library.  
 # The following include files set customized site, optimization, and version
-# options.  Do NOT remove any of these include files!  You should generally
-# need to edit only ${SLEPC_DIR}/bmake/${PETSC_ARCH}/packages to specify the
-# packages installed in your system.
+# options.  Do NOT remove any of these include files! 
 #
 #
 # a dummy target which does nothing - just in case
@@ -12,7 +10,7 @@
 all_dummy:
 	-@true
 
-include ${SLEPC_DIR}/bmake/slepc_common_variables
-include ${SLEPC_DIR}/bmake/slepc_common_rules
+include ${SLEPC_DIR}/conf/slepc_common_variables
+include ${SLEPC_DIR}/conf/slepc_common_rules
 include ${PETSC_DIR}/conf/test
 
