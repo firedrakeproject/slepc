@@ -15,6 +15,7 @@
 #include "petscvec.h"
 #include "petscmat.h"
 #include <assert.h>
+#include <stdlib.h>
 #include "petscblaslapack.h"
 #include "interpreter.h"
 #include "temp_multivector.h"

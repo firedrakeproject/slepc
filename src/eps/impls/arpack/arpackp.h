@@ -13,7 +13,7 @@
 #if !defined(__ARPACKP_H)
 #define __ARPACKP_H
 
-#include "src/eps/epsimpl.h"
+#include "private/epsimpl.h"                /*I "slepceps.h" I*/
 
 typedef struct {
   PetscTruth  *select;
