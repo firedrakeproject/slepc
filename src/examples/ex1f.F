@@ -39,7 +39,9 @@
       EPSType        tname
       PetscReal      tol, error
       PetscScalar    kr, ki
-      PetscInt       n, i, Istart, Iend, nev, maxit, its, nconv, col(3)
+      PetscInt       n, i, Istart, Iend
+      PetscInt       nev, maxit, its, nconv
+      PetscInt       col(3)
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscTruth     flg

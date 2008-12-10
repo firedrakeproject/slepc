@@ -37,7 +37,8 @@
       SVD            svd
       SVDType        tname
       PetscReal      tol, error, sigma, mu
-      PetscInt       n, i, j, Istart, Iend, nsv, maxit, its, nconv
+      PetscInt       n, i, j, Istart, Iend
+      PetscInt       nsv, maxit, its, nconv
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscTruth     flg
