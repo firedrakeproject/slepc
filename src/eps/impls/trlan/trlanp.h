@@ -13,7 +13,7 @@
 #if !defined(__TRLANP_H)
 #define __TRLANP_H
 
-#include "src/eps/epsimpl.h"
+#include "private/epsimpl.h"
 
 typedef struct {
   PetscBLASInt       maxlan;
