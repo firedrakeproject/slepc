@@ -12,17 +12,21 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,MPIUNI,VERSION,RELEASE,INSTALL_DIR
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,MPIUNI,ISINSTALL,INSTALL_DIR
   
   if 'PETSC_ARCH' in os.environ:
+    ISINSTALL = 0
     ARCH = os.environ['PETSC_ARCH']
+    PETSCVARIABLES = os.sep.join([petscdir,ARCH,'conf','petscvariables'])
   else:
-    sys.exit('ERROR: please set enviroment variable PETSC_ARCH')
+    ISINSTALL = 1
+    ARCH = 'unknown'
+    PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
 
   MPIUNI = 0
   
   try:
-    f = open(os.sep.join([petscdir,ARCH,'conf','petscvariables']))
+    f = open(PETSCVARIABLES)
     for l in f.readlines():
       (k,v) = l.split('=',1)
       k = k.strip()
@@ -37,24 +41,12 @@ def Load(petscdir):
 	MAKE = v
       elif k == 'INSTALL_DIR':
         INSTALL_DIR = v
+      elif k == 'PETSC_ARCH_NAME':
+        ARCH = v
     f.close()
   except:
     sys.exit('ERROR: PETSc is not configured for architecture ' + ARCH)
 
-  try:
-    f = open(os.sep.join([petscdir,'include','petscversion.h']))
-    for l in f.readlines():
-      l = l.split()
-      if len(l) == 3:
-        if l[1] == 'PETSC_VERSION_RELEASE':
-	  RELEASE = l[2]
-	if l[1] == 'PETSC_VERSION_MAJOR':
-          major = l[2]
-	elif l[1] == 'PETSC_VERSION_MINOR':
-          minor = l[2]
-	elif l[1] == 'PETSC_VERSION_SUBMINOR':
-          subminor = l[2]
-    f.close()
-    VERSION = major + '.' + minor + '.' + subminor
-  except:
-    sys.exit('ERROR: file error while reading PETSC version')
+  if ISINSTALL and ARCH == 'unknown':
+    sys.exit('ERROR: PETSc architecture name is not defined')
+    

@@ -13,6 +13,7 @@ import os
 import sys
 import time
 
+import petscversion
 import petscconf
 import log
 import check
@@ -134,10 +135,13 @@ petscdir = os.environ['PETSC_DIR']
 if not os.path.exists(petscdir):
   sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
 
+# Check PETSc version
+petscversion.Load(petscdir)
+if petscversion.VERSION < '2.3.3':
+  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION) 
+
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
-if petscconf.VERSION < '2.3.3':
-  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscconf.VERSION) 
 if not petscconf.PRECISION in ['double','single','matsingle']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
 
@@ -157,7 +161,7 @@ if not os.path.exists(confdir):
 try:
   slepcconf = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
-    prefixdir = slepcdir
+    prefixdir = archdir
   slepcconf.write('SLEPC_INSTALL_DIR =' + prefixdir +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
@@ -172,7 +176,7 @@ log.Write('Python version:\n' + sys.version)
 log.Write('make: ' + petscconf.MAKE)
 log.Write('PETSc source directory: ' + petscdir)
 log.Write('PETSc install directory: ' + petscconf.INSTALL_DIR)
-log.Write('PETSc version: ' + petscconf.VERSION)
+log.Write('PETSc version: ' + petscversion.VERSION)
 log.Write('PETSc architecture: ' + petscconf.ARCH)
 log.Write('SLEPc source directory: ' + slepcdir)
 log.Write('SLEPc install directory: ' + prefixdir)
@@ -180,12 +184,13 @@ log.Write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
-if petscconf.VERSION > '2.3.3':
-  log.Println('WARNING: PETSc version '+petscconf.VERSION+' is newer than SLEPc version')
-if petscconf.RELEASE != '1':
+if petscversion.VERSION > '2.3.3':
+  log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version')
+if petscversion.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
-if petscconf.INSTALL_DIR != petscdir:
-  log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
+if petscconf.ISINSTALL:
+  if petscconf.INSTALL_DIR != petscdir:
+    log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
 if not check.Link([],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
@@ -238,4 +243,11 @@ if missing:
   log.Println('')
   log.Println('WARNING: Some SLEPc functionality will not be available')
   log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
+if petscconf.ISINSTALL:  
+  log.Println('')
+  log.Println('  **')
+  log.Println('  ** Before running "make" your PETSC_ARCH must be specified with:')
+  log.Println('  **  ** setenv PETSC_ARCH '+petscconf.ARCH+' (csh/tcsh)')
+  log.Println('  **  ** PETSC_ARCH='+petscconf.ARCH+' ; export PETSC_ARCH (sh/bash)')
+  log.Println('  **')
 print

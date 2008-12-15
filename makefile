@@ -52,7 +52,11 @@ info:
 	-@echo "Using SLEPc configuration flags:"
 	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
 	-@echo "Using PETSc configuration flags:"
-	-@grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h
+	-@if [ -e ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
+	   grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h; \
+          else \
+	   grep "\#define " ${PETSC_DIR}/include/petscconf.h; \
+          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_INCLUDE}"
 	-@echo "------------------------------------------"
@@ -177,7 +181,9 @@ chk_slepc_dir:
 	  false; fi
 
 install:
-	-@if [ "${SLEPC_INSTALL_DIR}" = "${SLEPC_DIR}" ]; then \
+	-@if [ "${PETSC_ARCH}" == "" ]; then \
+	  echo "PETSC_ARCH is undefined";\
+	elif [ "${SLEPC_INSTALL_DIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	  echo "Install directory is current directory; nothing needs to be done";\
         else \
 	  echo Installing SLEPc at ${SLEPC_INSTALL_DIR};\
@@ -195,28 +201,30 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude ; \
           fi;\
           cp -f include/finclude/*.h ${SLEPC_INSTALL_DIR}/include/finclude;\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/include/private ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/private ; \
+          fi;\
+          cp -f include/finclude/*.h ${SLEPC_INSTALL_DIR}/include/private;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/conf ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/conf ; \
           fi;\
           cp -f conf/slepc_common* ${SLEPC_INSTALL_DIR}/conf;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/${PETSC_ARCH} ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH} ; \
-          fi;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/conf ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/conf ; \
-          fi;\
-          cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/conf;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib ; \
+          cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_INSTALL_DIR}/conf;\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/lib ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
           fi;\
           if [ -d ${PETSC_ARCH}/lib ]; then \
-            cp -f ${PETSC_ARCH}/lib/* ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib;\
-            ${RANLIB} ${SLEPC_INSTALL_DIR}/${PETSC_ARCH}/lib/*.a ;\
-            ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
+            cp -f ${PETSC_ARCH}/lib/* ${SLEPC_INSTALL_DIR}/lib;\
+            ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.a ;\
           fi;\
-          echo "sh/bash: SLEPC_DIR="${SLEPC_INSTALL_DIR}"; export SLEPC_DIR";\
-          echo "csh/tcsh: setenv SLEPC_DIR "${SLEPC_INSTALL_DIR} ;\
-          echo "Then do make test to verify correct install";\
+	  echo "If using sh/bash, do the following:";\
+          echo "  SLEPC_DIR="${SLEPC_INSTALL_DIR}"; export SLEPC_DIR";\
+          echo "  unset PETSC_ARCH";\
+          echo "If using csh/tcsh, do the following:";\
+          echo "  setenv SLEPC_DIR "${SLEPC_INSTALL_DIR};\
+          echo "  unsetenv PETSC_ARCH";\
+          echo "Now run the testsuite to verify the install with the following:";\
+          echo "  make test";\
         fi;
 
 # ------------------------------------------------------------------
