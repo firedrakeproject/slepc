@@ -144,6 +144,8 @@ if petscversion.VERSION < '2.3.3':
 petscconf.Load(petscdir)
 if not petscconf.PRECISION in ['double','single','matsingle']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
+if prefixdir and not petscconf.ISINSTALL:
+  sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Create architecture directory and configuration file
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
