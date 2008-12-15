@@ -40,7 +40,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscReal      r;
   PetscScalar    s;
   PetscInt       i,j;
-  PetscViewer    monviewer;
+  PetscViewerASCIIMonitor monviewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -105,8 +105,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     */
     ierr = PetscOptionsString("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&monviewer);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsName("-eps_monitor_draw","Monitor error estimates graphically","EPSMonitorSet",&flg);CHKERRQ(ierr); 
     if (flg) {

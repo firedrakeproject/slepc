@@ -151,18 +151,19 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 @*/
 PetscErrorCode SVDMonitorDefault(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
 {
-  PetscErrorCode ierr;
-  PetscInt       i;
-  PetscViewer    viewer = (PetscViewer) dummy;
+  PetscErrorCode          ierr;
+  PetscInt                i;
+  PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
 
   PetscFunctionBegin;
   if (its) {
-    if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
-    ierr = PetscViewerASCIIPrintf(viewer,"%3d SVD nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
+    if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
+    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d SVD nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
-      ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)",sigma[i],errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g (%10.8e)",sigma[i],errest[i]);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer,"\n");CHKERRQ(ierr);
+    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
 }

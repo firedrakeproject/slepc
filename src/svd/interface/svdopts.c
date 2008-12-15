@@ -356,7 +356,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   const char     *mode_list[2] = { "explicit", "implicit" };
   PetscInt       i,j;
   PetscReal      r;
-  PetscViewer    monviewer;
+  PetscViewerASCIIMonitor monviewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -399,8 +399,8 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   ierr = PetscOptionsString("-svd_monitor","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
-    ierr = PetscViewerASCIIOpen(((PetscObject)svd)->comm,monfilename,&monviewer);CHKERRQ(ierr);
-    ierr = SVDMonitorSet(svd,SVDMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerDestroy);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
   }
   ierr = PetscOptionsName("-svd_monitor_draw","Monitor error estimates graphically","SVDMonitorSet",&flg);CHKERRQ(ierr); 
   if (flg) {

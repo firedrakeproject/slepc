@@ -145,6 +145,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
+  ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);  
   
   *newst                  = st;
   ierr = PetscPublishAll(st);CHKERRQ(ierr);
