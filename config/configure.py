@@ -126,7 +126,7 @@ print 'Checking environment...'
 if 'SLEPC_DIR' not in os.environ:
   sys.exit('ERROR: SLEPC_DIR enviroment variable is not set')
 slepcdir = os.environ['SLEPC_DIR']
-if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'conf'])):
+if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'config'])):
   sys.exit('ERROR: SLEPC_DIR enviroment variable is not valid')
 os.chdir(slepcdir)
 if 'PETSC_DIR' not in os.environ:
