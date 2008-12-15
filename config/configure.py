@@ -196,9 +196,6 @@ if petscconf.ISINSTALL:
 if not check.Link([],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
-# Check for missing LAPACK functions
-missing = lapack.Check(slepcconf)
-
 # Check for external packages
 if havearpack:
   arpacklibs = arpack.Check(slepcconf,arpackdir,arpacklibs)
@@ -208,6 +205,9 @@ if havetrlan:
   trlanlibs = trlan.Check(slepcconf,trlandir,trlanlibs)
 if haveprimme:
   primmelibs = primme.Check(slepcconf,primmedir,primmelibs)
+
+# Check for missing LAPACK functions
+missing = lapack.Check(slepcconf)
 
 slepcconf.close()
 
