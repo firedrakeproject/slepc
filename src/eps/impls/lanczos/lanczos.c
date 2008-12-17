@@ -101,10 +101,10 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k,P
 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
-    ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;
       break;
@@ -147,10 +147,10 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt
   for (j=k;j<m;j++) {
     /* Lanczos step */
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
-    ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;
       break;
@@ -182,7 +182,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt
     }
 
     if (nritz > 0) {
-      ierr = IPOrthogonalize(eps->ip,nritz,PETSC_NULL,eps->AV,f,PETSC_NULL,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,nritz,PETSC_NULL,eps->AV,f,PETSC_NULL,&norm,breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
       if (*breakdown) {
 	*M = j+1;
 	break;
@@ -337,15 +337,15 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k
   
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
     if (fro) {
       /* Lanczos step with full reorthogonalization */
-      ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);      
+      ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,f,T+m*j,&norm,breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);      
     } else {
       /* Lanczos step */
       which[j] = PETSC_TRUE;
       if (j-2>=k) which[j-2] = PETSC_FALSE;
-      ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,j+1,which,V,f,T+m*j,&norm,breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
       a[j-k] = PetscRealPart(T[m*j+j]);
       b[j-k+1] = norm;
       
@@ -368,7 +368,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k
 	  /* Periodic reorthogonalization */
 	  if (force_reorth) force_reorth = PETSC_FALSE;
 	  else force_reorth = PETSC_TRUE;
-	  ierr = IPOrthogonalize(eps->ip,j-k,PETSC_NULL,V+k,f,PETSC_NULL,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
+	  ierr = IPOrthogonalize(eps->ip,j-k,PETSC_NULL,V+k,f,PETSC_NULL,&norm,breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
 	  for (i=0;i<j-k;i++)
             omega[i] = eps1;
 	} else {
@@ -380,7 +380,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscScalar *T,Vec *V,PetscInt k
 	    for (i=0;i<j-k;i++) 
 	      if (which2[i]) omega[i] = eps1;
 	  }
-	  ierr = IPOrthogonalize(eps->ip,j-k,which2,V+k,f,PETSC_NULL,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);	
+	  ierr = IPOrthogonalize(eps->ip,j-k,which2,V+k,f,PETSC_NULL,&norm,breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);	
 	}	
       }
     }
@@ -596,7 +596,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       } else if (lanczos->reorthog == EPSLANCZOS_REORTHOG_LOCAL) {
         /* Reorthonormalize restart vector */
-	ierr = IPOrthogonalize(eps->ip,eps->nds+k,PETSC_NULL,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown,eps->work[0]);CHKERRQ(ierr);
+	ierr = IPOrthogonalize(eps->ip,eps->nds+k,PETSC_NULL,eps->DSV,eps->V[k],PETSC_NULL,&norm,&breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
 	ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
       } else breakdown = PETSC_FALSE;
       if (breakdown) {

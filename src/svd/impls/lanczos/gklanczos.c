@@ -56,19 +56,19 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V
   
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(svd->ip,k,PETSC_NULL,U,U[k],work,alpha,PETSC_NULL,wu);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(svd->ip,k,PETSC_NULL,U,U[k],work,alpha,PETSC_NULL,wu,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecScale(U[k],1.0/alpha[0]);CHKERRQ(ierr);
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,V,V[i],work,beta+i-k-1,PETSC_NULL,wv);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,V,V[i],work,beta+i-k-1,PETSC_NULL,wv,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecScale(V[i],1.0/beta[i-k-1]);CHKERRQ(ierr);
 
     ierr = SVDMatMult(svd,PETSC_FALSE,V[i],U[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,U,U[i],work,alpha+i-k,PETSC_NULL,wu);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,U,U[i],work,alpha+i-k,PETSC_NULL,wu,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecScale(U[i],1.0/alpha[i-k]);CHKERRQ(ierr);
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,U[n-1],v);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(svd->ip,n,PETSC_NULL,V,v,work,beta+n-k-1,PETSC_NULL,wv);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(svd->ip,n,PETSC_NULL,V,v,work,beta+n-k-1,PETSC_NULL,wv,PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

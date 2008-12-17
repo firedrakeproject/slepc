@@ -206,7 +206,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
       for (j=0;j<svd->ncv;j++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+j);CHKERRQ(ierr); }
       for (j=0;j<svd->nconv;j++) {
         ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(svd->ip,j,PETSC_NULL,svd->U,svd->U[j],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(svd->ip,j,PETSC_NULL,svd->U,svd->U[j],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecScale(svd->U[j],1.0/norm);CHKERRQ(ierr);
       }
     }

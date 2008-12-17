@@ -85,13 +85,18 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,Pe
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
   PetscReal      norm;
+  PetscScalar    *swork;
 
   PetscFunctionBegin;
+  if (eps->ncv > 100) {
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
+  } else swork = PETSC_NULL;
+  
   for (j=k;j<m-1;j++) {
     if (trans) { ierr = STApplyTranspose(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     else { ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],H+m*j,&norm,breakdown,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],H+m*j,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
     H[(m+1)*j+1] = norm;
     if (*breakdown) {
       *M = j+1;
@@ -102,8 +107,11 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,Pe
     }
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,m,PETSC_NULL,V,f,H+m*(m-1),beta,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,m,PETSC_NULL,V,f,H+m*(m-1),beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+  if (eps->ncv > 100) {
+    ierr = PetscFree(swork);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -132,7 +140,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 
@@ -244,7 +252,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,PetscInt k,Petsc
 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
     if (j>k) { 

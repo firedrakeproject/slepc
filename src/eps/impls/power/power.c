@@ -190,9 +190,9 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       for (i=0;i<eps->nconv;i++) {
         if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) SV[nsv++]=eps->V[i];
       }
-      ierr = IPOrthogonalize(eps->ip,nsv,PETSC_NULL,SV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1]);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,nsv,PETSC_NULL,SV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1],PETSC_NULL);CHKERRQ(ierr);
     } else {
-      ierr = IPOrthogonalize(eps->ip,eps->nds+eps->nconv,PETSC_NULL,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1]);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds+eps->nconv,PETSC_NULL,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1],PETSC_NULL);CHKERRQ(ierr);
     }
 
     /* v = y/||y||_B */

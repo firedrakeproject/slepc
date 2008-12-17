@@ -67,7 +67,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   alpha[0] = a;
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,V,V[i],work,&b,PETSC_NULL,wv);CHKERRQ(ierr);  
+    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,V,V[i],work,&b,PETSC_NULL,wv,PETSC_NULL);CHKERRQ(ierr);  
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
     beta[i-k-1] = b;
     
@@ -78,7 +78,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
     alpha[i-k] = a;
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,U[n-1],v);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(svd->ip,n,PETSC_NULL,V,v,work,&b,PETSC_NULL,wv);CHKERRQ(ierr);      
+  ierr = IPOrthogonalize(svd->ip,n,PETSC_NULL,V,v,work,&b,PETSC_NULL,wv,PETSC_NULL);CHKERRQ(ierr);      
   beta[n-k-1] = b;
   PetscFunctionReturn(0);
 }
@@ -340,7 +340,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     svd->V[i] = permV[j];
     svd->U[i] = permU[j];
     if (lanczos->oneside) {
-      ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,svd->U,svd->U[i],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,svd->U,svd->U[i],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       ierr = VecScale(svd->U[i],1.0/norm);CHKERRQ(ierr);
     }
   }

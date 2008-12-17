@@ -110,7 +110,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       /* orthonormalize vectors in DS if necessary */
       ierr = IPQRDecomposition(eps->ip,eps->DS,0,eps->nds,PETSC_NULL,0,PETSC_NULL);CHKERRQ(ierr);
     }
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
 
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);

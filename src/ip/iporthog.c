@@ -134,7 +134,8 @@ static PetscErrorCode IPOrthogonalizeGS(IP ip,PetscInt n,PetscTruth *which,Vec *
 .  n      - number of columns of V
 .  which  - logical array indicating columns of V to be used
 .  V      - set of vectors
--  work   - workspace vector 
+.  work   - workspace vector 
+-  swork  - workspace array 
 
    Input/Output Parameter:
 .  v      - (input) vector to be orthogonalized and (output) result of 
@@ -158,7 +159,7 @@ static PetscErrorCode IPOrthogonalizeGS(IP ip,PetscInt n,PetscTruth *which,Vec *
 
 .seealso: IPSetOrthogonalization(), IPBiOrthogonalize()
 @*/
-PetscErrorCode IPOrthogonalize(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep,Vec work)
+PetscErrorCode IPOrthogonalize(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep,Vec work,PetscScalar* swork)
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h,lc[100],*c;
@@ -181,13 +182,15 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,P
       allocatedh = PETSC_TRUE;
     }
   } else h = H;
-  if (ip->orthog_ref != IP_ORTH_REFINE_NEVER) {
-    if (n<=100) c = lc;
-    else {
-      ierr = PetscMalloc(n*sizeof(PetscScalar),&c);CHKERRQ(ierr);
-      allocatedc = PETSC_TRUE;
+  if (!swork) {
+    if (ip->orthog_ref != IP_ORTH_REFINE_NEVER) {
+      if (n<=100) c = lc;
+      else {
+        ierr = PetscMalloc(n*sizeof(PetscScalar),&c);CHKERRQ(ierr);
+        allocatedc = PETSC_TRUE;
+      }
     }
-  }
+  } else c = swork;
   if (!work && ip->orthog_type == IP_CGS_ORTH) {
     ierr = VecDuplicate(v,&work);CHKERRQ(ierr);
     allocatedw = PETSC_TRUE;
@@ -303,8 +306,8 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   for (k=m; k<n; k++) {
 
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
-    if (R) { ierr = IPOrthogonalize(ip,k,PETSC_NULL,V,V[k],&R[0+ldr*k],&norm,&lindep,work);CHKERRQ(ierr); }
-    else   { ierr = IPOrthogonalize(ip,k,PETSC_NULL,V,V[k],PETSC_NULL,&norm,&lindep,work);CHKERRQ(ierr); }
+    if (R) { ierr = IPOrthogonalize(ip,k,PETSC_NULL,V,V[k],&R[0+ldr*k],&norm,&lindep,work,PETSC_NULL);CHKERRQ(ierr); }
+    else   { ierr = IPOrthogonalize(ip,k,PETSC_NULL,V,V[k],PETSC_NULL,&norm,&lindep,work,PETSC_NULL);CHKERRQ(ierr); }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0 || lindep) { 

@@ -68,7 +68,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
     ierr = STApply(globaleps->OP,x,y);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(globaleps->ip,globaleps->nds,PETSC_NULL,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL,globaleps->work[0]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(globaleps->ip,globaleps->nds,PETSC_NULL,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL,globaleps->work[0],PETSC_NULL);CHKERRQ(ierr);
     ierr = VecResetArray(x);CHKERRQ(ierr);
     ierr = VecResetArray(y);CHKERRQ(ierr);	
   }
