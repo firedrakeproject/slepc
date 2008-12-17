@@ -168,7 +168,7 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
     ierr = VecSet(eps->work[0],0.0);CHKERRQ(ierr);
-    if (i==m-1 || T[i+1+(ldt*i)]==0.0) k=i; else k=i+1;
+    if (i==m-1 || T[i+1+ldt*i]==0.0) k=i+1; else k=i+2;
     ierr = VecMAXPY(eps->work[0],k,T+ldt*i,V);CHKERRQ(ierr);
     ierr = VecWAXPY(eps->work[1],-1.0,eps->work[0],AV[i]);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
