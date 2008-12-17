@@ -15,10 +15,8 @@
 #if !defined(__SLEPCBLASLAPACK_H)
 #define __SLEPCBLASLAPACK_H
 #include "petscblaslapack.h"
-PETSC_EXTERN_CXX_BEGIN
 
-
-#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)
+#if defined(PETSC_BLASLAPACK_UNDERSCORE)
 #if defined(PETSC_USE_SINGLE)
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) s##lcase##_
 #if defined(PETSC_USE_COMPLEX)
@@ -35,7 +33,7 @@ PETSC_EXTERN_CXX_BEGIN
 #endif
 #endif
 
-#elif defined(PETSC_HAVE_FORTRAN_CAPS)
+#elif defined(PETSC_BLASLAPACK_CAPS)
 #if defined(PETSC_USE_SINGLE)
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) S##ucase
 #if defined(PETSC_USE_COMPLEX)
@@ -100,6 +98,7 @@ PETSC_EXTERN_CXX_BEGIN
 #define LAPACKstevr_ SLEPC_BLASLAPACKREAL(stevr,STEVR)
 #define LAPACKbdsdc_ SLEPC_BLASLAPACKREAL(bdsdc,BDSDC)
 
+PETSC_EXTERN_CXX_BEGIN
 EXTERN_C_BEGIN
 
 EXTERN PetscReal LAPACKlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt);
@@ -134,8 +133,7 @@ EXTERN void      LAPACKsygvd_(PetscBLASInt*,const char*,const char*,PetscBLASInt
 EXTERN void      LAPACKgesdd_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt);
 #endif
 
-
 EXTERN_C_END
-
 PETSC_EXTERN_CXX_END
+
 #endif
