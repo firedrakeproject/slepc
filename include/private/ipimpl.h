@@ -16,14 +16,8 @@
 extern PetscCookie IP_COOKIE;
 extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 
-typedef struct _IPOps *IPOps;
-
-struct _IPOps {
-  PetscInt dummy;
-};
-
 struct _p_IP {
-  PETSCHEADER(struct _IPOps);
+  PETSCHEADER(int);
   IPOrthogonalizationType orthog_type; /* which orthogonalization to use */
   IPOrthogonalizationRefinementType orthog_ref;   /* refinement method */
   PetscReal orthog_eta;
