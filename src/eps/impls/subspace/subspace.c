@@ -65,7 +65,7 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
    This routine uses Gaussian elimination with partial pivoting to 
    compute the inverse explicitly. 
 */
-static PetscErrorCode EPSHessCond(PetscScalar* H,PetscInt n_, PetscReal* cond)
+static PetscErrorCode EPSHessCond(PetscScalar* H,PetscInt n_,PetscReal* cond)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
   PetscFunctionBegin;
@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   PetscInt       i,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
-  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond=1.0;
   PetscTruth     breakdown;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
