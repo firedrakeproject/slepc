@@ -358,8 +358,8 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   /* h = W^* v */
   /* q = v - V h */
   ierr = IPMInnerProduct(ip,v,n,W,H);CHKERRQ(ierr);
-  BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n,1,1,1,1);
-  LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info,1,1);
+  BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n);
+  LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORMLQ %i",info);
   ierr = VecSet(w,0.0);CHKERRQ(ierr);
   ierr = VecMAXPY(w,n,H,V);CHKERRQ(ierr);

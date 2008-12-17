@@ -139,9 +139,9 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* right eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info,1,1);
+  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info);
 #else
-  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info,1,1);
+  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
@@ -162,9 +162,9 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   /* left eigenvectors */
   if (eps->solverclass == EPS_TWO_SIDE) {
 #if !defined(PETSC_USE_COMPLEX)
-    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info,1,1);
+    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info);
 #else
-    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info,1,1);
+    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 

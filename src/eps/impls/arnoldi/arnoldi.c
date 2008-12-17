@@ -316,9 +316,9 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
   ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ldh,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info,1,1);
+  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ldh,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,&info);
 #else
-  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ldh,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info,1,1);
+  LAPACKtrevc_("R","B",PETSC_NULL,&ncv,H,&ldh,PETSC_NULL,&ncv,Y,&ncv,&ncv,&mout,work,rwork,&info);
 #endif
   ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);

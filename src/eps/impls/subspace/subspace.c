@@ -82,12 +82,12 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,PetscInt n_,PetscReal* cond)
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
-  hn = LAPACKlanhs_("I",&n,H,&n,rwork,1);
+  hn = LAPACKlanhs_("I",&n,H,&n,rwork);
   LAPACKgetrf_(&n,&n,H,&n,ipiv,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
   LAPACKgetri_(&n,H,&n,ipiv,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
-  hin = LAPACKlange_("I",&n,&n,H,&n,rwork,1);
+  hin = LAPACKlange_("I",&n,&n,H,&n,rwork);
   *cond = hn * hin;
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);

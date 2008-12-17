@@ -59,9 +59,9 @@ PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(sizeof(PetscReal)*(5*n*n+7*n),&rwork);CHKERRQ(ierr);
-  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,&qwork,&lwork,rwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,&qwork,&lwork,rwork,iwork,&info);
 #else
-  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,&qwork,&lwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,&qwork,&lwork,iwork,&info);
 #endif 
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   lwork = (PetscInt)PetscRealPart(qwork);
@@ -69,10 +69,10 @@ PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,
   
   /* computation */  
 #if defined(PETSC_USE_COMPLEX)
-  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,work,&lwork,rwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,work,&lwork,rwork,iwork,&info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,work,&lwork,iwork,&info,1);
+  LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,work,&lwork,iwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   ierr = PetscFree(iwork);CHKERRQ(ierr);

@@ -72,11 +72,11 @@ PetscErrorCode EPSDenseNHEP(PetscInt n_,PetscScalar *A,PetscScalar *w,PetscScala
   ierr  = PetscMalloc(n*sizeof(PetscReal),&scale);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(2*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,&dummy,&dummy,work,&lwork,rwork,&info,1,1,1,1);
+  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,&dummy,&dummy,work,&lwork,rwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGEEVX %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,wi,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,&dummy,&dummy,work,&lwork,&idummy,&info,1,1,1,1);
+  LAPACKgeevx_("B",jobvl,jobvr,"N",&n,A,&n,w,wi,W,&n,V,&n,&ilo,&ihi,scale,&abnrm,&dummy,&dummy,work,&lwork,&idummy,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGEEVX %d",info);
 #endif 
   ierr = PetscFree(work);CHKERRQ(ierr);
@@ -149,7 +149,7 @@ PetscErrorCode EPSDenseGNHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscScal
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(6*n*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,beta,W,&n,V,&n,&ilo,&ihi,lscale,rscale,&abnrm,&bbnrm,&dummy,&dummy,work,&lwork,rwork,&idummy,&idummy,&info,1,1,1,1);
+  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,beta,W,&n,V,&n,&ilo,&ihi,lscale,rscale,&abnrm,&bbnrm,&dummy,&dummy,work,&lwork,rwork,&idummy,&idummy,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZGGEVX %d",info);
   for (i=0;i<n;i++) {
     w[i] = alpha[i]/beta[i];
@@ -157,7 +157,7 @@ PetscErrorCode EPSDenseGNHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscScal
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
   ierr  = PetscMalloc(n*sizeof(PetscReal),&alphai);CHKERRQ(ierr);
-  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,alphai,beta,W,&n,V,&n,&ilo,&ihi,lscale,rscale,&abnrm,&bbnrm,&dummy,&dummy,work,&lwork,&idummy,&idummy,&info,1,1,1,1);
+  LAPACKggevx_("B",jobvl,jobvr,"N",&n,A,&n,B,&n,alpha,alphai,beta,W,&n,V,&n,&ilo,&ihi,lscale,rscale,&abnrm,&bbnrm,&dummy,&dummy,work,&lwork,&idummy,&idummy,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DGGEVX %d",info);
   for (i=0;i<n;i++) {
     w[i] = alpha[i]/beta[i];
@@ -229,11 +229,11 @@ PetscErrorCode EPSDenseHEP(PetscInt n_,PetscScalar *A,PetscInt lda_,PetscReal *w
   ierr  = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKsyevr_(jobz,"A","L",&n,A,&lda,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1,1);
+  LAPACKsyevr_(jobz,"A","L",&n,A,&lda,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,rwork,&lrwork,iwork,&liwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZHEEVR %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKsyevr_(jobz,"A","L",&n,A,&lda,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1,1);
+  LAPACKsyevr_(jobz,"A","L",&n,A,&lda,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSYEVR %d",info);
 #endif 
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
@@ -298,11 +298,11 @@ PetscErrorCode EPSDenseGHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscReal 
   ierr  = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr  = PetscMalloc(lrwork*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  LAPACKsygvd_(&itype,jobz,"U",&n,A,&n,B,&n,w,work,&lwork,rwork,&lrwork,iwork,&liwork,&info,1,1);
+  LAPACKsygvd_(&itype,jobz,"U",&n,A,&n,B,&n,w,work,&lwork,rwork,&lrwork,iwork,&liwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack ZHEGVD %d",info);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #else
-  LAPACKsygvd_(&itype,jobz,"U",&n,A,&n,B,&n,w,work,&lwork,iwork,&liwork,&info,1,1);
+  LAPACKsygvd_(&itype,jobz,"U",&n,A,&n,B,&n,w,work,&lwork,iwork,&liwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSYGVD %d",info);
 #endif 
   if (V) {
@@ -436,7 +436,7 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ilo = k+1;
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&ldh,wr,wi,Z,&n,work,&lwork,&info,1,1);
+  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&ldh,wr,wi,Z,&n,work,&lwork,&info);
   for (j=0;j<k;j++) {
     if (j==n-1 || H[j*ldh+j+1] == 0.0) { 
       /* real eigenvalue */
@@ -453,7 +453,7 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
     }
   }
 #else
-  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&ldh,wr,Z,&n,work,&lwork,&info,1,1);
+  LAPACKhseqr_("S","V",&n,&ilo,&n,H,&ldh,wr,Z,&n,work,&lwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
 
@@ -585,9 +585,9 @@ PetscErrorCode EPSSortDenseSchur(PetscInt n_,PetscInt k,PetscScalar *T,PetscInt 
       ifst = pos + 1;
       ilst = i + 1;
 #if !defined(PETSC_USE_COMPLEX)
-      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info,1);
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info);
 #else
-      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info,1);
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info);
 #endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       
@@ -733,9 +733,9 @@ PetscErrorCode EPSSortDenseSchurTarget(PetscInt n_,PetscInt k,PetscScalar *T,Pet
       ifst = pos + 1;
       ilst = i + 1;
 #if !defined(PETSC_USE_COMPLEX)
-      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info,1);
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info);
 #else
-      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info,1);
+      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info);
 #endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       
@@ -833,9 +833,9 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscScalar *A,PetscInt lda_,Pets
   }
   D[n-1] = PetscRealPart(A[(n-1)*(lda+1)]);
 #if defined(PETSC_USE_COMPLEX)
-  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,VV,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,VV,&n,isuppz,work,&lwork,iwork,&liwork,&info);
 #else
-  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info,1,1);
+  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
 #if defined(PETSC_USE_COMPLEX)
