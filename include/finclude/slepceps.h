@@ -10,33 +10,16 @@
 !     and additional information.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCEPS_H)
-#define __SLEPCEPS_H
-
-#define EPS                PetscFortranAddr
-#define EPSType            character*(80)
-#define EPSConvergedReason integer
-
-#define EPSPOWER     'power'
-#define EPSSUBSPACE  'subspace'
-#define EPSARNOLDI   'arnoldi'
-#define EPSLANCZOS   'lanczos'
-#define EPSKRYLOVSCHUR 'krylovschur'
-#define EPSLAPACK    'lapack'
-#define EPSARPACK    'arpack'
-#define EPSBLZPACK   'blzpack'
-#define EPSTRLAN     'trlan'
-#define EPSBLOPEX    'blopex'
-#define EPSPRIMME    'primme'
+#include "finclude/slepcepsdef.h"
 
 !  Convergence flags.
 !  They sould match the flags in $SLEPC_DIR/include/slepceps.h
 
-      integer EPS_CONVERGED_TOL        
-      integer EPS_DIVERGED_ITS
-      integer EPS_DIVERGED_BREAKDOWN
-      integer EPS_DIVERGED_NONSYMMETRIC
-      integer EPS_CONVERGED_ITERATING
+      PetscEnum EPS_CONVERGED_TOL        
+      PetscEnum EPS_DIVERGED_ITS
+      PetscEnum EPS_DIVERGED_BREAKDOWN
+      PetscEnum EPS_DIVERGED_NONSYMMETRIC
+      PetscEnum EPS_CONVERGED_ITERATING
 
       parameter (EPS_CONVERGED_TOL          =  2)
       parameter (EPS_DIVERGED_ITS           = -3)
@@ -44,22 +27,22 @@
       parameter (EPS_DIVERGED_NONSYMMETRIC  = -5)
       parameter (EPS_CONVERGED_ITERATING    =  0)
 
-      integer EPS_HEP
-      integer EPS_GHEP
-      integer EPS_NHEP
-      integer EPS_GNHEP
+      PetscEnum EPS_HEP
+      PetscEnum EPS_GHEP
+      PetscEnum EPS_NHEP
+      PetscEnum EPS_GNHEP
 
       parameter (EPS_HEP                    =  1)
       parameter (EPS_GHEP                   =  2)
       parameter (EPS_NHEP                   =  3)
       parameter (EPS_GNHEP                  =  4)
       
-      integer EPS_LARGEST_MAGNITUDE
-      integer EPS_SMALLEST_MAGNITUDE
-      integer EPS_LARGEST_REAL
-      integer EPS_SMALLEST_REAL
-      integer EPS_LARGEST_IMAGINARY
-      integer EPS_SMALLEST_IMAGINARY
+      PetscEnum EPS_LARGEST_MAGNITUDE
+      PetscEnum EPS_SMALLEST_MAGNITUDE
+      PetscEnum EPS_LARGEST_REAL
+      PetscEnum EPS_SMALLEST_REAL
+      PetscEnum EPS_LARGEST_IMAGINARY
+      PetscEnum EPS_SMALLEST_IMAGINARY
 
       parameter (EPS_LARGEST_MAGNITUDE      =  0)
       parameter (EPS_SMALLEST_MAGNITUDE     =  1)
@@ -68,57 +51,57 @@
       parameter (EPS_LARGEST_IMAGINARY      =  4)
       parameter (EPS_SMALLEST_IMAGINARY     =  5)
        
-      integer EPSPOWER_SHIFT_CONSTANT
-      integer EPSPOWER_SHIFT_RAYLEIGH
-      integer EPSPOWER_SHIFT_WILKINSON
+      PetscEnum EPSPOWER_SHIFT_CONSTANT
+      PetscEnum EPSPOWER_SHIFT_RAYLEIGH
+      PetscEnum EPSPOWER_SHIFT_WILKINSON
 
       parameter (EPSPOWER_SHIFT_CONSTANT    =  0)
       parameter (EPSPOWER_SHIFT_RAYLEIGH    =  1)
       parameter (EPSPOWER_SHIFT_WILKINSON   =  2)
 
-      integer EPS_ONE_SIDE
-      integer EPS_TWO_SIDE
+      PetscEnum EPS_ONE_SIDE
+      PetscEnum EPS_TWO_SIDE
 
       parameter (EPS_ONE_SIDE               =  0)
       parameter (EPS_TWO_SIDE               =  1)
       
-      integer EPS_RITZ
-      integer EPS_HARMONIC
-      integer EPS_REFINED
-      integer EPS_REFINED_HARMONIC
+      PetscEnum EPS_RITZ
+      PetscEnum EPS_HARMONIC
+      PetscEnum EPS_REFINED
+      PetscEnum EPS_REFINED_HARMONIC
 
       parameter (EPS_RITZ                   =  1)
       parameter (EPS_HARMONIC               =  2)
       parameter (EPS_REFINED                =  3)
       parameter (EPS_REFINED_HARMONIC       =  4)
 
-      integer EPSLANCZOS_REORTHOG_LOCAL
-      integer EPSLANCZOS_REORTHOG_FULL
-      integer EPSLANCZOS_REORTHOG_SELECTIVE
-      integer EPSLANCZOS_REORTHOG_PERIODIC
-      integer EPSLANCZOS_REORTHOG_PARTIAL
+      PetscEnum EPSLANCZOS_REORTHOG_LOCAL
+      PetscEnum EPSLANCZOS_REORTHOG_FULL
+      PetscEnum EPSLANCZOS_REORTHOG_SELECTIVE
+      PetscEnum EPSLANCZOS_REORTHOG_PERIODIC
+      PetscEnum EPSLANCZOS_REORTHOG_PARTIAL
 
-      parameter (EPSLANCZOS_REORTHOG_LOCAL      =  0)
+      parameter (EPSLANCZOS_REORTHOG_LOCAL     =  0)
       parameter (EPSLANCZOS_REORTHOG_FULL      =  1)
       parameter (EPSLANCZOS_REORTHOG_SELECTIVE =  2)
       parameter (EPSLANCZOS_REORTHOG_PERIODIC  =  3)
       parameter (EPSLANCZOS_REORTHOG_PARTIAL   =  4)
 
-      integer EPSPRIMME_DYNAMIC
-      integer EPSPRIMME_DEFAULT_MIN_TIME
-      integer EPSPRIMME_DEFAULT_MIN_MATVECS
-      integer EPSPRIMME_ARNOLDI
-      integer EPSPRIMME_GD
-      integer EPSPRIMME_GD_PLUSK
-      integer EPSPRIMME_GD_OLSEN_PLUSK
-      integer EPSPRIMME_JD_OLSEN_PLUSK
-      integer EPSPRIMME_RQI
-      integer EPSPRIMME_JDQR
-      integer EPSPRIMME_JDQMR
-      integer EPSPRIMME_JDQMR_ETOL
-      integer EPSPRIMME_SUBSPACE_ITERATION
-      integer EPSPRIMME_LOBPCG_ORTHOBASIS
-      integer EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW
+      PetscEnum EPSPRIMME_DYNAMIC
+      PetscEnum EPSPRIMME_DEFAULT_MIN_TIME
+      PetscEnum EPSPRIMME_DEFAULT_MIN_MATVECS
+      PetscEnum EPSPRIMME_ARNOLDI
+      PetscEnum EPSPRIMME_GD
+      PetscEnum EPSPRIMME_GD_PLUSK
+      PetscEnum EPSPRIMME_GD_OLSEN_PLUSK
+      PetscEnum EPSPRIMME_JD_OLSEN_PLUSK
+      PetscEnum EPSPRIMME_RQI
+      PetscEnum EPSPRIMME_JDQR
+      PetscEnum EPSPRIMME_JDQMR
+      PetscEnum EPSPRIMME_JDQMR_ETOL
+      PetscEnum EPSPRIMME_SUBSPACE_ITERATION
+      PetscEnum EPSPRIMME_LOBPCG_ORTHOBASIS
+      PetscEnum EPSPRIMME_LOBPCG_ORTHOBASISW
 
       parameter (EPSPRIMME_DYNAMIC                  =  0)
       parameter (EPSPRIMME_DEFAULT_MIN_TIME         =  1)
@@ -134,12 +117,10 @@
       parameter (EPSPRIMME_JDQMR_ETOL               = 12)
       parameter (EPSPRIMME_SUBSPACE_ITERATION       = 13)
       parameter (EPSPRIMME_LOBPCG_ORTHOBASIS        = 14)
-      parameter (EPSPRIMME_LOBPCG_ORTHOBASIS_WINDOW = 15)
+      parameter (EPSPRIMME_LOBPCG_ORTHOBASISW       = 15)
 
-      integer EPSPRIMME_NONE
-      integer EPSPRIMME_DIAGONAL
+      PetscEnum EPSPRIMME_NONE
+      PetscEnum EPSPRIMME_DIAGONAL
 
       parameter (EPSPRIMME_NONE               =  0)
       parameter (EPSPRIMME_DIAGONAL           =  1)
-
-#endif

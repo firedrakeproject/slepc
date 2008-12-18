@@ -1,5 +1,6 @@
 !
-!  Include file for Fortran use of the ST object in SLEPc
+!  Include file for Fortran use of the IP object in SLEPc
+!
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -9,13 +10,15 @@
 !     and additional information.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "finclude/slepcstdef.h"
+#if !defined(__SLEPCIP_H)
+#define __SLEPCIP_H
 
-      PetscEnum STMATMODE_COPY
-      PetscEnum STMATMODE_INPLACE
-      PetscEnum STMATMODE_SHELL
+#if !defined(PETSC_USE_FORTRAN_TYPES)
+#define IP PetscFortranAddr
+#endif
 
-      parameter (STMATMODE_COPY          =  0)
-      parameter (STMATMODE_INPLACE       =  1)
-      parameter (STMATMODE_SHELL         =  2)
+#define IPOrthogonalizationType PetscEnum
+#define IPOrthogonalizationRefinementType PetscEnum
+#define IPBilinearForm PetscEnum
 
+#endif

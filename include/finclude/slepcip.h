@@ -10,29 +10,24 @@
 !     and additional information.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCIP_H)
-#define __SLEPCIP_H
+#include "finclude/slepcipdef.h"
 
-#define IP                PetscFortranAddr
-
-      integer IP_MGS_ORTH
-      integer IP_CGS_ORTH
+      PetscEnum IP_MGS_ORTH
+      PetscEnum IP_CGS_ORTH
       
       parameter (IP_MGS_ORTH               =  0)
       parameter (IP_CGS_ORTH               =  1)
 
-      integer IP_ORTH_REFINE_NEVER
-      integer IP_ORTH_REFINE_IFNEEDED
-      integer IP_ORTH_REFINE_ALWAYS 
+      PetscEnum IP_ORTH_REFINE_NEVER
+      PetscEnum IP_ORTH_REFINE_IFNEEDED
+      PetscEnum IP_ORTH_REFINE_ALWAYS 
 
       parameter (IP_ORTH_REFINE_NEVER      =  0)  
       parameter (IP_ORTH_REFINE_IFNEEDED   =  1)  
       parameter (IP_ORTH_REFINE_ALWAYS     =  2)  
 
-      integer IP_MGS_ORTH
-      integer IP_CGS_ORTH
+      PetscEnum IPINNER_HERMITIAN
+      PetscEnum IPINNER_SYMMETRIC
 
-      parameter (IP_MGS_ORTH               =  0)
-      parameter (IP_CGS_ORTH               =  1)
-
-#endif
+      parameter (IPINNER_HERMITIAN         =  0)
+      parameter (IPINNER_SYMMETRIC         =  1)

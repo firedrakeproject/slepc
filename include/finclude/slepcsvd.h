@@ -10,34 +10,23 @@
 !     and additional information.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCSVD_H)
-#define __SLEPCSVD_H
-
-#define SVD                PetscFortranAddr
-#define SVDType            character*(80)
-#define SVDConvergedReason integer
-
-#define SVDCROSS     'cross'
-#define SVDCYCLIC    'cyclic'
-#define SVDLAPACK    'lapack'
-#define SVDLANCZOS   'lanczos'
-#define SVDTRLANCZOS 'trlanczos'
+#include "finclude/slepcsvddef.h"
 
 !  Convergence flags.
 !  They sould match the flags in $SLEPC_DIR/include/slepcsvd.h
 
-      integer SVD_CONVERGED_TOL        
-      integer SVD_DIVERGED_ITS
-      integer SVD_DIVERGED_BREAKDOWN
-      integer SVD_CONVERGED_ITERATING
+      PetscEnum SVD_CONVERGED_TOL        
+      PetscEnum SVD_DIVERGED_ITS
+      PetscEnum SVD_DIVERGED_BREAKDOWN
+      PetscEnum SVD_CONVERGED_ITERATING
 
       parameter (SVD_CONVERGED_TOL          =  2)
       parameter (SVD_DIVERGED_ITS           = -3)
       parameter (SVD_DIVERGED_BREAKDOWN     = -4)
       parameter (SVD_CONVERGED_ITERATING    =  0)
 
-      integer SVD_TRANSPOSE_EXPLICIT
-      integer SVD_TRANSPOSE_IMPLICIT 
+      PetscEnum SVD_TRANSPOSE_EXPLICIT
+      PetscEnum SVD_TRANSPOSE_IMPLICIT 
 
       parameter (SVD_TRANSPOSE_EXPLICIT     =  0)
       parameter (SVD_TRANSPOSE_IMPLICIT     =  1)
@@ -47,5 +36,3 @@
 
       parameter (SVD_LARGEST                =  0)
       parameter (SVD_SMALLEST               =  1)
-
-#endif

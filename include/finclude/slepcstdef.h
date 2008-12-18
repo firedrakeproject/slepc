@@ -9,13 +9,22 @@
 !     and additional information.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "finclude/slepcstdef.h"
+#if !defined(__SLEPCST_H)
+#define __SLEPCST_H
 
-      PetscEnum STMATMODE_COPY
-      PetscEnum STMATMODE_INPLACE
-      PetscEnum STMATMODE_SHELL
+#include "finclude/petsckspdef.h"
 
-      parameter (STMATMODE_COPY          =  0)
-      parameter (STMATMODE_INPLACE       =  1)
-      parameter (STMATMODE_SHELL         =  2)
+#if !defined(PETSC_USE_FORTRAN_TYPES)
+#define ST        PetscFortranAddr
+#endif
 
+#define STType    character*(80)
+#define STMatMode PetscEnum
+
+#define STSHELL     'shell'
+#define STSHIFT     'shift'
+#define STSINV      'sinvert'
+#define STCAYLEY    'cayley'
+#define STFOLD      'fold'
+
+#endif
