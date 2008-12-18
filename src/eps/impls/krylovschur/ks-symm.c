@@ -32,6 +32,80 @@
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  
+#define __FUNCT__ "ArrowTridFlip"
+/*
+   ArrowTridFlip - Solves the arrowhead-tridiagonal eigenproblem by flipping
+   the matrix and tridiagonalizing the bottom part.
+
+   On input:
+     l is the size of diagonal part
+     d contains diagonal elements (length n)
+     e contains offdiagonal elements (length n-1)
+
+   On output:
+     d contains the eigenvalues in ascending order
+     Q is the eigenvector matrix (order n)
+
+   Workspace:
+     S is workspace to store a copy of the full matrix (nxn reals)
+*/
+PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,PetscReal *Q,PetscReal *S)
+{
+  PetscInt       i,j;
+  PetscBLASInt   n1,n2,lwork,info;
+
+  PetscFunctionBegin;
+
+  n1 = l+1;    /* size of leading block, including residuals */
+  n2 = n-l-1;  /* size of trailing block */
+
+ /* Clean matrix S */
+  for (i=0;i<n;i++) 
+    for (j=0;j<n;j++) 
+      S[i+j*n] = 0.0;
+
+  /* Flip matrix S, copying the values saved in Q */
+  for (i=0;i<n;i++) 
+    S[(n-1-i)+(n-1-i)*n] = d[i];
+  for (i=0;i<l;i++)
+    S[(n-1-i)+(n-1-l)*n] = e[i];
+  for (i=l;i<n;i++)
+    S[(n-1-i)+(n-1-i-1)*n] = e[i];
+
+  /* Reduce (2,2)-block of flipped S to tridiagonal form */
+  lwork = n*n-n;
+  LAPACKsytrd_("L",&n1,S+n2*(n+1),&n,d,e,Q,Q+n,&lwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
+
+  /* Flip back diag and subdiag, put them in d and e */
+  for (i=0;i<n-1;i++) {
+    d[n-i-1] = S[i+i*n];
+    e[n-i-2] = S[i+1+i*n];
+  }
+  d[0] = S[n-1+(n-1)*n];
+
+  /* Compute the orthogonal matrix used for tridiagonalization */
+  LAPACKorgtr_("L",&n1,S+n2*(n+1),&n,Q,Q+n,&lwork,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
+
+  /* Create full-size Q, flipped back to original order */
+  for (i=0;i<n;i++) 
+    for (j=0;j<n;j++) 
+      Q[i+j*n] = 0.0;
+  for (i=n1;i<n;i++) 
+    Q[i+i*n] = 1.0;
+  for (i=0;i<n1;i++) 
+    for (j=0;j<n1;j++) 
+      Q[i+j*n] = S[n-i-1+(n-j-1)*n];
+
+  /* Solve the tridiagonal eigenproblem */
+  LAPACKsteqr_("V",&n,d,e,Q,&n,S,&info);
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSProjectedKSSym"
 /*
    EPSProjectedKSSym - Solves the projected eigenproblem in the Krylov-Schur
@@ -54,8 +128,9 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscReal      *ritz = work;
-  PetscReal      *worksort = work+n;
+  PetscReal      *e = work+n;
   PetscInt       *perm = ((PetscInt*)(work+n))+n;
+  PetscReal      *Sreal = (PetscReal*)S, *Qreal = (PetscReal*)Q;
 
   PetscFunctionBegin;
 
@@ -63,11 +138,22 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
   if (l==0) {
     ierr = EPSDenseTridiagonal(n,S,lds,ritz,Q);CHKERRQ(ierr);
   } else {
-    ierr = EPSDenseHEP(n,S,lds,ritz,Q);CHKERRQ(ierr);
+    for (i=0;i<n;i++)
+      ritz[i] = S[i+i*lds];
+    for (i=0;i<l;i++)
+      e[i] = S[l+i*lds];
+    for (i=l;i<n;i++) 
+      e[i] = S[i+1+i*lds];
+    ierr = ArrowTridFlip(n,l,ritz,e,Qreal,Sreal);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    for (j=n-1;j>=0;j--)
+      for (i=n-1;i>=0;i--) 
+        Q[i+j*n] = Qreal[i+j*n];
+#endif
   }
 
   /* Sort eigendecomposition according to eps->which */
-  ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,worksort);CHKERRQ(ierr);
+  ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,e);CHKERRQ(ierr);
   for (i=0;i<n;i++)
     eig[i] = ritz[perm[i]];
   for (j=0;j<n;j++)
