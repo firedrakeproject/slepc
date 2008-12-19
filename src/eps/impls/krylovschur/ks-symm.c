@@ -51,6 +51,10 @@
 */
 PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,PetscReal *Q,PetscReal *S)
 {
+#if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR) || defined(SLEPC_MISSING_LAPACK_STEQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
+#else
   PetscInt       i,j;
   PetscBLASInt   n1,n2,lwork,info;
 
@@ -103,6 +107,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,Pet
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
 
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
