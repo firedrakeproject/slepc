@@ -109,7 +109,7 @@ def FixDir(petscdir,dir):
       print 'makefile has missing MANSEC',parentdir
     elif txt:
       ftype = 'w'
-      f90inc = os.path.join(petscdir,'include','finclude','ftn-auto','petsc'+mansec+'.h90')
+      f90inc = os.path.join(petscdir,'include','finclude','ftn-auto','slepc'+mansec+'.h90')
       if os.path.exists(f90inc): ftype = 'a'
       fd = open(f90inc,ftype)
       fd.write(txt)

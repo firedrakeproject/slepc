@@ -1,0 +1,20 @@
+!
+!  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!     SLEPc - Scalable Library for Eigenvalue Problem Computations
+!     Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+!
+!     This file is part of SLEPc. See the README file for conditions of use
+!     and additional information.
+!  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+
+#if !defined(__SLEPCEPSDEF_H90)
+#define __SLEPCEPSDEF_H90
+
+#if defined(PETSC_USE_FORTRAN_TYPES)
+      type EPS
+        PetscFortranAddr:: v
+      end type EPS
+#endif
+
+#endif
