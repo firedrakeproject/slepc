@@ -40,6 +40,10 @@ ex1f: ex1f.o chkopts
 	-${FLINKER} -o ex1f ex1f.o ${SLEPC_LIB}
 	${RM} ex1f.o
 
+ex1f90: ex1f90.o chkopts
+	-${FLINKER} -o ex1f90 ex1f90.o ${SLEPC_LIB}
+	${RM} ex1f90.o
+
 ex2: ex2.o chkopts
 	-${CLINKER} -o ex2 ex2.o ${SLEPC_LIB}
 	${RM} ex2.o
