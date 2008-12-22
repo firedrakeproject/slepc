@@ -7,14 +7,13 @@
 !     and additional information.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!
-!
-!  Additional EPS include file for use of SLEPc with Fortran 90/HPF
-!
-#include "finclude/ftn-custom/slepceps.h90"
-#if defined(PETSC_USE_FORTRAN_INTERFACES)
-      interface
-#include "finclude/ftn-auto/slepceps.h90"
-      end interface
+
+#if !defined(PETSC_USE_FORTRAN_MODULES) 
+#include "finclude/ftn-custom/slepcstdef.h90"
 #endif
 
+#if defined(PETSC_USE_FORTRAN_TYPES) && !defined(ST_HIDE)
+#define ST_HIDE type(ST)
+#elif !defined(ST_HIDE)
+#define ST_HIDE ST
+#endif
