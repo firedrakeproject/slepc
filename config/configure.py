@@ -160,6 +160,12 @@ if not os.path.exists(confdir):
     os.mkdir(confdir)
   except:
     sys.exit('ERROR: cannot create configuration directory ' + confdir)
+incdir = os.sep.join([archdir,'include'])
+if not os.path.exists(incdir):
+  try:
+    os.mkdir(incdir)
+  except:
+    sys.exit('ERROR: cannot create include directory ' + incdir)
 try:
   slepcconf = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
