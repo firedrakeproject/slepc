@@ -197,10 +197,19 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include ; \
           fi;\
           cp -f include/*.h ${SLEPC_INSTALL_DIR}/include;\
+          cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_INSTALL_DIR}/include;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude ; \
           fi;\
-          cp -f include/finclude/*.h ${SLEPC_INSTALL_DIR}/include/finclude;\
+          cp -f include/finclude/*.h* ${SLEPC_INSTALL_DIR}/include/finclude;\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto ; \
+          fi;\
+          cp -f include/finclude/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto;\
+          if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom ]; then \
+	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom ; \
+          fi;\
+          cp -f include/finclude/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/include/private ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/private ; \
           fi;\
