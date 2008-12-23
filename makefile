@@ -225,6 +225,7 @@ install:
           if [ -d ${PETSC_ARCH}/lib ]; then \
             cp -f ${PETSC_ARCH}/lib/* ${SLEPC_INSTALL_DIR}/lib;\
             ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.a ;\
+            ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
           fi;\
 	  echo "If using sh/bash, do the following:";\
           echo "  SLEPC_DIR="${SLEPC_INSTALL_DIR}"; export SLEPC_DIR";\
