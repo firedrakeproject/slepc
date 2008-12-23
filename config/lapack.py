@@ -50,9 +50,9 @@ def Check(conf):
   # check for all functions at once
   all = [] 
   for i in functions:
-    f =  '#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
+    f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
     f += i + '_\n'
-    f += '#elif defined(PETSC_HAVE_FORTRAN_CAPS)\n'
+    f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
     f += i.upper() + '\n'
     f += '#else\n'
     f += i + '\n'
@@ -67,9 +67,9 @@ def Check(conf):
   missing = []
   conf.write('SLEPC_MISSING_LAPACK =')
   for i in functions:
-    f =  '#if defined(PETSC_HAVE_FORTRAN_UNDERSCORE) || defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
+    f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
     f += i + '_\n'
-    f += '#elif defined(PETSC_HAVE_FORTRAN_CAPS)\n'
+    f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
     f += i.upper() + '\n'
     f += '#else\n'
     f += i + '\n'
