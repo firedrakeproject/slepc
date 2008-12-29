@@ -200,7 +200,9 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include ; \
           fi;\
           cp -f include/*.h ${SLEPC_INSTALL_DIR}/include;\
-          cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_INSTALL_DIR}/include;\
+          if [ -f ${PETSC_ARCH}/include/slepceps.mod ]; then \
+            cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_INSTALL_DIR}/include;\
+          fi;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude ; \
           fi;\
