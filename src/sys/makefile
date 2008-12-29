@@ -20,6 +20,7 @@ OBJSF    =
 LIBBASE  = libslepc
 MANSEC   = sys
 LOCDIR   = src/sys/
+DIRS     = f90-mod
 
 include ${SLEPC_DIR}/conf/slepc_common
 
