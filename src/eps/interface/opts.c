@@ -68,14 +68,14 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsTruthGroupBegin("-eps_ritz","Rayleigh-Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetProjection(eps,EPS_RITZ);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-eps_harmonic","harmonic Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetProjection(eps,EPS_HARMONIC);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-eps_refined","refined Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetProjection(eps,EPS_REFINED);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_refined_harmonic","refined harmonic Ritz projection","EPSSetProjection",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetProjection(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupBegin("-eps_ritz","Rayleigh-Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_harmonic","harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_refined","refined Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-eps_refined_harmonic","refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr);}
 
     ierr = PetscOptionsTruthGroupBegin("-eps_oneside","one-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetClass(eps,EPS_ONE_SIDE);CHKERRQ(ierr);}
@@ -512,48 +512,48 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetProjection"
+#define __FUNCT__ "EPSSetExtraction"
 /*@
-   EPSSetProjection - Specifies the type of projection to be employed 
+   EPSSetExtraction - Specifies the type of extraction technique to be employed 
    by the eigensolver.
 
    Collective on EPS
 
    Input Parameters:
 +  eps  - the eigensolver context
--  proj - a known type of projection
+-  extr - a known type of extraction
 
    Options Database Keys:
-+  -eps_ritz - Rayleigh-Ritz projection
-.  -eps_harmonic - hamonic Ritz projection
-.  -eps_refined - refined Ritz projection
--  -eps_refined_harmonic - refined harmonic Ritz projection
++  -eps_ritz - Rayleigh-Ritz extraction
+.  -eps_harmonic - hamonic Ritz extraction
+.  -eps_refined - refined Ritz extraction
+-  -eps_refined_harmonic - refined harmonic Ritz extraction
     
    Notes:  
-   Not all eigensolvers support all types of projection. See the SLEPc
+   Not all eigensolvers support all types of extraction. See the SLEPc
    Users Manual for details.
 
-   By default, a standard Rayleigh-Ritz projection is used. Other projections
+   By default, a standard Rayleigh-Ritz extraction is used. Other extractions
    may be useful when computing interior eigenvalues.
 
-   Harmonic-type projections are used in combination with a 'target'.
+   Harmonic-type extractions are used in combination with a 'target'.
 
    Level: beginner
 
-.seealso: EPSSetTarget(), EPSGetProjection(), EPSProjection
+.seealso: EPSSetTarget(), EPSGetExtraction(), EPSExtraction
 @*/
-PetscErrorCode EPSSetProjection(EPS eps,EPSProjection proj)
+PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  eps->projection = proj;
+  eps->extraction = extr;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetProjection"
+#define __FUNCT__ "EPSGetExtraction"
 /*@C
-   EPSGetProjection - Gets the projection type used by the EPS object.
+   EPSGetExtraction - Gets the extraction type used by the EPS object.
 
    Not Collective
 
@@ -561,18 +561,18 @@ PetscErrorCode EPSSetProjection(EPS eps,EPSProjection proj)
 .  eps - the eigensolver context 
 
    Output Parameter:
-.  proj - name of projection type 
+.  extr - name of extraction type 
 
    Level: intermediate
 
-.seealso: EPSSetProjection(), EPSProjection
+.seealso: EPSSetExtraction(), EPSExtraction
 @*/
-PetscErrorCode EPSGetProjection(EPS eps,EPSProjection *proj)
+PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(proj,2);
-  *proj = eps->projection;
+  PetscValidPointer(extr,2);
+  *extr = eps->extraction;
   PetscFunctionReturn(0);
 }
 

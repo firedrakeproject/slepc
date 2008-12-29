@@ -52,10 +52,10 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(1,"Wrong value of eps->which");
 
-  if (!eps->projection) {
-    ierr = EPSSetProjection(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->projection!=EPS_RITZ && eps->projection!=EPS_HARMONIC) {
-    SETERRQ(PETSC_ERR_SUP,"Unsupported projection type\n");
+  if (!eps->extraction) {
+    ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
+  } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) {
+    SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type\n");
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -110,14 +110,14 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
   if (eps->ishermitian) {
     ierr = EPSSolve_KRYLOVSCHUR_SYMM(eps);CHKERRQ(ierr);
   } else {
-    switch (eps->projection) {
+    switch (eps->extraction) {
       case EPS_RITZ:
         ierr = EPSSolve_KRYLOVSCHUR_DEFAULT(eps);CHKERRQ(ierr);
         break;
       case EPS_HARMONIC:
         ierr = EPSSolve_KRYLOVSCHUR_HARMONIC(eps);CHKERRQ(ierr);
         break;
-      default: SETERRQ(PETSC_ERR_SUP,"Unsupported projection type");
+      default: SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
     }
   }
   PetscFunctionReturn(0);

@@ -27,7 +27,7 @@
 #define epsgetip_                   EPSGETIP
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
-#define epsgetprojection_           EPSGETPROJECTION
+#define epsgetextraction_           EPSGETEXTRACTION
 #define epsgetclass_                EPSGETCLASS
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
@@ -47,7 +47,7 @@
 #define epsgetip_                   epsgetip
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
-#define epsgetprojection_           epsgetprojection
+#define epsgetextraction_           epsgetextraction
 #define epsgetclass_                epsgetclass
 #define epsgetconvergedreason_      epsgetconvergedreason
 #define epspowergetshifttype_       epspowergetshifttype
@@ -199,9 +199,9 @@ void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,PetscErrorCo
   *ierr = EPSGetProblemType(*eps,type);
 }
 
-void PETSC_STDCALL epsgetprojection_(EPS *eps,EPSProjection *proj,PetscErrorCode *ierr)
+void PETSC_STDCALL epsgetextraction_(EPS *eps,EPSExtraction *proj,PetscErrorCode *ierr)
 {
-  *ierr = EPSGetProjection(*eps,proj);
+  *ierr = EPSGetExtraction(*eps,proj);
 }
 
 void PETSC_STDCALL epsgetclass_(EPS *eps,EPSClass *cl,PetscErrorCode *ierr)

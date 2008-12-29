@@ -53,7 +53,7 @@ struct _p_EPS {
   EPSWhich       which;            /* which part of the spectrum to be sought */
   PetscTruth     evecsavailable;   /* computed eigenvectors */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
-  EPSProjection  projection;       /* which kind of projection to be applied */
+  EPSExtraction  extraction;       /* which kind of extraction to be applied */
   EPSClass       solverclass;      /* whether the selected solver is one- or two-sided */
 
   /*------------------------- Working data --------------------------*/

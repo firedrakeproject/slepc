@@ -44,10 +44,10 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
-  if (!eps->projection) {
-    ierr = EPSSetProjection(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->projection!=EPS_RITZ) {
-    SETERRQ(PETSC_ERR_SUP,"Unsupported projection type\n");
+  if (!eps->extraction) {
+    ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
+  } else if (eps->extraction!=EPS_RITZ) {
+    SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type\n");
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);

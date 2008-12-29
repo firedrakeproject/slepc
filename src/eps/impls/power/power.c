@@ -63,8 +63,8 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
     if (mode == STMATMODE_INPLACE)
       SETERRQ(PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
-  if (eps->projection) {
-     ierr = PetscInfo(eps,"Warning: projection type ignored\n");CHKERRQ(ierr);
+  if (eps->extraction) {
+     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->solverclass==EPS_TWO_SIDE) {

@@ -61,15 +61,15 @@ typedef enum { EPS_HEP=1,  EPS_GHEP,
                EPS_NHEP,   EPS_GNHEP, EPS_PGNHEP } EPSProblemType;
 
 /*E
-    EPSProjection - determines the type of projection employed
+    EPSExtraction - determines the type of extraction technique employed
     by the eigensolver
 
     Level: beginner
 
-.seealso: EPSSetProjection(), EPSGetProjection()
+.seealso: EPSSetExtraction(), EPSGetExtraction()
 E*/
 typedef enum { EPS_RITZ=1,   EPS_HARMONIC,
-               EPS_REFINED,  EPS_REFINED_HARMONIC } EPSProjection;
+               EPS_REFINED,  EPS_REFINED_HARMONIC } EPSExtraction;
 
 /*E
     EPSClass - determines if the eigensolver is one- or two-sided
@@ -97,8 +97,8 @@ EXTERN PetscErrorCode EPSSetType(EPS,const EPSType);
 EXTERN PetscErrorCode EPSGetType(EPS,const EPSType*);
 EXTERN PetscErrorCode EPSSetProblemType(EPS,EPSProblemType);
 EXTERN PetscErrorCode EPSGetProblemType(EPS,EPSProblemType*);
-EXTERN PetscErrorCode EPSSetProjection(EPS,EPSProjection);
-EXTERN PetscErrorCode EPSGetProjection(EPS,EPSProjection*);
+EXTERN PetscErrorCode EPSSetExtraction(EPS,EPSExtraction);
+EXTERN PetscErrorCode EPSGetExtraction(EPS,EPSExtraction*);
 EXTERN PetscErrorCode EPSSetClass(EPS,EPSClass);
 EXTERN PetscErrorCode EPSGetClass(EPS,EPSClass*);
 EXTERN PetscErrorCode EPSSetOperators(EPS,Mat,Mat);

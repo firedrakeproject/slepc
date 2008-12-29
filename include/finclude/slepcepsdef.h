@@ -25,7 +25,7 @@
 #define EPSProblemType         PetscEnum
 #define EPSWhich               PetscEnum
 #define EPSClass               PetscEnum
-#define EPSProjection          PetscEnum
+#define EPSExtraction          PetscEnum
 #define EPSPowerShiftType      PetscEnum
 #define EPSLanczosReorthogType PetscEnum
 #define EPSPRIMMEMethod        PetscEnum

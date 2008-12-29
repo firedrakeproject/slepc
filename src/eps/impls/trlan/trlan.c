@@ -44,8 +44,8 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   else tr->lwork = n*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10);
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
-  if (eps->projection) {
-     ierr = PetscInfo(eps,"Warning: projection type ignored\n");CHKERRQ(ierr);
+  if (eps->extraction) {
+     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
 
   ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);

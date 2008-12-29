@@ -35,7 +35,7 @@
 #define __FUNCT__ "EPSTranslateHarmonic"
 /*
    EPSTranslateHarmonic - Computes a translation of the Krylov decomposition
-   in order to perform a harmonic projection.
+   in order to perform a harmonic extraction.
 
    On input:
      S is the Rayleigh quotient (leading dimension is m)
@@ -211,7 +211,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
-    /* Compute translation of Krylov decomposition if harmonic projection used */ 
+    /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     ierr = EPSTranslateHarmonic(S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 

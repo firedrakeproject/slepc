@@ -132,8 +132,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->ncv < eps->nev+primme->maxBlockSize)  
     SETERRQ(PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
 
-  if (eps->projection) {
-     ierr = PetscInfo(eps,"Warning: projection type ignored\n");CHKERRQ(ierr);
+  if (eps->extraction) {
+     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
 
   /* Set workspace */

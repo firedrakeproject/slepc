@@ -100,7 +100,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const EPSType  type;
-  const char     *proj, *which;
+  const char     *extr, *which;
   PetscTruth     isascii;
 
   PetscFunctionBegin;
@@ -144,15 +144,15 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    if (eps->projection) {
-      switch (eps->projection) {
-        case EPS_RITZ:             proj = "Rayleigh-Ritz"; break;
-        case EPS_HARMONIC:         proj = "harmonic Ritz"; break;
-        case EPS_REFINED:          proj = "refined Ritz"; break;
-        case EPS_REFINED_HARMONIC: proj = "refined harmonic Ritz"; break;
-        default: SETERRQ(1,"Wrong value of eps->projection");
+    if (eps->extraction) {
+      switch (eps->extraction) {
+        case EPS_RITZ:             extr = "Rayleigh-Ritz"; break;
+        case EPS_HARMONIC:         extr = "harmonic Ritz"; break;
+        case EPS_REFINED:          extr = "refined Ritz"; break;
+        case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
+        default: SETERRQ(1,"Wrong value of eps->extraction");
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  projection type: %s\n",proj);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     if (eps->target_set) {
@@ -236,7 +236,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->target_set      = PETSC_FALSE;
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
-  eps->projection      = (EPSProjection)0;
+  eps->extraction      = (EPSExtraction)0;
   eps->solverclass     = (EPSClass)0;
 
   eps->vec_initial     = 0;
