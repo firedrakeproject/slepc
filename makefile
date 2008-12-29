@@ -210,11 +210,11 @@ install:
           if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto ; \
           fi;\
-          cp -f include/finclude/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto;\
+          cp -f include/finclude/ftn-auto/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom ; \
           fi;\
-          cp -f include/finclude/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom;\
+          cp -f include/finclude/ftn-custom/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/include/private ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/private ; \
           fi;\
