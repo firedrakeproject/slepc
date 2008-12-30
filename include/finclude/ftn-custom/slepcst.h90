@@ -12,7 +12,7 @@
 #include "finclude/ftn-custom/slepcstdef.h90"
 #endif
 
-#if defined(PETSC_USE_FORTRAN_TYPES) && !defined(ST_HIDE)
+#if defined(PETSC_USE_FORTRAN_DATATYPES) && !defined(ST_HIDE)
 #define ST_HIDE type(ST)
 #elif !defined(ST_HIDE)
 #define ST_HIDE ST

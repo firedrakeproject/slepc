@@ -1,5 +1,6 @@
 #define PETSC_USE_FORTRAN_MODULES
 
+#include "finclude/petscalldef.h"
 #include "finclude/slepcalldef.h"
 
         module slepcstdef

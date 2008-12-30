@@ -12,7 +12,7 @@
 #include "finclude/ftn-custom/slepcepsdef.h90"
 #endif
 
-#if defined(PETSC_USE_FORTRAN_TYPES) && !defined(EPS_HIDE)
+#if defined(PETSC_USE_FORTRAN_DATATYPES) && !defined(EPS_HIDE)
 #define EPS_HIDE type(EPS)
 #elif !defined(EPS_HIDE)
 #define EPS_HIDE EPS

@@ -18,27 +18,40 @@
 ! ---------------------------------------------------------------------- 
 !
       program main
+
+#include "finclude/petscdef.h"      
+#include "finclude/slepcepsdef.h"
+      use slepceps
+
       implicit none
 
-#include "finclude/petsc.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscvec.h90"
-#include "finclude/petscmat.h"
-#include "finclude/petscmat.h90"
-#include "finclude/slepc.h"
-#include "finclude/slepceps.h"
-#include "finclude/slepceps.h90"
+! For usage without modules, uncomment the following lines and remove 
+! the previous lines between 'program main' and 'implicit none'
+!
+!#include "finclude/petsc.h"
+!#include "finclude/petscvec.h"
+!#include "finclude/petscvec.h90"
+!#include "finclude/petscmat.h"
+!#include "finclude/petscmat.h90"
+!#include "finclude/slepc.h"
+!#include "finclude/slepceps.h"
+!#include "finclude/slepceps.h90"
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !
 !  Variables:
-!     A     operator matrix
-!     eps   eigenproblem solver context
+!     A      operator matrix
+!     solver eigenproblem solver context
 
+#if defined(PETSC_USE_FORTRAN_DATATYPES)
+      type(Mat)      A
+      type(EPS)      solver
+#else
       Mat            A
-      EPS            eps
+      EPS            solver
+#endif
       EPSType        tname
       PetscReal      tol, error
       PetscScalar    kr, ki
@@ -110,38 +123,38 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Create eigensolver context
-      call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
+      call EPSCreate(PETSC_COMM_WORLD,solver,ierr)
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
-      call EPSSetProblemType(eps,EPS_HEP,ierr)
+      call EPSSetOperators(solver,A,PETSC_NULL_OBJECT,ierr)
+      call EPSSetProblemType(solver,EPS_HEP,ierr)
 
 !     ** Set solver parameters at runtime
-      call EPSSetFromOptions(eps,ierr)
+      call EPSSetFromOptions(solver,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSSolve(eps,ierr) 
-      call EPSGetIterationNumber(eps,its,ierr)
+      call EPSSolve(solver,ierr) 
+      call EPSGetIterationNumber(solver,its,ierr)
       if (rank .eq. 0) then
         write(*,110) its
       endif
  110  format (/' Number of iterations of the method:',I4)
   
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(eps,tname,ierr)
+      call EPSGetType(solver,tname,ierr)
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,ierr)
+      call EPSGetDimensions(solver,nev,PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif
  130  format (' Number of requested eigenvalues:',I2)
-      call EPSGetTolerances(eps,tol,maxit,ierr)
+      call EPSGetTolerances(solver,tol,maxit,ierr)
       if (rank .eq. 0) then
         write(*,140) tol, maxit
       endif
@@ -152,7 +165,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Get number of converged eigenpairs
-      call EPSGetConverged(eps,nconv,ierr)
+      call EPSGetConverged(solver,nconv,ierr)
       if (rank .eq. 0) then
         write(*,150) nconv
       endif
@@ -167,10 +180,10 @@
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL,PETSC_NULL,ierr)
+          call EPSGetEigenpair(solver,i,kr,ki,PETSC_NULL,PETSC_NULL,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
-          call EPSComputeRelativeError(eps,i,error,ierr)
+          call EPSComputeRelativeError(solver,i,error,ierr)
           if (rank .eq. 0) then
             write(*,160) PetscRealPart(kr), error
           endif
@@ -183,7 +196,7 @@
       endif
 
 !     ** Free work space
-      call EPSDestroy(eps,ierr)
+      call EPSDestroy(solver,ierr)
       call MatDestroy(A,ierr)
 
       call SlepcFinalize(ierr)

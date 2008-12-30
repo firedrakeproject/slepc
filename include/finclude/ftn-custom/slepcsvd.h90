@@ -12,7 +12,7 @@
 #include "finclude/ftn-custom/slepcsvddef.h90"
 #endif
 
-#if defined(PETSC_USE_FORTRAN_TYPES) && !defined(SVD_HIDE)
+#if defined(PETSC_USE_FORTRAN_DATATYPES) && !defined(SVD_HIDE)
 #define SVD_HIDE type(SVD)
 #elif !defined(SVD_HIDE)
 #define SVD_HIDE SVD

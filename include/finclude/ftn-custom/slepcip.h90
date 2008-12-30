@@ -12,7 +12,7 @@
 #include "finclude/ftn-custom/slepcipdef.h90"
 #endif
 
-#if defined(PETSC_USE_FORTRAN_TYPES) && !defined(IP_HIDE)
+#if defined(PETSC_USE_FORTRAN_DATATYPES) && !defined(IP_HIDE)
 #define IP_HIDE type(IP)
 #elif !defined(IP_HIDE)
 #define IP_HIDE IP

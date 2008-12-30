@@ -11,7 +11,7 @@
 #if !defined(__SLEPCEPSDEF_H90)
 #define __SLEPCEPSDEF_H90
 
-#if defined(PETSC_USE_FORTRAN_TYPES)
+#if defined(PETSC_USE_FORTRAN_DATATYPES)
       type EPS
         PetscFortranAddr:: v
       end type EPS
