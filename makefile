@@ -30,8 +30,12 @@ all:
            echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es";\
            echo "********************************************************************"; \
            exit 1; \
+	 elif [ "${SLEPC_INSTALL_DIR}" == "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+           echo "Now to check if the libraries are working do: make test";\
+           echo "=========================================";\
 	 else \
-	  ${OMAKE} shared_install  2>&1 | tee -a ${PETSC_ARCH}/conf/make.log ;\
+	   echo "Now to install the libraries do: make install";\
+	   echo "=========================================";\
 	 fi
 	
 all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs build shared_nomesg_noinstall
@@ -223,6 +227,7 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/conf ; \
           fi;\
           cp -f conf/slepc_common* ${SLEPC_INSTALL_DIR}/conf;\
+          cp -f conf/slepc_common_variables_install ${SLEPC_INSTALL_DIR}/conf/slepc_common_variables;\
           cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_INSTALL_DIR}/conf;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/lib ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
@@ -230,7 +235,7 @@ install:
           if [ -d ${PETSC_ARCH}/lib ]; then \
             cp -f ${PETSC_ARCH}/lib/* ${SLEPC_INSTALL_DIR}/lib;\
             ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.a ;\
-            ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} INSTALL_LIB_DIR=${SLEPC_INSTALL_DIR} shared; \
+            ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
           fi;\
 	  echo "If using sh/bash, do the following:";\
           echo "  SLEPC_DIR="${SLEPC_INSTALL_DIR}"; export SLEPC_DIR";\
@@ -238,7 +243,7 @@ install:
           echo "If using csh/tcsh, do the following:";\
           echo "  setenv SLEPC_DIR "${SLEPC_INSTALL_DIR};\
           echo "  unsetenv PETSC_ARCH";\
-          echo "Now run the testsuite to verify the install with the following:";\
+          echo "Run the following to verify the install (remain in current directory for the tests):";\
           echo "  make test";\
         fi;
 
