@@ -92,6 +92,8 @@ PetscErrorCode STDestroy(ST st)
   ierr = PetscObjectDepublish(st);CHKERRQ(ierr);
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
+  if (st->A) { ierr = MatDestroy(st->A);CHKERRQ(ierr); }
+  if (st->B) { ierr = MatDestroy(st->B);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPDestroy(st->ksp);CHKERRQ(ierr); } 
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); } 
   if (st->shift_matrix != STMATMODE_INPLACE && st->mat) { 
@@ -174,13 +176,18 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
  @*/
 PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
 {
+  PetscErrorCode ierr;
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(A,MAT_COOKIE,2);
   if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
   PetscCheckSameComm(st,1,A,2);
   if (B) PetscCheckSameComm(st,1,B,3);
+  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+  if (st->A) { ierr = MatDestroy(st->A);CHKERRQ(ierr); }
   st->A = A;
+  if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
+  if (st->B) { ierr = MatDestroy(st->B);CHKERRQ(ierr); }
   st->B = B;
   st->setupcalled = 0;
   PetscFunctionReturn(0);
