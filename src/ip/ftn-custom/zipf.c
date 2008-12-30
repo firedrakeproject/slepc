@@ -61,15 +61,7 @@ void PETSC_STDCALL ipgetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),P
   const char *tname;
 
   *ierr = IPGetOptionsPrefix(*ip,&tname);
-#if defined(PETSC_USES_CPTOFCD)
-  {
-    char *t = _fcdtocp(prefix); int len1 = _fcdlen(prefix);
-    *ierr = PetscStrncpy(t,tname,len1); if (*ierr) return;
-  }
-#else
   *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
-#endif
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement,PetscReal *eta,PetscErrorCode *ierr)

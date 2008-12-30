@@ -111,14 +111,7 @@ void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),PetscErro
   const EPSType tname;
 
   *ierr = EPSGetType(*eps,&tname);if (*ierr) return;
-#if defined(PETSC_USES_CPTOFCD)
-  {
-    char *t = _fcdtocp(name); int len1 = _fcdlen(name);
-    *ierr = PetscStrncpy(t,tname,len1); 
-  }
-#else
   *ierr = PetscStrncpy(name,tname,len);
-#endif
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -168,15 +161,7 @@ void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
   const char *tname;
 
   *ierr = EPSGetOptionsPrefix(*eps,&tname);
-#if defined(PETSC_USES_CPTOFCD)
-  {
-    char *t = _fcdtocp(prefix); int len1 = _fcdlen(prefix);
-    *ierr = PetscStrncpy(t,tname,len1); if (*ierr) return;
-  }
-#else
   *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
-#endif
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)

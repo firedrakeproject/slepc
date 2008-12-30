@@ -105,14 +105,6 @@ void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErro
   const SVDType tname;
 
   *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
-#if defined(PETSC_USES_CPTOFCD)
-  {
-    char *t = _fcdtocp(name); PetscInt len1 = _fcdlen(name);
-    *ierr = PetscStrncpy(t,tname,len1); 
-  }
-#else
-  *ierr = PetscStrncpy(name,tname,len);
-#endif
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -172,15 +164,7 @@ void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len
   const char *tname;
 
   *ierr = SVDGetOptionsPrefix(*svd,&tname);
-#if defined(PETSC_USES_CPTOFCD)
-  {
-    char *t = _fcdtocp(prefix); PetscInt len1 = _fcdlen(prefix);
-    *ierr = PetscStrncpy(t,tname,len1); if (*ierr) return;
-  }
-#else
   *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
-#endif
-  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 void PETSC_STDCALL svdgetconvergedreason_(SVD *svd,SVDConvergedReason *reason,PetscErrorCode *ierr)
