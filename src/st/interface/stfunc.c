@@ -126,6 +126,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscErrorCode ierr;
   ST             st;
   const char     *prefix;
+  PC             pc;
 
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
@@ -147,7 +148,10 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);  
+  ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
+  ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
   
   *newst                  = st;
   ierr = PetscPublishAll(st);CHKERRQ(ierr);
