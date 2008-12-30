@@ -163,8 +163,7 @@ PetscErrorCode STSetFromOptions(ST st)
 
   if (st->ksp) {   
     if (st->shift_matrix == STMATMODE_SHELL) {
-      /* if shift_mat is set then the default preconditioner is ILU,
-         otherwise set Jacobi as the default */
+      /* in shell mode use GMRES with Jacobi as the default */
       ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
       ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
