@@ -270,7 +270,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   
   ierr = IPDestroy(svd->ip);CHKERRQ(ierr);
   
-  PetscHeaderDestroy(svd);
+  ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

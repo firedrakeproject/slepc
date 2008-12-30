@@ -426,7 +426,9 @@ PetscErrorCode IPDestroy(IP ip)
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
   if (ip->matrix) { ierr = MatDestroy(ip->matrix);CHKERRQ(ierr); }
   if (ip->Bx) { ierr = VecDestroy(ip->Bx);CHKERRQ(ierr); }
-  if (--((PetscObject)ip)->refct <= 0) PetscHeaderDestroy(ip);
+  if (--((PetscObject)ip)->refct <= 0) {
+    ierr = PetscHeaderDestroy(ip);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

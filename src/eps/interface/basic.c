@@ -499,7 +499,7 @@ PetscErrorCode EPSDestroy(EPS eps)
 
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
-  PetscHeaderDestroy(eps);
+  ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

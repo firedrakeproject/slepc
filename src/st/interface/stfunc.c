@@ -100,7 +100,7 @@ PetscErrorCode STDestroy(ST st)
     ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
   }
 
-  PetscHeaderDestroy(st);
+  ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
