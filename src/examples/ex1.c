@@ -18,14 +18,14 @@ static char help[] = "Standard symmetric eigenproblem corresponding to the Lapla
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat            A;           /* operator matrix */
+  Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error, tol,re, im;
+  PetscReal      error, tol, re, im;
   PetscScalar    kr, ki;
   Vec            xr, xi;
   PetscErrorCode ierr;
-  PetscInt       n=30, i, Istart, Iend, col[3], nev, maxit,its, nconv;
+  PetscInt       n=30, i, Istart, Iend, col[3], nev, maxit, its, nconv;
   PetscTruth     FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   PetscScalar    value[3];
 
@@ -89,11 +89,11 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
   /*
      Optional: Get some information from the solver and display it
   */
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL);CHKERRQ(ierr);
