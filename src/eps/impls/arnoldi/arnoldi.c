@@ -88,8 +88,8 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,Pe
   PetscScalar    *swork;
 
   PetscFunctionBegin;
-  if (eps->ncv > 100) {
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
+  if (m > 100) {
+    ierr = PetscMalloc(m*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
   } else swork = PETSC_NULL;
   
   for (j=k;j<m-1;j++) {
@@ -101,6 +101,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,Pe
     if (*breakdown) {
       *M = j+1;
       *beta = norm;
+      if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
       PetscFunctionReturn(0);
     } else {
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
@@ -109,7 +110,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,Pe
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,m,PETSC_NULL,V,f,H+m*(m-1),beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  if (eps->ncv > 100) {
+  if (m > 100) {
     ierr = PetscFree(swork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
