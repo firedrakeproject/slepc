@@ -124,7 +124,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt 
    reorthogonalization is delayed to the next Arnoldi step. This version is
    more scalable but in some cases convergence may stagnate.
 */
-PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
@@ -143,7 +143,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
 
-    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPMInnerProductBegin(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
       ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
@@ -153,7 +153,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
       ierr = VecDotBegin(u,V[j-2],&dot2);CHKERRQ(ierr);
     }
     
-    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPMInnerProductEnd(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
       ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
@@ -177,8 +177,8 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
     if (j>k) {      
       norm1 = sqrt(PetscRealPart(dot));
       for (i=0;i<j;i++)
-	H[m*j+i] = H[m*j+i]/norm1;
-      H[m*j+j] = H[m*j+j]/dot;
+	H[ldh*j+i] = H[ldh*j+i]/norm1;
+      H[ldh*j+j] = H[ldh*j+j]/dot;
       
       ierr = VecCopy(V[j],t);CHKERRQ(ierr);
       ierr = VecScale(V[j],1.0/norm1);CHKERRQ(ierr);
@@ -186,7 +186,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
     }
 
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j+1,H+ldh*j,V);CHKERRQ(ierr);
     ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
 
     if (j>k) {
@@ -194,13 +194,13 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
       ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
       ierr = VecAXPY(t,-1.0,w);CHKERRQ(ierr);
       for (i=0;i<j;i++)
-        H[m*(j-1)+i] += lhh[i];
+        H[ldh*(j-1)+i] += lhh[i];
     }
 
     if (j>k+1) {
       ierr = VecCopy(u,V[j-1]);CHKERRQ(ierr);
       ierr = VecScale(V[j-1],1.0/norm2);CHKERRQ(ierr);
-      H[m*(j-2)+j-1] = norm2;
+      H[ldh*(j-2)+j-1] = norm2;
     }
 
     if (j<m-1) {
@@ -212,7 +212,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
   ierr = IPNorm(eps->ip,t,&norm2);CHKERRQ(ierr);
   ierr = VecScale(t,1.0/norm2);CHKERRQ(ierr);
   ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
-  H[m*(m-2)+m-1] = norm2;
+  H[ldh*(m-2)+m-1] = norm2;
 
   ierr = IPMInnerProduct(eps->ip,f,m,V,lhh);CHKERRQ(ierr);
   
@@ -220,7 +220,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
   ierr = VecMAXPY(w,m,lhh,V);CHKERRQ(ierr);
   ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
   for (i=0;i<m;i++)
-    H[m*(m-1)+i] += lhh[i];
+    H[ldh*(m-1)+i] += lhh[i];
 
   ierr = IPNorm(eps->ip,f,beta);CHKERRQ(ierr);
   ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
@@ -240,7 +240,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscI
    EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi1,
    but without reorthogonalization (only delayed normalization).
 */
-PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
@@ -255,12 +255,12 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,PetscInt k,Petsc
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
 
-    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
     
-    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+m*j);CHKERRQ(ierr);
+    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
@@ -268,16 +268,16 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,Vec *V,PetscInt k,Petsc
     if (j>k) {      
       norm = sqrt(PetscRealPart(dot));
       ierr = VecScale(V[j],1.0/norm);CHKERRQ(ierr);
-      H[m*(j-1)+j] = norm;
+      H[ldh*(j-1)+j] = norm;
 
       for (i=0;i<j;i++)
-	H[m*j+i] = H[m*j+i]/norm;
-      H[m*j+j] = H[m*j+j]/dot;      
+	H[ldh*j+i] = H[ldh*j+i]/norm;
+      H[ldh*j+j] = H[ldh*j+j]/dot;      
       ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
     }
 
     ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,j+1,H+m*j,V);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,j+1,H+ldh*j,V);CHKERRQ(ierr);
     ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
 
     if (j<m-1) {
@@ -500,9 +500,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     if (!arnoldi->delayed) {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else if (orthog_ref == IP_ORTH_REFINE_NEVER) {
-      ierr = EPSDelayedArnoldi1(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi1(eps,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
-      ierr = EPSDelayedArnoldi(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi(eps,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
 
     if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
