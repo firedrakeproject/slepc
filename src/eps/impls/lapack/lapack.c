@@ -34,6 +34,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   eps->ncv = N;
+  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
 
   if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
   if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }

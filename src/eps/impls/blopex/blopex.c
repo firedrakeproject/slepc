@@ -139,6 +139,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   eps->ncv = eps->nev = PetscMin(eps->nev,N);
+  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);

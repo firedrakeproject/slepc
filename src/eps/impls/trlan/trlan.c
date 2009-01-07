@@ -29,6 +29,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
+  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(1000,n);
   
   if (!eps->ishermitian)

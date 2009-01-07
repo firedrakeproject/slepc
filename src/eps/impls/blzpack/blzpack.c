@@ -68,6 +68,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
       SETERRQ(0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   }
   else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
+  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(1000,N);
 
   if (!eps->ishermitian)

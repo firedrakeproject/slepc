@@ -27,6 +27,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
     if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
   } else /* set default value of ncv */
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
+  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*N/eps->ncv));
 
   ncv = eps->ncv;
