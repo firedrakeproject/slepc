@@ -135,6 +135,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     }  
     ierr = PetscViewerASCIIPrintf(viewer,"  number of singular values (nsv): %d\n",svd->nsv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",svd->ncv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",svd->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",svd->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",svd->tol);CHKERRQ(ierr);
     if (svd->ops->view) {
@@ -199,6 +200,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->nconv       = 0;
   svd->nsv         = 1;    
   svd->ncv         = PETSC_DECIDE;    
+  svd->mpd         = PETSC_DECIDE;    
   svd->its         = 0;
   svd->max_it      = PETSC_DECIDE;  
   svd->tol         = 1e-7;    

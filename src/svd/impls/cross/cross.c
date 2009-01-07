@@ -119,10 +119,10 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   ierr = EPSSetOperators(cross->eps,cross->mat,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cross->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(cross->eps,PETSC_NULL,&svd->ncv);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(cross->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

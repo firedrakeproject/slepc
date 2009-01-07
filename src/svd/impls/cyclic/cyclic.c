@@ -134,10 +134,10 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   ierr = EPSSetOperators(cyclic->eps,cyclic->mat,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cyclic->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(cyclic->eps,PETSC_NULL,&svd->ncv);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(cyclic->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
   if (svd->U) {  

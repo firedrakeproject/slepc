@@ -115,7 +115,8 @@
       if (rank .eq. 0) then
         write(*,'(A,A)') ' Solution method: ', tname
       endif
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,ierr)
+      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,
+     +                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,'(A,I2)') ' Number of requested eigenvalues:', nev
       endif

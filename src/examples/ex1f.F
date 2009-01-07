@@ -132,7 +132,8 @@
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,ierr)
+      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,
+     +                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif

@@ -118,8 +118,8 @@ EXTERN PetscErrorCode EPSSetIP(EPS,IP);
 EXTERN PetscErrorCode EPSGetIP(EPS,IP*);
 EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
-EXTERN PetscErrorCode EPSSetDimensions(EPS,PetscInt,PetscInt);
-EXTERN PetscErrorCode EPSGetDimensions(EPS,PetscInt*,PetscInt*);
+EXTERN PetscErrorCode EPSSetDimensions(EPS,PetscInt,PetscInt,PetscInt);
+EXTERN PetscErrorCode EPSGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
 
 EXTERN PetscErrorCode EPSGetConverged(EPS,PetscInt*);
 EXTERN PetscErrorCode EPSGetEigenpair(EPS,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);

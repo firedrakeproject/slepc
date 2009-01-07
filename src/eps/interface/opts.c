@@ -39,7 +39,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscTruth     flg;
   PetscReal      r;
   PetscScalar    s;
-  PetscInt       i,j;
+  PetscInt       i,j,k;
   PetscViewerASCIIMonitor monviewer;
 
   PetscFunctionBegin;
@@ -90,7 +90,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     i = j = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSSetDimensions(eps,i,j);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_mpd","Maximum dimension of projected problem","EPSSetDimensions",eps->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr);
     
     /* -----------------------------------------------------------------------*/
     /*
@@ -237,7 +238,8 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   
    Output Parameters:
 +  nev - number of eigenvalues to compute
--  ncv - the maximum dimension of the subspace to be used by the solver
+.  ncv - the maximum dimension of the subspace to be used by the solver
+-  mpd - the maximum dimension allowed for the projected problem
 
    Notes:
    The user can specify PETSC_NULL for any parameter that is not needed.
@@ -246,12 +248,13 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
 
 .seealso: EPSSetDimensions()
 @*/
-PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv)
+PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if( nev )   *nev = eps->nev;
-  if( ncv )   *ncv = eps->ncv;
+  if (nev) *nev = eps->nev;
+  if (ncv) *ncv = eps->ncv;
+  if (mpd) *mpd = eps->mpd;
   PetscFunctionReturn(0);
 }
 
@@ -266,23 +269,34 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv)
    Input Parameters:
 +  eps - the eigensolver context
 .  nev - number of eigenvalues to compute
--  ncv - the maximum dimension of the subspace to be used by the solver
+.  ncv - the maximum dimension of the subspace to be used by the solver
+-  mpd - the maximum dimension allowed for the projected problem
 
    Options Database Keys:
 +  -eps_nev <nev> - Sets the number of eigenvalues
--  -eps_ncv <ncv> - Sets the dimension of the subspace
+.  -eps_ncv <ncv> - Sets the dimension of the subspace
+-  -eps_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
    Use PETSC_IGNORE to retain the previous value of any parameter.
 
-   Use PETSC_DECIDE for ncv to assign a reasonably good value, which is 
+   Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is
    dependent on the solution method.
+
+   The parameters ncv and mpd are intimately related, so that the user is advised
+   to set one of them at most. Normal usage is the following:
++  - In cases where nev is small, the user sets ncv (a reasonable default is 2*nev).
+-  - In cases where nev is large, the user sets mpd.
+
+   The value of ncv should always be between nev and (nev+mpd), typically
+   ncv=nev+mpd. If nev is not too large, mpd=nev is a reasonable choice, otherwise
+   a smaller value should be used.
 
    Level: intermediate
 
 .seealso: EPSGetDimensions()
 @*/
-PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv)
+PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -300,6 +314,14 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv)
       eps->ncv = ncv;
     }
     eps->setupcalled = 0;
+  }
+  if( mpd != PETSC_IGNORE ) {
+    if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
+      eps->mpd = 0;
+    } else {
+      if (mpd<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+      eps->mpd = mpd;
+    }
   }
   PetscFunctionReturn(0);
 }

@@ -87,7 +87,7 @@ int main( int argc, char **argv )
      Set solver parameters at runtime
   */
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDSetDimensions(svd,1,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = SVDSetDimensions(svd,1,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem

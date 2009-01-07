@@ -185,23 +185,34 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
    Input Parameters:
 +  svd - the singular value solver context
 .  nsv - number of singular values to compute
--  ncv - the maximum dimension of the subspace to be used by the solver
+.  ncv - the maximum dimension of the subspace to be used by the solver
+-  mpd - the maximum dimension allowed for the projected problem
 
    Options Database Keys:
 +  -svd_nsv <nsv> - Sets the number of singular values
--  -svd_ncv <ncv> - Sets the dimension of the subspace
+.  -svd_ncv <ncv> - Sets the dimension of the subspace
+-  -svd_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
    Use PETSC_IGNORE to retain the previous value of any parameter.
 
-   Use PETSC_DECIDE for ncv to assign a reasonably good value, which is 
+   Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is 
    dependent on the solution method and the number of singular values required.
+
+   The parameters ncv and mpd are intimately related, so that the user is advised
+   to set one of them at most. Normal usage is the following:
++  - In cases where nsv is small, the user sets ncv (a reasonable default is 2*nsv).
+-  - In cases where nsv is large, the user sets mpd.
+
+   The value of ncv should always be between nsv and (nsv+mpd), typically
+   ncv=nsv+mpd. If nev is not too large, mpd=nsv is a reasonable choice, otherwise
+   a smaller value should be used.
 
    Level: intermediate
 
 .seealso: SVDGetDimensions()
 @*/
-PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv)
+PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -219,6 +230,14 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv)
     }
     svd->setupcalled = 0;
   }
+  if( mpd != PETSC_IGNORE ) {
+    if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
+      svd->mpd = PETSC_DECIDE;
+    } else {
+      if (mpd<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+      svd->mpd = mpd;
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -235,7 +254,8 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv)
   
    Output Parameters:
 +  nsv - number of singular values to compute
--  ncv - the maximum dimension of the subspace to be used by the solver
+.  ncv - the maximum dimension of the subspace to be used by the solver
+-  mpd - the maximum dimension allowed for the projected problem
 
    Notes:
    The user can specify PETSC_NULL for any parameter that is not needed.
@@ -244,12 +264,13 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv)
 
 .seealso: SVDSetDimensions()
 @*/
-PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv)
+PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   if (nsv) *nsv = svd->nsv;
   if (ncv) *ncv = svd->ncv;
+  if (mpd) *mpd = svd->mpd;
   PetscFunctionReturn(0);
 }
 
@@ -354,7 +375,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   char           type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscTruth     flg;
   const char     *mode_list[2] = { "explicit", "implicit" };
-  PetscInt       i,j;
+  PetscInt       i,j,k;
   PetscReal      r;
   PetscViewerASCIIMonitor monviewer;
 
@@ -383,9 +404,10 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
 
   i = j = PETSC_IGNORE;
-  ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->ncv,&i,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
-  ierr = SVDSetDimensions(svd,i,j);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDSetDimensions(svd,i,j,k);CHKERRQ(ierr);
 
   ierr = PetscOptionsTruthGroupBegin("-svd_largest","compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr); }

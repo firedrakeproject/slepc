@@ -50,6 +50,7 @@ struct _p_SVD {
   PetscInt         nconv;	/* number of converged values */
   PetscInt         nsv;         /* number of requested values */
   PetscInt         ncv;         /* basis size */
+  PetscInt         mpd;         /* maximum dimension of projected problem */
   PetscInt         its;         /* iteration counter */
   PetscInt         max_it;      /* max iterations */
   PetscReal        tol;         /* tolerance */
