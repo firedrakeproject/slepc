@@ -80,7 +80,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
    the columns of V. On exit, beta contains the B-norm of f and the next 
    Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
-PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
@@ -96,8 +96,8 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,Pe
     if (trans) { ierr = STApplyTranspose(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     else { ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],H+m*j,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
-    H[(m+1)*j+1] = norm;
+    ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],H+ldh*j,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
+    H[j+1+ldh*j] = norm;
     if (*breakdown) {
       *M = j+1;
       *beta = norm;
@@ -109,7 +109,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,Vec *V,Pe
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,m,PETSC_NULL,V,f,H+m*(m-1),beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,m,PETSC_NULL,V,f,H+ldh*(m-1),beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
   if (m > 100) {
     ierr = PetscFree(swork);CHKERRQ(ierr);
   }
@@ -498,7 +498,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;
     if (!arnoldi->delayed) {
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else if (orthog_ref == IP_ORTH_REFINE_NEVER) {
       ierr = EPSDelayedArnoldi1(eps,H,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {

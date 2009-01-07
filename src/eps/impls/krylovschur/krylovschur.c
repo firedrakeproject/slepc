@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) {
-    SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type\n");
+    SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -150,7 +150,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 

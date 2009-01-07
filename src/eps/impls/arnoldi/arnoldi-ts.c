@@ -50,8 +50,8 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
     eps->its++;
 
     /* Compute an ncv-step Arnoldi factorization for both A and A' */
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,Qr,eps->nconv,&ncv,fr,&beta,&breakdown);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,Ql,eps->nconv,&ncv,fl,&g,&breakdown);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,Hr,ncv,Qr,eps->nconv,&ncv,fr,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,Hl,ncv,Ql,eps->nconv,&ncv,fl,&g,&breakdown);CHKERRQ(ierr);
 
     ierr = IPBiOrthogonalize(eps->ip,ncv,Qr,Ql,fr,aux,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<ncv;i++) {

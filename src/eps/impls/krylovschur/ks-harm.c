@@ -208,10 +208,10 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     eps->nv = eps->ncv;
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
-    /* Compute translation of Krylov decomposition if harmonic extraction used */ 
+    /* Compute translation of Krylov decomposition */ 
     ierr = EPSTranslateHarmonic(S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
