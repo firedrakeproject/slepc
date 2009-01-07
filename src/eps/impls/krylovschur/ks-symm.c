@@ -203,7 +203,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     eps->its++;
 
     /* Compute an nv-step Arnoldi factorization */
-    eps->nv = eps->ncv;
+    eps->nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
