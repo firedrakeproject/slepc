@@ -239,7 +239,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = EPSUpdateVectors(n,eps->V+eps->nconv,0,k+l-eps->nconv,Q,eps->AV);CHKERRQ(ierr);
+    ierr = EPSUpdateVectors(n,eps->V+eps->nconv,0,k+l-eps->nconv,Q,n,PETSC_NULL);CHKERRQ(ierr);
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);

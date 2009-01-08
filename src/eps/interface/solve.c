@@ -1355,20 +1355,40 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,Vec vec)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSUpdateVectors"
 /*
-  EPSUpdateVectors - Update the vectors V(:,start:end) = V*Q(:,start:end)
+  EPSUpdateVectors - Update the vectors V(:,s:e-1) = V*Q(:,s:e-1)
 */
-PetscErrorCode EPSUpdateVectors(PetscInt n,Vec V[],PetscInt start,PetscInt end,const PetscScalar Q[],Vec work[])
+PetscErrorCode EPSUpdateVectors(PetscInt n,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq,PetscScalar *work)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,j,k,ls,m;
+  PetscScalar    t,*pv;
+  PetscTruth     allocatedw = PETSC_FALSE;
 
   PetscFunctionBegin;
-  for (i=start;i<end;i++) {
-    ierr = VecSet(work[i],0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(work[i],n,Q+i*n,V);CHKERRQ(ierr);        
+  ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
+  m = e-s;
+  if (!work) {
+    ierr = PetscMalloc(sizeof(PetscScalar)*m,&work);CHKERRQ(ierr);
+    allocatedw = PETSC_TRUE;
   }
-  for (i=start;i<end;i++) {
-    ierr = VecCopy(work[i],V[i]);CHKERRQ(ierr);
+  for (i=0;i<ls;i++) {
+    for (j=s;j<e;j++) {
+      t = 0;
+      for (k=0;k<n;k++) {
+        ierr = VecGetArray(V[k],&pv);CHKERRQ(ierr);
+        t += pv[i]*Q[j*ldq+k];
+        ierr = VecRestoreArray(V[k],&pv);CHKERRQ(ierr);
+      }
+      work[j-s] = t;
+    }
+    for (j=s;j<e;j++) {
+      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
+      pv[i] = work[j-s];
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);     
+    }
+  }
+  if (allocatedw) {
+    ierr = PetscFree(work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

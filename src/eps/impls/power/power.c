@@ -68,6 +68,7 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AV);CHKERRQ(ierr);
   if (eps->solverclass==EPS_TWO_SIDE) {
     ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   } else {

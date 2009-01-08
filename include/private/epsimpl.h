@@ -60,8 +60,8 @@ struct _p_EPS {
   /*------------------------- Working data --------------------------*/
   Vec         vec_initial,      /* initial vector */
               vec_initial_left, /* left initial vector for two-sided solvers */
-              *V,               /* set of basis vectors */
-              *AV,              /* computed eigenvectors */
+              *V,               /* set of basis vectors and computed eigenvectors */
+              *AV,              /* auxiliar set of basis vectors */
               *W,               /* set of left basis vectors */
               *AW,              /* computed left eigenvectors */
               *DS,              /* deflation space */
@@ -124,6 +124,6 @@ EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,PetscInt,Vec*,
 EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscInt,PetscScalar*,PetscReal,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
-EXTERN PetscErrorCode EPSUpdateVectors(PetscInt n,Vec V[],PetscInt start,PetscInt end,const PetscScalar Q[],Vec work[]);
+EXTERN PetscErrorCode EPSUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscScalar*);
 
 #endif

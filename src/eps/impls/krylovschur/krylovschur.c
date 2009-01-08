@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = EPSUpdateVectors(n,eps->V,eps->nconv,k+l,Q,eps->AV);CHKERRQ(ierr);
+    ierr = EPSUpdateVectors(n,eps->V,eps->nconv,k+l,Q,n,PETSC_NULL);CHKERRQ(ierr);
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);

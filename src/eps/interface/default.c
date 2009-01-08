@@ -149,7 +149,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
   /* AV = V * Z */
-  ierr = EPSUpdateVectors(nv,eps->V,0,eps->nconv,Z,eps->AV);CHKERRQ(ierr);
+  ierr = EPSUpdateVectors(nv,eps->V,0,eps->nconv,Z,nv,PETSC_NULL);CHKERRQ(ierr);
   if (eps->ispositive) {
     /* Purify eigenvectors */
     for (i=0;i<eps->nconv;i++) {
