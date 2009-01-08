@@ -57,9 +57,8 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
   PetscInt       i;
 
   PetscFunctionBegin;
-  for (i=0;i<eps->nconv;i++) {
-    ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);
-    if (eps->solverclass == EPS_TWO_SIDE) {
+  if (eps->solverclass == EPS_TWO_SIDE) {
+    for (i=0;i<eps->nconv;i++) {
       ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
     }
   }
@@ -78,17 +77,21 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      norm;
+  Vec            w;
 
   PetscFunctionBegin;
-  for (i=0;i<eps->nconv;i++) {
-    if (eps->isgeneralized) {
-      /* Purify eigenvectors */
-      ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
-      ierr = VecNormalize(eps->AV[i],&norm);CHKERRQ(ierr);
-    } else {
-      ierr = VecCopy(eps->V[i],eps->AV[i]);CHKERRQ(ierr);  
+  if (eps->isgeneralized) {
+    /* Purify eigenvectors */
+    ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr);
+      ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->V[i],&norm);CHKERRQ(ierr);
     }
-    if (eps->solverclass == EPS_TWO_SIDE) {
+    ierr = VecDestroy(w);CHKERRQ(ierr);
+  }
+  if (eps->solverclass == EPS_TWO_SIDE) {
+    for (i=0;i<eps->nconv;i++) {
       ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
     }
   }
@@ -146,18 +149,15 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
   /* AV = V * Z */
-  for (i=0;i<eps->nconv;i++) {
-    if (eps->ispositive) {
-      /* Purify eigenvectors */
-      ierr = VecSet(w,0.0);CHKERRQ(ierr); 
-      ierr = VecMAXPY(w,nv,Z+nv*i,eps->V);CHKERRQ(ierr);
-      ierr = STApply(eps->OP,w,eps->AV[i]);CHKERRQ(ierr);
-      ierr = VecNormalize(eps->AV[i],&norm);CHKERRQ(ierr);
-    } else {
-      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[i],nv,Z+nv*i,eps->V);CHKERRQ(ierr);
+  ierr = EPSUpdateVectors(nv,eps->V,0,eps->nconv,Z,eps->AV);CHKERRQ(ierr);
+  if (eps->ispositive) {
+    /* Purify eigenvectors */
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr); 
+      ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->V[i],&norm);CHKERRQ(ierr);
     }
-  }    
+  }
    
   /* left eigenvectors */
   if (eps->solverclass == EPS_TWO_SIDE) {

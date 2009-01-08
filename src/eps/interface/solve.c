@@ -343,6 +343,9 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
   if (!eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
+  if (!eps->ishermitian && eps->evecsavailable) { 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetRightVector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
+  }
   for (i=0;i<eps->nconv;i++) {
     ierr = VecCopy(eps->V[i],v[i]);CHKERRQ(ierr);
   }
@@ -557,20 +560,20 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #ifdef PETSC_USE_COMPLEX
-  if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
+  if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
-    if (Vi) { ierr = VecCopy(eps->AV[k+1], Vi); CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+    if (Vi) { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->AV[k-1], Vr); CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->V[k-1], Vr); CHKERRQ(ierr); }
     if (Vi) { 
-      ierr = VecCopy(eps->AV[k], Vi); CHKERRQ(ierr); 
+      ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
       ierr = VecScale(Vi,-1.0); CHKERRQ(ierr); 
     }
   } else { /* real eigenvalue */
-    if (Vr) { ierr = VecCopy(eps->AV[k], Vr); CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
   }
 #endif
@@ -1349,3 +1352,23 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,Vec vec)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSUpdateVectors"
+/*
+  EPSUpdateVectors - Update the vectors V(:,start:end) = V*Q(:,start:end)
+*/
+PetscErrorCode EPSUpdateVectors(PetscInt n,Vec V[],PetscInt start,PetscInt end,const PetscScalar Q[],Vec work[])
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  for (i=start;i<end;i++) {
+    ierr = VecSet(work[i],0.0);CHKERRQ(ierr);
+    ierr = VecMAXPY(work[i],n,Q+i*n,V);CHKERRQ(ierr);        
+  }
+  for (i=start;i<end;i++) {
+    ierr = VecCopy(work[i],V[i]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}

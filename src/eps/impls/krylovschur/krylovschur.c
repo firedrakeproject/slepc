@@ -201,13 +201,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    for (i=eps->nconv;i<k+l;i++) {
-      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[i],n,Q+i*n,eps->V);CHKERRQ(ierr);        
-    }
-    for (i=eps->nconv;i<k+l;i++) {
-      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
-    }
+    ierr = EPSUpdateVectors(n,eps->V,eps->nconv,k+l,Q,eps->AV);CHKERRQ(ierr);
+
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
     }
