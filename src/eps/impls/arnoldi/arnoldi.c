@@ -68,6 +68,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   if (eps->solverclass==EPS_TWO_SIDE) {
     ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
+    PetscInfo(eps,"Warning: parameter mpd ignored\n");
   }
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
