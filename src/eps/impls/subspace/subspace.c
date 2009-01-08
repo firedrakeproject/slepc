@@ -37,10 +37,17 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->ncv) {
+  if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
-  else eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
+  else if (eps->mpd) { /* mpd set */
+    eps->ncv = PetscMin(N,eps->nev+eps->mpd);
+  }
+  else { /* neither set: defaults depend on nev being small or large */
+    if (eps->nev<500) eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
+    else { eps->mpd = 500; eps->ncv = PetscMin(N,eps->nev+eps->mpd); }
+  }
+  if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
@@ -65,14 +72,14 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
    This routine uses Gaussian elimination with partial pivoting to 
    compute the inverse explicitly. 
 */
-static PetscErrorCode EPSHessCond(PetscScalar* H,PetscInt n_,PetscReal* cond)
+static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,PetscReal* cond)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"GETRF,GETRI - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   *ipiv,lwork,info,n=n_;
+  PetscBLASInt   *ipiv,lwork,info,n=n_,ldh=ldh_;
   PetscScalar    *work;
   PetscReal      hn,hin,*rwork;
   
@@ -82,12 +89,12 @@ static PetscErrorCode EPSHessCond(PetscScalar* H,PetscInt n_,PetscReal* cond)
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
-  hn = LAPACKlanhs_("I",&n,H,&n,rwork);
-  LAPACKgetrf_(&n,&n,H,&n,ipiv,&info);
+  hn = LAPACKlanhs_("I",&n,H,&ldh,rwork);
+  LAPACKgetrf_(&n,&n,H,&ldh,ipiv,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
-  LAPACKgetri_(&n,H,&n,ipiv,work,&lwork,&info);
+  LAPACKgetri_(&n,H,&ldh,ipiv,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
-  hin = LAPACKlange_("I",&n,&n,H,&n,rwork);
+  hin = LAPACKlange_("I",&n,&n,H,&ldh,rwork);
   *cond = hn * hin;
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
@@ -199,7 +206,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,ngrp,nogrp,*itrsd,*itrsdold,
-                 nxtsrr,idsrr,idort,nxtort,ncv = eps->ncv,its;
+                 nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond=1.0;
   PetscTruth     breakdown;
@@ -222,82 +229,83 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
 
   /* Generate a set of random initial vectors and orthonormalize them */
-  for (i=0;i<ncv;i++) {
+  for (i=0;i<eps->mpd;i++) {
     ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }
-  ierr = IPQRDecomposition(eps->ip,eps->V,0,ncv,PETSC_NULL,0,eps->work[0]);CHKERRQ(ierr);
+  ierr = IPQRDecomposition(eps->ip,eps->V,0,eps->mpd,PETSC_NULL,0,eps->work[0]);CHKERRQ(ierr);
   
   while (eps->its<eps->max_it) {
     eps->its++;
+    nv = PetscMin(eps->nconv+eps->mpd,ncv);
     
     /* Find group in previously computed eigenvalues */
-    ierr = EPSFindGroup(eps->nconv,ncv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
+    ierr = EPSFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
     /* Compute a Rayleigh-Ritz projection step 
        on the active columns (idx) */
 
     /* 1. AV(:,idx) = OP * V(:,idx) */
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<nv;i++) {
       ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
     }
 
     /* 2. T(:,idx) = V' * AV(:,idx) */
-    for (i=eps->nconv;i<ncv;i++) {
-      ierr = VecMDot(eps->AV[i],ncv,eps->V,T+i*ncv);CHKERRQ(ierr);
+    for (i=eps->nconv;i<nv;i++) {
+      ierr = VecMDot(eps->AV[i],nv,eps->V,T+i*ncv);CHKERRQ(ierr);
     }
 
     /* 3. Reduce projected matrix to Hessenberg form: [U,T] = hess(T) */
-    ierr = EPSDenseHessenberg(ncv,eps->nconv,T,ncv,U);CHKERRQ(ierr);
+    ierr = EPSDenseHessenberg(nv,eps->nconv,T,ncv,U);CHKERRQ(ierr);
     
     /* 4. Reduce T to quasi-triangular (Schur) form */
-    ierr = EPSDenseSchur(ncv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSDenseSchur(nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* 5. Sort diagonal elements in T and accumulate rotations on U */
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<nv;i++) {
       ierr = VecSet(eps->work[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->work[i],ncv,U+ncv*i,eps->AV);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->work[i],nv,U+ncv*i,eps->AV);CHKERRQ(ierr);
     }    
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<nv;i++) {
       ierr = VecCopy(eps->work[i],eps->AV[i]);CHKERRQ(ierr);
     }    
     
     /* 7. V(:,idx) = V * U(:,idx) */
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<nv;i++) {
       ierr = VecSet(eps->work[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->work[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->work[i],nv,U+ncv*i,eps->V);CHKERRQ(ierr);
     }    
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<nv;i++) {
       ierr = VecCopy(eps->work[i],eps->V[i]);CHKERRQ(ierr);
     }    
     
     /* Compute residuals */
-    for (i=0;i<ncv;i++) { rsdold[i] = rsd[i]; }
+    for (i=0;i<nv;i++) { rsdold[i] = rsd[i]; }
 
-    ierr = EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,ncv,ncv,rsd);CHKERRQ(ierr);
+    ierr = EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,nv,ncv,rsd);CHKERRQ(ierr);
 
-    for (i=0;i<ncv;i++) { 
+    for (i=0;i<nv;i++) { 
       eps->errest[i] = rsd[i] / SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]); 
     }
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv); 
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv); 
   
     /* Convergence check */
-    for (i=0;i<ncv;i++) { itrsdold[i] = itrsd[i]; }
-    for (i=eps->nconv;i<ncv;i++) { itrsd[i] = its; }
+    for (i=0;i<nv;i++) { itrsdold[i] = itrsd[i]; }
+    for (i=eps->nconv;i<nv;i++) { itrsd[i] = its; }
     
     for (;;) {
       /* Find group in currently computed eigenvalues */
-      ierr = EPSFindGroup(eps->nconv,ncv,eps->eigr,eps->eigi,rsd,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
+      ierr = EPSFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
       if (ngrp!=nogrp) break;
       if (ngrp==0) break;
       if (PetscAbsScalar(ae-oae)>ctr*cnvtol*(itrsd[eps->nconv]-itrsdold[eps->nconv])) break;
       if (arsd>ctr*eps->tol) break;
       eps->nconv = eps->nconv + ngrp;
-      if (eps->nconv>=ncv) break;
+      if (eps->nconv>=nv) break;
     }
     
     if (eps->nconv>=eps->nev) break;
@@ -315,12 +323,12 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 
     /* Compute nxtort (iteration of next orthogonalization step) */
     ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv);CHKERRQ(ierr);
-    ierr = EPSHessCond(U,ncv,&tcond);CHKERRQ(ierr);
+    ierr = EPSHessCond(nv,U,ncv,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(its+idort, nxtsrr);
 
     /* V(:,idx) = AV(:,idx) */
-    for (i=eps->nconv;i<ncv;i++) {
+    for (i=eps->nconv;i<nv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     its++;
@@ -330,12 +338,12 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       while (its<nxtort) {
       
         /* AV(:,idx) = OP * V(:,idx) */
-        for (i=eps->nconv;i<ncv;i++) {
+        for (i=eps->nconv;i<nv;i++) {
           ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
         }
         
         /* V(:,idx) = AV(:,idx) with normalization */
-        for (i=eps->nconv;i<ncv;i++) {
+        for (i=eps->nconv;i<nv;i++) {
           ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
           ierr = VecNorm(eps->V[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
           ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
@@ -344,7 +352,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
         its++;
       }
       /* Orthonormalize vectors */
-      for (i=eps->nconv;i<ncv;i++) {
+      for (i=eps->nconv;i<nv;i++) {
         ierr = IPOrthogonalize(eps->ip,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
         if (breakdown) {
           ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
