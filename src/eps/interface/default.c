@@ -142,14 +142,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* right eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info);
+  LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->T,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,&info);
 #else
-  LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->T,&ncv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info);
+  LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->T,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,rwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
   /* AV = V * Z */
-  ierr = EPSUpdateVectors(nv,eps->V,0,eps->nconv,Z,nv,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSUpdateVectors(eps->nconv,eps->V,0,eps->nconv,Z,nv,PETSC_NULL);CHKERRQ(ierr);
   if (eps->ispositive) {
     /* Purify eigenvectors */
     for (i=0;i<eps->nconv;i++) {
@@ -162,16 +162,16 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   /* left eigenvectors */
   if (eps->solverclass == EPS_TWO_SIDE) {
 #if !defined(PETSC_USE_COMPLEX)
-    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,&info);
+    LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->Tl,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,&info);
 #else
-    LAPACKtrevc_("R","A",PETSC_NULL,&nv,eps->Tl,&nv,PETSC_NULL,&nv,Z,&nv,&nv,&mout,work,rwork,&info);
+    LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->Tl,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,rwork,&info);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
     /* AW = W * Z */
     for (i=0;i<eps->nconv;i++) {
       ierr = VecSet(eps->AW[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AW[i],nv,Z+nv*i,eps->W);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AW[i],eps->nconv,Z+nv*i,eps->W);CHKERRQ(ierr);
     }    
   }
    
