@@ -42,10 +42,18 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->ncv) {
+  if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
-  else eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
+  else if (eps->mpd) { /* mpd set */
+    eps->ncv = PetscMin(N,eps->nev+eps->mpd);
+  }
+  else { /* neither set: defaults depend on nev being small or large */
+    if (eps->nev<500) eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
+    else { eps->mpd = 500; eps->ncv = PetscMin(N,eps->nev+eps->mpd); }
+  }
+  if (!eps->mpd) eps->mpd = eps->ncv;
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(1,"Wrong value of eps->which");
@@ -496,7 +504,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     eps->its++;
 
     /* Compute an nv-step Arnoldi factorization */
-    eps->nv = eps->ncv;
+    eps->nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     if (!arnoldi->delayed) {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else if (orthog_ref == IP_ORTH_REFINE_NEVER) {
