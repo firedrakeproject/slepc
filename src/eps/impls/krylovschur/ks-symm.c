@@ -182,7 +182,7 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,n,lwork;
+  PetscInt       i,k,l,n,lwork,nv;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q;
   PetscReal      beta,*work;
@@ -203,24 +203,24 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     eps->its++;
 
     /* Compute an nv-step Arnoldi factorization */
-    eps->nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
-    n = eps->nv-eps->nconv;
+    n = nv-eps->nconv;
     ierr = EPSProjectedKSSym(eps,n,l,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
-    for (i=eps->nconv;i<eps->nv;i++)
+    for (i=eps->nconv;i<nv;i++)
       eps->errest[i] = beta*PetscAbsScalar(Q[(i-eps->nconv+1)*n-1]) / PetscAbsScalar(eps->eigr[i]);
 
     /* Check convergence */
     k = eps->nconv;
-    while (k<eps->nv && eps->errest[k]<eps->tol) k++;    
+    while (k<nv && eps->errest[k]<eps->tol) k++;    
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (eps->nv-k)/2;
+    else l = (nv-k)/2;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -246,7 +246,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     }
     eps->nconv = k;
 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);
     
   } 
 

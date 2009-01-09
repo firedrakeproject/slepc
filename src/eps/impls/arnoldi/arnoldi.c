@@ -477,7 +477,7 @@ PetscErrorCode EPSUpdateVector(EPS eps,PetscInt k,Vec *U,PetscScalar *q,PetscInt
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k;
+  PetscInt       i,k,nv;
   Vec            f=eps->work[1];
   PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
   PetscReal      beta,gnorm;
@@ -506,19 +506,19 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     eps->its++;
 
     /* Compute an nv-step Arnoldi factorization */
-    eps->nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     if (!arnoldi->delayed) {
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else if (orthog_ref == IP_ORTH_REFINE_NEVER) {
-      ierr = EPSDelayedArnoldi1(eps,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi1(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
-      ierr = EPSDelayedArnoldi(eps,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
 
     if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
       ierr = PetscMemcpy(Hcopy,H,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<eps->nv-1;i++) Hcopy[eps->nv+i*eps->ncv] = 0.0; 
-      Hcopy[eps->nv+(eps->nv-1)*eps->ncv] = beta;
+      for (i=0;i<nv-1;i++) Hcopy[nv+i*eps->ncv] = 0.0; 
+      Hcopy[nv+(nv-1)*eps->ncv] = beta;
     }
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
@@ -527,31 +527,31 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     }
 
     /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,eps->nv);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(H,eps->ncv,U,beta,eps->nconv,eps->nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,nv);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(H,eps->ncv,U,beta,eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
     
     /* Fix residual norms if harmonic */
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
       gnorm = 0.0;
       for (i=0;i<eps->ncv;i++)
         gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-      for (i=eps->nconv;i<eps->nv;i++)
+      for (i=eps->nconv;i<nv;i++)
         eps->errest[i] *= sqrt(1.0+gnorm);
     }
 
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx) */
     k = eps->nconv;
-    while (k<eps->nv && eps->errest[k]<eps->tol) k++;
-    for (i=eps->nconv;i<=k && i<eps->nv;i++) {
-      ierr = EPSUpdateVector(eps,i,eps->V,U+i*eps->nv,eps->nv,Hcopy,eps->ncv,eps->AV[i]);CHKERRQ(ierr);
+    while (k<nv && eps->errest[k]<eps->tol) k++;
+    for (i=eps->nconv;i<=k && i<nv;i++) {
+      ierr = EPSUpdateVector(eps,i,eps->V,U+i*nv,nv,Hcopy,eps->ncv,eps->AV[i]);CHKERRQ(ierr);
     }
-    for (i=eps->nconv;i<=k && i<eps->nv;i++) {
+    for (i=eps->nconv;i<=k && i<nv;i++) {
       ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     eps->nconv = k;
 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);
     if (breakdown) {
       PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,beta);
       ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);

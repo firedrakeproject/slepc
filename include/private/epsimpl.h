@@ -45,7 +45,6 @@ struct _p_EPS {
                  nev,              /* number of eigenvalues to compute */
                  ncv,              /* number of basis vectors */
                  mpd,              /* maximum dimension of projected problem */
-                 nv,               /* number of available basis vectors (<= ncv) */
                  allocated_ncv,    /* number of basis vectors allocated */
                  nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */

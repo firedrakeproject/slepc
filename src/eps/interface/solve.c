@@ -58,12 +58,11 @@ PetscErrorCode EPSSolve(EPS eps)
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   ierr = STResetOperationCounters(eps->OP);CHKERRQ(ierr);
   ierr = IPResetOperationCounters(eps->ip);CHKERRQ(ierr);
-  eps->nv = eps->ncv;
   eps->evecsavailable = PETSC_FALSE;
   eps->nconv = 0;
   eps->its = 0;
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
-  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
+  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);
 
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
