@@ -110,8 +110,6 @@ EXTERN PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);
 EXTERN PetscErrorCode EPSDefaultFreeWork(EPS);
 EXTERN PetscErrorCode EPSAllocateSolution(EPS);
 EXTERN PetscErrorCode EPSFreeSolution(EPS);
-EXTERN PetscErrorCode EPSAllocateSolutionContiguous(EPS);
-EXTERN PetscErrorCode EPSFreeSolutionContiguous(EPS);
 EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);

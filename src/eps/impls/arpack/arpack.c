@@ -59,7 +59,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   }
 
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
-  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -308,7 +308,7 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 #endif
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);
-  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

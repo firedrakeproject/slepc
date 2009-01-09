@@ -49,7 +49,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
 
-  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -144,7 +144,7 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = PetscFree(tr->work);CHKERRQ(ierr);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

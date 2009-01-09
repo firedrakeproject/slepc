@@ -118,7 +118,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
 
-  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -285,7 +285,7 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
   ierr = PetscFree(blz->v);CHKERRQ(ierr);
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

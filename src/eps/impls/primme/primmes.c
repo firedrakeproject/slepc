@@ -138,7 +138,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   }
 
   /* Set workspace */
-  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   if (primme->correctionParams.precondition) {
     /* Calc reciprocal A diagonal */
@@ -289,7 +289,7 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   ierr = VecDestroy(ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(ops->y);CHKERRQ(ierr);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
  
   PetscFunctionReturn(0);
 }

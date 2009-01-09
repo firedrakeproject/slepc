@@ -64,7 +64,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
-      ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+      ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
       PetscFunctionReturn(0);
     }
   }
@@ -79,7 +79,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (eps->extraction) {
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
-  ierr = EPSAllocateSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -196,7 +196,7 @@ PetscErrorCode EPSDestroy_LAPACK(EPS eps)
   if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
   if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = EPSFreeSolutionContiguous(eps);CHKERRQ(ierr);
+  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
