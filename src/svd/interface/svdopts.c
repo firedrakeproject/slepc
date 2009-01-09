@@ -403,7 +403,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol,&r,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
 
-  i = j = PETSC_IGNORE;
+  i = j = k = PETSC_IGNORE;
   ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
