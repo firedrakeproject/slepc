@@ -32,8 +32,18 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
-  if (svd->ncv == PETSC_DECIDE)
-    svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
+  if (svd->ncv != PETSC_DECIDE) { /* ncv set */
+    if (svd->ncv<svd->nsv) SETERRQ(1,"The value of ncv must be at least nsv"); 
+  }
+  else if (svd->mpd) { /* mpd set */
+    svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
+  }
+  else { /* neither set: defaults depend on nsv being small or large */
+    if (svd->nsv<500) svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
+    else { svd->mpd = 500; svd->ncv = PetscMin(N,svd->nsv+svd->mpd); }
+  }
+  if (!svd->mpd) svd->mpd = svd->ncv;
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
   if (svd->max_it == PETSC_DECIDE)
     svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->U) {
@@ -138,7 +148,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   PetscReal      *alpha,*beta,norm,*work,*Q,*PT;
   PetscScalar    *swork;
   PetscBLASInt   n,info,*iwork;
-  PetscInt       i,j,k,m,nwork=0,*perm;
+  PetscInt       i,j,k,m,nwork=0,*perm,nv;
   Vec            v,u,u_1,wv,wu,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   
@@ -170,14 +180,15 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     svd->its++;
 
     /* inner loop */
+    nv = PetscMin(svd->nconv+svd->mpd,svd->n);
     if (lanczos->oneside) {
-      ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,v,u,u_1,svd->nconv,svd->n,swork,wv);CHKERRQ(ierr);
+      ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,v,u,u_1,svd->nconv,nv,swork,wv);CHKERRQ(ierr);
     } else {
-      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv,svd->n,swork,wv,wu);CHKERRQ(ierr);
+      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv,nv,swork,wv,wu);CHKERRQ(ierr);
     }
 
     /* compute SVD of bidiagonal matrix */
-    n = svd->n - svd->nconv;
+    n = nv - svd->nconv;
     ierr = PetscMemzero(PT,sizeof(PetscReal)*n*n);CHKERRQ(ierr);
     ierr = PetscMemzero(Q,sizeof(PetscReal)*n*n);CHKERRQ(ierr);
     for (i=0;i<n;i++)
@@ -189,7 +200,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     /* compute error estimates */
     k = 0;
     conv = PETSC_TRUE;
-    for (i=svd->nconv;i<svd->n;i++) {
+    for (i=svd->nconv;i<nv;i++) {
       if (svd->which == SVD_SMALLEST) j = n-i+svd->nconv-1;
       else j = i-svd->nconv;
       svd->sigma[i] = alpha[j];
@@ -250,7 +261,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     }
     
     svd->nconv += k;
-    SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->n);
+    SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);
   }
   
   /* sort singular triplets */
