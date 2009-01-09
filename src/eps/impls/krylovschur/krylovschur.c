@@ -136,7 +136,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,n,lwork,nv;
+  PetscInt       i,k,l,lwork,nv;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q,*work;
   PetscReal      beta;
@@ -162,9 +162,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
-    n = nv;
-    ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,n);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,n,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
 
     /* Check convergence */
     k = eps->nconv;
@@ -196,12 +195,12 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=k;i<k+l;i++) {
-          S[i*eps->ncv+k+l] = Q[(i+1)*n-1]*beta;
+          S[i*eps->ncv+k+l] = Q[(i+1)*nv-1]*beta;
         }
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = EPSUpdateVectors(n,eps->V,eps->nconv,k+l,Q,n,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,nv,PETSC_NULL);CHKERRQ(ierr);
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
