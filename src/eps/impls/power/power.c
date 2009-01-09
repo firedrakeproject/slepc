@@ -68,11 +68,10 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AV);CHKERRQ(ierr);
   if (eps->solverclass==EPS_TWO_SIDE) {
-    ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
-  } else {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  } else {
+    ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -92,7 +91,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
   PetscFunctionBegin;
   v = eps->V[0];
-  y = eps->AV[0];
+  y = eps->work[2];
   e = eps->work[0];
 
   /* prepare for selective orthogonalization of converged vectors */
@@ -238,7 +237,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 
   PetscFunctionBegin;
   v = eps->V[0];
-  y = eps->AV[0];
+  y = eps->work[1];
   e = eps->work[0];
   w = eps->W[0];
   z = eps->AW[0];
