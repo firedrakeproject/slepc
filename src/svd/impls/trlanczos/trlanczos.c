@@ -32,9 +32,9 @@ PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
-  if (svd->ncv == PETSC_DECIDE)
+  if (!svd->ncv)
     svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
-  if (svd->max_it == PETSC_DECIDE)
+  if (!svd->max_it)
     svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->ncv!=svd->n) {  
     if (svd->U) {

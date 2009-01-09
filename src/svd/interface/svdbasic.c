@@ -199,10 +199,10 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->n           = 0;
   svd->nconv       = 0;
   svd->nsv         = 1;    
-  svd->ncv         = PETSC_DECIDE;    
-  svd->mpd         = PETSC_DECIDE;    
+  svd->ncv         = 0;    
+  svd->mpd         = 0;    
   svd->its         = 0;
-  svd->max_it      = PETSC_DECIDE;  
+  svd->max_it      = 0;  
   svd->tol         = 1e-7;    
   svd->errest      = PETSC_NULL;
   svd->data        = PETSC_NULL;

@@ -133,7 +133,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   }
   if (maxits != PETSC_IGNORE) {
     if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-      svd->max_it = PETSC_DECIDE;
+      svd->max_it = 0;
       svd->setupcalled = 0;
     } else {
       if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
@@ -223,7 +223,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   }
   if (ncv != PETSC_IGNORE) {
     if (ncv == PETSC_DEFAULT || ncv == PETSC_DECIDE) {
-      svd->ncv = PETSC_DECIDE;
+      svd->ncv = 0;
     } else {
       if (ncv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       svd->ncv = ncv;
@@ -232,7 +232,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   }
   if( mpd != PETSC_IGNORE ) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-      svd->mpd = PETSC_DECIDE;
+      svd->mpd = 0;
     } else {
       if (mpd<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
       svd->mpd = mpd;
