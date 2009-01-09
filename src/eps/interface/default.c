@@ -117,7 +117,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   ncv=eps->ncv,nv=eps->nv,mout,info; 
+  PetscBLASInt   ncv=eps->ncv,nconv=eps->nconv,mout,info; 
   PetscScalar    *Z,*work;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -134,22 +134,22 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   }
 
-  ierr = PetscMalloc(nv*nv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*nv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(nconv*nconv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
+  ierr = PetscMalloc(3*nconv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(nv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc(nconv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
 #endif
 
   /* right eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->T,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,&info);
+  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
 #else
-  LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->T,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,rwork,&info);
+  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
   /* AV = V * Z */
-  ierr = EPSUpdateVectors(eps->nconv,eps->V,0,eps->nconv,Z,nv,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSUpdateVectors(eps->nconv,eps->V,0,eps->nconv,Z,eps->nconv,PETSC_NULL);CHKERRQ(ierr);
   if (eps->ispositive) {
     /* Purify eigenvectors */
     for (i=0;i<eps->nconv;i++) {
@@ -162,16 +162,16 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   /* left eigenvectors */
   if (eps->solverclass == EPS_TWO_SIDE) {
 #if !defined(PETSC_USE_COMPLEX)
-    LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->Tl,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,&info);
+    LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
 #else
-    LAPACKtrevc_("R","A",PETSC_NULL,&eps->nconv,eps->Tl,&ncv,PETSC_NULL,&eps->nconv,Z,&nv,&eps->nconv,&mout,work,rwork,&info);
+    LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
     /* AW = W * Z */
     for (i=0;i<eps->nconv;i++) {
       ierr = VecSet(eps->AW[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AW[i],eps->nconv,Z+nv*i,eps->W);CHKERRQ(ierr);
+      ierr = VecMAXPY(eps->AW[i],eps->nconv,Z+nconv*i,eps->W);CHKERRQ(ierr);
     }    
   }
    
