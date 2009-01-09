@@ -14,8 +14,8 @@
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSetup_LAPACK"
-PetscErrorCode SVDSetup_LAPACK(SVD svd)
+#define __FUNCT__ "SVDSetUp_LAPACK"
+PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode  ierr;
   PetscInt        N;
@@ -24,6 +24,7 @@ PetscErrorCode SVDSetup_LAPACK(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
   svd->ncv = N;
+  if (svd->mpd) PetscInfo(svd,"Warning: parameter mpd ignored\n");
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {  
     if (svd->U) {
@@ -101,7 +102,7 @@ EXTERN_C_BEGIN
 PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
-  svd->ops->setup   = SVDSetup_LAPACK;
+  svd->ops->setup   = SVDSetUp_LAPACK;
   svd->ops->solve   = SVDSolve_LAPACK;
   svd->ops->destroy = SVDDestroy_Default;
   if (svd->transmode == PETSC_DECIDE)
