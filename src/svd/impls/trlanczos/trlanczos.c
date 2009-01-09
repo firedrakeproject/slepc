@@ -32,8 +32,18 @@ PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
-  if (!svd->ncv)
-    svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
+  if (svd->ncv) { /* ncv set */
+    if (svd->ncv<svd->nsv) SETERRQ(1,"The value of ncv must be at least nsv"); 
+  }
+  else if (svd->mpd) { /* mpd set */
+    svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
+  }
+  else { /* neither set: defaults depend on nsv being small or large */
+    if (svd->nsv<500) svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
+    else { svd->mpd = 500; svd->ncv = PetscMin(N,svd->nsv+svd->mpd); }
+  }
+  if (!svd->mpd) svd->mpd = svd->ncv;
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
   if (!svd->max_it)
     svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->ncv!=svd->n) {  
@@ -203,7 +213,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm;
   PetscScalar    *b,*Q,*PT,*swork;
-  PetscInt       *perm,i,j,k,l,m,n,nwork=0;
+  PetscInt       *perm,i,j,k,l,m,n,nwork=0,nv;
   Vec            v,wv,wu,*workV,*workU,*permV,*permU;
   PetscTruth     conv;
   IPOrthogonalizationType orthog;
@@ -232,19 +242,20 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     svd->its++;
 
     /* inner loop */
+    nv = PetscMin(svd->nconv+svd->mpd,svd->n);
     if (lanczos->oneside) {
       if (orthog == IP_MGS_ORTH) {
-        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,svd->n,swork,wv,wu);CHKERRQ(ierr);
+        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork,wv,wu);CHKERRQ(ierr);
       } else {
-        ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,svd->n,swork,wv,wu);CHKERRQ(ierr);
+        ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork,wv,wu);CHKERRQ(ierr);
       }
     } else {
-      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,svd->n,swork,wv,wu);CHKERRQ(ierr);
+      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,nv,swork,wv,wu);CHKERRQ(ierr);
     }
-    ierr = VecScale(v,1.0/beta[svd->n-svd->nconv-l-1]);CHKERRQ(ierr);
+    ierr = VecScale(v,1.0/beta[nv-svd->nconv-l-1]);CHKERRQ(ierr);
    
     /* compute SVD of general matrix */
-    n = svd->n - svd->nconv;
+    n = nv - svd->nconv;
     /* first l columns */
     for (j=0;j<l;j++) {
       for (i=0;i<j;i++) Q[j*n+i] = 0.0;    
@@ -284,7 +295,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
     if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
-    else l = PetscMax((svd->n - svd->nconv - k) / 2,1);
+    else l = PetscMax((nv - svd->nconv - k) / 2,1);
     
     /* allocate work space for converged singular and restart vectors */
     if (nwork<k+l) {
@@ -317,7 +328,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     }
     
     svd->nconv += k;
-    SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->n);
+    SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);
   }
   
   /* sort singular triplets */
