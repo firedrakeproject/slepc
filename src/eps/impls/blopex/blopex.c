@@ -206,8 +206,7 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
   mv_MultiVectorDestroy(blopex->eigenvectors);
   mv_MultiVectorDestroy(blopex->Y);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDestroy_Default(eps); CHKERRQ(ierr);
+  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
