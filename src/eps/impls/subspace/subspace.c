@@ -33,7 +33,8 @@
 PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N;
+  PetscInt       i,N,nloc;
+  PetscScalar    *pAV;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -58,10 +59,15 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AV);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->AV);CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pAV);CHKERRQ(ierr);
+  for (i=0;i<eps->ncv;i++) {
+    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,nloc,PETSC_DECIDE,pAV+i*nloc,&eps->AV[i]);CHKERRQ(ierr);
+  }
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,eps->ncv);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -230,12 +236,12 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
 
   /* Generate a set of random initial vectors and orthonormalize them */
-  for (i=0;i<eps->mpd;i++) {
+  for (i=0;i<ncv;i++) {
     ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }
-  ierr = IPQRDecomposition(eps->ip,eps->V,0,eps->mpd,PETSC_NULL,0,eps->work[0]);CHKERRQ(ierr);
+  ierr = IPQRDecomposition(eps->ip,eps->V,0,ncv,PETSC_NULL,0,eps->work[0]);CHKERRQ(ierr);
   
   while (eps->its<eps->max_it) {
     eps->its++;
@@ -267,22 +273,10 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSSortDenseSchur(nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
-    for (i=eps->nconv;i<nv;i++) {
-      ierr = VecSet(eps->work[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->work[i],nv,U+ncv*i,eps->AV);CHKERRQ(ierr);
-    }    
-    for (i=eps->nconv;i<nv;i++) {
-      ierr = VecCopy(eps->work[i],eps->AV[i]);CHKERRQ(ierr);
-    }    
+    ierr = EPSUpdateVectors(nv,eps->AV,eps->nconv,nv,U,nv,PETSC_NULL);CHKERRQ(ierr);
     
     /* 7. V(:,idx) = V * U(:,idx) */
-    for (i=eps->nconv;i<nv;i++) {
-      ierr = VecSet(eps->work[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->work[i],nv,U+ncv*i,eps->V);CHKERRQ(ierr);
-    }    
-    for (i=eps->nconv;i<nv;i++) {
-      ierr = VecCopy(eps->work[i],eps->V[i]);CHKERRQ(ierr);
-    }    
+    ierr = EPSUpdateVectors(nv,eps->V,eps->nconv,nv,U,nv,PETSC_NULL);CHKERRQ(ierr);
     
     /* Compute residuals */
     for (i=0;i<nv;i++) { rsdold[i] = rsd[i]; }
@@ -323,7 +317,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     nxtsrr = PetscMin(nxtsrr,its+idsrr);
 
     /* Compute nxtort (iteration of next orthogonalization step) */
-    ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv);CHKERRQ(ierr);
+    ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv*ncv);CHKERRQ(ierr);
     ierr = EPSHessCond(nv,U,ncv,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(its+idort, nxtsrr);
@@ -377,6 +371,25 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_SUBSPACE"
+PetscErrorCode EPSDestroy_SUBSPACE(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscScalar    *pAV;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(eps->AV[0],&pAV);CHKERRQ(ierr);
+  for (i=0;i<eps->ncv;i++) {
+    ierr = VecDestroy(eps->AV[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(pAV);CHKERRQ(ierr);
+  ierr = PetscFree(eps->AV);CHKERRQ(ierr);
+  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_SUBSPACE"
@@ -385,7 +398,7 @@ PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
   PetscFunctionBegin;
   eps->ops->solve                = EPSSolve_SUBSPACE;
   eps->ops->setup                = EPSSetUp_SUBSPACE;
-  eps->ops->destroy              = EPSDestroy_Default;
+  eps->ops->destroy              = EPSDestroy_SUBSPACE;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
