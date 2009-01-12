@@ -9,7 +9,10 @@
 */
 
 #include "slepc.h" /*I "slepc.h" I*/
+#include "petscblaslapack.h"
 #include <stdlib.h>
+
+PetscLogEvent SLEPC_UpdateVectors;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"
@@ -299,4 +302,56 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcUpdateVectors"
+/*
+  SlepcUpdateVectors - Update the vectors V(:,s:e-1) = V*Q(:,s:e-1)
+*/
+PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans)
+{
+  PetscErrorCode ierr;
+  PetscInt       ls;
+  PetscBLASInt   i,j,k,bs=64,m,n=n_,ldq=ldq_;
+  PetscScalar    *pv,*pw,*pq,*work,*pwork,one=1.0,zero=0.0;
+  const char     *qt;
 
+  PetscFunctionBegin;
+  ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
+  ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
+  if (qtrans) {
+    pq = (PetscScalar*)Q+s;
+    qt = "T";
+  } else {
+    pq = (PetscScalar*)Q+s*ldq;
+    qt = "N";
+  }
+  m = e-s;
+  ierr = PetscMalloc(sizeof(PetscScalar)*bs*m,&work);CHKERRQ(ierr);
+  k = ls % bs;
+  if (k) {
+    BLASgemm_("N",qt,&k,&m,&n,&one,pv,&ls,pq,&ldq,&zero,work,&k);
+    for (j=0;j<m;j++) {
+      pw = pv+(s+j)*ls;
+      pwork = work+j*k;
+      for (i=0;i<k;i++) {
+        *pw++ = *pwork++;
+      }
+    }        
+  }
+  for (;k<ls;k+=bs) {
+    BLASgemm_("N",qt,&bs,&m,&n,&one,pv+k,&ls,pq,&ldq,&zero,work,&bs);
+    for (j=0;j<m;j++) {
+      pw = pv+(s+j)*ls+k;
+      pwork = work+j*bs;
+      for (i=0;i<bs;i++) {
+        *pw++ = *pwork++;
+      }
+    }
+  }
+  ierr = VecRestoreArray(V[0],&pv);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscLogFlops(m*n*2*ls);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}

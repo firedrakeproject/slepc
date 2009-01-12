@@ -11,7 +11,6 @@
 */
 
 #include "private/epsimpl.h"   /*I "slepceps.h" I*/
-#include "petscblaslapack.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve"
@@ -1349,55 +1348,5 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,Vec vec)
     ierr = VecDestroy(w);CHKERRQ(ierr);
   }
 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSUpdateVectors"
-/*
-  EPSUpdateVectors - Update the vectors V(:,s:e-1) = V*Q(:,s:e-1)
-*/
-PetscErrorCode EPSUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscScalar *work)
-{
-  PetscErrorCode ierr;
-  PetscInt       ls;
-  PetscBLASInt   i,j,k,bs=64,m,n=n_,ldq=ldq_;
-  PetscScalar    *pv,*pw,*pq,*pwork,one=1.0,zero=0.0;
-  PetscTruth     allocatedw = PETSC_FALSE;
-
-  PetscFunctionBegin;
-  ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
-  ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
-  pq = (PetscScalar*)Q+s*ldq;
-  m = e-s;
-  if (!work) {
-    ierr = PetscMalloc(sizeof(PetscScalar)*bs*m,&work);CHKERRQ(ierr);
-    allocatedw = PETSC_TRUE;
-  }
-  k = ls % bs;
-  if (k) {
-    BLASgemm_("N","N",&k,&m,&n,&one,pv,&ls,pq,&ldq,&zero,work,&k);
-    for (j=0;j<m;j++) {
-      pw = pv+(s+j)*ls;
-      pwork = work+j*k;
-      for (i=0;i<k;i++) {
-        *pw++ = *pwork++;
-      }
-    }        
-  }
-  for (;k<ls;k+=bs) {
-    BLASgemm_("N","N",&bs,&m,&n,&one,pv+k,&ls,pq,&ldq,&zero,work,&bs);
-    for (j=0;j<m;j++) {
-      pw = pv+(s+j)*ls+k;
-      pwork = work+j*bs;
-      for (i=0;i<bs;i++) {
-        *pw++ = *pwork++;
-      }
-    }
-  }
-  ierr = VecRestoreArray(V[0],&pv);CHKERRQ(ierr);
-  if (allocatedw) {
-    ierr = PetscFree(work);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }

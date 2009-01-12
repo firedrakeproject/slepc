@@ -77,6 +77,7 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 */
 PetscTruth  SlepcBeganPetsc = PETSC_FALSE; 
 PetscTruth  SlepcInitializeCalled = PETSC_FALSE;
+extern PetscLogEvent SLEPC_UpdateVectors;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 extern PetscDLLibrary DLLibrariesLoaded;
@@ -148,6 +149,8 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
   ierr = SVDInitializePackage(PETSC_NULL); CHKERRQ(ierr);
   ierr = IPInitializePackage(PETSC_NULL); CHKERRQ(ierr);
 #endif
+
+  ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */

@@ -273,10 +273,10 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSSortDenseSchur(nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
-    ierr = EPSUpdateVectors(nv,eps->AV,eps->nconv,nv,U,nv,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->AV,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
     
     /* 7. V(:,idx) = V * U(:,idx) */
-    ierr = EPSUpdateVectors(nv,eps->V,eps->nconv,nv,U,nv,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
     
     /* Compute residuals */
     for (i=0;i<nv;i++) { rsdold[i] = rsd[i]; }
