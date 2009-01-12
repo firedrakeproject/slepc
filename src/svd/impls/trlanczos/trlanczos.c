@@ -213,8 +213,8 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
   PetscReal      *alpha,*beta,norm;
   PetscScalar    *b,*Q,*PT,*swork;
-  PetscInt       *perm,i,j,k,l,m,n,nwork=0,nv;
-  Vec            v,wv,wu,*workV,*workU,*permV,*permU;
+  PetscInt       i,j,k,l,m,n,nwork=0,nv;
+  Vec            v,wv,wu,*workV,*workU;
   PetscTruth     conv;
   IPOrthogonalizationType orthog;
   
@@ -331,26 +331,9 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);
   }
   
-  /* sort singular triplets */
-  ierr = PetscMalloc(sizeof(PetscInt)*svd->nconv,&perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*svd->nconv,&permV);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*svd->nconv,&permU);CHKERRQ(ierr);
-  for (i=0;i<svd->nconv;i++) {
-    alpha[i] = svd->sigma[i];
-    beta[i] = svd->errest[i];
-    permV[i] = svd->V[i];
-    permU[i] = svd->U[i];
-    perm[i] = i;
-  }
-  ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,perm);CHKERRQ(ierr);
-  for (i=0;i<svd->nconv;i++) {
-    if (svd->which == SVD_SMALLEST) j = perm[i]; 
-    else j = perm[svd->nconv-i-1];
-    svd->sigma[i] = alpha[j];
-    svd->errest[i] = beta[j];
-    svd->V[i] = permV[j];
-    svd->U[i] = permU[j];
-    if (lanczos->oneside) {
+  /* orthonormalize U columns in one side method */
+  if (lanczos->oneside) {
+    for (i=0;i<svd->nconv;i++) {
       ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,svd->U,svd->U[i],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       ierr = VecScale(svd->U[i],1.0/norm);CHKERRQ(ierr);
     }
@@ -371,9 +354,6 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(PT);CHKERRQ(ierr);
   ierr = PetscFree(swork);CHKERRQ(ierr);
-  ierr = PetscFree(perm);CHKERRQ(ierr);
-  ierr = PetscFree(permV);CHKERRQ(ierr);
-  ierr = PetscFree(permU);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

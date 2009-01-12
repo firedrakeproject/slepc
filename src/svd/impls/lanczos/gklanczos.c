@@ -148,8 +148,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   PetscReal      *alpha,*beta,norm,*work,*Q,*PT;
   PetscScalar    *swork;
   PetscBLASInt   n,info,*iwork;
-  PetscInt       i,j,k,m,nwork=0,*perm,nv;
-  Vec            v,u,u_1,wv,wu,*workV,*workU,*permV,*permU;
+  PetscInt       i,j,k,m,nwork=0,nv;
+  Vec            v,u,u_1,wv,wu,*workV,*workU;
   PetscTruth     conv;
   
   PetscFunctionBegin;
@@ -264,27 +264,6 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);
   }
   
-  /* sort singular triplets */
-  ierr = PetscMalloc(sizeof(PetscInt)*svd->nconv,&perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*svd->nconv,&permV);CHKERRQ(ierr);
-  if (!lanczos->oneside) { ierr = PetscMalloc(sizeof(Vec)*svd->nconv,&permU);CHKERRQ(ierr); }
-  for (i=0;i<svd->nconv;i++) {
-    alpha[i] = svd->sigma[i];
-    beta[i] = svd->errest[i];
-    permV[i] = svd->V[i];
-    if (!lanczos->oneside) permU[i] = svd->U[i];
-    perm[i] = i;
-  }
-  ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,perm);CHKERRQ(ierr);
-  for (i=0;i<svd->nconv;i++) {
-    if (svd->which == SVD_SMALLEST) j = perm[i]; 
-    else j = perm[svd->nconv-i-1];
-    svd->sigma[i] = alpha[j];
-    svd->errest[i] = beta[j];
-    svd->V[i] = permV[j];
-    if (!lanczos->oneside) svd->U[i] = permU[j];
-  }
-  
   /* free working space */
   ierr = VecDestroy(v);CHKERRQ(ierr);
   ierr = VecDestroy(wv);CHKERRQ(ierr);
@@ -296,7 +275,6 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   } else {
     for (i=0;i<nwork;i++) { ierr = VecDestroy(workU[i]);CHKERRQ(ierr); }
     ierr = PetscFree(workU);CHKERRQ(ierr);
-    ierr = PetscFree(permU);CHKERRQ(ierr);
     ierr = VecDestroy(wu);CHKERRQ(ierr);
   }
   ierr = PetscFree(alpha);CHKERRQ(ierr);
@@ -306,8 +284,6 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   ierr = PetscFree(swork);CHKERRQ(ierr);
-  ierr = PetscFree(perm);CHKERRQ(ierr);
-  ierr = PetscFree(permV);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

@@ -43,6 +43,7 @@ struct _p_SVD {
   Mat              AT;          /* transposed matrix */
   SVDTransposeMode transmode;   /* transpose mode */
   PetscReal        *sigma;	/* singular values */
+  PetscInt         *perm;       /* permutation for singular value ordering */
   Vec              *U,*V;	/* left and right singular vectors */
   Vec              vec_initial; /* initial vector */
   PetscInt         n;           /* maximun size of descomposition */

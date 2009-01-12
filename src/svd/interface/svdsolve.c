@@ -33,7 +33,7 @@ PetscErrorCode SVDSolve(SVD svd)
 {
   PetscErrorCode ierr;
   PetscTruth     flg;
-  PetscInt       i;
+  PetscInt       i,*workperm;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -50,6 +50,18 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
+
+  /* sort singular triplets */
+  if (svd->which == SVD_SMALLEST) {
+    for (i=0;i<svd->nconv;i++) svd->perm[i] = i;
+    ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm);CHKERRQ(ierr);
+  } else {
+    ierr = PetscMalloc(sizeof(PetscInt)*svd->nconv,&workperm);CHKERRQ(ierr);
+    for (i=0;i<svd->nconv;i++) workperm[i] = i;
+    ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,workperm);CHKERRQ(ierr);
+    for (i=0;i<svd->nconv;i++) svd->perm[i] = workperm[svd->nconv-i-1];
+    ierr = PetscFree(workperm);CHKERRQ(ierr);
+  }
 
   ierr = PetscOptionsHasName(((PetscObject)svd)->prefix,"-svd_view",&flg);CHKERRQ(ierr); 
   if (flg && !PetscPreLoadingOn) { ierr = SVDView(svd,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
@@ -198,7 +210,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
   if (i<0 || i>=svd->nconv) { 
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
-  *sigma = svd->sigma[i];
+  *sigma = svd->sigma[svd->perm[i]];
   if (u) {
     PetscValidHeaderSpecific(u,VEC_COOKIE,4);
     if (!svd->U) {
@@ -210,11 +222,11 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
         ierr = VecScale(svd->U[j],1.0/norm);CHKERRQ(ierr);
       }
     }
-    ierr = VecCopy(svd->U[i],u);CHKERRQ(ierr);
+    ierr = VecCopy(svd->U[svd->perm[i]],u);CHKERRQ(ierr);
   }
   if (v) {
     PetscValidHeaderSpecific(v,VEC_COOKIE,5);   
-    ierr = VecCopy(svd->V[i],v);CHKERRQ(ierr);
+    ierr = VecCopy(svd->V[svd->perm[i]],v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
