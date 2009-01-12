@@ -117,7 +117,8 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt 
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
     }
   }
-  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
+  if (trans) { ierr = STApplyTranspose(eps->OP,V[m-1],f);CHKERRQ(ierr); }
+  else { ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr); }
   ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,m,PETSC_NULL,V,f,H+ldh*(m-1),beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
   if (m > 100) {
