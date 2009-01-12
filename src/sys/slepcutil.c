@@ -12,7 +12,7 @@
 #include "petscblaslapack.h"
 #include <stdlib.h>
 
-PetscLogEvent SLEPC_UpdateVectors;
+PetscLogEvent SLEPC_UpdateVectors = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"
