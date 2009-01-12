@@ -304,9 +304,36 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectors"
-/*
-  SlepcUpdateVectors - Update the vectors V(:,s:e-1) = V*Q(:,s:e-1)
-*/
+/*@
+   SlepcUpdateVectors - Update a set of vectors V as V(:,s:e-1) = V*Q(:,s:e-1).
+
+   Collective on Vec
+
+   Input parameters:
++  n      - number of vectors in V
+.  s      - first column of V to be overwritten
+.  e      - first column of V not to be overwritten
+.  Q      - matrix containing the coefficients of the update
+.  ldq    - leading dimension of Q
+-  qtrans - flag indicating if Q is to be transposed
+
+   Input/Output parameter:
+.  V      - set of vectors
+
+   Notes: 
+   This function computes V(:,s:e-1) = V*Q(:,s:e-1), that is, given a set of
+   vectors V, columns from s to e-1 are overwritten with columns from s to
+   e-1 of the matrix-matrix product V*Q.
+
+   Matrix V is represented as an array of Vec, whereas Q is represented as
+   a column-major dense array of leading dimension ldq. Only columns s to e-1
+   of Q are referenced.
+
+   If qtrans=PETSC_TRUE, the operation is V*Q'.
+
+   Level: developer
+
+@*/
 PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans)
 {
   PetscErrorCode ierr;
@@ -316,6 +343,10 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
   const char     *qt;
 
   PetscFunctionBegin;
+  m = e-s;
+  if (m==0) PetscFunctionReturn(0);
+  PetscValidIntPointer(Q,5);
+  if (m<0 || n<0 || s<0 || e>n) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
   ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
@@ -326,7 +357,6 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
     pq = (PetscScalar*)Q+s*ldq;
     qt = "N";
   }
-  m = e-s;
   ierr = PetscMalloc(sizeof(PetscScalar)*bs*m,&work);CHKERRQ(ierr);
   k = ls % bs;
   if (k) {
