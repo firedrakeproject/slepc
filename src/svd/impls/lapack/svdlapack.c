@@ -18,8 +18,8 @@
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode  ierr;
-  PetscInt        N;
-  PetscInt        i;
+  PetscInt        N,i,nloc;
+  PetscScalar     *pU;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -28,11 +28,17 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {  
     if (svd->U) {
+      ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
       for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+      ierr = PetscFree(pU);CHKERRQ(ierr);
       ierr = PetscFree(svd->U);CHKERRQ(ierr);
     }
     ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
-    for (i=0;i<svd->ncv;i++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+i);CHKERRQ(ierr); }
+    ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
+    for (i=0;i<svd->ncv;i++) {
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }

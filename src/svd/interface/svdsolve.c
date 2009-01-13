@@ -199,7 +199,8 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
 {
   PetscErrorCode ierr;
   PetscReal      norm;
-  PetscInt       j;
+  PetscInt       j,nloc;
+  PetscScalar    *pU;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -215,7 +216,11 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
     PetscValidHeaderSpecific(u,VEC_COOKIE,4);
     if (!svd->U) {
       ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
-      for (j=0;j<svd->ncv;j++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+j);CHKERRQ(ierr); }
+      ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
+      ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
+      for (i=0;i<svd->ncv;i++) {
+        ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
+      }
       for (j=0;j<svd->nconv;j++) {
         ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
         ierr = IPOrthogonalize(svd->ip,j,PETSC_NULL,svd->U,svd->U[j],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);

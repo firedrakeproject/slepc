@@ -74,9 +74,10 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
-  PetscInt          M,N,m,n,i,j,start,end,ncols,*pos;
+  PetscInt          M,N,m,n,i,j,start,end,ncols,*pos,nloc;
   const PetscInt    *cols;
   const PetscScalar *vals;
+  PetscScalar       *pU;
 
   PetscFunctionBegin;
   
@@ -140,12 +141,20 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   ierr = EPSGetDimensions(cyclic->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
-  if (svd->U) {  
-    for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
-    ierr = PetscFree(svd->U);CHKERRQ(ierr);
+  if (svd->ncv != svd->n) {
+    if (svd->U) {  
+      ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
+      for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+      ierr = PetscFree(pU);CHKERRQ(ierr);
+      ierr = PetscFree(svd->U);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
+    ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
+    for (i=0;i<svd->ncv;i++) {
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
+    }
   }
-  ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
-  for (i=0;i<svd->ncv;i++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+i);CHKERRQ(ierr); }
 
   PetscFunctionReturn(0);
 }

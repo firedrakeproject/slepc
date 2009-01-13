@@ -27,8 +27,9 @@ typedef struct {
 PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
 {
   PetscErrorCode  ierr;
-  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
-  PetscInt        i,N;
+  SVD_LANCZOS     *lanczos = (SVD_LANCZOS *)svd->data;
+  PetscInt        i,N,nloc;
+  PetscScalar     *pU;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -47,12 +48,18 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
   if (!svd->max_it)
     svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->U) {
+    ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
     for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+    ierr = PetscFree(pU);CHKERRQ(ierr);
     ierr = PetscFree(svd->U);CHKERRQ(ierr);
   }
   if (!lanczos->oneside) {
     ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
-    for (i=0;i<svd->ncv;i++) { ierr = SVDMatGetVecs(svd,PETSC_NULL,svd->U+i);CHKERRQ(ierr); }
+    ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
+    for (i=0;i<svd->ncv;i++) {
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -148,8 +155,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   PetscReal      *alpha,*beta,norm,*work,*Q,*PT;
   PetscScalar    *swork;
   PetscBLASInt   n,info,*iwork;
-  PetscInt       i,j,k,m,nwork=0,nv;
-  Vec            v,u,u_1,wv,wu,*workV,*workU;
+  PetscInt       i,j,k,m,nv;
+  Vec            v,u,u_1,wv,wu;
   PetscTruth     conv;
   
   PetscFunctionBegin;
@@ -160,16 +167,23 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   ierr = PetscMalloc(sizeof(PetscReal)*svd->n*svd->n,&PT);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*(3*svd->n+4)*svd->n,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscBLASInt)*8*svd->n,&iwork);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (svd->which == SVD_SMALLEST) { 
+#endif
+    ierr = PetscMalloc(sizeof(PetscScalar)*svd->n*svd->n,&swork);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  } else {
+    ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
+  }
+#endif
+
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&wv);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*svd->n,&workV);CHKERRQ(ierr);
   if (lanczos->oneside) {
     ierr = SVDMatGetVecs(svd,PETSC_NULL,&u);CHKERRQ(ierr);
     ierr = SVDMatGetVecs(svd,PETSC_NULL,&u_1);CHKERRQ(ierr);
   } else {
     ierr = VecDuplicate(svd->U[0],&wu);CHKERRQ(ierr);
-    ierr = PetscMalloc(sizeof(Vec)*svd->n,&workU);CHKERRQ(ierr);
   }
   
   /* normalize start vector */
@@ -216,50 +230,47 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
     if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     
-    /* allocate work space for converged singular vectors */
-    if (nwork<k) {
-      for (i=nwork;i<k;i++) 
-        if (lanczos->oneside) { ierr = SVDMatGetVecs(svd,workV+i,PETSC_NULL);CHKERRQ(ierr); }
-        else { ierr = SVDMatGetVecs(svd,workV+i,workU+i);CHKERRQ(ierr); }
-      nwork = k;
-    }
-    
-    /* compute converged singular vectors */
-    for (i=0;i<k;i++) {
-      if (svd->which == SVD_SMALLEST) j = n-i-1;
-      else j = i;
-      ierr = VecSet(workV[i],0.0);CHKERRQ(ierr);
-      for (m=0;m<n;m++) swork[m] = PT[m*n+j];
-      ierr = VecMAXPY(workV[i],n,swork,svd->V+svd->nconv);CHKERRQ(ierr);
-      if (!lanczos->oneside) {
-        ierr = VecSet(workU[i],0.0);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-        ierr = VecMAXPY(workU[i],n,Q+j*n,svd->U+svd->nconv);CHKERRQ(ierr);
-#else
-        for (m=0;m<n;m++) swork[m] = Q[j*n+m];
-        ierr = VecMAXPY(workU[i],n,swork,svd->U+svd->nconv);CHKERRQ(ierr);        
-#endif
-      }
-    }
-    
     /* compute restart vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (svd->which == SVD_SMALLEST) j = n-k-1;
       else j = k;
       ierr = VecSet(v,0.0);CHKERRQ(ierr);
       for (m=0;m<n;m++) swork[m] = PT[m*n+j];
-      ierr = VecMAXPY(v,m,swork,svd->V+svd->nconv);CHKERRQ(ierr);
-      ierr = VecCopy(v,svd->V[svd->nconv+k]);CHKERRQ(ierr);
+      ierr = VecMAXPY(v,n,swork,svd->V+svd->nconv);CHKERRQ(ierr);
     }
     
-    /* copy converged singular vectors from temporary space */ 
+    /* compute converged singular vectors */
+#if !defined(PETSC_USE_COMPLEX)
+    if (svd->which == SVD_SMALLEST) {
+#endif
     for (i=0;i<k;i++) {
-      ierr = VecCopy(workV[i],svd->V[i+svd->nconv]);CHKERRQ(ierr);
+      if (svd->which == SVD_SMALLEST) j = n-i-1;
+      else j = i;
+      for (m=0;m<n;m++) swork[i*n+m] = PT[m*n+j];
+    }
+    ierr = SlepcUpdateVectors(n,svd->V+svd->nconv,0,k,swork,n,PETSC_FALSE);CHKERRQ(ierr);
+    if (!lanczos->oneside) {
+      for (i=0;i<k;i++) {
+        if (svd->which == SVD_SMALLEST) j = n-i-1;
+        else j = i;
+        for (m=0;m<n;m++) swork[i*n+m] = Q[j*n+m];
+      }
+      ierr = SlepcUpdateVectors(n,svd->U+svd->nconv,0,k,swork,n,PETSC_FALSE);CHKERRQ(ierr);
+    }
+#if !defined(PETSC_USE_COMPLEX)
+    } else {
+      ierr = SlepcUpdateVectors(n,svd->V+svd->nconv,0,k,PT,n,PETSC_TRUE);CHKERRQ(ierr);
       if (!lanczos->oneside) {
-        ierr = VecCopy(workU[i],svd->U[i+svd->nconv]);CHKERRQ(ierr);
+        ierr = SlepcUpdateVectors(n,svd->U+svd->nconv,0,k,Q,n,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
-    
+#endif
+        
+    /* copy restart vector from temporary space */
+    if (svd->reason == SVD_CONVERGED_ITERATING) {
+      ierr = VecCopy(v,svd->V[svd->nconv+k]);CHKERRQ(ierr);
+    }
+        
     svd->nconv += k;
     SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);
   }
@@ -267,14 +278,10 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   /* free working space */
   ierr = VecDestroy(v);CHKERRQ(ierr);
   ierr = VecDestroy(wv);CHKERRQ(ierr);
-  for (i=0;i<nwork;i++) { ierr = VecDestroy(workV[i]);CHKERRQ(ierr); }
-  ierr = PetscFree(workV);CHKERRQ(ierr);
   if (lanczos->oneside) {
     ierr = VecDestroy(u);CHKERRQ(ierr);
     ierr = VecDestroy(u_1);CHKERRQ(ierr);
   } else {
-    for (i=0;i<nwork;i++) { ierr = VecDestroy(workU[i]);CHKERRQ(ierr); }
-    ierr = PetscFree(workU);CHKERRQ(ierr);
     ierr = VecDestroy(wu);CHKERRQ(ierr);
   }
   ierr = PetscFree(alpha);CHKERRQ(ierr);
