@@ -291,7 +291,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     /* compute error estimates */
     k = 0;
     conv = PETSC_TRUE;
-    for (i=svd->nconv;i<svd->n;i++) {
+    for (i=svd->nconv;i<nv;i++) {
       if (svd->which == SVD_SMALLEST) j = n-i+svd->nconv-1;
       else j = i-svd->nconv;
       svd->sigma[i] = alpha[j];
@@ -308,7 +308,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
     if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
-    else l = PetscMax((nv - svd->nconv - k) / 2,1);
+    else l = PetscMax((nv - svd->nconv - k) / 2,0);
     
     /* compute converged singular vectors and restart vectors*/
 #if !defined(PETSC_USE_COMPLEX)
