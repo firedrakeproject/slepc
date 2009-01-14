@@ -246,7 +246,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->V               = 0;
   eps->AV              = 0;
   eps->W               = 0;
-  eps->AW              = 0;
   eps->T               = 0;
   eps->DS              = 0;
   eps->ds_ortho        = PETSC_TRUE;

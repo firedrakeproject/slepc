@@ -68,11 +68,7 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  if (eps->solverclass==EPS_TWO_SIDE) {
-    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
-  } else {
-    ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
-  }
+  ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -240,7 +236,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   y = eps->work[1];
   e = eps->work[0];
   w = eps->W[0];
-  z = eps->AW[0];
+  z = eps->work[2];
 
   ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,0,w);CHKERRQ(ierr);

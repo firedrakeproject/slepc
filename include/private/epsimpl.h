@@ -61,8 +61,7 @@ struct _p_EPS {
               vec_initial_left, /* left initial vector for two-sided solvers */
               *V,               /* set of basis vectors and computed eigenvectors */
               *AV,              /* auxiliar set of basis vectors */
-              *W,               /* set of left basis vectors */
-              *AW,              /* computed left eigenvectors */
+              *W,               /* set of left basis vectors and computed left eigenvectors */
               *DS,              /* deflation space */
               *DSV;             /* deflation space and basis vectors*/
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */

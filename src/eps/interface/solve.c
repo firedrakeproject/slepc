@@ -634,20 +634,20 @@ PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #ifdef PETSC_USE_COMPLEX
-  if (Wr) { ierr = VecCopy(eps->AW[k], Wr); CHKERRQ(ierr); }
+  if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
   if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->AW[k], Wr); CHKERRQ(ierr); }
-    if (Wi) { ierr = VecCopy(eps->AW[k+1], Wi); CHKERRQ(ierr); }
+    if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
+    if (Wi) { ierr = VecCopy(eps->W[k+1], Wi); CHKERRQ(ierr); }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->AW[k-1], Wr); CHKERRQ(ierr); }
+    if (Wr) { ierr = VecCopy(eps->W[k-1], Wr); CHKERRQ(ierr); }
     if (Wi) { 
-      ierr = VecCopy(eps->AW[k], Wi); CHKERRQ(ierr); 
+      ierr = VecCopy(eps->W[k], Wi); CHKERRQ(ierr); 
       ierr = VecScale(Wi,-1.0); CHKERRQ(ierr); 
     }
   } else { /* real eigenvalue */
-    if (Wr) { ierr = VecCopy(eps->AW[k], Wr); CHKERRQ(ierr); }
+    if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
     if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
   }
 #endif

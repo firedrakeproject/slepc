@@ -54,14 +54,8 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
 PetscErrorCode EPSComputeVectors_Default(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
-  if (eps->solverclass == EPS_TWO_SIDE) {
-    for (i=0;i<eps->nconv;i++) {
-      ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
-    }
-  }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -89,11 +83,6 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
       ierr = VecNormalize(eps->V[i],&norm);CHKERRQ(ierr);
     }
     ierr = VecDestroy(w);CHKERRQ(ierr);
-  }
-  if (eps->solverclass == EPS_TWO_SIDE) {
-    for (i=0;i<eps->nconv;i++) {
-      ierr = VecCopy(eps->W[i],eps->AW[i]);CHKERRQ(ierr);
-    }
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -169,10 +158,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
     /* AW = W * Z */
-    for (i=0;i<eps->nconv;i++) {
-      ierr = VecSet(eps->AW[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AW[i],eps->nconv,Z+nconv*i,eps->W);CHKERRQ(ierr);
-    }    
+    ierr = SlepcUpdateVectors(eps->nconv,eps->W,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
   }
    
   ierr = PetscFree(Z);CHKERRQ(ierr);

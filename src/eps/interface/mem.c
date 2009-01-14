@@ -47,7 +47,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
         }
         ierr = PetscFree(pW);CHKERRQ(ierr);
         ierr = PetscFree(eps->W);CHKERRQ(ierr);
-        ierr = VecDestroyVecs(eps->AW,eps->allocated_ncv);CHKERRQ(ierr);
       }
     }
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
@@ -67,7 +66,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
       for (i=0;i<eps->ncv;i++) {
         ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,nloc,PETSC_DECIDE,pW+i*nloc,&eps->W[i]);CHKERRQ(ierr);
       }
-      ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AW);CHKERRQ(ierr);
     }
     eps->allocated_ncv = eps->ncv;
   }
@@ -107,7 +105,6 @@ PetscErrorCode EPSFreeSolution(EPS eps)
       }
       ierr = PetscFree(pW);CHKERRQ(ierr);
       ierr = PetscFree(eps->W);CHKERRQ(ierr);
-      ierr = VecDestroyVecs(eps->AW,eps->allocated_ncv);CHKERRQ(ierr);
     }
     eps->allocated_ncv = 0;
   }

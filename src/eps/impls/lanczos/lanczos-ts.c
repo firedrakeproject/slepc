@@ -198,16 +198,8 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
     k = eps->nconv;
     while (k<ncv && eps->errest[k]<eps->tol && eps->errest_left[k]<eps->tol && PetscAbsScalar(eps->eigr[k]-eigr[k])<eps->tol) k++;
     //while (k<ncv && eps->errest[k]<eps->tol && eps->errest_left[k]<eps->tol) k++;
-    for (i=eps->nconv;i<=k && i<ncv;i++) {
-      ierr = VecSet(eps->AV[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AV[i],ncv,U+ncv*i,eps->V);CHKERRQ(ierr);
-      ierr = VecSet(eps->AW[i],0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(eps->AW[i],ncv,Ul+ncv*i,eps->W);CHKERRQ(ierr);
-    }
-    for (i=eps->nconv;i<=k && i<ncv;i++) {
-      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
-      ierr = VecCopy(eps->AW[i],eps->W[i]);CHKERRQ(ierr);
-    }
+    ierr = SlepcUpdateVectors(ncv,eps->V,eps->nconv,PetscMin(k+1,ncv),U,ncv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(ncv,eps->W,eps->nconv,PetscMin(k+1,ncv),Ul,ncv,PETSC_FALSE);CHKERRQ(ierr);
 
     eps->nconv = k;
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ncv);
