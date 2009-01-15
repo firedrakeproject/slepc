@@ -178,11 +178,67 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSBasicLanczosKS"
+/*
+   EPSBasicLanczosKS - Computes an m-step Lanczos factorization. The first k
+   columns are assumed to be locked and therefore they are not modified. On
+   exit, the following relation is satisfied:
+
+                    OP * V - V * H = f * e_m^T
+
+   where the columns of V are the Lanczos vectors (which are B-orthonormal),
+   H is an upper Hessenberg matrix, f is the residual vector and e_m is
+   the m-th vector of the canonical basis. The vector f is B-orthogonal to
+   the columns of V. On exit, beta contains the B-norm of f and the next 
+   Lanczos vector can be computed as v_{m+1} = f / beta. 
+*/
+PetscErrorCode EPSBasicLanczosKS(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,m = *M;
+  PetscReal      norm;
+  PetscScalar    *swork,*Hwork;
+
+  PetscFunctionBegin;
+  if (m > 100) {
+    ierr = PetscMalloc(m*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
+  } else swork = PETSC_NULL;
+  ierr = PetscMalloc((eps->nconv+m)*sizeof(PetscScalar),&Hwork);CHKERRQ(ierr);
+  
+  for (j=eps->nconv+k;j<eps->nconv+m-1;j++) {
+    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],Hwork,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
+    H[j-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j]; /* beta */
+    H[j-1-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j-1]; /* alpha */
+    H[j+1-eps->nconv+(j-eps->nconv)*ldh] = norm;
+    if (*breakdown) {
+      *M = j+1-eps->nconv;
+      *beta = norm;
+      if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
+      PetscFunctionReturn(0);
+    } else {
+      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
+    }
+  }
+  ierr = STApply(eps->OP,V[eps->nconv+m-1],f);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nconv+m,PETSC_NULL,V,f,Hwork,beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+  H[m-1+(m-1)*ldh] = Hwork[eps->nconv+m-1]; /* beta */
+  H[m-2+(m-1)*ldh] = Hwork[eps->nconv+m-2]; /* alpha */
+  if (m > 100) {
+    ierr = PetscFree(swork);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(Hwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_KRYLOVSCHUR_SYMM"
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,n,lwork,nv;
+  PetscInt       i,k,l,lwork,nv;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q;
   PetscReal      beta,*work;
@@ -194,7 +250,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   lwork = 2*eps->ncv*sizeof(PetscReal) + 2*eps->ncv*sizeof(PetscInt);
   ierr = PetscMalloc(lwork,&work);CHKERRQ(ierr);
 
-  /* Get the starting Arnoldi vector */
+  /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   l = 0;
   
@@ -202,29 +258,28 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
 
-    /* Compute an nv-step Arnoldi factorization */
-    nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    /* Compute an nv-step Lanczos factorization */
+    nv = PetscMin(eps->mpd,eps->ncv-eps->nconv);
+    ierr = EPSBasicLanczosKS(eps,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->V,l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
-    n = nv-eps->nconv;
-    ierr = EPSProjectedKSSym(eps,n,l,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
-    for (i=eps->nconv;i<nv;i++)
-      eps->errest[i] = beta*PetscAbsScalar(Q[(i-eps->nconv+1)*n-1]) / PetscAbsScalar(eps->eigr[i]);
+    ierr = EPSProjectedKSSym(eps,nv,l,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
+    for (i=0;i<nv;i++)
+      eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]) / PetscAbsScalar(eps->eigr[i+eps->nconv]);
 
     /* Check convergence */
     k = eps->nconv;
-    while (k<nv && eps->errest[k]<eps->tol) k++;    
+    while (k<eps->nconv+nv && eps->errest[k]<eps->tol) k++;    
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (nv-k)/2;
+    else l = (eps->nconv+nv-k)/2;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
-        /* Start a new Arnoldi factorization */
+        /* Start a new Lanczos factorization */
         PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%i norm=%g)\n",eps->its,beta);
         ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
         if (breakdown) {
@@ -234,19 +289,19 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=k;i<k+l;i++) {
-          S[i*eps->ncv+k+l] = Q[(i-eps->nconv+1)*n-1]*beta;
+          S[i*eps->ncv+k+l] = Q[(i-eps->nconv+1)*nv-1]*beta;
         }
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = SlepcUpdateVectors(n,eps->V+eps->nconv,0,k+l-eps->nconv,Q,n,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V+eps->nconv,0,k+l-eps->nconv,Q,nv,PETSC_FALSE);CHKERRQ(ierr);
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
     }
-    eps->nconv = k;
 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);
+    EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv+eps->nconv);
+    eps->nconv = k;
     
   } 
 
