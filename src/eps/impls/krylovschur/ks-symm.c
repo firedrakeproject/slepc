@@ -203,14 +203,13 @@ PetscErrorCode EPSBasicLanczosKS(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   if (m > 100) {
     ierr = PetscMalloc(m*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
   } else swork = PETSC_NULL;
-  ierr = PetscMalloc((eps->nconv+m)*sizeof(PetscScalar),&Hwork);CHKERRQ(ierr);
+  ierr = PetscMalloc((eps->nds+eps->nconv+m)*sizeof(PetscScalar),&Hwork);CHKERRQ(ierr);
   
   for (j=eps->nconv+k;j<eps->nconv+m-1;j++) {
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],Hwork,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
-    H[j-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j]; /* beta */
-    H[j-1-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j-1]; /* alpha */
+    ierr = IPOrthogonalize(eps->ip,eps->nds+j+1,PETSC_NULL,eps->DSV,V[j+1],Hwork,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
+    H[j-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j+eps->nds]; /* beta */
+    H[j-1-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j-1+eps->nds]; /* alpha */
     H[j+1-eps->nconv+(j-eps->nconv)*ldh] = norm;
     if (*breakdown) {
       *M = j+1-eps->nconv;
@@ -222,10 +221,9 @@ PetscErrorCode EPSBasicLanczosKS(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
     }
   }
   ierr = STApply(eps->OP,V[eps->nconv+m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nconv+m,PETSC_NULL,V,f,Hwork,beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  H[m-1+(m-1)*ldh] = Hwork[eps->nconv+m-1]; /* beta */
-  H[m-2+(m-1)*ldh] = Hwork[eps->nconv+m-2]; /* alpha */
+  ierr = IPOrthogonalize(eps->ip,eps->nds+eps->nconv+m,PETSC_NULL,eps->DSV,f,Hwork,beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
+  H[m-1+(m-1)*ldh] = Hwork[eps->nconv+m-1+eps->nds]; /* beta */
+  H[m-2+(m-1)*ldh] = Hwork[eps->nconv+m-2+eps->nds]; /* alpha */
   if (m > 100) {
     ierr = PetscFree(swork);CHKERRQ(ierr);
   }
