@@ -53,8 +53,6 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
  */
 PetscErrorCode EPSComputeVectors_Default(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
