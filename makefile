@@ -30,7 +30,7 @@ all:
            echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es";\
            echo "********************************************************************"; \
            exit 1; \
-	 elif [ "${SLEPC_INSTALL_DIR}" == "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	 elif [ "${SLEPC_INSTALL_DIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the libraries are working do: make test";\
            echo "=========================================";\
 	 else \
@@ -188,7 +188,7 @@ chk_slepc_dir:
 	  false; fi
 
 install:
-	-@if [ "${PETSC_ARCH}" == "" ]; then \
+	-@if [ "${PETSC_ARCH}" = "" ]; then \
 	  echo "PETSC_ARCH is undefined";\
 	elif [ "${SLEPC_INSTALL_DIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	  echo "Install directory is current directory; nothing needs to be done";\
