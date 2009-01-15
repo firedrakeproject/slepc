@@ -238,16 +238,17 @@ PetscErrorCode EPSBasicLanczosKS(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,nv;
+  PetscInt       i,k,l,lwork,lds,nv;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q;
   PetscReal      beta,*work;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
-  ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  lwork = 2*eps->ncv*sizeof(PetscReal) + 2*eps->ncv*sizeof(PetscInt);
+  lds = PetscMin(eps->nev+eps->mpd,eps->ncv);
+  ierr = PetscMemzero(S,lds*lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
+  lwork = 2*lds*sizeof(PetscReal) + 2*lds*sizeof(PetscInt);
   ierr = PetscMalloc(lwork,&work);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
@@ -260,10 +261,10 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(eps->mpd,eps->ncv-eps->nconv);
-    ierr = EPSBasicLanczosKS(eps,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->V,l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = EPSBasicLanczosKS(eps,S,lds,eps->V,l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedKSSym(eps,nv,l,S+eps->nconv*(eps->ncv+1),eps->ncv,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
+    ierr = EPSProjectedKSSym(eps,nv,l,S,lds,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
     for (i=0;i<nv;i++)
       eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]) / PetscAbsScalar(eps->eigr[i+eps->nconv]);
 
@@ -288,8 +289,9 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
         }
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        for (i=k;i<k+l;i++) {
-          S[i*eps->ncv+k+l] = Q[(i-eps->nconv+1)*nv-1]*beta;
+        for (i=0;i<l;i++) {
+          S[i+i*lds] = eps->eigr[i+k];
+          S[l+i*lds] = Q[nv-1+(i+k-eps->nconv)*nv]*beta;
         }
       }
     }

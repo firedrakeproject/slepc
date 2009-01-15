@@ -40,7 +40,7 @@ extern PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps);
 PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N;
+  PetscInt       N,lds;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -68,7 +68,9 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
+  if (eps->ishermitian) lds = PetscMin(eps->nev+eps->mpd,eps->ncv);
+  else lds = eps->ncv;
+  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
