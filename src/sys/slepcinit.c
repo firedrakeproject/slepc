@@ -117,7 +117,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
 
   PetscFunctionBegin;
 
-  if (SlepcInitializeCalled==PETSC_TRUE) {
+  if (SlepcInitializeCalled) {
     PetscFunctionReturn(0); 
   }
 
