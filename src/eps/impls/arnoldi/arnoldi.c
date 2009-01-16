@@ -92,25 +92,30 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
 PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
-  PetscInt       j,m = *M;
+  PetscInt       i,j,m = *M;
   PetscReal      norm;
-  PetscScalar    *swork;
+  PetscScalar    *swork = PETSC_NULL,*hwork = PETSC_NULL;
 
   PetscFunctionBegin;
-  if (m > 100) {
-    ierr = PetscMalloc(m*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
-  } else swork = PETSC_NULL;
+  if (eps->nds+m > 100) { ierr = PetscMalloc((eps->nds+m)*sizeof(PetscScalar),&swork);CHKERRQ(ierr); }
+  if (eps->nds > 0) { ierr = PetscMalloc((eps->nds+m)*sizeof(PetscScalar),&hwork);CHKERRQ(ierr); }
   
   for (j=k;j<m-1;j++) {
     if (trans) { ierr = STApplyTranspose(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     else { ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,V[j+1],PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],H+ldh*j,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
+    if (eps->nds > 0) {
+      ierr = IPOrthogonalize(eps->ip,eps->nds+j+1,PETSC_NULL,eps->DSV,V[j+1],hwork,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
+      for (i=0;i<=j;i++) 
+        H[ldh*j+i] = hwork[eps->nds+i];
+    } else {
+      ierr = IPOrthogonalize(eps->ip,j+1,PETSC_NULL,V,V[j+1],H+ldh*j,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
+    }
     H[j+1+ldh*j] = norm;
     if (*breakdown) {
       *M = j+1;
       *beta = norm;
       if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
+      if (hwork) { ierr = PetscFree(hwork);CHKERRQ(ierr); }
       PetscFunctionReturn(0);
     } else {
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
@@ -120,9 +125,9 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt 
   else { ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr); }
   ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,m,PETSC_NULL,V,f,H+ldh*(m-1),beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  if (m > 100) {
-    ierr = PetscFree(swork);CHKERRQ(ierr);
-  }
+  
+  if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
+  if (hwork) { ierr = PetscFree(hwork);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
