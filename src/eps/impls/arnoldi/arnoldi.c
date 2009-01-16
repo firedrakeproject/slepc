@@ -63,7 +63,6 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AV);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   if (eps->solverclass==EPS_TWO_SIDE) {
@@ -400,75 +399,75 @@ PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,PetscInt lds,PetscScal
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSUpdateVector"
+#define __FUNCT__ "EPSUpdateVectors"
 /*
-   EPSUpdateVector - Computes an approximate Schur vector (or eigenvector) by
+   EPSUpdateVectors - Computes approximate Schur vectors (or eigenvectors) by
    either Ritz extraction (U=U*Q) or refined Ritz extraction 
 
    On input:
-     k is the index of the vector in the basis
+     n is the size of U
      U is the orthogonal basis of the subspace used for projecting
-     q contains the corresponding Schur vector of the projected matrix (length n)
+     s is the index of the first vector computed
+     e+1 is the index of the last vector computed
+     Q contains the corresponding Schur vectors of the projected matrix (size n x n, leading dimension ldq)
      H is the (extended) projected matrix (size n+1 x n, leading dimension ldh)
 
    On output:
      v is the resulting vector
 */
-PetscErrorCode EPSUpdateVector(EPS eps,PetscInt k,Vec *U,PetscScalar *q,PetscInt n_,PetscScalar *H,PetscInt ldh_,Vec v)
+PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e,PetscScalar *Q,PetscInt ldq,PetscScalar *H,PetscInt ldh_)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD) 
   SETERRQ(PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscTruth     isrefined;
-  PetscInt       i,j;
+  PetscInt       i,j,k;
   PetscBLASInt   n1,lwork,idummy=1,info,n=n_,ldh=ldh_;
   PetscScalar    *B,sdummy,*work;
   PetscReal      *sigma;
 
   PetscFunctionBegin;
   isrefined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  if (!isrefined) {
-    /* Ritz extraction: v = U*q */
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(v,n,q,U);CHKERRQ(ierr);
-  }
-  else {
+  if (isrefined) {
     /* Refined Ritz extraction */
     n1 = n+1;
     ierr = PetscMalloc(n1*n*sizeof(PetscScalar),&B);CHKERRQ(ierr);
     ierr = PetscMalloc(6*n*sizeof(PetscReal),&sigma);CHKERRQ(ierr);
     lwork = 10*n;
     ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-    /* copy H to B */
-    for (i=0;i<=n;i++) {
-      for (j=0;j<n;j++) {
-        B[i+j*n1] = H[i+j*ldh];
+    
+    for (k=s;k<e;k++) {
+      /* copy H to B */
+      for (i=0;i<=n;i++) {
+        for (j=0;j<n;j++) {
+          B[i+j*n1] = H[i+j*ldh];
+        }
       }
+      /* subtract ritz value from diagonal of B^ */
+      for (i=0;i<n;i++) {
+        B[i+i*n1] -= eps->eigr[k];  /* MISSING: complex case */
+      }
+      /* compute SVD of [H-mu*I] */
+  #if !defined(PETSC_USE_COMPLEX)
+      LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,&info);
+  #else
+      LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,sigma+n,&info);
+  #endif
+      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+      /* the smallest singular value is the new error estimate */
+      eps->errest[k] = sigma[n-1];
+      /* update vector with right singular vector associated to smallest singular value */
+      for (i=0;i<n;i++)
+        Q[k*ldq+i] = B[n-1+i*n1];
     }
-    /* subtract ritz value from diagonal of B^ */
-    for (i=0;i<n;i++) {
-      B[i+i*n1] -= eps->eigr[k];  /* MISSING: complex case */
-    }
-    /* compute SVD of [H-mu*I] */
-#if !defined(PETSC_USE_COMPLEX)
-    LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,&info);
-#else
-    LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,sigma+n,&info);
-#endif
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
-    /* the smallest singular value is the new error estimate */
-    eps->errest[k] = sigma[n-1];
-    /* update vector with right singular vector associated to smallest singular value */
-    for (i=0;i<n;i++)
-      q[i] = B[n-1+i*n1];
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(v,n,q,U);CHKERRQ(ierr);
     /* free workspace */
     ierr = PetscFree(B);CHKERRQ(ierr);
     ierr = PetscFree(sigma);CHKERRQ(ierr);
     ierr = PetscFree(work);CHKERRQ(ierr);
   }
+  /* Ritz extraction: v = U*q */
+  ierr = SlepcUpdateVectors(n_,U,s,e,Q,ldq,PETSC_FALSE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -544,12 +543,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
        including the restart vector: V(:,idx) = V*U(:,idx) */
     k = eps->nconv;
     while (k<nv && eps->errest[k]<eps->tol) k++;
-    for (i=eps->nconv;i<=k && i<nv;i++) {
-      ierr = EPSUpdateVector(eps,i,eps->V,U+i*nv,nv,Hcopy,eps->ncv,eps->AV[i]);CHKERRQ(ierr);
-    }
-    for (i=eps->nconv;i<=k && i<nv;i++) {
-      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
-    }
+    ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,nv,Hcopy,eps->ncv);CHKERRQ(ierr);
     eps->nconv = k;
 
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);
