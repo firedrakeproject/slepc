@@ -140,22 +140,18 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
   PetscFunctionBegin;
 
   /* Compute eigendecomposition of S, S <- Q S Q' */
-  if (l==0) {
-    ierr = EPSDenseTridiagonal(n,S,lds,ritz,Q);CHKERRQ(ierr);
-  } else {
-    for (i=0;i<n;i++)
-      ritz[i] = S[i+i*lds];
-    for (i=0;i<l;i++)
-      e[i] = S[l+i*lds];
-    for (i=l;i<n;i++) 
-      e[i] = S[i+1+i*lds];
-    ierr = ArrowTridFlip(n,l,ritz,e,Qreal,Sreal);CHKERRQ(ierr);
+  for (i=0;i<n;i++)
+    ritz[i] = S[i+i*lds];
+  for (i=0;i<l;i++)
+    e[i] = S[l+i*lds];
+  for (i=l;i<n;i++) 
+    e[i] = S[i+1+i*lds];
+  ierr = ArrowTridFlip(n,l,ritz,e,Qreal,Sreal);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    for (j=n-1;j>=0;j--)
-      for (i=n-1;i>=0;i--) 
-        Q[i+j*n] = Qreal[i+j*n];
+  for (j=n-1;j>=0;j--)
+    for (i=n-1;i>=0;i--) 
+      Q[i+j*n] = Qreal[i+j*n];
 #endif
-  }
 
   /* Sort eigendecomposition according to eps->which */
   ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,e);CHKERRQ(ierr);

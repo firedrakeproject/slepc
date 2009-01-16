@@ -189,7 +189,7 @@ EXTERN PetscErrorCode EPSDenseHessenberg(PetscInt,PetscInt,PetscScalar*,PetscInt
 EXTERN PetscErrorCode EPSDenseSchur(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSSortDenseSchur(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,EPSWhich);
 EXTERN PetscErrorCode EPSSortDenseSchurTarget(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar,EPSWhich);
-EXTERN PetscErrorCode EPSDenseTridiagonal(PetscInt,PetscScalar*,PetscInt,PetscReal*,PetscScalar*);
+EXTERN PetscErrorCode EPSDenseTridiagonal(PetscInt,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 
 EXTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,PetscInt,Vec);

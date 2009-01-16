@@ -798,16 +798,15 @@ PetscErrorCode EPSSortDenseSchurTarget(PetscInt n_,PetscInt k,PetscScalar *T,Pet
 
 .seealso: EPSDenseNHEP(), EPSDenseHEP(), EPSDenseGNHEP(), EPSDenseGHEP()
 @*/
-PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscScalar *A,PetscInt lda_,PetscReal *w,PetscScalar *V)
+PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscReal *w,PetscScalar *V)
 {
 #if defined(SLEPC_MISSING_LAPACK_STEVR)
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"STEVR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscReal      abstol = 0.0,vl,vu,*D,*E,*work;
-  PetscInt       i;
-  PetscBLASInt   il,iu,m,*isuppz,n=n_,lda=lda_,lwork = 20*n,*iwork,liwork = 10*n,info;
+  PetscReal      abstol = 0.0,vl,vu,*work;
+  PetscBLASInt   il,iu,m,*isuppz,n=n_,lwork = 20*n,*iwork,liwork = 10*n,info;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j;
@@ -822,16 +821,9 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscScalar *A,PetscInt lda_,Pets
     ierr = PetscMalloc(n*n*sizeof(PetscReal),&VV);CHKERRQ(ierr);
 #endif
   } else jobz = "N";
-  ierr = PetscMalloc(n*sizeof(PetscReal),&D);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscReal),&E);CHKERRQ(ierr);
   ierr = PetscMalloc(2*n*sizeof(PetscBLASInt),&isuppz);CHKERRQ(ierr);
   ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
-  for (i=0;i<n-1;i++) {
-    D[i] = PetscRealPart(A[i*(lda+1)]);
-    E[i] = PetscRealPart(A[i*(lda+1)+1]);
-  }
-  D[n-1] = PetscRealPart(A[(n-1)*(lda+1)]);
 #if defined(PETSC_USE_COMPLEX)
   LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,VV,&n,isuppz,work,&lwork,iwork,&liwork,&info);
 #else
@@ -846,8 +838,6 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscScalar *A,PetscInt lda_,Pets
     ierr = PetscFree(VV);CHKERRQ(ierr);
   }
 #endif
-  ierr = PetscFree(D);CHKERRQ(ierr);
-  ierr = PetscFree(E);CHKERRQ(ierr);
   ierr = PetscFree(isuppz);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
