@@ -55,6 +55,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,Pet
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
 #else
+  PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n1,n2,lwork,info;
 
@@ -62,11 +63,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,Pet
 
   n1 = l+1;    /* size of leading block, including residuals */
   n2 = n-l-1;  /* size of trailing block */
-
- /* Clean matrix S */
-  for (i=0;i<n;i++) 
-    for (j=0;j<n;j++) 
-      S[i+j*n] = 0.0;
+  ierr = PetscMemzero(S,n*n*sizeof(PetscReal));CHKERRQ(ierr);
 
   /* Flip matrix S, copying the values saved in Q */
   for (i=0;i<n;i++) 
@@ -121,7 +118,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,Pet
      S is the projected matrix (order n, leading dimension is lds)
 
    On output:
-     S is diagonal with diagonal elements (eigenvalues) sorted appropriately
+     S is overwritten
      eig is the sorted list of eigenvalues
      Q is the eigenvector matrix (order n)
 
@@ -164,12 +161,6 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
     for (i=0;i<n;i++)
       Q[i+j*n] = S[i+perm[j]*lds];
 
-  /* Rebuild S from eig */
-  for (i=0;i<n;i++) {
-    S[i+i*lds] = eig[i];
-    for (j=i+1;j<n;j++)
-      S[j+i*lds] = 0.0;
-  }
   PetscFunctionReturn(0);
 }
 
