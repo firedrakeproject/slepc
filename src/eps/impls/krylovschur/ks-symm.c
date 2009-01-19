@@ -165,75 +165,22 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSBasicLanczosKS"
-/*
-   EPSBasicLanczosKS - Computes an m-step Lanczos factorization. The first k
-   columns are assumed to be locked and therefore they are not modified. On
-   exit, the following relation is satisfied:
-
-                    OP * V - V * H = f * e_m^T
-
-   where the columns of V are the Lanczos vectors (which are B-orthonormal),
-   H is an upper Hessenberg matrix, f is the residual vector and e_m is
-   the m-th vector of the canonical basis. The vector f is B-orthogonal to
-   the columns of V. On exit, beta contains the B-norm of f and the next 
-   Lanczos vector can be computed as v_{m+1} = f / beta. 
-*/
-PetscErrorCode EPSBasicLanczosKS(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscInt       j,m = *M;
-  PetscReal      norm;
-  PetscScalar    *swork,*Hwork;
-
-  PetscFunctionBegin;
-  if (m > 100) {
-    ierr = PetscMalloc(m*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
-  } else swork = PETSC_NULL;
-  ierr = PetscMalloc((eps->nds+eps->nconv+m)*sizeof(PetscScalar),&Hwork);CHKERRQ(ierr);
-  
-  for (j=eps->nconv+k;j<eps->nconv+m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds+j+1,PETSC_NULL,eps->DSV,V[j+1],Hwork,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
-    H[j-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j+eps->nds]; /* beta */
-    H[j-1-eps->nconv+(j-eps->nconv)*ldh] = Hwork[j-1+eps->nds]; /* alpha */
-    H[j+1-eps->nconv+(j-eps->nconv)*ldh] = norm;
-    if (*breakdown) {
-      *M = j+1-eps->nconv;
-      *beta = norm;
-      if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
-      ierr = PetscFree(Hwork);CHKERRQ(ierr);
-      PetscFunctionReturn(0);
-    } else {
-      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
-    }
-  }
-  ierr = STApply(eps->OP,V[eps->nconv+m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds+eps->nconv+m,PETSC_NULL,eps->DSV,f,Hwork,beta,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  H[m-1+(m-1)*ldh] = Hwork[eps->nconv+m-1+eps->nds]; /* beta */
-  H[m-2+(m-1)*ldh] = Hwork[eps->nconv+m-2+eps->nds]; /* alpha */
-  if (m > 100) {
-    ierr = PetscFree(swork);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(Hwork);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_KRYLOVSCHUR_SYMM"
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,lds,nv;
+  PetscInt       i,k,l,lwork,lds,nv,m;
   Vec            u=eps->work[1];
   PetscScalar    *S=eps->T,*Q;
-  PetscReal      beta,*work;
+  PetscReal      *a,*b,beta,*work;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
   lds = PetscMin(eps->nev+eps->mpd,eps->ncv);
   ierr = PetscMemzero(S,lds*lds*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
+  ierr = PetscMalloc(lds*sizeof(PetscReal),&a);CHKERRQ(ierr);  
+  ierr = PetscMalloc(lds*sizeof(PetscReal),&b);CHKERRQ(ierr);  
   lwork = 2*lds*sizeof(PetscReal) + 2*lds*sizeof(PetscInt);
   ierr = PetscMalloc(lwork,&work);CHKERRQ(ierr);
 
@@ -246,8 +193,15 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     eps->its++;
 
     /* Compute an nv-step Lanczos factorization */
-    nv = PetscMin(eps->mpd,eps->ncv-eps->nconv);
-    ierr = EPSBasicLanczosKS(eps,S,lds,eps->V,l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    m = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&m,u,&breakdown);CHKERRQ(ierr);
+    nv = m - eps->nconv;
+    for (i=l;i<nv-1;i++) {
+      S[i*lds+i] = a[i-l]; /* alpha */
+      S[i*lds+i+1] = b[i-l]; /* beta */
+    }
+    S[(nv-1)*lds+nv-1] = a[nv-1-l];
+    beta = b[nv-1-l];
 
     /* Solve projected problem and compute residual norm estimates */ 
     ierr = EPSProjectedKSSym(eps,nv,l,S,lds,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
@@ -294,6 +248,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   } 
 
   ierr = PetscFree(Q);CHKERRQ(ierr);
+  ierr = PetscFree(a);CHKERRQ(ierr);
+  ierr = PetscFree(b);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
