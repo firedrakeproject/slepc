@@ -572,8 +572,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   PetscErrorCode ierr;
   PetscInt       nconv,i,j,k,n,m,*perm,restart,ncv=eps->ncv;
   Vec            f=eps->work[1];
-  PetscScalar    *Y;
-  PetscReal      *d,*e,*ritz,*bnd,anorm,beta,norm,*work;
+  PetscScalar    *Y,stmp;
+  PetscReal      *d,*e,*ritz,*bnd,anorm,beta,norm,*work,rtmp;
   PetscTruth     breakdown;
   char           *conv;
 
@@ -583,7 +583,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr);
+  if (eps->which != EPS_SMALLEST_REAL) { ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr); }
   ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal)+ncv*sizeof(PetscInt),&work);CHKERRQ(ierr);
 
@@ -605,6 +605,25 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     beta = e[n-1];
     ierr = EPSDenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
 
+    /* Sort eigenvalues according to eps->which */
+    if (eps->which != EPS_SMALLEST_REAL) {
+      /* LAPACK function has already ordered the eigenvalues and eigenvectors for EPS_SMALLEST_REAL */
+      ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,work);CHKERRQ(ierr);
+      for (i=0;i<n-1;i++) {
+        j = i;
+        while (perm[j] != i) j++;
+        if (j != i) {
+          /* swap eigenvalues i and j */
+          perm[j] = perm[i]; perm[i] = i;
+          rtmp = ritz[j]; ritz[j] = ritz[i]; ritz[i] = rtmp;
+          /* swap eigenvectors i and j */
+          for (k=0;k<n;k++) {
+            stmp = Y[j*n+k]; Y[j*n+k] = Y[i*n+k]; Y[i*n+k] = stmp;
+          }
+        }
+      }
+    }
+
     /* Estimate ||A|| */
     for (i=0;i<n;i++) 
       if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
@@ -613,24 +632,15 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     for (i=0;i<n;i++)
       bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]) + PETSC_MACHINE_EPSILON*anorm;
 
-    /* Sort eigenvalues according to eps->which */
-    if (eps->which == EPS_SMALLEST_REAL) {
-      /* LAPACK function has already ordered the eigenvalues and eigenvectors */
-      for (i=0;i<n;i++)
-        perm[i] = i;
-    } else {
-      ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,work);CHKERRQ(ierr);
-    }
-
     /* Look for converged eigenpairs */
     k = nconv;
     for (i=0;i<n;i++) {
-      eps->eigr[k] = ritz[perm[i]];
-      eps->errest[k] = bnd[perm[i]] / PetscAbsScalar(eps->eigr[k]);    
+      eps->eigr[k] = ritz[i];
+      eps->errest[k] = bnd[i] / PetscAbsScalar(eps->eigr[k]);    
       if (eps->errest[k] < eps->tol) {
 	      
 	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_LOCAL) {
-          if (i>0 && PetscAbsScalar((eps->eigr[k]-ritz[perm[i-1]])/eps->eigr[k]) < eps->tol) {
+          if (i>0 && PetscAbsScalar((eps->eigr[k]-ritz[i-1])/eps->eigr[k]) < eps->tol) {
   	    /* Discard repeated eigenvalues */
             conv[i] = 'R';
 	    continue;
@@ -638,7 +648,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 	}
 	  
 	ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
-	ierr = VecMAXPY(eps->AV[k],n,Y+perm[i]*n,eps->V+nconv);CHKERRQ(ierr);
+	ierr = VecMAXPY(eps->AV[k],n,Y+i*n,eps->V+nconv);CHKERRQ(ierr);
 
 	if (lanczos->reorthog == EPSLANCZOS_REORTHOG_LOCAL) {
 	  /* normalize locked vector and compute residual norm */
@@ -665,8 +675,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     for (i=0;i<n;i++) {
       if (conv[i] != 'C') {
         if (restart == -1 && conv[i] == 'N') restart = i;
-        eps->eigr[j] = ritz[perm[i]];
-        eps->errest[j] = bnd[perm[i]] / ritz[perm[i]];
+        eps->eigr[j] = ritz[i];
+        eps->errest[j] = bnd[i] / ritz[i];
         j++;
       } 
     }
@@ -680,7 +690,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       if (restart != -1) {
 	/* Use first non-converged vector for restarting */
 	ierr = VecSet(eps->AV[k],0.0);CHKERRQ(ierr);
-	ierr = VecMAXPY(eps->AV[k],n,Y+perm[restart]*n,eps->V+nconv);CHKERRQ(ierr);
+	ierr = VecMAXPY(eps->AV[k],n,Y+restart*n,eps->V+nconv);CHKERRQ(ierr);
 	ierr = VecCopy(eps->AV[k],eps->V[k]);CHKERRQ(ierr);
       }
     }
@@ -717,7 +727,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   ierr = PetscFree(ritz);CHKERRQ(ierr);
   ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(bnd);CHKERRQ(ierr);
-  ierr = PetscFree(perm);CHKERRQ(ierr);
+  if (eps->which != EPS_SMALLEST_REAL) { ierr = PetscFree(perm);CHKERRQ(ierr); }
   ierr = PetscFree(conv);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
