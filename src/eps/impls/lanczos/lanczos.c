@@ -124,8 +124,8 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *alpha,PetscScalar *beta,Vec *
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds+m,PETSC_NULL,eps->DSV,f,hwork,&norm,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  alpha[m-1] = hwork[eps->nds+m-1]; 
-  beta[m-1] = norm;
+  alpha[m-1-k] = hwork[eps->nds+m-1]; 
+  beta[m-1-k] = norm;
   
   if (eps->nds+m > 100) {
     ierr = PetscFree(swork);CHKERRQ(ierr);
