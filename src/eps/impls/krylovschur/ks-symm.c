@@ -202,6 +202,7 @@ PetscErrorCode EPSBasicLanczosKS(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
       *M = j+1-eps->nconv;
       *beta = norm;
       if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
+      ierr = PetscFree(Hwork);CHKERRQ(ierr);
       PetscFunctionReturn(0);
     } else {
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
