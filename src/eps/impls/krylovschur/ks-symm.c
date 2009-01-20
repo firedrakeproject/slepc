@@ -70,7 +70,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,Pet
     S[(n-1-i)+(n-1-i)*n] = d[i];
   for (i=0;i<l;i++)
     S[(n-1-i)+(n-1-l)*n] = e[i];
-  for (i=l;i<n;i++)
+  for (i=l;i<n-1;i++)
     S[(n-1-i)+(n-1-i-1)*n] = e[i];
 
   /* Reduce (2,2)-block of flipped S to tridiagonal form */
