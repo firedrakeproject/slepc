@@ -608,7 +608,12 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     /* Sort eigenvalues according to eps->which */
     if (eps->which != EPS_SMALLEST_REAL) {
       /* LAPACK function has already ordered the eigenvalues and eigenvectors for EPS_SMALLEST_REAL */
-      ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,work);CHKERRQ(ierr);
+      if (eps->which == EPS_LARGEST_REAL) {
+        for (i=0;i<n;i++)
+          perm[i] = n-1-i;
+      } else {
+        ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,work);CHKERRQ(ierr);
+      }
       for (i=0;i<n-1;i++) {
         j = i;
         while (perm[j] != i) j++;
