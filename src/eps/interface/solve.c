@@ -1071,7 +1071,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
 
    Level: developer
 
-.seealso: EPSSortEigenvaluesReal(), EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
+.seealso: EPSSortEigenvaluesReal(), EPSSetWhichEigenpairs()
 @*/
 PetscErrorCode EPSSortEigenvalues(PetscInt n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,PetscInt nev,PetscInt *permout)
 {
@@ -1167,7 +1167,7 @@ PetscErrorCode EPSSortEigenvalues(PetscInt n,PetscScalar *eig,PetscScalar *eigi,
 
    Level: developer
 
-.seealso: EPSSortEigenvalues(), EPSDenseNHEPSorted(), EPSSetWhichEigenpairs()
+.seealso: EPSSortEigenvalues(), EPSSetWhichEigenpairs()
 @*/
 PetscErrorCode EPSSortEigenvaluesReal(PetscInt n,PetscReal *eig,EPSWhich which,PetscInt nev,PetscInt *permout,PetscReal *work)
 {
