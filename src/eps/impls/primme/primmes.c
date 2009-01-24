@@ -108,6 +108,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->eps = eps->tol; 
   primme->numProcs = numProcs; 
   primme->procID = procID;
+  primme->printLevel = 5;
 
   switch(eps->which) {
     case EPS_LARGEST_REAL:
@@ -316,6 +317,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   ierr = EPSPRIMMEGetPrecond(eps, &precondn);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver preconditioning: %s\n", precondList[precondn]);CHKERRQ(ierr);
 
+  primme_display_params(*primme);
   PetscFunctionReturn(0);
 }
 
