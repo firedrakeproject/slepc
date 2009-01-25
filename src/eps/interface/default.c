@@ -104,7 +104,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   ncv=eps->ncv,nconv=eps->nconv,mout,info; 
+  PetscBLASInt   ncv,nconv,mout,info; 
   PetscScalar    *Z,*work;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -113,6 +113,8 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   Vec            w;
   
   PetscFunctionBegin;
+  ncv = PetscBLASIntCast(eps->ncv);
+  nconv = PetscBLASIntCast(eps->nconv);
   if (eps->ishermitian) {
     ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
     PetscFunctionReturn(0);
