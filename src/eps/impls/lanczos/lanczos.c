@@ -190,8 +190,8 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds+m,PETSC_NULL,eps->DSV,f,hwork,&norm,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  alpha[m-1] = hwork[eps->nds+m-1]; 
-  beta[m-1] = norm;
+  alpha[m-1-k] = hwork[eps->nds+m-1]; 
+  beta[m-1-k] = norm;
 
   if (eps->nds+m > 100) {
     ierr = PetscFree(which);CHKERRQ(ierr);
@@ -437,6 +437,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     if (fro) {
       /* Lanczos step with full reorthogonalization */
       ierr = IPOrthogonalize(eps->ip,eps->nds+j+1,PETSC_NULL,eps->DSV,f,hwork,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);      
+      alpha[j-k] = PetscRealPart(hwork[eps->nds+j]);
     } else {
       /* Lanczos step */
       which[eps->nds+j] = PETSC_TRUE;
@@ -489,8 +490,9 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       fro = PETSC_TRUE;
       PetscInfo1(eps,"Switching to full reorthogonalization at iteration %i\n",eps->its);	
     }
+    
+    beta[j-k] = norm;
     if (j<m-1) {
-      beta[j-k] = norm;
       ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
     }
