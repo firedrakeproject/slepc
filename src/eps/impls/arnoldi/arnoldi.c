@@ -327,14 +327,17 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
   SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   i,mout,info,ldh=ldh_,ncv=ncv_;
-  PetscScalar    *Y=work+4*ncv;
+  PetscInt       i;
+  PetscBLASInt   mout,info,ldh,ncv;
+  PetscScalar    *Y=work+4*ncv_;
   PetscReal      w;
 #if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork=(PetscReal*)(work+3*ncv);
+  PetscReal      *rwork=(PetscReal*)(work+3*ncv_);
 #endif
 
   PetscFunctionBegin;
+  ldh = PetscBLASIntCast(ldh_);
+  ncv = PetscBLASIntCast(ncv_);
 
   /* Compute eigenvectors Y of H */
   ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);

@@ -337,18 +337,21 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans)
 {
   PetscErrorCode ierr;
-  PetscInt       ls;
-  PetscBLASInt   i,j,k,bs=64,m,n=n_,ldq=ldq_;
+  PetscInt       l;
+  PetscBLASInt   i,j,k,bs=64,m,n,ldq,ls;
   PetscScalar    *pv,*pw,*pq,*work,*pwork,one=1.0,zero=0.0;
   const char     *qt;
 
   PetscFunctionBegin;
+  n = PetscBLASIntCast(n_);
+  ldq = PetscBLASIntCast(ldq_);
   m = e-s;
   if (m==0) PetscFunctionReturn(0);
   PetscValidIntPointer(Q,5);
   if (m<0 || n<0 || s<0 || e>n) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(V[0],&l);CHKERRQ(ierr);
+  ls = PetscBLASIntCast(l);
   ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
   if (qtrans) {
     pq = (PetscScalar*)Q+s;
