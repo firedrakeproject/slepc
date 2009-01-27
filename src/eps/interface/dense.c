@@ -54,7 +54,7 @@ PetscErrorCode EPSDenseNHEP(PetscInt n_,PetscScalar *A,PetscScalar *w,PetscScala
   PetscErrorCode ierr;
   PetscReal      abnrm,*scale,dummy;
   PetscScalar    *work;
-  PetscBLASInt   ilo,ihi,n=n_,lwork = 4*n,info;
+  PetscBLASInt   ilo,ihi,n,lwork,info;
   const char     *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -64,6 +64,8 @@ PetscErrorCode EPSDenseNHEP(PetscInt n_,PetscScalar *A,PetscScalar *w,PetscScala
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  n = PetscBLASIntCast(n_);
+  lwork = PetscBLASIntCast(4*n_);
   if (V) jobvr = "V";
   else jobvr = "N";
   if (W) jobvl = "V";
@@ -126,18 +128,24 @@ PetscErrorCode EPSDenseGNHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscScal
   PetscReal      *rscale,*lscale,abnrm,bbnrm,dummy;
   PetscScalar    *alpha,*beta,*work;
   PetscInt       i;
-  PetscBLASInt   ilo,ihi,idummy,info,n=n_;
+  PetscBLASInt   ilo,ihi,idummy,info,n;
   const char     *jobvr,*jobvl;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-  PetscBLASInt   lwork = 2*n;
+  PetscBLASInt   lwork;
 #else
   PetscReal      *alphai;
-  PetscBLASInt   lwork = 6*n;
+  PetscBLASInt   lwork;
 #endif 
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  n = PetscBLASIntCast(n_);
+#if defined(PETSC_USE_COMPLEX)
+  lwork = PetscBLASIntCast(2*n_);
+#else
+  lwork = PetscBLASIntCast(6*n_);
+#endif
   if (V) jobvr = "V";
   else jobvr = "N";
   if (W) jobvl = "V";
@@ -211,17 +219,26 @@ PetscErrorCode EPSDenseHEP(PetscInt n_,PetscScalar *A,PetscInt lda_,PetscReal *w
   PetscErrorCode ierr;
   PetscReal      abstol = 0.0,vl,vu;
   PetscScalar    *work;
-  PetscBLASInt   il,iu,m,*isuppz,*iwork,n=n_,lda=lda_,liwork = 10*n,info;
+  PetscBLASInt   il,iu,m,*isuppz,*iwork,n,lda,liwork,info;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-  PetscBLASInt   lwork = 18*n,lrwork = 24*n;
+  PetscBLASInt   lwork,lrwork;
 #else
-  PetscBLASInt   lwork = 26*n;
+  PetscBLASInt   lwork;
 #endif 
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  n = PetscBLASIntCast(n_);
+  lda = PetscBLASIntCast(lda_);
+  liwork = PetscBLASIntCast(10*n_);
+#if defined(PETSC_USE_COMPLEX)
+  lwork = PetscBLASIntCast(18*n_);
+  lrwork = PetscBLASIntCast(24*n_);
+#else
+  lwork = PetscBLASIntCast(26*n_);
+#endif
   if (V) jobz = "V";
   else jobz = "N";
   ierr  = PetscMalloc(2*n*sizeof(PetscBLASInt),&isuppz);CHKERRQ(ierr);
@@ -279,21 +296,38 @@ PetscErrorCode EPSDenseGHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscReal 
 #else
   PetscErrorCode ierr;
   PetscScalar    *work;
-  PetscBLASInt   itype = 1,*iwork,info,n=n_,
-                 liwork = V ? 5*n+3 : 1;
+  PetscBLASInt   itype = 1,*iwork,info,n,
+                 liwork;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-  PetscBLASInt   lwork  = V ? n*n+2*n     : n+1,
-                 lrwork = V ? 2*n*n+5*n+1 : n;
+  PetscBLASInt   lwork,lrwork;
 #else
-  PetscBLASInt   lwork  = V ? 2*n*n+6*n+1 : 2*n+1;
+  PetscBLASInt   lwork;
 #endif 
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
-  if (V) jobz = "V";
-  else jobz = "N";   
+  n = PetscBLASIntCast(n_);
+  if (V) {
+    jobz = "V";
+    liwork = PetscBLASIntCast(5*n_+3);
+#if defined(PETSC_USE_COMPLEX)
+    lwork  = PetscBLASIntCast(n_*n_+2*n_);
+    lrwork = PetscBLASIntCast(2*n_*n_+5*n_+1;
+#else
+    lwork  = PetscBLASIntCast(2*n_*n_+6*n_+1);
+#endif
+  } else {
+    jobz = "N";   
+    liwork = 1;
+#if defined(PETSC_USE_COMPLEX)
+    lwork  = PetscBLASIntCast(n_+1);
+    lrwork = PetscBLASIntCast(n_);
+#else
+    lwork  = PetscBLASIntCast(2*n_+1);
+#endif
+  }
   ierr  = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr  = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -351,14 +385,16 @@ PetscErrorCode EPSDenseHessenberg(PetscInt n_,PetscInt k,PetscScalar *A,PetscInt
   PetscScalar    *tau,*work;
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscBLASInt   ilo,lwork,info,n=n_,lda=lda_;
+  PetscBLASInt   ilo,lwork,info,n,lda;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  n = PetscBLASIntCast(n_);
+  lda = PetscBLASIntCast(lda_);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
-  lwork = n;
+  lwork = PetscBLASIntCast(n);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ilo = k+1;
+  ilo = PetscBLASIntCast(k+1);
   LAPACKgehrd_(&n,&ilo,&n,A,&lda,tau,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
   for (j=0;j<n-1;j++) {
@@ -424,7 +460,7 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
   SETERRQ(PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   ilo,lwork,info,n=n_,ldh=ldh_;
+  PetscBLASInt   ilo,lwork,info,n,ldh;
   PetscScalar    *work;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt       j;
@@ -432,9 +468,11 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
-  lwork = n;
+  n = PetscBLASIntCast(n_);
+  ldh = PetscBLASIntCast(ldh_);
+  lwork = PetscBLASIntCast(n);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ilo = k+1;
+  ilo = PetscBLASIntCast(k+1);
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKhseqr_("S","V",&n,&ilo,&n,H,&ldh,wr,wi,Z,&n,work,&lwork,&info);
   for (j=0;j<k;j++) {
@@ -506,13 +544,15 @@ PetscErrorCode EPSSortDenseSchur(PetscInt n_,PetscInt k,PetscScalar *T,PetscInt 
   PetscErrorCode ierr;
   PetscReal      value,v;
   PetscInt       i,j;
-  PetscBLASInt   ifst,ilst,info,pos,n=n_,ldt=ldt_;
+  PetscBLASInt   ifst,ilst,info,pos,n,ldt;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    *work;
 #endif
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  n = PetscBLASIntCast(n_);
+  ldt = PetscBLASIntCast(ldt_);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #endif
@@ -582,8 +622,8 @@ PetscErrorCode EPSSortDenseSchur(PetscInt n_,PetscInt k,PetscScalar *T,PetscInt 
 #endif
     }
     if (pos) {
-      ifst = pos + 1;
-      ilst = i + 1;
+      ifst = PetscBLASIntCast(pos + 1);
+      ilst = PetscBLASIntCast(i + 1);
 #if !defined(PETSC_USE_COMPLEX)
       LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info);
 #else
@@ -671,13 +711,15 @@ PetscErrorCode EPSSortDenseSchurTarget(PetscInt n_,PetscInt k,PetscScalar *T,Pet
   PetscErrorCode ierr;
   PetscReal      value,v;
   PetscInt       i,j;
-  PetscBLASInt   ifst,ilst,info,pos,n=n_,ldt=ldt_;
+  PetscBLASInt   ifst,ilst,info,pos,n,ldt;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    *work;
 #endif
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  n = PetscBLASIntCast(n_);
+  ldt = PetscBLASIntCast(ldt_);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #endif
@@ -730,8 +772,8 @@ PetscErrorCode EPSSortDenseSchurTarget(PetscInt n_,PetscInt k,PetscScalar *T,Pet
 #endif
     }
     if (pos) {
-      ifst = pos + 1;
-      ilst = i + 1;
+      ifst = PetscBLASIntCast(pos + 1);
+      ilst = PetscBLASIntCast(i + 1);
 #if !defined(PETSC_USE_COMPLEX)
       LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info);
 #else
@@ -806,7 +848,7 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscRe
 #else
   PetscErrorCode ierr;
   PetscReal      abstol = 0.0,vl,vu,*work;
-  PetscBLASInt   il,iu,m,*isuppz,n=n_,lwork = 20*n,*iwork,liwork = 10*n,info;
+  PetscBLASInt   il,iu,m,*isuppz,n,lwork,*iwork,liwork,info;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j;
@@ -815,6 +857,9 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscRe
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
+  n = PetscBLASIntCast(n_);
+  lwork = PetscBLASIntCast(20*n_);
+  liwork = PetscBLASIntCast(10*n_);
   if (V) {
     jobz = "V";
 #if defined(PETSC_USE_COMPLEX)
