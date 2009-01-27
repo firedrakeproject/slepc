@@ -392,7 +392,7 @@ PetscErrorCode EPSDenseHessenberg(PetscInt n_,PetscInt k,PetscScalar *A,PetscInt
   n = PetscBLASIntCast(n_);
   lda = PetscBLASIntCast(lda_);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
-  lwork = PetscBLASIntCast(n);
+  lwork = n;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ilo = PetscBLASIntCast(k+1);
   LAPACKgehrd_(&n,&ilo,&n,A,&lda,tau,work,&lwork,&info);
@@ -470,7 +470,7 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   n = PetscBLASIntCast(n_);
   ldh = PetscBLASIntCast(ldh_);
-  lwork = PetscBLASIntCast(n);
+  lwork = n;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ilo = PetscBLASIntCast(k+1);
 #if !defined(PETSC_USE_COMPLEX)
