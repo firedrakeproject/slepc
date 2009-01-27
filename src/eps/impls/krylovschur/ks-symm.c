@@ -49,7 +49,7 @@
    Workspace:
      S is workspace to store a copy of the full matrix (nxn reals)
 */
-PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,PetscReal *Q,PetscReal *S)
+PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,PetscReal *Q,PetscReal *S)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR) || defined(SLEPC_MISSING_LAPACK_STEQR)
   PetscFunctionBegin;
@@ -57,12 +57,13 @@ PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,Pet
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscBLASInt   n1,n2,lwork,info;
+  PetscBLASInt   n,n1,n2,lwork,info;
 
   PetscFunctionBegin;
 
-  n1 = l+1;    /* size of leading block, including residuals */
-  n2 = n-l-1;  /* size of trailing block */
+  n = PetscBLASIntCast(n_);
+  n1 = PetscBLASIntCast(l+1);    /* size of leading block, including residuals */
+  n2 = PetscBLASIntCast(n-l-1);  /* size of trailing block */
   ierr = PetscMemzero(S,n*n*sizeof(PetscReal));CHKERRQ(ierr);
 
   /* Flip matrix S, copying the values saved in Q */
@@ -74,7 +75,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n,PetscInt l,PetscReal *d,PetscReal *e,Pet
     S[(n-1-i)+(n-1-i-1)*n] = e[i];
 
   /* Reduce (2,2)-block of flipped S to tridiagonal form */
-  lwork = n*n-n;
+  lwork = PetscBLASIntCast(n_*n_-n_);
   LAPACKsytrd_("L",&n1,S+n2*(n+1),&n,d,e,Q,Q+n,&lwork,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
 
