@@ -40,9 +40,9 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 
   tr->restart = 0;
   ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
-  tr->maxlan = eps->nev+PetscMin(eps->nev,6);
-  if (tr->maxlan+1-eps->ncv<=0) tr->lwork = tr->maxlan*(tr->maxlan+10);
-  else tr->lwork = n*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10);
+  tr->maxlan = PetscBLASIntCast(eps->nev+PetscMin(eps->nev,6));
+  if (tr->maxlan+1-eps->ncv<=0) { tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10)); }
+  else { tr->lwork = PetscBLASIntCast(n*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10)); }
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
   if (eps->extraction) {
@@ -84,14 +84,15 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,nn;
-  PetscBLASInt   ipar[32], n, lohi, stat, ncv=eps->ncv; 
+  PetscBLASInt   ipar[32], n, lohi, stat, ncv; 
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;	   
   PetscScalar    *pV;				   
   
   PetscFunctionBegin;
 
+  ncv = PetscBLASIntCast(eps->ncv);
   ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
-  n = nn;
+  n = PetscBLASIntCast(nn);
   
   if (eps->which==EPS_LARGEST_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
@@ -101,12 +102,12 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 
   ipar[0]  = 0;            /* stat: error flag */
   ipar[1]  = lohi;         /* smallest (lohi<0) or largest eigenvalues (lohi>0) */
-  ipar[2]  = eps->nev;     /* number of desired eigenpairs */
+  ipar[2]  = PetscBLASIntCast(eps->nev); /* number of desired eigenpairs */
   ipar[3]  = 0;            /* number of eigenpairs already converged */
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
-  ipar[6]  = eps->max_it;  /* maximum number of MATVECs */
-  ipar[7]  = MPI_Comm_c2f(((PetscObject)eps)->comm);    /* communicator */
+  ipar[6]  = PetscBLASIntCast(eps->max_it); /* maximum number of MATVECs */
+  ipar[7]  = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm)); /* communicator */
   ipar[8]  = 0;            /* verboseness */
   ipar[9]  = 99;           /* Fortran IO unit number used to write log messages */
   ipar[10] = 1;            /* use supplied starting vector */
