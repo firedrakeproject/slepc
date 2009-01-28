@@ -34,14 +34,14 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ar->rwork);CHKERRQ(ierr);
-  ar->lworkl = 3*ncv*ncv+5*ncv;
+  ar->lworkl = PetscBLASIntCast(3*ncv*ncv+5*ncv);
   ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
 #else
   if( eps->ishermitian ) {
-    ar->lworkl = ncv*(ncv+8);
+    ar->lworkl = PetscBLASIntCast(ncv*(ncv+8));
   } else {
-    ar->lworkl = 3*ncv*ncv+6*ncv;
+    ar->lworkl = PetscBLASIntCast(3*ncv*ncv+6*ncv);
     ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
     ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
   }
@@ -74,7 +74,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   const char  	 *which;
   PetscInt    	 nn;
   PetscBLASInt   n, iparam[11], ipntr[14], ido, info,
-		 nev=eps->nev,ncv=eps->ncv;
+		 nev, ncv;
   PetscScalar 	 sigmar, *pV, *resid;
   Vec         	 x, y, w = eps->work[0];
   Mat         	 A;
@@ -84,10 +84,12 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscScalar    sigmai = 0.0;
 #endif
   PetscFunctionBegin;
-
+  
+  nev = PetscBLASIntCast(eps->nev);
+  ncv = PetscBLASIntCast(eps->ncv);
   fcomm = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm));
   ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
-  n = nn;
+  n = PetscBLASIntCast(nn);
   ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
@@ -97,7 +99,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ido  = 0;            /* first call to reverse communication interface */
   info = 1;            /* indicates a initial vector is provided */
   iparam[0] = 1;       /* use exact shifts */
-  iparam[2] = eps->max_it;  /* maximum number of Arnoldi update iterations */
+  iparam[2] = PetscBLASIntCast(eps->max_it);  /* maximum number of Arnoldi update iterations */
   iparam[3] = 1;       /* blocksize */
   iparam[4] = 0;       /* number of converged Ritz values */
  
