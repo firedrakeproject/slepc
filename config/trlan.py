@@ -26,10 +26,7 @@ def Check(conf,directory,libs):
   if libs:
     libs = [libs]
   else:
-    if petscconf.MPIUNI:
-      libs = [['-ltrlan']]
-    else:
-      libs = [['-ltrlan_mpi']]
+    libs = [['-ltrlan_mpi']]
 
   if directory:
     dirs = [directory]

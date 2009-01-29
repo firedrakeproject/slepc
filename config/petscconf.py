@@ -12,7 +12,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,MPIUNI,ISINSTALL,INSTALL_DIR
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,INSTALL_DIR
   
   if 'PETSC_ARCH' in os.environ:
     ISINSTALL = 0
@@ -23,8 +23,6 @@ def Load(petscdir):
     ARCH = 'unknown'
     PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
 
-  MPIUNI = 0
-  
   try:
     f = open(PETSCVARIABLES)
     for l in f.readlines():
@@ -35,8 +33,6 @@ def Load(petscdir):
 	SCALAR = v
       elif k == 'PETSC_PRECISION':
         PRECISION = v
-      elif k == 'MPI_INCLUDE' and v.endswith('mpiuni'):
-        MPIUNI = 1
       elif k == 'MAKE':
 	MAKE = v
       elif k == 'INSTALL_DIR':

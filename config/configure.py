@@ -229,8 +229,6 @@ log.Println(' '+prefixdir)
 log.Println('PETSc directory:')
 log.Println(' '+petscdir)
 log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
-if petscconf.MPIUNI:
-  log.Println('  Uniprocessor version without MPI')
 if havearpack:
   log.Println('ARPACK library flags:')
   log.Println(' '+str.join(' ',arpacklibs))
