@@ -10,7 +10,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/impls/blzpack/blzpackp.h"
+#include "src/eps/impls/blzpack/blzpackp.h"   /*I "slepceps.h" I*/
 
 const char* blzpack_error[33] = {
   "",
@@ -53,8 +53,7 @@ const char* blzpack_error[33] = {
 PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N, n;
-  PetscBLASInt   listor, lrstor, ncuv, k1, k2, k3, k4;
+  PetscInt       N, n, listor, lrstor, ncuv, k1, k2, k3, k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscTruth     flg;
   KSP            ksp;
@@ -97,7 +96,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   listor = 123+k1*12;
   ierr = PetscFree(blz->istor);CHKERRQ(ierr);
   ierr = PetscMalloc((17+listor)*sizeof(PetscBLASInt),&blz->istor);CHKERRQ(ierr);
-  blz->istor[14] = listor;
+  blz->istor[14] = PetscBLASIntCast(listor);
 
   if (blz->slice) lrstor = n*(k2*4+k1*2+k4)+k3;
   else lrstor = n*(k2*4+k1)+k3;
@@ -155,10 +154,10 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   }
   nneig = 0;                     /* no. of eigs less than sigma */
 
-  blz->istor[0]  = n;            /* number of rows of U, V, X*/
-  blz->istor[1]  = n;            /* leading dimension of U, V, X */
-  blz->istor[2]  = eps->nev;     /* number of required eigenpairs */
-  blz->istor[3]  = eps->ncv;     /* number of working eigenpairs */
+  blz->istor[0]  = PetscBLASIntCast(n); /* number of rows of U, V, X*/
+  blz->istor[1]  = PetscBLASIntCast(n); /* leading dimension of U, V, X */
+  blz->istor[2]  = PetscBLASIntCast(eps->nev); /* number of required eigenpairs */
+  blz->istor[3]  = PetscBLASIntCast(eps->ncv); /* number of working eigenpairs */
   blz->istor[4]  = blz->block_size;    /* number of vectors in a block */
   blz->istor[5]  = blz->nsteps;  /* maximun number of steps per run */
   blz->istor[6]  = 1;            /* number of starting vectors as input */
@@ -168,7 +167,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   blz->istor[10] = eps->isgeneralized ? 1 : 0;   /* solutions refinement (purify) */
   blz->istor[11] = 0;            /* level of printing */
   blz->istor[12] = 6;            /* file unit for output */
-  blz->istor[13] = MPI_Comm_c2f(((PetscObject)eps)->comm);    /* communicator */
+  blz->istor[13] = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm)); /* communicator */
 
   blz->rstor[2]  = eps->tol;     /* threshold for convergence */
 
@@ -220,9 +219,9 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       ierr = STSetShift(eps->OP,sigma);CHKERRQ(ierr);
       ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCGetFactoredMatrix(pc,&A);CHKERRQ(ierr);
+      ierr = PCFactorGetMatrix(pc,&A);CHKERRQ(ierr);
       ierr = MatGetInertia(A,&nn,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      nneig = nn;
+      nneig = PetscBLASIntCast(nn);
       break;
     case 4:  
       /* copy the initial vector */
@@ -362,7 +361,7 @@ PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
   else if (bs <= 0) { 
     SETERRQ(1, "Incorrect block size"); 
-  } else blz->block_size = bs;
+  } else blz->block_size = PetscBLASIntCast(bs);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -464,7 +463,8 @@ PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
   EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;
 
   PetscFunctionBegin;
-  blz->nsteps = nsteps == PETSC_DEFAULT ? 0 : nsteps;
+  if (nsteps == PETSC_DEFAULT) blz->nsteps = 0;
+  else { blz->nsteps = PetscBLASIntCast(nsteps); }
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
