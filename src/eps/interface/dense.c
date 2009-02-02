@@ -314,7 +314,7 @@ PetscErrorCode EPSDenseGHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscReal 
     liwork = PetscBLASIntCast(5*n_+3);
 #if defined(PETSC_USE_COMPLEX)
     lwork  = PetscBLASIntCast(n_*n_+2*n_);
-    lrwork = PetscBLASIntCast(2*n_*n_+5*n_+1;
+    lrwork = PetscBLASIntCast(2*n_*n_+5*n_+1);
 #else
     lwork  = PetscBLASIntCast(2*n_*n_+6*n_+1);
 #endif
