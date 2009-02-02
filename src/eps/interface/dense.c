@@ -851,7 +851,7 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscRe
   PetscBLASInt   il,iu,m,*isuppz,n,lwork,*iwork,liwork,info;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
-  PetscInt       j;
+  PetscInt       i,j;
   PetscReal      *VV;
 #endif
   

@@ -93,7 +93,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
    At each Lanczos step, the corresponding Lanczos vector is 
    orthogonalized with respect to all previous Lanczos vectors.
 */
-PetscErrorCode EPSFullLanczos(EPS eps,PetscScalar *alpha,PetscScalar *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscTruth *breakdown)
+PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
@@ -537,7 +537,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   IPOrthogonalizationRefinementType orthog_ref;
   PetscScalar *T;
   PetscInt i,n=*m;
-  PetscScalar betam;
+  PetscReal betam;
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
