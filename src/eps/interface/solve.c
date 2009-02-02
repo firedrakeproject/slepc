@@ -40,6 +40,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
+  STMatMode      matmode;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -79,6 +80,11 @@ PetscErrorCode EPSSolve(EPS eps)
       SETERRQ(1,"Wrong value of eps->solverclass");
   }
 
+  ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
+  if (matmode == STMATMODE_INPLACE && eps->ispositive) {
+    /* Purge eigenvectors before reverting operator */
+    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);    
+  }
   ierr = STPostSolve(eps->OP);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
