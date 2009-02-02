@@ -38,7 +38,7 @@
    in order to perform a harmonic extraction.
 
    On input:
-     S is the Rayleigh quotient (leading dimension is m)
+     S is the Rayleigh quotient (order m, leading dimension is lds)
      tau is the translation amount
      b is assumed to be beta*e_m^T
 
@@ -50,20 +50,23 @@
      work is workspace to store a working copy of S and the pivots (int 
      of length m)
 */
-PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,PetscInt m_,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work)
+PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS) 
   PetscFunctionBegin;
   SETERRQ(PETSC_ERR_SUP,"GETRF,GETRS - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   info,one = 1,m=m_,i;
+  PetscInt       i,j;
+  PetscBLASInt   info,m=m_,one = 1;
   PetscScalar    *B = work; 
   PetscBLASInt   *ipiv = (PetscBLASInt*)(work+m*m);
 
   PetscFunctionBegin;
   /* Copy S to workspace B */
-  ierr = PetscMemcpy(B,S,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<m;i++) 
+    for (j=0;j<m;j++) 
+      B[i+j*m] = S[i+j*lds];
   /* Vector g initialy stores b */
   ierr = PetscMemzero(g,m*sizeof(PetscScalar));CHKERRQ(ierr);
   g[m-1] = beta;
@@ -81,7 +84,7 @@ PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,PetscInt m_,PetscScalar tau,P
 
   /* S = S + g*b' */
   for (i=0;i<m;i++) 
-    S[i+(m-1)*m] = S[i+(m-1)*m] + g[i]*beta;
+    S[i+(m-1)*lds] = S[i+(m-1)*lds] + g[i]*beta;
 
   PetscFunctionReturn(0);
 #endif
@@ -121,7 +124,7 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt
   PetscFunctionBegin;
 
   /* g^ = -Q(:,idx)'*g */
-  BLASgemv_("C",&n,&ncol,&dmone,Q,&m,g,&one,&dzero,ghat,&one);
+  BLASgemv_("C",&n,&ncol,&dmone,Q,&n,g,&one,&dzero,ghat,&one);
 
   /* S = S + g^*b' */
   for (i=0;i<k+l;i++) {
@@ -131,7 +134,7 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt
   }
 
   /* g~ = (I-Q(:,idx)*Q(:,idx)')*g = g+Q(:,idx)*g^ */
-  BLASgemv_("N",&n,&ncol,&done,Q,&m,ghat,&one,&done,g,&one);
+  BLASgemv_("N",&n,&ncol,&done,Q,&n,ghat,&one,&done,g,&one);
 
   /* gamma u^ = u - U*g~ */
   for (i=0;i<n;i++) 
@@ -212,7 +215,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
     /* Compute translation of Krylov decomposition */ 
-    ierr = EPSTranslateHarmonic(S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+    ierr = EPSTranslateHarmonic(nv,S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
     ierr = EPSProjectedKSHarmonic(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
