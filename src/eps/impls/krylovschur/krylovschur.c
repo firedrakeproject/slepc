@@ -40,7 +40,7 @@ extern PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps);
 PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N,lds;
+  PetscInt       N;
 
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
@@ -68,10 +68,8 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  if (eps->ishermitian) lds = PetscMin(eps->nev+eps->mpd,eps->ncv);
-  else {
-    lds = eps->ncv;
-    ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
+  if (!eps->ishermitian || eps->extraction==EPS_HARMONIC) {
+    ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   }
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -120,7 +118,15 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ishermitian) {
-    ierr = EPSSolve_KRYLOVSCHUR_SYMM(eps);CHKERRQ(ierr);
+    switch (eps->extraction) {
+      case EPS_RITZ:
+        ierr = EPSSolve_KRYLOVSCHUR_SYMM(eps);CHKERRQ(ierr);
+        break;
+      case EPS_HARMONIC:
+        ierr = EPSSolve_KRYLOVSCHUR_HARMONIC(eps);CHKERRQ(ierr);
+        break;
+      default: SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
+    }
   } else {
     switch (eps->extraction) {
       case EPS_RITZ:
