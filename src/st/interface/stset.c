@@ -131,6 +131,7 @@ PetscErrorCode STSetFromOptions(ST st)
   const char     *mode_list[3] = { "copy", "inplace", "shell" };
   const char     *structure_list[3] = { "same", "different", "subset" };
   PC             pc;
+  const char     *pctype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -162,11 +163,23 @@ PetscErrorCode STSetFromOptions(ST st)
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (st->ksp) {   
-    if (st->shift_matrix == STMATMODE_SHELL) {
-      /* in shell mode use GMRES with Jacobi as the default */
-      ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
-      ierr = KSPGetPC(st->ksp,&pc); CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+    ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+    ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+    if (!pctype) {
+      if (st->shift_matrix == STMATMODE_SHELL) {
+        /* in shell mode use GMRES with Jacobi as the default */
+        ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+      } else {
+        /* use direct solver as default */
+        ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
+        ierr = PetscTypeCompare((PetscObject)st->A,MATMPIAIJ,&flg);CHKERRQ(ierr);
+        if (flg) {
+          ierr = PCSetType(pc,PCTFS);CHKERRQ(ierr);
+        } else {
+          ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+        }
+      }
     }
     ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr); 
   }
