@@ -69,8 +69,10 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   if (eps->ishermitian) lds = PetscMin(eps->nev+eps->mpd,eps->ncv);
-  else lds = eps->ncv;
-  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
+  else {
+    lds = eps->ncv;
+    ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
+  }
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -115,53 +115,51 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
    method (symmetric case).
 
    On input:
-     l is the number of vectors kept in previous restart (0 means first restart)
-     S is the projected matrix (order n, leading dimension is lds)
+     n is the matrix dimension
+     l is the number of vectors kept in previous restart
+     a contains diagonal elements (length n)
+     b contains offdiagonal elements (length n-1)
 
    On output:
-     S is overwritten
      eig is the sorted list of eigenvalues
-     Q is the eigenvector matrix (order n)
+     Q is the eigenvector matrix (order n, leading dimension n)
 
    Workspace:
-     work is workspace to store 2n reals and 2n integers
+     work is workspace to store a real square matrix of order n
+     perm is workspace to store 2n integers
 */
-PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,PetscInt lds,PetscScalar *eig,PetscScalar *Q,PetscReal *work)
+PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,PetscReal *b,PetscScalar *eig,PetscScalar *Q,PetscReal *work,PetscInt *perm)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j;
-  PetscReal      *ritz = work;
-  PetscReal      *e = work+n;
-  PetscInt       *perm = ((PetscInt*)(work+n))+n;
-  PetscReal      *Sreal = (PetscReal*)S, *Qreal = (PetscReal*)Q;
+  PetscInt       i,j,k,p;
+  PetscReal      rtmp,*Qreal = (PetscReal*)Q;
 
   PetscFunctionBegin;
+  /* Compute eigendecomposition of projected matrix */
+  ierr = ArrowTridFlip(n,l,a,b,Qreal,work);CHKERRQ(ierr);
 
-  /* Compute eigendecomposition of S, S <- Q S Q' */
+  /* Sort eigendecomposition according to eps->which */
+  ierr = EPSSortEigenvaluesReal(n,a,eps->which,n,perm,b);CHKERRQ(ierr);
   for (i=0;i<n;i++)
-    ritz[i] = S[i+i*lds];
-  for (i=0;i<l;i++)
-    e[i] = S[l+i*lds];
-  for (i=l;i<n;i++) 
-    e[i] = S[i+1+i*lds];
-  ierr = ArrowTridFlip(n,l,ritz,e,Qreal,Sreal);CHKERRQ(ierr);
+    eig[i] = a[perm[i]];
+  for (i=0;i<n;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap eigenvectors i and j */
+      for (k=0;k<n;k++) {
+        rtmp = Q[k+p*n]; Q[k+p*n] = Q[k+i*n]; Q[k+i*n] = rtmp;
+      }
+    }
+  }
+
 #if defined(PETSC_USE_COMPLEX)
   for (j=n-1;j>=0;j--)
     for (i=n-1;i>=0;i--) 
       Q[i+j*n] = Qreal[i+j*n];
 #endif
-
-  /* Sort eigendecomposition according to eps->which */
-  ierr = EPSSortEigenvaluesReal(n,ritz,eps->which,n,perm,e);CHKERRQ(ierr);
-  for (i=0;i<n;i++)
-    eig[i] = ritz[perm[i]];
-  for (j=0;j<n;j++)
-    for (i=0;i<n;i++)
-      S[i+j*lds] = Q[i+j*n];
-  for (j=0;j<n;j++)
-    for (i=0;i<n;i++)
-      Q[i+j*n] = S[i+perm[j]*lds];
-
   PetscFunctionReturn(0);
 }
 
@@ -170,20 +168,20 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscScalar *S,Pe
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,lds,nv,m;
+  PetscInt       i,k,l,lds,nv,m;
   Vec            u=eps->work[1];
-  PetscScalar    *S=eps->T,*Q;
-  PetscReal      *a,*b,beta,*work;
+  PetscScalar    *Q;
+  PetscReal      *a,*b,*work,beta;
+  PetscInt       *iwork;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
   lds = PetscMin(eps->nev+eps->mpd,eps->ncv);
-  ierr = PetscMemzero(S,lds*lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMalloc(lds*lds*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   ierr = PetscMalloc(lds*sizeof(PetscReal),&a);CHKERRQ(ierr);  
   ierr = PetscMalloc(lds*sizeof(PetscReal),&b);CHKERRQ(ierr);  
-  lwork = 2*lds*sizeof(PetscReal) + 2*lds*sizeof(PetscInt);
-  ierr = PetscMalloc(lwork,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(2*lds*sizeof(PetscInt),&iwork);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -195,17 +193,12 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 
     /* Compute an nv-step Lanczos factorization */
     m = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&m,u,&breakdown);CHKERRQ(ierr);
+    ierr = EPSFullLanczos(eps,a+l,b+l,eps->V,eps->nconv+l,&m,u,&breakdown);CHKERRQ(ierr);
     nv = m - eps->nconv;
-    for (i=l;i<nv-1;i++) {
-      S[i*lds+i] = a[i-l]; /* alpha */
-      S[i*lds+i+1] = b[i-l]; /* beta */
-    }
-    S[(nv-1)*lds+nv-1] = a[nv-1-l];
-    beta = b[nv-1-l];
+    beta = b[nv-1];
 
     /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedKSSym(eps,nv,l,S,lds,eps->eigr+eps->nconv,Q,work);CHKERRQ(ierr);
+    ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
     for (i=0;i<nv;i++)
       eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]) / PetscAbsScalar(eps->eigr[i+eps->nconv]);
 
@@ -231,8 +224,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=0;i<l;i++) {
-          S[i+i*lds] = eps->eigr[i+k];
-          S[l+i*lds] = Q[nv-1+(i+k-eps->nconv)*nv]*beta;
+          a[i] = eps->eigr[i+k];
+          b[i] = Q[nv-1+(i+k-eps->nconv)*nv]*beta;
         }
       }
     }
@@ -252,6 +245,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   ierr = PetscFree(a);CHKERRQ(ierr);
   ierr = PetscFree(b);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
