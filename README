@@ -5,13 +5,14 @@
 
                             Vicente Hernandez
                               Jose E. Roman
+                               Eloy Romero
                               Andres Tomas
                               Vicent Vidal
 
         GRyCAP - Grupo de Redes y Computacion de Altas Prestaciones
                 Universidad Politecnica de Valencia, Spain
 
-        VERSION: 2.3.3
+        VERSION: 3.0.0
 
 
  Overview
@@ -27,8 +28,8 @@
  problems  in  which  the  associated matrices are sparse, for  example,  those
  arising after the discretization of partial differential equations. Therefore,
  most  of  the methods offered by the library are projection methods  or  other
- methods  with similar properties. Some of these methods are  Arnoldi,  Lanczos
- and Subspace Iteration, to name a few. SLEPc implements these basic methods as
+ methods  with  similar  properties.  Some of these methods  are  Krylov-Schur,
+ Arnoldi,  and Lanczos, to name a few. SLEPc implements these basic methods  as
  well  as more sophisticated algorithms. It also provides built-in support  for
  spectral transformations such as shift-and-invert.
 
@@ -55,12 +56,18 @@
  about  individual SLEPc routines. This information is provided in the form  of
  man pages in HTML format (see 'docs/manual.htm'). 
 
+ The following journal article provides a general description of SLEPc:
+
+ [1] V. Hernandez, J. E. Roman and V. Vidal (2005), SLEPc: A Scalable and 
+     Flexible Toolkit for the Solution of Eigenvalue Problems, ACM Trans. Math.
+     Softw. 31(3), 351-362.
+
 
  Installation
  ------------
 
  The installation procedure of SLEPc is very similar to that of PETSc. Briefly,
- the  environment variable $SLEPC_DIR must be set, then the script configure.py
+ the  environment variable $SLEPC_DIR must be set, then the script  'configure'
  is executed and finally the  libraries  are built with the command 'make'. For
  this to work correctly, variable $PETSC_DIR must also be set appropriately.
 
@@ -80,7 +87,7 @@
  Among other things, this site includes information about:
 
   - How to contact the authors for support.
-  - Download page including available patches (if any).
+  - Software download.
   - On-line documentation.
   - Mailing list for announcement of new releases.
 
@@ -96,34 +103,21 @@
  - Direccio  General d'Investigacio i Transferencia de  Tecnologia, Generalitat
    Valenciana, GV06/091.
 
+
  Conditions of Use
  -----------------
 
- Copyright (c) 2002-2007, Universidad Politecnica de Valencia, Spain
+ Copyright (c) 2002-2009, Universidad Politecnica de Valencia, Spain
 
- This  software is provided 'as is', with absolutely no warranty, expressed  or
- implied.  Any use is at your own risk. In no event will the authors be  liable
- for  any direct or indirect damages arising in any way out of the use of  this
- software.
+    SLEPc is free software: you can redistribute it and/or modify it under  the
+    terms of version 3 of the GNU Lesser General Public License as published by
+    the Free Software Foundation.
 
- The  user  will  acknowledge  (using reference [1])  the contribution  of  the
- software in any publication of material dependent on its use.
+    SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
+    WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
+    FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+    more details.
 
- The user can modify the code but at no time will the right or title to all  or
- any part of this software pass to the user. A modified version of the software
- cannot be redistributed. The software (or a modified version) may not be sold.
-
- This software is free for academic and research use. This means that a  person
- working  in  an  academic or research institution such as a  university  or  a
- government  laboratory  can  use  the software without  formally  requiring  a
- license.
-
- For commercial use, it is necessary to sign a software license agreement. This
- includes  all  users working for a private company, even if  the  software  is
- going  to be used only for in-house research activities. A reasonable  testing
- period is allowed before asking for the license.
-
- [1] V. Hernandez, J. E. Roman and V. Vidal (2005), SLEPc: A Scalable and 
-     Flexible Toolkit for the Solution of Eigenvalue Problems, ACM Trans. Math.
-     Softw. 31(3), 351-362.
+    You  should have received a copy of the GNU Lesser General  Public  License
+    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 
