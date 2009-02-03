@@ -529,7 +529,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-      ierr = EPSTranslateHarmonic(eps->ncv,H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+      ierr = EPSTranslateHarmonic(nv,H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
     }
 
     /* Solve projected problem and compute residual norm estimates */ 
@@ -539,7 +539,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Fix residual norms if harmonic */
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
       gnorm = 0.0;
-      for (i=0;i<eps->ncv;i++)
+      for (i=0;i<nv;i++)
         gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
       for (i=eps->nconv;i<nv;i++)
         eps->errest[i] *= sqrt(1.0+gnorm);
