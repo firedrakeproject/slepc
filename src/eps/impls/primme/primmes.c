@@ -1,6 +1,5 @@
 /*
        This file implements a wrapper to the PRIMME library
-       Contributed by Eloy Romero
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

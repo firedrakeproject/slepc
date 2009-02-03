@@ -150,7 +150,7 @@ if not os.path.exists(petscdir):
 
 # Check PETSc version
 petscversion.Load(petscdir)
-if petscversion.VERSION < '2.3.3':
+if petscversion.VERSION < '3.0.0':
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION) 
 
 # Check some information about PETSc configuration
@@ -205,7 +205,7 @@ log.Write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
-if petscversion.VERSION > '2.3.3':
+if petscversion.VERSION > '3.0.0':
   log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version')
 if petscversion.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')

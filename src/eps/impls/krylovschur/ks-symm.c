@@ -17,7 +17,7 @@
        [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
            SIAM J. Matrix Analysis and App., 23(3), pp. 601-614, 2001. 
 
-   Last update: Oct 2006
+   Last update: Feb 2009
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

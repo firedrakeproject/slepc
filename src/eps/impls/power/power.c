@@ -18,7 +18,7 @@
        [1] "Single Vector Iteration Methods in SLEPc", SLEPc Technical Report STR-2, 
            available at http://www.grycap.upv.es/slepc.
 
-   Last update: June 2005
+   Last update: Feb 2009
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

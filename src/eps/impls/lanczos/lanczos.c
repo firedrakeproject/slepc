@@ -15,7 +15,7 @@
        [1] "Lanczos Methods in SLEPc", SLEPc Technical Report STR-5, 
            available at http://www.grycap.upv.es/slepc.
 
-   Last update: Oct 2006
+   Last update: Feb 2009
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

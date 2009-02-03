@@ -22,8 +22,11 @@
   <tr> 
     <td valign="top" height="984"> <div align="left"> 
         <p align="left"><font face="Arial, Helvetica, sans-serif"><font size="3">
-        <b>Installation Instructions</b></font> </font></p>
+        <b>Basic Installation Instructions</b></font> </font></p>
         <div align="left"> 
+          <p><font size="2" face="Arial, Helvetica, sans-serif">The following is 
+            a quick-start guide for installing SLEPc. For further details,
+            the user is referred to the SLEPc Users Manual.</p>
           <p><font size="2" face="Arial, Helvetica, sans-serif">Previously to 
             the installation of SLEPc, the system must have an appropriate version 
             of PETSc installed (see the <a href="http://www-unix.mcs.anl.gov/petsc/petsc-as/documentation/installation.html" target="_blank">PETSc installation documentation</a> for details). Check the <a href="changes.htm">Changes</a> 
@@ -32,54 +35,52 @@
         </div>
         <font face="Arial, Helvetica, sans-serif"> 
         <p><font size="2">
-	The installation process for SLEPc is very similar to PETSc, with two stages: configuration and compilation. SLEPc configuration is much simpler because most of the configuration information is taken from PETSc, including compiler options and scalar type (real or complex). Several configurations can coexist in the same directory tree, being referred by different values of <font face="Courier New, Courier, mono">PETSC_ARCH</font>, so that one can, for instance, have a SLEPc compiled with real scalars and another one with complex scalars.</font></p>
+	The installation process for SLEPc is very similar to PETSc, with two main stages: configuration and compilation. SLEPc configuration is much simpler because most of the configuration information is taken from PETSc, including compiler options and scalar type (real or complex). Several configurations can coexist in the same directory tree, being selected by different values of <code>PETSC_ARCH</code>, so that one can, for instance, have a SLEPc compiled with real scalars and another one with complex scalars.</font></p>
 
         <p><font size="2">
-	The main steps for the installation are described next. Note that prior to this steps, optional packages must have been installed (see below). If any of these packages is installed afterwards, reconfiguration and recompilation is necessary.</font></p> 
+	The main steps for the installation are:</font></p> 
         </font></div>
       <ol>
         <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
-          Unbundle the distribution file <strong>slepc.tgz</strong> with a usual 
-          command such as <font face="Courier New, Courier, mono">gunzip -c slepc.tgz 
-          | tar xvf -</font>. This will create a directory and unpack the software 
-          there.<br>
+          Unbundle the distribution file <strong>slepc-3.0.0-p0.tgz</strong> with a usual 
+    command such as <code>tar xzf slepc-3.0.0-p0.tgz</code>. 
+    This will create a directory and unpack the software there.<br>
           </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Refer 
-          to the Patches section </font><font face="Arial, Helvetica, sans-serif"><font size="2"> 
-          at the <a href="http://www.grycap.upv.es/slepc/download.htm" target="_parent">Download</a> 
-          page</font></font> <font size="2">for available patches to the latest 
-          SLEPc release.<br>
-          </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Set 
-          the environment variable <font face="Courier New, Courier, mono">SLEPC_DIR</font> 
-          to the full path of the SLEPc home directory, for example,<br>
-          &nbsp;&nbsp;&nbsp; <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setenv 
-          SLEPC_DIR /home/username/slepc-2.3.x</font><br>
-          In addition to this variable, <font face="Courier New, Courier, mono">PETSC_DIR</font> 
-          (and optionally <font face="Courier New, Courier, mono">PETSC_ARCH</font>) must also 
-          be set appropriately.<br>
+        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Set the environment variable <code>SLEPC_DIR</code> 
+    to the full path of the SLEPc home directory, for example,<br>
+    <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
+      <code style="margin-left: 1cm">export SLEPC_DIR=/home/username/slepc-3.0.0</code><br>
+    </div>
+    In addition to this variable, <code>PETSC_DIR</code> 
+    and <code>PETSC_ARCH</code> must also be set appropriately.<br>
           </font></font></li>
         <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
           In the SLEPc directory, execute<br>
-          <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;./config/configure.py</font><br>
-          </font>Note that in order to enable external packages (see below), this command must be run with appropiate options. To see available options use <font face="Courier New, Courier, mono">./config/configure.py --help</font><br>
+    <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
+      <code style="margin-left: 1cm">./configure</code><br>
+    </div>
+    Note that in order to enable external packages (see below), this command must be 
+    run with appropiate options. To see all available options use 
+    <code>./configure --help</code><br>
           </font></font></li>
         <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
           In the SLEPc home directory, type<br>
-          <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make 
-          </font></font><br>
+    <div style="padding-top: 0.4em; padding-bottom: 0em;">
+      <code style="margin-left: 1cm">make</code>
+    </div><br>
           </font></font></li>
         <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
-          Optionally, if an installation directory has been specified during configuration (with option <font face="Courier New, Courier, mono">--prefix</font> in step 4 above), then type<br>
-          <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make install
-          </font></font><br>
-This is useful for building as a regular user and then copying the libraries and include files to the system directories as root.
+          Optionally, if an installation directory has been specified during configuration (with option <code>--prefix</code> in step 3 above), then type<br>
+    <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
+      <code style="margin-left: 1cm">make install</code>
+    </div>
+    This is useful for building as a regular user and then copying the libraries and include files to the system directories as root.
           </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">If 
-          the installation went smoothly, then try running some test examples with <br>
-          <font face="Arial, Helvetica, sans-serif">&nbsp;&nbsp;&nbsp;<font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;make test</font><br>
-          </font></font><font size="2">Examine the output for any obvious errors 
-          or problems.<br>
+        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">If the installation went smoothly, then try running some test examples with <br>
+    <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
+      <code style="margin-left: 1cm">make test</code><br>
+    </div>
+    Examine the output for any obvious errors or problems.<br>
           </font></font></li>
         <!--li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">If PETSc was configured with Fortran support, the SLEPc  
           Fortran libraries are built automatically during the installation outlined 
@@ -108,11 +109,11 @@ This is useful for building as a regular user and then copying the libraries and
         </li>
         <li> 
           <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">Enable 
-            the utilization of the external software from SLEPc by adding specific command-line parameters when executing <font face="Courier New, Courier, mono">config/configure.py</font>. For example, to use ARPACK, specify the following options (with the appropriate paths):<br>
+            the utilization of the external software from SLEPc by adding specific command-line parameters when executing <font face="Courier New, Courier, mono">configure</font>. For example, to use ARPACK, specify the following options (with the appropriate paths):<br>
             <br>
             <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;
-	config/configure.py --with-arpack-dir=/usr/software/ARPACK <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--with-arpack-flags=-lparpack,-larpack
+	./configure --with-arpack-dir=/usr/software/ARPACK <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--with-arpack-flags=-lparpack,-larpack
             </font></font></font></div>
         </li>
         <li> 
