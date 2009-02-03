@@ -71,7 +71,7 @@
       do i=Istart,Iend-1
         if (i .eq. 0) then
           do j=0,n-1
-            call MatSetValue(A,0,j,1.d0,INSERT_VALUES,ierr)
+            call MatSetValue(A,i,j,1.d0,INSERT_VALUES,ierr)
           end do
         else
           call MatSetValue(A,i,i-1,mu,INSERT_VALUES,ierr)

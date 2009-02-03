@@ -42,6 +42,7 @@
       PetscInt       n, i, Istart, Iend
       PetscInt       nev, maxit, its, nconv
       PetscInt       col(3)
+      PetscInt       i1,i2,i3
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscTruth     flg
@@ -69,6 +70,9 @@
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
       call MatSetFromOptions(A,ierr)
 
+      i1 = 1
+      i2 = 2
+      i3 = 3
       call MatGetOwnershipRange(A,Istart,Iend,ierr)
       if (Istart .eq. 0) then 
         i = 0
@@ -76,7 +80,7 @@
         col(2) = 1
         value(1) =  2.0
         value(2) = -1.0
-        call MatSetValues(A,1,i,2,col,value,INSERT_VALUES,ierr)
+        call MatSetValues(A,i1,i,i2,col,value,INSERT_VALUES,ierr)
         Istart = Istart+1
       endif
       if (Iend .eq. n) then 
@@ -85,7 +89,7 @@
         col(2) = n-1
         value(1) = -1.0
         value(2) =  2.0
-        call MatSetValues(A,1,i,2,col,value,INSERT_VALUES,ierr)
+        call MatSetValues(A,i1,i,i2,col,value,INSERT_VALUES,ierr)
         Iend = Iend-1
       endif
       value(1) = -1.0
@@ -95,7 +99,7 @@
         col(1) = i-1
         col(2) = i
         col(3) = i+1
-        call MatSetValues(A,1,i,3,col,value,INSERT_VALUES,ierr)
+        call MatSetValues(A,i1,i,i3,col,value,INSERT_VALUES,ierr)
       enddo
 
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
