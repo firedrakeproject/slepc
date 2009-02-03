@@ -150,7 +150,7 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
       perm[j] = p; perm[i] = i;
       /* swap eigenvectors i and j */
       for (k=0;k<n;k++) {
-        rtmp = Q[k+p*n]; Q[k+p*n] = Q[k+i*n]; Q[k+i*n] = rtmp;
+        rtmp = Qreal[k+p*n]; Qreal[k+p*n] = Qreal[k+i*n]; Qreal[k+i*n] = rtmp;
       }
     }
   }
