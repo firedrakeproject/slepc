@@ -27,8 +27,6 @@
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
-extern PetscErrorCode EPSTranslateHarmonic(PetscScalar *S,PetscInt m,PetscScalar tau,PetscScalar beta,PetscScalar *g,PetscScalar *work);
-
 typedef struct {
   PetscTruth delayed;
 } EPS_ARNOLDI;
@@ -531,7 +529,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-      ierr = EPSTranslateHarmonic(H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+      ierr = EPSTranslateHarmonic(eps->ncv,H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
     }
 
     /* Solve projected problem and compute residual norm estimates */ 

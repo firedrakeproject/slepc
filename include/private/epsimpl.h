@@ -121,5 +121,6 @@ EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,
 EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscInt,PetscScalar*,PetscReal,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscTruth*);
+EXTERN PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 
 #endif
