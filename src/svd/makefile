@@ -21,7 +21,7 @@
 
 ALL: lib
 
-SOURCEH  = svdimpl.h ../../include/slepcsvd.h
+SOURCEH  = ../../include/private/svdimpl.h ../../include/slepcsvd.h
 DIRS     = interface impls
 LOCDIR   = src/svd/
 MANSEC   = SVD
