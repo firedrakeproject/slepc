@@ -58,11 +58,12 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscBLASInt   info,m=m_,one = 1;
+  PetscBLASInt   info,m,one = 1;
   PetscScalar    *B = work; 
   PetscBLASInt   *ipiv = (PetscBLASInt*)(work+m*m);
 
   PetscFunctionBegin;
+  m = PetscBLASIntCast(m_);
   /* Copy S to workspace B */
   for (i=0;i<m;i++) 
     for (j=0;j<m;j++) 
@@ -116,12 +117,14 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt
 {
   PetscFunctionBegin;
   PetscErrorCode ierr;
-  PetscBLASInt   one=1,ncol=k+l,n=n_,m=m_;
+  PetscBLASInt   one=1,ncol=k+l,n,m;
   PetscScalar    done=1.0,dmone=-1.0,dzero=0.0;
   PetscReal      gamma,gnorm;
   PetscBLASInt   i,j;
 
   PetscFunctionBegin;
+  n = PetscBLASIntCast(n_);
+  m = PetscBLASIntCast(m_);
 
   /* g^ = -Q(:,idx)'*g */
   BLASgemv_("C",&n,&ncol,&dmone,Q,&n,g,&one,&dzero,ghat,&one);
