@@ -30,6 +30,6 @@ OBJSC    = ipbasic.o ipdot.o iporthog.o ipform.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = IP
-LOCDIR   = src/ip
+LOCDIR   = src/ip/
 
 include ${SLEPC_DIR}/conf/slepc_common
