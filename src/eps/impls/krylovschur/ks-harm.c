@@ -71,7 +71,7 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
   PetscInt       i,j;
   PetscBLASInt   info,m,one = 1;
   PetscScalar    *B = work; 
-  PetscBLASInt   *ipiv = (PetscBLASInt*)(work+m*m);
+  PetscBLASInt   *ipiv = (PetscBLASInt*)(work+m_*m_);
 
   PetscFunctionBegin;
   m = PetscBLASIntCast(m_);
