@@ -235,8 +235,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=0;i<l;i++) {
-          a[i] = eps->eigr[i+k];
-          b[i] = Q[nv-1+(i+k-eps->nconv)*nv]*beta;
+          a[i] = PetscRealPart(eps->eigr[i+k]);
+          b[i] = PetscRealPart(Q[nv-1+(i+k-eps->nconv)*nv]*beta);
         }
       }
     }

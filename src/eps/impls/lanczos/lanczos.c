@@ -138,7 +138,7 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds+m,PETSC_NULL,eps->DSV,f,hwork,&norm,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  alpha[m-1-k] = hwork[eps->nds+m-1]; 
+  alpha[m-1-k] = PetscRealPart(hwork[eps->nds+m-1]); 
   beta[m-1-k] = norm;
   
   if (eps->nds+m > 100) {
@@ -201,7 +201,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds+m,PETSC_NULL,eps->DSV,f,hwork,&norm,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  alpha[m-1-k] = hwork[eps->nds+m-1]; 
+  alpha[m-1-k] = PetscRealPart(hwork[eps->nds+m-1]); 
   beta[m-1-k] = norm;
 
   if (eps->nds+m > 100) {
@@ -573,8 +573,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       } else {
         ierr = EPSDelayedArnoldi(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
       }
-      for (i=k;i<n-1;i++) { alpha[i-k] = T[n*i+i]; beta[i-k] = T[n*i+i+1]; }
-      alpha[n-1] = T[n*(n-1)+n-1];
+      for (i=k;i<n-1;i++) { alpha[i-k] = PetscRealPart(T[n*i+i]); beta[i-k] = PetscRealPart(T[n*i+i+1]); }
+      alpha[n-1] = PetscRealPart(T[n*(n-1)+n-1]);
       beta[n-1] = betam;
       ierr = PetscFree(T);CHKERRQ(ierr);
       break;
