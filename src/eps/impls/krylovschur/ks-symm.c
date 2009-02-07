@@ -179,7 +179,7 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lds,nv,m;
+  PetscInt       i,k,l,lds,lt,nv,m;
   Vec            u=eps->work[1];
   PetscScalar    *Q;
   PetscReal      *a,*b,*work,beta;
@@ -187,12 +187,13 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
-  lds = PetscMin(eps->nev+eps->mpd,eps->ncv);
+  lds = PetscMin(eps->mpd,eps->ncv);
   ierr = PetscMalloc(lds*lds*sizeof(PetscReal),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  ierr = PetscMalloc(lds*sizeof(PetscReal),&a);CHKERRQ(ierr);  
-  ierr = PetscMalloc(lds*sizeof(PetscReal),&b);CHKERRQ(ierr);  
   ierr = PetscMalloc(2*lds*sizeof(PetscInt),&iwork);CHKERRQ(ierr);
+  lt = PetscMin(eps->nev+eps->mpd,eps->ncv);
+  ierr = PetscMalloc(lt*sizeof(PetscReal),&a);CHKERRQ(ierr);  
+  ierr = PetscMalloc(lt*sizeof(PetscReal),&b);CHKERRQ(ierr);  
 
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
