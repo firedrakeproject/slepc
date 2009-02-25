@@ -72,7 +72,6 @@ EXTERN PetscErrorCode STInitializePackage(char*);
 
 EXTERN PetscErrorCode STSetKSP(ST,KSP);
 EXTERN PetscErrorCode STGetKSP(ST,KSP*);
-EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 EXTERN PetscErrorCode STSetShift(ST,PetscScalar);
 EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 

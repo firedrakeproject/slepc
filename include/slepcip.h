@@ -69,7 +69,6 @@ EXTERN PetscErrorCode IPView(IP,PetscViewer);
 EXTERN PetscErrorCode IPDestroy(IP);
 
 EXTERN PetscErrorCode IPOrthogonalize(IP,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*,Vec,PetscScalar*);
-EXTERN PetscErrorCode IPOrthogonalizeCGS(IP,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
 EXTERN PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt,Vec);
 
