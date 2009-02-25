@@ -414,11 +414,15 @@ PetscErrorCode EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds,PetscTruth ort
 PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->nds > 0) {
-    ierr = VecDestroyVecs(eps->DS, eps->nds);CHKERRQ(ierr);
+    for (i=0;i<eps->nds;i++) {
+      ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(eps->DS);CHKERRQ(ierr);
   }
   eps->ds_ortho = PETSC_TRUE;
   eps->setupcalled = 0;
