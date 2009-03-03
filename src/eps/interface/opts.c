@@ -453,13 +453,14 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
     
    Notes:  
    Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
-   (EPS_NHEP), generalized Hermitian (EPS_GHEP) and generalized non-Hermitian 
-   (EPS_GNHEP).
+   (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian 
+   (EPS_GNHEP), and generalized non-Hermitian with positive semi-definite B
+   (EPS_PGNHEP).
 
    This function must be used to instruct SLEPc to exploit symmetry. If no
    problem type is specified, by default a non-Hermitian problem is assumed
    (either standard or generalized). If the user knows that the problem is
-   Hermitian (i.e. A=A^H) of generalized Hermitian (i.e. A=A^H, B=B^H, and 
+   Hermitian (i.e. A=A^H) or generalized Hermitian (i.e. A=A^H, B=B^H, and 
    B positive definite) then it is recommended to set the problem type so
    that eigensolver can exploit these properties. 
 
