@@ -26,7 +26,7 @@
 #undef __FUNCT__  
 #define __FUNCT__ "IPNorm"
 /*@
-   IPNorm - Computes de norm of a vector as the square root of the inner 
+   IPNorm - Computes the norm of a vector as the square root of the inner 
    product (x,x) as defined by IPInnerProduct().
 
    Collective on IP and Vec

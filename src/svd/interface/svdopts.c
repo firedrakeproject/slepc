@@ -29,7 +29,7 @@
    SVDSetTransposeMode - Sets how to handle the transpose of the matrix 
    associated with the singular value problem.
 
-   Collective on SVD and Mat
+   Collective on SVD
 
    Input Parameters:
 +  svd  - the singular value solver context
@@ -79,7 +79,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 #undef __FUNCT__  
 #define __FUNCT__ "SVDGetTransposeMode"
 /*@C
-   SVDGetTransposeMode - Gets the mode use to compute the  transpose 
+   SVDGetTransposeMode - Gets the mode used to compute the transpose 
    of the matrix associated with the singular value problem.
 
    Not collective
