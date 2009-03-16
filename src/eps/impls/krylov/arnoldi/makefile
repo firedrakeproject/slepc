@@ -21,10 +21,16 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = arnoldi.c arnoldi-ts.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = arnoldi.o arnoldi-ts.o
 LIBBASE  = libslepc
-DIRS     = power subspace krylov lapack external
-LOCDIR   = src/eps/impls/
+DIRS     =
 MANSEC   = EPS
+LOCDIR   = src/eps/impls/krylov/arnoldi/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

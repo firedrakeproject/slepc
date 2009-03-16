@@ -23,14 +23,14 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = lanczos.c
+SOURCEC  = krylovschur.c ks-symm.c ks-harm.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = lanczos.o
+OBJSC    = krylovschur.o ks-symm.o ks-harm.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/lanczos/
+LOCDIR   = src/eps/impls/krylov/krylovschur/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
