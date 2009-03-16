@@ -21,19 +21,19 @@
 
 ALL: lib
 
-#requirespackage  'SLEPC_HAVE_BLZPACK'
-#requiresscalar   real
+#requirespackage   'SLEPC_HAVE_TRLAN'
+#requiresscalar    real
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = blzpack.c
+SOURCEC  = trlan.c
 SOURCEF  = 
-SOURCEH  = blzpackp.h
-OBJSC    = blzpack.o
+SOURCEH  = trlanp.h
+OBJSC    = trlan.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/blzpack/
+LOCDIR   = src/eps/impls/external/trlan/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

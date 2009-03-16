@@ -19,22 +19,15 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requirespackage   'PETSC_HAVE_FORTRAN'
 ALL: lib
-
-#requirespackage   'SLEPC_HAVE_TRLAN'
-#requiresscalar    real
-
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = trlan.c
-SOURCEF  = 
-SOURCEH  = trlanp.h
-OBJSC    = trlan.o
-LIBBASE  = libslepc
+SOURCEC  = zprimmef.c
+OBJSC    = zprimmef.o
+SOURCEF  =
+SOURCEH  =
 DIRS     =
-MANSEC   = EPS
-LOCDIR   = src/eps/impls/trlan/
-
-include ${SLEPC_DIR}/conf/slepc_common
-
-
+LIBBASE  = libslepc
+LOCDIR   = src/eps/impls/external/primme/ftn-custom/
+include ${SLEPC_DIR}/conf/slepc_common  

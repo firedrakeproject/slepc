@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/impls/trlan/trlanp.h"
+#include "src/eps/impls/external/trlan/trlanp.h"
 
 /* Nasty global variable to access EPS data from TRLan_ */
 static EPS globaleps;

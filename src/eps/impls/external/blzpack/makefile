@@ -21,20 +21,19 @@
 
 ALL: lib
 
-#requirespackage  'PETSC_HAVE_BLOPEX'
-#requiresprecision double
-#requiresscalar    real
+#requirespackage  'SLEPC_HAVE_BLZPACK'
+#requiresscalar   real
 
-CFLAGS   = ${BLOPEX_INCLUDE}
+CFLAGS   =
 FFLAGS   =
-SOURCEC  = blopex.c slepc-interface.c
+SOURCEC  = blzpack.c
 SOURCEF  = 
-SOURCEH  = 
-OBJSC    = blopex.o slepc-interface.o
+SOURCEH  = blzpackp.h
+OBJSC    = blzpack.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/blopex/
+LOCDIR   = src/eps/impls/external/blzpack/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

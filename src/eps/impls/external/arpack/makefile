@@ -19,15 +19,21 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-#requirespackage   'PETSC_HAVE_FORTRAN'
 ALL: lib
+
+#requirespackage  'SLEPC_HAVE_ARPACK'
+
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = zprimmef.c
-OBJSC    = zprimmef.o
-SOURCEF  =
-SOURCEH  =
-DIRS     =
+SOURCEC  = arpack.c
+SOURCEF  = 
+SOURCEH  = arpackp.h
+OBJSC    = arpack.o
 LIBBASE  = libslepc
-LOCDIR   = src/eps/impls/primme/ftn-custom/
-include ${SLEPC_DIR}/conf/slepc_common  
+DIRS     =
+MANSEC   = EPS
+LOCDIR   = src/eps/impls/external/arpack/
+
+include ${SLEPC_DIR}/conf/slepc_common
+
+

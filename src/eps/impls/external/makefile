@@ -21,18 +21,10 @@
 
 ALL: lib
 
-#requirespackage   'SLEPC_HAVE_PRIMME'
-
-CFLAGS   = ${PRIMME_FLAGS}
-FFLAGS   =
-SOURCEC  = primmes.c
-SOURCEF  = 
-SOURCEH  = 
-OBJSC    = primmes.o
 LIBBASE  = libslepc
-DIRS     =
+DIRS     = arpack blopex blzpack primme trlan
+LOCDIR   = src/eps/impls/external/
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/primme/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

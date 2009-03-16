@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "src/eps/impls/arpack/arpackp.h"
+#include "src/eps/impls/external/arpack/arpackp.h"
 #include "private/stimpl.h"
 
 #undef __FUNCT__  

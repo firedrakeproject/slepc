@@ -21,18 +21,18 @@
 
 ALL: lib
 
-#requirespackage  'SLEPC_HAVE_ARPACK'
+#requirespackage   'SLEPC_HAVE_PRIMME'
 
-CFLAGS   =
+CFLAGS   = ${PRIMME_FLAGS}
 FFLAGS   =
-SOURCEC  = arpack.c
+SOURCEC  = primmes.c
 SOURCEF  = 
-SOURCEH  = arpackp.h
-OBJSC    = arpack.o
+SOURCEH  = 
+OBJSC    = primmes.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
-LOCDIR   = src/eps/impls/arpack/
+LOCDIR   = src/eps/impls/external/primme/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
