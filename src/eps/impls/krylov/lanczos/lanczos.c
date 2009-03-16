@@ -38,7 +38,6 @@
 */
 
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
-#include "slepcblaslapack.h"
 
 typedef struct {
   EPSLanczosReorthogType reorthog;
@@ -92,59 +91,6 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
   }
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSFullLanczos"
-/*
-   EPSFullLanczos - Full reorthogonalization.
-
-   This is the simplest solution to the loss of orthogonality.
-   At each Lanczos step, the corresponding Lanczos vector is 
-   orthogonalized with respect to all previous Lanczos vectors.
-*/
-PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscTruth *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscInt       j,m = *M;
-  PetscReal      norm;
-  PetscScalar    *swork,*hwork,lhwork[100];
-
-  PetscFunctionBegin;
-  if (eps->nds+m > 100) {
-    ierr = PetscMalloc((eps->nds+m)*sizeof(PetscScalar),&swork);CHKERRQ(ierr);
-    ierr = PetscMalloc((eps->nds+m)*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
-  } else {
-    swork = PETSC_NULL;
-    hwork = lhwork;
-  }
-
-  for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds+j+1,PETSC_NULL,eps->DSV,V[j+1],hwork,&norm,breakdown,eps->work[0],swork);CHKERRQ(ierr);
-    alpha[j-k] = PetscRealPart(hwork[eps->nds+j]);
-    beta[j-k] = norm;
-    if (*breakdown) {
-      *M = j+1;
-      if (eps->nds+m > 100) {
-        ierr = PetscFree(swork);CHKERRQ(ierr);
-        ierr = PetscFree(hwork);CHKERRQ(ierr);
-      }
-      PetscFunctionReturn(0);
-    } else {
-      ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
-    }
-  }
-  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds+m,PETSC_NULL,eps->DSV,f,hwork,&norm,PETSC_NULL,eps->work[0],swork);CHKERRQ(ierr);
-  alpha[m-1-k] = PetscRealPart(hwork[eps->nds+m-1]); 
-  beta[m-1-k] = norm;
-  
-  if (eps->nds+m > 100) {
-    ierr = PetscFree(swork);CHKERRQ(ierr);
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
