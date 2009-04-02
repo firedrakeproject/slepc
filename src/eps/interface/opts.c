@@ -108,7 +108,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     /*
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()
     */
-    ierr = PetscOptionsName("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",&flg);CHKERRQ(ierr);
+    flg  = PETSC_FALSE;
+    ierr = PetscOptionsTruth("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSMonitorCancel(eps); CHKERRQ(ierr);
     }
@@ -120,7 +121,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&monviewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsName("-eps_monitor_draw","Monitor error estimates graphically","EPSMonitorSet",&flg);CHKERRQ(ierr); 
+    flg = PETSC_FALSE;
+    ierr = PetscOptionsTruth("-eps_monitor_draw","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
     if (flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }

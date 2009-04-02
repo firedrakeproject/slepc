@@ -52,11 +52,13 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   STMatMode      matmode;
+  char           filename[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
 
-  ierr = PetscOptionsHasName(((PetscObject)eps)->prefix,"-eps_view_binary",&flg);CHKERRQ(ierr); 
+  flg = PETSC_FALSE;
+  ierr = PetscOptionsGetTruth(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
     Mat A,B;
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
@@ -147,10 +149,15 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsHasName(((PetscObject)eps)->prefix,"-eps_view",&flg);CHKERRQ(ierr); 
-  if (flg && !PetscPreLoadingOn) { ierr = EPSView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
+  ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  if (flg && !PetscPreLoadingOn) {
+    ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+  }
 
-  ierr = PetscOptionsHasName(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg);CHKERRQ(ierr); 
+  flg = PETSC_FALSE;
+  ierr = PetscOptionsGetTruth(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) { 
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",
                              PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);

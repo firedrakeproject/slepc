@@ -45,6 +45,8 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscErrorCode ierr;
   PetscTruth     flg;
   PetscInt       i,*workperm;
+  char           filename[PETSC_MAX_PATH_LEN];
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -74,8 +76,12 @@ PetscErrorCode SVDSolve(SVD svd)
     ierr = PetscFree(workperm);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsHasName(((PetscObject)svd)->prefix,"-svd_view",&flg);CHKERRQ(ierr); 
-  if (flg && !PetscPreLoadingOn) { ierr = SVDView(svd,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
+  ierr = PetscOptionsGetString(((PetscObject)svd)->prefix,"-svd_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  if (flg && !PetscPreLoadingOn) {
+    ierr = PetscViewerASCIIOpen(((PetscObject)svd)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = SVDView(svd,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+  }
 
   PetscFunctionReturn(0);
 }
