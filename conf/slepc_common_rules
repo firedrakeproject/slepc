@@ -74,3 +74,5 @@ slepc_html:
 	-@loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
 	   cat makefile | ${C2HTML}  | ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml > $${loc}/makefile.html
 	-@${RM} /tmp/$$USER.htmlmap tmp
+
+include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcrules

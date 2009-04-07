@@ -33,6 +33,7 @@ import blzpack
 import trlan  
 import lapack
 import primme
+import slepc4py
 
 if not hasattr(sys, 'version_info') or not sys.version_info[1] >= 2:
   print '**** You must have Python version 2.2 or higher to run config/configure.py ******'
@@ -71,6 +72,7 @@ trlanlibs = []
 haveprimme = 0
 primmedir = ''
 primmelibs = []
+getslepc4py = 0
 prefixdir = ''
 
 for i in sys.argv[1:]:
@@ -106,6 +108,8 @@ for i in sys.argv[1:]:
     haveprimme = 1
   elif i.startswith('--with-primme'):
     haveprimme = not i.endswith('=0')
+  elif i.startswith('--download-slepc4py'):
+    getslepc4py = not i.endswith('=0')
   elif i.startswith('--prefix='):
     prefixdir = i.split('=')[1]
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
@@ -128,6 +132,8 @@ for i in sys.argv[1:]:
     print '  --with-primme                    : Indicate if you wish to test for PRIMME'
     print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
     print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
+    print 'slepc4py:'
+    print '  --download-slepc4py              : Download and install slepc4py in SLEPc directory'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
@@ -160,7 +166,7 @@ if not petscconf.PRECISION in ['double','single','matsingle']:
 if prefixdir and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
-# Create architecture directory and configuration file
+# Create architecture directory and configuration files
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
 if not os.path.exists(archdir):
   try:
@@ -186,6 +192,10 @@ try:
   slepcconf.write('SLEPC_INSTALL_DIR =' + prefixdir +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
+try:
+  slepcrules = open(os.sep.join([confdir,'slepcrules']),'w')
+except:
+  sys.exit('ERROR: cannot create rules file in ' + confdir)
 
 # Open log file
 log.Open(os.sep.join([confdir,'configure.log']))
@@ -228,7 +238,13 @@ if haveprimme:
 # Check for missing LAPACK functions
 missing = lapack.Check(slepcconf)
 
+# Download and install slepc4py
+if getslepc4py:
+  slepc4py.Install()
+slepc4py.addMakeRule(slepcrules,prefixdir,getslepc4py)
+
 slepcconf.close()
+slepcrules.close()
 
 log.Println('')
 log.Println('='*80)

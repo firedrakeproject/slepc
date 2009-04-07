@@ -49,7 +49,7 @@ all:
 	   echo "=========================================";\
 	 fi
 	
-all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs build shared_nomesg_noinstall
+all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs build shared_nomesg_noinstall slepc4py
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -173,7 +173,7 @@ ranlib:
 
 # Deletes SLEPc libraries
 deletelibs:
-	-${RM} -f ${SLEPC_LIB_DIR}/*
+	-${RM} -f ${SLEPC_LIB_DIR}/libslepc*.*
 
 # Cleans up build
 allclean: deletelibs
