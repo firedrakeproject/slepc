@@ -42,10 +42,10 @@ CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/conf/slepc_common
 
-buildmod:
+buildmod_slepc:
 	-@${OMAKE}  clean
 	@${OMAKE}  slepcmod.o
-	@${OMAKE}  modcopy
+	@${OMAKE}  modcopy_slepc
 	@${OMAKE}  clean
-modcopy:
+modcopy_slepc:
 	${CP} -f *.mod ${SLEPC_DIR}/${PETSC_ARCH}/include
