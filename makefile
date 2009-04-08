@@ -49,7 +49,7 @@ all:
 	   echo "=========================================";\
 	 fi
 	
-all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs build shared_nomesg_noinstall slepc4py
+all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs build shared_nomesg_noinstall slepc4py_noinstall
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -240,14 +240,17 @@ install:
           cp -f conf/slepc_common* ${SLEPC_INSTALL_DIR}/conf;\
           cp -f conf/slepc_common_variables_install ${SLEPC_INSTALL_DIR}/conf/slepc_common_variables;\
           cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_INSTALL_DIR}/conf;\
+          cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_INSTALL_DIR}/conf;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/lib ]; then \
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
           fi;\
           if [ -d ${PETSC_ARCH}/lib ]; then \
-            cp -f ${PETSC_ARCH}/lib/* ${SLEPC_INSTALL_DIR}/lib;\
+            cp -f ${PETSC_ARCH}/lib/libslepc*.* ${SLEPC_INSTALL_DIR}/lib;\
             ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.a ;\
             ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
+            ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} slepc4py; \
           fi;\
+          echo "====================================";\
 	  echo "If using sh/bash, do the following:";\
           echo "  SLEPC_DIR="${SLEPC_INSTALL_DIR}"; export SLEPC_DIR";\
           echo "  unset PETSC_ARCH";\
@@ -256,6 +259,7 @@ install:
           echo "  unsetenv PETSC_ARCH";\
           echo "Run the following to verify the install (remain in current directory for the tests):";\
           echo "  make test";\
+          echo "====================================";\
         fi;
 
 # ------------------------------------------------------------------

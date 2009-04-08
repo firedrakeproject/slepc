@@ -166,6 +166,8 @@ if not petscconf.PRECISION in ['double','single','matsingle']:
 if prefixdir and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
+prefixinstall = not prefixdir==''
+
 # Create architecture directory and configuration files
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
 if not os.path.exists(archdir):
@@ -241,7 +243,7 @@ missing = lapack.Check(slepcconf)
 # Download and install slepc4py
 if getslepc4py:
   slepc4py.Install()
-slepc4py.addMakeRule(slepcrules,prefixdir,getslepc4py)
+slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
 slepcconf.close()
 slepcrules.close()

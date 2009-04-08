@@ -95,13 +95,13 @@ Unable to download package %s from: %s
   os.remove(localFile)
 
 
-def addMakeRule(slepcrules,installdir,getslepc4py):
+def addMakeRule(slepcrules,installdir,prefixinstall,getslepc4py):
   '''
   Add a rule to the makefile in order to build slepc4py
   '''
-  target = 'slepc4py'
-  slepcrules.write(target+':\n')
   if getslepc4py:
+    target = 'slepc4py'
+    slepcrules.write(target+':\n')
     externdir = 'externalpackages'
     packagename = 'slepc4py-1.0.0'
     destDir = os.sep.join([externdir,packagename])
@@ -117,4 +117,15 @@ def addMakeRule(slepcrules,installdir,getslepc4py):
     slepcrules.write('\t'+cmd+'\n')
     cmd = '@echo "====================================="'
     slepcrules.write('\t'+cmd+'\n')
+  else:
+    if prefixinstall:
+      target = 'slepc4py'
+      slepcrules.write(target+':\n')
+      cmd = '@echo " "'
+      slepcrules.write('\t'+cmd+'\n')
 
+  target = 'slepc4py_noinstall'
+  if getslepc4py and not prefixinstall:
+    slepcrules.write(target+': slepc4py\n')
+  else:
+    slepcrules.write(target+':\n')
