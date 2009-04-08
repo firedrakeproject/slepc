@@ -21,9 +21,9 @@
 #
 #   Makes Fortran module functions from *.h90 files in include/finclude
 #
-ALL: buildmod
-speciallib: buildmod
-specialfastlib: buildmod
+ALL: buildmod_slepc
+speciallib: buildmod_slepc
+specialfastlib: buildmod_slepc
 SPECIALLIB     = yes
 SPECIALFASTLIB = yes
 
