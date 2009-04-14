@@ -436,6 +436,16 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
     ierr = SVDMonitorSet(svd,SVDMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
   }
+  ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  if (flg) {
+    ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorConverged,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsString("-svd_monitor_first","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  if (flg) {
+    ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+  }
   flg = PETSC_FALSE;
   ierr = PetscOptionsTruth("-svd_monitor_draw","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {

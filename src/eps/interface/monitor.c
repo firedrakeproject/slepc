@@ -190,6 +190,99 @@ PetscErrorCode EPSMonitorDefault(EPS eps,PetscInt its,PetscInt nconv,PetscScalar
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSMonitorFirst"
+/*@C
+   EPSMonitorFirst - Print the first approximate value and 
+   error estimate at each iteration of the eigensolver.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps    - eigensolver context
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  dummy  - unused monitor context 
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet()
+@*/
+PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
+{
+  PetscErrorCode          ierr;
+  PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
+
+  PetscFunctionBegin;
+  if (its && nconv<nest) {
+    if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
+    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d EPS nconv=%d first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(eigr[nconv]),PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
+#else
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",eigr[nconv]);CHKERRQ(ierr);
+    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[nconv]);CHKERRQ(ierr); }
+#endif
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",errest[nconv]);CHKERRQ(ierr);
+    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSMonitorConverged"
+/*@C
+   EPSMonitorConverged - Print the approximate values and 
+   error estimates as they converge.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps    - eigensolver context
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  dummy  - unused monitor context 
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet()
+@*/
+PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
+{
+  PetscErrorCode          ierr;
+  static PetscInt         oldnconv;
+  PetscInt                i;
+  PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
+
+  PetscFunctionBegin;
+  if (!its) {
+    oldnconv = 0;
+  } else {
+    if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
+    for (i=oldnconv;i<nconv;i++) {
+      ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d EPS converged value (error) #%d",its,i);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+#else
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",eigr[i]);CHKERRQ(ierr);
+      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
+#endif
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",errest[i]);CHKERRQ(ierr);
+    }
+    oldnconv = nconv;
+    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSMonitorLG"
 PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {

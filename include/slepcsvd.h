@@ -126,6 +126,8 @@ EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt
 EXTERN PetscErrorCode SVDMonitorCancel(SVD);
 EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
 EXTERN PetscErrorCode SVDMonitorDefault(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+EXTERN PetscErrorCode SVDMonitorFirst(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+EXTERN PetscErrorCode SVDMonitorConverged(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode SVDMonitorLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 
 EXTERN PetscErrorCode SVDDense(PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
