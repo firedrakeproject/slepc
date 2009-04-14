@@ -142,7 +142,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 #undef __FUNCT__  
 #define __FUNCT__ "SVDMonitorDefault"
 /*@C
-   SVDDefaultMonitor - Print the current approximate values and 
+   SVDMonitorDefault - Print the current approximate values and 
    error estimates at each iteration of the singular value solver.
 
    Collective on SVD
