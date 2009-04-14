@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   PetscFunctionBegin;
   ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev+1) SETERRQ(1,"The value of ncv must be at least nev+1"); 
+    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(N,eps->nev+eps->mpd);

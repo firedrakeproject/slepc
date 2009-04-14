@@ -73,6 +73,11 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
   PetscFunctionBegin;
 
   n = PetscBLASIntCast(n_);
+  /* quick return */
+  if (n == 1) {
+    Q[0] = 1.0;
+    PetscFunctionReturn(0);    
+  }
   n1 = PetscBLASIntCast(l+1);    /* size of leading block, including residuals */
   n2 = PetscBLASIntCast(n-l-1);  /* size of trailing block */
   ierr = PetscMemzero(S,n*n*sizeof(PetscReal));CHKERRQ(ierr);
