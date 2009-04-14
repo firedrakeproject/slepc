@@ -89,10 +89,10 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
   LAPACKgetrf_(&m,&m,B,&m,ipiv,&info);
   if (info<0) SETERRQ(PETSC_ERR_LIB,"Bad argument to LU factorization");
   if (info>0) SETERRQ(PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
-  ierr = PetscLogFlops(2*m*m*m/3);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*m*m*m/3.0);CHKERRQ(ierr);
   LAPACKgetrs_("C",&m,&one,B,&m,ipiv,g,&m,&info);
   if (info) SETERRQ(PETSC_ERR_LIB,"GETRS - Bad solve");
-  ierr = PetscLogFlops(2*m*m-m);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*m*m-m);CHKERRQ(ierr);
 
   /* S = S + g*b' */
   for (i=0;i<m;i++) 

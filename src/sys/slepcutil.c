@@ -395,7 +395,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
   }
   ierr = VecRestoreArray(V[0],&pv);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscLogFlops(m*n*2*ls);CHKERRQ(ierr);
+  ierr = PetscLogFlops(m*n*2.0*ls);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
