@@ -235,8 +235,8 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
       ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
       ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
       ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
-      for (i=0;i<svd->ncv;i++) {
-        ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
+      for (j=0;j<svd->ncv;j++) {
+        ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+j*nloc,&svd->U[j]);CHKERRQ(ierr);
       }
       for (j=0;j<svd->nconv;j++) {
         ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
