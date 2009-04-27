@@ -36,7 +36,7 @@ SOURCEH	   =
 OBJSC	   = 
 OBJSF	   = slepcmod.o
 LIBBASE	   = libslepc
-MANSEC	   = Sys
+MANSEC	   = sys
 LOCDIR	   = src/sys/f90-mod/
 CLEANFILES = *.mod
 
