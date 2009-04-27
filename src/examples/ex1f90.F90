@@ -86,7 +86,7 @@
       if (rank .eq. 0) then
         write(*,100) n
       endif
- 100  format (/'1-D Laplacian Eigenproblem, n =',I3,' (Fortran)')
+ 100  format (/'1-D Laplacian Eigenproblem, n =',I4,' (Fortran)')
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -165,7 +165,7 @@
       if (rank .eq. 0) then
         write(*,130) nev
       endif
- 130  format (' Number of requested eigenvalues:',I2)
+ 130  format (' Number of requested eigenvalues:',I4)
       call EPSGetTolerances(solver,tol,maxit,ierr)
       if (rank .eq. 0) then
         write(*,140) tol, maxit
@@ -181,7 +181,7 @@
       if (rank .eq. 0) then
         write(*,150) nconv
       endif
- 150  format (' Number of converged eigenpairs:',I2/)
+ 150  format (' Number of converged eigenpairs:',I4/)
 
 !     ** Display eigenvalues and relative errors
       if (nconv.gt.0) then

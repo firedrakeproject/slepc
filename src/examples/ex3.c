@@ -31,6 +31,7 @@ static char help[] = "Solves the same eigenproblem as in example ex2, but using 
    User-defined routines
 */
 PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y );
+PetscErrorCode MatLaplacian2D_GetDiagonal( Mat A, Vec diag );
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -61,6 +62,7 @@ int main( int argc, char **argv )
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatLaplacian2D_Mult);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)())MatLaplacian2D_Mult);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatLaplacian2D_GetDiagonal);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and set various options
@@ -224,4 +226,16 @@ PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
   ierr = VecRestoreArray( y, &py ); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "MatLaplacian2D_GetDiagonal"
+PetscErrorCode MatLaplacian2D_GetDiagonal( Mat A, Vec diag )
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = VecSet(diag,4.0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 
