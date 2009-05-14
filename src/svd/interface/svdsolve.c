@@ -286,6 +286,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, Pe
   PetscErrorCode ierr;
   Vec            u,v,x = PETSC_NULL,y = PETSC_NULL;
   PetscReal      sigma;
+  PetscInt       M,N;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -306,7 +307,16 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, Pe
   }
   if (norm2) {
     ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
-    ierr = MatMultTranspose(svd->OP,u,y);CHKERRQ(ierr);
+    if (svd->A && svd->AT) {
+      ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+      if (M<N) {
+        ierr = MatMult(svd->A,u,y);CHKERRQ(ierr);
+      } else {
+        ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = MatMultTranspose(svd->OP,u,y);CHKERRQ(ierr);
+    }
     ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
   }
