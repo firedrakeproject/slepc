@@ -112,7 +112,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (!shell->apply) SETERRQ(PETSC_ERR_USER,"No apply() routine provided to Shell ST");
-  PetscStackPush("PCSHELL user function");
+  PetscStackPush("STSHELL user function");
   CHKMEMQ;
   ierr  = (*shell->apply)(shell->ctx,x,y);CHKERRQ(ierr);
   CHKMEMQ;
