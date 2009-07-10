@@ -23,7 +23,7 @@
 #include "petscblaslapack.h"
 #include <stdlib.h>
 
-PetscLogEvent SLEPC_UpdateVectors = 0;
+PetscLogEvent SLEPC_UpdateVectors = 0, SLEPC_VecMAXPBY = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"
@@ -342,6 +342,10 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 
    If qtrans=PETSC_TRUE, the operation is V*Q'.
 
+   This routine is implemented with a call to BLAS, therefore V is an array 
+   of Vec which have the data stored contigously in memory as a Fortran matrix.
+   PETSc does not create such arrays by default.
+
    Level: developer
 
 @*/
@@ -397,5 +401,62 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscLogFlops(m*n*2.0*ls);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcVecMAXPBY"
+/*@
+   SlepcVecMAXPBY - Compute y = beta*y + alpha*a*x
+
+   Collective on Vec
+
+   Input parameters:
++  beta   - scalar beta
+.  alpha  - scalar alpha
+.  nv     - number of vectors in x
+.  a      - array of length nv
+-  x      - set of vectors
+
+   Input/Output parameter:
+.  y      - the vector to update
+
+   Notes:
+   This routine is implemented with a call to BLAS, therefore x is an array 
+   of Vec which have the data stored contigously in memory as a Fortran matrix.
+   PETSc does not create such arrays by default.
+
+   Level: developer
+
+@*/
+PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,PetscScalar a[],Vec x[])
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n,m,one=1;
+  PetscScalar    *py,*px;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(y,VEC_COOKIE,1);
+  if (!nv) PetscFunctionReturn(0);
+  if (nv < 0) SETERRQ1(PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
+  PetscValidScalarPointer(a,3);
+  PetscValidPointer(x,6);
+  PetscValidHeaderSpecific(*x,VEC_COOKIE,6);
+  PetscValidType(y,1);
+  PetscValidType(*x,6);
+  PetscCheckSameTypeAndComm(y,1,*x,6);
+  if ((*x)->map->N != (y)->map->N) SETERRQ(PETSC_ERR_ARG_INCOMP,"Incompatible vector global lengths");
+  if ((*x)->map->n != (y)->map->n) SETERRQ(PETSC_ERR_ARG_INCOMP,"Incompatible vector local lengths");
+
+  ierr = PetscLogEventBegin(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = VecGetArray(*x,&px);CHKERRQ(ierr);
+  n = PetscBLASIntCast(nv);
+  m = PetscBLASIntCast((y)->map->n);
+  BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArray(*x,&px);CHKERRQ(ierr);
+  ierr = PetscLogFlops(nv*2*(y)->map->n);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

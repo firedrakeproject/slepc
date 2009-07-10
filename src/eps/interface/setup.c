@@ -49,7 +49,6 @@
 PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;   
   Vec            v0,w0;  
   Mat            A,B; 
   PetscInt       N;
@@ -109,19 +108,13 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
-
-  /* DSV is equal to the columns of DS followed by the ones in V */
-  ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
-  ierr = PetscMalloc((eps->ncv+eps->nds)*sizeof(Vec),&eps->DSV);CHKERRQ(ierr);    
-  for (i = 0; i < eps->nds; i++) eps->DSV[i] = eps->DS[i];
-  for (i = 0; i < eps->ncv; i++) eps->DSV[i+eps->nds] = eps->V[i];
   
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
       /* orthonormalize vectors in DS if necessary */
-      ierr = IPQRDecomposition(eps->ip,eps->DS,0,eps->nds,PETSC_NULL,0,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPQRDecomposition(eps->ip,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
     }
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
 
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);
@@ -374,21 +367,33 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
 PetscErrorCode EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds,PetscTruth ortho)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
-  Vec            *tvec;
+  PetscInt       i,nloc;
+  Vec            *newds;
+  PetscScalar    *pV;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  tvec = eps->DS;
-  if (n+eps->nds > 0) {
-     ierr = PetscMalloc((n+eps->nds)*sizeof(Vec), &eps->DS);CHKERRQ(ierr);
+  if (n<=0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+  /* allocate space for previous and new vectors */
+  ierr = PetscMalloc((n+eps->nds)*sizeof(Vec), &newds);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(ds[0],&nloc);CHKERRQ(ierr);
+  ierr = PetscMalloc((n+eps->nds)*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+  for (i=0;i<n+eps->nds;i++) {
+    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,nloc,PETSC_DECIDE,pV+i*nloc,&newds[i]);CHKERRQ(ierr);
   }
+  /* copy and free previous vectors */
   if (eps->nds > 0) {
-    for (i=0; i<eps->nds; i++) eps->DS[i] = tvec[i];
-    ierr = PetscFree(tvec);CHKERRQ(ierr);
+    ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
+    for (i=0;i<eps->nds;i++) {
+      ierr = VecCopy(eps->DS[i],newds[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
+    ierr = PetscFree(eps->DS);CHKERRQ(ierr);
   }
+  /* copy new vectors */
+  eps->DS = newds;
   for (i=0; i<n; i++) {
-    ierr = VecDuplicate(ds[i],&eps->DS[i + eps->nds]);CHKERRQ(ierr);
     ierr = VecCopy(ds[i],eps->DS[i + eps->nds]);CHKERRQ(ierr);
   }
   eps->nds += n;
@@ -415,13 +420,16 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  PetscScalar    *pV;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->nds > 0) {
+    ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
     for (i=0;i<eps->nds;i++) {
       ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
     }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(eps->DS);CHKERRQ(ierr);
   }
   eps->ds_ortho = PETSC_TRUE;

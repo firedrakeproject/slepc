@@ -73,8 +73,7 @@ struct _p_EPS {
               *V,               /* set of basis vectors and computed eigenvectors */
               *AV,              /* auxiliar set of basis vectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */
-              *DS,              /* deflation space */
-              *DSV;             /* deflation space and basis vectors*/
+              *DS;              /* deflation space */
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
               *T, *Tl;          /* projected matrices */
   PetscReal   *errest,          /* error estimates */

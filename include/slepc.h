@@ -58,6 +58,7 @@ EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
 EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscTruth);
+EXTERN PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
  
 extern PetscTruth SlepcInitializeCalled;
 

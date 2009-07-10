@@ -43,6 +43,6 @@ struct _p_IP {
 };
 
 EXTERN PetscErrorCode IPApplyMatrix_Private(IP,Vec);
-EXTERN PetscErrorCode IPOrthogonalizeCGS(IP,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*,Vec);
+EXTERN PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 
 #endif

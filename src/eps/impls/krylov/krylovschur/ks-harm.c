@@ -151,9 +151,7 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt
   BLASgemv_("N",&n,&ncol,&done,Q,&n,ghat,&one,&done,g,&one);
 
   /* gamma u^ = u - U*g~ */
-  for (i=0;i<n;i++) 
-    g[i] = -g[i];
-  ierr = VecMAXPY(u,m,g,U);CHKERRQ(ierr);        
+  ierr = SlepcVecMAXPBY(u,1.0,-1.0,m,g,U);CHKERRQ(ierr);        
 
   /* Renormalize u */
   gnorm = 0.0;
@@ -203,7 +201,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,l,lwork,nv;
-  Vec            u=eps->work[1];
+  Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*g,*work;
   PetscReal      beta,gnorm;
   PetscTruth     breakdown;

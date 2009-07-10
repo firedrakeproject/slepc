@@ -78,7 +78,7 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   }
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -192,14 +192,13 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
-    ierr = VecSet(eps->work[0],0.0);CHKERRQ(ierr);
     if (i==m-1 || T[i+1+ldt*i]==0.0) k=i+1; else k=i+2;
-    ierr = VecMAXPY(eps->work[0],k,T+ldt*i,V);CHKERRQ(ierr);
-    ierr = VecWAXPY(eps->work[1],-1.0,eps->work[0],AV[i]);CHKERRQ(ierr);
+    ierr = VecCopy(AV[i],eps->work[0]);CHKERRQ(ierr);
+    ierr = SlepcVecMAXPBY(eps->work[0],1.0,-1.0,k,T+ldt*i,V);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = VecDot(eps->work[1],eps->work[1],rsd+i);CHKERRQ(ierr);
+    ierr = VecDot(eps->work[0],eps->work[0],rsd+i);CHKERRQ(ierr);
 #else
-    ierr = VecDot(eps->work[1],eps->work[1],&t);CHKERRQ(ierr);
+    ierr = VecDot(eps->work[0],eps->work[0],&t);CHKERRQ(ierr);
     rsd[i] = PetscRealPart(t);
 #endif    
   }
@@ -252,7 +251,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }
-  ierr = IPQRDecomposition(eps->ip,eps->V,0,ncv,PETSC_NULL,0,eps->work[0]);CHKERRQ(ierr);
+  ierr = IPQRDecomposition(eps->ip,eps->V,0,ncv,PETSC_NULL,0);CHKERRQ(ierr);
   
   while (eps->its<eps->max_it) {
     eps->its++;
@@ -359,10 +358,10 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       }
       /* Orthonormalize vectors */
       for (i=eps->nconv;i<nv;i++) {
-        ierr = IPOrthogonalize(eps->ip,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
-          ierr = IPOrthogonalize(eps->ip,i+eps->nds,PETSC_NULL,eps->DSV,eps->V[i],PETSC_NULL,&norm,&breakdown,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
+          ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         }
         ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
       }

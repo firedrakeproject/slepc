@@ -478,6 +478,7 @@ PetscErrorCode EPSDestroy(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  PetscScalar    *pV;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -506,14 +507,14 @@ PetscErrorCode EPSDestroy(EPS eps)
   }
 
   if (eps->nds > 0) {
+    ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
     for (i=0;i<eps->nds;i++) {
       ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
     }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(eps->DS);CHKERRQ(ierr);
   }
   
-  ierr = PetscFree(eps->DSV);CHKERRQ(ierr);
-
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);

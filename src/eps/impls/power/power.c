@@ -79,7 +79,7 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -89,22 +89,21 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  PetscInt       i, nsv;
-  Vec            v, y, e, *SV;
+  PetscInt       i;
+  Vec            v, y, e;
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1, anorm;
   PetscScalar    theta, rho, delta, sigma, alpha2, beta1, sn1;
-  PetscTruth     breakdown;
+  PetscTruth     breakdown,*select;
 
   PetscFunctionBegin;
   v = eps->V[0];
-  y = eps->work[2];
+  y = eps->work[1];
   e = eps->work[0];
 
   /* prepare for selective orthogonalization of converged vectors */
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-    ierr = PetscMalloc(eps->nev*sizeof(Vec),&SV);CHKERRQ(ierr);
-    for (i=0;i<eps->nds;i++) SV[i]=eps->DS[i];
+    ierr = PetscMalloc(eps->nev*sizeof(PetscTruth),&select);CHKERRQ(ierr);
     if (eps->nev>1) {
       ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
       ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
@@ -194,13 +193,13 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 
     /* purge previously converged eigenvectors */
     if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-      nsv = eps->nds;
       for (i=0;i<eps->nconv;i++) {
-        if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) SV[nsv++]=eps->V[i];
+        if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) select[i] = PETSC_TRUE;
+        else select[i] = PETSC_FALSE;
       }
-      ierr = IPOrthogonalize(eps->ip,nsv,PETSC_NULL,SV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1],PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,eps->nconv,select,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
     } else {
-      ierr = IPOrthogonalize(eps->ip,eps->nds+eps->nconv,PETSC_NULL,eps->DSV,y,PETSC_NULL,&norm,PETSC_NULL,eps->work[1],PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,eps->nconv,PETSC_NULL,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
     }
 
     /* v = y/||y||_B */
@@ -225,7 +224,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   }
 
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-    ierr = PetscFree(SV);CHKERRQ(ierr);
+    ierr = PetscFree(select);CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);

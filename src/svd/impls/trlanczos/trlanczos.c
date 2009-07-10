@@ -77,7 +77,7 @@ PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDOneSideTRLanczosMGS"
-static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work,Vec wv,Vec wu)
+static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
 {
   PetscErrorCode ierr;
   PetscReal      a,b;
@@ -86,16 +86,14 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
   if (l>0) {
-    ierr = VecSet(wu,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(wu,l,bb,U+nconv);CHKERRQ(ierr);
-    ierr = VecAXPY(U[k],-1.0,wu);CHKERRQ(ierr);
+    ierr = SlepcVecMAXPBY(U[k],1.0,-1.0,l,bb,U+nconv);CHKERRQ(ierr);
   }
   ierr = IPNorm(svd->ip,U[k],&a);CHKERRQ(ierr);
   ierr = VecScale(U[k],1.0/a);CHKERRQ(ierr);
   alpha[0] = a;
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,V,V[i],work,&b,PETSC_NULL,wv,PETSC_NULL);CHKERRQ(ierr);  
+    ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,i,PETSC_NULL,V,V[i],work,&b,PETSC_NULL);CHKERRQ(ierr);  
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
     beta[i-k-1] = b;
     
@@ -106,14 +104,14 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
     alpha[i-k] = a;
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,U[n-1],v);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(svd->ip,n,PETSC_NULL,V,v,work,&b,PETSC_NULL,wv,PETSC_NULL);CHKERRQ(ierr);      
+  ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,n,PETSC_NULL,V,v,work,&b,PETSC_NULL);CHKERRQ(ierr);      
   beta[n-k-1] = b;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDOneSideTRLanczosCGS"
-static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work,Vec wv,Vec wu)
+static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
 {
   PetscErrorCode ierr;
   PetscReal      a,b,sum,onorm;
@@ -123,9 +121,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
   if (l>0) {
-    ierr = VecSet(wu,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(wu,l,bb,U+nconv);CHKERRQ(ierr);
-    ierr = VecAXPY(U[k],-1.0,wu);CHKERRQ(ierr);
+    ierr = SlepcVecMAXPBY(U[k],1.0,-1.0,l,bb,U+nconv);CHKERRQ(ierr);
   }
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
@@ -141,16 +137,15 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = IPMInnerProductEnd(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
     
     ierr = VecScale(U[i-1],1.0/a);CHKERRQ(ierr);
-    ierr = VecScale(V[i],1.0/a);CHKERRQ(ierr);
-    for (j=0;j<i;j++) work[j] = - work[j] / a;
-    ierr = VecMAXPY(V[i],i,work,V);CHKERRQ(ierr);
+    for (j=0;j<i;j++) work[j] = work[j] / a;
+    ierr = SlepcVecMAXPBY(V[i],1.0/a,-1.0,i,work,V);CHKERRQ(ierr);
 
     switch (svd->ip->orthog_ref) {
     case IP_ORTH_REFINE_NEVER:
       ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
       break;      
     case IP_ORTH_REFINE_ALWAYS:
-      ierr = IPOrthogonalizeCGS(svd->ip,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b,wv);CHKERRQ(ierr);
+      ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b);CHKERRQ(ierr);
       break;
     case IP_ORTH_REFINE_IFNEEDED:
       onorm = sqrt(PetscRealPart(dot)) / a;
@@ -164,7 +159,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
         ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
       }
       if (b < svd->ip->orthog_eta * onorm) {
-        ierr = IPOrthogonalizeCGS(svd->ip,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b,wv);CHKERRQ(ierr);
+        ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b);CHKERRQ(ierr);
       }
       break;
     }
@@ -190,16 +185,15 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = IPMInnerProductEnd(svd->ip,v,n,V,work);CHKERRQ(ierr);
     
   ierr = VecScale(U[n-1],1.0/a);CHKERRQ(ierr);
-  ierr = VecScale(v,1.0/a);CHKERRQ(ierr);
-  for (j=0;j<n;j++) work[j] = - work[j] / a;
-  ierr = VecMAXPY(v,n,work,V);CHKERRQ(ierr);
+  for (j=0;j<n;j++) work[j] = work[j] / a;
+  ierr = SlepcVecMAXPBY(v,1.0/a,-1.0,n,work,V);CHKERRQ(ierr);
 
   switch (svd->ip->orthog_ref) {
   case IP_ORTH_REFINE_NEVER:
     ierr = IPNorm(svd->ip,v,&b);CHKERRQ(ierr);
     break;      
   case IP_ORTH_REFINE_ALWAYS:
-    ierr = IPOrthogonalizeCGS(svd->ip,n,PETSC_NULL,V,v,work,PETSC_NULL,&b,wv);CHKERRQ(ierr);
+    ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,n,PETSC_NULL,V,v,work,PETSC_NULL,&b);CHKERRQ(ierr);
     break;
   case IP_ORTH_REFINE_IFNEEDED:
     onorm = sqrt(PetscRealPart(dot)) / a;
@@ -213,7 +207,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
       ierr = IPNorm(svd->ip,v,&b);CHKERRQ(ierr);
     }
     if (b < svd->ip->orthog_eta * onorm) {
-      ierr = IPOrthogonalizeCGS(svd->ip,n,PETSC_NULL,V,v,work,PETSC_NULL,&b,wv);CHKERRQ(ierr);
+      ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,n,PETSC_NULL,V,v,work,PETSC_NULL,&b);CHKERRQ(ierr);
     }
     break;
   }
@@ -232,7 +226,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   PetscReal      *alpha,*beta,norm;
   PetscScalar    *b,*Q,*PT,*swork;
   PetscInt       i,j,k,l,m,n,nv;
-  Vec            v,wv,wu;
+  Vec            v;
   PetscTruth     conv;
   IPOrthogonalizationType orthog;
   
@@ -253,8 +247,6 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   }
 #endif
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
-  ierr = VecDuplicate(svd->V[0],&wv);CHKERRQ(ierr);
-  ierr = VecDuplicate(svd->U[0],&wu);CHKERRQ(ierr);
   ierr = IPGetOrthogonalization(svd->ip,&orthog,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   
   /* normalize start vector */
@@ -269,12 +261,12 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     nv = PetscMin(svd->nconv+svd->mpd,svd->n);
     if (lanczos->oneside) {
       if (orthog == IP_MGS_ORTH) {
-        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork,wv,wu);CHKERRQ(ierr);
+        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       } else {
-        ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork,wv,wu);CHKERRQ(ierr);
+        ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       }
     } else {
-      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,nv,swork,wv,wu);CHKERRQ(ierr);
+      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,nv,swork);CHKERRQ(ierr);
     }
     ierr = VecScale(v,1.0/beta[nv-svd->nconv-l-1]);CHKERRQ(ierr);
    
@@ -356,15 +348,13 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   /* orthonormalize U columns in one side method */
   if (lanczos->oneside) {
     for (i=0;i<svd->nconv;i++) {
-      ierr = IPOrthogonalize(svd->ip,i,PETSC_NULL,svd->U,svd->U[i],PETSC_NULL,&norm,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,i,PETSC_NULL,svd->U,svd->U[i],PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
       ierr = VecScale(svd->U[i],1.0/norm);CHKERRQ(ierr);
     }
   }
   
   /* free working space */
   ierr = VecDestroy(v);CHKERRQ(ierr);
-  ierr = VecDestroy(wv);CHKERRQ(ierr);
-  ierr = VecDestroy(wu);CHKERRQ(ierr);
 
   ierr = PetscFree(alpha);CHKERRQ(ierr);
   ierr = PetscFree(beta);CHKERRQ(ierr);

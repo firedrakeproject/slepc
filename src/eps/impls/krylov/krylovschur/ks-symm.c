@@ -185,7 +185,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,l,lds,lt,nv,m;
-  Vec            u=eps->work[1];
+  Vec            u=eps->work[0];
   PetscScalar    *Q;
   PetscReal      *a,*b,*work,beta;
   PetscInt       *iwork;

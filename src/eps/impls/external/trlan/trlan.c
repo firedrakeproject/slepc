@@ -61,7 +61,6 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -80,7 +79,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
     ierr = STApply(globaleps->OP,x,y);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(globaleps->ip,globaleps->nds,PETSC_NULL,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL,globaleps->work[0],PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(globaleps->ip,0,PETSC_NULL,globaleps->nds,PETSC_NULL,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecResetArray(x);CHKERRQ(ierr);
     ierr = VecResetArray(y);CHKERRQ(ierr);	
   }

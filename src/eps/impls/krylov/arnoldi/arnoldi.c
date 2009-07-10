@@ -78,8 +78,10 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
     ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
     PetscInfo(eps,"Warning: parameter mpd ignored\n");
+    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  } else {
+    ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   }
-  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -95,20 +97,19 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
 {
   PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
-  Vec            w,u,t;
+  Vec            u,t;
   PetscScalar    shh[100],*lhh,dot,dot2;
   PetscReal      norm1=0.0,norm2;
 
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
   else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
-  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
   ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
@@ -134,7 +135,6 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
 	*beta = norm2;
 
 	if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-	ierr = VecDestroy(w);CHKERRQ(ierr);
 	ierr = VecDestroy(u);CHKERRQ(ierr);
 	ierr = VecDestroy(t);CHKERRQ(ierr);
 	PetscFunctionReturn(0);
@@ -152,14 +152,10 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
       ierr = VecScale(f,1.0/norm1);CHKERRQ(ierr);
     }
 
-    ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,j+1,H+ldh*j,V);CHKERRQ(ierr);
-    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+    ierr = SlepcVecMAXPBY(f,1.0,-1.0,j+1,H+ldh*j,V);CHKERRQ(ierr);
 
     if (j>k) {
-      ierr = VecSet(w,0.0);CHKERRQ(ierr);
-      ierr = VecMAXPY(w,j,lhh,V);CHKERRQ(ierr);
-      ierr = VecAXPY(t,-1.0,w);CHKERRQ(ierr);
+      ierr = SlepcVecMAXPBY(t,1.0,-1.0,j,lhh,V);CHKERRQ(ierr);
       for (i=0;i<j;i++)
         H[ldh*(j-1)+i] += lhh[i];
     }
@@ -183,9 +179,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
 
   ierr = IPMInnerProduct(eps->ip,f,m,V,lhh);CHKERRQ(ierr);
   
-  ierr = VecSet(w,0.0);CHKERRQ(ierr);
-  ierr = VecMAXPY(w,m,lhh,V);CHKERRQ(ierr);
-  ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+  ierr = SlepcVecMAXPBY(f,1.0,-1.0,m,lhh,V);CHKERRQ(ierr);
   for (i=0;i<m;i++)
     H[ldh*(m-1)+i] += lhh[i];
 
@@ -194,7 +188,6 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   *breakdown = PETSC_FALSE;
   
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  ierr = VecDestroy(w);CHKERRQ(ierr);
   ierr = VecDestroy(u);CHKERRQ(ierr);
   ierr = VecDestroy(t);CHKERRQ(ierr);
 
@@ -211,16 +204,14 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
 {
   PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
-  Vec            w;
   PetscScalar    dot;
   PetscReal      norm=0.0;
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(f,&w);CHKERRQ(ierr);
 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL,eps->work[0],PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
@@ -243,9 +234,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
       ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
     }
 
-    ierr = VecSet(w,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,j+1,H+ldh*j,V);CHKERRQ(ierr);
-    ierr = VecAXPY(f,-1.0,w);CHKERRQ(ierr);
+    ierr = SlepcVecMAXPBY(f,1.0,-1.0,j+1,H+ldh*j,V);CHKERRQ(ierr);
 
     if (j<m-1) {
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
@@ -256,7 +245,6 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
   ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
   *breakdown = PETSC_FALSE;
   
-  ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -373,7 +361,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,nv;
-  Vec            f=eps->work[1];
+  Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
   PetscReal      beta,gnorm;
   PetscTruth     breakdown;
