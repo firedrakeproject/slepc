@@ -343,7 +343,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
    If qtrans=PETSC_TRUE, the operation is V*Q'.
 
    This routine is implemented with a call to BLAS, therefore V is an array 
-   of Vec which have the data stored contigously in memory as a Fortran matrix.
+   of Vec which have the data stored contiguously in memory as a Fortran matrix.
    PETSc does not create such arrays by default.
 
    Level: developer
@@ -407,15 +407,15 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecMAXPBY"
 /*@
-   SlepcVecMAXPBY - Compute y = beta*y + alpha*a*x
+   SlepcVecMAXPBY - Computes y = beta*y + sum alpha*a[j]*x[j]
 
    Collective on Vec
 
    Input parameters:
 +  beta   - scalar beta
 .  alpha  - scalar alpha
-.  nv     - number of vectors in x
-.  a      - array of length nv
+.  nv     - number of vectors in x and scalars in a
+.  a      - array of scalars
 -  x      - set of vectors
 
    Input/Output parameter:
@@ -423,7 +423,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
 
    Notes:
    This routine is implemented with a call to BLAS, therefore x is an array 
-   of Vec which have the data stored contigously in memory as a Fortran matrix.
+   of Vec which have the data stored contiguously in memory as a Fortran matrix.
    PETSc does not create such arrays by default.
 
    Level: developer
