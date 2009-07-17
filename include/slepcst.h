@@ -112,9 +112,9 @@ EXTERN PetscErrorCode STRegisterDestroy(void);
 
 EXTERN PetscErrorCode STShellGetContext(ST st,void **ctx);
 EXTERN PetscErrorCode STShellSetContext(ST st,void *ctx);
-EXTERN PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(void*,Vec,Vec));
-EXTERN PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(void*,Vec,Vec));
-EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(void*,PetscScalar*,PetscScalar*));
+EXTERN PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec));
+EXTERN PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec));
+EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*));
 EXTERN PetscErrorCode STShellSetName(ST,const char[]);
 EXTERN PetscErrorCode STShellGetName(ST,char*[]);
 

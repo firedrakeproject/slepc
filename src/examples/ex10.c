@@ -35,8 +35,8 @@ typedef struct {
 /* Declare routines for user-provided spectral transformation */
 PetscErrorCode SampleShellSTCreate(SampleShellST**);
 PetscErrorCode SampleShellSTSetUp(SampleShellST*,ST);
-PetscErrorCode SampleShellSTApply(void*,Vec,Vec);
-PetscErrorCode SampleShellSTBackTransform(void*,PetscScalar*,PetscScalar*);
+PetscErrorCode SampleShellSTApply(ST,Vec,Vec);
+PetscErrorCode SampleShellSTBackTransform(ST,PetscScalar*,PetscScalar*);
 PetscErrorCode SampleShellSTDestroy(SampleShellST*);
 
 #undef __FUNCT__
@@ -283,12 +283,13 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
    therefore it is of little use, merely as an example of working with
    a STSHELL.
 */
-PetscErrorCode SampleShellSTApply(void *ctx,Vec x,Vec y)
+PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
 {
-  SampleShellST  *shell = (SampleShellST*)ctx;
+  SampleShellST  *shell;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = STShellGetContext(st,(void**)&shell);
   ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -313,7 +314,7 @@ PetscErrorCode SampleShellSTApply(void *ctx,Vec x,Vec y)
    order to retrieve the eigenvalues of the original problem. In this
    example, simply set k_i = 1/k_i.
 */
-PetscErrorCode SampleShellSTBackTransform(void *ctx,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode SampleShellSTBackTransform(ST st,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscFunctionBegin;
   *eigr = 1.0 / *eigr;

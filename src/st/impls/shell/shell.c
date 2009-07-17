@@ -29,9 +29,9 @@
 EXTERN_C_BEGIN 
 typedef struct {
   void           *ctx;                       /* user provided context */
-  PetscErrorCode (*apply)(void *,Vec,Vec);
-  PetscErrorCode (*applytrans)(void *,Vec,Vec);
-  PetscErrorCode (*backtr)(void *,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*apply)(ST,Vec,Vec);
+  PetscErrorCode (*applytrans)(ST,Vec,Vec);
+  PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*);
   char           *name;
 } ST_Shell;
 EXTERN_C_END
@@ -114,7 +114,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   if (!shell->apply) SETERRQ(PETSC_ERR_USER,"No apply() routine provided to Shell ST");
   PetscStackPush("STSHELL user function");
   CHKMEMQ;
-  ierr  = (*shell->apply)(shell->ctx,x,y);CHKERRQ(ierr);
+  ierr  = (*shell->apply)(st,x,y);CHKERRQ(ierr);
   CHKMEMQ;
   PetscStackPop;
   PetscFunctionReturn(0);
@@ -129,7 +129,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (!shell->applytrans) SETERRQ(PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
-  ierr  = (*shell->applytrans)(shell->ctx,x,y);CHKERRQ(ierr);
+  ierr  = (*shell->applytrans)(st,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -142,7 +142,7 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscScalar *eigr,PetscScalar *eigi)
 
   PetscFunctionBegin;
   if (shell->backtr) {
-    ierr  = (*shell->backtr)(shell->ctx,eigr,eigi);CHKERRQ(ierr);
+    ierr  = (*shell->backtr)(st,eigr,eigi);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -182,7 +182,7 @@ PetscErrorCode STView_Shell(ST st,PetscViewer viewer)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetApply_Shell"
-PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(void*,Vec,Vec))
+PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 {
   ST_Shell *shell = (ST_Shell*)st->data;
 
@@ -195,7 +195,7 @@ EXTERN_C_END
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetApplyTranspose_Shell"
-PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*applytrans)(void*,Vec,Vec))
+PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
 {
   ST_Shell *shell = (ST_Shell*)st->data;
 
@@ -208,7 +208,7 @@ EXTERN_C_END
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetBackTransform_Shell"
-PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(void*,PetscScalar*,PetscScalar*))
+PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*))
 {
   ST_Shell *shell = (ST_Shell *) st->data;
 
@@ -260,10 +260,10 @@ EXTERN_C_END
 
    Calling sequence of apply:
 .vb
-   PetscErrorCode apply (void *ptr,Vec xin,Vec xout)
+   PetscErrorCode apply (ST st,Vec xin,Vec xout)
 .ve
 
-+  ptr  - the application context
++  st   - the spectral transformation context
 .  xin  - input vector
 -  xout - output vector
 
@@ -271,9 +271,9 @@ EXTERN_C_END
 
 .seealso: STShellSetBackTransform(), STShellSetApplyTranspose()
 @*/
-PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(void*,Vec,Vec))
+PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 {
-  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(void*,Vec,Vec));
+  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,Vec,Vec));
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -298,10 +298,10 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(void*,Vec,Vec))
 
    Calling sequence of apply:
 .vb
-   PetscErrorCode applytrans (void *ptr,Vec xin,Vec xout)
+   PetscErrorCode applytrans (ST st,Vec xin,Vec xout)
 .ve
 
-+  ptr  - the application context
++  st   - the spectral transformation context
 .  xin  - input vector
 -  xout - output vector
 
@@ -309,9 +309,9 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(void*,Vec,Vec))
 
 .seealso: STShellSetApply(), STShellSetBackTransform()
 @*/
-PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(void*,Vec,Vec))
+PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
 {
-  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(void*,Vec,Vec));
+  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,Vec,Vec));
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
@@ -337,10 +337,10 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(void*
 
    Calling sequence of backtr:
 .vb
-   PetscErrorCode backtr (void *ptr,PetscScalar *eigr,PetscScalar *eigi)
+   PetscErrorCode backtr (ST st,PetscScalar *eigr,PetscScalar *eigi)
 .ve
 
-+  ptr  - the application context
++  st   - the spectral transformation context
 .  eigr - pointer ot the real part of the eigenvalue to transform back
 -  eigi - pointer ot the imaginary part 
 
@@ -348,15 +348,15 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(void*
 
 .seealso: STShellSetApply(), STShellSetApplyTranspose()
 @*/
-PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(void*,PetscScalar*,PetscScalar*))
+PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*))
 {
-  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(void*,PetscScalar*,PetscScalar*));
+  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,PetscScalar*,PetscScalar*));
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetBackTransform_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
-    ierr = (*f)(st,(PetscErrorCode (*)(void*,PetscScalar*,PetscScalar*))backtr);CHKERRQ(ierr);
+    ierr = (*f)(st,backtr);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
