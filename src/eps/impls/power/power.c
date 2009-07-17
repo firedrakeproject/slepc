@@ -94,7 +94,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1, anorm;
   PetscScalar    theta, rho, delta, sigma, alpha2, beta1, sn1;
-  PetscTruth     breakdown,*select;
+  PetscTruth     breakdown,*select = PETSC_NULL,hasnorm;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -102,11 +102,12 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   e = eps->work[0];
 
   /* prepare for selective orthogonalization of converged vectors */
-  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-    ierr = PetscMalloc(eps->nev*sizeof(PetscTruth),&select);CHKERRQ(ierr);
-    if (eps->nev>1) {
-      ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT && eps->nev>1) {
+    ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatHasOperation(A,MATOP_NORM,&hasnorm);CHKERRQ(ierr);
+    if (hasnorm) {
       ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
+      ierr = PetscMalloc(eps->nev*sizeof(PetscTruth),&select);CHKERRQ(ierr);
     }
   }
 
@@ -192,7 +193,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
 
     /* purge previously converged eigenvectors */
-    if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+    if (select) {
       for (i=0;i<eps->nconv;i++) {
         if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) select[i] = PETSC_TRUE;
         else select[i] = PETSC_FALSE;
@@ -223,9 +224,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
   }
 
-  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
-    ierr = PetscFree(select);CHKERRQ(ierr);
-  }
+  ierr = PetscFree(select);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
