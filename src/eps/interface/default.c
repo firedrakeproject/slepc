@@ -156,8 +156,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     for (i=0;i<eps->nconv;i++) {
       ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr); 
       ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
-      ierr = IPNorm(eps->ip,eps->V[i],&norm);CHKERRQ(ierr);
-      ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->V[i],&norm);CHKERRQ(ierr);
     }
   }
    
