@@ -456,6 +456,10 @@ PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
 
+   The 2-norm of the eigenvector is one unless the problem is generalized 
+   Hermitian. In this case the eigenvector is normalized with respect to the 
+   norm defined by the B matrix.
+
    Level: beginner
 
 .seealso: EPSGetValue(), EPSGetRightVector(), EPSGetLeftVector(), EPSSolve(), 
@@ -557,6 +561,10 @@ PetscErrorCode EPSGetValue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established 
    with EPSSetWhichEigenpairs().
+
+   The 2-norm of the eigenvector is one unless the problem is generalized 
+   Hermitian. In this case the eigenvector is normalized with respect to the 
+   norm defined by the B matrix.
 
    Level: beginner
 
