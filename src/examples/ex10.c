@@ -36,7 +36,7 @@ typedef struct {
 PetscErrorCode SampleShellSTCreate(SampleShellST**);
 PetscErrorCode SampleShellSTSetUp(SampleShellST*,ST);
 PetscErrorCode SampleShellSTApply(ST,Vec,Vec);
-PetscErrorCode SampleShellSTBackTransform(ST,PetscScalar*,PetscScalar*);
+PetscErrorCode SampleShellSTBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
 PetscErrorCode SampleShellSTDestroy(SampleShellST*);
 
 #undef __FUNCT__
@@ -314,10 +314,13 @@ PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
    order to retrieve the eigenvalues of the original problem. In this
    example, simply set k_i = 1/k_i.
 */
-PetscErrorCode SampleShellSTBackTransform(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode SampleShellSTBackTransform(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
+  PetscInt j;
   PetscFunctionBegin;
-  *eigr = 1.0 / *eigr;
+  for (j=0;j<n;j++) {
+    eigr[j] = 1.0 / eigr[j];
+  }
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */

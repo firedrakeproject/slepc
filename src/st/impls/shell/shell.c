@@ -72,7 +72,7 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetContext"
-/*@C
+/*@
     STShellSetContext - sets the context for a shell ST
 
    Collective on ST
@@ -356,9 +356,9 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
 
 .seealso: STShellSetApply(), STShellSetApplyTranspose()
 @*/
-PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*))
+PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
 {
-  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,PetscScalar*,PetscScalar*));
+  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*));
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);

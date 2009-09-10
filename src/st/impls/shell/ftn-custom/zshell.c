@@ -32,55 +32,65 @@
 #define stshellsetbacktransform_  stshellsetbacktransform
 #endif
 
-EXTERN_C_BEGIN
-static void (PETSC_STDCALL *f1)(void*,Vec*,Vec*,PetscErrorCode*);
-static void (PETSC_STDCALL *f2)(void*,Vec*,Vec*,PetscErrorCode*);
-static void (PETSC_STDCALL *f3)(void*,PetscScalar*,PetscScalar*,PetscErrorCode*);
-EXTERN_C_END
-
 /* These are not extern C because they are passed into non-extern C user level functions */
-static PetscErrorCode ourshellapply(void *ctx,Vec x,Vec y)
+static PetscErrorCode ourshellapply(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr = 0;
-  (*f1)(ctx,&x,&y,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL *)(ST*,Vec*,Vec*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[0]))(&st,&x,&y,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
-static PetscErrorCode ourshellapplytranspose(void *ctx,Vec x,Vec y)
+static PetscErrorCode ourshellapplytranspose(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr = 0;
-  (*f2)(ctx,&x,&y,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL *)(ST*,Vec*,Vec*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[1]))(&st,&x,&y,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
-static PetscErrorCode ourshellbacktransform(void *ctx,PetscScalar *eigr,PetscScalar *eigi)
+static PetscErrorCode ourshellbacktransform(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr = 0;
-  (*f3)(ctx,eigr,eigi,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL *)(ST*,PetscInt*,PetscScalar*,PetscScalar*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[2]))(&st,&n,eigr,eigi,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
 EXTERN_C_BEGIN
+
+void PETSC_STDCALL stshellgetcontext_(ST *st,void **ctx,PetscErrorCode *ierr)
+{
+  *ierr = STShellGetContext(*st,ctx);
+}
 
 void PETSC_STDCALL stshellsetapply_(ST *st,void (PETSC_STDCALL *apply)(void*,Vec *,Vec *,PetscErrorCode*),
                                     PetscErrorCode *ierr)
 {
-  f1 = apply;
+  PetscObjectAllocateFortranPointers(*st,3);
+  ((PetscObject)*st)->fortran_func_pointers[0] = (PetscVoidFunction)apply;
   *ierr = STShellSetApply(*st,ourshellapply);
 }
 
 void PETSC_STDCALL stshellsetapplytranspose_(ST *st,void (PETSC_STDCALL *applytranspose)(void*,Vec *,Vec *,PetscErrorCode*),
                                              PetscErrorCode *ierr)
 {
-  f2 = applytranspose;
+  PetscObjectAllocateFortranPointers(*st,3);
+  ((PetscObject)*st)->fortran_func_pointers[1] = (PetscVoidFunction)applytranspose;
   *ierr = STShellSetApplyTranspose(*st,ourshellapplytranspose);
 }
 
 void PETSC_STDCALL stshellsetbacktransform_(ST *st,void (PETSC_STDCALL *backtransform)(void*,PetscScalar*,PetscScalar*,PetscErrorCode*),
                                     PetscErrorCode *ierr)
 {
-  f3 = backtransform;
+  PetscObjectAllocateFortranPointers(*st,4);
+  ((PetscObject)*st)->fortran_func_pointers[2] = (PetscVoidFunction)backtransform;
   *ierr = STShellSetBackTransform(*st,ourshellbacktransform);
+}
+
+void PETSC_STDCALL stshellsetname_(ST *st,CHAR name PETSC_MIXED_LEN(len), PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *c;
+  FIXCHAR(name,len,c);
+  *ierr = STShellSetName(*st,c);
+  FREECHAR(name,c);
 }
 
 EXTERN_C_END

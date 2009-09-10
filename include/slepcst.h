@@ -79,7 +79,7 @@ EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
 EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
 EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
-EXTERN PetscErrorCode STBackTransform(ST,int,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode STBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode STCheckNullSpace(ST,PetscInt,const Vec[]);
 
@@ -114,7 +114,7 @@ EXTERN PetscErrorCode STShellGetContext(ST st,void **ctx);
 EXTERN PetscErrorCode STShellSetContext(ST st,void *ctx);
 EXTERN PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec));
 EXTERN PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec));
-EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*));
+EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*));
 EXTERN PetscErrorCode STShellSetName(ST,const char[]);
 EXTERN PetscErrorCode STShellGetName(ST,char*[]);
 
