@@ -70,7 +70,7 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Shift"
-PetscErrorCode STBackTransform_Shift(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
   PetscFunctionBegin;

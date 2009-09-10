@@ -293,7 +293,7 @@ PetscErrorCode STPostSolve(ST st)
 
 .seealso: EPSBackTransform()
 @*/
-PetscErrorCode STBackTransform(ST st,int n,PetscScalar* eigr,PetscScalar* eigi)
+PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* eigi)
 {
   PetscErrorCode ierr;
 

@@ -63,7 +63,7 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Sinvert"
-PetscErrorCode STBackTransform_Sinvert(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
 #ifndef PETSC_USE_COMPLEX

@@ -129,7 +129,7 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Cayley"
-PetscErrorCode STBackTransform_Cayley(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   ST_CAYLEY   *ctx = (ST_CAYLEY *) st->data;
   PetscInt    j;

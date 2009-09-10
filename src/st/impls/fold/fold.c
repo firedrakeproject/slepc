@@ -99,7 +99,7 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Fold"
-PetscErrorCode STBackTransform_Fold(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   ST_FOLD *ctx = (ST_FOLD *) st->data;
   PetscInt j;
