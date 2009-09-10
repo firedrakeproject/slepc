@@ -31,7 +31,7 @@ typedef struct {
   void           *ctx;                       /* user provided context */
   PetscErrorCode (*apply)(ST,Vec,Vec);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
-  PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*backtr)(ST,int n,PetscScalar*,PetscScalar*);
   char           *name;
 } ST_Shell;
 EXTERN_C_END
@@ -139,7 +139,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Shell"
-PetscErrorCode STBackTransform_Shell(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Shell(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr;
   ST_Shell       *shell = (ST_Shell*)st->data;
@@ -148,7 +148,7 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscScalar *eigr,PetscScalar *eigi)
   if (shell->backtr) {
     PetscStackPush("STSHELL backtransform() user function");
     CHKMEMQ;
-    ierr  = (*shell->backtr)(st,eigr,eigi);CHKERRQ(ierr);
+    ierr  = (*shell->backtr)(st,n,eigr,eigi);CHKERRQ(ierr);
     CHKMEMQ;
     PetscStackPop;
   }
@@ -216,7 +216,7 @@ EXTERN_C_END
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetBackTransform_Shell"
-PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscScalar*,PetscScalar*))
+PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,int,PetscScalar*,PetscScalar*))
 {
   ST_Shell *shell = (ST_Shell *) st->data;
 

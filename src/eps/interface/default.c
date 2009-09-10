@@ -45,13 +45,10 @@ PetscErrorCode EPSDestroy_Default(EPS eps)
 PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  for (i=0;i<eps->nconv;i++) {
-    ierr = STBackTransform(eps->OP,&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
-  }
+  ierr = STBackTransform(eps->OP,eps->nconv,eps->eigr,eps->eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

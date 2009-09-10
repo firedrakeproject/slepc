@@ -129,28 +129,33 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Cayley"
-PetscErrorCode STBackTransform_Cayley(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Cayley(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
 {
   ST_CAYLEY   *ctx = (ST_CAYLEY *) st->data;
+  PetscInt    j;
 #ifndef PETSC_USE_COMPLEX
   PetscScalar t,i,r;
   PetscFunctionBegin;
-  PetscValidPointer(eigr,2);
-  PetscValidPointer(eigi,3);
-  if (*eigi == 0.0) *eigr = (ctx->tau + *eigr * st->sigma) / (*eigr - 1.0);
-  else {
-    r = *eigr;
-    i = *eigi;
-    r = st->sigma * (r * r + i * i - r) + ctx->tau * (r - 1);
-    i = - st->sigma * i - ctx->tau * i;
-    t = i * i + r * (r - 2.0) + 1.0;    
-    *eigr = r / t;
-    *eigi = i / t;    
+  PetscValidPointer(eigr,3);
+  PetscValidPointer(eigi,4);
+  for (j=0;j<n;j++) {
+    if (eigi[j] == 0.0) eigr[j] = (ctx->tau + eigr[j] * st->sigma) / (eigr[j] - 1.0);
+    else {
+      r = eigr[j];
+      i = eigi[j];
+      r = st->sigma * (r * r + i * i - r) + ctx->tau * (r - 1);
+      i = - st->sigma * i - ctx->tau * i;
+      t = i * i + r * (r - 2.0) + 1.0;    
+      eigr[j] = r / t;
+      eigi[j] = i / t;    
+    }
   }
 #else
   PetscFunctionBegin;
   PetscValidPointer(eigr,2);
-  *eigr = (ctx->tau + *eigr * st->sigma) / (*eigr - 1.0);
+  for (j=0;j<n;j++) {
+    eigr[j] = (ctx->tau + eigr[j] * st->sigma) / (eigr[j] - 1.0);
+  }
 #endif
   PetscFunctionReturn(0);
 }

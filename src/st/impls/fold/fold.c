@@ -99,33 +99,36 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Fold"
-PetscErrorCode STBackTransform_Fold(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Fold(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
 {
   ST_FOLD *ctx = (ST_FOLD *) st->data;
+  PetscInt j;
   PetscFunctionBegin;
-  PetscValidScalarPointer(eigr,2);
-  PetscValidScalarPointer(eigi,3);
+  PetscValidScalarPointer(eigr,3);
+  PetscValidScalarPointer(eigi,4);
+  for (j=0;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
-  if (*eigi == 0) {
+    if (eigi[j] == 0) {
 #endif
-    if (ctx->left) *eigr = st->sigma - PetscSqrtScalar(*eigr);
-    else *eigr = st->sigma + PetscSqrtScalar(*eigr);
+      if (ctx->left) eigr[j] = st->sigma - PetscSqrtScalar(eigr[j]);
+      else eigr[j] = st->sigma + PetscSqrtScalar(eigr[j]);
 #if !defined(PETSC_USE_COMPLEX)
-  } else {
-    PetscScalar r,x,y;
-    r = PetscSqrtScalar(*eigr * *eigr + *eigi * *eigi);
-    x = PetscSqrtScalar((r + *eigr) / 2);
-    y = PetscSqrtScalar((r - *eigr) / 2);
-    if (*eigi < 0) y = - y;
-    if (ctx->left) {
-      *eigr = st->sigma - x;
-      *eigi = - y;
     } else {
-      *eigr = st->sigma + x;
-      *eigi = y;
+      PetscScalar r,x,y;
+      r = PetscSqrtScalar(eigr[j] * eigr[j] + eigi[j] * eigi[j]);
+      x = PetscSqrtScalar((r + eigr[j]) / 2);
+      y = PetscSqrtScalar((r - eigr[j]) / 2);
+      if (eigi[j] < 0) y = - y;
+      if (ctx->left) {
+        eigr[j] = st->sigma - x;
+        eigi[j] = - y;
+      } else {
+        eigr[j] = st->sigma + x;
+        eigi[j] = y;
+      }
     }
-  }
 #endif
+  }
   PetscFunctionReturn(0);
 }
 

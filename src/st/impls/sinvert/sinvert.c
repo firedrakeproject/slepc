@@ -63,23 +63,28 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "STBackTransform_Sinvert"
-PetscErrorCode STBackTransform_Sinvert(ST st,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_Sinvert(ST st,int n,PetscScalar *eigr,PetscScalar *eigi)
 {
+  PetscInt j;
 #ifndef PETSC_USE_COMPLEX
   PetscScalar t;
   PetscFunctionBegin;
   PetscValidPointer(eigr,2);
   PetscValidPointer(eigi,3);
-  if (*eigi == 0) *eigr = 1.0 / *eigr + st->sigma;
-  else {
-    t = *eigr * *eigr + *eigi * *eigi;
-    *eigr = *eigr / t + st->sigma;
-    *eigi = - *eigi / t;
+  for (j=0;j<n;j++) {
+    if (eigi[j] == 0) eigr[j] = 1.0 / eigr[j] + st->sigma;
+    else {
+      t = eigr[j] * eigr[j] + eigi[j] * eigi[j];
+      eigr[j] = eigr[j] / t + st->sigma;
+      eigi[j] = - eigi[j] / t;
+    }
   }
 #else
   PetscFunctionBegin;
   PetscValidPointer(eigr,2);
-  *eigr = 1.0 / *eigr + st->sigma;
+  for (j=0;j<n;j++) {
+    eigr[j] = 1.0 / eigr[j] + st->sigma;
+  }
 #endif
   PetscFunctionReturn(0);
 }

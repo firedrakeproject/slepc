@@ -37,7 +37,7 @@ struct _STOps {
   PetscErrorCode   (*setshift)(ST,PetscScalar);
   PetscErrorCode   (*setfromoptions)(ST);
   PetscErrorCode   (*postsolve)(ST);  
-  PetscErrorCode   (*backtr)(ST,PetscScalar*,PetscScalar*);  
+  PetscErrorCode   (*backtr)(ST,int,PetscScalar*,PetscScalar*);  
   PetscErrorCode   (*destroy)(ST);
   PetscErrorCode   (*view)(ST,PetscViewer);
 };

@@ -79,7 +79,7 @@ EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
 EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
 EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
-EXTERN PetscErrorCode STBackTransform(ST,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode STBackTransform(ST,int,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode STCheckNullSpace(ST,PetscInt,const Vec[]);
 
