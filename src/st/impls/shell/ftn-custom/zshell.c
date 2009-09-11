@@ -23,13 +23,17 @@
 #include "slepcst.h"
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
+#define stshellgetcontext_        STSHELLGETCONTEXT
 #define stshellsetapply_          STSHELLSETAPPLY
 #define stshellsetapplytranspose_ STSHELLSETAPPLYTRANSPOSE
 #define stshellsetbacktransform_  STSHELLSETBACKTRANSFORM
+#define stshellsetname_           STSHELLSETNAME
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define stshellgetcontext_        stshellgetcontext
 #define stshellsetapply_          stshellsetapply
 #define stshellsetapplytranspose_ stshellsetapplytranspose
 #define stshellsetbacktransform_  stshellsetbacktransform
+#define stshellsetname_           stshellsetname
 #endif
 
 /* These are not extern C because they are passed into non-extern C user level functions */
@@ -80,7 +84,7 @@ void PETSC_STDCALL stshellsetapplytranspose_(ST *st,void (PETSC_STDCALL *applytr
 void PETSC_STDCALL stshellsetbacktransform_(ST *st,void (PETSC_STDCALL *backtransform)(void*,PetscScalar*,PetscScalar*,PetscErrorCode*),
                                     PetscErrorCode *ierr)
 {
-  PetscObjectAllocateFortranPointers(*st,4);
+  PetscObjectAllocateFortranPointers(*st,3);
   ((PetscObject)*st)->fortran_func_pointers[2] = (PetscVoidFunction)backtransform;
   *ierr = STShellSetBackTransform(*st,ourshellbacktransform);
 }

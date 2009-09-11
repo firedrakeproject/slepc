@@ -34,6 +34,8 @@
 #define epsmonitordefault_          EPSMONITORDEFAULT
 #define epsmonitorlg_               EPSMONITORLG
 #define epsmonitorset_              EPSMONITORSET
+#define epsmonitorconverged_        EPSMONITORCONVERGED
+#define epsmonitorfirst_            EPSMONITORFIRST
 #define epsgetst_                   EPSGETST
 #define epsgetip_                   EPSGETIP
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
@@ -54,6 +56,8 @@
 #define epsmonitordefault_          epsmonitordefault
 #define epsmonitorlg_               epsmonitorlg
 #define epsmonitorset_              epsmonitorset
+#define epsmonitorconverged_        epsmonitorconverged
+#define epsmonitorfirst_            epsmonitorfirst
 #define epsgetst_                   epsgetst
 #define epsgetip_                   epsgetip
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
@@ -66,8 +70,6 @@
 #endif
 
 EXTERN_C_BEGIN
-static void (PETSC_STDCALL *f1)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*);
-static void (PETSC_STDCALL *f2)(void*,PetscErrorCode*);
 
 /*
    These are not usually called from Fortran but allow Fortran users 
@@ -82,20 +84,35 @@ void epsmonitorlg_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,Petsc
 {
   *ierr = EPSMonitorLG(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
+
+void epsmonitorconverged_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = EPSMonitorConverged(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+}
+
+void epsmonitorfirst_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = EPSMonitorFirst(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+}
+
 EXTERN_C_END
  
 /* These are not extern C because they are passed into non-extern C user level functions */
 static PetscErrorCode ourmonitor(EPS eps,PetscInt i,PetscInt nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,PetscInt l,void* ctx)
 {
   PetscErrorCode ierr = 0;
-  (*f1)(&eps,&i,&nc,er,ei,d,&l,ctx,&ierr);CHKERRQ(ierr);
+  void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[1];
+  (*(void (PETSC_STDCALL *)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
+    (((PetscObject)eps)->fortran_func_pointers[0]))(&eps,&i,&nc,er,ei,d,&l,mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
 static PetscErrorCode ourdestroy(void* ctx)
 {
   PetscErrorCode ierr = 0;
-  (*f2)(ctx,&ierr);CHKERRQ(ierr);
+  EPS            eps = (EPS)ctx;
+  void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[1];
+  (*(void (PETSC_STDCALL *)(void*,PetscErrorCode*))(((PetscObject)eps)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
@@ -152,17 +169,24 @@ void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
 void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
                                   void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
 {
-  if ((void(*)())monitor == (void(*)())epsmonitordefault_) {
+  CHKFORTRANNULLFUNCTION(monitordestroy);
+  PetscObjectAllocateFortranPointers(*eps,3);
+  if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitordefault_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorDefault,0,0);
-  } else if ((void(*)())monitor == (void(*)())epsmonitorlg_) {
+  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlg_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorLG,0,0);
+  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorconverged_) {
+    *ierr = EPSMonitorSet(*eps,EPSMonitorConverged,0,0);
+  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorfirst_) {
+    *ierr = EPSMonitorSet(*eps,EPSMonitorFirst,0,0);
   } else {
-    f1  = monitor;
+    ((PetscObject)*eps)->fortran_func_pointers[0] = (PetscVoidFunction)monitor;
+    ((PetscObject)*eps)->fortran_func_pointers[1] = (PetscVoidFunction)mctx;
     if (FORTRANNULLFUNCTION(monitordestroy)) {
-      *ierr = EPSMonitorSet(*eps,ourmonitor,mctx,0);
+      *ierr = EPSMonitorSet(*eps,ourmonitor,*eps,0);
     } else {
-      f2 = monitordestroy;
-      *ierr = EPSMonitorSet(*eps,ourmonitor,mctx,ourdestroy);
+      ((PetscObject)*eps)->fortran_func_pointers[2] = (PetscVoidFunction)monitordestroy;
+      *ierr = EPSMonitorSet(*eps,ourmonitor,*eps,ourdestroy);
     }
   }
 }
