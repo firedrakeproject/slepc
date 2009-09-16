@@ -197,8 +197,8 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
     ierr = EPSDenseSchur(ncv,eps->nconv,Tl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
-    ierr = EPSSortDenseSchur(ncv,eps->nconv,Tl,ncv,Ul,eigr,eigi,eps->which);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,Tl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
     ierr = ArnoldiResiduals(T,ncv,U,betav,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);

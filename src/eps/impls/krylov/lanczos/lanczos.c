@@ -68,8 +68,15 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
 
   if (eps->solverclass==EPS_ONE_SIDE) {
-    if (eps->which == EPS_LARGEST_IMAGINARY || eps->which == EPS_SMALLEST_IMAGINARY)
-      SETERRQ(1,"Wrong value of eps->which");
+    switch (eps->which) {
+      case EPS_LARGEST_IMAGINARY:
+      case EPS_SMALLEST_IMAGINARY:
+      case EPS_TARGET_MAGNITUDE:
+      case EPS_TARGET_REAL:
+      case EPS_TARGET_IMAGINARY:
+        SETERRQ(1,"Wrong value of eps->which");
+      default: ; /* default case to remove warning */
+    }
     if (!eps->ishermitian)
       SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   } else {

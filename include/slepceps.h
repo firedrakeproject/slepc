@@ -100,7 +100,9 @@ typedef enum { EPS_ONE_SIDE, EPS_TWO_SIDE } EPSClass;
 E*/
 typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
-               EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY } EPSWhich;
+               EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY,
+               EPS_TARGET_MAGNITUDE,  EPS_TARGET_REAL, 
+               EPS_TARGET_IMAGINARY,  EPS_USER } EPSWhich;
 
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);
@@ -192,16 +194,16 @@ typedef enum {/* converged */
 
 EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
-EXTERN PetscErrorCode EPSSortEigenvalues(PetscInt,PetscScalar*,PetscScalar*,EPSWhich,PetscInt,PetscInt*);
-EXTERN PetscErrorCode EPSSortEigenvaluesReal(PetscInt,PetscReal*,EPSWhich,PetscInt,PetscInt*,PetscReal*);
+EXTERN PetscErrorCode EPSSortEigenvalues(EPS,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
+EXTERN PetscErrorCode EPSSortEigenvaluesReal(EPS,PetscInt,PetscReal*,PetscInt*);
+EXTERN PetscErrorCode EPSCompareEigenvalues(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
 EXTERN PetscErrorCode EPSDenseNHEP(PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseGNHEP(PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseHEP(PetscInt,PetscScalar*,PetscInt,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseGHEP(PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseHessenberg(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseSchur(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
-EXTERN PetscErrorCode EPSSortDenseSchur(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,EPSWhich);
-EXTERN PetscErrorCode EPSSortDenseSchurTarget(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar,EPSWhich);
+EXTERN PetscErrorCode EPSSortDenseSchur(EPS,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSDenseTridiagonal(PetscInt,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 
 EXTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,Vec,PetscTruth*);

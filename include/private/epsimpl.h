@@ -59,9 +59,10 @@ struct _p_EPS {
                  allocated_ncv,    /* number of basis vectors allocated */
                  nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */
-  PetscTruth     target_set;       /* flag indicating if target was specified */
   PetscReal      tol;              /* tolerance */
   EPSWhich       which;            /* which part of the spectrum to be sought */
+  PetscErrorCode (*which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void           *which_ctx;
   PetscTruth     evecsavailable;   /* computed eigenvectors */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */

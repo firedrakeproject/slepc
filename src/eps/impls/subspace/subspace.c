@@ -280,7 +280,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSDenseSchur(nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* 5. Sort diagonal elements in T and accumulate rotations on U */
-    ierr = EPSSortDenseSchur(nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi,eps->which);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(eps,nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
     ierr = SlepcUpdateVectors(nv,eps->AV,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);

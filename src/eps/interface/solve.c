@@ -127,26 +127,11 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = VecDestroy(w);CHKERRQ(ierr);
   }
   
-
-#ifndef PETSC_USE_COMPLEX
-  /* reorder conjugate eigenvalues (positive imaginary first) */
-  for (i=0; i<eps->nconv-1; i++) {
-    if (eps->eigi[i] != 0) {
-      if (eps->eigi[i] < 0) {
-        eps->eigi[i] = -eps->eigi[i];
-        eps->eigi[i+1] = -eps->eigi[i+1];
-        ierr = VecScale(eps->V[i+1],-1.0); CHKERRQ(ierr);
-      }
-      i++;
-    }
-  }
-#endif
-
   /* sort eigenvalues according to eps->which parameter */
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   if (eps->nconv > 0) {
     ierr = PetscMalloc(sizeof(PetscInt)*eps->nconv, &eps->perm); CHKERRQ(ierr);
-    ierr = EPSSortEigenvalues(eps->nconv, eps->eigr, eps->eigi, eps->which, eps->nconv, eps->perm); CHKERRQ(ierr);
+    ierr = EPSSortEigenvalues(eps, eps->nconv, eps->eigr, eps->eigi, eps->perm); CHKERRQ(ierr);
   }
 
   ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
@@ -578,7 +563,7 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!eps->V) { 
+  if (!eps->V || !eps->perm) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
@@ -588,24 +573,25 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
 
-  if (!eps->perm) k = i;
-  else k = eps->perm[i];
-#ifdef PETSC_USE_COMPLEX
-  if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
-  if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
-#else
-  if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
-    if (Vi) { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
-  } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k-1], Vr); CHKERRQ(ierr); }
-    if (Vi) { 
-      ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
-      ierr = VecScale(Vi,-1.0); CHKERRQ(ierr); 
-    }
-  } else { /* real eigenvalue */
+  k = eps->perm[i];
+#ifndef PETSC_USE_COMPLEX
+  if (eps->eigi[k] == 0) {
+#endif
     if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
+#ifndef PETSC_USE_COMPLEX
+  } else {
+    if (i<eps->nconv-1 && eps->eigr[k] == eps->eigr[eps->perm[i+1]] && eps->eigi[k] == -eps->eigi[eps->perm[i+1]]) {
+      /* first value of conjugate pair */
+      if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+      if (Vi) { ierr = VecCopy(eps->V[eps->perm[i+1]], Vi); CHKERRQ(ierr); }
+    } else { /* second value of conjugate pair */
+      if (Vr) { ierr = VecCopy(eps->V[eps->perm[i-1]], Vr); CHKERRQ(ierr); }
+      if (Vi) { 
+        ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
+        ierr = VecScale(Vi,-1.0); CHKERRQ(ierr); 
+      }
+    }
   }
 #endif
   
@@ -649,7 +635,7 @@ PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!eps->W) { 
+  if (!eps->W || !eps->perm) { 
     if (eps->solverclass!=EPS_TWO_SIDE) {
       SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
     } else {
@@ -663,24 +649,25 @@ PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
 
-  if (!eps->perm) k = i;
-  else k = eps->perm[i];
-#ifdef PETSC_USE_COMPLEX
-  if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
-  if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
-#else
-  if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
-    if (Wi) { ierr = VecCopy(eps->W[k+1], Wi); CHKERRQ(ierr); }
-  } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->W[k-1], Wr); CHKERRQ(ierr); }
-    if (Wi) { 
-      ierr = VecCopy(eps->W[k], Wi); CHKERRQ(ierr); 
-      ierr = VecScale(Wi,-1.0); CHKERRQ(ierr); 
-    }
-  } else { /* real eigenvalue */
+  k = eps->perm[i];
+#ifndef PETSC_USE_COMPLEX
+  if (eps->eigi[k] == 0) {
+#endif
     if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
     if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
+#ifndef PETSC_USE_COMPLEX
+  } else {
+    if (i<eps->nconv-1 && eps->eigr[k] == eps->eigr[eps->perm[i+1]] && eps->eigi[k] == -eps->eigi[eps->perm[i+1]]) {
+       /* first value of conjugate pair */
+       if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
+       if (Wi) { ierr = VecCopy(eps->W[eps->perm[i+1]], Wi); CHKERRQ(ierr); }
+    } else { /* second value of conjugate pair */
+       if (Wr) { ierr = VecCopy(eps->W[eps->perm[i-1]], Wr); CHKERRQ(ierr); }
+       if (Wi) { 
+         ierr = VecCopy(eps->W[k], Wi); CHKERRQ(ierr); 
+         ierr = VecScale(Wi,-1.0); CHKERRQ(ierr); 
+       }
+    }
   }
 #endif
   
@@ -1081,17 +1068,16 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSortEigenvalues"
 /*@
-   EPSSortEigenvalues - Sorts a list of eigenvalues according to a certain
-   criterion.
+   EPSSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
+   specified via EPSSetWhichEigenpairs.
 
    Not Collective
 
    Input Parameters:
-+  n     - number of eigenvalue in the list
++  eps - the eigensolver context
+.  n     - number of eigenvalue in the list
 .  eig   - pointer to the array containing the eigenvalues
-.  eigi  - imaginary part of the eigenvalues (only when using real numbers)
-.  which - sorting criterion
--  nev   - number of wanted eigenvalues
+-  eigi  - imaginary part of the eigenvalues (only when using real numbers)
 
    Output Parameter:
 .  permout - resulting permutation
@@ -1105,70 +1091,51 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
 
 .seealso: EPSSortEigenvaluesReal(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSSortEigenvalues(PetscInt n,PetscScalar *eig,PetscScalar *eigi,EPSWhich which,PetscInt nev,PetscInt *permout)
+PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,PetscInt *perm)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
-  PetscInt       *perm;
-  PetscReal      *values;
+  PetscScalar    re,im;
+  PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(n*sizeof(PetscInt),&perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscReal),&values);CHKERRQ(ierr);
-  for (i=0; i<n; i++) { perm[i] = i;}
-
-  switch(which) {
-    case EPS_LARGEST_MAGNITUDE:
-    case EPS_SMALLEST_MAGNITUDE:
-      for (i=0; i<n; i++) { values[i] = SlepcAbsEigenvalue(eig[i],eigi[i]); }
-      break;
-    case EPS_LARGEST_REAL:
-    case EPS_SMALLEST_REAL:
-      for (i=0; i<n; i++) { values[i] = PetscRealPart(eig[i]); }
-      break;
-    case EPS_LARGEST_IMAGINARY:
-    case EPS_SMALLEST_IMAGINARY:
+  for (i=0; i<n; i++) { perm[i] = i; }
+  /* insertion sort */
+  for (i=1; i<n; i++) {
+    re = eigr[perm[i]];
+    im = eigi[perm[i]];
+    j = i-1;
+    ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
+    while (result>0 && j>=0) {
 #if defined(PETSC_USE_COMPLEX)
-      for (i=0; i<n; i++) { values[i] = PetscImaginaryPart(eig[i]); }
+      tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
 #else
-      for (i=0; i<n; i++) { values[i] = PetscAbsReal(eigi[i]); }
-#endif
-      break;
-    default: SETERRQ(1,"Wrong value of which");
-  }
-
-  ierr = PetscSortRealWithPermutation(n,values,perm);CHKERRQ(ierr);
-
-  switch(which) {
-    case EPS_LARGEST_MAGNITUDE:
-    case EPS_LARGEST_REAL:
-    case EPS_LARGEST_IMAGINARY:
-      for (i=0; i<nev; i++) { permout[i] = perm[n-1-i]; }
-      break;
-    case EPS_SMALLEST_MAGNITUDE:
-    case EPS_SMALLEST_REAL:
-    case EPS_SMALLEST_IMAGINARY: 
-      for (i=0; i<nev; i++) { permout[i] = perm[i]; }
-      break;
-    default: SETERRQ(1,"Wrong value of which");
-  }
-
-#if !defined(PETSC_USE_COMPLEX)
-  for (i=0; i<nev-1; i++) {
-    if (eigi[permout[i]] != 0.0) {
-      if (eig[permout[i]] == eig[permout[i+1]] &&
-          eigi[permout[i]] == -eigi[permout[i+1]] &&
-          eigi[permout[i]] < 0.0) {
-        PetscInt tmp;
-        SWAP(permout[i], permout[i+1], tmp);
+      /* keep together every complex conjugated eigenpair */
+      if (im == 0) { 
+        if (eigi[perm[j]] == 0) {
+          tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; 
+          j--;       
+        } else {
+          tmp = perm[j-1]; perm[j-1] = perm[j+1];
+          perm[j+1] = perm[j]; perm[j] = tmp;
+          j-=2;
+        }
+      } else { /* complex eigenvalue */
+        if (eigi[perm[j]] == 0) {
+          tmp = perm[j]; perm[j] = perm[j+1];
+          perm[j+1] = perm[j+2]; perm[j+2] = tmp; 
+          j--;
+        } else {
+          tmp = perm[j-1]; perm[j-1] = perm[j+1]; perm[j+1] = tmp;
+          tmp = perm[j]; perm[j] = perm[j+2]; perm[j+2] = tmp;
+          j-=2;
+        }
       }
-      i++;
+#endif
+      if (j>=0) {
+        ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
+      }
     }
   }
-#endif
-
-  ierr = PetscFree(values);CHKERRQ(ierr);
-  ierr = PetscFree(perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1201,40 +1168,96 @@ PetscErrorCode EPSSortEigenvalues(PetscInt n,PetscScalar *eig,PetscScalar *eigi,
 
 .seealso: EPSSortEigenvalues(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSSortEigenvaluesReal(PetscInt n,PetscReal *eig,EPSWhich which,PetscInt nev,PetscInt *permout,PetscReal *work)
+PetscErrorCode EPSSortEigenvaluesReal(EPS eps,PetscInt n,PetscReal *eig,PetscInt *perm)
 {
   PetscErrorCode ierr;
-  PetscInt            i;
-  PetscReal      *values = work;
-  PetscInt       *perm = (PetscInt*)(work+n);
+  PetscScalar    re;
+  PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
-  for (i=0; i<n; i++) { perm[i] = i;}
+  for (i=0; i<n; i++) { perm[i] = i; }
+  /* insertion sort */
+  for (i=1; i<n; i++) {
+    re = eig[perm[i]];
+    j = i-1;
+    ierr = EPSCompareEigenvalues(eps,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
+    while (result>0 && j>=0) {
+      tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
+      if (j>=0) {
+        ierr = EPSCompareEigenvalues(eps,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
+      }
+    }
+  }
+  PetscFunctionReturn(0);
+}
 
-  switch(which) {
+#undef __FUNCT__  
+#define __FUNCT__ "EPSCompareEigenvalues"
+PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
+{
+  PetscErrorCode ierr;
+  PetscReal      a,b;
+
+  PetscFunctionBegin;
+  switch(eps->which) {
+    case EPS_USER:
+      if (!eps->which_func) SETERRQ(1,"Undefined eigenvalue comparison function");
+      ierr = (*eps->which_func)(eps,ar,ai,br,bi,result,eps->which_ctx);CHKERRQ(ierr);
+      PetscFunctionReturn(0);
+      break;
     case EPS_LARGEST_MAGNITUDE:
     case EPS_SMALLEST_MAGNITUDE:
-      for (i=0; i<n; i++) { values[i] = PetscAbsReal(eig[i]); }
+      a = SlepcAbsEigenvalue(ar,ai);
+      b = SlepcAbsEigenvalue(br,bi);
       break;
     case EPS_LARGEST_REAL:
     case EPS_SMALLEST_REAL:
-      for (i=0; i<n; i++) { values[i] = eig[i]; }
+      a = PetscRealPart(ar);
+      b = PetscRealPart(br);
+      break;
+    case EPS_LARGEST_IMAGINARY:
+    case EPS_SMALLEST_IMAGINARY:
+#if defined(PETSC_USE_COMPLEX)
+      a = PetscImaginaryPart(ar);
+      b = PetscImaginaryPart(br);
+#else
+      a = PetscAbsReal(ai);
+      a = PetscAbsReal(bi);
+#endif
+      break;
+    case EPS_TARGET_MAGNITUDE:
+      /* complex target only allowed if scalartype=complex */
+      a = SlepcAbsEigenvalue(ar-eps->target,ai);
+      b = SlepcAbsEigenvalue(br-eps->target,bi);
+      break;
+    case EPS_TARGET_REAL:
+      a = PetscAbsReal(PetscRealPart(ar-eps->target));
+      b = PetscAbsReal(PetscRealPart(br-eps->target));
+      break;
+    case EPS_TARGET_IMAGINARY:
+#if !defined(PETSC_USE_COMPLEX)
+      /* complex target only allowed if scalartype=complex */
+      a = PetscAbsReal(ai);
+      b = PetscAbsReal(bi);
+#else
+      a = PetscAbsReal(PetscImaginaryPart(ar-eps->target));
+      b = PetscAbsReal(PetscImaginaryPart(br-eps->target));
+#endif
       break;
     default: SETERRQ(1,"Wrong value of which");
   }
-
-  ierr = PetscSortRealWithPermutation(n,values,perm);CHKERRQ(ierr);
-
-  switch(which) {
+  switch(eps->which) {
     case EPS_LARGEST_MAGNITUDE:
     case EPS_LARGEST_REAL:
-      for (i=0; i<nev; i++) { permout[i] = perm[n-1-i]; }
+    case EPS_LARGEST_IMAGINARY:
+      if (a<b) *result = -1;
+      else if (a>b) *result = 1;
+      else *result = 0;
       break;
-    case EPS_SMALLEST_MAGNITUDE:
-    case EPS_SMALLEST_REAL:
-      for (i=0; i<nev; i++) { permout[i] = perm[i]; }
-      break;
-    default: SETERRQ(1,"Wrong value of which");
+    default:
+      if (a>b) *result = -1;
+      else if (a<b) *result = 1;
+      else *result = 0;
   }
   PetscFunctionReturn(0);
 }

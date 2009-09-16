@@ -111,7 +111,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const EPSType  type;
-  const char     *extr, *which;
+  const char     *extr;
   PetscTruth     isascii;
 
   PetscFunctionBegin;
@@ -167,24 +167,27 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    if (eps->target_set) {
+    switch (eps->which) {
+      case EPS_USER:
+        ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
+        break;
+      case EPS_TARGET_MAGNITUDE:
+      case EPS_TARGET_REAL:
+      case EPS_TARGET_IMAGINARY:
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g\n",eps->target);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g\n",eps->target);CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g+%g i\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g+%g i\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
 #endif
-    } else {
-      switch (eps->which) {
-        case EPS_LARGEST_MAGNITUDE:  which = "largest eigenvalues in magnitude"; break;
-        case EPS_SMALLEST_MAGNITUDE: which = "smallest eigenvalues in magnitude"; break;
-        case EPS_LARGEST_REAL:       which = "largest real parts"; break;
-        case EPS_SMALLEST_REAL:      which = "smallest real parts"; break;
-        case EPS_LARGEST_IMAGINARY:  which = "largest imaginary parts"; break;
-        case EPS_SMALLEST_IMAGINARY: which = "smallest imaginary parts"; break;
-        default: SETERRQ(1,"Wrong value of eps->which");
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"%s\n",which);CHKERRQ(ierr);
-    }
+        break;
+      case EPS_LARGEST_MAGNITUDE:  PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude");CHKERRQ(ierr); break;
+      case EPS_SMALLEST_MAGNITUDE: PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude");CHKERRQ(ierr); break;
+      case EPS_LARGEST_REAL:       PetscViewerASCIIPrintf(viewer,"largest real parts");CHKERRQ(ierr); break;
+      case EPS_SMALLEST_REAL:      PetscViewerASCIIPrintf(viewer,"smallest real parts");CHKERRQ(ierr); break;
+      case EPS_LARGEST_IMAGINARY:  PetscViewerASCIIPrintf(viewer,"largest imaginary parts");CHKERRQ(ierr); break;
+      case EPS_SMALLEST_IMAGINARY: PetscViewerASCIIPrintf(viewer,"smallest imaginary parts");CHKERRQ(ierr); break;
+      default: SETERRQ(1,"Wrong value of eps->which");
+    }    
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",eps->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",eps->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",eps->mpd);CHKERRQ(ierr);
@@ -246,8 +249,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nds             = 0;
   eps->tol             = 1e-7;
   eps->which           = EPS_LARGEST_MAGNITUDE;
+  eps->which_func      = PETSC_NULL;
+  eps->which_ctx       = PETSC_NULL;
   eps->target          = 0.0;
-  eps->target_set      = PETSC_FALSE;
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
   eps->extraction      = (EPSExtraction)0;
@@ -551,7 +555,6 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   eps->target = target;
-  eps->target_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -580,8 +583,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (target) {
-    if (eps->target_set) *target = eps->target;
-    else *target = 0.0;
+    *target = eps->target;
   }
   PetscFunctionReturn(0);
 }

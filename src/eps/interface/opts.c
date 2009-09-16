@@ -137,6 +137,12 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSMonitorSet(eps,EPSMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
+    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
+    }
+
     ierr = PetscOptionsTruthGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroup("-eps_smallest_magnitude","compute smallest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
@@ -147,11 +153,14 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroup("-eps_largest_imaginary","compute largest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_IMAGINARY);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_smallest_imaginary","compute smallest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsTruthGroup("-eps_smallest_imaginary","compute smallest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
-
-    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_target_magnitude","compute nearest eigenvalues to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_target_real","compute eigenvalues with real parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_REAL);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-eps_target_imaginary","compute eigenvalues with imaginary parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr);}
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_binary","Save the matrices associated to the eigenproblem","EPSSetFromOptions",0);CHKERRQ(ierr);
@@ -357,11 +366,9 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
     Collective on EPS
 
-    Input Parameter:
-.   eps - eigensolver context obtained from EPSCreate()
-
-    Output Parameter:
-.   which - the portion of the spectrum to be sought
+    Input Parameters:
++   eps - eigensolver context obtained from EPSCreate()
+-   which - the portion of the spectrum to be sought
 
     Possible values:
     The parameter 'which' can have one of these values:
@@ -371,7 +378,11 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_LARGEST_REAL - largest real parts
 .     EPS_SMALLEST_REAL - smallest real parts
 .     EPS_LARGEST_IMAGINARY - largest imaginary parts
--     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
+.     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
+.     EPS_TARGET_MAGNITUDE - nearest eigenvalues to the target set by EPSSetTarget
+.     EPS_TARGET_REAL - eigenvalues with real part near to target
+.     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part near to target
+-     EPS_USER - user defined order set by EPSSetEigenvalueComparison
 
     Options Database Keys:
 +   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -379,7 +390,10 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -eps_largest_real - Sets largest real parts
 .   -eps_smallest_real - Sets smallest real parts
 .   -eps_largest_imaginary - Sets largest imaginary parts in magnitude
--   -eps_smallest_imaginary - Sets smallest imaginary parts in magnitude
+.   -eps_smallest_imaginary - Sets smallest imaginary parts in magnitude
+.   -eps_target_magnitude - Sets nearest eigenvalues to target
+.   -eps_target_real - Sets real parts nearest to target
+-   -eps_target_imaginary - Sets imaginary parts nearest to target
 
     Notes:
     Not all eigensolvers implemented in EPS account for all the possible values
@@ -390,7 +404,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
     
     Level: intermediate
 
-.seealso: EPSGetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich
+.seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetEigenvalueComparison, EPSSortEigenvalues(), EPSWhich
 @*/
 PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
@@ -403,6 +417,10 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
     case EPS_SMALLEST_REAL:
     case EPS_LARGEST_IMAGINARY:
     case EPS_SMALLEST_IMAGINARY:
+    case EPS_TARGET_MAGNITUDE:
+    case EPS_TARGET_REAL:
+    case EPS_TARGET_IMAGINARY:
+    case EPS_USER:
       if (eps->which != which) {
         eps->setupcalled = 0;
         eps->which = which;
@@ -441,6 +459,38 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidPointer(which,2);
   *which = eps->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetEigenvalueComparison"
+/*@C
+    EPSSetCompareEigenvalues - Specifies the eigenvalue comparison function
+    when EPSSetWhichEigenpairs is set to EPS_USER.
+    Collective on EPS
+
+    Input Parameters:
++   eps  - eigensolver context obtained from EPSCreate()
+.   func - a pointer to the comparison function
+-   ctx  - a context pointer (the last parameter to the comparison function)
+
+    Output Parameter:
+.   which - the portion of the spectrum to be sought
+
+    Notes:
+     The comparison function must return an integer less than, equal to, or
+     greater than zero if the first eigenvalue is considered to be respectively
+     less than, equal to, or greater than the second.
+    
+    Level: advanced
+
+.seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich
+@*/
+PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  eps->which_func = func;
+  eps->which_ctx = ctx;
   PetscFunctionReturn(0);
 }
 

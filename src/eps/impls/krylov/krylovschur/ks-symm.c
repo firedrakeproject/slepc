@@ -155,7 +155,7 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
   ierr = ArrowTridFlip(n,l,a,b,Qreal,work);CHKERRQ(ierr);
 
   /* Sort eigendecomposition according to eps->which */
-  ierr = EPSSortEigenvaluesReal(n,a,eps->which,n,perm,work);CHKERRQ(ierr);
+  ierr = EPSSortEigenvaluesReal(eps,n,a,perm);CHKERRQ(ierr);
   for (i=0;i<n;i++)
     eig[i] = a[perm[i]];
   for (i=0;i<n;i++) {
