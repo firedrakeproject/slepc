@@ -1074,7 +1074,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
    Not Collective
 
    Input Parameters:
-+  eps - the eigensolver context
++  eps   - the eigensolver context
 .  n     - number of eigenvalue in the list
 .  eig   - pointer to the array containing the eigenvalues
 -  eigi  - imaginary part of the eigenvalues (only when using real numbers)
@@ -1100,40 +1100,43 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
   PetscFunctionBegin;
   for (i=0; i<n; i++) { perm[i] = i; }
   /* insertion sort */
-  for (i=1; i<n; i++) {
+  for (i=n-1; i>=0; i--) {
     re = eigr[perm[i]];
     im = eigi[perm[i]];
-    j = i-1;
-    ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-    while (result>0 && j>=0) {
-#if defined(PETSC_USE_COMPLEX)
-      tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
-#else
+    j = i + 1;
+#ifndef PETSC_USE_COMPLEX
+    if (im != 0) {
+      /* complex eigenvalue */
+      i--;
+      im = eigi[perm[i]];
+    }
+#endif
+    while (j<n) {
+      ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
+      if (result >= 0) break;
+#ifndef PETSC_USE_COMPLEX
       /* keep together every complex conjugated eigenpair */
       if (im == 0) { 
         if (eigi[perm[j]] == 0) {
-          tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; 
-          j--;       
+#endif
+          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
+          j++;
+#ifndef PETSC_USE_COMPLEX
         } else {
-          tmp = perm[j-1]; perm[j-1] = perm[j+1];
-          perm[j+1] = perm[j]; perm[j] = tmp;
-          j-=2;
+          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp;
+          j+=2;
         }
-      } else { /* complex eigenvalue */
+      } else {
         if (eigi[perm[j]] == 0) {
-          tmp = perm[j]; perm[j] = perm[j+1];
-          perm[j+1] = perm[j+2]; perm[j+2] = tmp; 
-          j--;
+          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = perm[j-1]; perm[j-1] = tmp;
+          j++;
         } else {
+          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = tmp;
           tmp = perm[j-1]; perm[j-1] = perm[j+1]; perm[j+1] = tmp;
-          tmp = perm[j]; perm[j] = perm[j+2]; perm[j+2] = tmp;
-          j-=2;
+          j+=2;
         }
       }
 #endif
-      if (j>=0) {
-        ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-      }
     }
   }
   PetscFunctionReturn(0);

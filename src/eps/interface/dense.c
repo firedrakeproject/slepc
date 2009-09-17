@@ -521,10 +521,10 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
    Not Collective
 
    Input Parameters:
-+  n     - dimension of the matrix 
++  eps - the eigensolver context
+.  n     - dimension of the matrix 
 .  k     - first active column
-.  ldt   - leading dimension of T
--  which - eigenvalue sort order
+-  ldt   - leading dimension of T
 
    Input/Output Parameters:
 +  T  - the upper (quasi-)triangular matrix
@@ -534,9 +534,9 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
 
    Notes:
    This function reorders the eigenvalues in wr,wi located in positions k
-   to n according to the sort order specified in which. The Schur 
-   decomposition Z*T*Z^T, is also reordered by means of rotations so that 
-   eigenvalues in the diagonal blocks of T follow the same order.
+   to n according to the sort order specified in EPSetWhicheigenpairs. 
+   The Schur decomposition Z*T*Z^T, is also reordered by means of rotations 
+   so that eigenvalues in the diagonal blocks of T follow the same order.
 
    Both T and Z are overwritten.
    
@@ -553,9 +553,9 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
   SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscReal      re,im;
+  PetscScalar    re,im,tmp;
   PetscInt       i,j,result;
-  PetscBLASInt   ifst,ilst,info,pos,n,ldt;
+  PetscBLASInt   ifst,ilst,info,n,ldt;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    *work;
 #endif
@@ -568,56 +568,76 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
   ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #endif
   
-  for (i=k;i<n-1;i++) {
+  /* insertion sort */
+  for (i=n-1; i>=0; i--) {
     re = wr[i];
     im = wi[i];
-    pos = 0;
-    for (j=i+1;j<n;j++) {
-      ierr = EPSCompareEigenvalues(eps,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
-      if (result < 0) {
-        re = wr[j];
-        im = wi[j];
-        pos = j;
-      }
-#if !defined(PETSC_USE_COMPLEX)
-      if (wi[j] != 0) j++;
-#endif
+    j = i + 1;
+#ifndef PETSC_USE_COMPLEX
+    if (im != 0) {
+      /* complex eigenvalue */
+      i--;
+      im = wi[i];
     }
-    if (pos) {
-      ifst = PetscBLASIntCast(pos + 1);
-      ilst = PetscBLASIntCast(i + 1);
+#endif
+    while (j<n) {
+      ierr = EPSCompareEigenvalues(eps,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
+      if (result >= 0) break;
+      /* interchange blocks */
+      ifst = PetscBLASIntCast(j);
+      ilst = PetscBLASIntCast(j + 1);
 #if !defined(PETSC_USE_COMPLEX)
       LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info);
 #else
       LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info);
 #endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-      
-      for (j=k;j<n;j++) {
-#if !defined(PETSC_USE_COMPLEX)
-        if (j==n-1 || T[j*ldt+j+1] == 0.0) { 
-          /* real eigenvalue */
-          wr[j] = T[j*ldt+j];
-          wi[j] = 0.0;
-        } else {
-          /* complex eigenvalue */
-          wr[j] = T[j*ldt+j];
-          wr[j+1] = T[j*ldt+j];
-          wi[j] = sqrt(PetscAbsReal(T[j*ldt+j+1])) *
-                  sqrt(PetscAbsReal(T[(j+1)*ldt+j]));
-          wi[j+1] = -wi[j];
+#ifndef PETSC_USE_COMPLEX
+      /* interchange eigenvalues */
+      if (im == 0) { 
+        if (wi[j] == 0) {
+#endif
+          tmp = wr[j-1]; wr[j-1] = wr[j]; wr[j] = tmp;
+          tmp = wi[j-1]; wi[j-1] = wi[j]; wi[j] = tmp;
           j++;
+#ifndef PETSC_USE_COMPLEX
+        } else {
+          tmp = wr[j-1]; wr[j-1] = wr[j]; wr[j] = wr[j+1]; wr[j+1] = tmp;
+          tmp = wi[j-1]; wi[j-1] = wi[j]; wi[j] = wi[j+1]; wi[j+1] = tmp;
+          j+=2;
         }
-#else
-        wr[j] = T[j*(ldt+1)];
-#endif
+      } else {
+        if (wi[j] == 0) {
+          tmp = wr[j-2]; wr[j-2] = wr[j]; wr[j] = wr[j-1]; wr[j-1] = tmp;
+          tmp = wi[j-2]; wi[j-2] = wi[j]; wi[j] = wi[j-1]; wi[j-1] = tmp;
+          j++;
+        } else {
+          tmp = wr[j-2]; wr[j-2] = wr[j]; wr[j] = tmp;
+          tmp = wr[j-1]; wr[j-1] = wr[j+1]; wr[j+1] = tmp;
+          tmp = wi[j-2]; wi[j-2] = wi[j]; wi[j] = tmp;
+          tmp = wi[j-1]; wi[j-1] = wi[j+1]; wi[j+1] = tmp;
+          j+=2;
+        }
       }
-    }
-#if !defined(PETSC_USE_COMPLEX)
-    if (wi[i] != 0) i++;
 #endif
+    }
   }
-  
+
+  /* recover original eigenvalues from T matrix */
+  for (j=k;j<n;j++) {
+    wr[j] = T[j*ldt+j];
+#ifndef PETSC_USE_COMPLEX
+    if (j<n-1 && T[j*ldt+j+1] != 0.0) { 
+      wi[j]= sqrt(PetscAbsReal(T[j*ldt+j+1])) *
+             sqrt(PetscAbsReal(T[(j+1)*ldt+j]));
+      wr[j+1] = wr[j];
+      wi[j+1] = -wi[j];
+      j++;
+    } else 
+#endif 
+      wi[j] = 0.0;
+  }
+
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(work);CHKERRQ(ierr);
 #endif
