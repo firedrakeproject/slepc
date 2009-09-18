@@ -527,8 +527,8 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
 -  ldt   - leading dimension of T
 
    Input/Output Parameters:
-+  T  - the upper (quasi-)triangular matrix
-.  Z  - the orthogonal matrix of Schur vectors
++  T,S  - the upper (quasi-)triangular matrices
+.  Q,Z  - the orthogonal matrix of Schur vectors
 .  wr - pointer to the array to store the computed eigenvalues
 -  wi - imaginary part of the eigenvalues (only when using real numbers)
 
@@ -537,8 +537,9 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
    to n according to the sort order specified in EPSetWhicheigenpairs. 
    The Schur decomposition Z*T*Z^T, is also reordered by means of rotations 
    so that eigenvalues in the diagonal blocks of T follow the same order.
+   S and Z are PETSC_NULL for non-generalized Schur decompositions.
 
-   Both T and Z are overwritten.
+   T,S,Q and Z are overwritten.
    
    This routine uses LAPACK routines xTREXC.
 
@@ -546,7 +547,7 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
 
 .seealso: EPSDenseHessenberg(), EPSDenseSchur(), EPSDenseTridiagonal()
 @*/
-PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,PetscInt ldt_,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,PetscScalar *S,PetscInt ldt_,PetscScalar *Q,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
@@ -555,17 +556,25 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
   PetscErrorCode ierr;
   PetscScalar    re,im,tmp;
   PetscInt       i,j,result;
-  PetscBLASInt   ifst,ilst,info,n,ldt;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *work;
+  PetscBLASInt   ione = 1,ifst,ilst,info,n,ldt;
+#ifndef PETSC_USE_COMPLEX
+  PetscBLASInt   lwork;
+  PetscScalar    *work,safmin,scale1,scale2;
 #endif
   
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   n = PetscBLASIntCast(n_);
   ldt = PetscBLASIntCast(ldt_);
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#ifndef PETSC_USE_COMPLEX
+  if (S) {
+    lwork = -1;
+    LAPACKtgexc_(&ione,&ione,&n,T,&ldt,S,&ldt,Q,&n,Z,&n,&ione,&ione,&tmp,&lwork,&info);
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC/TGEXC %d",info);
+    lwork = (PetscBLASInt)tmp;
+    safmin = LAPACKlamch_("S");
+  } else lwork = n;
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #endif
   
   /* insertion sort */
@@ -586,12 +595,20 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
       /* interchange blocks */
       ifst = PetscBLASIntCast(j);
       ilst = PetscBLASIntCast(j + 1);
-#if !defined(PETSC_USE_COMPLEX)
-      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,work,&info);
+#ifndef PETSC_USE_COMPLEX
+      if (S) {
+        LAPACKtgexc_(&ione,&ione,&n,T,&ldt,S,&ldt,Q,&n,Z,&n,&ifst,&ilst,work,&lwork,&info);
+      } else {
+        LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,work,&info);
+      }
 #else
-      LAPACKtrexc_("V",&n,T,&ldt,Z,&n,&ifst,&ilst,&info);
+      if (S) {
+        LAPACKtgexc_(&ione,&ione,&n,T,&ldt,S,&ldt,Q,&n,Z,&n,&ifst,&ilst,&info);
+      } else {
+        LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,&info);
+      }
 #endif
-      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC/TGEXC %d",info);
 #ifndef PETSC_USE_COMPLEX
       /* interchange eigenvalues */
       if (im == 0) { 
@@ -623,19 +640,37 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
     }
   }
 
-  /* recover original eigenvalues from T matrix */
+  /* recover original eigenvalues from T and S matrices */
   for (j=k;j<n;j++) {
-    wr[j] = T[j*ldt+j];
 #ifndef PETSC_USE_COMPLEX
-    if (j<n-1 && T[j*ldt+j+1] != 0.0) { 
-      wi[j]= sqrt(PetscAbsReal(T[j*ldt+j+1])) *
-             sqrt(PetscAbsReal(T[(j+1)*ldt+j]));
-      wr[j+1] = wr[j];
+    if (j<n-1 && T[j*ldt+j+1] != 0.0) {
+      /* complex conjugate eigenvalue */
+      if (S) {
+        LAPACKlag2_(T+j*ldt+j,&ldt,S+j*ldt+j,&ldt,&safmin,&scale1,&scale2,&re,&tmp,&im);
+        wr[j] = re / scale1;
+        wr[j+1] = tmp / scale2;
+        wi[j] = im / scale1;
+      } else {
+        wr[j] = T[j*ldt+j];
+        wr[j+1] = wr[j];
+        wi[j] = sqrt(PetscAbsReal(T[j*ldt+j+1])) *
+                sqrt(PetscAbsReal(T[(j+1)*ldt+j]));
+      }
       wi[j+1] = -wi[j];
       j++;
-    } else 
-#endif 
+    } else
+#endif
+    {
+      if (S) {
+        if (S[j*ldt+j] == 0.0) {
+          if (T[j*ldt+j] < 0.0) wr[j] = PETSC_MIN;
+          else wr[j] = PETSC_MAX;
+        } else wr[j] = T[j*ldt+j] / S[j*ldt+j];
+      } else {
+        wr[j] = T[j*ldt+j];
+      }
       wi[j] = 0.0;
+    }
   }
 
 #if !defined(PETSC_USE_COMPLEX)
