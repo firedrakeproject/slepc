@@ -234,3 +234,55 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDefaultConverged"
+PetscErrorCode EPSDefaultConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+{
+  PetscInt  i;
+  PetscReal w, relerr;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(eigr,3);
+  PetscValidPointer(eigi,4);
+  PetscValidPointer(conv,5);
+  for (i=k; i<n; i++) {
+    w = SlepcAbsEigenvalue(eigr[i],eigi[i]);
+    if (w > errest[i]) relerr = errest[i] / w;
+    else relerr = errest[i];
+    if (relerr < eps->tol) conv[i] = PETSC_TRUE;
+    else conv[i] = PETSC_FALSE;
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi[i] != 0 && i<n-1) {
+      conv[i+1] = conv[i];
+      i++;
+    }
+#endif
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSAbsoluteConverged"
+PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+{
+  PetscInt  i;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(eigr,3);
+  PetscValidPointer(eigi,4);
+  PetscValidPointer(conv,5);
+  for (i=k; i<n; i++) {
+    if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
+    else conv[i] = PETSC_FALSE;
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi[i] != 0 && i<n-1) {
+      conv[i+1] = conv[i];
+      i++;
+    }
+#endif
+  }
+  PetscFunctionReturn(0);
+}

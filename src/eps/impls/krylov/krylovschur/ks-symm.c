@@ -217,11 +217,12 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     /* Solve projected problem and compute residual norm estimates */ 
     ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
     for (i=0;i<nv;i++)
-      eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]) / PetscAbsScalar(eps->eigr[i+eps->nconv]);
+      eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]);
 
     /* Check convergence */
+    ierr = (*eps->conv_func)(eps,nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
     k = eps->nconv;
-    while (k<eps->nconv+nv && eps->errest[k]<eps->tol) k++;    
+    while (k<eps->nconv+nv && eps->conv[k]) k++;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     

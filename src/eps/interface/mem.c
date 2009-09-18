@@ -44,6 +44,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
       ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
       ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
       ierr = PetscFree(eps->errest_left);CHKERRQ(ierr); 
+      ierr = PetscFree(eps->conv);CHKERRQ(ierr); 
       ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
       for (i=0;i<eps->allocated_ncv;i++) {
         ierr = VecDestroy(eps->V[i]);CHKERRQ(ierr);
@@ -64,6 +65,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscTruth),&eps->conv);CHKERRQ(ierr);
     ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->V);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
@@ -102,6 +104,7 @@ PetscErrorCode EPSFreeSolution(EPS eps)
     ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
     ierr = PetscFree(eps->errest);CHKERRQ(ierr);
     ierr = PetscFree(eps->errest_left);CHKERRQ(ierr);
+    ierr = PetscFree(eps->conv);CHKERRQ(ierr);
     ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
     for (i=0;i<eps->allocated_ncv;i++) {
       ierr = VecDestroy(eps->V[i]);CHKERRQ(ierr);

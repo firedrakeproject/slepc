@@ -97,6 +97,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
+    ierr = PetscOptionsTruthGroupBegin("-eps_convergence_default","Default (relative error) convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetConvergenceTest(eps,EPSDefaultConverged,PETSC_NULL);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-eps_convergence_absolute","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetConvergenceTest(eps,EPSAbsoluteConverged,PETSC_NULL);CHKERRQ(ierr);}
 
     i = j = k = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,PETSC_NULL);CHKERRQ(ierr);
@@ -474,9 +478,6 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 .   func - a pointer to the comparison function
 -   ctx  - a context pointer (the last parameter to the comparison function)
 
-    Output Parameter:
-.   which - the portion of the spectrum to be sought
-
     Notes:
      The comparison function must return an integer less than, equal to, or
      greater than zero if the first eigenvalue is considered to be respectively
@@ -491,6 +492,32 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
   PetscFunctionBegin;
   eps->which_func = func;
   eps->which_ctx = ctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetConvergenceTest"
+/*@C
+    EPSSetConvergenceTest - Specifies the convergence test.
+    Collective on EPS
+
+    Input Parameters:
++   eps  - eigensolver context obtained from EPSCreate()
+.   func - a pointer to the convergence test function
+-   ctx  - a context pointer (the last parameter to the convergence test function)
+
+    Notes:
+    The convergence function sets an element of the flag array for each eigenvalue.
+    
+    Level: advanced
+
+.seealso: EPSSetTolerances()
+@*/
+EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  eps->conv_func = func;
+  eps->conv_ctx = ctx;
   PetscFunctionReturn(0);
 }
 

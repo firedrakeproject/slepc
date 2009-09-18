@@ -131,6 +131,9 @@ EXTERN PetscErrorCode EPSSetIP(EPS,IP);
 EXTERN PetscErrorCode EPSGetIP(EPS,IP*);
 EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
+EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*),void*);
+EXTERN PetscErrorCode EPSDefaultConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
+EXTERN PetscErrorCode EPSAbsoluteConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
 EXTERN PetscErrorCode EPSSetDimensions(EPS,PetscInt,PetscInt,PetscInt);
 EXTERN PetscErrorCode EPSGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
 
@@ -160,6 +163,7 @@ EXTERN PetscErrorCode EPSGetInitialVector(EPS,Vec*);
 EXTERN PetscErrorCode EPSSetLeftInitialVector(EPS,Vec);
 EXTERN PetscErrorCode EPSGetLeftInitialVector(EPS,Vec*);
 EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
+EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
 EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);
