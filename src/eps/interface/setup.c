@@ -52,6 +52,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   Vec            v0,w0;  
   Mat            A,B; 
   PetscInt       N;
+  PetscTruth     isCayley;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -109,6 +110,11 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
   
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&isCayley);CHKERRQ(ierr);
+  if (isCayley && eps->problem_type == EPS_PGNHEP) {
+    SETERRQ(PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
+  }
+
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
       /* orthonormalize vectors in DS if necessary */

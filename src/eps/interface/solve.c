@@ -126,7 +126,25 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = KSPDestroy(ksp);CHKERRQ(ierr);
     ierr = VecDestroy(w);CHKERRQ(ierr);
   }
-  
+
+#ifndef PETSC_USE_COMPLEX
+  /* reorder conjugate eigenvalues (positive imaginary first) */
+  for (i=0; i<eps->nconv-1; i++) {
+    if (eps->eigi[i] != 0) {
+      if (eps->eigi[i] < 0) {
+        eps->eigi[i] = -eps->eigi[i];
+        eps->eigi[i+1] = -eps->eigi[i+1];
+        if (!eps->evecsavailable) {
+          /* the next correction only works with eigenvectors */
+          ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
+        }
+        ierr = VecScale(eps->V[i+1],-1.0); CHKERRQ(ierr);
+      }
+      i++;
+    }
+  }
+#endif
+
   /* sort eigenvalues according to eps->which parameter */
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   if (eps->nconv > 0) {
@@ -563,7 +581,7 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!eps->V || !eps->perm) { 
+  if (!eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
@@ -573,25 +591,24 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
 
-  k = eps->perm[i];
-#ifndef PETSC_USE_COMPLEX
-  if (eps->eigi[k] == 0) {
-#endif
+  if (!eps->perm) k = i;
+  else k = eps->perm[i];
+#ifdef PETSC_USE_COMPLEX
+  if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+  if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
+#else
+  if (eps->eigi[k] > 0) { /* first value of conjugate pair */
+    if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
+    if (Vi) { ierr = VecCopy(eps->V[k+1], Vi); CHKERRQ(ierr); }
+  } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
+    if (Vr) { ierr = VecCopy(eps->V[k-1], Vr); CHKERRQ(ierr); }
+    if (Vi) { 
+      ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
+      ierr = VecScale(Vi,-1.0); CHKERRQ(ierr); 
+    }
+  } else { /* real eigenvalue */
     if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
-#ifndef PETSC_USE_COMPLEX
-  } else {
-    if (i<eps->nconv-1 && eps->eigr[k] == eps->eigr[eps->perm[i+1]] && eps->eigi[k] == -eps->eigi[eps->perm[i+1]]) {
-      /* first value of conjugate pair */
-      if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
-      if (Vi) { ierr = VecCopy(eps->V[eps->perm[i+1]], Vi); CHKERRQ(ierr); }
-    } else { /* second value of conjugate pair */
-      if (Vr) { ierr = VecCopy(eps->V[eps->perm[i-1]], Vr); CHKERRQ(ierr); }
-      if (Vi) { 
-        ierr = VecCopy(eps->V[k], Vi); CHKERRQ(ierr); 
-        ierr = VecScale(Vi,-1.0); CHKERRQ(ierr); 
-      }
-    }
   }
 #endif
   
@@ -635,7 +652,7 @@ PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (!eps->W || !eps->perm) { 
+  if (!eps->W) { 
     if (eps->solverclass!=EPS_TWO_SIDE) {
       SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
     } else {
@@ -649,25 +666,24 @@ PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
 
-  k = eps->perm[i];
-#ifndef PETSC_USE_COMPLEX
-  if (eps->eigi[k] == 0) {
-#endif
+  if (!eps->perm) k = i;
+  else k = eps->perm[i];
+#ifdef PETSC_USE_COMPLEX
+  if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
+  if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
+#else
+  if (eps->eigi[k] > 0) { /* first value of conjugate pair */
+    if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
+    if (Wi) { ierr = VecCopy(eps->W[k+1], Wi); CHKERRQ(ierr); }
+  } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
+    if (Wr) { ierr = VecCopy(eps->W[k-1], Wr); CHKERRQ(ierr); }
+    if (Wi) { 
+      ierr = VecCopy(eps->W[k], Wi); CHKERRQ(ierr); 
+      ierr = VecScale(Wi,-1.0); CHKERRQ(ierr); 
+    }
+  } else { /* real eigenvalue */
     if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
     if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
-#ifndef PETSC_USE_COMPLEX
-  } else {
-    if (i<eps->nconv-1 && eps->eigr[k] == eps->eigr[eps->perm[i+1]] && eps->eigi[k] == -eps->eigi[eps->perm[i+1]]) {
-       /* first value of conjugate pair */
-       if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
-       if (Wi) { ierr = VecCopy(eps->W[eps->perm[i+1]], Wi); CHKERRQ(ierr); }
-    } else { /* second value of conjugate pair */
-       if (Wr) { ierr = VecCopy(eps->W[eps->perm[i-1]], Wr); CHKERRQ(ierr); }
-       if (Wi) { 
-         ierr = VecCopy(eps->W[k], Wi); CHKERRQ(ierr); 
-         ierr = VecScale(Wi,-1.0); CHKERRQ(ierr); 
-       }
-    }
   }
 #endif
   

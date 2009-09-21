@@ -42,11 +42,13 @@
       PetscEnum EPS_GHEP
       PetscEnum EPS_NHEP
       PetscEnum EPS_GNHEP
+      PetscEnum EPS_PGNHEP
 
       parameter (EPS_HEP                    =  1)
       parameter (EPS_GHEP                   =  2)
       parameter (EPS_NHEP                   =  3)
       parameter (EPS_GNHEP                  =  4)
+      parameter (EPS_PGNHEP                 =  5)
       
       PetscEnum EPS_LARGEST_MAGNITUDE
       PetscEnum EPS_SMALLEST_MAGNITUDE
