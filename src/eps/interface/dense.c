@@ -663,7 +663,7 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
     {
       if (S) {
         if (S[j*ldt+j] == 0.0) {
-          if (T[j*ldt+j] < 0.0) wr[j] = PETSC_MIN;
+          if (PetscRealPart(T[j*ldt+j]) < 0.0) wr[j] = PETSC_MIN;
           else wr[j] = PETSC_MAX;
         } else wr[j] = T[j*ldt+j] / S[j*ldt+j];
       } else {
