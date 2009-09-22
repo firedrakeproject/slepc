@@ -110,6 +110,13 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
 
   /* Compute residual norm estimates as beta*abs(Y(m,:)) */
   for (i=nconv;i<ncv;i++) { 
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi[i] != 0 && i<ncv-1) {
+      errest[i] = beta*SlepcAbsEigenvalue(Y[i*ncv+ncv-1],Y[(i+1)*ncv+ncv-1]);
+      errest[i+1] = errest[i];
+      i++;
+    } else
+#endif
     errest[i] = beta*PetscAbsScalar(Y[i*ncv+ncv-1]);
   }  
   PetscFunctionReturn(0);
