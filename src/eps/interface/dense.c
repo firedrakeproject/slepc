@@ -549,9 +549,9 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
 @*/
 PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,PetscScalar *S,PetscInt ldt_,PetscScalar *Q,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_TREXC)
+#if defined(SLEPC_MISSING_LAPACK_TREXC) || defined(SLEPC_MISSING_LAPACK_TGEXC)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
+  SETERRQ(PETSC_ERR_SUP,"TREXC/TGEXC - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
   PetscScalar    re,im,tmp;
@@ -572,7 +572,11 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
     LAPACKtgexc_(&ione,&ione,&n,T,&ldt,S,&ldt,Q,&n,Z,&n,&ione,&ione,&tmp,&lwork,&info);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC/TGEXC %d",info);
     lwork = (PetscBLASInt)tmp;
+#if defined(SLEPC_MISSING_LAPACK_LAMCH)
+    SETERRQ(PETSC_ERR_SUP,"LAMCH - Lapack routine is unavailable.");
+#else
     safmin = LAPACKlamch_("S");
+#endif
   } else lwork = n;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #endif
@@ -646,7 +650,11 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
     if (j<n-1 && T[j*ldt+j+1] != 0.0) {
       /* complex conjugate eigenvalue */
       if (S) {
+#if defined(SLEPC_MISSING_LAPACK_LAG2)
+        SETERRQ(PETSC_ERR_SUP,"LAG2 - Lapack routine is unavailable.");
+#else
         LAPACKlag2_(T+j*ldt+j,&ldt,S+j*ldt+j,&ldt,&safmin,&scale1,&scale2,&re,&tmp,&im);
+#endif
         wr[j] = re / scale1;
         wr[j+1] = tmp / scale2;
         wi[j] = im / scale1;
