@@ -220,7 +220,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
       eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]);
 
     /* Check convergence */
-    ierr = (*eps->conv_func)(eps,nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+    ierr = (*eps->conv_func)(eps,eps->nconv+nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
     k = eps->nconv;
     while (k<eps->nconv+nv && eps->conv[k]) k++;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
