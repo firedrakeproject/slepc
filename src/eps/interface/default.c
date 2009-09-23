@@ -237,52 +237,128 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDefaultConverged"
+/*
+  EPSDefaultConverged - Checks convergence with the relative error estimate.
+*/
 PetscErrorCode EPSDefaultConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
 {
   PetscInt  i;
-  PetscReal w, relerr;
+  PetscReal w;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(eigr,3);
-  PetscValidPointer(eigi,4);
-  PetscValidPointer(conv,5);
   for (i=k; i<n; i++) {
     w = SlepcAbsEigenvalue(eigr[i],eigi[i]);
-    if (w > errest[i]) relerr = errest[i] / w;
-    else relerr = errest[i];
-    if (relerr < eps->tol) conv[i] = PETSC_TRUE;
+    if (w > errest[i]) errest[i] = errest[i] / w;
+    if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
     else conv[i] = PETSC_FALSE;
-#if !defined(PETSC_USE_COMPLEX)
-    if (eigi[i] != 0 && i<n-1) {
-      conv[i+1] = conv[i];
-      i++;
-    }
-#endif
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAbsoluteConverged"
+/*
+  EPSAbsoluteConverged - Checks convergence with the absolute error estimate.
+*/
 PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
 {
   PetscInt  i;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(eigr,3);
-  PetscValidPointer(eigi,4);
-  PetscValidPointer(conv,5);
   for (i=k; i<n; i++) {
     if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
     else conv[i] = PETSC_FALSE;
-#if !defined(PETSC_USE_COMPLEX)
-    if (eigi[i] != 0 && i<n-1) {
-      conv[i+1] = conv[i];
-      i++;
-    }
-#endif
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSResidualConverged"
+/*
+  EPSResidualConverged - Checks convergence with the true relative residual for 
+  each eigenpair whose error estimate is lower than the tolerance.
+*/
+PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+{
+  PetscErrorCode ierr;
+  Mat            A,B;
+  Vec            x,y,z;
+  PetscInt       i;
+  PetscScalar    re,im;
+  
+  PetscFunctionBegin;
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&x);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&y);CHKERRQ(ierr);
+  if (B) { ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr); }
+  for (i=k; i<n; i++) {
+    if (errest[i] < eps->tol && eps->schur_func) {
+      if (eps->ishermitian) {
+        /* compute eigenvalue */
+        re = eigr[i]; im = 0.0;
+        ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+        /* compute schur vector */
+        ierr = (*eps->schur_func)(eps,i,x);CHKERRQ(ierr);
+        /* compute residual */
+        if (B) { 
+          /* purify eigenvector for generalized problem */
+          ierr = STApply(eps->OP,x,z);CHKERRQ(ierr);
+          ierr = VecNormalize(z,PETSC_NULL);CHKERRQ(ierr);
+          ierr = MatMult(A,z,y);CHKERRQ(ierr);
+          ierr = MatMult(B,z,x);CHKERRQ(ierr);
+        } else {
+          /* standard problem */
+          ierr = MatMult(A,x,y);CHKERRQ(ierr);
+        }
+        ierr = VecAXPY(y,-re,x);CHKERRQ(ierr);
+        ierr = VecNorm(y,NORM_2,errest+i);CHKERRQ(ierr);
+      } else {
+        SETERRQ(PETSC_ERR_SUP,"Residual convergence not supported in non-hermitian problems");
+      }
+    }
+    if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
+    else conv[i] = PETSC_FALSE;
+  }
+  ierr = VecDestroy(x);CHKERRQ(ierr);
+  ierr = VecDestroy(y);CHKERRQ(ierr);
+  if (B) { ierr = VecDestroy(z);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeSchurVector_Default"
+/*
+  EPSComputeSchurVector_Default - this function computes a schur vector during
+  the solve phase. This function is used by EPSResidualConverged in the subspace,
+  Arnoldi and Krylov-Schur solvers.
+*/
+PetscErrorCode EPSComputeSchurVector_Default(EPS eps,PetscInt i,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  if (i<eps->nconv || i>=eps->nv) {
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument out of range");
+  }
+  ierr = VecSet(v,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(v,eps->nv,eps->Z+eps->nv*i,eps->V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeSchurVector_Hermitian"
+/*
+  EPSComputeSchurVector_Default - this function computes a schur vector during
+  the solve phase. This function is used by EPSResidualConverged int the Lanczos
+  and symmetric Krylov-Schur solvers.
+*/
+PetscErrorCode EPSComputeSchurVector_Hermitian(EPS eps,PetscInt i,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  if (i<eps->nconv || i>=eps->nconv+eps->nv) {
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument out of range");
+  }
+  ierr = VecSet(v,0.0);CHKERRQ(ierr);
+  ierr = VecMAXPY(v,eps->nv,eps->Z+eps->nv*(i-eps->nconv),eps->V+eps->nconv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

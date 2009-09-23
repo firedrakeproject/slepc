@@ -82,6 +82,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   } else {
     ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   }
+  eps->schur_func = EPSComputeSchurVector_Default;
   PetscFunctionReturn(0);
 }
 
@@ -356,7 +357,7 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,nv;
+  PetscInt       i,k;
   Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
   PetscReal      beta,gnorm;
@@ -366,7 +367,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr); eps->Z = U;
   ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
@@ -385,48 +386,48 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     eps->its++;
 
     /* Compute an nv-step Arnoldi factorization */
-    nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    eps->nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     if (!arnoldi->delayed) {
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else if (orthog_ref == IP_ORTH_REFINE_NEVER) {
-      ierr = EPSDelayedArnoldi1(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi1(eps,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
-      ierr = EPSDelayedArnoldi(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi(eps,H,eps->ncv,eps->V,eps->nconv,&eps->nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
 
     if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
       ierr = PetscMemcpy(Hcopy,H,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<nv-1;i++) Hcopy[nv+i*eps->ncv] = 0.0; 
-      Hcopy[nv+(nv-1)*eps->ncv] = beta;
+      for (i=0;i<eps->nv-1;i++) Hcopy[eps->nv+i*eps->ncv] = 0.0; 
+      Hcopy[eps->nv+(eps->nv-1)*eps->ncv] = beta;
     }
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-      ierr = EPSTranslateHarmonic(nv,H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+      ierr = EPSTranslateHarmonic(eps->nv,H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
     }
 
     /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,nv);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(H,eps->ncv,U,beta,eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,eps->nv);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(H,eps->ncv,U,beta,eps->nconv,eps->nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
     
     /* Fix residual norms if harmonic */
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
       gnorm = 0.0;
-      for (i=0;i<nv;i++)
+      for (i=0;i<eps->nv;i++)
         gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-      for (i=eps->nconv;i<nv;i++)
+      for (i=eps->nconv;i<eps->nv;i++)
         eps->errest[i] *= sqrt(1.0+gnorm);
     }
 
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx) */
-    ierr = (*eps->conv_func)(eps,nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+    ierr = (*eps->conv_func)(eps,eps->nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
     k = eps->nconv;
-    while (k<nv && eps->conv[k]) k++;
-    ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,nv,Hcopy,eps->ncv);CHKERRQ(ierr);
+    while (k<eps->nv && eps->conv[k]) k++;
+    ierr = EPSUpdateVectors(eps,eps->nv,eps->V,eps->nconv,PetscMin(k+1,eps->nv),U,eps->nv,Hcopy,eps->ncv);CHKERRQ(ierr);
     eps->nconv = k;
 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
     if (breakdown) {
       PetscInfo2(eps,"Breakdown in Arnoldi method (it=%i norm=%g)\n",eps->its,beta);
       ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
@@ -439,7 +440,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
   
-  ierr = PetscFree(U);CHKERRQ(ierr);
+  ierr = PetscFree(U);CHKERRQ(ierr); eps->Z = PETSC_NULL;
   ierr = PetscFree(work);CHKERRQ(ierr);
   if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscFree(g);CHKERRQ(ierr);

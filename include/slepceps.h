@@ -134,6 +134,7 @@ EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
 EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*),void*);
 EXTERN PetscErrorCode EPSDefaultConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
 EXTERN PetscErrorCode EPSAbsoluteConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
+EXTERN PetscErrorCode EPSResidualConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
 EXTERN PetscErrorCode EPSSetDimensions(EPS,PetscInt,PetscInt,PetscInt);
 EXTERN PetscErrorCode EPSGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
 
