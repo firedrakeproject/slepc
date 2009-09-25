@@ -180,11 +180,11 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g+%g i\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
 #endif
         break;
-      case EPS_LARGEST_MAGNITUDE:  PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude");CHKERRQ(ierr); break;
-      case EPS_SMALLEST_MAGNITUDE: PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude");CHKERRQ(ierr); break;
-      case EPS_LARGEST_REAL:       PetscViewerASCIIPrintf(viewer,"largest real parts");CHKERRQ(ierr); break;
-      case EPS_SMALLEST_REAL:      PetscViewerASCIIPrintf(viewer,"smallest real parts");CHKERRQ(ierr); break;
-      case EPS_LARGEST_IMAGINARY:  PetscViewerASCIIPrintf(viewer,"largest imaginary parts");CHKERRQ(ierr); break;
+      case EPS_LARGEST_MAGNITUDE:  PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr); break;
+      case EPS_SMALLEST_MAGNITUDE: PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n");CHKERRQ(ierr); break;
+      case EPS_LARGEST_REAL:       PetscViewerASCIIPrintf(viewer,"largest real parts\n");CHKERRQ(ierr); break;
+      case EPS_SMALLEST_REAL:      PetscViewerASCIIPrintf(viewer,"smallest real parts\n");CHKERRQ(ierr); break;
+      case EPS_LARGEST_IMAGINARY:  PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n");CHKERRQ(ierr); break;
       case EPS_SMALLEST_IMAGINARY: PetscViewerASCIIPrintf(viewer,"smallest imaginary parts");CHKERRQ(ierr); break;
       default: SETERRQ(1,"Wrong value of eps->which");
     }    
