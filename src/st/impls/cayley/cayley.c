@@ -69,15 +69,15 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 
   if (st->B) {
     /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
-    ierr = STAssociatedKSPSolve(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
-    ierr = MatMult(st->B,st->w,ctx->w2);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->B,st->w,ctx->w2);CHKERRQ(ierr);
     ierr = VecAXPY(y,tau,ctx->w2);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
-    ierr = STAssociatedKSPSolve(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
     ierr = VecAXPY(y,tau,st->w);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
