@@ -104,6 +104,17 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
                EPS_TARGET_MAGNITUDE,  EPS_TARGET_REAL, 
                EPS_TARGET_IMAGINARY,  EPS_USER } EPSWhich;
 
+/*E
+    EPSBalance - the type of balancing used for non-Hermitian problems
+
+    Level: intermediate
+
+.seealso: EPSSetBalance()
+E*/
+typedef enum { EPSBALANCE_NONE=1,
+               EPSBALANCE_ONESIDE,
+               EPSBALANCE_TWOSIDE } EPSBalance;
+
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);
 EXTERN PetscErrorCode EPSSetType(EPS,const EPSType);
@@ -112,6 +123,8 @@ EXTERN PetscErrorCode EPSSetProblemType(EPS,EPSProblemType);
 EXTERN PetscErrorCode EPSGetProblemType(EPS,EPSProblemType*);
 EXTERN PetscErrorCode EPSSetExtraction(EPS,EPSExtraction);
 EXTERN PetscErrorCode EPSGetExtraction(EPS,EPSExtraction*);
+EXTERN PetscErrorCode EPSSetBalance(EPS,EPSBalance,PetscInt,PetscReal);
+EXTERN PetscErrorCode EPSGetBalance(EPS,EPSBalance*,PetscInt*,PetscReal*);
 EXTERN PetscErrorCode EPSSetClass(EPS,EPSClass);
 EXTERN PetscErrorCode EPSGetClass(EPS,EPSClass*);
 EXTERN PetscErrorCode EPSSetOperators(EPS,Mat,Mat);
@@ -185,7 +198,7 @@ EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
     EPSConvergedReason - reason an eigensolver was said to 
          have converged or diverged
 
-   Level: beginner
+    Level: beginner
 
 .seealso: EPSSolve(), EPSGetConvergedReason(), EPSSetTolerances()
 E*/

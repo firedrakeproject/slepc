@@ -41,6 +41,7 @@
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
+#define epsgetbalance_              EPSGETBALANCE
 #define epsgetclass_                EPSGETCLASS
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
@@ -63,6 +64,7 @@
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
+#define epsgetbalance_              epsgetbalance
 #define epsgetclass_                epsgetclass
 #define epsgetconvergedreason_      epsgetconvergedreason
 #define epspowergetshifttype_       epspowergetshifttype
@@ -222,6 +224,11 @@ void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,PetscErrorCo
 void PETSC_STDCALL epsgetextraction_(EPS *eps,EPSExtraction *proj,PetscErrorCode *ierr)
 {
   *ierr = EPSGetExtraction(*eps,proj);
+}
+
+void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
+{
+  *ierr = EPSGetBalance(*eps,bal,its,cutoff);
 }
 
 void PETSC_STDCALL epsgetclass_(EPS *eps,EPSClass *cl,PetscErrorCode *ierr)

@@ -51,6 +51,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscReal      r;
   PetscScalar    s;
   PetscInt       i,j,k;
+  const char     *bal_list[3] = { "none", "oneside", "twoside" };
   PetscViewerASCIIMonitor monviewer;
 
   PetscFunctionBegin;
@@ -87,6 +88,14 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-eps_refined_harmonic","refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr);}
+
+    if (!eps->balance) eps->balance = EPSBALANCE_NONE;
+    ierr = PetscOptionsEList("-eps_balance", "Balancing method","EPSSetBalance",bal_list,3,bal_list[eps->balance-EPSBALANCE_NONE],&i,&flg);CHKERRQ(ierr);
+    if (flg) { eps->balance = (EPSBalance)(i+EPSBALANCE_NONE); }
+    r = j = PETSC_IGNORE;
+    ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetBalance(eps,PETSC_IGNORE,j,r);CHKERRQ(ierr);
 
     ierr = PetscOptionsTruthGroupBegin("-eps_oneside","one-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetClass(eps,EPS_ONE_SIDE);CHKERRQ(ierr);}
@@ -322,7 +331,7 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    dependent on the solution method.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
-   to set one of them at most. Normal usage is the following:
+   to set one of them at most. Normal usage is the following
 +  - In cases where nev is small, the user sets ncv (a reasonable default is 2*nev).
 -  - In cases where nev is large, the user sets mpd.
 
@@ -377,7 +386,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 -   which - the portion of the spectrum to be sought
 
     Possible values:
-    The parameter 'which' can have one of these values:
+    The parameter 'which' can have one of these values
     
 +     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
@@ -698,6 +707,103 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidPointer(extr,2);
   *extr = eps->extraction;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetBalance"
+/*@
+   EPSSetBalance - Specifies the balancing technique to be employed by the
+   eigensolver, and some parameters associated to it.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps    - the eigensolver context
+.  bal    - the balancing method, one of EPSBALANCE_NONE, EPSBALANCE_ONESIDE,
+            or EPSBALANCE_TWOSIDE
+.  its    - number of iterations of the balancing algorithm
+-  cutoff - cutoff value
+
+   Options Database Keys:
++  -eps_balance <method> - the balancing method, where <method> is one of
+                           'none', 'oneside', or 'twoside'
+.  -eps_balance_its <its> - number of iterations
+-  -eps_balance_cutoff <cutoff> - cutoff value
+    
+   Notes:
+   When balancing is enabled, the solver works implicitly with matrix DAD^-1,
+   where D is an appropriate diagonal matrix. This improves the accuracy of
+   the computed results in some cases. See the SLEPc Users Manual for details.
+
+   Balancing makes sense only for non-Hermitian problems when the required
+   precision is high (i.e. a small tolerance such as 1e-15).
+
+   By default, balancing is disabled. The two-sided method is much more
+   effective than the one-sided counterpart, but it requires the system
+   matrices to have the MatMultTranspose operation defined.
+
+   The parameter 'its' is the number of iterations performed by the method. The
+   cutoff value is used only in the two-side variant. Use PETSC_IGNORE for an
+   argument that need not be changed. Use PETSC_DECIDE to assign a reasonably
+   good value.
+
+   Level: intermediate
+
+.seealso: EPSGetBalance(), EPSBalance
+@*/
+PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutoff)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (bal!=PETSC_IGNORE) {
+    if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPSBALANCE_TWOSIDE;
+    eps->balance = bal;
+  }
+  if (its!=PETSC_IGNORE) {
+    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
+    eps->balance_its = its;
+  }
+  if (cutoff!=PETSC_IGNORE) {
+    if (cutoff==PETSC_DECIDE || cutoff==PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
+    eps->balance_cutoff = cutoff;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetBalance"
+/*@C
+   EPSGetBalance - Gets the balancing type used by the EPS object, and the associated
+   parameters.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context 
+
+   Output Parameters:
++  bal    - the balancing method
+.  its    - number of iterations of the balancing algorithm
+-  cutoff - cutoff value
+
+   Level: intermediate
+
+   Note:
+   The user can specify PETSC_NULL for any parameter that is not needed.
+
+.seealso: EPSSetBalance(), EPSBalance
+@*/
+PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(bal,2);
+  PetscValidPointer(its,3);
+  PetscValidPointer(cutoff,4);
+  if (bal)    *bal = eps->balance;
+  if (its)    *its = eps->balance_its;
+  if (cutoff) *cutoff = eps->balance_cutoff;
   PetscFunctionReturn(0);
 }
 

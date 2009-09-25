@@ -111,7 +111,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const EPSType  type;
-  const char     *extr;
+  const char     *extr,*bal;
   PetscTruth     isascii;
 
   PetscFunctionBegin;
@@ -165,6 +165,18 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         default: SETERRQ(1,"Wrong value of eps->extraction");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
+    }
+    if (eps->balance && !eps->ishermitian && eps->balance!=EPSBALANCE_NONE) {
+      switch (eps->balance) {
+        case EPSBALANCE_ONESIDE:   bal = "one-sided"; break;
+        case EPSBALANCE_TWOSIDE:   bal = "two-sided"; break;
+        default: SETERRQ(1,"Wrong value of eps->balance");
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"  iterative Krylov balancing enabled: %s, with its=%d",bal,eps->balance_its);CHKERRQ(ierr);
+      if (eps->balance==EPSBALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
+        ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%g",eps->balance_cutoff);CHKERRQ(ierr);
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     switch (eps->which) {
@@ -258,6 +270,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
   eps->extraction      = (EPSExtraction)0;
+  eps->balance         = (EPSBalance)0;
+  eps->balance_its     = 5;
+  eps->balance_cutoff  = 1e-8;
   eps->solverclass     = (EPSClass)0;
 
   eps->vec_initial     = 0;

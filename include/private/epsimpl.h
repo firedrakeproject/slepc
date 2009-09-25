@@ -70,6 +70,9 @@ struct _p_EPS {
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */
   EPSClass       solverclass;      /* whether the selected solver is one- or two-sided */
+  EPSBalance     balance;          /* the balancing method */
+  PetscInt       balance_its;      /* number of iterations of the balancing method */
+  PetscReal      balance_cutoff;   /* cutoff value for balancing */
 
   /*------------------------- Working data --------------------------*/
   Vec         vec_initial,      /* initial vector */
