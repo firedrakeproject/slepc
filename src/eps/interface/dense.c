@@ -582,7 +582,7 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
 #endif
   
   /* insertion sort */
-  for (i=n-1; i>=0; i--) {
+  for (i=n-1; i>=k; i--) {
     re = wr[i];
     im = wi[i];
     j = i + 1;
