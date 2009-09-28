@@ -443,7 +443,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
       break;
     default:
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
-  }  
+  }
   PetscFunctionReturn(0);
 }
 
@@ -761,7 +761,16 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (bal!=PETSC_IGNORE) {
     if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPSBALANCE_TWOSIDE;
-    eps->balance = bal;
+    else switch (bal) {
+      case EPSBALANCE_NONE:
+      case EPSBALANCE_ONESIDE:
+      case EPSBALANCE_TWOSIDE:
+      case EPSBALANCE_USER:
+        eps->balance = bal;
+        break;
+      default:
+        SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'"); 
+    }
   }
   if (its!=PETSC_IGNORE) {
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
