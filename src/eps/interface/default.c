@@ -170,6 +170,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = SlepcUpdateVectors(eps->nconv,eps->W,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
   }
    
+  /* Fix eigenvectors if balancing was used */
+  if (eps->balance!=EPSBALANCE_NONE && eps->D) {
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecPointwiseDivide(eps->V[i],eps->V[i],eps->D);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->V[i],&norm);CHKERRQ(ierr);
+    }
+  }
+
   ierr = PetscFree(Z);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -384,20 +392,6 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   ierr = VecGetLocalSize(z,&n);CHKERRQ(ierr);
   ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
 
-  /* Build a random vector of +-1's */
-  ierr = SlepcVecSetRandom(z);CHKERRQ(ierr);
-  ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    if (pz[i]<0.5) pz[i]=-1.0;
-    else pz[i]=1.0;
-  }
-  ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);
-
-  /* Estimate the matrix inf-norm */
-  ierr = STApply(eps->OP,z,p);CHKERRQ(ierr);
-  ierr = VecAbs(p);CHKERRQ(ierr);
-  ierr = VecMax(p,PETSC_NULL,&norma);CHKERRQ(ierr);
-
   for (j=0;j<eps->balance_its;j++) {
 
     /* Build a random vector of +-1's */
@@ -413,6 +407,11 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     ierr = VecPointwiseDivide(r,z,eps->D);CHKERRQ(ierr);
     ierr = STApply(eps->OP,r,p);CHKERRQ(ierr);
     ierr = VecPointwiseMult(p,p,eps->D);CHKERRQ(ierr);
+    if (j==0) {
+      /* Estimate the matrix inf-norm */
+      ierr = VecAbs(p);CHKERRQ(ierr);
+      ierr = VecMax(p,PETSC_NULL,&norma);CHKERRQ(ierr);
+    }
     if (eps->balance == EPSBALANCE_TWOSIDE) {
       /* Compute r=D\(A'Dz) */
       ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);

@@ -57,7 +57,14 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
-  ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseDivide(st->wb,x,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->apply)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseMult(y,y,st->D);CHKERRQ(ierr);
+  }
+  else {
+    ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -65,7 +72,8 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 #undef __FUNCT__  
 #define __FUNCT__ "STGetBilinearForm"
 /*@
-   STGetBilinearForm - Returns the matrix used in the bilinear form with a semi-definite generalised problem.
+   STGetBilinearForm - Returns the matrix used in the bilinear form with a 
+   generalized problem with semi-definite B.
 
    Collective on ST and Mat
 
@@ -139,7 +147,14 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
-  ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseMult(st->wb,x,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
+  }
+  else {
+    ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

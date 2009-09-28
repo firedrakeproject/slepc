@@ -113,7 +113,8 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
 E*/
 typedef enum { EPSBALANCE_NONE=1,
                EPSBALANCE_ONESIDE,
-               EPSBALANCE_TWOSIDE } EPSBalance;
+               EPSBALANCE_TWOSIDE,
+               EPSBALANCE_USER    } EPSBalance;
 
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);

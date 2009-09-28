@@ -372,8 +372,16 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
   if (!eps->ishermitian && eps->evecsavailable) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetRightVector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
   }
-  for (i=0;i<eps->nconv;i++) {
-    ierr = VecCopy(eps->V[i],v[i]);CHKERRQ(ierr);
+  if (eps->balance!=EPSBALANCE_NONE && eps->D) {
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecPointwiseDivide(v[i],eps->V[i],eps->D);CHKERRQ(ierr);
+      ierr = VecNormalize(v[i],PETSC_NULL);CHKERRQ(ierr);
+    }
+  }
+  else {
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecCopy(eps->V[i],v[i]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }

@@ -168,11 +168,15 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
     if (eps->balance && !eps->ishermitian && eps->balance!=EPSBALANCE_NONE) {
       switch (eps->balance) {
-        case EPSBALANCE_ONESIDE:   bal = "one-sided"; break;
-        case EPSBALANCE_TWOSIDE:   bal = "two-sided"; break;
+        case EPSBALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
+        case EPSBALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
+        case EPSBALANCE_USER:      bal = "user-defined matrix"; break;
         default: SETERRQ(1,"Wrong value of eps->balance");
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  iterative Krylov balancing enabled: %s, with its=%d",bal,eps->balance_its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
+      if (eps->balance==EPSBALANCE_ONESIDE || eps->balance==EPSBALANCE_TWOSIDE) {
+        ierr = PetscViewerASCIIPrintf(viewer,", with its=%d",eps->balance_its);CHKERRQ(ierr);
+      }
       if (eps->balance==EPSBALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
         ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%g",eps->balance_cutoff);CHKERRQ(ierr);
       }

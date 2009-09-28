@@ -127,11 +127,12 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Build balancing matrix if required */
   if (!eps->balance) eps->balance = EPSBALANCE_NONE;
-  if (!eps->ishermitian && eps->balance!=EPSBALANCE_NONE) {
+  if (!eps->ishermitian && (eps->balance==EPSBALANCE_ONESIDE || eps->balance==EPSBALANCE_TWOSIDE)) {
     if (!eps->D) {
       ierr = VecDuplicate(eps->vec_initial,&eps->D);CHKERRQ(ierr);
     }
     ierr = EPSBuildBalance_Krylov(eps);CHKERRQ(ierr);
+    ierr = STSetBalanceMatrix(eps->OP,eps->D);CHKERRQ(ierr);
   }
 
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);

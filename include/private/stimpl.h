@@ -54,6 +54,8 @@ struct _p_ST {
   /*------------------------- Misc data --------------------------*/
   KSP            ksp;
   Vec            w;
+  Vec            D;                /* diagonal matrix for balancing */
+  Vec            wb;               /* balancing requires an extra work vector */
   void           *data;
   PetscInt       setupcalled;
   PetscInt       lineariterations;

@@ -51,7 +51,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscReal      r;
   PetscScalar    s;
   PetscInt       i,j,k;
-  const char     *bal_list[3] = { "none", "oneside", "twoside" };
+  const char     *bal_list[4] = { "none", "oneside", "twoside","user" };
   PetscViewerASCIIMonitor monviewer;
 
   PetscFunctionBegin;
@@ -90,7 +90,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr);}
 
     if (!eps->balance) eps->balance = EPSBALANCE_NONE;
-    ierr = PetscOptionsEList("-eps_balance", "Balancing method","EPSSetBalance",bal_list,3,bal_list[eps->balance-EPSBALANCE_NONE],&i,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-eps_balance", "Balancing method","EPSSetBalance",bal_list,4,bal_list[eps->balance-EPSBALANCE_NONE],&i,&flg);CHKERRQ(ierr);
     if (flg) { eps->balance = (EPSBalance)(i+EPSBALANCE_NONE); }
     r = j = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,PETSC_NULL);CHKERRQ(ierr);
@@ -721,13 +721,13 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
    Input Parameters:
 +  eps    - the eigensolver context
 .  bal    - the balancing method, one of EPSBALANCE_NONE, EPSBALANCE_ONESIDE,
-            or EPSBALANCE_TWOSIDE
+            EPSBALANCE_TWOSIDE, or EPSBALANCE_USER
 .  its    - number of iterations of the balancing algorithm
 -  cutoff - cutoff value
 
    Options Database Keys:
 +  -eps_balance <method> - the balancing method, where <method> is one of
-                           'none', 'oneside', or 'twoside'
+                           'none', 'oneside', 'twoside', or 'user'
 .  -eps_balance_its <its> - number of iterations
 -  -eps_balance_cutoff <cutoff> - cutoff value
     
@@ -748,9 +748,12 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
    argument that need not be changed. Use PETSC_DECIDE to assign a reasonably
    good value.
 
+   User-defined balancing is allowed provided that the corresponding matrix
+   is set via STSetBalanceMatrix.
+
    Level: intermediate
 
-.seealso: EPSGetBalance(), EPSBalance
+.seealso: EPSGetBalance(), EPSBalance, STSetBalanceMatrix()
 @*/
 PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutoff)
 {

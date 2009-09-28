@@ -107,6 +107,8 @@ PetscErrorCode STDestroy(ST st)
   if (st->B) { ierr = MatDestroy(st->B);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPDestroy(st->ksp);CHKERRQ(ierr); } 
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); } 
+  if (st->D) { ierr = VecDestroy(st->D);CHKERRQ(ierr); } 
+  if (st->wb){ ierr = VecDestroy(st->wb);CHKERRQ(ierr); } 
   if (st->shift_matrix != STMATMODE_INPLACE && st->mat) { 
     ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
   }
@@ -151,6 +153,8 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->data                = 0;
   st->setupcalled         = 0;
   st->w                   = 0;
+  st->D                   = 0;
+  st->wb                  = 0;
   st->shift_matrix        = STMATMODE_COPY;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
   
@@ -234,9 +238,9 @@ PetscErrorCode STGetOperators(ST st,Mat *A,Mat *B)
 #undef __FUNCT__  
 #define __FUNCT__ "STSetShift"
 /*@
-   STSetShift - Sets the shift associated with the spectral transformation
+   STSetShift - Sets the shift associated with the spectral transformation.
 
-   Not collective
+   Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -285,6 +289,75 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (shift)  *shift = st->sigma;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STSetBalanceMatrix"
+/*@
+   STSetBalanceMatrix - Sets the diagonal matrix to be used for balancing.
+
+   Collective on ST and Vec
+
+   Input Parameters:
++  st - the spectral transformation context
+-  D  - the diagonal matrix (represented as a vector)
+
+   Notes:
+   If this matrix is set, STApply will effectively apply D*OP*D^{-1}.
+
+   Balancing is usually set via EPSSetBalance, but the advanced user may use
+   this function to bypass the usual balancing methods.
+   
+   Level: developer
+
+.seealso: EPSSetBalance(), STApply(), STGetBalanceMatrix()
+@*/
+PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(D,VEC_COOKIE,2);
+  PetscCheckSameComm(st,1,D,2);
+  ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
+  if (st->D) {
+    ierr = VecDestroy(st->D); CHKERRQ(ierr);
+  }
+  st->D = D;
+  if (!st->wb) {
+    ierr = VecDuplicate(st->D,&st->wb); CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STGetBalanceMatrix"
+/*@
+   STGetBalanceMatrix - Gets the balance matrix used by the spectral transformation.
+
+   Not collective, but vector is shared by all processors that share the ST
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  D  - the diagonal matrix (represented as a vector)
+
+   Note:
+   If the matrix was not set, a null pointer will be returned.
+
+   Level: developer
+
+.seealso: STSetBalanceMatrix()
+@*/
+PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidPointer(D,2);
+  *D = st->D;
   PetscFunctionReturn(0);
 }
 
