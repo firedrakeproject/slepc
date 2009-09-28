@@ -77,6 +77,7 @@ struct _p_EPS {
   /*------------------------- Working data --------------------------*/
   Vec         vec_initial,      /* initial vector */
               vec_initial_left, /* left initial vector for two-sided solvers */
+              D,                /* diagonal matrix for balancing */
               *V,               /* set of basis vectors and computed eigenvectors */
               *AV,              /* auxiliar set of basis vectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */
@@ -144,5 +145,6 @@ EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt
 EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscInt,PetscScalar*,PetscReal,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
 
 #endif
