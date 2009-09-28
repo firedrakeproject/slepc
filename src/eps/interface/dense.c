@@ -699,8 +699,8 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
 
    Input Parameters:
 +  n   - dimension of the eigenproblem
-.  A   - pointer to the array containing the matrix values
--  lda - leading dimension of A
+.  D   - pointer to the array containing the diagonal elements
+-  E   - pointer to the array containing the off-diagonal elements
 
    Output Parameters:
 +  w  - pointer to the array to store the computed eigenvalues
@@ -709,7 +709,7 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
    Notes:
    If V is PETSC_NULL then the eigenvectors are not computed.
 
-   This routine use LAPACK routines DSTEVR.
+   This routine use LAPACK routines xSTEVR.
 
    Level: developer
 

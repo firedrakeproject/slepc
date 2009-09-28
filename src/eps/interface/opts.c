@@ -40,8 +40,6 @@
    To see all options, run your program with the -help option.
 
    Level: beginner
-
-.seealso: 
 @*/
 PetscErrorCode EPSSetFromOptions(EPS eps)
 {
@@ -194,8 +192,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetTolerances"
 /*@
-   EPSGetTolerances - Gets the tolerance and maximum
-   iteration count used by the default EPS convergence tests. 
+   EPSGetTolerances - Gets the tolerance and maximum iteration count used
+   by the EPS convergence tests. 
 
    Not Collective
 
@@ -225,8 +223,8 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetTolerances"
 /*@
-   EPSSetTolerances - Sets the tolerance and maximum
-   iteration count used by the default EPS convergence testers. 
+   EPSSetTolerances - Sets the tolerance and maximum iteration count used
+   by the EPS convergence tests. 
 
    Collective on EPS
 
@@ -394,32 +392,34 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_SMALLEST_REAL - smallest real parts
 .     EPS_LARGEST_IMAGINARY - largest imaginary parts
 .     EPS_SMALLEST_IMAGINARY - smallest imaginary parts
-.     EPS_TARGET_MAGNITUDE - nearest eigenvalues to the target set by EPSSetTarget
-.     EPS_TARGET_REAL - eigenvalues with real part near to target
-.     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part near to target
--     EPS_USER - user defined order set by EPSSetEigenvalueComparison
+.     EPS_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
+.     EPS_TARGET_REAL - eigenvalues with real part closest to target
+.     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+-     EPS_USER - user defined ordering set with EPSSetEigenvalueComparison()
 
     Options Database Keys:
 +   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
 .   -eps_smallest_magnitude - Sets smallest eigenvalues in magnitude
 .   -eps_largest_real - Sets largest real parts
 .   -eps_smallest_real - Sets smallest real parts
-.   -eps_largest_imaginary - Sets largest imaginary parts in magnitude
-.   -eps_smallest_imaginary - Sets smallest imaginary parts in magnitude
-.   -eps_target_magnitude - Sets nearest eigenvalues to target
-.   -eps_target_real - Sets real parts nearest to target
--   -eps_target_imaginary - Sets imaginary parts nearest to target
+.   -eps_largest_imaginary - Sets largest imaginary parts
+.   -eps_smallest_imaginary - Sets smallest imaginary parts
+.   -eps_target_magnitude - Sets eigenvalues closest to target
+.   -eps_target_real - Sets real parts closest to target
+-   -eps_target_imaginary - Sets imaginary parts closest to target
 
     Notes:
     Not all eigensolvers implemented in EPS account for all the possible values
     stated above. Also, some values make sense only for certain types of 
     problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
     and EPS_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
-    for eigenvalue selection.     
+    for eigenvalue selection.
     
+    The target is a scalar value provided with EPSSetTarget().
+
     Level: intermediate
 
-.seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetEigenvalueComparison, EPSSortEigenvalues(), EPSWhich
+.seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetEigenvalueComparison(), EPSSortEigenvalues(), EPSWhich
 @*/
 PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
@@ -462,7 +462,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 .   which - the portion of the spectrum to be sought
 
     Notes:
-    See EPSSetWhichEigenpairs() for possible values of which
+    See EPSSetWhichEigenpairs() for possible values of 'which'.
 
     Level: intermediate
 
@@ -480,8 +480,9 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetEigenvalueComparison"
 /*@C
-    EPSSetCompareEigenvalues - Specifies the eigenvalue comparison function
-    when EPSSetWhichEigenpairs is set to EPS_USER.
+    EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
+    when EPSSetWhichEigenpairs() is set to EPS_USER.
+
     Collective on EPS
 
     Input Parameters:
@@ -489,10 +490,21 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 .   func - a pointer to the comparison function
 -   ctx  - a context pointer (the last parameter to the comparison function)
 
-    Notes:
-     The comparison function must return an integer less than, equal to, or
-     greater than zero if the first eigenvalue is considered to be respectively
-     less than, equal to, or greater than the second.
+    Calling Sequence of func:
+$   func(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+
++   eps    - eigensolver context obtained from EPSCreate()
+.   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by EPSSetEigenvalueComparison()
+
+    Note:
+    The comparison function must return an integer less than, equal to, or
+    greater than zero if the first eigenvalue is considered to be respectively
+    less than, equal to, or greater than the second one.
     
     Level: advanced
 
@@ -510,6 +522,7 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
 #define __FUNCT__ "EPSSetConvergenceTest"
 /*@C
     EPSSetConvergenceTest - Specifies the convergence test.
+
     Collective on EPS
 
     Input Parameters:
@@ -517,7 +530,19 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
 .   func - a pointer to the convergence test function
 -   ctx  - a context pointer (the last parameter to the convergence test function)
 
-    Notes:
+    Calling Sequence of func:
+$   func(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+
++   eps    - eigensolver context obtained from EPSCreate()
+.   n      - length of the arrays
+.   k      - first position of the array to be considered
+.   eigr   - array containing real parts of the eigenvalues
+.   eigi   - array containing imaginary parts of the eigenvalues
+.   errest - array containing the error estimates (residuals)
+.   conv   - (output) boolean array with the result of the test
+-   ctx    - optional context, as set by EPSSetConvergenceTest()
+
+    Note:
     The convergence function sets an element of the flag array for each eigenvalue.
     
     Level: advanced

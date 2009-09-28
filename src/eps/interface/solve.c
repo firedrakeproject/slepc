@@ -278,7 +278,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,Pets
 
    Level: beginner
 
-.seealso: EPSSetDimensions()
+.seealso: EPSSetDimensions(), EPSSolve()
 @*/
 PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 {
@@ -303,7 +303,6 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 
    Output Parameter:
 .  reason - negative value indicates diverged, positive value converged
-   (see EPSConvergedReason)
 
    Possible values for reason:
 +  EPS_CONVERGED_TOL - converged up to tolerance
@@ -311,9 +310,10 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 .  EPS_DIVERGED_BREAKDOWN - generic breakdown in method
 -  EPS_DIVERGED_NONSYMMETRIC - The operator is nonsymmetric
 
-   Level: intermediate
+   Note:
+   Can only be called after the call to EPSSolve() is complete.
 
-   Notes: Can only be called after the call to EPSSolve() is complete.
+   Level: intermediate
 
 .seealso: EPSSetTolerances(), EPSSolve(), EPSConvergedReason
 @*/
@@ -332,7 +332,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
    EPSGetInvariantSubspace - Gets an orthonormal basis of the computed invariant 
    subspace.
 
-   Not Collective
+   Not Collective, but vectors are shared by all processors that share the EPS
 
    Input Parameter:
 .  eps - the eigensolver context
@@ -392,7 +392,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
    EPSGetLeftInvariantSubspace - Gets an orthonormal basis of the computed left
    invariant subspace (only available in two-sided eigensolvers).
 
-   Not Collective
+   Not Collective, but vectors are shared by all processors that share the EPS
 
    Input Parameter:
 .  eps - the eigensolver context
@@ -445,7 +445,7 @@ PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
    EPSSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
-   Not Collective
+   Not Collective, but vectors are shared by all processors that share the EPS
 
    Input Parameters:
 +  eps - eigensolver context 
@@ -554,7 +554,7 @@ PetscErrorCode EPSGetValue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *
 /*@
    EPSGetRightVector - Gets the i-th right eigenvector as computed by EPSSolve(). 
 
-   Not Collective
+   Not Collective, but vectors are shared by all processors that share the EPS
 
    Input Parameters:
 +  eps - eigensolver context 
@@ -629,7 +629,7 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
    EPSGetLeftVector - Gets the i-th left eigenvector as computed by EPSSolve() 
    (only available in two-sided eigensolvers). 
 
-   Not Collective
+   Not Collective, but vectors are shared by all processors that share the EPS
 
    Input Parameters:
 +  eps - eigensolver context 
@@ -715,7 +715,7 @@ PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 
    Notes:
    This is the error estimate used internally by the eigensolver. The actual
-   error bound can be computed with EPSComputeRelativeError(). See also the user's
+   error bound can be computed with EPSComputeRelativeError(). See also the users
    manual for details.
 
    Level: advanced
@@ -754,7 +754,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps, PetscInt i, PetscReal *errest)
 
    Notes:
    This is the error estimate used internally by the eigensolver. The actual
-   error bound can be computed with EPSComputeRelativeErrorLeft(). See also the user's
+   error bound can be computed with EPSComputeRelativeErrorLeft(). See also the users
    manual for details.
 
    Level: advanced
@@ -1093,23 +1093,23 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
 #define __FUNCT__ "EPSSortEigenvalues"
 /*@
    EPSSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
-   specified via EPSSetWhichEigenpairs.
+   specified via EPSSetWhichEigenpairs().
 
    Not Collective
 
    Input Parameters:
 +  eps   - the eigensolver context
-.  n     - number of eigenvalue in the list
-.  eig   - pointer to the array containing the eigenvalues
+.  n     - number of eigenvalues in the list
+.  eigr  - pointer to the array containing the eigenvalues
 -  eigi  - imaginary part of the eigenvalues (only when using real numbers)
 
    Output Parameter:
-.  permout - resulting permutation
+.  perm  - resulting permutation
 
-   Notes:
+   Note:
    The result is a list of indices in the original eigenvalue array 
    corresponding to the first nev eigenvalues sorted in the specified
-   criterion
+   criterion.
 
    Level: developer
 
@@ -1175,25 +1175,21 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
    Not Collective
 
    Input Parameters:
-+  n     - number of eigenvalue in the list
-.  eig   - pointer to the array containing the eigenvalues (real)
-.  which - sorting criterion
--  nev   - number of wanted eigenvalues
++  eps   - the eigensolver context
+.  n     - number of eigenvalue in the list
+-  eig   - pointer to the array containing the eigenvalues (real)
 
    Output Parameter:
-.  permout - resulting permutation
+.  perm  - resulting permutation
 
-   Workspace:
-.  work - workspace for storing n real values and n integer values
-
-   Notes:
+   Note:
    The result is a list of indices in the original eigenvalue array 
    corresponding to the first nev eigenvalues sorted in the specified
-   criterion
+   criterion.
 
    Level: developer
 
-.seealso: EPSSortEigenvalues(), EPSSetWhichEigenpairs()
+.seealso: EPSSortEigenvalues(), EPSSetWhichEigenpairs(), EPSCompareEigenvalues()
 @*/
 PetscErrorCode EPSSortEigenvaluesReal(EPS eps,PetscInt n,PetscReal *eig,PetscInt *perm)
 {
@@ -1220,6 +1216,34 @@ PetscErrorCode EPSSortEigenvaluesReal(EPS eps,PetscInt n,PetscReal *eig,PetscInt
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCompareEigenvalues"
+/*@
+   EPSCompareEigenvalues - Compares two (possibly complex) eigenvalues according
+   to a certain criterion.
+
+   Not Collective
+
+   Input Parameters:
++  eps   - the eigensolver context
+.  ar     - real part of the 1st eigenvalue
+.  ai     - imaginary part of the 1st eigenvalue
+.  br     - real part of the 2nd eigenvalue
+-  bi     - imaginary part of the 2nd eigenvalue
+
+   Output Parameter:
+.  res    - result of comparison
+
+   Notes:
+   Returns an integer less than, equal to, or greater than zero if the first
+   eigenvalue is considered to be respectively less than, equal to, or greater
+   than the second one.
+
+   The criterion of comparison is related to the 'which' parameter set with
+   EPSSetWhichEigenpairs().
+
+   Level: developer
+
+.seealso: EPSSortEigenvalues(), EPSSetWhichEigenpairs()
+@*/
 PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
 {
   PetscErrorCode ierr;

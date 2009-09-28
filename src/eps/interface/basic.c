@@ -559,7 +559,7 @@ PetscErrorCode EPSDestroy(EPS eps)
 /*@
    EPSSetTarget - Sets the value of the target.
 
-   Not collective
+   Collective on EPS
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -567,14 +567,8 @@ PetscErrorCode EPSDestroy(EPS eps)
 
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
-   of interest.
-
-   If the target is not specified, then eigenvalues are computed according to
-   the which parameter (see EPSSetWhichEigenpairs()).
+   of interest. It is used in combination with EPSSetWhichEigenpairs().
    
-   If the target is specified, then the sought-after eigenvalues are those
-   closest to the target.
-
    Level: beginner
 
 .seealso: EPSGetTarget(), EPSSetWhichEigenpairs()
@@ -623,7 +617,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
    EPSSetST - Associates a spectral transformation object to the
    eigensolver. 
 
-   Collective on EPS
+   Collective on EPS and ST
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
@@ -681,10 +675,9 @@ PetscErrorCode EPSGetST(EPS eps, ST *st)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetIP"
 /*@
-   EPSSetIP - Associates an inner product object to the
-   eigensolver. 
+   EPSSetIP - Associates an inner product object to the eigensolver. 
 
-   Collective on EPS
+   Collective on EPS and IP
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()

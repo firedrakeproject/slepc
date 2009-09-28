@@ -195,14 +195,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #define __FUNCT__ "EPSDefaultGetWork"
 /*
   EPSDefaultGetWork - Gets a number of work vectors.
-
-  Input Parameters:
-+ eps  - eigensolver context
-- nw   - number of work vectors to allocate
-
-  Notes:
-  Call this only if no work vectors have been allocated.
-
  */
 PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
 {
@@ -226,10 +218,6 @@ PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
 #define __FUNCT__ "EPSDefaultFreeWork"
 /*
   EPSDefaultFreeWork - Free work vectors.
-
-  Input Parameters:
-. eps  - eigensolver context
-
  */
 PetscErrorCode EPSDefaultFreeWork(EPS eps)
 {
@@ -305,7 +293,7 @@ PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
         /* compute eigenvalue */
         re = eigr[i]; im = 0.0;
         ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
-        /* compute schur vector */
+        /* compute Schur vector */
         ierr = (*eps->schur_func)(eps,i,x);CHKERRQ(ierr);
         /* compute residual */
         if (B) { 
@@ -336,7 +324,7 @@ PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeSchurVector_Default"
 /*
-  EPSComputeSchurVector_Default - this function computes a schur vector during
+  EPSComputeSchurVector_Default - this function computes a Schur vector during
   the solve phase. This function is used by EPSResidualConverged in the subspace,
   Arnoldi and Krylov-Schur solvers.
 */
@@ -355,8 +343,8 @@ PetscErrorCode EPSComputeSchurVector_Default(EPS eps,PetscInt i,Vec v)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeSchurVector_Hermitian"
 /*
-  EPSComputeSchurVector_Default - this function computes a schur vector during
-  the solve phase. This function is used by EPSResidualConverged int the Lanczos
+  EPSComputeSchurVector_Hermitian - this function computes a Schur vector during
+  the solve phase. This function is used by EPSResidualConverged in the Lanczos
   and symmetric Krylov-Schur solvers.
 */
 PetscErrorCode EPSComputeSchurVector_Hermitian(EPS eps,PetscInt i,Vec v)

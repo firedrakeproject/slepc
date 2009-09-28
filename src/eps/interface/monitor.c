@@ -53,6 +53,9 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
    Options Database Keys:
 +    -eps_monitor        - print error estimates at each iteration
+.    -eps_monitor_first  - print only the first error estimate
+.    -eps_monitor_conv   - print the eigenvalue approximations only when
+      convergence has been reached
 .    -eps_monitor_draw   - sets line graph monitor
 -    -eps_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to EPSMonitorSet(), but does not cancel those set via

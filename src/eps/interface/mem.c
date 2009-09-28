@@ -27,8 +27,8 @@
 #define __FUNCT__ "EPSAllocateSolution"
 /*
   EPSAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. In this version, all
-  vectors in V (and W) share a contiguous chunk of memory.
+  as eigenvalues and eigenvectors. All vectors in V (and W) share a
+  contiguous chunk of memory.
 */
 PetscErrorCode EPSAllocateSolution(EPS eps)
 {
