@@ -362,3 +362,84 @@ PetscErrorCode EPSComputeSchurVector_Hermitian(EPS eps,PetscInt i,Vec v)
   ierr = VecMAXPY(v,eps->nv,eps->Z+eps->nv*(i-eps->nconv),eps->V+eps->nconv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSBuildBalance_Krylov"
+/*
+  EPSBuildBalance_Krylov - uses a Krylov subspace method to compute the
+  diagonal matrix to be applied for balancing in non-Hermitian problems.
+*/
+PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
+{
+  Vec            z, p, r;
+  PetscInt       i, j, n;
+  PetscScalar    norma;
+  PetscScalar    *pz, *pr, *pp, *pD;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = VecDuplicate(eps->vec_initial,&r);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&p);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&z);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(z,&n);CHKERRQ(ierr);
+  ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
+
+  /* Build a random vector of +-1's */
+  ierr = SlepcVecSetRandom(z);CHKERRQ(ierr);
+  ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    if (pz[i]<0.5) pz[i]=-1.0;
+    else pz[i]=1.0;
+  }
+  ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);
+
+  /* Estimate the matrix inf-norm */
+  ierr = STApply(eps->OP,z,p);CHKERRQ(ierr);
+  ierr = VecAbs(p);CHKERRQ(ierr);
+  ierr = VecMax(p,PETSC_NULL,&norma);CHKERRQ(ierr);
+
+  for (j=0;j<eps->balance_its;j++) {
+
+    /* Build a random vector of +-1's */
+    ierr = SlepcVecSetRandom(z);CHKERRQ(ierr);
+    ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      if (pz[i]<0.5) pz[i]=-1.0;
+      else pz[i]=1.0;
+    }
+    ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);
+
+    /* Compute p=DA(D\z) */
+    ierr = VecPointwiseDivide(r,z,eps->D);CHKERRQ(ierr);
+    ierr = STApply(eps->OP,r,p);CHKERRQ(ierr);
+    ierr = VecPointwiseMult(p,p,eps->D);CHKERRQ(ierr);
+    if (eps->balance == EPSBALANCE_TWOSIDE) {
+      /* Compute r=D\(A'Dz) */
+      ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
+      ierr = STApplyTranspose(eps->OP,z,r);CHKERRQ(ierr);
+      ierr = VecPointwiseDivide(r,r,eps->D);CHKERRQ(ierr);
+    }
+    
+    /* Adjust values of D */
+    ierr = VecGetArray(r,&pr);CHKERRQ(ierr);
+    ierr = VecGetArray(p,&pp);CHKERRQ(ierr);
+    ierr = VecGetArray(eps->D,&pD);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      if (eps->balance == EPSBALANCE_TWOSIDE) {
+        if (PetscAbsScalar(pp[i])>eps->balance_cutoff*norma && pr[i]!=0.0)
+          pD[i] *= sqrt(PetscAbsScalar(pr[i]/pp[i]));
+      } else {
+        if (pp[i]!=0.0) pD[i] *= 1.0/PetscAbsScalar(pp[i]);
+      }
+    }
+    ierr = VecRestoreArray(r,&pr);CHKERRQ(ierr);
+    ierr = VecRestoreArray(p,&pp);CHKERRQ(ierr);
+    ierr = VecRestoreArray(eps->D,&pD);CHKERRQ(ierr);
+  }
+
+  ierr = VecDestroy(r);CHKERRQ(ierr);
+  ierr = VecDestroy(p);CHKERRQ(ierr);
+  ierr = VecDestroy(z);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

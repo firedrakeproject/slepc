@@ -531,6 +531,10 @@ PetscErrorCode EPSDestroy(EPS eps)
     ierr = VecDestroy(eps->vec_initial_left);CHKERRQ(ierr);
   }
 
+  if (eps->D) {
+    ierr = VecDestroy(eps->D);CHKERRQ(ierr);
+  }
+
   if (eps->nds > 0) {
     ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
     for (i=0;i<eps->nds;i++) {
