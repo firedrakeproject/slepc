@@ -138,6 +138,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  st->applys++;
   ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
