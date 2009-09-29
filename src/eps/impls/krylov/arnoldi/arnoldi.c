@@ -82,7 +82,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   } else {
     ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   }
-  eps->schur_func = EPSComputeSchurVector_Default;
+  eps->schur_func = EPSGetSchurUpdate_Default;
   PetscFunctionReturn(0);
 }
 

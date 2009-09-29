@@ -281,81 +281,170 @@ PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
   Vec            x,y,z;
   PetscInt       i;
   PetscScalar    re,im;
+  PetscReal      w,norm;
+  PetscBLASInt   ncv,m,mout,info; 
+  PetscScalar    *Z,*work;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
   
   PetscFunctionBegin;
+#ifdef SLEPC_MISSING_LAPACK_TREVC
+  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
+  if (!eps->schur_func)
+    SETERRQ(PETSC_ERR_SUP,"Residual convergence test not supported in this solver");
+  
+  /* compute relative error */
+  m = 0;
+  for (i=k; i<n; i++) {
+    re = eigr[i]; im = eigi[i];
+    ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+    w = SlepcAbsEigenvalue(re,im);
+    if (w > errest[i]) errest[i] = errest[i] / w;
+    if (errest[i] < eps->tol) {
+      conv[i] = PETSC_TRUE;
+      m = PetscBLASIntCast(i+1);
+    } else conv[i] = PETSC_FALSE;
+  }
+  
+  /* quick return if there is no converged eigenvalues */
+  if (m == 0) PetscFunctionReturn(0);
+  
+  if (eps->ishermitian) m -= eps->nconv;
+  
+  /* allocate workspace */
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&x);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&y);CHKERRQ(ierr);
-  if (B) { ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr); }
-  for (i=k; i<n; i++) {
-    if (errest[i] < eps->tol && eps->schur_func) {
-      if (eps->ishermitian) {
-        /* compute eigenvalue */
-        re = eigr[i]; im = 0.0;
-        ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
-        /* compute Schur vector */
-        ierr = (*eps->schur_func)(eps,i,x);CHKERRQ(ierr);
-        /* compute residual */
-        if (B) { 
-          /* purify eigenvector for generalized problem */
-          ierr = STApply(eps->OP,x,z);CHKERRQ(ierr);
-          ierr = VecNormalize(z,PETSC_NULL);CHKERRQ(ierr);
-          ierr = MatMult(A,z,y);CHKERRQ(ierr);
-          ierr = MatMult(B,z,x);CHKERRQ(ierr);
-        } else {
-          /* standard problem */
-          ierr = MatMult(A,x,y);CHKERRQ(ierr);
-        }
-        ierr = VecAXPY(y,-re,x);CHKERRQ(ierr);
-        ierr = VecNorm(y,NORM_2,errest+i);CHKERRQ(ierr);
-      } else {
-        SETERRQ(PETSC_ERR_SUP,"Residual convergence not supported in non-hermitian problems");
-      }
-    }
-    if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
-    else conv[i] = PETSC_FALSE;
+  ierr = PetscMalloc(m*m*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
+  
+  /* get matrix for computing Schur vectors */
+  ierr = (*eps->schur_func)(eps,m,Z);CHKERRQ(ierr);
+
+  /* prepare eigenvectors for the non-hermitian problem */
+  if (!eps->ishermitian) {
+    if (eps->ispositive) { ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr); }
+    ncv = PetscBLASIntCast(eps->ncv);
+    ierr = PetscMalloc(3*m*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#ifndef PETSC_USE_COMPLEX
+    LAPACKtrevc_("R","B",PETSC_NULL,&m,eps->T,&ncv,PETSC_NULL,&m,Z,&m,&m,&mout,work,&info);
+#else
+    ierr = PetscMalloc(m*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+    LAPACKtrevc_("R","B",PETSC_NULL,&m,eps->T,&ncv,PETSC_NULL,&m,Z,&m,&m,&mout,work,rwork,&info);
+#endif
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   }
+
+  /* compute residual norm for the converged eigenvalues */
+  for (i=k; i<n; i++) {
+    if (conv[i]) {
+      /* compute eigenvalue */
+      re = eigr[i]; im = eigi[i];
+      ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+      /* compute eigenvector */
+      if (eps->ishermitian) {
+        ierr = SlepcVecMAXPBY(x,0.0,1.0,m,Z+(i-eps->nconv)*m,eps->V+eps->nconv);CHKERRQ(ierr);
+      } else {
+        ierr = SlepcVecMAXPBY(x,0.0,1.0,m,Z+i*m,eps->V);CHKERRQ(ierr);
+      }
+      /* purify eigenvector in positive generalized problems */
+      if (eps->ispositive) {
+        ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
+        if (eps->ishermitian) {
+          ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
+        } else {
+          ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);          
+        } 
+        ierr = VecScale(y,1.0/norm);CHKERRQ(ierr);
+        ierr = VecCopy(y,x);CHKERRQ(ierr);
+      }
+      /* fix eigenvector if balancing is used */
+      if (!eps->ishermitian && eps->balance!=EPSBALANCE_NONE && eps->D) {
+        ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
+        ierr = VecNormalize(x,&norm);CHKERRQ(ierr);
+      }
+#ifndef PETSC_USE_COMPLEX      
+      /* compute imaginary part of eigenvector */
+      if (!eps->ishermitian && im != 0.0) {
+        ierr = SlepcVecMAXPBY(y,0.0,1.0,m,Z+(i+1)*m,eps->V);CHKERRQ(ierr);
+        if (eps->ispositive) {
+          ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
+          ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
+          ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
+          ierr = VecCopy(z,y);CHKERRQ(ierr);
+        }
+        if (eps->balance!=EPSBALANCE_NONE && eps->D) {
+          ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
+          ierr = VecNormalize(y,&norm);CHKERRQ(ierr);
+        }
+      }
+#endif
+      /* compute relative error and update convergence flag */
+      ierr = EPSComputeRelativeError_Private(eps,re,im,x,y,&errest[i]);
+      if (errest[i] >= eps->tol) conv[i] = PETSC_FALSE;
+#ifndef PETSC_USE_COMPLEX      
+      if (!eps->ishermitian && im != 0.0) {
+        errest[i+1] = errest[i];
+        conv[i+1] = conv[i];
+        i++;
+      }
+#endif
+    }
+  }
+
+  /* free workspace */
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
-  if (B) { ierr = VecDestroy(z);CHKERRQ(ierr); }
+  if (!eps->ishermitian) {
+    if (eps->ispositive) { ierr = VecDestroy(z);CHKERRQ(ierr); }
+    ierr = PetscFree(Z);CHKERRQ(ierr);
+    ierr = PetscFree(work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetSchurUpdate_Default"
+/*
+  EPSGetSchurUpdate_Default - this function returns the orthogonal matrix for 
+  computing the schur vectors during the solve phase. 
+  This function is used by EPSResidualConverged in the subspace, Arnoldi and 
+  Krylov-Schur solvers.
+*/
+PetscErrorCode EPSGetSchurUpdate_Default(EPS eps,PetscInt m,PetscScalar* Z)
+{
+  PetscInt i,j;
+  PetscFunctionBegin;
+  for (j=0;j<m;j++)
+    for (i=0;i<m;i++)
+       if (eps->ishermitian) {
+         Z[j*m+i] = eps->Z[(j+eps->nconv)*eps->nv+i+eps->nconv];
+       } else {
+         Z[j*m+i] = eps->Z[j*eps->nv+i];
+       }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSComputeSchurVector_Default"
+#define __FUNCT__ "EPSGetSchurUpdate_Hermitian"
 /*
-  EPSComputeSchurVector_Default - this function computes a Schur vector during
-  the solve phase. This function is used by EPSResidualConverged in the subspace,
-  Arnoldi and Krylov-Schur solvers.
+  EPSGetSchurUpdate_Hermitian - this function returns the orthogonal matrix for 
+  computing the schur vectors during the solve phase. 
+  This function is used by EPSResidualConverged in the Lanczos and Hermitian 
+  Krylov-Schur solvers.
 */
-PetscErrorCode EPSComputeSchurVector_Default(EPS eps,PetscInt i,Vec v)
+PetscErrorCode EPSGetSchurUpdate_Hermitian(EPS eps,PetscInt m,PetscScalar* Z)
 {
-  PetscErrorCode ierr;
+  PetscInt i,j;
   PetscFunctionBegin;
-  if (i<eps->nconv || i>=eps->nv) {
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument out of range");
-  }
-  ierr = VecSet(v,0.0);CHKERRQ(ierr);
-  ierr = VecMAXPY(v,eps->nv,eps->Z+eps->nv*i,eps->V);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSComputeSchurVector_Hermitian"
-/*
-  EPSComputeSchurVector_Hermitian - this function computes a Schur vector during
-  the solve phase. This function is used by EPSResidualConverged in the Lanczos
-  and symmetric Krylov-Schur solvers.
-*/
-PetscErrorCode EPSComputeSchurVector_Hermitian(EPS eps,PetscInt i,Vec v)
-{
-  PetscErrorCode ierr;
-  PetscFunctionBegin;
-  if (i<eps->nconv || i>=eps->nconv+eps->nv) {
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument out of range");
-  }
-  ierr = VecSet(v,0.0);CHKERRQ(ierr);
-  ierr = VecMAXPY(v,eps->nv,eps->Z+eps->nv*(i-eps->nconv),eps->V+eps->nconv);CHKERRQ(ierr);
+  for (j=0;j<m;j++)
+    for (i=0;i<m;i++)
+      Z[j*m+i] = eps->Z[j*eps->nv+i];
   PetscFunctionReturn(0);
 }
 

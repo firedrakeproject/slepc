@@ -81,8 +81,8 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   if (!eps->ishermitian || eps->extraction==EPS_HARMONIC) {
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-    eps->schur_func = EPSComputeSchurVector_Default;
-  } else eps->schur_func = EPSComputeSchurVector_Hermitian;
+    eps->schur_func = EPSGetSchurUpdate_Default;
+  } else eps->schur_func = EPSGetSchurUpdate_Hermitian;
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

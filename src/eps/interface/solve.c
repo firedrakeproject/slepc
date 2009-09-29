@@ -780,6 +780,63 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSComputeResidualNorm_Private"
+/*
+   EPSComputeResidualNorm_Private - Computes the norm of the residual vector 
+   associated with an eigenpair.
+*/
+PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScalar ki, Vec xr, Vec xi, PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  Vec            u, w;
+  Mat            A, B;
+#ifndef PETSC_USE_COMPLEX
+  Vec            v;
+  PetscReal      ni, nr;
+#endif
+  
+  PetscFunctionBegin;
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&u); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&w); CHKERRQ(ierr);
+  
+#ifndef PETSC_USE_COMPLEX
+  if (ki == 0 || 
+    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+#endif
+    ierr = MatMult( A, xr, u ); CHKERRQ(ierr); /* u=A*x */
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
+      if (eps->isgeneralized) { ierr = MatMult( B, xr, w ); CHKERRQ(ierr); }
+      else { ierr = VecCopy( xr, w ); CHKERRQ(ierr); } /* w=B*x */
+      ierr = VecAXPY( u, -kr, w ); CHKERRQ(ierr); /* u=A*x-k*B*x */
+    }
+    ierr = VecNorm( u, NORM_2, norm); CHKERRQ(ierr);  
+#ifndef PETSC_USE_COMPLEX
+  } else {
+    ierr = VecDuplicate(eps->vec_initial,&v); CHKERRQ(ierr);
+    ierr = MatMult( A, xr, u ); CHKERRQ(ierr); /* u=A*xr */
+    if (eps->isgeneralized) { ierr = MatMult( B, xr, v ); CHKERRQ(ierr); }
+    else { ierr = VecCopy( xr, v ); CHKERRQ(ierr); } /* v=B*xr */
+    ierr = VecAXPY( u, -kr, v ); CHKERRQ(ierr); /* u=A*xr-kr*B*xr */
+    if (eps->isgeneralized) { ierr = MatMult( B, xi, w ); CHKERRQ(ierr); }
+    else { ierr = VecCopy( xi, w ); CHKERRQ(ierr); } /* w=B*xi */
+    ierr = VecAXPY( u, ki, w ); CHKERRQ(ierr); /* u=A*xr-kr*B*xr+ki*B*xi */
+    ierr = VecNorm( u, NORM_2, &nr ); CHKERRQ(ierr);
+    ierr = MatMult( A, xi, u ); CHKERRQ(ierr); /* u=A*xi */
+    ierr = VecAXPY( u, -kr, w ); CHKERRQ(ierr); /* u=A*xi-kr*B*xi */
+    ierr = VecAXPY( u, -ki, v ); CHKERRQ(ierr); /* u=A*xi-kr*B*xi-ki*B*xr */
+    ierr = VecNorm( u, NORM_2, &ni ); CHKERRQ(ierr);
+    *norm = SlepcAbsEigenvalue( nr, ni );
+    ierr = VecDestroy(v); CHKERRQ(ierr);
+  }
+#endif
+
+  ierr = VecDestroy(w); CHKERRQ(ierr);
+  ierr = VecDestroy(u); CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSComputeResidualNorm"
 /*@
    EPSComputeResidualNorm - Computes the norm of the residual vector associated with 
@@ -808,55 +865,16 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
 PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            u, v, w, xr, xi;
-  Mat            A, B;
+  Vec            xr, xi;
   PetscScalar    kr, ki;
-#ifndef PETSC_USE_COMPLEX
-  PetscReal      ni, nr;
-#endif
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&u); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&v); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&w); CHKERRQ(ierr);
+  PetscValidPointer(norm,3);
   ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
-
-#ifndef PETSC_USE_COMPLEX
-  if (ki == 0 || 
-    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
-#endif
-    ierr = MatMult( A, xr, u ); CHKERRQ(ierr); /* u=A*x */
-    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      if (eps->isgeneralized) { ierr = MatMult( B, xr, w ); CHKERRQ(ierr); }
-      else { ierr = VecCopy( xr, w ); CHKERRQ(ierr); } /* w=B*x */
-      ierr = VecAXPY( u, -kr, w ); CHKERRQ(ierr); /* u=A*x-k*B*x */
-    }
-    ierr = VecNorm( u, NORM_2, norm); CHKERRQ(ierr);  
-#ifndef PETSC_USE_COMPLEX
-  } else {
-    ierr = MatMult( A, xr, u ); CHKERRQ(ierr); /* u=A*xr */
-    if (eps->isgeneralized) { ierr = MatMult( B, xr, v ); CHKERRQ(ierr); }
-    else { ierr = VecCopy( xr, v ); CHKERRQ(ierr); } /* v=B*xr */
-    ierr = VecAXPY( u, -kr, v ); CHKERRQ(ierr); /* u=A*xr-kr*B*xr */
-    if (eps->isgeneralized) { ierr = MatMult( B, xi, w ); CHKERRQ(ierr); }
-    else { ierr = VecCopy( xi, w ); CHKERRQ(ierr); } /* w=B*xi */
-    ierr = VecAXPY( u, ki, w ); CHKERRQ(ierr); /* u=A*xr-kr*B*xr+ki*B*xi */
-    ierr = VecNorm( u, NORM_2, &nr ); CHKERRQ(ierr);
-    ierr = MatMult( A, xi, u ); CHKERRQ(ierr); /* u=A*xi */
-    ierr = VecAXPY( u, -kr, w ); CHKERRQ(ierr); /* u=A*xi-kr*B*xi */
-    ierr = VecAXPY( u, -ki, v ); CHKERRQ(ierr); /* u=A*xi-kr*B*xi-ki*B*xr */
-    ierr = VecNorm( u, NORM_2, &ni ); CHKERRQ(ierr);
-    *norm = SlepcAbsEigenvalue( nr, ni );
-  }
-#endif
-
-  ierr = VecDestroy(w); CHKERRQ(ierr);
-  ierr = VecDestroy(v); CHKERRQ(ierr);
-  ierr = VecDestroy(u); CHKERRQ(ierr);
+  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,norm); CHKERRQ(ierr);
   ierr = VecDestroy(xr); CHKERRQ(ierr);
   ierr = VecDestroy(xi); CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -947,31 +965,14 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSComputeRelativeError"
-/*@
-   EPSComputeRelativeError - Computes the relative error bound associated 
-   with the i-th computed eigenpair.
-
-   Collective on EPS
-
-   Input Parameter:
-.  eps - the eigensolver context
-.  i   - the solution index
-
-   Output Parameter:
-.  error - the relative error bound, computed as ||Ax-kBx||_2/||kx||_2 where 
-   k is the eigenvalue and x is the eigenvector. 
-   If k=0 the relative error is computed as ||Ax||_2/||x||_2.
-
-   Level: beginner
-
-.seealso: EPSSolve(), EPSComputeResidualNorm(), EPSGetErrorEstimate()
-@*/
-PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
+#define __FUNCT__ "EPSComputeRelativeError_Private"
+/*
+   EPSComputeRelativeError_Private - Computes the relative error bound 
+   associated with an eigenpair.
+*/
+PetscErrorCode EPSComputeRelativeError_Private(EPS eps, PetscScalar kr, PetscScalar ki, Vec xr, Vec xi, PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr, xi;  
-  PetscScalar    kr, ki;  
   PetscReal      norm, er;
 #ifndef PETSC_USE_COMPLEX
   Vec            u;
@@ -979,11 +980,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
 #endif
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
-  ierr = EPSComputeResidualNorm(eps,i,&norm); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
-  ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
+  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,&norm); CHKERRQ(ierr);
 
 #ifndef PETSC_USE_COMPLEX
   if (ki == 0 || 
@@ -1013,6 +1010,43 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
   }
 #endif    
   
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeRelativeError"
+/*@
+   EPSComputeRelativeError - Computes the relative error bound associated 
+   with the i-th computed eigenpair.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - the eigensolver context
+.  i   - the solution index
+
+   Output Parameter:
+.  error - the relative error bound, computed as ||Ax-kBx||_2/||kx||_2 where 
+   k is the eigenvalue and x is the eigenvector. 
+   If k=0 the relative error is computed as ||Ax||_2/||x||_2.
+
+   Level: beginner
+
+.seealso: EPSSolve(), EPSComputeResidualNorm(), EPSGetErrorEstimate()
+@*/
+PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
+{
+  PetscErrorCode ierr;
+  Vec            xr, xi;  
+  PetscScalar    kr, ki;  
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
+  PetscValidPointer(error,3);
+  ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
+  ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
+  ierr = EPSComputeRelativeError_Private(eps,kr,ki,xr,xi,error); CHKERRQ(ierr);  
   ierr = VecDestroy(xr); CHKERRQ(ierr);
   ierr = VecDestroy(xi); CHKERRQ(ierr);
   PetscFunctionReturn(0);

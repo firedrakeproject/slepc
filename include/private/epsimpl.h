@@ -95,7 +95,7 @@ struct _p_EPS {
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
               nv;               /* size of current Schur decomposition */
-  PetscErrorCode (*schur_func)(EPS,PetscInt,Vec); /* internal function for updating Schur vectors */
+  PetscErrorCode (*schur_func)(EPS,PetscInt,PetscScalar*); /* internal function for updating Schur vectors */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;
@@ -134,8 +134,10 @@ EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
-EXTERN PetscErrorCode EPSComputeSchurVector_Default(EPS,PetscInt,Vec);
-EXTERN PetscErrorCode EPSComputeSchurVector_Hermitian(EPS,PetscInt,Vec);
+EXTERN PetscErrorCode EPSGetSchurUpdate_Default(EPS,PetscInt,PetscScalar*);
+EXTERN PetscErrorCode EPSGetSchurUpdate_Hermitian(EPS,PetscInt,PetscScalar*);
+EXTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+EXTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 
 /* Private functions of the solver implementations */
 
