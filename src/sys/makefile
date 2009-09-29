@@ -21,7 +21,7 @@
 
 ALL: lib
 
-CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_INSTALL_DIR}/lib/${PETSC_ARCH}"'
+CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_INSTALL_DIR}/lib"'
 FFLAGS   =
 SOURCEC  = slepcinit.c slepcutil.c
 SOURCEF  =
