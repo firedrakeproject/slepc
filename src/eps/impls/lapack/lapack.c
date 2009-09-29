@@ -47,6 +47,9 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   eps->ncv = N;
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
 
+  if (eps->balance!=EPSBALANCE_NONE)
+    SETERRQ(PETSC_ERR_SUP,"Balancing not supported in Lapack solvers");
+
   if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
   if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
   if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }

@@ -65,6 +65,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!((PetscObject)eps)->type_name) {
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
+  if (!eps->balance) eps->balance = EPSBALANCE_NONE;
   
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   /* Set default problem type */
@@ -126,10 +127,12 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);
 
   /* Build balancing matrix if required */
-  if (!eps->balance) eps->balance = EPSBALANCE_NONE;
   if (!eps->ishermitian && (eps->balance==EPSBALANCE_ONESIDE || eps->balance==EPSBALANCE_TWOSIDE)) {
     if (!eps->D) {
       ierr = VecDuplicate(eps->vec_initial,&eps->D);CHKERRQ(ierr);
+    }
+    else {
+      ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
     }
     ierr = EPSBuildBalance_Krylov(eps);CHKERRQ(ierr);
     ierr = STSetBalanceMatrix(eps->OP,eps->D);CHKERRQ(ierr);

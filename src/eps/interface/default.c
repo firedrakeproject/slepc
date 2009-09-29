@@ -174,7 +174,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (eps->balance!=EPSBALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
       ierr = VecPointwiseDivide(eps->V[i],eps->V[i],eps->D);CHKERRQ(ierr);
-      ierr = VecNormalize(eps->V[i],&norm);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->V[i],PETSC_NULL);CHKERRQ(ierr);
     }
   }
 
@@ -458,7 +458,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
 {
   Vec            z, p, r;
   PetscInt       i, j, n;
-  PetscScalar    norma;
+  PetscReal      norma;
   PetscScalar    *pz, *pr, *pp, *pD;
   PetscErrorCode ierr;
 
@@ -475,7 +475,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     ierr = SlepcVecSetRandom(z);CHKERRQ(ierr);
     ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
-      if (pz[i]<0.5) pz[i]=-1.0;
+      if (PetscRealPart(pz[i])<0.5) pz[i]=-1.0;
       else pz[i]=1.0;
     }
     ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);

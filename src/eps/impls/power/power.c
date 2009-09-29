@@ -78,6 +78,8 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   if (eps->extraction) {
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
+  if (eps->balance!=EPSBALANCE_NONE)
+    SETERRQ(PETSC_ERR_SUP,"Balancing not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
