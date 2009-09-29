@@ -222,7 +222,7 @@ if petscversion.VERSION > '3.0.0':
 if petscversion.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
 if petscconf.ISINSTALL:
-  if petscconf.INSTALL_DIR != petscdir:
+  if os.path.realpath(petscconf.INSTALL_DIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
 if not check.Link([],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
