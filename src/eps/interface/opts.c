@@ -417,6 +417,9 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
     
     The target is a scalar value provided with EPSSetTarget().
 
+    The criterion EPS_TARGET_IMAGINARY is available only in case PETSc and
+    SLEPc have been built with complex scalars.
+
     Level: intermediate
 
 .seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetEigenvalueComparison(), EPSSortEigenvalues(), EPSWhich
@@ -434,7 +437,9 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
     case EPS_SMALLEST_IMAGINARY:
     case EPS_TARGET_MAGNITUDE:
     case EPS_TARGET_REAL:
+#if defined(PETSC_USE_COMPLEX)
     case EPS_TARGET_IMAGINARY:
+#endif
     case EPS_USER:
       if (eps->which != which) {
         eps->setupcalled = 0;
