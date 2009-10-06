@@ -83,8 +83,8 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
     ierr = EPSDenseSchur(ncv,eps->nconv,Hl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Sort the remaining columns of the Schur form */
-    ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,Hr,PETSC_NULL,ncv,Ur,PETSC_NULL,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,Hl,PETSC_NULL,ncv,Ul,PETSC_NULL,eigr,eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,Hr,ncv,Ur,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,Hl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
     ierr = ArnoldiResiduals(Hr,ncv,Ur,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);

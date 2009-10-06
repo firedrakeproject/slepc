@@ -118,7 +118,7 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,PetscInt l,PetscScalar *S,PetscInt l
   /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
   ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
   /* Sort the remaining columns of the Schur form */
-  ierr = EPSSortDenseSchur(eps,n,eps->nconv,S,PETSC_NULL,lds,Q,PETSC_NULL,eps->eigr,eps->eigi);CHKERRQ(ierr);    
+  ierr = EPSSortDenseSchur(eps,n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);    
   PetscFunctionReturn(0);
 }
 
