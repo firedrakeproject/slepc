@@ -318,6 +318,10 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     ierr = VecDestroy(eps->vec_initial_left);CHKERRQ(ierr);
     eps->vec_initial_left = PETSC_NULL;
   }
+  if (eps->D) {
+    ierr = VecDestroy(eps->D);CHKERRQ(ierr);
+    eps->D = PETSC_NULL;
+  }
 
   PetscFunctionReturn(0);
 }
