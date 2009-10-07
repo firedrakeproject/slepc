@@ -93,7 +93,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     r = j = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,PETSC_NULL);CHKERRQ(ierr);
-    ierr = EPSSetBalance(eps,PETSC_IGNORE,j,r);CHKERRQ(ierr);
+    ierr = EPSSetBalance(eps,(EPSBalance)PETSC_IGNORE,j,r);CHKERRQ(ierr);
 
     ierr = PetscOptionsTruthGroupBegin("-eps_oneside","one-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetClass(eps,EPS_ONE_SIDE);CHKERRQ(ierr);}

@@ -573,7 +573,10 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
     re = wr[i];
     im = wi[i];
     pos = 0;
-    if (im == 0) j=i+1; else j=i+2; /* j points to the next eigenvalue */
+    j=i+1; /* j points to the next eigenvalue */
+#if !defined(PETSC_USE_COMPLEX)
+    if (im != 0) j=i+2;
+#endif
     /* find minimum eigenvalue */
     for (;j<n;j++) { 
       ierr = EPSCompareEigenvalues(eps,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
@@ -692,7 +695,10 @@ PetscErrorCode EPSSortDenseSchurGeneralized(EPS eps,PetscInt n_,PetscInt k,Petsc
     re = wr[i];
     im = wi[i];
     pos = 0;
-    if (im == 0) j=i+1; else j=i+2; /* j points to the next eigenvalue */
+    j=i+1; /* j points to the next eigenvalue */
+#if !defined(PETSC_USE_COMPLEX)
+    if (im != 0) j=i+2;
+#endif
     /* find minimum eigenvalue */
     for (;j<n;j++) { 
       ierr = EPSCompareEigenvalues(eps,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);

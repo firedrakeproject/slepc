@@ -1307,7 +1307,7 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
       b = PetscImaginaryPart(br);
 #else
       a = PetscAbsReal(ai);
-      a = PetscAbsReal(bi);
+      b = PetscAbsReal(bi);
 #endif
       break;
     case EPS_TARGET_MAGNITUDE:
