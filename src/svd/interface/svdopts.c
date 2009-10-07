@@ -61,12 +61,10 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  switch (mode) {
-    case PETSC_DEFAULT:
-      mode = (SVDTransposeMode)PETSC_DECIDE;
+  if (mode == PETSC_DEFAULT || mode == PETSC_DECIDE) mode = (SVDTransposeMode)PETSC_DECIDE;
+  else switch (mode) {
     case SVD_TRANSPOSE_EXPLICIT:
     case SVD_TRANSPOSE_IMPLICIT:
-    case PETSC_DECIDE:
       svd->transmode = mode;
       svd->setupcalled = 0;
       break;
