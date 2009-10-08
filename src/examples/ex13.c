@@ -36,6 +36,7 @@ int main( int argc, char **argv )
 {
   Mat         	 A, B;		  /* matrices */
   EPS         	 eps;		  /* eigenproblem solver context */
+  ST          	 st;		  /* spectral transformation context */
   const EPSType  type;
   PetscReal   	 error, tol, re, im;
   PetscScalar 	 kr, ki;
@@ -95,6 +96,14 @@ int main( int argc, char **argv )
   */
   ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
+
+  /* 
+     Use shift-and-invert to avoid solving linear systems with a singular B
+     in case nulldim>0
+  */
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = STSetType(st,STSINV);CHKERRQ(ierr);
+  ierr = STSetShift(st,0.0);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
