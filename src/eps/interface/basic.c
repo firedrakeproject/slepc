@@ -319,7 +319,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nconv           = 0;
   eps->its             = 0;
   eps->perm            = PETSC_NULL;
-  eps->schur_func      = PETSC_NULL;
+  eps->ldz             = 0;
 
   eps->nwork           = 0;
   eps->work            = 0;

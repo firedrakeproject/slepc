@@ -79,7 +79,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt 
    |beta*y(end,i)| where beta is the norm of f and y is the corresponding 
    eigenvector of H.
 */
-PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,PetscReal beta,PetscInt nconv,PetscInt ncv_,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
+PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,PetscScalar *Y,PetscReal beta,PetscInt nconv,PetscInt ncv_,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -88,7 +88,6 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   mout,info,ldh,ncv;
-  PetscScalar    *Y=work+4*ncv_;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=(PetscReal*)(work+3*ncv_);
 #endif
@@ -96,6 +95,7 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
   PetscFunctionBegin;
   ldh = PetscBLASIntCast(ldh_);
   ncv = PetscBLASIntCast(ncv_);
+  if (!Y) Y=work+4*ncv_;
 
   /* Compute eigenvectors Y of H */
   ierr = PetscMemcpy(Y,U,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);

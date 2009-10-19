@@ -200,17 +200,18 @@ PetscErrorCode EPSProjectedKSHarmonic(EPS eps,PetscInt l,PetscScalar *S,PetscInt
 PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork;
+  PetscInt       i,k,l,lwork,nv;
   Vec            u=eps->work[0];
-  PetscScalar    *S=eps->T,*Q,*g,*work;
+  PetscScalar    *S=eps->T,*Q,*Y,*g,*work;
   PetscReal      beta,gnorm;
   PetscTruth     breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr); eps->Z = Q;
+  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   lwork = (eps->ncv+4)*eps->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  Y = work+4*eps->ncv; 
   ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
@@ -222,38 +223,41 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
     eps->its++;
 
     /* Compute an nv-step Arnoldi factorization */
-    eps->nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&eps->nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
     /* Compute translation of Krylov decomposition */ 
-    ierr = EPSTranslateHarmonic(eps->nv,S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+    ierr = EPSTranslateHarmonic(nv,S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedKSHarmonic(eps,l,S,eps->ncv,Q,eps->nv);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(S,eps->ncv,Q,beta,eps->nconv,eps->nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = EPSProjectedKSHarmonic(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(S,eps->ncv,Q,Y,beta,eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
 
     /* Fix residual norms */
     gnorm = 0.0;
-    for (i=0;i<eps->nv;i++)
+    for (i=0;i<nv;i++)
       gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-    for (i=eps->nconv;i<eps->nv;i++)
+    for (i=eps->nconv;i<nv;i++)
       eps->errest[i] *= sqrt(1.0+gnorm);
 
     /* Check convergence */
-    ierr = (*eps->conv_func)(eps,eps->nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+    eps->ldz = nv;
+    if (eps->ishermitian) eps->Z = Q+eps->ldz*eps->nconv+eps->nconv;
+    else eps->Z = Y;
+    ierr = (*eps->conv_func)(eps,nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
     k = eps->nconv;
-    while (k<eps->nv && eps->conv[k]) k++;
+    while (k<nv && eps->conv[k]) k++;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
-      l = (eps->nv-k)/2;
+      l = (nv-k)/2;
 #if !defined(PETSC_USE_COMPLEX)
       if (S[(k+l-1)*(eps->ncv+1)+1] != 0.0) {
-        if (k+l<eps->nv-1) l = l+1;
+        if (k+l<nv-1) l = l+1;
         else l = l-1;
       }
 #endif
@@ -271,20 +275,20 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=k;i<k+l;i++) {
-          S[i*eps->ncv+k+l] = Q[(i+1)*eps->nv-1]*beta;
+          S[i*eps->ncv+k+l] = Q[(i+1)*nv-1]*beta;
         }
-        ierr = EPSRecoverHarmonic(S,eps->nv,k,l,eps->ncv,g,Q,eps->V,u,work);CHKERRQ(ierr);
+        ierr = EPSRecoverHarmonic(S,nv,k,l,eps->ncv,g,Q,eps->V,u,work);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = SlepcUpdateVectors(eps->nv,eps->V,eps->nconv,k+l,Q,eps->nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,nv,PETSC_FALSE);CHKERRQ(ierr);
     
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
     }
     eps->nconv = k;
 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nv);
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);
     
   } 
 

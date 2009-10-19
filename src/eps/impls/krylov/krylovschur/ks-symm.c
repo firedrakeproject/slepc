@@ -184,7 +184,7 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lds,lt,m;
+  PetscInt       i,k,l,lds,lt,nv,m;
   Vec            u=eps->work[0];
   PetscScalar    *Q;
   PetscReal      *a,*b,*work,beta;
@@ -211,24 +211,25 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     /* Compute an nv-step Lanczos factorization */
     m = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = EPSFullLanczos(eps,a+l,b+l,eps->V,eps->nconv+l,&m,u,&breakdown);CHKERRQ(ierr);
-    eps->nv = m - eps->nconv;
-    beta = b[eps->nv-1];
+    nv = m - eps->nconv;
+    beta = b[nv-1];
 
     /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedKSSym(eps,eps->nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
-    for (i=0;i<eps->nv;i++)
-      eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*eps->nv-1]);
+    ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
+    for (i=0;i<nv;i++)
+      eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]);
 
     /* Check convergence */
-    ierr = (*eps->conv_func)(eps,eps->nconv+eps->nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+    eps->ldz = nv;
+    ierr = (*eps->conv_func)(eps,eps->nconv+nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
     k = eps->nconv;
-    while (k<eps->nconv+eps->nv && eps->conv[k]) k++;
+    while (k<eps->nconv+nv && eps->conv[k]) k++;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (eps->nconv+eps->nv-k)/2;
+    else l = (eps->nconv+nv-k)/2;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -243,18 +244,18 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
         /* Prepare the Rayleigh quotient for restart */
         for (i=0;i<l;i++) {
           a[i] = PetscRealPart(eps->eigr[i+k]);
-          b[i] = PetscRealPart(Q[eps->nv-1+(i+k-eps->nconv)*eps->nv]*beta);
+          b[i] = PetscRealPart(Q[nv-1+(i+k-eps->nconv)*nv]*beta);
         }
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = SlepcUpdateVectors(eps->nv,eps->V+eps->nconv,0,k+l-eps->nconv,Q,eps->nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V+eps->nconv,0,k+l-eps->nconv,Q,nv,PETSC_FALSE);CHKERRQ(ierr);
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
     }
 
-    EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,eps->nv+eps->nconv);
+    EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv+eps->nconv);
     eps->nconv = k;
     
   } 

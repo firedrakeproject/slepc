@@ -84,7 +84,7 @@ struct _p_EPS {
               *DS;              /* deflation space */
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
               *T, *Tl,          /* projected matrices */
-              *Z;               /* orthogonal matrix from the Schur decomposition of T */
+              *Z;               /* matrix from the eigenvalue decomposition of T */
   PetscReal   *errest,          /* error estimates */
               *errest_left;     /* left error estimates */
   ST          OP;               /* spectral transformation object */
@@ -94,8 +94,7 @@ struct _p_EPS {
   PetscInt    nconv,            /* number of converged eigenvalues */
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
-              nv;               /* size of current Schur decomposition */
-  PetscErrorCode (*schur_func)(EPS,PetscInt,PetscScalar*); /* internal function for updating Schur vectors */
+              ldz;              /* leading dimension of Z */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;
@@ -134,8 +133,6 @@ EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
-EXTERN PetscErrorCode EPSGetSchurUpdate_Default(EPS,PetscInt,PetscScalar*);
-EXTERN PetscErrorCode EPSGetSchurUpdate_Hermitian(EPS,PetscInt,PetscScalar*);
 EXTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 EXTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 
@@ -144,7 +141,7 @@ EXTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScala
 EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscInt,PetscScalar*,PetscReal,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
+EXTERN PetscErrorCode ArnoldiResiduals(PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscReal,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*);
 EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);

@@ -87,8 +87,8 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
     ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,Hl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
-    ierr = ArnoldiResiduals(Hr,ncv,Ur,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(Hl,ncv,Ul,g,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(Hr,ncv,Ur,PETSC_NULL,beta,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(Hl,ncv,Ul,PETSC_NULL,g,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
 
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx) */

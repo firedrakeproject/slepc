@@ -201,8 +201,8 @@ PetscErrorCode EPSSolve_TS_LANCZOS(EPS eps)
     ierr = EPSSortDenseSchur(eps,ncv,eps->nconv,Tl,ncv,Ul,eigr,eigi);CHKERRQ(ierr);
 
     /* Compute residual norm estimates */
-    ierr = ArnoldiResiduals(T,ncv,U,betav,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(Tl,ncv,Ul,betaw,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(T,ncv,U,PETSC_NULL,betav,eps->nconv,ncv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
+    ierr = ArnoldiResiduals(Tl,ncv,Ul,PETSC_NULL,betaw,eps->nconv,ncv,eigr,eigi,eps->errest_left,work);CHKERRQ(ierr);
 
     /* Lock converged eigenpairs and update the corresponding vectors,
        including the restart vector: V(:,idx) = V*U(:,idx); W(:,idx) = W*Ul(:,idx) */
