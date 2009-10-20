@@ -1160,9 +1160,9 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
   /* insertion sort */
   for (i=n-1; i>=0; i--) {
     re = eigr[perm[i]];
-    im = eigi[perm[i]];
     j = i + 1;
 #ifndef PETSC_USE_COMPLEX
+    im = eigi[perm[i]];
     if (im != 0) {
       /* complex eigenvalue */
       i--;
