@@ -1160,9 +1160,9 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
   /* insertion sort */
   for (i=n-1; i>=0; i--) {
     re = eigr[perm[i]];
+    im = eigi[perm[i]];
     j = i + 1;
 #ifndef PETSC_USE_COMPLEX
-    im = eigi[perm[i]];
     if (im != 0) {
       /* complex eigenvalue */
       i--;
@@ -1170,11 +1170,7 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
     }
 #endif
     while (j<n) {
-#ifndef PETSC_USE_COMPLEX
       ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-#else
-      ierr = EPSCompareEigenvalues(eps,re,0.0,eigr[perm[j]],0.0,&result);CHKERRQ(ierr);
-#endif
       if (result >= 0) break;
 #ifndef PETSC_USE_COMPLEX
       /* keep together every complex conjugated eigenpair */

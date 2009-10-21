@@ -327,23 +327,25 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth 
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (n==0) {
+  ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
+  
+  if (nds==0 && n==0) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
     if (lindep) *lindep = PETSC_FALSE;
-    PetscFunctionReturn(0);
-  }
-
-  ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
-  switch (ip->orthog_type) {
-  case IP_CGS_ORTH:
-    ierr = IPOrthogonalizeCGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
-    break;
-  case IP_MGS_ORTH:
-    ierr = IPOrthogonalizeMGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
-  break;
-  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
+  } else {
+    switch (ip->orthog_type) {
+    case IP_CGS_ORTH:
+      ierr = IPOrthogonalizeCGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
+      break;
+    case IP_MGS_ORTH:
+      ierr = IPOrthogonalizeMGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
+      break;
+    default:
+      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+    }
   }
   
+  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 }
 

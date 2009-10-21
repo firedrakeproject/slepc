@@ -669,12 +669,12 @@ PetscErrorCode EPSSortDenseSchurGeneralized(EPS eps,PetscInt n_,PetscInt k,Petsc
   SETERRQ(PETSC_ERR_SUP,"TGEXC/LAMCH/LAG2 - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscScalar    re,im,tmp;
+  PetscScalar    re,im;
   PetscInt       i,j,result,pos;
   PetscBLASInt   ione = 1,ifst,ilst,info,n,ldt;
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lwork;
-  PetscScalar    *work,safmin,scale1,scale2;
+  PetscScalar    *work,safmin,scale1,scale2,tmp;
 #endif
   
   PetscFunctionBegin;
