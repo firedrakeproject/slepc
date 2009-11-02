@@ -71,6 +71,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
   PetscBLASInt   n,n1,n2,lwork,info;
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
 
   n = PetscBLASIntCast(n_);
   /* quick return */
@@ -120,6 +121,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
   LAPACKsteqr_("V",&n,d,e,Q,&n,S,&info);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
 
+  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
