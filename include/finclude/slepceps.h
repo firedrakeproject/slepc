@@ -56,6 +56,10 @@
       PetscEnum EPS_SMALLEST_REAL
       PetscEnum EPS_LARGEST_IMAGINARY
       PetscEnum EPS_SMALLEST_IMAGINARY
+      PetscEnum EPS_TARGET_MAGNITUDE
+      PetscEnum EPS_TARGET_REAL
+      PetscEnum EPS_TARGET_IMAGINARY
+      PetscEnum EPS_USER
 
       parameter (EPS_LARGEST_MAGNITUDE      =  0)
       parameter (EPS_SMALLEST_MAGNITUDE     =  1)
@@ -63,7 +67,21 @@
       parameter (EPS_SMALLEST_REAL          =  3)
       parameter (EPS_LARGEST_IMAGINARY      =  4)
       parameter (EPS_SMALLEST_IMAGINARY     =  5)
+      parameter (EPS_TARGET_MAGNITUDE       =  6)
+      parameter (EPS_TARGET_REAL            =  7)
+      parameter (EPS_TARGET_IMAGINARY       =  8)
+      parameter (EPS_USER                   =  9)
        
+      PetscEnum EPSBALANCE_NONE
+      PetscEnum EPSBALANCE_ONESIDE
+      PetscEnum EPSBALANCE_TWOSIDE
+      PetscEnum EPSBALANCE_USER
+
+      parameter (EPSBALANCE_NONE            =  1)
+      parameter (EPSBALANCE_ONESIDE         =  2)
+      parameter (EPSBALANCE_TWOSIDE         =  3)
+      parameter (EPSBALANCE_USER            =  4)
+
       PetscEnum EPSPOWER_SHIFT_CONSTANT
       PetscEnum EPSPOWER_SHIFT_RAYLEIGH
       PetscEnum EPSPOWER_SHIFT_WILKINSON
