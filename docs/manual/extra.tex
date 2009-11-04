@@ -1,0 +1,250 @@
+%-------------------------------------------------------
+% SLEPc Users Manual
+%-------------------------------------------------------
+\chapter{\label{cap:add}Additional Information}
+%-------------------------------------------------------
+
+\noindent This chapter contains miscellaneous information as a complement to the previous chapters, which can be regarded as less important.
+
+\section{Supported PETSc Features}
+
+\slepc relies on \petsc for all the features that are not directly related to eigenvalue problems. All the functionality associated to vectors and matrices as well as linear systems of equations is provided by \petsc. Also, low level details are inherited directly from \petsc. In particular, the parallelism within \slepc methods is handled completely by \petsc's vector and matrix modules. 
+
+	\slepc only contains high level objects, as depicted in Figure \ref{fig:slepc}. These object classes have been designed and implemented following the philosophy of other high level objects in \petsc. In this way, \slepc benefits from a number of \petsc's good properties such as the following (see \petsc{} users guide for details):
+\begin{itemize}
+\item Portability and scalability in a wide range of platforms. Different architecture builds can coexist in the same installation. Where available, dynamic libraries are used to reduce disk space of executable files.
+\item Support for profiling of programs:
+  \begin{itemize}
+  \setlength{\itemsep}{0mm}
+  \item Display performance statistics with \Verb!-log_summary!, including also \slepc's objects. The collected data are \emph{flops} and execution times as well as information about parallel performance, for individual subroutines and the possibility of user-defined stages.
+  \item Event logging, including user-defined events.
+  \item Direct wall-clock timing with \ident{PetscGetTime}.
+  \item Display detailed profile information and trace of events.
+  \end{itemize}
+\item Convergence monitoring, both textual and graphical.
+\item Support for debugging of programs:
+  \begin{itemize}
+  \setlength{\itemsep}{0mm}
+  \item Debugger startup and attachment of parallel processes.
+  \item Automatic generation of back-traces of the call stack.
+  \item Detection of memory leaks.
+  \end{itemize}
+\item A number of viewers for visualization of data, including built-in graphics capabilities that allow for sparse pattern visualization, graphic convergence monitoring, operator's spectrum visualization and other user-defined operations.
+\item Easy handling of runtime options.
+\item Support for Fortran programming, including modules, interfaces and data types in Fortran 90. See \S\ref{sec:fortran} for an example program in Fortran 77.
+\end{itemize}
+
+%---------------------------------------------------
+\section{Supported Matrix Types}
+\label{sec:supported}
+
+	Methods implemented in \ident{EPS} merely require vector operations and matrix-vector products. In \petsc, mathematical objects such as vectors and matrices have an interface that is independent of the underlying data structures. \slepc manipulates vectors and matrices via this interface and, therefore, it can be used with any of the matrix representations provided by \petsc, including dense, sparse, and symmetric formats, either sequential or parallel.
+
+	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated to a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see Table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSEQSBAIJ}.
+
+\paragraph{Shell Matrices.}
+
+	In many applications, the matrices that define the eigenvalue problem are not available explicitly. Instead, the user knows a way of applying these matrices to a vector.
+
+	An intermediate case is when the matrices have some block structure and the different blocks are stored separately. There are numerous situations in which this occurs, such as the discretization of equations with a mixed finite-element scheme. An example is the eigenproblem arising in the stability analysis associated with Stokes problems,
+\begin{equation}
+\left[\begin{array}{cc}A & C\\C^* & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]
+=\lambda\left[\begin{array}{cc}B & 0\\0 & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]\;\;,
+\end{equation}
+where $x$ and $p$ denote the velocity and pressure fields. Similar formulations also appear in many other situations, such as the quadratic eigenvalue problem, see Eq.\ \ref{eq:quad}.
+
+	Many of these problems can be solved by reformulating them as a reduced-order standard or generalized eigensystem, in which the matrices are equal to certain operations of the blocks. These matrices are not computed explicitly to avoid losing sparsity.
+
+	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices that do not require explicit storage of the component values. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector. 
+
+	Shell matrices, also called matrix-free matrices, are created in \petsc{} with the command \ident{MatCreateShell}. Then, the function \ident{MatShellSetOperation} is used to provide any user-defined shell matrix operations (see the \petsc{} documentation for additional details). Several examples are available in \slepc that illustrate how to solve a matrix-free eigenvalue problem.
+
+	In the simplest case, defining matrix-vector product operations (\ident{MATOP\_MULT}) is enough for using \ident{EPS} with shell matrices. However, in the case of generalized problems, if matrix $B$ is also a shell matrix then it may be necessary to define other operations in order to be able to solve the linear system successfully, for example \ident{MATOP\_GET\_DIAGONAL} to use an iterative linear solver with Jacobi preconditioning. On the other hand, if the shift-and-invert \ident{ST} is to be used, then in addition it may also be necessary to define \ident{MATOP\_SHIFT} or \ident{MATOP\_AXPY} (see \S\ref{sec:explicit} for discussion).
+
+	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation (for details see the manual page for \ident{SVDSetTransposeMode}).
+
+%---------------------------------------------------
+\section{Extending SLEPc}
+\label{sec:shell}
+
+	Shell matrices are a simple mechanism of extensibility, in the sense that the package is extended with new user-defined matrix objects. Once the new matrix has been defined, it can be used by \slepc in the same way as the rest of the matrices as long as the required operations are provided.
+
+	A similar mechanism is available in \slepc also for extending the system incorporating new spectral transformations (\ident{ST}). This is done by using the \ident{STSHELL} spectral transformation type, in a similar way as shell matrices or shell preconditioners. In this case, the user defines how the operator is applied to a vector and optionally how the computed eigenvalues are transformed back to the solution of the original problem (see \S\ref{sec:shell} for details). This tool is intended for simple spectral transformations. For more sophisticated transformations, the user should register a new \ident{ST} type (see below).
+
+	At least, user-defined spectral transformations have to define how the operator is to be applied to a vector. Optionally, they can also specify the way in which computed eigenvalues must be transformed back to the solution of the original eigenproblem. An example program is provided in the \slepc distribution in order to illustrate the use of shell transformations.
+
+	The function
+	\findex{STShellSetApply}
+	\begin{Verbatim}[fontsize=\small]
+      STShellSetApply(ST,PetscErrorCode(*)(void*,Vec,Vec),void*);
+	\end{Verbatim}
+has to be invoked after the creation of the \ident{ST} object in order to provide a routine that applies the operator to a vector. And the function
+	\findex{STShellSetBackTransform}
+	\begin{Verbatim}[fontsize=\small]
+      STShellSetBackTransform(ST,PetscErrorCode(*)(void*,PetscScalar*,PetscScalar*));
+	\end{Verbatim}
+can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user receive a pointer to a user-defined context that can contain any useful information. This context must be passed as the last argument in the call to \ident{STShellSetApply}.
+
+	Finally, the application programmer can use the following function
+	\findex{STShellSetName}
+	\begin{Verbatim}[fontsize=\small]
+      STShellSetName(ST,char*);
+	\end{Verbatim}
+to specify a name for the new shell transformation in order to identify it in the program's output (\ident{STView}).
+
+	\slepc further supports extensibility by allowing application programmers to code their own subroutines for unimplemented features such as new eigensolvers or new spectral transformations. It is possible to register these new methods to the system and use them as the rest of standard subroutines. For example, to implement a variant of the Subspace Iteration method, one could copy the \slepc code associated to the \texttt{subspace} solver, modify it and register a new \ident{EPS} type with the following line of code
+	\begin{Verbatim}[fontsize=\small]
+	EPSRegister("newsubspace",0,"EPSCreate_NEWSUB",EPSCreate_NEWSUB);
+	\end{Verbatim}
+After this call, the new solver could be used in the same way as the rest of \slepc solvers. For instance,
+	\begin{Verbatim}[fontsize=\small]
+	$ program -eps_type newsubspace
+	\end{Verbatim}
+
+	\ident{EPSRegister} can be used to register new types whose code is linked into the executable. To register types in a dynamic library use \ident{EPSRegisterDynamic}.
+
+	A similar mechanism is available for registering new types of classes \ident{ST} and \ident{SVD}.
+
+%---------------------------------------------------
+\section{Directory Structure}
+
+	The directory structure of the \slepc software is very similar to that in \petsc. The root directory of \slepc contains the following directories:
+\begin{description}
+\item[\texttt{conf}] - Directory containing the base \slepc makefile, to be included in application makefiles.
+\item[\texttt{config}] - \slepc configuration scripts. 
+\item[\texttt{docs}] - All documentation for \slepc, including this manual. The subdirectory \texttt{manualpages} contains the on-line manual pages of each \slepc routine.
+\item[\texttt{include}] - All include files for \slepc. The following subdirectories exist:
+\begin{description}
+\setlength{\itemsep}{0mm}
+\item[\texttt{finclude}] - include files for Fortran programmers.
+\item[\texttt{private}] - include files containing implementation details, for developer use only.
+\end{description}
+\item[\texttt{src}] - The source code for all \slepc components, which currently includes:
+\begin{description}
+\setlength{\itemsep}{0mm}
+\item[\texttt{sys}] - general system-related routines.
+\item[\texttt{eps}] - eigenvalue problem solver.
+\item[\texttt{st}] - spectral transformation.
+\item[\texttt{svd}] - singular value decomposition solver.
+\item[\texttt{ip}] - inner product, for developer use only.
+\item[\texttt{examples}] - example programs.
+\item[\texttt{mat/examples}] - matrices used by some examples.
+\end{description}
+\item[\texttt{\$PETSC\_ARCH}] - For each value of \ident{PETSC\_ARCH}, a directory exists containing files generated during installation of that particular configuration. The following subdirectories exist:
+\begin{description}
+\setlength{\itemsep}{0mm}
+\item[\texttt{lib}] - All the generated libraries.
+\item[\texttt{conf}] - Configuration parameters and log files.
+\item[\texttt{include}] - Automatically generated include files, such as Fortran 90 \texttt{*.mod} files.
+\end{description}
+\end{description}
+
+Each \slepc source code component directory has the following subdirectories:
+\begin{description}
+\item[\texttt{interface}] - The calling sequences for the abstract interface to the components. Code here does not know about particular implementations.
+\item[\texttt{impls}] - Source code for one or more implementations.
+\end{description}
+
+%---------------------------------------------------
+\section{Wrappers to External Libraries}
+\label{sec:wrap}
+
+	\slepc interfaces to several external libraries for the solution of eigenvalue problems. This section provides a short description of each of these packages as well as some hints for using them with \slepc, including pointers to the respective websites from which the software can be downloaded. The description may also include method-specific parameters, that can be set in the same way as other \slepc options, either procedurally or via the command-line.
+
+	In order to use \slepc together with an external library such as \arpack, one needs to do the following.
+	\begin{enumerate}
+	\item Install the external software, with the same compilers and MPI that will be used for \petsc/\slepc. %If required, this software should be linked with the same \lapack version as \petsc.
+	\item Enable the utilization of the external software from \slepc by specifying configure options as explained in \S\ref{sec:opt-inst}.
+ 	\item Build the \slepc libraries.
+	\item Use the runtime option \Verb!-eps_type <type>! to select the solver.
+	\end{enumerate}
+
+	Exceptions to the above rule are \lapack and \blopex, which should be enabled during \petsc's configuration.
+
+\subsection*{\underline{\lapack}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Anderson:1992:LUG}.
+	\item[Website.] \url{http://www.netlib.org/lapack}.
+	\item[Version.] 3.0 or later.
+	\item[Summary.] \lapack\ (Linear Algebra PACKage) is a software package for the solution of many different dense linear algebra problems, including various types of eigenvalue problems and singular value decompositions.
+
+	\slepc explicitly creates the operator matrix in dense form and then the appropriate \lapack driver routine is invoked. Therefore, this interface should be used only for testing and validation purposes and not in a production code. The operator matrix is created by applying the operator to the columns of the identity matrix.
+
+	\item[Installation.]
+	The \slepc interface to \lapack can be used directly. If \slepc's configure script complains about missing \lapack functions, then configure \petsc with option \texttt{-{}-download-c-blas-lapack}.
+	\end{description}
+
+\subsection*{\underline{\arpack}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Lehoucq:1998:AUG}, \citep{Maschhoff:1996:PEP}.
+	\item[Website.] \url{http://www.caam.rice.edu/software/ARPACK}.
+	\item[Version.] Release 2 (plus patches).
+	\item[Summary.] \arpack\ (ARnoldi PACKage) is a software package for the computation of a few eigenvalues and corresponding eigenvectors of a general $n\times n$ matrix $A$. It is most appropriate for large sparse or structured matrices, where structured means that a matrix-vector product $w \leftarrow Av$ requires order $n$ rather than the usual order $n^2$ floating point operations. 
+	
+	\arpack\ is based upon an algorithmic variant of the Arnoldi process called the Implicitly Restarted Arnoldi Method (IRAM). When the matrix $A$ is symmetric it reduces to a variant of the Lanczos process called the Implicitly Restarted Lanczos Method (IRLM). These variants may be viewed as a synthesis of the Arnoldi/Lanczos process with the Implicitly Shifted QR technique that is suitable for large scale problems. 
+
+	It can be used for standard and generalized eigenvalue problems, both in real and complex arithmetic. It is implemented in Fortran 77 and it is based on the reverse communication interface. A parallel version, \parpack, is available with support for both MPI and BLACS.
+	\item[Installation.]
+	First of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. If \arpack is to be used with more than one processor, then it is necessary to uncompress also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz}. Make sure you delete any \texttt{mpif.h} files that could exist in the directory tree. After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack. 
+	\end{description}
+
+\subsection*{\underline{\primme}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Stathopoulos:2007:NOP}.
+	\item[Website.] \url{http://www.cs.wm.edu/~andreas/software}.
+	\item[Version.] 1.1.
+	\item[Summary.] \primme (PReconditioned Iterative MultiMethod Eigensolver) is a C library for finding a number of eigenvalues and their corresponding eigenvectors of a real symmetric (or complex Hermitian) matrix. This library provides a multimethod eigensolver, based on Davidson/Jacobi-Davidson. Particular methods include GD+1, JDQMR, and LOBPCG. It supports preconditioning as well as the computation of interior eigenvalues.
+	\item[Installation.] Type \texttt{make lib} after customizing the file \texttt{Make\_flags} appropriately.
+	\item[Specific options.] The \slepc interface to this package allows the user to specify the maximum allowed block size with the function \ident{EPSPRIMMESetBlockSize} or at run time with the option \Verb!-eps_primme_block_size <size>!. 
+
+For changing the particular algorithm within \primme, use the function \ident{EPSPRIMMESetMethod}. Other options related to the method are the use of preconditioning (with function \ident{EPSPRIMMESetPrecond}) and the restarting strategy (\ident{EPSPRIMMESetRestart}).
+	\end{description}
+
+\subsection*{\underline{\blzpack}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Marques:1995:BDU}.
+	\item[Website.] \url{http://crd.lbl.gov/\~osni/\#Software}.
+	\item[Version.] 04/00.
+	\item[Summary.] \blzpack\ (Block LancZos PACKage) is a standard Fortran 77 implementation of the block Lanczos algorithm intended for the solution of the standard eigenvalue problem $Ax=\mu x$ or the generalized eigenvalue problem $Ax=\mu Bx$, where A and B are real, sparse symmetric matrices. The development of this eigensolver was motivated by the need to solve large, sparse, generalized problems from free vibration analysis in structural engineering. Several upgrades were performed afterwards aiming at the solution of eigenvalue problems from a wider range of applications.
+
+	\blzpack\ uses a combination of partial and selective re-orthogonalization strategies. It can be run in either sequential or parallel mode, by means of MPI or PVM interfaces, and it uses the reverse communication strategy.
+	\item[Installation.] For the compilation of the \texttt{libblzpack.a} library, first check the appropriate architecture file in the directory \texttt{sys/MACROS} and then type \texttt{creator -mpi}.
+	\item[Specific options.] The \slepc interface to this package allows the user to specify the block size with the function \ident{EPSBlzpackSetBlockSize} or at run time with the option \Verb!-eps_blzpack_! \Verb!block_size <size>!. Also, the function \ident{EPSBlzpackSetNSteps} can be used to set the maximum number of steps per run (also with \Verb!-eps_blzpack_nsteps!).
+
+	For the spectrum slicing feature, \slepc allows the programmer to provide the computational interval with the option \Verb!-eps_blzpack_interval!, or with the function \ident{EPSBlzpackSetInterval} in the program source.
+	\end{description}
+
+\subsection*{\underline{\trlan}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Wu:2000:TLM}.
+	\item[Website.] \url{http://crd.lbl.gov/\~kewu/trlan.html}.
+	\item[Summary.] This package provides a Fortran 90 implementation of the dynamic thick-restart Lanczos algorithm. This is a specialized version of Lanczos that targets only the case in which one wants both eigenvalues and eigenvectors of a large real symmetric eigenvalue problem that cannot use the shift-and-invert scheme. In this case the standard non-restarted Lanczos algorithm requires to store a large number of Lanczos vectors, what can cause storage problems and make each iteration of the method very expensive.
+
+	\trlan{} requires the user to provide a matrix-vector multiplication routine. The parallel version uses MPI as the message passing layer. 
+	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make libtrlan\_mpi.a} in the \texttt{TRLan} directory.
+	\end{description}
+
+\subsection*{\underline{\blopex}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Knyazev:2001:TOP}.
+	\item[Website.] \url{http://www-math.cudenver.edu/\~aknyazev/software/BLOPEX}.
+	\item[Summary.] \blopex is a package that implements the Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG) method for computing several extreme eigenpairs of symmetric positive generalized eigenproblems. Numerical comparisons suggest that this method is a genuine analog for eigenproblems of the standard preconditioned conjugate gradient method for symmetric linear systems.
+	\item[Installation.] In order to use \blopex from \slepc, it is a prior requirement that \petsc has been configured with \Verb!./configure --download-hypre --download-blopex!.
+	\end{description}
+
+%---------------------------------------------------
+\section{Fortran Interface}
+\label{sec:fortran}
+
+	\slepc provides an interface for Fortran 77 programmers, very much like \petsc. As in the case of \petsc, there are slight differences between the C and Fortran \slepc interfaces, due to differences in Fortran syntax. For instance, the error checking variable is the final argument of all the routines in the Fortran interface, in contrast to the C convention of providing the error variable as the routine's return value.
+
+	The following code is a sample program written in Fortran 77. It is the Fortran equivalent of the program given in \S\ref{sec:simpleex} and can be found in \Verb!${SLEPC_DIR}/src/examples/ex1f.F!.
+\MyVerbatimInput{ex1f.F}
+
+
