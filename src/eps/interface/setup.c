@@ -53,6 +53,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   Mat            A,B; 
   PetscInt       N;
   PetscTruth     isCayley;
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar    sigma;
+#endif
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -79,6 +82,12 @@ PetscErrorCode EPSSetUp(EPS eps)
   } else if ((B && !eps->isgeneralized) || (!B && eps->isgeneralized)) {
     SETERRQ(0,"Warning: Inconsistent EPS state"); 
   }
+#if defined(PETSC_USE_COMPLEX)
+  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
+  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) {
+    SETERRQ(1,"Hermitian problems are not compatible with complex shifts")
+  }
+#endif
   
   if (eps->ispositive) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
