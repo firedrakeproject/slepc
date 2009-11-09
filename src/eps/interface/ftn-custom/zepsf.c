@@ -197,8 +197,8 @@ void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len
 {
   const char *tname;
 
-  *ierr = EPSGetOptionsPrefix(*eps,&tname);
-  *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
+  *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(prefix,tname,len);
 }
 
 void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)

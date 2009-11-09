@@ -175,8 +175,8 @@ void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len
 {
   const char *tname;
 
-  *ierr = SVDGetOptionsPrefix(*svd,&tname);
-  *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
+  *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(prefix,tname,len);
 }
 
 void PETSC_STDCALL svdgetconvergedreason_(SVD *svd,SVDConvergedReason *reason,PetscErrorCode *ierr)

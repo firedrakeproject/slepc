@@ -71,8 +71,8 @@ void PETSC_STDCALL ipgetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),P
 {
   const char *tname;
 
-  *ierr = IPGetOptionsPrefix(*ip,&tname);
-  *ierr = PetscStrncpy(prefix,tname,len); if (*ierr) return;
+  *ierr = IPGetOptionsPrefix(*ip,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(prefix,tname,len);
 }
 
 void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement,PetscReal *eta,PetscErrorCode *ierr)

@@ -59,8 +59,8 @@ void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),PetscErrorCo
 {
   const STType tname;
 
-  *ierr = STGetType(*st,&tname);
-  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
+  *ierr = STGetType(*st,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(name,tname,len);
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -101,8 +101,8 @@ void PETSC_STDCALL stgetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
 {
   const char *tname;
 
-  *ierr = STGetOptionsPrefix(*st,&tname);
-  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
+  *ierr = STGetOptionsPrefix(*st,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(prefix,tname,len);
 }
 
 void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)
