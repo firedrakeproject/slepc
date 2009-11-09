@@ -31,7 +31,7 @@ def Check(conf):
   log.Println('Checking LAPACK library...')
 
   # LAPACK standard functions
-  l = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc']
+  l = ['laev2','gehrd','lanhs','lange','getri','hseqr','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','gges']
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
