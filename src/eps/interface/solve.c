@@ -1003,8 +1003,8 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps, PetscScalar kr, PetscSca
       ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
       ierr = VecDestroy(u); CHKERRQ(ierr);  
     } else {
-      ierr = VecDot(xr, xr, &er); CHKERRQ(ierr);  
-      ierr = VecDot(xi, xi, &ei); CHKERRQ(ierr);  
+      ierr = VecNorm(xr, NORM_2, &er); CHKERRQ(ierr);  
+      ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
     }
     *error = norm / SlepcAbsEigenvalue(er, ei);
   }

@@ -113,10 +113,12 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   ncv,nconv,mout,info; 
-  PetscScalar    *Z,*work;
+  PetscBLASInt   ncv,nconv,mout,info,one = 1; 
+  PetscScalar    *Z,*work,tmp;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
+#else 
+  PetscReal      normi;
 #endif
   PetscReal      norm;
   Vec            w;
@@ -127,9 +129,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (eps->ishermitian) {
     ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
     PetscFunctionReturn(0);
-  }
-  if (eps->ispositive) {
-    ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   }
 
   ierr = PetscMalloc(nconv*nconv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
@@ -146,14 +145,63 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
+  /* normalize eigenvectors (when not using purification nor balancing)*/
+  if (!(eps->ispositive || (eps->balance!=EPSBALANCE_NONE && eps->D))) {
+    for (i=0;i<eps->nconv;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+      if (eps->eigi[i] != 0.0) {
+        norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
+        normi = BLASnrm2_(&nconv,Z+(i+1)*nconv,&one);
+        tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+        BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
+        BLASscal_(&nconv,&tmp,Z+(i+1)*nconv,&one);
+        i++;     
+      } else
+#endif
+      {
+        norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
+        tmp = 1.0 / norm;
+        BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
+      }
+    }
+  }
+  
   /* AV = V * Z */
   ierr = SlepcUpdateVectors(eps->nconv,eps->V,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
+
+  /* Purify eigenvectors */
   if (eps->ispositive) {
-    /* Purify eigenvectors */
+    ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr); 
       ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
-      ierr = VecNormalize(eps->V[i],&norm);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(w);CHKERRQ(ierr);
+  }
+
+  /* Fix eigenvectors if balancing was used */
+  if (eps->balance!=EPSBALANCE_NONE && eps->D) {
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecPointwiseDivide(eps->V[i],eps->V[i],eps->D);CHKERRQ(ierr);
+    }
+  }
+
+  /* normalize eigenvectors (when using purification or balancing) */
+  if (eps->ispositive || (eps->balance!=EPSBALANCE_NONE && eps->D)) {
+    for (i=0;i<eps->nconv;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+      if (eps->eigi[i] != 0.0) {
+        ierr = VecNorm(eps->V[i],NORM_2,&norm);CHKERRQ(ierr);
+        ierr = VecNorm(eps->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
+        tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+        ierr = VecScale(eps->V[i],tmp);CHKERRQ(ierr);
+        ierr = VecScale(eps->V[i+1],tmp);CHKERRQ(ierr);
+        i++;     
+      } else
+#endif
+      {
+        ierr = VecNormalize(eps->V[i],PETSC_NULL);CHKERRQ(ierr);
+      }
     }
   }
    
@@ -170,22 +218,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = SlepcUpdateVectors(eps->nconv,eps->W,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
   }
    
-  /* Fix eigenvectors if balancing was used */
-  if (eps->balance!=EPSBALANCE_NONE && eps->D) {
-    for (i=0;i<eps->nconv;i++) {
-      ierr = VecPointwiseDivide(eps->V[i],eps->V[i],eps->D);CHKERRQ(ierr);
-      ierr = VecNormalize(eps->V[i],PETSC_NULL);CHKERRQ(ierr);
-    }
-  }
-
   ierr = PetscFree(Z);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
-  if (eps->ispositive) {
-    ierr = VecDestroy(w);CHKERRQ(ierr);
-  }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 #endif 
