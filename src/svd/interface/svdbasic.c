@@ -26,6 +26,27 @@
 PetscFList SVDList = 0;
 PetscCookie SVD_COOKIE = 0;
 PetscLogEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
+static PetscTruth SVDPackageInitialized = PETSC_FALSE;
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDFinalizePackage"
+/*@C
+  SVDFinalizePackage - This function destroys everything in the Petsc interface to the charactoristics package. It is
+  called from PetscFinalize().
+
+  Level: developer
+
+.keywords: Petsc, destroy, package, mathematica
+.seealso: PetscFinalize()
+@*/
+PetscErrorCode SVDFinalizePackage(void) 
+{
+  PetscFunctionBegin;
+  SVDPackageInitialized = PETSC_FALSE;
+  SVDList               = 0;
+/*  EPSRegisterAllCalled  = PETSC_FALSE; */
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDInitializePackage"
@@ -43,15 +64,14 @@ PetscLogEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
 @*/
 PetscErrorCode SVDInitializePackage(char *path)
 {
-  static PetscTruth initialized = PETSC_FALSE;
   char              logList[256];
   char              *className;
   PetscTruth        opt;
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
-  if (initialized) PetscFunctionReturn(0);
-  initialized = PETSC_TRUE;
+  if (SVDPackageInitialized) PetscFunctionReturn(0);
+  SVDPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   ierr = PetscCookieRegister("Singular Value Solver",&SVD_COOKIE);CHKERRQ(ierr);
   /* Register Constructors */
@@ -76,6 +96,7 @@ PetscErrorCode SVDInitializePackage(char *path)
       ierr = PetscLogEventDeactivateClass(SVD_COOKIE);CHKERRQ(ierr);
     }
   }
+  ierr = PetscRegisterFinalize(SVDFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

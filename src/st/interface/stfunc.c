@@ -25,6 +25,27 @@
 
 PetscCookie ST_COOKIE = 0;
 PetscLogEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
+static PetscTruth STPackageInitialized = PETSC_FALSE;
+
+#undef __FUNCT__  
+#define __FUNCT__ "STFinalizePackage"
+/*@C
+  STFinalizePackage - This function destroys everything in the Petsc interface to the charactoristics package. It is
+  called from PetscFinalize().
+
+  Level: developer
+
+.keywords: Petsc, destroy, package, mathematica
+.seealso: PetscFinalize()
+@*/
+PetscErrorCode STFinalizePackage(void) 
+{
+  PetscFunctionBegin;
+  STPackageInitialized = PETSC_FALSE;
+  STList               = 0;
+/*  EPSRegisterAllCalled  = PETSC_FALSE; */
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "STInitializePackage"
@@ -41,15 +62,14 @@ PetscLogEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
 .seealso: SlepcInitialize()
 @*/
 PetscErrorCode STInitializePackage(char *path) {
-  static PetscTruth initialized = PETSC_FALSE;
   char              logList[256];
   char             *className;
   PetscTruth        opt;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (initialized) PetscFunctionReturn(0);
-  initialized = PETSC_TRUE;
+  if (STPackageInitialized) PetscFunctionReturn(0);
+  STPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   ierr = PetscCookieRegister("Spectral Transform",&ST_COOKIE);CHKERRQ(ierr);
   /* Register Constructors */
@@ -74,6 +94,7 @@ PetscErrorCode STInitializePackage(char *path) {
       ierr = PetscLogEventDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
     }
   }
+  ierr = PetscRegisterFinalize(STFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

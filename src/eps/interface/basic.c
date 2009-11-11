@@ -26,6 +26,27 @@
 PetscFList EPSList = 0;
 PetscCookie EPS_COOKIE = 0;
 PetscLogEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
+static PetscTruth EPSPackageInitialized = PETSC_FALSE;
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSFinalizePackage"
+/*@C
+  EPSFinalizePackage - This function destroys everything in the Petsc interface to the charactoristics package. It is
+  called from PetscFinalize().
+
+  Level: developer
+
+.keywords: Petsc, destroy, package, mathematica
+.seealso: PetscFinalize()
+@*/
+PetscErrorCode EPSFinalizePackage(void) 
+{
+  PetscFunctionBegin;
+  EPSPackageInitialized = PETSC_FALSE;
+  EPSList               = 0;
+/*  EPSRegisterAllCalled  = PETSC_FALSE; */
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSInitializePackage"
@@ -42,15 +63,14 @@ PetscLogEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
 .seealso: SlepcInitialize()
 @*/
 PetscErrorCode EPSInitializePackage(char *path) {
-  static PetscTruth initialized = PETSC_FALSE;
   char              logList[256];
   char             *className;
   PetscTruth        opt;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (initialized) PetscFunctionReturn(0);
-  initialized = PETSC_TRUE;
+  if (EPSPackageInitialized) PetscFunctionReturn(0);
+  EPSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   ierr = PetscCookieRegister("Eigenproblem Solver",&EPS_COOKIE);CHKERRQ(ierr);
   /* Register Constructors */
@@ -75,6 +95,7 @@ PetscErrorCode EPSInitializePackage(char *path) {
       ierr = PetscLogEventDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
     }
   }
+  ierr = PetscRegisterFinalize(EPSFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
