@@ -265,8 +265,8 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
-  PetscReal      *x,*y;
-  int            p,n = svd->nsv;
+  PetscReal      *x,*y,p;
+  int            n = svd->nsv;
   PetscInt       i;
   PetscDraw      draw1;
   PetscDrawLG    lg1;

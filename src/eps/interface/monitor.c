@@ -297,7 +297,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscInt       i;
   int            n = eps->nev;
 #if !defined(PETSC_USE_COMPLEX)
-  int            p;
+  PetscReal      p;
   PetscDraw      draw1;
   PetscDrawLG    lg1;
 #endif
