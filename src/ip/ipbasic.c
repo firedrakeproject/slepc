@@ -231,7 +231,7 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 PetscErrorCode IPSetFromOptions(IP ip)
 {
   PetscErrorCode ierr;
-  const char     *orth_list[3] = { "mgs" , "cgs", "ncgs" };
+  const char     *orth_list[2] = { "mgs" , "cgs" };
   const char     *ref_list[3] = { "never" , "ifneeded", "always" };
   PetscReal      r;
   PetscInt       i,j;
@@ -240,7 +240,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
   ierr = PetscOptionsBegin(((PetscObject)ip)->comm,((PetscObject)ip)->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
   i = ip->orthog_type;
-  ierr = PetscOptionsEList("-orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,3,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
   j = ip->orthog_ref;
   ierr = PetscOptionsEList("-orthog_refinement","Iterative refinement mode during orthogonalization","IPSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
   r = ip->orthog_eta;
