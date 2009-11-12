@@ -23,10 +23,10 @@
 
 #include "private/fortranimpl.h" 
 #include "slepc.h"
-#include "slepcst.h"
-#include "slepceps.h"
-#include "slepcsvd.h"
-#include "slepcip.h"
+#include "private/epsimpl.h"
+#include "private/stimpl.h"
+#include "private/svdimpl.h"
+#include "private/ipimpl.h"
 
 extern PetscTruth SlepcBeganPetsc;
 

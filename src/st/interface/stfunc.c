@@ -30,20 +30,18 @@ static PetscTruth STPackageInitialized = PETSC_FALSE;
 #undef __FUNCT__  
 #define __FUNCT__ "STFinalizePackage"
 /*@C
-  STFinalizePackage - This function destroys everything in the Petsc interface to the charactoristics package. It is
-  called from PetscFinalize().
+  STFinalizePackage - This function destroys everything in the Slepc interface to the ST package. It is
+  called from SlepcFinalize().
 
   Level: developer
 
-.keywords: Petsc, destroy, package, mathematica
-.seealso: PetscFinalize()
+.seealso: SlepcFinalize()
 @*/
 PetscErrorCode STFinalizePackage(void) 
 {
   PetscFunctionBegin;
   STPackageInitialized = PETSC_FALSE;
   STList               = 0;
-/*  EPSRegisterAllCalled  = PETSC_FALSE; */
   PetscFunctionReturn(0);
 }
 

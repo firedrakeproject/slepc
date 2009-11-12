@@ -123,6 +123,8 @@ struct _p_EPS {
 	}
 
 EXTERN PetscErrorCode EPSRegisterAll(char *);
+EXTERN PetscErrorCode EPSInitializePackage(char *);
+EXTERN PetscErrorCode EPSFinalizePackage(void);
 
 EXTERN PetscErrorCode EPSDestroy_Default(EPS);
 EXTERN PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);

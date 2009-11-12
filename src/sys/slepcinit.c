@@ -20,10 +20,10 @@
 */
 
 #include "slepc.h" /*I "slepc.h" I*/
-#include "slepceps.h"
-#include "slepcst.h"
-#include "slepcsvd.h"
-#include "slepcip.h"
+#include "private/epsimpl.h"
+#include "private/stimpl.h"
+#include "private/svdimpl.h"
+#include "private/ipimpl.h"
 #include <stdlib.h>
 
 #undef __FUNCT__  

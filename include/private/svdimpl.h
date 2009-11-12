@@ -82,6 +82,8 @@ struct _p_SVD {
 };
 
 EXTERN PetscErrorCode SVDRegisterAll(char *);
+EXTERN PetscErrorCode SVDInitializePackage(char*);
+EXTERN PetscErrorCode SVDFinalizePackage(void);
 
 #define SVDMonitor(svd,it,nconv,sigma,errest,nest) \
         { PetscErrorCode _ierr; PetscInt _i,_im = svd->numbermonitors; \

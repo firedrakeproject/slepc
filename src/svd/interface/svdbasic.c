@@ -31,20 +31,18 @@ static PetscTruth SVDPackageInitialized = PETSC_FALSE;
 #undef __FUNCT__  
 #define __FUNCT__ "SVDFinalizePackage"
 /*@C
-  SVDFinalizePackage - This function destroys everything in the Petsc interface to the charactoristics package. It is
-  called from PetscFinalize().
+  SVDFinalizePackage - This function destroys everything in the Slepc interface to the SVD package. It is
+  called from SlepcFinalize().
 
   Level: developer
 
-.keywords: Petsc, destroy, package, mathematica
-.seealso: PetscFinalize()
+.seealso: SlepcFinalize()
 @*/
 PetscErrorCode SVDFinalizePackage(void) 
 {
   PetscFunctionBegin;
   SVDPackageInitialized = PETSC_FALSE;
   SVDList               = 0;
-/*  EPSRegisterAllCalled  = PETSC_FALSE; */
   PetscFunctionReturn(0);
 }
 

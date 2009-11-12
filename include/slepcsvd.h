@@ -119,7 +119,6 @@ EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
 EXTERN PetscErrorCode SVDGetOperationCounters(SVD,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 EXTERN PetscErrorCode SVDDestroy(SVD);
-EXTERN PetscErrorCode SVDInitializePackage(char*);
 
 EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
                                     void*,PetscErrorCode (*monitordestroy)(void*));

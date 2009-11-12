@@ -68,8 +68,6 @@ EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 EXTERN PetscErrorCode STPostSolve(ST);
 
-EXTERN PetscErrorCode STInitializePackage(char*);
-
 EXTERN PetscErrorCode STSetKSP(ST,KSP);
 EXTERN PetscErrorCode STGetKSP(ST,KSP*);
 EXTERN PetscErrorCode STSetShift(ST,PetscScalar);

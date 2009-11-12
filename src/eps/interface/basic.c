@@ -31,20 +31,18 @@ static PetscTruth EPSPackageInitialized = PETSC_FALSE;
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFinalizePackage"
 /*@C
-  EPSFinalizePackage - This function destroys everything in the Petsc interface to the charactoristics package. It is
-  called from PetscFinalize().
+  EPSFinalizePackage - This function destroys everything in the Slepc interface to the EPS package. It is
+  called from SlepcFinalize().
 
   Level: developer
 
-.keywords: Petsc, destroy, package, mathematica
-.seealso: PetscFinalize()
+.seealso: SlepcFinalize()
 @*/
 PetscErrorCode EPSFinalizePackage(void) 
 {
   PetscFunctionBegin;
   EPSPackageInitialized = PETSC_FALSE;
   EPSList               = 0;
-/*  EPSRegisterAllCalled  = PETSC_FALSE; */
   PetscFunctionReturn(0);
 }
 
