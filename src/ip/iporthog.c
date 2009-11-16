@@ -76,7 +76,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTr
     } else {
       ierr = IPMInnerProductBegin(ip,v,n,V,H+nds);CHKERRQ(ierr);
     }
-    if (onorm || norm) { 
+    if (onorm || (norm && !ip->matrix)) { 
       ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
     }
     if (nds>0) { 
@@ -88,7 +88,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTr
     } else {
       ierr = IPMInnerProductEnd(ip,v,n,V,H+nds);CHKERRQ(ierr);
     }
-    if (onorm || norm) {
+    if (onorm || (norm && !ip->matrix)) {
       ierr = IPInnerProductEnd(ip,v,v,&alpha);CHKERRQ(ierr);
     }
   }
@@ -107,18 +107,23 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTr
   /* compute |v| */
   if (onorm) *onorm = sqrt(PetscRealPart(alpha));
 
-  /* compute |v'| */
   if (norm) {
-    sum = 0.0;
-    for (j=0; j<nds; j++)
-      sum += PetscRealPart(H[j] * PetscConj(H[j]));
-    for (j=0; j<n; j++)
-      if (!which || which[j])
-        sum += PetscRealPart(H[nds+j] * PetscConj(H[nds+j]));
-    *norm = PetscRealPart(alpha)-sum;
-    if (*norm <= 0.0) {
+    if (!ip->matrix) {
+      /* estimate |v'| from |v| */
+      sum = 0.0;
+      for (j=0; j<nds; j++)
+        sum += PetscRealPart(H[j] * PetscConj(H[j]));
+      for (j=0; j<n; j++)
+        if (!which || which[j])
+          sum += PetscRealPart(H[nds+j] * PetscConj(H[nds+j]));
+      *norm = PetscRealPart(alpha)-sum;
+      if (*norm <= 0.0) {
+        ierr = IPNorm(ip,v,norm);CHKERRQ(ierr);
+      } else *norm = sqrt(*norm);
+    } else {
+      /* compute |v'| */
       ierr = IPNorm(ip,v,norm);CHKERRQ(ierr);
-    } else *norm = sqrt(*norm);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -258,7 +263,12 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
     k = 1;
     while (k<3 && nrm < ip->orthog_eta * onrm) {
       k++;
-      ierr = IPOrthogonalizeCGS1(ip,nds,DS,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr); 
+      if (!ip->matrix) {
+        ierr = IPOrthogonalizeCGS1(ip,nds,DS,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr); 
+      } else {
+        onrm = nrm;
+        ierr = IPOrthogonalizeCGS1(ip,nds,DS,n,which,V,v,c,PETSC_NULL,&nrm);CHKERRQ(ierr); 
+      }
       for (j=0;j<n;j++) 
 	if (!which || which[j]) h[nds+j] += c[nds+j];
     }
