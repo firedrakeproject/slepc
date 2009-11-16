@@ -87,9 +87,13 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   mout,info,ldh,ncv;
+  PetscBLASInt   mout,info,ldh,ncv,inc = 1;
+  PetscScalar   tmp;
+  PetscReal     norm;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=(PetscReal*)(work+3*ncv_);
+#else
+  PetscReal     normi;
 #endif
 
   PetscFunctionBegin;
@@ -107,6 +111,25 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
 #endif
   ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+
+  /* normalize eigenvectors */
+  for (i=0;i<ncv;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi[i] != 0.0) {
+      norm = BLASnrm2_(&ncv,Y+i*ncv,&inc);
+      normi = BLASnrm2_(&ncv,Y+(i+1)*ncv,&inc);
+      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+      BLASscal_(&ncv,&tmp,Y+i*ncv,&inc);
+      BLASscal_(&ncv,&tmp,Y+(i+1)*ncv,&inc);
+      i++;     
+    } else
+#endif
+    {
+      norm = BLASnrm2_(&ncv,Y+i*ncv,&inc);
+      tmp = 1.0 / norm;
+      BLASscal_(&ncv,&tmp,Y+i*ncv,&inc);
+    }
+  }
 
   /* Compute residual norm estimates as beta*abs(Y(m,:)) */
   for (i=nconv;i<ncv;i++) { 
