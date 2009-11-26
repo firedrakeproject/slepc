@@ -48,12 +48,6 @@ def Load(petscdir):
 	MAKE = v
       elif k == 'INSTALL_DIR':
         INSTALL_DIR = v
-      elif k == 'PETSC_ARCH_NAME':
-        ARCH = v
     f.close()
   except:
     sys.exit('ERROR: PETSc is not configured for architecture ' + ARCH)
-
-  if ISINSTALL and ARCH == 'unknown':
-    sys.exit('ERROR: PETSc architecture name is not defined')
-    
