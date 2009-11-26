@@ -244,19 +244,18 @@ In \petsc, if an installation directory has been specified during configuration 
 
 To be more precise, suppose that the configuration was done with \texttt{-{}-prefix=/opt/petsc-3.0.0-linux-gnu-c-debug}. Then, \texttt{make install} will create directory \texttt{/opt/petsc-3.0.0-linux-gnu-c-debug} if it does not exist, and create subdirectories \texttt{lib}, \texttt{conf}, and \texttt{include}, that will store the libraries, the configuration files, and the header files, respectively. Note that the source code files are not copied, nor the documentation, so the size of the installed directory will be much smaller than the original one. For that reason, it is no longer necessary to allow for several configurations to share a directory tree. In other words, in a prefix-based installation, variable \ident{PETSC\_ARCH} loses significance and must be unset. To maintain several configurations, one should specify different prefix directories, typically with a name that informs about the configuration options used.
 
-In order to prepare a prefix-based installation of \slepc that uses a prefix-based installation of \petsc, start by setting the appropriate value of \ident{PETSC\_DIR}, making sure that \ident{PETSC\_ARCH} is not set. Then, run \slepc's configure with a prefix directory.
+In order to prepare a prefix-based installation of \slepc that uses a prefix-based installation of \petsc, start by setting the appropriate value of \ident{PETSC\_DIR}. Then, run \slepc's configure with a prefix directory.
 	\begin{Verbatim}[fontsize=\small]
 	export PETSC_DIR=/opt/petsc-3.0.0-linux-gnu-c-debug
-	unset PETSC_ARCH
+	export PETSC_ARCH=linux-gnu-c-debug
 	cd $SLEPC_DIR
 	./configure --prefix=/opt/slepc-3.0.0-linux-gnu-c-debug
-	export PETSC_ARCH=linux-gnu-c-debug
 	make 
 	make install
 	unset PETSC_ARCH
 	export SLEPC_DIR=/opt/slepc-3.0.0-linux-gnu-c-debug
 	\end{Verbatim}
-Note that \slepc's configure will display the value of \ident{PETSC\_ARCH} that has to be used (it is the same name that was used during \petsc's configuration, before install). In this case, the \ident{PETSC\_ARCH} variable is required only during \slepc's build, but should be unset afterwards.
+Note that the value of \ident{PETSC\_ARCH} set before \slepc's configure need not be the same as the one used during \petsc's configuration, before install. This value of the \ident{PETSC\_ARCH} variable is required only during \slepc's build, and should be unset afterwards.
 
 %\subsection{Building Python Interfaces}
 %\label{sec:py-inst}
