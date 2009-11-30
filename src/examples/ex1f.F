@@ -179,7 +179,8 @@
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL,PETSC_NULL,ierr)
+          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL_OBJECT,
+     +                         PETSC_NULL_OBJECT,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)

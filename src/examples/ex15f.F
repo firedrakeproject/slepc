@@ -156,8 +156,8 @@
         endif
         do i=0,nconv-1
 !         ** Get converged singular triplet: i-th singular value is stored in sigma
-          call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL,
-     +         PETSC_NULL,ierr)
+          call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_OBJECT,
+     +         PETSC_NULL_OBJECT,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
           call SVDComputeRelativeError(svd,i,error,ierr)
