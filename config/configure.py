@@ -138,21 +138,31 @@ for i in sys.argv[1:]:
   else:
     sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
 
+prefixinstall = not prefixdir==''
+
 # Check if enviroment is ok
 print 'Checking environment...'
-if 'SLEPC_DIR' not in os.environ:
-  sys.exit('ERROR: SLEPC_DIR enviroment variable is not set')
-slepcdir = os.environ['SLEPC_DIR']
-if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'config'])):
-  sys.exit('ERROR: SLEPC_DIR enviroment variable is not valid')
-if os.path.realpath(os.getcwd()) != os.path.realpath(slepcdir):
-  sys.exit('ERROR: SLEPC_DIR is not the current directory')
+if 'SLEPC_DIR' in os.environ:
+  slepcdir = os.environ['SLEPC_DIR']
+  if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'config'])):
+    sys.exit('ERROR: SLEPC_DIR enviroment variable is not valid')
+  if os.path.realpath(os.getcwd()) != os.path.realpath(slepcdir):
+    sys.exit('ERROR: SLEPC_DIR is not the current directory')
+else:
+  slepcdir = os.getcwd();
+  if not os.path.exists(os.sep.join([slepcdir,'config'])):
+    sys.exit('ERROR: Current directory is not valid')
 
-if 'PETSC_DIR' not in os.environ:
-  sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
-petscdir = os.environ['PETSC_DIR']
-if not os.path.exists(petscdir):
-  sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
+if 'PETSC_DIR' in os.environ:
+  petscdir = os.environ['PETSC_DIR']
+  if not os.path.exists(petscdir):
+    sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
+else:
+  if prefixdir:
+    petscdir = prefixdir
+    os.environ['PETSC_DIR'] = petscdir
+  else:
+    sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
 
 # Check PETSc version
 petscversion.Load(petscdir)
@@ -166,9 +176,15 @@ if not petscconf.PRECISION in ['double','single','matsingle']:
 if prefixdir and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
-prefixinstall = not prefixdir==''
-
 # Create architecture directory and configuration files
+try:
+  slepcvariables = open(os.sep.join([slepcdir,'conf','slepcvariables']),'w')
+  slepcvariables.write('PETSC_DIR='+petscdir+'\n')
+  slepcvariables.write('PETSC_ARCH='+petscconf.ARCH+'\n')
+  slepcvariables.write('SLEPC_DIR='+slepcdir+'\n')
+  slepcvariables.close() 
+except:
+  sys.exit('ERROR: cannot create default configuration file in ' + os.sep.join([slepcdir,'conf']))
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
 if not os.path.exists(archdir):
   try:

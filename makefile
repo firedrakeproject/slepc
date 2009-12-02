@@ -26,15 +26,17 @@ ALL: all
 LOCDIR = .
 DIRS   = src include docs 
 
+# next line defines SLEPC_DIR, PETSC_DIR and PETSC_ARCH if they are not set
+include ./${PETSC_ARCH}/conf/slepcvariables
 include ${SLEPC_DIR}/conf/slepc_common
 
 #
 # Basic targets to build SLEPc libraries.
 # all: builds the C/C++ and Fortran libraries
 all:
-	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkpetsc_dir
-	@${OMAKE}  PETSC_ARCH=${PETSC_ARCH} chkslepc_dir
-	-@${OMAKE} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
+	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir
+	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkslepc_dir
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
 	-@egrep -i "( error | error:)" ${PETSC_ARCH}/conf/make.log > /dev/null; if [ "$$?" = "0" ]; then \
            echo "********************************************************************"; \
            echo "  Error during compile, check ${PETSC_ARCH}/conf/make.log"; \
@@ -101,7 +103,7 @@ info:
 build:
 	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} ACTION=libfast  tree 
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast  tree 
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 	-@echo "Completed building SLEPc libraries"
 	-@echo "========================================="
@@ -119,7 +121,7 @@ testexamples: info
 	-@echo "Due to different numerical round-off on certain"
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} \
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
 	   ACTION=testexamples_C  tree 
 	-@echo "Completed compiling and running test examples"
 	-@echo "========================================="
@@ -133,7 +135,8 @@ testfortran: info
 	-@echo "some of the results may not match exactly."
 	-@echo "========================================="
 	-@if [ "${FC}" != "" ]; then \
-	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} ACTION=testexamples_Fortran  tree ; \
+	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
+	      ACTION=testexamples_Fortran  tree ; \
             echo "Completed compiling and running Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
@@ -147,7 +150,7 @@ testexamples_uni: info
 	-@echo "Due to different numerical round-off on certain"
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} \
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
 	   ACTION=testexamples_C_X11_MPIUni  tree 
 	-@echo "Completed compiling and running uniprocessor test examples"
 	-@echo "========================================="
@@ -159,7 +162,8 @@ testfortran_uni: info
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
 	-@if [ "${FC}" != "" ]; then \
-            ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=testexamples_Fortran_MPIUni  tree; \
+            ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} 
+	      ACTION=testexamples_Fortran_MPIUni  tree; \
             echo "Completed compiling and running uniprocessor Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
@@ -177,7 +181,7 @@ deletelibs:
 
 # Cleans up build
 allclean: deletelibs
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=clean tree
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean tree
 
 #
 # Check if PETSC_DIR variable specified is valid
