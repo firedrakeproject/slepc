@@ -67,9 +67,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTr
     ierr = IPMInnerProduct(ip,v,n,V,H);CHKERRQ(ierr);
   } else {  
     /* merge comunications */
-    if (nds>0) { 
-      ierr = IPMInnerProductBegin(ip,v,nds,DS,H);CHKERRQ(ierr); 
-    }
+    ierr = IPMInnerProductBegin(ip,v,nds,DS,H);CHKERRQ(ierr); 
     if (which) { /* use select array */
       for (j=0; j<n; j++) 
         if (which[j]) { ierr = IPInnerProductBegin(ip,v,V[j],H+nds+j);CHKERRQ(ierr); }
@@ -79,9 +77,8 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTr
     if (onorm || (norm && !ip->matrix)) { 
       ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
     }
-    if (nds>0) { 
-      ierr = IPMInnerProductEnd(ip,v,nds,DS,H);CHKERRQ(ierr); 
-    }
+
+    ierr = IPMInnerProductEnd(ip,v,nds,DS,H);CHKERRQ(ierr); 
     if (which) { /* use select array */
       for (j=0; j<n; j++) 
         if (which[j]) { ierr = IPInnerProductEnd(ip,v,V[j],H+nds+j);CHKERRQ(ierr); }
@@ -94,9 +91,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTr
   }
 
   /* q = v - V h */
-  if (nds>0) {
-    ierr = SlepcVecMAXPBY(v,1.0,-1.0,nds,H,DS);CHKERRQ(ierr);
-  }
+  ierr = SlepcVecMAXPBY(v,1.0,-1.0,nds,H,DS);CHKERRQ(ierr);
   if (which) {
     for (j=0; j<n; j++) 
       if (which[j]) { ierr = VecAXPBY(v,-H[nds+j],1.0,V[j]);CHKERRQ(ierr); }

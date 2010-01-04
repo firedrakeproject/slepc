@@ -410,6 +410,7 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
   PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  if (n == 0) PetscFunctionReturn(0);
   PetscValidPointer(y,4);
   PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
   PetscValidScalarPointer(p,5);
@@ -464,6 +465,7 @@ PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScal
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
   PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  if (n == 0) PetscFunctionReturn(0);
   PetscValidPointer(y,4);
   PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
   PetscValidScalarPointer(p,5);
