@@ -53,6 +53,7 @@ E*/
 #define EPSARNOLDI   "arnoldi"
 #define EPSLANCZOS   "lanczos"
 #define EPSKRYLOVSCHUR "krylovschur"
+#define EPSDSITRLANCZOS "dsitrlanczos"
 #define EPSLAPACK    "lapack"
 /* the next ones are interfaces to external libraries */
 #define EPSARPACK    "arpack"
