@@ -27,10 +27,11 @@
 #include "private/stimpl.h"
 #include "private/svdimpl.h"
 #include "private/ipimpl.h"
+#include <stdlib.h>
 
 extern PetscTruth SlepcBeganPetsc;
-
 extern PetscTruth SlepcInitializeCalled;
+extern PetscLogEvent SLEPC_UpdateVectors;
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define petscinitialize_              PETSCINITIALIZE
@@ -90,6 +91,13 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErro
   *ierr = EPSInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing EPS package");return;}
   *ierr = SVDInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing SVD package");return;}
   *ierr = IPInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing IP package");return;}
+#endif
+
+  *ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Registering log event");return;}
+
+#if defined(PETSC_HAVE_DRAND48)
+  /* work-around for Cygwin drand48() initialization bug */
+  srand48(0);
 #endif
 
   SlepcInitializeCalled = PETSC_TRUE;
