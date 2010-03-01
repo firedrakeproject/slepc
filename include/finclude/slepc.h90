@@ -20,7 +20,7 @@
 !  Single Fortran 90 include file
 !
 
-#include "finclude/slepcall.h"
+#include "finclude/slepcsys.h"
 #include "finclude/slepceps.h90"
 #include "finclude/slepcip.h90"
 #include "finclude/slepcst.h90"

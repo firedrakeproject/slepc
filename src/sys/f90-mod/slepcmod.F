@@ -19,8 +19,8 @@
 
 #define PETSC_USE_FORTRAN_MODULES
 
-#include "finclude/petscalldef.h"
-#include "finclude/slepcalldef.h"
+#include "finclude/petscdef.h"
+#include "finclude/slepcdef.h"
 
         module slepcstdef
         use petscksp

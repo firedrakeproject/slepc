@@ -21,7 +21,7 @@
 
 #if !defined(__SLEPCIP_H)
 #define __SLEPCIP_H
-#include "slepc.h"
+#include "slepcsys.h"
 PETSC_EXTERN_CXX_BEGIN
 
 extern PetscCookie IP_COOKIE;

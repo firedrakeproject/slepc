@@ -23,7 +23,7 @@
 
 #if !defined(__SLEPCSVD_H)
 #define __SLEPCSVD_H
-#include "slepc.h"
+#include "slepcsys.h"
 #include "slepceps.h"
 PETSC_EXTERN_CXX_BEGIN
 

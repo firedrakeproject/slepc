@@ -22,7 +22,7 @@
 */
 
 #include "private/fortranimpl.h" 
-#include "slepc.h"
+#include "slepcsys.h"
 #include "private/epsimpl.h"
 #include "private/stimpl.h"
 #include "private/svdimpl.h"

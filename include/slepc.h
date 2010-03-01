@@ -23,45 +23,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SLEPC_H)
-#define __SLEPC_H
-
-/* ========================================================================== */
 /* 
-   Current SLEPc version number and release date
+   Include all top-level SLEPc functionality
 */
-#include "slepcversion.h"
-
-/* ========================================================================== */
-/* 
-   The PETSc include files. 
-*/
-#include "petsc.h"
-#include "petscvec.h"
-#include "petscmat.h"
-
-PETSC_EXTERN_CXX_BEGIN
-/*
-    Initialization of SLEPc and other system routines
-*/
-EXTERN PetscErrorCode SlepcInitialize(int*,char***,char[],const char[]);
-EXTERN PetscErrorCode SlepcFinalize(void);
-EXTERN PetscErrorCode SlepcInitializeFortran(void);
-
-EXTERN PetscErrorCode SlepcVecSetRandom(Vec);
-EXTERN PetscErrorCode SlepcIsHermitian(Mat,PetscTruth*);
-#if !defined(PETSC_USE_COMPLEX)
-EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
-#else
-#define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
-#endif
-EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
-EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
-EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscTruth);
-EXTERN PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
- 
-extern PetscTruth SlepcInitializeCalled;
-
-PETSC_EXTERN_CXX_END
-#endif
+#include "slepcsvd.h"
+#include "slepcsys.h"
 

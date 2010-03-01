@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "slepc.h" /*I "slepc.h" I*/
+#include "slepcsys.h"                  /*I "slepcsys.h" I*/
 #include "petscblaslapack.h"
 #include <stdlib.h>
 
