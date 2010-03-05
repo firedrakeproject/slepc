@@ -19,8 +19,13 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip sys examples 
+ALL: lib
 
-LOCDIR   = src/
+SOURCEH  = ../../include/private/qepimpl.h ../../include/slepcqep.h
+DIRS     = interface impls
+LOCDIR   = src/qep/
+MANSEC   = QEP
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

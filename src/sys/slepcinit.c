@@ -23,6 +23,7 @@
 #include "private/epsimpl.h"
 #include "private/stimpl.h"
 #include "private/svdimpl.h"
+#include "private/qepimpl.h"
 #include "private/ipimpl.h"
 #include <stdlib.h>
 
@@ -158,6 +159,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
   ierr = STInitializePackage(PETSC_NULL); CHKERRQ(ierr);
   ierr = EPSInitializePackage(PETSC_NULL); CHKERRQ(ierr);
   ierr = SVDInitializePackage(PETSC_NULL); CHKERRQ(ierr);
+  ierr = QEPInitializePackage(PETSC_NULL); CHKERRQ(ierr);
   ierr = IPInitializePackage(PETSC_NULL); CHKERRQ(ierr);
 #endif
 
@@ -229,6 +231,7 @@ PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
   ierr = STInitializePackage(path); CHKERRQ(ierr);
   ierr = EPSInitializePackage(path); CHKERRQ(ierr);
   ierr = SVDInitializePackage(path); CHKERRQ(ierr);
+  ierr = QEPInitializePackage(path); CHKERRQ(ierr);
   ierr = IPInitializePackage(path); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

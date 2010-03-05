@@ -19,8 +19,19 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip sys examples 
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = qepmon.c qepbasic.c qepdefault.c qepregis.c qepopts.c qepsetup.c qepsolve.c qepdense.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = qepmon.o qepbasic.o qepdefault.o qepregis.o qepopts.o qepsetup.o qepsolve.o qepdense.o
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = QEP
+LOCDIR   = src/qep/interface/
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

@@ -19,8 +19,19 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip sys examples 
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = linear.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = linear.o
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = QEP
+LOCDIR   = src/qep/impls/linear/
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+
