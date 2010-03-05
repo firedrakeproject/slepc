@@ -365,7 +365,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
 {
   PetscErrorCode ierr;
   Vec            u,w;
-  Mat            K=qep->K,C=qep->C,M=qep->M;
+  Mat            M=qep->M,C=qep->C,K=qep->K;
 #ifndef PETSC_USE_COMPLEX
   Vec            v,y,z;
   PetscReal      ni,nr;
@@ -380,12 +380,12 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    ierr = MatMult(M,xr,u);CHKERRQ(ierr);                 /* u=M*x */
+    ierr = MatMult(K,xr,u);CHKERRQ(ierr);                 /* u=K*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
       ierr = MatMult(C,xr,w);CHKERRQ(ierr);               /* w=C*x */
-      ierr = VecAXPY(u,kr,w);CHKERRQ(ierr);               /* u=l*C*x+M*x */
-      ierr = MatMult(K,xr,w);CHKERRQ(ierr);               /* w=C*x */
-      ierr = VecAXPY(u,kr*kr,w);CHKERRQ(ierr);            /* u=l^2*K*x+l*C*x+M*x */
+      ierr = VecAXPY(u,kr,w);CHKERRQ(ierr);               /* u=l*C*x+K*x */
+      ierr = MatMult(M,xr,w);CHKERRQ(ierr);               /* w=C*x */
+      ierr = VecAXPY(u,kr*kr,w);CHKERRQ(ierr);            /* u=l^2*M*x+l*C*x+K*x */
     }
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
 #ifndef PETSC_USE_COMPLEX
@@ -395,21 +395,21 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
     ierr = VecDuplicate(u,&z);CHKERRQ(ierr);
     a1 = kr*kr-ki*ki;
     a2 = 2.0*kr*ki;
-    ierr = MatMult(M,xr,u);CHKERRQ(ierr);         /* u=M*xr */
+    ierr = MatMult(K,xr,u);CHKERRQ(ierr);         /* u=K*xr */
     ierr = MatMult(C,xr,v);CHKERRQ(ierr);         /* v=C*xr */
     ierr = MatMult(C,xi,w);CHKERRQ(ierr);         /* w=C*xi */
-    ierr = MatMult(K,xr,y);CHKERRQ(ierr);         /* y=K*xr */
-    ierr = MatMult(K,xi,z);CHKERRQ(ierr);         /* z=K*xi */
-    ierr = VecAXPY(u,kr,v);CHKERRQ(ierr);         /* u=kr*C*xr+M*xr */
-    ierr = VecAXPY(u,-ki,w);CHKERRQ(ierr);        /* u=kr*C*xr-ki*C*xi+M*xr */
-    ierr = VecAXPY(u,a1,y);CHKERRQ(ierr);         /* u=a1*K*xr+kr*C*xr-ki*C*xi+M*xr */
-    ierr = VecAXPY(u,-a2,z);CHKERRQ(ierr);        /* u=a1*K*xr-a2*K*ki+kr*C*xr-ki*C*xi+M*xr */
+    ierr = MatMult(M,xr,y);CHKERRQ(ierr);         /* y=M*xr */
+    ierr = MatMult(M,xi,z);CHKERRQ(ierr);         /* z=M*xi */
+    ierr = VecAXPY(u,kr,v);CHKERRQ(ierr);         /* u=kr*C*xr+K*xr */
+    ierr = VecAXPY(u,-ki,w);CHKERRQ(ierr);        /* u=kr*C*xr-ki*C*xi+K*xr */
+    ierr = VecAXPY(u,a1,y);CHKERRQ(ierr);         /* u=a1*M*xr+kr*C*xr-ki*C*xi+K*xr */
+    ierr = VecAXPY(u,-a2,z);CHKERRQ(ierr);        /* u=a1*M*xr-a2*M*ki+kr*C*xr-ki*C*xi+K*xr */
     ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);
-    ierr = MatMult(M,xi,u);CHKERRQ(ierr);         /* u=M*xi */
-    ierr = VecAXPY(u,kr,w);CHKERRQ(ierr);         /* u=kr*C*xi+M*xi */
-    ierr = VecAXPY(u,ki,v);CHKERRQ(ierr);         /* u=kr*C*xi+ki*C*xi+M*xi */
-    ierr = VecAXPY(u,a1,z);CHKERRQ(ierr);         /* u=a1*K*xi+kr*C*xi+ki*C*xi+M*xi */
-    ierr = VecAXPY(u,a2,y);CHKERRQ(ierr);         /* u=a1*K*xi+a2*K*ki+kr*C*xi+ki*C*xi+M*xi */
+    ierr = MatMult(K,xi,u);CHKERRQ(ierr);         /* u=K*xi */
+    ierr = VecAXPY(u,kr,w);CHKERRQ(ierr);         /* u=kr*C*xi+K*xi */
+    ierr = VecAXPY(u,ki,v);CHKERRQ(ierr);         /* u=kr*C*xi+ki*C*xi+K*xi */
+    ierr = VecAXPY(u,a1,z);CHKERRQ(ierr);         /* u=a1*M*xi+kr*C*xi+ki*C*xi+K*xi */
+    ierr = VecAXPY(u,a2,y);CHKERRQ(ierr);         /* u=a1*M*xi+a2*M*ki+kr*C*xi+ki*C*xi+K*xi */
     ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
     *norm = SlepcAbsEigenvalue(nr,ni);
     ierr = VecDestroy(v);CHKERRQ(ierr);
@@ -436,7 +436,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
 .  i   - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||(l^2*K+l*C+M)x||_2 where l is the 
+.  norm - the residual norm, computed as ||(l^2*M+l*C+K)x||_2 where l is the 
    eigenvalue and x is the eigenvector. 
    If l=0 then the residual norm is computed as ||Mx||_2.
 
@@ -529,7 +529,7 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep, PetscScalar kr, PetscSca
 .  i   - the solution index
 
    Output Parameter:
-.  error - the relative error bound, computed as ||(l^2*K+l*C+M)x||_2/||lx||_2 where 
+.  error - the relative error bound, computed as ||(l^2*M+l*C+K)x||_2/||lx||_2 where 
    l is the eigenvalue and x is the eigenvector. 
    If l=0 the relative error is computed as ||Mx||_2/||x||_2.
 

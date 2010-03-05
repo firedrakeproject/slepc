@@ -62,7 +62,7 @@ struct _p_QEP {
   void           *which_ctx;
 
   /*------------------------- Working data --------------------------*/
-  Mat         K,C,M;            /* problem matrices */
+  Mat         M,C,K;            /* problem matrices */
   Vec         vec_initial,      /* initial vector */
               *V,               /* set of basis vectors and computed eigenvectors */
               *AV;              /* auxiliar set of basis vectors */
