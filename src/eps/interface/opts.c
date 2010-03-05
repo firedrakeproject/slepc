@@ -106,7 +106,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsTruthGroupBegin("-eps_convergence_default","Default (relative error) convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetConvergenceTest(eps,EPSDefaultConverged,PETSC_NULL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_convergence_absolute","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsTruthGroup("-eps_convergence_absolute","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetConvergenceTest(eps,EPSAbsoluteConverged,PETSC_NULL);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-eps_convergence_residual","Residual convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetConvergenceTest(eps,EPSResidualConverged,PETSC_NULL);CHKERRQ(ierr);}
@@ -262,6 +262,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   if (maxits != PETSC_IGNORE) {
     if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
       eps->max_it = 0;
+      eps->setupcalled = 0;
     } else {
       if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
       eps->max_it = maxits;
