@@ -97,7 +97,7 @@ int main( int argc, char **argv )
   /* 
      Set matrices
   */
-  ierr = QEPSetOperators(qep,K,C,M);CHKERRQ(ierr);
+  ierr = QEPSetOperators(qep,M,C,K);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
