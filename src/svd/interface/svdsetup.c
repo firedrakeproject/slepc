@@ -256,7 +256,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
     /* allocate memory for next solution */
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
-    ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc(svd->ncv*sizeof(PetscInt),&svd->perm);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
     ierr = VecGetLocalSize(svd->vec_initial,&nloc);CHKERRQ(ierr);
