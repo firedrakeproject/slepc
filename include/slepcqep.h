@@ -24,7 +24,7 @@
 #if !defined(__SLEPCQEP_H)
 #define __SLEPCQEP_H
 #include "slepcsys.h"
-#include "slepcip.h"
+#include "slepceps.h"
 PETSC_EXTERN_CXX_BEGIN
 
 extern PetscCookie QEP_COOKIE;
@@ -141,6 +141,10 @@ EXTERN PetscErrorCode QEPRegisterDestroy(void);
 
 /* --------- options specific to particular eigensolvers -------- */
 
+EXTERN PetscErrorCode QEPLinearSetExplicitMatrix(QEP,PetscTruth);
+EXTERN PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscTruth*);
+EXTERN PetscErrorCode QEPLinearSetEPS(QEP,EPS);
+EXTERN PetscErrorCode QEPLinearGetEPS(QEP,EPS*);
 
 PETSC_EXTERN_CXX_END
 #endif

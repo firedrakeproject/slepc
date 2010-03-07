@@ -46,10 +46,8 @@
 PetscErrorCode QEPSetUp(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       N;
-#if defined(PETSC_USE_COMPLEX)
-  PetscScalar    sigma;
-#endif
+  PetscInt       i,N,nloc;
+  PetscScalar    *pV;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
@@ -81,6 +79,32 @@ PetscErrorCode QEPSetUp(QEP qep)
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv)
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
+
+  /* Free memory for previous solution  */
+  if (qep->eigr) { 
+    ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
+    ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
+    ierr = PetscFree(qep->perm);CHKERRQ(ierr);
+    ierr = PetscFree(qep->errest);CHKERRQ(ierr);
+    ierr = VecGetArray(qep->V[0],&pV);CHKERRQ(ierr);
+    for (i=0;i<qep->ncv;i++) {
+      ierr = VecDestroy(qep->V[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
+    ierr = PetscFree(qep->V);CHKERRQ(ierr);
+  }
+
+  /* Allocate memory for next solution */
+  ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
+  ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
+  ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
+  ierr = PetscMalloc(qep->ncv*sizeof(Vec),&qep->V);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(qep->vec_initial,&nloc);CHKERRQ(ierr);
+  ierr = PetscMalloc(qep->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+  for (i=0;i<qep->ncv;i++) {
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,nloc,PETSC_DECIDE,pV+i*nloc,&qep->V[i]);CHKERRQ(ierr);
+  }
 
   ierr = PetscLogEventEnd(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);
   qep->setupcalled = 1;
