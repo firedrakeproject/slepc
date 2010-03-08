@@ -30,7 +30,7 @@ static char help[] = "Quadratic eigenproblem for testing the QEP object.\n\n"
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 K, C, M;         /* problem matrices */
+  Mat         	 M, C, K;         /* problem matrices */
   QEP         	 qep;             /* quadratic eigenproblem solver context */
   const QEPType  type;
   PetscReal   	 error, tol, re, im;
@@ -138,7 +138,7 @@ int main( int argc, char **argv )
        Display eigenvalues and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||(k^2K+Ck+M)x||/||kx||\n"
+         "           k          ||(k^2M+Ck+K)x||/||kx||\n"
          "   ----------------- -------------------------\n" );CHKERRQ(ierr);
 
     for( i=0; i<nconv; i++ ) {
@@ -160,7 +160,7 @@ int main( int argc, char **argv )
       im = ki;
 #endif 
       if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",re,im,error);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j    %12g\n",re,im,error);CHKERRQ(ierr);
       } else {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
@@ -172,9 +172,9 @@ int main( int argc, char **argv )
      Free work space
   */
   ierr = QEPDestroy(qep);CHKERRQ(ierr);
-  ierr = MatDestroy(K);CHKERRQ(ierr);
-  ierr = MatDestroy(C);CHKERRQ(ierr);
   ierr = MatDestroy(M);CHKERRQ(ierr);
+  ierr = MatDestroy(C);CHKERRQ(ierr);
+  ierr = MatDestroy(K);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }
