@@ -289,10 +289,10 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
   PetscInt       i,M,start,end;
-  PetscScalar    *pv,tmp;
-  PetscReal      norm;
+  PetscScalar    *pv;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscReal      normi;
+  PetscScalar    tmp;
+  PetscReal      norm,normi;
 #endif
   Vec            xr,xi;
   IS             isV;
@@ -312,10 +312,19 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
     ierr = VecScatterCreate(xr,isV,qep->V[0],PETSC_NULL,&vsV);CHKERRQ(ierr);
     for (i=0;i<qep->nconv;i++) {
       ierr = EPSGetEigenpair(ctx->eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
-      ierr = VecScatterBegin(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-      //ierr = VecScatterBegin(vsV,xi,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-      ierr = VecScatterEnd(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-      //ierr = VecScatterEnd(vsV,xi,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+      if (qep->eigi[i]>0) {   /* first eigenvalue of a complex conjugate pair */
+        ierr = VecScatterBegin(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterBegin(vsV,xi,qep->V[i+1],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV,xi,qep->V[i+1],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+      }
+      else if (qep->eigi[i]==0)   /* real eigenvalue */
+#endif
+      {
+        ierr = VecScatterBegin(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+      }
     }
     ierr = ISDestroy(isV);CHKERRQ(ierr);
     ierr = VecScatterDestroy(vsV);CHKERRQ(ierr);
