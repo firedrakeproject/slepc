@@ -33,7 +33,7 @@ TESTEXAMPLES_C  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
                   ex7.PETSc runex7_1 ex7.rm ex10.PETSc runex10_1 ex10.rm \
                   ex11.PETSc runex11_1 ex11.rm ex12.PETSc runex12_1 ex12.rm \
                   ex13.PETSc runex13_1 ex13.rm ex14.PETSc runex14_1 ex14.rm \
-                  ex15.PETSc runex15_1 ex15.rm runex16_1 ex16.rm
+                  ex15.PETSc runex15_1 ex15.rm ex16.PETSc runex16_1 ex16.rm
 
 TESTEXAMPLES_FORTRAN  = ex1f.PETSc runex1f_1 ex1f.rm
 
