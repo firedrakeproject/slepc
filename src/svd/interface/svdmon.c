@@ -50,6 +50,9 @@ $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscRea
 
    Options Database Keys:
 +    -svd_monitor        - print error estimates at each iteration
+.    -svd_monitor_first  - print only the first error estimate
+.    -svd_monitor_conv   - print the singular value approximations only when
+      convergence has been reached
 .    -svd_monitor_draw   - sets line graph monitor
 -    -svd_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to SVDMonitorSet(), but does not cancel those set via
