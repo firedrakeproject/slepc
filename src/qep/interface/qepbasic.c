@@ -247,6 +247,8 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->nconv           = 0;
   qep->its             = 0;
   qep->perm            = PETSC_NULL;
+  qep->matvecs         = 0;
+  qep->linits          = 0;
   qep->ldz             = 0;
   qep->nwork           = 0;
   qep->work            = PETSC_NULL;

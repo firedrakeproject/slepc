@@ -71,6 +71,8 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = IPResetOperationCounters(qep->ip);CHKERRQ(ierr);
   qep->nconv = 0;
   qep->its = 0;
+  qep->matvecs = 0;
+  qep->linits = 0;
   for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
   QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);
 
@@ -552,8 +554,6 @@ PetscErrorCode QEPComputeRelativeError(QEP qep, PetscInt i, PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
-
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSortEigenvalues"
 /*@
@@ -753,3 +753,39 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "QEPGetOperationCounters"
+/*@
+   QEPGetOperationCounters - Gets the total number of matrix-vector products, dot 
+   products, and linear solve iterations used by the QEP object during the last
+   QEPSolve() call.
+
+   Not Collective
+
+   Input Parameter:
+.  qep - quadratic eigensolver context
+
+   Output Parameter:
++  matvecs - number of matrix-vector product operations
+.  dots    - number of dot product operations
+-  lits    - number of linear iterations
+
+   Notes:
+   These counters are reset to zero at each successive call to QEPSolve().
+
+   Level: intermediate
+
+@*/
+PetscErrorCode QEPGetOperationCounters(QEP qep,PetscInt* matvecs,PetscInt* dots,PetscInt* lits)
+{
+  PetscErrorCode ierr;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  if (matvecs) *matvecs = qep->matvecs; 
+  if (dots) {
+    ierr = IPGetOperationCounters(qep->ip,dots);CHKERRQ(ierr);
+  }
+  if (lits) *lits = qep->linits; 
+  PetscFunctionReturn(0);
+}

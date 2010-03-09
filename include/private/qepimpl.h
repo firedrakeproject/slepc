@@ -75,6 +75,7 @@ struct _p_QEP {
   PetscInt    nconv,            /* number of converged eigenvalues */
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
+              matvecs, linits,  /* operation counters */
               ldz;              /* leading dimension of Z */
 
   /* ---------------- Default work-area and status vars -------------------- */

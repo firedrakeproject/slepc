@@ -303,6 +303,8 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
   ierr = EPSGetConverged(ctx->eps,&qep->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(ctx->eps,&qep->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&qep->reason);CHKERRQ(ierr);
+  ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,PETSC_NULL,&qep->linits);CHKERRQ(ierr);
+  qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
   ierr = MatGetVecs(ctx->A,&xr,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(ctx->A,&xi,PETSC_NULL);CHKERRQ(ierr);
   if (ctx->explicitmatrix) {
