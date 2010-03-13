@@ -34,7 +34,7 @@
         end module
 
         module slepcipdef
-        use petsc
+        use petscsys
 #include "finclude/slepcip.h"
 #include "finclude/ftn-custom/slepcipdef.h90"
         end module
@@ -67,3 +67,16 @@
         use slepcsvddef
 #include "finclude/slepcsvd.h90"
         end module
+
+        module slepcqepdef
+        use slepcip
+        use slepceps
+#include "finclude/slepcqep.h"
+#include "finclude/ftn-custom/slepcqepdef.h90"
+        end module
+
+        module slepcqep
+        use slepcqepdef
+#include "finclude/slepcqep.h90"
+        end module
+
