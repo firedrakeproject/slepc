@@ -449,6 +449,8 @@ PetscErrorCode QEPRegisterDestroy(void)
 PetscErrorCode QEPDestroy(QEP qep)
 {
   PetscErrorCode ierr;
+  PetscScalar    *pV;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
@@ -463,15 +465,31 @@ PetscErrorCode QEPDestroy(QEP qep)
   
   ierr = PetscFree(qep->T);CHKERRQ(ierr);
   ierr = PetscFree(qep->Z);CHKERRQ(ierr);
-  ierr = PetscFree(qep->perm);CHKERRQ(ierr);
 
   if (qep->vec_initial) {
     ierr = VecDestroy(qep->vec_initial);CHKERRQ(ierr);
   }
 
+  if (qep->eigr) { 
+    ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
+    ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
+    ierr = PetscFree(qep->perm);CHKERRQ(ierr);
+    ierr = PetscFree(qep->errest);CHKERRQ(ierr);
+    ierr = VecGetArray(qep->V[0],&pV);CHKERRQ(ierr);
+    for (i=0;i<qep->ncv;i++) {
+      ierr = VecDestroy(qep->V[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(pV);CHKERRQ(ierr);
+    ierr = PetscFree(qep->V);CHKERRQ(ierr);
+  }
+
   ierr = QEPMonitorCancel(qep);CHKERRQ(ierr);
 
   ierr = IPDestroy(qep->ip);CHKERRQ(ierr);
+
+  ierr = MatDestroy(qep->M);CHKERRQ(ierr);
+  ierr = MatDestroy(qep->C);CHKERRQ(ierr);
+  ierr = MatDestroy(qep->K);CHKERRQ(ierr);
 
   ierr = PetscHeaderDestroy(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);

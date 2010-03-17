@@ -678,7 +678,7 @@ PetscErrorCode QEPDestroy_LINEAR(QEP qep)
     ierr = VecDestroy(ctx->y1);CHKERRQ(ierr);
     ierr = VecDestroy(ctx->y2);CHKERRQ(ierr);
   }
-  ierr = PetscFree(qep->data);CHKERRQ(ierr);
+  ierr = QEPDestroy_Default(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
