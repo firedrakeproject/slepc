@@ -143,7 +143,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"QEP Object:\n");CHKERRQ(ierr);
     ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
     if (type) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s",type);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s\n",type);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  method: not yet set\n");CHKERRQ(ierr);
     }

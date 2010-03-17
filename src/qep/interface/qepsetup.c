@@ -197,7 +197,7 @@ PetscErrorCode QEPGetInitialVector(QEP qep,Vec *vec)
 PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n;
+  PetscInt       m,n,m0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
@@ -205,16 +205,19 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
   PetscValidHeaderSpecific(C,MAT_COOKIE,3);
   PetscValidHeaderSpecific(K,MAT_COOKIE,4);
   PetscCheckSameComm(qep,1,M,2);
-  PetscCheckSameComm(qep,1,C,2);
-  PetscCheckSameComm(qep,1,K,2);
+  PetscCheckSameComm(qep,1,C,3);
+  PetscCheckSameComm(qep,1,K,4);
 
   /* Check for square matrices */
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
   if (m!=n) { SETERRQ(1,"M is a non-square matrix"); }
+  m0=m;
   ierr = MatGetSize(C,&m,&n);CHKERRQ(ierr);
   if (m!=n) { SETERRQ(1,"C is a non-square matrix"); }
+  if (m!=m0) { SETERRQ(1,"Dimensions of M and C do not match"); }
   ierr = MatGetSize(K,&m,&n);CHKERRQ(ierr);
   if (m!=n) { SETERRQ(1,"K is a non-square matrix"); }
+  if (m!=m0) { SETERRQ(1,"Dimensions of M and K do not match"); }
 
   /* Store a copy of the matrices */
   ierr = PetscObjectReference((PetscObject)M);CHKERRQ(ierr);
