@@ -1,4 +1,4 @@
-\begin{thebibliography}{26}
+\begin{thebibliography}{28}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
 \bibitem[{Anderson {\em et~al.\/}(1992)Anderson, Bai, Bischof, Demmel,
@@ -156,6 +156,16 @@ Stewart, G.~W. (2001).
 \newblock {\em Matrix Algorithms. {Volume II}: Eigensystems\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA,
   USA.
+
+\bibitem[{Tisseur(2000)}]{Tisseur:2000:BEC}
+Tisseur, F. (2000).
+\newblock Backward Error and Condition of Polynomial Eigenvalue Problems.
+\newblock {\em Linear Algebra Appl.\/}, 309(1--3):339--361.
+
+\bibitem[{Tisseur and Meerbergen(2001)}]{Tisseur:2001:QEP}
+Tisseur, F. and K.~Meerbergen (2001).
+\newblock The Quadratic Eigenvalue Problem.
+\newblock {\em {SIAM} Rev.\/}, 43(2):235--286.
 
 \bibitem[{Wu and Simon(2000)}]{Wu:2000:TLM}
 Wu, K. and H.~Simon (2000).

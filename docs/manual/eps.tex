@@ -57,15 +57,7 @@ where $h_{i,j}$ are the scalar coefficients obtained in the Gram-Schmidt orthogo
 
 \paragraph{Related Problems.}
 
-	In many applications such as the analysis of damped vibrating systems the eigenproblem to be solved is quadratic,
-\begin{equation}(A\lambda^2+B\lambda+C)x=0\;\;.\label{eq:eigcuad}\end{equation}
-It is possible to transform this problem to a generalized eigenproblem by increasing the order of the system. For example, let the eigenvector be $v=[\lambda x, x]^T$, then an equivalent system is
-\begin{equation}
-\label{eq:quad}
-\left[\begin{array}{cc}-B & -C\\I & 0\end{array}\right]v=\lambda\left[\begin{array}{cc}\;A\; & 0\\0 & \;I\;\end{array}\right]v\;\;.
-\end{equation}
-
-	Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD). \slepc provides a specific package for SVD computation, so the description is postponed until chapter \ref{cap:svd}.
+	In many applications such as the analysis of damped vibrating systems the problem to be solved is a \emph{quadratic eigenvalue problem} (QEP). Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD). \slepc provides specific packages for both problems. The reader is referred to chapters \ref{cap:svd} and \ref{cap:qep}.
 
 %---------------------------------------------------
 \section{Basic Usage}
