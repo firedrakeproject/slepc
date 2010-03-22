@@ -235,6 +235,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->which           = QEP_LARGEST_MAGNITUDE;
   qep->which_func      = PETSC_NULL;
   qep->which_ctx       = PETSC_NULL;
+  qep->problem_type    = (QEPProblemType)0;
   qep->vec_initial     = PETSC_NULL;
   qep->V               = PETSC_NULL;
   qep->AV              = PETSC_NULL;

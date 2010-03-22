@@ -411,6 +411,73 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "QEPSetProblemType"
+/*@
+   QEPSetProblemType - Specifies the type of the quadratic eigenvalue problem.
+
+   Collective on QEP
+
+   Input Parameters:
++  qep      - the quadratic eigensolver context
+-  type     - a known type of quadratic eigenvalue problem 
+
+   Options Database Keys:
++  -qep_general - general problem with no particular structure
+.  -qep_hermitian - problem whose coefficient matrices are Hermitian
+-  -qep_gyroscopic - problem with Hamiltonian structure
+    
+   Notes:  
+   Allowed values for the problem type are: general (QEP_GENERAL), Hermitian
+   (QEP_HERMITIAN), and gyroscopic (QEP_GYROSCOPIC).
+
+   This function is used to instruct SLEPc to exploit certain structure in
+   the quadratic eigenproblem. By default, no particular structure is assumed.
+
+   If the problem matrices are Hermitian (symmetric in the real case) or 
+   Hermitian/skew-Hermitian then the solver can exploit this fact to perform
+   less operations or provide better stability. 
+
+   Level: intermediate
+
+.seealso: QEPSetOperators(), QEPSetType(), QEPGetProblemType(), QEPProblemType
+@*/
+PetscErrorCode QEPSetProblemType(QEP qep,QEPProblemType type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  if (type!=QEP_GENERAL && type!=QEP_HERMITIAN && type!=QEP_GYROSCOPIC)
+    SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
+  qep->problem_type = type;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPGetProblemType"
+/*@C
+   QEPGetProblemType - Gets the problem type from the QEP object.
+
+   Not Collective
+
+   Input Parameter:
+.  qep - the quadratic eigensolver context 
+
+   Output Parameter:
+.  type - name of QEP problem type 
+
+   Level: intermediate
+
+.seealso: QEPSetProblemType(), QEPProblemType
+@*/
+PetscErrorCode QEPGetProblemType(QEP qep,QEPProblemType *type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidPointer(type,2);
+  *type = qep->problem_type;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "QEPSetConvergenceTest"
 /*@C
     QEPSetConvergenceTest - Specifies the convergence test.
