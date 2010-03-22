@@ -293,9 +293,9 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
    If |l|<1.0, the eigenvector is taken from z(1:n), otherwise from z(n+1:2*n).
    Finally, x is normalized so that ||x||_2 = 1.
 
-   If explicit==PETSC_TRUE then z is partitioned across processors, otherwise x is.
+   If explicitmatrix==PETSC_TRUE then z is partitioned across processors, otherwise x is.
 */
-PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicit)
+PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatrix)
 {
   PetscErrorCode ierr;
   PetscInt       i,N,n,start,end,offset,idx;
@@ -315,7 +315,7 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicit)
   ierr = MatGetLocalSize(qep->M,&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetSize(qep->M,&N,PETSC_NULL);CHKERRQ(ierr);
 
-  if (explicit) {  /* case 1: x needs to be scattered from the owning processes to the rest */
+  if (explicitmatrix) {  /* case 1: x needs to be scattered from the owning processes to the rest */
     ierr = VecGetOwnershipRange(qep->V[0],&start,&end);CHKERRQ(ierr);
     idx = start;
     ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV1);CHKERRQ(ierr);      
@@ -530,7 +530,7 @@ EXTERN_C_END
 .  qep  - quadratic eigenvalue solver
 
    Output Parameter:
-.  explicit - the mode flag
+.  explicitmatrix - the mode flag
 
    Level: advanced
 
