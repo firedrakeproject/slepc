@@ -60,6 +60,7 @@ struct _p_QEP {
   QEPWhich       which;            /* which part of the spectrum to be sought */
   PetscErrorCode (*which_func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
+  QEPProblemType problem_type;     /* which kind of problem to be solved */
 
   /*------------------------- Working data --------------------------*/
   Mat         M,C,K;            /* problem matrices */

@@ -32,6 +32,7 @@
 #endif
 
 #define QEPType            character*(80)
+#define QEPProblemType         PetscEnum
 #define QEPWhich           PetscEnum
 #define QEPConvergedReason PetscEnum
 

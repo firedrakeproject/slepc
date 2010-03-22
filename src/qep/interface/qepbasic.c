@@ -138,9 +138,22 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
   PetscCheckSameComm(qep,1,viewer,2);
 
+#if defined(PETSC_USE_COMPLEX)
+#define HERM "hermitian"
+#else
+#define HERM "symmetric"
+#endif
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"QEP Object:\n");CHKERRQ(ierr);
+    switch (qep->problem_type) {
+      case QEP_GENERAL:    type = "general quadratic eigenvalue problem"; break;
+      case QEP_HERMITIAN:  type = HERM " quadratic eigenvalue problem"; break;
+      case QEP_GYROSCOPIC: type = "gyroscopic quadratic eigenvalue problem"; break;
+      case 0:         type = "not yet set"; break;
+      default: SETERRQ(1,"Wrong value of qep->problem_type");
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
     if (type) {
       ierr = PetscViewerASCIIPrintf(viewer,"  method: %s\n",type);CHKERRQ(ierr);

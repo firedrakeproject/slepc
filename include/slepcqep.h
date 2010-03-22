@@ -50,6 +50,18 @@ E*/
 #define QEPLINEAR    "linear"
 
 /*E
+    QEPProblemType - determines the type of the quadratic eigenproblem
+
+    Level: intermediate
+
+.seealso: QEPSetProblemType(), QEPGetProblemType()
+E*/
+typedef enum { QEP_GENERAL=1,
+               QEP_HERMITIAN,   /* M, C, K  Hermitian */
+               QEP_GYROSCOPIC   /* M, K  Hermitian, M>0, C skew-Hermitian */
+             } QEPProblemType;
+
+/*E
     QEPWhich - determines which part of the spectrum is requested
 
     Level: intermediate
@@ -64,6 +76,8 @@ EXTERN PetscErrorCode QEPCreate(MPI_Comm,QEP*);
 EXTERN PetscErrorCode QEPDestroy(QEP);
 EXTERN PetscErrorCode QEPSetType(QEP,const QEPType);
 EXTERN PetscErrorCode QEPGetType(QEP,const QEPType*);
+EXTERN PetscErrorCode QEPSetProblemType(QEP,QEPProblemType);
+EXTERN PetscErrorCode QEPGetProblemType(QEP,QEPProblemType*);
 EXTERN PetscErrorCode QEPSetOperators(QEP,Mat,Mat,Mat);
 EXTERN PetscErrorCode QEPGetOperators(QEP,Mat*,Mat*,Mat*);
 EXTERN PetscErrorCode QEPSetFromOptions(QEP);

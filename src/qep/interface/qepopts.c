@@ -60,6 +60,13 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       ierr = QEPSetType(qep,QEPLINEAR);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsTruthGroupBegin("-qep_general","general quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-qep_hermitian","hermitian quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = QEPSetProblemType(qep,QEP_HERMITIAN);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-qep_gyroscopic","gyroscopic quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = QEPSetProblemType(qep,QEP_GYROSCOPIC);CHKERRQ(ierr);}
+
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-qep_max_it","Maximum number of iterations","QEPSetTolerances",qep->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);

@@ -65,6 +65,11 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (!qep->M || !qep->C || !qep->K)
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "QEPSetOperators must be called first"); 
   
+  /* Set default problem type */
+  if (!qep->problem_type) {
+    ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
+  }
+
   /* Create random initial vector if not set */
   if (!qep->vec_initial) {
     ierr = MatGetVecs(qep->M,&qep->vec_initial,PETSC_NULL);CHKERRQ(ierr);

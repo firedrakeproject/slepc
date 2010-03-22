@@ -36,6 +36,14 @@
       parameter (QEP_DIVERGED_BREAKDOWN     = -4)
       parameter (QEP_CONVERGED_ITERATING    =  0)
 
+      PetscEnum QEP_GENERAL
+      PetscEnum QEP_HERMITIAN
+      PetscEnum QEP_GYROSCOPIC
+
+      parameter (QEP_GENERAL                =  1)
+      parameter (QEP_HERMITIAN              =  2)
+      parameter (QEP_GYROSCOPIC             =  3)
+      
       PetscEnum QEP_LARGEST_MAGNITUDE
       PetscEnum QEP_SMALLEST_MAGNITUDE
       PetscEnum QEP_LARGEST_REAL
