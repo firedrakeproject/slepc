@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = linear.c qeplin_n1.c
+SOURCEC  = linear.c qeplin_n1.c qeplin_n2.c
 SOURCEF  = 
 SOURCEH  = linearp.h
-OBJSC    = linear.o qeplin_n1.o
+OBJSC    = linear.o qeplin_n1.o qeplin_n2.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = QEP

@@ -31,10 +31,19 @@ typedef struct {
   Vec        x1,x2,y1,y2;     /* work vectors */
 } QEP_LINEAR;
 
+/* N1 */
 EXTERN PetscErrorCode MatMult_QEPLINEAR_N1A(Mat,Vec,Vec);
 EXTERN PetscErrorCode MatMult_QEPLINEAR_N1B(Mat,Vec,Vec);
 EXTERN PetscErrorCode MatGetDiagonal_QEPLINEAR_N1A(Mat,Vec);
 EXTERN PetscErrorCode MatGetDiagonal_QEPLINEAR_N1B(Mat,Vec);
 EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_N1A(MPI_Comm,QEP_LINEAR*,Mat*);
 EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_N1B(MPI_Comm,QEP_LINEAR*,Mat*);
+
+/* N2 */
+EXTERN PetscErrorCode MatMult_QEPLINEAR_N2A(Mat,Vec,Vec);
+EXTERN PetscErrorCode MatMult_QEPLINEAR_N2B(Mat,Vec,Vec);
+EXTERN PetscErrorCode MatGetDiagonal_QEPLINEAR_N2A(Mat,Vec);
+EXTERN PetscErrorCode MatGetDiagonal_QEPLINEAR_N2B(Mat,Vec);
+EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_N2A(MPI_Comm,QEP_LINEAR*,Mat*);
+EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_N2B(MPI_Comm,QEP_LINEAR*,Mat*);
 

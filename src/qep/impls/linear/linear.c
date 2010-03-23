@@ -36,13 +36,16 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   EPSWhich          which;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
-    { MatCreateExplicit_QEPLINEAR_N1A, MatCreateExplicit_QEPLINEAR_N1B }    /* N1 */
+    { MatCreateExplicit_QEPLINEAR_N1A, MatCreateExplicit_QEPLINEAR_N1B },   /* N1 */
+    { MatCreateExplicit_QEPLINEAR_N2A, MatCreateExplicit_QEPLINEAR_N2B }    /* N2 */
   };
   PetscErrorCode (*fmult[][2])(Mat,Vec,Vec) = {
-    { MatMult_QEPLINEAR_N1A, MatMult_QEPLINEAR_N1B }
+    { MatMult_QEPLINEAR_N1A, MatMult_QEPLINEAR_N1B },
+    { MatMult_QEPLINEAR_N2A, MatMult_QEPLINEAR_N2B }
   };
   PetscErrorCode (*fgetdiagonal[][2])(Mat,Vec) = {
-    { MatGetDiagonal_QEPLINEAR_N1A, MatGetDiagonal_QEPLINEAR_N1B }
+    { MatGetDiagonal_QEPLINEAR_N1A, MatGetDiagonal_QEPLINEAR_N1B },
+    { MatGetDiagonal_QEPLINEAR_N2A, MatGetDiagonal_QEPLINEAR_N2B }
   };
 
   PetscFunctionBegin;
@@ -58,25 +61,30 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
     ierr = VecDestroy(ctx->y2);CHKERRQ(ierr); 
   }
 
-  i = 0;
+  switch (qep->problem_type) {
+    case QEP_GENERAL:    i = 0; break;
+    case QEP_HERMITIAN:  SETERRQ(1,"Not implemented yet"); break;
+    case QEP_GYROSCOPIC: SETERRQ(1,"Not implemented yet"); break;
+  }
+  i += ctx->cform-1;
 
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
   if (ctx->explicitmatrix) {
     ctx->x1 = ctx->x2 = ctx->y1 = ctx->y2 = PETSC_NULL;
-    ierr = (*fcreate[0][0])(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
-    ierr = (*fcreate[0][1])(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
+    ierr = (*fcreate[i][0])(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
+    ierr = (*fcreate[i][1])(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
   } else {
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,m,M,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,m,M,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
     ierr = MatCreateShell(((PetscObject)qep)->comm,m+n,m+n,M+N,M+N,ctx,&ctx->A);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[0][0]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[0][0]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);
     ierr = MatCreateShell(((PetscObject)qep)->comm,m+n,m+n,M+N,M+N,ctx,&ctx->B);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))fmult[0][1]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[0][1]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))fmult[i][1]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][1]);CHKERRQ(ierr);
   }
 
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
