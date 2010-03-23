@@ -24,202 +24,7 @@
 
 #include "private/qepimpl.h"         /*I "slepcqep.h" I*/
 #include "slepceps.h"
-
-/*
-    Given the quadratic problem (l^2*M + l*C + K)*x = 0 the following
-    linearization is employed:
-
-      A*z = l*B*z   where   A = [  0   I ]     B = [ I  0 ]     z = [  x  ]
-                                [ -K  -C ]         [ 0  M ]         [ l*x ]
- */
-
-typedef struct {
-  PetscTruth explicitmatrix;
-  Mat        A,B;             /* matrices of generalized eigenproblem */
-  EPS        eps;             /* linear eigensolver for Az=lBz */
-  Mat        M,C,K;           /* copy of QEP coefficient matrices */
-  Vec        x1,x2,y1,y2;     /* work vectors */
-} QEP_LINEAR;
-
-#undef __FUNCT__  
-#define __FUNCT__ "MatMult_QEPLINEAR_A"
-PetscErrorCode MatMult_QEPLINEAR_A(Mat A,Vec x, Vec y)
-{
-  PetscErrorCode ierr;
-  QEP_LINEAR     *ctx;
-  PetscScalar    *px,*py;
-  PetscInt       m;
-  
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
-  /* y2 = -(K*x1 + C*x2) */
-  ierr = MatMult(ctx->K,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = MatMult(ctx->C,ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y2,1.0,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,-1.0);CHKERRQ(ierr);
-  /* y1 = x2 */
-  ierr = VecCopy(ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "MatMult_QEPLINEAR_B"
-PetscErrorCode MatMult_QEPLINEAR_B(Mat B,Vec x, Vec y)
-{
-  PetscErrorCode ierr;
-  QEP_LINEAR     *ctx;
-  PetscScalar    *px,*py;
-  PetscInt       m;
-  
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
-  /* y1 = x1 */
-  ierr = VecCopy(ctx->x1,ctx->y1);CHKERRQ(ierr);
-  /* y2 = M*x2 */
-  ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "MatGetDiagonal_QEPLINEAR_A"
-PetscErrorCode MatGetDiagonal_QEPLINEAR_A(Mat A,Vec diag)
-{
-  PetscErrorCode ierr;
-  QEP_LINEAR     *ctx;
-  PetscScalar    *pd;
-  PetscInt       m;
-  
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x1,0.0);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->C,ctx->x2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x2,-1.0);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "MatGetDiagonal_QEPLINEAR_B"
-PetscErrorCode MatGetDiagonal_QEPLINEAR_B(Mat B,Vec diag)
-{
-  PetscErrorCode ierr;
-  QEP_LINEAR     *ctx;
-  PetscScalar    *pd;
-  PetscInt       m;
-  
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x1,1.0);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->M,ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "MatCreateExplicit_QEPLINEAR_A"
-PetscErrorCode MatCreateExplicit_QEPLINEAR_A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A)
-{
-  PetscErrorCode ierr;
-  PetscInt       M,N,m,n,i,j,row,start,end,ncols,*pos;
-  const PetscInt    *cols;
-  const PetscScalar *vals;
-  
-  PetscFunctionBegin;
-  ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
-  ierr = MatCreate(comm,A);CHKERRQ(ierr);
-  ierr = MatSetSizes(*A,m+n,m+n,M+N,M+N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(*A);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*n,&pos);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(ctx->M,&start,&end);CHKERRQ(ierr);
-  for (i=start;i<end;i++) {
-    row = i + M;
-    ierr = MatSetValue(*A,i,i+M,-1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatGetRow(ctx->K,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-    ierr = MatSetValues(*A,1,&row,ncols,cols,vals,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatRestoreRow(ctx->K,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-    ierr = MatGetRow(ctx->C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-    for (j=0;j<ncols;j++) 
-      pos[j] = cols[j] + M;
-    ierr = MatSetValues(*A,1,&i,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatRestoreRow(ctx->C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(pos);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatScale(*A,-1.0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "MatCreateExplicit_QEPLINEAR_B"
-PetscErrorCode MatCreateExplicit_QEPLINEAR_B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B)
-{
-  PetscErrorCode ierr;
-  PetscInt       M,N,m,n,i,j,row,start,end,ncols,*pos;
-  const PetscInt    *cols;
-  const PetscScalar *vals;
-  
-  PetscFunctionBegin;
-  ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
-  ierr = MatCreate(comm,B);CHKERRQ(ierr);
-  ierr = MatSetSizes(*B,m+n,m+n,M+N,M+N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(*B);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*n,&pos);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(ctx->M,&start,&end);CHKERRQ(ierr);
-  for (i=start;i<end;i++) {
-    row = i + M;
-    ierr = MatSetValue(*B,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatGetRow(ctx->M,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-    for (j=0;j<ncols;j++) 
-      pos[j] = cols[j] + M;
-    ierr = MatSetValues(*B,1,&row,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatRestoreRow(ctx->M,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(pos);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
+#include "linearp.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSetUp_LINEAR"
@@ -227,8 +32,18 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 {
   PetscErrorCode    ierr;
   QEP_LINEAR        *ctx = (QEP_LINEAR *)qep->data;
-  PetscInt          M,N,m,n;
+  PetscInt          i,M,N,m,n;
   EPSWhich          which;
+  /* function tables */
+  PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
+    { MatCreateExplicit_QEPLINEAR_N1A, MatCreateExplicit_QEPLINEAR_N1B }    /* N1 */
+  };
+  PetscErrorCode (*fmult[][2])(Mat,Vec,Vec) = {
+    { MatMult_QEPLINEAR_N1A, MatMult_QEPLINEAR_N1B }
+  };
+  PetscErrorCode (*fgetdiagonal[][2])(Mat,Vec) = {
+    { MatGetDiagonal_QEPLINEAR_N1A, MatGetDiagonal_QEPLINEAR_N1B }
+  };
 
   PetscFunctionBegin;
   
@@ -243,23 +58,25 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
     ierr = VecDestroy(ctx->y2);CHKERRQ(ierr); 
   }
 
+  i = 0;
+
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
   if (ctx->explicitmatrix) {
     ctx->x1 = ctx->x2 = ctx->y1 = ctx->y2 = PETSC_NULL;
-    ierr = MatCreateExplicit_QEPLINEAR_A(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
-    ierr = MatCreateExplicit_QEPLINEAR_B(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
+    ierr = (*fcreate[0][0])(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
+    ierr = (*fcreate[0][1])(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
   } else {
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,m,M,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,m,M,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
     ierr = MatCreateShell(((PetscObject)qep)->comm,m+n,m+n,M+N,M+N,ctx,&ctx->A);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_QEPLINEAR_A);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_QEPLINEAR_A);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[0][0]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[0][0]);CHKERRQ(ierr);
     ierr = MatCreateShell(((PetscObject)qep)->comm,m+n,m+n,M+N,M+N,ctx,&ctx->B);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))MatMult_QEPLINEAR_B);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_QEPLINEAR_B);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))fmult[0][1]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[0][1]);CHKERRQ(ierr);
   }
 
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
@@ -586,7 +403,7 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearSetEPS(QEP qep,EPS eps)
 {
-  PetscErrorCode ierr, (*f)(QEP,EPS eps);
+  PetscErrorCode ierr, (*f)(QEP,EPS);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
@@ -631,7 +448,7 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearGetEPS(QEP qep,EPS *eps)
 {
-  PetscErrorCode ierr, (*f)(QEP,EPS *eps);
+  PetscErrorCode ierr, (*f)(QEP,EPS*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
