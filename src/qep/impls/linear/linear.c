@@ -38,17 +38,20 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_QEPLINEAR_N1A, MatCreateExplicit_QEPLINEAR_N1B },   /* N1 */
     { MatCreateExplicit_QEPLINEAR_N2A, MatCreateExplicit_QEPLINEAR_N2B },   /* N2 */
-    { MatCreateExplicit_QEPLINEAR_S1A, MatCreateExplicit_QEPLINEAR_S1B }    /* S1 */
+    { MatCreateExplicit_QEPLINEAR_S1A, MatCreateExplicit_QEPLINEAR_S1B },   /* S1 */
+    { MatCreateExplicit_QEPLINEAR_S2A, MatCreateExplicit_QEPLINEAR_S2B }    /* S2 */
   };
   PetscErrorCode (*fmult[][2])(Mat,Vec,Vec) = {
     { MatMult_QEPLINEAR_N1A, MatMult_QEPLINEAR_N1B },
     { MatMult_QEPLINEAR_N2A, MatMult_QEPLINEAR_N2B },
-    { MatMult_QEPLINEAR_S1A, MatMult_QEPLINEAR_S1B }
+    { MatMult_QEPLINEAR_S1A, MatMult_QEPLINEAR_S1B },
+    { MatMult_QEPLINEAR_S2A, MatMult_QEPLINEAR_S2B }
   };
   PetscErrorCode (*fgetdiagonal[][2])(Mat,Vec) = {
     { MatGetDiagonal_QEPLINEAR_N1A, MatGetDiagonal_QEPLINEAR_N1B },
     { MatGetDiagonal_QEPLINEAR_N2A, MatGetDiagonal_QEPLINEAR_N2B },
-    { MatGetDiagonal_QEPLINEAR_S1A, MatGetDiagonal_QEPLINEAR_S1B }
+    { MatGetDiagonal_QEPLINEAR_S1A, MatGetDiagonal_QEPLINEAR_S1B },
+    { MatGetDiagonal_QEPLINEAR_S2A, MatGetDiagonal_QEPLINEAR_S2B }
   };
 
   PetscFunctionBegin;

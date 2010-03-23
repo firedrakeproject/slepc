@@ -55,3 +55,11 @@ EXTERN PetscErrorCode MatGetDiagonal_QEPLINEAR_S1B(Mat,Vec);
 EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_S1A(MPI_Comm,QEP_LINEAR*,Mat*);
 EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_S1B(MPI_Comm,QEP_LINEAR*,Mat*);
 
+/* S2 */
+EXTERN PetscErrorCode MatMult_QEPLINEAR_S2A(Mat,Vec,Vec);
+EXTERN PetscErrorCode MatMult_QEPLINEAR_S2B(Mat,Vec,Vec);
+EXTERN PetscErrorCode MatGetDiagonal_QEPLINEAR_S2A(Mat,Vec);
+EXTERN PetscErrorCode MatGetDiagonal_QEPLINEAR_S2B(Mat,Vec);
+EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_S2A(MPI_Comm,QEP_LINEAR*,Mat*);
+EXTERN PetscErrorCode MatCreateExplicit_QEPLINEAR_S2B(MPI_Comm,QEP_LINEAR*,Mat*);
+
