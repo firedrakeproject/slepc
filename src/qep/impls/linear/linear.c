@@ -259,20 +259,124 @@ PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscSc
 PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
 {
   PetscErrorCode ierr;
+  PetscTruth     set;
+  PetscInt       i;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
   ST             st;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"LINEAR Quadratic Eigenvalue Problem solver Options","QEP");CHKERRQ(ierr);
+
+  ierr = PetscOptionsInt("-qep_linear_cform","Number of the companion form","QEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
+  if (set) {
+    ierr = QEPLinearSetCompanionForm(qep,i);CHKERRQ(ierr);
+  }
+
   ierr = PetscOptionsTruth("-qep_linear_explicitmatrix","Use explicit matrix in linearization","QEPLinearSetExplicitMatrix",PETSC_FALSE,&ctx->explicitmatrix,PETSC_NULL);CHKERRQ(ierr);
   if (!ctx->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */ 
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,STMATMODE_SHELL);CHKERRQ(ierr);
   }
+
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "QEPLinearSetCompanionForm_LINEAR"
+PetscErrorCode QEPLinearSetCompanionForm_LINEAR(QEP qep,PetscInt cform)
+{
+  QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
+
+  PetscFunctionBegin;
+  if (cform==PETSC_IGNORE) PetscFunctionReturn(0);
+  if (cform==PETSC_DECIDE || cform==PETSC_DEFAULT) ctx->cform = 1;
+  else {
+    if (cform!=1 && cform!=2) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'cform'");
+    ctx->cform = cform;
+  }
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPLinearSetCompanionForm"
+/*@
+   QEPLinearSetCompanionForm - Choose between the two companion forms available
+   for the linearization of the quadratic problem.
+
+   Collective on QEP
+
+   Input Parameters:
++  qep   - quadratic eigenvalue solver
+-  cform - 1 or 2 (first or second companion form)
+
+   Options Database Key:
+.  -qep_linear_cform <int> - Choose the companion form
+
+   Level: advanced
+
+.seealso: QEPLinearGetCompanionForm()
+@*/
+PetscErrorCode QEPLinearSetCompanionForm(QEP qep,PetscInt cform)
+{
+  PetscErrorCode ierr, (*f)(QEP,PetscTruth);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearSetCompanionForm_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(qep,cform);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "QEPLinearGetCompanionForm_LINEAR"
+PetscErrorCode QEPLinearGetCompanionForm_LINEAR(QEP qep,PetscInt *cform)
+{
+  QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
+
+  PetscFunctionBegin;
+  PetscValidPointer(cform,2);
+  *cform = ctx->cform;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPLinearGetCompanionForm"
+/*@C
+   QEPLinearGetCompanionForm - Returns the number of the companion form that
+   will be used for the linearization of the quadratic problem.
+
+   Not collective
+
+   Input Parameter:
+.  qep  - quadratic eigenvalue solver
+
+   Output Parameter:
+.  cform - the companion form number (1 or 2)
+
+   Level: advanced
+
+.seealso: QEPLinearSetCompanionForm()
+@*/
+PetscErrorCode QEPLinearGetCompanionForm(QEP qep,PetscInt *cform)
+{
+  PetscErrorCode ierr, (*f)(QEP,PetscInt*);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearGetCompanionForm_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(qep,cform);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -339,7 +443,7 @@ EXTERN_C_END
 #define __FUNCT__ "QEPLinearGetExplicitMatrix"
 /*@C
    QEPLinearGetExplicitMatrix - Returns the flag indicating if the matrices A and B
-   for the linearization of the quadratic problem are built explicitly
+   for the linearization of the quadratic problem are built explicitly.
 
    Not collective
 
@@ -472,6 +576,7 @@ PetscErrorCode QEPView_LINEAR(QEP qep,PetscViewer viewer)
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"linearized matrices: implicit\n");CHKERRQ(ierr);
   }
+  ierr = PetscViewerASCIIPrintf(viewer,"companion form: %d\n",ctx->cform);CHKERRQ(ierr);
   ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -516,6 +621,8 @@ PetscErrorCode QEPCreate_LINEAR(QEP qep)
   qep->ops->setfromoptions       = QEPSetFromOptions_LINEAR;
   qep->ops->destroy              = QEPDestroy_LINEAR;
   qep->ops->view                 = QEPView_LINEAR;
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","QEPLinearSetCompanionForm_LINEAR",QEPLinearSetCompanionForm_LINEAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","QEPLinearGetCompanionForm_LINEAR",QEPLinearGetCompanionForm_LINEAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","QEPLinearSetEPS_LINEAR",QEPLinearSetEPS_LINEAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","QEPLinearGetEPS_LINEAR",QEPLinearGetEPS_LINEAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","QEPLinearSetExplicitMatrix_LINEAR",QEPLinearSetExplicitMatrix_LINEAR);CHKERRQ(ierr);
@@ -532,6 +639,7 @@ PetscErrorCode QEPCreate_LINEAR(QEP qep)
   ctx->C = qep->C;
   ctx->K = qep->K;
   ctx->explicitmatrix = PETSC_FALSE;
+  ctx->cform = 1;
   ctx->A = PETSC_NULL;
   ctx->B = PETSC_NULL;
   ctx->x1 = PETSC_NULL;

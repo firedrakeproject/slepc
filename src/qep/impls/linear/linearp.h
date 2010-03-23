@@ -24,6 +24,7 @@
 
 typedef struct {
   PetscTruth explicitmatrix;
+  PetscInt   cform;           /* companion form */
   Mat        A,B;             /* matrices of generalized eigenproblem */
   EPS        eps;             /* linear eigensolver for Az=lBz */
   Mat        M,C,K;           /* copy of QEP coefficient matrices */

@@ -155,6 +155,8 @@ EXTERN PetscErrorCode QEPRegisterDestroy(void);
 
 /* --------- options specific to particular eigensolvers -------- */
 
+EXTERN PetscErrorCode QEPLinearSetCompanionForm(QEP,PetscInt);
+EXTERN PetscErrorCode QEPLinearGetCompanionForm(QEP,PetscInt*);
 EXTERN PetscErrorCode QEPLinearSetExplicitMatrix(QEP,PetscTruth);
 EXTERN PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscTruth*);
 EXTERN PetscErrorCode QEPLinearSetEPS(QEP,EPS);
