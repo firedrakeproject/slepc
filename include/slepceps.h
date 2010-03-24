@@ -70,7 +70,8 @@ E*/
 .seealso: EPSSetProblemType(), EPSGetProblemType()
 E*/
 typedef enum { EPS_HEP=1,  EPS_GHEP,
-               EPS_NHEP,   EPS_GNHEP, EPS_PGNHEP } EPSProblemType;
+               EPS_NHEP,   EPS_GNHEP,
+               EPS_PGNHEP, EPS_GHIEP } EPSProblemType;
 
 /*E
     EPSExtraction - determines the type of extraction technique employed

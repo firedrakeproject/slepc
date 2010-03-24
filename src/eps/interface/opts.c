@@ -68,8 +68,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroup("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_pos_gen_non_hermitian","generalized non-hermitian eigenvalue problem with positive semi-definite B","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsTruthGroup("-eps_pos_gen_non_hermitian","generalized non-hermitian eigenvalue problem with positive semi-definite B","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_PGNHEP);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-eps_gen_indefinite","generalized hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetProblemType(eps,EPS_GHIEP);CHKERRQ(ierr);}
 
     /*
       Set the type if it was never set.
@@ -585,8 +587,8 @@ EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,P
    Notes:  
    Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
    (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian 
-   (EPS_GNHEP), and generalized non-Hermitian with positive semi-definite B
-   (EPS_PGNHEP).
+   (EPS_GNHEP), generalized non-Hermitian with positive semi-definite B
+   (EPS_PGNHEP), and generalized Hermitian-indefinite (EPS_GHIEP).
 
    This function must be used to instruct SLEPc to exploit symmetry. If no
    problem type is specified, by default a non-Hermitian problem is assumed
@@ -629,6 +631,11 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       eps->isgeneralized = PETSC_TRUE;
       eps->ishermitian = PETSC_FALSE;
       eps->ispositive = PETSC_TRUE;
+      break;
+    case EPS_GHIEP:
+      eps->isgeneralized = PETSC_TRUE;
+      eps->ishermitian = PETSC_TRUE;
+      eps->ispositive = PETSC_FALSE;
       break;
 /*
     case EPS_CSEP: 

@@ -152,6 +152,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       case EPS_NHEP:  type = "non-" HERM " eigenvalue problem"; break;
       case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
       case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
+      case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
       case 0:         type = "not yet set"; break;
       default: SETERRQ(1,"Wrong value of eps->problem_type");
     }
