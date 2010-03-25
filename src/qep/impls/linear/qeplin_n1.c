@@ -172,7 +172,7 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat
     ierr = MatGetRow(ctx->C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
     for (j=0;j<ncols;j++) 
       pos[j] = cols[j] + M;
-    ierr = MatSetValues(*A,1,&i,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(*A,1,&row,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
     ierr = MatRestoreRow(ctx->C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
   }
   ierr = PetscFree(pos);CHKERRQ(ierr);
