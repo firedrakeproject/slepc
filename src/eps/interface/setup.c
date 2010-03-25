@@ -49,10 +49,11 @@
 PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
-  Vec            v0,w0;  
+  Vec            v0,w0,vds;  
   Mat            A,B; 
-  PetscInt       N;
+  PetscInt       N,n,i;
   PetscTruth     isCayley;
+  PetscScalar    *pDS;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
@@ -127,8 +128,18 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
-      /* orthonormalize vectors in DS if necessary */
+      /* allocate memory and copy deflation basis vectors into DS */
+      ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
+      ierr = PetscMalloc(eps->nds*n*sizeof(PetscScalar),&pDS);CHKERRQ(ierr);
+      for (i=0;i<eps->nds;i++) {
+        ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,pDS+i*n,&vds);CHKERRQ(ierr);
+        ierr = VecCopy(eps->DS[i],vds);CHKERRQ(ierr);
+        ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
+        eps->DS[i] = vds;
+      }
+      /* orthonormalize vectors in DS */
       ierr = IPQRDecomposition(eps->ip,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
+      eps->ds_ortho = PETSC_TRUE;
     }
     ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
@@ -370,15 +381,15 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSAttachDeflationSpace"
 /*@
-   EPSAttachDeflationSpace - Add vectors to the basis of the deflation space.
+   EPSAttachDeflationSpace - Specify a basis of vectors that constitute
+   the deflation space.
 
    Collective on EPS and Vec
 
    Input Parameter:
 +  eps   - the eigenproblem solver context
-.  n     - number of vectors to add
-.  ds    - set of basis vectors of the deflation space
--  ortho - PETSC_TRUE if basis vectors of deflation space are orthonormal
+.  n     - number of vectors
+-  ds    - set of basis vectors of the deflation space
 
    Notes:
    When a deflation space is given, the eigensolver seeks the eigensolution
@@ -386,51 +397,38 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
    space. This can be used for instance in the case that an invariant 
    subspace is known beforehand (such as the nullspace of the matrix).
 
-   The basis vectors can be provided all at once or incrementally with
-   several calls to EPSAttachDeflationSpace().
+   Basis vectors set by a previous call to EPSAttachDeflationSpace() are
+   replaced.
 
-   Use a value of PETSC_TRUE for parameter ortho if all the vectors passed
-   in are known to be mutually orthonormal.
+   The vectors do not need to be mutually orthonormal, since they are explicitly
+   orthonormalized internally.
 
    Level: intermediate
 
 .seealso: EPSRemoveDeflationSpace()
 @*/
-PetscErrorCode EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds,PetscTruth ortho)
+PetscErrorCode EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds)
 {
   PetscErrorCode ierr;
-  PetscInt       i,nloc;
-  Vec            *newds;
-  PetscScalar    *pV;
+  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  if (n<=0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
-  /* allocate space for previous and new vectors */
-  ierr = PetscMalloc((n+eps->nds)*sizeof(Vec), &newds);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(ds[0],&nloc);CHKERRQ(ierr);
-  ierr = PetscMalloc((n+eps->nds)*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
-  for (i=0;i<n+eps->nds;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,nloc,PETSC_DECIDE,pV+i*nloc,&newds[i]);CHKERRQ(ierr);
+  if (n<=0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
+
+  /* free previous vectors */
+  ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
+
+  /* get references of passed vectors */
+  ierr = PetscMalloc(n*sizeof(Vec),&eps->DS);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    ierr = PetscObjectReference((PetscObject)ds[i]);CHKERRQ(ierr);
+    eps->DS[i] = ds[i];
   }
-  /* copy and free previous vectors */
-  if (eps->nds > 0) {
-    ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
-    for (i=0;i<eps->nds;i++) {
-      ierr = VecCopy(eps->DS[i],newds[i]);CHKERRQ(ierr);
-      ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(pV);CHKERRQ(ierr);
-    ierr = PetscFree(eps->DS);CHKERRQ(ierr);
-  }
-  /* copy new vectors */
-  eps->DS = newds;
-  for (i=0; i<n; i++) {
-    ierr = VecCopy(ds[i],eps->DS[i + eps->nds]);CHKERRQ(ierr);
-  }
-  eps->nds += n;
-  if (!ortho) eps->ds_ortho = PETSC_FALSE;
+
+  eps->nds = n;
   eps->setupcalled = 0;
+  eps->ds_ortho = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -458,13 +456,17 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (eps->nds > 0) {
     ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
+    ierr = VecRestoreArray(eps->DS[0],PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<eps->nds;i++) {
       ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
     }
-    ierr = PetscFree(pV);CHKERRQ(ierr);
+    if (eps->setupcalled) {  /* before EPSSetUp, DS are just references */
+      ierr = PetscFree(pV);CHKERRQ(ierr);
+    }
     ierr = PetscFree(eps->DS);CHKERRQ(ierr);
   }
-  eps->ds_ortho = PETSC_TRUE;
+  eps->nds = 0;
   eps->setupcalled = 0;
+  eps->ds_ortho = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

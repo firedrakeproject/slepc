@@ -100,6 +100,7 @@ struct _p_EPS {
   PetscInt   nwork;
   Vec        *work;
 
+  PetscTruth ds_ortho;         /* if DS vectors have been stored and orthonormalized */  
   PetscInt   setupcalled;
   PetscTruth isgeneralized,
              ispositive,
@@ -110,8 +111,6 @@ struct _p_EPS {
   PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void*);
   void       *monitorcontext[MAXEPSMONITORS];
   PetscInt    numbermonitors; 
-
-  PetscTruth ds_ortho;    /* if vectors in DS have to be orthonormalized */  
 };
 
 #define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \

@@ -105,7 +105,7 @@ int main( int argc, char **argv )
   */
   ierr = MatGetVecs(A,&x,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecSet(x,1.0);CHKERRQ(ierr);
-  ierr = EPSAttachDeflationSpace(eps,1,&x,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = EPSAttachDeflationSpace(eps,1,&x);CHKERRQ(ierr);
   ierr = VecDestroy(x);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

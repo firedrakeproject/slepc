@@ -188,7 +188,7 @@ EXTERN PetscErrorCode EPSMonitorFirst(EPS,PetscInt,PetscInt,PetscScalar*,PetscSc
 EXTERN PetscErrorCode EPSMonitorConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode EPSMonitorLG(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 
-EXTERN PetscErrorCode EPSAttachDeflationSpace(EPS,PetscInt,Vec*,PetscTruth);
+EXTERN PetscErrorCode EPSAttachDeflationSpace(EPS,PetscInt,Vec*);
 EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
 
 EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);

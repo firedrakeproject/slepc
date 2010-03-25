@@ -328,7 +328,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->T               = 0;
   eps->Z               = 0;
   eps->DS              = 0;
-  eps->ds_ortho        = PETSC_TRUE;
+  eps->ds_ortho        = PETSC_FALSE;
   eps->eigr            = 0;
   eps->eigi            = 0;
   eps->errest          = 0;
@@ -546,8 +546,6 @@ PetscErrorCode EPSRegisterDestroy(void)
 PetscErrorCode EPSDestroy(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
-  PetscScalar    *pV;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -580,15 +578,7 @@ PetscErrorCode EPSDestroy(EPS eps)
     ierr = VecDestroy(eps->D);CHKERRQ(ierr);
   }
 
-  if (eps->nds > 0) {
-    ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
-    for (i=0;i<eps->nds;i++) {
-      ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(pV);CHKERRQ(ierr);
-    ierr = PetscFree(eps->DS);CHKERRQ(ierr);
-  }
-  
+  ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
