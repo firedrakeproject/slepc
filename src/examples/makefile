@@ -267,7 +267,7 @@ runex16_1:
 	   ${RM} -f ex16_1.tmp
 
 runex17_1:
-	-@${MPIEXEC} -np 1 ./ex17 -M ${SLEPC_DIR}/src/mat/examples/speaker107m.petsc -C ${SLEPC_DIR}/src/mat/examples/speaker107c.petsc -K ${SLEPC_DIR}/src/mat/examples/speaker107k.petsc > ex17_1.tmp 2>&1;	  \
+	-@${MPIEXEC} -np 1 ./ex17 -M ${SLEPC_DIR}/src/mat/examples/speaker107m.petsc -C ${SLEPC_DIR}/src/mat/examples/speaker107c.petsc -K ${SLEPC_DIR}/src/mat/examples/speaker107k.petsc -qep_linear_explicitmatrix > ex17_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex17_1.out ex17_1.tmp) then true; \
 	   else echo "Possible problem with ex17_1, diffs above"; fi; \
 	   ${RM} -f ex17_1.tmp

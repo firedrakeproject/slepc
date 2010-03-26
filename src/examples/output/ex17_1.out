@@ -1,0 +1,16 @@
+
+Quadratic eigenproblem stored in file.
+
+ Reading REAL matrices from binary files...
+ Number of iterations of the method: 6
+ Solution method: linear
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=100
+ Number of converged approximate eigenpairs: 2
+
+           k          ||(k^2M+Ck+K)x||/||kx||
+   ----------------- -------------------------
+  0.000010+15457.405353 j     2.33986e-06
+  0.000010-15457.405353 j     2.33986e-06
+
