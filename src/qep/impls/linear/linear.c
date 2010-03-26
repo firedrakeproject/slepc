@@ -73,6 +73,9 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
     ierr = VecDestroy(ctx->y2);CHKERRQ(ierr); 
   }
 
+  ierr = MatScale(qep->M,qep->sfactor*qep->sfactor);CHKERRQ(ierr);
+  ierr = MatScale(qep->C,qep->sfactor);CHKERRQ(ierr);
+
   switch (qep->problem_type) {
     case QEP_GENERAL:    i = 0; break;
     case QEP_HERMITIAN:  i = 2; break;
@@ -115,7 +118,6 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,&qep->tol,&qep->max_it);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -162,6 +164,8 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
     ierr = VecScatterCreate(xr,isV2,qep->V[0],PETSC_NULL,&vsV2);CHKERRQ(ierr);
     for (i=0;i<qep->nconv;i++) {
       ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
+      qep->eigr[i] *= qep->sfactor;
+      qep->eigi[i] *= qep->sfactor;
       if (SlepcAbsEigenvalue(qep->eigr[i],qep->eigi[i])>1.0) vsV = vsV2;
       else vsV = vsV1;
 #if !defined(PETSC_USE_COMPLEX)
@@ -187,6 +191,8 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
     ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&w);CHKERRQ(ierr);
     for (i=0;i<qep->nconv;i++) {
       ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
+      qep->eigr[i] *= qep->sfactor;
+      qep->eigi[i] *= qep->sfactor;
       if (SlepcAbsEigenvalue(qep->eigr[i],qep->eigi[i])>1.0) offset = n;
       else offset = 0;
 #if !defined(PETSC_USE_COMPLEX)
@@ -252,6 +258,8 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
   ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,PETSC_NULL,&qep->linits);CHKERRQ(ierr);
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
   ierr = QEPLoadEigenpairsFromEPS(qep,ctx->eps,ctx->explicitmatrix);CHKERRQ(ierr);
+  ierr = MatScale(qep->M,1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
+  ierr = MatScale(qep->C,1.0/qep->sfactor);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

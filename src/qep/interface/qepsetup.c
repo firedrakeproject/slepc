@@ -48,6 +48,8 @@ PetscErrorCode QEPSetUp(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i,N,nloc;
   PetscScalar    *pV;
+  PetscTruth     khas,mhas;
+  PetscReal      knorm,mnorm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
@@ -74,6 +76,18 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (!qep->vec_initial) {
     ierr = MatGetVecs(qep->M,&qep->vec_initial,PETSC_NULL);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(qep->vec_initial);CHKERRQ(ierr);
+  }
+
+  /* Compute scaling factor if not set by user */
+  if (qep->sfactor==0.0) {
+    ierr = MatHasOperation(qep->K,MATOP_NORM,&khas);CHKERRQ(ierr);
+    ierr = MatHasOperation(qep->M,MATOP_NORM,&mhas);CHKERRQ(ierr);
+    if (khas && mhas) {
+      ierr = MatNorm(qep->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
+      ierr = MatNorm(qep->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
+      qep->sfactor = sqrt(knorm/mnorm);
+    }
+    else qep->sfactor = 1.0;
   }
 
   /* Call specific solver setup */

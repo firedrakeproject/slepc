@@ -187,6 +187,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",qep->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", qep->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",qep->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",qep->sfactor);CHKERRQ(ierr);
     if (qep->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
@@ -242,6 +243,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->ncv             = 0;
   qep->mpd             = 0;
   qep->tol             = 1e-7;
+  qep->sfactor         = 0.0;
   qep->conv            = PETSC_NULL;
   qep->conv_func       = QEPDefaultConverged;
   qep->conv_ctx        = PETSC_NULL;

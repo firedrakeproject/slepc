@@ -95,6 +95,8 @@ EXTERN PetscErrorCode QEPAbsoluteConverged(QEP,PetscInt,PetscInt,PetscScalar*,Pe
 EXTERN PetscErrorCode QEPResidualConverged(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
 EXTERN PetscErrorCode QEPSetDimensions(QEP,PetscInt,PetscInt,PetscInt);
 EXTERN PetscErrorCode QEPGetDimensions(QEP,PetscInt*,PetscInt*,PetscInt*);
+EXTERN PetscErrorCode QEPSetScaleFactor(QEP,PetscReal);
+EXTERN PetscErrorCode QEPGetScaleFactor(QEP,PetscReal*);
 
 EXTERN PetscErrorCode QEPGetConverged(QEP,PetscInt*);
 EXTERN PetscErrorCode QEPGetEigenpair(QEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);

@@ -54,6 +54,7 @@ struct _p_QEP {
                  ncv,              /* number of basis vectors */
                  mpd;              /* maximum dimension of projected problem */
   PetscReal      tol;              /* tolerance */
+  PetscScalar    sfactor;          /* scaling factor of the quadratic problem */
   PetscTruth     *conv;            /* convergence test */
   PetscErrorCode (*conv_func)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
   void           *conv_ctx;

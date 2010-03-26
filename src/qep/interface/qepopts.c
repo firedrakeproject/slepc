@@ -67,6 +67,10 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsTruthGroupEnd("-qep_gyroscopic","gyroscopic quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetProblemType(qep,QEP_GYROSCOPIC);CHKERRQ(ierr);}
 
+    r = PETSC_IGNORE;
+    ierr = PetscOptionsReal("-qep_scale","Scale factor","QEPSetScaleFactor",qep->sfactor,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = QEPSetScaleFactor(qep,r);CHKERRQ(ierr);
+
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-qep_max_it","Maximum number of iterations","QEPSetTolerances",qep->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);
@@ -174,7 +178,7 @@ PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QPESetTolerances"
+#define __FUNCT__ "QEPSetTolerances"
 /*@
    QEPSetTolerances - Sets the tolerance and maximum iteration count used
    by the QEP convergence tests. 
@@ -414,6 +418,75 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
   PetscValidPointer(which,2);
   *which = qep->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPGetScaleFactor"
+/*@
+   QEPGetScaleFactor - Gets the factor used for scaling the quadratic eigenproblem.
+
+   Not Collective
+
+   Input Parameter:
+.  qep - the quadratic eigensolver context
+  
+   Output Parameters:
+.  alpha - the scaling factor
+
+   Notes:
+   If the user did not specify a scaling factor, then after QEPSolve() the
+   default value is returned.
+
+   Level: intermediate
+
+.seealso: QEPSetScaleFactor(), QEPSolve()
+@*/
+PetscErrorCode QEPGetScaleFactor(QEP qep,PetscReal *alpha)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  if (alpha) *alpha = PetscRealPart(qep->sfactor);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPSetScaleFactor"
+/*@
+   QEPSetScaleFactor - Sets the scaling factor to be used for scaling the
+   quadratic problem before attempting to solve.
+
+   Collective on QEP
+
+   Input Parameters:
++  qep   - the quadratic eigensolver context
+-  alpha - the scaling factor
+
+   Options Database Keys:
+.  -qep_scale <alpha> - Sets the scaling factor
+
+   Notes:
+   For the problem (l^2*M + l*C + K)*x = 0, the effect of scaling is to work
+   with matrices (alpha^2*M, alpha*C, K), then scale the computed eigenvalue.
+
+   The default is to scale with alpha = norm(K)/norm(M).
+
+   Level: intermediate
+
+.seealso: QEPGetScaleFactor()
+@*/
+PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  if (alpha != PETSC_IGNORE) {
+    if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
+      qep->sfactor = 0.0;
+    } else {
+      if (alpha < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
+      qep->sfactor = alpha;
+    }
+  }
   PetscFunctionReturn(0);
 }
 
