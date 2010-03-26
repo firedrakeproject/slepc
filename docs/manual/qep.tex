@@ -32,17 +32,17 @@ z=\left[\begin{array}{c}x\\\lambda x\end{array}\right],
 or a similar way. Below, we show some of the most common linearizations.
 
 \begin{itemize}
-\item Non-symmetric linearizations. The resulting matrix pencil has no structure. Here, $\alpha$ is an optional scaling factor such as $\|M\|$ or $\|K\|$.
+\item Non-symmetric linearizations. The resulting matrix pencil has no structure.
 \begin{equation}
 \label{eq:n1}
 \mbox{N1:}\qquad
-\left[\begin{array}{cc}0 & \alpha I\\-K & -C\end{array}\right]-\lambda\left[\begin{array}{cc}\alpha I & 0\\0 & M\end{array}\right]
+\left[\begin{array}{cc}0 & I\\-K & -C\end{array}\right]-\lambda\left[\begin{array}{cc}I & 0\\0 & M\end{array}\right]
 \end{equation}
 \medskip
 \begin{equation}
 \label{eq:n2}
 \mbox{N2:}\qquad
-\left[\begin{array}{cc}-K & 0\\0 & \alpha I\end{array}\right]-\lambda\left[\begin{array}{cc}C & M\\\alpha I & 0\end{array}\right]
+\left[\begin{array}{cc}-K & 0\\0 & I\end{array}\right]-\lambda\left[\begin{array}{cc}C & M\\I & 0\end{array}\right]
 \end{equation}
 
 \medskip
@@ -74,15 +74,15 @@ or a similar way. Below, we show some of the most common linearizations.
 \end{equation}
 \end{itemize}
 
+In \slepc, some solvers of the \ident{QEP} class are based on using one of the above linearizations for solving the quadratic eigenproblem. These solvers make use of linear eigensolvers from the \ident{EPS} package.
+
 We could also consider the \emph{reversed} forms, e.g., the reversed form of N2 is
 \begin{equation}
 \label{eq:n2r}
 \mbox{N2-R:}\qquad
-\left[\begin{array}{cc}-C & -M\\\alpha I & 0\end{array}\right]-\frac{1}{\lambda}\left[\begin{array}{cc}K & 0\\0 & \alpha I\end{array}\right],
+\left[\begin{array}{cc}-C & -M\\I & 0\end{array}\right]-\frac{1}{\lambda}\left[\begin{array}{cc}K & 0\\0 & I\end{array}\right],
 \end{equation}
-which is equivalent to the form N1 for the problem $R(\lambda^{-1})x=0$.
-
-In \slepc, some solvers of the \ident{QEP} class are based on using one of the above linearizations for solving the quadratic eigenproblem. These solvers make use of linear eigensolvers from the \ident{EPS} package.
+which is equivalent to the form N1 for the problem $R(\lambda^{-1})x=0$. These reversed forms are not implemented in SLEPc, but the user can use them simply by reversing the roles of $M$ and $K$, and considering the reciprocals of the computed eigenvalues.
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -130,13 +130,18 @@ QEPDestroy( qep );
 
 \paragraph{Reliability of the Computed Solution.}
 
-When solving the quadratic problem via linearization, an accurate solution of the generalized eigenproblem does not necessarily imply accuracy for the quadratic problem. In \citep{Tisseur:2000:BEC}, it is shown that in the case of N1 linearization (Eq.\ \ref{eq:n1}), a small backward error in the generalized eigenproblem guarantees a small backward error in the quadratic eigenproblem. However, this holds only if $M$, $C$ and $K$ have a similar norm.
+When solving the quadratic problem via linearization, an accurate solution of the generalized eigenproblem does not necessarily imply a similar level of accuracy for the quadratic problem. \cite{Tisseur:2000:BEC} shows that in the case of the N1 linearization (Eq.\ \ref{eq:n1}), a small backward error in the generalized eigenproblem guarantees a small backward error in the quadratic eigenproblem. However, this holds only if $M$, $C$ and $K$ have a similar norm.
 
 When the norm of $M$, $C$ and $K$ vary widely, \cite{Tisseur:2000:BEC} recommends to solve the scaled problem, defined as 
 \begin{equation}
 (\mu^2M_\alpha+\mu C_\alpha+K)x=0,\label{eq:scaled}
 \end{equation}
-with $\mu=\lambda/\alpha$, $M_\alpha=\alpha^2M$ and $C_\alpha=\alpha C$, where $\alpha$ is a scaling factor. Ideally, $\alpha$ should be chosen in such a way that the norms of $M_\alpha$, $C_\alpha$ and $K$ have similar magnitude.
+with $\mu=\lambda/\alpha$, $M_\alpha=\alpha^2M$ and $C_\alpha=\alpha C$, where $\alpha$ is a scaling factor. Ideally, $\alpha$ should be chosen in such a way that the norms of $M_\alpha$, $C_\alpha$ and $K$ have similar magnitude. In SLEPc, this is done automatically and the user can call
+	\findex{QEPSetScaleFactor}
+	\begin{Verbatim}[fontsize=\small]
+	QEPSetScaleFactor(QEP qep,PetscReal alpha);
+	\end{Verbatim}
+to specify the scaling factor. If not specified, the value $\alpha=\sqrt{\frac{\|K\|_\infty}{\|M\|_\infty}}$ will be used.
 
 
 \paragraph{Controlling and Monitoring Convergence.}
