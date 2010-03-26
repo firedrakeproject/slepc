@@ -24,7 +24,7 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/examples/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.c ex13.c ex14.c ex15.c ex16.c
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.c ex13.c ex14.c ex15.c ex16.c ex17.c
 EXAMPLESCH = 
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F mvmisg.f ex15f.F
 
@@ -33,7 +33,8 @@ TESTEXAMPLES_C  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
                   ex7.PETSc runex7_1 ex7.rm ex10.PETSc runex10_1 ex10.rm \
                   ex11.PETSc runex11_1 ex11.rm ex12.PETSc runex12_1 ex12.rm \
                   ex13.PETSc runex13_1 ex13.rm ex14.PETSc runex14_1 ex14.rm \
-                  ex15.PETSc runex15_1 ex15.rm ex16.PETSc runex16_1 ex16.rm
+                  ex15.PETSc runex15_1 ex15.rm ex16.PETSc runex16_1 ex16.rm \
+                  ex17.PETSc runex17_1 ex17.rm
 
 TESTEXAMPLES_FORTRAN  = ex1f.PETSc runex1f_1 ex1f.rm
 
@@ -120,6 +121,10 @@ ex15f: ex15f.o chkopts
 ex16: ex16.o chkopts
 	-${CLINKER} -o ex16 ex16.o ${SLEPC_LIB}
 	${RM} ex16.o
+
+ex17: ex17.o chkopts
+	-${CLINKER} -o ex17 ex17.o ${SLEPC_LIB}
+	${RM} ex17.o
 
 #------------------------------------------------------------------------------------
 
@@ -260,4 +265,10 @@ runex16_1:
 	   if (${DIFF} output/ex16_1.out ex16_1.tmp) then true; \
 	   else echo "Possible problem with ex16_1, diffs above"; fi; \
 	   ${RM} -f ex16_1.tmp
+
+runex17_1:
+	-@${MPIEXEC} -np 1 ./ex17 -M ${SLEPC_DIR}/src/mat/examples/speaker107m.petsc -C ${SLEPC_DIR}/src/mat/examples/speaker107c.petsc -K ${SLEPC_DIR}/src/mat/examples/speaker107k.petsc > ex17_1.tmp 2>&1;	  \
+	   if (${DIFF} output/ex17_1.out ex17_1.tmp) then true; \
+	   else echo "Possible problem with ex17_1, diffs above"; fi; \
+	   ${RM} -f ex17_1.tmp
 
