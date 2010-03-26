@@ -61,7 +61,11 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   };
 
   PetscFunctionBegin;
-  
+  ctx->M = qep->M;
+  ctx->C = qep->C;
+  ctx->K = qep->K;
+  ctx->sfactor = qep->sfactor;
+
   if (ctx->A) { 
     ierr = MatDestroy(ctx->A);CHKERRQ(ierr);
     ierr = MatDestroy(ctx->B);CHKERRQ(ierr);
@@ -72,9 +76,6 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
     ierr = VecDestroy(ctx->y1);CHKERRQ(ierr); 
     ierr = VecDestroy(ctx->y2);CHKERRQ(ierr); 
   }
-
-  ierr = MatScale(qep->M,qep->sfactor*qep->sfactor);CHKERRQ(ierr);
-  ierr = MatScale(qep->C,qep->sfactor);CHKERRQ(ierr);
 
   switch (qep->problem_type) {
     case QEP_GENERAL:    i = 0; break;
@@ -258,8 +259,6 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
   ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,PETSC_NULL,&qep->linits);CHKERRQ(ierr);
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
   ierr = QEPLoadEigenpairsFromEPS(qep,ctx->eps,ctx->explicitmatrix);CHKERRQ(ierr);
-  ierr = MatScale(qep->M,1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
-  ierr = MatScale(qep->C,1.0/qep->sfactor);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -663,9 +662,6 @@ PetscErrorCode QEPCreate_LINEAR(QEP qep)
   PetscLogObjectParent(qep,ctx->eps);
   ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
   ierr = EPSMonitorSet(ctx->eps,EPSMonitor_QEP_LINEAR,qep,PETSC_NULL);CHKERRQ(ierr);
-  ctx->M = qep->M;
-  ctx->C = qep->C;
-  ctx->K = qep->K;
   ctx->explicitmatrix = PETSC_FALSE;
   ctx->cform = 1;
   ctx->A = PETSC_NULL;

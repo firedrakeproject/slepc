@@ -55,7 +55,7 @@ PetscErrorCode MatMult_QEPLINEAR_N1A(Mat A,Vec x,Vec y)
   /* y2 = -(K*x1 + C*x2) */
   ierr = MatMult(ctx->K,ctx->x1,ctx->y2);CHKERRQ(ierr);
   ierr = MatMult(ctx->C,ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y2,1.0,ctx->y1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y2,ctx->sfactor,ctx->y1);CHKERRQ(ierr);
   ierr = VecScale(ctx->y2,-1.0);CHKERRQ(ierr);
   /* y1 = x2 */
   ierr = VecCopy(ctx->x2,ctx->y1);CHKERRQ(ierr);
@@ -90,6 +90,7 @@ PetscErrorCode MatMult_QEPLINEAR_N1B(Mat B,Vec x,Vec y)
   ierr = VecCopy(ctx->x1,ctx->y1);CHKERRQ(ierr);
   /* y2 = M*x2 */
   ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
+  ierr = VecScale(ctx->y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
@@ -116,7 +117,7 @@ PetscErrorCode MatGetDiagonal_QEPLINEAR_N1A(Mat A,Vec diag)
   ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
   ierr = VecSet(ctx->x1,0.0);CHKERRQ(ierr);
   ierr = MatGetDiagonal(ctx->C,ctx->x2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x2,-1.0);CHKERRQ(ierr);
+  ierr = VecScale(ctx->x2,-ctx->sfactor);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
@@ -140,6 +141,7 @@ PetscErrorCode MatGetDiagonal_QEPLINEAR_N1B(Mat B,Vec diag)
   ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
   ierr = VecSet(ctx->x1,1.0);CHKERRQ(ierr);
   ierr = MatGetDiagonal(ctx->M,ctx->x2);CHKERRQ(ierr);
+  ierr = VecScale(ctx->x2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
@@ -152,6 +154,7 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat
 {
   PetscErrorCode ierr;
   PetscInt       M,N,m,n,i,j,row,start,end,ncols,*pos;
+  PetscScalar    *svals;
   const PetscInt    *cols;
   const PetscScalar *vals;
   
@@ -162,6 +165,7 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat
   ierr = MatSetSizes(*A,m+n,m+n,M+N,M+N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(*A);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*n,&pos);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*n,&svals);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(ctx->M,&start,&end);CHKERRQ(ierr);
   for (i=start;i<end;i++) {
     row = i + M;
@@ -170,12 +174,15 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat
     ierr = MatSetValues(*A,1,&row,ncols,cols,vals,INSERT_VALUES);CHKERRQ(ierr);
     ierr = MatRestoreRow(ctx->K,i,&ncols,&cols,&vals);CHKERRQ(ierr);
     ierr = MatGetRow(ctx->C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-    for (j=0;j<ncols;j++) 
+    for (j=0;j<ncols;j++) {
       pos[j] = cols[j] + M;
-    ierr = MatSetValues(*A,1,&row,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
+      svals[j] = vals[j]*ctx->sfactor;
+    }
+    ierr = MatSetValues(*A,1,&row,ncols,pos,svals,INSERT_VALUES);CHKERRQ(ierr);
     ierr = MatRestoreRow(ctx->C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
   }
   ierr = PetscFree(pos);CHKERRQ(ierr);
+  ierr = PetscFree(svals);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatScale(*A,-1.0);CHKERRQ(ierr);
@@ -188,6 +195,7 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N1B(MPI_Comm comm,QEP_LINEAR *ctx,Mat
 {
   PetscErrorCode ierr;
   PetscInt       M,N,m,n,i,j,row,start,end,ncols,*pos;
+  PetscScalar    *svals;
   const PetscInt    *cols;
   const PetscScalar *vals;
   
@@ -198,17 +206,21 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N1B(MPI_Comm comm,QEP_LINEAR *ctx,Mat
   ierr = MatSetSizes(*B,m+n,m+n,M+N,M+N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(*B);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*n,&pos);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*n,&svals);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(ctx->M,&start,&end);CHKERRQ(ierr);
   for (i=start;i<end;i++) {
     row = i + M;
     ierr = MatSetValue(*B,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
     ierr = MatGetRow(ctx->M,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-    for (j=0;j<ncols;j++) 
+    for (j=0;j<ncols;j++) {
       pos[j] = cols[j] + M;
-    ierr = MatSetValues(*B,1,&row,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
+      svals[j] = vals[j]*ctx->sfactor*ctx->sfactor;
+    }
+    ierr = MatSetValues(*B,1,&row,ncols,pos,svals,INSERT_VALUES);CHKERRQ(ierr);
     ierr = MatRestoreRow(ctx->M,i,&ncols,&cols,&vals);CHKERRQ(ierr);
   }
   ierr = PetscFree(pos);CHKERRQ(ierr);
+  ierr = PetscFree(svals);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
