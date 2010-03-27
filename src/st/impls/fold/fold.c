@@ -215,11 +215,15 @@ PetscErrorCode STView_Fold(ST st,PetscViewer viewer)
 PetscErrorCode STSetFromOptions_Fold(ST st) 
 {
   PetscErrorCode ierr;
+  PetscTruth     set,val;
   ST_FOLD      *ctx = (ST_FOLD *) st->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("ST Fold Options");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-st_fold_leftside","Compute eigenvalues on left side of shift","STFoldSetLeftSide",ctx->left,&ctx->left,PETSC_NULL); CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-st_fold_leftside","Compute eigenvalues on left side of shift","STFoldSetLeftSide",ctx->left,&val,&set); CHKERRQ(ierr);
+  if (set) {
+    ierr = STFoldSetLeftSide(st,val);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

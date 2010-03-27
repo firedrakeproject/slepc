@@ -275,12 +275,16 @@ PetscErrorCode SVDMonitor_CYCLIC(EPS eps,PetscInt its,PetscInt nconv,PetscScalar
 PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
 {
   PetscErrorCode ierr;
+  PetscTruth     set,val;
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
   ST             st;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"CYCLIC Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",PETSC_FALSE,&cyclic->explicitmatrix,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
+  if (set) {
+    ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
+  }
   if (cyclic->explicitmatrix) {
     /* don't build the transpose */
     if (svd->transmode == PETSC_DECIDE)

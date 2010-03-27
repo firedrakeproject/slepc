@@ -458,11 +458,15 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 PetscErrorCode EPSSetFromOptions_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscTruth     set,val;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("ARNOLDI options");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",PETSC_FALSE,&arnoldi->delayed,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
+  if (set) {
+    ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

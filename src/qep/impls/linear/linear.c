@@ -286,7 +286,7 @@ PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscSc
 PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscTruth     set;
+  PetscTruth     set,val;
   PetscInt       i;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
   ST             st;
@@ -299,7 +299,10 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
     ierr = QEPLinearSetCompanionForm(qep,i);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsTruth("-qep_linear_explicitmatrix","Use explicit matrix in linearization","QEPLinearSetExplicitMatrix",PETSC_FALSE,&ctx->explicitmatrix,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-qep_linear_explicitmatrix","Use explicit matrix in linearization","QEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
+  if (set) {
+    ierr = QEPLinearSetExplicitMatrix(qep,val);CHKERRQ(ierr);
+  }
   if (!ctx->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */ 
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);

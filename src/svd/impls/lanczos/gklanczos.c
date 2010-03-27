@@ -301,11 +301,15 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 PetscErrorCode SVDSetFromOptions_LANCZOS(SVD svd)
 {
   PetscErrorCode ierr;
+  PetscTruth     set,val;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"LANCZOS Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",PETSC_FALSE,&lanczos->oneside,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsTruth("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
+  if (set) {
+    ierr = SVDLanczosSetOneSide(svd,val);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
