@@ -18,9 +18,20 @@ In many applications, e.g., problems arising from second-order differential equa
 \end{equation}
 where $M,C,K\in\mathbb{C}^{n\times n}$ are the coefficients of a matrix polynomial of degree 2, $\lambda\in\mathbb{C}$ is the eigenvalue and $x\in\mathbb{C}^n$ is the eigenvector. As in the case of linear eigenproblems, the eigenvalues and eigenvectors can be complex even in the case that all three matrices are real.
 
-It is important to point out some outstanding differences with respect to the linear eigenproblem. In the quadratic eigenproblem, the number of eigenvalues is $2n$, and the eigenvectors are not guaranteed to be linearly independent. If $M$ is singular, some eigenvalues may be infinite. Even when the three matrices are symmetric and positive definite, there is no guarantee that the eigenvalues are real, but still methods can exploit symmetry to some extent. Furthermore, numerical difficulties are more likely than in the linear case, so the computed solution can sometimes be untrustworthy.
+It is important to point out some outstanding differences with respect to the linear eigenproblem. In the quadratic eigenproblem, the number of eigenvalues is $2n$, and the corresponding eigenvectors do not form a linearly independent set. If $M$ is singular, some eigenvalues are infinite. Even when the three matrices are symmetric and positive definite, there is no guarantee that the eigenvalues are real, but still methods can exploit symmetry to some extent. Furthermore, numerical difficulties are more likely than in the linear case, so the computed solution can sometimes be untrustworthy.
 
 If Eq.\ \ref{eq:eigquad} is written as $Q(\lambda)x=0$, where $Q$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate different spectral trasformation for computing eigenvalues closest to a given target.
+
+\paragraph{Problem Types.}
+
+As in the case of linear eigenproblems, there are some particular properties of the coefficient matrices that confer a certain structure to the quadratic eigenproblem, e.g., symmetry of the spectrum with respect to the real or imaginary axes. These structures are important as long as the solvers are able to exploit them.
+
+\begin{itemize}
+\item Hermitian (symmetric) problems, when $M$, $C$, $K$ are all Hermitian (symmetric). Eigenvalues are real or come in complex conjugate pairs. Furthermore, if $M>0$ and $C,K\geq 0$ then the system is stable, i.e., $\text{Re}(\lambda)\leq 0$.
+\item Hyperbolic problems, a particular class of Hermitian problems where $M>0$ and $(x^*Cx)^2>4(x^*Mx)(x^*Kx)$ for all nonzero $x\in\mathbb{C}^n$. All eigenvalues are real, and form two separate groups of $n$ eigenvalues, each of them having linearly independent eigenvectors.
+\item Overdamped problems, a specialized type of hyperbolic problems, where $C>0$ and $K\geq 0$. The eigenvalues are non-positive.
+\item Gyroscopic (or Hamiltonian) problems, when $M$ is Hermitian positive-definite, $K$ is Hermitian, and $C$ is skew-Hermitian, $C=-C^*$. The spectrum has a Hamiltonian structure, i.e., eigenvalues come in quadruples $(\lambda,\bar{\lambda},-\lambda,-\bar{\lambda})$.
+\end{itemize}
 
 \paragraph{Equivalent Eigenvalue Problems.}
 
@@ -32,13 +43,12 @@ z=\left[\begin{array}{c}x\\\lambda x\end{array}\right],
 or a similar way. Below, we show some of the most common linearizations.
 
 \begin{itemize}
-\item Non-symmetric linearizations. The resulting matrix pencil has no structure.
+\item Non-symmetric linearizations. The resulting matrix pencil has no particular structure.
 \begin{equation}
 \label{eq:n1}
 \mbox{N1:}\qquad
 \left[\begin{array}{cc}0 & I\\-K & -C\end{array}\right]-\lambda\left[\begin{array}{cc}I & 0\\0 & M\end{array}\right]
 \end{equation}
-\medskip
 \begin{equation}
 \label{eq:n2}
 \mbox{N2:}\qquad
@@ -52,7 +62,6 @@ or a similar way. Below, we show some of the most common linearizations.
 \mbox{S1:}\qquad
 \left[\begin{array}{cc}0 & -K\\-K & -C\end{array}\right]-\lambda\left[\begin{array}{cc}-K & 0\\0 & M\end{array}\right]
 \end{equation}
-\medskip
 \begin{equation}
 \label{eq:s2}
 \mbox{S2:}\qquad
@@ -60,13 +69,12 @@ or a similar way. Below, we show some of the most common linearizations.
 \end{equation}
 
 \medskip
-\item Hamiltonian linearizations. If $M$ is symmetric positive-definite, $K$ is symmetric, and $C$ is skew-symmetric (e.g., in real gyroscopic systems), the resulting matrix pencil has a Hamiltonian structure, i.e., eigenvalues come in quadruples $(\lambda,\bar{\lambda},-\lambda,-\bar{\lambda})$. One of the matrices is Hamiltonian and the other is skew-Hamiltonian. The first form (H1) is recommended when $M$ is singular, whereas the second form (H2) is recommended when $K$ is singular.
+\item Hamiltonian linearizations. If the quadratic eigenproblem is Hamiltonian, one of the matrices is Hamiltonian and the other is skew-Hamiltonian. The first form (H1) is recommended when $M$ is singular, whereas the second form (H2) is recommended when $K$ is singular.
 \begin{equation}
 \label{eq:h1}
 \mbox{H1:}\qquad
 \left[\begin{array}{cc}K & 0\\C & K\end{array}\right]-\lambda\left[\begin{array}{cc} 0 & K\\-M & 0\end{array}\right]
 \end{equation}
-\medskip
 \begin{equation}
 \label{eq:h2}
 \mbox{H2:}\qquad
@@ -87,9 +95,9 @@ which is equivalent to the form N1 for the problem $R(\lambda^{-1})x=0$. These r
 %---------------------------------------------------
 \section{Basic Usage}
 
-The user interface of the \ident{QEP} package is very similar to \ident{EPS}. We will focus mainly on the relevant differences.
+The user interface of the \ident{QEP} package is very similar to \ident{EPS}. For basic usage, the only noteworthy difference is that three matrices have to be supplied.
 
-A basic example code for solving a quadratic eigenproblem with \ident{QEP} is shown in Figure \ref{fig:ex-qep}. The required steps are the same as those described in chapter \ref{cap:eps} for the linear eigenproblem. The main difference is that no problem type needs to be defined. As always, the solver context is created with \ident{QEPCreate}. The three problem matrices are specified with \ident{QEPSetOperators}. The call to \ident{QEPSolve} invokes the actual solver. Then, the solution is retrived with \ident{QEPGetConverged} and \ident{QEPGetEigenpair}. Finally, \ident{QEPDestroy} destroys the object.
+A basic example code for solving a quadratic eigenproblem with \ident{QEP} is shown in Figure \ref{fig:ex-qep}. The required steps are the same as those described in chapter \ref{cap:eps} for the linear eigenproblem. As always, the solver context is created with \ident{QEPCreate}. The three problem matrices are provided with \ident{QEPSetOperators}, and the problem type is specified with \ident{QEPSetProblemType}. Calling \ident{QEPSetFromOptions} allows the user to set up various options through the command line. The call to \ident{QEPSolve} invokes the actual solver. Then, the solution is retrived with \ident{QEPGetConverged} and \ident{QEPGetEigenpair}. Finally, \ident{QEPDestroy} destroys the object.
 
 \begin{figure}
 \begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
@@ -102,6 +110,7 @@ PetscReal   error;
 
 QEPCreate( PETSC_COMM_WORLD, &qep );
 QEPSetOperators( qep, M, C, K );
+QEPSetProblemType( qep, QEP_GENERAL );
 QEPSetFromOptions( qep );
 QEPSolve( qep );
 QEPGetConverged( qep, &nconv );
@@ -118,17 +127,127 @@ QEPDestroy( qep );
 %---------------------------------------------------
 \section{Defining the Problem}
 
+As mentioned in \S\ref{sec:qep}, it is possible to distinguish among different problem types. The problem types currently supported for \ident{QEP} are listed in Table \ref{tab:ptypeq}. The goal when choosing an appropriate problem type is to let the solver exploit the underlying structure, in order to possibly compute the solution more accurately with less floating-point operations. When in doubt, use the default problem type (\texttt{QEP\_GENERAL}). 
+
+\begin{table}[b]
+\centering
+{\small \begin{tabular}{lll}
+Problem Type  & \ident{QEPProblemType}    & Command line key\\\hline
+General       & \texttt{QEP\_GENERAL}     & \texttt{-qep\_general}\\
+Hermitian     & \texttt{QEP\_HERMITIAN}   & \texttt{-qep\_hermitian}\\
+Gyroscopic    & \texttt{QEP\_GYROSCOPIC}  & \texttt{-qep\_gyroscopic}\\\hline
+\end{tabular} }
+\caption{\label{tab:ptypeq}Problem types considered in \ident{QEP}.}
+\end{table}
+
+The problem type can be specified at run time with the corresponding command line key or, more usually, within the program with the function
+	\findex{QEPSetProblemType}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetProblemType(QEP eps,QEPProblemType type);
+	\end{Verbatim}
+
+Apart from the problem type, the definition of the problem is completed with the number and location of the eigenvalues to compute. This is done very much like in \ident{EPS}, but with minor differences.
+
+	The number of eigenvalues (and eigenvectors) to compute, \texttt{nev}, is specified with the function%
+	\findex{QEPSetDimensions}
+	\begin{Verbatim}[fontsize=\small]
+	QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd);
+	\end{Verbatim}
+The default is to compute only one. This function also allows control over the dimension of the subspaces used internally. The second argument, \texttt{ncv}, is the number of column vectors to be used by the solution algorithm, that is, the largest dimension of the working subspace. The third argument, \texttt{mpd}, is the maximum projected dimension. These parameters can also be set from the command line with \Verb!-qep_nev!, \Verb!-qep_ncv! and \Verb!-qep_mpd!.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{lll}
+\texttt{QEPWhich}                  & Command line key                   & Sorting criterion \\\hline
+\texttt{QEP\_LARGEST\_MAGNITUDE}   & \texttt{-qep\_largest\_magnitude}  & Largest $|\lambda|$ \\
+\texttt{QEP\_SMALLEST\_MAGNITUDE}  & \texttt{-qep\_smallest\_magnitude} & Smallest $|\lambda|$ \\
+\texttt{QEP\_LARGEST\_REAL}        & \texttt{-qep\_largest\_real}       & Largest $\mathrm{Re}(\lambda)$ \\
+\texttt{QEP\_SMALLEST\_REAL}       & \texttt{-qep\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
+\texttt{QEP\_LARGEST\_IMAGINARY}   & \texttt{-qep\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark \\
+\texttt{QEP\_SMALLEST\_IMAGINARY}  & \texttt{-qep\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\addtocounter{footnote}{-1}\footnotemark \\\hline
+\end{tabular} }
+\caption{\label{tab:portionq}Available possibilities for selection of the eigenvalues of interest in \ident{QEP}.}
+\end{table}
+
+\footnotetext{If \slepc is compiled for real scalars, then the absolute value of the imaginary part, $|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
+
+	For the selection of the portion of the spectrum of interest, there are several alternatives listed in Table~\ref{tab:portionq}, to be selected with the function
+	\findex{QEPSetWhichEigenpairs}
+	\begin{Verbatim}[fontsize=\small]
+	QEPSetWhichEigenpairs(QEP qep,QEPWhich which);
+	\end{Verbatim}
+The main difference with respect to \ident{EPS} is that sorting with respect to a target value is currently unavailable for \ident{QEP}. The default is to compute the largest magnitude eigenvalues.
+
 
 %---------------------------------------------------
 \section{Selecting the Solver}
 
+The solution method can be specified procedurally with
+	\findex{QEPSetType}
+	\begin{Verbatim}[fontsize=\small]
+	QEPSetType(QEP qep,QEPType method);
+	\end{Verbatim}
+or via the options database command \Verb!-qep_type! followed by the name of the method. Currently, there is only one method available, see Table~\ref{tab:solversq}, based on linearization. In future SLEPc versions, we plan to incorporate solvers that work directly on the quadratic problem, without linearizing.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{lll}
+                   &                      & {\footnotesize Options} \\
+Method             & \ident{QEPType}      & {\footnotesize Database Name}\\\hline
+Linearization      & \texttt{QEPLINEAR}   & \texttt{linear} \\\hline
+\end{tabular} }
+\caption{\label{tab:solversq}Quadratic eigenvalue solvers available in the \ident{QEP} module.}
+\end{table}
+
+The \texttt{QEPLINEAR} method carries out a linearization of the quadratic eigenproblem, as described in \S\ref{sec:qep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
+	\findex{QEPLinearGetEPS}
+	\begin{Verbatim}[fontsize=\small]
+	QEPLinearGetEPS(QEP qep,EPS *eps);
+	\end{Verbatim}
+This allows the application programmer to set any of the \ident{EPS} options directly within the code. Also, it is possible to change the \ident{EPS} options through the command-line, simply by prefixing the \ident{EPS} options with \texttt{-qep\_}.
+
+The expression used in the linearization is specified by two parameters:
+\begin{enumerate}
+\item The problem type set with \ident{QEPProblemType}, which chooses from non-symmetric, symmetric, and Hamiltonian linearizations.
+\item The companion form, 1 or 2, that can be chosen with
+	\findex{QEPLinearSetCompanionForm}
+	\begin{Verbatim}[fontsize=\small]
+   QEPLinearSetCompanionForm(QEP qep,PetscInt cform);
+	\end{Verbatim}
+\end{enumerate}
+
+Another option of the \texttt{QEPLINEAR} solver is whether the matrices of the linearized problem are created explicitly or not. This is set with the function
+	\findex{QEPLinearSetExplicitMatrix}
+	\begin{Verbatim}[fontsize=\small]
+	QEPLinearSetExplicitMatrix(QEP qep,PetscTruth exp);
+	\end{Verbatim}
+In the case of explicit creation, matrices $A$ and $B$ are created as real \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$. The explicit case requires more memory but gives more flexibility, e.g., for chosing a preconditioner.
+
+As a complete example of how to solve a quadratic eigenproblem via linearlization, consider the following command line:
+\begin{Verbatim}[fontsize=\small]
+	$ program -qep_type linear -qep_hermitian -qep_linear_cform 2
+                  -qep_linear_explicitmatrix -qep_eps_type krylovschur
+                  -qep_st_ksp_type gmres -qep_st_pc_type bjacobi
+\end{Verbatim}
+The S2 linearization (Eq.\ \ref{eq:s2}) will be used, with explicit matrix storage and a preconditioned iterative method for solving linear systems with matrix $B$.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
 
-
+After the call to \ident{QEPSolve} has finished, the computed results are stored internally. The procedure for retrieving the computed solution is exactly the same as in the case of \ident{EPS}. The user has to call \ident{QEPGetConverged} first, to obtain the number of converged solutions, then call \ident{QEPGetEigenpair} repeatedly within a loop, once per each eigenvalue-eigenvector pair. The same considerations relative to complex eigenvalues apply, see \S\ref{sec:retrsol} for additional details.
 
 \paragraph{Reliability of the Computed Solution.}
+
+As in the case of linear problems, the function
+	\findex{QEPComputeRelativeError}
+	\begin{Verbatim}[fontsize=\small]
+	QEPComputeRelativeError(QEP qep,PetscInt j,PetscReal *error);
+	\end{Verbatim}
+is available to assess the accuracy of the computed solutions. This error is based on the computation of the 2-norm of the residual vector, defined as
+\begin{equation}
+r=(\tilde{\lambda}^2M+\tilde{\lambda} C+K)\tilde{x},\label{eq:resquad}
+\end{equation}
+where $\tilde{\lambda}$ and $\tilde{x}$ represent any of the \texttt{nconv} computed eigenpairs delivered by \ident{QEPGetEigenpair}.
 
 When solving the quadratic problem via linearization, an accurate solution of the generalized eigenproblem does not necessarily imply a similar level of accuracy for the quadratic problem. \cite{Tisseur:2000:BEC} shows that in the case of the N1 linearization (Eq.\ \ref{eq:n1}), a small backward error in the generalized eigenproblem guarantees a small backward error in the quadratic eigenproblem. However, this holds only if $M$, $C$ and $K$ have a similar norm.
 
@@ -146,4 +265,5 @@ to specify the scaling factor. If not specified, the value $\alpha=\sqrt{\frac{\
 
 \paragraph{Controlling and Monitoring Convergence.}
 
+As in the case of \ident{EPS}, in \ident{QEP} the number of iterations carried out by the solver can be determined with \ident{QEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{QEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-qep_monitor! or \Verb!-qep_monitor_draw!. See \S\ref{sec:monitor} for additional details.
 
