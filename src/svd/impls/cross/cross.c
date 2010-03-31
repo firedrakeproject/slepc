@@ -310,6 +310,8 @@ PetscErrorCode SVDDestroy_CROSS(SVD svd)
     ierr = VecDestroy(cross->diag);CHKERRQ(ierr);
   }
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

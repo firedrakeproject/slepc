@@ -165,6 +165,11 @@ PetscErrorCode STDestroy_Shell(ST st)
   PetscFunctionBegin;
   ierr = PetscFree(shell->name);CHKERRQ(ierr);
   ierr = PetscFree(shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetName_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellGetName_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -478,16 +483,11 @@ PetscErrorCode STCreate_Shell(ST st)
   shell->name        = 0;
   shell->ctx         = 0;
 
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",
-                    STShellSetApply_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","STShellSetApplyTranspose_Shell",
-                    STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","STShellSetBackTransform_Shell",
-                    STShellSetBackTransform_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetName_C","STShellSetName_Shell",
-                    STShellSetName_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellGetName_C","STShellGetName_Shell",
-                    STShellGetName_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",STShellSetApply_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","STShellSetApplyTranspose_Shell",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","STShellSetBackTransform_Shell",STShellSetBackTransform_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetName_C","STShellSetName_Shell",STShellSetName_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellGetName_C","STShellGetName_Shell",STShellGetName_Shell);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

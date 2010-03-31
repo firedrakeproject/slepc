@@ -566,6 +566,20 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscTruth *delayed)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_ARNOLDI"
+PetscErrorCode EPSDestroy_ARNOLDI(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSView_ARNOLDI"
 PetscErrorCode EPSView_ARNOLDI(EPS eps,PetscViewer viewer)
 {
@@ -602,7 +616,7 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
   eps->ops->solvets              = EPSSolve_TS_ARNOLDI;
   eps->ops->setup                = EPSSetUp_ARNOLDI;
   eps->ops->setfromoptions       = EPSSetFromOptions_ARNOLDI;
-  eps->ops->destroy              = EPSDestroy_Default;
+  eps->ops->destroy              = EPSDestroy_ARNOLDI;
   eps->ops->view                 = EPSView_ARNOLDI;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;

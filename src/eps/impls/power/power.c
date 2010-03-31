@@ -517,6 +517,20 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_POWER"
+PetscErrorCode EPSDestroy_POWER(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","",PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSView_POWER"
 PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
 {
@@ -550,7 +564,7 @@ PetscErrorCode EPSCreate_POWER(EPS eps)
   eps->ops->solvets              = EPSSolve_TS_POWER;
   eps->ops->setup                = EPSSetUp_POWER;
   eps->ops->setfromoptions       = EPSSetFromOptions_POWER;
-  eps->ops->destroy              = EPSDestroy_Default;
+  eps->ops->destroy              = EPSDestroy_POWER;
   eps->ops->view                 = EPSView_POWER;
   eps->ops->backtransform        = EPSBackTransform_POWER;
   eps->ops->computevectors       = EPSComputeVectors_Default;

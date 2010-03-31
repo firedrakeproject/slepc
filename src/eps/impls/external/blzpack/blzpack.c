@@ -296,6 +296,9 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -369,6 +369,19 @@ PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscTruth oneside)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "SVDDestroy_LANCZOS"
+PetscErrorCode SVDDestroy_LANCZOS(SVD svd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  ierr = SVDDestroy_Default(svd);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SVDView_LANCZOS"
 PetscErrorCode SVDView_LANCZOS(SVD svd,PetscViewer viewer)
 {
@@ -394,7 +407,7 @@ PetscErrorCode SVDCreate_LANCZOS(SVD svd)
   svd->data                = (void *)lanczos;
   svd->ops->setup          = SVDSetUp_LANCZOS;
   svd->ops->solve          = SVDSolve_LANCZOS;
-  svd->ops->destroy        = SVDDestroy_Default;
+  svd->ops->destroy        = SVDDestroy_LANCZOS;
   svd->ops->setfromoptions = SVDSetFromOptions_LANCZOS;
   svd->ops->view           = SVDView_LANCZOS;
   lanczos->oneside         = PETSC_FALSE;

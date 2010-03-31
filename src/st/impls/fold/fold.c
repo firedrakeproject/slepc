@@ -238,6 +238,7 @@ PetscErrorCode STDestroy_Fold(ST st)
   PetscFunctionBegin;
   if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
   ierr = PetscFree(ctx);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STFoldSetLeftSide_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -267,8 +268,7 @@ PetscErrorCode STCreate_Fold(ST st)
   
   ctx->left            = PETSC_FALSE;
   
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STFoldSetLeftSide_C","STFoldSetLeftSide_Fold",
-                    STFoldSetLeftSide_Fold);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STFoldSetLeftSide_C","STFoldSetLeftSide_Fold",STFoldSetLeftSide_Fold);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

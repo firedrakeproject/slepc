@@ -853,6 +853,20 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_LANCZOS"
+PetscErrorCode EPSDestroy_LANCZOS(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSView_LANCZOS"
 PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
 {
@@ -889,7 +903,7 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
 /*  eps->ops->solvets              = EPSSolve_TS_LANCZOS;*/
   eps->ops->setup                = EPSSetUp_LANCZOS;
   eps->ops->setfromoptions       = EPSSetFromOptions_LANCZOS;
-  eps->ops->destroy              = EPSDestroy_Default;
+  eps->ops->destroy              = EPSDestroy_LANCZOS;
   eps->ops->view                 = EPSView_LANCZOS;
   eps->ops->backtransform        = EPSBackTransform_Default;
   /*if (eps->solverclass==EPS_TWO_SIDE)

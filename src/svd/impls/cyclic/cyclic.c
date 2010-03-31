@@ -516,6 +516,10 @@ PetscErrorCode SVDDestroy_CYCLIC(SVD svd)
     ierr = VecDestroy(cyclic->y2);CHKERRQ(ierr);
   }
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

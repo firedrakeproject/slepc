@@ -385,6 +385,7 @@ PetscErrorCode STDestroy_Cayley(ST st)
   PetscFunctionBegin;
   if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
   ierr = PetscFree(ctx);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -417,8 +418,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   ctx->tau                = 0.0;
   ctx->tau_set            = PETSC_FALSE;
 
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",
-                    STCayleySetAntishift_Cayley);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

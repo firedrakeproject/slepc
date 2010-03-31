@@ -630,6 +630,14 @@ PetscErrorCode QEPDestroy_LINEAR(QEP qep)
     ierr = VecDestroy(ctx->y1);CHKERRQ(ierr);
     ierr = VecDestroy(ctx->y2);CHKERRQ(ierr);
   }
+
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
+
   ierr = QEPDestroy_Default(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

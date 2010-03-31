@@ -302,6 +302,13 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
  
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","",PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetPrecond_C","",PETSC_NULL);CHKERRQ(ierr); 
+
   PetscFunctionReturn(0);
 }
 
