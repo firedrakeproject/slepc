@@ -51,9 +51,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscErrorCode ierr;
   Vec            v0,w0,vds;  
   Mat            A,B; 
-  PetscInt       i;
-  PetscTruth     isCayley;
+  PetscInt       i,k;
+  PetscTruth     isCayley,lindep;
   PetscScalar    *pDS;
+  PetscReal      norm;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
@@ -145,8 +146,26 @@ PetscErrorCode EPSSetUp(EPS eps)
     }
     ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,eps->vec_initial,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); 
   }
-
   ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);
+
+  /* process initial vectors */
+  if (eps->nini<0) {
+    eps->nini = -eps->nini;
+    if (eps->nini>eps->ncv) SETERRQ(1,"The number of initial vectors is larger than ncv")
+    k = 0;
+    for (i=0;i<eps->nini;i++) {
+      ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
+      ierr = VecDestroy(eps->IS[i]);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+      if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent initial vector found, removing...\n");
+      else {
+        ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
+        k++;
+      }
+    }
+    eps->nini = k;
+    ierr = PetscFree(eps->IS);CHKERRQ(ierr);
+  }
 
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPSBALANCE_ONESIDE || eps->balance==EPSBALANCE_TWOSIDE)) {
@@ -406,6 +425,9 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
    The vectors do not need to be mutually orthonormal, since they are explicitly
    orthonormalized internally.
 
+   These vectors persist from one EPSSolve() call to the other, use
+   EPSRemoveDeflationSpace() to eliminate them.
+
    Level: intermediate
 
 .seealso: EPSRemoveDeflationSpace()
@@ -473,3 +495,61 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
   eps->ds_ortho = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetInitialSpace"
+/*@
+   EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
+   space, that is, the subspace from which the solver starts to iterate.
+
+   Collective on EPS and Vec
+
+   Input Parameter:
++  eps   - the eigenproblem solver context
+.  n     - number of vectors
+-  is    - set of basis vectors of the initial space
+
+   Notes:
+   Some solvers start to iterate on a single vector (initial vector). In that case,
+   the other vectors are ignored.
+
+   In contrast to EPSSetDeflationSpace(), these vectors do not persist from one
+   EPSSolve() call to the other, so the initial space should be set every time.
+
+   The vectors do not need to be mutually orthonormal, since they are explicitly
+   orthonormalized internally.
+
+   Level: intermediate
+
+.seealso: EPSSetDeflationSpace()
+@*/
+PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (n<=0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
+
+  /* free previous non-processed vectors */
+  if (eps->nini<0) {
+    for (i=0;i<-eps->nini;i++) {
+      ierr = VecDestroy(eps->IS[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(eps->IS);CHKERRQ(ierr);
+  }
+
+  /* get references of passed vectors */
+  ierr = PetscMalloc(n*sizeof(Vec),&eps->IS);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
+    eps->IS[i] = is[i];
+  }
+
+  eps->nini = -n;
+  eps->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+

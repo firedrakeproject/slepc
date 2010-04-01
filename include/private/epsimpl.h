@@ -56,6 +56,7 @@ struct _p_EPS {
                  nev,              /* number of eigenvalues to compute */
                  ncv,              /* number of basis vectors */
                  mpd,              /* maximum dimension of projected problem */
+                 nini,             /* number of initial vectors (negative means not copied yet) */
                  nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
@@ -79,6 +80,7 @@ struct _p_EPS {
               *V,               /* set of basis vectors and computed eigenvectors */
               *AV,              /* auxiliar set of basis vectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */
+              *IS,              /* placeholder for references to user-provided initial space */
               *DS;              /* deflation space */
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
               *T, *Tl,          /* projected matrices */
