@@ -20,7 +20,7 @@
 */
 
 static char help[] = "Computes the smallest nonzero eigenvalue of the Laplacian of a graph.\n\n"
-  "This example illustrates EPSAttachDeflationSpace(). The example graph corresponds to a "
+  "This example illustrates EPSSetDeflationSpace(). The example graph corresponds to a "
   "2-D regular mesh. The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
@@ -105,7 +105,7 @@ int main( int argc, char **argv )
   */
   ierr = MatGetVecs(A,&x,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecSet(x,1.0);CHKERRQ(ierr);
-  ierr = EPSAttachDeflationSpace(eps,1,&x);CHKERRQ(ierr);
+  ierr = EPSSetDeflationSpace(eps,1,&x);CHKERRQ(ierr);
   ierr = VecDestroy(x);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

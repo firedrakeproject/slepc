@@ -446,11 +446,11 @@ $$l_{ij}=\left\{\begin{array}{cl}
 where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all row sums are equal to zero. The constant vector is an eigenvector with zero eigenvalue, and if the graph is connected then all other eigenvalues are positive. The so-called Fiedler vector is the eigenvector associated to the smallest nonzero eigenvalue and can be used in heuristics for a number of graph manipulations such as partitioning. One possible way of computing this vector with \slepc is to instruct the eigensolver to search for the smallest eigenvalue (with \ident{EPSSetWhichEigenpairs} or by using a spectral transformation as described in next chapter) but preventing it from computing the already known eigenvalue. For this, the user must provide a basis for the invariant subspace (in this case just vector $[1,1,\ldots,1]^T$) so that the eigensolver can \emph{deflate} this subspace. This process is very similar to what eigensolvers normally do with invariant subspaces associated to eigenvalues as they converge. In other words, when a deflation space has been specified, the eigensolver works with the restriction of the problem to the orthogonal complement of this subspace.
 
 	The following function can be used to provide the \ident{EPS} object with some basis vectors corresponding to a subspace that should be deflated during the solution process. 
-	\findex{EPSAttachDeflationSpace}
+	\findex{EPSSetDeflationSpace}
 	\begin{Verbatim}[fontsize=\small]
-	EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds,PetscTruth ortho)
+	EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
 	\end{Verbatim}
-The value \texttt{n} indicates how many vectors are passed in argument \texttt{ds}. This function can be called several times. The last parameter indicates whether all the provided vectors are known to be mutually orthonormal or not. If not, they are explicitly orthonormalized internally.
+The value \texttt{n} indicates how many vectors are passed in argument \texttt{ds}.
 
 	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is passed to the linear solver (see \petsc's function \texttt{KSPSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e. when $A$ and $B$ share a common null-space).
 

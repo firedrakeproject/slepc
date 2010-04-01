@@ -379,9 +379,9 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSAttachDeflationSpace"
+#define __FUNCT__ "EPSSetDeflationSpace"
 /*@
-   EPSAttachDeflationSpace - Specify a basis of vectors that constitute
+   EPSSetDeflationSpace - Specify a basis of vectors that constitute
    the deflation space.
 
    Collective on EPS and Vec
@@ -397,7 +397,7 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
    space. This can be used for instance in the case that an invariant 
    subspace is known beforehand (such as the nullspace of the matrix).
 
-   Basis vectors set by a previous call to EPSAttachDeflationSpace() are
+   Basis vectors set by a previous call to EPSSetDeflationSpace() are
    replaced.
 
    The vectors do not need to be mutually orthonormal, since they are explicitly
@@ -407,7 +407,7 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
 
 .seealso: EPSRemoveDeflationSpace()
 @*/
-PetscErrorCode EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds)
+PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -444,7 +444,7 @@ PetscErrorCode EPSAttachDeflationSpace(EPS eps,PetscInt n,Vec *ds)
 
    Level: intermediate
 
-.seealso: EPSAttachDeflationSpace()
+.seealso: EPSSetDeflationSpace()
 @*/
 PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 {

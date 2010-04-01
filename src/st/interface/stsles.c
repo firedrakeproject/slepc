@@ -265,7 +265,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
    
    Level: developer
 
-.seealso: EPSAttachDeflationSpace()
+.seealso: EPSSetDeflationSpace()
 @*/
 PetscErrorCode STCheckNullSpace(ST st,PetscInt n,const Vec V[])
 {
