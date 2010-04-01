@@ -314,7 +314,6 @@ PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
 PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
 {
   PetscErrorCode ierr;
-  Mat            A,B;
   Vec            x,y,z;
   PetscInt       i;
   PetscScalar    re,im;
@@ -325,7 +324,6 @@ PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
     SETERRQ(PETSC_ERR_SUP,"Residual convergence test not supported in this solver");
   
   /* allocate workspace */
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&x);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&y);CHKERRQ(ierr);
   if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr); }
