@@ -346,11 +346,9 @@ static void compute_int(PetscTruth *which,PetscReal *mu,PetscInt j,PetscReal del
 */
 static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscTruth *breakdown,PetscReal anorm)
 {
-  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
-  Mat            A;
   PetscInt       i,j,m = *M;
-  PetscInt       n;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta;
   PetscTruth     *which,lwhich[100],*which2,lwhich2[100],
                  reorth = PETSC_FALSE,force_reorth = PETSC_FALSE,fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
@@ -374,9 +372,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     hwork = lhwork;
   }
 
-  ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&n,PETSC_NULL);CHKERRQ(ierr);
-  eps1 = sqrt((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+  eps1 = sqrt((PetscReal)eps->n)*PETSC_MACHINE_EPSILON/2;
   delta = PETSC_SQRT_MACHINE_EPSILON/sqrt((PetscReal)eps->ncv);
   eta = pow(PETSC_MACHINE_EPSILON,3.0/4.0)/sqrt((PetscReal)eps->ncv);
   if (anorm < 0.0) {
@@ -438,7 +434,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       }
     }
     
-    if (*breakdown || norm < n*anorm*PETSC_MACHINE_EPSILON) {
+    if (*breakdown || norm < eps->n*anorm*PETSC_MACHINE_EPSILON) {
       *M = j+1;
       break;
     }

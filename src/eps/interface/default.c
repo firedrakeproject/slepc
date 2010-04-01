@@ -406,7 +406,7 @@ PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
 PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
 {
   Vec            z, p, r;
-  PetscInt       i, j, n;
+  PetscInt       i, j;
   PetscReal      norma;
   PetscScalar    *pz, *pr, *pp, *pD;
   PetscErrorCode ierr;
@@ -415,7 +415,6 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   ierr = VecDuplicate(eps->vec_initial,&r);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&p);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->vec_initial,&z);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(z,&n);CHKERRQ(ierr);
   ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
 
   for (j=0;j<eps->balance_its;j++) {
@@ -423,7 +422,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     /* Build a random vector of +-1's */
     ierr = SlepcVecSetRandom(z);CHKERRQ(ierr);
     ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
+    for (i=0;i<eps->nloc;i++) {
       if (PetscRealPart(pz[i])<0.5) pz[i]=-1.0;
       else pz[i]=1.0;
     }
@@ -449,7 +448,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     ierr = VecGetArray(r,&pr);CHKERRQ(ierr);
     ierr = VecGetArray(p,&pp);CHKERRQ(ierr);
     ierr = VecGetArray(eps->D,&pD);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
+    for (i=0;i<eps->nloc;i++) {
       if (eps->balance == EPSBALANCE_TWOSIDE) {
         if (PetscAbsScalar(pp[i])>eps->balance_cutoff*norma && pr[i]!=0.0)
           pD[i] *= sqrt(PetscAbsScalar(pr[i]/pp[i]));
