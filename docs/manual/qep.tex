@@ -30,7 +30,7 @@ As in the case of linear eigenproblems, there are some particular properties of 
 \item Hermitian (symmetric) problems, when $M$, $C$, $K$ are all Hermitian (symmetric). Eigenvalues are real or come in complex conjugate pairs. Furthermore, if $M>0$ and $C,K\geq 0$ then the system is stable, i.e., $\text{Re}(\lambda)\leq 0$.
 \item Hyperbolic problems, a particular class of Hermitian problems where $M>0$ and $(x^*Cx)^2>4(x^*Mx)(x^*Kx)$ for all nonzero $x\in\mathbb{C}^n$. All eigenvalues are real, and form two separate groups of $n$ eigenvalues, each of them having linearly independent eigenvectors.
 \item Overdamped problems, a specialized type of hyperbolic problems, where $C>0$ and $K\geq 0$. The eigenvalues are non-positive.
-\item Gyroscopic (or Hamiltonian) problems, when $M$ is Hermitian positive-definite, $K$ is Hermitian, and $C$ is skew-Hermitian, $C=-C^*$. The spectrum has a Hamiltonian structure, i.e., eigenvalues come in quadruples $(\lambda,\bar{\lambda},-\lambda,-\bar{\lambda})$.
+\item Gyroscopic problems, when $M$, $K$ are Hermitian, $M>0$, and $C$ is skew-Hermitian, $C=-C^*$. The spectrum is symmetric with respect to the imaginary axis, and in the real case, it has a Hamiltonian structure, i.e., eigenvalues come in quadruples $(\lambda,\bar{\lambda},-\lambda,-\bar{\lambda})$.
 \end{itemize}
 
 \paragraph{Equivalent Eigenvalue Problems.}

@@ -95,7 +95,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
   if (matmode == STMATMODE_INPLACE && eps->ispositive) {
-    /* Purge eigenvectors before reverting operator */
+    /* Purify eigenvectors before reverting operator */
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);    
   }
   ierr = STPostSolve(eps->OP);CHKERRQ(ierr);

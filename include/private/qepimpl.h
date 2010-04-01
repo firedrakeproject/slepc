@@ -78,7 +78,8 @@ struct _p_QEP {
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
               matvecs, linits,  /* operation counters */
-              ldz;              /* leading dimension of Z */
+              ldz,              /* leading dimension of Z */
+              n, nloc;          /* problem dimensions (global, local) */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;

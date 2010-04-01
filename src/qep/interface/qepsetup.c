@@ -46,7 +46,7 @@
 PetscErrorCode QEPSetUp(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,N,nloc;
+  PetscInt       i;
   PetscScalar    *pV;
   PetscTruth     khas,mhas;
   PetscReal      knorm,mnorm;
@@ -67,6 +67,10 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (!qep->M || !qep->C || !qep->K)
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "QEPSetOperators must be called first"); 
   
+  /* Set problem dimensions */
+  ierr = MatGetSize(qep->M,&qep->n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(qep->M,&qep->nloc,PETSC_NULL);CHKERRQ(ierr);
+
   /* Set default problem type */
   if (!qep->problem_type) {
     ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
@@ -93,8 +97,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* Call specific solver setup */
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
 
-  ierr = VecGetSize(qep->vec_initial,&N);CHKERRQ(ierr);
-  if (qep->ncv > 2*N)
+  if (qep->ncv > 2*qep->n)
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv)
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
@@ -119,10 +122,9 @@ PetscErrorCode QEPSetUp(QEP qep)
   ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*sizeof(Vec),&qep->V);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(qep->vec_initial,&nloc);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+  ierr = PetscMalloc(qep->ncv*qep->nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
   for (i=0;i<qep->ncv;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,nloc,PETSC_DECIDE,pV+i*nloc,&qep->V[i]);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,PETSC_DECIDE,pV+i*qep->nloc,&qep->V[i]);CHKERRQ(ierr);
   }
 
   ierr = PetscLogEventEnd(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);

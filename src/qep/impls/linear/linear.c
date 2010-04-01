@@ -32,7 +32,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 {
   PetscErrorCode    ierr;
   QEP_LINEAR        *ctx = (QEP_LINEAR *)qep->data;
-  PetscInt          i,M,N,m,n;
+  PetscInt          i;
   EPSWhich          which;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
@@ -84,21 +84,19 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   }
   i += ctx->cform-1;
 
-  ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
   if (ctx->explicitmatrix) {
     ctx->x1 = ctx->x2 = ctx->y1 = ctx->y2 = PETSC_NULL;
     ierr = (*fcreate[i][0])(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = (*fcreate[i][1])(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
   } else {
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,m,M,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,m,M,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)qep)->comm,m+n,m+n,M+N,M+N,ctx,&ctx->A);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
+    ierr = MatCreateShell(((PetscObject)qep)->comm,2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)qep)->comm,m+n,m+n,M+N,M+N,ctx,&ctx->B);CHKERRQ(ierr);
+    ierr = MatCreateShell(((PetscObject)qep)->comm,2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->B);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))fmult[i][1]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][1]);CHKERRQ(ierr);
   }
@@ -138,7 +136,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatrix)
 {
   PetscErrorCode ierr;
-  PetscInt       i,N,n,start,end,offset,idx;
+  PetscInt       i,start,end,offset,idx;
   PetscScalar    *px;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    tmp;
@@ -152,15 +150,13 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
   ierr = EPSGetInitialVector(eps,&v0);CHKERRQ(ierr);
   ierr = VecDuplicate(v0,&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(v0,&xi);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(qep->M,&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetSize(qep->M,&N,PETSC_NULL);CHKERRQ(ierr);
 
   if (explicitmatrix) {  /* case 1: x needs to be scattered from the owning processes to the rest */
     ierr = VecGetOwnershipRange(qep->V[0],&start,&end);CHKERRQ(ierr);
     idx = start;
     ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV1);CHKERRQ(ierr);      
     ierr = VecScatterCreate(xr,isV1,qep->V[0],PETSC_NULL,&vsV1);CHKERRQ(ierr);
-    idx = start+N;
+    idx = start+qep->n;
     ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV2);CHKERRQ(ierr);      
     ierr = VecScatterCreate(xr,isV2,qep->V[0],PETSC_NULL,&vsV2);CHKERRQ(ierr);
     for (i=0;i<qep->nconv;i++) {
@@ -189,12 +185,12 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
     ierr = VecScatterDestroy(vsV2);CHKERRQ(ierr);
   }
   else {           /* case 2: elements of x are already in the right process */
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,n,N,PETSC_NULL,&w);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&w);CHKERRQ(ierr);
     for (i=0;i<qep->nconv;i++) {
       ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
       qep->eigr[i] *= qep->sfactor;
       qep->eigi[i] *= qep->sfactor;
-      if (SlepcAbsEigenvalue(qep->eigr[i],qep->eigi[i])>1.0) offset = n;
+      if (SlepcAbsEigenvalue(qep->eigr[i],qep->eigi[i])>1.0) offset = qep->nloc;
       else offset = 0;
 #if !defined(PETSC_USE_COMPLEX)
       if (qep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
