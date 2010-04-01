@@ -86,7 +86,6 @@ void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params
 PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N, n;
   PetscMPIInt    numProcs, procID;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
@@ -97,10 +96,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = MPI_Comm_rank(((PetscObject)eps)->comm,&procID);CHKERRQ(ierr);
   
   /* Check some constraints and set some default values */ 
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
-
-  if (!eps->max_it) eps->max_it = PetscMax(1000,N);
+  if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
   if (!ops->A) SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian)
@@ -109,8 +105,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
 
   /* Transfer SLEPc options to PRIMME options */
-  primme->n = N;
-  primme->nLocal = n;
+  primme->n = eps->n;
+  primme->nLocal = eps->nloc;
   primme->numEvals = eps->nev; 
   primme->matrix = ops;
   primme->commInfo = eps;
@@ -161,8 +157,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   }
 
   /* Prepare auxiliary vectors */ 
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,N,PETSC_NULL,&ops->x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,N,PETSC_NULL,&ops->y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,eps->nloc,eps->n,PETSC_NULL,&ops->x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,eps->nloc,eps->n,PETSC_NULL,&ops->y);CHKERRQ(ierr);
  
   PetscFunctionReturn(0);
 }

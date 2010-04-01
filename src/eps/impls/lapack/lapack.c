@@ -34,7 +34,6 @@ typedef struct {
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
-  PetscInt       N;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
   PetscTruth     flg;
   Mat            A,B;
@@ -43,8 +42,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PC             pc;
   
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  eps->ncv = N;
+  eps->ncv = eps->n;
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
 
   if (eps->balance!=EPSBALANCE_NONE)
@@ -102,7 +100,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i,low,high;
+  PetscInt       n=eps->n,i,low,high;
   PetscMPIInt    size;
   PetscScalar    *array,*arrayb,*pV,*pW;
   PetscReal      *w;
@@ -111,9 +109,6 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   
   PetscFunctionBegin;
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  
-  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr);
-
   if (size == 1) {
     ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   } else {
@@ -126,7 +121,6 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
       ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&pW);CHKERRQ(ierr);
     }
   } else pW = PETSC_NULL;
-  
   
   if (la->OP) {
     ierr = MatGetArray(la->OP,&array);CHKERRQ(ierr);

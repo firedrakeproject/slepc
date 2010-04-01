@@ -49,23 +49,21 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
 {
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
-  PetscInt       N;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else if (eps->mpd) { /* mpd set */
-    eps->ncv = PetscMin(N,eps->nev+eps->mpd);
+    eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   }
   else { /* neither set: defaults depend on nev being small or large */
-    if (eps->nev<500) eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
-    else { eps->mpd = 500; eps->ncv = PetscMin(N,eps->nev+eps->mpd); }
+    if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
+    else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   if (eps->solverclass==EPS_ONE_SIDE) {
     switch (eps->which) {
@@ -900,15 +898,12 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_LANCZOS));
   eps->data                      = (void *) lanczos;
   eps->ops->solve                = EPSSolve_LANCZOS;
-/*  eps->ops->solvets              = EPSSolve_TS_LANCZOS;*/
   eps->ops->setup                = EPSSetUp_LANCZOS;
   eps->ops->setfromoptions       = EPSSetFromOptions_LANCZOS;
   eps->ops->destroy              = EPSDestroy_LANCZOS;
   eps->ops->view                 = EPSView_LANCZOS;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  /*if (eps->solverclass==EPS_TWO_SIDE)
-       eps->ops->computevectors       = EPSComputeVectors_Schur;
-  else*/ eps->ops->computevectors       = EPSComputeVectors_Hermitian;
+  eps->ops->computevectors       = EPSComputeVectors_Hermitian;
   lanczos->reorthog              = EPSLANCZOS_REORTHOG_LOCAL;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","EPSLanczosSetReorthog_LANCZOS",EPSLanczosSetReorthog_LANCZOS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_LANCZOS",EPSLanczosGetReorthog_LANCZOS);CHKERRQ(ierr);

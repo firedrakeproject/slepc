@@ -51,7 +51,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscErrorCode ierr;
   Vec            v0,w0,vds;  
   Mat            A,B; 
-  PetscInt       N,n,i;
+  PetscInt       i;
   PetscTruth     isCayley;
   PetscScalar    *pDS;
 #if defined(PETSC_USE_COMPLEX)
@@ -71,7 +71,11 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (!eps->balance) eps->balance = EPSBALANCE_NONE;
   
+  /* Set problem dimensions */
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&eps->nloc,PETSC_NULL);CHKERRQ(ierr);
+
   /* Set default problem type */
   if (!eps->problem_type) {
     if (B==PETSC_NULL) {
@@ -114,9 +118,8 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->vec_initial_left = w0;
   }
 
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  if (eps->nev > N) eps->nev = N;
-  if (eps->ncv > N) eps->ncv = N;
+  if (eps->nev > eps->n) eps->nev = eps->n;
+  if (eps->ncv > eps->n) eps->ncv = eps->n;
 
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
@@ -129,10 +132,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
       /* allocate memory and copy deflation basis vectors into DS */
-      ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
-      ierr = PetscMalloc(eps->nds*n*sizeof(PetscScalar),&pDS);CHKERRQ(ierr);
+      ierr = PetscMalloc(eps->nds*eps->nloc*sizeof(PetscScalar),&pDS);CHKERRQ(ierr);
       for (i=0;i<eps->nds;i++) {
-        ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,pDS+i*n,&vds);CHKERRQ(ierr);
+        ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pDS+i*eps->nloc,&vds);CHKERRQ(ierr);
         ierr = VecCopy(eps->DS[i],vds);CHKERRQ(ierr);
         ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
         eps->DS[i] = vds;
@@ -309,7 +311,7 @@ PetscErrorCode EPSGetLeftInitialVector(EPS eps,Vec *vec)
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n;
+  PetscInt       m,n,m0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -322,8 +324,9 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) { SETERRQ(1,"A is a non-square matrix"); }
   if (B) { 
-    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
-    if (m!=n) { SETERRQ(1,"B is a non-square matrix"); }
+    ierr = MatGetSize(B,&m0,&n);CHKERRQ(ierr);
+    if (m0!=n) { SETERRQ(1,"B is a non-square matrix"); }
+    if (m!=m0) { SETERRQ(1,"Dimensions of A and B do not match"); }
   }
 
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);

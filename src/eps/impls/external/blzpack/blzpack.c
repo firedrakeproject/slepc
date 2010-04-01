@@ -65,22 +65,20 @@ const char* blzpack_error[33] = {
 PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N, n, listor, lrstor, ncuv, k1, k2, k3, k4;
+  PetscInt       listor, lrstor, ncuv, k1, k2, k3, k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscTruth     flg;
   KSP            ksp;
   PC             pc;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->vec_initial,&n);CHKERRQ(ierr);
   if (eps->ncv) {
     if( eps->ncv < PetscMin(eps->nev+10,eps->nev*2) )
       SETERRQ(0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   }
   else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
-  if (!eps->max_it) eps->max_it = PetscMax(1000,N);
+  if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
@@ -100,9 +98,9 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   if (eps->which!=EPS_SMALLEST_REAL)
     SETERRQ(1,"Wrong value of eps->which");
 
-  k1 = PetscMin(N,180);
+  k1 = PetscMin(eps->n,180);
   k2 = blz->block_size;
-  k4 = PetscMin(eps->ncv,N);
+  k4 = PetscMin(eps->ncv,eps->n);
   k3 = 484+k1*(13+k1*2+k2+PetscMax(18,k2+2))+k2*k2*3+k4*2;
 
   listor = 123+k1*12;
@@ -110,17 +108,17 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   ierr = PetscMalloc((17+listor)*sizeof(PetscBLASInt),&blz->istor);CHKERRQ(ierr);
   blz->istor[14] = PetscBLASIntCast(listor);
 
-  if (blz->slice) lrstor = n*(k2*4+k1*2+k4)+k3;
-  else lrstor = n*(k2*4+k1)+k3;
+  if (blz->slice) lrstor = eps->nloc*(k2*4+k1*2+k4)+k3;
+  else lrstor = eps->nloc*(k2*4+k1)+k3;
   ierr = PetscFree(blz->rstor);CHKERRQ(ierr);
   ierr = PetscMalloc((4+lrstor)*sizeof(PetscReal),&blz->rstor);CHKERRQ(ierr);
   blz->rstor[3] = lrstor;
 
   ncuv = PetscMax(3,blz->block_size);
   ierr = PetscFree(blz->u);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncuv*n*sizeof(PetscScalar),&blz->u);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncuv*eps->nloc*sizeof(PetscScalar),&blz->u);CHKERRQ(ierr);
   ierr = PetscFree(blz->v);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncuv*n*sizeof(PetscScalar),&blz->v);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncuv*eps->nloc*sizeof(PetscScalar),&blz->v);CHKERRQ(ierr);
 
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
   ierr = PetscMalloc(2*eps->ncv*sizeof(PetscReal),&blz->eig);CHKERRQ(ierr);
@@ -139,7 +137,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
-  PetscInt       n, nn;
+  PetscInt       nn;
   PetscBLASInt   i, nneig, lflag, nvopu;      
   Vec            x, y;                           
   PetscScalar    sigma,*pV;                      
@@ -149,9 +147,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   
   PetscFunctionBegin;
 
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
   if (eps->isgeneralized && !blz->slice) { 
@@ -165,8 +162,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   }
   nneig = 0;                     /* no. of eigs less than sigma */
 
-  blz->istor[0]  = PetscBLASIntCast(n); /* number of rows of U, V, X*/
-  blz->istor[1]  = PetscBLASIntCast(n); /* leading dimension of U, V, X */
+  blz->istor[0]  = PetscBLASIntCast(eps->nloc); /* number of rows of U, V, X*/
+  blz->istor[1]  = PetscBLASIntCast(eps->nloc); /* leading dimension of U, V, X */
   blz->istor[2]  = PetscBLASIntCast(eps->nev); /* number of required eigenpairs */
   blz->istor[3]  = PetscBLASIntCast(eps->ncv); /* number of working eigenpairs */
   blz->istor[4]  = blz->block_size;    /* number of vectors in a block */
@@ -193,8 +190,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     case 1:
       /* compute v = OP u */
       for (i=0;i<nvopu;i++) {
-        ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
-        ierr = VecPlaceArray( y, blz->v+i*n );CHKERRQ(ierr);
+        ierr = VecPlaceArray( x, blz->u+i*eps->nloc );CHKERRQ(ierr);
+        ierr = VecPlaceArray( y, blz->v+i*eps->nloc );CHKERRQ(ierr);
         if (blz->slice || eps->isgeneralized) { 
           ierr = STAssociatedKSPSolve( eps->OP, x, y );CHKERRQ(ierr);
 	} else {
@@ -217,8 +214,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     case 2:  
       /* compute v = B u */
       for (i=0;i<nvopu;i++) {
-        ierr = VecPlaceArray( x, blz->u+i*n );CHKERRQ(ierr);
-        ierr = VecPlaceArray( y, blz->v+i*n );CHKERRQ(ierr);
+        ierr = VecPlaceArray( x, blz->u+i*eps->nloc );CHKERRQ(ierr);
+        ierr = VecPlaceArray( y, blz->v+i*eps->nloc );CHKERRQ(ierr);
         ierr = IPApplyMatrix(eps->ip, x, y ); CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);	

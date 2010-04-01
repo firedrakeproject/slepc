@@ -29,18 +29,16 @@
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       N, n;
   PetscInt       ncv;
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
   } else /* set default value of ncv */
-    eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),N);
+    eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
-  if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*N/eps->ncv));
+  if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
@@ -62,9 +60,8 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscMalloc(ar->lworkl*sizeof(PetscScalar),&ar->workl);CHKERRQ(ierr);
   ierr = PetscFree(ar->select);CHKERRQ(ierr); 
   ierr = PetscMalloc(ncv*sizeof(PetscTruth),&ar->select);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
   ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
-  ierr = PetscMalloc(3*n*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
+  ierr = PetscMalloc(3*eps->nloc*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
   if (eps->extraction) {
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
@@ -87,7 +84,6 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   EPS_ARPACK  	 *ar = (EPS_ARPACK *)eps->data;
   char        	 bmat[1], howmny[] = "A";
   const char  	 *which;
-  PetscInt    	 nn;
   PetscBLASInt   n, iparam[11], ipntr[14], ido, info,
 		 nev, ncv;
   PetscScalar 	 sigmar, *pV, *resid;
@@ -103,10 +99,9 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   nev = PetscBLASIntCast(eps->nev);
   ncv = PetscBLASIntCast(eps->ncv);
   fcomm = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm));
-  ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
-  n = PetscBLASIntCast(nn);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  n = PetscBLASIntCast(eps->nloc);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   ierr = VecCopy(eps->vec_initial,eps->work[1]);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);

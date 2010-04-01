@@ -33,7 +33,7 @@
 PetscErrorCode EPSAllocateSolution(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,nloc;
+  PetscInt       i;
   PetscScalar    *pV,*pW;
   
   PetscFunctionBegin;
@@ -66,18 +66,17 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscTruth),&eps->conv);CHKERRQ(ierr);
-    ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->V);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+    ierr = PetscMalloc(eps->ncv*eps->nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
     for (i=0;i<eps->ncv;i++) {
-      ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,nloc,PETSC_DECIDE,pV+i*nloc,&eps->V[i]);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pV+i*eps->nloc,&eps->V[i]);CHKERRQ(ierr);
     }
     eps->AV = PETSC_NULL;
     if (eps->solverclass == EPS_TWO_SIDE) {
       ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->W);CHKERRQ(ierr);
-      ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pW);CHKERRQ(ierr);
+      ierr = PetscMalloc(eps->ncv*eps->nloc*sizeof(PetscScalar),&pW);CHKERRQ(ierr);
       for (i=0;i<eps->ncv;i++) {
-        ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,nloc,PETSC_DECIDE,pW+i*nloc,&eps->W[i]);CHKERRQ(ierr);
+        ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pW+i*eps->nloc,&eps->W[i]);CHKERRQ(ierr);
       }
     }
     eps->allocated_ncv = eps->ncv;

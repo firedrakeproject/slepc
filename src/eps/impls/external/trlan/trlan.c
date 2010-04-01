@@ -31,17 +31,15 @@ static EPS globaleps;
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       n;
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&n);CHKERRQ(ierr); 
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
-  if (!eps->max_it) eps->max_it = PetscMax(1000,n);
+  if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
@@ -50,10 +48,9 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"Requested method is not available for generalized problems");
 
   tr->restart = 0;
-  ierr = VecGetLocalSize(eps->vec_initial,&n); CHKERRQ(ierr);
   tr->maxlan = PetscBLASIntCast(eps->nev+PetscMin(eps->nev,6));
   if (tr->maxlan+1-eps->ncv<=0) { tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10)); }
-  else { tr->lwork = PetscBLASIntCast(n*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10)); }
+  else { tr->lwork = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10)); }
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
   if (eps->extraction) {
@@ -93,7 +90,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
 PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,nn;
+  PetscInt       i;
   PetscBLASInt   ipar[32], n, lohi, stat, ncv; 
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;	   
   PetscScalar    *pV;				   
@@ -101,8 +98,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscFunctionBegin;
 
   ncv = PetscBLASIntCast(eps->ncv);
-  ierr = VecGetLocalSize(eps->vec_initial,&nn); CHKERRQ(ierr);
-  n = PetscBLASIntCast(nn);
+  n = PetscBLASIntCast(eps->nloc);
   
   if (eps->which==EPS_LARGEST_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;

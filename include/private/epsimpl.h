@@ -56,7 +56,6 @@ struct _p_EPS {
                  nev,              /* number of eigenvalues to compute */
                  ncv,              /* number of basis vectors */
                  mpd,              /* maximum dimension of projected problem */
-                 allocated_ncv,    /* number of basis vectors allocated */
                  nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
@@ -66,7 +65,6 @@ struct _p_EPS {
   EPSWhich       which;            /* which part of the spectrum to be sought */
   PetscErrorCode (*which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
-  PetscTruth     evecsavailable;   /* computed eigenvectors */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */
   EPSClass       solverclass;      /* whether the selected solver is one- or two-sided */
@@ -94,7 +92,10 @@ struct _p_EPS {
   PetscInt    nconv,            /* number of converged eigenvalues */
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
-              ldz;              /* leading dimension of Z */
+              ldz,              /* leading dimension of Z */
+              n, nloc,          /* problem dimensions (global, local) */
+              allocated_ncv;    /* number of basis vectors allocated */
+  PetscTruth  evecsavailable;   /* computed eigenvectors */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;

@@ -44,23 +44,22 @@
 PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,N,nloc;
+  PetscInt       i;
   PetscScalar    *pAV;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else if (eps->mpd) { /* mpd set */
-    eps->ncv = PetscMin(N,eps->nev+eps->mpd);
+    eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   }
   else { /* neither set: defaults depend on nev being small or large */
-    if (eps->nev<500) eps->ncv = PetscMin(N,PetscMax(2*eps->nev,eps->nev+15));
-    else { eps->mpd = 500; eps->ncv = PetscMin(N,eps->nev+eps->mpd); }
+    if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
+    else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   if (!eps->extraction) {
@@ -70,11 +69,10 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(eps->vec_initial,&nloc);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->AV);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*nloc*sizeof(PetscScalar),&pAV);CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*eps->nloc*sizeof(PetscScalar),&pAV);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,nloc,PETSC_DECIDE,pAV+i*nloc,&eps->AV[i]);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pAV+i*eps->nloc,&eps->AV[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);

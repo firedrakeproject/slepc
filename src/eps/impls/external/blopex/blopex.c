@@ -128,7 +128,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscErrorCode  ierr;
   EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
   Mat             A,B;
-  PetscInt        N;
   PetscTruth      isShift;
 
   PetscFunctionBegin;
@@ -148,10 +147,9 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = KSPSetOperators(blopex->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
-  eps->ncv = eps->nev = PetscMin(eps->nev,N);
+  eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*N/eps->ncv);
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);

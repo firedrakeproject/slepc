@@ -53,18 +53,16 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  PetscInt       N;
   PetscTruth     flg;
   STMatMode      mode;
 
   PetscFunctionBegin;
-  ierr = VecGetSize(eps->vec_initial,&N);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
-  if (!eps->max_it) eps->max_it = PetscMax(2000,100*N);
+  if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
