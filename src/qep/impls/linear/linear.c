@@ -143,11 +143,13 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
   PetscReal      norm,normi;
 #endif
   Vec            v0,xr,xi,w;
+  Mat            A;
   IS             isV1,isV2;
   VecScatter     vsV,vsV1,vsV2;
   
   PetscFunctionBegin;
-  ierr = EPSGetInitialVector(eps,&v0);CHKERRQ(ierr);
+  ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(v0,&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(v0,&xi);CHKERRQ(ierr);
 

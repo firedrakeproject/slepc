@@ -322,8 +322,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance_cutoff  = 1e-8;
   eps->solverclass     = (EPSClass)0;
 
-  eps->vec_initial     = 0;
-  eps->vec_initial_left= 0;
   eps->V               = 0;
   eps->AV              = 0;
   eps->W               = 0;
@@ -567,14 +565,6 @@ PetscErrorCode EPSDestroy(EPS eps)
   ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
   ierr = PetscFree(eps->Z);CHKERRQ(ierr);
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
-
-  if (eps->vec_initial) {
-    ierr = VecDestroy(eps->vec_initial);CHKERRQ(ierr);
-  }
-
-  if (eps->vec_initial_left) {
-    ierr = VecDestroy(eps->vec_initial_left);CHKERRQ(ierr);
-  }
 
   if (eps->D) {
     ierr = VecDestroy(eps->D);CHKERRQ(ierr);

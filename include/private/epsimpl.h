@@ -74,9 +74,7 @@ struct _p_EPS {
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
 
   /*------------------------- Working data --------------------------*/
-  Vec         vec_initial,      /* initial vector */
-              vec_initial_left, /* left initial vector for two-sided solvers */
-              D,                /* diagonal matrix for balancing */
+  Vec         D,                /* diagonal matrix for balancing */
               *V,               /* set of basis vectors and computed eigenvectors */
               *AV,              /* auxiliar set of basis vectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */

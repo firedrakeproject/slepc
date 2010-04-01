@@ -148,7 +148,7 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
   PetscScalar    sigma;
   
   PetscFunctionBegin;
-  ierr = EPSSetInitialVector(cross->eps,svd->vec_initial);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpace(cross->eps,1,&svd->vec_initial);CHKERRQ(ierr);
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(cross->eps,&svd->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);

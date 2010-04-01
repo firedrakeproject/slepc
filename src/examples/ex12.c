@@ -94,8 +94,8 @@ int main( int argc, char **argv )
   ierr = MatGetVecs(A,&v0,&temp);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
   ierr = MatMult(A,v0,temp);CHKERRQ(ierr);
-  ierr = EPSSetInitialVector(eps,v0);CHKERRQ(ierr);
-  ierr = EPSSetLeftInitialVector(eps,temp);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
+  /*ierr = EPSSetLeftInitialSpace(eps,1,&temp);CHKERRQ(ierr);*/
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem

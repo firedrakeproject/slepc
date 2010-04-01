@@ -173,10 +173,6 @@ EXTERN PetscErrorCode EPSGetMonitorContext(EPS,void **);
 EXTERN PetscErrorCode EPSGetIterationNumber(EPS,PetscInt*);
 EXTERN PetscErrorCode EPSGetOperationCounters(EPS,PetscInt*,PetscInt*,PetscInt*);
 
-EXTERN PetscErrorCode EPSSetInitialVector(EPS,Vec);
-EXTERN PetscErrorCode EPSGetInitialVector(EPS,Vec*);
-EXTERN PetscErrorCode EPSSetLeftInitialVector(EPS,Vec);
-EXTERN PetscErrorCode EPSGetLeftInitialVector(EPS,Vec*);
 EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
@@ -190,6 +186,7 @@ EXTERN PetscErrorCode EPSMonitorLG(EPS,PetscInt,PetscInt,PetscScalar*,PetscScala
 
 EXTERN PetscErrorCode EPSSetDeflationSpace(EPS,PetscInt,Vec*);
 EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
+EXTERN PetscErrorCode EPSSetInitialSpace(EPS,PetscInt,Vec*);
 
 EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);
 EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);

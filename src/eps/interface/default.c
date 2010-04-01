@@ -244,7 +244,7 @@ PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
       ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
     }
     eps->nwork = nw;
-    ierr = VecDuplicateVecs(eps->vec_initial,nw,&eps->work); CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->V[0],nw,&eps->work); CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,nw,eps->work);
   }
   
@@ -410,9 +410,9 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(eps->vec_initial,&r);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&p);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&z);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&r);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&p);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr);
   ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
 
   for (j=0;j<eps->balance_its;j++) {

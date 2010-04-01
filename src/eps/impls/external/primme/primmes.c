@@ -149,7 +149,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   if (primme->correctionParams.precondition) {
     /* Calc reciprocal A diagonal */
-    ierr = VecDuplicate(eps->vec_initial, &ops->w); CHKERRQ(ierr);
+    ierr = VecDuplicate(eps->V[0], &ops->w); CHKERRQ(ierr);
     ierr = MatGetDiagonal(ops->A, ops->w); CHKERRQ(ierr);
     ierr = VecReciprocal(ops->w); CHKERRQ(ierr);
     primme->preconditioner = PETSC_NULL;
@@ -179,12 +179,9 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   /* Reset some parameters left from previous runs */
   ops->primme.aNorm    = 0.0;
-  ops->primme.initSize = 1;
+  ops->primme.initSize = eps->nini;
   ops->primme.iseed[0] = -1;
 
-  /* Copy vec_initial to V[0] vector */
-  ierr = VecCopy(eps->vec_initial, eps->V[0]); CHKERRQ(ierr);
- 
   /* Call PRIMME solver */
   ierr = VecGetArray(eps->V[0], &a); CHKERRQ(ierr);
 #ifndef PETSC_USE_COMPLEX

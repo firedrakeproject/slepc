@@ -86,7 +86,7 @@ int main( int argc, char **argv )
   */
   ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
-  ierr = EPSSetInitialVector(eps,v0);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem

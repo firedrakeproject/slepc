@@ -89,7 +89,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (lanczos->reorthog == EPSLANCZOS_REORTHOG_SELECTIVE) {
-    ierr = VecDuplicateVecs(eps->vec_initial,eps->ncv,&eps->AV);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->V[0],eps->ncv,&eps->AV);CHKERRQ(ierr);
   }
   if (eps->solverclass==EPS_TWO_SIDE) {
     ierr = PetscFree(eps->Tl);CHKERRQ(ierr);

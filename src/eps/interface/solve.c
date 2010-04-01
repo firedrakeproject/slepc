@@ -797,8 +797,8 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScal
   
   PetscFunctionBegin;
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&u);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&w);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&u);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   
 #ifndef PETSC_USE_COMPLEX
   if (ki == 0 || 
@@ -813,7 +813,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScal
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
 #ifndef PETSC_USE_COMPLEX
   } else {
-    ierr = VecDuplicate(eps->vec_initial,&v); CHKERRQ(ierr);
+    ierr = VecDuplicate(eps->V[0],&v); CHKERRQ(ierr);
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
       if (eps->isgeneralized) { ierr = MatMult(B,xr,v);CHKERRQ(ierr); }
@@ -875,8 +875,8 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,norm); CHKERRQ(ierr);
   ierr = VecDestroy(xr); CHKERRQ(ierr);
@@ -923,11 +923,11 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial_left,&u); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial_left,&v); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial_left,&w); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial_left,&xr); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial_left,&xi); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&u); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&v); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&w); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&xi); CHKERRQ(ierr);
   ierr = EPSGetValue(eps,i,&kr,&ki); CHKERRQ(ierr);
   ierr = EPSGetLeftVector(eps,i,xr,xi); CHKERRQ(ierr);
 
@@ -1040,8 +1040,8 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(eps->vec_initial,&xr); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial,&xi); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
   ierr = EPSComputeRelativeError_Private(eps,kr,ki,xr,xi,error); CHKERRQ(ierr);  
   ierr = VecDestroy(xr); CHKERRQ(ierr);
@@ -1085,8 +1085,8 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
   ierr = EPSComputeResidualNormLeft(eps,i,&norm); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial_left,&xr); CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->vec_initial_left,&xi); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&xr); CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&xi); CHKERRQ(ierr);
   ierr = EPSGetValue(eps,i,&kr,&ki); CHKERRQ(ierr);
   ierr = EPSGetLeftVector(eps,i,xr,xi); CHKERRQ(ierr);
 
@@ -1362,7 +1362,7 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
 
    Notes:
    The start vector is computed from another vector: for the first step (i=0),
-   the initial vector is used (see EPSGetInitialVector()); otherwise a random
+   the first initial vector is used (see EPSSetInitialSpace()); otherwise a random
    vector is created. Then this vector is forced to be in the range of OP (only
    for generalized definite problems) and orthonormalized with respect to all
    V-vectors up to i-1.
@@ -1376,7 +1376,7 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
 
    Level: developer
 
-.seealso: EPSGetInitialVector()
+.seealso: EPSSetInitialSpace()
 
 @*/
 PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdown)
@@ -1390,11 +1390,12 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,3);
 
-  /* For the first step, use the initial vector, otherwise a random one */
-  if (i==0) {
-    w = eps->vec_initial;
+  ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
+
+  /* For the first step, use the first initial vector, otherwise a random one */
+  if (i==0 && eps->nini>0) {
+    ierr = VecCopy(eps->V[0],w);CHKERRQ(ierr);
   } else {
-    ierr = VecDuplicate(eps->vec_initial,&w);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(w);CHKERRQ(ierr);
   }
 
@@ -1415,10 +1416,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
   
   ierr = VecScale(vec,1.0/norm);CHKERRQ(ierr);
 
-  if (i!=0) {
-    ierr = VecDestroy(w);CHKERRQ(ierr);
-  }
-
+  ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 #undef __FUNCT__  
@@ -1438,7 +1436,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
 
    Notes:
    The start vector is computed from another vector: for the first step (i=0),
-   the left initial vector is used (see EPSGetLeftInitialVector()); otherwise 
+   the first left initial vector is used (see EPSSetInitialSpace()); otherwise 
    a random vector is created. Then this vector is forced to be in the range 
    of OP' and orthonormalized with respect to all W-vectors up to i-1.
 
@@ -1447,7 +1445,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
 
    Level: developer
 
-.seealso: EPSGetLeftInitialVector()
+.seealso: EPSSetInitialSpace()
 
 @*/
 PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,Vec vec)
@@ -1461,12 +1459,12 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,Vec vec)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,3);
 
-  /* For the first step, use the initial vector, otherwise a random one */
+  /* For the first step, use the first initial vector, otherwise a random one */
   if (i==0) {
-    w = eps->vec_initial_left;
+    w = eps->W[0];
   }
   else {
-    ierr = VecDuplicate(eps->vec_initial_left,&w);CHKERRQ(ierr);
+    ierr = VecDuplicate(eps->W[0],&w);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(w);CHKERRQ(ierr);
   }
 
