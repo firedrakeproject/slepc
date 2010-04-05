@@ -250,9 +250,15 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",eps->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(eps->nini));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %d\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
+    if (eps->nini!=0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(eps->nini));CHKERRQ(ierr);
+    }
+    if (eps->ninil!=0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %d\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
+    }
+    if (eps->nds>0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = IPView(eps->ip,viewer); CHKERRQ(ierr);
     ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
