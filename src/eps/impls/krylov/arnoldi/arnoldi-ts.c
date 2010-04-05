@@ -54,7 +54,7 @@ PetscErrorCode EPSSolve_TS_ARNOLDI(EPS eps)
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,eps->its,Qr[0],PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSGetLeftStartVector(eps,eps->its,Ql[0]);CHKERRQ(ierr);
+  ierr = EPSGetStartVectorLeft(eps,eps->its,Ql[0]);CHKERRQ(ierr);
   
   /* Restart loop */
   while (eps->its<eps->max_it) {

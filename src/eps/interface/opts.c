@@ -880,7 +880,7 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
 
    Level: intermediate
 
-.seealso: EPSGetLeftVector(), EPSComputeRelativeErrorLeft(), 
+.seealso: EPSGetEigenvectorLeft(), EPSComputeRelativeErrorLeft(), 
    EPSGetClass(), EPSClass
 @*/
 PetscErrorCode EPSSetClass(EPS eps,EPSClass cl)

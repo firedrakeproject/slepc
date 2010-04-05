@@ -154,15 +154,15 @@ EXTERN PetscErrorCode EPSGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
 
 EXTERN PetscErrorCode EPSGetConverged(EPS,PetscInt*);
 EXTERN PetscErrorCode EPSGetEigenpair(EPS,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
-EXTERN PetscErrorCode EPSGetValue(EPS,PetscInt,PetscScalar*,PetscScalar*);
-EXTERN PetscErrorCode EPSGetRightVector(EPS,PetscInt,Vec,Vec);
-EXTERN PetscErrorCode EPSGetLeftVector(EPS,PetscInt,Vec,Vec);
+EXTERN PetscErrorCode EPSGetEigenvalue(EPS,PetscInt,PetscScalar*,PetscScalar*);
+EXTERN PetscErrorCode EPSGetEigenvector(EPS,PetscInt,Vec,Vec);
+EXTERN PetscErrorCode EPSGetEigenvectorLeft(EPS,PetscInt,Vec,Vec);
 EXTERN PetscErrorCode EPSComputeRelativeError(EPS,PetscInt,PetscReal*);
 EXTERN PetscErrorCode EPSComputeRelativeErrorLeft(EPS,PetscInt,PetscReal*);
 EXTERN PetscErrorCode EPSComputeResidualNorm(EPS,PetscInt,PetscReal*);
 EXTERN PetscErrorCode EPSComputeResidualNormLeft(EPS,PetscInt,PetscReal*);
 EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec*);
-EXTERN PetscErrorCode EPSGetLeftInvariantSubspace(EPS,Vec*);
+EXTERN PetscErrorCode EPSGetInvariantSubspaceLeft(EPS,Vec*);
 EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,PetscInt,PetscReal*);
 EXTERN PetscErrorCode EPSGetErrorEstimateLeft(EPS,PetscInt,PetscReal*);
 
@@ -224,7 +224,7 @@ EXTERN PetscErrorCode EPSSortDenseSchurGeneralized(EPS,PetscInt,PetscInt,PetscSc
 EXTERN PetscErrorCode EPSDenseTridiagonal(PetscInt,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 
 EXTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,Vec,PetscTruth*);
-EXTERN PetscErrorCode EPSGetLeftStartVector(EPS,PetscInt,Vec);
+EXTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec);
 
 EXTERN PetscErrorCode EPSRegister(const char*,const char*,const char*,PetscErrorCode(*)(EPS));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)

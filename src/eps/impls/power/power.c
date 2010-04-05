@@ -248,7 +248,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   z = eps->work[2];
 
   ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSGetLeftStartVector(eps,0,w);CHKERRQ(ierr);
+  ierr = EPSGetStartVectorLeft(eps,0,w);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
@@ -362,7 +362,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       v = eps->V[eps->nconv];
       ierr = EPSGetStartVector(eps,eps->nconv,v,PETSC_NULL);CHKERRQ(ierr);
       w = eps->W[eps->nconv];
-      ierr = EPSGetLeftStartVector(eps,eps->nconv,w);CHKERRQ(ierr);
+      ierr = EPSGetStartVectorLeft(eps,eps->nconv,w);CHKERRQ(ierr);
     }
   }
 

@@ -355,7 +355,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 
    Level: intermediate
 
-.seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve(), EPSGetLeftInvariantSubspace()
+.seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve(), EPSGetInvariantSubspaceLeft()
 @*/
 PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 {
@@ -370,7 +370,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (!eps->ishermitian && eps->evecsavailable) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetRightVector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
   }
   if (eps->balance!=EPSBALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
@@ -387,9 +387,9 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetLeftInvariantSubspace" 
+#define __FUNCT__ "EPSGetInvariantSubspaceLeft" 
 /*@
-   EPSGetLeftInvariantSubspace - Gets an orthonormal basis of the computed left
+   EPSGetInvariantSubspaceLeft - Gets an orthonormal basis of the computed left
    invariant subspace (only available in two-sided eigensolvers).
 
    Not Collective, but vectors are shared by all processors that share the EPS
@@ -417,7 +417,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 
 .seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve(), EPSGetInvariantSubspace
 @*/
-PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
+PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps, Vec *v)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -473,7 +473,7 @@ PetscErrorCode EPSGetLeftInvariantSubspace(EPS eps, Vec *v)
 
    Level: beginner
 
-.seealso: EPSGetValue(), EPSGetRightVector(), EPSGetLeftVector(), EPSSolve(), 
+.seealso: EPSGetEigenvalue(), EPSGetEigenvector(), EPSGetEigenvectorLeft(), EPSSolve(), 
           EPSGetConverged(), EPSSetWhichEigenpairs(), EPSGetInvariantSubspace()
 @*/
 PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
@@ -488,16 +488,16 @@ PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScal
   if (i<0 || i>=eps->nconv) { 
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
-  ierr = EPSGetValue(eps,i,eigr,eigi);CHKERRQ(ierr);
-  ierr = EPSGetRightVector(eps,i,Vr,Vi);CHKERRQ(ierr);
+  ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
+  ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetValue" 
+#define __FUNCT__ "EPSGetEigenvalue" 
 /*@
-   EPSGetValue - Gets the i-th eigenvalue as computed by EPSSolve(). 
+   EPSGetEigenvalue - Gets the i-th eigenvalue as computed by EPSSolve(). 
 
    Not Collective
 
@@ -523,7 +523,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScal
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetEigenpair()
 @*/
-PetscErrorCode EPSGetValue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *eigi)
+PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *eigi)
 {
   PetscInt       k;
 
@@ -550,9 +550,9 @@ PetscErrorCode EPSGetValue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetRightVector" 
+#define __FUNCT__ "EPSGetEigenvector" 
 /*@
-   EPSGetRightVector - Gets the i-th right eigenvector as computed by EPSSolve(). 
+   EPSGetEigenvector - Gets the i-th right eigenvector as computed by EPSSolve(). 
 
    Not Collective, but vectors are shared by all processors that share the EPS
 
@@ -580,9 +580,9 @@ PetscErrorCode EPSGetValue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *
    Level: beginner
 
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
-          EPSGetEigenpair(), EPSGetLeftVector()
+          EPSGetEigenpair(), EPSGetEigenvectorLeft()
 @*/
-PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
+PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
 {
   PetscErrorCode ierr;
   PetscInt       k;
@@ -624,9 +624,9 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetLeftVector" 
+#define __FUNCT__ "EPSGetEigenvectorLeft" 
 /*@
-   EPSGetLeftVector - Gets the i-th left eigenvector as computed by EPSSolve() 
+   EPSGetEigenvectorLeft - Gets the i-th left eigenvector as computed by EPSSolve() 
    (only available in two-sided eigensolvers). 
 
    Not Collective, but vectors are shared by all processors that share the EPS
@@ -651,9 +651,9 @@ PetscErrorCode EPSGetRightVector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
    Level: beginner
 
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
-          EPSGetEigenpair(), EPSGetLeftVector()
+          EPSGetEigenpair(), EPSGetEigenvector()
 @*/
-PetscErrorCode EPSGetLeftVector(EPS eps, PetscInt i, Vec Wr, Vec Wi)
+PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 {
   PetscErrorCode ierr;
   PetscInt       k;
@@ -928,8 +928,8 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   ierr = VecDuplicate(eps->W[0],&w); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&xi); CHKERRQ(ierr);
-  ierr = EPSGetValue(eps,i,&kr,&ki); CHKERRQ(ierr);
-  ierr = EPSGetLeftVector(eps,i,xr,xi); CHKERRQ(ierr);
+  ierr = EPSGetEigenvalue(eps,i,&kr,&ki); CHKERRQ(ierr);
+  ierr = EPSGetEigenvectorLeft(eps,i,xr,xi); CHKERRQ(ierr);
 
 #ifndef PETSC_USE_COMPLEX
   if (ki == 0 || 
@@ -1087,8 +1087,8 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
   ierr = EPSComputeResidualNormLeft(eps,i,&norm); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&xi); CHKERRQ(ierr);
-  ierr = EPSGetValue(eps,i,&kr,&ki); CHKERRQ(ierr);
-  ierr = EPSGetLeftVector(eps,i,xr,xi); CHKERRQ(ierr);
+  ierr = EPSGetEigenvalue(eps,i,&kr,&ki); CHKERRQ(ierr);
+  ierr = EPSGetEigenvectorLeft(eps,i,xr,xi); CHKERRQ(ierr);
 
 #ifndef PETSC_USE_COMPLEX
   if (ki == 0 || 
@@ -1419,10 +1419,11 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
   ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetLeftStartVector"
+#define __FUNCT__ "EPSGetStartVectorLeft"
 /*@
-   EPSGetLeftStartVector - Gets a vector to be used as the starting vector
+   EPSGetStartVectorLeft - Gets a vector to be used as the starting vector
    in the left recurrence of a two-sided eigensolver.
 
    Collective on EPS and Vec
@@ -1448,7 +1449,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
 .seealso: EPSSetInitialSpace()
 
 @*/
-PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,Vec vec)
+PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec)
 {
   PetscErrorCode ierr;
   PetscTruth     breakdown;

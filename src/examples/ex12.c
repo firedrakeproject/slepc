@@ -138,7 +138,7 @@ int main( int argc, char **argv )
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
-      ierr = EPSGetValue(eps,i,&kr,&ki);CHKERRQ(ierr);
+      ierr = EPSGetEigenvalue(eps,i,&kr,&ki);CHKERRQ(ierr);
       /*
          Compute the relative errors associated to both right and left eigenvectors
       */
@@ -163,8 +163,8 @@ int main( int argc, char **argv )
     ierr = VecDuplicateVecs(v0,nconv,&X);
     ierr = VecDuplicateVecs(temp,nconv,&Y);
     for (i=0;i<nconv;i++) {
-      ierr = EPSGetRightVector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSGetLeftVector(eps,i,Y[i],PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetEigenvector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetEigenvectorLeft(eps,i,Y[i],PETSC_NULL);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "                   Bi-orthogonality <x,y>                   \n"
