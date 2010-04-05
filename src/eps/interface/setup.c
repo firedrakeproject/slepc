@@ -147,6 +147,27 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->nini = k;
     ierr = PetscFree(eps->IS);CHKERRQ(ierr);
   }
+  if (eps->ninil<0) {
+    if (eps->solverclass != EPS_TWO_SIDE)
+      PetscInfo(eps,"Ignoring initial left vectors\n");
+    else {
+      eps->ninil = -eps->ninil;
+      if (eps->ninil>eps->ncv) SETERRQ(1,"The number of initial left vectors is larger than ncv")
+      k = 0;
+      for (i=0;i<eps->ninil;i++) {
+        ierr = VecCopy(eps->ISL[i],eps->W[k]);CHKERRQ(ierr);
+        ierr = VecDestroy(eps->ISL[i]);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->W,eps->W[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+        if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent initial left vector found, removing...\n");
+        else {
+          ierr = VecScale(eps->W[k],1.0/norm);CHKERRQ(ierr);
+          k++;
+        }
+      }
+      eps->ninil = k;
+      ierr = PetscFree(eps->ISL);CHKERRQ(ierr);
+    }
+  }
 
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPSBALANCE_ONESIDE || eps->balance==EPSBALANCE_TWOSIDE)) {
@@ -367,9 +388,12 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
    The vectors do not need to be mutually orthonormal, since they are explicitly
    orthonormalized internally.
 
+   Common usage of this function is when the user can provide a rough approximation
+   of the wanted eigenspace. Then, convergence may be faster.
+
    Level: intermediate
 
-.seealso: EPSSetDeflationSpace()
+.seealso: EPSSetInitialSpaceLeft(), EPSSetDeflationSpace()
 @*/
 PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
 {
@@ -400,4 +424,63 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetInitialSpaceLeft"
+/*@
+   EPSSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
+   left space, that is, the subspace from which the solver starts to iterate for
+   building the left subspace (in methods that work with two subspaces).
+
+   Collective on EPS and Vec
+
+   Input Parameter:
++  eps   - the eigenproblem solver context
+.  n     - number of vectors
+-  is    - set of basis vectors of the initial left space
+
+   Notes:
+   Some solvers start to iterate on a single vector (initial left vector). In that case,
+   the other vectors are ignored.
+
+   In contrast to EPSSetDeflationSpace(), these vectors do not persist from one
+   EPSSolve() call to the other, so the initial left space should be set every time.
+
+   The vectors do not need to be mutually orthonormal, since they are explicitly
+   orthonormalized internally.
+
+   Common usage of this function is when the user can provide a rough approximation
+   of the wanted left eigenspace. Then, convergence may be faster.
+
+   Level: intermediate
+
+.seealso: EPSSetInitialSpace(), EPSSetDeflationSpace()
+@*/
+PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (n<=0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
+
+  /* free previous non-processed vectors */
+  if (eps->ninil<0) {
+    for (i=0;i<-eps->ninil;i++) {
+      ierr = VecDestroy(eps->ISL[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(eps->ISL);CHKERRQ(ierr);
+  }
+
+  /* get references of passed vectors */
+  ierr = PetscMalloc(n*sizeof(Vec),&eps->ISL);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
+    eps->ISL[i] = is[i];
+  }
+
+  eps->ninil = -n;
+  eps->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
 

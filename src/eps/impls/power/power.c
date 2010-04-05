@@ -79,7 +79,11 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   if (eps->balance!=EPSBALANCE_NONE)
     SETERRQ(PETSC_ERR_SUP,"Balancing not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  if (eps->solverclass == EPS_TWO_SIDE) {
+    ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
+  } else {
+    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -248,7 +252,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
   z = eps->work[2];
 
   ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSGetStartVectorLeft(eps,0,w);CHKERRQ(ierr);
+  ierr = EPSGetStartVectorLeft(eps,0,w,PETSC_NULL);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
@@ -362,7 +366,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       v = eps->V[eps->nconv];
       ierr = EPSGetStartVector(eps,eps->nconv,v,PETSC_NULL);CHKERRQ(ierr);
       w = eps->W[eps->nconv];
-      ierr = EPSGetStartVectorLeft(eps,eps->nconv,w);CHKERRQ(ierr);
+      ierr = EPSGetStartVectorLeft(eps,eps->nconv,w,PETSC_NULL);CHKERRQ(ierr);
     }
   }
 

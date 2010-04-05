@@ -187,6 +187,7 @@ EXTERN PetscErrorCode EPSMonitorLG(EPS,PetscInt,PetscInt,PetscScalar*,PetscScala
 EXTERN PetscErrorCode EPSSetDeflationSpace(EPS,PetscInt,Vec*);
 EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
 EXTERN PetscErrorCode EPSSetInitialSpace(EPS,PetscInt,Vec*);
+EXTERN PetscErrorCode EPSSetInitialSpaceLeft(EPS,PetscInt,Vec*);
 
 EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);
 EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);
@@ -224,7 +225,7 @@ EXTERN PetscErrorCode EPSSortDenseSchurGeneralized(EPS,PetscInt,PetscInt,PetscSc
 EXTERN PetscErrorCode EPSDenseTridiagonal(PetscInt,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 
 EXTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,Vec,PetscTruth*);
-EXTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec);
+EXTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec,PetscTruth*);
 
 EXTERN PetscErrorCode EPSRegister(const char*,const char*,const char*,PetscErrorCode(*)(EPS));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)

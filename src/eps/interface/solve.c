@@ -1347,14 +1347,14 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetStartVector"
 /*@
-   EPSGetStartVector - Gets a vector to be used as the starting vector
-   in an Arnoldi or Lanczos reduction.
+   EPSGetStartVector - Gets a suitable vector to be used as the starting vector
+   for the recurrence that builds the right subspace.
 
    Collective on EPS and Vec
 
    Input Parameters:
 +  eps - the eigensolver context
--  i   - index of the Arnoldi/Lanczos step
+-  i   - iteration number
 
    Output Parameters:
 +  vec - the start vector
@@ -1377,7 +1377,6 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
    Level: developer
 
 .seealso: EPSSetInitialSpace()
-
 @*/
 PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdown)
 {
@@ -1413,7 +1412,6 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
     if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); } 
     else { SETERRQ(1,"Unable to generate more start vectors"); }
   }
-  
   ierr = VecScale(vec,1.0/norm);CHKERRQ(ierr);
 
   ierr = VecDestroy(w);CHKERRQ(ierr);
@@ -1423,66 +1421,69 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetStartVectorLeft"
 /*@
-   EPSGetStartVectorLeft - Gets a vector to be used as the starting vector
-   in the left recurrence of a two-sided eigensolver.
+   EPSGetStartVectorLeft - Gets a suitable vector to be used as the starting vector
+   in the recurrence that builds the left subspace (in methods that work with two
+   subspaces).
 
    Collective on EPS and Vec
 
    Input Parameters:
 +  eps - the eigensolver context
--  i   - index of the Arnoldi/Lanczos step
+-  i   - iteration number
 
    Output Parameter:
-.  vec - the start vector
++  vec - the start vector
+-  breakdown - flag indicating that a breakdown has occurred
 
    Notes:
    The start vector is computed from another vector: for the first step (i=0),
-   the first left initial vector is used (see EPSSetInitialSpace()); otherwise 
+   the first left initial vector is used (see EPSSetInitialSpaceLeft()); otherwise 
    a random vector is created. Then this vector is forced to be in the range 
    of OP' and orthonormalized with respect to all W-vectors up to i-1.
+
+   The flag breakdown is set to true if i>0 and the vector is linearly dependent
+   with respect to the W-vectors.
 
    The caller must pass a vector already allocated with dimensions conforming
    to the left initial vector. This vector is overwritten.
 
    Level: developer
 
-.seealso: EPSSetInitialSpace()
+.seealso: EPSSetInitialSpaceLeft()
 
 @*/
-PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec)
+PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdown)
 {
   PetscErrorCode ierr;
-  PetscTruth     breakdown;
   PetscReal      norm;
+  PetscTruth     lindep;
   Vec            w;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidHeaderSpecific(vec,VEC_COOKIE,3);
 
-  /* For the first step, use the first initial vector, otherwise a random one */
-  if (i==0) {
-    w = eps->W[0];
-  }
-  else {
-    ierr = VecDuplicate(eps->W[0],&w);CHKERRQ(ierr);
+  ierr = VecDuplicate(eps->W[0],&w);CHKERRQ(ierr);
+
+  /* For the first step, use the first initial left vector, otherwise a random one */
+  if (i==0 && eps->ninil>0) {
+    ierr = VecCopy(eps->W[0],w);CHKERRQ(ierr);
+  } else {
     ierr = SlepcVecSetRandom(w);CHKERRQ(ierr);
   }
 
-  /* Force the vector to be in the range of OP */
+  /* Force the vector to be in the range of OP' */
   ierr = STApplyTranspose(eps->OP,w,vec);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,i,PETSC_NULL,eps->W,vec,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-  if (breakdown) {
+  ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,i,PETSC_NULL,eps->W,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+  if (breakdown) *breakdown = lindep;
+  else if (lindep || norm == 0.0) {
     if (i==0) { SETERRQ(1,"Left initial vector is zero"); }
     else { SETERRQ(1,"Unable to generate more left start vectors"); }
   }
   ierr = VecScale(vec,1/norm);CHKERRQ(ierr);
 
-  if (i!=0) {
-    ierr = VecDestroy(w);CHKERRQ(ierr);
-  }
-
+  ierr = VecDestroy(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
