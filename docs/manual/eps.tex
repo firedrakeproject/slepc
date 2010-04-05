@@ -424,14 +424,24 @@ The user specifies when a solution should be considered sufficiently accurate by
 
 	This section includes the description of several advanced features of the eigensolver object. The default settings are appropriate for most applications and modification is not necessary for normal usage.
 
-\subsection{Initial Vectors}
+\subsection{Initial Guesses}
 
-	Most of the algorithms implemented in \slepc iteratively build and improve a basis of a certain subspace. This basis is constructed starting from an initial vector, $v_1$. \ident{EPS} initializes this starting vector randomly. This default is a reasonable choice. However, it is also possible to supply the starting vector with the command
-	\findex{EPSSetInitialVector}
+	In this subsection, we consider the possibility of providing initial guesses so that the eigensolver can exploit this information to get the answer faster.
+
+	Most of the algorithms implemented in \ident{EPS} iteratively build and improve a basis of a certain subspace, which will eventually become an eigenspace corresponding to the wanted eigenvalues. In some solvers such as those of Krylov type, this basis is constructed starting from an initial vector, $v_1$, whereas in other solvers such as those of Davidson type, an arbitrary subspace can be used to start the method. By default, \ident{EPS} initializes the starting vector or the initial subspace randomly. This default is a reasonable choice. However, it is also possible to supply an initial subspace with the command
+	\findex{EPSSetInitialSpace}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetInitialVector(EPS eps,Vec v0);
+	EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is);
 	\end{Verbatim}
-In some cases, a suitable starting vector can accelerate convergence. For this, the initial vector should be rich in the directions of wanted eigenvectors. This is the case for example when the eigenvalue calculation is one of a sequence of closely related problems and the starting vector is built by taking a linear combination of the eigenvectors computed in a previously converged eigenvalue calculation.
+In some cases, a suitable initial space can accelerate convergence significantly, for instance when the eigenvalue calculation is one of a sequence of closely related problems, where the eigenspace of one problem is fed as the initial guess for the next problem.
+
+Note that if the eigensolver supports only a single initial vector, but more than one guesses are provided, then all except the first one will be discarded. One could still build a vector that is rich in the directions of all guesses, by taking a linear combination of them, but this is less effective than using a solver that considers all guesses as a subspace.
+
+In cases where the eigensolver works with two bases, we can think of the second one as containing approximations to the left eigenspace. If initial guesses for the left eigenvectors are available, then one can provide them with
+	\findex{EPSSetInitialSpace}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is);
+	\end{Verbatim}
 
 \subsection{Dealing with Deflation Subspaces}
 
