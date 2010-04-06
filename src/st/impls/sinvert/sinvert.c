@@ -96,7 +96,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->shift_matrix == STMATMODE_INPLACE) {
+  if (st->shift_matrix == ST_MATMODE_INPLACE) {
     if( st->B ) {
       ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
     } else {
@@ -117,7 +117,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   if (st->mat) { ierr = MatDestroy(st->mat);CHKERRQ(ierr); }
 
   switch (st->shift_matrix) {
-  case STMATMODE_INPLACE:
+  case ST_MATMODE_INPLACE:
     st->mat = PETSC_NULL;
     if (st->sigma != 0.0) {
       if (st->B) { 
@@ -128,7 +128,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
-  case STMATMODE_SHELL:
+  case ST_MATMODE_SHELL:
     ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
@@ -171,7 +171,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   }
 
   switch (st->shift_matrix) {
-  case STMATMODE_INPLACE:
+  case ST_MATMODE_INPLACE:
     /* Undo previous operations */
     if (st->sigma != 0.0) {
       if (st->B) {
@@ -190,7 +190,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
     }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
     break;
-  case STMATMODE_SHELL:
+  case ST_MATMODE_SHELL:
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);    
     break;
   default:

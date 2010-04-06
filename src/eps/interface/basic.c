@@ -185,18 +185,18 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
-    if (eps->balance && !eps->ishermitian && eps->balance!=EPSBALANCE_NONE) {
+    if (eps->balance && !eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
       switch (eps->balance) {
-        case EPSBALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
-        case EPSBALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
-        case EPSBALANCE_USER:      bal = "user-defined matrix"; break;
+        case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
+        case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
+        case EPS_BALANCE_USER:      bal = "user-defined matrix"; break;
         default: SETERRQ(1,"Wrong value of eps->balance");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
-      if (eps->balance==EPSBALANCE_ONESIDE || eps->balance==EPSBALANCE_TWOSIDE) {
+      if (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE) {
         ierr = PetscViewerASCIIPrintf(viewer,", with its=%d",eps->balance_its);CHKERRQ(ierr);
       }
-      if (eps->balance==EPSBALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
+      if (eps->balance==EPS_BALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
         ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%g",eps->balance_cutoff);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);

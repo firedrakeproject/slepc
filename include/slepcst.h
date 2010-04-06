@@ -94,8 +94,9 @@ EXTERN PetscErrorCode STResetOperationCounters(ST);
 
 .seealso: STSetMatMode(), STGetMatMode()
 E*/
-typedef enum { STMATMODE_COPY, STMATMODE_INPLACE, 
-               STMATMODE_SHELL } STMatMode;
+typedef enum { ST_MATMODE_COPY,
+               ST_MATMODE_INPLACE, 
+               ST_MATMODE_SHELL } STMatMode;
 EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);

@@ -68,7 +68,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!((PetscObject)eps)->type_name) {
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
-  if (!eps->balance) eps->balance = EPSBALANCE_NONE;
+  if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
   
   /* Set problem dimensions */
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
@@ -95,10 +95,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   
   if (eps->ispositive) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
-    ierr = IPSetBilinearForm(eps->ip,B,IPINNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetBilinearForm(eps->ip,B,IP_INNER_HERMITIAN);CHKERRQ(ierr);
     ierr = MatDestroy(B);CHKERRQ(ierr);
   } else {
-    ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IPINNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IP_INNER_HERMITIAN);CHKERRQ(ierr);
   }
   
   if (eps->nev > eps->n) eps->nev = eps->n;
@@ -170,7 +170,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   /* Build balancing matrix if required */
-  if (!eps->ishermitian && (eps->balance==EPSBALANCE_ONESIDE || eps->balance==EPSBALANCE_TWOSIDE)) {
+  if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
       ierr = VecDuplicate(eps->V[0],&eps->D);CHKERRQ(ierr);
     }

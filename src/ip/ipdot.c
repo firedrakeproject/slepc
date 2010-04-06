@@ -59,7 +59,7 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidPointer(norm,3);
   
-  if (!ip->matrix && ip->bilinear_form == IPINNER_HERMITIAN) {
+  if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
     ierr = VecNorm(x,NORM_2,norm);CHKERRQ(ierr);
   } else {
     ierr = IPInnerProduct(ip,x,x,&p);CHKERRQ(ierr);
@@ -107,7 +107,7 @@ PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidPointer(norm,3);
   
-  if (!ip->matrix && ip->bilinear_form == IPINNER_HERMITIAN) {
+  if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
     ierr = VecNormBegin(x,NORM_2,norm);CHKERRQ(ierr);
   } else {
     ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
@@ -147,7 +147,7 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
   PetscValidHeaderSpecific(x,VEC_COOKIE,2);
   PetscValidPointer(norm,3);
   
-  if (!ip->matrix && ip->bilinear_form == IPINNER_HERMITIAN) {
+  if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
     ierr = VecNormEnd(x,NORM_2,norm);CHKERRQ(ierr);
   } else {
     ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
@@ -207,13 +207,13 @@ PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
   ip->innerproducts++;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecDot(ip->Bx,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecTDot(ip->Bx,y,p);CHKERRQ(ierr);
     }
   } else {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecDot(x,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecTDot(x,y,p);CHKERRQ(ierr);
@@ -257,13 +257,13 @@ PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
   ip->innerproducts++;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecTDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
     }
   } else {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecDotBegin(x,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecTDotBegin(x,y,p);CHKERRQ(ierr);
@@ -307,13 +307,13 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
   
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   if (ip->matrix) {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecTDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
     }
   } else {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecDotEnd(x,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecTDotEnd(x,y,p);CHKERRQ(ierr);
@@ -366,13 +366,13 @@ PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar 
   ip->innerproducts += n;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecMDot(ip->Bx,n,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecMTDot(ip->Bx,n,y,p);CHKERRQ(ierr);
     }
   } else {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecMDot(x,n,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecMTDot(x,n,y,p);CHKERRQ(ierr);
@@ -419,13 +419,13 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
   ip->innerproducts += n;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecMDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecMTDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
     }
   } else {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecMDotBegin(x,n,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecMTDotBegin(x,n,y,p);CHKERRQ(ierr);
@@ -472,13 +472,13 @@ PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScal
   
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   if (ip->matrix) {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecMDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecMTDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
     }
   } else {
-    if (ip->bilinear_form == IPINNER_HERMITIAN) {
+    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
       ierr = VecMDotEnd(x,n,y,p);CHKERRQ(ierr);
     } else {
       ierr = VecMTDotEnd(x,n,y,p);CHKERRQ(ierr);

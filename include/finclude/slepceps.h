@@ -72,23 +72,23 @@
       parameter (EPS_TARGET_IMAGINARY       =  8)
       parameter (EPS_USER                   =  9)
        
-      PetscEnum EPSBALANCE_NONE
-      PetscEnum EPSBALANCE_ONESIDE
-      PetscEnum EPSBALANCE_TWOSIDE
-      PetscEnum EPSBALANCE_USER
+      PetscEnum EPS_BALANCE_NONE
+      PetscEnum EPS_BALANCE_ONESIDE
+      PetscEnum EPS_BALANCE_TWOSIDE
+      PetscEnum EPS_BALANCE_USER
 
-      parameter (EPSBALANCE_NONE            =  1)
-      parameter (EPSBALANCE_ONESIDE         =  2)
-      parameter (EPSBALANCE_TWOSIDE         =  3)
-      parameter (EPSBALANCE_USER            =  4)
+      parameter (EPS_BALANCE_NONE           =  1)
+      parameter (EPS_BALANCE_ONESIDE        =  2)
+      parameter (EPS_BALANCE_TWOSIDE        =  3)
+      parameter (EPS_BALANCE_USER           =  4)
 
-      PetscEnum EPSPOWER_SHIFT_CONSTANT
-      PetscEnum EPSPOWER_SHIFT_RAYLEIGH
-      PetscEnum EPSPOWER_SHIFT_WILKINSON
+      PetscEnum EPS_POWER_SHIFT_CONSTANT
+      PetscEnum EPS_POWER_SHIFT_RAYLEIGH
+      PetscEnum EPS_POWER_SHIFT_WILKINSON
 
-      parameter (EPSPOWER_SHIFT_CONSTANT    =  0)
-      parameter (EPSPOWER_SHIFT_RAYLEIGH    =  1)
-      parameter (EPSPOWER_SHIFT_WILKINSON   =  2)
+      parameter (EPS_POWER_SHIFT_CONSTANT   =  0)
+      parameter (EPS_POWER_SHIFT_RAYLEIGH   =  1)
+      parameter (EPS_POWER_SHIFT_WILKINSON  =  2)
 
       PetscEnum EPS_ONE_SIDE
       PetscEnum EPS_TWO_SIDE
@@ -106,55 +106,55 @@
       parameter (EPS_REFINED                =  3)
       parameter (EPS_REFINED_HARMONIC       =  4)
 
-      PetscEnum EPSLANCZOS_REORTHOG_LOCAL
-      PetscEnum EPSLANCZOS_REORTHOG_FULL
-      PetscEnum EPSLANCZOS_REORTHOG_SELECTIVE
-      PetscEnum EPSLANCZOS_REORTHOG_PERIODIC
-      PetscEnum EPSLANCZOS_REORTHOG_PARTIAL
+      PetscEnum EPS_LANCZOS_REORTHOG_LOCAL
+      PetscEnum EPS_LANCZOS_REORTHOG_FULL
+      PetscEnum EPS_LANCZOS_REORTHOG_SELECTIVE
+      PetscEnum EPS_LANCZOS_REORTHOG_PERIODIC
+      PetscEnum EPS_LANCZOS_REORTHOG_PARTIAL
 
-      parameter (EPSLANCZOS_REORTHOG_LOCAL     =  0)
-      parameter (EPSLANCZOS_REORTHOG_FULL      =  1)
-      parameter (EPSLANCZOS_REORTHOG_SELECTIVE =  2)
-      parameter (EPSLANCZOS_REORTHOG_PERIODIC  =  3)
-      parameter (EPSLANCZOS_REORTHOG_PARTIAL   =  4)
+      parameter (EPS_LANCZOS_REORTHOG_LOCAL     =  0)
+      parameter (EPS_LANCZOS_REORTHOG_FULL      =  1)
+      parameter (EPS_LANCZOS_REORTHOG_SELECTIVE =  2)
+      parameter (EPS_LANCZOS_REORTHOG_PERIODIC  =  3)
+      parameter (EPS_LANCZOS_REORTHOG_PARTIAL   =  4)
 
-      PetscEnum EPSPRIMME_DYNAMIC
-      PetscEnum EPSPRIMME_DEFAULT_MIN_TIME
-      PetscEnum EPSPRIMME_DEFAULT_MIN_MATVECS
-      PetscEnum EPSPRIMME_ARNOLDI
-      PetscEnum EPSPRIMME_GD
-      PetscEnum EPSPRIMME_GD_PLUSK
-      PetscEnum EPSPRIMME_GD_OLSEN_PLUSK
-      PetscEnum EPSPRIMME_JD_OLSEN_PLUSK
-      PetscEnum EPSPRIMME_RQI
-      PetscEnum EPSPRIMME_JDQR
-      PetscEnum EPSPRIMME_JDQMR
-      PetscEnum EPSPRIMME_JDQMR_ETOL
-      PetscEnum EPSPRIMME_SUBSPACE_ITERATION
-      PetscEnum EPSPRIMME_LOBPCG_ORTHOBASIS
-      PetscEnum EPSPRIMME_LOBPCG_ORTHOBASISW
+      PetscEnum EPS_PRIMME_DYNAMIC
+      PetscEnum EPS_PRIMME_DEFAULT_MIN_TIME
+      PetscEnum EPS_PRIMME_DEFAULT_MIN_MATVECS
+      PetscEnum EPS_PRIMME_ARNOLDI
+      PetscEnum EPS_PRIMME_GD
+      PetscEnum EPS_PRIMME_GD_PLUSK
+      PetscEnum EPS_PRIMME_GD_OLSEN_PLUSK
+      PetscEnum EPS_PRIMME_JD_OLSEN_PLUSK
+      PetscEnum EPS_PRIMME_RQI
+      PetscEnum EPS_PRIMME_JDQR
+      PetscEnum EPS_PRIMME_JDQMR
+      PetscEnum EPS_PRIMME_JDQMR_ETOL
+      PetscEnum EPS_PRIMME_SUBSPACE_ITERATION
+      PetscEnum EPS_PRIMME_LOBPCG_ORTHOBASIS
+      PetscEnum EPS_PRIMME_LOBPCG_ORTHOBASISW
 
-      parameter (EPSPRIMME_DYNAMIC                  =  0)
-      parameter (EPSPRIMME_DEFAULT_MIN_TIME         =  1)
-      parameter (EPSPRIMME_DEFAULT_MIN_MATVECS      =  2)
-      parameter (EPSPRIMME_ARNOLDI                  =  3)
-      parameter (EPSPRIMME_GD                       =  4)
-      parameter (EPSPRIMME_GD_PLUSK                 =  5)
-      parameter (EPSPRIMME_GD_OLSEN_PLUSK           =  7)
-      parameter (EPSPRIMME_JD_OLSEN_PLUSK           =  8)
-      parameter (EPSPRIMME_RQI                      =  9)
-      parameter (EPSPRIMME_JDQR                     = 10)
-      parameter (EPSPRIMME_JDQMR                    = 11)
-      parameter (EPSPRIMME_JDQMR_ETOL               = 12)
-      parameter (EPSPRIMME_SUBSPACE_ITERATION       = 13)
-      parameter (EPSPRIMME_LOBPCG_ORTHOBASIS        = 14)
-      parameter (EPSPRIMME_LOBPCG_ORTHOBASISW       = 15)
+      parameter (EPS_PRIMME_DYNAMIC             =  0)
+      parameter (EPS_PRIMME_DEFAULT_MIN_TIME    =  1)
+      parameter (EPS_PRIMME_DEFAULT_MIN_MATVECS =  2)
+      parameter (EPS_PRIMME_ARNOLDI             =  3)
+      parameter (EPS_PRIMME_GD                  =  4)
+      parameter (EPS_PRIMME_GD_PLUSK            =  5)
+      parameter (EPS_PRIMME_GD_OLSEN_PLUSK      =  7)
+      parameter (EPS_PRIMME_JD_OLSEN_PLUSK      =  8)
+      parameter (EPS_PRIMME_RQI                 =  9)
+      parameter (EPS_PRIMME_JDQR                = 10)
+      parameter (EPS_PRIMME_JDQMR               = 11)
+      parameter (EPS_PRIMME_JDQMR_ETOL          = 12)
+      parameter (EPS_PRIMME_SUBSPACE_ITERATION  = 13)
+      parameter (EPS_PRIMME_LOBPCG_ORTHOBASIS   = 14)
+      parameter (EPS_PRIMME_LOBPCG_ORTHOBASISW  = 15)
 
-      PetscEnum EPSPRIMME_NONE
-      PetscEnum EPSPRIMME_DIAGONAL
+      PetscEnum EPS_PRIMME_PRECOND_NONE
+      PetscEnum EPS_PRIMME_PRECOND_DIAGONAL
 
-      parameter (EPSPRIMME_NONE               =  0)
-      parameter (EPSPRIMME_DIAGONAL           =  1)
+      parameter (EPS_PRIMME_PRECOND_NONE        =  0)
+      parameter (EPS_PRIMME_PRECOND_DIAGONAL    =  1)
 
       external EPSMONITORDEFAULT
       external EPSMONITORLG

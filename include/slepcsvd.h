@@ -60,7 +60,8 @@ E*/
 
 .seealso: SVDSetTransposeMode(), SVDGetTransposeMode()
 E*/
-typedef enum { SVD_TRANSPOSE_EXPLICIT, SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode;
+typedef enum { SVD_TRANSPOSE_EXPLICIT,
+               SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode;
 
 /*E
     SVDWhich - determines whether largest or smallest singular triplets
@@ -70,7 +71,8 @@ typedef enum { SVD_TRANSPOSE_EXPLICIT, SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode
 
 .seealso: SVDSetWhichSingularTriplets(), SVDGetWhichSingularTriplets()
 E*/
-typedef enum { SVD_LARGEST, SVD_SMALLEST } SVDWhich;
+typedef enum { SVD_LARGEST,
+               SVD_SMALLEST } SVDWhich;
 
 /*E
     SVDConvergedReason - reason a singular value solver was said to 

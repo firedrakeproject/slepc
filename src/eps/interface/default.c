@@ -146,7 +146,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
   /* normalize eigenvectors (when not using purification nor balancing)*/
-  if (!(eps->ispositive || (eps->balance!=EPSBALANCE_NONE && eps->D))) {
+  if (!(eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D))) {
     for (i=0;i<eps->nconv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
@@ -180,14 +180,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   }
 
   /* Fix eigenvectors if balancing was used */
-  if (eps->balance!=EPSBALANCE_NONE && eps->D) {
+  if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
       ierr = VecPointwiseDivide(eps->V[i],eps->V[i],eps->D);CHKERRQ(ierr);
     }
   }
 
   /* normalize eigenvectors (when using purification or balancing) */
-  if (eps->ispositive || (eps->balance!=EPSBALANCE_NONE && eps->D)) {
+  if (eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
     for (i=0;i<eps->nconv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
@@ -355,7 +355,7 @@ PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
         ierr = VecCopy(y,x);CHKERRQ(ierr);
       }
       /* fix eigenvector if balancing is used */
-      if (!eps->ishermitian && eps->balance!=EPSBALANCE_NONE && eps->D) {
+      if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) {
         ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
         ierr = VecNormalize(x,&norm);CHKERRQ(ierr);
       }
@@ -369,7 +369,7 @@ PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
           ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
           ierr = VecCopy(z,y);CHKERRQ(ierr);
         }
-        if (eps->balance!=EPSBALANCE_NONE && eps->D) {
+        if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
           ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
           ierr = VecNormalize(y,&norm);CHKERRQ(ierr);
         }
@@ -435,7 +435,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
       ierr = VecAbs(p);CHKERRQ(ierr);
       ierr = VecMax(p,PETSC_NULL,&norma);CHKERRQ(ierr);
     }
-    if (eps->balance == EPSBALANCE_TWOSIDE) {
+    if (eps->balance == EPS_BALANCE_TWOSIDE) {
       /* Compute r=D\(A'Dz) */
       ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
       ierr = STApplyTranspose(eps->OP,z,r);CHKERRQ(ierr);
@@ -447,7 +447,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     ierr = VecGetArray(p,&pp);CHKERRQ(ierr);
     ierr = VecGetArray(eps->D,&pD);CHKERRQ(ierr);
     for (i=0;i<eps->nloc;i++) {
-      if (eps->balance == EPSBALANCE_TWOSIDE) {
+      if (eps->balance == EPS_BALANCE_TWOSIDE) {
         if (PetscAbsScalar(pp[i])>eps->balance_cutoff*norma && pr[i]!=0.0)
           pD[i] *= sqrt(PetscAbsScalar(pr[i]/pp[i]));
       } else {

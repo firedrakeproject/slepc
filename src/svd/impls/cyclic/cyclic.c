@@ -292,7 +292,7 @@ PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
   } else {
     /* use as default an ST with shell matrix and Jacobi */ 
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
-    ierr = STSetMatMode(st,STMATMODE_SHELL);CHKERRQ(ierr);
+    ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);

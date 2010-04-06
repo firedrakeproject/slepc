@@ -23,11 +23,11 @@
 !
 #include "finclude/slepcipdef.h"
 
-      PetscEnum IP_MGS_ORTH
-      PetscEnum IP_CGS_ORTH
+      PetscEnum IP_ORTH_MGS
+      PetscEnum IP_ORTH_CGS
       
-      parameter (IP_MGS_ORTH               =  0)
-      parameter (IP_CGS_ORTH               =  1)
+      parameter (IP_ORTH_MGS               =  0)
+      parameter (IP_ORTH_CGS               =  1)
 
       PetscEnum IP_ORTH_REFINE_NEVER
       PetscEnum IP_ORTH_REFINE_IFNEEDED
@@ -37,8 +37,8 @@
       parameter (IP_ORTH_REFINE_IFNEEDED   =  1)  
       parameter (IP_ORTH_REFINE_ALWAYS     =  2)  
 
-      PetscEnum IPINNER_HERMITIAN
-      PetscEnum IPINNER_SYMMETRIC
+      PetscEnum IP_INNER_HERMITIAN
+      PetscEnum IP_INNER_SYMMETRIC
 
-      parameter (IPINNER_HERMITIAN         =  0)
-      parameter (IPINNER_SYMMETRIC         =  1)
+      parameter (IP_INNER_HERMITIAN        =  0)
+      parameter (IP_INNER_SYMMETRIC        =  1)

@@ -22,11 +22,11 @@
 !
 #include "finclude/slepcstdef.h"
 
-      PetscEnum STMATMODE_COPY
-      PetscEnum STMATMODE_INPLACE
-      PetscEnum STMATMODE_SHELL
+      PetscEnum ST_MATMODE_COPY
+      PetscEnum ST_MATMODE_INPLACE
+      PetscEnum ST_MATMODE_SHELL
 
-      parameter (STMATMODE_COPY          =  0)
-      parameter (STMATMODE_INPLACE       =  1)
-      parameter (STMATMODE_SHELL         =  2)
+      parameter (ST_MATMODE_COPY          =  0)
+      parameter (ST_MATMODE_INPLACE       =  1)
+      parameter (ST_MATMODE_SHELL         =  2)
 

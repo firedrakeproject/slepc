@@ -339,10 +339,10 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth 
     if (lindep) *lindep = PETSC_FALSE;
   } else {
     switch (ip->orthog_type) {
-    case IP_CGS_ORTH:
+    case IP_ORTH_CGS:
       ierr = IPOrthogonalizeCGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
       break;
-    case IP_MGS_ORTH:
+    case IP_ORTH_MGS:
       ierr = IPOrthogonalizeMGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
       break;
     default:
@@ -533,7 +533,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
     }
     
     switch (ip->orthog_type) {
-      case IP_CGS_ORTH:
+      case IP_ORTH_CGS:
         ierr = IPCGSBiOrthogonalization(ip,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       default:

@@ -304,7 +304,7 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
   if (!ctx->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */ 
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
-    ierr = STSetMatMode(st,STMATMODE_SHELL);CHKERRQ(ierr);
+    ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

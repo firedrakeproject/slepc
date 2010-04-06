@@ -177,7 +177,7 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
     ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
     if (!pctype) {
-      if (st->shift_matrix == STMATMODE_SHELL) {
+      if (st->shift_matrix == ST_MATMODE_SHELL) {
         /* in shell mode use GMRES with Jacobi as the default */
         ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
         ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
@@ -249,24 +249,24 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 
    Input Parameters:
 +  st - the spectral transformation context
--  mode - the mode flag, one of STMATMODE_COPY, 
-          STMATMODE_INPLACE or STMATMODE_SHELL
+-  mode - the mode flag, one of ST_MATMODE_COPY, 
+          ST_MATMODE_INPLACE or ST_MATMODE_SHELL
 
    Options Database Key:
 .  -st_matmode <mode> - Indicates the mode flag, where <mode> is one of
           'copy', 'inplace' or 'shell' (see explanation below).
 
    Notes:
-   By default (STMATMODE_COPY), a copy of matrix A is made and then 
+   By default (ST_MATMODE_COPY), a copy of matrix A is made and then 
    this copy is shifted explicitly, e.g. A <- (A - s B). 
 
-   With STMATMODE_INPLACE, the original matrix A is shifted at 
+   With ST_MATMODE_INPLACE, the original matrix A is shifted at 
    STSetUp() and unshifted at the end of the computations. With respect to
    the previous one, this mode avoids a copy of matrix A. However, a
    backdraw is that the recovered matrix might be slightly different 
    from the original one (due to roundoff).
 
-   With STMATMODE_SHELL, the solver works with an implicit shell 
+   With ST_MATMODE_SHELL, the solver works with an implicit shell 
    matrix that represents the shifted matrix. This mode is the most efficient 
    in creating the shifted matrix but it places serious limitations to the 
    linear solves performed in each iteration of the eigensolver (typically,

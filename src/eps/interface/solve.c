@@ -94,7 +94,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
-  if (matmode == STMATMODE_INPLACE && eps->ispositive) {
+  if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
     /* Purify eigenvectors before reverting operator */
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);    
   }
@@ -372,7 +372,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
   if (!eps->ishermitian && eps->evecsavailable) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
   }
-  if (eps->balance!=EPSBALANCE_NONE && eps->D) {
+  if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
       ierr = VecPointwiseDivide(v[i],eps->V[i],eps->D);CHKERRQ(ierr);
       ierr = VecNormalize(v[i],PETSC_NULL);CHKERRQ(ierr);

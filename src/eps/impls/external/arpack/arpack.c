@@ -67,7 +67,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
 
-  if (eps->balance!=EPSBALANCE_NONE)
+  if (eps->balance!=EPS_BALANCE_NONE)
     SETERRQ(PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
 
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);

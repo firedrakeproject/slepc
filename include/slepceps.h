@@ -69,9 +69,12 @@ E*/
 
 .seealso: EPSSetProblemType(), EPSGetProblemType()
 E*/
-typedef enum { EPS_HEP=1,  EPS_GHEP,
-               EPS_NHEP,   EPS_GNHEP,
-               EPS_PGNHEP, EPS_GHIEP } EPSProblemType;
+typedef enum { EPS_HEP=1,
+               EPS_GHEP,
+               EPS_NHEP,
+               EPS_GNHEP,
+               EPS_PGNHEP,
+               EPS_GHIEP } EPSProblemType;
 
 /*E
     EPSExtraction - determines the type of extraction technique employed
@@ -81,8 +84,10 @@ typedef enum { EPS_HEP=1,  EPS_GHEP,
 
 .seealso: EPSSetExtraction(), EPSGetExtraction()
 E*/
-typedef enum { EPS_RITZ=1,   EPS_HARMONIC,
-               EPS_REFINED,  EPS_REFINED_HARMONIC } EPSExtraction;
+typedef enum { EPS_RITZ=1,
+               EPS_HARMONIC,
+               EPS_REFINED,
+               EPS_REFINED_HARMONIC } EPSExtraction;
 
 /*E
     EPSClass - determines if the eigensolver is one- or two-sided
@@ -91,7 +96,8 @@ typedef enum { EPS_RITZ=1,   EPS_HARMONIC,
 
 .seealso: EPSSetClass(), EPSGetClass()
 E*/
-typedef enum { EPS_ONE_SIDE, EPS_TWO_SIDE } EPSClass;
+typedef enum { EPS_ONE_SIDE,
+               EPS_TWO_SIDE } EPSClass;
 
 /*E
     EPSWhich - determines which part of the spectrum is requested
@@ -100,11 +106,16 @@ typedef enum { EPS_ONE_SIDE, EPS_TWO_SIDE } EPSClass;
 
 .seealso: EPSSetWhichEigenpairs(), EPSGetWhichEigenpairs()
 E*/
-typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
-               EPS_LARGEST_REAL,      EPS_SMALLEST_REAL,
-               EPS_LARGEST_IMAGINARY, EPS_SMALLEST_IMAGINARY,
-               EPS_TARGET_MAGNITUDE,  EPS_TARGET_REAL, 
-               EPS_TARGET_IMAGINARY,  EPS_USER } EPSWhich;
+typedef enum { EPS_LARGEST_MAGNITUDE,
+               EPS_SMALLEST_MAGNITUDE,
+               EPS_LARGEST_REAL,
+               EPS_SMALLEST_REAL,
+               EPS_LARGEST_IMAGINARY,
+               EPS_SMALLEST_IMAGINARY,
+               EPS_TARGET_MAGNITUDE,
+               EPS_TARGET_REAL, 
+               EPS_TARGET_IMAGINARY,
+               EPS_USER } EPSWhich;
 
 /*E
     EPSBalance - the type of balancing used for non-Hermitian problems
@@ -113,10 +124,10 @@ typedef enum { EPS_LARGEST_MAGNITUDE, EPS_SMALLEST_MAGNITUDE,
 
 .seealso: EPSSetBalance()
 E*/
-typedef enum { EPSBALANCE_NONE=1,
-               EPSBALANCE_ONESIDE,
-               EPSBALANCE_TWOSIDE,
-               EPSBALANCE_USER    } EPSBalance;
+typedef enum { EPS_BALANCE_NONE=1,
+               EPS_BALANCE_ONESIDE,
+               EPS_BALANCE_TWOSIDE,
+               EPS_BALANCE_USER } EPSBalance;
 
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);
@@ -244,8 +255,9 @@ EXTERN PetscErrorCode EPSRegisterDestroy(void);
 
 .seealso: EPSPowerSetShiftType(), EPSPowerGetShiftType()
 E*/
-typedef enum { EPSPOWER_SHIFT_CONSTANT, EPSPOWER_SHIFT_RAYLEIGH,
-               EPSPOWER_SHIFT_WILKINSON } EPSPowerShiftType;
+typedef enum { EPS_POWER_SHIFT_CONSTANT,
+               EPS_POWER_SHIFT_RAYLEIGH,
+               EPS_POWER_SHIFT_WILKINSON } EPSPowerShiftType;
 
 EXTERN PetscErrorCode EPSPowerSetShiftType(EPS,EPSPowerShiftType);
 EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
@@ -261,12 +273,12 @@ EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscTruth*);
 
 .seealso: EPSLanczosSetReorthog(), EPSLanczosGetReorthog()
 E*/
-typedef enum { EPSLANCZOS_REORTHOG_LOCAL, 
-               EPSLANCZOS_REORTHOG_FULL,
-               EPSLANCZOS_REORTHOG_SELECTIVE,
-               EPSLANCZOS_REORTHOG_PERIODIC,
-               EPSLANCZOS_REORTHOG_PARTIAL, 
-	       EPSLANCZOS_REORTHOG_DELAYED } EPSLanczosReorthogType;
+typedef enum { EPS_LANCZOS_REORTHOG_LOCAL, 
+               EPS_LANCZOS_REORTHOG_FULL,
+               EPS_LANCZOS_REORTHOG_SELECTIVE,
+               EPS_LANCZOS_REORTHOG_PERIODIC,
+               EPS_LANCZOS_REORTHOG_PARTIAL, 
+               EPS_LANCZOS_REORTHOG_DELAYED } EPSLanczosReorthogType;
 
 EXTERN PetscErrorCode EPSLanczosSetReorthog(EPS,EPSLanczosReorthogType);
 EXTERN PetscErrorCode EPSLanczosGetReorthog(EPS,EPSLanczosReorthogType*);
@@ -282,23 +294,21 @@ EXTERN PetscErrorCode EPSBlzpackSetNSteps(EPS,PetscInt);
 
 .seealso: EPSPRIMMESetMethod(), EPSPRIMMEGetMethod()
 E*/
-typedef enum {
-  EPSPRIMME_DYNAMIC,
-  EPSPRIMME_DEFAULT_MIN_TIME,
-  EPSPRIMME_DEFAULT_MIN_MATVECS,
-  EPSPRIMME_ARNOLDI,
-  EPSPRIMME_GD,
-  EPSPRIMME_GD_PLUSK,
-  EPSPRIMME_GD_OLSEN_PLUSK,
-  EPSPRIMME_JD_OLSEN_PLUSK,
-  EPSPRIMME_RQI,
-  EPSPRIMME_JDQR,
-  EPSPRIMME_JDQMR,
-  EPSPRIMME_JDQMR_ETOL,
-  EPSPRIMME_SUBSPACE_ITERATION,
-  EPSPRIMME_LOBPCG_ORTHOBASIS,
-  EPSPRIMME_LOBPCG_ORTHOBASISW
-} EPSPRIMMEMethod;
+typedef enum { EPS_PRIMME_DYNAMIC,
+               EPS_PRIMME_DEFAULT_MIN_TIME,
+               EPS_PRIMME_DEFAULT_MIN_MATVECS,
+               EPS_PRIMME_ARNOLDI,
+               EPS_PRIMME_GD,
+               EPS_PRIMME_GD_PLUSK,
+               EPS_PRIMME_GD_OLSEN_PLUSK,
+               EPS_PRIMME_JD_OLSEN_PLUSK,
+               EPS_PRIMME_RQI,
+               EPS_PRIMME_JDQR,
+               EPS_PRIMME_JDQMR,
+               EPS_PRIMME_JDQMR_ETOL,
+               EPS_PRIMME_SUBSPACE_ITERATION,
+               EPS_PRIMME_LOBPCG_ORTHOBASIS,
+               EPS_PRIMME_LOBPCG_ORTHOBASISW } EPSPRIMMEMethod;
 
 /*E
     EPSPRIMMEPrecond - determines the type of preconditioning
@@ -308,10 +318,8 @@ typedef enum {
 
 .seealso: EPSPRIMMESetPrecond(), EPSPRIMMEGetPrecond()
 E*/
-typedef enum {
-  EPSPRIMME_NONE,
-  EPSPRIMME_DIAGONAL
-} EPSPRIMMEPrecond;
+typedef enum { EPS_PRIMME_PRECOND_NONE,
+               EPS_PRIMME_PRECOND_DIAGONAL } EPSPRIMMEPrecond;
 
 EXTERN PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs);
 EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method);

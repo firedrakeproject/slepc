@@ -260,7 +260,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     /* inner loop */
     nv = PetscMin(svd->nconv+svd->mpd,svd->n);
     if (lanczos->oneside) {
-      if (orthog == IP_MGS_ORTH) {
+      if (orthog == IP_ORTH_MGS) {
         ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       } else {
         ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,b+svd->nconv,svd->V,v,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);

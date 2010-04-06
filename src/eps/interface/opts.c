@@ -89,9 +89,9 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsTruthGroupEnd("-eps_refined_harmonic","refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr);}
 
-    if (!eps->balance) eps->balance = EPSBALANCE_NONE;
-    ierr = PetscOptionsEList("-eps_balance", "Balancing method","EPSSetBalance",bal_list,4,bal_list[eps->balance-EPSBALANCE_NONE],&i,&flg);CHKERRQ(ierr);
-    if (flg) { eps->balance = (EPSBalance)(i+EPSBALANCE_NONE); }
+    if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
+    ierr = PetscOptionsEList("-eps_balance", "Balancing method","EPSSetBalance",bal_list,4,bal_list[eps->balance-EPS_BALANCE_NONE],&i,&flg);CHKERRQ(ierr);
+    if (flg) { eps->balance = (EPSBalance)(i+EPS_BALANCE_NONE); }
     r = j = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,PETSC_NULL);CHKERRQ(ierr);
@@ -758,8 +758,8 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
 
    Input Parameters:
 +  eps    - the eigensolver context
-.  bal    - the balancing method, one of EPSBALANCE_NONE, EPSBALANCE_ONESIDE,
-            EPSBALANCE_TWOSIDE, or EPSBALANCE_USER
+.  bal    - the balancing method, one of EPS_BALANCE_NONE, EPS_BALANCE_ONESIDE,
+            EPS_BALANCE_TWOSIDE, or EPS_BALANCE_USER
 .  its    - number of iterations of the balancing algorithm
 -  cutoff - cutoff value
 
@@ -798,12 +798,12 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   if (bal!=PETSC_IGNORE) {
-    if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPSBALANCE_TWOSIDE;
+    if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPS_BALANCE_TWOSIDE;
     else switch (bal) {
-      case EPSBALANCE_NONE:
-      case EPSBALANCE_ONESIDE:
-      case EPSBALANCE_TWOSIDE:
-      case EPSBALANCE_USER:
+      case EPS_BALANCE_NONE:
+      case EPS_BALANCE_ONESIDE:
+      case EPS_BALANCE_TWOSIDE:
+      case EPS_BALANCE_USER:
         eps->balance = bal;
         break;
       default:

@@ -38,7 +38,7 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
   PetscScalar    tau = ctx->tau;
   
   PetscFunctionBegin;
-  if (st->shift_matrix == STMATMODE_INPLACE) { tau = tau + st->sigma; };
+  if (st->shift_matrix == ST_MATMODE_INPLACE) { tau = tau + st->sigma; };
 
   if (st->B) {
     /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
@@ -65,7 +65,7 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
   PetscScalar    tau = ctx->tau;
   
   PetscFunctionBegin;
-  if (st->shift_matrix == STMATMODE_INPLACE) { tau = tau + st->sigma; };
+  if (st->shift_matrix == ST_MATMODE_INPLACE) { tau = tau + st->sigma; };
 
   if (st->B) {
     /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
@@ -97,7 +97,7 @@ PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
   ctx = (ST_CAYLEY *) st->data;
   tau = ctx->tau;
   
-  if (st->shift_matrix == STMATMODE_INPLACE) { tau = tau + st->sigma; };
+  if (st->shift_matrix == ST_MATMODE_INPLACE) { tau = tau + st->sigma; };
 
   if (st->B) {
     /* generalized eigenproblem: y = (A + tB)x */
@@ -167,7 +167,7 @@ PetscErrorCode STPostSolve_Cayley(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->shift_matrix == STMATMODE_INPLACE) {
+  if (st->shift_matrix == ST_MATMODE_INPLACE) {
     if (st->B) {
       ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
     } else { 
@@ -194,7 +194,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   }
 
   switch (st->shift_matrix) {
-  case STMATMODE_INPLACE:
+  case ST_MATMODE_INPLACE:
     st->mat = PETSC_NULL;
     if (st->sigma != 0.0) {
       if (st->B) { 
@@ -205,7 +205,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
     }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
-  case STMATMODE_SHELL:
+  case ST_MATMODE_SHELL:
     ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
@@ -253,7 +253,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   }
 
   switch (st->shift_matrix) {
-  case STMATMODE_INPLACE:
+  case ST_MATMODE_INPLACE:
     /* Undo previous operations */
     if (st->sigma != 0.0) {
       if (st->B) { 
@@ -272,7 +272,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
     }
     ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
     break;
-  case STMATMODE_SHELL:
+  case ST_MATMODE_SHELL:
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);    
     break;
   default:

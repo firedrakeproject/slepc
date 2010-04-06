@@ -55,23 +55,23 @@ const char *methodList[] = {
 };
 const char *precondList[] = {"none", "diagonal"};
 EPSPRIMMEMethod methodN[] = {
-  EPSPRIMME_DYNAMIC,
-  EPSPRIMME_DEFAULT_MIN_TIME,
-  EPSPRIMME_DEFAULT_MIN_MATVECS,
-  EPSPRIMME_ARNOLDI,
-  EPSPRIMME_GD,
-  EPSPRIMME_GD_PLUSK,
-  EPSPRIMME_GD_OLSEN_PLUSK,
-  EPSPRIMME_JD_OLSEN_PLUSK,
-  EPSPRIMME_RQI,
-  EPSPRIMME_JDQR,
-  EPSPRIMME_JDQMR,
-  EPSPRIMME_JDQMR_ETOL,
-  EPSPRIMME_SUBSPACE_ITERATION,
-  EPSPRIMME_LOBPCG_ORTHOBASIS,
-  EPSPRIMME_LOBPCG_ORTHOBASISW
+  EPS_PRIMME_DYNAMIC,
+  EPS_PRIMME_DEFAULT_MIN_TIME,
+  EPS_PRIMME_DEFAULT_MIN_MATVECS,
+  EPS_PRIMME_ARNOLDI,
+  EPS_PRIMME_GD,
+  EPS_PRIMME_GD_PLUSK,
+  EPS_PRIMME_GD_OLSEN_PLUSK,
+  EPS_PRIMME_JD_OLSEN_PLUSK,
+  EPS_PRIMME_RQI,
+  EPS_PRIMME_JDQR,
+  EPS_PRIMME_JDQMR,
+  EPS_PRIMME_JDQMR_ETOL,
+  EPS_PRIMME_SUBSPACE_ITERATION,
+  EPS_PRIMME_LOBPCG_ORTHOBASIS,
+  EPS_PRIMME_LOBPCG_ORTHOBASISW
 };
-EPSPRIMMEPrecond precondN[] = {EPSPRIMME_NONE, EPSPRIMME_DIAGONAL};
+EPSPRIMMEPrecond precondN[] = {EPS_PRIMME_PRECOND_NONE, EPS_PRIMME_PRECOND_DIAGONAL};
 
 static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme);
 static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme);
@@ -493,18 +493,18 @@ EXTERN_C_END
    Input Parameters:
 +  eps - the eigenproblem solver context
 -  method - method that will be used by PRIMME. It must be one of:
-    EPSPRIMME_DYNAMIC, EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
-    EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
-    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, 
-    EPSPRIMME_JD_OLSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
-    EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
-    EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASISW
+    EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),
+    EPS_PRIMME_DEFAULT_MIN_MATVECS(EPS_PRIMME_GD_OLSEN_PLUSK), EPS_PRIMME_ARNOLDI,
+    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK, 
+    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR, 
+    EPS_PRIMME_JDQMR_ETOL, EPS_PRIMME_SUBSPACE_ITERATION,
+    EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
 
    Options Database Key:
 .  -eps_primme_set_method - Sets the method for the PRIMME library.
 
    Note:
-   If not set, the method defaults to EPSPRIMME_DEFAULT_MIN_TIME.
+   If not set, the method defaults to EPS_PRIMME_DEFAULT_MIN_TIME.
 
    Level: advanced
 
@@ -553,12 +553,12 @@ EXTERN_C_END
     
    Output Parameters: 
 .  method - method that will be used by PRIMME. It must be one of:
-    EPSPRIMME_DYNAMIC, EPSPRIMME_DEFAULT_MIN_TIME(EPSPRIMME_JDQMR_ETOL),
-    EPSPRIMME_DEFAULT_MIN_MATVECS(EPSPRIMME_GD_OLSEN_PLUSK), EPSPRIMME_ARNOLDI,
-    EPSPRIMME_GD, EPSPRIMME_GD_PLUSK, EPSPRIMME_GD_OLSEN_PLUSK, 
-    EPSPRIMME_JD_OLSEN_PLUSK, EPSPRIMME_RQI, EPSPRIMME_JDQR, EPSPRIMME_JDQMR, 
-    EPSPRIMME_JDQMR_ETOL, EPSPRIMME_SUBSPACE_ITERATION,
-    EPSPRIMME_LOBPCG_ORTHOBASIS, EPSPRIMME_LOBPCG_ORTHOBASISW
+    EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),
+    EPS_PRIMME_DEFAULT_MIN_MATVECS(EPS_PRIMME_GD_OLSEN_PLUSK), EPS_PRIMME_ARNOLDI,
+    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK, 
+    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR, 
+    EPS_PRIMME_JDQMR_ETOL, EPS_PRIMME_SUBSPACE_ITERATION,
+    EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
 
     Level: advanced
 
@@ -589,7 +589,7 @@ EXTERN_C_BEGIN
 
   PetscFunctionBegin;
 
-  if (precond == EPSPRIMME_NONE) ops->primme.correctionParams.precondition = 0;
+  if (precond == EPS_PRIMME_PRECOND_NONE) ops->primme.correctionParams.precondition = 0;
   else ops->primme.correctionParams.precondition = 1;
   
   PetscFunctionReturn(0);
@@ -606,7 +606,7 @@ EXTERN_C_END
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  precond - either EPSPRIMME_NONE (no preconditioning) or EPSPRIMME_DIAGONAL
+-  precond - either EPS_PRIMME_PRECOND_NONE (no preconditioning) or EPS_PRIMME_PRECOND_DIAGONAL
    (diagonal preconditioning)
 
    Options Database Key:
@@ -645,7 +645,7 @@ EXTERN_C_BEGIN
   PetscFunctionBegin;
 
   if (precond)
-    *precond = ops->primme.correctionParams.precondition ? EPSPRIMME_DIAGONAL : EPSPRIMME_NONE;
+    *precond = ops->primme.correctionParams.precondition ? EPS_PRIMME_PRECOND_DIAGONAL : EPS_PRIMME_PRECOND_NONE;
   
   PetscFunctionReturn(0);
 }
@@ -663,7 +663,7 @@ EXTERN_C_END
 .  eps - the eigenproblem solver context
     
   Output Parameters:
-.  precond - either EPSPRIMME_NONE (no preconditioning) or EPSPRIMME_DIAGONAL
+.  precond - either EPS_PRIMME_PRECOND_NONE (no preconditioning) or EPS_PRIMME_PRECOND_DIAGONAL
    (diagonal preconditioning)
 
     Level: advanced
@@ -710,7 +710,7 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->primme.globalSumDouble = par_GlobalSumDouble;
-  primme->method = (primme_preset_method)EPSPRIMME_DEFAULT_MIN_TIME;
+  primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetPrecond_PRIMME);CHKERRQ(ierr); 

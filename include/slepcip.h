@@ -33,7 +33,8 @@ extern PetscCookie IP_COOKIE;
 
 .seealso: IPSetOrthogonalization(), IPGetOrthogonalization(), IPOrthogonalize()
 E*/
-typedef enum { IP_MGS_ORTH,  IP_CGS_ORTH } IPOrthogonalizationType;
+typedef enum { IP_ORTH_MGS,
+               IP_ORTH_CGS } IPOrthogonalizationType;
 
 /*E
     IPOrthogonalizationRefinementType - determines what type of refinement
@@ -43,7 +44,8 @@ typedef enum { IP_MGS_ORTH,  IP_CGS_ORTH } IPOrthogonalizationType;
 
 .seealso: IPSetOrthogonalization(), IPGetOrthogonalization(), IPOrthogonalize()
 E*/
-typedef enum { IP_ORTH_REFINE_NEVER, IP_ORTH_REFINE_IFNEEDED,
+typedef enum { IP_ORTH_REFINE_NEVER,
+               IP_ORTH_REFINE_IFNEEDED,
                IP_ORTH_REFINE_ALWAYS } IPOrthogonalizationRefinementType;
 
 /*S
@@ -79,7 +81,8 @@ EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,P
 
 .seealso: IPSetBilinearForm(), IPGetBilinearForm()
 E*/
-typedef enum { IPINNER_HERMITIAN, IPINNER_SYMMETRIC } IPBilinearForm;
+typedef enum { IP_INNER_HERMITIAN,
+               IP_INNER_SYMMETRIC } IPBilinearForm;
 EXTERN PetscErrorCode IPSetBilinearForm(IP,Mat,IPBilinearForm);
 EXTERN PetscErrorCode IPGetBilinearForm(IP,Mat*,IPBilinearForm*);
 EXTERN PetscErrorCode IPApplyMatrix(IP,Vec,Vec);

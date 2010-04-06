@@ -106,10 +106,10 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   PetscValidPointer(newip,2);
   ierr = PetscHeaderCreate(ip,_p_IP,int,IP_COOKIE,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
   *newip            = ip;
-  ip->orthog_type   = IP_CGS_ORTH;
+  ip->orthog_type   = IP_ORTH_CGS;
   ip->orthog_ref    = IP_ORTH_REFINE_IFNEEDED;
   ip->orthog_eta    = 0.7071;
-  ip->bilinear_form = IPINNER_HERMITIAN;
+  ip->bilinear_form = IP_INNER_HERMITIAN;
   ip->innerproducts = 0;
   ip->matrix        = PETSC_NULL;
   ip->Bx            = PETSC_NULL;
@@ -290,8 +290,8 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_COOKIE,1);
   switch (type) {
-    case IP_CGS_ORTH:
-    case IP_MGS_ORTH:
+    case IP_ORTH_CGS:
+    case IP_ORTH_MGS:
       ip->orthog_type = type;
       break;
     default:
@@ -388,10 +388,10 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"IP Object:\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
     switch (ip->orthog_type) {
-      case IP_MGS_ORTH:
+      case IP_ORTH_MGS:
         ierr = PetscViewerASCIIPrintf(viewer,"modified Gram-Schmidt\n");CHKERRQ(ierr);
         break;
-      case IP_CGS_ORTH:
+      case IP_ORTH_CGS:
         ierr = PetscViewerASCIIPrintf(viewer,"classical Gram-Schmidt\n");CHKERRQ(ierr);
         break;
       default: SETERRQ(1,"Wrong value of ip->orth_type");

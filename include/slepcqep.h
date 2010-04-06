@@ -68,9 +68,12 @@ typedef enum { QEP_GENERAL=1,
 
 .seealso: QEPSetWhichEigenpairs(), QEPGetWhichEigenpairs()
 E*/
-typedef enum { QEP_LARGEST_MAGNITUDE, QEP_SMALLEST_MAGNITUDE,
-               QEP_LARGEST_REAL,      QEP_SMALLEST_REAL,
-               QEP_LARGEST_IMAGINARY, QEP_SMALLEST_IMAGINARY } QEPWhich;
+typedef enum { QEP_LARGEST_MAGNITUDE,
+               QEP_SMALLEST_MAGNITUDE,
+               QEP_LARGEST_REAL,
+               QEP_SMALLEST_REAL,
+               QEP_LARGEST_IMAGINARY,
+               QEP_SMALLEST_IMAGINARY } QEPWhich;
 
 EXTERN PetscErrorCode QEPCreate(MPI_Comm,QEP*);
 EXTERN PetscErrorCode QEPDestroy(QEP);

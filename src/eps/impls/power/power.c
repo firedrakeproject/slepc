@@ -65,18 +65,18 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
-  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+  if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&flg);CHKERRQ(ierr);
     if (!flg) 
       SETERRQ(PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert ST");
     ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
-    if (mode == STMATMODE_INPLACE)
+    if (mode == ST_MATMODE_INPLACE)
       SETERRQ(PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   if (eps->extraction) {
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
-  if (eps->balance!=EPSBALANCE_NONE)
+  if (eps->balance!=EPS_BALANCE_NONE)
     SETERRQ(PETSC_ERR_SUP,"Balancing not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->solverclass == EPS_TWO_SIDE) {
@@ -106,7 +106,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   e = eps->work[0];
 
   /* prepare for selective orthogonalization of converged vectors */
-  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT && eps->nev>1) {
+  if (power->shift_type != EPS_POWER_SHIFT_CONSTANT && eps->nev>1) {
     ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
     ierr = MatHasOperation(A,MATOP_NORM,&hasnorm);CHKERRQ(ierr);
     if (hasnorm) {
@@ -128,7 +128,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     /* theta = (v,y)_B */
     ierr = IPInnerProduct(eps->ip,v,y,&theta);CHKERRQ(ierr);
 
-    if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
+    if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
       /* approximate eigenvalue is the Rayleigh quotient */
       eps->eigr[eps->nconv] = theta;
@@ -158,7 +158,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
         ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
-        if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
+        if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
           SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
@@ -266,7 +266,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     /* theta = (v,z)_B */
     ierr = IPInnerProduct(eps->ip,v,z,&theta);CHKERRQ(ierr);
 
-    if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
+    if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
       /* approximate eigenvalue is the Rayleigh quotient */
       eps->eigr[eps->nconv] = theta;
@@ -305,7 +305,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
         ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
-        if (power->shift_type == EPSPOWER_SHIFT_WILKINSON) {
+        if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
           SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
@@ -384,7 +384,7 @@ PetscErrorCode EPSBackTransform_POWER(EPS eps)
   EPS_POWER *power = (EPS_POWER *)eps->data;
 
   PetscFunctionBegin;
-  if (power->shift_type == EPSPOWER_SHIFT_CONSTANT) {
+  if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) {
     ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -404,7 +404,7 @@ PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
   ierr = PetscOptionsHead("POWER options");CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",shift_list,3,shift_list[power->shift_type],&i,&flg);CHKERRQ(ierr);
   if (flg ) power->shift_type = (EPSPowerShiftType)i;
-  if (power->shift_type != EPSPOWER_SHIFT_CONSTANT) {
+  if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
@@ -420,9 +420,9 @@ PetscErrorCode EPSPowerSetShiftType_POWER(EPS eps,EPSPowerShiftType shift)
 
   PetscFunctionBegin;
   switch (shift) {
-    case EPSPOWER_SHIFT_CONSTANT:
-    case EPSPOWER_SHIFT_RAYLEIGH:
-    case EPSPOWER_SHIFT_WILKINSON:
+    case EPS_POWER_SHIFT_CONSTANT:
+    case EPS_POWER_SHIFT_RAYLEIGH:
+    case EPS_POWER_SHIFT_WILKINSON:
       power->shift_type = shift;
       break;
     default:
@@ -450,12 +450,12 @@ EXTERN_C_END
                            'rayleigh' or 'wilkinson')
 
    Notes:
-   By default, shifts are constant (EPSPOWER_SHIFT_CONSTANT) and the iteration
+   By default, shifts are constant (EPS_POWER_SHIFT_CONSTANT) and the iteration
    is the simple power method (or inverse iteration if a shift-and-invert
    transformation is being used).
 
-   A variable shift can be specified (EPSPOWER_SHIFT_RAYLEIGH or
-   EPSPOWER_SHIFT_WILKINSON). In this case, the iteration behaves rather like
+   A variable shift can be specified (EPS_POWER_SHIFT_RAYLEIGH or
+   EPS_POWER_SHIFT_WILKINSON). In this case, the iteration behaves rather like
    a cubic converging method as RQI. See the users manual for details.
    
    Level: advanced
@@ -544,7 +544,7 @@ PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(1,"Viewer type %s not supported for EPSPOWER",((PetscObject)viewer)->type_name);
+    SETERRQ1(1,"Viewer type %s not supported for EPS_POWER",((PetscObject)viewer)->type_name);
   }  
   ierr = PetscViewerASCIIPrintf(viewer,"shift type: %s\n",shift_list[power->shift_type]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -570,7 +570,7 @@ PetscErrorCode EPSCreate_POWER(EPS eps)
   eps->ops->view                 = EPSView_POWER;
   eps->ops->backtransform        = EPSBackTransform_POWER;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-  power->shift_type              = EPSPOWER_SHIFT_CONSTANT;
+  power->shift_type              = EPS_POWER_SHIFT_CONSTANT;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","EPSPowerSetShiftType_POWER",EPSPowerSetShiftType_POWER);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_POWER",EPSPowerGetShiftType_POWER);CHKERRQ(ierr);
   PetscFunctionReturn(0);

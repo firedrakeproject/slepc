@@ -128,7 +128,7 @@ PetscErrorCode STDestroy(ST st)
   if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); } 
   if (st->D) { ierr = VecDestroy(st->D);CHKERRQ(ierr); } 
   if (st->wb){ ierr = VecDestroy(st->wb);CHKERRQ(ierr); } 
-  if (st->shift_matrix != STMATMODE_INPLACE && st->mat) { 
+  if (st->shift_matrix != ST_MATMODE_INPLACE && st->mat) { 
     ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
   }
 
@@ -174,7 +174,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->w                   = 0;
   st->D                   = 0;
   st->wb                  = 0;
-  st->shift_matrix        = STMATMODE_COPY;
+  st->shift_matrix        = ST_MATMODE_COPY;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
   
   ierr = KSPCreate(((PetscObject)st)->comm,&st->ksp);CHKERRQ(ierr);
@@ -534,16 +534,16 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g+%g i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
 #endif
     switch (st->shift_matrix) {
-    case STMATMODE_COPY:
+    case ST_MATMODE_COPY:
       break;
-    case STMATMODE_INPLACE:
+    case ST_MATMODE_INPLACE:
       ierr = PetscViewerASCIIPrintf(viewer,"Shifting the matrix and unshifting at exit\n");CHKERRQ(ierr);
       break;
-    case STMATMODE_SHELL:
+    case ST_MATMODE_SHELL:
       ierr = PetscViewerASCIIPrintf(viewer,"Using a shell matrix\n");CHKERRQ(ierr);
       break;
     }
-    if (st->B && st->shift_matrix != STMATMODE_SHELL) { 
+    if (st->B && st->shift_matrix != ST_MATMODE_SHELL) { 
       switch (st->str) {
         case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;

@@ -345,7 +345,7 @@ PetscErrorCode SVDCreate_CROSS(SVD svd)
   ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSMonitorSet(cross->eps,SVDMonitor_CROSS,svd,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
-  ierr = STSetMatMode(st,STMATMODE_SHELL);CHKERRQ(ierr);
+  ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   cross->mat = PETSC_NULL;
   cross->w = PETSC_NULL;
   cross->diag = PETSC_NULL;
