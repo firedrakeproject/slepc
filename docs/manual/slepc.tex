@@ -65,7 +65,11 @@
 \renewcommand{\arraystretch}{1.05} 
 \setcounter{tocdepth}{3}
 \renewcommand{\captionlabelfont}{\sl\sffamily}
-\newcommand{\bibfont}{\small}
+\ifx \@bibfont \@empty
+         \renewcommand{\bibfont}{\small}%
+\else%
+         \newcommand{\bibfont}{\small}%
+\fi
 
 \titleformat{\chapter}[display]
   {\bfseries\Large}
