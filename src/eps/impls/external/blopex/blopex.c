@@ -138,6 +138,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (!isShift) {
     SETERRQ(PETSC_ERR_SUP,"blopex only works with shift spectral transformation"); 
   }
+  if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) {
     SETERRQ(1,"Wrong value of eps->which");
   }
@@ -242,7 +243,6 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->destroy              = EPSDestroy_BLOPEX;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-  eps->which = EPS_SMALLEST_REAL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

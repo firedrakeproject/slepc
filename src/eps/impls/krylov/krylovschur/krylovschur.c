@@ -66,6 +66,7 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(1,"Wrong value of eps->which");
 

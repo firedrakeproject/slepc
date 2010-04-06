@@ -61,6 +61,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   };
 
   PetscFunctionBegin;
+  if (!qep->which) qep->which = QEP_LARGEST_MAGNITUDE;
   ctx->M = qep->M;
   ctx->C = qep->C;
   ctx->K = qep->K;

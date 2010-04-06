@@ -63,6 +63,7 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   else eps->ncv = eps->nev;
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
+  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {

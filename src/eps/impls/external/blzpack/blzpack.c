@@ -95,6 +95,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     if (!flg)
       SETERRQ(PETSC_ERR_SUP,"Cholesky PC is needed for generalized problems or spectrum slicing");
   }
+  if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL)
     SETERRQ(1,"Wrong value of eps->which");
 
@@ -540,9 +541,6 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","EPSBlzpackSetInterval_BLZPACK",EPSBlzpackSetInterval_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","EPSBlzpackSetNSteps_BLZPACK",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
-
-  eps->which = EPS_SMALLEST_REAL;
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

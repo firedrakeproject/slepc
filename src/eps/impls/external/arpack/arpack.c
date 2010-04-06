@@ -39,6 +39,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
+  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)

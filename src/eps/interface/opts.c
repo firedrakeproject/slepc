@@ -383,7 +383,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
     Collective on EPS
 
     Input Parameters:
-+   eps - eigensolver context obtained from EPSCreate()
++   eps   - eigensolver context obtained from EPSCreate()
 -   which - the portion of the spectrum to be sought
 
     Possible values:
@@ -431,26 +431,29 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  switch (which) {
-    case EPS_LARGEST_MAGNITUDE:
-    case EPS_SMALLEST_MAGNITUDE:
-    case EPS_LARGEST_REAL:
-    case EPS_SMALLEST_REAL:
-    case EPS_LARGEST_IMAGINARY:
-    case EPS_SMALLEST_IMAGINARY:
-    case EPS_TARGET_MAGNITUDE:
-    case EPS_TARGET_REAL:
+  if (which!=PETSC_IGNORE) {
+    if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
+    else switch (which) {
+      case EPS_LARGEST_MAGNITUDE:
+      case EPS_SMALLEST_MAGNITUDE:
+      case EPS_LARGEST_REAL:
+      case EPS_SMALLEST_REAL:
+      case EPS_LARGEST_IMAGINARY:
+      case EPS_SMALLEST_IMAGINARY:
+      case EPS_TARGET_MAGNITUDE:
+      case EPS_TARGET_REAL:
 #if defined(PETSC_USE_COMPLEX)
-    case EPS_TARGET_IMAGINARY:
+      case EPS_TARGET_IMAGINARY:
 #endif
-    case EPS_USER:
-      if (eps->which != which) {
-        eps->setupcalled = 0;
-        eps->which = which;
-      }
-      break;
-    default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+      case EPS_USER:
+        if (eps->which != which) {
+          eps->setupcalled = 0;
+          eps->which = which;
+        }
+        break;
+      default:
+        SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+    }
   }
   PetscFunctionReturn(0);
 }

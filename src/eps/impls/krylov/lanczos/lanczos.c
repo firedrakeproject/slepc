@@ -65,6 +65,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
+  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->solverclass==EPS_ONE_SIDE) {
     switch (eps->which) {
       case EPS_LARGEST_IMAGINARY:

@@ -161,7 +161,9 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  method: not yet set\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    switch (qep->which) {
+    if (!qep->which) {
+      ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
+    } else switch (qep->which) {
       case QEP_LARGEST_MAGNITUDE:
         ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
         break;
@@ -247,7 +249,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->conv            = PETSC_NULL;
   qep->conv_func       = QEPDefaultConverged;
   qep->conv_ctx        = PETSC_NULL;
-  qep->which           = QEP_LARGEST_MAGNITUDE;
+  qep->which           = (QEPWhich)0;
   qep->which_func      = PETSC_NULL;
   qep->which_ctx       = PETSC_NULL;
   qep->problem_type    = (QEPProblemType)0;

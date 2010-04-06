@@ -338,7 +338,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     Collective on QEP
 
     Input Parameters:
-+   qep - eigensolver context obtained from QEPCreate()
++   qep   - eigensolver context obtained from QEPCreate()
 -   which - the portion of the spectrum to be sought
 
     Possible values:
@@ -373,20 +373,23 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
-  switch (which) {
-    case QEP_LARGEST_MAGNITUDE:
-    case QEP_SMALLEST_MAGNITUDE:
-    case QEP_LARGEST_REAL:
-    case QEP_SMALLEST_REAL:
-    case QEP_LARGEST_IMAGINARY:
-    case QEP_SMALLEST_IMAGINARY:
-      if (qep->which != which) {
-        qep->setupcalled = 0;
-        qep->which = which;
-      }
-      break;
-    default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+  if (which!=PETSC_IGNORE) {
+    if (which==PETSC_DECIDE || which==PETSC_DEFAULT) qep->which = (QEPWhich)0;
+    else switch (which) {
+      case QEP_LARGEST_MAGNITUDE:
+      case QEP_SMALLEST_MAGNITUDE:
+      case QEP_LARGEST_REAL:
+      case QEP_SMALLEST_REAL:
+      case QEP_LARGEST_IMAGINARY:
+      case QEP_SMALLEST_IMAGINARY:
+        if (qep->which != which) {
+          qep->setupcalled = 0;
+          qep->which = which;
+        }
+        break;
+      default:
+        SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+    }
   }
   PetscFunctionReturn(0);
 }

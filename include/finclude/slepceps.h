@@ -61,16 +61,16 @@
       PetscEnum EPS_TARGET_IMAGINARY
       PetscEnum EPS_USER
 
-      parameter (EPS_LARGEST_MAGNITUDE      =  0)
-      parameter (EPS_SMALLEST_MAGNITUDE     =  1)
-      parameter (EPS_LARGEST_REAL           =  2)
-      parameter (EPS_SMALLEST_REAL          =  3)
-      parameter (EPS_LARGEST_IMAGINARY      =  4)
-      parameter (EPS_SMALLEST_IMAGINARY     =  5)
-      parameter (EPS_TARGET_MAGNITUDE       =  6)
-      parameter (EPS_TARGET_REAL            =  7)
-      parameter (EPS_TARGET_IMAGINARY       =  8)
-      parameter (EPS_USER                   =  9)
+      parameter (EPS_LARGEST_MAGNITUDE      =  1)
+      parameter (EPS_SMALLEST_MAGNITUDE     =  2)
+      parameter (EPS_LARGEST_REAL           =  3)
+      parameter (EPS_SMALLEST_REAL          =  4)
+      parameter (EPS_LARGEST_IMAGINARY      =  5)
+      parameter (EPS_SMALLEST_IMAGINARY     =  6)
+      parameter (EPS_TARGET_MAGNITUDE       =  7)
+      parameter (EPS_TARGET_REAL            =  8)
+      parameter (EPS_TARGET_IMAGINARY       =  9)
+      parameter (EPS_USER                   = 10)
        
       PetscEnum EPS_BALANCE_NONE
       PetscEnum EPS_BALANCE_ONESIDE

@@ -55,6 +55,7 @@ PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
 
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)
     SETERRQ(1,"Wrong value of eps->which");
 

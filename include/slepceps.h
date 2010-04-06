@@ -106,7 +106,7 @@ typedef enum { EPS_ONE_SIDE,
 
 .seealso: EPSSetWhichEigenpairs(), EPSGetWhichEigenpairs()
 E*/
-typedef enum { EPS_LARGEST_MAGNITUDE,
+typedef enum { EPS_LARGEST_MAGNITUDE=1,
                EPS_SMALLEST_MAGNITUDE,
                EPS_LARGEST_REAL,
                EPS_SMALLEST_REAL,

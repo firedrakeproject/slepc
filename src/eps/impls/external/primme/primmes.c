@@ -116,15 +116,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->procID = procID;
   primme->printLevel = 0;
 
+  if (!eps->which) eps->which = EPS_LARGEST_REAL;
   switch(eps->which) {
     case EPS_LARGEST_REAL:
       primme->target = primme_largest;
       break;
-
     case EPS_SMALLEST_REAL:
       primme->target = primme_smallest;
       break;
-       
     default:
       SETERRQ(PETSC_ERR_SUP,"PRIMME only allows EPS_LARGEST_REAL and EPS_SMALLEST_REAL for 'which' value");
       break;   
@@ -711,16 +710,13 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->primme.globalSumDouble = par_GlobalSumDouble;
   primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
+
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetPrecond_PRIMME);CHKERRQ(ierr); 
-  
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","EPSPRIMMEGetBlockSize_PRIMME",EPSPRIMMEGetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","EPSPRIMMEGetMethod_PRIMME",EPSPRIMMEGetMethod_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetPrecond_C","EPSPRIMMEGetPrecond_PRIMME",EPSPRIMMEGetPrecond_PRIMME);CHKERRQ(ierr); 
-
-  eps->which = EPS_LARGEST_REAL;
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

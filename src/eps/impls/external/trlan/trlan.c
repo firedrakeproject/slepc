@@ -47,6 +47,10 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   if (eps->isgeneralized)
     SETERRQ(PETSC_ERR_SUP,"Requested method is not available for generalized problems");
 
+  if (!eps->which) eps->which = EPS_LARGEST_REAL;
+  if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL) 
+    SETERRQ(1,"Wrong value of eps->which");
+
   tr->restart = 0;
   tr->maxlan = PetscBLASIntCast(eps->nev+PetscMin(eps->nev,6));
   if (tr->maxlan+1-eps->ncv<=0) { tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10)); }
@@ -172,7 +176,6 @@ PetscErrorCode EPSCreate_TRLAN(EPS eps)
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-  eps->which = EPS_LARGEST_REAL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

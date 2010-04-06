@@ -202,7 +202,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    switch (eps->which) {
+    if (!eps->which) {
+      ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
+    } else switch (eps->which) {
       case EPS_USER:
         ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
         break;
@@ -318,7 +320,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->conv            = PETSC_NULL;
   eps->conv_func       = EPSDefaultConverged;
   eps->conv_ctx        = PETSC_NULL;
-  eps->which           = EPS_LARGEST_MAGNITUDE;
+  eps->which           = (EPSWhich)0;
   eps->which_func      = PETSC_NULL;
   eps->which_ctx       = PETSC_NULL;
   eps->target          = 0.0;

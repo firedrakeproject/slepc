@@ -68,7 +68,7 @@ typedef enum { QEP_GENERAL=1,
 
 .seealso: QEPSetWhichEigenpairs(), QEPGetWhichEigenpairs()
 E*/
-typedef enum { QEP_LARGEST_MAGNITUDE,
+typedef enum { QEP_LARGEST_MAGNITUDE=1,
                QEP_SMALLEST_MAGNITUDE,
                QEP_LARGEST_REAL,
                QEP_SMALLEST_REAL,

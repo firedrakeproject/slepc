@@ -51,12 +51,12 @@
       PetscEnum QEP_LARGEST_IMAGINARY
       PetscEnum QEP_SMALLEST_IMAGINARY
 
-      parameter (QEP_LARGEST_MAGNITUDE      =  0)
-      parameter (QEP_SMALLEST_MAGNITUDE     =  1)
-      parameter (QEP_LARGEST_REAL           =  2)
-      parameter (QEP_SMALLEST_REAL          =  3)
-      parameter (QEP_LARGEST_IMAGINARY      =  4)
-      parameter (QEP_SMALLEST_IMAGINARY     =  5)
+      parameter (QEP_LARGEST_MAGNITUDE      =  1)
+      parameter (QEP_SMALLEST_MAGNITUDE     =  2)
+      parameter (QEP_LARGEST_REAL           =  3)
+      parameter (QEP_SMALLEST_REAL          =  4)
+      parameter (QEP_LARGEST_IMAGINARY      =  5)
+      parameter (QEP_SMALLEST_IMAGINARY     =  6)
        
       external QEPMONITORDEFAULT
       external QEPMONITORLG
