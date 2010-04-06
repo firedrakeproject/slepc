@@ -403,7 +403,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     EPS_TARGET_REAL - eigenvalues with real part closest to target
 .     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
--     EPS_USER - user defined ordering set with EPSSetEigenvalueComparison()
+-     EPS_WHICH_USER - user defined ordering set with EPSSetEigenvalueComparison()
 
     Options Database Keys:
 +   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -450,7 +450,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 #if defined(PETSC_USE_COMPLEX)
       case EPS_TARGET_IMAGINARY:
 #endif
-      case EPS_USER:
+      case EPS_WHICH_USER:
         if (eps->which != which) {
           eps->setupcalled = 0;
           eps->which = which;
@@ -555,7 +555,7 @@ PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscTruth *leftvecs)
 #define __FUNCT__ "EPSSetEigenvalueComparison"
 /*@C
     EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
-    when EPSSetWhichEigenpairs() is set to EPS_USER.
+    when EPSSetWhichEigenpairs() is set to EPS_WHICH_USER.
 
     Collective on EPS
 

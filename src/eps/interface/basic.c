@@ -205,7 +205,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (!eps->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (eps->which) {
-      case EPS_USER:
+      case EPS_WHICH_USER:
         ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
         break;
       case EPS_TARGET_MAGNITUDE:

@@ -115,7 +115,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE=1,
                EPS_TARGET_MAGNITUDE,
                EPS_TARGET_REAL, 
                EPS_TARGET_IMAGINARY,
-               EPS_USER } EPSWhich;
+               EPS_WHICH_USER } EPSWhich;
 
 /*E
     EPSBalance - the type of balancing used for non-Hermitian problems
