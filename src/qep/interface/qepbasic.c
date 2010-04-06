@@ -184,6 +184,9 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
         break;
       default: SETERRQ(1,"Wrong value of qep->which");
     }    
+    if (qep->leftvecs) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",qep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",qep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",qep->mpd);CHKERRQ(ierr);
@@ -252,6 +255,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->which           = (QEPWhich)0;
   qep->which_func      = PETSC_NULL;
   qep->which_ctx       = PETSC_NULL;
+  qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
   qep->vec_initial     = PETSC_NULL;
   qep->V               = PETSC_NULL;

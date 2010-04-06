@@ -45,7 +45,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 {
   PetscErrorCode ierr;
   char           type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscTruth     flg;
+  PetscTruth     flg,val;
   PetscReal      r;
   PetscScalar    s;
   PetscInt       i,j,k;
@@ -176,6 +176,11 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_REAL);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-eps_target_imaginary","compute eigenvalues with imaginary parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr);}
+
+    ierr = PetscOptionsTruth("-eps_left_vectors","Compute left eigenvectors also","EPSSetLeftVectorsWanted",eps->leftvecs,&val,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = EPSSetLeftVectorsWanted(eps,val);CHKERRQ(ierr);
+    }
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_binary","Save the matrices associated to the eigenproblem","EPSSetFromOptions",0);CHKERRQ(ierr);
@@ -485,6 +490,64 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidPointer(which,2);
   *which = eps->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetLeftVectorsWanted"
+/*@
+    EPSSetLeftVectorsWanted - Specifies which eigenvectors are required.
+
+    Collective on EPS
+
+    Input Parameters:
++   eps      - the eigensolver context
+-   leftvecs - whether left eigenvectors are required or not
+
+    Options Database Keys:
+.   -eps_left_vectors <boolean> - Sets/resets the boolean flag 'leftvecs'
+
+    Notes:
+    If the user sets leftvecs=PETSC_TRUE then the solver uses a variant of
+    the algorithm that computes both right and left eigenvectors. This is
+    usually much more costly. This option is not available in all solvers.
+
+    Level: intermediate
+
+.seealso: EPSGetLeftVectorsWanted(), EPSGetEigenvectorLeft()
+@*/
+PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscTruth leftvecs)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  eps->leftvecs = leftvecs;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetLeftVectorsWanted"
+/*@C
+    EPSGetLeftVectorsWanted - Returns the flag indicating whether left 
+    eigenvectors are required or not.
+
+    Not Collective
+
+    Input Parameter:
+.   eps - the eigensolver context
+
+    Output Parameter:
+.   leftvecs - the returned flag
+
+    Level: intermediate
+
+.seealso: EPSSetLeftVectorsWanted(), EPSWhich
+@*/
+PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscTruth *leftvecs) 
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(leftvecs,2);
+  *leftvecs = eps->leftvecs;
   PetscFunctionReturn(0);
 }
 

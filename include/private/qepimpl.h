@@ -59,6 +59,7 @@ struct _p_QEP {
   PetscErrorCode (*conv_func)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
   void           *conv_ctx;
   QEPWhich       which;            /* which part of the spectrum to be sought */
+  PetscTruth     leftvecs;         /* if left eigenvectors are requested */
   PetscErrorCode (*which_func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
   QEPProblemType problem_type;     /* which kind of problem to be solved */

@@ -117,8 +117,10 @@ EXTERN PetscErrorCode QEPGetOperationCounters(QEP,PetscInt*,PetscInt*,PetscInt*)
 EXTERN PetscErrorCode QEPSetInitialVector(QEP,Vec);
 EXTERN PetscErrorCode QEPGetInitialVector(QEP,Vec*);
 EXTERN PetscErrorCode QEPSetWhichEigenpairs(QEP,QEPWhich);
-EXTERN PetscErrorCode QEPSetEigenvalueComparison(QEP,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 EXTERN PetscErrorCode QEPGetWhichEigenpairs(QEP,QEPWhich*);
+EXTERN PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscTruth);
+EXTERN PetscErrorCode QEPGetLeftVectorsWanted(QEP,PetscTruth*);
+EXTERN PetscErrorCode QEPSetEigenvalueComparison(QEP,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 EXTERN PetscErrorCode QEPMonitorDefault(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode QEPMonitorFirst(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);

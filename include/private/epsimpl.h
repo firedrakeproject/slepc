@@ -64,6 +64,7 @@ struct _p_EPS {
   PetscErrorCode (*conv_func)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
   void           *conv_ctx;
   EPSWhich       which;            /* which part of the spectrum to be sought */
+  PetscTruth     leftvecs;         /* if left eigenvectors are requested */
   PetscErrorCode (*which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
   EPSProblemType problem_type;     /* which kind of problem to be solved */

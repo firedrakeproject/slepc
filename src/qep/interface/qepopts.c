@@ -45,7 +45,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 {
   PetscErrorCode ierr;
   char           type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscTruth     flg;
+  PetscTruth     flg,val;
   PetscReal      r;
   PetscInt       i,j,k;
   PetscViewerASCIIMonitor monviewer;
@@ -132,6 +132,11 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_IMAGINARY);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-qep_smallest_imaginary","compute smallest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
+
+    ierr = PetscOptionsTruth("-qep_left_vectors","Compute left eigenvectors also","QEPSetLeftVectorsWanted",qep->leftvecs,&val,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = QEPSetLeftVectorsWanted(qep,val);CHKERRQ(ierr);
+    }
 
     ierr = PetscOptionsName("-qep_view","Print detailed information on solver used","QEPView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-qep_view_binary","Save the matrices associated to the eigenproblem","QEPSetFromOptions",0);CHKERRQ(ierr);
@@ -421,6 +426,64 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
   PetscValidPointer(which,2);
   *which = qep->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPSetLeftVectorsWanted"
+/*@
+    QEPSetLeftVectorsWanted - Specifies which eigenvectors are required.
+
+    Collective on QEP
+
+    Input Parameters:
++   qep      - the quadratic eigensolver context
+-   leftvecs - whether left eigenvectors are required or not
+
+    Options Database Keys:
+.   -qep_left_vectors <boolean> - Sets/resets the boolean flag 'leftvecs'
+
+    Notes:
+    If the user sets leftvecs=PETSC_TRUE then the solver uses a variant of
+    the algorithm that computes both right and left eigenvectors. This is
+    usually much more costly. This option is not available in all solvers.
+
+    Level: intermediate
+
+.seealso: QEPGetLeftVectorsWanted(), QEPGetEigenvectorLeft()
+@*/
+PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscTruth leftvecs)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  qep->leftvecs = leftvecs;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPGetLeftVectorsWanted"
+/*@C
+    QEPGetLeftVectorsWanted - Returns the flag indicating whether left 
+    eigenvectors are required or not.
+
+    Not Collective
+
+    Input Parameter:
+.   qep - the eigensolver context
+
+    Output Parameter:
+.   leftvecs - the returned flag
+
+    Level: intermediate
+
+.seealso: QEPSetLeftVectorsWanted()
+@*/
+PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscTruth *leftvecs) 
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidPointer(leftvecs,2);
+  *leftvecs = qep->leftvecs;
   PetscFunctionReturn(0);
 }
 

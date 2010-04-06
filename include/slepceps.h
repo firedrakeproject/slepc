@@ -185,8 +185,10 @@ EXTERN PetscErrorCode EPSGetIterationNumber(EPS,PetscInt*);
 EXTERN PetscErrorCode EPSGetOperationCounters(EPS,PetscInt*,PetscInt*,PetscInt*);
 
 EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
-EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
+EXTERN PetscErrorCode EPSSetLeftVectorsWanted(EPS,PetscTruth);
+EXTERN PetscErrorCode EPSGetLeftVectorsWanted(EPS,PetscTruth*);
+EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
 EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);
 

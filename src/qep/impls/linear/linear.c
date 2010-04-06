@@ -113,6 +113,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
       case QEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
+  ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,qep->nev,qep->ncv,qep->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,qep->tol,qep->max_it);CHKERRQ(ierr);
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
