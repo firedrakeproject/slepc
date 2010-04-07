@@ -39,6 +39,8 @@
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
+PetscErrorCode EPSSolve_SUBSPACE(EPS);
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_SUBSPACE"
 PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
@@ -78,6 +80,10 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_SUBSPACE;
   PetscFunctionReturn(0);
 }
 
@@ -405,7 +411,6 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
 {
   PetscFunctionBegin;
-  eps->ops->solve                = EPSSolve_SUBSPACE;
   eps->ops->setup                = EPSSetUp_SUBSPACE;
   eps->ops->destroy              = EPSDestroy_SUBSPACE;
   eps->ops->backtransform        = EPSBackTransform_Default;

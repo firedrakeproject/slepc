@@ -38,6 +38,9 @@
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
+PetscErrorCode EPSSolve_ARNOLDI(EPS);
+PetscErrorCode EPSSolve_TS_ARNOLDI(EPS);
+
 typedef struct {
   PetscTruth delayed;
 } EPS_ARNOLDI;
@@ -73,7 +76,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  if (eps->solverclass==EPS_TWO_SIDE) {
+  if (eps->leftvecs) {
     ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
     PetscInfo(eps,"Warning: parameter mpd ignored\n");
@@ -81,6 +84,10 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   } else {
     ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   }
+
+  /* dispatch solve method */
+  if (eps->leftvecs) eps->ops->solve = EPSSolve_TS_ARNOLDI;
+  else eps->ops->solve = EPSSolve_ARNOLDI;
   PetscFunctionReturn(0);
 }
 
@@ -611,8 +618,6 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
   ierr = PetscNew(EPS_ARNOLDI,&arnoldi);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_ARNOLDI));
   eps->data                      = (void *)arnoldi;
-  eps->ops->solve                = EPSSolve_ARNOLDI;
-  eps->ops->solvets              = EPSSolve_TS_ARNOLDI;
   eps->ops->setup                = EPSSetUp_ARNOLDI;
   eps->ops->setfromoptions       = EPSSetFromOptions_ARNOLDI;
   eps->ops->destroy              = EPSDestroy_ARNOLDI;

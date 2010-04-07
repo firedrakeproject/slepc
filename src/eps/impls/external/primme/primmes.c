@@ -24,6 +24,8 @@
 #include "private/epsimpl.h"    /*I "slepceps.h" I*/
 #include "private/stimpl.h"
 
+PetscErrorCode EPSSolve_PRIMME(EPS);
+
 EXTERN_C_BEGIN
 #include "primme.h"
 EXTERN_C_END
@@ -159,6 +161,9 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,eps->nloc,eps->n,PETSC_NULL,&ops->x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,eps->nloc,eps->n,PETSC_NULL,&ops->y);CHKERRQ(ierr);
  
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_PRIMME;
   PetscFunctionReturn(0);
 }
 
@@ -698,7 +703,6 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   ierr = PetscNew(EPS_PRIMME,&primme);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_PRIMME));
   eps->data                      = (void *) primme;
-  eps->ops->solve                = EPSSolve_PRIMME;
   eps->ops->setup                = EPSSetUp_PRIMME;
   eps->ops->setfromoptions       = EPSSetFromOptions_PRIMME;
   eps->ops->destroy              = EPSDestroy_PRIMME;

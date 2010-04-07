@@ -206,7 +206,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   }
    
   /* left eigenvectors */
-  if (eps->solverclass == EPS_TWO_SIDE) {
+  if (eps->leftvecs) {
 #if !defined(PETSC_USE_COMPLEX)
     LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
 #else

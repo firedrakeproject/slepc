@@ -43,6 +43,9 @@
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
+PetscErrorCode EPSSolve_POWER(EPS);
+PetscErrorCode EPSSolve_TS_POWER(EPS);
+
 typedef struct {
   EPSPowerShiftType shift_type;
 } EPS_POWER;
@@ -80,11 +83,15 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   if (eps->balance!=EPS_BALANCE_NONE)
     SETERRQ(PETSC_ERR_SUP,"Balancing not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  if (eps->solverclass == EPS_TWO_SIDE) {
+  if (eps->leftvecs) {
     ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
   } else {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   }
+
+  /* dispatch solve method */
+  if (eps->leftvecs) eps->ops->solve = EPSSolve_TS_POWER;
+  else eps->ops->solve = EPSSolve_POWER;
   PetscFunctionReturn(0);
 }
 
@@ -563,8 +570,6 @@ PetscErrorCode EPSCreate_POWER(EPS eps)
   ierr = PetscNew(EPS_POWER,&power);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_POWER));
   eps->data                      = (void *) power;
-  eps->ops->solve                = EPSSolve_POWER;
-  eps->ops->solvets              = EPSSolve_TS_POWER;
   eps->ops->setup                = EPSSetUp_POWER;
   eps->ops->setfromoptions       = EPSSetFromOptions_POWER;
   eps->ops->destroy              = EPSDestroy_POWER;

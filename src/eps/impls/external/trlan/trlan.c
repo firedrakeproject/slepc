@@ -23,6 +23,8 @@
 
 #include "src/eps/impls/external/trlan/trlanp.h"
 
+PetscErrorCode EPSSolve_TRLAN(EPS);
+
 /* Nasty global variable to access EPS data from TRLan_ */
 static EPS globaleps;
 
@@ -62,6 +64,10 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_TRLAN;
   PetscFunctionReturn(0);
 }
 
@@ -171,7 +177,6 @@ PetscErrorCode EPSCreate_TRLAN(EPS eps)
   ierr = PetscNew(EPS_TRLAN,&trlan);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_TRLAN));
   eps->data                      = (void *) trlan;
-  eps->ops->solve                = EPSSolve_TRLAN;
   eps->ops->setup                = EPSSetUp_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->backtransform        = EPSBackTransform_Default;

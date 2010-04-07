@@ -90,16 +90,6 @@ typedef enum { EPS_RITZ=1,
                EPS_REFINED_HARMONIC } EPSExtraction;
 
 /*E
-    EPSClass - determines if the eigensolver is one- or two-sided
-
-    Level: intermediate
-
-.seealso: EPSSetClass(), EPSGetClass()
-E*/
-typedef enum { EPS_ONE_SIDE,
-               EPS_TWO_SIDE } EPSClass;
-
-/*E
     EPSWhich - determines which part of the spectrum is requested
 
     Level: intermediate
@@ -139,8 +129,6 @@ EXTERN PetscErrorCode EPSSetExtraction(EPS,EPSExtraction);
 EXTERN PetscErrorCode EPSGetExtraction(EPS,EPSExtraction*);
 EXTERN PetscErrorCode EPSSetBalance(EPS,EPSBalance,PetscInt,PetscReal);
 EXTERN PetscErrorCode EPSGetBalance(EPS,EPSBalance*,PetscInt*,PetscReal*);
-EXTERN PetscErrorCode EPSSetClass(EPS,EPSClass);
-EXTERN PetscErrorCode EPSGetClass(EPS,EPSClass*);
 EXTERN PetscErrorCode EPSSetOperators(EPS,Mat,Mat);
 EXTERN PetscErrorCode EPSGetOperators(EPS,Mat*,Mat*);
 EXTERN PetscErrorCode EPSSetFromOptions(EPS);

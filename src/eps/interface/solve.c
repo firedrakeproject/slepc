@@ -80,18 +80,8 @@ PetscErrorCode EPSSolve(EPS eps)
 
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
-  switch (eps->solverclass) {
-    case EPS_ONE_SIDE:
-      ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr); break;
-    case EPS_TWO_SIDE:
-      if (eps->ops->solvets) {
-        ierr = (*eps->ops->solvets)(eps);CHKERRQ(ierr); break;
-      } else {
-        SETERRQ(1,"Two-sided version unavailable for this solver");
-      }
-    default:
-      SETERRQ(1,"Wrong value of eps->solverclass");
-  }
+  /* call solver */
+  ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
 
   ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
@@ -110,7 +100,7 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
-  if (eps->isgeneralized && eps->solverclass == EPS_TWO_SIDE) {
+  if (eps->isgeneralized && eps->leftvecs) {
     Mat B;
     KSP ksp;
     Vec w;
@@ -426,12 +416,14 @@ PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps, Vec *v)
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_COOKIE,2);
-  if (!eps->W) { 
-    if (eps->solverclass!=EPS_TWO_SIDE) {
-      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
-    } else {
-      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
-    } 
+  if (!eps->leftvecs) {
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+  }
+  if (!eps->W) {
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
+  }
+  if (!eps->ishermitian && eps->evecsavailable) { 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspaceLeft must be called before EPSGetEigenpairLeft,EPSComputeRelativeErrorLeft or EPSComputeResidualNormLeft"); 
   }
   for (i=0;i<eps->nconv;i++) {
     ierr = VecCopy(eps->W[i],v[i]);CHKERRQ(ierr);
@@ -660,12 +652,11 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!eps->leftvecs) {
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+  }
   if (!eps->W) { 
-    if (eps->solverclass!=EPS_TWO_SIDE) {
-      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
-    } else {
-      SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
-    } 
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
   }
   if (i<0 || i>=eps->nconv) { 
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
@@ -768,8 +759,8 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
   if (!eps->eigr || !eps->eigi) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
-  if (eps->solverclass!=EPS_TWO_SIDE) {
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Only available for two-sided solvers"); 
+  if (!eps->leftvecs) {
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   if (i<0 || i>=eps->nconv) { 
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
@@ -922,6 +913,9 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (!eps->leftvecs) {
+    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+  }
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&u); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&v); CHKERRQ(ierr);

@@ -24,6 +24,8 @@
 #include "src/eps/impls/external/arpack/arpackp.h"
 #include "private/stimpl.h"
 
+PetscErrorCode EPSSolve_ARPACK(EPS);
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_ARPACK"
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
@@ -74,6 +76,9 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
 
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_ARPACK;
   PetscFunctionReturn(0);
 }
 
@@ -337,7 +342,6 @@ PetscErrorCode EPSCreate_ARPACK(EPS eps)
   ierr = PetscNew(EPS_ARPACK,&arpack);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_ARPACK));
   eps->data                      = (void *) arpack;
-  eps->ops->solve                = EPSSolve_ARPACK;
   eps->ops->setup                = EPSSetUp_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
   eps->ops->backtransform        = EPSBackTransform_ARPACK;

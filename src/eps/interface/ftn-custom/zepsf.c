@@ -42,7 +42,6 @@
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
 #define epsgetbalance_              EPSGETBALANCE
-#define epsgetclass_                EPSGETCLASS
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
 #define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
@@ -65,7 +64,6 @@
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
 #define epsgetbalance_              epsgetbalance
-#define epsgetclass_                epsgetclass
 #define epsgetconvergedreason_      epsgetconvergedreason
 #define epspowergetshifttype_       epspowergetshifttype
 #define epslanczosgetreorthog_      epslanczosgetreorthog
@@ -229,11 +227,6 @@ void PETSC_STDCALL epsgetextraction_(EPS *eps,EPSExtraction *proj,PetscErrorCode
 void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
 {
   *ierr = EPSGetBalance(*eps,bal,its,cutoff);
-}
-
-void PETSC_STDCALL epsgetclass_(EPS *eps,EPSClass *cl,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetClass(*eps,cl);
 }
 
 void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,PetscErrorCode *ierr)

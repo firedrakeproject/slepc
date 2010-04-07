@@ -30,8 +30,7 @@ extern PetscLogEvent EPS_SetUp, EPS_Solve, EPS_Dense;
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
-  PetscErrorCode  (*solve)(EPS);            /* one-sided solver */
-  PetscErrorCode  (*solvets)(EPS);          /* two-sided solver */
+  PetscErrorCode  (*solve)(EPS);
   PetscErrorCode  (*setup)(EPS);
   PetscErrorCode  (*setfromoptions)(EPS);
   PetscErrorCode  (*publishoptions)(EPS);
@@ -69,7 +68,6 @@ struct _p_EPS {
   void           *which_ctx;
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */
-  EPSClass       solverclass;      /* whether the selected solver is one- or two-sided */
   EPSBalance     balance;          /* the balancing method */
   PetscInt       balance_its;      /* number of iterations of the balancing method */
   PetscReal      balance_cutoff;   /* cutoff value for balancing */

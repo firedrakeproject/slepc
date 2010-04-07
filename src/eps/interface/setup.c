@@ -92,6 +92,9 @@ PetscErrorCode EPSSetUp(EPS eps)
     SETERRQ(1,"Hermitian problems are not compatible with complex shifts")
   }
 #endif
+  if (eps->ishermitian && eps->leftvecs) {
+    SETERRQ(1,"Requesting left eigenvectors not allowed in Hermitian problems")
+  }
   
   if (eps->ispositive) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
@@ -148,8 +151,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscFree(eps->IS);CHKERRQ(ierr);
   }
   if (eps->ninil<0) {
-    if (eps->solverclass != EPS_TWO_SIDE)
-      PetscInfo(eps,"Ignoring initial left vectors\n");
+    if (!eps->leftvecs) PetscInfo(eps,"Ignoring initial left vectors\n");
     else {
       eps->ninil = -eps->ninil;
       if (eps->ninil>eps->ncv) SETERRQ(1,"The number of initial left vectors is larger than ncv")

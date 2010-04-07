@@ -39,6 +39,8 @@
 
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 
+PetscErrorCode EPSSolve_LANCZOS(EPS);
+
 typedef struct {
   EPSLanczosReorthogType reorthog;
 } EPS_LANCZOS;
@@ -66,22 +68,17 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
-  if (eps->solverclass==EPS_ONE_SIDE) {
-    switch (eps->which) {
-      case EPS_LARGEST_IMAGINARY:
-      case EPS_SMALLEST_IMAGINARY:
-      case EPS_TARGET_MAGNITUDE:
-      case EPS_TARGET_REAL:
-      case EPS_TARGET_IMAGINARY:
-        SETERRQ(1,"Wrong value of eps->which");
-      default: ; /* default case to remove warning */
-    }
-    if (!eps->ishermitian)
-      SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
-  } else {
-    if (eps->which != EPS_LARGEST_MAGNITUDE)
+  switch (eps->which) {
+    case EPS_LARGEST_IMAGINARY:
+    case EPS_SMALLEST_IMAGINARY:
+    case EPS_TARGET_MAGNITUDE:
+    case EPS_TARGET_REAL:
+    case EPS_TARGET_IMAGINARY:
       SETERRQ(1,"Wrong value of eps->which");
+    default: ; /* default case to remove warning */
   }
+  if (!eps->ishermitian)
+    SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) {
@@ -92,15 +89,15 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
     ierr = VecDuplicateVecs(eps->V[0],eps->ncv,&eps->AV);CHKERRQ(ierr);
   }
-  if (eps->solverclass==EPS_TWO_SIDE) {
-    ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
-  }
-  if (eps->solverclass==EPS_TWO_SIDE || lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
+  if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   } else {
     ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   }
+
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_LANCZOS;
   PetscFunctionReturn(0);
 }
 
@@ -894,7 +891,6 @@ PetscErrorCode EPSCreate_LANCZOS(EPS eps)
   ierr = PetscNew(EPS_LANCZOS,&lanczos);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_LANCZOS));
   eps->data                      = (void *) lanczos;
-  eps->ops->solve                = EPSSolve_LANCZOS;
   eps->ops->setup                = EPSSetUp_LANCZOS;
   eps->ops->setfromoptions       = EPSSetFromOptions_LANCZOS;
   eps->ops->destroy              = EPSDestroy_LANCZOS;

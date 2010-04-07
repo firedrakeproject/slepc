@@ -42,9 +42,9 @@
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
-PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps);
-extern PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps);
-extern PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps);
+PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS);
+extern PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS);
+extern PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS);
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_KRYLOVSCHUR"
@@ -82,6 +82,22 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   }
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->ishermitian) {
+    switch (eps->extraction) {
+      case EPS_RITZ:     eps->ops->solve = EPSSolve_KRYLOVSCHUR_SYMM; break;
+      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KRYLOVSCHUR_HARMONIC; break;
+      default: SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
+    }
+  } else {
+    switch (eps->extraction) {
+      case EPS_RITZ: eps->ops->solve = EPSSolve_KRYLOVSCHUR_DEFAULT; break;
+      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KRYLOVSCHUR_HARMONIC; break;
+      default: SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -117,37 +133,6 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,PetscInt l,PetscScalar *S,PetscInt l
   ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
   /* Sort the remaining columns of the Schur form */
   ierr = EPSSortDenseSchur(eps,n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);    
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_KRYLOVSCHUR"
-PetscErrorCode EPSSolve_KRYLOVSCHUR(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (eps->ishermitian) {
-    switch (eps->extraction) {
-      case EPS_RITZ:
-        ierr = EPSSolve_KRYLOVSCHUR_SYMM(eps);CHKERRQ(ierr);
-        break;
-      case EPS_HARMONIC:
-        ierr = EPSSolve_KRYLOVSCHUR_HARMONIC(eps);CHKERRQ(ierr);
-        break;
-      default: SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
-    }
-  } else {
-    switch (eps->extraction) {
-      case EPS_RITZ:
-        ierr = EPSSolve_KRYLOVSCHUR_DEFAULT(eps);CHKERRQ(ierr);
-        break;
-      case EPS_HARMONIC:
-        ierr = EPSSolve_KRYLOVSCHUR_HARMONIC(eps);CHKERRQ(ierr);
-        break;
-      default: SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
-    }
-  }
   PetscFunctionReturn(0);
 }
 
@@ -246,8 +231,6 @@ PetscErrorCode EPSCreate_KRYLOVSCHUR(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                      = PETSC_NULL;
-  eps->ops->solve                = EPSSolve_KRYLOVSCHUR;
-  eps->ops->solvets              = PETSC_NULL;
   eps->ops->setup                = EPSSetUp_KRYLOVSCHUR;
   eps->ops->setfromoptions       = PETSC_NULL;
   eps->ops->destroy              = EPSDestroy_Default;

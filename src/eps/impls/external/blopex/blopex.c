@@ -29,6 +29,8 @@
 #include "multivector.h"
 #include "temp_multivector.h"
 
+PetscErrorCode EPSSolve_BLOPEX(EPS);
+
 typedef struct {
   lobpcg_Tolerance           tol;
   lobpcg_BLASLAPACKFunctions blap_fn;
@@ -175,6 +177,9 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
 
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_BLOPEX;
   PetscFunctionReturn(0);
 }
 
@@ -237,7 +242,6 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   ierr = KSPSetOptionsPrefix(blopex->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(blopex->ksp,"eps_blopex_");CHKERRQ(ierr);
   eps->data                      = (void *) blopex;
-  eps->ops->solve                = EPSSolve_BLOPEX;
   eps->ops->setup                = EPSSetUp_BLOPEX;
   eps->ops->setfromoptions       = PETSC_NULL;
   eps->ops->destroy              = EPSDestroy_BLOPEX;

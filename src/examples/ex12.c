@@ -37,10 +37,10 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
 int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
-  Vec         	 v0,temp;	  /* initial vector */
-  Vec         	 *X,*Y; 	  /* right and left eigenvectors */
-  Mat         	 A;		  /* operator matrix */
-  EPS         	 eps;		  /* eigenproblem solver context */
+  Vec         	 v0,w0;           /* initial vector */
+  Vec         	 *X,*Y;           /* right and left eigenvectors */
+  Mat         	 A;               /* operator matrix */
+  EPS         	 eps;             /* eigenproblem solver context */
   const EPSType  type;
   PetscReal   	 error1, error2, tol, re, im;
   PetscScalar 	 kr, ki;
@@ -71,16 +71,12 @@ int main( int argc, char **argv )
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
 
   /* 
-     Set operators. In this case, it is a standard eigenvalue problem
+     Set operators. In this case, it is a standard eigenvalue problem.
+     Request also left eigenvectors 
   */
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
-
-  /*
-     Select a two-sided version of the eigensolver so that left eigenvectors
-     are also computed
-  */
-  ierr = EPSSetClass(eps,EPS_TWO_SIDE);CHKERRQ(ierr);
+  ierr = EPSSetLeftVectorsWanted(eps,PETSC_TRUE);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
@@ -91,11 +87,11 @@ int main( int argc, char **argv )
      Set the initial vector. This is optional, if not done the initial
      vector is set to random values
   */
-  ierr = MatGetVecs(A,&v0,&temp);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&v0,&w0);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
-  ierr = MatMult(A,v0,temp);CHKERRQ(ierr);
+  ierr = MatMult(A,v0,w0);CHKERRQ(ierr);
   ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
-  ierr = EPSSetInitialSpaceLeft(eps,1,&temp);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpaceLeft(eps,1,&w0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
@@ -161,7 +157,7 @@ int main( int argc, char **argv )
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
 
     ierr = VecDuplicateVecs(v0,nconv,&X);
-    ierr = VecDuplicateVecs(temp,nconv,&Y);
+    ierr = VecDuplicateVecs(w0,nconv,&Y);
     for (i=0;i<nconv;i++) {
       ierr = EPSGetEigenvector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
       ierr = EPSGetEigenvectorLeft(eps,i,Y[i],PETSC_NULL);CHKERRQ(ierr);
@@ -181,7 +177,7 @@ int main( int argc, char **argv )
      Free work space
   */
   ierr = VecDestroy(v0);CHKERRQ(ierr);
-  ierr = VecDestroy(temp);CHKERRQ(ierr);
+  ierr = VecDestroy(w0);CHKERRQ(ierr);
   ierr = EPSDestroy(eps);CHKERRQ(ierr);
   ierr = MatDestroy(A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);

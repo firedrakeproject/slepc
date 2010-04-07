@@ -115,7 +115,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   } else {
     ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&pV);CHKERRQ(ierr);
   }
-  if (eps->solverclass == EPS_TWO_SIDE && (la->OP || !eps->ishermitian)) {
+  if (eps->leftvecs) {
     if (size == 1) {
       ierr = VecGetArray(eps->W[0],&pW);CHKERRQ(ierr);
     } else {
@@ -222,7 +222,6 @@ PetscErrorCode EPSCreate_LAPACK(EPS eps)
   PetscLogObjectMemory(eps,sizeof(EPS_LAPACK));
   eps->data                      = (void *) la;
   eps->ops->solve                = EPSSolve_LAPACK;
-  eps->ops->solvets              = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;

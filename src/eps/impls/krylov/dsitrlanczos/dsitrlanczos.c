@@ -29,6 +29,8 @@
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepcblaslapack.h"
 
+PetscErrorCode EPSSolve_DSITRLANCZOS(EPS);
+
 extern PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,PetscReal *b,PetscScalar *eig,PetscScalar *Q,PetscReal *work,PetscInt *perm);
 
 #undef __FUNCT__  
@@ -72,6 +74,10 @@ PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_DSITRLANCZOS;
   PetscFunctionReturn(0);
 }
 
@@ -205,8 +211,6 @@ PetscErrorCode EPSCreate_DSITRLANCZOS(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                      = PETSC_NULL;
-  eps->ops->solve                = EPSSolve_DSITRLANCZOS;
-  eps->ops->solvets              = PETSC_NULL;
   eps->ops->setup                = EPSSetUp_DSITRLANCZOS;
   eps->ops->setfromoptions       = PETSC_NULL;
   eps->ops->destroy              = EPSDestroy_Default;

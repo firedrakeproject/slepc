@@ -97,11 +97,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetBalance(eps,(EPSBalance)PETSC_IGNORE,j,r);CHKERRQ(ierr);
 
-    ierr = PetscOptionsTruthGroupBegin("-eps_oneside","one-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetClass(eps,EPS_ONE_SIDE);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_twoside","two-sided eigensolver","EPSSetClass",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetClass(eps,EPS_TWO_SIDE);CHKERRQ(ierr);}
-
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
@@ -920,74 +915,6 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
   if (bal)    *bal = eps->balance;
   if (its)    *its = eps->balance_its;
   if (cutoff) *cutoff = eps->balance_cutoff;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetClass"
-/*@
-   EPSSetClass - Specifies the eigensolver class: either one-sided or two-sided.
-
-   Collective on EPS
-
-   Input Parameters:
-+  eps      - the eigensolver context
--  class    - the class of solver
-
-   Options Database Keys:
-+  -eps_oneside - one-sided solver
--  -eps_twoside - two-sided solver
-    
-   Note:  
-   Allowed solver classes are: one-sided (EPS_ONE_SIDE) and two-sided (EPS_TWO_SIDE).
-   One-sided eigensolvers are the standard ones, which allow the computation of
-   eigenvalues and (right) eigenvectors, whereas two-sided eigensolvers compute
-   left eigenvectors as well.
-
-   Level: intermediate
-
-.seealso: EPSGetEigenvectorLeft(), EPSComputeRelativeErrorLeft(), 
-   EPSGetClass(), EPSClass
-@*/
-PetscErrorCode EPSSetClass(EPS eps,EPSClass cl)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-
-  if (cl != EPS_ONE_SIDE && cl != EPS_TWO_SIDE) SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigensolver class");
-  if (eps->solverclass!=cl) {
-    if (eps->solverclass == EPS_TWO_SIDE) { ierr = EPSFreeSolution(eps);CHKERRQ(ierr); }
-    eps->solverclass = cl;
-  }
-
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSGetClass"
-/*@C
-   EPSGetClass - Gets the eigensolver class from the EPS object.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigensolver context 
-
-   Output Parameter:
-.  class - class of EPS solver (either one-sided or two-sided)
-
-   Level: intermediate
-
-.seealso: EPSSetClass(), EPSClass
-@*/
-PetscErrorCode EPSGetClass(EPS eps,EPSClass *cl)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidPointer(cl,2);
-  *cl = eps->solverclass;
   PetscFunctionReturn(0);
 }
 

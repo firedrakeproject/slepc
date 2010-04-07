@@ -159,14 +159,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
     if (type) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s",type);CHKERRQ(ierr);
-      switch (eps->solverclass) {
-        case EPS_ONE_SIDE: 
-          ierr = PetscViewerASCIIPrintf(viewer,"\n",type);CHKERRQ(ierr); break;
-        case EPS_TWO_SIDE: 
-          ierr = PetscViewerASCIIPrintf(viewer," (two-sided)\n",type);CHKERRQ(ierr); break;
-        default: SETERRQ(1,"Wrong value of eps->solverclass");
-      }
+      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s\n",type);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  method: not yet set\n");CHKERRQ(ierr);
     }
@@ -334,7 +327,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance         = (EPSBalance)0;
   eps->balance_its     = 5;
   eps->balance_cutoff  = 1e-8;
-  eps->solverclass     = (EPSClass)0;
 
   eps->V               = 0;
   eps->AV              = 0;

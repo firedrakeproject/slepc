@@ -24,6 +24,8 @@
 #include "src/eps/impls/external/blzpack/blzpackp.h"   /*I "slepceps.h" I*/
 #include "private/stimpl.h"
 
+PetscErrorCode EPSSolve_BLZPACK(EPS);
+
 const char* blzpack_error[33] = {
   "",
   "illegal data, LFLAG ",
@@ -129,6 +131,10 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+
+  /* dispatch solve method */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_BLZPACK;
   PetscFunctionReturn(0);
 }
 
@@ -524,7 +530,6 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   ierr = PetscNew(EPS_BLZPACK,&blzpack);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_BLZPACK));
   eps->data                      = (void *) blzpack;
-  eps->ops->solve                = EPSSolve_BLZPACK;
   eps->ops->setup                = EPSSetUp_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
   eps->ops->destroy              = EPSDestroy_BLZPACK;

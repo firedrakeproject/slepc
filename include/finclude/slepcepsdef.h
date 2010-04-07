@@ -35,7 +35,6 @@
 #define EPSConvergedReason     PetscEnum
 #define EPSProblemType         PetscEnum
 #define EPSWhich               PetscEnum
-#define EPSClass               PetscEnum
 #define EPSExtraction          PetscEnum
 #define EPSBalance             PetscEnum
 #define EPSPowerShiftType      PetscEnum
