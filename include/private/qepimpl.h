@@ -103,6 +103,13 @@ struct _p_QEP {
 	  } \
 	}
 
+/* context for QEPMonitorConverged */
+typedef struct {
+  PetscViewerASCIIMonitor viewer;
+  PetscInt oldnconv;
+} QEPMONITOR_CONV;
+EXTERN PetscErrorCode QEPMonitorDestroy_Converged(QEPMONITOR_CONV*);
+
 EXTERN PetscErrorCode QEPRegisterAll(char *);
 EXTERN PetscErrorCode QEPInitializePackage(char *);
 EXTERN PetscErrorCode QEPFinalizePackage(void);

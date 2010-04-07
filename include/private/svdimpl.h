@@ -93,7 +93,13 @@ EXTERN PetscErrorCode SVDFinalizePackage(void);
 	  } \
 	}
 
-#endif
+/* context for SVDMonitorConverged */
+typedef struct {
+  PetscViewerASCIIMonitor viewer;
+  PetscInt oldnconv;
+} SVDMONITOR_CONV;
+EXTERN PetscErrorCode SVDMonitorDestroy_Converged(SVDMONITOR_CONV*);
+
 EXTERN PetscErrorCode SVDDestroy_Default(SVD);
 EXTERN PetscErrorCode SVDMatMult(SVD,PetscTruth,Vec,Vec);
 EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
@@ -101,3 +107,4 @@ EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*);
 
+#endif

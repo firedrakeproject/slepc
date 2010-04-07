@@ -248,6 +248,12 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     }
   }
   PetscFunctionReturn(0);
+/* context for QEPMonitorConverged */
+typedef struct {
+  PetscViewerASCIIMonitor viewer;
+  PetscInt oldnconv;
+} QEPMONITOR_CONV;
+
 }
 
 #undef __FUNCT__  
@@ -387,6 +393,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscInt       i,j,k;
   PetscReal      r;
   PetscViewerASCIIMonitor monviewer;
+  SVDMONITOR_CONV *ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
@@ -436,8 +443,9 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   }
   ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
-    ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
-    ierr = SVDMonitorSet(svd,SVDMonitorConverged,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = PetscNew(SVDMONITOR_CONV,&ctx);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&ctx->viewer);CHKERRQ(ierr);
+      ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void*))SVDMonitorDestroy_Converged);CHKERRQ(ierr);
   }
   ierr = PetscOptionsString("-svd_monitor_first","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {

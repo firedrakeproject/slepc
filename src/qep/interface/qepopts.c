@@ -49,6 +49,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   PetscReal      r;
   PetscInt       i,j,k;
   PetscViewerASCIIMonitor monviewer;
+  QEPMONITOR_CONV *ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
@@ -105,8 +106,9 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     }
     ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorConverged,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = PetscNew(QEPMONITOR_CONV,&ctx);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&ctx->viewer);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void*))QEPMonitorDestroy_Converged);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-qep_monitor_first","Monitor first unconverged approximate eigenvalue and error estimate","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
