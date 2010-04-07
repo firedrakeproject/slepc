@@ -126,7 +126,16 @@ PetscErrorCode EPSSetUp(EPS eps)
         eps->DS[i] = vds;
       }
       /* orthonormalize vectors in DS */
-      ierr = IPQRDecomposition(eps->ip,eps->DS,0,eps->nds,PETSC_NULL,0);CHKERRQ(ierr);
+      k = 0;
+      for (i=0;i<eps->nds;i++) {
+        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->DS,eps->DS[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+        if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent deflation vector found, removing...\n");
+        else {
+          ierr = VecScale(eps->DS[k],1.0/norm);CHKERRQ(ierr);
+          k++;
+        }
+      }
+      eps->nds = k;
       eps->ds_ortho = PETSC_TRUE;
     }
   }

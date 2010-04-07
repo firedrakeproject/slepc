@@ -233,7 +233,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
-  PetscInt       i,ngrp,nogrp,*itrsd,*itrsdold,
+  PetscInt       i,k,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond=1.0;
@@ -256,14 +256,22 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
 
-  /* Generate a set of random initial vectors and orthonormalize them */
   for (i=0;i<ncv;i++) {
-    ierr = SlepcVecSetRandom(eps->V[i]);CHKERRQ(ierr);
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }
-  ierr = IPQRDecomposition(eps->ip,eps->V,0,ncv,PETSC_NULL,0);CHKERRQ(ierr);
   
+  /* Complete the initial basis with random vectors and orthonormalize them */
+  k = eps->nini;
+  while (k<ncv) {
+    ierr = SlepcVecSetRandom(eps->V[k]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr); 
+    if (norm>0.0 && !breakdown) {
+      ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
+      k++;
+    }
+  }
+
   while (eps->its<eps->max_it) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);

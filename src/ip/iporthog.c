@@ -366,8 +366,7 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth 
 .  V - set of vectors
 .  m - starting column
 .  n - ending column
-.  ldr - leading dimension of R
--  work - workspace vector 
+-  ldr - leading dimension of R
 
    Output Parameter:
 .  R  - triangular matrix of QR factorization
