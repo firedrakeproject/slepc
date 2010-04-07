@@ -515,7 +515,10 @@ PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscTruth leftvecs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  eps->leftvecs = leftvecs;
+  if (eps->leftvecs != leftvecs) {
+    eps->leftvecs = leftvecs;
+    eps->setupcalled = 0;
+  }
   PetscFunctionReturn(0);
 }
 
