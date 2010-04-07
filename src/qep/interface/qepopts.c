@@ -456,7 +456,10 @@ PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscTruth leftvecs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
-  qep->leftvecs = leftvecs;
+  if (qep->leftvecs != leftvecs) {
+    qep->leftvecs = leftvecs;
+    qep->setupcalled = 0;
+  }
   PetscFunctionReturn(0);
 }
 
