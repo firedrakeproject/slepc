@@ -418,7 +418,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   for (j=0;j<eps->balance_its;j++) {
 
     /* Build a random vector of +-1's */
-    ierr = SlepcVecSetRandom(z);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(z,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
     for (i=0;i<eps->nloc;i++) {
       if (PetscRealPart(pz[i])<0.5) pz[i]=-1.0;

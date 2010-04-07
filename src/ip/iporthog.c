@@ -404,7 +404,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0 || lindep) { 
       PetscInfo(ip,"Linearly dependent vector found, generating a new random vector\n");
-      ierr = SlepcVecSetRandom(V[k]);CHKERRQ(ierr);
+      ierr = SlepcVecSetRandom(V[k],PETSC_NULL);CHKERRQ(ierr);
       ierr = IPNorm(ip,V[k],&norm);CHKERRQ(ierr);
     }
     ierr = VecScale(V[k],1.0/norm);CHKERRQ(ierr);

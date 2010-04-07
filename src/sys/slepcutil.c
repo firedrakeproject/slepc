@@ -28,13 +28,16 @@ PetscLogEvent SLEPC_UpdateVectors = 0, SLEPC_VecMAXPBY = 0;
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"
 /*@
-   SlepcVecSetRandom - Sets all components of a vector to random numbers which
-   follow a uniform distribution in [0,1).
+   SlepcVecSetRandom - Sets all components of a vector to random numbers.
 
    Collective on Vec
 
    Input/Output Parameter:
 .  x  - the vector
+
+   Input Parameter:
+-  rctx - the random number context, formed by PetscRandomCreate(), or PETSC_NULL and
+          it will create one internally.
 
    Note:
    This operation is equivalent to VecSetRandom - the difference is that the
@@ -42,33 +45,37 @@ PetscLogEvent SLEPC_UpdateVectors = 0, SLEPC_VecMAXPBY = 0;
    of the communicator.
 
    Level: developer
-
-.seealso: VecSetRandom()
 @*/
-PetscErrorCode SlepcVecSetRandom(Vec x)
+PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
 {
   PetscErrorCode ierr;
+  PetscRandom    randObj = PETSC_NULL;
   PetscInt       i,n,low,high;
   PetscScalar    *px,t;
-#if defined(PETSC_HAVE_DRAND48)
-  static unsigned short seed[3] = { 1, 3, 2 };
-#endif
   
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(x,VEC_COOKIE,1);
+  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_COOKIE,2);
+  if (!rctx) {
+    MPI_Comm comm;
+    ierr = PetscObjectGetComm((PetscObject)x,&comm);CHKERRQ(ierr);
+    ierr = PetscRandomCreate(comm,&randObj);CHKERRQ(ierr);
+    ierr = PetscRandomSetFromOptions(randObj);CHKERRQ(ierr);
+    rctx = randObj;
+  }
+
   ierr = VecGetSize(x,&n);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
   ierr = VecGetArray(x,&px);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-#if defined(PETSC_HAVE_DRAND48)
-    t = erand48(seed);
-#elif defined(PETSC_HAVE_RAND)
-    t = rand()/(PetscReal)((unsigned int)RAND_MAX+1);
-#else
-    t = 0.5;
-#endif
+    ierr = PetscRandomGetValue(rctx,&t);CHKERRQ(ierr);
     if (i>=low && i<high) px[i-low] = t;
   }
   ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  if (randObj) {
+    ierr = PetscRandomDestroy(randObj);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectStateIncrease((PetscObject)x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -126,7 +133,7 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
   ierr = VecCreate(comm,&x);CHKERRQ(ierr);
   ierr = VecSetSizes(x,n,N);CHKERRQ(ierr);
   ierr = VecSetFromOptions(x);CHKERRQ(ierr);
-  ierr = SlepcVecSetRandom(x);CHKERRQ(ierr);
+  ierr = SlepcVecSetRandom(x,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(x,&w1);CHKERRQ(ierr);
   ierr = VecDuplicate(x,&w2);CHKERRQ(ierr);
   ierr = MatMult(A,x,w1);CHKERRQ(ierr);

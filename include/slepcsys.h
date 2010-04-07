@@ -48,7 +48,7 @@ EXTERN PetscErrorCode SlepcInitialize(int*,char***,char[],const char[]);
 EXTERN PetscErrorCode SlepcFinalize(void);
 EXTERN PetscErrorCode SlepcInitializeFortran(void);
 
-EXTERN PetscErrorCode SlepcVecSetRandom(Vec);
+EXTERN PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
 EXTERN PetscErrorCode SlepcIsHermitian(Mat,PetscTruth*);
 #if !defined(PETSC_USE_COMPLEX)
 EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
