@@ -121,6 +121,13 @@ struct _p_EPS {
 	  } \
 	}
 
+/* context for EPSMonitorConverged */
+typedef struct {
+  PetscViewerASCIIMonitor viewer;
+  PetscInt oldnconv;
+} EPSMONITOR_CONV;
+EXTERN PetscErrorCode EPSMonitorDestroy_Converged(EPSMONITOR_CONV*);
+
 EXTERN PetscErrorCode EPSRegisterAll(char *);
 EXTERN PetscErrorCode EPSInitializePackage(char *);
 EXTERN PetscErrorCode EPSFinalizePackage(void);

@@ -259,29 +259,35 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 @*/
 PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
-  PetscErrorCode          ierr;
-  static PetscInt         oldnconv;
-  PetscInt                i;
-  PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
+  PetscErrorCode  ierr;
+  PetscInt        i;
+  EPSMONITOR_CONV *ctx = (EPSMONITOR_CONV*) dummy;
 
   PetscFunctionBegin;
   if (!its) {
-    oldnconv = 0;
+    ctx->oldnconv = 0;
   } else {
-    if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
-    for (i=oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d EPS converged value (error) #%d",its,i);CHKERRQ(ierr);
+    for (i=ctx->oldnconv;i<nconv;i++) {
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3d EPS converged value (error) #%d",its,i);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g",eigr[i]);CHKERRQ(ierr);
+      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
 #endif
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," (%10.8e)\n",errest[i]);CHKERRQ(ierr);
     }
-    oldnconv = nconv;
-    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
+    ctx->oldnconv = nconv;
   }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSMonitorDestroy_Converged(EPSMONITOR_CONV *ctx)
+{
+  PetscErrorCode  ierr;
+  PetscFunctionBegin;
+  ierr = PetscViewerASCIIMonitorDestroy(ctx->viewer);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
