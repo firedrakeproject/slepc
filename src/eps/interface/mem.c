@@ -51,7 +51,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
       }
       ierr = PetscFree(pV);CHKERRQ(ierr);
       ierr = PetscFree(eps->V);CHKERRQ(ierr);
-      if (eps->AV) { ierr = VecDestroyVecs(eps->AV,eps->allocated_ncv);CHKERRQ(ierr); }
       if (eps->W) {
         ierr = VecGetArray(eps->W[0],&pW);CHKERRQ(ierr);
         for (i=0;i<eps->allocated_ncv;i++) {
@@ -71,7 +70,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     for (i=0;i<eps->ncv;i++) {
       ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pV+i*eps->nloc,&eps->V[i]);CHKERRQ(ierr);
     }
-    eps->AV = PETSC_NULL;
     if (eps->leftvecs) {
       ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->W);CHKERRQ(ierr);
       ierr = PetscMalloc(eps->ncv*eps->nloc*sizeof(PetscScalar),&pW);CHKERRQ(ierr);
@@ -110,7 +108,6 @@ PetscErrorCode EPSFreeSolution(EPS eps)
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(eps->V);CHKERRQ(ierr);
-    if (eps->AV) { ierr = VecDestroyVecs(eps->AV,eps->allocated_ncv);CHKERRQ(ierr); }
     if (eps->W) {
       ierr = VecGetArray(eps->W[0],&pW);CHKERRQ(ierr);
       for (i=0;i<eps->allocated_ncv;i++) {

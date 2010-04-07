@@ -43,6 +43,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS);
 
 typedef struct {
   EPSLanczosReorthogType reorthog;
+  Vec *AV;
 } EPS_LANCZOS;
 
 #undef __FUNCT__  
@@ -87,7 +88,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
-    ierr = VecDuplicateVecs(eps->V[0],eps->ncv,&eps->AV);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->V[0],eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   }
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
@@ -169,6 +170,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
 static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscTruth *breakdown,PetscReal anorm)
 {
   PetscErrorCode ierr;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscInt       i,j,m = *M,n,nritz=0,nritzo;
   PetscReal      *d,*e,*ritz,norm;
   PetscScalar    *Y,*hwork,lhwork[100];
@@ -221,14 +223,14 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
       nritz = 0;
       for (i=0;i<n;i++) {
 	if (norm*PetscAbsScalar(Y[i*n+n-1]) < PETSC_SQRT_MACHINE_EPSILON*anorm) {
-	  ierr = SlepcVecMAXPBY(eps->AV[nritz],0.0,1.0,n,Y+i*n,V+k);CHKERRQ(ierr);
+	  ierr = SlepcVecMAXPBY(lanczos->AV[nritz],0.0,1.0,n,Y+i*n,V+k);CHKERRQ(ierr);
           nritz++;
 	}
       }
     }
 
     if (nritz > 0) {
-      ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,nritz,PETSC_NULL,eps->AV,f,hwork,&norm,breakdown);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,nritz,PETSC_NULL,lanczos->AV,f,hwork,&norm,breakdown);CHKERRQ(ierr);
       if (*breakdown) {
 	*M = j+1;
 	break;
@@ -849,9 +851,11 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
 PetscErrorCode EPSDestroy_LANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  if (lanczos->AV) { ierr = VecDestroyVecs(lanczos->AV,eps->ncv);CHKERRQ(ierr); }
   ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -874,10 +878,6 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
   ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",lanczoslist[lanczos->reorthog]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
-/*
-EXTERN PetscErrorCode EPSSolve_TS_LANCZOS(EPS);
-*/
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  

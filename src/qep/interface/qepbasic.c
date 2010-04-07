@@ -266,7 +266,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
   qep->V               = PETSC_NULL;
-  qep->AV              = PETSC_NULL;
   qep->IS              = PETSC_NULL;
   qep->ISL             = PETSC_NULL;
   qep->T               = PETSC_NULL;

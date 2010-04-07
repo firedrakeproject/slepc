@@ -329,7 +329,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance_cutoff  = 1e-8;
 
   eps->V               = 0;
-  eps->AV              = 0;
   eps->W               = 0;
   eps->T               = 0;
   eps->Z               = 0;

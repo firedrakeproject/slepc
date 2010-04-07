@@ -75,7 +75,6 @@ struct _p_EPS {
   /*------------------------- Working data --------------------------*/
   Vec         D,                /* diagonal matrix for balancing */
               *V,               /* set of basis vectors and computed eigenvectors */
-              *AV,              /* auxiliar set of basis vectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */
               *IS, *ISL,        /* placeholder for references to user-provided initial space */
               *DS;              /* deflation space */

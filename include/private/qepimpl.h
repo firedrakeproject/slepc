@@ -69,7 +69,6 @@ struct _p_QEP {
   Mat         M,C,K;            /* problem matrices */
   Vec         *V,               /* set of basis vectors and computed eigenvectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */
-              *AV,              /* auxiliar set of basis vectors */
               *IS, *ISL;        /* placeholder for references to user-provided initial space */
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
               *T,*Z;            /* matrices for projected eigenproblem */

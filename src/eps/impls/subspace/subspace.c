@@ -41,12 +41,17 @@
 
 PetscErrorCode EPSSolve_SUBSPACE(EPS);
 
+typedef struct {
+  Vec *AV;
+} EPS_SUBSPACE;
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_SUBSPACE"
 PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
   PetscScalar    *pAV;
 
   PetscFunctionBegin;
@@ -72,10 +77,10 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*sizeof(Vec),&eps->AV);CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*sizeof(Vec),&ctx->AV);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->nloc*sizeof(PetscScalar),&pAV);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pAV+i*eps->nloc,&eps->AV[i]);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pAV+i*eps->nloc,&ctx->AV[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
@@ -227,6 +232,7 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 {
   PetscErrorCode ierr;
+  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
   PetscInt       i,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
@@ -270,12 +276,12 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 
     /* 1. AV(:,idx) = OP * V(:,idx) */
     for (i=eps->nconv;i<nv;i++) {
-      ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
+      ierr = STApply(eps->OP,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
     }
 
     /* 2. T(:,idx) = V' * AV(:,idx) */
     for (i=eps->nconv;i<nv;i++) {
-      ierr = VecMDot(eps->AV[i],nv,eps->V,T+i*ncv);CHKERRQ(ierr);
+      ierr = VecMDot(ctx->AV[i],nv,eps->V,T+i*ncv);CHKERRQ(ierr);
     }
 
     /* 3. Reduce projected matrix to Hessenberg form: [U,T] = hess(T) */
@@ -288,7 +294,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     ierr = EPSSortDenseSchur(eps,nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
     
     /* 6. AV(:,idx) = AV * U(:,idx) */
-    ierr = SlepcUpdateVectors(nv,eps->AV,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,ctx->AV,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
     
     /* 7. V(:,idx) = V * U(:,idx) */
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
@@ -296,7 +302,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     /* Compute residuals */
     for (i=0;i<nv;i++) { rsdold[i] = rsd[i]; }
 
-    ierr = EPSSchurResidualNorms(eps,eps->V,eps->AV,T,eps->nconv,nv,ncv,rsd);CHKERRQ(ierr);
+    ierr = EPSSchurResidualNorms(eps,eps->V,ctx->AV,T,eps->nconv,nv,ncv,rsd);CHKERRQ(ierr);
 
     for (i=0;i<nv;i++) { 
       eps->errest[i] = rsd[i] / SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]); 
@@ -339,7 +345,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 
     /* V(:,idx) = AV(:,idx) */
     for (i=eps->nconv;i<nv;i++) {
-      ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
+      ierr = VecCopy(ctx->AV[i],eps->V[i]);CHKERRQ(ierr);
     }
     its++;
 
@@ -349,12 +355,12 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       
         /* AV(:,idx) = OP * V(:,idx) */
         for (i=eps->nconv;i<nv;i++) {
-          ierr = STApply(eps->OP,eps->V[i],eps->AV[i]);CHKERRQ(ierr);
+          ierr = STApply(eps->OP,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
         }
         
         /* V(:,idx) = AV(:,idx) with normalization */
         for (i=eps->nconv;i<nv;i++) {
-          ierr = VecCopy(eps->AV[i],eps->V[i]);CHKERRQ(ierr);
+          ierr = VecCopy(ctx->AV[i],eps->V[i]);CHKERRQ(ierr);
           ierr = VecNorm(eps->V[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
           ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
         }
@@ -393,14 +399,15 @@ PetscErrorCode EPSDestroy_SUBSPACE(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    *pAV;
+  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecGetArray(eps->AV[0],&pAV);CHKERRQ(ierr);
+  ierr = VecGetArray(ctx->AV[0],&pAV);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) {
-    ierr = VecDestroy(eps->AV[i]);CHKERRQ(ierr);
+    ierr = VecDestroy(ctx->AV[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(pAV);CHKERRQ(ierr);
-  ierr = PetscFree(eps->AV);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->AV);CHKERRQ(ierr);
   ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -410,7 +417,13 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSCreate_SUBSPACE"
 PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
 {
+  PetscErrorCode ierr;
+  EPS_SUBSPACE   *ctx;
+
   PetscFunctionBegin;
+  ierr = PetscNew(EPS_SUBSPACE,&ctx);CHKERRQ(ierr);
+  PetscLogObjectMemory(eps,sizeof(EPS_SUBSPACE));
+  eps->data                      = (void *) ctx;
   eps->ops->setup                = EPSSetUp_SUBSPACE;
   eps->ops->destroy              = EPSDestroy_SUBSPACE;
   eps->ops->backtransform        = EPSBackTransform_Default;
