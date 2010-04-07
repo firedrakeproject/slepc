@@ -214,6 +214,8 @@ try:
   slepcrules = open(os.sep.join([confdir,'slepcrules']),'w')
 except:
   sys.exit('ERROR: cannot create rules file in ' + confdir)
+if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include/slepc.h'])):
+  sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
 # Open log file
 log.Open(os.sep.join([confdir,'configure.log']))
