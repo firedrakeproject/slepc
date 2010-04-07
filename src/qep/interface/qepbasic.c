@@ -193,6 +193,12 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", qep->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",qep->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",qep->sfactor);CHKERRQ(ierr);
+    if (qep->nini!=0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(qep->nini));CHKERRQ(ierr);
+    }
+    if (qep->ninil!=0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %d\n",PetscAbs(qep->ninil));CHKERRQ(ierr);
+    }
     if (qep->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
@@ -247,6 +253,8 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->nev             = 1;
   qep->ncv             = 0;
   qep->mpd             = 0;
+  qep->nini            = 0;
+  qep->ninil           = 0;
   qep->tol             = 1e-7;
   qep->sfactor         = 0.0;
   qep->conv            = PETSC_NULL;
@@ -257,9 +265,10 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->which_ctx       = PETSC_NULL;
   qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
-  qep->vec_initial     = PETSC_NULL;
   qep->V               = PETSC_NULL;
   qep->AV              = PETSC_NULL;
+  qep->IS              = PETSC_NULL;
+  qep->ISL             = PETSC_NULL;
   qep->T               = PETSC_NULL;
   qep->Z               = PETSC_NULL;
   qep->eigr            = PETSC_NULL;
@@ -487,10 +496,6 @@ PetscErrorCode QEPDestroy(QEP qep)
   
   ierr = PetscFree(qep->T);CHKERRQ(ierr);
   ierr = PetscFree(qep->Z);CHKERRQ(ierr);
-
-  if (qep->vec_initial) {
-    ierr = VecDestroy(qep->vec_initial);CHKERRQ(ierr);
-  }
 
   if (qep->eigr) { 
     ierr = PetscFree(qep->eigr);CHKERRQ(ierr);

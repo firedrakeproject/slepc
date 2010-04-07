@@ -119,6 +119,8 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,&qep->tol,&qep->max_it);CHKERRQ(ierr);
+  if (qep->nini>0 || qep->ninil>0) PetscInfo(qep,"Ignoring initial vectors\n");
+
   PetscFunctionReturn(0);
 }
 

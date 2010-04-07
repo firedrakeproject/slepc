@@ -52,7 +52,8 @@ struct _p_QEP {
   PetscInt       max_it,           /* maximum number of iterations */
                  nev,              /* number of eigenvalues to compute */
                  ncv,              /* number of basis vectors */
-                 mpd;              /* maximum dimension of projected problem */
+                 mpd,              /* maximum dimension of projected problem */
+                 nini, ninil;      /* number of initial vectors (negative means not copied yet) */
   PetscReal      tol;              /* tolerance */
   PetscScalar    sfactor;          /* scaling factor of the quadratic problem */
   PetscTruth     *conv;            /* convergence test */
@@ -66,9 +67,10 @@ struct _p_QEP {
 
   /*------------------------- Working data --------------------------*/
   Mat         M,C,K;            /* problem matrices */
-  Vec         vec_initial,      /* initial vector */
-              *V,               /* set of basis vectors and computed eigenvectors */
-              *AV;              /* auxiliar set of basis vectors */
+  Vec         *V,               /* set of basis vectors and computed eigenvectors */
+              *W,               /* set of left basis vectors and computed left eigenvectors */
+              *AV,              /* auxiliar set of basis vectors */
+              *IS, *ISL;        /* placeholder for references to user-provided initial space */
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
               *T,*Z;            /* matrices for projected eigenproblem */
   PetscReal   *errest;          /* error estimates */

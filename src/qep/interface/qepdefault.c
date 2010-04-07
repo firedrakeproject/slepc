@@ -54,7 +54,7 @@ PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
       ierr = VecDestroyVecs(qep->work,qep->nwork); CHKERRQ(ierr);
     }
     qep->nwork = nw;
-    ierr = VecDuplicateVecs(qep->vec_initial,nw,&qep->work); CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(qep->V[0],nw,&qep->work); CHKERRQ(ierr);
     ierr = PetscLogObjectParents(qep,nw,qep->work);
   }
   

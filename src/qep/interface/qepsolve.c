@@ -375,7 +375,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
 #endif
   
   PetscFunctionBegin;
-  ierr = VecDuplicate(qep->vec_initial,&u);CHKERRQ(ierr);
+  ierr = VecDuplicate(qep->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
   
 #ifndef PETSC_USE_COMPLEX
@@ -464,8 +464,8 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep, PetscInt i, PetscReal *norm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(qep->vec_initial,&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(qep->vec_initial,&xi);CHKERRQ(ierr);
+  ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
+  ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
   ierr = QEPGetEigenpair(qep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = QEPComputeResidualNorm_Private(qep,kr,ki,xr,xi,norm);CHKERRQ(ierr);
   ierr = VecDestroy(xr);CHKERRQ(ierr);
@@ -545,8 +545,8 @@ PetscErrorCode QEPComputeRelativeError(QEP qep, PetscInt i, PetscReal *error)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);  
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(qep->vec_initial,&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(qep->vec_initial,&xi);CHKERRQ(ierr);
+  ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
+  ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
   ierr = QEPGetEigenpair(qep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = QEPComputeRelativeError_Private(qep,kr,ki,xr,xi,error);CHKERRQ(ierr);  
   ierr = VecDestroy(xr);CHKERRQ(ierr);

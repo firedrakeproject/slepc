@@ -114,8 +114,8 @@ EXTERN PetscErrorCode QEPGetMonitorContext(QEP,void **);
 EXTERN PetscErrorCode QEPGetIterationNumber(QEP,PetscInt*);
 EXTERN PetscErrorCode QEPGetOperationCounters(QEP,PetscInt*,PetscInt*,PetscInt*);
 
-EXTERN PetscErrorCode QEPSetInitialVector(QEP,Vec);
-EXTERN PetscErrorCode QEPGetInitialVector(QEP,Vec*);
+EXTERN PetscErrorCode QEPSetInitialSpace(QEP,PetscInt,Vec*);
+EXTERN PetscErrorCode QEPSetInitialSpaceLeft(QEP,PetscInt,Vec*);
 EXTERN PetscErrorCode QEPSetWhichEigenpairs(QEP,QEPWhich);
 EXTERN PetscErrorCode QEPGetWhichEigenpairs(QEP,QEPWhich*);
 EXTERN PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscTruth);

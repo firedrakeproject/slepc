@@ -192,7 +192,9 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   }
   
   /* normalize start vector */
-  ierr = VecCopy(svd->vec_initial,svd->V[0]);CHKERRQ(ierr);
+  if (svd->nini==0) {
+    ierr = SlepcVecSetRandom(svd->V[0]);CHKERRQ(ierr);
+  }
   ierr = VecNormalize(svd->V[0],&norm);CHKERRQ(ierr);
   
   while (svd->reason == SVD_CONVERGED_ITERATING) {

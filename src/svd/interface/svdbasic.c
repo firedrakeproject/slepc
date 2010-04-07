@@ -168,6 +168,9 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",svd->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",svd->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",svd->tol);CHKERRQ(ierr);
+    if (svd->nini!=0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(svd->nini));CHKERRQ(ierr);
+    }
     if (svd->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
@@ -225,13 +228,14 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->perm        = PETSC_NULL;
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;
-  svd->vec_initial = PETSC_NULL;
+  svd->IS          = PETSC_NULL;
   svd->which       = SVD_LARGEST;
   svd->n           = 0;
   svd->nconv       = 0;
   svd->nsv         = 1;    
   svd->ncv         = 0;    
   svd->mpd         = 0;    
+  svd->nini        = 0;
   svd->its         = 0;
   svd->max_it      = 0;  
   svd->tol         = 1e-7;    
@@ -304,7 +308,6 @@ PetscErrorCode SVDDestroy(SVD svd)
     ierr = PetscFree(p);CHKERRQ(ierr);
     ierr = PetscFree(svd->V);CHKERRQ(ierr);
   }
-  if (svd->vec_initial) { ierr = VecDestroy(svd->vec_initial);CHKERRQ(ierr); }
   ierr = SVDMonitorCancel(svd);CHKERRQ(ierr);
   
   ierr = IPDestroy(svd->ip);CHKERRQ(ierr);

@@ -56,13 +56,14 @@ struct _p_SVD {
   PetscReal        *sigma;	/* singular values */
   PetscInt         *perm;       /* permutation for singular value ordering */
   Vec              *U,*V;	/* left and right singular vectors */
-  Vec              vec_initial; /* initial vector */
+  Vec              *IS;         /* placeholder for references to user-provided initial space */
   PetscInt         n;           /* maximun size of descomposition */
   SVDWhich         which;       /* which singular values are computed */
   PetscInt         nconv;	/* number of converged values */
   PetscInt         nsv;         /* number of requested values */
   PetscInt         ncv;         /* basis size */
   PetscInt         mpd;         /* maximum dimension of projected problem */
+  PetscInt         nini;        /* number of initial vectors (negative means not copied yet) */
   PetscInt         its;         /* iteration counter */
   PetscInt         max_it;      /* max iterations */
   PetscReal        tol;         /* tolerance */

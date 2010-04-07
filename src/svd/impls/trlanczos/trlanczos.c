@@ -250,7 +250,9 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   ierr = IPGetOrthogonalization(svd->ip,&orthog,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   
   /* normalize start vector */
-  ierr = VecCopy(svd->vec_initial,svd->V[0]);CHKERRQ(ierr);
+  if (svd->nini==0) {
+    ierr = SlepcVecSetRandom(svd->V[0]);CHKERRQ(ierr);
+  }
   ierr = VecNormalize(svd->V[0],&norm);CHKERRQ(ierr);
   
   l = 0;

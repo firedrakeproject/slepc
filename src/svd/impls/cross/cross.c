@@ -135,6 +135,7 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cross->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpace(cross->eps,svd->nini,svd->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -148,7 +149,6 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
   PetscScalar    sigma;
   
   PetscFunctionBegin;
-  ierr = EPSSetInitialSpace(cross->eps,1,&svd->vec_initial);CHKERRQ(ierr);
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(cross->eps,&svd->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
