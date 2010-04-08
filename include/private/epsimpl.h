@@ -71,6 +71,8 @@ struct _p_EPS {
   EPSBalance     balance;          /* the balancing method */
   PetscInt       balance_its;      /* number of iterations of the balancing method */
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
+  PetscReal      nrma, nrmb;       /* matrix norms */
+  PetscTruth     adaptive;         /* whether matrix norms are adaptively improved */
 
   /*------------------------- Working data --------------------------*/
   Vec         D,                /* diagonal matrix for balancing */

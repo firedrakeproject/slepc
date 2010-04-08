@@ -50,7 +50,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   Vec            vds;  
   Mat            A,B; 
   PetscInt       i,k;
-  PetscTruth     isCayley,lindep;
+  PetscTruth     flg,lindep;
   PetscScalar    *pDS;
   PetscReal      norm;
 #if defined(PETSC_USE_COMPLEX)
@@ -107,11 +107,24 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 
+  /* initialization of matrix norms */
+  if (eps->nrma == PETSC_DETERMINE) {
+    ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr); }
+    else eps->nrma = 1.0;
+  }
+  if (eps->nrmb == PETSC_DETERMINE) {
+    ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr); }
+    else eps->nrmb = 1.0;
+  }
+
+  /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
   ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
   
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&isCayley);CHKERRQ(ierr);
-  if (isCayley && eps->problem_type == EPS_PGNHEP) {
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
+  if (flg && eps->problem_type == EPS_PGNHEP) {
     SETERRQ(PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
   }
 

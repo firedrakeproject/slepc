@@ -176,6 +176,8 @@ EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 EXTERN PetscErrorCode EPSSetLeftVectorsWanted(EPS,PetscTruth);
 EXTERN PetscErrorCode EPSGetLeftVectorsWanted(EPS,PetscTruth*);
+EXTERN PetscErrorCode EPSSetMatrixNorms(EPS,PetscReal,PetscReal,PetscTruth);
+EXTERN PetscErrorCode EPSGetMatrixNorms(EPS,PetscReal*,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscTruth*);
 EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscTruth*);

@@ -257,6 +257,11 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->nds>0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  estimates of matrix norms (%s): norm(A)=%g",eps->adaptive?"adaptive":"constant",eps->nrma);CHKERRQ(ierr);
+    if (eps->isgeneralized) {
+      ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",eps->nrmb);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = IPView(eps->ip,viewer); CHKERRQ(ierr);
     ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
@@ -327,6 +332,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance         = (EPSBalance)0;
   eps->balance_its     = 5;
   eps->balance_cutoff  = 1e-8;
+  eps->nrma            = 1.0;
+  eps->nrmb            = 1.0;
+  eps->adaptive        = PETSC_FALSE;
 
   eps->V               = 0;
   eps->W               = 0;
