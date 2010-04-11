@@ -145,14 +145,14 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
   Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*work;
   PetscReal      beta;
-  PetscTruth     breakdown;
+  PetscTruth     breakdown,iscomplex;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  lwork = (eps->ncv+4)*eps->ncv;
+  lwork = 5*eps->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  eps->Z = work+4*eps->ncv; 
+  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Z);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -167,15 +167,20 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
 
-    /* Solve projected problem and compute residual norm estimates */ 
+    /* Solve projected problem */ 
     ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(S,eps->ncv,Q,eps->Z,beta,eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
 
-    /* Check convergence */
+    /* Compute residual norm estimates and check convergence */ 
     eps->ldz = nv;
-    ierr = (*eps->conv_func)(eps,nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
-    k = eps->nconv;
-    while (k<nv && eps->conv[k]) k++;
+    for (k=eps->nconv;k<nv;k++) {
+      if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
+      else iscomplex = PETSC_FALSE;
+      ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
+      ierr = (*eps->conv_func)(eps,iscomplex?k+2:k+1,k,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (!eps->conv[k]) break;
+      if (iscomplex) k++;
+    }
+
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
@@ -190,7 +195,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
       }
 #endif
     }
-           
+
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Start a new Arnoldi factorization */
@@ -219,7 +224,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     
   } 
 
-  ierr = PetscFree(Q);CHKERRQ(ierr); eps->Z = PETSC_NULL;
+  ierr = PetscFree(Q);CHKERRQ(ierr);
+  ierr = PetscFree(eps->Z);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
