@@ -240,7 +240,7 @@ PetscErrorCode STShellSetName_Shell(ST st,const char name[])
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscStrfree(shell->name);CHKERRQ(ierr);    
+  ierr = PetscFree(shell->name);CHKERRQ(ierr);    
   ierr = PetscStrallocpy(name,&shell->name);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
