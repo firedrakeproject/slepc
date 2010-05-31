@@ -356,7 +356,7 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearSetCompanionForm(QEP qep,PetscInt cform)
 {
-  PetscErrorCode ierr, (*f)(QEP,PetscTruth);
+  PetscErrorCode ierr, (*f)(QEP,PetscInt);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
