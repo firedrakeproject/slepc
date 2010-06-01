@@ -32,7 +32,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 {
   PetscErrorCode    ierr;
   QEP_LINEAR        *ctx = (QEP_LINEAR *)qep->data;
-  PetscInt          i;
+  PetscInt          i=0;
   EPSWhich          which;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
@@ -82,6 +82,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
     case QEP_GENERAL:    i = 0; break;
     case QEP_HERMITIAN:  i = 2; break;
     case QEP_GYROSCOPIC: i = 4; break;
+    default: SETERRQ(1,"Wrong value of qep->problem_type");
   }
   i += ctx->cform-1;
 
