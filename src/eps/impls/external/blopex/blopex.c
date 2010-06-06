@@ -192,11 +192,19 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   
   PetscFunctionBegin;
   
-  info = lobpcg_solve(blopex->eigenvectors,eps,OperatorAMultiVector,
+#ifdef PETSC_USE_COMPLEX
+  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
   	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
+#else
+  info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
+  	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+        eps,Precond_FnMultiVector,blopex->Y,
+        blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
+        eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
+#endif
   if (info>0) SETERRQ1(PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
 
   eps->its = its;

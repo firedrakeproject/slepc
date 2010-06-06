@@ -30,7 +30,6 @@
 #include "petscblaslapack.h"
 #include "interpreter.h"
 #include "temp_multivector.h"
-#include "../src/contrib/blopex/petsc-interface/petsc-interface.h"
 #include "slepc-interface.h"
 
 static void* mv_TempMultiVectorCreateFromPETScVector( void* ii_, int n, void* sample )

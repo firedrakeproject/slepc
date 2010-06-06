@@ -26,6 +26,7 @@
 #ifndef SLEPC_INTERFACE_HEADER
 #define SLEPC_INTERFACE_HEADER
 
+#include "lobpcg.h"
 #include "../src/contrib/blopex/petsc-interface/petsc-interface.h"
 
 extern int
