@@ -78,40 +78,13 @@ static void mv_TempMultiPETSCVectorDestroy( void* x_ )
 
 /*
     Create an InterfaceInterpreter using the PETSc implementation
-    but with a modified CreateMultiVector that doesn't create any
+    but overloading CreateMultiVector that doesn't create any
     new vector.
 */
 int SLEPCSetupInterpreter( mv_InterfaceInterpreter *i )
 {
-
-  i->CreateVector = PETSC_MimicVector;
-  i->DestroyVector = PETSC_DestroyVector;
-  i->InnerProd = PETSC_InnerProd;
-  i->CopyVector = PETSC_CopyVector;
-  i->ClearVector = PETSC_ClearVector;
-  i->SetRandomValues = PETSC_SetRandomValues;
-  i->ScaleVector = PETSC_ScaleVector;
-  i->Axpy = PETSC_Axpy;
-
-  /* Multivector part */
-
+  PETSCSetupInterpreter(i);
   i->CreateMultiVector = mv_TempMultiVectorCreateFromPETScVector;
-  i->CopyCreateMultiVector = mv_TempMultiVectorCreateCopy;
-  i->DestroyMultiVector = mv_TempMultiVectorDestroy;
-
-  i->Width = mv_TempMultiVectorWidth;
-  i->Height = mv_TempMultiVectorHeight;
-  i->SetMask = mv_TempMultiVectorSetMask;
-  i->CopyMultiVector = mv_TempMultiVectorCopy;
-  i->ClearMultiVector = mv_TempMultiVectorClear;
-  i->SetRandomVectors = mv_TempMultiVectorSetRandom;
-  i->MultiInnerProd = mv_TempMultiVectorByMultiVector;
-  i->MultiInnerProdDiag = mv_TempMultiVectorByMultiVectorDiag;
-  i->MultiVecMat = mv_TempMultiVectorByMatrix;
-  i->MultiVecMatDiag = mv_TempMultiVectorByDiagonal;
-  i->MultiAxpy = mv_TempMultiVectorAxpy;
-  i->MultiXapy = mv_TempMultiVectorXapy;
-  i->Eval = mv_TempMultiVectorEval;
 
   return 0;
 }

@@ -169,9 +169,14 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
     blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii, eps->nds, eps->DS);
   } else
     blopex->Y = PETSC_NULL;
-  
+
+#ifdef PETSC_USE_COMPLEX
+  blopex->blap_fn.zpotrf = PETSC_zpotrf_interface;
+  blopex->blap_fn.zhegv = PETSC_zsygv_interface;
+#else
   blopex->blap_fn.dpotrf = PETSC_dpotrf_interface;
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
+#endif
 
   if (eps->extraction) {
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
@@ -197,7 +202,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-        eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
+        (komplex*)eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
 #else
   info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
   	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,

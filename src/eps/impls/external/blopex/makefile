@@ -23,7 +23,6 @@ ALL: lib
 
 #requirespackage  'PETSC_HAVE_BLOPEX'
 #requiresprecision double
-#requiresscalar    real
 
 CFLAGS   = ${BLOPEX_INCLUDE}
 FFLAGS   =
