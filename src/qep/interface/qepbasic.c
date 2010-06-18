@@ -513,9 +513,9 @@ PetscErrorCode QEPDestroy(QEP qep)
 
   ierr = IPDestroy(qep->ip);CHKERRQ(ierr);
 
-  ierr = MatDestroy(qep->M);CHKERRQ(ierr);
-  ierr = MatDestroy(qep->C);CHKERRQ(ierr);
-  ierr = MatDestroy(qep->K);CHKERRQ(ierr);
+  if (qep->M) { ierr = MatDestroy(qep->M);CHKERRQ(ierr); }
+  if (qep->C) { ierr = MatDestroy(qep->C);CHKERRQ(ierr); }
+  if (qep->K) { ierr = MatDestroy(qep->K);CHKERRQ(ierr); }
 
   ierr = PetscHeaderDestroy(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
