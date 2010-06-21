@@ -19,8 +19,19 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip sys vec examples 
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = davidson.c dvd_blas.c dvd_calcpairs.c dvd_improvex.c dvd_initv.c dvd_schm.c dvd_testconv.c dvd_updatev.c dvd_utils.c
+SOURCEF  = 
+SOURCEH  = davidson.h 
+OBJSC    = davidson.o dvd_blas.o dvd_calcpairs.o dvd_improvex.o dvd_initv.o dvd_schm.o dvd_testconv.o dvd_updatev.o dvd_utils.o
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = EPS
+LOCDIR   = src/eps/impls/davidson/common/
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

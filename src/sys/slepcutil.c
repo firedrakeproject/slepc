@@ -359,21 +359,71 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans)
 {
   PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+
+  ierr = SlepcUpdateStrideVectors(n_,V,s,1,e,Q,ldq_,qtrans);
+  
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcUpdateStrideVectors"
+/*@
+   SlepcUpdateStrideVectors - Update a set of vectors V as
+   V(:,s:d:e-1) = V*Q(:,s:e-1).
+
+   Collective on Vec
+
+   Input parameters:
++  n      - number of vectors in V
+.  s      - first column of V to be overwritten
+.  d      - stride
+.  e      - first column of V not to be overwritten
+.  Q      - matrix containing the coefficients of the update
+.  ldq    - leading dimension of Q
+-  qtrans - flag indicating if Q is to be transposed
+
+   Input/Output parameter:
+.  V      - set of vectors
+
+   Notes: 
+   This function computes V(:,s:d:e-1) = V*Q(:,s:e-1), that is, given a set
+   of vectors V, columns from s to e-1 are overwritten with columns from s to
+   e-1 of the matrix-matrix product V*Q.
+
+   Matrix V is represented as an array of Vec, whereas Q is represented as
+   a column-major dense array of leading dimension ldq. Only columns s to e-1
+   of Q are referenced.
+
+   If qtrans=PETSC_TRUE, the operation is V*Q'.
+
+   This routine is implemented with a call to BLAS, therefore V is an array 
+   of Vec which have the data stored contiguously in memory as a Fortran matrix.
+   PETSc does not create such arrays by default.
+
+   Level: developer
+
+@*/
+PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans)
+{
+  PetscErrorCode ierr;
   PetscInt       l;
-  PetscBLASInt   i,j,k,bs=64,m,n,ldq,ls;
+  PetscBLASInt   i,j,k,bs=64,m,n,ldq,ls,ld;
   PetscScalar    *pv,*pw,*pq,*work,*pwork,one=1.0,zero=0.0;
   const char     *qt;
 
   PetscFunctionBegin;
-  n = PetscBLASIntCast(n_);
+  n = PetscBLASIntCast(n_/d);
   ldq = PetscBLASIntCast(ldq_);
-  m = e-s;
+  m = (e-s)/d;
   if (m==0) PetscFunctionReturn(0);
   PetscValidIntPointer(Q,5);
-  if (m<0 || n<0 || s<0 || e>n) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
+  if (m<0 || n<0 || s<0 || m>n) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&l);CHKERRQ(ierr);
   ls = PetscBLASIntCast(l);
+  ld = ls*PetscBLASIntCast(d);
   ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
   if (qtrans) {
     pq = (PetscScalar*)Q+s;
@@ -385,9 +435,9 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
   ierr = PetscMalloc(sizeof(PetscScalar)*bs*m,&work);CHKERRQ(ierr);
   k = ls % bs;
   if (k) {
-    BLASgemm_("N",qt,&k,&m,&n,&one,pv,&ls,pq,&ldq,&zero,work,&k);
+    BLASgemm_("N",qt,&k,&m,&n,&one,pv,&ld,pq,&ldq,&zero,work,&k);
     for (j=0;j<m;j++) {
-      pw = pv+(s+j)*ls;
+      pw = pv+(s+j)*ld;
       pwork = work+j*k;
       for (i=0;i<k;i++) {
         *pw++ = *pwork++;
@@ -395,9 +445,9 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
     }        
   }
   for (;k<ls;k+=bs) {
-    BLASgemm_("N",qt,&bs,&m,&n,&one,pv+k,&ls,pq,&ldq,&zero,work,&bs);
+    BLASgemm_("N",qt,&bs,&m,&n,&one,pv+k,&ld,pq,&ldq,&zero,work,&bs);
     for (j=0;j<m;j++) {
-      pw = pv+(s+j)*ls+k;
+      pw = pv+(s+j)*ld+k;
       pwork = work+j*bs;
       for (i=0;i<bs;i++) {
         *pw++ = *pwork++;

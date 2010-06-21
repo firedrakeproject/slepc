@@ -85,6 +85,12 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroup("-eps_harmonic","harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_harmonic_relative","relative harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetExtraction(eps,EPS_HARMONIC_RELATIVE);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_harmonic_right","right harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetExtraction(eps,EPS_HARMONIC_RIGHT);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_harmonic_largest","largest harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetExtraction(eps,EPS_HARMONIC_LARGEST);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroup("-eps_refined","refined Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED);CHKERRQ(ierr);}
     ierr = PetscOptionsTruthGroupEnd("-eps_refined_harmonic","refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);

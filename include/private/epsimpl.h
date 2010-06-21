@@ -92,10 +92,12 @@ struct _p_EPS {
   PetscInt    nconv,            /* number of converged eigenvalues */
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
+              nv,               /* size of current Schur decomposition */
               ldz,              /* leading dimension of Z */
               n, nloc,          /* problem dimensions (global, local) */
               allocated_ncv;    /* number of basis vectors allocated */
   PetscTruth  evecsavailable;   /* computed eigenvectors */
+  PetscErrorCode (*schur_func)(EPS,PetscInt,PetscScalar*); /* internal function for updating Schur vectors */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;

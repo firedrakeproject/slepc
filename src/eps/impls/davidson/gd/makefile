@@ -19,8 +19,19 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip sys vec examples 
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = gd.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = gd.o
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = EPS
+LOCDIR   = src/eps/impls/davidson/gd/
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

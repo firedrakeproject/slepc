@@ -61,6 +61,8 @@ E*/
 #define EPSTRLAN     "trlan"
 #define EPSBLOPEX    "blopex"
 #define EPSPRIMME    "primme"
+#define EPSGD        "gd"
+#define EPSJD        "jd"
 
 /*E
     EPSProblemType - determines the type of eigenvalue problem
@@ -86,6 +88,9 @@ typedef enum { EPS_HEP=1,
 E*/
 typedef enum { EPS_RITZ=1,
                EPS_HARMONIC,
+               EPS_HARMONIC_RELATIVE,
+               EPS_HARMONIC_RIGHT,
+               EPS_HARMONIC_LARGEST,
                EPS_REFINED,
                EPS_REFINED_HARMONIC } EPSExtraction;
 
@@ -319,6 +324,15 @@ EXTERN PetscErrorCode EPSPRIMMESetPrecond(EPS eps, EPSPRIMMEPrecond precond);
 EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs);
 EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method);
 EXTERN PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, EPSPRIMMEPrecond *precond);
+
+EXTERN PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscTruth krylovstart);
+EXTERN PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscTruth *krylovstart);
+EXTERN PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize);
+EXTERN PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize);
+EXTERN PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk);
+EXTERN PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk);
+EXTERN PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize);
+EXTERN PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize);
 
 PETSC_EXTERN_CXX_END
 #endif
