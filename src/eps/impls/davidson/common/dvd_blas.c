@@ -97,54 +97,17 @@ EXTERN_C_END
 
 /*
   Compute C <- A*B, where
+    sC, structure of C,
     ldC, the leading dimension of C,
-    sC, 1 (upper triangular), 2 (lower triangular), 3 (full)
+    sA, structure of A,
     ldA, the leading dimension of A,
     rA, cA, rows and columns of A,
     At, if true use the transpose of A instead,
+    sB, structure of B,
     ldB, the leading dimension of B,
     rB, cB, rows and columns of B,
     Bt, if true use the transpose of B instead
 */
-#define _MULT_NN(m,k,n,i0,i1) \
-  for (j=0; j<n; j++) {\
-    for (i=i0; i<i1; i++) C[i+ldC*j]=0.0; \
-    for (l=0; l<k; l++) \
-      if (B[l+j*ldB] != 0.0) \
-        for (t=B[l+j*ldB],i=i0; i<i1; i++) \
-          C[i+ldC*j]+= t*A[i+ldA*l]; }
-
-#define _MULT_HN(m,k,n,i0,i1,i2) \
-  for (j=0; j<n; j++) {\
-    for (l=0; l<k; l++) \
-      if (B[l+j*ldB] != 0.0) { \
-        for (t=B[l+j*ldB],i=i0; i<i1; i++) \
-          C[i+ldC*j]+= t*A[i+ldA*l]; \
-        for ( ; i<i2; i++) \
-          C[i+ldC*j]+= t*A[l+ldA*i]; } }
-
-#define _MULT_NT(m,k,n,i0,i1) \
-  for (j=0; j<n; j++) {\
-    for (i=i0; i<i1; i++) C[i+ldC*j]=0.0; \
-    for (l=0; l<k; l++) \
-      if (B[j+l*ldB] != 0.0) \
-        for (t=B[j+l*ldB],i=i0; i<i1; i++) \
-          C[i+ldC*j]+= t*A[i+ldA*l]; }
-
-#define _MULT_TN(m,k,n,i0,i1) \
-  for (j=0; j<n; j++) {\
-    for (i=i0; i<i1; i++) {\
-      for (t=0.0,l=0; l<k; l++) \
-        t+= A[l+ldA*i]*B[l+ldB*j]; \
-      C[i+ldC*j] = t; } }
-
-#define _MULT_TT(m,k,n,i0,i1) \
-  for (j=0; j<n; j++) {\
-    for (i=i0; i<i1; i++) {\
-      for (t=0.0,l=0; l<k; l++) \
-        t+= A[l+ldA*i]*B[j+ldB*l]; \
-      C[i+ldC*j] = t; } }
-
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseMatProdTriang"
@@ -156,8 +119,8 @@ PetscErrorCode SlepcDenseMatProdTriang(
   PetscTruth Bt)
 {
   PetscErrorCode  ierr;
-  PetscInt        tmp, i,j,l,c;
-  PetscScalar     t, one=1.0, zero=0.0;
+  PetscInt        tmp;
+  PetscScalar     one=1.0, zero=0.0;
   PetscBLASInt    rC, cC, _ldA = ldA, _ldB = ldB, _ldC = ldC;
 
   PetscFunctionBegin;
@@ -181,7 +144,10 @@ PetscErrorCode SlepcDenseMatProdTriang(
 
   /* Optimized version: trivial case */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
-    *C = *A * *B;
+    if ((At == PETSC_FALSE) && (Bt == PETSC_FALSE))     *C = *A * *B;
+    else if ((At == PETSC_TRUE) && (Bt == PETSC_FALSE)) *C = PetscConj(*A) * *B;
+    else if ((At == PETSC_FALSE) && (Bt == PETSC_TRUE)) *C = *A * PetscConj(*B);
+    else if ((At == PETSC_TRUE) && (Bt == PETSC_TRUE))  *C = PetscConj(*A) * PetscConj(*B);
     PetscFunctionReturn(0);
   }
  
@@ -194,89 +160,34 @@ PetscErrorCode SlepcDenseMatProdTriang(
     PetscFunctionReturn(ierr);
   }
 
-  /* Optimized versions: A hermitian && (B not triang) &&
-     (B transposed -> B hermitian) */
+  /* Optimized versions: A hermitian && (B not triang) */
   if (DVD_IS(sA,DVD_MAT_HERMITIAN) &&
       DVD_ISNOT(sB,DVD_MAT_UTRIANG) &&
-      DVD_ISNOT(sB,DVD_MAT_LTRIANG) &&
-      (DVD_IS(sB,DVD_MAT_HERMITIAN) || (Bt == PETSC_FALSE)) ) {
+      DVD_ISNOT(sB,DVD_MAT_LTRIANG)    ) {
     ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     rC = rA; cC = cB;
-    BLASsymm_("L", DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
+    BLAShemm_("L", DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
               (PetscScalar*)A, &_ldA, (PetscScalar*)B, &_ldB, &zero, C, &_ldC);
     ierr = PetscLogFlops(rA*cB*cA); CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
+
+  /* Optimized versions: B hermitian && (A not triang) */
+  if (DVD_IS(sB,DVD_MAT_HERMITIAN) &&
+      DVD_ISNOT(sA,DVD_MAT_UTRIANG) &&
+      DVD_ISNOT(sA,DVD_MAT_LTRIANG)    ) {
+    ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
+    rC = rA; cC = cB;
+    BLAShemm_("R", DVD_ISNOT(sB,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
+              (PetscScalar*)B, &_ldB, (PetscScalar*)A, &_ldA, &zero, C, &_ldC);
+    ierr = PetscLogFlops(rA*cB*cA); CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
  
-    SETERRQ(1, "It doesn't support A matrix type!");
-    PetscFunctionReturn(1);
-
-  if (DVD_ISNOT(sA,DVD_MAT_UTRIANG) &&
-      DVD_ISNOT(sA,DVD_MAT_LTRIANG)) {
-    if (DVD_IS(sC,DVD_MAT_UTRIANG) && 
-        DVD_ISNOT(sC,DVD_MAT_LTRIANG))    c = 1;
-    else if (DVD_ISNOT(sC,DVD_MAT_UTRIANG) &&
-             DVD_IS(sC,DVD_MAT_LTRIANG))  c = 2;
-    else                                      c = 3;
-  } else if (DVD_IS(sA,DVD_MAT_UTRIANG)) {
-    if (DVD_ISNOT(sC,DVD_MAT_UTRIANG) &&
-        DVD_ISNOT(sC,DVD_MAT_LTRIANG) &&
-        (At == PETSC_FALSE) && (Bt == PETSC_FALSE))
-                                              c = 4;
-    else {
-      SETERRQ(1, "It doesn't support A and B matrices type!");
-      PetscFunctionReturn(1);
-    }
-  } else {
-    SETERRQ(1, "It doesn't support A matrix type!");
-    PetscFunctionReturn(1);
-  }
-
-  ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
-
-  if (At == PETSC_FALSE) {
-    if (Bt == PETSC_FALSE)    /* C <- A * B */
-      switch(c) {
-        case 1: _MULT_NN(rA,cA,cB,0,(rA<(j+1)?rA:(j+1))); break;
-        case 2: _MULT_NN(rA,cA,cB,j,rA); break;
-        case 3: _MULT_NN(rA,cA,cB,0,rA); break;
-        case 4: BLASsymm_("L", "U", &rC, &cC, &one, (PetscScalar*)A, &_ldA,
-                          (PetscScalar*)B, &_ldB, &zero, C, &_ldC); break;
-        default: c=10; break;
-      } 
-    else                      /* C <- A * B' */
-      switch(c) {
-        case 1: _MULT_NT(rA,cA,cB,0,(rA<(j+1)?rA:(j+1)));  break;
-        case 2: _MULT_NT(rA,cA,cB,j,rA); break;
-        case 3: _MULT_NT(rA,cA,cB,0,rA); break;
-        default: c=10; break;
-      }
-  } else {
-    if (Bt == PETSC_FALSE)    /* C <- A' * B */
-      switch(c) {
-//        case 1: _MULT_TN(rA,cA,cB,0,((rA<(j+1))?rA:(j+1)));  break;
-//        case 2: _MULT_TN(rA,cA,cB,j,rA); break;
-        case 2: case 1: case 3: _MULT_TN(rA,cA,cB,0,rA); break;
-        default: c=10; break;
-      } 
-    else                      /* C <- A' * B' */
-      switch(c) {
-        case 1: _MULT_TT(rA,cA,cB,0,(rA<(j+1)?rA:(j+1)));  break;
-        case 2: _MULT_TT(rA,cA,cB,j,rA); break;
-        case 3: _MULT_TT(rA,cA,cB,0,rA); break;
-        default: c=10; break;
-      }
-  }
-  if (c == 10) {
-    SETERRQ(1, "Awful error in FactProdTriang!");
-    PetscFunctionReturn(1);
-  }
-
-  ierr = PetscLogFlops(rA*cB*cA*(c==3?2:1)); CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
-
-  PetscFunctionReturn(0);
+  SETERRQ(1, "It doesn't support A matrix type!");
+  PetscFunctionReturn(1);
 }
 EXTERN_C_END
 
@@ -521,13 +432,13 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
   case 2: /* reflection from up */
     for(i=0; i<cX; i++)
       for(j=0; j<PetscMin(i+1,rX); j++)
-        Y[ldY*j+i] = Y[ldY*i+j] = X[ldX*i+j];
+        Y[ldY*j+i] = PetscConj(Y[ldY*i+j] = X[ldX*i+j]);
     break;
 
   case 3: /* reflection from down */
     for(i=0; i<cX; i++)
       for(j=i; j<rX; j++)
-        Y[ldY*j+i] = Y[ldY*i+j] = X[ldX*i+j];
+        Y[ldY*j+i] = PetscConj(Y[ldY*i+j] = X[ldX*i+j]);
     break;
   }
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
