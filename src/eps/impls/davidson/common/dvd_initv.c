@@ -257,8 +257,8 @@ PetscInt dvd_initV_krylov_0(dvdDashboard *d)
       ierr = VecAXPBY(d->V[i], -d->target[0], d->target[1], d->V[i-1]);
       CHKERRQ(ierr);
     }
-    dvd_orthV(d->ipV, cX, d->size_cX, d->V, i, i+1, d->auxS, d->auxV[0],
-              d->rand);
+    ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, i,
+                     i+1, d->auxS, d->auxV[0], d->rand); CHKERRQ(ierr);
   }
 
   d->size_V = i;

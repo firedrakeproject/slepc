@@ -175,6 +175,10 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = PetscRandomCreate(((PetscObject)eps)->comm, &dvd->rand); CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(dvd->rand); CHKERRQ(ierr);
 
+  /* Orthonormalize the DS */
+  ierr = dvd_orthV(eps->ip, PETSC_NULL, 0, PETSC_NULL, 0, eps->DS, 0, eps->nds,
+                   PETSC_NULL, 0, dvd->rand); CHKERRQ(ierr);
+
   /* Preconfigure dvd */
   ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, min_size_V, bs,
                                 eps->nini, eps->IS,

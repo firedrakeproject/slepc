@@ -255,8 +255,8 @@ PetscInt dvd_calcpairs_updateV(dvdDashboard *d)
   PetscFunctionBegin;
 
   /* V <- gs([cX f.V(0:f.V_new_s-1)], f.V(V_new_s:V_new_e-1)) */
-  r = dvd_orthV(d->ipV, cX, d->size_cX, d->V, d->V_new_s, d->V_new_e, d->auxS,
-                d->auxV[0], d->rand);
+  r = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V,
+                d->V_new_s, d->V_new_e, d->auxS, d->auxV[0], d->rand);
 
   PetscFunctionReturn(r);
 }
@@ -275,8 +275,8 @@ PetscInt dvd_calcpairs_updateW(dvdDashboard *d)
   r = d->calcpairs_W(d);
 
   /* W <- gs([cY f.W(0:f.V_new_s-1)], f.W(V_new_s:V_new_e-1)) */
-  r = dvd_orthV(d->ipW, d->cY, d->size_cY, d->W, d->V_new_s, d->V_new_e,
-                d->auxS, d->auxV[0], d->rand);
+  r = dvd_orthV(d->ipW, PETSC_NULL, 0, d->cY, d->size_cY, d->W, d->V_new_s,
+                d->V_new_e, d->auxS, d->auxV[0], d->rand);
 
   PetscFunctionReturn(r);
 }

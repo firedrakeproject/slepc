@@ -468,9 +468,10 @@ PetscErrorCode SlepcAllReduceSum(DvdReduction *r, PetscInt size_in,
                                  DvdReductionPostF f, void *ptr,
                                  PetscScalar **in);
 PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r);
-PetscErrorCode dvd_orthV(IP ip, Vec *cX, PetscInt size_cX, Vec *V,
-                         PetscInt V_new_s, PetscInt V_new_e,
-                         PetscScalar *auxS, Vec auxV, PetscRandom rand);
+PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
+                         PetscInt size_cX, Vec *V, PetscInt V_new_s,
+                         PetscInt V_new_e, PetscScalar *auxS, Vec auxV,
+                         PetscRandom rand);
 PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldS_, PetscScalar *T, PetscInt ldT_, PetscScalar *pX,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,

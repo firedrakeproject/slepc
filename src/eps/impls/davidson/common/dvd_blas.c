@@ -1225,9 +1225,10 @@ EXTERN_C_END
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_orthV"
-PetscErrorCode dvd_orthV(IP ip, Vec *cX, PetscInt size_cX, Vec *V,
-                         PetscInt V_new_s, PetscInt V_new_e,
-                         PetscScalar *auxS, Vec auxV, PetscRandom rand)
+PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
+                         PetscInt size_cX, Vec *V, PetscInt V_new_s,
+                         PetscInt V_new_e, PetscScalar *auxS, Vec auxV,
+                         PetscRandom rand)
 {
   PetscErrorCode  ierr;
   PetscInt        i, j;
@@ -1243,16 +1244,20 @@ PetscErrorCode dvd_orthV(IP ip, Vec *cX, PetscInt size_cX, Vec *V,
       if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
       if (cX + size_cX == V) {
         /* If cX and V are contiguous, orthogonalize in one step */
-        ierr = IPOrthogonalize(ip, 0, PETSC_NULL, size_cX+i, PETSC_NULL, cX,
+        ierr = IPOrthogonalize(ip, size_DS, DS, size_cX+i, PETSC_NULL, cX,
                                V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
-      } else {
-        /* Else orthogonalize first against cX and then against V */
-        ierr = IPOrthogonalize(ip, 0, PETSC_NULL, size_cX, PETSC_NULL, cX,
+      } else if (DS) {
+        /* Else orthogonalize first against DS, and then against cX and V */
+        ierr = IPOrthogonalize(ip, size_DS, DS, size_cX, PETSC_NULL, cX,
                                V[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
         if(lindep == PETSC_FALSE) {
           ierr = IPOrthogonalize(ip, 0, PETSC_NULL, i, PETSC_NULL, V,
                                  V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
         }
+      } else {
+        /* Else orthogonalize first against cX and then against V */
+        ierr = IPOrthogonalize(ip, size_cX, cX, i, PETSC_NULL, V,
+                               V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
       }
       if((lindep == PETSC_FALSE) && (norm > PETSC_MACHINE_EPSILON)) break;
       printf("Ortho problems at %d\n", i);
