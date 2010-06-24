@@ -127,12 +127,7 @@ PetscInt dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
     d->calcpairs_X = dvd_calcpairs_X;
     d->calcpairs_Y = dvd_calcpairs_Y;
     d->ipI = ipI;
-    //DVD_FL_ADD(d->destroyList, dvd_calcpairs_rr_d);
   }
-
-  /* Configure the projected problem solver */
-  //if (std_probl)  dvd_calcpairs_projeig_gen_std_conf(d, b);
-  //else            dvd_calcpairs_projeig_gen_gen_conf(d, b);
 
   PetscFunctionReturn(0);
 }

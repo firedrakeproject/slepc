@@ -517,7 +517,11 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
                     PETSC_FALSE, M, ldM, rM, cM, PETSC_FALSE); CHKERRQ(ierr);
   
     ierr = VecRestoreArray(X[0], &px);CHKERRQ(ierr);
+    ierr = PetscObjectStateDecrease((PetscObject)X[0]); CHKERRQ(ierr);
     ierr = VecRestoreArray(Y[0], &py);CHKERRQ(ierr);
+    for(i=1; i<cM; i++) {
+      ierr = PetscObjectStateIncrease((PetscObject)Y[dY*i]); CHKERRQ(ierr);
+    }
 
   } else if ((Y >= X) && (beta == 0.0) && (dY == dX)) {
     /* If not, call to SlepcUpdateVectors */
@@ -761,7 +765,9 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   }
 
   ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
   ierr = VecRestoreArray(V[0], &pv); CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)V[0]); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -832,7 +838,9 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
   }
 
   ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
   ierr = VecRestoreArray(V[0], &pv); CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)V[0]); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -1054,7 +1062,9 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   ierr = PetscLogEventEnd(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
   ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
   ierr = VecRestoreArray(V[0], &pv); CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)V[0]); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -1097,7 +1107,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
 {
   PetscErrorCode  ierr;
   PetscBLASInt    nn = n, info, ld;
-  PetscInt        ldV;
+  PetscInt        ldV, i;
   PetscScalar     *H, *T, one=1.0, *pv;
   
   PetscFunctionBegin;
@@ -1124,6 +1134,9 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   ld = ldV;
   BLAStrsm_("R", "U", "N", "N", &ld, &nn, &one, H, &nn, pv, &ld);
   ierr = VecRestoreArray(V[0], &pv);CHKERRQ(ierr);
+  for(i=1; i<n; i++) {
+    ierr = PetscObjectStateIncrease((PetscObject)V[i]); CHKERRQ(ierr);
+  }
 
   if (!wS0) {
     ierr = PetscFree(H); CHKERRQ(ierr);

@@ -13,6 +13,7 @@
 #include "../src/eps/impls/davidson/common/davidson.h"
 #include "slepcblaslapack.h"
 
+PetscErrorCode EPSDestroy_GD(EPS eps);
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -66,6 +67,7 @@ PetscErrorCode EPSCreate_GD(EPS eps) {
 
   /* Overload the GD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_GD;
+  eps->ops->destroy              = EPSDestroy_GD;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetKrylovStart_C","EPSDAVIDSONSetKrylovStart_DAVIDSON",EPSDAVIDSONSetKrylovStart_DAVIDSON);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetKrylovStart_C","EPSDAVIDSONGetKrylovStart_DAVIDSON",EPSDAVIDSONGetKrylovStart_DAVIDSON);CHKERRQ(ierr);
@@ -82,21 +84,13 @@ EXTERN_C_END
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_DAVIDSONES"
-PetscErrorCode EPSDestroy_DAVIDSONES(EPS eps) {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
-  dvdDashboard    *dvd = &data->ddb;
+#define __FUNCT__ "EPSDestroy_GD"
+PetscErrorCode EPSDestroy_GD(EPS eps)
+{
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
 
-  /* Call step destructors and destroys the list */
-  DVD_FL_CALL(dvd->destroyList, dvd);
-  DVD_FL_DEL(dvd->destroyList);
-
-  ierr = PetscFree(data); CHKERRQ(ierr);
-
-  /* ierr = EPSDestroy_Default(eps); CHKERRQ(ierr); */
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -105,6 +99,8 @@ PetscErrorCode EPSDestroy_DAVIDSONES(EPS eps) {
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetRestart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
+
+  ierr = EPSDestroy_DAVIDSON(eps);
 
   PetscFunctionReturn(0);
 }

@@ -14,6 +14,7 @@ PetscInt dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
                              Vec *auxV, PetscScalar *auxS);
 PetscErrorCode dvd_matmult_jd(Mat A, Vec in, Vec out);
 PetscErrorCode dvd_matgetvecs_jd(Mat A, Vec *right, Vec *left);
+PetscInt dvd_improvex_jd_d(dvdDashboard *d);
 PetscInt dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
                              PetscInt max_size_D, PetscInt r_s,
                              PetscInt r_e, PetscInt *size_D);
@@ -105,17 +106,6 @@ PetscInt dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     data->ksp = t==PETSC_TRUE?0:ksp;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
-    //DVD_FL_ADD(d->destroyList, dvd_improvex_gdolsen_d);
-
-    /* Create the (I-v*u')*K*(A-s*B) matrix */
-    ierr = MatGetSize(d->A, &rA, &cA); CHKERRQ(ierr);
-    ierr = MatGetLocalSize(d->A, &rlA, &clA); CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)d->A)->comm, rlA*max_bs, clA*max_bs,
-                          rA*max_bs, cA*max_bs, data, &A); CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_MULT,
-                                (void(*)(void))dvd_matmult_jd); CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_GET_VECS,
-                                (void(*)(void))dvd_matgetvecs_jd); CHKERRQ(ierr);
 
     /* Create the reference vector */
     ierr = VecCreateCompWithVecs(d->V, max_bs, PETSC_NULL, &data->friends);
@@ -123,11 +113,47 @@ PetscInt dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
 
     /* Setup the ksp */
     if(data->ksp) {
+      /* Create the (I-v*u')*K*(A-s*B) matrix */
+      ierr = MatGetSize(d->A, &rA, &cA); CHKERRQ(ierr);
+      ierr = MatGetLocalSize(d->A, &rlA, &clA); CHKERRQ(ierr);
+      ierr = MatCreateShell(((PetscObject)d->A)->comm, rlA*max_bs, clA*max_bs,
+                            rA*max_bs, cA*max_bs, data, &A); CHKERRQ(ierr);
+      ierr = MatShellSetOperation(A, MATOP_MULT,
+                                  (void(*)(void))dvd_matmult_jd); CHKERRQ(ierr);
+      ierr = MatShellSetOperation(A, MATOP_GET_VECS,
+                                  (void(*)(void))dvd_matgetvecs_jd);
+      CHKERRQ(ierr);
+  
       data->ksp_max_size = max_bs;
       ierr = KSPSetOperators(data->ksp, A, A, 0); CHKERRQ(ierr);
       ierr = KSPSetUp(data->ksp); CHKERRQ(ierr);
+      ierr = MatDestroy(A); CHKERRQ(ierr);
     }
+
+    DVD_FL_ADD(d->destroyList, dvd_improvex_jd_d);
   }
+
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_d"
+PetscInt dvd_improvex_jd_d(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
+
+  PetscFunctionBegin;
+   
+  /* Restore changes in dvdDashboard */
+  d->improveX_data = data->old_improveX_data;
+
+  /* Free local data and objects */
+  ierr = VecDestroy(data->friends); CHKERRQ(ierr);
+  ierr = PetscFree(data); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -366,28 +392,6 @@ PetscErrorCode dvd_matgetvecs_jd(Mat A, Vec *right, Vec *left)
   if (left) {
     ierr = PetscFree(l); CHKERRQ(ierr);
   }
-
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-
-
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_jd_d"
-PetscInt dvd_improvex_jd_d(dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-
-  PetscFunctionBegin;
-   
-  /* Restore changes in dvdDashboard */
-  d->improveX_data = data->old_improveX_data;
-
-  /* Free local data */
-  ierr = PetscFree(data); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

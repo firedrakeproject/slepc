@@ -358,7 +358,6 @@ PetscErrorCode VecAXPY_Comp(Vec v, PetscScalar alpha, Vec w)
   for(i=0; i<vs->n->n; i++) {
     ierr = VecAXPY(vs->x[i], alpha, ws->x[i]); CHKERRQ(ierr);
   }
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -383,7 +382,6 @@ PetscErrorCode VecAXPBY_Comp(Vec v, PetscScalar alpha, PetscScalar beta, Vec w)
   for(i=0; i<vs->n->n; i++) {
     ierr = VecAXPBY(vs->x[i], alpha, beta, ws->x[i]); CHKERRQ(ierr);
   }
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -412,7 +410,6 @@ PetscErrorCode VecMAXPY_Comp(Vec v, PetscInt n, const PetscScalar *alpha,
     for(i=0; i<n; i++) wx[i] = ((Vec_Comp*)w[i]->data)->x[j];
     ierr = VecMAXPY(vs->x[j], n, alpha, wx); CHKERRQ(ierr);
   }
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr);
 
   ierr = PetscFree(wx); CHKERRQ(ierr);
 
@@ -441,7 +438,6 @@ PetscErrorCode VecWAXPY_Comp(Vec v, PetscScalar alpha, Vec w, Vec z)
   for(i=0; i<vs->n->n; i++) {
     ierr = VecWAXPY(vs->x[i], alpha, ws->x[i], zs->x[i]); CHKERRQ(ierr);
   }
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -470,7 +466,6 @@ PetscErrorCode VecAXPBYPCZ_Comp(Vec v, PetscScalar alpha, PetscScalar beta,
     ierr = VecAXPBYPCZ(vs->x[i], alpha, beta, gamma, ws->x[i], zs->x[i]);
     CHKERRQ(ierr);
   }
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -615,7 +610,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v) \
   for(i=0; i<vs->n->n; i++) { \
     ierr = __COMPOSE2__(Vec,NAME)(vs->x[i]); CHKERRQ(ierr); \
   } \
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr); \
 \
   PetscFunctionReturn(0);\
 } \
@@ -661,7 +655,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, T0 __a) \
   for(i=0; i<vs->n->n; i++) { \
     ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], __a); CHKERRQ(ierr); \
   } \
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr); \
 \
   PetscFunctionReturn(0);\
 } \
@@ -705,8 +698,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w) \
   for(i=0; i<vs->n->n; i++) { \
     ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], ws->x[i]); CHKERRQ(ierr); \
   } \
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr); \
-  ierr = PetscObjectStateIncrease((PetscObject)w); CHKERRQ(ierr); \
 \
   PetscFunctionReturn(0);\
 } \
@@ -741,7 +732,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w, Vec z) \
     ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], ws->x[i], zs->x[i]); \
     CHKERRQ(ierr); \
   } \
-  ierr = PetscObjectStateIncrease((PetscObject)v); CHKERRQ(ierr); \
 \
   PetscFunctionReturn(0);\
 } \

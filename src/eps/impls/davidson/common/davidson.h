@@ -273,6 +273,7 @@ typedef struct _dvdDashboard {
     V_new_e;        /* added to V the columns V_new_s:V_new_e */
 
   PetscRandom rand; /* random seed */
+  void* prof_data;  /* profiler data */
 } dvdDashboard;
 
 #define DVD_FL_ADD(list, fun) { \
@@ -393,8 +394,8 @@ PetscInt dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
 /* Some utilities */
 PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc);
 PetscErrorCode dvd_jacobi_precond(dvdDashboard *d, dvdBlackboard *b);
-void dvd_profiler(dvdDashboard *d, void *p_);
-PetscErrorCode dvd_prof_init(void **prof);
+PetscErrorCode dvd_profiler(dvdDashboard *d, dvdBlackboard *b);
+PetscErrorCode dvd_prof_init();
 PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
                              HarmType_t mode, PetscTruth fixedTarget,
                              PetscScalar t);
@@ -481,6 +482,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();
 PetscErrorCode EPSCreate_DAVIDSON(EPS eps);
+PetscErrorCode EPSDestroy_DAVIDSON(EPS eps);
 PetscErrorCode EPSSetUp_DAVIDSON(EPS eps);
 PetscErrorCode EPSSolve_DAVIDSON(EPS eps);
 PetscErrorCode EPSComputeVectors_QZ(EPS eps);
@@ -509,9 +511,7 @@ typedef struct {
 
   /**** Things to destroy ****/
   PetscScalar *wS;
-  Vec *wV;
-
-  /**** Other stuff ****/
-  void *prof;
+  Vec         *wV;
+  PetscInt    size_wV;
 } EPS_DAVIDSON;
 

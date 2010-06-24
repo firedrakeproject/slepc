@@ -28,7 +28,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_DAVIDSON;
   eps->ops->setup                = EPSSetUp_DAVIDSON;
-  eps->ops->destroy              = EPSDestroy_Default;
+  eps->ops->destroy              = EPSDestroy_DAVIDSON;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_QZ;
 
@@ -41,7 +41,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONSetRestart_DAVIDSON(eps, 6, 0); CHKERRQ(ierr);
   ierr = EPSDAVIDSONSetInitialSize_DAVIDSON(eps, 5); CHKERRQ(ierr);
 
-  dvd_prof_init(&data->prof);
+  dvd_prof_init();
 
   PetscFunctionReturn(0);
 }
@@ -198,6 +198,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = PetscMalloc((nvecs*eps->nloc+nscalars)*sizeof(PetscScalar), &data->wS);
   CHKERRQ(ierr);
   ierr = PetscMalloc(nvecs*sizeof(Vec), &data->wV); CHKERRQ(ierr);
+  data->size_wV = nvecs;
   for (i=0; i<nvecs; i++) {
     ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm, eps->nloc, PETSC_DECIDE,
                                  data->wS+i*eps->nloc, &data->wV[i]);
@@ -225,9 +226,6 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   eps->errest = dvd->errest;
   eps->V = dvd->V;
 
-  /* Prepare the profiler */
-  dvd_profiler(dvd, data->prof);
-   
   PetscFunctionReturn(0);
 }
 
@@ -271,6 +269,38 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 
   PetscFunctionReturn(0);
 }
+
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_DAVIDSON"
+PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
+  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  dvdDashboard    *dvd = &data->ddb;
+  PetscErrorCode  ierr;
+  PetscInt        i;
+
+  PetscFunctionBegin;
+
+  /* Call step destructors and destroys the list */
+  DVD_FL_CALL(dvd->destroyList, dvd);
+  DVD_FL_DEL(dvd->destroyList);
+  DVD_FL_DEL(dvd->startList);
+  DVD_FL_DEL(dvd->endList);
+
+  ierr = PetscRandomDestroy(dvd->rand); CHKERRQ(ierr);
+
+  for(i=0; i<data->size_wV; i++) {
+    ierr = VecDestroy(data->wV[i]); CHKERRQ(ierr);
+  }
+  ierr = PetscFree(data->wV);
+  ierr = PetscFree(data->wS);
+  ierr = PetscFree(data); CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
