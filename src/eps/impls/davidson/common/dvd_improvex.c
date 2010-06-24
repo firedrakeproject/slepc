@@ -454,8 +454,8 @@ EXTERN_C_END
             PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-8         ) { \
         printf("Mmmm %g+%g->%g+%g\n", (eigr)[(i_s)+(i)], (eigi)[(i_s)+1], \
                                       (b)[8], (b)[9]); \
-        (eigr)[(i_s)+(i)] = b[8]; \
-        (eigi)[(i_s)+(i)] = b[9]; \
+/*        (eigr)[(i_s)+(i)] = b[8]; \
+        (eigi)[(i_s)+(i)] = b[9];*/ \
       } \
       (i)++; \
     } \
@@ -471,7 +471,7 @@ EXTERN_C_END
         printf("Mmmm %g+%g ->  %g+%g\n", PetscRealPart((eigr)[(i_s)+(i)]), \
                PetscImaginaryPart((eigr)[(i_s)+(i)]), PetscRealPart((b)[0]), \
                PetscImaginaryPart((b)[0])); \
-        (eigr)[(i_s)+(i)] = (b)[0]; \
+        /*(eigr)[(i_s)+(i)] = (b)[0];*/ \
       } \
     }
 #endif

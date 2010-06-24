@@ -504,10 +504,29 @@ EXTERN_C_BEGIN
 PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data, PetscScalar *ar,
                                   PetscScalar *ai)
 {
+  PetscScalar xr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar xi, k;
+#endif
+
   PetscFunctionBegin;
 
-  *ar = (data->Pb - data->Wb*(*ar)) / (data->Pa - data->Wa*(*ar));
-  //TODO: missing code for complex values in real arithmetic
+  if(!ar) SETERRQ(1, "The real part has to be present!");
+  xr = *ar;
+
+#if !defined(PETSC_USE_COMPLEX)
+  if(!ai) SETERRQ(1, "The imaginary part has to be present!");
+  xi = *ai;
+
+  if (xi != 0.0) {
+    k = (data->Pa - data->Wa*xr)*(data->Pa - data->Wa*xr) +
+        data->Wa*data->Wa*xi*xi;
+    *ar = (data->Pb*data->Pa - (data->Pb*data->Wa + data->Wb*data->Pa)*xr + 
+           data->Wb*data->Wa*(xr*xr + xi*xi))/k;
+    *ai = (data->Pb*data->Wa - data->Wb*data->Pa)*xi/k;
+  } else
+#endif
+    *ar = (data->Pb - data->Wb*xr) / (data->Pa - data->Wa*xr);
 
   PetscFunctionReturn(0);
 }
