@@ -36,8 +36,8 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     case DVD_INITV_KRYLOV:    dvd_initV_krylov(d, b, ini_size_V); break;
 		}
   
-    /* Setup basic testing convergence routines */
-    dvd_testconv_basic(d, b);
+    /* Setup the convergence in order to use the SLEPc convergence test */
+    dvd_testconv_slepc(d, b);
   
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
     dvd_calcpairs_qz(d, b, PETSC_NULL);
@@ -92,8 +92,8 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   case DVD_INITV_KRYLOV:      dvd_initV_krylov(d, b, ini_size_V); break;
   }
 
-  /* Setup basic testing convergence routines */
-  dvd_testconv_basic(d, b);
+  /* Setup the convergence in order to use the SLEPc convergence test */
+  dvd_testconv_slepc(d, b);
 
   /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
   dvd_calcpairs_qz(d, b, ip);

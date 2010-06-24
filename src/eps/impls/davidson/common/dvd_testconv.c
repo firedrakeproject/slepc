@@ -10,6 +10,9 @@
 PetscTruth dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
                                 PetscScalar eigvi, PetscReal r,
                                 PetscReal *err);
+PetscTruth dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
+                                PetscScalar eigvi, PetscReal r,
+                                PetscReal *err);
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -50,6 +53,48 @@ PetscTruth dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
   errest = r/eig_norm;
   conv = (errest <= d->tol) ? PETSC_TRUE : PETSC_FALSE;
   if (err) *err = errest;
+
+  PetscFunctionReturn(conv);
+}
+EXTERN_C_END
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_testconv_slepc"
+PetscInt dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
+{
+  PetscErrorCode  ierr;
+
+  PetscFunctionBegin;
+
+  /* Setup the step */
+  if (b->state >= DVD_STATE_CONF) {
+    if (d->testConv_data) {
+      ierr = PetscFree(d->testConv_data); CHKERRQ(ierr);
+    }
+    d->testConv_data = PETSC_NULL;
+    d->testConv = dvd_testconv_slepc_0;
+  }
+
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_testconv_slepc_0"
+PetscTruth dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
+                                PetscScalar eigvi, PetscReal r,
+                                PetscReal *err)
+{
+  PetscErrorCode  ierr;
+  PetscTruth      conv;
+
+  PetscFunctionBegin;
+
+  *err = r;
+  ierr = (*d->eps->conv_func)(d->eps, 1, 0, &eigvr, &eigvi, err, &conv,
+                              d->eps->conv_ctx); CHKERRQ(ierr);
 
   PetscFunctionReturn(conv);
 }

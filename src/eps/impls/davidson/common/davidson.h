@@ -382,6 +382,7 @@ PetscInt dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
 
 /* Routines for testConv step */
 PetscInt dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b);
+PetscInt dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b);
 
 /* Routines for management of V */
 PetscInt dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
