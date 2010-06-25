@@ -13,6 +13,8 @@
 #include "davidson.h"
 #include "slepcblaslapack.h"
 
+PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer);
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_DAVIDSON"
 PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
@@ -31,6 +33,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   eps->ops->destroy              = EPSDestroy_DAVIDSON;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_QZ;
+  eps->ops->view                 = EPSView_DAVIDSON;
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON), &data); CHKERRQ(ierr);
   eps->data = data;
@@ -254,8 +257,7 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 
     /* Monitor progress */
     eps->nconv = d->nconv;
-//    EPSMonitor(eps, eps->its+1, eps->nconv, eps->eigr, eps->eigi, eps->errest, eps->nconv+PetscMax(d->size_H,5)); 
-    EPSMonitor(eps, eps->its+1, eps->nconv, eps->eigr+eps->nconv, eps->eigi, eps->errest+eps->nconv, PetscMin(d->size_H,5));
+    EPSMonitor(eps, eps->its+1, eps->nconv, eps->eigr, eps->eigi, eps->errest, d->size_H+d->nconv);
 
     /* Test for convergence */
     if (eps->nconv >= eps->nev) break;
@@ -300,6 +302,40 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSView_DAVIDSON"
+PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
+{
+  PetscErrorCode  ierr;
+  PetscTruth      isascii;
+  PetscInt        opi, opi0;
+  PetscTruth      opb;
+  const char*     name;
+
+  PetscFunctionBegin;
+  
+  name = ((PetscObject)eps)->type_name;
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) {
+    SETERRQ2(1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
+  }
+  
+  ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &opi); CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"block size: %d\n", opi);CHKERRQ(ierr);
+  ierr = EPSDAVIDSONGetKrylovStart_DAVIDSON(eps, &opb); CHKERRQ(ierr);
+  if(opb == PETSC_FALSE) {
+    ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: Krylov\n");CHKERRQ(ierr);
+  }
+  ierr = EPSDAVIDSONGetRestart_DAVIDSON(eps, &opi, &opi0); CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"size of the subspace after restarting: %d\n", opi);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"number of vectors after restarting from the previous iteration: %d\n", opi0);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
 
 
 EXTERN_C_BEGIN
