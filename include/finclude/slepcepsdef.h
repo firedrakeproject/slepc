@@ -54,5 +54,7 @@
 #define EPSTRLAN       'trlan'
 #define EPSBLOPEX      'blopex'
 #define EPSPRIMME      'primme'
+#define EPSGD          'gd'
+#define EPSJD          'jd'
 
 #endif

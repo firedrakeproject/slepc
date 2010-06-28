@@ -103,8 +103,11 @@
 
       parameter (EPS_RITZ                   =  1)
       parameter (EPS_HARMONIC               =  2)
-      parameter (EPS_REFINED                =  3)
-      parameter (EPS_REFINED_HARMONIC       =  4)
+      parameter (EPS_HARMONIC_RELATIVE      =  3)
+      parameter (EPS_HARMONIC_RIGHT         =  4)
+      parameter (EPS_HARMONIC_LARGEST       =  5)
+      parameter (EPS_REFINED                =  6)
+      parameter (EPS_REFINED_HARMONIC       =  7)
 
       PetscEnum EPS_LANCZOS_REORTHOG_LOCAL
       PetscEnum EPS_LANCZOS_REORTHOG_FULL

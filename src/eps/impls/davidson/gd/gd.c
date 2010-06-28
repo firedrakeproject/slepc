@@ -151,7 +151,7 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscTruth krylovstart)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameters:
 .  krylovstart - boolean flag indicating if starting the searching subspace
    with a Krylov basis is enabled.
 
@@ -216,7 +216,7 @@ PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 .  blocksize - integer indicating the number of vectors added to the searching
    space every iteration.
 
@@ -248,7 +248,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 +  minv - non-zero positive integer indicating the number of vectors of the
    searching subspace after restarting
 -  plusk - positive integer indicating the number of vectors saved from the
@@ -325,7 +325,7 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 .  initialsize - non-zero positive integer indicating the number of vectors of
    the initial searching subspace
 
@@ -359,11 +359,9 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
 
    Collective on EPS
 
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Input Parameter:
-.  initialsize - non-zero positive integer indicating the number of vectors of
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  initialsize - non-zero positive integer indicating the number of vectors of
    the initial searching subspace
 
    Options Database Key:
@@ -372,7 +370,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
    
    Level: advanced
 
-.seealso: EPSGDSetInitialSize(), EPSGetKrylovStart()
+.seealso: EPSGDGetInitialSize(), EPSGetKrylovStart()
 @*/
 PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
 {
