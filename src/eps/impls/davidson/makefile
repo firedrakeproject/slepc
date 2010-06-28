@@ -28,7 +28,7 @@ SOURCEF  =
 SOURCEH  = 
 OBJSC    =
 LIBBASE  = libslepc
-DIRS     = common gd 
+DIRS     = common gd jd
 LOCDIR   = src/eps/impls/davidson/
 MANSEC   = EPS
 

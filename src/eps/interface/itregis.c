@@ -45,6 +45,7 @@ EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
 EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
 #endif
 EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
+EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
 EXTERN_C_END
   
 #undef __FUNCT__  
@@ -100,5 +101,7 @@ PetscErrorCode EPSRegisterAll(char *path)
 #endif
   ierr = EPSRegisterDynamic(EPSGD, path, "EPSCreate_GD", 
                             EPSCreate_GD);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSJD, path, "EPSCreate_JD", 
+                            EPSCreate_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

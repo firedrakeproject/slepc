@@ -334,6 +334,17 @@ EXTERN PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk);
 EXTERN PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize);
 EXTERN PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize);
 
+EXTERN PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscTruth krylovstart);
+EXTERN PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscTruth *krylovstart);
+EXTERN PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize);
+EXTERN PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize);
+EXTERN PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk);
+EXTERN PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk);
+EXTERN PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize);
+EXTERN PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize);
+EXTERN PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix);
+EXTERN PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix);
+
 PETSC_EXTERN_CXX_END
 #endif
 

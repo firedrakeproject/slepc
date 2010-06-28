@@ -98,6 +98,9 @@
       
       PetscEnum EPS_RITZ
       PetscEnum EPS_HARMONIC
+      PetscEnum EPS_HARMONIC_RELATIVE
+      PetscEnum EPS_HARMONIC_RIGHT
+      PetscEnum EPS_HARMONIC_LARGEST
       PetscEnum EPS_REFINED
       PetscEnum EPS_REFINED_HARMONIC
 

@@ -43,6 +43,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONSetBlockSize_DAVIDSON(eps, 1); CHKERRQ(ierr);
   ierr = EPSDAVIDSONSetRestart_DAVIDSON(eps, 6, 0); CHKERRQ(ierr);
   ierr = EPSDAVIDSONSetInitialSize_DAVIDSON(eps, 5); CHKERRQ(ierr);
+  ierr = EPSDAVIDSONSetFix_DAVIDSON(eps, 0.01); CHKERRQ(ierr);
 
   dvd_prof_init();
 
@@ -64,6 +65,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   PetscTruth      t,ipB;
   HarmType_t      harm;
   InitType_t      init;
+  PetscReal       fix;
 
   PetscFunctionBegin;
 
@@ -174,6 +176,9 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
     ierr = IPSetBilinearForm(eps->ip, 0, IP_INNER_HERMITIAN); CHKERRQ(ierr);
   }
 
+  /* Get the fix parameter */
+  ierr = EPSDAVIDSONGetFix_DAVIDSON(eps, &fix); CHKERRQ(ierr);
+
   /* Setup the random seed */
   ierr = PetscRandomCreate(((PetscObject)eps)->comm, &dvd->rand); CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(dvd->rand); CHKERRQ(ierr);
@@ -220,7 +225,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
                              eps->IS?eps->nini:0, plusk, pc,
                              eps->ip, harm, dvd->withTarget,
                              eps->target, ksp,
-                             1.0, init);
+                             fix, init);
   CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
@@ -466,8 +471,39 @@ PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize)
 
   if(initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
   if(initialsize <= 0)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
   data->initialsize = initialsize;
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDAVIDSONGetFix_DAVIDSON"
+PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix)
+{
+  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+
+  *fix = data->fix;
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDAVIDSONSetFix_DAVIDSON"
+PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix)
+{
+  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+
+  if(fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
+  if(fix < 0.0)
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
+  data->fix = fix;
 
   PetscFunctionReturn(0);
 }

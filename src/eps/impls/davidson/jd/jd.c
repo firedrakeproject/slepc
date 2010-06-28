@@ -82,8 +82,8 @@ PetscErrorCode EPSCreate_JD(EPS eps) {
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetRestart_C","EPSDAVIDSONGetRestart_DAVIDSON",EPSDAVIDSONGetRestart_DAVIDSON);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetInitialSize_C","EPSDAVIDSONSetInitialSize_DAVIDSON",EPSDAVIDSONSetInitialSize_DAVIDSON);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetInitialSize_C","EPSDAVIDSONGetInitialSize_DAVIDSON",EPSDAVIDSONGetInitialSize_DAVIDSON);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetFix_C","EPSDAVIDSONSetFix_DAVIDSON",EPSDAVIDSONSetInitialSize_DAVIDSON);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","EPSDAVIDSONGetFix_DAVIDSON",EPSDAVIDSONGetInitialSize_DAVIDSON);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetFix_C","EPSDAVIDSONSetFix_DAVIDSON",EPSDAVIDSONSetFix_DAVIDSON);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","EPSDAVIDSONGetFix_DAVIDSON",EPSDAVIDSONGetFix_DAVIDSON);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -454,7 +454,7 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetReal_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetFix_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,fix);CHKERRQ(ierr);
   }
