@@ -21,10 +21,16 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = precond.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = precond.o 
 LIBBASE  = libslepc
-DIRS     = shell shift sinvert cayley fold precond
-LOCDIR   = src/st/impls/
+DIRS     =
 MANSEC   = ST
+LOCDIR   = src/st/impls/precond/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

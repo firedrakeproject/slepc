@@ -51,6 +51,7 @@ E*/
 #define STSINV      "sinvert"
 #define STCAYLEY    "cayley"
 #define STFOLD      "fold"
+#define STPRECOND   "precond"
 
 EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);
 EXTERN PetscErrorCode STDestroy(ST);
@@ -122,6 +123,9 @@ EXTERN PetscErrorCode STShellGetName(ST,char*[]);
 EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
 EXTERN PetscErrorCode STFoldSetLeftSide(ST st,PetscTruth left);
+
+EXTERN PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
+EXTERN PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
 
 PETSC_EXTERN_CXX_END
 #endif
