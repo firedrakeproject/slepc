@@ -26,6 +26,13 @@
 PetscErrorCode STDestroy_Precond(ST st);
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat);
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat);
+PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat);
+PetscErrorCode STPrecondGetMatForKSP_Precond(ST st,PetscTruth *setmat);
+
+typedef struct {
+  PetscTruth     setmat;
+} ST_PRECOND;
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "SLEPcNotImplemented_Precond"
@@ -39,67 +46,78 @@ PetscErrorCode STSetUp_Precond(ST st)
 {
   Mat            P;
   PC             pc;
-  PetscTruth     t;
+  PetscTruth     t0, setmat, destroyP, builtP;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
 
+  /* If pc is none and any matrix has to be set, exit */
+  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t0); CHKERRQ(ierr);
+  ierr = STPrecondGetMatForKSP(st, &setmat); CHKERRQ(ierr); 
+  if (t0 == PETSC_TRUE && setmat == PETSC_FALSE) PetscFunctionReturn(0);
+
   /* Check if a user matrix is set */
   ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
+
+  /* If not, create A - shift*B */
   if (P) {
-    ierr = MatDestroy(P); CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-  }
+    builtP = PETSC_FALSE;
+    destroyP = PETSC_TRUE;
+  } else {
+    builtP = PETSC_TRUE;
 
-  /* If not and pc is not none, A - s*B is built */
-  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t); CHKERRQ(ierr);
-  if (t == PETSC_TRUE) PetscFunctionReturn(0);
-
-  switch (st->shift_matrix) {
-  case ST_MATMODE_INPLACE:
-    if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
-      if (st->B) {
-        P = st->A;
-        ierr = MatAXPY(st->A,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
-      }
+    if (st->shift_matrix == ST_MATMODE_SHELL) {
+      ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
+      //TODO: set the apply and apply transpose to st->mat
+      destroyP = PETSC_TRUE;
+    } else if (!(PetscAbsScalar(st->sigma) < PETSC_MAX) && st->B) {
+      P = st->B;
+      destroyP = PETSC_FALSE;
     } else if (st->sigma == 0.0) {
       P = st->A;
-    } else {
-      P = st->B;
+      destroyP = PETSC_FALSE;
+    } else if (PetscAbsScalar(st->sigma) < PETSC_MAX) {
+      if (st->shift_matrix == ST_MATMODE_INPLACE) {
+        P = st->A;
+        destroyP = PETSC_FALSE;
+      } else {
+        ierr = MatDuplicate(st->A, MAT_COPY_VALUES, &P); CHKERRQ(ierr);
+        destroyP = PETSC_TRUE;
+      } 
+      if (st->B) {
+        ierr = MatAXPY(P, -st->sigma, st->B, st->str); CHKERRQ(ierr); 
+      } else {
+        ierr = MatShift(P, -st->sigma); CHKERRQ(ierr); 
+      }
+    } else 
+      builtP = PETSC_FALSE;
+  }
+
+  /* If P was not possible to obtain, set pc to PCNONE */
+  if (!P) {
+    ierr = PCSetType(pc, PCNONE); CHKERRQ(ierr);
+
+    /* If some matrix has to be set to ksp, set ksp to KSPPREONLY */
+    if (setmat == PETSC_TRUE) {
+      ierr = STMatShellCreate(st, &P);CHKERRQ(ierr);
+      destroyP = PETSC_TRUE;
+      ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
     }
-    ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);
-    CHKERRQ(ierr);
+  }
+
+  ierr = KSPSetOperators(st->ksp, setmat==PETSC_TRUE?P:PETSC_NULL, P,
+                         DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+
+  if (destroyP == PETSC_TRUE) {
+    ierr = MatDestroy(P); CHKERRQ(ierr);
+  } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP == PETSC_TRUE) {
     if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX) {
       if (st->B) {
         ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr); 
       } else { 
         ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr); 
       }
-    }
-    break;
-  case ST_MATMODE_SHELL:
-    ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
-    //TODO: set the apply and apply transpose to st->mat
-    ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = MatDestroy(P); CHKERRQ(ierr);
-    break;
-  default:
-    if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
-      ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&P);CHKERRQ(ierr);
-      if (st->B) { 
-        ierr = MatAXPY(P,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(P,-st->sigma);CHKERRQ(ierr); 
-      }
-      ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      ierr = MatDestroy(P); CHKERRQ(ierr);
-    } else if (st->sigma == 0.0) {
-      ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    } else {
-      ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }
   }
 
@@ -131,10 +149,12 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;
+  ST_PRECOND     *data;
 
   PetscFunctionBegin;
 
-  st->data                 = 0;
+  ierr = PetscNew(ST_PRECOND, &data); CHKERRQ(ierr);
+  st->data                 = data;
 
   st->ops->apply           = SLEPcNotImplemented_Precond;
   st->ops->getbilinearform = STGetBilinearForm_Default;
@@ -150,6 +170,10 @@ PetscErrorCode STCreate_Precond(ST st)
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","STPrecondGetMatForPC_Precond",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","STPrecondSetMatForPC_Precond",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForKSP_C","STPrecondGetMatForKSP_Precond",STPrecondGetMatForKSP_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForKSP_C","STPrecondSetMatForKSP_Precond",STPrecondSetMatForKSP_Precond);CHKERRQ(ierr);
+
+  ierr = STPrecondSetMatForKSP_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -165,6 +189,10 @@ PetscErrorCode STDestroy_Precond(ST st)
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForKSP_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForKSP_C","",PETSC_NULL);CHKERRQ(ierr);
+
+  ierr = PetscFree(st->data); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -228,7 +256,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STPrecondSetMatForPC"
 /*@
    STPrecondSetMatForPC - Sets the matrix that will be passed as parameter in
-   the KSPSetOperator function as the matrix to be used in constructing the
+   the KSPSetOperators function as the matrix to be used in constructing the
    preconditioner. If any matrix is set or mat is PETSC_NULL, A - sigma*B will
    be used, being sigma the value set by STSetShift
 
@@ -240,7 +268,7 @@ EXTERN_C_BEGIN
 
    Level: advanced
 
-.seealso: STPrecondSetMatForPC(), KSPSetOperator()
+.seealso: STPrecondSetMatForPC(), KSPSetOperators()
 @*/
 PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
 {
@@ -268,6 +296,99 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PCSetOperators(pc, PETSC_NULL, mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "STPrecondSetMatForKSP"
+/*@
+   STPrecondSetMatForKSP - Sets if during the STSetUp the KSP matrix associated
+   to the linear system is set with the matrix for building the preconditioner.
+
+   Collective on ST
+
+   Input Parameter:
++  st - the spectral transformation context
+-  setmat - if true, the KSP matrix associated to linear system is set with
+   the matrix for building the preconditioner
+
+   Level: developer
+
+.seealso: SSTPrecondGetMatForKSP(), TSetShift(), KSPSetOperators()
+@*/
+PetscErrorCode STPrecondSetMatForKSP(ST st,PetscTruth setmat)
+{
+  PetscErrorCode ierr, (*f)(ST,PetscTruth);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetMatForKSP_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(st,setmat);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "STPrecondGetMatForKSP"
+/*@
+   STPrecondGetMatForKSP - Gets if during the STSetUp the KSP matrix associated
+   to the linear system is set with the matrix for building the preconditioner.
+
+   Collective on ST
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  setmat - if true, the KSP matrix associated to linear system is set with
+   the matrix for building the preconditioner
+
+   Level: developer
+
+.seealso: STPrecondSetMatForKSP(), STSetShift(), KSPSetOperators()
+@*/
+PetscErrorCode STPrecondGetMatForKSP(ST st,PetscTruth *setmat)
+{
+  PetscErrorCode ierr, (*f)(ST,PetscTruth*);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetMatForKSP_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(st,setmat);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat)
+{
+  ST_PRECOND     *data = (ST_PRECOND*)st->data;
+
+  PetscFunctionBegin;
+
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+
+  data->setmat = setmat;
+
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode STPrecondGetMatForKSP_Precond(ST st,PetscTruth *setmat)
+{
+  ST_PRECOND     *data = (ST_PRECOND*)st->data;
+
+  PetscFunctionBegin;
+
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+
+  *setmat = data->setmat;
 
   PetscFunctionReturn(0);
 }

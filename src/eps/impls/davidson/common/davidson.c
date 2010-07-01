@@ -23,7 +23,8 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
 
   PetscFunctionBegin;
 
-  STSetType(eps->OP, STPRECOND);
+  ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
+  ierr = STPrecondSetMatForKSP(eps->OP, PETSC_FALSE); CHKERRQ(ierr);
 
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_DAVIDSON;
@@ -91,7 +92,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   /* Davidson solvers only support STPRECOND */
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
   if (t == PETSC_FALSE)
-    SETERRQ1(0, "%s only supports the ST objtect precond",
+    SETERRQ1(PETSC_ERR_SUP, "%s only supports the ST objtect precond",
              ((PetscObject)eps)->type_name);
   
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
