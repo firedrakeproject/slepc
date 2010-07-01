@@ -38,59 +38,68 @@ PetscErrorCode SLEPcNotImplemented_Precond() {
 PetscErrorCode STSetUp_Precond(ST st)
 {
   Mat            P;
+  PC             pc;
+  PetscTruth     t;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
 
+  /* Check if a user matrix is set */
   ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
   if (P) {
     ierr = MatDestroy(P); CHKERRQ(ierr);
-  } else {
-    switch (st->shift_matrix) {
-    case ST_MATMODE_INPLACE:
-      if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
-        if (st->B) {
-          P = st->A;
-          ierr = MatAXPY(st->A,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
-        } else { 
-          ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
-        }
-      } else if (st->sigma == 0.0) {
+    PetscFunctionReturn(0);
+  }
+
+  /* If not and pc is not none, A - s*B is built */
+  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t); CHKERRQ(ierr);
+  if (t == PETSC_TRUE) PetscFunctionReturn(0);
+
+  switch (st->shift_matrix) {
+  case ST_MATMODE_INPLACE:
+    if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
+      if (st->B) {
         P = st->A;
-      } else {
-        P = st->B;
+        ierr = MatAXPY(st->A,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
+      } else { 
+        ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
       }
-      ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);
-      CHKERRQ(ierr);
-      if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX) {
-        if (st->B) {
-          ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr); 
-        } else { 
-          ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr); 
-        }
+    } else if (st->sigma == 0.0) {
+      P = st->A;
+    } else {
+      P = st->B;
+    }
+    ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);
+    CHKERRQ(ierr);
+    if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX) {
+      if (st->B) {
+        ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr); 
+      } else { 
+        ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr); 
       }
-      break;
-    case ST_MATMODE_SHELL:
-      ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
-      //TODO: set the apply and apply transpose to st->mat
+    }
+    break;
+  case ST_MATMODE_SHELL:
+    ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
+    //TODO: set the apply and apply transpose to st->mat
+    ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatDestroy(P); CHKERRQ(ierr);
+    break;
+  default:
+    if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
+      ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&P);CHKERRQ(ierr);
+      if (st->B) { 
+        ierr = MatAXPY(P,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
+      } else { 
+        ierr = MatShift(P,-st->sigma);CHKERRQ(ierr); 
+      }
       ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       ierr = MatDestroy(P); CHKERRQ(ierr);
-      break;
-    default:
-      if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
-        ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&P);CHKERRQ(ierr);
-        if (st->B) { 
-          ierr = MatAXPY(P,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
-        } else { 
-          ierr = MatShift(P,-st->sigma);CHKERRQ(ierr); 
-        }
-        ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-        ierr = MatDestroy(P); CHKERRQ(ierr);
-      } else if (st->sigma == 0.0) {
-        ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      } else {
-        ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      }
+    } else if (st->sigma == 0.0) {
+      ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    } else {
+      ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }
   }
 
