@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard    *dvd = &data->ddb;
   dvdBlackboard   b;
-  PetscInt        i,nvecs,nscalars,min_size_V,plusk,bs;
+  PetscInt        i,nvecs,nscalars,min_size_V,plusk,bs,initv;
   Mat             A,B;
   KSP             ksp;
   PC              pc, pc2;
@@ -86,12 +86,12 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   if (min_size_V == 0) min_size_V = bs;
   if (!(min_size_V <= eps->ncv))
     SETERRQ(1, "The value of eps_davidsones_minv must be less than ncv!");
-  if(eps->nini<=0) eps->nini = 5;
+  ierr = EPSDAVIDSONGetInitialSize_DAVIDSON(eps, &initv); CHKERRQ(ierr);
 
   /* Davidson solvers only support STPRECOND */
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
   if (t == PETSC_FALSE)
-    SETERRQ1(0, "%s only support the ST objtect precond",
+    SETERRQ1(0, "%s only supports the ST objtect precond",
              ((PetscObject)eps)->type_name);
   
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
@@ -199,8 +199,8 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
 
   /* Preconfigure dvd */
   ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, min_size_V, bs,
-                                eps->nini, eps->IS,
-                                eps->IS?eps->nini:0,
+                                initv, eps->IS,
+                                eps->nini,
                                 plusk, pc, harm,
                                 PETSC_NULL, init);
   CHKERRQ(ierr);
@@ -226,8 +226,8 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
 
   /* Configure dvd for a basic GD */
   ierr = dvd_schm_basic_conf(dvd, &b, eps->ncv, min_size_V, bs,
-                             eps->nini, eps->IS,
-                             eps->IS?eps->nini:0, plusk, pc,
+                             initv, eps->IS,
+                             eps->nini, plusk, pc,
                              eps->ip, harm, dvd->withTarget,
                              eps->target, ksp,
                              fix, init);
