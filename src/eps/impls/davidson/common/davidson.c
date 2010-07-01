@@ -23,9 +23,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
 
   PetscFunctionBegin;
 
-  STSetType(eps->OP, STSHELL);
-  STShellSetApply(eps->OP, SLEPcNotImplemented);
-  STShellSetApplyTranspose(eps->OP, SLEPcNotImplemented);
+  STSetType(eps->OP, STPRECOND);
 
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_DAVIDSON;
@@ -90,6 +88,13 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
     SETERRQ(1, "The value of eps_davidsones_minv must be less than ncv!");
   if(eps->nini<=0) eps->nini = 5;
 
+  /* Davidson solvers only support STPRECOND */
+  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
+  if (t == PETSC_FALSE)
+    SETERRQ1(0, "%s only support the ST objtect precond",
+             ((PetscObject)eps)->type_name);
+  
+  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP, &A, &B); CHKERRQ(ierr);
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = KSPGetPC(ksp, &pc); CHKERRQ(ierr);

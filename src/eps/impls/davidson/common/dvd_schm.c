@@ -45,8 +45,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
       dvd_harm_conf(d, b, harmMode, PETSC_FALSE, 0.0);
   
     /* Setup the preconditioner */
-    if (pc == 0)  dvd_jacobi_precond(d, b);
-    else          dvd_static_precond_PC(d, b, pc);
+    dvd_static_precond_PC(d, b, pc);
 
     /* Setup the method for improving the eigenvectors */
     dvd_improvex_jd(d, b, ksp, bs);
@@ -104,8 +103,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
     dvd_harm_conf(d, b, harmMode, fixedTarget, t);
 
   /* Setup the preconditioner */
-  if (pc == 0)  dvd_jacobi_precond(d, b);
-  else          dvd_static_precond_PC(d, b, pc);
+  dvd_static_precond_PC(d, b, pc);
 
   /* Setup the method for improving the eigenvectors */
   dvd_improvex_jd(d, b, ksp, bs);

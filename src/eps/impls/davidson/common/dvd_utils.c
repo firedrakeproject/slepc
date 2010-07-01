@@ -25,8 +25,8 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
 {
   PetscErrorCode  ierr;
   dvdPCWrapper    *dvdpc;
-  Mat             P = 0;
-  PetscTruth      destroyP;
+  Mat             A, P;
+  MatStructure    str;
 
   PetscFunctionBegin;
 
@@ -34,38 +34,19 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
   if (b->state >= DVD_STATE_CONF) {
     /* If the preconditioner is valid */
     if (pc) {
-      /* Select the matrix for the preconditioner */
-      if ((d->target[0] != 0.0) && (d->target[1] != 0.0)) {
-        ierr = MatDuplicate(d->A, MAT_COPY_VALUES, &P); CHKERRQ(ierr);
-        if (d->B) {
-            ierr = MatAXPY(P, -d->target[0]/d->target[1], d->B,
-                           DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
-        } else {
-          ierr = MatShift(P, -d->target[0]/d->target[1]); CHKERRQ(ierr);
-        }
-        destroyP = PETSC_TRUE;
-      } else if (d->target[1] != 0.0) {
-        P = d->A;
-        destroyP = PETSC_FALSE;
-      } else if (d->B) {
-        P = d->B;
-        destroyP = PETSC_FALSE;
-      }
-    }
-
-    /* Setup the preconditioner */
-    if (P) {
       ierr = PetscMalloc(sizeof(dvdPCWrapper), &dvdpc); CHKERRQ(ierr);
       dvdpc->pc = pc;
       d->improvex_precond_data = dvdpc;
       d->improvex_precond = dvd_static_precond_PC_0;
 
-      ierr = PCSetOperators(pc, P, P, DIFFERENT_NONZERO_PATTERN);
-      CHKERRQ(ierr);
+      /* PC saves the matrix associated with the linear system, and it has to
+         be initialize to a valid matrix */
+      ierr = PCGetOperators(pc, &A, &P, &str); CHKERRQ(ierr);
+      if (!A) A = P;
+      ierr = PCSetOperators(pc, A, P, str); CHKERRQ(ierr);
+      ierr = MatDestroy(A); CHKERRQ(ierr);
+      if (A != P) { ierr = MatDestroy(P); CHKERRQ(ierr); }
       ierr = PCSetUp(pc); CHKERRQ(ierr);
-      if (destroyP == PETSC_TRUE) {
-        ierr = MatDestroy(P); CHKERRQ(ierr);
-      }
 
       DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);
 

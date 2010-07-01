@@ -37,27 +37,32 @@ PetscErrorCode SLEPcNotImplemented_Precond() {
 #define __FUNCT__ "STSetUp_Precond"
 PetscErrorCode STSetUp_Precond(ST st)
 {
+  Mat            P;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->mat) {
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);
-    CHKERRQ(ierr);
-    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-    ierr = MatDestroy(st->mat); CHKERRQ(ierr); st->mat = PETSC_NULL;
+
+  ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
+  if (P) {
+    ierr = MatDestroy(P); CHKERRQ(ierr);
   } else {
     switch (st->shift_matrix) {
     case ST_MATMODE_INPLACE:
-      if (st->sigma != 0.0) {
+      if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
         if (st->B) {
+          P = st->A;
           ierr = MatAXPY(st->A,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
         } else { 
           ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
         }
+      } else if (st->sigma == 0.0) {
+        P = st->A;
+      } else {
+        P = st->B;
       }
-      ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-      if (st->sigma != 0.0) {
+      ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);
+      CHKERRQ(ierr);
+      if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX) {
         if (st->B) {
           ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr); 
         } else { 
@@ -66,25 +71,25 @@ PetscErrorCode STSetUp_Precond(ST st)
       }
       break;
     case ST_MATMODE_SHELL:
-      ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
+      ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
       //TODO: set the apply and apply transpose to st->mat
-      ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-      ierr = MatDestroy(st->mat); CHKERRQ(ierr); st->mat = PETSC_NULL;
+      ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatDestroy(P); CHKERRQ(ierr);
       break;
     default:
-      if (st->sigma != 0.0) {
-        ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
+      if (PetscAbsScalar(st->sigma) < PETSC_MAX && st->sigma != 0.0) {
+        ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&P);CHKERRQ(ierr);
         if (st->B) { 
-          ierr = MatAXPY(st->mat,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
+          ierr = MatAXPY(P,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
         } else { 
-          ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
+          ierr = MatShift(P,-st->sigma);CHKERRQ(ierr); 
         }
-        ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-        ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+        ierr = KSPSetOperators(st->ksp,PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+        ierr = MatDestroy(P); CHKERRQ(ierr);
+      } else if (st->sigma == 0.0) {
+        ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
-        ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-        ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+        ierr = KSPSetOperators(st->ksp,PETSC_NULL,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       }
     }
   }
@@ -192,10 +197,19 @@ EXTERN_C_END
 
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 {
+  PetscErrorCode ierr;
+  PC             pc;
+  PetscTruth     flag;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
 
-  *mat = st->mat;
+  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
+  ierr = PCGetOperatorsSet(pc, PETSC_NULL, &flag); CHKERRQ(ierr);
+  if (flag == PETSC_TRUE) {
+    ierr = PCGetOperators(pc, PETSC_NULL, mat, PETSC_NULL); CHKERRQ(ierr);
+  } else
+    *mat = PETSC_NULL;
 
   PetscFunctionReturn(0);
 }
@@ -236,14 +250,15 @@ EXTERN_C_END
 
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 {
+  PC             pc;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(mat,MAT_COOKIE,2);
 
-  if (st->mat) { ierr = MatDestroy(st->mat); CHKERRQ(ierr); }
-  st->mat = mat;
+  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
+  ierr = PCSetOperators(pc, PETSC_NULL, mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
