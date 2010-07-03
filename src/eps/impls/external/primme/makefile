@@ -25,10 +25,10 @@ ALL: lib
 
 CFLAGS   = ${PRIMME_FLAGS}
 FFLAGS   =
-SOURCEC  = primmes.c
+SOURCEC  = primme.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = primmes.o
+OBJSC    = primme.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

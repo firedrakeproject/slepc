@@ -21,6 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include "petsc.h"
 #include "private/epsimpl.h"    /*I "slepceps.h" I*/
 #include "private/stimpl.h"
 
@@ -34,7 +35,8 @@ typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
   Mat A;                          /* problem matrix */
-  Vec w;                          /* store reciprocal A diagonal */
+  EPS eps;                        /* EPS current context */
+  KSP ksp;                        /* preconditioner */
   Vec x,y;                        /* auxiliar vectors */ 
 } EPS_PRIMME;
 
@@ -91,6 +93,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscMPIInt    numProcs, procID;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
+  PetscTruth     t;
 
   PetscFunctionBegin;
 
@@ -105,6 +108,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized)
     SETERRQ(PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
+  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
+  if (t == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "PRIMME only supports the ST objtect precond");
 
   /* Transfer SLEPc options to PRIMME options */
   primme->n = eps->n;
@@ -117,6 +122,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->numProcs = numProcs; 
   primme->procID = procID;
   primme->printLevel = 0;
+  primme->correctionParams.precondition = 1;
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   switch(eps->which) {
@@ -148,11 +154,10 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Set workspace */
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
+  /* Setup the preconditioner */
+  ops->eps = eps;
   if (primme->correctionParams.precondition) {
-    /* Calc reciprocal A diagonal */
-    ierr = VecDuplicate(eps->V[0], &ops->w); CHKERRQ(ierr);
-    ierr = MatGetDiagonal(ops->A, ops->w); CHKERRQ(ierr);
-    ierr = VecReciprocal(ops->w); CHKERRQ(ierr);
+    ierr = STGetKSP(eps->OP, &ops->ksp); CHKERRQ(ierr);
     primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
@@ -259,11 +264,10 @@ static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params
 static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme)
 {
   PetscErrorCode ierr;
-  PetscInt       i, N = primme->n;
+  PetscInt       i, N = primme->n, lits;
   EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
   Vec            x = ops->x;
   Vec            y = ops->y;
-  Vec            w = ops->w;
  
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
@@ -271,7 +275,9 @@ static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, stru
     ierr = VecPlaceArray(x, (PetscScalar*)in+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
     ierr = VecPlaceArray(y, (PetscScalar*)out+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
 
-    ierr = VecPointwiseMult(y, w, x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = KSPSolve(ops->ksp, x, y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = KSPGetIterationNumber(ops->ksp, &lits); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ops->eps->OP->lineariterations+= lits;
     
     ierr = VecResetArray(x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
     ierr = VecResetArray(y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
@@ -290,9 +296,6 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   
-  if (ops->primme.correctionParams.precondition) {
-    ierr = VecDestroy(ops->w);CHKERRQ(ierr);
-  }
   primme_Free(&ops->primme);
   ierr = VecDestroy(ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(ops->y);CHKERRQ(ierr);
@@ -700,6 +703,9 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
 
   PetscFunctionBegin;
   
+  ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
+  ierr = STPrecondSetMatForKSP(eps->OP, PETSC_TRUE); CHKERRQ(ierr);
+
   ierr = PetscNew(EPS_PRIMME,&primme);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_PRIMME));
   eps->data                      = (void *) primme;
