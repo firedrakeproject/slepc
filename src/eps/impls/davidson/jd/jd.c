@@ -13,6 +13,7 @@
 #include "../src/eps/impls/davidson/common/davidson.h"
 #include "slepcblaslapack.h"
 
+PetscErrorCode EPSSetUp_JD(EPS eps);
 PetscErrorCode EPSDestroy_JD(EPS eps);
 
 EXTERN_C_BEGIN
@@ -61,6 +62,31 @@ EXTERN_C_END
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
+#define __FUNCT__ "EPSSetUp_JD"
+PetscErrorCode EPSSetUp_JD(EPS eps)
+{
+  PetscErrorCode  ierr;
+  PetscTruth      t;
+  KSP             ksp;
+
+  PetscFunctionBegin;
+
+  /* Check some constraints */ 
+  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
+  ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
+  if (t == PETSC_TRUE) SETERRQ(PETSC_ERR_SUP, "jd does not work with preonly ksp of the spectral transformation");
+
+  /* Setup common for all davidson solvers */
+  ierr = EPSSetUp_DAVIDSON(eps);
+
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_JD"
 PetscErrorCode EPSCreate_JD(EPS eps) {
   PetscErrorCode  ierr;
@@ -72,6 +98,7 @@ PetscErrorCode EPSCreate_JD(EPS eps) {
 
   /* Overload the JD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_JD;
+  eps->ops->setup                = EPSSetUp_JD;
   eps->ops->destroy              = EPSDestroy_JD;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetKrylovStart_C","EPSDAVIDSONSetKrylovStart_DAVIDSON",EPSDAVIDSONSetKrylovStart_DAVIDSON);CHKERRQ(ierr);

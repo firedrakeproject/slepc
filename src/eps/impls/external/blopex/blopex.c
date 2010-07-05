@@ -129,26 +129,24 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
-  Mat             A,B;
-  PetscTruth      isShift;
+  PetscTruth      isPrecond, isPreonly;
 
   PetscFunctionBegin;
   if (!eps->ishermitian) { 
     SETERRQ(PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
-  }
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
-  if (!isShift) {
-    SETERRQ(PETSC_ERR_SUP,"blopex only works with shift spectral transformation"); 
   }
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) {
     SETERRQ(1,"Wrong value of eps->which");
   }
 
-  ierr = KSPSetType(blopex->ksp, KSPPREONLY); CHKERRQ(ierr);
-  ierr = KSPSetFromOptions(blopex->ksp);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  ierr = KSPSetOperators(blopex->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &isPrecond); CHKERRQ(ierr);
+  if (isPrecond == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "blopex only works with precond spectral transformation");
+  ierr = STGetKSP(eps->OP, &blopex->ksp); CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)blopex->ksp, KSPPREONLY, &isPreonly); CHKERRQ(ierr);
+  if (isPreonly == PETSC_FALSE)
+    SETERRQ(PETSC_ERR_SUP, "blopex only works with preonly ksp of the spectral transformation");
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
@@ -228,7 +226,6 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
   EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
 
   PetscFunctionBegin;
-  ierr = KSPDestroy(blopex->ksp);CHKERRQ(ierr);
   LOBPCG_DestroyRandomContext();
   SLEPCSetupInterpreterForDignifiedDeath(&blopex->ii);
   mv_MultiVectorDestroy(blopex->eigenvectors);
@@ -248,6 +245,10 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   const char*    prefix;
 
   PetscFunctionBegin;
+
+  ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
+  ierr = STPrecondSetMatForKSP(eps->OP, PETSC_TRUE); CHKERRQ(ierr);
+
   ierr = PetscNew(EPS_BLOPEX,&blopex);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_BLOPEX));
   ierr = KSPCreate(((PetscObject)eps)->comm,&blopex->ksp);CHKERRQ(ierr);

@@ -90,12 +90,11 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONGetInitialSize_DAVIDSON(eps, &initv); CHKERRQ(ierr);
 
   /* Davidson solvers only support STPRECOND */
+  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
   if (t == PETSC_FALSE)
-    SETERRQ1(PETSC_ERR_SUP, "%s only supports the ST objtect precond",
-             ((PetscObject)eps)->type_name);
-  
-  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
+    SETERRQ1(PETSC_ERR_SUP, "%s only works with precond spectral transformation",
+    ((PetscObject)eps)->type_name);
   ierr = STGetOperators(eps->OP, &A, &B); CHKERRQ(ierr);
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = KSPGetPC(ksp, &pc); CHKERRQ(ierr);
