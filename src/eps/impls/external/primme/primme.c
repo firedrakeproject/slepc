@@ -57,7 +57,6 @@ const char *methodList[] = {
   "lobpcg_orthobasis",
   "lobpcg_orthobasis_window"
 };
-const char *precondList[] = {"none", "diagonal"};
 EPSPRIMMEMethod methodN[] = {
   EPS_PRIMME_DYNAMIC,
   EPS_PRIMME_DEFAULT_MIN_TIME,
@@ -75,7 +74,6 @@ EPSPRIMMEMethod methodN[] = {
   EPS_PRIMME_LOBPCG_ORTHOBASIS,
   EPS_PRIMME_LOBPCG_ORTHOBASISW
 };
-EPSPRIMMEPrecond precondN[] = {EPS_PRIMME_PRECOND_NONE, EPS_PRIMME_PRECOND_DIAGONAL};
 
 static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme);
 static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme);
@@ -304,10 +302,8 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
  
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","",PETSC_NULL);CHKERRQ(ierr); 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetPrecond_C","",PETSC_NULL);CHKERRQ(ierr); 
 
   PetscFunctionReturn(0);
 }
@@ -320,7 +316,6 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscTruth isascii;
   primme_params *primme = &((EPS_PRIMME *)eps->data)->primme;
   EPSPRIMMEMethod methodn;
-  EPSPRIMMEPrecond precondn;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
@@ -331,8 +326,6 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
   ierr = EPSPRIMMEGetMethod(eps, &methodn);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver method: %s\n", methodList[methodn]);CHKERRQ(ierr);
-  ierr = EPSPRIMMEGetPrecond(eps, &precondn);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver preconditioning: %s\n", precondList[precondn]);CHKERRQ(ierr);
 
   /* Display PRIMME params */
   primme_display_params(*primme);
@@ -360,9 +353,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   ierr = PetscOptionsEList("-eps_primme_method","set method for solving the eigenproblem",
                            "EPSPRIMMESetMethod",methodList,15,methodList[1],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetMethod(eps, methodN[op]);CHKERRQ(ierr);}
-  ierr = PetscOptionsEList("-eps_primme_precond","set preconditioner type",
-                           "EPSPRIMMESetPrecond",precondList,2,precondList[0],&op,&flg); CHKERRQ(ierr);
-  if (flg) {ierr = EPSPRIMMESetPrecond(eps, precondN[op]);CHKERRQ(ierr);}
   
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   
@@ -586,113 +576,6 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
   PetscFunctionReturn(0);
 }
 
-
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMESetPrecond_PRIMME"
-    PetscErrorCode EPSPRIMMESetPrecond_PRIMME(EPS eps, EPSPRIMMEPrecond precond)
-{
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
-
-  PetscFunctionBegin;
-
-  if (precond == EPS_PRIMME_PRECOND_NONE) ops->primme.correctionParams.precondition = 0;
-  else ops->primme.correctionParams.precondition = 1;
-  
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMESetPrecond"
-/*@
-    EPSPRIMMESetPrecond - Sets the preconditioner to be used in the PRIMME
-    library. Currently, only diagonal preconditioning is supported.
-
-    Collective on EPS
-
-   Input Parameters:
-+  eps - the eigenproblem solver context
--  precond - either EPS_PRIMME_PRECOND_NONE (no preconditioning) or EPS_PRIMME_PRECOND_DIAGONAL
-   (diagonal preconditioning)
-
-   Options Database Key:
-.  -eps_primme_precond - Sets either 'none' or 'diagonal' preconditioner
-
-    Note:
-    The default is no preconditioning.
-    
-    Level: advanced
-
-.seealso: EPSPRIMMEGetPrecond(), EPSPRIMMEPrecond
-@*/
-PetscErrorCode EPSPRIMMESetPrecond(EPS eps, EPSPRIMMEPrecond precond)
-{
-  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMEPrecond);
-
-  PetscFunctionBegin;
-  
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMESetPrecond_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps, precond);CHKERRQ(ierr);
-  }
-  
-  PetscFunctionReturn(0);
-}
-
-
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMEGetPrecond_PRIMME"
-    PetscErrorCode EPSPRIMMEGetPrecond_PRIMME(EPS eps, EPSPRIMMEPrecond *precond)
-{
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
-
-  PetscFunctionBegin;
-
-  if (precond)
-    *precond = ops->primme.correctionParams.precondition ? EPS_PRIMME_PRECOND_DIAGONAL : EPS_PRIMME_PRECOND_NONE;
-  
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSPRIMMEGetPrecond"
-/*@C
-    EPSPRIMMEGetPrecond - Gets the preconditioner to be used in the PRIMME
-    library.
-
-    Collective on EPS
-
-   Input Parameters:
-.  eps - the eigenproblem solver context
-    
-  Output Parameters:
-.  precond - either EPS_PRIMME_PRECOND_NONE (no preconditioning) or EPS_PRIMME_PRECOND_DIAGONAL
-   (diagonal preconditioning)
-
-    Level: advanced
-
-.seealso: EPSPRIMMESetPrecond(), EPSPRIMMEPrecond
-@*/
-PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, EPSPRIMMEPrecond *precond)
-{
-  PetscErrorCode ierr, (*f)(EPS, EPSPRIMMEPrecond*);
-
-  PetscFunctionBegin;
-  
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMEGetPrecond_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps, precond);CHKERRQ(ierr);
-  }
-  
-  PetscFunctionReturn(0);
-}
-
-
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_PRIMME"
@@ -723,12 +606,8 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","EPSPRIMMESetBlockSize_PRIMME",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","EPSPRIMMESetMethod_PRIMME",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetPrecond_C","EPSPRIMMESetPrecond_PRIMME",EPSPRIMMESetPrecond_PRIMME);CHKERRQ(ierr); 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","EPSPRIMMEGetBlockSize_PRIMME",EPSPRIMMEGetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","EPSPRIMMEGetMethod_PRIMME",EPSPRIMMEGetMethod_PRIMME);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetPrecond_C","EPSPRIMMEGetPrecond_PRIMME",EPSPRIMMEGetPrecond_PRIMME);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
-
-

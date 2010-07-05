@@ -307,23 +307,10 @@ typedef enum { EPS_PRIMME_DYNAMIC,
                EPS_PRIMME_LOBPCG_ORTHOBASIS,
                EPS_PRIMME_LOBPCG_ORTHOBASISW } EPSPRIMMEMethod;
 
-/*E
-    EPSPRIMMEPrecond - determines the type of preconditioning
-    used in the PRIMME library
-
-    Level: advanced
-
-.seealso: EPSPRIMMESetPrecond(), EPSPRIMMEGetPrecond()
-E*/
-typedef enum { EPS_PRIMME_PRECOND_NONE,
-               EPS_PRIMME_PRECOND_DIAGONAL } EPSPRIMMEPrecond;
-
 EXTERN PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs);
 EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method);
-EXTERN PetscErrorCode EPSPRIMMESetPrecond(EPS eps, EPSPRIMMEPrecond precond);
 EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs);
 EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method);
-EXTERN PetscErrorCode EPSPRIMMEGetPrecond(EPS eps, EPSPRIMMEPrecond *precond);
 
 EXTERN PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscTruth krylovstart);
 EXTERN PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscTruth *krylovstart);
