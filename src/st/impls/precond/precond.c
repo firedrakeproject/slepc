@@ -174,7 +174,8 @@ PetscErrorCode STCreate_Precond(ST st)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForKSP_C","STPrecondSetMatForKSP_Precond",STPrecondSetMatForKSP_Precond);CHKERRQ(ierr);
 
   ierr = STPrecondSetMatForKSP_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
-
+  ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
+ 
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
