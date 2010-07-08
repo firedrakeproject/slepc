@@ -444,7 +444,7 @@ EXTERN_C_END
 }
 
 #if !defined(PETSC_USE_COMPLEX)
-#define DVD_COMPUTE_N_RR(i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
+#define DVD_COMPUTE_N_RR(eps,i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
   for((i)=0; (i)<(n); (i)++) { \
     if ((eigi)[(i_s)+(i)] != 0.0) { \
       /* eig_r = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k \
@@ -456,26 +456,27 @@ EXTERN_C_END
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-8    || \
           PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
             PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-8         ) { \
-        printf("Mmmm %g+%g->%g+%g\n", (eigr)[(i_s)+(i)], (eigi)[(i_s)+1], \
-                                      (b)[8], (b)[9]); \
-/*        (eigr)[(i_s)+(i)] = b[8]; \
-        (eigi)[(i_s)+(i)] = b[9];*/ \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its "\
+                            "Rayleigh quotient value %g+%g\n", \
+                            (eigr)[(i_s)+(i)], \
+                            (eigi)[(i_s)+1], (b)[8], (b)[9]); \
       } \
       (i)++; \
     } \
   }
 #else
-#define DVD_COMPUTE_N_RR(i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
+#define DVD_COMPUTE_N_RR(eps,i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
   for((i)=0; (i)<(n); (i)++) { \
       (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]); CHKERRQ(ierr); \
       (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-8     ) { \
-        printf("Mmmm %g+%g ->  %g+%g\n", PetscRealPart((eigr)[(i_s)+(i)]), \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its " \
+               "Rayleigh quotient value %g+%g\n", \
+               PetscRealPart((eigr)[(i_s)+(i)]), \
                PetscImaginaryPart((eigr)[(i_s)+(i)]), PetscRealPart((b)[0]), \
                PetscImaginaryPart((b)[0])); \
-        /*(eigr)[(i_s)+(i)] = (b)[0];*/ \
       } \
     }
 #endif
@@ -557,7 +558,7 @@ PetscInt dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
   /* Recompute the eigenvalue */
   ierr = SlepcUpdateVectorsZ(*u, 0.0, 1.0, d->W?d->W:d->V, d->size_V, pY, ld,
                              d->size_H, n); CHKERRQ(ierr);
-  DVD_COMPUTE_N_RR(i, i_s, n, d->eigr, d->eigi, *u, Ax, Bx, b, ierr);
+  DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, *u, Ax, Bx, b, ierr);
 
   /* u <- K^{-1} Bx */
   for(i=0; i<n; i++) {
@@ -704,7 +705,7 @@ PetscInt dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
                              d->size_H, n); CHKERRQ(ierr);
 
   /* Recompute the eigenvalue */
-  DVD_COMPUTE_N_RR(i, i_s, n, d->eigr, d->eigi, *u, Ax, Bx, b, ierr);
+  DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, *u, Ax, Bx, b, ierr);
 
   /* u <- K^{-1} Bx */
   for(i=0; i<n; i++) {
@@ -810,7 +811,7 @@ PetscInt dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
                              d->size_H, n); CHKERRQ(ierr);
 
   /* Recompute the eigenvalue */
-  DVD_COMPUTE_N_RR(i, i_s, n, d->eigr, d->eigi, *u, Ax, Bx, b, ierr);
+  DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, *u, Ax, Bx, b, ierr);
 
   /* u <- K^{-1} Bx */
   for(i=0; i<n; i++) {
@@ -915,7 +916,7 @@ PetscInt dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
                              d->size_H, n); CHKERRQ(ierr);
 
   /* Recompute the eigenvalue */
-  DVD_COMPUTE_N_RR(i, i_s, n, d->eigr, d->eigi, *v, Ax, Bx, b, ierr);
+  DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, *v, Ax, Bx, b, ierr);
 
   /* u <- K^{-1} Bx */
   for(i=0; i<n; i++) {

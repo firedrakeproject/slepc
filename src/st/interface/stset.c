@@ -141,8 +141,6 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscTruth     flg;
   const char     *mode_list[3] = { "copy", "inplace", "shell" };
   const char     *structure_list[3] = { "same", "different", "subset" };
-  PC             pc;
-  const char     *pctype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);

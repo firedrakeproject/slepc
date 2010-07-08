@@ -159,7 +159,6 @@ PetscInt dvd_initV_user_0(dvdDashboard *d)
   for (; i<PetscMin(data->k,d->max_size_V); i++) {
     ierr = SlepcVecSetRandom(d->V[i], d->rand); CHKERRQ(ierr);
   }
-  printf("Metidos %d soluciones\n", i);
   d->size_V = i;
   d->V_imm_s = 0; d->V_imm_e = 0;
   d->V_tra_s = 0; d->V_tra_e = 0;
