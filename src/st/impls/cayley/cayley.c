@@ -296,8 +296,27 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   PetscScalar    tau;
   PetscTruth     flg;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  PC             pc;
+  const PCType   pctype;
+  const KSPType  ksptype;
 
   PetscFunctionBegin;
+
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
+  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+  if (!pctype && !ksptype) {
+    if (st->shift_matrix == ST_MATMODE_SHELL) {
+      /* in shell mode use GMRES with Jacobi as the default */
+      ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+    } else {
+      /* use direct solver as default */
+      ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+    }
+  }
+
   ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
   ierr = PetscOptionsScalar("-st_antishift","Value of the antishift","STSetAntishift",ctx->tau,&tau,&flg); CHKERRQ(ierr);
   if (flg) {

@@ -90,11 +90,16 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSCreate_JD"
 PetscErrorCode EPSCreate_JD(EPS eps) {
   PetscErrorCode  ierr;
+  KSP             ksp;
 
   PetscFunctionBegin;
 
   /* Load the DAVIDSON solver */
   ierr = EPSCreate_DAVIDSON(eps); CHKERRQ(ierr);
+
+  /* Set the default ksp of the st to gmres */
+  ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
+  ierr = KSPSetType(ksp, KSPGMRES); CHKERRQ(ierr);
 
   /* Overload the JD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_JD;

@@ -437,6 +437,35 @@ PetscErrorCode STShellGetName(ST st,char *name[])
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "STSetFromOptions_Shell"
+PetscErrorCode STSetFromOptions_Shell(ST st) 
+{
+  PetscErrorCode ierr;
+  PC             pc;
+  const PCType   pctype;
+  const KSPType  ksptype;
+
+  PetscFunctionBegin;
+
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
+  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+  if (!pctype && !ksptype) {
+    if (st->shift_matrix == ST_MATMODE_SHELL) {
+      /* in shell mode use GMRES with Jacobi as the default */
+      ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+    } else {
+      /* use direct solver as default */
+      ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+    }
+  }
+
+  PetscFunctionReturn(0);
+}
+
 /*MC
    STSHELL - Creates a new spectral transformation class.
           This is intended to provide a simple class to use with EPS.
@@ -472,10 +501,11 @@ PetscErrorCode STCreate_Shell(ST st)
   st->data           = (void *) shell;
   ((PetscObject)st)->name           = 0;
 
-  st->ops->apply     = STApply_Shell;
-  st->ops->applytrans= STApplyTranspose_Shell;
-  st->ops->backtr    = STBackTransform_Shell;
-  st->ops->view      = STView_Shell;
+  st->ops->apply          = STApply_Shell;
+  st->ops->applytrans     = STApplyTranspose_Shell;
+  st->ops->backtr         = STBackTransform_Shell;
+  st->ops->view           = STView_Shell;
+  st->ops->setfromoptions = STSetFromOptions_Shell;
 
   shell->apply       = 0;
   shell->applytrans  = 0;

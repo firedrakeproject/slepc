@@ -217,8 +217,27 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
   PetscErrorCode ierr;
   PetscTruth     set,val;
   ST_FOLD      *ctx = (ST_FOLD *) st->data;
+  PC             pc;
+  const PCType   pctype;
+  const KSPType  ksptype;
 
   PetscFunctionBegin;
+
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
+  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+  if (!pctype && !ksptype) {
+    if (st->shift_matrix == ST_MATMODE_SHELL) {
+      /* in shell mode use GMRES with Jacobi as the default */
+      ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+    } else {
+      /* use direct solver as default */
+      ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+    }
+  }
+
   ierr = PetscOptionsHead("ST Fold Options");CHKERRQ(ierr);
   ierr = PetscOptionsTruth("-st_fold_leftside","Compute eigenvalues on left side of shift","STFoldSetLeftSide",ctx->left,&val,&set); CHKERRQ(ierr);
   if (set) {
