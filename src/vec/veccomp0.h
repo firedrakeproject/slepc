@@ -187,6 +187,60 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a, NormType t, PetscReal *norm)
 #undef __SUM_NORMS__
 #undef __UNNORM__
 
+#undef __FUNCT__  
+#define __FUNCT__ __SUF_C__(VecDotNorm2_Comp)
+PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v, Vec w, PetscScalar *dp,
+                                         PetscScalar *nm)
+{
+  PetscScalar     *vx, *wx, dp0, nm0, dp1, nm1;
+  PetscErrorCode  ierr;
+  Vec_Comp        *vs = (Vec_Comp*)v->data, *ws = (Vec_Comp*)w->data;
+  PetscInt        i, n;
+  PetscTruth      t0, t1;
+#ifdef __WITH_MPI__
+  PetscScalar     work[4];
+#endif
+
+  PetscFunctionBegin;
+
+  /* Compute recursively the local part */
+  dp0 = nm0 = 0.0;
+  ierr = PetscTypeCompare((PetscObject)v, VECCOMP, &t0); CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)w, VECCOMP, &t1); CHKERRQ(ierr);
+  if (t0 == PETSC_TRUE && t1 == PETSC_TRUE) {
+    PetscValidVecComp(v);
+    PetscValidVecComp(w);
+    for(i=0; i<vs->n->n; i++) {
+      ierr = VecDotNorm2_Comp_Seq(vs->x[i], ws->x[i], &dp1, &nm1);
+      CHKERRQ(ierr);
+      dp0+= dp1;
+      nm0+= nm1;
+    }
+  } else if (t0 == PETSC_FALSE && t1 == PETSC_FALSE) {
+    ierr = VecGetLocalSize(v, &n);CHKERRQ(ierr);
+    ierr = VecGetArray(v, &vx);CHKERRQ(ierr);
+    ierr = VecGetArray(w, &vx);CHKERRQ(ierr);
+    for (i = 0; i<n; i++) {
+      dp0 += vx[i]*PetscConj(wx[i]);
+      nm0 += wx[i]*PetscConj(wx[i]);
+    }
+    ierr = VecRestoreArray(v, &vx);CHKERRQ(ierr);
+    ierr = VecRestoreArray(w, &wx);CHKERRQ(ierr);
+  } else
+    SETERRQ(PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
+
+#ifdef __WITH_MPI__
+    /* [dp, nm] <- Allreduce([dp0, nm0]) */
+    work[0] = dp0; work[1] = nm0;
+    ierr = MPI_Allreduce(&work, &work[2], 2, MPIU_SCALAR, MPIU_SUM,
+                         ((PetscObject)v)->comm); CHKERRQ(ierr);
+    *dp = work[2]; *nm = work[3];
+#else
+    *dp = dp0; *nm = nm0;
+#endif
+
+  PetscFunctionReturn(0);
+}
 
 
 #undef __SUF__

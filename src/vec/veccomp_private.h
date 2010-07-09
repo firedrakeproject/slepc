@@ -20,6 +20,7 @@ PetscErrorCode VecAXPBYPCZ_Comp(Vec v, PetscScalar alpha, PetscScalar beta,
 PetscErrorCode VecPointwiseMult_Comp(Vec v, Vec w, Vec z);
 PetscErrorCode VecPointwiseDivide_Comp(Vec v, Vec w, Vec z);
 PetscErrorCode VecGetSize_Comp(Vec v, PetscInt *size);
+PetscErrorCode VecGetLocalSize_Comp(Vec v, PetscInt *size);
 PetscErrorCode VecMax_Comp(Vec v, PetscInt *idx, PetscReal *z);
 PetscErrorCode VecMin_Comp(Vec v, PetscInt *idx, PetscReal *z);
 PetscErrorCode VecSetRandom_Comp(Vec v, PetscRandom r);
@@ -29,6 +30,10 @@ PetscErrorCode VecMaxPointwiseDivide_Comp(Vec v, Vec w, PetscReal *m);
 PetscErrorCode VecPointwiseMax_Comp(Vec v, Vec w, Vec z);
 PetscErrorCode VecPointwiseMaxAbs_Comp(Vec v, Vec w, Vec z);
 PetscErrorCode VecPointwiseMin_Comp(Vec v, Vec w, Vec z);
+PetscErrorCode VecDotNorm2_Comp_Seq(Vec v, Vec w, PetscScalar *dp,
+                                    PetscScalar *nm);
+PetscErrorCode VecDotNorm2_Comp_MPI(Vec v, Vec w, PetscScalar *dp,
+                                    PetscScalar *nm);
 PetscErrorCode VecSqrt_Comp(Vec v);
 PetscErrorCode VecAbs_Comp(Vec v);
 PetscErrorCode VecExp_Comp(Vec v);

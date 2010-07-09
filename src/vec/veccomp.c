@@ -104,7 +104,7 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             0,0,
             0 /*VecGetArray_Seq*/,
             VecGetSize_Comp,
-            0/*VecGetSize_Seq*/,
+            VecGetLocalSize_Comp,
             0/*VecRestoreArray_Seq*/,
             VecMax_Comp,
             VecMin_Comp,
@@ -134,6 +134,7 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             VecPointwiseMaxAbs_Comp,
             VecPointwiseMin_Comp,
             0,
+            VecDotNorm2_Comp_MPI,
             VecSqrt_Comp,
             VecAbs_Comp,
             VecExp_Comp,
@@ -488,6 +489,25 @@ PetscErrorCode VecGetSize_Comp(Vec v, PetscInt *size)
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
+
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "VecGetLocalSize_Comp"
+PetscErrorCode VecGetLocalSize_Comp(Vec v, PetscInt *size)
+{
+  Vec_Comp        *vs = (Vec_Comp*)v->data;
+
+  PetscFunctionBegin;
+
+  PetscValidVecComp(v);
+
+  if (size) *size = vs->n->lN;
+
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
 
 
 EXTERN_C_BEGIN
