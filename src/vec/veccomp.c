@@ -134,12 +134,13 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             VecPointwiseMaxAbs_Comp,
             VecPointwiseMin_Comp,
             0,
-            VecDotNorm2_Comp_MPI,
             VecSqrt_Comp,
             VecAbs_Comp,
             VecExp_Comp,
-            VecLog_Comp
-            /*VecShift_Comp*/
+            VecLog_Comp,
+            0/*VecShift_Comp*/,
+            0,
+            VecDotNorm2_Comp_MPI
           };
 
 #undef __FUNCT__  
