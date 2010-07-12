@@ -301,7 +301,7 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscErrorCode ierr;
   PetscReal      *x,*y;
   PetscInt       i;
-  int            n = qep->nev;
+  int            n = PetscMin(qep->nev,255);
 
   PetscFunctionBegin;
 

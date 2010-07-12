@@ -301,7 +301,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscErrorCode ierr;
   PetscReal      *x,*y;
   PetscInt       i;
-  int            n = eps->nev;
+  int            n = PetscMin(eps->nev,255);
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      p;
   PetscDraw      draw1;
