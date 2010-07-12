@@ -15,7 +15,6 @@ void dvd_sum_local(void *in, void *out, PetscMPIInt *cnt,MPI_Datatype *t);
 PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
                                    void *ptr);
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_blas_prof_init"
 PetscErrorCode dvd_blas_prof_init() {
@@ -38,7 +37,6 @@ PetscErrorCode dvd_blas_prof_init() {
                                &SLEPC_VecsMult); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /*
   Compute C <- a*A*B + b*C, where
@@ -50,7 +48,6 @@ EXTERN_C_END
     rB, cB, rows and columns of B,
     Bt, if true use the transpose of B instead
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseMatProd"
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
@@ -93,7 +90,6 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /*
   Compute C <- A*B, where
@@ -108,7 +104,6 @@ EXTERN_C_END
     rB, cB, rows and columns of B,
     Bt, if true use the transpose of B instead
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseMatProdTriang"
 PetscErrorCode SlepcDenseMatProdTriang(
@@ -189,7 +184,6 @@ PetscErrorCode SlepcDenseMatProdTriang(
   SETERRQ(1, "It doesn't support A matrix type!");
   PetscFunctionReturn(1);
 }
-EXTERN_C_END
 
 /*
   Normalize the columns of the matrix A, where
@@ -198,7 +192,6 @@ EXTERN_C_END
   if eigi is given, the pairs of contiguous columns i i+1 such as eigi[i] != 0
   are normalized as being one column.
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseNorm"
 PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
@@ -232,7 +225,6 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
   
 
 /*
@@ -244,7 +236,6 @@ EXTERN_C_END
     auxI, auxiliary vector of size dimA,
     auxS, auxiliary vector of size cB
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseMatInvProd"
 PetscErrorCode SlepcDenseMatInvProd(
@@ -278,7 +269,6 @@ PetscErrorCode SlepcDenseMatInvProd(
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /*
   Compute A <- orth(A), where
@@ -288,7 +278,6 @@ EXTERN_C_END
     lauxS, size of auxS,
     ncA, new number of columns of A
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseOrth"
 PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
@@ -322,7 +311,6 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /*
   Y <- X, where
@@ -330,7 +318,6 @@ EXTERN_C_END
   rX, cX, rows and columns of X
   ldY, leading dimension of Y
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseCopy"
 PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
@@ -362,7 +349,6 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /*
   Y <- X, where
@@ -370,7 +356,6 @@ EXTERN_C_END
   rX, cX, rows and columns of X
   ldY, leading dimension of Y
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseCopyTriang"
 PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
@@ -445,14 +430,12 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 /*
   Compute Y[0..cM-1] <- alpha * X[0..cX-1] * M + beta * Y[0..cM-1],
   where X and Y are contiguous global vectors.
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectorsZ"
 PetscErrorCode SlepcUpdateVectorsZ(Vec *Y, PetscScalar beta, PetscScalar alpha,
@@ -468,14 +451,12 @@ PetscErrorCode SlepcUpdateVectorsZ(Vec *Y, PetscScalar beta, PetscScalar alpha,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 /*
   Compute Y[0:dY:cM*dY-1] <- alpha * X[0:dX:cX-1] * M + beta * Y[0:dY:cM*dY-1],
   where X and Y are contiguous global vectors.
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectorsS"
 PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
@@ -537,13 +518,11 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /*
   Compute X <- alpha * X[0:dX:cX-1] * M
   where X is a matrix with non-consecutive columns
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectorsD"
 PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
@@ -605,7 +584,6 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 
@@ -617,7 +595,6 @@ EXTERN_C_END
   is needed, and of size eU*eV.
 */
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMult"
 PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
@@ -771,7 +748,6 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 
@@ -783,7 +759,6 @@ EXTERN_C_END
   is needed, and of size eU*eV.
 */
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultIa"
 PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
@@ -844,14 +819,12 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 /* Computes M <- nprocs*M
   where nprocs is the number of processors.
 */
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultIc"
 PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
@@ -878,7 +851,6 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 /* Computes N <- Allreduce( [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ] )
@@ -889,7 +861,6 @@ EXTERN_C_END
   is needed, and of size eU*eV.
 */
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultIb"
 PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
@@ -940,7 +911,6 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 /* Computes M <- [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ]
@@ -950,7 +920,6 @@ EXTERN_C_END
   sr, an structure DvdMult_copy_func.
 */
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultS"
 PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
@@ -1068,9 +1037,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultS_copy_func"
 PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
@@ -1094,12 +1061,10 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /* Orthonormalize a chunk of parallel vector.
    NOTE: wS0 and wS1 must be of size n*n.
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecsOrthonormalize"
 PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
@@ -1147,13 +1112,11 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /* 
   Sum up several arrays with only one call to MPIReduce.
 */
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcAllReduceSumBegin"
 PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,
@@ -1175,9 +1138,7 @@ PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcAllReduceSum"
 PetscErrorCode SlepcAllReduceSum(DvdReduction *r, PetscInt size_in,
@@ -1200,10 +1161,8 @@ PetscErrorCode SlepcAllReduceSum(DvdReduction *r, PetscInt size_in,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcAllReduceSumEnd"
 PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
@@ -1232,10 +1191,8 @@ PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_orthV"
 PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
@@ -1283,9 +1240,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
  
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
  
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_compute_eigenvectors"
 /*
@@ -1411,4 +1366,3 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END

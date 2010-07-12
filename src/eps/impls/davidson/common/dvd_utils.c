@@ -56,7 +56,6 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_precond_d"
 PetscInt dvd_improvex_precond_d(dvdDashboard *d)
@@ -71,7 +70,6 @@ PetscInt dvd_improvex_precond_d(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d, PetscInt i, Vec x,
@@ -202,7 +200,6 @@ PetscLogStage stages[6] = {0,0,0,0,0,0};
 
 /*** Other things ****/
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_prof_init"
 PetscErrorCode dvd_prof_init() {
@@ -226,7 +223,6 @@ PetscErrorCode dvd_prof_init() {
   
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 PetscInt dvd_initV_prof(dvdDashboard* d) {
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
@@ -294,7 +290,6 @@ PetscInt dvd_orthV_prof(dvdDashboard *d) {
   PetscFunctionReturn(r);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_profiler"
 PetscErrorCode dvd_profiler(dvdDashboard *d, dvdBlackboard *b)
@@ -321,9 +316,7 @@ PetscErrorCode dvd_profiler(dvdDashboard *d, dvdBlackboard *b)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_profiler_d"
 PetscInt dvd_profiler_d(dvdDashboard *d)
@@ -339,7 +332,6 @@ PetscInt dvd_profiler_d(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 
@@ -421,7 +413,6 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
 }
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_harm_d"
 PetscInt dvd_harm_d(dvdDashboard *d)
@@ -436,7 +427,6 @@ PetscInt dvd_harm_d(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 #undef __FUNCT__  
@@ -495,7 +485,6 @@ PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh, PetscScalar t)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
@@ -516,9 +505,7 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
@@ -550,9 +537,7 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data, PetscScalar *ar,
                                   PetscScalar *ai)
 {
@@ -582,10 +567,8 @@ PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data, PetscScalar *ar,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 PetscErrorCode dvd_harm_sort(EPS eps, PetscScalar ar, PetscScalar ai,
                              PetscScalar br, PetscScalar bi, PetscInt *r,
                              void *ctx)
@@ -612,9 +595,7 @@ PetscErrorCode dvd_harm_sort(EPS eps, PetscScalar ar, PetscScalar ai,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
@@ -627,6 +608,5 @@ PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 

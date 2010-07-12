@@ -218,7 +218,6 @@ PetscErrorCode PETSCVEC_DLLEXPORT VecCreate_Comp(Vec V)
 EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateComp"
 PetscErrorCode PETSCVEC_DLLEXPORT VecCreateComp(MPI_Comm comm, PetscInt *Nx,
@@ -244,9 +243,7 @@ PetscErrorCode PETSCVEC_DLLEXPORT VecCreateComp(MPI_Comm comm, PetscInt *Nx,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateCompWithVec"
 PetscErrorCode PETSCVEC_DLLEXPORT VecCreateCompWithVecs(Vec *x, PetscInt n,
@@ -267,10 +264,8 @@ PetscErrorCode PETSCVEC_DLLEXPORT VecCreateCompWithVecs(Vec *x, PetscInt n,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecDuplicate_Comp"
 PetscErrorCode VecDuplicate_Comp(Vec win, Vec *V)
@@ -293,10 +288,8 @@ PetscErrorCode VecDuplicate_Comp(Vec win, Vec *V)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecCompGetVecs"
 PetscErrorCode VecCompGetVecs(Vec win, const Vec **x, PetscInt *n)
@@ -312,10 +305,8 @@ PetscErrorCode VecCompGetVecs(Vec win, const Vec **x, PetscInt *n)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecCompSetVecs"
 PetscErrorCode VecCompSetVecs(Vec win, Vec *x, PetscInt n)
@@ -339,10 +330,8 @@ PetscErrorCode VecCompSetVecs(Vec win, Vec *x, PetscInt n)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecAXPY_Comp"
 PetscErrorCode VecAXPY_Comp(Vec v, PetscScalar alpha, Vec w)
@@ -363,10 +352,8 @@ PetscErrorCode VecAXPY_Comp(Vec v, PetscScalar alpha, Vec w)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecAXPBY_Comp"
 PetscErrorCode VecAXPBY_Comp(Vec v, PetscScalar alpha, PetscScalar beta, Vec w)
@@ -387,10 +374,8 @@ PetscErrorCode VecAXPBY_Comp(Vec v, PetscScalar alpha, PetscScalar beta, Vec w)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecMAXPY_Comp"
 PetscErrorCode VecMAXPY_Comp(Vec v, PetscInt n, const PetscScalar *alpha,
@@ -417,10 +402,8 @@ PetscErrorCode VecMAXPY_Comp(Vec v, PetscInt n, const PetscScalar *alpha,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecWAXPY_Comp"
 PetscErrorCode VecWAXPY_Comp(Vec v, PetscScalar alpha, Vec w, Vec z)
@@ -443,10 +426,8 @@ PetscErrorCode VecWAXPY_Comp(Vec v, PetscScalar alpha, Vec w, Vec z)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecAXPBYPCZ_Comp"
 PetscErrorCode VecAXPBYPCZ_Comp(Vec v, PetscScalar alpha, PetscScalar beta,
@@ -471,10 +452,8 @@ PetscErrorCode VecAXPBYPCZ_Comp(Vec v, PetscScalar alpha, PetscScalar beta,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecGetSize_Comp"
 PetscErrorCode VecGetSize_Comp(Vec v, PetscInt *size)
@@ -489,10 +468,8 @@ PetscErrorCode VecGetSize_Comp(Vec v, PetscInt *size)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecGetLocalSize_Comp"
 PetscErrorCode VecGetLocalSize_Comp(Vec v, PetscInt *size)
@@ -507,11 +484,9 @@ PetscErrorCode VecGetLocalSize_Comp(Vec v, PetscInt *size)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecMax_Comp"
 PetscErrorCode VecMax_Comp(Vec v, PetscInt *idx, PetscReal *z)
@@ -544,10 +519,8 @@ PetscErrorCode VecMax_Comp(Vec v, PetscInt *idx, PetscReal *z)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecMin_Comp"
 PetscErrorCode VecMin_Comp(Vec v, PetscInt *idx, PetscReal *z)
@@ -580,10 +553,8 @@ PetscErrorCode VecMin_Comp(Vec v, PetscInt *idx, PetscReal *z)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecMaxPointwiseDivide_Comp"
 PetscErrorCode VecMaxPointwiseDivide_Comp(Vec v, Vec w, PetscReal *m)
@@ -609,7 +580,6 @@ PetscErrorCode VecMaxPointwiseDivide_Comp(Vec v, Vec w, PetscReal *m)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 #define __QUOTEME__(x) #x
@@ -617,7 +587,6 @@ EXTERN_C_END
 #define __COMPOSE3__(A,B,C) A##B##C
 
 #define __FUNC_TEMPLATE1__(NAME) \
-EXTERN_C_BEGIN \
 PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v) \
 { \
   PetscErrorCode  ierr; \
@@ -634,7 +603,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v) \
 \
   PetscFunctionReturn(0);\
 } \
-EXTERN_C_END \
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecConjugate_Comp"
@@ -662,7 +630,6 @@ __FUNC_TEMPLATE1__(Log)
 
 
 #define __FUNC_TEMPLATE2__(NAME,T0) \
-EXTERN_C_BEGIN \
 PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, T0 __a) \
 { \
   PetscErrorCode  ierr; \
@@ -679,7 +646,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, T0 __a) \
 \
   PetscFunctionReturn(0);\
 } \
-EXTERN_C_END \
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecSet_Comp"
@@ -703,7 +669,6 @@ __FUNC_TEMPLATE2__(Shift, PetscScalar)
 
 
 #define __FUNC_TEMPLATE3__(NAME) \
-EXTERN_C_BEGIN \
 PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w) \
 { \
   PetscErrorCode  ierr; \
@@ -722,7 +687,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w) \
 \
   PetscFunctionReturn(0);\
 } \
-EXTERN_C_END \
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCopy_Comp"
@@ -734,7 +698,6 @@ __FUNC_TEMPLATE3__(Swap)
 
 
 #define __FUNC_TEMPLATE4__(NAME) \
-EXTERN_C_BEGIN \
 PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w, Vec z) \
 { \
   PetscErrorCode  ierr; \
@@ -756,7 +719,6 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w, Vec z) \
 \
   PetscFunctionReturn(0);\
 } \
-EXTERN_C_END \
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecPointwiseMax_Comp"

@@ -52,7 +52,6 @@ typedef struct {
     size_new_cY;    /* size of new_cY */
 } dvdManagV_basic;
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic"
 PetscInt dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
@@ -138,9 +137,7 @@ PetscInt dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_isrestarting_fullV"
 PetscTruth dvd_isrestarting_fullV(dvdDashboard *d)
@@ -158,9 +155,7 @@ PetscTruth dvd_isrestarting_fullV(dvdDashboard *d)
 
   PetscFunctionReturn(restart);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic_d"
 PetscInt dvd_managementV_basic_d(dvdDashboard *d)
@@ -178,9 +173,7 @@ PetscInt dvd_managementV_basic_d(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_extrapol"
 PetscInt dvd_updateV_extrapol(dvdDashboard *d)
@@ -223,9 +216,7 @@ PetscInt dvd_updateV_extrapol(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_conv_gen"
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
@@ -399,9 +390,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_restart_gen"
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
@@ -470,10 +459,8 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_update_gen"
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
@@ -532,7 +519,6 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 #undef __FUNCT__  
@@ -575,7 +561,6 @@ PetscInt dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 /*
@@ -586,7 +571,6 @@ EXTERN_C_END
   auxS, auxiliar vector of size 2*ldpX, at least
   size_auxS, the size of auxS
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_restartV_aux"
 PetscErrorCode dvd_updateV_restartV_aux(Vec *V, PetscInt size_V,
@@ -627,7 +611,6 @@ PetscErrorCode dvd_updateV_restartV_aux(Vec *V, PetscInt size_V,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /*
   Compute S = [ Y' * W * x

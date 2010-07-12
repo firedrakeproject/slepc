@@ -283,7 +283,6 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 }
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_DAVIDSON"
 PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
@@ -311,7 +310,6 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 #undef __FUNCT__  
@@ -348,13 +346,12 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
 }
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SLEPcNotImplemented"
 PetscErrorCode SLEPcNotImplemented() {
   SETERRQ(1, "Not call this function!");
 }
-EXTERN_C_END
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDAVIDSONSetKrylovStart_DAVIDSON"
@@ -514,7 +511,6 @@ PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix)
 }
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_QZ"
 /*
@@ -567,4 +563,3 @@ PetscErrorCode EPSComputeVectors_QZ(EPS eps)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END

@@ -62,7 +62,6 @@ typedef struct {
     *d;                   /* the currect dvdDashboard reference */
 } dvdImprovex_jd;
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd"
 PetscInt dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
@@ -125,7 +124,8 @@ PetscInt dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
       CHKERRQ(ierr);
   
       data->ksp_max_size = max_bs;
-      ierr = KSPSetOperators(data->ksp, A, A, 0); CHKERRQ(ierr);
+      ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);
+      CHKERRQ(ierr);
       ierr = KSPSetUp(data->ksp); CHKERRQ(ierr);
       ierr = MatDestroy(A); CHKERRQ(ierr);
     }
@@ -135,10 +135,8 @@ PetscInt dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_d"
 PetscInt dvd_improvex_jd_d(dvdDashboard *d)
@@ -157,10 +155,8 @@ PetscInt dvd_improvex_jd_d(dvdDashboard *d)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_gen"
 PetscInt dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
@@ -279,10 +275,8 @@ PetscInt dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_matmult_jd"
 PetscErrorCode dvd_matmult_jd(Mat A, Vec in, Vec out)
@@ -346,10 +340,8 @@ PetscErrorCode dvd_matmult_jd(Mat A, Vec in, Vec out)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_matgetvecs_jd"
 PetscErrorCode dvd_matgetvecs_jd(Mat A, Vec *right, Vec *left)
@@ -395,10 +387,8 @@ PetscErrorCode dvd_matgetvecs_jd(Mat A, Vec *right, Vec *left)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv"
 PetscInt dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
@@ -422,7 +412,6 @@ PetscInt dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #define DVD_COMPLEX_RAYLEIGH_QUOTIENT(ur,ui,Axr,Axi,Bxr,Bxi,eigr,eigi,b,ierr)\
 { \
@@ -509,7 +498,6 @@ EXTERN_C_END
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXZ"
 PetscInt dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
@@ -609,7 +597,6 @@ PetscInt dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /* 
   Compute: u <- K^{-1}*B*X, v <- (theta[0]*A+theta[1]*B)*Y,
@@ -619,7 +606,6 @@ EXTERN_C_END
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXZY"
 PetscInt dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
@@ -749,7 +735,6 @@ PetscInt dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /* 
   Compute: u <- K^{-1}*B*X, v <- X,
@@ -759,7 +744,6 @@ EXTERN_C_END
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXX"
 PetscInt dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
@@ -855,7 +839,6 @@ PetscInt dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 /* 
   Compute: u <- K^{-1}*B*X, v <- Y,
@@ -865,7 +848,6 @@ EXTERN_C_END
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXY"
 PetscInt dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
@@ -960,12 +942,10 @@ PetscInt dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_lit"
 PetscInt dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
@@ -986,10 +966,8 @@ PetscInt dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_lit_const_0"
 PetscInt dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
@@ -1029,7 +1007,6 @@ PetscInt dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 /**** Patterns implementation *************************************************/

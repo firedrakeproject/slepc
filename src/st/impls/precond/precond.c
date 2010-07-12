@@ -24,10 +24,12 @@
 #include "private/stimpl.h"          /*I "slepcst.h" I*/
 
 PetscErrorCode STDestroy_Precond(ST st);
+EXTERN_C_BEGIN
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat);
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat);
 PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat);
 PetscErrorCode STPrecondGetMatForKSP_Precond(ST st,PetscTruth *setmat);
+EXTERN_C_END
 
 typedef struct {
   PetscTruth     setmat;
@@ -36,7 +38,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "SLEPcNotImplemented_Precond"
-PetscErrorCode SLEPcNotImplemented_Precond() {
+PetscErrorCode SLEPcNotImplemented_Precond(ST st, Vec x, Vec y) {
   SETERRQ(1, "STPrecond does not support some operation. Please, refer to the SLEPc Manual for more information.");
 }
 
@@ -198,7 +200,6 @@ PetscErrorCode STDestroy_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondGetMatForPC"
 /*@
@@ -231,8 +232,8 @@ PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
   }
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
+EXTERN_C_BEGIN
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
@@ -251,8 +252,8 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 
   PetscFunctionReturn(0);
 }
+EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondSetMatForPC"
 /*@
@@ -284,8 +285,8 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
   }
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
+EXTERN_C_BEGIN
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 {
   PC             pc;
@@ -300,9 +301,9 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 
   PetscFunctionReturn(0);
 }
+EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondSetMatForKSP"
 /*@
@@ -332,9 +333,7 @@ PetscErrorCode STPrecondSetMatForKSP(ST st,PetscTruth setmat)
   }
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondGetMatForKSP"
 /*@
@@ -366,8 +365,8 @@ PetscErrorCode STPrecondGetMatForKSP(ST st,PetscTruth *setmat)
   }
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
+EXTERN_C_BEGIN
 PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;
@@ -380,7 +379,9 @@ PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat)
 
   PetscFunctionReturn(0);
 }
+EXTERN_C_END
 
+EXTERN_C_BEGIN
 PetscErrorCode STPrecondGetMatForKSP_Precond(ST st,PetscTruth *setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;
@@ -393,4 +394,5 @@ PetscErrorCode STPrecondGetMatForKSP_Precond(ST st,PetscTruth *setmat)
 
   PetscFunctionReturn(0);
 }
+EXTERN_C_END
 

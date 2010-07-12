@@ -55,7 +55,6 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
 EXTERN_C_END
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_GD"
 PetscErrorCode EPSSetUp_GD(EPS eps)
@@ -77,7 +76,6 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 EXTERN_C_BEGIN
@@ -109,7 +107,6 @@ PetscErrorCode EPSCreate_GD(EPS eps) {
 }
 EXTERN_C_END
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_GD"
 PetscErrorCode EPSDestroy_GD(EPS eps)
@@ -131,7 +128,6 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 
 #undef __FUNCT__  

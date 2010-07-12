@@ -41,7 +41,7 @@
 
 
 typedef struct _dvdFunctionList {
-  void *f;
+  PetscInt (*f)(void*);
   void *d;
   struct _dvdFunctionList *next;
 } dvdFunctionList;
@@ -86,6 +86,19 @@ typedef enum {
   DVD_PROJ_KBXZ,
   DVD_PROJ_KBXZY
 } ProjType_t;
+
+typedef enum {
+    DVD_MT_IDENTITY,/* without transformation */
+    DVD_MT_pX,       /* using the projected problem eigenvectors */
+    DVD_MT_ORTHO    /* using an orthonormal transformation */
+} MT_type_t;
+
+typedef enum {
+    DVD_ORTHOV_NONE,/* V isn't orthonormalized */
+    DVD_ORTHOV_I,   /* V is orthonormalized */     
+    DVD_ORTHOV_B    /* V is B-orthonormalized */
+} orthoV_type_t;
+
 
 typedef struct _dvdDashboard {
   /**** Function steps ****/
@@ -253,24 +266,15 @@ typedef struct _dvdDashboard {
     size_G,         /* rows and columns in G */
     size_MT;        /* rows in MT */
 
-  enum MT_type_t {
-    DVD_MT_IDENTITY,/* without transformation */
-    DVD_MT_pX,       /* using the projected problem eigenvectors */
-    DVD_MT_ORTHO    /* using an orthonormal transformation */
-  } MT_type;
-
-  enum orthoV_type_t {
-    DVD_ORTHOV_NONE,/* V isn't orthonormalized */
-    DVD_ORTHOV_I,   /* V is orthonormalized */     
-    DVD_ORTHOV_B    /* V is B-orthonormalized */
-  } orthoV_type;
-
   PetscInt V_imm_s,
     V_imm_e,        /* unchanged V columns, V_imm_s:V_imm_e-1 */
     V_tra_s,
     V_tra_e,        /* V(V_tra_e:) = V*MT(V_tra_s:V_tra_e-1) */
     V_new_s,
     V_new_e;        /* added to V the columns V_new_s:V_new_e */
+
+  MT_type_t MT_type;
+  orthoV_type_t orthoV_type;
 
   PetscRandom rand; /* random seed */
   void* prof_data;  /* profiler data */
@@ -280,7 +284,7 @@ typedef struct _dvdDashboard {
   dvdFunctionList *fl=(list); \
   PetscErrorCode ierr; \
   ierr = PetscMalloc(sizeof(dvdFunctionList), &(list)); CHKERRQ(ierr); \
-  (list)->f = (fun); \
+  (list)->f = (PetscInt(*)(void*))(fun); \
   (list)->next = fl; }
 
 #define DVD_FL_CALL(list, arg0) { \
