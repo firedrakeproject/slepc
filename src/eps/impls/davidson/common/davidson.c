@@ -239,6 +239,8 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   eps->errest = dvd->errest;
   eps->V = dvd->V;
 
+  ierr = PCDestroy(pc); CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 

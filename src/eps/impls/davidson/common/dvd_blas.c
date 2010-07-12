@@ -1231,6 +1231,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
       }
       if((lindep == PETSC_FALSE) && (norm > PETSC_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
+      CHKERRQ(ierr);
     }
     if((lindep == PETSC_TRUE) || (norm < PETSC_MACHINE_EPSILON)) {
         SETERRQ(1, "Error during the orthonormalization of the eigenvectors!");
