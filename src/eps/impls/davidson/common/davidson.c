@@ -36,6 +36,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON), &data); CHKERRQ(ierr);
   eps->data = data;
+  data->pc = 0;
 
   /* Set default values */
   ierr = EPSDAVIDSONSetKrylovStart_DAVIDSON(eps, PETSC_FALSE); CHKERRQ(ierr);
