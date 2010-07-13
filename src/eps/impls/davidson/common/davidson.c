@@ -95,14 +95,17 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   if (t == PETSC_FALSE)
     SETERRQ1(PETSC_ERR_SUP, "%s only works with precond spectral transformation",
     ((PetscObject)eps)->type_name);
-  ierr = STGetOperators(eps->OP, &A, &B); CHKERRQ(ierr);
+
+  /* Extract pc from st->ksp */
+  if (data->pc) { ierr = PCDestroy(data->pc); CHKERRQ(ierr); data->pc = 0; }
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = KSPGetPC(ksp, &pc); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t); CHKERRQ(ierr);
   if (t == PETSC_TRUE) {
     pc = 0;
   } else {
-    PetscObjectReference((PetscObject)pc);
+    ierr = PetscObjectReference((PetscObject)pc); CHKERRQ(ierr);
+    data->pc = pc;
     ierr = PCCreate(((PetscObject)eps)->comm, &pc2); CHKERRQ(ierr);
     ierr = PCSetType(pc2, PCNONE); CHKERRQ(ierr);
     ierr = KSPSetPC(ksp, pc2); CHKERRQ(ierr);
@@ -110,6 +113,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   }
 
   /* Setup problem specification in dvd */
+  ierr = STGetOperators(eps->OP, &A, &B); CHKERRQ(ierr);
   ierr = PetscMemzero(dvd, sizeof(dvdDashboard)); CHKERRQ(ierr);
   dvd->A = A; dvd->B = (eps->isgeneralized==PETSC_TRUE) ? B : PETSC_NULL;
   dvd->sA = DVD_MAT_IMPLICIT |
@@ -239,8 +243,6 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   eps->errest = dvd->errest;
   eps->V = dvd->V;
 
-  ierr = PCDestroy(pc); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -251,6 +253,8 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard    *d = &data->ddb;
   PetscInt        r;
+  KSP             ksp;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
 
@@ -280,6 +284,14 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 
   if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
+
+  /* Merge the pc extracted from st->ksp in EPSSetUp_DAVIDSON */
+  if (data->pc) {
+    ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
+    ierr = KSPSetPC(ksp, data->pc); CHKERRQ(ierr);
+    ierr = PCDestroy(data->pc); CHKERRQ(ierr);
+    data->pc = 0;
+  }
 
   PetscFunctionReturn(0);
 }

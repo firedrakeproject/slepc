@@ -519,5 +519,6 @@ typedef struct {
   PetscScalar *wS;
   Vec         *wV;
   PetscInt    size_wV;
+  PC          pc;         /* pc extracted from st->ksp */
 } EPS_DAVIDSON;
 
