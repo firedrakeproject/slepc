@@ -126,8 +126,8 @@ EXTERN PetscErrorCode STFoldSetLeftSide(ST st,PetscTruth left);
 
 EXTERN PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
 EXTERN PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
-EXTERN PetscErrorCode STPrecondGetMatForKSP(ST st,PetscTruth *setmat);
-EXTERN PetscErrorCode STPrecondSetMatForKSP(ST st,PetscTruth setmat);
+EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscTruth *setmat);
+EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscTruth setmat);
 
 PETSC_EXTERN_CXX_END
 #endif

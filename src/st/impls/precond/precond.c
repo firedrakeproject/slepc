@@ -27,8 +27,8 @@ PetscErrorCode STDestroy_Precond(ST st);
 EXTERN_C_BEGIN
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat);
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat);
-PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat);
-PetscErrorCode STPrecondGetMatForKSP_Precond(ST st,PetscTruth *setmat);
+PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscTruth setmat);
+PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscTruth *setmat);
 EXTERN_C_END
 
 typedef struct {
@@ -56,7 +56,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   /* If pc is none and any matrix has to be set, exit */
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t0); CHKERRQ(ierr);
-  ierr = STPrecondGetMatForKSP(st, &setmat); CHKERRQ(ierr); 
+  ierr = STPrecondGetKSPHasMat(st, &setmat); CHKERRQ(ierr); 
   if (t0 == PETSC_TRUE && setmat == PETSC_FALSE) PetscFunctionReturn(0);
 
   /* Check if a user matrix is set */
@@ -173,10 +173,10 @@ PetscErrorCode STCreate_Precond(ST st)
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","STPrecondGetMatForPC_Precond",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","STPrecondSetMatForPC_Precond",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForKSP_C","STPrecondGetMatForKSP_Precond",STPrecondGetMatForKSP_Precond);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForKSP_C","STPrecondSetMatForKSP_Precond",STPrecondSetMatForKSP_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","STPrecondGetKSPHasMat_Precond",STPrecondGetKSPHasMat_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","STPrecondSetKSPHasMat_Precond",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
 
-  ierr = STPrecondSetMatForKSP_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
   ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PCSetType(pc, PCJACOBI); CHKERRQ(ierr);
@@ -195,8 +195,8 @@ PetscErrorCode STDestroy_Precond(ST st)
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForKSP_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForKSP_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
 
   ierr = PetscFree(st->data); CHKERRQ(ierr);
 
@@ -308,9 +308,9 @@ EXTERN_C_END
 
 
 #undef __FUNCT__  
-#define __FUNCT__ "STPrecondSetMatForKSP"
+#define __FUNCT__ "STPrecondSetKSPHasMat"
 /*@
-   STPrecondSetMatForKSP - Sets if during the STSetUp the KSP matrix associated
+   STPrecondSetKSPHasMat - Sets if during the STSetUp the KSP matrix associated
    to the linear system is set with the matrix for building the preconditioner.
 
    Collective on ST
@@ -322,15 +322,15 @@ EXTERN_C_END
 
    Level: developer
 
-.seealso: SSTPrecondGetMatForKSP(), TSetShift(), KSPSetOperators()
+.seealso: SSTPrecondGetKSPHasMat(), TSetShift(), KSPSetOperators()
 @*/
-PetscErrorCode STPrecondSetMatForKSP(ST st,PetscTruth setmat)
+PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscTruth setmat)
 {
   PetscErrorCode ierr, (*f)(ST,PetscTruth);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetMatForKSP_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,setmat);CHKERRQ(ierr);
   }
@@ -338,9 +338,9 @@ PetscErrorCode STPrecondSetMatForKSP(ST st,PetscTruth setmat)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STPrecondGetMatForKSP"
+#define __FUNCT__ "STPrecondGetKSPHasMat"
 /*@
-   STPrecondGetMatForKSP - Gets if during the STSetUp the KSP matrix associated
+   STPrecondGetKSPHasMat - Gets if during the STSetUp the KSP matrix associated
    to the linear system is set with the matrix for building the preconditioner.
 
    Collective on ST
@@ -354,15 +354,15 @@ PetscErrorCode STPrecondSetMatForKSP(ST st,PetscTruth setmat)
 
    Level: developer
 
-.seealso: STPrecondSetMatForKSP(), STSetShift(), KSPSetOperators()
+.seealso: STPrecondSetKSPHasMat(), STSetShift(), KSPSetOperators()
 @*/
-PetscErrorCode STPrecondGetMatForKSP(ST st,PetscTruth *setmat)
+PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscTruth *setmat)
 {
   PetscErrorCode ierr, (*f)(ST,PetscTruth*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetMatForKSP_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,setmat);CHKERRQ(ierr);
   }
@@ -370,7 +370,7 @@ PetscErrorCode STPrecondGetMatForKSP(ST st,PetscTruth *setmat)
 }
 
 EXTERN_C_BEGIN
-PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat)
+PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscTruth setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;
 
@@ -385,7 +385,7 @@ PetscErrorCode STPrecondSetMatForKSP_Precond(ST st,PetscTruth setmat)
 EXTERN_C_END
 
 EXTERN_C_BEGIN
-PetscErrorCode STPrecondGetMatForKSP_Precond(ST st,PetscTruth *setmat)
+PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscTruth *setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;
 

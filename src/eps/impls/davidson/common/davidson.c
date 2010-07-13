@@ -24,7 +24,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   PetscFunctionBegin;
 
   ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
-  ierr = STPrecondSetMatForKSP(eps->OP, PETSC_FALSE); CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_FALSE); CHKERRQ(ierr);
 
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_DAVIDSON;
