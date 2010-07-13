@@ -232,6 +232,13 @@ PetscInt dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
     CHKERRQ(ierr);
     data->u = u; data->v = v;
 
+    /* Check if the first eigenpairs are converged */
+    if (i == 0) {
+      ierr = d->preTestConv(d, 0, s, s, PETSC_NULL, PETSC_NULL, &d->npreconv);
+      CHKERRQ(ierr);
+      if (d->npreconv > 0) break;
+    }
+
     /* Compute kr <- kr - u*(v'*kr) */
     for(j=0; j<s; j++) {
       ierr = VecDot(kr[j], v[j], &a); CHKERRQ(ierr);

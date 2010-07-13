@@ -13,9 +13,9 @@ PetscInt dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
-PetscInt dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
-                              PetscInt e, Vec *auxV, PetscScalar *auxS,
-                              PetscInt *nConv);
+PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
+                                    PetscInt e, Vec *auxV, PetscScalar *auxS,
+                                    PetscInt *nConv);
 PetscErrorCode dvd_updateV_restartV_aux(Vec *V, PetscInt size_V,
                                         PetscScalar *U, PetscInt ldU,
                                         PetscScalar *pX, PetscInt ldpX,
@@ -132,6 +132,7 @@ PetscInt dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     data->old_isRestarting = d->isRestarting;
     d->isRestarting = dvd_isrestarting_fullV;
     d->updateV = dvd_updateV_extrapol;
+    d->preTestConv = dvd_updateV_testConv;
     DVD_FL_ADD(d->destroyList, dvd_managementV_basic_d);
   }
 
@@ -193,15 +194,6 @@ PetscInt dvd_updateV_extrapol(dvdDashboard *d)
     data->size_new_cY = 0;
   }
 
-  /* If some eigenpairs were converged, lock them  */
-  if (d->npreconv > 0) {
-    i = d->npreconv;
-    ierr = dvd_updateV_conv_gen(d); CHKERRQ(ierr);
-
-    /* If some eigenpair was locked, exit */
-    if (i > d->npreconv) { PetscFunctionReturn(0); }
-  }
-
   /* If the subspaces doesn't need restart, add new vector */
   if (d->isRestarting(d) == PETSC_FALSE) {
     i = d->size_V;
@@ -209,6 +201,15 @@ PetscInt dvd_updateV_extrapol(dvdDashboard *d)
 
     /* If some vector were add, exit */
     if (i < d->size_V) { PetscFunctionReturn(0); }
+  }
+
+  /* If some eigenpairs were converged, lock them  */
+  if (d->npreconv > 0) {
+    i = d->npreconv;
+    ierr = dvd_updateV_conv_gen(d); CHKERRQ(ierr);
+
+    /* If some eigenpair was locked, exit */
+    if (i > d->npreconv) { PetscFunctionReturn(0); }
   }
 
   /* Else, a restarting is performed */
@@ -523,9 +524,9 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_testConv"
-PetscInt dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
-                              PetscInt e, Vec *auxV, PetscScalar *auxS,
-			                        PetscInt *nConv)
+PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
+                                    PetscInt e, Vec *auxV, PetscScalar *auxS,
+			                              PetscInt *nConv)
 {
   PetscInt        i;
 #ifndef PETSC_USE_COMPLEX

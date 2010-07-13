@@ -110,7 +110,7 @@ typedef struct _dvdDashboard {
   PetscInt (*calcPairs)(struct _dvdDashboard*);
   void *calcPairs_data;
 
-  /* Test for convergence */
+  /* Eigenpair test for convergence */
   PetscTruth (*testConv)(struct _dvdDashboard*, PetscScalar eigvr,
        PetscScalar eigvi, PetscReal res, PetscReal *error);
   void *testConv_data;
@@ -223,6 +223,9 @@ typedef struct _dvdDashboard {
   PetscErrorCode (*calcpairs_eigs_trans)(struct _dvdDashboard*);
   PetscErrorCode (*calcpairs_proj_res)(struct _dvdDashboard*, PetscInt r_s,
                   PetscInt r_e, Vec *R);
+  PetscErrorCode (*preTestConv)(struct _dvdDashboard*, PetscInt s, PetscInt pre,
+                                PetscInt e, Vec *auxV, PetscScalar *auxS,
+	                              PetscInt *nConv);
 
   PetscInt (*e_newIteration)(struct _dvdDashboard*);
   void *e_newIteration_data;
