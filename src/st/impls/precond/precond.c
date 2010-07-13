@@ -152,6 +152,7 @@ PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;
   ST_PRECOND     *data;
+  PC             pc;
 
   PetscFunctionBegin;
 
@@ -177,7 +178,9 @@ PetscErrorCode STCreate_Precond(ST st)
 
   ierr = STPrecondSetMatForKSP_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
   ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
- 
+  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
+  ierr = PCSetType(pc, PCJACOBI); CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
