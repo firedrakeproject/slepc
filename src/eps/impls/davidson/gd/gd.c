@@ -72,7 +72,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   if (t == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "gd only works with preonly ksp of the spectral transformation");
 
   /* Setup common for all davidson solvers */
-  ierr = EPSSetUp_DAVIDSON(eps);
+  ierr = EPSSetUp_DAVIDSON(eps); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

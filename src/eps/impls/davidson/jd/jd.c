@@ -77,7 +77,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   if (t == PETSC_TRUE) SETERRQ(PETSC_ERR_SUP, "jd does not work with preonly ksp of the spectral transformation");
 
   /* Setup common for all davidson solvers */
-  ierr = EPSSetUp_DAVIDSON(eps);
+  ierr = EPSSetUp_DAVIDSON(eps); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

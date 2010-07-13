@@ -21,6 +21,8 @@ typedef struct {
 /*
   Create a static preconditioner from a PC
 */
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_static_precond_PC"
 PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
 {
   PetscErrorCode  ierr;
