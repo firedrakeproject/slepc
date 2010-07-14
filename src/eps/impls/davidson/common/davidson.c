@@ -45,7 +45,7 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONSetInitialSize_DAVIDSON(eps, 5); CHKERRQ(ierr);
   ierr = EPSDAVIDSONSetFix_DAVIDSON(eps, 0.01); CHKERRQ(ierr);
 
-  dvd_prof_init();
+  ierr = dvd_prof_init(); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -62,7 +62,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   Mat             A,B;
   KSP             ksp;
   PC              pc, pc2;
-  PetscTruth      t,ipB;
+  PetscTruth      t,ipB,ispositive;
   HarmType_t      harm;
   InitType_t      init;
   PetscReal       fix;
@@ -76,6 +76,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   else eps->ncv = PetscMin(eps->n,eps->nev+500);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
+  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &bs); CHKERRQ(ierr);
@@ -89,6 +90,9 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   if (!(min_size_V <= eps->ncv))
     SETERRQ(1, "The value of eps_davidsones_minv must be less than ncv!");
   ierr = EPSDAVIDSONGetInitialSize_DAVIDSON(eps, &initv); CHKERRQ(ierr);
+
+  /* Davidson solvers do not support left eigenvectors */
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
 
   /* Davidson solvers only support STPRECOND */
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
@@ -117,26 +121,27 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = STGetOperators(eps->OP, &A, &B); CHKERRQ(ierr);
   ierr = PetscMemzero(dvd, sizeof(dvdDashboard)); CHKERRQ(ierr);
   dvd->A = A; dvd->B = (eps->isgeneralized==PETSC_TRUE) ? B : PETSC_NULL;
+  ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT |
             (eps->ishermitian == PETSC_TRUE ? DVD_MAT_HERMITIAN : 0) |
-	    (((eps->ispositive == PETSC_TRUE) &&
+	    (((ispositive == PETSC_TRUE) &&
 	      (eps->isgeneralized == PETSC_FALSE)) ? DVD_MAT_POS_DEF : 0);
   /* Asume -eps_hermitian means hermitian-definite in generalized problems */
-  if ((eps->ispositive == PETSC_FALSE) &&
+  if ((ispositive == PETSC_FALSE) &&
       (eps->isgeneralized == PETSC_FALSE) &&
-      (eps->ishermitian == PETSC_TRUE)) eps->ispositive = PETSC_TRUE;
+      (eps->ishermitian == PETSC_TRUE)) ispositive = PETSC_TRUE;
   if (eps->isgeneralized == PETSC_FALSE)
     dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY |
               DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
   else 
     dvd->sB = DVD_MAT_IMPLICIT |
               (eps->ishermitian == PETSC_TRUE ? DVD_MAT_HERMITIAN : 0) |
-              (eps->ispositive == PETSC_TRUE ? DVD_MAT_POS_DEF : 0);
+              (ispositive == PETSC_TRUE ? DVD_MAT_POS_DEF : 0);
   ipB = DVD_IS(dvd->sB, DVD_MAT_POS_DEF)?PETSC_TRUE:PETSC_FALSE;
   dvd->sEP = ((eps->isgeneralized == PETSC_FALSE) ||
               ( (eps->isgeneralized == PETSC_TRUE) &&
                 (ipB == PETSC_TRUE)             ) ? DVD_EP_STD : 0) |
-	     (eps->ispositive == PETSC_TRUE ? DVD_EP_HERMITIAN : 0);
+	     (ispositive == PETSC_TRUE ? DVD_EP_HERMITIAN : 0);
   dvd->nev = eps->nev;
   dvd->which = eps->which;
   switch(eps->which) {
@@ -253,7 +258,6 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
 PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard    *d = &data->ddb;
-  PetscInt        r;
   KSP             ksp;
   PetscErrorCode  ierr;
 
@@ -264,13 +268,13 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 
   for(eps->its=0; eps->its < eps->max_it; eps->its++) {
     /* Initialize V, if it is needed */
-    if (d->size_V == 0) r = d->initV(d);
+    if (d->size_V == 0) { ierr = d->initV(d); CHKERRQ(ierr); }
 
     /* Find the best approximated eigenpairs in V, X */
-    r = d->calcPairs(d);
+    ierr = d->calcPairs(d); CHKERRQ(ierr);
 
     /* Expand the subspace */
-    r = d->updateV(d);
+    ierr = d->updateV(d); CHKERRQ(ierr);
 
     /* Monitor progress */
     eps->nconv = d->nconv;

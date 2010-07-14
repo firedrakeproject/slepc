@@ -7,13 +7,13 @@
 
 #include "davidson.h"
 
-PetscInt dvd_initV_classic_0(dvdDashboard *d);
+PetscErrorCode dvd_initV_classic_0(dvdDashboard *d);
 PetscErrorCode dvd_initV_classic_d(dvdDashboard *d);
 
-PetscInt dvd_initV_user_0(dvdDashboard *d);
+PetscErrorCode dvd_initV_user_0(dvdDashboard *d);
 PetscErrorCode dvd_initV_user_d(dvdDashboard *d);
 
-PetscInt dvd_initV_krylov_0(dvdDashboard *d);
+PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d);
 PetscErrorCode dvd_initV_krylov_d(dvdDashboard *d);
 
 /*
@@ -27,7 +27,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_classic"
-PetscInt dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
+PetscErrorCode dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
 {
   PetscErrorCode  ierr;
   dvdInitV_Classic
@@ -54,7 +54,7 @@ PetscInt dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_classic_0"
-PetscInt dvd_initV_classic_0(dvdDashboard *d)
+PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdInitV_Classic
@@ -108,7 +108,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_user"
-PetscInt dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
+PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
                         PetscInt size_userV, PetscInt k)
 {
   PetscErrorCode  ierr;
@@ -136,7 +136,7 @@ PetscInt dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_user_0"
-PetscInt dvd_initV_user_0(dvdDashboard *d)
+PetscErrorCode dvd_initV_user_0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdInitV_User   *data = (dvdInitV_User*)d->initV_data;
@@ -189,7 +189,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_krylov"
-PetscInt dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
+PetscErrorCode dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
 {
   PetscErrorCode  ierr;
   dvdInitV_Krylov *data;
@@ -215,7 +215,7 @@ PetscInt dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_krylov_0"
-PetscInt dvd_initV_krylov_0(dvdDashboard *d)
+PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdInitV_Krylov *data = (dvdInitV_Krylov*)d->initV_data;

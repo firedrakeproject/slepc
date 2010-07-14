@@ -24,6 +24,7 @@
 #include "private/stimpl.h"          /*I "slepcst.h" I*/
 
 PetscErrorCode STDestroy_Precond(ST st);
+PetscErrorCode STSetFromOptions_Precond(ST st); 
 EXTERN_C_BEGIN
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat);
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat);
@@ -43,6 +44,40 @@ PetscErrorCode SLEPcNotImplemented_Precond(ST st, Vec x, Vec y) {
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STSetFromOptions_Precond"
+PetscErrorCode STSetFromOptions_Precond(ST st) 
+{
+  PetscErrorCode ierr;
+  PC             pc;
+  const PCType   pctype;
+  Mat            P;
+  PetscTruth     t0, t1;
+
+  PetscFunctionBegin;
+
+  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
+  ierr = PetscObjectGetType((PetscObject)pc, &pctype); CHKERRQ(ierr);
+  ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
+  if (!pctype && st->A) {
+    if (P || st->shift_matrix == ST_MATMODE_SHELL) {
+      ierr = PCSetType(pc, PCJACOBI); CHKERRQ(ierr);
+    } else {
+      ierr = MatHasOperation(st->A, MATOP_DUPLICATE, &t0); CHKERRQ(ierr);
+      if (st->B) {
+        ierr = MatHasOperation(st->A, MATOP_AXPY, &t1); CHKERRQ(ierr);
+      } else {
+        ierr = MatHasOperation(st->A, MATOP_SHIFT, &t1); CHKERRQ(ierr);
+      }
+      ierr = PCSetType(pc, (t0 == PETSC_TRUE && t1 == PETSC_TRUE)?
+                             PCJACOBI:PCNONE); CHKERRQ(ierr);
+    }
+  }
+
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
 #define __FUNCT__ "STSetUp_Precond"
 PetscErrorCode STSetUp_Precond(ST st)
 {
@@ -54,6 +89,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   PetscFunctionBegin;
 
   /* If pc is none and any matrix has to be set, exit */
+  ierr = STSetFromOptions_Precond(st); CHKERRQ(ierr);
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t0); CHKERRQ(ierr);
   ierr = STPrecondGetKSPHasMat(st, &setmat); CHKERRQ(ierr); 
@@ -152,7 +188,6 @@ PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;
   ST_PRECOND     *data;
-  PC             pc;
 
   PetscFunctionBegin;
 
@@ -168,8 +203,9 @@ PetscErrorCode STCreate_Precond(ST st)
   st->ops->setshift        = STSetShift_Precond;
   st->ops->view            = STView_Default;
   st->ops->destroy         = STDestroy_Precond;
+  st->ops->setfromoptions  = STSetFromOptions_Precond;
   
-  st->checknullspace      = STCheckNullSpace_Default;
+  st->checknullspace       = PETSC_NULL;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","STPrecondGetMatForPC_Precond",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","STPrecondSetMatForPC_Precond",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);
@@ -178,8 +214,6 @@ PetscErrorCode STCreate_Precond(ST st)
 
   ierr = STPrecondSetKSPHasMat_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
   ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
-  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
-  ierr = PCSetType(pc, PCJACOBI); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

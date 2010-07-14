@@ -16,7 +16,7 @@ PetscTruth dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_testconv_basic"
-PetscInt dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
+PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
 {
   PetscErrorCode  ierr;
 
@@ -56,7 +56,7 @@ PetscTruth dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_testconv_slepc"
-PetscInt dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
+PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
 {
   PetscErrorCode  ierr;
 

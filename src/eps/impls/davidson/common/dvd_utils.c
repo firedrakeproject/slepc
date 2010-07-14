@@ -10,10 +10,8 @@
 PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d, PetscInt i, Vec x,
                                        Vec Px);
 PetscErrorCode dvd_jacobi_precond_0(dvdDashboard *d, PetscInt i, Vec x, Vec Px);
-PetscTruth dvd_isrestarting_whenfinish_0(dvdDashboard *d);
-PetscInt dvd_isrestarting_whenfinish_d(dvdDashboard *d);
 PetscErrorCode dvd_precond_none(dvdDashboard *d, PetscInt i, Vec x, Vec Px);
-PetscInt dvd_improvex_precond_d(dvdDashboard *d);
+PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d);
 
 typedef struct {
   PC pc;
@@ -60,7 +58,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_precond_d"
-PetscInt dvd_improvex_precond_d(dvdDashboard *d)
+PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdPCWrapper    *dvdpc = (dvdPCWrapper*)d->improvex_precond_data;
@@ -189,15 +187,16 @@ PetscErrorCode dvd_precond_none(dvdDashboard *d, PetscInt i, Vec x, Vec Px)
 #define DVD_STAGE_UPDATEV 4
 #define DVD_STAGE_ORTHV 5
 
-PetscInt dvd_profiler_d(dvdDashboard *d);
+PetscErrorCode dvd_profiler_d(dvdDashboard *d);
 
 typedef struct {
-  PetscInt (*old_initV)(struct _dvdDashboard*);
-  PetscInt (*old_calcPairs)(struct _dvdDashboard*);
-  PetscInt (*old_improveX)(struct _dvdDashboard*, Vec *D, PetscInt max_size_D,
-                       PetscInt r_s, PetscInt r_e, PetscInt *size_D);
-  PetscInt (*old_updateV)(struct _dvdDashboard*);
-  PetscInt (*old_orthV)(struct _dvdDashboard*);
+  PetscErrorCode (*old_initV)(struct _dvdDashboard*);
+  PetscErrorCode (*old_calcPairs)(struct _dvdDashboard*);
+  PetscErrorCode (*old_improveX)(struct _dvdDashboard*, Vec *D,
+                                 PetscInt max_size_D, PetscInt r_s,
+                                 PetscInt r_e, PetscInt *size_D);
+  PetscErrorCode (*old_updateV)(struct _dvdDashboard*);
+  PetscErrorCode (*old_orthV)(struct _dvdDashboard*);
 } DvdProfiler;
 
 PetscLogStage stages[6] = {0,0,0,0,0,0};
@@ -228,70 +227,70 @@ PetscErrorCode dvd_prof_init() {
   PetscFunctionReturn(0);
 }
 
-PetscInt dvd_initV_prof(dvdDashboard* d) {
+PetscErrorCode dvd_initV_prof(dvdDashboard* d) {
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
-  PetscInt        r;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
 
   PetscLogStagePush(stages[DVD_STAGE_INITV]);
-  r = p->old_initV(d);
+  ierr = p->old_initV(d); CHKERRQ(ierr);
   PetscLogStagePop();
 
-  PetscFunctionReturn(r);
+  PetscFunctionReturn(0);
 }
 
-PetscInt dvd_calcPairs_prof(dvdDashboard* d) {
+PetscErrorCode dvd_calcPairs_prof(dvdDashboard* d) {
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
-  PetscInt        r;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
 
   PetscLogStagePush(stages[DVD_STAGE_CALCPAIRS]);
-  r = p->old_calcPairs(d);
+  ierr = p->old_calcPairs(d); CHKERRQ(ierr);
   PetscLogStagePop();
 
-  PetscFunctionReturn(r);
+  PetscFunctionReturn(0);
 }
 
-PetscInt dvd_improveX_prof(dvdDashboard* d, Vec *D, PetscInt max_size_D,
+PetscErrorCode dvd_improveX_prof(dvdDashboard* d, Vec *D, PetscInt max_size_D,
                        PetscInt r_s, PetscInt r_e, PetscInt *size_D) {
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
-  PetscInt        r;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
 
   PetscLogStagePush(stages[DVD_STAGE_IMPROVEX]);
-  r = p->old_improveX(d, D, max_size_D, r_s, r_e, size_D);
+  ierr = p->old_improveX(d, D, max_size_D, r_s, r_e, size_D); CHKERRQ(ierr);
   PetscLogStagePop();
 
-  PetscFunctionReturn(r);
+  PetscFunctionReturn(0);
 }
 
-PetscInt dvd_updateV_prof(dvdDashboard *d) {
+PetscErrorCode dvd_updateV_prof(dvdDashboard *d) {
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
-  PetscInt        r;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
 
   PetscLogStagePush(stages[DVD_STAGE_UPDATEV]);
-  r = p->old_updateV(d);
+  ierr = p->old_updateV(d); CHKERRQ(ierr);
   PetscLogStagePop();
 
-  PetscFunctionReturn(r);
+  PetscFunctionReturn(0);
 }
 
-PetscInt dvd_orthV_prof(dvdDashboard *d) {
+PetscErrorCode dvd_orthV_prof(dvdDashboard *d) {
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
-  PetscInt        r;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
 
   PetscLogStagePush(stages[DVD_STAGE_ORTHV]);
-  r = p->old_orthV(d);
+  ierr = p->old_orthV(d); CHKERRQ(ierr);
   PetscLogStagePop();
 
-  PetscFunctionReturn(r);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
@@ -323,7 +322,7 @@ PetscErrorCode dvd_profiler(dvdDashboard *d, dvdBlackboard *b)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_profiler_d"
-PetscInt dvd_profiler_d(dvdDashboard *d)
+PetscErrorCode dvd_profiler_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
@@ -371,7 +370,7 @@ typedef struct {
 
 PetscErrorCode dvd_harm_start(dvdDashboard *d);
 PetscErrorCode dvd_harm_end(dvdDashboard *d);
-PetscInt dvd_harm_d(dvdDashboard *d);
+PetscErrorCode dvd_harm_d(dvdDashboard *d);
 PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh, PetscScalar t);
 PetscErrorCode dvd_harm_updateW(dvdDashboard *d);
 PetscErrorCode dvd_harm_proj(dvdDashboard *d);
@@ -419,7 +418,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_harm_d"
-PetscInt dvd_harm_d(dvdDashboard *d)
+PetscErrorCode dvd_harm_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
 

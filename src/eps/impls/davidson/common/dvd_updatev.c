@@ -8,8 +8,8 @@
 #include "davidson.h"
 
 PetscTruth dvd_isrestarting_fullV(dvdDashboard *d);
-PetscInt dvd_managementV_basic_d(dvdDashboard *d);
-PetscInt dvd_updateV_extrapol(dvdDashboard *d);
+PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d);
+PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
@@ -54,7 +54,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic"
-PetscInt dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
+PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
                                PetscInt bs, PetscInt max_size_V,
                                PetscInt min_size_V, PetscInt plusk,
                                PetscTruth harm)
@@ -159,7 +159,7 @@ PetscTruth dvd_isrestarting_fullV(dvdDashboard *d)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic_d"
-PetscInt dvd_managementV_basic_d(dvdDashboard *d)
+PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
@@ -177,7 +177,7 @@ PetscInt dvd_managementV_basic_d(dvdDashboard *d)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_extrapol"
-PetscInt dvd_updateV_extrapol(dvdDashboard *d)
+PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        i;
@@ -252,7 +252,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 
   if (d->npreconv == 0) { PetscFunctionReturn(0); }
 
-  d->calcpairs_selectPairs(d, d->size_H);
+  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
 
   /* f.cY <- [f.cY f.V*f.pY(0:npreconv-1)] */
   if (d->cY && d->pY) {
@@ -378,6 +378,8 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   data->size_oldU = 0;
 
   /* f.pX <- I, f.pY <- I */
+  d->ldpX = d->size_H;
+  if (d->pY) d->ldpY = d->size_H;
   for(i=0; i<d->size_H; i++) {
     for(j=0; j<d->size_H; j++) {
       d->pX[d->ldpX*i+j] = 0.0;
@@ -413,7 +415,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
                                     d->max_size_V - size_X ));
 
   /* Modify the subspaces */
-  d->calcpairs_selectPairs(d, d->size_H);
+  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
 
   d->ldMTX = d->size_MT = d->size_V;
   ierr = dvd_updateV_restartV_aux(d->V, d->size_V, d->MTX, d->ldMTX, d->pX,
@@ -448,6 +450,8 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   d->npreconv = 0;
     
   /* f.pX <- I, f.pY <- I */
+  d->ldpX = d->size_H;
+  if (d->pY) d->ldpY = d->size_H;
   for(i=0; i<d->size_H; i++) {
     for(j=0; j<d->size_H; j++) {
       d->pX[d->ldpX*i+j] = 0.0;
@@ -472,7 +476,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
   PetscFunctionBegin;
 
-  d->calcpairs_selectPairs(d, d->size_H);
+  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
 
   /* Select the desired pairs */
   size_D = PetscMin(PetscMin(PetscMin(data->bs,
@@ -492,13 +496,15 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 //  PetscPrintf(PETSC_COMM_WORLD, "\n");
 
   /* Fill V with D */
-  d->improveX(d, d->V+d->size_V, d->max_size_V-d->size_V, 0, size_D, &size_D);
+  ierr = d->improveX(d, d->V+d->size_V, d->max_size_V-d->size_V, 0, size_D,
+                     &size_D); CHKERRQ(ierr);
 
   /* If D is empty, exit */
   if (size_D == 0) { PetscFunctionReturn(0); }
 
   /* Get the converged pairs */
-  dvd_updateV_testConv(d, 0, size_D, size_D, d->auxV, d->auxS, &d->npreconv);
+  ierr = dvd_updateV_testConv(d, 0, size_D, size_D, d->auxV, d->auxS,
+                              &d->npreconv); CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->size_V+= size_D;
@@ -542,10 +548,11 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   for(i=s, conv=PETSC_TRUE; (conv == PETSC_TRUE) && (i < e); i++) {
     if (i >= pre) {
       if ((d->B) && DVD_IS(d->sEP, DVD_EP_STD)) {
-        d->calcpairs_X(d, i, i+1, &auxV[1]);
+        ierr = d->calcpairs_X(d, i, i+1, &auxV[1]); CHKERRQ(ierr);
         ierr = MatMult(d->B, auxV[1], auxV[0]); CHKERRQ(ierr); 
       }
-      d->calcpairs_residual(d, i, i+1, auxV, auxS, auxV[1]);
+      ierr = d->calcpairs_residual(d, i, i+1, auxV, auxS, auxV[1]);
+      CHKERRQ(ierr);
     }
     norm = d->nR[i]/d->nX[i];
     conv = d->testConv(d, d->eigr[i], 0, norm, &d->errest[i]);

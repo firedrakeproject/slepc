@@ -41,7 +41,7 @@
 
 
 typedef struct _dvdFunctionList {
-  PetscInt (*f)(void*);
+  PetscErrorCode (*f)(void*);
   void *d;
   struct _dvdFunctionList *next;
 } dvdFunctionList;
@@ -103,11 +103,11 @@ typedef enum {
 typedef struct _dvdDashboard {
   /**** Function steps ****/
   /* Initialize V */
-  PetscInt (*initV)(struct _dvdDashboard*);
+  PetscErrorCode (*initV)(struct _dvdDashboard*);
   void *initV_data;
   
   /* Find the approximate eigenpairs from V */
-  PetscInt (*calcPairs)(struct _dvdDashboard*);
+  PetscErrorCode (*calcPairs)(struct _dvdDashboard*);
   void *calcPairs_data;
 
   /* Eigenpair test for convergence */
@@ -122,7 +122,7 @@ typedef struct _dvdDashboard {
   PetscInt npreconv;
 
   /* Improve the selected eigenpairs */
-  PetscInt (*improveX)(struct _dvdDashboard*, Vec *D, PetscInt max_size_D,
+  PetscErrorCode (*improveX)(struct _dvdDashboard*, Vec *D, PetscInt max_size_D,
                        PetscInt r_s, PetscInt r_e, PetscInt *size_D);
   void *improveX_data;
 
@@ -131,11 +131,11 @@ typedef struct _dvdDashboard {
   void *isRestarting_data;
 
   /* Perform restarting */
-  PetscInt (*restartV)(struct _dvdDashboard*);
+  PetscErrorCode (*restartV)(struct _dvdDashboard*);
   void *restartV_data;
 
   /* Update V */
-  PetscInt (*updateV)(struct _dvdDashboard*);
+  PetscErrorCode (*updateV)(struct _dvdDashboard*);
   void *updateV_data;
 
   /**** Problem specification ****/
@@ -192,17 +192,17 @@ typedef struct _dvdDashboard {
     *errest;        /* relative error eigenpairs */
 
   /**** Shared function and variables ****/
-  PetscInt (*e_Vchanged)(struct _dvdDashboard*, PetscInt s_imm,
+  PetscErrorCode (*e_Vchanged)(struct _dvdDashboard*, PetscInt s_imm,
                          PetscInt e_imm, PetscInt s_new, PetscInt e_new);
   void *e_Vchanged_data;
 
-  PetscInt (*calcpairs_residual)(struct _dvdDashboard*, PetscInt s, PetscInt e,
+  PetscErrorCode (*calcpairs_residual)(struct _dvdDashboard*, PetscInt s, PetscInt e,
                                  Vec *R, PetscScalar *auxS, Vec auxV);
-  PetscInt (*calcpairs_selectPairs)(struct _dvdDashboard*, PetscInt n);
+  PetscErrorCode (*calcpairs_selectPairs)(struct _dvdDashboard*, PetscInt n);
   void *calcpairs_residual_data;
-  PetscInt (*calcpairs_X)(struct _dvdDashboard*, PetscInt s, PetscInt e,
+  PetscErrorCode (*calcpairs_X)(struct _dvdDashboard*, PetscInt s, PetscInt e,
                           Vec *X);
-  PetscInt (*calcpairs_Y)(struct _dvdDashboard*, PetscInt s, PetscInt e,
+  PetscErrorCode (*calcpairs_Y)(struct _dvdDashboard*, PetscInt s, PetscInt e,
                           Vec *Y);
   PetscErrorCode (*improvex_precond)(struct _dvdDashboard*, PetscInt i, Vec x,
                   Vec Px);
@@ -227,7 +227,7 @@ typedef struct _dvdDashboard {
                                 PetscInt e, Vec *auxV, PetscScalar *auxS,
 	                              PetscInt *nConv);
 
-  PetscInt (*e_newIteration)(struct _dvdDashboard*);
+  PetscErrorCode (*e_newIteration)(struct _dvdDashboard*);
   void *e_newIteration_data;
 
   IP ipI;
@@ -287,7 +287,7 @@ typedef struct _dvdDashboard {
   dvdFunctionList *fl=(list); \
   PetscErrorCode ierr; \
   ierr = PetscMalloc(sizeof(dvdFunctionList), &(list)); CHKERRQ(ierr); \
-  (list)->f = (PetscInt(*)(void*))(fun); \
+  (list)->f = (PetscErrorCode(*)(void*))(fun); \
   (list)->next = fl; }
 
 #define DVD_FL_CALL(list, arg0) { \
@@ -330,12 +330,12 @@ typedef struct {
 /* Shared types */
 typedef void* dvdPrecondData; // DEPRECATED!!
 typedef PetscErrorCode (*dvdPrecond)(dvdDashboard*, PetscInt i, Vec x, Vec Px);
-typedef PetscInt (*dvdCallback)(dvdDashboard*);
-typedef PetscInt (*e_Vchanged_type)(dvdDashboard*, PetscInt s_imm,
+typedef PetscErrorCode (*dvdCallback)(dvdDashboard*);
+typedef PetscErrorCode (*e_Vchanged_type)(dvdDashboard*, PetscInt s_imm,
                          PetscInt e_imm, PetscInt s_new, PetscInt e_new);
 typedef PetscTruth (*isRestarting_type)(dvdDashboard*);
-typedef PetscInt (*e_newIteration_type)(dvdDashboard*);
-typedef PetscInt (*improveX_type)(dvdDashboard*, Vec *D, PetscInt max_size_D,
+typedef PetscErrorCode (*e_newIteration_type)(dvdDashboard*);
+typedef PetscErrorCode (*improveX_type)(dvdDashboard*, Vec *D, PetscInt max_size_D,
                                   PetscInt r_s, PetscInt r_e, PetscInt *size_D);
 
 /* Structures for blas */
@@ -370,30 +370,30 @@ typedef struct {
 } DvdMult_copy_func;
 
 /* Routines for initV step */
-PetscInt dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
-PetscInt dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
+PetscErrorCode dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
+PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
                         PetscInt size_userV, PetscInt k);
-PetscInt dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
+PetscErrorCode dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
 
 /* Routines for calcPairs step */
-PetscInt dvd_calcpairs_rr(dvdDashboard *d, dvdBlackboard *b);
-PetscInt dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ip);
+PetscErrorCode dvd_calcpairs_rr(dvdDashboard *d, dvdBlackboard *b);
+PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ip);
 
 /* Routines for improveX step */
-PetscInt dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
+PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
                          PetscInt max_bs);
-PetscInt dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
+PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
                                  ProjType_t p);
-PetscInt dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
+PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
                                    PetscInt maxits, PetscReal tol,
                                    PetscReal fix);
 
 /* Routines for testConv step */
-PetscInt dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b);
-PetscInt dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b);
+PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b);
+PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b);
 
 /* Routines for management of V */
-PetscInt dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
+PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
                                PetscInt bs, PetscInt max_size_V,
                                PetscInt restart_size_X, PetscInt plusk,
                                PetscTruth harm);
