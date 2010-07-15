@@ -34,7 +34,8 @@ typedef struct {
     real_max_size_V,
                     /* real max size of V */
     min_size_V,     /* restart with this number of eigenvectors */
-    plusk;          /* when restart, save plusk vectors from last iteration */
+    plusk,          /* when restart, save plusk vectors from last iteration */
+    mpd;            /* max size of the searching subspace */
   Vec *real_V,      /* real start vectors V */
     *new_cY;        /* new left converged eigenvectors from the last iter */
   void
@@ -55,34 +56,35 @@ typedef struct {
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic"
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
-                               PetscInt bs, PetscInt max_size_V,
-                               PetscInt min_size_V, PetscInt plusk,
-                               PetscTruth harm)
+                                     PetscInt bs, PetscInt max_size_V,
+                                     PetscInt mpd, PetscInt min_size_V,
+                                     PetscInt plusk, PetscTruth harm)
 {
   PetscErrorCode  ierr;
   dvdManagV_basic *data;
-  PetscInt        max_conv = max_size_V;
   PetscInt        i;
 
   PetscFunctionBegin;
 
   /* Setting configuration constrains */
-  b->max_size_auxV = PetscMax(PetscMax(b->max_size_auxV,
-                                       max_conv /* updateV_conv_gen */ ),
-                                       2 /* testConv */ );
+  mpd = PetscMin(mpd, max_size_V);
+  min_size_V = PetscMin(min_size_V, mpd-bs);
   b->max_size_X = PetscMax(b->max_size_X, PetscMax(bs, min_size_V));
+  b->max_size_auxV = PetscMax(PetscMax(b->max_size_auxV,
+                                       b->max_size_X /* updateV_conv_gen */ ),
+                                       2 /* testConv */ );
   b->max_size_auxS = PetscMax(PetscMax(PetscMax(b->max_size_auxS,
-                              max_size_V*max_conv /* YtWx */ ),
+                              max_size_V*b->max_size_X /* YtWx */ ),
                               max_size_V*2 /* SlepcDenseOrth  */ ), 
                               max_size_V*b->max_size_X /* testConv:res_0 */ );
-  b->max_size_V = max_size_V;
+  b->max_size_V = mpd;
   b->own_vecs+= max_size_V*(harm==PETSC_TRUE?2:1);      /* V, W? */
-  b->own_scalars+= b->max_size_V*2 /* eigr, eigr */ +
-                   b->max_size_V /* nR */   +
-                   b->max_size_V /* nX */   +
-                   b->max_size_V /* errest */ +
+  b->own_scalars+= max_size_V*2 /* eigr, eigr */ +
+                   max_size_V /* nR */   +
+                   max_size_V /* nX */   +
+                   max_size_V /* errest */ +
                    2*b->max_size_V*b->max_size_V*(harm==PETSC_TRUE?2:1)
-                                 /* MTX,MTY?,oldU,oldV? */;
+                                               /* MTX,MTY?,oldU,oldV? */;
 //  b->max_size_oldX = plusk;
 
   /* Setup the step */
@@ -95,22 +97,23 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     data->plusk = plusk;
     data->new_cY = PETSC_NULL;
     data->size_new_cY = 0;
+    data->mpd = mpd;
 
     d->V = data->real_V;
     d->max_size_V = data->real_max_size_V;
     d->cX = data->real_V;
-    d->eigr = b->free_scalars; b->free_scalars+= b->max_size_V;
-    d->eigi = b->free_scalars; b->free_scalars+= b->max_size_V;
+    d->eigr = b->free_scalars; b->free_scalars+= max_size_V;
+    d->eigi = b->free_scalars; b->free_scalars+= max_size_V;
 #ifdef PETSC_USE_COMPLEX
-    for(i=0; i<b->max_size_V; i++) d->eigi[i] = 0.0;
+    for(i=0; i<max_size_V; i++) d->eigi[i] = 0.0;
 #endif
     d->nR = (PetscReal*)b->free_scalars;
-    b->free_scalars = (PetscScalar*)(d->nR + b->max_size_V);
-    for(i=0; i<b->max_size_V; i++) d->nR[i] = PETSC_MAX;
+    b->free_scalars = (PetscScalar*)(d->nR + max_size_V);
+    for(i=0; i<max_size_V; i++) d->nR[i] = PETSC_MAX;
     d->nX = (PetscReal*)b->free_scalars;
-    b->free_scalars = (PetscScalar*)(d->nX + b->max_size_V);
+    b->free_scalars = (PetscScalar*)(d->nX + max_size_V);
     d->errest = (PetscReal*)b->free_scalars;
-    b->free_scalars = (PetscScalar*)(d->errest + b->max_size_V);
+    b->free_scalars = (PetscScalar*)(d->errest + max_size_V);
     d->ceigr = d->eigr;
     d->ceigi = d->eigi;
     d->MTX = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
@@ -148,7 +151,17 @@ PetscTruth dvd_isrestarting_fullV(dvdDashboard *d)
 
   PetscFunctionBegin;
 
-  restart = (d->size_V + data->bs > d->max_size_V)?PETSC_TRUE:PETSC_FALSE;
+  /* Take into account the possibility of conjugate eigenpairs */
+#if defined(PETSC_USE_COMPLEX)
+#define ONE 0
+#else
+#define ONE 1
+#endif
+
+  restart = (d->size_V + data->bs + ONE > PetscMin(data->mpd,d->max_size_V))?
+                PETSC_TRUE:PETSC_FALSE;
+
+#undef ONE
 
   /* Check old isRestarting function */
   if ((restart == PETSC_FALSE) && (data->old_isRestarting))

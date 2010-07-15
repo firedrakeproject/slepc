@@ -483,13 +483,14 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
 
   /* Some functions need the diagonal elements in T be real */
 #if defined(PETSC_USE_COMPLEX)
-  if (d->T) for(i=0; i<d->size_H; i++) {
-    s = PetscConj(d->T[d->ldT*i+i])/PetscAbsScalar(d->T[d->ldT*i+i]);
-    for(j=0; j<=i; j++)
-      d->T[d->ldT*i+j] = PetscRealPart(d->T[d->ldT*i+j]*s),
-      d->S[d->ldS*i+j]*= s;
-    for(j=0; j<d->size_H; j++) d->pX[d->ldpX*i+j]*= s;
-  }
+  if (d->T) for(i=0; i<d->size_H; i++)
+    if (PetscImaginaryPart(d->T[d->ldT*i+i]) != 0.0) {
+      s = PetscConj(d->T[d->ldT*i+i])/PetscAbsScalar(d->T[d->ldT*i+i]);
+      for(j=0; j<=i; j++)
+        d->T[d->ldT*i+j] = PetscRealPart(d->T[d->ldT*i+j]*s),
+        d->S[d->ldS*i+j]*= s;
+      for(j=0; j<d->size_H; j++) d->pX[d->ldpX*i+j]*= s;
+    }
 #endif
 
   PetscFunctionReturn(0);

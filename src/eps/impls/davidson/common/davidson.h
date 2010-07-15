@@ -394,9 +394,9 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b);
 
 /* Routines for management of V */
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
-                               PetscInt bs, PetscInt max_size_V,
-                               PetscInt restart_size_X, PetscInt plusk,
-                               PetscTruth harm);
+                                     PetscInt bs, PetscInt max_size_V,
+                                     PetscInt mpd, PetscInt min_size_V,
+                                     PetscInt plusk, PetscTruth harm);
 
 /* Some utilities */
 PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc);
@@ -409,13 +409,13 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
 
 /* Methods */
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
-  PetscInt max_size_V, PetscInt min_size_V, PetscInt bs, PetscInt ini_size_V,
-  Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc, HarmType_t harmMode,
-  KSP ksp, InitType_t init);
+  PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
+  PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
+  HarmType_t harmMode, KSP ksp, InitType_t init);
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
-  PetscInt max_size_V, PetscInt min_size_V, PetscInt bs, PetscInt ini_size_V,
-  Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc, IP ip,
-  HarmType_t harmMode, PetscTruth fixedTarget, PetscScalar t, KSP ksp,
+  PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
+  PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
+  IP ip, HarmType_t harmMode, PetscTruth fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init);
 
 /* BLAS routines */

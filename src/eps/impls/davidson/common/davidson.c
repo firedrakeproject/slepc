@@ -70,26 +70,35 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   PetscFunctionBegin;
 
   /* Setup EPS options and get the problem specification */
-  if(eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
-  } else if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
-  else eps->ncv = PetscMin(eps->n,eps->nev+500);
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
-  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
-    SETERRQ(1,"Wrong value of eps->which");
   ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &bs); CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
-  if (!(eps->nev + bs < eps->ncv))
-    SETERRQ(1, "The ncv has to be greater than nev plus blocksize!");
+  if(eps->ncv) {
+    if (eps->ncv<eps->nev) SETERRQ(PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
+  } else if (eps->mpd) eps->ncv = eps->mpd + eps->nev + bs;
+  else if (eps->nev<500)
+    eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15))+bs;
+  else
+    eps->ncv = PetscMin(eps->n,eps->nev+500)+bs;
+  if (!eps->mpd) eps->mpd = eps->ncv;
+  if (eps->mpd > eps->ncv)
+    SETERRQ(PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
+  if (eps->mpd < 2)
+    SETERRQ(PETSC_ERR_SUP,"The mpd has to be greater than 2");
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
+  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
+    SETERRQ(PETSC_ERR_SUP,"Wrong value of eps->which");
+  if (!(eps->nev + bs <= eps->ncv))
+    SETERRQ(PETSC_ERR_SUP, "The ncv has to be greater than nev plus blocksize!");
 
   ierr = EPSDAVIDSONGetRestart_DAVIDSON(eps, &min_size_V, &plusk);
   CHKERRQ(ierr);
-  if (min_size_V == 0) min_size_V = bs;
-  if (!(min_size_V <= eps->ncv))
-    SETERRQ(1, "The value of eps_davidsones_minv must be less than ncv!");
+  if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5), eps->mpd/2);
+  if (!(min_size_V+bs <= eps->mpd))
+    SETERRQ(PETSC_ERR_SUP, "The value of minv must be less than mpd minus blocksize");
   ierr = EPSDAVIDSONGetInitialSize_DAVIDSON(eps, &initv); CHKERRQ(ierr);
+  if (eps->mpd < initv)
+    SETERRQ(PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
   /* Davidson solvers do not support left eigenvectors */
   if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -208,7 +217,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
     eps->conv_func = EPSDefaultConverged;
 
   /* Preconfigure dvd */
-  ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, min_size_V, bs,
+  ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
                                 initv, eps->IS,
                                 eps->nini,
                                 plusk, pc, harm,
@@ -235,7 +244,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   dvd->size_auxS = b.max_size_auxS;
 
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd, &b, eps->ncv, min_size_V, bs,
+  ierr = dvd_schm_basic_conf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
                              initv, eps->IS,
                              eps->nini, plusk, pc,
                              eps->ip, harm, dvd->withTarget,
