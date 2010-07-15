@@ -1252,7 +1252,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
   ldpX, ldpY, leading dimension of pX and pY
   auxS, auxiliar scalar of length:
     double standard 3n+n*n, double generalized 11n+4n*n,
-    complex standard 3n+n*n, complex generalized 4n+2n*n
+    complex standard 3n+n*n, complex generalized 3n+2n*n
   size_auxS, the length of auxS
   doProd, if true pX and pY return the eigenvectors premultiplied by the input vectors stored in pX and pY respectively
 */
@@ -1268,8 +1268,6 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   const char      *side, *howmny;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal       *auxR;
-  PetscScalar     *diag, a;
-  PetscInt        i,j;
 #else
   PetscScalar     *pA,*pB;
   PetscBLASInt    n1, ldpA,ldpB;
@@ -1302,20 +1300,10 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     /* [eigr, pX] = eig(S, T) */
 #if defined(PETSC_USE_COMPLEX)
     auxR = (PetscReal*)auxS; auxS = (PetscScalar*)(auxR+2*n); size_auxS-= 2*n;
-    diag = auxS; auxS+= n; size_auxS-= n;
-    for(i=0; i<n; i++) {
-      a = PetscConj(Tc[n*i+i])/PetscAbsScalar(Tc[n*i+i]);
-      diag[i] = a;
-      for(j=0; j<=i; j++)
-        Tc[n*i+j] = PetscRealPart(Tc[n*i+j]*a),
-        Sc[n*i+j]*= a;
-    }
     if (size_auxS < 2*n)
       SETERRQ(PETSC_ERR_LIB,"Insufficient auxiliar memory for xTGEVC");
     LAPACKtgevc_(side,howmny,PETSC_NULL,&n,Sc,&n,Tc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTGEVC %i",info);
-    for(i=0; i<n; i++)
-      for(j=0; j<n; j++) pX[n*i+j]/= diag[j];
 #else
     alphar = auxS; auxS+= n; size_auxS-= n;
     alphai = auxS; auxS+= n; size_auxS-= n;
@@ -1339,14 +1327,14 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
       if (pX) {
         /* pX <- pX * pA */
         ierr = SlepcDenseCopy(Sc, n, pX, ldpX, n, n); CHKERRQ(ierr);
-        ierr = SlepcDenseMatProd(pX, ldpX, 1.0, 0.0,
+        ierr = SlepcDenseMatProd(pX, ldpX, 0.0, 1.0,
                                  Sc, n, n, n, PETSC_FALSE, 
                                  pA, n, n, n, PETSC_FALSE); CHKERRQ(ierr);
       }
       if (pY) {
         /* pY <- pY * pB */
         ierr = SlepcDenseCopy(Sc, n, pY, ldpY, n, n); CHKERRQ(ierr);
-        ierr = SlepcDenseMatProd(pY, ldpY, 1.0, 0.0,
+        ierr = SlepcDenseMatProd(pY, ldpY, 0.0, 1.0,
                                  Sc, n, n, n, PETSC_FALSE, 
                                  pB, n, n, n, PETSC_FALSE); CHKERRQ(ierr);
       }

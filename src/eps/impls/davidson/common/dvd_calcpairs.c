@@ -455,7 +455,10 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
 PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
 {
   PetscErrorCode  ierr;
-
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar     s;
+  PetscInt        i, j;
+#endif
   PetscFunctionBegin;
 
   if ((d->ldpX != d->size_H) ||
@@ -477,6 +480,17 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
   if (d->calcpairs_eigs_trans) {
     ierr = d->calcpairs_eigs_trans(d); CHKERRQ(ierr);
   }
+
+  /* Some functions need the diagonal elements in T be real */
+#if defined(PETSC_USE_COMPLEX)
+  if (d->T) for(i=0; i<d->size_H; i++) {
+    s = PetscConj(d->T[d->ldT*i+i])/PetscAbsScalar(d->T[d->ldT*i+i]);
+    for(j=0; j<=i; j++)
+      d->T[d->ldT*i+j] = PetscRealPart(d->T[d->ldT*i+j]*s),
+      d->S[d->ldS*i+j]*= s;
+    for(j=0; j<d->size_H; j++) d->pX[d->ldpX*i+j]*= s;
+  }
+#endif
 
   PetscFunctionReturn(0);
 }
@@ -638,7 +652,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
 
 /**** Patterns implementation *************************************************/
 #undef __FUNCT__ 
-#define __FUNCT__ "calcPairs_updateMatV"
+#define __FUNCT__ "dvd_calcPairs_updateMatV"
 PetscErrorCode dvd_calcpairs_updateMatV(Mat A, Vec **AV, PetscInt *size_AV,
                                         dvdDashboard *d)
 {
