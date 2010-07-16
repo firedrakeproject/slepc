@@ -32,6 +32,7 @@
 typedef struct {
   PetscTruth explicitmatrix;
   EPS        eps;
+  PetscTruth setfromoptionscalled;
   Mat        mat;
   Vec        x1,x2,y1,y2;
 } SVD_CYCLIC;
@@ -148,6 +149,10 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   ierr = EPSSetWhichEigenpairs(cyclic->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  if (cyclic->setfromoptionscalled == PETSC_TRUE) {
+    ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
+    cyclic->setfromoptionscalled = PETSC_FALSE;
+  }
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cyclic->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
@@ -295,8 +300,8 @@ PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+  cyclic->setfromoptionscalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -559,6 +564,7 @@ PetscErrorCode SVDCreate_CYCLIC(SVD svd)
   cyclic->x2 = PETSC_NULL;
   cyclic->y1 = PETSC_NULL;
   cyclic->y2 = PETSC_NULL;
+  cyclic->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

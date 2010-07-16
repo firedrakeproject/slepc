@@ -31,6 +31,7 @@
 
 typedef struct {
   EPS eps;
+  PetscTruth setfromoptionscalled;
   Mat mat;
   Vec w,diag;
 } SVD_CROSS;
@@ -132,6 +133,10 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cross->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  if (cross->setfromoptionscalled == PETSC_TRUE) {
+    ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
+    cross->setfromoptionscalled = PETSC_FALSE;
+  }
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cross->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
@@ -180,11 +185,10 @@ PetscErrorCode SVDMonitor_CROSS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar 
 #define __FUNCT__ "SVDSetFromOptions_CROSS"
 PetscErrorCode SVDSetFromOptions_CROSS(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
+  cross->setfromoptionscalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -349,6 +353,7 @@ PetscErrorCode SVDCreate_CROSS(SVD svd)
   cross->mat = PETSC_NULL;
   cross->w = PETSC_NULL;
   cross->diag = PETSC_NULL;
+  cross->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
