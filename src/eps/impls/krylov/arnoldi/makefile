@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = arnoldi.c arnoldi-ts.c
+SOURCEC  = arnoldi.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = arnoldi.o arnoldi-ts.o
+OBJSC    = arnoldi.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

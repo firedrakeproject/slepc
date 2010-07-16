@@ -39,7 +39,6 @@
 #include "slepcblaslapack.h"
 
 PetscErrorCode EPSSolve_ARNOLDI(EPS);
-PetscErrorCode EPSSolve_TS_ARNOLDI(EPS);
 
 typedef struct {
   PetscTruth delayed;
@@ -86,8 +85,8 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   }
 
   /* dispatch solve method */
-  if (eps->leftvecs) eps->ops->solve = EPSSolve_TS_ARNOLDI;
-  else eps->ops->solve = EPSSolve_ARNOLDI;
+  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  eps->ops->solve = EPSSolve_ARNOLDI;
   PetscFunctionReturn(0);
 }
 
