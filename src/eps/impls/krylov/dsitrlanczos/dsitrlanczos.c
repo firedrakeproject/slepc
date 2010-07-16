@@ -119,14 +119,15 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
 
     /* Solve projected problem and compute residual norm estimates */ 
     ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
-    for (i=0;i<nv;i++)
-      eps->errest[i+eps->nconv] = beta*PetscAbsScalar(Q[(i+1)*nv-1]);
 
     /* Check convergence */
     eps->ldz = nv;
-    ierr = (*eps->conv_func)(eps,eps->nconv+nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
-    k = eps->nconv;
-    while (k<eps->nconv+nv && eps->conv[k]) k++;
+    for (k=eps->nconv;k<eps->nconv+nv;k++) {
+      eps->errest[k] = beta*PetscAbsScalar(Q[(k-eps->nconv+1)*nv-1]);
+      ierr = (*eps->conv_func)(eps,k+1,k,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (!eps->conv[k]) break;
+    }
+
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     

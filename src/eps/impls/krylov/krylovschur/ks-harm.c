@@ -204,7 +204,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
   Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*Y,*g,*work;
   PetscReal      beta,gnorm;
-  PetscTruth     breakdown;
+  PetscTruth     breakdown,iscomplex;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -229,25 +229,28 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 
     /* Compute translation of Krylov decomposition */ 
     ierr = EPSTranslateHarmonic(nv,S,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
-
-    /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedKSHarmonic(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(S,eps->ncv,Q,Y,beta,eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-
-    /* Fix residual norms */
     gnorm = 0.0;
     for (i=0;i<nv;i++)
       gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-    for (i=eps->nconv;i<nv;i++)
-      eps->errest[i] *= sqrt(1.0+gnorm);
 
-    /* Check convergence */
+    /* Solve projected problem and compute residual norm estimates */ 
+    ierr = EPSProjectedKSHarmonic(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
+
+    /* Compute residual norm estimates and check convergence */ 
     eps->ldz = nv;
     if (eps->ishermitian) eps->Z = Q+eps->ldz*eps->nconv+eps->nconv;
     else eps->Z = Y;
-    ierr = (*eps->conv_func)(eps,nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
-    k = eps->nconv;
-    while (k<nv && eps->conv[k]) k++;
+    for (k=eps->nconv;k<nv;k++) {
+      if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
+      else iscomplex = PETSC_FALSE;
+      ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
+      eps->errest[k] *= sqrt(1.0+gnorm); /* Fix residual norms */
+      if (iscomplex) eps->errest[k+1] *= sqrt(1.0+gnorm); /* Fix residual norms */
+      ierr = (*eps->conv_func)(eps,iscomplex?k+2:k+1,k,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (!eps->conv[k]) break;
+      if (iscomplex) k++;
+    }
+
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     

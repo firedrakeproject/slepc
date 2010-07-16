@@ -365,7 +365,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*Y,*g,*work,*Hcopy;
   PetscReal      beta,gnorm;
-  PetscTruth     breakdown;
+  PetscTruth     breakdown,iscomplex;
   IPOrthogonalizationRefinementType orthog_ref;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
@@ -408,29 +408,31 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
       ierr = EPSTranslateHarmonic(nv,H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+      gnorm = 0.0;
+      for (i=0;i<nv;i++)
+        gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
     }
 
     /* Solve projected problem and compute residual norm estimates */ 
     ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,nv);CHKERRQ(ierr);
-    ierr = ArnoldiResiduals(H,eps->ncv,U,Y,beta,eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,work);CHKERRQ(ierr);
-    
-    /* Fix residual norms if harmonic */
-    if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-      gnorm = 0.0;
-      for (i=0;i<nv;i++)
-        gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-      for (i=eps->nconv;i<nv;i++)
-        eps->errest[i] *= sqrt(1.0+gnorm);
-    }
 
-    /* Lock converged eigenpairs and update the corresponding vectors,
-       including the restart vector: V(:,idx) = V*U(:,idx) */
+    /* Compute residual norm estimates and check convergence */ 
     eps->ldz = nv;
     if (eps->ishermitian) eps->Z = U+eps->ldz*eps->nconv+eps->nconv;
     else eps->Z = Y;
-    ierr = (*eps->conv_func)(eps,nv,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
-    k = eps->nconv;
-    while (k<nv && eps->conv[k]) k++;
+    for (k=eps->nconv;k<nv;k++) {
+      if (k<nv-1 && H[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
+      else iscomplex = PETSC_FALSE;
+      ierr = ArnoldiResiduals2(H,eps->ncv,U,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
+      if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
+        eps->errest[k] *= sqrt(1.0+gnorm); /* Fix residual norms */
+        if (iscomplex) eps->errest[k+1] *= sqrt(1.0+gnorm); /* Fix residual norms */
+      }
+      ierr = (*eps->conv_func)(eps,iscomplex?k+2:k+1,k,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (!eps->conv[k]) break;
+      if (iscomplex) k++;
+    }
+    
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,nv,Hcopy,eps->ncv);CHKERRQ(ierr);
     eps->nconv = k;
 
