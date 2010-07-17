@@ -65,7 +65,7 @@ PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=0; i<PetscMin(data->k,d->max_size_V); i++) {
-    ierr = SlepcVecSetRandom(d->V[i], d->rand); CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(d->V[i], d->eps->rand); CHKERRQ(ierr);
   }
   d->size_V = i;
   d->V_imm_s = 0; d->V_imm_e = 0;
@@ -149,7 +149,7 @@ PetscErrorCode dvd_initV_user_0(dvdDashboard *d)
     ierr = VecCopy(data->userV[i], d->V[i]); CHKERRQ(ierr);
   }
   for (; i<PetscMin(data->k,d->max_size_V); i++) {
-    ierr = SlepcVecSetRandom(d->V[i], d->rand); CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(d->V[i], d->eps->rand); CHKERRQ(ierr);
   }
   d->size_V = i;
   d->V_imm_s = 0; d->V_imm_e = 0;
@@ -226,7 +226,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   PetscFunctionBegin;
 
   /* Generate a random vector for starting the arnoldi method */
-  ierr = SlepcVecSetRandom(d->V[0], d->rand); CHKERRQ(ierr);
+  ierr = SlepcVecSetRandom(d->V[0], d->eps->rand); CHKERRQ(ierr);
   ierr = IPNorm(d->ipV, d->V[0], &norm); CHKERRQ(ierr);
   ierr = VecScale(d->V[0], 1.0/norm); CHKERRQ(ierr);
 
@@ -244,7 +244,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
       CHKERRQ(ierr);
     }
     ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, i,
-                     i+1, d->auxS, d->auxV[0], d->rand); CHKERRQ(ierr);
+                     i+1, d->auxS, d->auxV[0], d->eps->rand); CHKERRQ(ierr);
   }
 
   d->size_V = i;

@@ -88,6 +88,10 @@ PetscErrorCode QEPSetUp(QEP qep)
     else qep->sfactor = 1.0;
   }
 
+  /* initialize the random number generator */
+  ierr = PetscRandomCreate(((PetscObject)qep)->comm,&qep->rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
+
   /* Call specific solver setup */
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
 

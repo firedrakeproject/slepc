@@ -251,7 +251,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   
   /* normalize start vector */
   if (svd->nini==0) {
-    ierr = SlepcVecSetRandom(svd->V[0],PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(svd->V[0],svd->rand);CHKERRQ(ierr);
   }
   ierr = VecNormalize(svd->V[0],&norm);CHKERRQ(ierr);
   

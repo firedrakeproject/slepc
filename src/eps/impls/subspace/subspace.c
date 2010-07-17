@@ -264,7 +264,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   /* Complete the initial basis with random vectors and orthonormalize them */
   k = eps->nini;
   while (k<ncv) {
-    ierr = SlepcVecSetRandom(eps->V[k],PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(eps->V[k],eps->rand);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr); 
     if (norm>0.0 && !breakdown) {
       ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
@@ -379,7 +379,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       for (i=eps->nconv;i<nv;i++) {
         ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
-          ierr = SlepcVecSetRandom(eps->V[i],PETSC_NULL);CHKERRQ(ierr);
+          ierr = SlepcVecSetRandom(eps->V[i],eps->rand);CHKERRQ(ierr);
           ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         }
         ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);

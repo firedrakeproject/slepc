@@ -203,13 +203,9 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   /* Get the fix parameter */
   ierr = EPSDAVIDSONGetFix_DAVIDSON(eps, &fix); CHKERRQ(ierr);
 
-  /* Setup the random seed */
-  ierr = PetscRandomCreate(((PetscObject)eps)->comm, &dvd->rand); CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(dvd->rand); CHKERRQ(ierr);
-
   /* Orthonormalize the DS */
   ierr = dvd_orthV(eps->ip, PETSC_NULL, 0, PETSC_NULL, 0, eps->DS, 0, eps->nds,
-                   PETSC_NULL, 0, dvd->rand); CHKERRQ(ierr);
+                   PETSC_NULL, 0, eps->rand); CHKERRQ(ierr);
 
   /* The Davidson solver computes the residual vector and its norm, so
      EPSResidualConverged is replaced by EPSDefaultConverged */
@@ -326,8 +322,6 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
   DVD_FL_DEL(dvd->destroyList);
   DVD_FL_DEL(dvd->startList);
   DVD_FL_DEL(dvd->endList);
-
-  ierr = PetscRandomDestroy(dvd->rand); CHKERRQ(ierr);
 
   for(i=0; i<data->size_wV; i++) {
     ierr = VecDestroy(data->wV[i]); CHKERRQ(ierr);

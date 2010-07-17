@@ -107,6 +107,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 
+  /* initialize the random number generator */
+  ierr = PetscRandomCreate(((PetscObject)eps)->comm,&eps->rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
+
   /* initialization of matrix norms */
   if (eps->nrma == PETSC_DETERMINE) {
     ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);

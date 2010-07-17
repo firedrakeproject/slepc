@@ -1389,7 +1389,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
   if (i==0 && eps->nini>0) {
     ierr = VecCopy(eps->V[0],w);CHKERRQ(ierr);
   } else {
-    ierr = SlepcVecSetRandom(w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(w,eps->rand);CHKERRQ(ierr);
   }
 
   /* Force the vector to be in the range of OP for definite generalized problems */
@@ -1463,7 +1463,7 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscTruth *brea
   if (i==0 && eps->ninil>0) {
     ierr = VecCopy(eps->W[0],w);CHKERRQ(ierr);
   } else {
-    ierr = SlepcVecSetRandom(w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(w,eps->rand);CHKERRQ(ierr);
   }
 
   /* Force the vector to be in the range of OP' */

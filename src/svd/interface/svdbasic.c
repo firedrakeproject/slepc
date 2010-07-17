@@ -311,6 +311,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   ierr = SVDMonitorCancel(svd);CHKERRQ(ierr);
   
   ierr = IPDestroy(svd->ip);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(svd->rand);CHKERRQ(ierr);
   
   ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);

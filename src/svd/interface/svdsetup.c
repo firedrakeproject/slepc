@@ -162,6 +162,10 @@ PetscErrorCode SVDSetUp(SVD svd)
       SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
 
+  /* initialize the random number generator */
+  ierr = PetscRandomCreate(((PetscObject)svd)->comm,&svd->rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
+
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
 

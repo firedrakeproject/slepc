@@ -82,6 +82,7 @@ struct _p_QEP {
               matvecs, linits,  /* operation counters */
               ldz,              /* leading dimension of Z */
               n, nloc;          /* problem dimensions (global, local) */
+  PetscRandom rand;             /* random number generator */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;

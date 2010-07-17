@@ -68,6 +68,7 @@ struct _p_SVD {
   PetscInt         max_it;      /* max iterations */
   PetscReal        tol;         /* tolerance */
   PetscReal        *errest;     /* error estimates */
+  PetscRandom      rand;        /* random number generator */
   void             *data;	/* placeholder for misc stuff associated
                    		   with a particular solver */
   PetscInt         setupcalled;
