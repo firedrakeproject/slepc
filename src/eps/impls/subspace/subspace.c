@@ -236,7 +236,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   PetscInt       i,k,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
-  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*rsdold,norm,tcond=1.0;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
   PetscTruth     breakdown;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
@@ -252,7 +252,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   its = 0;
   ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsdold);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
 
@@ -307,20 +306,16 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
     /* 7. V(:,idx) = V * U(:,idx) */
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
     
-    /* Compute residuals */
-    for (i=0;i<nv;i++) { rsdold[i] = rsd[i]; }
-
+    /* Convergence check */
     ierr = EPSSchurResidualNorms(eps,eps->V,ctx->AV,T,eps->nconv,nv,ncv,rsd);CHKERRQ(ierr);
 
-    for (i=0;i<nv;i++) { 
-      eps->errest[i] = rsd[i] / SlepcAbsEigenvalue(eps->eigr[i],eps->eigi[i]); 
+    for (i=eps->nconv;i<nv;i++) { 
+      itrsdold[i] = itrsd[i];
+      itrsd[i] = its;
+      eps->errest[i] = rsd[i];
+      ierr = (*eps->conv_func)(eps,i+1,i,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
     }
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv); 
   
-    /* Convergence check */
-    for (i=0;i<nv;i++) { itrsdold[i] = itrsd[i]; }
-    for (i=eps->nconv;i<nv;i++) { itrsd[i] = its; }
-    
     for (;;) {
       /* Find group in currently computed eigenvalues */
       ierr = EPSFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
@@ -332,6 +327,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       if (eps->nconv>=nv) break;
     }
     
+    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv); 
     if (eps->nconv>=eps->nev) break;
     
     /* Compute nxtsrr (iteration of next projection step) */
@@ -390,7 +386,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 
   ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(rsd);CHKERRQ(ierr);
-  ierr = PetscFree(rsdold);CHKERRQ(ierr);
   ierr = PetscFree(itrsd);CHKERRQ(ierr);
   ierr = PetscFree(itrsdold);CHKERRQ(ierr);
 
