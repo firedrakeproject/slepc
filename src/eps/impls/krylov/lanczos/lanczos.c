@@ -571,8 +571,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
     for (i=0;i<n;i++) {
       bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]) + PETSC_MACHINE_EPSILON*anorm;
-      bnd[i] = bnd[i] / PetscAbsScalar(ritz[i]);
-      if (bnd[i] < eps->tol) {
+      ierr = (*eps->conv_func)(eps,i+1,i,ritz,eps->eigi,bnd,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (eps->conv[i]) {
         conv[i] = 'C';
       } else {
         conv[i] = 'N';
@@ -667,8 +667,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
         ierr = STApply(eps->OP,eps->V[nconv+i],w);CHKERRQ(ierr);
 	ierr = VecAXPY(w,-ritz[i],eps->V[nconv+i]);CHKERRQ(ierr);
 	ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
-	bnd[i] = norm / PetscAbsScalar(ritz[i]);
-        if (bnd[i] >= eps->tol) conv[i] = 'S';
+        ierr = (*eps->conv_func)(eps,i+1,i,ritz,eps->eigi,bnd,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+        if (!eps->conv[i]) conv[i] = 'S';
       }
       for (i=0;i<k;i++)
         if (conv[i] != 'C') {

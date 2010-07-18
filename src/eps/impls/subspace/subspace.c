@@ -318,7 +318,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
   
     for (;;) {
       /* Find group in currently computed eigenvalues */
-      ierr = EPSFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
+      ierr = EPSFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
       if (ngrp!=nogrp) break;
       if (ngrp==0) break;
       if (PetscAbsScalar(ae-oae)>ctr*cnvtol*(itrsd[eps->nconv]-itrsdold[eps->nconv])) break;
