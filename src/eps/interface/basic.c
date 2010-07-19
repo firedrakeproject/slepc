@@ -243,6 +243,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
     }
+    if (eps->trueres) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing true residuals explicitly\n");CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",eps->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",eps->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",eps->mpd);CHKERRQ(ierr);
@@ -325,6 +328,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->which_func      = PETSC_NULL;
   eps->which_ctx       = PETSC_NULL;
   eps->leftvecs        = PETSC_FALSE;
+  eps->trueres         = PETSC_FALSE;
   eps->target          = 0.0;
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;

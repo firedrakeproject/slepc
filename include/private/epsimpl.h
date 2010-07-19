@@ -73,6 +73,7 @@ struct _p_EPS {
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
   PetscReal      nrma, nrmb;       /* matrix norms */
   PetscTruth     adaptive;         /* whether matrix norms are adaptively improved */
+  PetscTruth     trueres;          /* whether the true residual norm must be computed */
 
   /*------------------------- Working data --------------------------*/
   Vec         D,                /* diagonal matrix for balancing */

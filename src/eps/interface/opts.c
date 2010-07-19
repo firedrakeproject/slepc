@@ -184,6 +184,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {
       ierr = EPSSetLeftVectorsWanted(eps,val);CHKERRQ(ierr);
     }
+    ierr = PetscOptionsTruth("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&val,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = EPSSetTrueResidual(eps,val);CHKERRQ(ierr);
+    }
 
     nrma = nrmb = PETSC_IGNORE;
     ierr = PetscOptionsReal("-eps_norm_a","Norm of matrix A","EPSSetMatrixNorms",eps->nrma,&nrma,PETSC_NULL);CHKERRQ(ierr);
@@ -1034,6 +1038,71 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
   if (cutoff) *cutoff = eps->balance_cutoff;
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetTrueResidual"
+/*@
+    EPSSetTrueResidual - Specifies if the solver must compute de true residual
+    explicitly or not.
+
+    Collective on EPS
+
+    Input Parameters:
++   eps     - the eigensolver context
+-   trueres - whether true residuals are required or not
+
+    Options Database Keys:
+.   -eps_true_residual <boolean> - Sets/resets the boolean flag 'trueres'
+
+    Notes:
+    If the user sets trueres=PETSC_TRUE then the solver explicitly computes
+    the true residual for each eigenpair approximation, and uses it for
+    convergence testing. Computing the residual is usually an expensive
+    operation. Some solvers (e.g., Krylov solvers) can avoid this computation
+    by using a cheap estimate of the residual norm, but this may sometimes
+    give inaccurate results (especially if a spectral transform is being
+    used). On the contrary, preconditioned eigensolvers (e.g., Davidson solvers)
+    do rely on computing the true residual, so this option is irrelevant for them.
+
+    Level: intermediate
+
+.seealso: EPSGetTrueResidual()
+@*/
+PetscErrorCode EPSSetTrueResidual(EPS eps,PetscTruth trueres)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  eps->trueres = trueres;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetTrueResidual"
+/*@C
+    EPSGetTrueResidual - Returns the flag indicating whether true
+    residuals must be computed explicitly or not.
+
+    Not Collective
+
+    Input Parameter:
+.   eps - the eigensolver context
+
+    Output Parameter:
+.   trueres - the returned flag
+
+    Level: intermediate
+
+.seealso: EPSSetTrueResidual()
+@*/
+PetscErrorCode EPSGetTrueResidual(EPS eps,PetscTruth *trueres) 
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(trueres,2);
+  *trueres = eps->trueres;
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetOptionsPrefix"
