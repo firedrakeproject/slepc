@@ -223,7 +223,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     eps->ldz = nv;
     for (k=eps->nconv;k<eps->nconv+nv;k++) {
       eps->errest[k] = beta*PetscAbsScalar(Q[(k-eps->nconv+1)*nv-1]);
-      ierr = (*eps->conv_func)(eps,k+1,k,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
       if (!eps->conv[k]) break;
     }
 

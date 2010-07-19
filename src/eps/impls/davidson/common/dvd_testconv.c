@@ -86,7 +86,7 @@ PetscTruth dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
   PetscFunctionBegin;
 
   *err = r;
-  ierr = (*d->eps->conv_func)(d->eps, 1, 0, &eigvr, &eigvi, err, &conv,
+  ierr = (*d->eps->conv_func)(d->eps, eigvr, eigvi, err, &conv,
                               d->eps->conv_ctx);
   CHKERRABORT(((PetscObject)d->eps)->comm, ierr);
 

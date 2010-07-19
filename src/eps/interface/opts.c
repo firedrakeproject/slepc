@@ -722,25 +722,20 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
 -   ctx  - a context pointer (the last parameter to the convergence test function)
 
     Calling Sequence of func:
-$   func(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+$   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscTruth *conv,void *ctx)
 
 +   eps    - eigensolver context obtained from EPSCreate()
-.   n      - length of the arrays
-.   k      - first position of the array to be considered
-.   eigr   - array containing real parts of the eigenvalues
-.   eigi   - array containing imaginary parts of the eigenvalues
-.   errest - array containing the error estimates (residuals)
-.   conv   - (output) boolean array with the result of the test
+.   eigr   - real part of the eigenvalue
+.   eigi   - imaginary part of the eigenvalue
+.   res    - computed or estimated residual (on output: error estimate)
+.   conv   - (output) boolean value, true if the convergence criterion is satisfied
 -   ctx    - optional context, as set by EPSSetConvergenceTest()
 
-    Note:
-    The convergence function sets an element of the flag array for each eigenvalue.
-    
     Level: advanced
 
 .seealso: EPSSetTolerances()
 @*/
-EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*),void* ctx)
+EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*),void* ctx)
 {
   PetscFunctionBegin;
   eps->conv_func = func;

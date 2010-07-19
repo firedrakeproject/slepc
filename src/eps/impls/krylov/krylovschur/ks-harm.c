@@ -246,9 +246,9 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
       ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
       eps->errest[k] *= sqrt(1.0+gnorm); /* Fix residual norms */
       if (iscomplex) eps->errest[k+1] *= sqrt(1.0+gnorm); /* Fix residual norms */
-      ierr = (*eps->conv_func)(eps,iscomplex?k+2:k+1,k,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
       if (!eps->conv[k]) break;
-      if (iscomplex) k++;
+      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; eps->conv[k+1] = eps->conv[k]; k++; }
     }
 
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;

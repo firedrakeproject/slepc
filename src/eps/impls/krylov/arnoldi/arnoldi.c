@@ -428,9 +428,9 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
         eps->errest[k] *= sqrt(1.0+gnorm); /* Fix residual norms */
         if (iscomplex) eps->errest[k+1] *= sqrt(1.0+gnorm); /* Fix residual norms */
       }
-      ierr = (*eps->conv_func)(eps,iscomplex?k+2:k+1,k,eps->eigr,eps->eigi,eps->errest,eps->conv,eps->conv_ctx);CHKERRQ(ierr);
+      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
       if (!eps->conv[k]) break;
-      if (iscomplex) k++;
+      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; eps->conv[k+1] = eps->conv[k]; k++; }
     }
     
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,nv,Hcopy,eps->ncv);CHKERRQ(ierr);

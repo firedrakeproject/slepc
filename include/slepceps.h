@@ -149,10 +149,10 @@ EXTERN PetscErrorCode EPSSetIP(EPS,IP);
 EXTERN PetscErrorCode EPSGetIP(EPS,IP*);
 EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
-EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*),void*);
-EXTERN PetscErrorCode EPSDefaultConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
-EXTERN PetscErrorCode EPSAbsoluteConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
-EXTERN PetscErrorCode EPSResidualConverged(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
+EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*),void*);
+EXTERN PetscErrorCode EPSDefaultConverged(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
+EXTERN PetscErrorCode EPSAbsoluteConverged(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
+EXTERN PetscErrorCode EPSResidualConverged(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
 EXTERN PetscErrorCode EPSSetDimensions(EPS,PetscInt,PetscInt,PetscInt);
 EXTERN PetscErrorCode EPSGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
 

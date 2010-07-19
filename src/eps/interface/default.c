@@ -273,18 +273,14 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 /*
   EPSDefaultConverged - Checks convergence with the relative error estimate.
 */
-PetscErrorCode EPSDefaultConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+PetscErrorCode EPSDefaultConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal *errest,PetscTruth *conv,void *ctx)
 {
-  PetscInt  i;
   PetscReal w;
-  
   PetscFunctionBegin;
-  for (i=k; i<n; i++) {
-    w = SlepcAbsEigenvalue(eigr[i],eigi[i]);
-    if (w > errest[i]) errest[i] = errest[i] / w;
-    if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
-    else conv[i] = PETSC_FALSE;
-  }
+  w = SlepcAbsEigenvalue(eigr,eigi);
+  if (w > *errest) *errest = *errest / w;
+  if (*errest < eps->tol) *conv = PETSC_TRUE;
+  else *conv = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -293,15 +289,11 @@ PetscErrorCode EPSDefaultConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* ei
 /*
   EPSAbsoluteConverged - Checks convergence with the absolute error estimate.
 */
-PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal *errest,PetscTruth *conv,void *ctx)
 {
-  PetscInt  i;
-  
   PetscFunctionBegin;
-  for (i=k; i<n; i++) {
-    if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
-    else conv[i] = PETSC_FALSE;
-  }
+  if (*errest < eps->tol) *conv = PETSC_TRUE;
+  else conv = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -311,87 +303,87 @@ PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* e
   EPSResidualConverged - Checks convergence with the true relative residual for 
   each eigenpair whose error estimate is lower than the tolerance.
 */
-PetscErrorCode EPSResidualConverged(EPS eps,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+PetscErrorCode EPSResidualConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal *errest,PetscTruth *conv,void *ctx)
 {
-  PetscErrorCode ierr;
-  Vec            x,y,z;
-  PetscInt       i;
-  PetscScalar    re,im;
-  PetscReal      w,norm;
+//  PetscErrorCode ierr;
+//  Vec            x,y,z;
+//  PetscInt       i;
+//  PetscScalar    re,im;
+//  PetscReal      w,norm;
   
   PetscFunctionBegin;
   if (!eps->Z)
     SETERRQ(PETSC_ERR_SUP,"Residual convergence test not supported in this solver");
   
   /* allocate workspace */
-  ierr = VecDuplicate(eps->V[0],&x);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->V[0],&y);CHKERRQ(ierr);
-  if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr); }
+//  ierr = VecDuplicate(eps->V[0],&x);CHKERRQ(ierr);
+//  ierr = VecDuplicate(eps->V[0],&y);CHKERRQ(ierr);
+//  if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr); }
 
   /* compute residual norm for eigenvalues with relative error below tolerance */
-  for (i=k; i<n; i++) {
+//  for (i=k; i<n; i++) {
     /* compute eigenvalue */
-    re = eigr[i]; im = eigi[i];
-    ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
-    w = SlepcAbsEigenvalue(re,im);
-    if (w > errest[i]) errest[i] = errest[i] / w;
-    conv[i] = PETSC_FALSE;
-    if (errest[i] < eps->tol) {
+//    re = eigr[i]; im = eigi[i];
+//    ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+//    w = SlepcAbsEigenvalue(re,im);
+//    if (w > errest[i]) errest[i] = errest[i] / w;
+//    conv[i] = PETSC_FALSE;
+//    if (errest[i] < eps->tol) {
       /* compute eigenvector */
-      if (eps->ishermitian) {
-        ierr = SlepcVecMAXPBY(x,0.0,1.0,n-eps->nconv,eps->Z+(i-eps->nconv)*eps->ldz,eps->V+eps->nconv);CHKERRQ(ierr);
-      } else {
-        ierr = SlepcVecMAXPBY(x,0.0,1.0,n,eps->Z+i*eps->ldz,eps->V);CHKERRQ(ierr);
-      }
+//      if (eps->ishermitian) {
+//        ierr = SlepcVecMAXPBY(x,0.0,1.0,n-eps->nconv,eps->Z+(i-eps->nconv)*eps->ldz,eps->V+eps->nconv);CHKERRQ(ierr);
+//      } else {
+//        ierr = SlepcVecMAXPBY(x,0.0,1.0,n,eps->Z+i*eps->ldz,eps->V);CHKERRQ(ierr);
+//      }
       /* purify eigenvector in positive generalized problems */
-      if (eps->ispositive) {
-        ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
-        if (eps->ishermitian) {
-          ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
-        } else {
-          ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);          
-        } 
-        ierr = VecScale(y,1.0/norm);CHKERRQ(ierr);
-        ierr = VecCopy(y,x);CHKERRQ(ierr);
-      }
+//      if (eps->ispositive) {
+//        ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
+//        if (eps->ishermitian) {
+//          ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
+//        } else {
+//          ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);          
+//        } 
+//        ierr = VecScale(y,1.0/norm);CHKERRQ(ierr);
+//        ierr = VecCopy(y,x);CHKERRQ(ierr);
+//      }
       /* fix eigenvector if balancing is used */
-      if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) {
-        ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
-        ierr = VecNormalize(x,&norm);CHKERRQ(ierr);
-      }
+//      if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) {
+//        ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
+//        ierr = VecNormalize(x,&norm);CHKERRQ(ierr);
+//      }
 #ifndef PETSC_USE_COMPLEX      
       /* compute imaginary part of eigenvector */
-      if (!eps->ishermitian && im != 0.0) {
-        ierr = SlepcVecMAXPBY(y,0.0,1.0,n,eps->Z+(i+1)*n,eps->V);CHKERRQ(ierr);
-        if (eps->ispositive) {
-          ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
-          ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
-          ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
-          ierr = VecCopy(z,y);CHKERRQ(ierr);
-        }
-        if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-          ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
-          ierr = VecNormalize(y,&norm);CHKERRQ(ierr);
-        }
-      }
+//      if (!eps->ishermitian && im != 0.0) {
+//        ierr = SlepcVecMAXPBY(y,0.0,1.0,n,eps->Z+(i+1)*n,eps->V);CHKERRQ(ierr);
+//        if (eps->ispositive) {
+//          ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
+//          ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
+//          ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
+//          ierr = VecCopy(z,y);CHKERRQ(ierr);
+//        }
+//        if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
+//          ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
+//          ierr = VecNormalize(y,&norm);CHKERRQ(ierr);
+//        }
+//      }
 #endif
       /* compute relative error and update convergence flag */
-      ierr = EPSComputeRelativeError_Private(eps,re,im,x,y,&errest[i]);
-      if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
+//      ierr = EPSComputeRelativeError_Private(eps,re,im,x,y,&errest[i]);
+//      if (errest[i] < eps->tol) conv[i] = PETSC_TRUE;
 #ifndef PETSC_USE_COMPLEX      
-      if (!eps->ishermitian && im != 0.0) {
-        errest[i+1] = errest[i];
-        conv[i+1] = conv[i];
-        i++;
-      }
+//      if (!eps->ishermitian && im != 0.0) {
+//        errest[i+1] = errest[i];
+//        conv[i+1] = conv[i];
+//        i++;
+//      }
 #endif
-    }
-  }
+//    }
+//  }
 
   /* free workspace */
-  ierr = VecDestroy(x);CHKERRQ(ierr);
-  ierr = VecDestroy(y);CHKERRQ(ierr);
-  if (!eps->ishermitian && eps->ispositive) { ierr = VecDestroy(z);CHKERRQ(ierr); }
+//  ierr = VecDestroy(x);CHKERRQ(ierr);
+//  ierr = VecDestroy(y);CHKERRQ(ierr);
+//  if (!eps->ishermitian && eps->ispositive) { ierr = VecDestroy(z);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

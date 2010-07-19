@@ -60,7 +60,7 @@ struct _p_EPS {
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PetscTruth     *conv;            /* convergence test */
-  PetscErrorCode (*conv_func)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
+  PetscErrorCode (*conv_func)(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
   void           *conv_ctx;
   EPSWhich       which;            /* which part of the spectrum to be sought */
   PetscTruth     leftvecs;         /* if left eigenvectors are requested */
