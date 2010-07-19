@@ -545,7 +545,7 @@ PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscTruth leftvecs)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetLeftVectorsWanted"
-/*@C
+/*@
     EPSGetLeftVectorsWanted - Returns the flag indicating whether left 
     eigenvectors are required or not.
 
@@ -640,7 +640,7 @@ PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscTrut
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetMatrixNorms"
-/*@C
+/*@
     EPSGetMatrixNorms - Returns the value of the matrix norms (either set
     by the user or estimated by the solver) and the flag indicating whether
     the norms are being adaptively improved.
@@ -1005,7 +1005,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetBalance"
-/*@C
+/*@
    EPSGetBalance - Gets the balancing type used by the EPS object, and the associated
    parameters.
 

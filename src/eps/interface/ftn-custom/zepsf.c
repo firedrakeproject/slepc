@@ -224,11 +224,6 @@ void PETSC_STDCALL epsgetextraction_(EPS *eps,EPSExtraction *proj,PetscErrorCode
   *ierr = EPSGetExtraction(*eps,proj);
 }
 
-void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetBalance(*eps,bal,its,cutoff);
-}
-
 void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,PetscErrorCode *ierr)
 {
   *ierr = EPSGetConvergedReason(*eps,reason);
