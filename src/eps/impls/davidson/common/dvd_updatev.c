@@ -207,6 +207,8 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     data->size_new_cY = 0;
   }
 
+  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
+
   /* If the subspaces doesn't need restart, add new vector */
   if (d->isRestarting(d) == PETSC_FALSE) {
     i = d->size_V;
@@ -264,8 +266,6 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 #endif
 
   if (d->npreconv == 0) { PetscFunctionReturn(0); }
-
-  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
 
   /* f.cY <- [f.cY f.V*f.pY(0:npreconv-1)] */
   if (d->cY && d->pY) {
@@ -428,8 +428,6 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
                                     d->max_size_V - size_X ));
 
   /* Modify the subspaces */
-  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
-
   d->ldMTX = d->size_MT = d->size_V;
   ierr = dvd_updateV_restartV_aux(d->V, d->size_V, d->MTX, d->ldMTX, d->pX,
                                   d->ldpX, size_X, data->oldU, data->ldoldU,
@@ -488,8 +486,6 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
-  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
 
   /* Select the desired pairs */
   size_D = PetscMin(PetscMin(PetscMin(data->bs,
@@ -568,7 +564,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
       CHKERRQ(ierr);
     }
     norm = d->nR[i]/d->nX[i];
-    conv = d->testConv(d, d->eigr[i], 0, norm, &d->errest[i]);
+    conv = d->testConv(d, d->eigr[i], d->eigi[i], norm, &d->errest[i]);
     if (conv == PETSC_TRUE) *nConv = i+1;
   }
 
