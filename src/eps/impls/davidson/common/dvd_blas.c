@@ -1322,7 +1322,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     if (size_auxS < 8*n)
       SETERRQ(PETSC_ERR_LIB,"Insufficient auxiliar memory for xGGEV");
     LAPACKggev_(pY?"V":"N",pX?"V":"N",&n,Sc,&n,Tc,&n,alphar,alphai,beta,pB,&ldpB,pA,&ldpA,auxS,&n1,&info);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
     if (doProd == PETSC_TRUE) {
       if (pX) {
         /* pX <- pX * pA */
@@ -1351,6 +1351,52 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     LAPACKtrevc_(side,howmny,PETSC_NULL,&n,Sc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,&info);
 #endif
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_compute_eigenvalues"
+/*
+  Compute the eigenvalues eigr+eigi*i associated to the Schur decomposition
+  (S, T), where
+  n, size of the eigenproblem
+  ldS, ldT, leading dimension of S and T
+*/
+PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
+  PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *eigr,
+  PetscScalar *eigi)
+{
+  PetscInt        i;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscErrorCode  ierr;
+  PetscScalar     Sc[4], Tc[4], beta[2], auxS[16];
+  PetscBLASInt    two=2, info, size_auxS=16;
+#endif
+  
+  PetscFunctionBegin;
+
+  for (i=0; i<n; i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (i<n-1 && S[i*ldS+i+1] != 0.0) {
+      ierr = SlepcDenseCopy(Sc, 2, &S[i*ldS+i], ldS, 2, 2); CHKERRQ(ierr);
+      ierr = SlepcDenseCopy(Tc, 2, &T[i*ldT+i], ldT, 2, 2); CHKERRQ(ierr);
+      LAPACKggev_("N","N",&two,Sc,&two,Tc,&two,&eigr[i],&eigi[i],beta,
+                  PETSC_NULL, &two,PETSC_NULL,&two,auxS,&size_auxS,&info);
+      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
+      eigr[i]  /= beta[0]; eigi[i]  /= beta[0];
+      eigr[i+1]/= beta[1]; eigi[i+1]/= beta[1];
+      i++;
+    } else
+#endif
+    {
+      if (T[i*ldT+i] == 0.0) {
+        if (PetscRealPart(S[i*ldS+i]) < 0.0) eigr[i] = PETSC_MIN;
+        else eigr[i] = PETSC_MAX;
+      } else eigr[i] = S[i*ldS+i] / T[i*ldT+i];
+      if (eigi) eigi[i] = 0.0;
+    }
   }
 
   PetscFunctionReturn(0);

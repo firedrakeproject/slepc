@@ -449,9 +449,9 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
       DVD_COMPLEX_RAYLEIGH_QUOTIENT((u)[(i)], (u)[(i)+1], (Ax)[(i)], \
         (Ax)[(i)+1], (Bx)[(i)], (Bx)[(i)+1], &(b)[8], &(b)[9], (b), (ierr)); \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[8])/ \
-            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-8    || \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10    || \
           PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
-            PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-8         ) { \
+            PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10         ) { \
         (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its "\
                             "Rayleigh quotient value %g+%g\n", \
                             (eigr)[(i_s)+(i)], \
@@ -467,7 +467,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
       (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
-            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-8     ) { \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10     ) { \
         (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its " \
                "Rayleigh quotient value %g+%g\n", \
                PetscRealPart((eigr)[(i_s)+(i)]), \
@@ -515,7 +515,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
   PetscInt        n = i_e - i_s, i;
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
-  const PetscReal inv_sqrt2 = 1.0/PetscSqrtScalar(2.0);
   /* The memory manager doen't allow to call a subroutines */
   const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
@@ -569,16 +568,15 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
       ierr = SlepcUpdateVectorsS(&(*v)[i], n, 0.0, 1.0, &(*v)[i], 2*n, n,
                                  b, 2, 2, 2); CHKERRQ(ierr);
     } else {
-      /* [v_i v_i+1 r_i r_i+1]*= [tau_0' 0      1/k       0 
-                                  0      tau_0' 0         1/k
-                                  tau_1  0      -eigr_i/k -eigi_i/k
-                                  0      tau_1  eigi_i/k  -eigr_i/k  ],
-         where k = 2^0.5 */
+      /* [v_i v_i+1 r_i r_i+1]*= [tau_0' 0      1         0 
+                                  0      tau_0' 0         1
+                                  tau_1  0      -eigr_i -eigi_i
+                                  0      tau_1  eigi_i  -eigr_i  ] */
       b[0] = b[5] = PetscConj(theta[2*i]);
       b[2] = b[7] = theta[2*i+1];
-      b[8] = b[13] = inv_sqrt2;
-      b[10] = b[15] = -d->eigr[i_s+i]*inv_sqrt2;
-      b[14] = -(b[11] = d->eigi[i_s+i]*inv_sqrt2);
+      b[8] = b[13] = 1.0;
+      b[10] = b[15] = -d->eigr[i_s+i];
+      b[14] = -(b[11] = d->eigi[i_s+i]);
       b[1] = b[3] = b[4] = b[6] = b[9] = b[12] = 0.0;
       X[0] = (*v)[i]; X[1] = (*v)[i+1]; X[2] = r[i]; X[3] = r[i+1];
       ierr = SlepcUpdateVectorsD(X, 4, 1.0, b, 4, 4, 4, Z, size_Z);
@@ -623,7 +621,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
   PetscInt        n = i_e - i_s, i;
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
-  const PetscReal inv_sqrt2 = 1.0/PetscSqrtScalar(2.0);
   /* The memory manager doen't allow to call a subroutines */
   const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
@@ -710,13 +707,13 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
       /* r <- Ax -eig*Bx */
       ierr = VecAXPBY(r[i], -d->eigr[i_s+i], 1.0, Bx[i]); CHKERRQ(ierr);
     } else {
-      /* [r_i r_i+1 kr_i kr_i+1]*= [   1/k        0 
-                                        0        1/k
-                                    -eigr_i/k -eigi_i/k
-                                     eigi_i/k -eigr_i/k], where k = 2^0.5 */
-      b[0] = b[5] = inv_sqrt2;
-      b[2] = b[7] = -d->eigr[i_s+i]*inv_sqrt2;
-      b[6] = -(b[3] = d->eigi[i_s+i]*inv_sqrt2);
+      /* [r_i r_i+1 kr_i kr_i+1]*= [   1        0 
+                                       0        1
+                                    -eigr_i -eigi_i
+                                     eigi_i -eigr_i] */
+      b[0] = b[5] = 1.0;
+      b[2] = b[7] = -d->eigr[i_s+i];
+      b[6] = -(b[3] = d->eigi[i_s+i]);
       b[1] = b[4] = 0.0;
       X[0] = r[i]; X[1] = r[i+1]; X[2] = (*kr)[i]; X[3] = (*kr)[i+1];
       ierr = SlepcUpdateVectorsD(X, 4, 1.0, b, 4, 4, 2, Z, size_Z);
@@ -761,7 +758,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
   PetscInt        n = i_e - i_s, i;
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
-  const PetscReal inv_sqrt2 = 1.0/PetscSqrtScalar(2.0);
   /* The memory manager doen't allow to call a subroutines */
   const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
@@ -814,13 +810,13 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
       /* r <- Ax -eig*Bx */
       ierr = VecAXPBY(r[i], -d->eigr[i_s+i], 1.0, Bx[i]); CHKERRQ(ierr);
     } else {
-      /* [r_i r_i+1 kr_i kr_i+1]*= [   1/k        0 
-                                        0        1/k
-                                    -eigr_i/k -eigi_i/k
-                                     eigi_i/k -eigr_i/k], where k = 2^0.5 */
-      b[0] = b[5] = inv_sqrt2;
-      b[2] = b[7] = -d->eigr[i_s+i]*inv_sqrt2;
-      b[6] = -(b[3] = d->eigi[i_s+i]*inv_sqrt2);
+      /* [r_i r_i+1 kr_i kr_i+1]*= [   1        0 
+                                       0        1
+                                    -eigr_i -eigi_i
+                                     eigi_i -eigr_i] */
+      b[0] = b[5] = 1.0;
+      b[2] = b[7] = -d->eigr[i_s+i];
+      b[6] = -(b[3] = d->eigi[i_s+i]);
       b[1] = b[4] = 0.0;
       X[0] = r[i]; X[1] = r[i+1]; X[2] = (*kr)[i]; X[3] = (*kr)[i+1];
       ierr = SlepcUpdateVectorsD(X, 4, 1.0, b, 4, 4, 2, Z, size_Z);
@@ -865,7 +861,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
   PetscInt        n = i_e - i_s, i;
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
-  const PetscReal inv_sqrt2 = 1.0/PetscSqrtScalar(2.0);
   /* The memory manager doen't allow to call a subroutines */
   const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
@@ -917,13 +912,13 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
       /* r <- Ax -eig*Bx */
       ierr = VecAXPBY(r[i], -d->eigr[i_s+i], 1.0, Bx[i]); CHKERRQ(ierr);
     } else {
-      /* [r_i r_i+1 kr_i kr_i+1]*= [   1/k        0 
-                                        0        1/k
-                                    -eigr_i/k -eigi_i/k
-                                     eigi_i/k -eigr_i/k], where k = 2^0.5 */
-      b[0] = b[5] = inv_sqrt2;
-      b[2] = b[7] = -d->eigr[i_s+i]*inv_sqrt2;
-      b[6] = -(b[3] = d->eigi[i_s+i]*inv_sqrt2);
+      /* [r_i r_i+1 kr_i kr_i+1]*= [   1        0 
+                                       0        1
+                                    -eigr_i -eigi_i
+                                     eigi_i -eigr_i] */
+      b[0] = b[5] = 1.0;
+      b[2] = b[7] = -d->eigr[i_s+i];
+      b[6] = -(b[3] = d->eigi[i_s+i]);
       b[1] = b[4] = 0.0;
       X[0] = r[i]; X[1] = r[i+1]; X[2] = (*kr)[i]; X[3] = (*kr)[i+1];
       ierr = SlepcUpdateVectorsD(X, 4, 1.0, b, 4, 4, 2, Z, size_Z);

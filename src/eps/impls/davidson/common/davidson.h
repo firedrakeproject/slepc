@@ -485,6 +485,9 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldS_, PetscScalar *T, PetscInt ldT_, PetscScalar *pX,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
   PetscInt size_auxS, PetscTruth doProd);
+PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
+  PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *eigr,
+  PetscScalar *eigi);
 
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();

@@ -551,31 +551,8 @@ PetscErrorCode EPSComputeVectors_QZ(EPS eps)
   dvdDashboard    *d = &data->ddb;
   PetscScalar     *pX, *auxS;
   PetscInt        size_auxS;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt        i, j;
-  PetscScalar     s;
-#endif  
 
   PetscFunctionBegin;
-
-  /* Finish cS and cT */
-  ierr = VecsMultIb(d->cS, 0, d->ldcS, d->nconv, d->nconv, d->auxS, d->V[0]);
-  CHKERRQ(ierr);
-  if (d->cT) {
-    ierr = VecsMultIb(d->cT, 0, d->ldcT, d->nconv, d->nconv, d->auxS, d->V[0]);
-    CHKERRQ(ierr);
-  }
-
-  /* Some functions need the diagonal elements in cT be real */
-#if defined(PETSC_USE_COMPLEX)
-  if (d->cT) for(i=0; i<d->nconv; i++) {
-    s = PetscConj(d->cT[d->ldcT*i+i])/PetscAbsScalar(d->cT[d->ldcT*i+i]);
-    for(j=0; j<=i; j++)
-      d->cT[d->ldcT*i+j] = PetscRealPart(d->cT[d->ldcT*i+j]*s),
-      d->cS[d->ldcS*i+j]*= s;
-    ierr = VecScale(d->cX[i], s); CHKERRQ(ierr);
-  }
-#endif
 
   /* Compute the eigenvectors associated to (cS, cT) */
   ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv, &pX); CHKERRQ(ierr);

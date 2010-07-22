@@ -13,6 +13,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
+PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d);
 PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
                                     PetscInt e, Vec *auxV, PetscScalar *auxS,
                                     PetscInt *nConv);
@@ -136,6 +137,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     d->isRestarting = dvd_isrestarting_fullV;
     d->updateV = dvd_updateV_extrapol;
     d->preTestConv = dvd_updateV_testConv;
+    DVD_FL_ADD(d->endList, dvd_updateV_conv_finish);
     DVD_FL_ADD(d->destroyList, dvd_managementV_basic_d);
   }
 
@@ -279,6 +281,20 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     data->size_new_cY = npreconv;
   }
 
+#if !defined(PETSC_USE_COMPLEX)
+  /* Correct the order of the conjugate eigenpairs */
+  if (d->T) for (i=0; i<npreconv; i++) if (d->eigi[i] != 0.0) {
+    if (d->eigi[i] < 0.0) {
+      d->eigi[i]*= -1.0;
+      d->eigi[i+1]*= -1.0;
+      for (j=0; j<d->size_H; j++) d->pX[j+(i+1)*d->ldpX]*= -1.0;
+      for (j=0; j<d->size_H; j++) d->S[j+(i+1)*d->ldS]*= -1.0;
+      for (j=0; j<d->size_H; j++) d->T[j+(i+1)*d->ldT]*= -1.0;
+    }
+    i++;
+  }
+#endif
+
   /* BcX <- orth(BcX, B*cX),
      auxV = B*X, being X the last converged eigenvectors */
   if (d->BcX) for(i=0; i<npreconv; i++) {
@@ -407,6 +423,40 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_updateV_conv_finish"
+PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt        i, j;
+  PetscScalar     s;
+#endif  
+
+  PetscFunctionBegin;
+
+  /* Finish cS and cT */
+  ierr = VecsMultIb(d->cS, 0, d->ldcS, d->nconv, d->nconv, d->auxS, d->V[0]);
+  CHKERRQ(ierr);
+  if (d->cT) {
+    ierr = VecsMultIb(d->cT, 0, d->ldcT, d->nconv, d->nconv, d->auxS, d->V[0]);
+    CHKERRQ(ierr);
+  }
+
+  /* Some functions need the diagonal elements in cT be real */
+#if defined(PETSC_USE_COMPLEX)
+  if (d->cT) for(i=0; i<d->nconv; i++) {
+    s = PetscConj(d->cT[d->ldcT*i+i])/PetscAbsScalar(d->cT[d->ldcT*i+i]);
+    for(j=0; j<=i; j++)
+      d->cT[d->ldcT*i+j] = PetscRealPart(d->cT[d->ldcT*i+j]*s),
+      d->cS[d->ldcS*i+j]*= s;
+    ierr = VecScale(d->cX[i], s); CHKERRQ(ierr);
+  }
+#endif
+
+  PetscFunctionReturn(0);
+}
+ 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_restart_gen"
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
