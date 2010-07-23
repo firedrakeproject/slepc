@@ -485,6 +485,12 @@ PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh, PetscScalar t)
     SETERRQ(1, "The harmonic type is not supported!");
   }
 
+  /* Check the transformation does not change the sign of the imaginary part */
+#if !defined(PETSC_USE_COMPLEX)
+  if (dvdh->Pb*dvdh->Wa - dvdh->Wb*dvdh->Pa < 0.0)
+    dvdh->Pa*= -1.0, dvdh->Pb*= -1.0;
+#endif
+
   PetscFunctionReturn(0);
 }
 
