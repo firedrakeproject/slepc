@@ -52,6 +52,8 @@ typedef struct {
     ldoldU,         /* leading dimension of oldU */
     size_oldU,      /* size of oldU */
     size_new_cY;    /* size of new_cY */
+  PetscTruth
+    allResiduals;   /* if computing all the residuals */
 } dvdManagV_basic;
 
 #undef __FUNCT__  
@@ -59,7 +61,8 @@ typedef struct {
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
                                      PetscInt bs, PetscInt max_size_V,
                                      PetscInt mpd, PetscInt min_size_V,
-                                     PetscInt plusk, PetscTruth harm)
+                                     PetscInt plusk, PetscTruth harm,
+                                     PetscTruth allResiduals)
 {
   PetscErrorCode  ierr;
   dvdManagV_basic *data;
@@ -99,6 +102,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     data->new_cY = PETSC_NULL;
     data->size_new_cY = 0;
     data->mpd = mpd;
+    data->allResiduals = allResiduals;
 
     d->V = data->real_V;
     d->max_size_V = data->real_max_size_V;
@@ -504,10 +508,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   /* Remove oldU */
   data->size_oldU = 0;
 
-  /* Remove information about the eigenpairs in V */
-  /* Delete: eigr, eigi, errest, npreconv */
-  for(i=0; i<d->size_V; i++)
-    d->nR[i] = d->errest[i] = PETSC_MAX;
+  /* Remove npreconv */
   d->npreconv = 0;
     
   /* f.pX <- I, f.pY <- I */
@@ -521,7 +522,6 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     d->pX[d->ldpX*i+i] = 1.0;
     if (d->pY) d->pY[d->ldpY*i+i] = 1.0;
   }
-
 
   PetscFunctionReturn(0);
 }
@@ -562,8 +562,9 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   if (size_D == 0) { PetscFunctionReturn(0); }
 
   /* Get the converged pairs */
-  ierr = dvd_updateV_testConv(d, 0, size_D, size_D, d->auxV, d->auxS,
-                              &d->npreconv); CHKERRQ(ierr);
+  ierr = dvd_updateV_testConv(d, 0, size_D,
+    data->allResiduals==PETSC_TRUE?d->size_V:size_D, d->auxV, d->auxS,
+    &d->npreconv); CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->size_V+= size_D;
@@ -599,32 +600,36 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
 #endif
   PetscReal       norm;
   PetscErrorCode  ierr;
-  PetscTruth      conv;
+  PetscTruth      conv, c;
+  dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;
   
   *nConv = s;
-  for(i=s, conv=PETSC_TRUE; (conv == PETSC_TRUE) && (i < e); i++) {
+  for(i=s, conv=PETSC_TRUE;
+      (conv == PETSC_TRUE || data->allResiduals == PETSC_TRUE) && (i < e);
+      i++) {
     if (i >= pre) {
+      ierr = d->calcpairs_X(d, i, i+1, &auxV[1]); CHKERRQ(ierr);
       if ((d->B) && DVD_IS(d->sEP, DVD_EP_STD)) {
-        ierr = d->calcpairs_X(d, i, i+1, &auxV[1]); CHKERRQ(ierr);
         ierr = MatMult(d->B, auxV[1], auxV[0]); CHKERRQ(ierr); 
       }
       ierr = d->calcpairs_residual(d, i, i+1, auxV, auxS, auxV[1]);
       CHKERRQ(ierr);
     }
     norm = d->nR[i]/d->nX[i];
-    conv = d->testConv(d, d->eigr[i], d->eigi[i], norm, &d->errest[i]);
-    if (conv == PETSC_TRUE) *nConv = i+1;
+    c = d->testConv(d, d->eigr[i], d->eigi[i], norm, &d->errest[i]);
+    if (conv == PETSC_TRUE && c == PETSC_TRUE) *nConv = i+1;
+    else conv = PETSC_FALSE;
   }
+  pre = PetscMax(pre, i);
 
 #ifndef PETSC_USE_COMPLEX
   /* Enforce converged conjugate conjugate complex eigenpairs */
   for(j=0; j<*nConv; j++) if(d->eigi[j] != 0.0) j++;
   if(j > *nConv) (*nConv)--;
 #endif
-  for(; i < e; i++) d->errest[i] = -1.0;
-  for(i=PetscMax(pre, *nConv); i<e; i++) d->nR[i] = -1.0;
+  for(i=pre; i<e; i++) d->errest[i] = d->nR[i] = PETSC_MAX;
   
   PetscFunctionReturn(0);
 }

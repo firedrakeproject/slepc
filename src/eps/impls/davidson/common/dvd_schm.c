@@ -10,7 +10,7 @@
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
-  HarmType_t harmMode, KSP ksp, InitType_t init)
+  HarmType_t harmMode, KSP ksp, InitType_t init, PetscTruth allResiduals)
 {
   PetscErrorCode ierr;
   PetscInt       check_sum0, check_sum1;
@@ -26,7 +26,8 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
 
     /* Setup basic management of V */
     ierr = dvd_managementV_basic(d, b, bs, max_size_V, mpd, min_size_V, plusk,
-                               harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE);
+                               harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE,
+                               allResiduals);
     CHKERRQ(ierr);
   
     /* Setup the initial subspace for V */
@@ -70,7 +71,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
   IP ip, HarmType_t harmMode, PetscTruth fixedTarget, PetscScalar t, KSP ksp,
-  PetscReal fix, InitType_t init)
+  PetscReal fix, InitType_t init, PetscTruth allResiduals)
 {
   PetscInt        check_sum0, check_sum1, maxits;
   Vec             *fv;
@@ -87,7 +88,8 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
 
   /* Setup basic management of V */
   ierr = dvd_managementV_basic(d, b, bs, max_size_V, mpd, min_size_V, plusk,
-                        harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE);
+                        harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE,
+                        allResiduals);
   CHKERRQ(ierr);
 
   /* Setup the initial subspace for V */

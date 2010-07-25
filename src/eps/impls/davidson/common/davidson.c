@@ -217,7 +217,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
                                 initv, eps->IS,
                                 eps->nini,
                                 plusk, pc, harm,
-                                PETSC_NULL, init);
+                                PETSC_NULL, init, PETSC_FALSE);
   CHKERRQ(ierr);
 
   /* Reserve memory */
@@ -245,7 +245,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
                              eps->nini, plusk, pc,
                              eps->ip, harm, dvd->withTarget,
                              eps->target, ksp,
-                             fix, init);
+                             fix, init, PETSC_FALSE);
   CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
