@@ -42,12 +42,15 @@
 .  U  - pointer to the array to store left singular vectors
 -  VT  - pointer to the array to store right singular vectors
 
+   Notes:
    Matrix A is overwritten.
    
-   This routine uses LAPACK routines xGESDD.
+   This routine uses LAPACK routines xGESDD with JOBZ='O'. Thus, if M>=N
+   then U is not referenced and the left singular vectors are returned
+   in A, and if M<N then VT is not referenced and the right singular
+   vectors are returned in A.
 
    Level: developer
-
 @*/
 PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,PetscScalar* U,PetscScalar* VT)
 {
