@@ -172,6 +172,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       switch (eps->extraction) {
         case EPS_RITZ:             extr = "Rayleigh-Ritz"; break;
         case EPS_HARMONIC:         extr = "harmonic Ritz"; break;
+        case EPS_HARMONIC_RELATIVE:extr = "relative harmonic Ritz"; break;
+        case EPS_HARMONIC_RIGHT:   extr = "right harmonic Ritz"; break;
+        case EPS_HARMONIC_LARGEST: extr = "largest harmonic Ritz"; break;
         case EPS_REFINED:          extr = "refined Ritz"; break;
         case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
         default: SETERRQ(1,"Wrong value of eps->extraction");
