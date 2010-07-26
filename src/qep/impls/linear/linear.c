@@ -278,7 +278,7 @@ PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscSc
     qep->eigr[i] = eigr[i];
     qep->eigi[i] = eigi[i];
     qep->errest[i] = errest[i];
-    if (errest[i] < qep->tol) nconv++;
+    if (0.0 < errest[i] && errest[i] < qep->tol) nconv++;
   }
   QEPMonitor(qep,its,nconv,qep->eigr,qep->eigi,qep->errest,nest);
   PetscFunctionReturn(0);
