@@ -213,7 +213,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     data->size_new_cY = 0;
   }
 
-  ierr = d->calcpairs_selectPairs(d, d->size_H); CHKERRQ(ierr);
+  ierr = d->calcpairs_selectPairs(d, data->min_size_V); CHKERRQ(ierr);
 
   /* If the subspaces doesn't need restart, add new vector */
   if (d->isRestarting(d) == PETSC_FALSE) {

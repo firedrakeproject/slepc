@@ -637,9 +637,10 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
    Not Collective
 
    Input Parameters:
-+  eps - the eigensolver context
++  eps   - the eigensolver context
 .  n     - dimension of the matrix 
-.  k     - first active column
+.  k0    - first active column
+.  k1    - last column to be ordered
 -  ldt   - leading dimension of T
 
    Input/Output Parameters:
@@ -649,10 +650,12 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
 -  wi - imaginary part of the eigenvalues (only when using real numbers)
 
    Notes:
-   This function reorders the eigenvalues in wr,wi located in positions k
+   This function reorders the eigenvalues in wr,wi located in positions k0
    to n according to the sort order specified in EPSetWhicheigenpairs. 
-   The Schur decomposition Z*T*Z^T, is also reordered by means of rotations 
-   so that eigenvalues in the diagonal blocks of T follow the same order.
+   The selection sort is the method used to sort the eigenvalues, and it
+   stops when the column k1-1 is ordered. The Schur decomposition Z*T*Z^T,
+   is also reordered by means of rotations so that eigenvalues in the
+   diagonal blocks of T follow the same order.
 
    T,S,Q and Z are overwritten.
    
@@ -662,7 +665,7 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
 
 .seealso:  EPSSortDenseSchur(), EPSDenseHessenberg(), EPSDenseSchur(), EPSDenseTridiagonal()
 @*/
-PetscErrorCode EPSSortDenseSchurGeneralized(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,PetscScalar *S,PetscInt ldt_,PetscScalar *Q,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode EPSSortDenseSchurGeneralized(EPS eps,PetscInt n_,PetscInt k0,PetscInt k1,PetscScalar *T,PetscScalar *S,PetscInt ldt_,PetscScalar *Q,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
   PetscFunctionBegin;
@@ -691,7 +694,7 @@ PetscErrorCode EPSSortDenseSchurGeneralized(EPS eps,PetscInt n_,PetscInt k,Petsc
 #endif
   
   /* selection sort */
-  for (i=k;i<n-1;i++) {
+  for (i=k0;i<PetscMin(n-1,k1);i++) {
     re = wr[i];
     im = wi[i];
     pos = 0;
@@ -722,7 +725,7 @@ PetscErrorCode EPSSortDenseSchurGeneralized(EPS eps,PetscInt n_,PetscInt k,Petsc
 #endif
       if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTGEXC %d",info);
       /* recover original eigenvalues from T and S matrices */
-      for (j=k;j<n;j++) {
+      for (j=k0;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
         if (j<n-1 && T[j*ldt+j+1] != 0.0) {
           /* complex conjugate eigenvalue */

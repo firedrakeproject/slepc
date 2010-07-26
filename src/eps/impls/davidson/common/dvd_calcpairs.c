@@ -469,7 +469,7 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
   }
 
   if (d->T) {
-    ierr = EPSSortDenseSchurGeneralized(d->eps, d->size_H, 0, d->S, d->T,
+    ierr = EPSSortDenseSchurGeneralized(d->eps, d->size_H, 0, n, d->S, d->T,
                                         d->ldS, d->pY, d->pX, d->eigr,
                                         d->eigi); CHKERRQ(ierr);
   } else {
