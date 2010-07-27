@@ -106,6 +106,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
     ierr = PetscFree(qep->perm);CHKERRQ(ierr);
     ierr = PetscFree(qep->errest);CHKERRQ(ierr);
+    ierr = PetscFree(qep->conv);CHKERRQ(ierr); 
     ierr = VecGetArray(qep->V[0],&pV);CHKERRQ(ierr);
     for (i=0;i<qep->ncv;i++) {
       ierr = VecDestroy(qep->V[i]);CHKERRQ(ierr);
@@ -119,6 +120,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
+  ierr = PetscMalloc(qep->ncv*sizeof(PetscTruth),&qep->conv);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*sizeof(Vec),&qep->V);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*qep->nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
   for (i=0;i<qep->ncv;i++) {

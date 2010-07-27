@@ -21,10 +21,16 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = qarnoldi.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = qarnoldi.o
 LIBBASE  = libslepc
-DIRS     = linear qarnoldi
-LOCDIR   = src/qep/impls/
+DIRS     =
 MANSEC   = QEP
+LOCDIR   = src/qep/impls/qarnoldi/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

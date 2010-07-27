@@ -23,6 +23,7 @@
 
 EXTERN_C_BEGIN
 EXTERN PetscErrorCode QEPCreate_LINEAR(QEP);
+EXTERN PetscErrorCode QEPCreate_QARNOLDI(QEP);
 EXTERN_C_END
   
 #undef __FUNCT__  
@@ -44,6 +45,8 @@ PetscErrorCode QEPRegisterAll(char *path)
 
   ierr = QEPRegisterDynamic(QEPLINEAR, path,"QEPCreate_LINEAR", 
 		  QEPCreate_LINEAR);CHKERRQ(ierr);
+  ierr = QEPRegisterDynamic(QEPQARNOLDI, path,"QEPCreate_QARNOLDI", 
+		  QEPCreate_QARNOLDI);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

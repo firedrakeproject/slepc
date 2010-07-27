@@ -22,6 +22,7 @@
 */
 
 #include "private/qepimpl.h"   /*I "slepcqep.h" I*/
+#include "slepcblaslapack.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPDestroy_Default"
@@ -46,6 +47,7 @@ PetscErrorCode QEPDestroy_Default(QEP qep)
 PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
 
@@ -54,7 +56,10 @@ PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
       ierr = VecDestroyVecs(qep->work,qep->nwork); CHKERRQ(ierr);
     }
     qep->nwork = nw;
-    ierr = VecDuplicateVecs(qep->V[0],nw,&qep->work); CHKERRQ(ierr);
+    ierr = PetscMalloc(nw*sizeof(Vec),&qep->work);CHKERRQ(ierr);
+    for (i=0;i<nw;i++) {
+      ierr = MatGetVecs(qep->M,PETSC_NULL,qep->work+i); CHKERRQ(ierr);
+    }
     ierr = PetscLogObjectParents(qep,nw,qep->work);
   }
   
@@ -83,18 +88,14 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
 /*
   QEPDefaultConverged - Checks convergence with the relative error estimate.
 */
-PetscErrorCode QEPDefaultConverged(QEP qep,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+PetscErrorCode QEPDefaultConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal *errest,PetscTruth *conv,void *ctx)
 {
-  PetscInt  i;
   PetscReal w;
-  
   PetscFunctionBegin;
-  for (i=k; i<n; i++) {
-    w = SlepcAbsEigenvalue(eigr[i],eigi[i]);
-    if (w > errest[i]) errest[i] = errest[i] / w;
-    if (errest[i] < qep->tol) conv[i] = PETSC_TRUE;
-    else conv[i] = PETSC_FALSE;
-  }
+  w = SlepcAbsEigenvalue(eigr,eigi);
+  if (w > *errest) *errest = *errest / w;
+  if (*errest < qep->tol) *conv = PETSC_TRUE;
+  else *conv = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -103,15 +104,78 @@ PetscErrorCode QEPDefaultConverged(QEP qep,PetscInt n,PetscInt k,PetscScalar* ei
 /*
   QEPAbsoluteConverged - Checks convergence with the absolute error estimate.
 */
-PetscErrorCode QEPAbsoluteConverged(QEP qep,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+PetscErrorCode QEPAbsoluteConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal *errest,PetscTruth *conv,void *ctx)
 {
-  PetscInt  i;
+  PetscFunctionBegin;
+  if (*errest < qep->tol) *conv = PETSC_TRUE;
+  else conv = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPComputeVectors_Schur"
+PetscErrorCode QEPComputeVectors_Schur(QEP qep)
+{
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   ncv,nconv,mout,info,one = 1; 
+  PetscScalar    *Z,*work,tmp;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#else 
+  PetscReal      normi;
+#endif
+  PetscReal      norm;
   
   PetscFunctionBegin;
-  for (i=k; i<n; i++) {
-    if (errest[i] < qep->tol) conv[i] = PETSC_TRUE;
-    else conv[i] = PETSC_FALSE;
+  ncv = PetscBLASIntCast(qep->ncv);
+  nconv = PetscBLASIntCast(qep->nconv);
+ 
+  ierr = PetscMalloc(nconv*nconv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
+  ierr = PetscMalloc(3*nconv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc(nconv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+#endif
+
+  /* right eigenvectors */
+#if !defined(PETSC_USE_COMPLEX)
+  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,qep->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
+#else
+  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,qep->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+
+  /* normalize eigenvectors */
+  for (i=0;i<qep->nconv;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (qep->eigi[i] != 0.0) {
+      norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
+      normi = BLASnrm2_(&nconv,Z+(i+1)*nconv,&one);
+      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+      BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
+      BLASscal_(&nconv,&tmp,Z+(i+1)*nconv,&one);
+      i++;     
+    } else
+#endif
+    {
+      norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
+      tmp = 1.0 / norm;
+      BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
+    }
   }
-  PetscFunctionReturn(0);
+  
+  /* AV = V * Z */
+  ierr = SlepcUpdateVectors(qep->nconv,qep->V,0,qep->nconv,Z,qep->nconv,PETSC_FALSE);CHKERRQ(ierr);
+   
+  ierr = PetscFree(Z);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
+   PetscFunctionReturn(0);
+#endif 
 }
 

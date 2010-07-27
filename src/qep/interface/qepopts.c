@@ -659,7 +659,7 @@ $   func(QEP qep,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,Petsc
 
 .seealso: QEPSetTolerances()
 @*/
-EXTERN PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*),void* ctx)
+EXTERN PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*),void* ctx)
 {
   PetscFunctionBegin;
   qep->conv_func = func;

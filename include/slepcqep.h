@@ -48,6 +48,7 @@ typedef struct _p_QEP* QEP;
 E*/
 #define QEPType      char*
 #define QEPLINEAR    "linear"
+#define QEPQARNOLDI  "qarnoldi"
 
 /*E
     QEPProblemType - determines the type of the quadratic eigenproblem
@@ -92,10 +93,9 @@ EXTERN PetscErrorCode QEPSetIP(QEP,IP);
 EXTERN PetscErrorCode QEPGetIP(QEP,IP*);
 EXTERN PetscErrorCode QEPSetTolerances(QEP,PetscReal,PetscInt);
 EXTERN PetscErrorCode QEPGetTolerances(QEP,PetscReal*,PetscInt*);
-EXTERN PetscErrorCode QEPSetConvergenceTest(QEP,PetscErrorCode (*)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*),void*);
-EXTERN PetscErrorCode QEPDefaultConverged(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
-EXTERN PetscErrorCode QEPAbsoluteConverged(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
-EXTERN PetscErrorCode QEPResidualConverged(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscTruth*,void*);
+EXTERN PetscErrorCode QEPSetConvergenceTest(QEP,PetscErrorCode (*)(QEP,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*),void*);
+EXTERN PetscErrorCode QEPDefaultConverged(QEP,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
+EXTERN PetscErrorCode QEPAbsoluteConverged(QEP,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
 EXTERN PetscErrorCode QEPSetDimensions(QEP,PetscInt,PetscInt,PetscInt);
 EXTERN PetscErrorCode QEPGetDimensions(QEP,PetscInt*,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode QEPSetScaleFactor(QEP,PetscReal);
@@ -151,6 +151,7 @@ EXTERN PetscErrorCode QEPGetConvergedReason(QEP,QEPConvergedReason *);
 EXTERN PetscErrorCode QEPSortEigenvalues(QEP,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 EXTERN PetscErrorCode QEPSortEigenvaluesReal(QEP,PetscInt,PetscReal*,PetscInt*);
 EXTERN PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
+EXTERN PetscErrorCode QEPSortDenseSchur(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode QEPRegister(const char*,const char*,const char*,PetscErrorCode(*)(QEP));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
