@@ -298,6 +298,88 @@ PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSComputeTrueResidual"
+/*
+  EPSComputeTrueResidual - Computes the true residual norm of a given Ritz pair:
+    ||r|| = ||A*x - lambda*B*x||
+  where lambda is the Ritz value and x is the Ritz vector.
+
+  Real lambda:
+    lambda = eigr
+    x = V*Z  (V is an array of nv vectors, Z has length nv)
+
+  Complex lambda:
+    lambda = eigr+i*eigi
+    x = V*Z[0*nv]+i*V*Z[1*nv]  (Z has length 2*nv)
+*/
+PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscScalar *Z,Vec *V,PetscInt nv,PetscReal *resnorm)
+{
+  PetscErrorCode ierr;
+  Vec            x,y,z;
+  PetscScalar    re,im;
+  PetscReal      w,norm;
+  
+  PetscFunctionBegin;
+  
+  /* allocate workspace */
+  ierr = VecDuplicate(V[0],&x);CHKERRQ(ierr);
+  ierr = VecDuplicate(V[0],&y);CHKERRQ(ierr);
+  if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr); }
+
+  /* compute eigenvalue */
+  re = eigr; im = eigi;
+  ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+  w = SlepcAbsEigenvalue(re,im);
+
+  /* compute eigenvector */
+  if (eps->ishermitian) {
+    ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);
+  } else {
+    ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);
+  }
+  /* purify eigenvector in positive generalized problems */
+  if (eps->ispositive) {
+    ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
+    if (eps->ishermitian) {
+      ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
+    } else {
+      ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);          
+    } 
+    ierr = VecScale(y,1.0/norm);CHKERRQ(ierr);
+    ierr = VecCopy(y,x);CHKERRQ(ierr);
+  }
+  /* fix eigenvector if balancing is used */
+  if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) {
+    ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
+    ierr = VecNormalize(x,&norm);CHKERRQ(ierr);
+  }
+#ifndef PETSC_USE_COMPLEX      
+  /* compute imaginary part of eigenvector */
+  if (!eps->ishermitian && im != 0.0) {
+    ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Z+nv,V);CHKERRQ(ierr);
+    if (eps->ispositive) {
+      ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
+      ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
+      ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
+      ierr = VecCopy(z,y);CHKERRQ(ierr);
+    }
+    if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
+      ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
+      ierr = VecNormalize(y,&norm);CHKERRQ(ierr);
+    }
+  }
+#endif
+  /* compute relative error and update convergence flag */
+  ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,resnorm);
+
+  /* free workspace */
+  ierr = VecDestroy(x);CHKERRQ(ierr);
+  ierr = VecDestroy(y);CHKERRQ(ierr);
+  if (!eps->ishermitian && eps->ispositive) { ierr = VecDestroy(z);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSResidualConverged"
 /*
   EPSResidualConverged - Checks convergence with the true relative residual for 
