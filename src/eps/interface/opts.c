@@ -151,7 +151,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsTruth("-eps_monitor_draw","Monitor first unconverged approximate error estimate graphically","EPSMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsTruth("-eps_monitor_draw","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
     if (flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }
@@ -1113,22 +1113,23 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscTruth *trueres)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetTrackAll"
 /*@
-    EPSSetTrackAll - Specifies if the solver must compute the residual of all
+    EPSSetTrackAll - Specifies if the solver must compute the residual norm of all
     approximate eigenpairs or not.
 
     Collective on EPS
 
     Input Parameters:
 +   eps      - the eigensolver context
--   trackall - whether compute all residuals or not
+-   trackall - whether to compute all residuals or not
 
     Notes:
-    If the user sets trackall=PETSC_TRUE then the solver explicitly computes
-    the residual for each eigenpair approximation. Computing the residual is
-    usually an expensive operation and solvers commonly compute the associated
-    residual to the first unconverged eigenpair.
+    If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
+    the residual norm for each eigenpair approximation. Computing the residual is
+    usually an expensive operation and solvers commonly compute only the residual 
+    associated to the first unconverged eigenpair.
+
     The options '-eps_monitor_all' and '-eps_monitor_draw_all' automatically
-    activates this option.
+    activate this option.
 
     Level: intermediate
 
@@ -1145,7 +1146,8 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscTruth trackall)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetTrackAll"
 /*@C
-    EPSGetTrackAll - Returns the flag indicating whether all residuals must be computed explicitly or not.
+    EPSGetTrackAll - Returns the flag indicating whether all residual norms must
+    be computed or not.
 
     Not Collective
 

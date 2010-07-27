@@ -200,11 +200,11 @@ PetscErrorCode EPSProjectedKSHarmonic(EPS eps,PetscInt l,PetscScalar *S,PetscInt
 PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,nv;
+  PetscInt       i,k,l,lwork,nv,marker;
   Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*Y,*g,*work;
   PetscReal      beta,gnorm;
-  PetscTruth     breakdown,iscomplex;
+  PetscTruth     breakdown,iscomplex,conv;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -240,6 +240,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
     eps->ldz = nv;
     if (eps->ishermitian) eps->Z = Q+eps->ldz*eps->nconv+eps->nconv;
     else eps->Z = Y;
+    marker = -1;
     for (k=eps->nconv;k<nv;k++) {
       if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
       else iscomplex = PETSC_FALSE;
@@ -248,10 +249,13 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
         ierr = EPSComputeTrueResidual(eps,eps->eigr[k],eps->eigi[k],eps->Z+k*nv,eps->V,nv,&eps->errest[k]);CHKERRQ(ierr);
       }
       else eps->errest[k] *= sqrt(1.0+gnorm); /* Fix residual norms */
-      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
-      if (!eps->conv[k]) break;
-      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; eps->conv[k+1] = eps->conv[k]; k++; }
+      if (marker==-1) {
+        ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+        if (!conv) { marker = k; if (!eps->trackall) break; }
+      }
+      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
     }
+    if (marker!=-1) k = marker;
 
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;

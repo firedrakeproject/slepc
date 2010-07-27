@@ -141,11 +141,11 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,PetscInt l,PetscScalar *S,PetscInt l
 PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,nv;
+  PetscInt       i,k,l,lwork,nv,marker;
   Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*work;
   PetscReal      beta;
-  PetscTruth     breakdown,iscomplex;
+  PetscTruth     breakdown,iscomplex,conv;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -172,6 +172,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
 
     /* Compute residual norm estimates and check convergence */ 
     eps->ldz = nv;
+    marker = -1;
     for (k=eps->nconv;k<nv;k++) {
       if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
       else iscomplex = PETSC_FALSE;
@@ -179,10 +180,13 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
       if (eps->trueres) {
         ierr = EPSComputeTrueResidual(eps,eps->eigr[k],eps->eigi[k],eps->Z+k*nv,eps->V,nv,&eps->errest[k]);CHKERRQ(ierr);
       }
-      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
-      if (!eps->conv[k]) break;
-      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; eps->conv[k+1] = eps->conv[k]; k++; }
+      if (marker==-1) {
+        ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+        if (!conv) { marker = k; if (!eps->trackall) break; }
+      }
+      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
     }
+    if (marker!=-1) k = marker;
 
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;

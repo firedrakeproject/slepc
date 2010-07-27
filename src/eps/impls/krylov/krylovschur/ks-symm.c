@@ -186,12 +186,12 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lds,lt,nv,m;
+  PetscInt       i,k,l,lds,lt,nv,m,marker;
   Vec            u=eps->work[0];
   PetscScalar    *Q;
   PetscReal      *a,*b,*work,beta;
   PetscInt       *iwork;
-  PetscTruth     breakdown;
+  PetscTruth     breakdown,conv;
 
   PetscFunctionBegin;
   lds = PetscMin(eps->mpd,eps->ncv);
@@ -221,14 +221,18 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 
     /* Check convergence */
     eps->ldz = nv;
+    marker = -1;
     for (k=eps->nconv;k<eps->nconv+nv;k++) {
       eps->errest[k] = beta*PetscAbsScalar(Q[(k-eps->nconv+1)*nv-1]);
       if (eps->trueres) {
         ierr = EPSComputeTrueResidual(eps,eps->eigr[k],0.0,Q+(k-eps->nconv)*nv,eps->V+eps->nconv,nv,&eps->errest[k]);CHKERRQ(ierr);
       }
-      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
-      if (!eps->conv[k]) break;
+      if (marker==-1) {
+        ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+        if (!conv) { marker = k; if (!eps->trackall) break; }
+      }
     }
+    if (marker!=-1) k = marker;
 
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;

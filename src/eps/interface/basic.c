@@ -250,7 +250,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  computing true residuals explicitly\n");CHKERRQ(ierr);
     }
     if (eps->trackall) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing all residuals explicitly\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing all residuals (for tracking convergence)\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",eps->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",eps->ncv);CHKERRQ(ierr);
