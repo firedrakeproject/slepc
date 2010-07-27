@@ -30,6 +30,7 @@ typedef struct {
   EPS        eps;             /* linear eigensolver for Az=lBz */
   Mat        M,C,K;           /* copy of QEP coefficient matrices */
   Vec        x1,x2,y1,y2;     /* work vectors */
+  PetscTruth setfromoptionscalled;
 } QEP_LINEAR;
 
 /* N1 */

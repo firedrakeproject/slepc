@@ -117,6 +117,10 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,qep->nev,qep->ncv,qep->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,qep->tol,qep->max_it);CHKERRQ(ierr);
+  if (ctx->setfromoptionscalled == PETSC_TRUE) {
+    ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
+    ctx->setfromoptionscalled = PETSC_FALSE;
+  }
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,&qep->tol,&qep->max_it);CHKERRQ(ierr);
@@ -313,7 +317,7 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
   }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
+  ctx->setfromoptionscalled = PETSC_TRUE;
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -684,6 +688,7 @@ PetscErrorCode QEPCreate_LINEAR(QEP qep)
   ctx->x2 = PETSC_NULL;
   ctx->y1 = PETSC_NULL;
   ctx->y2 = PETSC_NULL;
+  ctx->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
