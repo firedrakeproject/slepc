@@ -133,10 +133,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     /*
       Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsString("-eps_monitor","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
@@ -144,15 +144,22 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&ctx->viewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void*))EPSMonitorDestroy_Converged);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-eps_monitor_first","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorAll,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsTruth("-eps_monitor_draw","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsTruth("-eps_monitor_draw","Monitor first unconverged approximate error estimate graphically","EPSMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
     if (flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    }
+    flg = PETSC_FALSE;
+    ierr = PetscOptionsTruth("-eps_monitor_draw_all","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    if (flg) {
+      ierr = EPSMonitorSet(eps,EPSMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
@@ -1042,7 +1049,7 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetTrueResidual"
 /*@
-    EPSSetTrueResidual - Specifies if the solver must compute de true residual
+    EPSSetTrueResidual - Specifies if the solver must compute the true residual
     explicitly or not.
 
     Collective on EPS
@@ -1103,6 +1110,63 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscTruth *trueres)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetTrackAll"
+/*@
+    EPSSetTrackAll - Specifies if the solver must compute the residual of all
+    approximate eigenpairs or not.
+
+    Collective on EPS
+
+    Input Parameters:
++   eps      - the eigensolver context
+-   trackall - whether compute all residuals or not
+
+    Notes:
+    If the user sets trackall=PETSC_TRUE then the solver explicitly computes
+    the residual for each eigenpair approximation. Computing the residual is
+    usually an expensive operation and solvers commonly compute the associated
+    residual to the first unconverged eigenpair.
+    The options '-eps_monitor_all' and '-eps_monitor_draw_all' automatically
+    activates this option.
+
+    Level: intermediate
+
+.seealso: EPSGetTrackAll()
+@*/
+PetscErrorCode EPSSetTrackAll(EPS eps,PetscTruth trackall)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  eps->trackall = trackall;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetTrackAll"
+/*@C
+    EPSGetTrackAll - Returns the flag indicating whether all residuals must be computed explicitly or not.
+
+    Not Collective
+
+    Input Parameter:
+.   eps - the eigensolver context
+
+    Output Parameter:
+.   trackall - the returned flag
+
+    Level: intermediate
+
+.seealso: EPSSetTrackAll()
+@*/
+PetscErrorCode EPSGetTrackAll(EPS eps,PetscTruth *trackall) 
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(trackall,2);
+  *trackall = eps->trackall;
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetOptionsPrefix"

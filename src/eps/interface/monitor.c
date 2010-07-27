@@ -146,9 +146,9 @@ PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSMonitorDefault"
+#define __FUNCT__ "EPSMonitorAll"
 /*@C
-   EPSMonitorDefault - Print the current approximate values and 
+   EPSMonitorAll - Print the current approximate values and 
    error estimates at each iteration of the eigensolver.
 
    Collective on EPS
@@ -167,7 +167,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 
 .seealso: EPSMonitorSet()
 @*/
-PetscErrorCode EPSMonitorDefault(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
+PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
   PetscErrorCode          ierr;
   PetscInt                i;
@@ -296,17 +296,64 @@ PetscErrorCode EPSMonitorDestroy_Converged(EPSMONITOR_CONV *ctx)
 PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer) monctx;
-  PetscDraw      draw;
-  PetscDrawLG    lg;
+  PetscDraw      draw,draw1;
+  PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
-  PetscReal      *x,*y;
-  PetscInt       i;
-  int            n = PetscMin(eps->nev,255);
-#if !defined(PETSC_USE_COMPLEX)
-  PetscReal      p;
-  PetscDraw      draw1;
-  PetscDrawLG    lg1;
-#endif
+  PetscReal      x,y,myeigr,p;
+
+  PetscFunctionBegin;
+
+  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm); }
+
+  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
+  if (!its) {
+    ierr = PetscDrawSetTitle(draw,"Error estimates");CHKERRQ(ierr);
+    ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(eps->tol)-2,0.0);CHKERRQ(ierr);
+  }
+
+  /* In the hermitian case, the eigenvalues are real and can be plotted */
+  if (eps->ishermitian) {
+    ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
+    ierr = PetscViewerDrawGetDrawLG(viewer,1,&lg1);CHKERRQ(ierr);
+    if (!its) {
+      ierr = PetscDrawSetTitle(draw1,"Approximate eigenvalues");CHKERRQ(ierr);
+      ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
+      ierr = PetscDrawLGSetDimension(lg1,1);CHKERRQ(ierr);
+      ierr = PetscDrawLGReset(lg1);CHKERRQ(ierr);
+      ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
+    }
+  }
+
+  x = (PetscReal) its;
+  if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
+  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+  if (eps->ishermitian) {
+    myeigr = PetscRealPart(eigr[nconv]);
+    ierr = PetscDrawLGAddPoint(lg1,&x,&myeigr);CHKERRQ(ierr);
+    ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
+    ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);    
+    ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
+    ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);    
+  }
+  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+} 
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSMonitorLGAll"
+PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
+{
+  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscDraw      draw,draw1;
+  PetscDrawLG    lg,lg1;
+  PetscErrorCode ierr;
+  PetscReal      *x,*y,*myeigr,p;
+  PetscInt       i,n = PetscMin(eps->nev,255);
 
   PetscFunctionBegin;
 
@@ -322,7 +369,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
     ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(eps->tol)-2,0.0);CHKERRQ(ierr);
   }
 
-#if !defined(PETSC_USE_COMPLEX)
+  /* In the hermitian case, the eigenvalues are real and can be plotted */
   if (eps->ishermitian) {
     ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDrawLG(viewer,1,&lg1);CHKERRQ(ierr);
@@ -334,7 +381,6 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
       ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
     }
   }
-#endif
 
   ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
@@ -343,15 +389,16 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
     if (errest[i] > 0.0) y[i] = log10(errest[i]); else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
   if (eps->ishermitian) {
-    ierr = PetscDrawLGAddPoint(lg1,x,eps->eigr);CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscReal)*n,&myeigr);CHKERRQ(ierr);
+    for(i=0;i<n;i++) myeigr[i] = PetscRealPart(eigr[i]);
+    ierr = PetscDrawLGAddPoint(lg1,x,myeigr);CHKERRQ(ierr);
     ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
     ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);    
     ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
     ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);    
+    ierr = PetscFree(myeigr);CHKERRQ(ierr);
   }
-#endif  
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   ierr = PetscFree(x);CHKERRQ(ierr);
   ierr = PetscFree(y);CHKERRQ(ierr);  

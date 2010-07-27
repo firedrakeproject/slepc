@@ -74,6 +74,7 @@ struct _p_EPS {
   PetscReal      nrma, nrmb;       /* matrix norms */
   PetscTruth     adaptive;         /* whether matrix norms are adaptively improved */
   PetscTruth     trueres;          /* whether the true residual norm must be computed */
+  PetscTruth     trackall;         /* whether all the residuals must be computed */
 
   /*------------------------- Working data --------------------------*/
   Vec         D,                /* diagonal matrix for balancing */

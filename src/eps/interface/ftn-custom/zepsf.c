@@ -53,8 +53,9 @@
 #define epscreate_                  epscreate
 #define epssettype_                 epssettype           
 #define epsgettype_                 epsgettype
-#define epsmonitordefault_          epsmonitordefault
+#define epsmonitorall_              epsmonitorall
 #define epsmonitorlg_               epsmonitorlg
+#define epsmonitorlgall_            epsmonitorlgall
 #define epsmonitorset_              epsmonitorset
 #define epsmonitorconverged_        epsmonitorconverged
 #define epsmonitorfirst_            epsmonitorfirst
@@ -75,14 +76,19 @@ EXTERN_C_BEGIN
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void epsmonitordefault_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+void epsmonitorall_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = EPSMonitorDefault(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  *ierr = EPSMonitorAll(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
 void epsmonitorlg_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = EPSMonitorLG(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+}
+
+void epsmonitorlgall_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = EPSMonitorLGAll(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
 void epsmonitorconverged_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
@@ -171,10 +177,12 @@ void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,Pe
 {
   CHKFORTRANNULLFUNCTION(monitordestroy);
   PetscObjectAllocateFortranPointers(*eps,3);
-  if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitordefault_) {
-    *ierr = EPSMonitorSet(*eps,EPSMonitorDefault,0,0);
+  if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorall_) {
+    *ierr = EPSMonitorSet(*eps,EPSMonitorAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlg_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorLG,0,0);
+  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlgall_) {
+    *ierr = EPSMonitorSet(*eps,EPSMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorconverged_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorConverged,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorfirst_) {
