@@ -332,11 +332,8 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   w = SlepcAbsEigenvalue(re,im);
 
   /* compute eigenvector */
-  if (eps->ishermitian) {
-    ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);
-  } else {
-    ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);
-  }
+  ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);
+
   /* purify eigenvector in positive generalized problems */
   if (eps->ispositive) {
     ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);

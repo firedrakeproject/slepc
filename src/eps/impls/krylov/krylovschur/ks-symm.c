@@ -228,7 +228,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
         ierr = EPSComputeTrueResidual(eps,eps->eigr[k],0.0,Q+(k-eps->nconv)*nv,eps->V+eps->nconv,nv,&eps->errest[k]);CHKERRQ(ierr);
       }
       if (marker==-1) {
-        ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+        ierr = (*eps->conv_func)(eps,eps->eigr[k],0.0,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
         if (!conv) { marker = k; if (!eps->trackall) break; }
       }
     }

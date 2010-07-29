@@ -197,14 +197,6 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "EPSBackTransform_DSITRLANCZOS"
-PetscErrorCode EPSBackTransform_DSITRLANCZOS(EPS eps)
-{
-  PetscFunctionBegin;
-  PetscFunctionReturn(0);
-}
-
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_DSITRLANCZOS"
@@ -216,7 +208,6 @@ PetscErrorCode EPSCreate_DSITRLANCZOS(EPS eps)
   eps->ops->setfromoptions       = PETSC_NULL;
   eps->ops->destroy              = EPSDestroy_Default;
   eps->ops->view                 = PETSC_NULL;
-  eps->ops->backtransform        = EPSBackTransform_DSITRLANCZOS;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }

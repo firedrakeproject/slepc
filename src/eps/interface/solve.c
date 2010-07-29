@@ -97,7 +97,9 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* Map eigenvalues back to the original problem, necessary in some 
   * spectral transformations */
-  ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
+  if (eps->ops->backtransform) {
+    ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
+  }
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
