@@ -323,7 +323,9 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
 #endif
 
   /* Compute eigenvectors */
-  ierr = QEPComputeVectors_Schur(qep);
+  if (qep->nconv > 0) {
+    ierr = QEPComputeVectors_Schur(qep);
+  }
 
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(qep->Z);CHKERRQ(ierr);
