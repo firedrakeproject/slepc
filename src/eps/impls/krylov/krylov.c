@@ -167,7 +167,7 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
 
    Output parameters:
    Y - computed eigenvectors, 2 columns if iscomplex=true (leading dimension nv)
-   est - computed estimate, 2 equal values if iscomplex=true
+   est - computed residual norm estimate
 
 work
 */
@@ -218,11 +218,10 @@ PetscErrorCode ArnoldiResiduals2(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pet
   /* Compute residual norm estimate as beta*abs(Y(m,:)) */
 #if !defined(PETSC_USE_COMPLEX)
   if (iscomplex) {
-    est[0] = beta*SlepcAbsEigenvalue(Y[nv-1],Y[2*nv-1]);
-    est[1] = est[0];
+    *est = beta*SlepcAbsEigenvalue(Y[nv-1],Y[2*nv-1]);
   } else
 #endif
-  est[0] = beta*PetscAbsScalar(Y[nv-1]);
+  *est = beta*PetscAbsScalar(Y[nv-1]);
     
   PetscFunctionReturn(0);
 #endif

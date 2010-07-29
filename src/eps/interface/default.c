@@ -316,7 +316,6 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
 {
   PetscErrorCode ierr;
   Vec            x,y,z;
-  PetscScalar    re,im;
   PetscReal      w,norm;
   
   PetscFunctionBegin;
@@ -327,9 +326,7 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr); }
 
   /* compute eigenvalue */
-  re = eigr; im = eigi;
-  ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
-  w = SlepcAbsEigenvalue(re,im);
+  w = SlepcAbsEigenvalue(eigr,eigi);
 
   /* compute eigenvector */
   ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);
@@ -352,7 +349,7 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   }
 #ifndef PETSC_USE_COMPLEX      
   /* compute imaginary part of eigenvector */
-  if (!eps->ishermitian && im != 0.0) {
+  if (!eps->ishermitian && eigi != 0.0) {
     ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Z+nv,V);CHKERRQ(ierr);
     if (eps->ispositive) {
       ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
@@ -367,7 +364,7 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   }
 #endif
   /* compute relative error and update convergence flag */
-  ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,resnorm);
+  ierr = EPSComputeResidualNorm_Private(eps,eigr,eigi,x,y,resnorm);
 
   /* free workspace */
   ierr = VecDestroy(x);CHKERRQ(ierr);

@@ -143,9 +143,9 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,k,l,lwork,nv,marker;
   Vec            u=eps->work[0];
-  PetscScalar    *S=eps->T,*Q,*work;
-  PetscReal      beta;
-  PetscTruth     breakdown,iscomplex,conv;
+  PetscScalar    *S=eps->T,*Q,*work,re,im;
+  PetscReal      beta,resnorm;
+  PetscTruth     breakdown,iscomplex,conv,isshift;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -153,6 +153,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
   lwork = 5*eps->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Z);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -174,17 +175,25 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     eps->ldz = nv;
     marker = -1;
     for (k=eps->nconv;k<nv;k++) {
+      /* eigenvalue */
+      re = eps->eigr[k];
+      im = eps->eigi[k];
+      if (eps->trueres || isshift) {
+        ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+      }
       if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
       else iscomplex = PETSC_FALSE;
-      ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
+      /* residual norm */
+      ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,&resnorm,work);CHKERRQ(ierr);
       if (eps->trueres) {
-        ierr = EPSComputeTrueResidual(eps,eps->eigr[k],eps->eigi[k],eps->Z+k*nv,eps->V,nv,&eps->errest[k]);CHKERRQ(ierr);
+        ierr = EPSComputeTrueResidual(eps,re,im,eps->Z+k*nv,eps->V,nv,&resnorm);CHKERRQ(ierr);
       }
-      if (marker==-1) {
-        ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
-        if (!conv) { marker = k; if (!eps->trackall) break; }
-      }
+      /* error estimate */
+      eps->errest[k] = resnorm;
+      ierr = (*eps->conv_func)(eps,re,im,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (marker==-1 && !conv) marker = k;
       if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
+      if (marker!=-1 && !eps->trackall) break;
     }
     if (marker!=-1) k = marker;
 

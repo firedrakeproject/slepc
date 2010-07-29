@@ -202,8 +202,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,k,l,lwork,nv,marker;
   Vec            u=eps->work[0];
-  PetscScalar    *S=eps->T,*Q,*Y,*g,*work;
-  PetscReal      beta,gnorm;
+  PetscScalar    *S=eps->T,*Q,*Y,*g,*work,re,im;
+  PetscReal      beta,gnorm,resnorm;
   PetscTruth     breakdown,iscomplex,conv;
 
   PetscFunctionBegin;
@@ -242,18 +242,23 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
     else eps->Z = Y;
     marker = -1;
     for (k=eps->nconv;k<nv;k++) {
+      /* eigenvalue */
+      re = eps->eigr[k];
+      im = eps->eigi[k];
       if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
       else iscomplex = PETSC_FALSE;
-      ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
+      /* residual norm */
+      ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,&resnorm,work);CHKERRQ(ierr);
       if (eps->trueres) {
-        ierr = EPSComputeTrueResidual(eps,eps->eigr[k],eps->eigi[k],eps->Z+k*nv,eps->V,nv,&eps->errest[k]);CHKERRQ(ierr);
+        ierr = EPSComputeTrueResidual(eps,re,im,eps->Z+k*nv,eps->V,nv,&resnorm);CHKERRQ(ierr);
       }
-      else eps->errest[k] *= sqrt(1.0+gnorm); /* Fix residual norms */
-      if (marker==-1) {
-        ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
-        if (!conv) { marker = k; if (!eps->trackall) break; }
-      }
+      else resnorm *= sqrt(1.0+gnorm); /* Fix residual norms */
+      /* error estimate */
+      eps->errest[k] = resnorm;
+      ierr = (*eps->conv_func)(eps,re,im,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (marker==-1 && !conv) marker = k;
       if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
+      if (marker!=-1 && !eps->trackall) break;
     }
     if (marker!=-1) k = marker;
 

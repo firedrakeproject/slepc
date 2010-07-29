@@ -188,10 +188,10 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,k,l,lds,lt,nv,m,marker;
   Vec            u=eps->work[0];
-  PetscScalar    *Q;
-  PetscReal      *a,*b,*work,beta;
+  PetscScalar    *Q,re,im;
+  PetscReal      *a,*b,*work,beta,resnorm;
   PetscInt       *iwork;
-  PetscTruth     breakdown,conv;
+  PetscTruth     breakdown,conv,isshift;
 
   PetscFunctionBegin;
   lds = PetscMin(eps->mpd,eps->ncv);
@@ -201,6 +201,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   lt = PetscMin(eps->nev+eps->mpd,eps->ncv);
   ierr = PetscMalloc(lt*sizeof(PetscReal),&a);CHKERRQ(ierr);  
   ierr = PetscMalloc(lt*sizeof(PetscReal),&b);CHKERRQ(ierr);  
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -223,14 +224,22 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     eps->ldz = nv;
     marker = -1;
     for (k=eps->nconv;k<eps->nconv+nv;k++) {
-      eps->errest[k] = beta*PetscAbsScalar(Q[(k-eps->nconv+1)*nv-1]);
+      /* eigenvalue */
+      re = eps->eigr[k];
+      im = 0.0;
+      if (eps->trueres || isshift) {
+        ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+      }
+      /* residual norm */
+      resnorm = beta*PetscAbsScalar(Q[(k-eps->nconv+1)*nv-1]);
       if (eps->trueres) {
-        ierr = EPSComputeTrueResidual(eps,eps->eigr[k],0.0,Q+(k-eps->nconv)*nv,eps->V+eps->nconv,nv,&eps->errest[k]);CHKERRQ(ierr);
+        ierr = EPSComputeTrueResidual(eps,re,im,Q+(k-eps->nconv)*nv,eps->V+eps->nconv,nv,&resnorm);CHKERRQ(ierr);
       }
-      if (marker==-1) {
-        ierr = (*eps->conv_func)(eps,eps->eigr[k],0.0,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
-        if (!conv) { marker = k; if (!eps->trackall) break; }
-      }
+      /* error estimate */
+      eps->errest[k] = resnorm;
+      ierr = (*eps->conv_func)(eps,re,im,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+      if (marker==-1 && !conv) marker = k;
+      if (marker!=-1 && !eps->trackall) break;
     }
     if (marker!=-1) k = marker;
 
