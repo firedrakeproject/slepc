@@ -174,6 +174,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 {
   PetscErrorCode          ierr;
   PetscInt                i;
+  PetscScalar             er,ei;
   PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
 
   PetscFunctionBegin;
@@ -181,11 +182,13 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d EPS nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
+      er = eigr[i]; ei = eigi[i];
+      ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",er);CHKERRQ(ierr);
+      if (ei!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",ei);CHKERRQ(ierr); }
 #endif
       ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)",errest[i]);CHKERRQ(ierr);
     }
@@ -220,17 +223,20 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
   PetscErrorCode          ierr;
+  PetscScalar             er,ei;
   PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d EPS nconv=%d first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    er = eigr[nconv]; ei = eigi[nconv];
+    ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(eigr[nconv]),PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",eigr[nconv]);CHKERRQ(ierr);
-    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[nconv]);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",er);CHKERRQ(ierr);
+    if (ei!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",ei);CHKERRQ(ierr); }
 #endif
     ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",errest[nconv]);CHKERRQ(ierr);
     if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
@@ -264,6 +270,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
 {
   PetscErrorCode  ierr;
   PetscInt        i;
+  PetscScalar     er,ei;
   EPSMONITOR_CONV *ctx = (EPSMONITOR_CONV*) dummy;
 
   PetscFunctionBegin;
@@ -272,11 +279,13 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   } else {
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3d EPS converged value (error) #%d",its,i);CHKERRQ(ierr);
+      er = eigr[i]; ei = eigi[i];
+      ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g%+gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g",eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g",er);CHKERRQ(ierr);
+      if (ei!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%+gi",ei);CHKERRQ(ierr); }
 #endif
       ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," (%10.8e)\n",errest[i]);CHKERRQ(ierr);
     }
@@ -303,6 +312,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
   PetscReal      x,y,myeigr,p;
+  PetscScalar    er,ei;
 
   PetscFunctionBegin;
 
@@ -335,7 +345,9 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
   if (eps->ishermitian) {
-    myeigr = PetscRealPart(eigr[nconv]);
+    er = eigr[nconv]; ei = eigi[nconv];
+    ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+    myeigr = PetscRealPart(er);
     ierr = PetscDrawLGAddPoint(lg1,&x,&myeigr);CHKERRQ(ierr);
     ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
     ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);    
@@ -357,6 +369,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   PetscErrorCode ierr;
   PetscReal      *x,*y,*myeigr,p;
   PetscInt       i,n = PetscMin(eps->nev,255);
+  PetscScalar    er,ei;
 
   PetscFunctionBegin;
 
@@ -396,7 +409,9 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   if (eps->ishermitian) {
     ierr = PetscMalloc(sizeof(PetscReal)*n,&myeigr);CHKERRQ(ierr);
     for(i=0;i<n;i++) {
-      if (i < nest) myeigr[i] = PetscRealPart(eigr[i]);
+      er = eigr[i]; ei = eigi[i];
+      ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+      if (i < nest) myeigr[i] = PetscRealPart(er);
       else myeigr[i] = 0.0;
     }
     ierr = PetscDrawLGAddPoint(lg1,x,myeigr);CHKERRQ(ierr);

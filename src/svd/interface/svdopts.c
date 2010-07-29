@@ -436,10 +436,11 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); 
   }
 
-  ierr = PetscOptionsString("-svd_monitor","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsString("-svd_monitor_all","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
     ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
-    ierr = SVDMonitorSet(svd,SVDMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorAll,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+    ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
   ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
@@ -447,15 +448,21 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&ctx->viewer);CHKERRQ(ierr);
       ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void*))SVDMonitorDestroy_Converged);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsString("-svd_monitor_first","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsString("-svd_monitor","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
     ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
     ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsTruth("-svd_monitor_draw","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsTruth("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
     ierr = SVDMonitorSet(svd,SVDMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  }
+  flg = PETSC_FALSE;
+  ierr = PetscOptionsTruth("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+  if (flg) {
+    ierr = SVDMonitorSet(svd,SVDMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
@@ -465,6 +472,67 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDSetTrackAll"
+/*@
+    SVDSetTrackAll - Specifies if the solver must compute the residual norm of all
+    approximate singular value or not.
+
+    Collective on SVD
+
+    Input Parameters:
++   svd      - the singular value solver context
+-   trackall - whether to compute all residuals or not
+
+    Notes:
+    If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
+    the residual norm for each singular value approximation. Computing the residual is
+    usually an expensive operation and solvers commonly compute only the residual 
+    associated to the first unconverged singular value.
+
+    The options '-svd_monitor_all' and '-svd_monitor_draw_all' automatically
+    activate this option.
+
+    Level: intermediate
+
+.seealso: SVDGetTrackAll()
+@*/
+PetscErrorCode SVDSetTrackAll(SVD svd,PetscTruth trackall)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  svd->trackall = trackall;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDGetTrackAll"
+/*@
+    SVDGetTrackAll - Returns the flag indicating whether all residual norms must
+    be computed or not.
+
+    Not Collective
+
+    Input Parameter:
+.   svd - the singular value solver context
+
+    Output Parameter:
+.   trackall - the returned flag
+
+    Level: intermediate
+
+.seealso: SVDSetTrackAll()
+@*/
+PetscErrorCode SVDGetTrackAll(SVD svd,PetscTruth *trackall) 
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidPointer(trackall,2);
+  *trackall = svd->trackall;
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetOptionsPrefix"

@@ -64,6 +64,7 @@ struct _p_QEP {
   PetscErrorCode (*which_func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
   QEPProblemType problem_type;     /* which kind of problem to be solved */
+  PetscTruth     trackall;         /* whether all the residuals must be computed */
 
   /*------------------------- Working data --------------------------*/
   Mat         M,C,K;            /* problem matrices */

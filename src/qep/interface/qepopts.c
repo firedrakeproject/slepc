@@ -99,10 +99,10 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     /*
       Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsString("-qep_monitor","Monitor approximate eigenvalues and error estimates","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-qep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorDefault,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
@@ -110,15 +110,22 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&ctx->viewer);CHKERRQ(ierr);
       ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void*))QEPMonitorDestroy_Converged);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-qep_monitor_first","Monitor first unconverged approximate eigenvalue and error estimate","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-qep_monitor_all","Monitor approximate eigenvalues and error estimates","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorAll,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsTruth("-qep_monitor_draw","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsTruth("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
     if (flg) {
       ierr = QEPMonitorSet(qep,QEPMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    }
+    flg = PETSC_FALSE;
+    ierr = PetscOptionsTruth("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    if (flg) {
+      ierr = QEPMonitorSet(qep,QEPMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
 
@@ -664,6 +671,64 @@ EXTERN PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
   PetscFunctionBegin;
   qep->conv_func = func;
   qep->conv_ctx = ctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPSetTrackAll"
+/*@
+    QEPSetTrackAll - Specifies if the solver must compute the residual of all
+    approximate eigenpairs or not.
+
+    Collective on QEP
+
+    Input Parameters:
++   qep      - the eigensolver context
+-   trackall - whether compute all residuals or not
+
+    Notes:
+    If the user sets trackall=PETSC_TRUE then the solver explicitly computes
+    the residual for each eigenpair approximation. Computing the residual is
+    usually an expensive operation and solvers commonly compute the associated
+    residual to the first unconverged eigenpair.
+    The options '-qep_monitor_all' and '-qep_monitor_draw_all' automatically
+    activates this option.
+
+    Level: intermediate
+
+.seealso: EPSGetTrackAll()
+@*/
+PetscErrorCode QEPSetTrackAll(QEP qep,PetscTruth trackall)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  qep->trackall = trackall;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPGetTrackAll"
+/*@
+    QEPGetTrackAll - Returns the flag indicating whether all residuals must be computed explicitly or not.
+
+    Not Collective
+
+    Input Parameter:
+.   qep - the eigensolver context
+
+    Output Parameter:
+.   trackall - the returned flag
+
+    Level: intermediate
+
+.seealso: EPSSetTrackAll()
+@*/
+PetscErrorCode QEPGetTrackAll(QEP qep,PetscTruth *trackall) 
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidPointer(trackall,2);
+  *trackall = qep->trackall;
   PetscFunctionReturn(0);
 }
 

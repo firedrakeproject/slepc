@@ -27,6 +27,7 @@
 */
 
 #include "private/svdimpl.h"                /*I "slepcsvd.h" I*/
+#include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepceps.h"
 
 typedef struct {
@@ -169,12 +170,16 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
 #define __FUNCT__ "SVDMonitor_CROSS"
 PetscErrorCode SVDMonitor_CROSS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  PetscInt  i;
-  SVD       svd = (SVD)ctx;
+  PetscInt       i;
+  SVD            svd = (SVD)ctx;
+  PetscScalar    er,ei;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   for (i=0;i<nest;i++) {
-    svd->sigma[i] = sqrt(PetscRealPart(eigr[i]));
+    er = eigr[i]; ei = eigi[i];
+    ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+    svd->sigma[i] = sqrt(PetscRealPart(er));
     svd->errest[i] = errest[i];
   }
   SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);

@@ -23,6 +23,7 @@
 */
 
 #include "private/qepimpl.h"         /*I "slepcqep.h" I*/
+#include "private/epsimpl.h"         /*I "slepceps.h" I*/
 #include "slepceps.h"
 #include "linearp.h"
 
@@ -273,8 +274,9 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
 #define __FUNCT__ "EPSMonitor_QEP_LINEAR"
 PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  PetscInt   i;
-  QEP        qep = (QEP)ctx;
+  PetscInt       i;
+  QEP            qep = (QEP)ctx;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   nconv = 0;
@@ -284,6 +286,7 @@ PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscSc
     qep->errest[i] = errest[i];
     if (0.0 < errest[i] && errest[i] < qep->tol) nconv++;
   }
+  ierr = STBackTransform(eps->OP,nest,qep->eigr,qep->eigi);CHKERRQ(ierr);
   QEPMonitor(qep,its,nconv,qep->eigr,qep->eigi,qep->errest,nest);
   PetscFunctionReturn(0);
 }

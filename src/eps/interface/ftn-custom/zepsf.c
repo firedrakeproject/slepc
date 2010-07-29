@@ -31,8 +31,9 @@
 #define epscreate_                  EPSCREATE
 #define epssettype_                 EPSSETTYPE           
 #define epsgettype_                 EPSGETTYPE
-#define epsmonitordefault_          EPSMONITORDEFAULT
+#define epsmonitorall_              EPSMONITORALL
 #define epsmonitorlg_               EPSMONITORLG
+#define epsmonitorlgall_            EPSMONITORLGALL
 #define epsmonitorset_              EPSMONITORSET
 #define epsmonitorconverged_        EPSMONITORCONVERGED
 #define epsmonitorfirst_            EPSMONITORFIRST

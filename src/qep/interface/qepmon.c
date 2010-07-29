@@ -52,12 +52,15 @@ $     monitor (QEP qep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 -  mctx   - optional monitoring context, as set by QEPMonitorSet()
 
    Options Database Keys:
-+    -qep_monitor        - print error estimates at each iteration
-.    -qep_monitor_first  - print only the first error estimate
-.    -qep_monitor_conv   - print the eigenvalue approximations only when
++    -qep_monitor          - print only the first error estimate
+.    -qep_monitor_all      - print error estimates at each iteration
+.    -qep_monitor_conv     - print the eigenvalue approximations only when
       convergence has been reached
-.    -qep_monitor_draw   - sets line graph monitor
--    -qep_monitor_cancel - cancels all monitors that have been hardwired into
+.    -qep_monitor_draw     - sets line graph monitor for the first unconverged
+      approximate eigenvalue
+.    -qep_monitor_draw_all - sets line graph monitor for all unconverged
+      approximate eigenvalue
+-    -qep_monitor_cancel   - cancels all monitors that have been hardwired into
       a code by calls to QEPMonitorSet(), but does not cancel those set via
       the options database.
 
@@ -146,9 +149,9 @@ PetscErrorCode QEPGetMonitorContext(QEP qep, void **ctx)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPMonitorDefault"
+#define __FUNCT__ "QEPMonitorAll"
 /*@C
-   QEPMonitorDefault - Print the current approximate values and 
+   QEPMonitorAll - Print the current approximate values and 
    error estimates at each iteration of the quadratic eigensolver.
 
    Collective on QEP
@@ -167,7 +170,7 @@ PetscErrorCode QEPGetMonitorContext(QEP qep, void **ctx)
 
 .seealso: QEPMonitorSet()
 @*/
-PetscErrorCode QEPMonitorDefault(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
+PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
   PetscErrorCode          ierr;
   PetscInt                i;
@@ -299,6 +302,38 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
+  PetscReal      x,y;
+
+  PetscFunctionBegin;
+
+  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)qep)->comm); }
+
+  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
+  if (!its) {
+    ierr = PetscDrawSetTitle(draw,"Error estimates");CHKERRQ(ierr);
+    ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(qep->tol)-2,0.0);CHKERRQ(ierr);
+  }
+
+  x = (PetscReal) its;
+  if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
+  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+
+  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+} 
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPMonitorLGAll"
+PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
+{
+  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscDraw      draw;
+  PetscDrawLG    lg;
+  PetscErrorCode ierr;
   PetscReal      *x,*y;
   PetscInt       i;
   int            n = PetscMin(qep->nev,255);
@@ -321,7 +356,8 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal) its;
-    if (errest[i] > 0.0) y[i] = log10(errest[i]); else y[i] = 0.0;
+    if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
+    else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
 

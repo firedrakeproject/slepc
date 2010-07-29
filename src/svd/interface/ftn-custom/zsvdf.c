@@ -23,8 +23,9 @@
 #include "slepcsvd.h"
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
-#define svdmonitordefault_           SVDMONITORDEFAULT
+#define svdmonitorall_               SVDMONITORALL
 #define svdmonitorlg_                SVDMONITORLG
+#define svdmonitorlgall_                SVDMONITORLGALL
 #define svdview_                     SVDVIEW
 #define svdcreate_                   SVDCREATE
 #define svdsettype_                  SVDSETTYPE
@@ -38,8 +39,8 @@
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
 #define svdgetconvergedreason_       SVDGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define svdmonitordefault_           svdmonitordefault
-#define svdmonitorlg_                svdmonitorlg
+#define svdmonitorall_               svdmonitorall
+#define svdmonitorlgall_             svdmonitorlgall
 #define svdview_                     svdview
 #define svdcreate_                   svdcreate
 #define svdsettype_                  svdsettype
@@ -62,14 +63,20 @@ static void (PETSC_STDCALL *f2)(void*,PetscErrorCode*);
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void svdmonitordefault_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+void svdmonitorall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = SVDMonitorDefault(*svd,*it,*nconv,sigma,errest,*nest,ctx);
+  *ierr = SVDMonitorAll(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
 
 void svdmonitorlg_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorLG(*svd,*it,*nconv,sigma,errest,*nest,ctx);
+}
+EXTERN_C_END
+
+void svdmonitorlgall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = SVDMonitorLGAll(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
 EXTERN_C_END
 
@@ -128,10 +135,12 @@ void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
 void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
                                   void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
 {
-  if ((void(*)())monitor == (void(*)())svdmonitordefault_) {
-    *ierr = SVDMonitorSet(*svd,SVDMonitorDefault,0,0);
+  if ((void(*)())monitor == (void(*)())svdmonitorall_) {
+    *ierr = SVDMonitorSet(*svd,SVDMonitorAll,0,0);
   } else if ((void(*)())monitor == (void(*)())svdmonitorlg_) {
     *ierr = SVDMonitorSet(*svd,SVDMonitorLG,0,0);
+  } else if ((void(*)())monitor == (void(*)())svdmonitorlgall_) {
+    *ierr = SVDMonitorSet(*svd,SVDMonitorLGAll,0,0);
   } else {
     f1  = monitor;
     if (FORTRANNULLFUNCTION(monitordestroy)) {

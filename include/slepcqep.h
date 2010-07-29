@@ -122,10 +122,14 @@ EXTERN PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscTruth);
 EXTERN PetscErrorCode QEPGetLeftVectorsWanted(QEP,PetscTruth*);
 EXTERN PetscErrorCode QEPSetEigenvalueComparison(QEP,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
-EXTERN PetscErrorCode QEPMonitorDefault(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+EXTERN PetscErrorCode QEPMonitorAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode QEPMonitorFirst(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode QEPMonitorConverged(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode QEPMonitorLG(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+EXTERN PetscErrorCode QEPMonitorLGAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+
+EXTERN PetscErrorCode QEPSetTrackAll(QEP,PetscTruth);
+EXTERN PetscErrorCode QEPGetTrackAll(QEP,PetscTruth*);
 
 EXTERN PetscErrorCode QEPSetOptionsPrefix(QEP,const char*);
 EXTERN PetscErrorCode QEPAppendOptionsPrefix(QEP,const char*);

@@ -125,10 +125,14 @@ EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt
                                     void*,PetscErrorCode (*monitordestroy)(void*));
 EXTERN PetscErrorCode SVDMonitorCancel(SVD);
 EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
-EXTERN PetscErrorCode SVDMonitorDefault(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+EXTERN PetscErrorCode SVDMonitorAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode SVDMonitorFirst(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode SVDMonitorConverged(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode SVDMonitorLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+EXTERN PetscErrorCode SVDMonitorLGAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+
+EXTERN PetscErrorCode SVDSetTrackAll(SVD,PetscTruth);
+EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscTruth*);
 
 EXTERN PetscErrorCode SVDDense(PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 

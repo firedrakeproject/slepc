@@ -27,6 +27,7 @@
 */
 
 #include "private/svdimpl.h"                /*I "slepcsvd.h" I*/
+#include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include "slepceps.h"
 
 typedef struct {
@@ -257,14 +258,18 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
 #define __FUNCT__ "SVDMonitor_CYCLIC"
 PetscErrorCode SVDMonitor_CYCLIC(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  PetscInt   i,j;
-  SVD        svd = (SVD)ctx;
+  PetscInt       i,j;
+  SVD            svd = (SVD)ctx;
+  PetscScalar    er,ei;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   nconv = 0;
   for (i=0,j=0;i<nest;i++) {
-    if (PetscRealPart(eigr[i]) > 0.0) {
-      svd->sigma[j] = PetscRealPart(eigr[i]);
+    er = eigr[i]; ei = eigi[i];
+    ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+    if (PetscRealPart(er) > 0.0) {
+      svd->sigma[j] = PetscRealPart(er);
       svd->errest[j] = errest[i];
       if (errest[i] < svd->tol) nconv++;
       j++;

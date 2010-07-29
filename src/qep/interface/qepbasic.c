@@ -285,6 +285,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->setupcalled     = 0;
   qep->reason          = QEP_CONVERGED_ITERATING;
   qep->numbermonitors  = 0;
+  qep->trackall        = PETSC_FALSE;
 
   ierr = IPCreate(comm,&qep->ip); CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,((PetscObject)qep)->prefix);

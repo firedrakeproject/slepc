@@ -31,8 +31,9 @@
 #define qepcreate_                  QEPCREATE
 #define qepsettype_                 QEPSETTYPE           
 #define qepgettype_                 QEPGETTYPE
-#define qepmonitordefault_          QEPMONITORDEFAULT
+#define qepmonitorall_              QEPMONITORALL
 #define qepmonitorlg_               QEPMONITORLG
+#define qepmonitorlgall_            QEPMONITORLGALL
 #define qepmonitorset_              QEPMONITORSET
 #define qepmonitorconverged_        QEPMONITORCONVERGED
 #define qepmonitorfirst_            QEPMONITORFIRST
@@ -48,7 +49,9 @@
 #define qepcreate_                  qepcreate
 #define qepsettype_                 qepsettype           
 #define qepgettype_                 qepgettype
-#define qepmonitordefault_          qepmonitordefault
+#define qepmonitorall_              qepmonitorall
+#define qepmonitorlg_               qepmonitorlg
+#define qepmonitorlgall_            qepmonitorlgall
 #define qepmonitorset_              qepmonitorset
 #define qepmonitorconverged_        qepmonitorconverged
 #define qepmonitorfirst_            qepmonitorfirst
@@ -64,14 +67,19 @@ EXTERN_C_BEGIN
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void qepmonitordefault_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+void qepmonitorall_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = QEPMonitorDefault(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  *ierr = QEPMonitorAll(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
 void qepmonitorlg_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = QEPMonitorLG(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+}
+
+void qepmonitorlgall_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = QEPMonitorLGAll(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
 void qepmonitorconverged_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
@@ -160,10 +168,12 @@ void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,Pe
 {
   CHKFORTRANNULLFUNCTION(monitordestroy);
   PetscObjectAllocateFortranPointers(*qep,3);
-  if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitordefault_) {
-    *ierr = QEPMonitorSet(*qep,QEPMonitorDefault,0,0);
+  if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorall_) {
+    *ierr = QEPMonitorSet(*qep,QEPMonitorAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorlg_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorLG,0,0);
+  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorlgall_) {
+    *ierr = QEPMonitorSet(*qep,QEPMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorconverged_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorConverged,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorfirst_) {

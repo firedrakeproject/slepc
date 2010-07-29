@@ -74,6 +74,7 @@ struct _p_SVD {
   PetscInt         setupcalled;
   SVDConvergedReason reason;
   IP               ip;
+  PetscTruth       trackall;
   
   PetscErrorCode  (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
   PetscErrorCode  (*monitordestroy[MAXSVDMONITORS])(void*);

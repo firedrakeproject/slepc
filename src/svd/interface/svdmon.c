@@ -49,12 +49,15 @@ $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscRea
 -  mctx   - optional monitoring context, as set by SVDMonitorSet()
 
    Options Database Keys:
-+    -svd_monitor        - print error estimates at each iteration
-.    -svd_monitor_first  - print only the first error estimate
-.    -svd_monitor_conv   - print the singular value approximations only when
++    -svd_monitor          - print only the first error estimate
+.    -svd_monitor_all      - print error estimates at each iteration
+.    -svd_monitor_conv     - print the singular value approximations only when
       convergence has been reached
-.    -svd_monitor_draw   - sets line graph monitor
--    -svd_monitor_cancel - cancels all monitors that have been hardwired into
+.    -svd_monitor_draw     - sets line graph monitor for the first unconverged
+      approximate singular value
+.    -svd_monitor_draw_all - sets line graph monitor for all unconverged
+      approximate singular value
+-    -svd_monitor_cancel   - cancels all monitors that have been hardwired into
       a code by calls to SVDMonitorSet(), but does not cancel those set via
       the options database.
 
@@ -143,9 +146,9 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDMonitorDefault"
+#define __FUNCT__ "SVDMonitorAll"
 /*@C
-   SVDMonitorDefault - Print the current approximate values and 
+   SVDMonitorAll - Print the current approximate values and 
    error estimates at each iteration of the singular value solver.
 
    Collective on SVD
@@ -163,7 +166,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 
 .seealso: SVDMonitorSet()
 @*/
-PetscErrorCode SVDMonitorDefault(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
+PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
 {
   PetscErrorCode          ierr;
   PetscInt                i;
@@ -274,6 +277,55 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
+  PetscReal      x,y,p;
+  PetscDraw      draw1;
+  PetscDrawLG    lg1;
+
+  PetscFunctionBegin;
+
+  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm); }
+
+  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDrawLG(viewer,1,&lg1);CHKERRQ(ierr);
+
+  if (!its) {
+    ierr = PetscDrawSetTitle(draw,"Error estimates");CHKERRQ(ierr);
+    ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(svd->tol)-2,0.0);CHKERRQ(ierr);
+
+    ierr = PetscDrawSetTitle(draw1,"Approximate singular values");CHKERRQ(ierr);
+    ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg1,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGReset(lg1);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
+  }
+
+  x = (PetscReal) its;
+  if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
+  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+
+  ierr = PetscDrawLGAddPoint(lg1,&x,svd->sigma);CHKERRQ(ierr);
+  ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
+  ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);
+  ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
+  ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
+    
+  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+} 
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDMonitorLGAll"
+PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
+{
+  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscDraw      draw;
+  PetscDrawLG    lg;
+  PetscErrorCode ierr;
   PetscReal      *x,*y,p;
   int            n = PetscMin(svd->nsv,255);
   PetscInt       i;
@@ -307,7 +359,8 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal) its;
-    if (errest[i] > 0.0) y[i] = log10(errest[i]); else y[i] = 0.0;
+    if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
+    else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
 
@@ -322,4 +375,3 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   ierr = PetscFree(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 } 
-
