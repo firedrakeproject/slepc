@@ -52,12 +52,15 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 -  mctx   - optional monitoring context, as set by EPSMonitorSet()
 
    Options Database Keys:
-+    -eps_monitor        - print error estimates at each iteration
-.    -eps_monitor_first  - print only the first error estimate
-.    -eps_monitor_conv   - print the eigenvalue approximations only when
++    -eps_monitor          - print only the first error estimate
+.    -eps_monitor_all      - print error estimates at each iteration
+.    -eps_monitor_conv     - print the eigenvalue approximations only when
       convergence has been reached
-.    -eps_monitor_draw   - sets line graph monitor
--    -eps_monitor_cancel - cancels all monitors that have been hardwired into
+.    -eps_monitor_draw     - sets line graph monitor for the first unconverged
+      approximate eigenvalue
+.    -eps_monitor_draw_all - sets line graph monitor for all unconverged
+      approximate eigenvalue
+-    -eps_monitor_cancel   - cancels all monitors that have been hardwired into
       a code by calls to EPSMonitorSet(), but does not cancel those set via
       the options database.
 
@@ -386,12 +389,16 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal) its;
-    if (errest[i] > 0.0) y[i] = log10(errest[i]); else y[i] = 0.0;
+    if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
+    else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
   if (eps->ishermitian) {
     ierr = PetscMalloc(sizeof(PetscReal)*n,&myeigr);CHKERRQ(ierr);
-    for(i=0;i<n;i++) myeigr[i] = PetscRealPart(eigr[i]);
+    for(i=0;i<n;i++) {
+      if (i < nest) myeigr[i] = PetscRealPart(eigr[i]);
+      else myeigr[i] = 0.0;
+    }
     ierr = PetscDrawLGAddPoint(lg1,x,myeigr);CHKERRQ(ierr);
     ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
     ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);    

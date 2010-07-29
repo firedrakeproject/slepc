@@ -1145,7 +1145,7 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscTruth trackall)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetTrackAll"
-/*@C
+/*@
     EPSGetTrackAll - Returns the flag indicating whether all residual norms must
     be computed or not.
 
