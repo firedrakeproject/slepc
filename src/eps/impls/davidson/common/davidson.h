@@ -305,8 +305,9 @@ typedef struct _dvdDashboard {
   and other requirements
 */
 typedef struct {
-  PetscInt max_size_V,  /* max size of V */
+  PetscInt max_size_V,  /* max size of the searching subspace */
     max_size_X,         /* max size of X */
+    size_V,             /* real size of V */
     max_size_oldX,      /* max size of oldX */
     max_size_auxV,      /* max size of auxiliary vecs */
     max_size_auxS,      /* max size of auxiliary scalars */ 

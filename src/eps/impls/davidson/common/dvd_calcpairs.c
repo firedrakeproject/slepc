@@ -66,7 +66,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
 #else
   b->max_nev = PetscMax(b->max_nev, d->nev);
 #endif
-  b->own_vecs+= b->max_size_V*(d->B?2:1) /* AV, BV? */;
+  b->own_vecs+= b->size_V*(d->B?2:1) /* AV, BV? */;
   b->own_scalars+= b->max_size_V*b->max_size_V*2*(std_probl?1:2);
                                               /* H, G?, S, T? */
   b->own_scalars+= b->max_size_V*b->max_size_V*(std_probl?1:2);
@@ -81,7 +81,8 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     d->size_AV = 0;
-    d->real_AV = d->AV = b->free_vecs; b->free_vecs+= b->max_size_V;
+    d->real_AV = d->AV = b->free_vecs; b->free_vecs+= b->size_V;
+    d->max_size_AV = b->size_V;
     d->size_H = 0;
     d->H = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     d->real_H = d->H;
@@ -101,7 +102,8 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
     d->cT = 0;
     if (d->B) {
       d->size_BV = 0;
-      d->real_BV = d->BV = b->free_vecs; b->free_vecs+= b->max_size_V;
+      d->real_BV = d->BV = b->free_vecs; b->free_vecs+= b->size_V;
+      d->max_size_BV = b->size_V;
     }
     if (!std_probl) {
       d->size_G = 0;

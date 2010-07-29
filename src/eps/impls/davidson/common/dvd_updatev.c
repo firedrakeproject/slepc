@@ -82,6 +82,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
                               max_size_V*2 /* SlepcDenseOrth  */ ), 
                               max_size_V*b->max_size_X /* testConv:res_0 */ );
   b->max_size_V = mpd;
+  b->size_V = max_size_V;
   b->own_vecs+= max_size_V*(harm==PETSC_TRUE?2:1);      /* V, W? */
   b->own_scalars+= max_size_V*2 /* eigr, eigr */ +
                    max_size_V /* nR */   +
