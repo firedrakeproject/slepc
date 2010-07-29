@@ -35,6 +35,8 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   QEP_LINEAR        *ctx = (QEP_LINEAR *)qep->data;
   PetscInt          i=0;
   EPSWhich          which;
+  PetscTruth        trackall;
+
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_QEPLINEAR_N1A, MatCreateExplicit_QEPLINEAR_N1B },   /* N1 */
@@ -118,6 +120,9 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,qep->nev,qep->ncv,qep->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,qep->tol,qep->max_it);CHKERRQ(ierr);
+  /* Transfer the trackall option from qep to eps */
+  ierr = QEPGetTrackAll(qep,&trackall);CHKERRQ(ierr);
+  ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
   if (ctx->setfromoptionscalled == PETSC_TRUE) {
     ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
     ctx->setfromoptionscalled = PETSC_FALSE;

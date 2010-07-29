@@ -113,6 +113,7 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   PetscErrorCode    ierr;
   SVD_CROSS         *cross = (SVD_CROSS *)svd->data;
   PetscInt          n;
+  PetscTruth        trackall;
 
   PetscFunctionBegin;
   if (cross->mat) { 
@@ -134,6 +135,9 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cross->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  /* Transfer the trackall option from svd to eps */
+  ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
+  ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
   if (cross->setfromoptionscalled == PETSC_TRUE) {
     ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
     cross->setfromoptionscalled = PETSC_FALSE;

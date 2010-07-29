@@ -91,6 +91,7 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   const PetscInt    *cols;
   const PetscScalar *vals;
   PetscScalar       *pU;
+  PetscTruth        trackall;
 
   PetscFunctionBegin;
   
@@ -150,6 +151,9 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   ierr = EPSSetWhichEigenpairs(cyclic->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  /* Transfer the trackall option from svd to eps */
+  ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
+  ierr = EPSSetTrackAll(cyclic->eps,trackall);CHKERRQ(ierr);
   if (cyclic->setfromoptionscalled == PETSC_TRUE) {
     ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
     cyclic->setfromoptionscalled = PETSC_FALSE;
