@@ -494,7 +494,7 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(y,VEC_COOKIE,1);
-  if (!nv) PetscFunctionReturn(0);
+  if (!nv || !(y)->map->n) PetscFunctionReturn(0);
   if (nv < 0) SETERRQ1(PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
   PetscValidScalarPointer(a,3);
   PetscValidPointer(x,6);
