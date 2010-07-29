@@ -133,7 +133,9 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
     /* apply operator */
     ierr = VecCopy(w,t);CHKERRQ(ierr);
     ierr = MatMult(qep->M,v,u);CHKERRQ(ierr);
-    ierr = MatMultAdd(qep->C,w,u,u);CHKERRQ(ierr);
+    ierr = VecScale(u,qep->sfactor*qep->sfactor);CHKERRQ(ierr);
+    ierr = MatMult(qep->C,t,w);CHKERRQ(ierr);
+    ierr = VecAXPY(u,qep->sfactor,w);CHKERRQ(ierr);
     ierr = KSPSolve(ctx->ksp,u,w);CHKERRQ(ierr);
     ierr = VecScale(w,-1.0);CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
@@ -309,11 +311,11 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   /* Transform eigenvalues */
 #ifndef PETSC_USE_COMPLEX
  for (j=0;j<qep->nconv;j++) {
-    if (qep->eigi[j] == 0) qep->eigr[j] = 1.0 / qep->eigr[j];
+    if (qep->eigi[j] == 0) qep->eigr[j] = qep->sfactor / qep->eigr[j];
     else {
       x = qep->eigr[j] * qep->eigr[j] + qep->eigi[j] * qep->eigi[j];
-      qep->eigr[j] = qep->eigr[j] / x;
-      qep->eigi[j] = - qep->eigi[j] / x;
+      qep->eigr[j] =  qep->sfactor * qep->eigr[j] / x;
+      qep->eigi[j] = - qep->sfactor * qep->eigi[j] / x;
     }
   }
 #else
