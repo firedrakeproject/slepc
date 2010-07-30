@@ -361,18 +361,19 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
 PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,nv;
+  PetscInt       i,k,lwork,nv;
   Vec            f=eps->work[0];
-  PetscScalar    *H=eps->T,*U,*Y,*g,*work,*Hcopy;
-  PetscReal      beta,gnorm;
-  PetscTruth     breakdown,iscomplex;
+  PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
+  PetscReal      beta,gnorm,corrf=1.0;
+  PetscTruth     breakdown;
   IPOrthogonalizationRefinementType orthog_ref;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
-  ierr = PetscMalloc((eps->ncv+4)*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr); Y = work+4*eps->ncv;
+  lwork = PetscMax((eps->ncv+1)*eps->ncv,7*eps->ncv);
+  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
   }
@@ -411,13 +412,16 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
       gnorm = 0.0;
       for (i=0;i<nv;i++)
         gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
+      corrf = sqrt(1.0+gnorm);
     }
 
-    /* Solve projected problem and compute residual norm estimates */ 
+    /* Solve projected problem */ 
     ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,nv);CHKERRQ(ierr);
 
-    /* Compute residual norm estimates and check convergence */ 
-    eps->ldz = nv;
+    /* Check convergence */ 
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,H,eps->ncv,U,eps->V,nv,beta,corrf,&k,work);CHKERRQ(ierr);
+
+    /*eps->ldz = nv;
     if (eps->ishermitian) eps->Z = U+eps->ldz*eps->nconv+eps->nconv;
     else eps->Z = Y;
     for (k=eps->nconv;k<nv;k++) {
@@ -425,13 +429,13 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
       else iscomplex = PETSC_FALSE;
       ierr = ArnoldiResiduals2(H,eps->ncv,U,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
       if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-        eps->errest[k] *= sqrt(1.0+gnorm); /* Fix residual norms */
-        if (iscomplex) eps->errest[k+1] *= sqrt(1.0+gnorm); /* Fix residual norms */
+        eps->errest[k] *= sqrt(1.0+gnorm);
+        if (iscomplex) eps->errest[k+1] *= sqrt(1.0+gnorm);
       }
       ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
       if (!eps->conv[k]) break;
       if (iscomplex) { eps->errest[k+1] = eps->errest[k]; eps->conv[k+1] = eps->conv[k]; k++; }
-    }
+    }*/
     
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,nv,Hcopy,eps->ncv);CHKERRQ(ierr);
     eps->nconv = k;
@@ -449,7 +453,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
   
-  ierr = PetscFree(U);CHKERRQ(ierr); eps->Z = PETSC_NULL;
+  ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscFree(g);CHKERRQ(ierr);

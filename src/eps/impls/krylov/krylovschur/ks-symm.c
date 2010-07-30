@@ -196,7 +196,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   PetscFunctionBegin;
   lds = PetscMin(eps->mpd,eps->ncv);
   ierr = PetscMalloc(lds*lds*sizeof(PetscReal),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr); eps->Z = Q;
+  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   ierr = PetscMalloc(2*lds*sizeof(PetscInt),&iwork);CHKERRQ(ierr);
   lt = PetscMin(eps->nev+eps->mpd,eps->ncv);
   ierr = PetscMalloc(lt*sizeof(PetscReal),&a);CHKERRQ(ierr);  
@@ -257,7 +257,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     
   } 
 
-  ierr = PetscFree(Q);CHKERRQ(ierr); eps->Z = PETSC_NULL;
+  ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(a);CHKERRQ(ierr);
   ierr = PetscFree(b);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);

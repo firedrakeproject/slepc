@@ -83,8 +83,7 @@ struct _p_EPS {
               *IS, *ISL,        /* placeholder for references to user-provided initial space */
               *DS;              /* deflation space */
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
-              *T, *Tl,          /* projected matrices */
-              *Z;               /* matrix from the eigenvalue decomposition of T */
+              *T, *Tl;          /* projected matrices */
   PetscReal   *errest,          /* error estimates */
               *errest_left;     /* left error estimates */
   ST          OP;               /* spectral transformation object */
@@ -95,7 +94,6 @@ struct _p_EPS {
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
               nv,               /* size of current Schur decomposition */
-              ldz,              /* leading dimension of Z */
               n, nloc,          /* problem dimensions (global, local) */
               allocated_ncv;    /* number of basis vectors allocated */
   PetscTruth  evecsavailable;   /* computed eigenvectors */

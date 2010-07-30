@@ -97,7 +97,7 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
   ierr = PetscOptionsGetReal(PETSC_NULL,"-eps_distance",&distance,PETSC_NULL);CHKERRQ(ierr);
   lds = PetscMin(eps->mpd,eps->ncv);
   ierr = PetscMalloc(lds*lds*sizeof(PetscReal),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr); eps->Z = Q;
+  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   ierr = PetscMalloc(2*lds*sizeof(PetscInt),&iwork);CHKERRQ(ierr);
   lt = PetscMin(eps->nev+eps->mpd,eps->ncv);
   ierr = PetscMalloc(lt*sizeof(PetscReal),&a);CHKERRQ(ierr);  
@@ -121,13 +121,7 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
     ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
 
     /* Check convergence */
-    eps->ldz = nv;
-    for (k=eps->nconv;k<eps->nconv+nv;k++) {
-      eps->errest[k] = beta*PetscAbsScalar(Q[(k-eps->nconv+1)*nv-1]);
-      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
-      if (!eps->conv[k]) break;
-    }
-
+    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv,PETSC_NULL,nv,Q,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
@@ -189,7 +183,7 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
     
   } 
 
-  ierr = PetscFree(Q);CHKERRQ(ierr); eps->Z = PETSC_NULL;
+  ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(a);CHKERRQ(ierr);
   ierr = PetscFree(b);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);

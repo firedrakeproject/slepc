@@ -350,7 +350,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->V               = 0;
   eps->W               = 0;
   eps->T               = 0;
-  eps->Z               = 0;
   eps->DS              = 0;
   eps->IS              = 0;
   eps->ISL             = 0;
@@ -365,7 +364,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nconv           = 0;
   eps->its             = 0;
   eps->perm            = PETSC_NULL;
-  eps->ldz             = 0;
 
   eps->nwork           = 0;
   eps->work            = 0;
@@ -589,7 +587,6 @@ PetscErrorCode EPSDestroy(EPS eps)
   
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
-  ierr = PetscFree(eps->Z);CHKERRQ(ierr);
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(eps->rand);CHKERRQ(ierr);
 
