@@ -296,6 +296,21 @@ PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSNormRelativeConverged"
+/*
+  EPSNormRelativeConverged - Checks convergence relative to the eigenvalue and 
+  the matrix norms.
+*/
+PetscErrorCode EPSNormRelativeConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscReal w;
+  PetscFunctionBegin;
+  w = SlepcAbsEigenvalue(eigr,eigi);
+  *errest = res / (eps->nrma + w*eps->nrmb);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSComputeTrueResidual"
 /*
   EPSComputeTrueResidual - Computes the true residual norm of a given Ritz pair:
