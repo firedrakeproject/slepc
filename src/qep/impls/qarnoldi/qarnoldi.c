@@ -75,14 +75,15 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
 {
   PetscErrorCode ierr;
   PetscBLASInt   ione = 1, j_1 = j+1;
-  PetscScalar    x, y, one = 1.0, zero = 0.0;
+  PetscReal      x, y;
+  PetscScalar    dot, one = 1.0, zero = 0.0;
 
   PetscFunctionBegin;
   /* compute norm of v and w */
   if (onorm) {
     ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-    *onorm = PetscSqrtScalar(x*x+y*y);CHKERRQ(ierr);
+    *onorm = sqrt(x*x+y*y);
   }
 
   /* orthogonalize: compute h */
@@ -90,8 +91,8 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
   ierr = VecMDot(w,j_1,V,work);CHKERRQ(ierr);
   if (j>0)
     BLASgemv_("T",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione);
-  ierr = VecDot(t,w,&x);CHKERRQ(ierr);
-  h[j] += x;
+  ierr = VecDot(t,w,&dot);CHKERRQ(ierr);
+  h[j] += dot;
 
   /* orthogonalize: update v and w */
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,j_1,h,V);CHKERRQ(ierr);
@@ -105,7 +106,7 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
   if (norm) {
     ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-    *norm = PetscSqrtScalar(x*x+y*y);CHKERRQ(ierr);
+    *norm = sqrt(x*x+y*y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -222,8 +223,8 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i,j,k,l,lwork,nv;
   Vec            v=qep->work[0],w=qep->work[1];
-  PetscScalar    *S=qep->T,*Q,*work,x,y;
-  PetscReal      beta,norm;
+  PetscScalar    *S=qep->T,*Q,*work;
+  PetscReal      beta,norm,x,y;
   PetscTruth     breakdown,iscomplex;
 
   PetscFunctionBegin;
@@ -244,7 +245,7 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   ierr = SlepcVecSetRandom(w,qep->rand);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-  norm = PetscSqrtScalar(x*x+y*y);CHKERRQ(ierr);
+  norm = sqrt(x*x+y*y);CHKERRQ(ierr);
   ierr = VecScale(v,1/norm);CHKERRQ(ierr);
   ierr = VecScale(w,1/norm);CHKERRQ(ierr);
   
