@@ -533,8 +533,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv;
   Vec            w=eps->work[1],f=eps->work[0];
   PetscScalar    *Y,stmp;
-  PetscReal      *d,*e,*ritz,*bnd,anorm,beta,norm,rtmp;
-  PetscTruth     breakdown,isconv;
+  PetscReal      *d,*e,*ritz,*bnd,anorm,beta,norm,rtmp,resnorm;
+  PetscTruth     breakdown;
   char           *conv,ctmp;
 
   PetscFunctionBegin;
@@ -570,9 +570,9 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
     for (i=0;i<n;i++) {
-      bnd[i] = beta*PetscAbsScalar(Y[i*n+n-1]) + PETSC_MACHINE_EPSILON*anorm;
-      ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],&bnd[i],&isconv,eps->conv_ctx);CHKERRQ(ierr);
-      if (isconv) {
+      resnorm = beta*PetscAbsScalar(Y[i*n+n-1]) + PETSC_MACHINE_EPSILON*anorm;
+      ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],resnorm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
+      if (bnd[i]<eps->tol) {
         conv[i] = 'C';
       } else {
         conv[i] = 'N';
@@ -667,8 +667,8 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
         ierr = STApply(eps->OP,eps->V[nconv+i],w);CHKERRQ(ierr);
 	ierr = VecAXPY(w,-ritz[i],eps->V[nconv+i]);CHKERRQ(ierr);
 	ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
-        ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],&bnd[i],&isconv,eps->conv_ctx);CHKERRQ(ierr);
-        if (!isconv) conv[i] = 'S';
+        ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],norm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
+        if (bnd[i]>=eps->tol) conv[i] = 'S';
       }
       for (i=0;i<k;i++)
         if (conv[i] != 'C') {

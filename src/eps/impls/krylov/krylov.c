@@ -99,7 +99,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscTruth issym,PetscInt kini,Petsc
   PetscInt       k,marker;
   PetscScalar    re,im,*Z,*work2;
   PetscReal      resnorm;
-  PetscTruth     iscomplex,conv,isshift;
+  PetscTruth     iscomplex,isshift;
 
   PetscFunctionBegin;
   if (!issym) { Z = work; work2 = work+2*nv; }
@@ -128,9 +128,8 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscTruth issym,PetscInt kini,Petsc
     }
     else resnorm *= corrf;
     /* error estimate */
-    eps->errest[k] = resnorm;
-    ierr = (*eps->conv_func)(eps,re,im,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
-    if (marker==-1 && !conv) marker = k;
+    ierr = (*eps->conv_func)(eps,re,im,resnorm,&eps->errest[k],eps->conv_ctx);CHKERRQ(ierr);
+    if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
     if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
     if (marker!=-1 && !eps->trackall) break;
   }

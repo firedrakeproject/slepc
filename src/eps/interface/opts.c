@@ -721,7 +721,8 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetConvergenceTest"
 /*@C
-    EPSSetConvergenceTest - Specifies the convergence test.
+    EPSSetConvergenceTest - Sets a function to compute the error estimate used in 
+    the convergence test.
 
     Collective on EPS
 
@@ -731,20 +732,24 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
 -   ctx  - a context pointer (the last parameter to the convergence test function)
 
     Calling Sequence of func:
-$   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscTruth *conv,void *ctx)
+$   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 
 +   eps    - eigensolver context obtained from EPSCreate()
 .   eigr   - real part of the eigenvalue
 .   eigi   - imaginary part of the eigenvalue
-.   res    - computed or estimated residual (on output: error estimate)
-.   conv   - (output) boolean value, true if the convergence criterion is satisfied
+.   res    - residual norm associated to the eigenpair
+.   errest - (output) computed error estimate
 -   ctx    - optional context, as set by EPSSetConvergenceTest()
+
+    Note:
+    If the error estimate returned by the convergence test function is less than
+    the tolerance, then the eigenvalue is accepted as converged.
 
     Level: advanced
 
 .seealso: EPSSetTolerances()
 @*/
-EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*),void* ctx)
+EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
 {
   PetscFunctionBegin;
   eps->conv_func = func;

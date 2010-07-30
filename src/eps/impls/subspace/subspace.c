@@ -237,7 +237,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
-  PetscTruth     breakdown,conv;
+  PetscTruth     breakdown;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5,    /* Max num of iter before next SRR step */

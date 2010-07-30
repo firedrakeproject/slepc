@@ -638,7 +638,8 @@ PetscErrorCode QEPGetProblemType(QEP qep,QEPProblemType *type)
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSetConvergenceTest"
 /*@C
-    QEPSetConvergenceTest - Specifies the convergence test.
+    QEPSetConvergenceTest - Sets a function to compute the error estimate used in 
+    the convergence test.
 
     Collective on QEP
 
@@ -648,25 +649,24 @@ PetscErrorCode QEPGetProblemType(QEP qep,QEPProblemType *type)
 -   ctx  - a context pointer (the last parameter to the convergence test function)
 
     Calling Sequence of func:
-$   func(QEP qep,PetscInt n,PetscInt k,PetscScalar* eigr,PetscScalar* eigi,PetscReal* errest,PetscTruth *conv,void *ctx)
+$   func(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal* errest,void *ctx)
 
 +   qep    - eigensolver context obtained from QEPCreate()
-.   n      - length of the arrays
-.   k      - first position of the array to be considered
-.   eigr   - array containing real parts of the eigenvalues
-.   eigi   - array containing imaginary parts of the eigenvalues
-.   errest - array containing the error estimates (residuals)
-.   conv   - (output) boolean array with the result of the test
+.   eigr   - real part of the eigenvalue
+.   eigi   - imaginary part of the eigenvalue
+.   res    - residual norm associated to the eigenpair
+.   errest - (output) computed error estimate
 -   ctx    - optional context, as set by QEPSetConvergenceTest()
 
     Note:
-    The convergence function sets an element of the flag array for each eigenvalue.
-    
+    If the error estimate returned by the convergence test function is less than
+    the tolerance, then the eigenvalue is accepted as converged.
+
     Level: advanced
 
 .seealso: QEPSetTolerances()
 @*/
-EXTERN PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*),void* ctx)
+EXTERN PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
 {
   PetscFunctionBegin;
   qep->conv_func = func;

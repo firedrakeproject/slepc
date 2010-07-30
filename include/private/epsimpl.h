@@ -59,7 +59,7 @@ struct _p_EPS {
                  nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
-  PetscErrorCode (*conv_func)(EPS,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
+  PetscErrorCode (*conv_func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   void           *conv_ctx;
   EPSWhich       which;            /* which part of the spectrum to be sought */
   PetscTruth     leftvecs;         /* if left eigenvectors are requested */

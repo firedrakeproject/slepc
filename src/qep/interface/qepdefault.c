@@ -87,29 +87,27 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
 #undef __FUNCT__  
 #define __FUNCT__ "QEPDefaultConverged"
 /*
-  QEPDefaultConverged - Checks convergence with the relative error estimate.
+  QEPDefaultConverged - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode QEPDefaultConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal *errest,PetscTruth *conv,void *ctx)
+PetscErrorCode QEPDefaultConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
-  if (w > *errest) *errest = *errest / w;
-  if (*errest < qep->tol) *conv = PETSC_TRUE;
-  else *conv = PETSC_FALSE;
+  *errest = res;
+  if (w > res) *errest = res / w;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPAbsoluteConverged"
 /*
-  QEPAbsoluteConverged - Checks convergence with the absolute error estimate.
+  QEPAbsoluteConverged - Checks convergence absolutely.
 */
-PetscErrorCode QEPAbsoluteConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal *errest,PetscTruth *conv,void *ctx)
+PetscErrorCode QEPAbsoluteConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscFunctionBegin;
-  if (*errest < qep->tol) *conv = PETSC_TRUE;
-  else conv = PETSC_FALSE;
+  *errest = res;
   PetscFunctionReturn(0);
 }
 
@@ -198,7 +196,7 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscSca
   PetscInt       k,marker;
   PetscScalar    re,im,*Z,*work2;
   PetscReal      resnorm;
-  PetscTruth     iscomplex,conv;
+  PetscTruth     iscomplex;
 
   PetscFunctionBegin;
   Z = work; work2 = work+2*nv;
@@ -214,9 +212,8 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscSca
     if (iscomplex) resnorm = beta*SlepcAbsEigenvalue(Z[nv-1],Z[2*nv-1]);
     else resnorm = beta*PetscAbsScalar(Z[nv-1]);
     /* error estimate */
-    qep->errest[k] = resnorm;
-    ierr = (*qep->conv_func)(qep,re,im,&qep->errest[k],&conv,qep->conv_ctx);CHKERRQ(ierr);
-    if (marker==-1 && !conv) marker = k;
+    ierr = (*qep->conv_func)(qep,re,im,resnorm,&qep->errest[k],qep->conv_ctx);CHKERRQ(ierr);
+    if (marker==-1 && qep->errest[k] >= qep->tol) marker = k;
     if (iscomplex) { qep->errest[k+1] = qep->errest[k]; k++; }
     if (marker!=-1 && !qep->trackall) break;
   }
