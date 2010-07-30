@@ -313,7 +313,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       itrsdold[i] = itrsd[i];
       itrsd[i] = its;
       eps->errest[i] = rsd[i];
-      ierr = (*eps->conv_func)(eps,eps->eigr[i],eps->eigi[i],&eps->errest[i],&conv,eps->conv_ctx);CHKERRQ(ierr);
     }
   
     for (;;) {
