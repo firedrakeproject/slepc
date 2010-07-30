@@ -233,7 +233,6 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   lwork = 7*qep->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&qep->Z);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   if (qep->nini>0) {
@@ -310,7 +309,6 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   }
 
   ierr = PetscFree(Q);CHKERRQ(ierr);
-  ierr = PetscFree(qep->Z);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

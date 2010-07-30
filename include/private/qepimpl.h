@@ -56,7 +56,6 @@ struct _p_QEP {
                  nini, ninil;      /* number of initial vectors (negative means not copied yet) */
   PetscReal      tol;              /* tolerance */
   PetscScalar    sfactor;          /* scaling factor of the quadratic problem */
-  PetscTruth     *conv;            /* convergence test */
   PetscErrorCode (*conv_func)(QEP,PetscScalar,PetscScalar,PetscReal*,PetscTruth*,void*);
   void           *conv_ctx;
   QEPWhich       which;            /* which part of the spectrum to be sought */
@@ -72,7 +71,7 @@ struct _p_QEP {
               *W,               /* set of left basis vectors and computed left eigenvectors */
               *IS, *ISL;        /* placeholder for references to user-provided initial space */
   PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
-              *T,*Z;            /* matrices for projected eigenproblem */
+              *T;               /* matrix for projected eigenproblem */
   PetscReal   *errest;          /* error estimates */
   IP          ip;               /* innerproduct object */
   void        *data;            /* placeholder for misc stuff associated 
@@ -81,7 +80,6 @@ struct _p_QEP {
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
               matvecs, linits,  /* operation counters */
-              ldz,              /* leading dimension of Z */
               n, nloc;          /* problem dimensions (global, local) */
   PetscRandom rand;             /* random number generator */
 

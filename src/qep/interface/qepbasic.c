@@ -257,7 +257,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->ninil           = 0;
   qep->tol             = 1e-7;
   qep->sfactor         = 0.0;
-  qep->conv            = PETSC_NULL;
   qep->conv_func       = QEPDefaultConverged;
   qep->conv_ctx        = PETSC_NULL;
   qep->which           = (QEPWhich)0;
@@ -269,7 +268,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->IS              = PETSC_NULL;
   qep->ISL             = PETSC_NULL;
   qep->T               = PETSC_NULL;
-  qep->Z               = PETSC_NULL;
   qep->eigr            = PETSC_NULL;
   qep->eigi            = PETSC_NULL;
   qep->errest          = PETSC_NULL;
@@ -279,7 +277,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->perm            = PETSC_NULL;
   qep->matvecs         = 0;
   qep->linits          = 0;
-  qep->ldz             = 0;
   qep->nwork           = 0;
   qep->work            = PETSC_NULL;
   qep->setupcalled     = 0;
@@ -495,7 +492,6 @@ PetscErrorCode QEPDestroy(QEP qep)
   }
   
   ierr = PetscFree(qep->T);CHKERRQ(ierr);
-  ierr = PetscFree(qep->Z);CHKERRQ(ierr);
 
   if (qep->eigr) { 
     ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
