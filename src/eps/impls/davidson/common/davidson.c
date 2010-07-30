@@ -207,11 +207,6 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = dvd_orthV(eps->ip, PETSC_NULL, 0, PETSC_NULL, 0, eps->DS, 0, eps->nds,
                    PETSC_NULL, 0, eps->rand); CHKERRQ(ierr);
 
-  /* The Davidson solver computes the residual vector and its norm, so
-     EPSResidualConverged is replaced by EPSDefaultConverged */
-  if (eps->conv_func == EPSResidualConverged)
-    eps->conv_func = EPSDefaultConverged;
-
   /* Preconfigure dvd */
   ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
                                 initv, eps->IS,

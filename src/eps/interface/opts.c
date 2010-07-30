@@ -110,10 +110,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsTruthGroupBegin("-eps_convergence_default","Default (relative error) convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetConvergenceTest(eps,EPSDefaultConverged,PETSC_NULL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-eps_convergence_absolute","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsTruthGroupEnd("-eps_convergence_absolute","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetConvergenceTest(eps,EPSAbsoluteConverged,PETSC_NULL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_convergence_residual","Residual convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetConvergenceTest(eps,EPSResidualConverged,PETSC_NULL);CHKERRQ(ierr);}
 
     i = j = k = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,PETSC_NULL);CHKERRQ(ierr);
