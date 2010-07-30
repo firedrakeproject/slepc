@@ -421,22 +421,6 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
     /* Check convergence */ 
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,H,eps->ncv,U,eps->V,nv,beta,corrf,&k,work);CHKERRQ(ierr);
 
-    /*eps->ldz = nv;
-    if (eps->ishermitian) eps->Z = U+eps->ldz*eps->nconv+eps->nconv;
-    else eps->Z = Y;
-    for (k=eps->nconv;k<nv;k++) {
-      if (k<nv-1 && H[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
-      else iscomplex = PETSC_FALSE;
-      ierr = ArnoldiResiduals2(H,eps->ncv,U,eps->Z+k*nv,beta,k,iscomplex,nv,eps->errest+k,work);CHKERRQ(ierr);
-      if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-        eps->errest[k] *= sqrt(1.0+gnorm);
-        if (iscomplex) eps->errest[k+1] *= sqrt(1.0+gnorm);
-      }
-      ierr = (*eps->conv_func)(eps,eps->eigr[k],eps->eigi[k],&eps->errest[k],&eps->conv[k],eps->conv_ctx);CHKERRQ(ierr);
-      if (!eps->conv[k]) break;
-      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; eps->conv[k+1] = eps->conv[k]; k++; }
-    }*/
-    
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,nv,Hcopy,eps->ncv);CHKERRQ(ierr);
     eps->nconv = k;
 

@@ -266,7 +266,9 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
     for (k=qep->nconv;k<nv;k++) {
       if (k<nv-1 && S[k+1+k*qep->ncv] != 0.0) iscomplex = PETSC_TRUE;
       else iscomplex = PETSC_FALSE;
-      ierr = ArnoldiResiduals2(S,qep->ncv,Q,qep->Z+k*nv,beta,k,iscomplex,nv,qep->errest+k,work);CHKERRQ(ierr);
+      ierr = DenseSelectedEvec(S,qep->ncv,Q,qep->Z+k*nv,k,iscomplex,nv,work);CHKERRQ(ierr);
+      if (iscomplex) qep->errest[k] = beta*SlepcAbsEigenvalue(qep->Z[(k+1)*nv-1],qep->Z[(k+2)*nv-1]);
+      else qep->errest[k] = beta*PetscAbsScalar(qep->Z[(k+1)*nv-1]);
       ierr = (*qep->conv_func)(qep,qep->eigr[k],qep->eigi[k],&qep->errest[k],&qep->conv[k],qep->conv_ctx);CHKERRQ(ierr);
       if (!qep->conv[k]) break;
       if (iscomplex) { qep->errest[k+1] = qep->errest[k]; qep->conv[k+1] = qep->conv[k]; k++; }

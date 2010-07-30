@@ -835,3 +835,69 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscRe
   PetscFunctionReturn(0);
 #endif
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "DenseSelectedEvec"
+/*
+   DenseSelectedEvec - Computes a selected eigenvector of matrix in Schur form.
+
+   Input Parameters:
+     S - (quasi-)triangular matrix (dimension nv, leading dimension lds)
+     U - orthogonal transformation matrix (dimension nv, leading dimension nv)
+     i - which eigenvector to process
+     iscomplex - true if a complex conjugate pair (in real scalars)
+
+   Output parameters:
+     Y - computed eigenvector, 2 columns if iscomplex=true (leading dimension nv)
+
+   Workspace:
+     work is workspace to store 3*nv scalars, nv booleans and nv reals
+*/
+PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,PetscScalar *Y,PetscInt i,PetscTruth iscomplex,PetscInt nv_,PetscScalar *work)
+{
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       k;
+  PetscBLASInt   mm,mout,info,lds,nv,inc = 1;
+  PetscScalar    tmp,done=1.0,zero=0.0;
+  PetscReal      norm;
+  PetscTruth     *select=(PetscTruth*)(work+4*nv_);
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork=(PetscReal*)(work+3*nv_);
+#endif
+
+  PetscFunctionBegin;
+  lds = PetscBLASIntCast(lds_);
+  nv = PetscBLASIntCast(nv_);
+  for (k=0;k<nv;k++) select[k] = PETSC_FALSE;
+
+  /* Compute eigenvectors Y of S */
+  mm = iscomplex? 2: 1;
+  select[i] = PETSC_TRUE;
+#if !defined(PETSC_USE_COMPLEX)
+  if (iscomplex) select[i+1] = PETSC_TRUE;
+  LAPACKtrevc_("R","S",select,&nv,S,&lds,PETSC_NULL,&nv,Y,&nv,&mm,&mout,work,&info);
+#else
+  LAPACKtrevc_("R","S",select,&nv,S,&lds,PETSC_NULL,&nv,Y,&nv,&mm,&mout,work,rwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (mout != mm) SETERRQ(PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
+  ierr = PetscMemcpy(work,Y,mout*nv*sizeof(PetscScalar));CHKERRQ(ierr);
+
+  /* accumulate and normalize eigenvectors */
+  BLASgemv_("N",&nv,&nv,&done,U,&nv,work,&inc,&zero,Y,&inc);
+#if !defined(PETSC_USE_COMPLEX)
+  if (iscomplex) BLASgemv_("N",&nv,&nv,&done,U,&nv,work+nv,&inc,&zero,Y+nv,&inc);
+#endif
+  mm = mm*nv;
+  norm = BLASnrm2_(&mm,Y,&inc);
+  tmp = 1.0 / norm;
+  BLASscal_(&mm,&tmp,Y,&inc);
+
+  PetscFunctionReturn(0);
+#endif
+}
+
