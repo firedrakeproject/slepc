@@ -22,6 +22,7 @@
 */
 
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
+#include "private/slepcimpl.h"
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  

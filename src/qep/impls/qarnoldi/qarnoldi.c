@@ -69,7 +69,7 @@ PetscErrorCode QEPSetUp_QARNOLDI(QEP qep)
 #undef __FUNCT__  
 #define __FUNCT__ "QEPQArnoldiCGS"
 /*
-  Compute an step of Classical Gram-Schmidt orthogonalization 
+  Compute a step of Classical Gram-Schmidt orthogonalization 
 */
 PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScalar *h,PetscBLASInt j,Vec *V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work)
 {
@@ -114,7 +114,7 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
 #undef __FUNCT__  
 #define __FUNCT__ "QEPQArnoldi"
 /*
-  Compute an run of Q-Arnoldi iterations
+  Compute a run of Q-Arnoldi iterations
 */
 PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscTruth *breakdown,PetscScalar *work)
 {
@@ -225,13 +225,13 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   Vec            v=qep->work[0],w=qep->work[1];
   PetscScalar    *S=qep->T,*Q,*work;
   PetscReal      beta,norm,x,y;
-  PetscTruth     breakdown,iscomplex;
+  PetscTruth     breakdown;
 
   PetscFunctionBegin;
 
   ierr = PetscMemzero(S,qep->ncv*qep->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  lwork = 5*qep->ncv;
+  lwork = 7*qep->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&qep->Z);CHKERRQ(ierr);
 
@@ -246,8 +246,8 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
   norm = sqrt(x*x+y*y);CHKERRQ(ierr);
-  ierr = VecScale(v,1/norm);CHKERRQ(ierr);
-  ierr = VecScale(w,1/norm);CHKERRQ(ierr);
+  ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
+  ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
   
   /* Restart loop */
   l = 0;
@@ -261,19 +261,8 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
     /* Solve projected problem */ 
     ierr = QEPProjectedKSNonsym(qep,l,S,qep->ncv,Q,nv);CHKERRQ(ierr);
 
-    /* Compute residual norm estimates and check convergence */ 
-    qep->ldz = nv;
-    for (k=qep->nconv;k<nv;k++) {
-      if (k<nv-1 && S[k+1+k*qep->ncv] != 0.0) iscomplex = PETSC_TRUE;
-      else iscomplex = PETSC_FALSE;
-      ierr = DenseSelectedEvec(S,qep->ncv,Q,qep->Z+k*nv,k,iscomplex,nv,work);CHKERRQ(ierr);
-      if (iscomplex) qep->errest[k] = beta*SlepcAbsEigenvalue(qep->Z[(k+1)*nv-1],qep->Z[(k+2)*nv-1]);
-      else qep->errest[k] = beta*PetscAbsScalar(qep->Z[(k+1)*nv-1]);
-      ierr = (*qep->conv_func)(qep,qep->eigr[k],qep->eigi[k],&qep->errest[k],&qep->conv[k],qep->conv_ctx);CHKERRQ(ierr);
-      if (!qep->conv[k]) break;
-      if (iscomplex) { qep->errest[k+1] = qep->errest[k]; qep->conv[k+1] = qep->conv[k]; k++; }
-    }
-
+    /* Check convergence */ 
+    ierr = QEPKrylovConvergence(qep,qep->nconv,nv-qep->nconv,S,qep->ncv,Q,nv,beta,&k,work);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = EPS_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = EPS_CONVERGED_TOL;
     

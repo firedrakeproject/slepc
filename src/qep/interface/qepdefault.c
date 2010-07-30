@@ -22,6 +22,7 @@
 */
 
 #include "private/qepimpl.h"   /*I "slepcqep.h" I*/
+#include "private/slepcimpl.h"
 #include "slepcblaslapack.h"
 
 #undef __FUNCT__  
@@ -178,4 +179,51 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
    PetscFunctionReturn(0);
 #endif 
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPKrylovConvergence"
+/*
+   QEPKrylovConvergence - This is the analogue to EPSKrylovConvergence, but
+   for quadratic Krylov methods.
+
+   Differences:
+   - Always non-symmetric
+   - Does not check for STSHIFT
+   - No correction factor
+   - No support for true residual
+*/
+PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt nv,PetscReal beta,PetscInt *kout,PetscScalar *work)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,marker;
+  PetscScalar    re,im,*Z,*work2;
+  PetscReal      resnorm;
+  PetscTruth     iscomplex,conv;
+
+  PetscFunctionBegin;
+  Z = work; work2 = work+2*nv;
+  marker = -1;
+  for (k=kini;k<kini+nits;k++) {
+    /* eigenvalue */
+    re = qep->eigr[k];
+    im = qep->eigi[k];
+    iscomplex = PETSC_FALSE;
+    if (k<nv-1 && S[k+1+k*lds] != 0.0) iscomplex = PETSC_TRUE;
+    /* residual norm */
+    ierr = DenseSelectedEvec(S,lds,Q,Z,k,iscomplex,nv,work2);CHKERRQ(ierr);
+    if (iscomplex) resnorm = beta*SlepcAbsEigenvalue(Z[nv-1],Z[2*nv-1]);
+    else resnorm = beta*PetscAbsScalar(Z[nv-1]);
+    /* error estimate */
+    qep->errest[k] = resnorm;
+    ierr = (*qep->conv_func)(qep,re,im,&qep->errest[k],&conv,qep->conv_ctx);CHKERRQ(ierr);
+    if (marker==-1 && !conv) marker = k;
+    if (iscomplex) { qep->errest[k+1] = qep->errest[k]; k++; }
+    if (marker!=-1 && !qep->trackall) break;
+  }
+  if (marker!=-1) k = marker;
+  *kout = k;
+
+  PetscFunctionReturn(0);
+}
+
 

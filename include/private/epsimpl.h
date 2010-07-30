@@ -153,7 +153,6 @@ EXTERN PetscErrorCode EPSComputeTrueResidual(EPS,PetscScalar,PetscScalar,PetscSc
 EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
 EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscTruth,PetscInt,PetscScalar*);
 EXTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscTruth,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*,PetscScalar*);
 EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);

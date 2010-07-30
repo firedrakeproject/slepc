@@ -123,5 +123,6 @@ EXTERN PetscErrorCode QEPDefaultFreeWork(QEP);
 EXTERN PetscErrorCode QEPComputeVectors_Schur(QEP);
 EXTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 EXTERN PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+EXTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal,PetscInt*,PetscScalar*);
 
 #endif
