@@ -237,7 +237,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T=eps->T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
-  PetscTruth     breakdown;
+  PetscTruth     breakdown,conv;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5,    /* Max num of iter before next SRR step */
@@ -313,7 +313,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       itrsdold[i] = itrsd[i];
       itrsd[i] = its;
       eps->errest[i] = rsd[i];
-      ierr = (*eps->conv_func)(eps,eps->eigr[i],eps->eigi[i],&eps->errest[i],&eps->conv[i],eps->conv_ctx);CHKERRQ(ierr);
+      ierr = (*eps->conv_func)(eps,eps->eigr[i],eps->eigi[i],&eps->errest[i],&conv,eps->conv_ctx);CHKERRQ(ierr);
     }
   
     for (;;) {
