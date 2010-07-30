@@ -209,9 +209,9 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  lwork = (eps->ncv+4)*eps->ncv;
+  lwork = PetscMax((eps->ncv+1)*eps->ncv,7*eps->ncv);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  Y = work+4*eps->ncv; 
+  Y = work+5*eps->ncv; 
   ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
@@ -238,8 +238,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 
     /* Compute residual norm estimates and check convergence */ 
     eps->ldz = nv;
-    if (eps->ishermitian) eps->Z = Q+eps->ldz*eps->nconv+eps->nconv;
-    else eps->Z = Y;
     marker = -1;
     for (k=eps->nconv;k<nv;k++) {
       /* eigenvalue */
@@ -248,9 +246,9 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
       if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
       else iscomplex = PETSC_FALSE;
       /* residual norm */
-      ierr = ArnoldiResiduals2(S,eps->ncv,Q,eps->Z+k*nv,beta,k,iscomplex,nv,&resnorm,work);CHKERRQ(ierr);
+      ierr = ArnoldiResiduals2(S,eps->ncv,Q,Y,beta,k,iscomplex,nv,&resnorm,work);CHKERRQ(ierr);
       if (eps->trueres) {
-        ierr = EPSComputeTrueResidual(eps,re,im,eps->Z+k*nv,eps->V,nv,&resnorm);CHKERRQ(ierr);
+        ierr = EPSComputeTrueResidual(eps,re,im,Y,eps->V,nv,&resnorm);CHKERRQ(ierr);
       }
       else resnorm *= sqrt(1.0+gnorm); /* Fix residual norms */
       /* error estimate */
@@ -306,7 +304,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
     
   } 
 
-  ierr = PetscFree(Q);CHKERRQ(ierr); eps->Z = PETSC_NULL;
+  ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(g);CHKERRQ(ierr);
   PetscFunctionReturn(0);

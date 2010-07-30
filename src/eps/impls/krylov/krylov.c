@@ -159,17 +159,18 @@ PetscErrorCode ArnoldiResiduals(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pets
    eigenvector of H.
 
    Input Parameters:
-   H - (quasi-)triangular matrix (dimension nv, leading dimension ldh)
-   U - orthogonal transformation matrix (dimension nv, leading dimension nv)
-   beta - norm of f
-   i - which eigenvector to process
-   iscomplex - true if a complex conjugate pair (in real scalars)
+     H - (quasi-)triangular matrix (dimension nv, leading dimension ldh)
+     U - orthogonal transformation matrix (dimension nv, leading dimension nv)
+     beta - norm of f
+     i - which eigenvector to process
+     iscomplex - true if a complex conjugate pair (in real scalars)
 
    Output parameters:
-   Y - computed eigenvectors, 2 columns if iscomplex=true (leading dimension nv)
-   est - computed residual norm estimate
+     Y - computed eigenvectors, 2 columns if iscomplex=true (leading dimension nv)
+     est - computed residual norm estimate
 
-work
+   Workspace:
+     work is workspace to store 3*nv scalars, nv booleans and nv reals
 */
 PetscErrorCode ArnoldiResiduals2(PetscScalar *H,PetscInt ldh_,PetscScalar *U,PetscScalar *Y,PetscReal beta,PetscInt i,PetscTruth iscomplex,PetscInt nv_,PetscReal *est,PetscScalar *work)
 {
@@ -199,7 +200,7 @@ PetscErrorCode ArnoldiResiduals2(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pet
   if (iscomplex) select[i+1] = PETSC_TRUE;
   LAPACKtrevc_("R","S",select,&nv,H,&ldh,PETSC_NULL,&nv,Y,&nv,&mm,&mout,work,&info);
 #else
-  LAPACKtrevc_("R","S",select,&nv,H,&ldh,PETSC_NULL,&nv,Y,&nv,&nv,&mout,work,rwork,&info);
+  LAPACKtrevc_("R","S",select,&nv,H,&ldh,PETSC_NULL,&nv,Y,&nv,&mm,&mout,work,rwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   if (mout != mm) SETERRQ(PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
