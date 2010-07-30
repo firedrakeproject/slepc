@@ -375,7 +375,7 @@ EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDCyclicGetExplicitMatrix"
-/*@C
+/*@
    SVDCyclicGetExplicitMatrix - Returns the flag indicating if H(A) is built explicitly
 
    Not collective
@@ -467,7 +467,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicGetEPS"
-/*@C
+/*@
    SVDCyclicGetEPS - Retrieve the eigensolver object (EPS) associated
    to the singular value solver.
 

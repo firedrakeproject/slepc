@@ -265,7 +265,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCrossGetEPS"
-/*@C
+/*@
    SVDCrossGetEPS - Retrieve the eigensolver object (EPS) associated
    to the singular value solver.
 
