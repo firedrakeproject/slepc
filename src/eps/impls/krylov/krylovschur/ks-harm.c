@@ -200,18 +200,17 @@ PetscErrorCode EPSProjectedKSHarmonic(EPS eps,PetscInt l,PetscScalar *S,PetscInt
 PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,nv,marker;
+  PetscInt       i,k,l,lwork,nv;
   Vec            u=eps->work[0];
-  PetscScalar    *S=eps->T,*Q,*Y,*g,*work,re,im;
-  PetscReal      beta,gnorm,resnorm;
-  PetscTruth     breakdown,iscomplex,conv;
+  PetscScalar    *S=eps->T,*Q,*g,*work;
+  PetscReal      beta,gnorm;
+  PetscTruth     breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   lwork = PetscMax((eps->ncv+1)*eps->ncv,7*eps->ncv);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  Y = work+5*eps->ncv; 
   ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
@@ -236,30 +235,8 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
     /* Solve projected problem and compute residual norm estimates */ 
     ierr = EPSProjectedKSHarmonic(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
 
-    /* Compute residual norm estimates and check convergence */ 
-    eps->ldz = nv;
-    marker = -1;
-    for (k=eps->nconv;k<nv;k++) {
-      /* eigenvalue */
-      re = eps->eigr[k];
-      im = eps->eigi[k];
-      if (k<nv-1 && S[k+1+k*eps->ncv] != 0.0) iscomplex = PETSC_TRUE;
-      else iscomplex = PETSC_FALSE;
-      /* residual norm */
-      ierr = ArnoldiResiduals2(S,eps->ncv,Q,Y,beta,k,iscomplex,nv,&resnorm,work);CHKERRQ(ierr);
-      if (eps->trueres) {
-        ierr = EPSComputeTrueResidual(eps,re,im,Y,eps->V,nv,&resnorm);CHKERRQ(ierr);
-      }
-      else resnorm *= sqrt(1.0+gnorm); /* Fix residual norms */
-      /* error estimate */
-      eps->errest[k] = resnorm;
-      ierr = (*eps->conv_func)(eps,re,im,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
-      if (marker==-1 && !conv) marker = k;
-      if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
-      if (marker!=-1 && !eps->trackall) break;
-    }
-    if (marker!=-1) k = marker;
-
+    /* Check convergence */ 
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,S,eps->ncv,Q,eps->V,nv,beta,sqrt(1.0+gnorm),&k,work);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     

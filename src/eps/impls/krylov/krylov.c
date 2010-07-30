@@ -229,6 +229,76 @@ PetscErrorCode ArnoldiResiduals2(PetscScalar *H,PetscInt ldh_,PetscScalar *U,Pet
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSKrylovConvergence"
+/*
+   EPSKrylovConvergence - Implements the loop that checks for convergence
+   in Krylov methods.
+
+   Input Parameters:
+     eps   - the eigensolver; some error estimates are updated in eps->errest 
+     issym - whether the projected problem is symmetric or not
+     kini  - initial value of k (the loop variable)
+     nits  - number of iterations of the loop
+     S     - Schur form of projected matrix (not referenced if issym)
+     lds   - leading dimension of S
+     Q     - Schur vectors of projected matrix (eigenvectors if issym)
+     V     - set of basis vectors (used only if trueresidual is activated)
+     nv    - number of vectors to process (dimension of Q, columns of V)
+     beta  - norm of f (the residual vector of the Arnoldi/Lanczos factorization)
+     corrf - correction factor for residual estimates (only in harmonic KS)
+
+   Output Parameters:
+     kout  - the first index where the convergence test failed
+
+   Workspace:
+     work is workspace to store 5*nv scalars, nv booleans and nv reals (only if !issym)
+*/
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscTruth issym,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,marker;
+  PetscScalar    re,im,*Z,*work2;
+  PetscReal      resnorm;
+  PetscTruth     iscomplex,conv,isshift;
+
+  PetscFunctionBegin;
+  if (!issym) { Z = work; work2 = work+2*nv; }
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
+  marker = -1;
+  for (k=kini;k<kini+nits;k++) {
+    /* eigenvalue */
+    re = eps->eigr[k];
+    im = eps->eigi[k];
+    if (eps->trueres || isshift) {
+      ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+    }
+    iscomplex = PETSC_FALSE;
+    if (!issym && k<nv-1 && S[k+1+k*lds] != 0.0) iscomplex = PETSC_TRUE;
+    /* residual norm */
+    if (issym) {
+      resnorm = beta*PetscAbsScalar(Q[(k-kini+1)*nv-1]);
+    } else {
+      ierr = ArnoldiResiduals2(S,lds,Q,Z,beta,k,iscomplex,nv,&resnorm,work2);CHKERRQ(ierr);
+    }
+    if (eps->trueres) {
+      if (issym) Z = Q+(k-kini)*nv;
+      ierr = EPSComputeTrueResidual(eps,re,im,Z,V,nv,&resnorm);CHKERRQ(ierr);
+    }
+    else resnorm *= corrf;
+    /* error estimate */
+    eps->errest[k] = resnorm;
+    ierr = (*eps->conv_func)(eps,re,im,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
+    if (marker==-1 && !conv) marker = k;
+    if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
+    if (marker!=-1 && !eps->trackall) break;
+  }
+  if (marker!=-1) k = marker;
+  *kout = k;
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSFullLanczos"
 /*
    EPSFullLanczos - Computes an m-step Lanczos factorization with full

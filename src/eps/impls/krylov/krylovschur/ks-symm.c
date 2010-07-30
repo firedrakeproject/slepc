@@ -186,12 +186,12 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lds,lt,nv,m,marker;
+  PetscInt       i,k,l,lds,lt,nv,m;
   Vec            u=eps->work[0];
-  PetscScalar    *Q,re,im;
-  PetscReal      *a,*b,*work,beta,resnorm;
+  PetscScalar    *Q;
+  PetscReal      *a,*b,*work,beta;
   PetscInt       *iwork;
-  PetscTruth     breakdown,conv,isshift;
+  PetscTruth     breakdown;
 
   PetscFunctionBegin;
   lds = PetscMin(eps->mpd,eps->ncv);
@@ -201,7 +201,6 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   lt = PetscMin(eps->nev+eps->mpd,eps->ncv);
   ierr = PetscMalloc(lt*sizeof(PetscReal),&a);CHKERRQ(ierr);  
   ierr = PetscMalloc(lt*sizeof(PetscReal),&b);CHKERRQ(ierr);  
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -221,28 +220,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
     ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
 
     /* Check convergence */
-    eps->ldz = nv;
-    marker = -1;
-    for (k=eps->nconv;k<eps->nconv+nv;k++) {
-      /* eigenvalue */
-      re = eps->eigr[k];
-      im = 0.0;
-      if (eps->trueres || isshift) {
-        ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
-      }
-      /* residual norm */
-      resnorm = beta*PetscAbsScalar(Q[(k-eps->nconv+1)*nv-1]);
-      if (eps->trueres) {
-        ierr = EPSComputeTrueResidual(eps,re,im,Q+(k-eps->nconv)*nv,eps->V+eps->nconv,nv,&resnorm);CHKERRQ(ierr);
-      }
-      /* error estimate */
-      eps->errest[k] = resnorm;
-      ierr = (*eps->conv_func)(eps,re,im,&eps->errest[k],&conv,eps->conv_ctx);CHKERRQ(ierr);
-      if (marker==-1 && !conv) marker = k;
-      if (marker!=-1 && !eps->trackall) break;
-    }
-    if (marker!=-1) k = marker;
-
+    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv,PETSC_NULL,nv,Q,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
