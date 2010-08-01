@@ -30,8 +30,9 @@ static char help[] = "Singular value decomposition of the Lauchli matrix.\n"
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 A;		  /* operator matrix */
-  SVD         	 svd;		  /* singular value problem solver context */
+  Mat         	 A;               /* operator matrix */
+  Vec            u,v;             /* left and right singular vectors */
+  SVD         	 svd;             /* singular value problem solver context */
   const SVDType  type;
   PetscReal   	 error, tol, sigma, mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscErrorCode ierr;
@@ -64,6 +65,7 @@ int main( int argc, char **argv )
   
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&v,&u);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
           Create the singular value solver and set various options
@@ -128,7 +130,7 @@ int main( int argc, char **argv )
       /* 
          Get converged singular triplets: i-th singular value is stored in sigma
       */
-      ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
 
       /*
          Compute the error associated to each singular triplet 
@@ -146,6 +148,8 @@ int main( int argc, char **argv )
   */
   ierr = SVDDestroy(svd);CHKERRQ(ierr);
   ierr = MatDestroy(A);CHKERRQ(ierr);
+  ierr = VecDestroy(u);CHKERRQ(ierr);
+  ierr = VecDestroy(v);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }
