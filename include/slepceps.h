@@ -54,6 +54,8 @@ E*/
 #define EPSLANCZOS   "lanczos"
 #define EPSKRYLOVSCHUR "krylovschur"
 #define EPSDSITRLANCZOS "dsitrlanczos"
+#define EPSGD        "gd"
+#define EPSJD        "jd"
 #define EPSLAPACK    "lapack"
 /* the next ones are interfaces to external libraries */
 #define EPSARPACK    "arpack"
@@ -61,8 +63,6 @@ E*/
 #define EPSTRLAN     "trlan"
 #define EPSBLOPEX    "blopex"
 #define EPSPRIMME    "primme"
-#define EPSGD        "gd"
-#define EPSJD        "jd"
 
 /*E
     EPSProblemType - determines the type of eigenvalue problem
