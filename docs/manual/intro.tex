@@ -27,7 +27,7 @@
 %---------------------------------------------------
 \section{SLEPc and PETSc}
 
-	The \slepc library is an attempt to provide a solution to the situation described in the previous paragraphs. It is intended to be a general library for the solution of eigenvalue problems that arise in different contexts, covering standard and generalized problems, both Hermitian and non-Hermitian, with either real or complex arithmetic. Issues such as usability, portability, efficiency and interoperability are addressed, and special emphasis is put on flexibility, providing data-structure neutral implementations and multitude of run-time options. \slepc offers a growing number of eigensolvers as well as interfaces to integrate well-established eigenvalue packages such as \arpack. In addition, a specific module for SVD computation is included as well.
+	The \slepc library is an attempt to provide a solution to the situation described in the previous paragraphs. It is intended to be a general library for the solution of eigenvalue problems that arise in different contexts, covering standard and generalized problems, both Hermitian and non-Hermitian, with either real or complex arithmetic. Issues such as usability, portability, efficiency and interoperability are addressed, and special emphasis is put on flexibility, providing data-structure neutral implementations and multitude of run-time options. \slepc offers a growing number of eigensolvers as well as interfaces to integrate well-established eigenvalue packages such as \arpack. In addition, specific modules for SVD computation and quadratic eigenproblems are included as well.
 
 	\slepc is based on \petsc, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2002:PUM}, and, therefore, a large percentage of the software complexity is avoided since many \petsc developments are leveraged, including matrix storage formats and linear solvers, to name a few. \slepc focuses on high level features for eigenproblems, structured around a few object types as described below. 
 
@@ -84,22 +84,28 @@
                 rectangle node[text width=1.5cm] {Backward Euler} ++(1.7,1) ++(0,-1) 
                 rectangle node[text width=1.8cm] {Pseudo Time Stepping} ++(2.1,1) ++(0,-1) 
                 rectangle node {Other} ++(1.1,1);
-  \node[above,text centered,font=\sffamily\bfseries\Large] at (13.85,9.1) {SLEPc};
-  \draw[interface] (11,8.4) rectangle node {SVD Solvers} +(5.7,0.6);
+  \node[above,text centered,font=\sffamily\bfseries\Large] at (15.1,9.1) {SLEPc};
+  \draw[interface] (11,8.4) rectangle node {SVD Solvers} +(5.2,0.6);
   \draw[implem] (11,7.4) rectangle node[text width=1.2cm] {Cross Product} ++(1.3,1) ++(0,-1) 
                 rectangle node[text width=1.2cm] {Cyclic Matrix} ++(1.2,1) ++(0,-1) 
-                rectangle node {Lanczos} ++(1.5,1) ++(0,-1) 
-                rectangle node[text width=1.7cm] {Thick Res. Lanczos} ++(1.7,1);
-  \draw[interface] (11,6.55) rectangle node {Eigensolvers} +(5.7,0.6);
+                rectangle node {Lanczos} ++(1.3,1) ++(0,-1) 
+                rectangle node[text width=1.7cm] {Thick R. Lanczos} ++(1.4,1);
+  \draw[interface] (16.5,8.4) rectangle node {Quadratic} +(2.7,0.6);
+  \draw[implem] (16.5,7.4) rectangle node[text width=1.2cm] {Linear\-ization} ++(1.2,1) ++(0,-1) 
+                rectangle node[text width=1.7cm] {Q-Arnoldi} ++(1.5,1);
+  \draw[interface] (11,6.55) rectangle node {Eigensolvers} +(8.2,0.6);
   \draw[implem] (11,5.55) rectangle node {Krylov-Schur} ++(2,1) ++(0,-1) 
                 rectangle node {Arnoldi} ++(1.3,1) ++(0,-1) 
-                rectangle node {Lanczos} ++(1.3,1) ++(0,-1) 
-                rectangle node {Other} ++(1.1,1);
-  \draw[interface] (11,4.7) rectangle node {Spectral Transform} +(5.7,0.6);
+                rectangle node {Lanczos} ++(1.4,1) ++(0,-1) 
+                rectangle node {GD} ++(1.1,1) ++(0,-1)
+                rectangle node {JD} ++(1.1,1) ++(0,-1)
+                rectangle node {Other} ++(1.3,1);
+  \draw[interface] (11,4.7) rectangle node {Spectral Transformation} +(8.2,0.6);
   \draw[implem] (11,3.7) rectangle node {Shift} ++(1,1) ++(0,-1) 
                 rectangle node {Shift-and-invert} ++(2.5,1) ++(0,-1) 
                 rectangle node {Cayley} ++(1.2,1) ++(0,-1) 
-                rectangle node {Fold} ++(1,1);
+                rectangle node {Fold} ++(1,1) ++(0,-1)
+                rectangle node {Preconditioner} ++(2.5,1);
 \end{tikzpicture}
 \caption{\label{fig:slepc}Numerical components of \petsc and \slepc.}
 \end{figure}
@@ -132,7 +138,8 @@
          2.3.1 &               2.3.1 &         & Mar 2006     \\
          2.3.2 &        2.3.1, 2.3.2 & $\star$ & Oct 2006     \\
          2.3.3 &               2.3.3 & $\star$ & Jun 2007     \\ 
-         3.0.0 &               3.0.0 & $\star$ & Feb 2009     \\ \hline
+         3.0.0 &               3.0.0 & $\star$ & Feb 2009     \\
+         3.1   &               3.1   & $\star$ & Aug 2010     \\ \hline
 \end{tabular}
 \caption{\label{tab:ver} Correspondence between \slepc and \petsc\ releases.}
 \end{table}
@@ -147,17 +154,17 @@
 \begin{enumerate}
 	\item Unbundle the distribution file with 
 	\begin{Verbatim}[fontsize=\small]
-        tar xzf slepc-3.0.0-p0.tgz
+        tar xzf slepc-3.1-p0.tgz
 	\end{Verbatim}
         or an equivalent command. This will create a directory and unpack the software there.
 	\item Set the environment variable \ident{SLEPC\_DIR} to the full path of the \slepc home directory. For example, under the \texttt{bash} shell:
 	\begin{Verbatim}[fontsize=\small]
-	export SLEPC_DIR=/home/username/slepc-3.0.0
+	export SLEPC_DIR=/home/username/slepc-3.1
 	\end{Verbatim}
 	In addition to this variable, \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} must also be set appropriately (see \S\ref{sec:prefix-inst} for a case in which \ident{PETSC\_ARCH} is not required), for example
 	\begin{Verbatim}[fontsize=\small]
-	export PETSC_DIR=/home/username/petsc-3.0.0
-	export PETSC_ARCH=darwin9.6.0-c-debug
+	export PETSC_DIR=/home/username/petsc-3.1
+	export PETSC_ARCH=darwin10.4.0-c-debug
 	\end{Verbatim}
 	\item\label{step-config} Change to the \slepc directory and run the configuration script:
 	\begin{Verbatim}[fontsize=\small]
@@ -192,7 +199,7 @@ In \slepc, configure options have the following purposes:
 Section \ref{sec:wrap} provides more details related to use of external libraries.
 \end{itemize}
 
-Additionally, \petsc's configuration script provides a very long list of options that are relevant to \slepc. Here is a list of options that may be useful. Note that these are options of \petsc that apply to both \petsc and \slepc, in such a way that it is not possible to e.g.~build \petsc without debugging and \slepc with debugging.
+Additionally, \petsc's configuration script provides a very long list of options that are relevant to \slepc. Here is a list of options that may be useful. Note that these are options of \petsc that apply to both \petsc and \slepc, in such a way that it is not possible to, e.g., build \petsc without debugging and \slepc with debugging.
 \begin{itemize}
 \item Add \Verb!--with-scalar-type=complex! to build complex scalar versions of all libraries. See below a note related to complex scalars.
 \item Build single precision versions with \Verb!--with-precision=single!. In most applications, this can achieve a significant reduction of memory requirements, and a moderate reduction of computing time. Other precisions are available, such as \texttt{longdouble}.
@@ -242,18 +249,18 @@ In \petsc, if an installation directory has been specified during configuration 
 	\end{Verbatim}
 	This is useful for building as a regular user and then copying the libraries and include files to the system directories as root.
 
-To be more precise, suppose that the configuration was done with \texttt{-{}-prefix=/opt/petsc-3.0.0-linux-gnu-c-debug}. Then, \texttt{make install} will create directory \texttt{/opt/petsc-3.0.0-linux-gnu-c-debug} if it does not exist, and create subdirectories \texttt{lib}, \texttt{conf}, and \texttt{include}, that will store the libraries, the configuration files, and the header files, respectively. Note that the source code files are not copied, nor the documentation, so the size of the installed directory will be much smaller than the original one. For that reason, it is no longer necessary to allow for several configurations to share a directory tree. In other words, in a prefix-based installation, variable \ident{PETSC\_ARCH} loses significance and must be unset. To maintain several configurations, one should specify different prefix directories, typically with a name that informs about the configuration options used.
+To be more precise, suppose that the configuration was done with \texttt{-{}-prefix=/opt/petsc-3.1-linux-gnu-c-debug}. Then, \texttt{make install} will create directory \texttt{/opt/petsc-3.1-linux-gnu-c-debug} if it does not exist, and create subdirectories \texttt{lib}, \texttt{conf}, and \texttt{include}, that will store the libraries, the configuration files, and the header files, respectively. Note that the source code files are not copied, nor the documentation, so the size of the installed directory will be much smaller than the original one. For that reason, it is no longer necessary to allow for several configurations to share a directory tree. In other words, in a prefix-based installation, variable \ident{PETSC\_ARCH} loses significance and must be unset. To maintain several configurations, one should specify different prefix directories, typically with a name that informs about the configuration options used.
 
 In order to prepare a prefix-based installation of \slepc that uses a prefix-based installation of \petsc, start by setting the appropriate value of \ident{PETSC\_DIR}. Then, run \slepc's configure with a prefix directory.
 	\begin{Verbatim}[fontsize=\small]
-	export PETSC_DIR=/opt/petsc-3.0.0-linux-gnu-c-debug
+	export PETSC_DIR=/opt/petsc-3.1-linux-gnu-c-debug
 	export PETSC_ARCH=linux-gnu-c-debug
 	cd $SLEPC_DIR
-	./configure --prefix=/opt/slepc-3.0.0-linux-gnu-c-debug
+	./configure --prefix=/opt/slepc-3.1-linux-gnu-c-debug
 	make 
 	make install
 	unset PETSC_ARCH
-	export SLEPC_DIR=/opt/slepc-3.0.0-linux-gnu-c-debug
+	export SLEPC_DIR=/opt/slepc-3.1-linux-gnu-c-debug
 	\end{Verbatim}
 Note that the value of \ident{PETSC\_ARCH} set before \slepc's configure need not be the same as the one used during \petsc's configuration, before install. This value of the \ident{PETSC\_ARCH} variable is required only during \slepc's build, and should be unset afterwards.
 
@@ -266,7 +273,7 @@ Note that the value of \ident{PETSC\_ARCH} set before \slepc's configure need no
 Before using \slepc, the user must first set the environment variable
 \ident{SLEPC\_DIR}, indicating the full path of the directory containing \slepc. For example, under the \texttt{bash} shell, a command of the form
 	\begin{Verbatim}[fontsize=\small]
-	export SLEPC_DIR=/software/slepc-3.0.0
+	export SLEPC_DIR=/software/slepc-3.1
 	\end{Verbatim}
 can be placed in the user's \Verb!.bashrc! file.
 The \ident{SLEPC\_DIR} directory can be either a standard installation \slepc directory, or a prefix-based installation directory, see \S\ref{sec:prefix-inst}.
@@ -372,7 +379,7 @@ In the example program shown above there is no explicit reference to spectral tr
 The examples provided in the \Verb!src/examples! directory demonstrate the software usage and can serve as templates for developing custom applications. To write a new application program using \slepc, we suggest the following procedure:
 \begin{enumerate}
 \item Install and test \slepc according to the instructions given in the documentation.
-\item Copy the \slepc example that corresponds to the class of problem of interest (e.g. singular value decomposition).
+\item Copy the \slepc example that corresponds to the class of problem of interest (e.g., singular value decomposition).
 \item Copy the makefile within the example directory (or create a new one as explained below); compile and run the example program.
 \item Use the example program as a starting point for developing a custom code.
 \end{enumerate}

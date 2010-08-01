@@ -34,7 +34,7 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.0.0}
+\newcommand{\slepcversion}{3.1}
 \newcommand{\slepchome}{http://www.grycap.upv.es/slepc}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
@@ -103,21 +103,18 @@
 }
 
 \author{
-	Vicente Hern\'andez
-	\\
-	Jos\'e E. Rom\'an
-	\\
-	Eloy Romero
-	\\
-	Andr\'es Tom\'as
-	\\
-	Vicent Vidal
-	\\[2cm]
+{\small\sffamily Developers:}\hspace*{4cm}\\
+  Jos\'e E. Rom\'an\\
+  Eloy Romero\\
+  Andr\'es Tom\'as\\[3mm]
+{\small\sffamily Former collaborators:}\hspace*{2.7cm}\\
+  Vicente Hern\'andez\\
+  Vicent Vidal\\[1cm]
 }
 
 \date{
 	To be used with \slepc \slepcversion\\
-	February, 2009
+	August, 2010
 }
 
 {
@@ -142,7 +139,7 @@
 
 	This document describes \slepc, the {\em Scalable Library for Eigenvalue Problem Computations}, a software package for the solution of large sparse eigenproblems on parallel computers. It can be used for the solution of problems formulated in either standard or generalized form, as well as other related problems such as the singular value decomposition (SVD). \slepc is a general library in the sense that it covers both Hermitian and non-Hermitian problems, with either real or complex arithmetic.
 
-	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Therefore, most of the methods offered by the library are projection methods such as Arnoldi, Lanczos or Subspace Iteration. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from eigensolvers and SVD solvers, \slepc also provides built-in support for spectral transformations such as shift-and-invert.
+	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from eigensolvers and SVD solvers, \slepc also provides built-in support for spectral transformations such as shift-and-invert.
 
 	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2002:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
@@ -165,14 +162,14 @@
 
 \subsubsection*{How to Read this Manual}
 
-	Users that are already familiar with \packnoi{pets\rm c} can read chapter \ref{cap:int} very fast. Section \ref{sec:eig} provides a brief overview of eigenproblems and the general concepts used by eigensolvers, so it can be skipped by experienced users. Chapters \ref{cap:eps}, \ref{cap:st} and \ref{cap:svd} describe the main \slepc functionality, and include an advanced usage section that can be skipped at a first reading. Finally, chapter \ref{cap:add} contains less important, additional information.  
+	Users that are already familiar with \packnoi{pets\rm c} can read chapter \ref{cap:int} very fast. Section \ref{sec:eig} provides a brief overview of eigenproblems and the general concepts used by eigensolvers, so it can be skipped by experienced users. Chapters \ref{cap:eps}--\ref{cap:qep} describe the main \slepc functionality, and include an advanced usage section that can be skipped at a first reading. Finally, chapter \ref{cap:add} contains less important, additional information.  
 
 \subsubsection*{What's New}
 
 In this version, the following parts of the Users Manual have been added or modified with respect to the previous one:
 \begin{itemize}
-\item Installation instructions have been extended, \S\ref{sec:inst}.
-\item New features added to \texttt{EPS} are described in \S\ref{sec:large-nev} and \S\ref{sec:harmonic}.
+\item Chapter \ref{cap:qep} is new, and describes the solvers for quadratic eigenproblems.
+\item Parts of chapter \ref{cap:eps} have been updated to include new \texttt{EPS} features, e.g., \S\ref{sec:defprob} and \S\ref{sec:retrsol}.
 \end{itemize}
 
 \subsubsection*{\slepc Technical Reports}
@@ -186,8 +183,9 @@ In this version, the following parts of the Users Manual have been added or modi
 
 	Development of \slepc has been partially funded by the following grants:
 \begin{itemize}
-\item Science and Technology Office of the Valencian Regional Government, grant number CTIDB/2002/54, PI: Vicente Hern\'andez.
+\item Ministerio de Ciencia e Innovaci\'on (Spain), grant number TIN2009-07519, PI: Jos\'e E. Rom\'an.
 \item Directorate of Research and Technology Transfer, Valencian Regional Administration, grant number GV06/091, PI: Jos\'e E. Rom\'an.
+\item Science and Technology Office of the Valencian Regional Government, grant number CTIDB/2002/54, PI: Vicente Hern\'andez.
 \end{itemize}
 
 \subsubsection*{License and Copyright}
@@ -196,7 +194,7 @@ Starting from version 3.0.0, \slepc is released under the GNU LGPL license. Deta
 
 \begin{quote}
 \begin{sffamily}
-Copyright 2002--2009 Universidad Polit\'ecnica de Valencia, Spain
+Copyright 2002--2010 Universidad Polit\'ecnica de Valencia, Spain
 \end{sffamily}
 \end{quote}
 
@@ -245,6 +243,7 @@ Copyright 2002--2009 Universidad Polit\'ecnica de Valencia, Spain
 \item[\textrm{\sffamily[STR-6]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as, V. Vidal. ``A Survey of Software for Sparse Eigenvalue Problems.'' 
 \item[\textrm{\sffamily[STR-7]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as, V. Vidal. ``Krylov-Schur Methods in \slepc.'' 
 \item[\textrm{\sffamily[STR-8]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as. ``Restarted Lanczos Bidiagonalization for the SVD in \slepc.'' 
+\item[\textrm{\sffamily[STR-9]}] J. E. Rom\'an. ``Practical Implementation of Harmonic Krylov-Schur.'' 
 \end{list}
 }
 
