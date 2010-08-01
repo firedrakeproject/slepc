@@ -621,9 +621,12 @@ PetscErrorCode EPSDestroy(EPS eps)
 @*/
 PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   eps->target = target;
+  ierr = STSetDefaultShift(eps->OP,target);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

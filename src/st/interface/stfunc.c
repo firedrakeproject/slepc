@@ -169,6 +169,8 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->A                   = 0;
   st->B                   = 0;
   st->sigma               = 0.0;
+  st->sigma_set           = PETSC_FALSE;
+  st->defsigma            = 0.0;
   st->data                = 0;
   st->setupcalled         = 0;
   st->w                   = 0;
@@ -284,6 +286,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
     }
   }
   st->sigma = shift;
+  st->sigma_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -308,6 +311,29 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   if (shift)  *shift = st->sigma;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STSetDefaultShift"
+/*@
+   STSetDefaultShift - Sets the value of the shift that should be employed if
+   the user did not specify one.
+
+   Collective on ST
+
+   Input Parameters:
++  st - the spectral transformation context
+-  defaultshift - the default value of the shift
+
+   Level: developer
+
+@*/
+PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  st->defsigma = defaultshift;
   PetscFunctionReturn(0);
 }
 

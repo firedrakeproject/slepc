@@ -73,6 +73,7 @@ EXTERN PetscErrorCode STSetKSP(ST,KSP);
 EXTERN PetscErrorCode STGetKSP(ST,KSP*);
 EXTERN PetscErrorCode STSetShift(ST,PetscScalar);
 EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
+EXTERN PetscErrorCode STSetDefaultShift(ST,PetscScalar);
 EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
 EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
 

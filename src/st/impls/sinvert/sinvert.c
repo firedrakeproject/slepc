@@ -116,6 +116,9 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscFunctionBegin;
   if (st->mat) { ierr = MatDestroy(st->mat);CHKERRQ(ierr); }
 
+  /* if the user did not set the shift, use the target value */
+  if (!st->sigma_set) st->sigma = st->defsigma;
+
   switch (st->shift_matrix) {
   case ST_MATMODE_INPLACE:
     st->mat = PETSC_NULL;

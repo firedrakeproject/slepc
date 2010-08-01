@@ -47,11 +47,12 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
-  PetscTruth     flg;
+  PetscTruth     flg,issinv,iscayley;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   STMatMode      matmode;
+  EPSWhich       whichsave;
   char           filename[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
@@ -69,6 +70,21 @@ PetscErrorCode EPSSolve(EPS eps)
   /* reset the convergence flag from the previous solves */
   eps->reason = EPS_CONVERGED_ITERATING;
 
+  /* temporarily change which */
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&issinv);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
+  if (issinv || iscayley) {
+    whichsave = eps->which;
+    switch(eps->which) {
+      case EPS_TARGET_MAGNITUDE: eps->which = EPS_LARGEST_MAGNITUDE; break;
+      case EPS_TARGET_REAL:      eps->which = EPS_LARGEST_REAL; break;
+      case EPS_TARGET_IMAGINARY: eps->which = EPS_LARGEST_IMAGINARY; break;
+      case EPS_WHICH_USER:       break;
+      default: SETERRQ(1,"Must use target-based which in SINV and CAYLEY transforms");
+    }
+  }
+
+  /* call setup */
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   ierr = STResetOperationCounters(eps->OP);CHKERRQ(ierr);
   ierr = IPResetOperationCounters(eps->ip);CHKERRQ(ierr);
@@ -100,6 +116,8 @@ PetscErrorCode EPSSolve(EPS eps)
   if (eps->ops->backtransform) {
     ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
   }
+  /* restore which */
+  if (issinv || iscayley) eps->which = whichsave;
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {

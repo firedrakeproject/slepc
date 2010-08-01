@@ -137,6 +137,7 @@ PetscErrorCode STSetFromOptions(ST st)
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  PetscScalar    s;
   char           type[256];
   PetscTruth     flg;
   const char     *mode_list[3] = { "copy", "inplace", "shell" };
@@ -157,7 +158,8 @@ PetscErrorCode STSetFromOptions(ST st)
       ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&st->sigma,PETSC_NULL); CHKERRQ(ierr);
+    ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = STSetShift(st,s);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEList("-st_matmode", "Shift matrix mode","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
     if (flg) { st->shift_matrix = (STMatMode)i; }
