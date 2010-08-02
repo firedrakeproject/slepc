@@ -246,7 +246,7 @@ To conclude this section, we mention the possibility of defining an arbitrary so
 \texttt{EPS\_TARGET\_REAL}         & \texttt{-eps\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
 \texttt{EPS\_TARGET\_IMAGINARY}    & \texttt{-eps\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\
 \hline
-\texttt{EPS\_WHICH\_USER}          & \texttt{-eps\_which\_user}         & \emph{user-defined} \\\hline
+\texttt{EPS\_WHICH\_USER}          &                                    & \emph{user-defined} \\\hline
 \end{tabular} }
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
 \end{table}
@@ -270,14 +270,14 @@ The default solver is Krylov-Schur. A detailed description of the implemented al
 
 \begin{table}
 \centering
-{\small \begin{tabular}{lll}
-                           &                      & {\footnotesize Options} \\
-Method                     & \ident{EPSType}      & {\footnotesize Database Name}\\\hline
+{\small \begin{tabular}{lllc}
+                           &                      & {\footnotesize Options} & \\
+Method                     & \ident{EPSType}      & {\footnotesize Database Name} & Default\\\hline
 Power / Inverse / RQI      & \texttt{EPSPOWER}    & \texttt{power} \\
 Subspace Iteration         & \texttt{EPSSUBSPACE} & \texttt{subspace} \\
 Arnoldi                    & \texttt{EPSARNOLDI}  & \texttt{arnoldi} \\
 Lanczos                    & \texttt{EPSLANCZOS}  & \texttt{lanczos} \\
-Krylov-Schur               & \texttt{EPSKRYLOVSCHUR} & \texttt{krylovschur} \\
+Krylov-Schur               & \texttt{EPSKRYLOVSCHUR} & \texttt{krylovschur} & $\star$ \\
 Generalized Davidson       & \texttt{EPSGD}       & \texttt{gd} \\
 Jacobi-Davidson            & \texttt{EPSJD}       & \texttt{jd} \\
 \hline
@@ -418,7 +418,7 @@ The following \slepc function
 	\begin{Verbatim}[fontsize=\small]
 	EPSComputeResidualNorm(EPS eps,PetscInt j,PetscReal *norm)
 	\end{Verbatim}
-computes the 2-norm of $r_j$. Normally, the residual norm is not used directly as a bound in absoulte terms, as in Eq.\ \ref{eq:reserr}. Rather, the error is expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used instead:
+computes the 2-norm of $r_j$. Normally, the residual norm is not used directly as a bound in absolute terms, as in Eq.\ \ref{eq:reserr}. Rather, the error is expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used instead:
 	\findex{EPSComputeRelativeError}
 	\begin{Verbatim}[fontsize=\small]
 	EPSComputeRelativeError(EPS eps,PetscInt j,PetscReal *error);
@@ -449,15 +449,15 @@ The error estimates used for the convergence test are based on the residual norm
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTrueResidual(EPS eps,PetscTruth trueres);
 	\end{Verbatim}
-or with \Verb!-eps_true_residual <its>!.
+or with \Verb!-eps_true_residual!.
 
 \begin{table}
 \centering
-{\small \begin{tabular}{lll}
-Convergence criterion        & Command line key                     & Error bound \\\hline
-Absolute                     & \texttt{-eps\_convergence\_absolute} & $\|r\|$ \\
-Relative to the eigenvalue   & \texttt{-eps\_convergence\_default}  & $\|r\|/|\lambda|$ \\
-Relative to the matrix norms & \texttt{-eps\_convergence\_normrel}  & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
+{\small \begin{tabular}{llll}
+Convergence criterion        & \texttt{conv}            & Command line key                     & Error bound \\\hline
+Absolute                     & \texttt{EPS\_CONV\_ABS}  & \texttt{-eps\_conv\_abs}  & $\|r\|$ \\
+Relative to the eigenvalue   & \texttt{EPS\_CONV\_EIG}  & \texttt{-eps\_conv\_eig}  & $\|r\|/|\lambda|$ \\
+Relative to the matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
 \hline
 \end{tabular} }
 \caption{\label{tab:convergence}Available possibilities for the convergence criterion.}
@@ -479,7 +479,9 @@ The default is to use the criterion relative to the eigenvalue. For the criteria
 	EPSGetErrorEstimate(EPS eps,PetscInt j,PetscReal *errest);
 	\end{Verbatim}
 
-	Error estimates can also be displayed during execution of the solution algorithm, as a way of monitoring convergence. The user can activate this feature by using \Verb!-eps_monitor! within the options database. By default, the solvers run silently without displaying information about the iteration. When the option \Verb!-eps_monitor! is given, then the approximate eigenvalues together with the associated error estimates are printed in each iteration. Application programmers can provide their own routines to perform the monitoring by using the function \ident{EPSMonitorSet}.
+	Error estimates can also be displayed during execution of the solution algorithm, as a way of monitoring convergence. There are several such monitors available. The user can activate them via the options database (see examples below), or within the code with \ident{EPSMonitorSet}. By default, the solvers run silently without displaying information about the iteration. Also, application programmers can provide their own routines to perform the monitoring by using the function \ident{EPSMonitorSet}.
+
+	The most basic monitor prints one approximate eigenvalue together with its associated error estimate in each iteration.
 
 	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor_draw!. Also, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot the computed approximations of the eigenvalues at the end of the process. See Fig.~\ref{fig:plot} for an example.
 
