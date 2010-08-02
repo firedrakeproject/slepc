@@ -123,8 +123,6 @@ EXTERN PetscErrorCode STShellGetName(ST,char*[]);
 
 EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
-EXTERN PetscErrorCode STFoldSetLeftSide(ST st,PetscTruth left);
-
 EXTERN PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
 EXTERN PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
 EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscTruth *setmat);

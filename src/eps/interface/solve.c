@@ -47,6 +47,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
+  PetscScalar    dot;
   PetscTruth     flg,issinv,iscayley,isfold;
   PetscViewer    viewer;
   PetscDraw      draw;
@@ -54,6 +55,9 @@ PetscErrorCode EPSSolve(EPS eps)
   STMatMode      matmode;
   EPSWhich       whichsave;
   char           filename[PETSC_MAX_PATH_LEN];
+  Mat            A,B;
+  KSP            ksp;
+  Vec            w,x;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -61,7 +65,6 @@ PetscErrorCode EPSSolve(EPS eps)
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetTruth(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
-    Mat A,B;
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = MatView(A,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
     if (B) ierr = MatView(B,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
@@ -130,9 +133,6 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
-    Mat B;
-    KSP ksp;
-    Vec w;
     ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
     ierr = KSPCreate(((PetscObject)eps)->comm,&ksp);CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -163,6 +163,24 @@ PetscErrorCode EPSSolve(EPS eps)
     }
   }
 #endif
+
+  /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
+  if (isfold) {
+    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+    ierr = MatGetVecs(A,&w,PETSC_NULL);CHKERRQ(ierr);
+    if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
+    for (i=0;i<eps->nconv;i++) {
+      x = eps->V[i];
+      ierr = MatMult(A,x,w);CHKERRQ(ierr);
+      ierr = VecDot(w,x,&eps->eigr[i]);CHKERRQ(ierr);
+      if (eps->isgeneralized) {
+        ierr = MatMult(B,x,w);CHKERRQ(ierr);
+        ierr = VecDot(w,x,&dot);CHKERRQ(ierr);
+        eps->eigr[i] /= dot;
+      }
+    }
+    ierr = VecDestroy(w);CHKERRQ(ierr);
+  }
 
   /* sort eigenvalues according to eps->which parameter */
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);

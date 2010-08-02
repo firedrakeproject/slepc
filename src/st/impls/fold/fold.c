@@ -25,7 +25,6 @@
 #include "private/stimpl.h"          /*I "slepcst.h" I*/
 
 typedef struct {
-  PetscTruth  left;
   Vec         w2;
 } ST_FOLD;
 
@@ -101,7 +100,6 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 #define __FUNCT__ "STBackTransform_Fold"
 PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
-  ST_FOLD *ctx = (ST_FOLD *) st->data;
   PetscInt j;
   PetscFunctionBegin;
   PetscValidScalarPointer(eigr,3);
@@ -110,8 +108,7 @@ PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScal
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi[j] == 0) {
 #endif
-      if (ctx->left) eigr[j] = st->sigma - PetscSqrtScalar(eigr[j]);
-      else eigr[j] = st->sigma + PetscSqrtScalar(eigr[j]);
+      eigr[j] = st->sigma + PetscSqrtScalar(eigr[j]);
 #if !defined(PETSC_USE_COMPLEX)
     } else {
       PetscScalar r,x,y;
@@ -119,13 +116,8 @@ PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScal
       x = PetscSqrtScalar((r + eigr[j]) / 2);
       y = PetscSqrtScalar((r - eigr[j]) / 2);
       if (eigi[j] < 0) y = - y;
-      if (ctx->left) {
-        eigr[j] = st->sigma - x;
-        eigi[j] = - y;
-      } else {
-        eigr[j] = st->sigma + x;
-        eigi[j] = y;
-      }
+      eigr[j] = st->sigma + x;
+      eigi[j] = y;
     }
 #endif
   }
@@ -152,74 +144,12 @@ PetscErrorCode STSetUp_Fold(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "STFoldSetLeftSide_Fold"
-PetscErrorCode STFoldSetLeftSide_Fold(ST st,PetscTruth left)
-{
-  ST_FOLD *ctx = (ST_FOLD *) st->data;
-
-  PetscFunctionBegin;
-  ctx->left = left;
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-#undef __FUNCT__  
-#define __FUNCT__ "STFoldSetLeftSide"
-/*@
-   STFoldSetLeftSide - Sets a flag to compute eigenvalues on the left side of shift.
-
-   Collective on ST
-
-   Input Parameters:
-+  st  - the spectral transformation context
--  left - if true compute eigenvalues on the left side 
-
-   Options Database Key:
-.  -st_fold_leftside - Sets the value of the flag
-
-   Level: intermediate
-
-.seealso: STSetShift()
-@*/
-PetscErrorCode STFoldSetLeftSide(ST st,PetscTruth left)
-{
-  PetscErrorCode ierr, (*f)(ST,PetscTruth);
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STFoldSetLeftSide_C",(void (**)(void))&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,left);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STView_Fold"
-PetscErrorCode STView_Fold(ST st,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  ST_FOLD        *ctx = (ST_FOLD *) st->data;
-
-  PetscFunctionBegin;
-  if (ctx->left) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  computing eigenvalues on left side of shift\n");CHKERRQ(ierr);
-  }  
-  if (st->B) {
-    ierr = STView_Default(st,viewer);CHKERRQ(ierr);
-  } 
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetFromOptions_Fold"
 PetscErrorCode STSetFromOptions_Fold(ST st) 
 {
   PetscErrorCode ierr;
-  PetscTruth     set,val;
-  ST_FOLD      *ctx = (ST_FOLD *) st->data;
   PC             pc;
   const PCType   pctype;
   const KSPType  ksptype;
@@ -241,12 +171,6 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
     }
   }
 
-  ierr = PetscOptionsHead("ST Fold Options");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-st_fold_leftside","Compute eigenvalues on left side of shift","STFoldSetLeftSide",ctx->left,&val,&set); CHKERRQ(ierr);
-  if (set) {
-    ierr = STFoldSetLeftSide(st,val);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -260,7 +184,6 @@ PetscErrorCode STDestroy_Fold(ST st)
   PetscFunctionBegin;
   if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
   ierr = PetscFree(ctx);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STFoldSetLeftSide_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -283,15 +206,11 @@ PetscErrorCode STCreate_Fold(ST st)
   st->ops->applytrans      = STApplyTranspose_Fold;
   st->ops->backtr	   = STBackTransform_Fold;
   st->ops->setup	   = STSetUp_Fold;
-  st->ops->view 	   = STView_Fold;
+  st->ops->view 	   = STView_Default;
   st->ops->setfromoptions  = STSetFromOptions_Fold;
   st->ops->destroy	   = STDestroy_Fold;
   st->checknullspace	   = 0;
   
-  ctx->left            = PETSC_FALSE;
-  
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STFoldSetLeftSide_C","STFoldSetLeftSide_Fold",STFoldSetLeftSide_Fold);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
