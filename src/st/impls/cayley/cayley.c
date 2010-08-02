@@ -24,8 +24,8 @@
 #include "private/stimpl.h"          /*I "slepcst.h" I*/
 
 typedef struct {
-  PetscScalar tau;
-  PetscTruth  tau_set;
+  PetscScalar nu;
+  PetscTruth  nu_set;
   Vec         w2;
 } ST_CAYLEY;
 
@@ -35,22 +35,22 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
-  PetscScalar    tau = ctx->tau;
+  PetscScalar    nu = ctx->nu;
   
   PetscFunctionBegin;
-  if (st->shift_matrix == ST_MATMODE_INPLACE) { tau = tau + st->sigma; };
+  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
   if (st->B) {
     /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
     ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
     ierr = MatMult(st->B,x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(st->w,tau,ctx->w2);CHKERRQ(ierr);    
+    ierr = VecAXPY(st->w,nu,ctx->w2);CHKERRQ(ierr);    
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
     ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
-    ierr = VecAXPY(st->w,tau,x);CHKERRQ(ierr);
+    ierr = VecAXPY(st->w,nu,x);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -62,23 +62,23 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
-  PetscScalar    tau = ctx->tau;
+  PetscScalar    nu = ctx->nu;
   
   PetscFunctionBegin;
-  if (st->shift_matrix == ST_MATMODE_INPLACE) { tau = tau + st->sigma; };
+  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
   if (st->B) {
     /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
     ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
     ierr = MatMultTranspose(st->B,st->w,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(y,tau,ctx->w2);CHKERRQ(ierr);    
+    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
     ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
-    ierr = VecAXPY(y,tau,st->w);CHKERRQ(ierr);
+    ierr = VecAXPY(y,nu,st->w);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -90,25 +90,25 @@ PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
   PetscErrorCode ierr;
   ST             st;
   ST_CAYLEY      *ctx;
-  PetscScalar    tau;
+  PetscScalar    nu;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&st);CHKERRQ(ierr);
   ctx = (ST_CAYLEY *) st->data;
-  tau = ctx->tau;
+  nu = ctx->nu;
   
-  if (st->shift_matrix == ST_MATMODE_INPLACE) { tau = tau + st->sigma; };
+  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
   if (st->B) {
     /* generalized eigenproblem: y = (A + tB)x */
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
     ierr = MatMult(st->B,x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(y,tau,ctx->w2);CHKERRQ(ierr);    
+    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y = (A + tI)x */
     ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
-    ierr = VecAXPY(y,tau,x);CHKERRQ(ierr);
+    ierr = VecAXPY(y,nu,x);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -139,12 +139,12 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
   PetscValidPointer(eigr,3);
   PetscValidPointer(eigi,4);
   for (j=0;j<n;j++) {
-    if (eigi[j] == 0.0) eigr[j] = (ctx->tau + eigr[j] * st->sigma) / (eigr[j] - 1.0);
+    if (eigi[j] == 0.0) eigr[j] = (ctx->nu + eigr[j] * st->sigma) / (eigr[j] - 1.0);
     else {
       r = eigr[j];
       i = eigi[j];
-      r = st->sigma * (r * r + i * i - r) + ctx->tau * (r - 1);
-      i = - st->sigma * i - ctx->tau * i;
+      r = st->sigma * (r * r + i * i - r) + ctx->nu * (r - 1);
+      i = - st->sigma * i - ctx->nu * i;
       t = i * i + r * (r - 2.0) + 1.0;    
       eigr[j] = r / t;
       eigi[j] = i / t;    
@@ -154,7 +154,7 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
   PetscFunctionBegin;
   PetscValidPointer(eigr,2);
   for (j=0;j<n;j++) {
-    eigr[j] = (ctx->tau + eigr[j] * st->sigma) / (eigr[j] - 1.0);
+    eigr[j] = (ctx->nu + eigr[j] * st->sigma) / (eigr[j] - 1.0);
   }
 #endif
   PetscFunctionReturn(0);
@@ -192,8 +192,8 @@ PetscErrorCode STSetUp_Cayley(ST st)
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
-  if (!ctx->tau_set) { ctx->tau = st->sigma; }
-  if (ctx->tau == 0.0 &&  st->sigma == 0.0) {
+  if (!ctx->nu_set) { ctx->nu = st->sigma; }
+  if (ctx->nu == 0.0 &&  st->sigma == 0.0) {
     SETERRQ(1,"Values of shift and antishift cannot be zero simultaneously");
   }
 
@@ -241,8 +241,8 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   MatStructure   flg;
 
   PetscFunctionBegin;
-  if (!ctx->tau_set) { ctx->tau = newshift; }
-  if (ctx->tau == 0.0 &&  newshift == 0.0) {
+  if (!ctx->nu_set) { ctx->nu = newshift; }
+  if (ctx->nu == 0.0 &&  newshift == 0.0) {
     SETERRQ(1,"Values of shift and antishift cannot be zero simultaneously");
   }
 
@@ -297,7 +297,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 PetscErrorCode STSetFromOptions_Cayley(ST st) 
 {
   PetscErrorCode ierr;
-  PetscScalar    tau;
+  PetscScalar    nu;
   PetscTruth     flg;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
   PC             pc;
@@ -322,9 +322,9 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   }
 
   ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->tau,&tau,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg); CHKERRQ(ierr);
   if (flg) {
-    ierr = STCayleySetAntishift(st,tau);CHKERRQ(ierr);
+    ierr = STCayleySetAntishift(st,nu);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -338,8 +338,8 @@ PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
 
   PetscFunctionBegin;
-  ctx->tau = newshift;
-  ctx->tau_set = PETSC_TRUE;
+  ctx->nu = newshift;
+  ctx->nu_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -354,7 +354,7 @@ EXTERN_C_END
 
    Input Parameters:
 +  st  - the spectral transformation context
--  tau - the anti-shift
+-  nu  - the anti-shift
 
    Options Database Key:
 .  -st_cayley_antishift - Sets the value of the anti-shift
@@ -363,12 +363,12 @@ EXTERN_C_END
 
    Note:
    In the generalized Cayley transform, the operator can be expressed as
-   OP = inv(A - sigma B)*(A + tau B). This function sets the value of tau.
+   OP = inv(A - sigma B)*(A + nu B). This function sets the value of nu.
    Use STSetShift() for setting sigma.
 
 .seealso: STSetShift()
 @*/
-PetscErrorCode STCayleySetAntishift(ST st,PetscScalar tau)
+PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
 {
   PetscErrorCode ierr, (*f)(ST,PetscScalar);
 
@@ -376,7 +376,7 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar tau)
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STCayleySetAntishift_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
-    ierr = (*f)(st,tau);CHKERRQ(ierr);
+    ierr = (*f)(st,nu);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -390,9 +390,9 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g\n",ctx->tau);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g\n",ctx->nu);CHKERRQ(ierr);
 #else
-  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g+%g i\n",PetscRealPart(ctx->tau),PetscImaginaryPart(ctx->tau));CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g+%g i\n",PetscRealPart(ctx->nu),PetscImaginaryPart(ctx->nu));CHKERRQ(ierr);
 #endif
   ierr = STView_Default(st,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -436,10 +436,10 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->destroy         = STDestroy_Cayley;
   st->ops->view            = STView_Cayley;
   
-  st->checknullspace      = STCheckNullSpace_Default;
+  st->checknullspace       = STCheckNullSpace_Default;
 
-  ctx->tau                = 0.0;
-  ctx->tau_set            = PETSC_FALSE;
+  ctx->nu                  = 0.0;
+  ctx->nu_set              = PETSC_FALSE;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
 

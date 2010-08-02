@@ -68,17 +68,17 @@ Spectral Transformation & \ident{STType}    & {\footnotesize Name}    & Operator
 Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift}   & $B^{-1}A+\sigma I$\\
 Spectrum Folding        & \texttt{STFOLD}   & \texttt{fold}    & $(B^{-1}A-\sigma I)^2$\\
 Shift-and-invert        & \texttt{STSINV}   & \texttt{sinvert} & $(A-\sigma B)^{-1}B$\\
-Cayley                  & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\tau B)$\\
+Cayley                  & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\nu B)$\\
 Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defined}\\\hline
 \end{tabular} }
 \caption{\label{tab:transforms}Spectral transformations available in the  \ident{ST} package.}
 \end{table}
 
-	The last column of Table \ref{tab:transforms} shows a general form of the operator used in each case. This generic operator can adopt different particular forms depending on whether the eigenproblem is standard or generalized, or whether the value of the shift ($\sigma$) and anti-shift ($\tau$) is zero or not. All the possible combinations are illustrated in Table \ref{tab:op}.
+	The last column of Table \ref{tab:transforms} shows a general form of the operator used in each case. This generic operator can adopt different particular forms depending on whether the eigenproblem is standard or generalized, or whether the value of the shift ($\sigma$) and anti-shift ($\nu$) is zero or not. All the possible combinations are illustrated in Table \ref{tab:op}.
 	\begin{table}
 	\centering
 	{\small \begin{tabular}{llcc}
-	\ident{ST}     & Choice of $\sigma,\tau$ & Standard problem & Generalized problem \\\hline
+	\ident{ST}     & Choice of $\sigma,\nu$ & Standard problem & Generalized problem \\\hline
 	\texttt{shift}
         & $\sigma=0$     & $A$           & $B^{-1}A$          \\
 	& $\sigma\not=0$ & $A+\sigma I$  & $B^{-1}A+\sigma I$ \\ \hline
@@ -89,9 +89,9 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defi
         & $\sigma=0$     & $A^{-1}$      & $A^{-1}B$          \\
 	& $\sigma\not=0$ & $(A-\sigma I)^{-1}$  & $(A-\sigma B)^{-1}B$ \\ \hline
 	\texttt{cayley}
-	& $\sigma\not=0,\tau=0$ & $(A-\sigma I)^{-1}A$  & $(A-\sigma B)^{-1}A$ \\
-        & $\sigma=0,\tau\not=0$     & $I+\tau A^{-1}$      & $I+\tau A^{-1}B$ \\
-	& $\sigma\not=0,\tau\not=0$ & $(A-\sigma I)^{-1}(A+\tau I)$  & $(A-\sigma B)^{-1}(A+\tau B)$ \\ \hline
+	& $\sigma\not=0,\nu=0$ & $(A-\sigma I)^{-1}A$  & $(A-\sigma B)^{-1}A$ \\
+        & $\sigma=0,\nu\not=0$     & $I+\nu A^{-1}$      & $I+\nu A^{-1}B$ \\
+	& $\sigma\not=0,\nu\not=0$ & $(A-\sigma I)^{-1}(A+\nu I)$  & $(A-\sigma B)^{-1}(A+\nu B)$ \\ \hline
 	\end{tabular} }
 	\caption{\label{tab:op}Operators used in each spectral transformation mode.}
 	\end{table}
@@ -190,21 +190,21 @@ Therefore, after the solution process, the operation to be performed in function
 
 	The generalized Cayley transform (\texttt{STCAYLEY}) is defined from the expressions
 \begin{eqnarray}
-(A-\sigma I)^{-1}(A+\tau I)x=\theta x\;\;,\\
-(A-\sigma B)^{-1}(A+\tau B)x=\theta x\;\;,
+(A-\sigma I)^{-1}(A+\nu I)x=\theta x\;\;,\\
+(A-\sigma B)^{-1}(A+\nu B)x=\theta x\;\;,
 \end{eqnarray}
-for standard and generalized problems, respectively. Sometimes, the term Cayley transform is applied for the particular case in which $\tau=\sigma$. This is the default if $\tau$ is not given a value explicitly. The value of $\tau$ (the anti-shift) can be set with the following function
+for standard and generalized problems, respectively. Sometimes, the term Cayley transform is applied for the particular case in which $\nu=\sigma$. This is the default if $\nu$ is not given a value explicitly. The value of $\nu$ (the anti-shift) can be set with the following function
 	\findex{STCayleySetAntishift}
 	\begin{Verbatim}[fontsize=\small]
-	STCayleySetAntishift(ST st,PetscScalar tau);
+	STCayleySetAntishift(ST st,PetscScalar nu);
 	\end{Verbatim}
 or in the command line with \Verb!-st_cayley_antishift!.
 
 This transformation is mathematically equivalent to shift-and-invert and, therefore, it is effective for finding eigenvalues near $\sigma$ as well. However, in some situations it is numerically advantageous with respect to shift-and-invert (see \citep[\S 11.2]{Bai:2000:TSA}, \citep{Lehoucq:2001:LEC}).
 
 In this case, the relation between the eigenvalues of both problems is
-\begin{equation}\theta=(\lambda+\tau)/(\lambda-\sigma)\;\;.\end{equation}
-Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=(\theta\sigma+\tau)/(\theta-1)$ for each of the computed eigenvalues.
+\begin{equation}\theta=(\lambda+\nu)/(\lambda-\sigma)\;\;.\end{equation}
+Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=(\theta\sigma+\nu)/(\theta-1)$ for each of the computed eigenvalues.
 
 %---------------------------------------------------
 \section{Advanced Usage}
@@ -351,7 +351,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 \end{figure}
 
 	Internally, \slepc operates with the abstraction illustrated in Figure \ref{fig:abstr}. The operations indicated by dashed arrows are implemented as virtual functions: \ident{IPInnerProduct} and \ident{STApply}. From the user point of view, all the above explanation is transparent. The only thing he/she has to care about is to set the problem type appropriately with \ident{EPSSetProblemType} (see \S\ref{sec:defprob}).
-	In the case of the Cayley transform, \slepc is using $\langle x,y\rangle_{A+\tau B}$ as the inner product for preserving symmetry.
+	In the case of the Cayley transform, \slepc is using $\langle x,y\rangle_{A+\nu B}$ as the inner product for preserving symmetry.
 
 	Using the $B$-inner product may be attractive also in the non-symmetric case ($A$ non-symmetric) as described in the next subsection.
 
