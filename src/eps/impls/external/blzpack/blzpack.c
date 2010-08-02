@@ -85,7 +85,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   if (!eps->ishermitian)
     SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (blz->slice || eps->isgeneralized) {
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&flg);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&flg);CHKERRQ(ierr);
     if (!flg)
       SETERRQ(PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
     ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
@@ -357,7 +357,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   }
 
   if (blz->slice || eps->isgeneralized) {
-    ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
+    ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
     ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);

@@ -101,7 +101,7 @@ int main( int argc, char **argv )
      in case nulldim>0
   */
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINV);CHKERRQ(ierr);
+  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = STSetShift(st,0.0);CHKERRQ(ierr);
 
   /*

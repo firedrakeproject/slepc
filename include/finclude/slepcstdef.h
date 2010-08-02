@@ -34,7 +34,7 @@
 
 #define STSHELL     'shell'
 #define STSHIFT     'shift'
-#define STSINV      'sinvert'
+#define STSINVERT   'sinvert'
 #define STCAYLEY    'cayley'
 #define STFOLD      'fold'
 #define STPRECOND   'precond'

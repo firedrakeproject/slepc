@@ -56,8 +56,8 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 	\end{Verbatim}
 where \texttt{type} can be one of 
 \texttt{STSHIFT}, \texttt{STFOLD},
-\texttt{STSINV}, \texttt{STCAYLEY} or
-\texttt{STSHELL}.
+\texttt{STSINVERT}, \texttt{STCAYLEY},
+or \texttt{STSHELL}.
 The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first four spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
 
 \begin{table}
@@ -67,8 +67,8 @@ The \ident{ST} type can also be set with the command-line option \Verb!-st_type!
 Spectral Transformation & \ident{STType}    & {\footnotesize Name}    & Operator\\\hline
 Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift}   & $B^{-1}A+\sigma I$\\
 Spectrum Folding        & \texttt{STFOLD}   & \texttt{fold}    & $(B^{-1}A-\sigma I)^2$\\
-Shift-and-invert        & \texttt{STSINV}   & \texttt{sinvert} & $(A-\sigma B)^{-1}B$\\
-Cayley                  & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\nu B)$\\
+Shift-and-invert        & \texttt{STSINVERT}& \texttt{sinvert} & $(A-\sigma B)^{-1}B$\\
+Generalized Cayley      & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\nu B)$\\
 Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defined}\\\hline
 \end{tabular} }
 \caption{\label{tab:transforms}Spectral transformations available in the  \ident{ST} package.}
@@ -152,7 +152,7 @@ The effect of this transformation is that the spectrum is folded around the valu
 
 \subsection{Shift-and-invert}
 
-	The shift-and-invert spectral transformation (\texttt{STSINV}) is used to enhance convergence of eigenvalues in the neighborhood of a given value. In this case, the solver deals with the expressions 
+	The shift-and-invert spectral transformation (\texttt{STSINVERT}) is used to enhance convergence of eigenvalues in the neighborhood of a given value. In this case, the solver deals with the expressions 
 \begin{eqnarray}
 (A-\sigma I)^{-1}x=\theta x\;\;,\\
 (A-\sigma B)^{-1}B x=\theta x\;\;,

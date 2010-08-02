@@ -74,7 +74,7 @@ PetscErrorCode EPSSolve(EPS eps)
   eps->reason = EPS_CONVERGED_ITERATING;
 
   /* temporarily change which */
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&issinv);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (issinv || iscayley) {
     whichsave = eps->which;

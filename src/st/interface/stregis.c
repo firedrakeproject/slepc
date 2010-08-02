@@ -51,7 +51,7 @@ PetscErrorCode STRegisterAll(char *path)
   PetscFunctionBegin;
   ierr = STRegisterDynamic(STSHELL  ,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSHIFT  ,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STSINV   ,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
+  ierr = STRegisterDynamic(STSINVERT,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STCAYLEY ,path,"STCreate_Cayley",STCreate_Cayley);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STFOLD   ,path,"STCreate_Fold",STCreate_Fold);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STPRECOND,path,"STCreate_Precond",STCreate_Precond);CHKERRQ(ierr);

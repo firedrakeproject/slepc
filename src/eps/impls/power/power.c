@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
     SETERRQ(1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&flg);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&flg);CHKERRQ(ierr);
     if (!flg) 
       SETERRQ(PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert ST");
     ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
@@ -413,7 +413,7 @@ PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
   ierr = PetscOptionsEList("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",shift_list,3,shift_list[power->shift_type],&i,&flg);CHKERRQ(ierr);
   if (flg ) power->shift_type = (EPSPowerShiftType)i;
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    ierr = STSetType(eps->OP,STSINV);CHKERRQ(ierr);
+    ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

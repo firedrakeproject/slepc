@@ -67,7 +67,7 @@ PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
   }
 
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINV,&isSinv);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
   if (!isSinv) {
     SETERRQ(PETSC_ERR_SUP,"Shift-and-invert ST is needed");
   }
