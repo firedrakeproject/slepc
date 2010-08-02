@@ -50,6 +50,7 @@
 #define epseigrelativeconverged_    EPSEIGRELATIVECONVERGED
 #define epsnormrelativeconverged_   EPSNORMRELATIVECONVERGED
 #define epssetconvergencetestfunction_ EPSSETCONVERGENCETESTFUNCTION
+#define epsseteigenvaluecomparison_ EPSSETEIGENVALUECOMPARISON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                    epsview
 #define epssetoptionsprefix_        epssetoptionsprefix
@@ -77,6 +78,7 @@
 #define epseigrelativeconverged_    epseigrelativeconverged
 #define epsnormrelativeconverged_   epsnormrelativeconverged
 #define epssetconvergencetestfunction_ epssetconvergencetestfunction
+#define epsseteigenvaluecomparison_ epsseteigenvaluecomparison
 #endif
 
 EXTERN_C_BEGIN
@@ -299,6 +301,28 @@ void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *
     ((PetscObject)*eps)->fortran_func_pointers[4] = (PetscVoidFunction)ctx;
     *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,PETSC_NULL);
   }
+}
+
+EXTERN_C_END
+
+/* These are not extern C because they are passed into non-extern C user level functions */
+static PetscErrorCode oureigenvaluecomparison(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+{
+  PetscErrorCode ierr = 0;
+  void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[6];
+  (*(void (PETSC_STDCALL *)(EPS*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*))
+   (((PetscObject)eps)->fortran_func_pointers[5]))(&eps,&ar,&ai,&br,&bi,r,mctx,&ierr);CHKERRQ(ierr);
+  return 0;
+}
+
+EXTERN_C_BEGIN
+
+void PETSC_STDCALL epsseteigenvaluecomparison_(EPS *eps,void (PETSC_STDCALL *func)(EPS*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
+{
+  PetscObjectAllocateFortranPointers(*eps,7);
+  ((PetscObject)*eps)->fortran_func_pointers[5] = (PetscVoidFunction)func;
+  ((PetscObject)*eps)->fortran_func_pointers[6] = (PetscVoidFunction)ctx;
+  *ierr = EPSSetEigenvalueComparison(*eps,oureigenvaluecomparison,PETSC_NULL);
 }
 
 EXTERN_C_END
