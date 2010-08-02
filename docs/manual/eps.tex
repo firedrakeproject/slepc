@@ -213,13 +213,23 @@ requests 10 eigenvalues and instructs to use 24 column vectors. Note that \textt
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetWhichEigenpairs(EPS eps,EPSWhich which);
 	\end{Verbatim}
-which can also be specified at the command line. This criterion is used both for configuring how the eigensolver seeks eigenvalues (note that not all these possibilities are available for all the solvers) and also for sorting the computed values. The default is to compute the largest magnitude eigenvalues, except for those solvers in which this option is not available.
+which can also be specified at the command line. This criterion is used both for configuring how the eigensolver seeks eigenvalues (note that not all these possibilities are available for all the solvers) and also for sorting the computed values. The default is to compute the largest magnitude eigenvalues, except for those solvers in which this option is not available. There is another exception related to the use of some spectral transformations, see chapter \ref{cap:st}.
 
-To compute eigenvalues located in the interior of the spectrum, there are two possibilities:
+	For the sorting criteria relative to a target value, the following function must be called in order to specify such value $\tau$:
+	\findex{EPSSetTarget}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetTarget(EPS eps,PetscScalar target);
+	\end{Verbatim}
+or, alternatively, with the command-line key \Verb!-eps_target!. Note that, since the target is defined as a \texttt{PetscScalar}, complex values of $\tau$ are allowed only in the case of complex scalar builds of the SLEPc library.
+
+The use of a target value makes sense if the eigenvalues of interest are located in the interior of the spectrum. Since these eigenvalues are usually more difficult to compute, the eigensolver by itself may not be able to obtain them, and additional tools are normally required. 
+There are two possibilities for this:
 \begin{itemize}
-\item To use harmonic projection (see \S\ref{sec:harmonic}), a variant of some solvers that allows the computation of eigenvalues closest to a given target.
-\item To use a spectral transformation (see chapter \ref{cap:st}). Note that in this case, the value of \Verb!which! applies to the transformed spectrum.
+\item To use harmonic extraction (see \S\ref{sec:harmonic}), a variant of some solvers that allows a better approximation of interior eigenvalues without changing the way the subspace is built.
+\item To use a spectral transformation such as shift-and-invert (see chapter \ref{cap:st}), where the subspace is built from a transformed problem (usually much more costly).
 \end{itemize}
+
+To conclude this section, we mention the possibility of defining an arbitrary sorting criterion by means of \texttt{EPS\_WHICH\_USER} in combination with \ident{EPSSetEigenvalueComparison}.
 
 \begin{table}
 \centering
@@ -230,11 +240,13 @@ To compute eigenvalues located in the interior of the spectrum, there are two po
 \texttt{EPS\_LARGEST\_REAL}        & \texttt{-eps\_largest\_real}       & Largest $\mathrm{Re}(\lambda)$ \\
 \texttt{EPS\_SMALLEST\_REAL}       & \texttt{-eps\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
 \texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark \\
-\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\addtocounter{footnote}{-1}\footnotemark \\\hline
+\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\addtocounter{footnote}{-1}\footnotemark \\
+\hline
 \texttt{EPS\_TARGET\_MAGNITUDE}    & \texttt{-eps\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
 \texttt{EPS\_TARGET\_REAL}         & \texttt{-eps\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
-\texttt{EPS\_TARGET\_IMAGINARY}    & \texttt{-eps\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\\hline
-\texttt{EPS\_WHICH\_USER}          & \texttt{-eps\_which\_user}         & User-defined \\\hline
+\texttt{EPS\_TARGET\_IMAGINARY}    & \texttt{-eps\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\
+\hline
+\texttt{EPS\_WHICH\_USER}          & \texttt{-eps\_which\_user}         & \emph{user-defined} \\\hline
 \end{tabular} }
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
 \end{table}
@@ -251,6 +263,8 @@ To compute eigenvalues located in the interior of the spectrum, there are two po
 \item Arnoldi method with explicit restart and deflation.
 \item Lanczos with explicit restart and deflation, using different reorthogonalization strategies.
 \item Krylov-Schur, a variation of Arnoldi/Lanczos with a very effective restarting technique.
+\item Generalized Davidson, a simple iteration based on the subspace expansion by the preconditioned residual.
+\item Jacobi-Davidson, a preconditioned eigensolver with an effective correction equation.
 \end{itemize}
 The default solver is Krylov-Schur. A detailed description of the implemented algorithms is provided in the \hyperlink{str}{\slepc Technical Reports}. In addition to these methods, \slepc also provides wrappers to external packages such as \arpack, \blzpack, or \trlan. A complete list of these interfaces can be found in \S\ref{sec:wrap}.
 
@@ -263,7 +277,10 @@ Power / Inverse / RQI      & \texttt{EPSPOWER}    & \texttt{power} \\
 Subspace Iteration         & \texttt{EPSSUBSPACE} & \texttt{subspace} \\
 Arnoldi                    & \texttt{EPSARNOLDI}  & \texttt{arnoldi} \\
 Lanczos                    & \texttt{EPSLANCZOS}  & \texttt{lanczos} \\
-Krylov-Schur               & \texttt{EPSKRYLOVSCHUR} & \texttt{krylovschur} \\\hline
+Krylov-Schur               & \texttt{EPSKRYLOVSCHUR} & \texttt{krylovschur} \\
+Generalized Davidson       & \texttt{EPSGD}       & \texttt{gd} \\
+Jacobi-Davidson            & \texttt{EPSJD}       & \texttt{jd} \\
+\hline
 \lapack solver             & \texttt{EPSLAPACK}   & \texttt{lapack} \\
 Wrapper to \arpack         & \texttt{EPSARPACK}   & \texttt{arpack} \\
 Wrapper to \primme         & \texttt{EPSPRIMME}   & \texttt{primme} \\
@@ -294,6 +311,8 @@ Method   &  Portion of spectrum & Problem type & Complex \\ \hline
 \texttt{arnoldi}  &  all                 & all & yes \\ 
 \texttt{lanczos}  &  all                 & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & yes \\ 
 \texttt{krylovschur} &  all              & all & yes \\ 
+\texttt{gd}       &  all                 & all & yes \\ 
+\texttt{jd}       &  all                 & all & yes \\ 
 \hline
 \texttt{lapack}   &  all                 & all & yes \\ 
 \texttt{arpack}   &  all &  all & yes \\ 
@@ -305,7 +324,7 @@ Method   &  Portion of spectrum & Problem type & Complex \\ \hline
 \caption{\label{tab:support}Supported problem types for all eigensolvers available in \slepc.}
 \end{table}
 
-\begin{table}
+\begin{table}[t!]
 \centering
 \begin{tabular}{cccc} \hline
 Method   & \texttt{ncv} & \texttt{max\_it} & Storage \\ \hline
@@ -314,6 +333,8 @@ Method   & \texttt{ncv} & \texttt{max\_it} & Storage \\ \hline
 \texttt{arnoldi}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
 \texttt{lanczos}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
 \texttt{krylovschur} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
+\texttt{gd}       & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
+\texttt{jd}       & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
 \hline
 \texttt{lapack}   &  $N$ &         -         & $N$  \\ 
 \texttt{arpack}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $4$ \\ 
@@ -362,6 +383,7 @@ With respect to the eigenvector, \texttt{xr} stores the real part of the eigenve
 \paragraph{Complex \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are complex. The computed solution returned by function \ident{EPSGetEigenpair} is the following: \texttt{kr} contains the (complex) eigenvalue and \texttt{xr} contains the corresponding (complex) eigenvector. In this case, \texttt{ki} and \texttt{xi} are not used (set to all zeros).
 
 \subsection{Reliability of the Computed Solution}
+\label{sec:errbnd}
 
 	In this subsection, we discuss how a-posteriori error bounds can be obtained in order to assess the accuracy of the computed solutions. These bounds are based on the so-called residual vector, defined as
 \begin{equation}
@@ -373,18 +395,9 @@ or $r=A\tilde{x}-\tilde{\lambda}B\tilde{x}$ in the case of a generalized problem
 \begin{equation}\label{eq:reserr}
 |\lambda-\tilde{\lambda}|\leq \|r\|_2\quad,
 \end{equation}
-where $\lambda$ is an exact eigenvalue. Therefore, the 2-norm of the residual vector can be used as a bound for the absolute error in the eigenvalue. The following \slepc function 
-	\findex{EPSComputeResidualNorm}
-	\begin{Verbatim}[fontsize=\small]
-	EPSComputeResidualNorm(EPS eps,PetscInt j,PetscReal *norm)
-	\end{Verbatim}
-computes the 2-norm of $r_j$. If we want to express the error relative to the eigenvalue, then the following function can be used instead:
-	\findex{EPSComputeRelativeError}
-	\begin{Verbatim}[fontsize=\small]
-	EPSComputeRelativeError(EPS eps,PetscInt j,PetscReal *error);
-	\end{Verbatim}
+where $\lambda$ is an exact eigenvalue. Therefore, the 2-norm of the residual vector can be used as a bound for the absolute error in the eigenvalue.
 
-	In the case of non-Hermitian problems, the situation is worse because no simple relation such as Eq.\ \ref{eq:reserr} is available. This means that in this case the error bounds may still give an indication of the actual error but the user should be aware that they may sometimes be completely wrong, especially in the case of highly non-normal matrices.
+	In the case of non-Hermitian problems, the situation is worse because no simple relation such as Eq.\ \ref{eq:reserr} is available. This means that in this case the residual norms may still give an indication of the actual error but the user should be aware that they may sometimes be completely wrong, especially in the case of highly non-normal matrices. A better bound would involve also the residual norm of the left eigenvector.
 
 	With respect to eigenvectors, we have a similar scenario in the sense that bounds for the error may be established in the Hermitian case only, for example the following one:
 \begin{equation}
@@ -399,6 +412,19 @@ where $\theta(x,\tilde{x})$ is the angle between the computed and exact eigenvec
 	\end{Verbatim}
 This is sufficient in some applications and is safer from the numerical point of view.
 
+\paragraph{Computation of Bounds.}
+The following \slepc function 
+	\findex{EPSComputeResidualNorm}
+	\begin{Verbatim}[fontsize=\small]
+	EPSComputeResidualNorm(EPS eps,PetscInt j,PetscReal *norm)
+	\end{Verbatim}
+computes the 2-norm of $r_j$. Normally, the residual norm is not used directly as a bound in absoulte terms, as in Eq.\ \ref{eq:reserr}. Rather, the error is expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used instead:
+	\findex{EPSComputeRelativeError}
+	\begin{Verbatim}[fontsize=\small]
+	EPSComputeRelativeError(EPS eps,PetscInt j,PetscReal *error);
+	\end{Verbatim}
+The way in which it is relativized is the same as the one used for convergence checking, as described below.
+
 \subsection{Controlling and Monitoring Convergence}
 \label{sec:monitor}
 
@@ -409,12 +435,43 @@ This is sufficient in some applications and is safer from the numerical point of
 	\end{Verbatim}
 which returns in argument \texttt{its} either the iteration number at which convergence was successfully reached, or the iteration at which a problem was detected. 
 
-The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated to it is below the specified tolerance. Note that the error estimates can be computed differently depending on the solution method. The default value of the tolerance is $10^{-7}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function
+The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated to it is below the specified tolerance. The default value of the tolerance is $10^{-7}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function
 	\findex{EPSSetTolerances}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTolerances(EPS eps,PetscReal tol,PetscInt max_it);
 	\end{Verbatim}
 	The third parameter of this function allows the programmer to modify the maximum number of iterations allowed to the solution algorithm, which can also be set via \Verb!-eps_max_it <its>!.
+
+\paragraph{Convergence Check.}
+
+The error estimates used for the convergence test are based on the residual norm, as discussed in \S\ref{sec:errbnd}. Most eigensolvers explicitly compute the residual of the relevant eigenpairs during the iteration, but Krylov solvers use a cheap approximation instead. This approximation is usually very accurate, but in some cases (e.g., when a shift-and-invert spectral transformation is used) it may give too optimistic bounds. In such cases, the users can force the computation of the residual with 
+	\findex{EPSSetTrueResidual}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetTrueResidual(EPS eps,PetscTruth trueres);
+	\end{Verbatim}
+or with \Verb!-eps_true_residual <its>!.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{lll}
+Convergence criterion        & Command line key                     & Error bound \\\hline
+Absolute                     & \texttt{-eps\_convergence\_absolute} & $\|r\|$ \\
+Relative to the eigenvalue   & \texttt{-eps\_convergence\_default}  & $\|r\|/|\lambda|$ \\
+Relative to the matrix norms & \texttt{-eps\_convergence\_normrel}  & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
+\hline
+\end{tabular} }
+\caption{\label{tab:convergence}Available possibilities for the convergence criterion.}
+\end{table}
+
+	From the residual norm, the error bound can be computed in different ways, see Table \ref{tab:convergence}. This can be set via the corresponding command-line switch or with
+	\findex{EPSSetConvergenceTest}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,
+                              PetscReal,PetscReal*,void*),void* ctx);
+	\end{Verbatim}
+The default is to use the criterion relative to the eigenvalue. For the criteria that involves matrix norms, they can be provided via the operation \ident{EPSSetMatrixNorms}. Finally, a user-defined convergence criterion may be established by specifying a custom subroutine.
+
+\paragraph{Monitors.}
 
 	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeRelativeError}. At the end of the solution process, error estimates are available via
 	\findex{EPSGetErrorEstimate}
