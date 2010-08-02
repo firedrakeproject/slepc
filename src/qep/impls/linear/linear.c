@@ -396,7 +396,7 @@ EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetCompanionForm"
-/*@C
+/*@
    QEPLinearGetCompanionForm - Returns the number of the companion form that
    will be used for the linearization of the quadratic problem.
 
@@ -486,7 +486,7 @@ EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetExplicitMatrix"
-/*@C
+/*@
    QEPLinearGetExplicitMatrix - Returns the flag indicating if the matrices A and B
    for the linearization of the quadratic problem are built explicitly.
 
@@ -579,7 +579,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearGetEPS"
-/*@C
+/*@
    QEPLinearGetEPS - Retrieve the eigensolver object (EPS) associated
    to the quadratic eigenvalue solver.
 
