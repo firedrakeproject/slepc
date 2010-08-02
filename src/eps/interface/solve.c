@@ -47,7 +47,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
-  PetscTruth     flg,issinv,iscayley;
+  PetscTruth     flg,issinv,iscayley,isfold;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
@@ -81,6 +81,15 @@ PetscErrorCode EPSSolve(EPS eps)
       case EPS_TARGET_IMAGINARY: eps->which = EPS_LARGEST_IMAGINARY; break;
       case EPS_WHICH_USER:       break;
       default: SETERRQ(1,"Must use target-based which in SINV and CAYLEY transforms");
+    }
+  }
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STFOLD,&isfold);CHKERRQ(ierr);
+  if (isfold) {
+    whichsave = eps->which;
+    switch(eps->which) {
+      case EPS_TARGET_MAGNITUDE: eps->which = EPS_SMALLEST_MAGNITUDE; break;
+      case EPS_WHICH_USER:       break;
+      default: SETERRQ(1,"Must use target_magnitude which in FOLD transform");
     }
   }
 
@@ -117,7 +126,7 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
   }
   /* restore which */
-  if (issinv || iscayley) eps->which = whichsave;
+  if (issinv || iscayley || isfold) eps->which = whichsave;
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {

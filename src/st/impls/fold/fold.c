@@ -140,6 +140,9 @@ PetscErrorCode STSetUp_Fold(ST st)
   ST_FOLD        *ctx = (ST_FOLD *) st->data;
 
   PetscFunctionBegin;
+  /* if the user did not set the shift, use the target value */
+  if (!st->sigma_set) st->sigma = st->defsigma;
+
   if (st->B) {
     ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
