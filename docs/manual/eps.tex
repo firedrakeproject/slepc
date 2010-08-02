@@ -454,10 +454,10 @@ or with \Verb!-eps_true_residual!.
 \begin{table}
 \centering
 {\small \begin{tabular}{llll}
-Convergence criterion        & \texttt{conv}            & Command line key                     & Error bound \\\hline
-Absolute                     & \texttt{EPS\_CONV\_ABS}  & \texttt{-eps\_conv\_abs}  & $\|r\|$ \\
-Relative to the eigenvalue   & \texttt{EPS\_CONV\_EIG}  & \texttt{-eps\_conv\_eig}  & $\|r\|/|\lambda|$ \\
-Relative to the matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
+Convergence criterion    & \texttt{EPSConv}         & Command line key          & Error bound \\\hline
+Absolute                 & \texttt{EPS\_CONV\_ABS}  & \texttt{-eps\_conv\_abs}  & $\|r\|$ \\
+Relative to eigenvalue   & \texttt{EPS\_CONV\_EIG}  & \texttt{-eps\_conv\_eig}  & $\|r\|/|\lambda|$ \\
+Relative to matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
 \hline
 \end{tabular} }
 \caption{\label{tab:convergence}Available possibilities for the convergence criterion.}
@@ -466,12 +466,9 @@ Relative to the matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_no
 	From the residual norm, the error bound can be computed in different ways, see Table \ref{tab:convergence}. This can be set via the corresponding command-line switch or with
 	\findex{EPSSetConvergenceTest}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,
-                              PetscReal,PetscReal*,void*),void* ctx);
+	EPSSetConvergenceTest(EPS eps,EPSConv conv);
 	\end{Verbatim}
-The default is to use the criterion relative to the eigenvalue. For the criteria that involves matrix norms, they can be provided via the operation \ident{EPSSetMatrixNorms}. Finally, a user-defined convergence criterion may be established by specifying a custom subroutine.
-
-\paragraph{Monitors.}
+The default is to use the criterion relative to the eigenvalue. For the criteria that involve matrix norms, they can be provided by means of \ident{EPSSetMatrixNorms}. Finally, a custom convergence criterion may be established by specifying a user function (\ident{EPSSetConvergenceTestFunction}).
 
 	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeRelativeError}. At the end of the solution process, error estimates are available via
 	\findex{EPSGetErrorEstimate}
@@ -479,18 +476,64 @@ The default is to use the criterion relative to the eigenvalue. For the criteria
 	EPSGetErrorEstimate(EPS eps,PetscInt j,PetscReal *errest);
 	\end{Verbatim}
 
-	Error estimates can also be displayed during execution of the solution algorithm, as a way of monitoring convergence. There are several such monitors available. The user can activate them via the options database (see examples below), or within the code with \ident{EPSMonitorSet}. By default, the solvers run silently without displaying information about the iteration. Also, application programmers can provide their own routines to perform the monitoring by using the function \ident{EPSMonitorSet}.
+\paragraph{Monitors.}
 
-	The most basic monitor prints one approximate eigenvalue together with its associated error estimate in each iteration.
+	Error estimates can be displayed during execution of the solution algorithm, as a way of monitoring convergence. There are several such monitors available. The user can activate them via the options database (see examples below), or within the code with \ident{EPSMonitorSet}. By default, the solvers run silently without displaying information about the iteration. Also, application programmers can provide their own routines to perform the monitoring by using the function \ident{EPSMonitorSet}.
 
-	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor_draw!. Also, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot the computed approximations of the eigenvalues at the end of the process. See Fig.~\ref{fig:plot} for an example.
+	The most basic monitor prints one approximate eigenvalue together with its associated error estimate in each iteration. The shown eigenvalue is the first unconverged one.
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+   $ ./ex9 -eps_nev 1 -eps_tol 1e-6 -eps_monitor
+
+     1 EPS nconv=0 first unconverged value (error) -0.0695109+2.10989i (2.38956768e-01)
+     2 EPS nconv=0 first unconverged value (error) -0.0231046+2.14902i (1.09212525e-01)
+     3 EPS nconv=0 first unconverged value (error) -0.000633399+2.14178i (2.67086904e-02)
+     4 EPS nconv=0 first unconverged value (error) 9.89074e-05+2.13924i (6.62097793e-03)
+     5 EPS nconv=0 first unconverged value (error) -0.000149404+2.13976i (1.53444214e-02)
+     6 EPS nconv=0 first unconverged value (error) 0.000183676+2.13939i (2.85521004e-03)
+     7 EPS nconv=0 first unconverged value (error) 0.000192479+2.13938i (9.97563492e-04)
+     8 EPS nconv=0 first unconverged value (error) 0.000192534+2.13938i (1.77259863e-04)
+     9 EPS nconv=0 first unconverged value (error) 0.000192557+2.13938i (2.82539990e-05)
+    10 EPS nconv=0 first unconverged value (error) 0.000192559+2.13938i (2.51440008e-06)
+    11 EPS nconv=2 first unconverged value (error) -0.671923+2.52712i (8.92724972e-05)
+\end{Verbatim}
+
+	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor_draw!. Figure \ref{fig:plot} (left) shows the result of the following sample command line:
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor_draw -draw_pause .2
+\end{Verbatim}
+Again, only the error estimate of one eigenvalue is drawn. The spikes in the last part of the plot indicate convergence of one eigenvalue and switching to the next.
+
+	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_draw_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so. 
+
+	A less verbose textual monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes places.
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor_conv
+
+    56 EPS converged value (error) #0 4.64001e-06+2.13951i (9.82993423e-13)
+    56 EPS converged value (error) #1 4.64001e-06-2.13951i (9.82993423e-13)
+    65 EPS converged value (error) #2 -0.674926+2.52867i (4.58639033e-13)
+    65 EPS converged value (error) #3 -0.674926-2.52867i (4.58639033e-13)
+    65 EPS converged value (error) #4 -1.79963+3.03259i (5.24172024e-13)
+    65 EPS converged value (error) #5 -1.79963-3.03259i (5.24172024e-13)
+    69 EPS converged value (error) #6 -3.37383+3.55626i (3.17374477e-13)
+    69 EPS converged value (error) #7 -3.37383-3.55626i (3.17374477e-13)
+    70 EPS converged value (error) #8 -5.39714+4.03398i (4.08586434e-13)
+    70 EPS converged value (error) #9 -5.39714-4.03398i (4.08586434e-13)
+    77 EPS converged value (error) #10 -7.86906+4.41229i (9.08070733e-13)
+    77 EPS converged value (error) #11 -7.86906-4.41229i (9.08070733e-13)
+\end{Verbatim}
+
+Note that several monitors can be used at the same time.
+
+Finally, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot the computed approximations of the eigenvalues at the end of the process. See Figure \ref{fig:plot} (right) for an example.
 
 \begin{figure}
-  \centering
-  \includegraphics[width=5.5cm]{figures/errest}
-  \hspace{1cm}
-  \includegraphics[width=5.5cm]{figures/eigplot}
-  \caption{\label{fig:plot}Graphical output in \slepc: convergence monitor (left) and eigenvalue plot (right).}
+  \includegraphics[width=.31\textwidth]{figures/monitor}
+  \hfill
+  \includegraphics[width=.31\textwidth]{figures/monitorall}
+  \hfill
+  \includegraphics[width=.31\textwidth]{figures/ploteigs}
+  \caption{\label{fig:plot}Graphical output in \slepc: default convergence monitor (left), simultaneous convergence monitor for all eigenvalues (middle) and eigenvalue plot (right).}
 \end{figure}
 
 %---------------------------------------------------
@@ -574,7 +617,7 @@ The standard Rayleigh-Ritz projection procedure described in \S\ref{sec:eig} is 
 
 Even though in theory solvers such as Krylov-Schur would be able to approximate interior eigenvalues with a standard extraction technique, this is not implemented in \slepc because in practice difficulties arise that prevent success. The problem comes from the property that Ritz values (the approximate eigenvalues provided by the standard projection procedure) converge from the interior to the periphery of the spectrum. That is, the Ritz values that stabilize first are those in the periphery, so convergence of interior ones requires the previous convergence of all eigenvalues between them and the periphery. Furthermore, this convergence behaviour usually implies that restarting is carried out with bad approximations, so the restart is ineffective and global convergence is severely damaged.
 
-Harmonic projection is a variation that uses a target value, $\kappa$, around which the user wants to compute eigenvalues (see e.g.~\citep{Morgan:2006:HRA}). The theory establishes that harmonic Ritz values converge in such a way that eigenvalues closest to the target stabilize first, and also that no non-converged value is ever close to the target, so restarting is safe in this case. As a conclusion, Krylov-Schur with harmonic extraction may be effective in computing interior eigenvalues. Whether it works or not in practical cases depends on the particular distribution of the spectrum.
+Harmonic projection is a variation that uses a target value, $\kappa$, around which the user wants to compute eigenvalues (see e.g.~\citep{Morgan:2006:HRA}). The theory establishes that harmonic Ritz values converge in such a way that eigenvalues closest to the target stabilize first, and also that no unconverged value is ever close to the target, so restarting is safe in this case. As a conclusion, Krylov-Schur with harmonic extraction may be effective in computing interior eigenvalues. Whether it works or not in practical cases depends on the particular distribution of the spectrum.
 
 In order to use harmonic extraction in \slepc, it is necessary to indicate it explicitly, and provide the target value as well (default is $\kappa=0$). The type of extraction can be set with:
 	\findex{EPSSetExtraction}
