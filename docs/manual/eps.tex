@@ -539,7 +539,7 @@ Finally, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot
 %---------------------------------------------------
 \section{Advanced Usage}
 
-	This section includes the description of several advanced features of the eigensolver object. The default settings are appropriate for most applications and modification is not necessary for normal usage.
+	This section includes the description of advanced features of the eigensolver object. Default settings are appropriate for most applications and modification is unnecessary for normal usage.
 
 \subsection{Initial Guesses}
 
@@ -552,7 +552,7 @@ Finally, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot
 	\end{Verbatim}
 In some cases, a suitable initial space can accelerate convergence significantly, for instance when the eigenvalue calculation is one of a sequence of closely related problems, where the eigenspace of one problem is fed as the initial guess for the next problem.
 
-Note that if the eigensolver supports only a single initial vector, but more than one guesses are provided, then all except the first one will be discarded. One could still build a vector that is rich in the directions of all guesses, by taking a linear combination of them, but this is less effective than using a solver that considers all guesses as a subspace.
+Note that if the eigensolver supports only a single initial vector, but several guesses are provided, then all except the first one will be discarded. One could still build a vector that is rich in the directions of all guesses, by taking a linear combination of them, but this is less effective than using a solver that considers all guesses as a subspace.
 
 In cases where the eigensolver works with two bases, we can think of the second one as containing approximations to the left eigenspace. If initial guesses for the left eigenvectors are available, then one can provide them with
 	\findex{EPSSetInitialSpace}
@@ -562,7 +562,7 @@ In cases where the eigensolver works with two bases, we can think of the second 
 
 \subsection{Dealing with Deflation Subspaces}
 
-	In some applications, when solving an eigenvalue problem the user wishes to use a priori knowledge about the solution. This is the case when an invariant subspace has already been computed (e.g. in a previous \ident{EPSSolve} call) or when a basis of the null-space is known.
+	In some applications, when solving an eigenvalue problem the user wishes to use a priori knowledge about the solution. This is the case when an invariant subspace has already been computed (e.g., in a previous \ident{EPSSolve} call) or when a basis of the null-space is known.
 
 	Consider the following example. Given a graph $G$, with vertex set $V$ and edges $E$, the Laplacian matrix of $G$ is a sparse symmetric positive semidefinite matrix $L$ with elements
 $$l_{ij}=\left\{\begin{array}{cl}
@@ -589,7 +589,7 @@ The value \texttt{n} indicates how many vectors are passed in argument \texttt{d
 \subsection{Computing a Large Portion of the Spectrum}
 \label{sec:large-nev}
 
-We now consider the case that the user requests a relatively large number of eigenpairs. To fix ideas, suppose that the problem size (the dimension of the matrix, denoted as \texttt{n}), is in the order of 100,000's, and the user wants \texttt{nev} to be approximately 5,000 (recall the notation of \ident{EPSSetDimensions} in \S\ref{sec:defprob}).
+We now consider the case when the user requests a relatively large number of eigenpairs. To fix ideas, suppose that the problem size (the dimension of the matrix, denoted as \texttt{n}), is in the order of 100,000's, and the user wants \texttt{nev} to be approximately 5,000 (recall the notation of \ident{EPSSetDimensions} in \S\ref{sec:defprob}).
 
 The first comment is that for such large values of \texttt{nev}, the rule of thumb suggested in \S\ref{sec:defprob} for selecting the value of \texttt{ncv} ($\mathtt{ncv}\geq2\cdot\mathtt{nev}$) may be inappropriate. For small values of \texttt{nev}, this rule of thumb is intended to provide the solver with a sufficiently large subspace. But for large values of \texttt{nev}, it may be enough setting \texttt{ncv} to be slightly larger than \texttt{nev}.
 
@@ -613,33 +613,26 @@ Note that it is not necessary to set both \texttt{ncv} and \texttt{mpd}. For ins
 \subsection{Computing Interior Eigenvalues with Harmonic Extraction}
 \label{sec:harmonic}
 
-The standard Rayleigh-Ritz projection procedure described in \S\ref{sec:eig} is most appropriate for approximating eigenvalues located in the periphery of the spectrum, especially those of largest magnitude. Most eigensolvers in \slepc are restarted, meaning that the projection is carried out repeatedly with increasingly good subspaces. An effective restarting mechanism, such as that implemented in Krylov-Schur, improves the subspace by realizing a filtering effect that tries to eliminate components in the direction of unwanted eigenvectors. In that way, it is possible to compute eigenvalues located anywhere in the spectrum, even in its interior.
+The standard Rayleigh-Ritz projection procedure described in \S\ref{sec:eig} is most appropriate for approximating eigenvalues located at the periphery of the spectrum, especially those of largest magnitude. Most eigensolvers in \slepc are restarted, meaning that the projection is carried out repeatedly with increasingly good subspaces. An effective restarting mechanism, such as that implemented in Krylov-Schur, improves the subspace by realizing a filtering effect that tries to eliminate components in the direction of unwanted eigenvectors. In that way, it is possible to compute eigenvalues located anywhere in the spectrum, even in its interior.
 
-Even though in theory solvers such as Krylov-Schur would be able to approximate interior eigenvalues with a standard extraction technique, this is not implemented in \slepc because in practice difficulties arise that prevent success. The problem comes from the property that Ritz values (the approximate eigenvalues provided by the standard projection procedure) converge from the interior to the periphery of the spectrum. That is, the Ritz values that stabilize first are those in the periphery, so convergence of interior ones requires the previous convergence of all eigenvalues between them and the periphery. Furthermore, this convergence behaviour usually implies that restarting is carried out with bad approximations, so the restart is ineffective and global convergence is severely damaged.
+Even though in theory eigensolvers could be able to approximate interior eigenvalues with a standard extraction technique, in practice convergence difficulties may arise that prevent success. The problem comes from the property that Ritz values (the approximate eigenvalues provided by the standard projection procedure) converge from the interior to the periphery of the spectrum. That is, the Ritz values that stabilize first are those in the periphery, so convergence of interior ones requires the previous convergence of all eigenvalues between them and the periphery. Furthermore, this convergence behaviour usually implies that restarting is carried out with bad approximations, so the restart is ineffective and global convergence is severely damaged.
 
-Harmonic projection is a variation that uses a target value, $\kappa$, around which the user wants to compute eigenvalues (see e.g.~\citep{Morgan:2006:HRA}). The theory establishes that harmonic Ritz values converge in such a way that eigenvalues closest to the target stabilize first, and also that no unconverged value is ever close to the target, so restarting is safe in this case. As a conclusion, Krylov-Schur with harmonic extraction may be effective in computing interior eigenvalues. Whether it works or not in practical cases depends on the particular distribution of the spectrum.
+Harmonic projection is a variation that uses a target value, $\tau$, around which the user wants to compute eigenvalues (see e.g.~\citep{Morgan:2006:HRA}). The theory establishes that harmonic Ritz values converge in such a way that eigenvalues closest to the target stabilize first, and also that no unconverged value is ever close to the target, so restarting is safe in this case. As a conclusion, eigensolvers with harmonic extraction may be effective in computing interior eigenvalues. Whether it works or not in practical cases depends on the particular distribution of the spectrum.
 
-In order to use harmonic extraction in \slepc, it is necessary to indicate it explicitly, and provide the target value as well (default is $\kappa=0$). The type of extraction can be set with:
+In order to use harmonic extraction in \slepc, it is necessary to indicate it explicitly, and provide the target value as described in \S\ref{sec:defprob} (default is $\tau=0$). The type of extraction can be set with:
 	\findex{EPSSetExtraction}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetExtraction(EPS eps,EPSExtraction extr),
 	\end{Verbatim}
 Available possibilities are \texttt{EPS\_RITZ} for standard projection and \texttt{EPS\_HARMONIC} for harmonic projection (other alternatives such as refined extraction are still experimental).
 
-The target $\kappa$ is a scalar value that can be set with:
-	\findex{EPSSetTarget}
-	\begin{Verbatim}[fontsize=\small]
-	EPSSetTarget(EPS eps,PetscScalar target);
-	\end{Verbatim}
-Note that a complex target can be used only if \slepc has been configured with complex scalars.
-
 A command line example would be:
 	\begin{Verbatim}[fontsize=\small]
-	ex5 -m 45 -eps_harmonic -eps_target 0.8 -eps_ncv 60
+	$ ./ex5 -m 45 -eps_harmonic -eps_target 0.8 -eps_ncv 60
 	\end{Verbatim}
-The example computes the eigenvalue closest to $\kappa=0.8$ of a real non-symmetric matrix of order 1035. Note that \texttt{ncv} has been set to a larger value than would be necessary for computing the largest magnitude eigenvalues. In general, users should expect a much slower convergence when computing interior eigenvalues compared to extreme eigenvalues. Increasing the value of \texttt{ncv} may help.
+The example computes the eigenvalue closest to $\tau=0.8$ of a real non-symmetric matrix of order 1035. Note that \texttt{ncv} has been set to a larger value than would be necessary for computing the largest magnitude eigenvalues. In general, users should expect a much slower convergence when computing interior eigenvalues compared to extreme eigenvalues. Increasing the value of \texttt{ncv} may help.
 
-Currently, harmonic extraction is available in the default \ident{EPS} solver, that is, Krylov-Schur, and also in Arnoldi.
+Currently, harmonic extraction is available in the default \ident{EPS} solver, that is, Krylov-Schur, and also in Arnoldi, GD, and JD.
 
 \subsection{Balancing for Non-Hermitian Problems}
 \label{sec:balancing}

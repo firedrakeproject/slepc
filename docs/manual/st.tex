@@ -5,7 +5,9 @@
 %-------------------------------------------------------
 
 \noindent The Spectral Transformation (\ident{ST}) is the \slepc object that encapsulates the functionality required for acceleration techniques based on the transformation of the spectrum. All the eigensolvers provided in \ident{EPS} work by applying an operator to a set of vectors and this operator can adopt different forms. The \ident{ST} object handles all the different possibilities in a uniform way, so that the solver can proceed without knowing which transformation has been selected. The type of spectral transformation can be specified at run time, as well as several parameters such as the value of the shift.
-	
+
+	Despite being a rather unrelated concept, \ident{ST} is also used to handle the preconditioners and correction-equation solvers used in preconditioned eigensolvers such as GD and JD.
+
 %---------------------------------------------------
 \section{General Description}
 
@@ -19,6 +21,10 @@
 	\slepc separates spectral transformations from solution methods so that any combination of them can be specified by the user. To achieve this, all the eigensolvers contained in \ident{EPS} must be implemented in such a way that they are independent of which transformation has been selected by the user. That is, the solver algorithm has to work with a generic operator, whose actual form depends on the transformation used. After convergence, eigenvalues are transformed back appropriately. 
 
 	For technical details of the transformations described in this chapter, the interested user is referred to \citep{Ericsson:1980:STL}, \citep{Scott:1982:AIO}, \citep{Nour-Omid:1987:HIS}, and \citep{Meerbergen:1994:SCT}.
+
+\paragraph{Preconditioners.}
+
+As explained in the previous chapter, \ident{EPS} contains preconditioned eigensolvers. These solvers either apply a preconditioner at a certain step of the computation, or need to solve a correction equation with a preconditioned linear solver. 
 
 %---------------------------------------------------
 \section{Basic Usage}
