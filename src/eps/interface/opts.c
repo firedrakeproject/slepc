@@ -768,31 +768,30 @@ EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*fun
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetConvergenceTest"
 /*@
-    EPSSetConvergenceTest - Sets the function to compute the error estimate
+    EPSSetConvergenceTest - Specifies how to compute the error estimate
     used in the convergence test.
 
     Collective on EPS
 
     Input Parameters:
 +   eps   - eigensolver context obtained from EPSCreate()
--   conv  - the function to compute the error estimate
-
-    Possible values:
-    The parameter 'conv' can have one of these values
-    
-+     EPS_CONV_ABS - abosolute error ||r||
-.     EPS_CONV_EIG - relative error to the eigenvalue l, ||r||/|l|
-.     EPS_CONV_NORM - relative error to the operator norms, ||r||/(||A||+|l|*||B||)
--     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction() 
+-   conv  - the type of convergence test
 
     Options Database Keys:
-+   -eps_conv_abs - Sets absolute error convergence test
-.   -eps_conv_eig - Sets relative error to the eigenvalue convergence test
--   -eps_conv_norm - Sets relative error to the operator norms convergence test
++   -eps_conv_abs - Sets the absolute convergence test
+.   -eps_conv_eig - Sets the convergence test relative to the eigenvalue
+-   -eps_conv_norm - Sets the convergence test relative to the matrix norms
+
+    Note:
+    The parameter 'conv' can have one of these values
++     EPS_CONV_ABS - absolute error ||r||
+.     EPS_CONV_EIG - error relative to the eigenvalue l, ||r||/|l|
+.     EPS_CONV_NORM - error relative to the matrix norms, ||r||/(||A||+|l|*||B||)
+-     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction() 
 
     Level: intermediate
 
-.seealso: EPSGetConvergenceTest(), EPSSetConvergenceTestFunction()
+.seealso: EPSGetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSConv
 @*/
 PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 {
@@ -813,7 +812,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetConvergenceTest"
 /*@
-    EPSGetConvergenceTest - Gets the function to compute the error estimate
+    EPSGetConvergenceTest - Gets the method used to compute the error estimate
     used in the convergence test.
 
     Collective on EPS
@@ -822,19 +821,11 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 .   eps   - eigensolver context obtained from EPSCreate()
 
     Output Parameters:
-.   conv  - the function to compute the error estimate
-
-    Possible values:
-    The parameter 'conv' can have one of these values
-    
-+     EPS_CONV_ABS - abosolute error ||r||
-.     EPS_CONV_EIG - relative error to the eigenvalue l, ||r||/|l|
-.     EPS_CONV_NORM - relative error to the operator norms, ||r||/(||A||+|l|*||B||)
--     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction() 
+.   conv  - the type of convergence test
 
     Level: intermediate
 
-.seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction()
+.seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSConv
 @*/
 PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 {
