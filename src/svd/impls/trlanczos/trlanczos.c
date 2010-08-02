@@ -435,6 +435,52 @@ PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscTruth oneside)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "SVDTRLanczosGetOneSide"
+/*@
+   SVDTRLanczosGetOneSide - Gets if the variant of the Lanczos method 
+   to be used is one-sided or two-sided.
+
+   Collective on SVD
+
+   Input Parameters:
+.  svd     - singular value solver
+
+   Output Parameters:
+.  oneside - boolean flag indicating if the method is one-sided or not
+
+   Level: advanced
+
+.seealso: SVDTRLanczosSetOneSide()
+@*/
+PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscTruth *oneside)
+{
+  PetscErrorCode ierr, (*f)(SVD,PetscTruth*);
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",(void (**)())&f);CHKERRQ(ierr);
+  if (f) {
+    ierr = (*f)(svd,oneside);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "SVDTRLanczosGetOneSide_TRLANCZOS"
+PetscErrorCode SVDTRLanczosGetOneSide_TRLANCZOS(SVD svd,PetscTruth *oneside)
+{
+  SVD_TRLANCZOS    *lanczos = (SVD_TRLANCZOS *)svd->data;
+
+  PetscFunctionBegin;
+  PetscValidPointer(oneside,2);
+  *oneside = lanczos->oneside;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+
 #undef __FUNCT__  
 #define __FUNCT__ "SVDDestroy_TRLANCZOS"
 PetscErrorCode SVDDestroy_TRLANCZOS(SVD svd)
@@ -445,6 +491,7 @@ PetscErrorCode SVDDestroy_TRLANCZOS(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
   ierr = SVDDestroy_Default(svd);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosGetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -479,6 +526,7 @@ PetscErrorCode SVDCreate_TRLANCZOS(SVD svd)
   svd->ops->view           = SVDView_TRLANCZOS;
   lanczos->oneside         = PETSC_FALSE;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","SVDTRLanczosSetOneSide_TRLANCZOS",SVDTRLanczosSetOneSide_TRLANCZOS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosGetOneSide_C","SVDTRLanczosGetOneSide_TRLANCZOS",SVDTRLanczosGetOneSide_TRLANCZOS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -87,11 +87,13 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
-  PetscInt          M,N,m,n,i,j,start,end,ncols,*pos,nloc;
+  PetscInt          M,N,m,n,i,j,start,end,ncols,*pos,nloc,isl;
   const PetscInt    *cols;
   const PetscScalar *vals;
   PetscScalar       *pU;
   PetscTruth        trackall;
+  Vec               v;
+  PetscScalar       *isa,*va;
 
   PetscFunctionBegin;
   
@@ -154,6 +156,35 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cyclic->eps,trackall);CHKERRQ(ierr);
+  /* Transfer the initial subspace from svd to eps */
+  if (svd->nini < 0) {
+    for (i=0; i<-svd->nini; i++) {
+      ierr = MatGetVecs(cyclic->mat,&v,PETSC_NULL);CHKERRQ(ierr);
+      ierr = VecGetArray(v,&va);CHKERRQ(ierr);
+      ierr = VecGetArray(svd->IS[i],&isa);CHKERRQ(ierr);
+      ierr = VecGetSize(svd->IS[i],&isl);CHKERRQ(ierr);
+      if (isl == m) {
+        ierr = PetscMemcpy(va,isa,sizeof(PetscScalar)*m);CHKERRQ(ierr);
+        ierr = PetscMemzero(&va[m],sizeof(PetscScalar)*n);CHKERRQ(ierr);
+      } else if (isl == n) {
+        ierr = PetscMemzero(va,sizeof(PetscScalar)*m);CHKERRQ(ierr);
+        ierr = PetscMemcpy(&va[m],isa,sizeof(PetscScalar)*n);CHKERRQ(ierr);
+      } else {
+        SETERRQ(PETSC_ERR_SUP,"Size of the initial subspace vectors should match to some dimension of A");
+      }
+      ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
+      ierr = VecRestoreArray(svd->IS[i],&isa);CHKERRQ(ierr);
+      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+      svd->IS[i] = v;
+    }
+    ierr = EPSSetInitialSpace(cyclic->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
+    for (i=0; i<-svd->nini; i++) {
+      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(svd->IS);CHKERRQ(ierr);
+    svd->IS = PETSC_NULL;
+    svd->nini = 0;
+  }
   if (cyclic->setfromoptionscalled == PETSC_TRUE) {
     ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
     cyclic->setfromoptionscalled = PETSC_FALSE;

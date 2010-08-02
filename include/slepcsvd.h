@@ -145,8 +145,10 @@ EXTERN PetscErrorCode SVDCyclicSetEPS(SVD,EPS);
 EXTERN PetscErrorCode SVDCyclicGetEPS(SVD,EPS*);
 
 EXTERN PetscErrorCode SVDLanczosSetOneSide(SVD,PetscTruth);
+EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscTruth*);
 
 EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscTruth);
+EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscTruth*);
 
 EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,PetscErrorCode(*)(SVD));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
