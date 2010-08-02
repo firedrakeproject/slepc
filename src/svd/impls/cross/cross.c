@@ -112,7 +112,7 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CROSS         *cross = (SVD_CROSS *)svd->data;
-  PetscInt          n;
+  PetscInt          n,i;
   PetscTruth        trackall;
 
   PetscFunctionBegin;
@@ -148,8 +148,11 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   /* Transfer the initial space from svd to eps */
   if (svd->nini < 0) {
     ierr = EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
-  } else if (svd->nini > 0) {
-    ierr = EPSSetInitialSpace(cross->eps,svd->nini,svd->V);CHKERRQ(ierr);
+    for(i=0; i<-svd->nini; i++) {
+      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(svd->IS);CHKERRQ(ierr);
+    svd->nini = 0;
   }
   PetscFunctionReturn(0);
 }

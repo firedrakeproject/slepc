@@ -83,6 +83,9 @@ PetscErrorCode SVDSolve(SVD svd)
     ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
   }
 
+  /* Remove the initial subspace */
+  svd->nini = 0;
+
   PetscFunctionReturn(0);
 }
 

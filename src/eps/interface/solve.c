@@ -191,6 +191,10 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
   }
 
+  /* Remove the initial subspaces */
+  eps->nini = 0;
+  eps->ninil = 0;
+
   PetscFunctionReturn(0);
 }
 

@@ -134,6 +134,9 @@ PetscErrorCode QEPSolve(QEP qep)
     ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
   }
 
+  /* Remove the initial subspace */
+  qep->nini = 0;
+
   PetscFunctionReturn(0);
 }
 
