@@ -88,6 +88,9 @@ PetscErrorCode STSetUp_Precond(ST st)
 
   PetscFunctionBegin;
 
+  /* if the user did not set the shift, use the target value */
+  if (!st->sigma_set) st->sigma = st->defsigma;
+
   /* If pc is none and any matrix has to be set, exit */
   ierr = STSetFromOptions_Precond(st); CHKERRQ(ierr);
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
