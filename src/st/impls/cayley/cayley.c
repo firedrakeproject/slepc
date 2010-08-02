@@ -322,7 +322,7 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   }
 
   ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-st_antishift","Value of the antishift","STSetAntishift",ctx->tau,&tau,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->tau,&tau,&flg); CHKERRQ(ierr);
   if (flg) {
     ierr = STCayleySetAntishift(st,tau);CHKERRQ(ierr);
   }
@@ -357,7 +357,7 @@ EXTERN_C_END
 -  tau - the anti-shift
 
    Options Database Key:
-.  -st_antishift - Sets the value of the anti-shift
+.  -st_cayley_antishift - Sets the value of the anti-shift
 
    Level: intermediate
 
