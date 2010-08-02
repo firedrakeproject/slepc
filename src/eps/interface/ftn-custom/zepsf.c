@@ -46,6 +46,10 @@
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
 #define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
+#define epsabsoluteconverged_       EPSABSOLUTECONVERGED
+#define epseigrelativeconverged_    EPSEIGRELATIVECONVERGED
+#define epsnormrelativeconverged_   EPSNORMRELATIVECONVERGED
+#define epssetconvergencetestfunction_ EPSSETCONVERGENCETESTFUNCTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                    epsview
 #define epssetoptionsprefix_        epssetoptionsprefix
@@ -69,6 +73,10 @@
 #define epsgetconvergedreason_      epsgetconvergedreason
 #define epspowergetshifttype_       epspowergetshifttype
 #define epslanczosgetreorthog_      epslanczosgetreorthog
+#define epsabsoluteconverged_       epsabsoluteconverged
+#define epseigrelativeconverged_    epseigrelativeconverged
+#define epsnormrelativeconverged_   epsnormrelativeconverged
+#define epssetconvergencetestfunction_ epssetconvergencetestfunction
 #endif
 
 EXTERN_C_BEGIN
@@ -247,5 +255,50 @@ void PETSC_STDCALL epslanczosgetreorthog_(EPS *eps,EPSLanczosReorthogType *reort
 {
   *ierr = EPSLanczosGetReorthog(*eps,reorthog);
 }
+
+void PETSC_STDCALL epsabsoluteconverged_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = EPSAbsoluteConverged(*eps,*eigr,*eigi,*res,errest,ctx);
+}
+
+void PETSC_STDCALL epseigrelativeconverged_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = EPSEigRelativeConverged(*eps,*eigr,*eigi,*res,errest,ctx);
+}
+
+void PETSC_STDCALL epsnormrelativeconverged_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = EPSNormRelativeConverged(*eps,*eigr,*eigi,*res,errest,ctx);
+}
+
 EXTERN_C_END
 
+/* These are not extern C because they are passed into non-extern C user level functions */
+static PetscErrorCode ourconvergence(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscErrorCode ierr = 0;
+  void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[4];
+  (*(void (PETSC_STDCALL *)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*))
+   (((PetscObject)eps)->fortran_func_pointers[3]))(&eps,&eigr,&eigi,&res,errest,mctx,&ierr);CHKERRQ(ierr);
+  return 0;
+}
+
+EXTERN_C_BEGIN
+
+void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *func)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,PetscErrorCode *ierr)
+{
+  PetscObjectAllocateFortranPointers(*eps,5);
+  if ((PetscVoidFunction)func == (PetscVoidFunction)epsabsoluteconverged_) {
+    *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_ABS);
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)epseigrelativeconverged_) {
+    *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_EIG);
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsnormrelativeconverged_) {
+    *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_NORM);
+  } else {
+    ((PetscObject)*eps)->fortran_func_pointers[3] = (PetscVoidFunction)func;
+    ((PetscObject)*eps)->fortran_func_pointers[4] = (PetscVoidFunction)ctx;
+    *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,PETSC_NULL);
+  }
+}
+
+EXTERN_C_END

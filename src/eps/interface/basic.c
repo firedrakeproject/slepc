@@ -257,6 +257,16 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",eps->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
+    switch(eps->conv) {
+    case EPS_CONV_ABS: 
+      ierr = PetscViewerASCIIPrintf(viewer,"  absolute error convergence test\n");CHKERRQ(ierr);break;
+    case EPS_CONV_EIG: 
+      ierr = PetscViewerASCIIPrintf(viewer,"  eigenvalue relative error convergence test\n");CHKERRQ(ierr);break;
+    case EPS_CONV_NORM: 
+      ierr = PetscViewerASCIIPrintf(viewer,"  eigenvalue and matrix norm relative error convergence test\n");CHKERRQ(ierr);break;
+    default:
+      ierr = PetscViewerASCIIPrintf(viewer,"  user defined convergence test\n");CHKERRQ(ierr);break;
+    }
     if (eps->nini!=0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(eps->nini));CHKERRQ(ierr);
     }
@@ -327,7 +337,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ninil           = 0;
   eps->nds             = 0;
   eps->tol             = 1e-7;
-  eps->conv_func       = EPSDefaultConverged;
+  eps->conv_func       = EPSEigRelativeConverged;
   eps->conv_ctx        = PETSC_NULL;
   eps->which           = (EPSWhich)0;
   eps->which_func      = PETSC_NULL;

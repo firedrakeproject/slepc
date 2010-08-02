@@ -269,11 +269,11 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDefaultConverged"
+#define __FUNCT__ "EPSEigRelativeConverged"
 /*
   EPSDefaultConverged - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode EPSDefaultConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode EPSEigRelativeConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
   PetscFunctionBegin;

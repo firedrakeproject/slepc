@@ -124,6 +124,18 @@ typedef enum { EPS_BALANCE_NONE=1,
                EPS_BALANCE_TWOSIDE,
                EPS_BALANCE_USER } EPSBalance;
 
+/*E
+    EPSConv - determines the convergence test
+
+    Level: intermediate
+
+.seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction()
+E*/
+typedef enum { EPS_CONV_ABS=1,
+               EPS_CONV_EIG,
+               EPS_CONV_NORM,
+               EPS_CONV_USER } EPSConv;
+
 EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS *);
 EXTERN PetscErrorCode EPSDestroy(EPS);
 EXTERN PetscErrorCode EPSSetType(EPS,const EPSType);
@@ -149,8 +161,10 @@ EXTERN PetscErrorCode EPSSetIP(EPS,IP);
 EXTERN PetscErrorCode EPSGetIP(EPS,IP*);
 EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
-EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);
-EXTERN PetscErrorCode EPSDefaultConverged(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);
+EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv);
+EXTERN PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv);
+EXTERN PetscErrorCode EPSEigRelativeConverged(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 EXTERN PetscErrorCode EPSAbsoluteConverged(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 EXTERN PetscErrorCode EPSNormRelativeConverged(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 EXTERN PetscErrorCode EPSSetDimensions(EPS,PetscInt,PetscInt,PetscInt);

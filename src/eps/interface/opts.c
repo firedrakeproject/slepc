@@ -108,12 +108,12 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
-    ierr = PetscOptionsTruthGroupBegin("-eps_convergence_default","Default (relative error) convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetConvergenceTest(eps,EPSDefaultConverged,PETSC_NULL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-eps_convergence_normrel","Convergence test relative to the eigenvalue and the matrix norms","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetConvergenceTest(eps,EPSNormRelativeConverged,PETSC_NULL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-eps_convergence_absolute","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = EPSSetConvergenceTest(eps,EPSAbsoluteConverged,PETSC_NULL);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupBegin("-eps_conv_eig","relative error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetConvergenceTest(eps,EPS_CONV_EIG);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroup("-eps_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetConvergenceTest(eps,EPS_CONV_NORM);CHKERRQ(ierr);}
+    ierr = PetscOptionsTruthGroupEnd("-eps_conv_abs","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);}
 
     i = j = k = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,PETSC_NULL);CHKERRQ(ierr);
@@ -717,14 +717,15 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
   PetscFunctionBegin;
   eps->which_func = func;
   eps->which_ctx = ctx;
+  eps->which = EPS_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetConvergenceTest"
+#define __FUNCT__ "EPSSetConvergenceTestFunction"
 /*@C
-    EPSSetConvergenceTest - Sets a function to compute the error estimate used in 
-    the convergence test.
+    EPSSetConvergenceTestFunction - Sets a function to compute the error estimate
+    used in the convergence test.
 
     Collective on EPS
 
@@ -749,15 +750,101 @@ $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 
     Level: advanced
 
-.seealso: EPSSetTolerances()
+.seealso: EPSSetConvergenceTest(),EPSSetTolerances()
 @*/
-EXTERN PetscErrorCode EPSSetConvergenceTest(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
+EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
 {
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
   eps->conv_func = func;
   eps->conv_ctx = ctx;
+  if (func == EPSEigRelativeConverged) eps->conv = EPS_CONV_EIG;
+  else if (func == EPSNormRelativeConverged) eps->conv = EPS_CONV_NORM;
+  else if (func == EPSAbsoluteConverged) eps->conv = EPS_CONV_ABS;
+  else eps->conv = EPS_CONV_USER;
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetConvergenceTest"
+/*@
+    EPSSetConvergenceTest - Sets the function to compute the error estimate
+    used in the convergence test.
+
+    Collective on EPS
+
+    Input Parameters:
++   eps   - eigensolver context obtained from EPSCreate()
+-   conv  - the function to compute the error estimate
+
+    Possible values:
+    The parameter 'conv' can have one of these values
+    
++     EPS_CONV_ABS - abosolute error ||r||
+.     EPS_CONV_EIG - relative error to the eigenvalue l, ||r||/|l|
+.     EPS_CONV_NORM - relative error to the operator norms, ||r||/(||A||+|l|*||B||)
+-     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction() 
+
+    Options Database Keys:
++   -eps_conv_abs - Sets absolute error convergence test
+.   -eps_conv_eig - Sets relative error to the eigenvalue convergence test
+-   -eps_conv_norm - Sets relative error to the operator norms convergence test
+
+    Level: intermediate
+
+.seealso: EPSGetConvergenceTest(), EPSSetConvergenceTestFunction()
+@*/
+PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  switch(conv) {
+  case EPS_CONV_EIG: eps->conv_func = EPSEigRelativeConverged; break;
+  case EPS_CONV_NORM: eps->conv_func = EPSNormRelativeConverged; break; 
+  case EPS_CONV_ABS: eps->conv_func = EPSAbsoluteConverged; break;
+  case EPS_CONV_USER: break;
+  default:
+    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value"); 
+  }
+  eps->conv = conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetConvergenceTest"
+/*@
+    EPSGetConvergenceTest - Gets the function to compute the error estimate
+    used in the convergence test.
+
+    Collective on EPS
+
+    Input Parameters:
+.   eps   - eigensolver context obtained from EPSCreate()
+
+    Output Parameters:
+.   conv  - the function to compute the error estimate
+
+    Possible values:
+    The parameter 'conv' can have one of these values
+    
++     EPS_CONV_ABS - abosolute error ||r||
+.     EPS_CONV_EIG - relative error to the eigenvalue l, ||r||/|l|
+.     EPS_CONV_NORM - relative error to the operator norms, ||r||/(||A||+|l|*||B||)
+-     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction() 
+
+    Level: intermediate
+
+.seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction()
+@*/
+PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidPointer(conv,2);
+  *conv = eps->conv;
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetProblemType"
