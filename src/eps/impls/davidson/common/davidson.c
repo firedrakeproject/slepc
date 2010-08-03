@@ -103,6 +103,12 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   /* Davidson solvers do not support left eigenvectors */
   if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
 
+  /* Change the default sigma to inf if necessary */
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
+      eps->which == EPS_LARGEST_IMAGINARY) {
+    ierr = STSetDefaultShift(eps->OP, 3e300); CHKERRQ(ierr);
+  }
+ 
   /* Davidson solvers only support STPRECOND */
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);

@@ -106,6 +106,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized)
     SETERRQ(PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
+  if (!eps->which) eps->which = EPS_LARGEST_REAL;
+
+  /* Change the default sigma to inf if necessary */
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
+      eps->which == EPS_LARGEST_IMAGINARY) {
+    ierr = STSetDefaultShift(eps->OP, 3e300); CHKERRQ(ierr);
+  }
+
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
   if (t == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "PRIMME only works with precond spectral transformation");

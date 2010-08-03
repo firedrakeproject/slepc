@@ -140,6 +140,12 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
     SETERRQ(1,"Wrong value of eps->which");
   }
 
+  /* Change the default sigma to inf if necessary */
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
+      eps->which == EPS_LARGEST_IMAGINARY) {
+    ierr = STSetDefaultShift(eps->OP, 3e300); CHKERRQ(ierr);
+  }
+
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &isPrecond); CHKERRQ(ierr);
   if (isPrecond == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "blopex only works with precond spectral transformation");

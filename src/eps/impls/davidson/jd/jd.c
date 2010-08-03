@@ -70,14 +70,14 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
 
   PetscFunctionBegin;
 
+  /* Setup common for all davidson solvers */
+  ierr = EPSSetUp_DAVIDSON(eps); CHKERRQ(ierr);
+
   /* Check some constraints */ 
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
   if (t == PETSC_TRUE) SETERRQ(PETSC_ERR_SUP, "jd does not work with preonly ksp of the spectral transformation");
-
-  /* Setup common for all davidson solvers */
-  ierr = EPSSetUp_DAVIDSON(eps); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
