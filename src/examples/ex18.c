@@ -54,7 +54,7 @@ int main( int argc, char **argv )
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%d (m=%d)\n",N,m);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(PETSC_NULL,"-target",&target,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching right closest eigenvalues to %g.\n\n",target);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %g.\n\n",target);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -81,8 +81,8 @@ int main( int argc, char **argv )
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
 
   /*
-    Set the custom comparing routine in order to obtain the right eigenvalues
-    closest to the target
+    Set the custom comparing routine in order to obtain the eigenvalues
+    closest to the target on the right only
   */
   ierr = EPSSetEigenvalueComparison(eps,MyEigenSort,&target);CHKERRQ(ierr);
 
@@ -240,7 +240,16 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
   PetscFunctionReturn(0);
 }
 
-/* Try to select values at the right side of the target */
+#undef __FUNCT__
+#define __FUNCT__ "MyEigenSort"
+/*
+    Function for user-defined eigenvalue ordering criterion.
+
+    Given two eigenvalues ar+i*ai and br+i*bi, the subroutine must choose
+    one of them as the preferred one according to the criterion.
+    In this example, the preferred value is the one closest to the target,
+    but on the right side.
+*/
 PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar br, PetscScalar bi, PetscInt *r, void *ctx)
 {
   PetscScalar     target = *(PetscScalar*)ctx;
@@ -254,18 +263,16 @@ PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar 
   if (PetscRealPart(target) < PetscRealPart(br)) bisright = PETSC_TRUE;
   else bisright = PETSC_FALSE;
   if (aisright == bisright) {
-    /* both are in the same side of the target */
+    /* both are on the same side of the target */
     da = SlepcAbsEigenvalue(ar-target,ai);
     db = SlepcAbsEigenvalue(br-target,bi);
     if (da < db) *r = -1;
     else if (da > db) *r = 1;
     else *r = 0;
   } else if ((aisright == PETSC_TRUE) && (bisright == PETSC_FALSE))
-    /* 'a' is in the right */
-    *r = -1;
+    *r = -1; /* 'a' is on the right */
   else
-    /* 'b' is in the right */
-    *r = 1;
+    *r = 1;  /* 'b' is on the right */
 
   PetscFunctionReturn(0);
 }
