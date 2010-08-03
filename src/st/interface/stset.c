@@ -225,6 +225,36 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STGetMatStructure"
+/*@
+   STGetMatStructure - Gets the internal MatStructure attribute to 
+   indicate which is the relation of the sparsity pattern of the two matrices
+   A and B constituting the generalized eigenvalue problem. This function
+   has no effect in the case of standard eigenproblems.
+
+   Collective on ST
+
+   Input Parameters:
+.  st  - the spectral transformation context
+
+   Output Parameters:
+.  str - either SAME_NONZERO_PATTERN, DIFFERENT_NONZERO_PATTERN or
+         SUBSET_NONZERO_PATTERN
+
+   Level: advanced
+
+.seealso: STSetMatStructure(), STSetOperators(), MatAXPY()
+@*/
+PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidPointer(str,2);
+  *str = st->str;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STSetMatMode"
 /*@
    STSetMatMode - Sets a flag to indicate how the matrix is
