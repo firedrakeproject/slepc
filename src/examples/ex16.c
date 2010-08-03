@@ -94,9 +94,10 @@ int main( int argc, char **argv )
   ierr = QEPCreate(PETSC_COMM_WORLD,&qep);CHKERRQ(ierr);
 
   /* 
-     Set matrices
+     Set matrices and problem type
   */
   ierr = QEPSetOperators(qep,M,C,K);CHKERRQ(ierr);
+  ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
@@ -108,12 +109,12 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = QEPSolve(qep);CHKERRQ(ierr);
-  ierr = QEPGetIterationNumber(qep, &its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
   */
+  ierr = QEPGetIterationNumber(qep, &its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
   ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = QEPGetDimensions(qep,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
