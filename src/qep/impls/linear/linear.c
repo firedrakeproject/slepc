@@ -326,7 +326,6 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ctx->setfromoptionscalled = PETSC_TRUE;
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

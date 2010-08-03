@@ -739,10 +739,10 @@ PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
   PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("LANCZOS options");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"LANCZOS Options","EPS");CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",lanczoslist,6,lanczoslist[lanczos->reorthog],&i,&flg);CHKERRQ(ierr);
   if (flg) lanczos->reorthog = (EPSLanczosReorthogType)i;
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

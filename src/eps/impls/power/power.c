@@ -409,13 +409,13 @@ PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
   const char     *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("POWER options");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"POWER Options","EPS");CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",shift_list,3,shift_list[power->shift_type],&i,&flg);CHKERRQ(ierr);
   if (flg ) power->shift_type = (EPSPowerShiftType)i;
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

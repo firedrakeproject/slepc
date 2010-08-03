@@ -28,7 +28,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
 
   PetscFunctionBegin;
   
-  ierr = PetscOptionsHead("JD options");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"JD Options","EPS");CHKERRQ(ierr);
 
   ierr = EPSJDGetKrylovStart(eps, &op); CHKERRQ(ierr);
   ierr = PetscOptionsTruth("-eps_jd_krylov_start","Start the searching subspace with a krylov basis","EPSJDSetKrylovStart",op,&op,&flg); CHKERRQ(ierr);
@@ -53,7 +53,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg); CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetFix(eps, opf); CHKERRQ(ierr); }
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }  

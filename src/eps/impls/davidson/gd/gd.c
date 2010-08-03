@@ -27,7 +27,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
 
   PetscFunctionBegin;
   
-  ierr = PetscOptionsHead("GD options");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"GD Options","EPS");CHKERRQ(ierr);
 
   ierr = EPSGDGetKrylovStart(eps, &op); CHKERRQ(ierr);
   ierr = PetscOptionsTruth("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg); CHKERRQ(ierr);
@@ -48,7 +48,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = PetscOptionsInt("-eps_gd_initial_size","Set the initial size of the searching subspace","EPSGDSetInitialSize",opi,&opi,&flg); CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetInitialSize(eps, opi); CHKERRQ(ierr); }
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }  

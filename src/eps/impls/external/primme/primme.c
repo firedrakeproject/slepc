@@ -347,7 +347,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
 
   PetscFunctionBegin;
   
-  ierr = PetscOptionsHead("PRIMME options");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"PRIMME Options","EPS");CHKERRQ(ierr);
 
   op = ops->primme.maxBlockSize; 
   ierr = PetscOptionsInt("-eps_primme_block_size"," maximum block size","EPSPRIMMESetBlockSize",op,&op,&flg); CHKERRQ(ierr);
@@ -357,7 +357,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
                            "EPSPRIMMESetMethod",methodList,15,methodList[1],&op,&flg); CHKERRQ(ierr);
   if (flg) {ierr = EPSPRIMMESetMethod(eps, methodN[op]);CHKERRQ(ierr);}
   
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }

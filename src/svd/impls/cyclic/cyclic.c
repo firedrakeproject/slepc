@@ -340,7 +340,6 @@ PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   cyclic->setfromoptionscalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
