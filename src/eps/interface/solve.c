@@ -23,6 +23,46 @@
 
 #include "private/epsimpl.h"   /*I "slepceps.h" I*/
 
+typedef struct {
+  /* old values of eps */
+  EPSWhich
+    old_which;
+  PetscErrorCode
+    (*old_which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,
+                      PetscInt*,void*);
+  void
+    *old_which_ctx;
+} EPSSortForSTData;
+
+
+PetscErrorCode EPSSortForSTFunc(EPS eps, PetscScalar ar, PetscScalar ai,
+                                PetscScalar br, PetscScalar bi, PetscInt *r,
+                                void *ctx)
+{
+  EPSSortForSTData *data = (EPSSortForSTData*)ctx;
+  PetscErrorCode  ierr;
+
+  PetscFunctionBegin;
+
+  /* Back-transform the harmonic values */
+  ierr = STBackTransform(eps->OP,1,&ar,&ai);CHKERRQ(ierr);
+  ierr = STBackTransform(eps->OP,1,&br,&bi);CHKERRQ(ierr);
+
+  /* Compare values using the user options for the eigenpairs selection */
+  eps->which = data->old_which;
+  eps->which_func = data->old_which_func;
+  eps->which_ctx = data->old_which_ctx;
+  ierr = EPSCompareEigenvalues(eps, ar, ai, br, bi, r); CHKERRQ(ierr);
+
+  /* Restore the eps values */
+  eps->which = EPS_WHICH_USER;
+  eps->which_func = EPSSortForSTFunc;
+  eps->which_ctx = data;
+
+  PetscFunctionReturn(0);
+}
+
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve"
 /*@
@@ -48,13 +88,13 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscInt       i;
   PetscReal      re,im;
   PetscScalar    dot;
-  PetscTruth     flg,issinv,iscayley,isfold;
+  PetscTruth     flg,isfold;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   STMatMode      matmode;
-  EPSWhich       whichsave;
   char           filename[PETSC_MAX_PATH_LEN];
+  EPSSortForSTData data;
   Mat            A,B;
   KSP            ksp;
   Vec            w,x;
@@ -73,29 +113,6 @@ PetscErrorCode EPSSolve(EPS eps)
   /* reset the convergence flag from the previous solves */
   eps->reason = EPS_CONVERGED_ITERATING;
 
-  /* temporarily change which */
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
-  if (issinv || iscayley) {
-    whichsave = eps->which;
-    switch(eps->which) {
-      case EPS_TARGET_MAGNITUDE: eps->which = EPS_LARGEST_MAGNITUDE; break;
-      case EPS_TARGET_REAL:      eps->which = EPS_LARGEST_REAL; break;
-      case EPS_TARGET_IMAGINARY: eps->which = EPS_LARGEST_IMAGINARY; break;
-      case EPS_WHICH_USER:       break;
-      default: SETERRQ(1,"Must use target-based which in SINV and CAYLEY transforms");
-    }
-  }
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STFOLD,&isfold);CHKERRQ(ierr);
-  if (isfold) {
-    whichsave = eps->which;
-    switch(eps->which) {
-      case EPS_TARGET_MAGNITUDE: eps->which = EPS_SMALLEST_MAGNITUDE; break;
-      case EPS_WHICH_USER:       break;
-      default: SETERRQ(1,"Must use target_magnitude which in FOLD transform");
-    }
-  }
-
   /* call setup */
   if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   ierr = STResetOperationCounters(eps->OP);CHKERRQ(ierr);
@@ -108,8 +125,21 @@ PetscErrorCode EPSSolve(EPS eps)
 
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
+  /* temporarily change which */
+  data.old_which = eps->which;
+  data.old_which_func = eps->which_func;
+  data.old_which_ctx = eps->which_ctx;
+  eps->which = EPS_WHICH_USER;
+  eps->which_func = EPSSortForSTFunc;
+  eps->which_ctx = &data;
+
   /* call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
+
+  /* restore which */
+  eps->which = data.old_which;
+  eps->which_func = data.old_which_func;
+  eps->which_ctx = data.old_which_ctx;
 
   ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
@@ -128,8 +158,6 @@ PetscErrorCode EPSSolve(EPS eps)
   if (eps->ops->backtransform) {
     ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
   }
-  /* restore which */
-  if (issinv || iscayley || isfold) eps->which = whichsave;
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
@@ -165,6 +193,7 @@ PetscErrorCode EPSSolve(EPS eps)
 #endif
 
   /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STFOLD,&isfold);CHKERRQ(ierr);
   if (isfold) {
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = MatGetVecs(A,&w,PETSC_NULL);CHKERRQ(ierr);

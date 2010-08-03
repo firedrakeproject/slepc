@@ -403,10 +403,6 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
     d->calcpairs_proj_trans = dvd_harm_proj;
     d->calcpairs_eigs_trans = dvd_harm_eigs_trans;
 
-    /* Prepare the eigenpairs selection routine overloading */
-    dvdh->old_which = d->eps->which;
-    dvdh->old_which_func = d->eps->which_func;
-    dvdh->old_which_ctx = d->eps->which_ctx;
     DVD_FL_ADD(d->startList, dvd_harm_start);
     DVD_FL_ADD(d->endList, dvd_harm_end);
     DVD_FL_ADD(d->destroyList, dvd_harm_d);
@@ -441,6 +437,9 @@ PetscErrorCode dvd_harm_start(dvdDashboard *d)
   PetscFunctionBegin;
 
   /* Overload the eigenpairs selection routine */
+  data->old_which = d->eps->which;
+  data->old_which_func = d->eps->which_func;
+  data->old_which_ctx = d->eps->which_ctx;
   d->eps->which = EPS_WHICH_USER;
   d->eps->which_func = dvd_harm_sort;
   d->eps->which_ctx = data;
