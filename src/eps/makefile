@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2009, Universidad Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2010, Universidad Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #     
