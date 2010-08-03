@@ -102,6 +102,7 @@ typedef enum { ST_MATMODE_COPY,
 EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
+EXTERN PetscErrorCode STGetMatStructure(ST,MatStructure*);
 
 EXTERN PetscErrorCode STRegister(const char*,const char*,const char*,PetscErrorCode(*)(ST));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
