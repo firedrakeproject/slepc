@@ -250,7 +250,7 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   
   /* Restart loop */
   l = 0;
-  while (qep->reason == EPS_CONVERGED_ITERATING) {
+  while (qep->reason == QEP_CONVERGED_ITERATING) {
     qep->its++;
 
     /* Compute an nv-step Arnoldi factorization */
@@ -262,11 +262,11 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
 
     /* Check convergence */ 
     ierr = QEPKrylovConvergence(qep,qep->nconv,nv-qep->nconv,S,qep->ncv,Q,nv,beta,&k,work);CHKERRQ(ierr);
-    if (qep->its >= qep->max_it) qep->reason = EPS_DIVERGED_ITS;
-    if (k >= qep->nev) qep->reason = EPS_CONVERGED_TOL;
+    if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
+    if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
     
     /* Update l */
-    if (qep->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
+    if (qep->reason != QEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = (nv-k)/2;
 #if !defined(PETSC_USE_COMPLEX)
@@ -277,11 +277,11 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
 #endif
     }
 
-    if (qep->reason == EPS_CONVERGED_ITERATING) {
+    if (qep->reason == QEP_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Stop if breakdown */
         PetscInfo2(qep,"Breakdown Quadratic Arnoldi method (it=%i norm=%g)\n",qep->its,beta);
-        qep->reason = EPS_DIVERGED_BREAKDOWN;
+        qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=k;i<k+l;i++) {
@@ -294,7 +294,7 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
 
     qep->nconv = k;
 
-    EPSMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);
+    QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);
     
   } 
 

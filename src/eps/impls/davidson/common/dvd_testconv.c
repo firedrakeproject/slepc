@@ -106,6 +106,6 @@ PetscTruth dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
                               d->eps->conv_ctx);
   CHKERRABORT(((PetscObject)d->eps)->comm, ierr);
 
-  PetscFunctionReturn(*err<d->eps->tol);
+  PetscFunctionReturn(*err<d->eps->tol ? PETSC_TRUE : PETSC_FALSE);
 }
 

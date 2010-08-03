@@ -72,7 +72,6 @@ void svdmonitorlg_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscR
 {
   *ierr = SVDMonitorLG(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
-EXTERN_C_END
 
 void svdmonitorlgall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
