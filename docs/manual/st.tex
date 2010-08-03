@@ -24,7 +24,7 @@
 
 \paragraph{Preconditioners.}
 
-As explained in the previous chapter, \ident{EPS} contains preconditioned eigensolvers. These solvers either apply a preconditioner at a certain step of the computation, or need to solve a correction equation with a preconditioned linear solver. 
+As explained in the previous chapter, \ident{EPS} contains preconditioned eigensolvers. These solvers either apply a preconditioner at a certain step of the computation, or need to solve a correction equation with a preconditioned linear solver. One of the main goals of these solvers is to achieve a similar effect as an inverse-based spectral transformation such as shift-and-invert, but with less computational cost. For this reason, a ``preconditioner'' spectral transformation has been included in the \ident{ST} object. However, this is just a convenient way of organizing the functionality, since this fake spectral transform cannot be used with non-preconditioned eigensolvers, and conversely preconditioned eigensolvers cannot be used with conventional spectral transformations.
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -57,8 +57,8 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 where \texttt{type} can be one of 
 \texttt{STSHIFT}, \texttt{STFOLD},
 \texttt{STSINVERT}, \texttt{STCAYLEY},
-or \texttt{STSHELL}.
-The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first four spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
+\texttt{STPRECOND}, or \texttt{STSHELL}.
+The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first five spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
 
 \begin{table}
 \centering
@@ -69,6 +69,7 @@ Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift}   & $B^{-1}A+\sigma
 Spectrum Folding        & \texttt{STFOLD}   & \texttt{fold}    & $(B^{-1}A-\sigma I)^2$\\
 Shift-and-invert        & \texttt{STSINVERT}& \texttt{sinvert} & $(A-\sigma B)^{-1}B$\\
 Generalized Cayley      & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\nu B)$\\
+Preconditioner          & \texttt{STPRECOND}& \texttt{precond} & $A-\sigma B$\\\hline
 Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defined}\\\hline
 \end{tabular} }
 \caption{\label{tab:transforms}Spectral transformations available in the  \ident{ST} package.}
@@ -92,11 +93,18 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defi
 	& $\sigma\not=0,\nu=0$ & $(A-\sigma I)^{-1}A$  & $(A-\sigma B)^{-1}A$ \\
         & $\sigma=0,\nu\not=0$     & $I+\nu A^{-1}$      & $I+\nu A^{-1}B$ \\
 	& $\sigma\not=0,\nu\not=0$ & $(A-\sigma I)^{-1}(A+\nu I)$  & $(A-\sigma B)^{-1}(A+\nu B)$ \\ \hline
+	\texttt{precond}
+        & $\sigma=0$     & $A$           & $A$          \\
+	& $\sigma\not=0$ & $A-\sigma I$  & $A-\sigma B$ \\ \hline
 	\end{tabular} }
 	\caption{\label{tab:op}Operators used in each spectral transformation mode.}
 	\end{table}
 
 	The expressions shown in Table \ref{tab:op} are not built explicitly. Instead, the appropriate operations are carried out when applying the operator to a certain vector. The inverses imply the solution of a linear system of equations that is managed by setting up an associated \ident{KSP} object. The user can control the behavior of this object by adjusting the appropriate options, as will be illustrated with examples in \S\ref{sec:lin}.
+
+\paragraph{Relation between Target and Shift.}
+
+	In all transformations except \ident{STSHIFT}, there is a direct connection between the target $\tau$ (described in \S\ref{sec:defprob}) and the shift $\sigma$, as will be discussed below. The normal usage is that the user sets the target and then $\sigma$ is set to $\tau$ automatically (though it is still possible for the user to set a different value of the shift).
 
 \subsection{Shift of Origin}
 
@@ -122,14 +130,7 @@ for standard problems, and
 \begin{equation}(B^{-1}A-\sigma I)^2 x=\theta x\;\;,\end{equation}
 for generalized ones. In both cases, the following relation holds 
 \begin{equation}\theta=(\lambda-\sigma)^2\;\;.\end{equation}
-The effect of this transformation is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold} for an example with real eigenvalues. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations, \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert (explained below).
-
-\textit{Warning}: It is possible that some eigenpairs have a very large associated error when using this transformation. There is a simple explanation for this: since the sign is lost when squaring, there is no way to determine if the original eigenvalue is located to the left or to the right of $\sigma$. As a consequence, the eigenvalue returned by \ident{STBackTransform} is computed as $\lambda=\sqrt{\theta}+\sigma$, always taking the positive sign for the square root. This guess is wrong for values located on the left, which will have a large error even when the eigenvector is correct. This behavior can be changed by the user with the following function
-	\findex{STFoldSetLeftSide}
-	\begin{Verbatim}[fontsize=\small]
-	STFoldSetLeftSide(ST st,PetscTruth left);
-	\end{Verbatim}
-(or with \texttt{-st\_fold\_leftside}), so that the negative sign is taken for the square root. In this case those eigenvalues located on the left side of $\sigma$ will be returned correctly but not the right ones.
+For real eigenvalues, the effect of this transformation is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold}. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations, \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert (explained below).
 
   \begin{figure}
     \centering
@@ -205,6 +206,38 @@ This transformation is mathematically equivalent to shift-and-invert and, theref
 In this case, the relation between the eigenvalues of both problems is
 \begin{equation}\theta=(\lambda+\nu)/(\lambda-\sigma)\;\;.\end{equation}
 Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=(\theta\sigma+\nu)/(\theta-1)$ for each of the computed eigenvalues.
+
+\subsection{Preconditioner}
+
+	As mentioned in the introduction of this chapter, the special type \ident{STPRECOND} is used for handling preconditioners or preconditioned iterative linear solvers, which are used in the context of preconditioned eigensolvers for expanding the subspace. For instance, in the GD solver the so-called correction vector $d_i$ to be added to the subspace in each iteration is computed as
+\begin{equation}
+d_i=K^{-1}(A-\theta_i B)x_i,
+\end{equation}
+or sometimes as
+\begin{equation}
+d_i=K^{-1}P_i(A-\theta_i B)x_i,
+\end{equation}
+where $(\theta_i,x_i)$ is the current approximation of the sought-after eigenpair, and $P_i$ is a projector involving $x_i$ and $K^{-1}x_i$. In the above expressions, $K$ is a preconditioner matrix that is built from $A-\theta_i B$. However, since $\theta_i$ changes at each iteration, which would force recomputation of the preconditioner, we opt for using
+\begin{equation}
+\label{eq:precon}
+K\approx A-\sigma B.
+\end{equation}
+
+	Similarly, in the JD eigensolver the expansion of the subspace is carried out by solving the correction equation
+\begin{equation}
+(I-x_ix_i^*)(A-\theta_i B)(I-x_ix_i^*)d_i=-(A-\theta_i B)x_i,
+\end{equation}
+or a similar one, where the system is solved approximately with a preconditioned iterative linear solver. For building the preconditioner of this linear system, the projectors $I-x_ix_i^*$ are ignored, and again it is not recomputed in each iteration. Therefore, the preconditioner is built as in expression \ref{eq:precon} as well.
+
+	It should be clear from the previous discussion, that \ident{STPRECOND} does not work in the same way as the rest of spectral transformations. In particular, it is not intended to be used on the basis of operator applications with \ident{STApply}, and it does not rely on \ident{STBackTransform} either. It is rather a convenient mechanism for handling the preconditioner and linear solver (see examples in \S\ref{sec:lin}). The expressions shown in Tables \ref{tab:transforms} and \ref{tab:op} are just a reference to indicate from which matrix the preconditioner is built by default.
+
+	There is the possibility that the user overrides the default behaviour, that is, to explicitly supply a matrix from which the preconditioner is to be built, with
+	\findex{STPrecondSetMatForPC}
+	\begin{Verbatim}[fontsize=\small]
+	STPrecondSetMatForPC(ST st,Mat mat);
+	\end{Verbatim}
+
+	Note that preconditioned eigensolvers in \ident{EPS} select \ident{STPRECOND} by default, so the user does not need to specify it explicitly.
 
 %---------------------------------------------------
 \section{Advanced Usage}
