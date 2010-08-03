@@ -359,7 +359,7 @@ EXTERN_C_END
 
    Level: developer
 
-.seealso: SSTPrecondGetKSPHasMat(), TSetShift(), KSPSetOperators()
+.seealso: STPrecondGetKSPHasMat(), TSetShift(), KSPSetOperators()
 @*/
 PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscTruth setmat)
 {

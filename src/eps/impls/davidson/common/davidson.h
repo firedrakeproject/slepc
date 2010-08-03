@@ -1,32 +1,28 @@
 /*
-  SLEPc eigensolver: "davidson"
-
-  Method: General Davidson Method
+  Method: General Davidson Method (includes GD and JD)
 
   References:
     - Ernest R. Davidson. Super-matrix methods. Computer Physics Communications,
       53:49–60, May 1989.
 
-  TODO:
-    - If the problem is symmetric, H=V*A*V is symmetric too, we can do some ops:
-        *) Use a LAPACK eigensolver that only modify the upper triangular part
-           of H, so we can save H in the lower one, and in a vector for the
-           diagonal. That expends only 2*n^2 + n of memory.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   SLEPc - Scalable Library for Eigenvalue Problem Computations
+   Copyright (c) 2002-2009, Universidad Politecnica de Valencia, Spain
 
-    - In the interface, support static preconditioners of PETSc (PC) and others
-      with shift parameter.
+   This file is part of SLEPc.
+      
+   SLEPc is free software: you can redistribute it and/or modify it under  the
+   terms of version 3 of the GNU Lesser General Public License as published by
+   the Free Software Foundation.
 
-    - (DONE) Start with a krylov subspace, the H matrix will be used as the starting
-      projected problem matrix, and A*V <- V*H + f*e_m^T.
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   more details.
 
-    - (DONE) Implements with BLAS3 prods Z <- V*U
-
-    - Implement the orthonormalization routines with BLAS3
-
-    - Implement an interface for memory management
-
-    - Store V, W, AV and BV like [V; W; AV; BV] to make easier the management.
-
+   You  should have received a copy of the GNU Lesser General  Public  License
+   along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
 
