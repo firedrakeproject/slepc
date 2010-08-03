@@ -253,9 +253,9 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 \begin{Verbatim}[fontsize=\small]
 	$ program
 \end{Verbatim}
-In this case, the \ident{ST} object associated to the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{Note that this is the default starting from \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
+In this case, the \ident{ST} object associated to the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{This is the default since \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
 
-	The following command-line is equivalent to the previous one:
+	The following command-line is equivalent to the previous one\footnote{More precisely, the equivalent command would use the \texttt{redundant} \texttt{PC} in order to work in parallel.}:
 \begin{Verbatim}[fontsize=\small]
 	$ program -st_ksp_type preonly -st_pc_type lu
 \end{Verbatim}
@@ -264,13 +264,13 @@ The two options specify the type of the linear solver and preconditioner to be u
 	$ program -st_ksp_type preonly -st_pc_type lu
                   -st_pc_factor_mat_solver_package mumps
 \end{Verbatim}
-In this case, an external linear solver package is used (MUMPS, see \petsc's documentation for other available packages). Note that an external package is required for parallel execution.
+In this case, an external linear solver package is used (MUMPS, see \petsc's documentation for other available packages). Note that an external package is required for a truly parallel direct linear solver.
 
-	Instead of a direct linear solver, it is possible to use an iterative solver. This may be necessary in some cases, specially for very large problems. However, the user is warned that using an iterative linear solver makes the overall solution process less robust. As an example, the command-line
+	Instead of a direct linear solver, it is possible to use an iterative solver. This may be necessary in some cases, specially for very large problems. However, the user is warned that using an iterative linear solver makes the overall solution process less robust (see also the discussion of preconditioned eigensolvers below). As an example, the command-line
 \begin{Verbatim}[fontsize=\small]
 	$ program -st_ksp_type gmres -st_pc_type bjacobi -st_ksp_rtol 1e-8
 \end{Verbatim}
-selects the GMRES solver with block Jacobi preconditioning. In the case of iterative solvers, it is important to use an appropriate tolerance, usually slightly more stringent for the linear solves relative to the desired accuracy of the eigenvalue calculation ($10^{-8}$ in the example, compared to $10^{-8}$ for the eigensolver). 
+selects the GMRES solver with block Jacobi preconditioning. In the case of iterative solvers, it is important to use an appropriate tolerance, usually slightly more stringent for the linear solves relative to the desired accuracy of the eigenvalue calculation ($10^{-8}$ in the example, compared to $10^{-7}$ for the eigensolver). 
 
 	Although the direct solver approach may seem too costly, note that the factorization is only carried out at the beginning of the eigenvalue calculation and this cost is amortized in each subsequent application of the operator. This is also the case for iterative methods with preconditioners with high-cost set-up such as ILU.
 
@@ -280,14 +280,9 @@ selects the GMRES solver with block Jacobi preconditioning. In the case of itera
 	STGetKSP(ST st,KSP *ksp);
 	\end{Verbatim}
 	
-	The above functionality is also applicable to the other spectral transformations. In this other example, the spectrum is shifted by $\sigma=0.5$ and an iterative linear solver is specified for the linear systems (a generalized eigensystem is assumed):
+	The above functionality is also applicable to the other spectral transformations. For instance, for the shift-and-invert technique with $\tau=10$ using BiCGStab+Jacobi:
 \begin{Verbatim}[fontsize=\small]
-	$ program -st_type shift -st_shift 0.5 -st_ksp_type cg -st_pc_type jacobi
-\end{Verbatim}
-
-	Similarly, for the shift-and-invert technique with $\sigma=10$:
-\begin{Verbatim}[fontsize=\small]
-	$ program -st_type sinvert -st_shift 10 -st_ksp_type bcgs -st_pc_type bjacobi
+	$ program -st_type sinvert -eps_target 10 -st_ksp_type bcgs -st_pc_type jacobi
 \end{Verbatim}
 	The shift-and-invert and Cayley transformations deserve special consideration. In these cases, the coefficient matrix is not a simple matrix but an expression that can be explicitly constructed or not, depending on the user's choice. This issue is examined in detail in \S\ref{sec:explicit} below.
 
@@ -296,6 +291,20 @@ In many cases, especially if a shift-and-invert or Cayley transformation is bein
 	[0]PETSC ERROR: Warning: KSP did not converge (-3)!
 \end{Verbatim}
 If this happens, chances are that the \ident{EPS} object fails to compute the eigensolution or that the retrieved solution is wrong whatsoever. In that situation, it is necessary to use a direct method for solving the linear systems, as explained above.
+
+\paragraph{The Case of Preconditioned Eigensolvers.}
+
+	The \texttt{KSP} object contained internally in \ident{ST} is also used for applying the preconditioner or solving the correction equation in preconditioned eigensolvers.
+
+	The GD eigensolver employs just a preconditioner. Therefore, by default it sets the \texttt{KSP} type to \texttt{preonly} (no other \texttt{KSP} is allowed) and the \texttt{PC} type to \texttt{jacobi}. The user may change the preconditioner, for example as
+\begin{Verbatim}[fontsize=\small]
+	$ ./ex5 -eps_type gd -st_pc_type jacobi
+\end{Verbatim}
+
+	The JD eigensolver uses both an iterative linear solver and a preconditioner, so both \texttt{KSP} and \texttt{PC} are meaningful in this case. The default is \texttt{gmres}+\texttt{bjacobi}. It is important to note that, contrary to the ordinary spectral transformations where a direct linear solver is recommended, in JD using an iterative linear solver is usually better than a direct solver. Indeed, the best performance may be achieved with a few iterations of the linear solver (or a large tolerance). For instance, the next example uses JD with GMRES+Jacobi limiting to 10 the number of allowed iterations for the linear solver:
+\begin{Verbatim}[fontsize=\small]
+	$ ./ex5 -eps_type jd -st_ksp_type gmres -st_pc_type jacobi -st_ksp_max_it 10
+\end{Verbatim}
 
 \subsection{Explicit Computation of Coefficient Matrix}
 \label{sec:explicit}
@@ -339,7 +348,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 \subsection{Preserving the Symmetry in Generalized Eigenproblems}
 \label{sec:symm}
 
-	As mentioned in \S\ref{sec:defprob}, some eigensolvers can exploit symmetry and compute a solution for Hermitian problems with less storage and/or computational cost than other methods. Also, symmetric solvers can be more accurate in some cases. However, in the case of generalized eigenvalue problems in which both $A$ and $B$ are symmetric, it happens that, due to the spectral transformation, symmetry is lost since none of the transformed operators $B^{-1}\!A+\sigma I$, $(A-\sigma B)^{-1}B$, etc. is symmetric (the same applies in the Hermitian case for complex matrices).
+	As mentioned in \S\ref{sec:defprob}, some eigensolvers can exploit symmetry and compute a solution for Hermitian problems with less storage and/or computational cost than other methods. Also, symmetric solvers can be more accurate in some cases. However, in the case of generalized eigenvalue problems in which both $A$ and $B$ are symmetric, it happens that, due to the spectral transformation, symmetry is lost since none of the transformed operators $B^{-1}\!A+\sigma I$, $(A-\sigma B)^{-1}B$, etc.\ is symmetric (the same applies in the Hermitian case for complex matrices).
 
 	The solution proposed in \slepc is based on selecting different kinds of inner products. Currently, we have the following choice of inner products:
   \begin{itemize}
@@ -387,6 +396,8 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 	In the case of the Cayley transform, \slepc is using $\langle x,y\rangle_{A+\nu B}$ as the inner product for preserving symmetry.
 
 	Using the $B$-inner product may be attractive also in the non-symmetric case ($A$ non-symmetric) as described in the next subsection.
+
+	Note that the above discussion is not directly applicable to \ident{STPRECOND} and the preconditioned eigensolvers, in the sense that the goal is not to recover the symmetry of the operator. Still, the $B$-inner product is also used in generalized symmetric-definite problems.
 
 \subsection{Purification of Eigenvectors}
 \label{sec:purif}
