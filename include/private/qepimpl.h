@@ -55,7 +55,7 @@ struct _p_QEP {
                  mpd,              /* maximum dimension of projected problem */
                  nini, ninil;      /* number of initial vectors (negative means not copied yet) */
   PetscReal      tol;              /* tolerance */
-  PetscScalar    sfactor;          /* scaling factor of the quadratic problem */
+  PetscReal      sfactor;          /* scaling factor of the quadratic problem */
   PetscErrorCode (*conv_func)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   void           *conv_ctx;
   QEPWhich       which;            /* which part of the spectrum to be sought */

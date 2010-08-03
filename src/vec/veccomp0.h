@@ -193,7 +193,7 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a, NormType t, PetscReal *norm)
     ierr = MPI_Allreduce(&work0, &norm0, t==NORM_1_AND_2?2:1, MPIU_SCALAR,
                          t==NORM_INFINITY?MPI_MAX:MPIU_SUM,
                          ((PetscObject)a)->comm); CHKERRQ(ierr);
-    *norm = norm0;
+    *norm = PetscRealPart(norm0);
   }
 #endif
 

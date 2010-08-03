@@ -524,7 +524,7 @@ PetscErrorCode QEPGetScaleFactor(QEP qep,PetscReal *alpha)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
-  if (alpha) *alpha = PetscRealPart(qep->sfactor);
+  if (alpha) *alpha = qep->sfactor;
   PetscFunctionReturn(0);
 }
 
