@@ -66,7 +66,7 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
       if (st->B) {
         ierr = MatHasOperation(st->A, MATOP_AXPY, &t1); CHKERRQ(ierr);
       } else {
-        ierr = MatHasOperation(st->A, MATOP_SHIFT, &t1); CHKERRQ(ierr);
+        t1 = PETSC_TRUE;
       }
       ierr = PCSetType(pc, (t0 == PETSC_TRUE && t1 == PETSC_TRUE)?
                              PCJACOBI:PCNONE); CHKERRQ(ierr);
