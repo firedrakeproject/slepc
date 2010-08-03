@@ -1060,27 +1060,17 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps, PetscScalar kr, PetscSca
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
 
 #ifndef PETSC_USE_COMPLEX
-  if (ki == 0 || 
-    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+  if (ki == 0) {
 #endif
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    if (PetscAbsScalar(kr) > norm) {
-      *error =  norm/(PetscAbsScalar(kr)*er);
-    } else {
-      *error = norm/er;
-    }
 #ifndef PETSC_USE_COMPLEX
   } else {
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);  
-    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);  
-    if (SlepcAbsEigenvalue(kr,ki) > norm) {
-      *error = norm/(SlepcAbsEigenvalue(kr,ki)*SlepcAbsEigenvalue(er,ei));
-    } else {
-      *error = norm/SlepcAbsEigenvalue(er,ei);
-    }
+    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
+    er = SlepcAbsEigenvalue(er,ei); 
   }
 #endif    
-  
+  ierr = (*eps->conv_func)(eps,kr,ki,norm/er,error,eps->conv_ctx);CHKERRQ(ierr) 
   PetscFunctionReturn(0);
 }
 
