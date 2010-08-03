@@ -704,10 +704,11 @@ $   func(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,Pet
 -   ctx    - optional context, as set by EPSSetEigenvalueComparison()
 
     Note:
-    The comparison function must return an integer less than, equal to, or
-    greater than zero if the first eigenvalue is considered to be respectively
-    less than, equal to, or greater than the second one.
-    
+    The returning parameter 'res' can be:
++   negative - if the 1st eigenvalue is preferred to the 2st one
+.   zero     - if both eigenvalues are equally preferred
+-   positive - if the 2st eigenvalue is preferred to the 1st one
+
     Level: advanced
 
 .seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich

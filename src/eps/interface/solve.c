@@ -1242,7 +1242,7 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
 #endif
     while (j<n) {
       ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-      if (result >= 0) break;
+      if (result < 0) break;
 #ifndef PETSC_USE_COMPLEX
       /* keep together every complex conjugated eigenpair */
       if (im == 0) { 
@@ -1309,7 +1309,7 @@ PetscErrorCode EPSSortEigenvaluesReal(EPS eps,PetscInt n,PetscReal *eig,PetscInt
     re = eig[perm[i]];
     j = i-1;
     ierr = EPSCompareEigenvalues(eps,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
-    while (result>0 && j>=0) {
+    while (result<=0 && j>=0) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=0) {
         ierr = EPSCompareEigenvalues(eps,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
@@ -1338,9 +1338,10 @@ PetscErrorCode EPSSortEigenvaluesReal(EPS eps,PetscInt n,PetscReal *eig,PetscInt
 .  res    - result of comparison
 
    Notes:
-   Returns an integer less than, equal to, or greater than zero if the first
-   eigenvalue is considered to be respectively less than, equal to, or greater
-   than the second one.
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
 
    The criterion of comparison is related to the 'which' parameter set with
    EPSSetWhichEigenpairs().
@@ -1406,13 +1407,13 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
     case EPS_LARGEST_MAGNITUDE:
     case EPS_LARGEST_REAL:
     case EPS_LARGEST_IMAGINARY:
-      if (a<b) *result = -1;
-      else if (a>b) *result = 1;
+      if (a<b) *result = 1;
+      else if (a>b) *result = -1;
       else *result = 0;
       break;
     default:
-      if (a>b) *result = -1;
-      else if (a<b) *result = 1;
+      if (a>b) *result = 1;
+      else if (a<b) *result = -1;
       else *result = 0;
   }
   PetscFunctionReturn(0);
