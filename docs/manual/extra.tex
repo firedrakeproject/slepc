@@ -76,19 +76,19 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 	The function
 	\findex{STShellSetApply}
 	\begin{Verbatim}[fontsize=\small]
-      STShellSetApply(ST,PetscErrorCode(*)(void*,Vec,Vec),void*);
+      STShellSetApply(ST,PetscErrorCode(*)(ST,Vec,Vec));
 	\end{Verbatim}
 has to be invoked after the creation of the \ident{ST} object in order to provide a routine that applies the operator to a vector. And the function
 	\findex{STShellSetBackTransform}
 	\begin{Verbatim}[fontsize=\small]
-      STShellSetBackTransform(ST,PetscErrorCode(*)(void*,PetscScalar*,PetscScalar*));
+      STShellSetBackTransform(ST,PetscErrorCode(*)(ST,PetscInt,PetscScalar*,PetscScalar*));
 	\end{Verbatim}
-can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user receive a pointer to a user-defined context that can contain any useful information. This context must be passed as the last argument in the call to \ident{STShellSetApply}.
+can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user can make use of any required user-defined information via a context that can be retrieved with \ident{STShellGetContext}.
 
 	Finally, the application programmer can use the following function
 	\findex{STShellSetName}
 	\begin{Verbatim}[fontsize=\small]
-      STShellSetName(ST,char*);
+      STShellSetName(ST,const char*);
 	\end{Verbatim}
 to specify a name for the new shell transformation in order to identify it in the program's output (\ident{STView}).
 
@@ -126,7 +126,9 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \item[\texttt{eps}] - eigenvalue problem solver.
 \item[\texttt{st}] - spectral transformation.
 \item[\texttt{svd}] - singular value decomposition solver.
+\item[\texttt{qep}] - quadratic eigenvalue problem solver.
 \item[\texttt{ip}] - inner product, for developer use only.
+\item[\texttt{vec}] - custom vector implementation, for developer use only.
 \item[\texttt{examples}] - example programs.
 \item[\texttt{mat/examples}] - matrices used by some examples.
 \end{description}
@@ -153,7 +155,7 @@ Each \slepc source code component directory has the following subdirectories:
 
 	In order to use \slepc together with an external library such as \arpack, one needs to do the following.
 	\begin{enumerate}
-	\item Install the external software, with the same compilers and MPI that will be used for \petsc/\slepc. %If required, this software should be linked with the same \lapack version as \petsc.
+	\item Install the external software, with the same compilers and MPI that will be used for \petsc/\slepc.
 	\item Enable the utilization of the external software from \slepc by specifying configure options as explained in \S\ref{sec:opt-inst}.
  	\item Build the \slepc libraries.
 	\item Use the runtime option \Verb!-eps_type <type>! to select the solver.
@@ -198,7 +200,9 @@ Each \slepc source code component directory has the following subdirectories:
 	\item[Version.] 1.1.
 	\item[Summary.] \primme (PReconditioned Iterative MultiMethod Eigensolver) is a C library for finding a number of eigenvalues and their corresponding eigenvectors of a real symmetric (or complex Hermitian) matrix. This library provides a multimethod eigensolver, based on Davidson/Jacobi-Davidson. Particular methods include GD+1, JDQMR, and LOBPCG. It supports preconditioning as well as the computation of interior eigenvalues.
 	\item[Installation.] Type \texttt{make lib} after customizing the file \texttt{Make\_flags} appropriately.
-	\item[Specific options.] The \slepc interface to this package allows the user to specify the maximum allowed block size with the function \ident{EPSPRIMMESetBlockSize} or at run time with the option \Verb!-eps_primme_block_size <size>!. 
+	\item[Specific options.] Since PRIMME contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
+
+The \slepc interface to this package allows the user to specify the maximum allowed block size with the function \ident{EPSPRIMMESetBlockSize} or at run time with the option \Verb!-eps_primme_block_size <size>!.
 
 For changing the particular algorithm within \primme, use the function \ident{EPSPRIMMESetMethod}. Other options related to the method are the use of preconditioning (with function \ident{EPSPRIMMESetPrecond}) and the restarting strategy (\ident{EPSPRIMMESetRestart}).
 	\end{description}
@@ -233,9 +237,10 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\begin{description}
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Knyazev:2001:TOP}.
-	\item[Website.] \url{http://www-math.cudenver.edu/\~aknyazev/software/BLOPEX}.
+	\item[Website.] \url{http://code.google.com/p/blopex}.
 	\item[Summary.] \blopex is a package that implements the Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG) method for computing several extreme eigenpairs of symmetric positive generalized eigenproblems. Numerical comparisons suggest that this method is a genuine analog for eigenproblems of the standard preconditioned conjugate gradient method for symmetric linear systems.
 	\item[Installation.] In order to use \blopex from \slepc, it is a prior requirement that \petsc has been configured with \Verb!./configure --download-hypre --download-blopex!.
+	\item[Specific options.] Since BLOPEX contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
 	\end{description}
 
 %---------------------------------------------------

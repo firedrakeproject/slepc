@@ -90,14 +90,14 @@ We could also consider the \emph{reversed} forms, e.g., the reversed form of N2 
 \mbox{N2-R:}\qquad
 \left[\begin{array}{cc}-C & -M\\I & 0\end{array}\right]-\frac{1}{\lambda}\left[\begin{array}{cc}K & 0\\0 & I\end{array}\right],
 \end{equation}
-which is equivalent to the form N1 for the problem $R(\lambda^{-1})x=0$. These reversed forms are not implemented in SLEPc, but the user can use them simply by reversing the roles of $M$ and $K$, and considering the reciprocals of the computed eigenvalues.
+which is equivalent to the form N1 for the problem $R(\lambda^{-1})x=0$. These reversed forms are not implemented in \slepc, but the user can use them simply by reversing the roles of $M$ and $K$, and considering the reciprocals of the computed eigenvalues.
 
 %---------------------------------------------------
 \section{Basic Usage}
 
 The user interface of the \ident{QEP} package is very similar to \ident{EPS}. For basic usage, the only noteworthy difference is that three matrices have to be supplied.
 
-A basic example code for solving a quadratic eigenproblem with \ident{QEP} is shown in Figure \ref{fig:ex-qep}. The required steps are the same as those described in chapter \ref{cap:eps} for the linear eigenproblem. As always, the solver context is created with \ident{QEPCreate}. The three problem matrices are provided with \ident{QEPSetOperators}, and the problem type is specified with \ident{QEPSetProblemType}. Calling \ident{QEPSetFromOptions} allows the user to set up various options through the command line. The call to \ident{QEPSolve} invokes the actual solver. Then, the solution is retrived with \ident{QEPGetConverged} and \ident{QEPGetEigenpair}. Finally, \ident{QEPDestroy} destroys the object.
+A basic example code for solving a quadratic eigenproblem with \ident{QEP} is shown in Figure \ref{fig:ex-qep}. The required steps are the same as those described in chapter \ref{cap:eps} for the linear eigenproblem. As always, the solver context is created with \ident{QEPCreate}. The three problem matrices are provided with \ident{QEPSetOperators}, and the problem type is specified with \ident{QEPSetProblemType}. Calling \ident{QEPSetFromOptions} allows the user to set up various options through the command line. The call to \ident{QEPSolve} invokes the actual solver. Then, the solution is retrieved with \ident{QEPGetConverged} and \ident{QEPGetEigenpair}. Finally, \ident{QEPDestroy} destroys the object.
 
 \begin{figure}
 \begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
@@ -187,14 +187,15 @@ The solution method can be specified procedurally with
 	\begin{Verbatim}[fontsize=\small]
 	QEPSetType(QEP qep,QEPType method);
 	\end{Verbatim}
-or via the options database command \Verb!-qep_type! followed by the name of the method. Currently, there is only one method available, see Table~\ref{tab:solversq}, based on linearization. In future SLEPc versions, we plan to incorporate solvers that work directly on the quadratic problem, without linearizing.
+or via the options database command \Verb!-qep_type! followed by the name of the method. The methods currently available in \ident{QEP} are listed in Table~\ref{tab:solversq}. The first one is based on linearization, while the rest either work implicitly on a linearization, or operate directly on the quadratic problem without linearizing.
 
 \begin{table}
 \centering
 {\small \begin{tabular}{lll}
                    &                      & {\footnotesize Options} \\
 Method             & \ident{QEPType}      & {\footnotesize Database Name}\\\hline
-Linearization      & \texttt{QEPLINEAR}   & \texttt{linear} \\\hline
+Linearization      & \texttt{QEPLINEAR}   & \texttt{linear} \\
+Quadratic Arnoldi  & \texttt{QEPQARNOLDI} & \texttt{qarnoldi} \\\hline
 \end{tabular} }
 \caption{\label{tab:solversq}Quadratic eigenvalue solvers available in the \ident{QEP} module.}
 \end{table}
@@ -221,9 +222,9 @@ Another option of the \texttt{QEPLINEAR} solver is whether the matrices of the l
 	\begin{Verbatim}[fontsize=\small]
 	QEPLinearSetExplicitMatrix(QEP qep,PetscTruth exp);
 	\end{Verbatim}
-In the case of explicit creation, matrices $A$ and $B$ are created as real \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$. The explicit case requires more memory but gives more flexibility, e.g., for chosing a preconditioner.
+In the case of explicit creation, matrices $A$ and $B$ are created as real \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$. The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner.
 
-As a complete example of how to solve a quadratic eigenproblem via linearlization, consider the following command line:
+As a complete example of how to solve a quadratic eigenproblem via linearization, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
 	$ program -qep_type linear -qep_hermitian -qep_linear_cform 2
                   -qep_linear_explicitmatrix -qep_eps_type krylovschur
@@ -255,15 +256,14 @@ When the norm of $M$, $C$ and $K$ vary widely, \cite{Tisseur:2000:BEC} recommend
 \begin{equation}
 (\mu^2M_\alpha+\mu C_\alpha+K)x=0,\label{eq:scaled}
 \end{equation}
-with $\mu=\lambda/\alpha$, $M_\alpha=\alpha^2M$ and $C_\alpha=\alpha C$, where $\alpha$ is a scaling factor. Ideally, $\alpha$ should be chosen in such a way that the norms of $M_\alpha$, $C_\alpha$ and $K$ have similar magnitude. In SLEPc, this is done automatically and the user can call
+with $\mu=\lambda/\alpha$, $M_\alpha=\alpha^2M$ and $C_\alpha=\alpha C$, where $\alpha$ is a scaling factor. Ideally, $\alpha$ should be chosen in such a way that the norms of $M_\alpha$, $C_\alpha$ and $K$ have similar magnitude. In \slepc, this is done automatically and the user can call
 	\findex{QEPSetScaleFactor}
 	\begin{Verbatim}[fontsize=\small]
 	QEPSetScaleFactor(QEP qep,PetscReal alpha);
 	\end{Verbatim}
 to specify the scaling factor. If not specified, the value $\alpha=\sqrt{\frac{\|K\|_\infty}{\|M\|_\infty}}$ will be used.
 
-
 \paragraph{Controlling and Monitoring Convergence.}
 
-As in the case of \ident{EPS}, in \ident{QEP} the number of iterations carried out by the solver can be determined with \ident{QEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{QEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-qep_monitor! or \Verb!-qep_monitor_draw!. See \S\ref{sec:monitor} for additional details.
+As in the case of \ident{EPS}, in \ident{QEP} the number of iterations carried out by the solver can be determined with \ident{QEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{QEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-qep_monitor!, \Verb!-qep_monitor_all!, \Verb!-qep_monitor_conv!, \Verb!-qep_monitor_draw!, or \Verb!-qep_monitor_draw_all!. See \S\ref{sec:monitor} for additional details.
 

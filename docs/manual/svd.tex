@@ -230,13 +230,13 @@ The \ident{EPS} object associated to the \texttt{cross} and \texttt{cyclic} SVD 
 	\end{Verbatim}
 A more convenient way of changing \ident{EPS} options is through the command-line. This is achieved simply by prefixing the \ident{EPS} options with \texttt{-svd\_} as in the following example:
 \begin{Verbatim}[fontsize=\small]
-	$ program -svd_type cross -svd_eps_type lanczos
+	$ program -svd_type cross -svd_eps_type gd
 \end{Verbatim}
 
 At this point, one may consider changing also the options of the \ident{ST} object associated to the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). Therefore, computing interior singular values is more likely to be successful if using the \texttt{cyclic} solver with explicit $H(A)$ matrix. To illustrate this, here is a complicated command-line example for computing singular values close to 12.0:
 \begin{Verbatim}[fontsize=\small]
 	$ program -svd_type cyclic -svd_cyclic_explicitmatrix -svd_st_type sinvert
-                  -svd_st_shift 12.0 -svd_st_ksp_type preonly -svd_st_pc_type lu
+                  -svd_eps_target 12.0 -svd_st_ksp_type preonly -svd_st_pc_type lu
 \end{Verbatim}
 
 %---------------------------------------------------
@@ -254,7 +254,7 @@ Usually, the number of converged solutions, \texttt{nconv}, will be equal to \te
 Normally, the user is interested in the singular values only, or the complete singular triplets. The function
 	\findex{SVDGetSingularTriplet}
 	\begin{Verbatim}[fontsize=\small]
-	SVDGetSingularTriplet(SVD svd, PetscInt j, PetscReal *sigma, Vec u, Vec v);
+	SVDGetSingularTriplet(SVD svd,PetscInt j,PetscReal *sigma,Vec u,Vec v);
 	\end{Verbatim}
 returns the $j$-th computed singular triplet, $(\sigma_j,u_j,v_j)$, where both $u_j$ and $v_j$ are normalized to have unit norm. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that singular values are ordered according to the same criterion specified with function \ident{SVDSetWhichSingularTriplets} for selecting the portion of the spectrum of interest.
 
@@ -285,5 +285,5 @@ computes the two partial 2-norms separately, $\|A\tilde{v}-\tilde{\sigma}\tilde{
 
 \paragraph{Controlling and Monitoring Convergence.}
 
-Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor! or \Verb!-svd_monitor_draw!. See \S\ref{sec:monitor} for additional details.
+Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor!, \Verb!-svd_monitor_all!, \Verb!-svd_monitor_conv!, \Verb!-svd_monitor_draw!, or \Verb!-svd_monitor_draw_all!. See \S\ref{sec:monitor} for additional details.
 
