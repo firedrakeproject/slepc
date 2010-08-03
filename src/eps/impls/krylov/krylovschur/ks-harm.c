@@ -168,34 +168,6 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSProjectedKSHarmonic"
-/*
-   EPSProjectedKSHarmonic - Solves the projected eigenproblem in the 
-   Krylov-Schur method (non-symmetric harmonic case).
-
-   On input:
-     l is the number of vectors kept in previous restart (0 means first restart)
-     S is the projected matrix (leading dimension is lds)
-
-   On output:
-     S has (real) Schur form with diagonal blocks sorted appropriately
-     Q contains the corresponding Schur vectors (order n, leading dimension n)
-*/
-PetscErrorCode EPSProjectedKSHarmonic(EPS eps,PetscInt l,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt n)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  /* Reduce S to Hessenberg form, S <- Q S Q' */
-  ierr = EPSDenseHessenberg(n,eps->nconv,S,lds,Q);CHKERRQ(ierr);
-  /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
-  ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  /* Sort the remaining columns of the Schur form */
-  ierr = EPSSortDenseSchur(eps,n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_KRYLOVSCHUR_HARMONIC"
 PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
 {
@@ -233,7 +205,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
       gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
 
     /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedKSHarmonic(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
+    ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
 
     /* Check convergence */ 
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,S,eps->ncv,Q,eps->V,nv,beta,sqrt(1.0+gnorm),&k,work);CHKERRQ(ierr);

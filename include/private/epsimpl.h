@@ -158,5 +158,6 @@ EXTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscTruth,PetscInt,PetscInt,Pets
 EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscTruth*);
 EXTERN PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
+EXTERN PetscErrorCode EPSProjectedKSNonsym(EPS,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
 
 #endif
