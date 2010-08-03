@@ -98,7 +98,6 @@ struct _p_EPS {
               allocated_ncv;    /* number of basis vectors allocated */
   PetscTruth  evecsavailable;   /* computed eigenvectors */
   PetscRandom rand;             /* random number generator */
-  PetscErrorCode (*schur_func)(EPS,PetscInt,PetscScalar*); /* internal function for updating Schur vectors */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;
