@@ -3,16 +3,19 @@
         SLEPc: Scalable Library for Eigenvalue Problem Computations
         ===========================================================
 
-                            Vicente Hernandez
+                      Developers:
                               Jose E. Roman
                                Eloy Romero
                               Andres Tomas
+
+                      Former collaborators:
+                            Vicente Hernandez
                               Vicent Vidal
 
         GRyCAP - Grupo de Redes y Computacion de Altas Prestaciones
                 Universidad Politecnica de Valencia, Spain
 
-        VERSION: 3.0.0
+        VERSION: 3.1  
 
 
  Overview
@@ -28,9 +31,9 @@
  problems  in  which  the  associated matrices are sparse, for  example,  those
  arising after the discretization of partial differential equations. Therefore,
  most  of  the methods offered by the library are projection methods  or  other
- methods  with  similar  properties.  Some of these methods  are  Krylov-Schur,
- Arnoldi,  and Lanczos, to name a few. SLEPc implements these basic methods  as
- well  as more sophisticated algorithms. It also provides built-in support  for
+ methods with  similar properties.  Some of these methods are Krylov-Schur  and
+ Jacobi-Davidson, to name a few.  SLEPc implements these basic methods  as well
+ as  more  sophisticated  algorithms.  It also provides  built-in  support  for
  spectral transformations such as shift-and-invert.
 
  SLEPc is a general library in the sense that it covers standard and genralized
@@ -102,12 +105,13 @@
  - Oficina de Ciencia i Tecnologia, Generalitat Valenciana, CTIDB/2002/54.
  - Direccio  General d'Investigacio i Transferencia de  Tecnologia, Generalitat
    Valenciana, GV06/091.
+ - Ministerio de Ciencia e Innovacion, TIN2009-07519.
 
 
  Conditions of Use
  -----------------
 
- Copyright (c) 2002-2009, Universidad Politecnica de Valencia, Spain
+ Copyright (c) 2002-2010, Universidad Politecnica de Valencia, Spain
 
     SLEPc is free software: you can redistribute it and/or modify it under  the
     terms of version 3 of the GNU Lesser General Public License as published by
