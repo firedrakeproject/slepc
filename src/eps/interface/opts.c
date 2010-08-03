@@ -970,7 +970,11 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 
    Options Database Keys:
 +  -eps_ritz - Rayleigh-Ritz extraction
-.  -eps_harmonic - hamonic Ritz extraction
+.  -eps_harmonic - harmonic Ritz extraction
+.  -eps_harmonic_relative - harmonic Ritz extraction relative to the eigenvalue
+.  -eps_harmonic_right - harmonic Ritz extraction for rightmost eigenvalues
+.  -eps_harmonic_largest - harmonic Ritz extraction for largest magnitude 
+   (without target)
 .  -eps_refined - refined Ritz extraction
 -  -eps_refined_harmonic - refined harmonic Ritz extraction
     
