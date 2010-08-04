@@ -38,6 +38,6 @@ def Load(petscdir):
 	elif l[1] == 'PETSC_VERSION_SUBMINOR':
           subminor = l[2]
     f.close()
-    VERSION = major + '.' + minor + '.' + subminor
+    VERSION = major + '.' + minor
   except:
     sys.exit('ERROR: file error while reading PETSC version')

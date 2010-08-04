@@ -9,7 +9,7 @@
 <h2>Quadratic Eigenvalue Problem Solvers - QEP</h2>
 
 <p>
-The Quadratic Eigenvalue Problem (QEP) solver is the object provided by SLEPc for specifying a quadratic eigenvalue problem. Apart from the specific solvers for this type of problems, there are some EPS-based solvers, i.e., they use an solver from EPS to solve a generalized eigenproblem obtained after linearization.
+The Quadratic Eigenvalue Problem (QEP) solver is the object provided by SLEPc for specifying a quadratic eigenvalue problem. Apart from the specific solvers for this type of problems, there is an EPS-based solver, i.e., it uses a solver from EPS to solve a generalized eigenproblem obtained after linearization.
 </p>
 <p>
 As in the other solver objects, users can set various options at runtime via the options database (e.g., <code>-qep_nev 4 -qep_type linear</code>).  
