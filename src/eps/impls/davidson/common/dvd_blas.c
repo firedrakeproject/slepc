@@ -850,7 +850,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
 PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           PetscInt rM, PetscInt cM, Vec V)
 {
-  PetscInt        i,j,n;
+  int        i,j,n;
 
   PetscFunctionBegin;
 
@@ -1282,8 +1282,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt size_auxS, PetscTruth doProd)
 {
   PetscErrorCode  ierr;
-  PetscBLASInt    n = PetscBLASIntCast(n_), ldpX = PetscBLASIntCast(ldpX_),
-                  ldpY = PetscBLASIntCast(ldpY_), nout = n, info;
+  PetscBLASInt    n, ldpX, ldpY, nout = n, info;
   PetscScalar     *Sc, *Tc;
   const char      *side, *howmny;
 #if defined(PETSC_USE_COMPLEX)
@@ -1295,6 +1294,10 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #endif
   
   PetscFunctionBegin;
+
+  n = PetscBLASIntCast(n_);
+  ldpX = PetscBLASIntCast(ldpX_);
+  ldpY = PetscBLASIntCast(ldpY_);
 
   if (pX && pY) side = "B";
   else if (pX)  side = "R";
