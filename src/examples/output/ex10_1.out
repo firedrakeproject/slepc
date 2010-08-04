@@ -6,12 +6,11 @@
 
  Number of requested eigenvalues: 1
  Stopping condition: tol=1e-07, maxit=100
- Number of converged eigenpairs: 4
+ Number of converged eigenpairs: 3
 
            k          ||Ax-kx||/||kx||
    ----------------- ------------------
-       3.989739        5.76012e-09
-       3.959060        1.41957e-08
-       3.908279        6.74118e-08
-       3.837916        8.34269e-08
+       3.989739        4.72989e-09
+       3.959060        3.61221e-08
+       3.908279        9.16904e-08
 

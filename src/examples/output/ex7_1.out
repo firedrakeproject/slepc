@@ -8,10 +8,11 @@ Generalized eigenproblem stored in file.
 
  Number of requested eigenvalues: 1
  Stopping condition: tol=1e-07, maxit=100
- Number of converged approximate eigenpairs: 2
+ Number of converged approximate eigenpairs: 3
 
            k             ||Ax-kBx||/||kx||
   --------------------- ------------------
- -243874.978705 +6999.669273 i  2.69792e-15
- -243874.978705 -6999.669273 i  2.69792e-15
+ -243874.978705 +6999.669272 i  8.73505e-16
+ -243874.978705 -6999.669272 i  8.73505e-16
+       -212991.490685        2.88246e-12
 

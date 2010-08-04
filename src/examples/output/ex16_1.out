@@ -1,7 +1,7 @@
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
 
- Number of iterations of the method: 8
+ Number of iterations of the method: 9
  Solution method: linear
 
  Number of requested eigenvalues: 1
@@ -10,6 +10,6 @@ Quadratic Eigenproblem, N=100 (10x10 grid)
 
            k          ||(k^2M+Ck+K)x||/||kx||
    ----------------- -------------------------
-  0.000000+2.799638 j     3.47449e-07
-  0.000000-2.799638 j     3.47449e-07
+ -0.000000+2.799638 j     2.75404e-07
+ -0.000000-2.799638 j     2.75404e-07
 

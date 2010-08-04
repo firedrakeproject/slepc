@@ -1,7 +1,7 @@
 
 Ising Model Eigenproblem, m=    30, (N=2*m)
 
- Number of iterations of the method:   53
+ Number of iterations of the method:   12
  Solution method: krylovschur                                                                     
  Number of requested eigenvalues: 1
  Stopping condition: tol=1.0000E-05, maxit=  1000
@@ -9,8 +9,8 @@ Ising Model Eigenproblem, m=    30, (N=2*m)
 
             k          ||Ax-kx||/||kx||
     ----------------- ------------------
- 9.5677E-01 2.9084E-01 j   5.2596E-07
- 9.5677E-01-2.9084E-01 j   5.2596E-07
- 9.8907E-01 1.4742E-01 j   1.8507E-05
- 9.8907E-01-1.4742E-01 j   1.8507E-05
+ 2.0538E-11 1.0000E+00 j   2.9899E-06
+ 2.0538E-11-1.0000E+00 j   2.9899E-06
+ 1.0926E-02 9.9994E-01 j   9.8857E-06
+ 1.0926E-02-9.9994E-01 j   9.8857E-06
 

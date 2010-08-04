@@ -5,12 +5,11 @@
  Solution method: krylovschur                                                                     
  Number of requested eigenvalues: 1
  Stopping condition: tol=1.0000E-07, maxit= 100
- Number of converged eigenpairs: 4
+ Number of converged eigenpairs: 3
 
           k          ||Ax-kx||/||kx||
   ----------------- ------------------
-     3.9897E+00         5.7601E-09
-     3.9591E+00         1.4196E-08
-     3.9083E+00         6.7412E-08
-     3.8379E+00         8.3427E-08
+     3.9897E+00         4.7299E-09
+     3.9591E+00         3.6122E-08
+     3.9083E+00         9.1690E-08
 
