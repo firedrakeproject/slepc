@@ -597,7 +597,9 @@ PetscErrorCode EPSDestroy(EPS eps)
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(eps->rand);CHKERRQ(ierr);
+  if (eps->rand) {
+    ierr = PetscRandomDestroy(eps->rand);CHKERRQ(ierr);
+  }
 
   if (eps->D) {
     ierr = VecDestroy(eps->D);CHKERRQ(ierr);
