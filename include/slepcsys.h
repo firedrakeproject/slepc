@@ -55,6 +55,7 @@ EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 #else
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
 #endif
+EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscTruth,PetscReal*);
 EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
 EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscTruth);

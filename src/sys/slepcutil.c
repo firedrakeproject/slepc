@@ -186,6 +186,47 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 #endif
 
 #undef __FUNCT__  
+#define __FUNCT__ "SlepcVecNormalize"
+/*@C
+   SlepcVecNormalize - Normalizes a possibly complex vector by the 2-norm.
+
+   Not collective
+
+   Input parameters:
++  xr         - the real part of the vector (overwritten on output)
++  xi         - the imaginary part of the vector (not referenced if iscomplex is false)
+-  iscomplex - a flag that indicating if the vector is complex
+
+   Output parameter:
+.  norm      - the vector norm before normalization (can be set to PETSC_NULL)
+
+   Level: developer
+
+@*/
+PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscTruth iscomplex,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscReal      normr,normi,alpha;
+
+  PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  if (iscomplex) {
+    ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);
+    ierr = VecNorm(xi,NORM_2,&normi);CHKERRQ(ierr);
+    alpha = SlepcAbsEigenvalue(normr,normi);
+    if (norm) *norm = alpha;
+    alpha = 1.0 / alpha;
+    ierr = VecScale(xr,alpha);CHKERRQ(ierr);
+    ierr = VecScale(xi,alpha);CHKERRQ(ierr);
+  } else
+#endif
+  {
+    ierr = VecNormalize(xr,norm);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SlepcMatConvertSeqDense"
 /*@C
    SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential 

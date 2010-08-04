@@ -136,9 +136,157 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPLoadEigenpairsFromEPS"
+#define __FUNCT__ "QEPLinearSelect_Norm"
 /*
-   QEPLoadEigenpairsFromEPS - Auxiliary routine that copies the solution of the
+   QEPLinearSelect_Norm - Auxiliary routine that copies the solution of the
+   linear eigenproblem to the QEP object. The eigenvector of the generalized 
+   problem is supposed to be
+                               z = [  x  ]
+                                   [ l*x ]
+   The eigenvector is taken from z(1:n) or z(n+1:2*n) depending on the explicitly
+   computed residual norm.
+   Finally, x is normalized so that ||x||_2 = 1.
+
+   If explicitmatrix==PETSC_TRUE then z is partitioned across processors, otherwise x is.
+*/
+PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps,PetscTruth explicitmatrix)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,start,end,idx;
+  PetscScalar    *px,*py;
+  PetscReal      rn1,rn2;
+  Vec            v0,xr,xi,wr,wi;
+  Mat            A;
+  IS             isV1,isV2;
+  VecScatter     vsV1,vsV2;
+  
+  PetscFunctionBegin;
+  ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecDuplicate(v0,&xr);CHKERRQ(ierr);
+  ierr = VecDuplicate(v0,&xi);CHKERRQ(ierr);
+
+  if (explicitmatrix) {  /* case 1: x needs to be scattered from the owning processes to the rest */
+    ierr = VecDuplicate(qep->V[0],&wr);CHKERRQ(ierr);
+    ierr = VecDuplicate(qep->V[0],&wi);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(qep->V[0],&start,&end);CHKERRQ(ierr);
+    idx = start;
+    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV1);CHKERRQ(ierr);      
+    ierr = VecScatterCreate(xr,isV1,qep->V[0],PETSC_NULL,&vsV1);CHKERRQ(ierr);
+    idx = start+qep->n;
+    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV2);CHKERRQ(ierr);      
+    ierr = VecScatterCreate(xr,isV2,qep->V[0],PETSC_NULL,&vsV2);CHKERRQ(ierr);
+    for (i=0;i<qep->nconv;i++) {
+      ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
+      qep->eigr[i] *= qep->sfactor;
+      qep->eigi[i] *= qep->sfactor;
+#if !defined(PETSC_USE_COMPLEX)
+      if (qep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
+        ierr = VecScatterBegin(vsV1,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV1,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterBegin(vsV1,xi,wi,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV1,xi,wi,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn1);CHKERRQ(ierr);
+        ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+        ierr = VecCopy(wi,qep->V[i+1]);CHKERRQ(ierr);
+        ierr = VecScatterBegin(vsV2,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV2,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterBegin(vsV2,xi,wi,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV2,xi,wi,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn2);CHKERRQ(ierr);
+        if (rn1>rn2) {
+          ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+          ierr = VecCopy(wi,qep->V[i+1]);CHKERRQ(ierr);
+        }
+      }
+      else if (qep->eigi[i]==0.0)   /* real eigenvalue */
+#endif
+      {
+        ierr = VecScatterBegin(vsV1,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV1,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,PETSC_NULL,&rn1);CHKERRQ(ierr);
+        ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+        ierr = VecScatterBegin(vsV2,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = VecScatterEnd(vsV2,xr,wr,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,PETSC_NULL,&rn2);CHKERRQ(ierr);
+        if (rn1>rn2) {
+          ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+        }
+      }
+    }
+    ierr = ISDestroy(isV1);CHKERRQ(ierr);
+    ierr = ISDestroy(isV2);CHKERRQ(ierr);
+    ierr = VecScatterDestroy(vsV1);CHKERRQ(ierr);
+    ierr = VecScatterDestroy(vsV2);CHKERRQ(ierr);
+  }
+  else {           /* case 2: elements of x are already in the right process */
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&wr);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&wi);CHKERRQ(ierr);
+    for (i=0;i<qep->nconv;i++) {
+      ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
+      qep->eigr[i] *= qep->sfactor;
+      qep->eigi[i] *= qep->sfactor;
+#if !defined(PETSC_USE_COMPLEX)
+      if (qep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
+        ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
+        ierr = VecGetArray(xi,&py);CHKERRQ(ierr);
+        ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
+        ierr = VecPlaceArray(wi,py);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn1);CHKERRQ(ierr);
+        ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+        ierr = VecCopy(wi,qep->V[i+1]);CHKERRQ(ierr);
+        ierr = VecResetArray(wr);CHKERRQ(ierr);
+        ierr = VecResetArray(wi);CHKERRQ(ierr);
+        ierr = VecPlaceArray(wr,px+qep->nloc);CHKERRQ(ierr);
+        ierr = VecPlaceArray(wi,py+qep->nloc);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn2);CHKERRQ(ierr);
+        if (rn1>rn2) {
+          ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+          ierr = VecCopy(wi,qep->V[i+1]);CHKERRQ(ierr);
+        }
+        ierr = VecResetArray(wr);CHKERRQ(ierr);
+        ierr = VecResetArray(wi);CHKERRQ(ierr);
+        ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
+        ierr = VecRestoreArray(xi,&py);CHKERRQ(ierr);
+      }
+      else if (qep->eigi[i]==0.0)   /* real eigenvalue */
+#endif
+      {
+        ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
+        ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,PETSC_NULL,&rn1);CHKERRQ(ierr);
+        ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+        ierr = VecResetArray(wr);CHKERRQ(ierr);
+        ierr = VecPlaceArray(wr,px+qep->nloc);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(wr,PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,PETSC_NULL,&rn2);CHKERRQ(ierr);
+        if (rn1>rn2) {
+          ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+        }
+        ierr = VecResetArray(wr);CHKERRQ(ierr);
+        ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
+      }
+    }
+  }
+  ierr = VecDestroy(wr);CHKERRQ(ierr);
+  ierr = VecDestroy(wi);CHKERRQ(ierr);
+  ierr = VecDestroy(xr);CHKERRQ(ierr);
+  ierr = VecDestroy(xi);CHKERRQ(ierr);
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPLinearSelect_Simple"
+/*
+   QEPLinearSelect_Simple - Auxiliary routine that copies the solution of the
    linear eigenproblem to the QEP object. The eigenvector of the generalized 
    problem is supposed to be
                                z = [  x  ]
@@ -148,15 +296,11 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 
    If explicitmatrix==PETSC_TRUE then z is partitioned across processors, otherwise x is.
 */
-PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatrix)
+PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps,PetscTruth explicitmatrix)
 {
   PetscErrorCode ierr;
   PetscInt       i,start,end,offset,idx;
   PetscScalar    *px;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    tmp;
-  PetscReal      norm,normi;
-#endif
   Vec            v0,xr,xi,w;
   Mat            A;
   IS             isV1,isV2;
@@ -188,12 +332,14 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
         ierr = VecScatterEnd(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
         ierr = VecScatterBegin(vsV,xi,qep->V[i+1],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
         ierr = VecScatterEnd(vsV,xi,qep->V[i+1],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(qep->V[i],qep->V[i+1],PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
       }
       else if (qep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
       {
         ierr = VecScatterBegin(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
         ierr = VecScatterEnd(vsV,xr,qep->V[i],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(qep->V[i],PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
       }
     }
     ierr = ISDestroy(isV1);CHKERRQ(ierr);
@@ -221,6 +367,7 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
         ierr = VecCopy(w,qep->V[i+1]);CHKERRQ(ierr);
         ierr = VecResetArray(w);CHKERRQ(ierr);
         ierr = VecRestoreArray(xi,&px);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(qep->V[i],qep->V[i+1],PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
       }
       else if (qep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
@@ -230,29 +377,13 @@ PetscErrorCode QEPLoadEigenpairsFromEPS(QEP qep,EPS eps,PetscTruth explicitmatri
         ierr = VecCopy(w,qep->V[i]);CHKERRQ(ierr);
         ierr = VecResetArray(w);CHKERRQ(ierr);
         ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
+        ierr = SlepcVecNormalize(qep->V[i],PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
       }
     }
     ierr = VecDestroy(w);CHKERRQ(ierr);
   }
   ierr = VecDestroy(xr);CHKERRQ(ierr);
   ierr = VecDestroy(xi);CHKERRQ(ierr);
-
-  /* Normalize eigenvector */
-  for (i=0;i<qep->nconv;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (qep->eigi[i] != 0.0) {
-      ierr = VecNorm(qep->V[i],NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(qep->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
-      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(qep->V[i],tmp);CHKERRQ(ierr);
-      ierr = VecScale(qep->V[i+1],tmp);CHKERRQ(ierr);
-      i++;     
-    } else
-#endif
-    {
-      ierr = VecNormalize(qep->V[i],PETSC_NULL);CHKERRQ(ierr);
-    }
-  }
 
   PetscFunctionReturn(0);
 }
@@ -263,6 +394,7 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
+  PetscTruth     flg=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = EPSSolve(ctx->eps);CHKERRQ(ierr);
@@ -271,7 +403,12 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&qep->reason);CHKERRQ(ierr);
   ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,PETSC_NULL,&qep->linits);CHKERRQ(ierr);
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
-  ierr = QEPLoadEigenpairsFromEPS(qep,ctx->eps,ctx->explicitmatrix);CHKERRQ(ierr);
+  ierr = PetscOptionsGetTruth(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  if (flg) { 
+    ierr = QEPLinearSelect_Simple(qep,ctx->eps,ctx->explicitmatrix);CHKERRQ(ierr);
+  } else {
+    ierr = QEPLinearSelect_Norm(qep,ctx->eps,ctx->explicitmatrix);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
