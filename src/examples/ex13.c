@@ -101,8 +101,9 @@ int main( int argc, char **argv )
      in case nulldim>0
   */
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STSetShift(st,0.0);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
