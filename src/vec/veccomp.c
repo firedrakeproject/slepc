@@ -23,9 +23,6 @@
 #include "private/vecimpl.h"          /*I  "petscvec.h"   I*/
 #include "veccomp_private.h"
 #include "veccomp.h"
-#include "../src/vec/vec/impls/dvecimpl.h" 
-#include "../src/mat/impls/aij/seq/aij.h"
-#include "../src/mat/impls/aij/mpi/mpiaij.h"
 
 typedef struct {
   PetscInt      n,        /* number of active subvectors */
