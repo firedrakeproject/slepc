@@ -68,7 +68,7 @@ $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscRea
 
    Level: intermediate
 
-.seealso: SVDMonitorDefault(), SVDMonitorCancel()
+.seealso: SVDMonitorFirst(), SVDMonitorAll(), SVDMonitorLG(), SVDMonitorLGAll(), SVDMonitorCancel()
 @*/
 PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
@@ -101,7 +101,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
 
    Level: intermediate
 
-.seealso: SVDMonitorCancel()
+.seealso: SVDMonitorSet()
 @*/
 PetscErrorCode SVDMonitorCancel(SVD svd)
 {
@@ -135,7 +135,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
 
    Level: intermediate
 
-.seealso: SVDMonitorSet(), SVDMonitorDefault()
+.seealso: SVDMonitorSet()
 @*/
 PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 {
