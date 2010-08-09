@@ -55,6 +55,7 @@ PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
   PetscScalar *pY, PetscInt ld_,
   PetscScalar *auxS, PetscInt size_auxS);
 
+#define size_Z (64*4)
 
 /**** JD update step (I - Kfg'/(g'Kf)) K(A - sB) (I - Kfg'/(g'Kf)) t = (I - Kfg'/(g'Kf))r  ****/
 
@@ -528,7 +529,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
   /* The memory manager doen't allow to call a subroutines */
-  const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
 
   PetscFunctionBegin;
@@ -634,7 +634,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
   /* The memory manager doen't allow to call a subroutines */
-  const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
 
   PetscFunctionBegin;
@@ -771,7 +770,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
   /* The memory manager doen't allow to call a subroutines */
-  const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
 
   PetscFunctionBegin;
@@ -874,7 +872,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
   PetscScalar     a, b[16];
   Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
   /* The memory manager doen't allow to call a subroutines */
-  const PetscInt  size_Z=64*4;
   PetscScalar     Z[size_Z];
 
   PetscFunctionBegin;
