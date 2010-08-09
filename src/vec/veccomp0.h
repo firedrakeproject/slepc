@@ -239,7 +239,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v, Vec w, PetscScalar *dp,
   } else if (t0 == PETSC_FALSE && t1 == PETSC_FALSE) {
     ierr = VecGetLocalSize(v, &n);CHKERRQ(ierr);
     ierr = VecGetArray(v, &vx);CHKERRQ(ierr);
-    ierr = VecGetArray(w, &vx);CHKERRQ(ierr);
+    ierr = VecGetArray(w, &wx);CHKERRQ(ierr);
     for (i = 0; i<n; i++) {
       dp0 += vx[i]*PetscConj(wx[i]);
       nm0 += wx[i]*PetscConj(wx[i]);

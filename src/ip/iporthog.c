@@ -392,7 +392,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   PetscInt       k;
   PetscReal      norm;
   PetscTruth     lindep;
-  PetscRandom    rctx;
+  PetscRandom    rctx=PETSC_NULL;
   
   PetscFunctionBegin;
 

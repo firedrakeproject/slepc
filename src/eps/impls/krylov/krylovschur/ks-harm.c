@@ -126,7 +126,6 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
 */
 PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt l,PetscInt m_,PetscScalar *g,PetscScalar *Q,Vec *U,Vec u,PetscScalar *ghat)
 {
-  PetscFunctionBegin;
   PetscErrorCode ierr;
   PetscBLASInt   one=1,ncol=k+l,n,m;
   PetscScalar    done=1.0,dmone=-1.0,dzero=0.0;

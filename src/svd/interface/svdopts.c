@@ -248,12 +248,6 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     }
   }
   PetscFunctionReturn(0);
-/* context for QEPMonitorConverged */
-typedef struct {
-  PetscViewerASCIIMonitor viewer;
-  PetscInt oldnconv;
-} QEPMONITOR_CONV;
-
 }
 
 #undef __FUNCT__  
