@@ -259,7 +259,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
 static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscReal *alpha,PetscReal *beta,PetscReal eps1,PetscReal anorm)
 {
   PetscInt       k;
-  PetscReal      T,binv,temp;
+  PetscReal      T,binv;
 
   PetscFunctionBegin;
   /* Estimate of contribution to roundoff errors from A*v 
@@ -290,7 +290,6 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
   
   /* Swap omega and omega_old. */
   for (k=0;k<j;k++) {
-    temp = omega[k];
     omega[k] = omega_old[k];
     omega_old[k] = omega[k];
   }

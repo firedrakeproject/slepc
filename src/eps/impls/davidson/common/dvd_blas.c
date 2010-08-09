@@ -147,15 +147,8 @@ PetscErrorCode SlepcDenseMatProdTriang(
   if (Bt == PETSC_TRUE) tmp = rB, rB = cB, cB = tmp;
   
   /* Check size */
-  if (cA != rB) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
-    PetscFunctionReturn(1);
-  }
-
-  if (sB != 0) {
-    SETERRQ(1, "It doesn't support B matrix type!");
-    PetscFunctionReturn(1);
-  }
+  if (cA != rB) SETERRQ(1, "Matrix dimensions doesn't match!");
+  if (sB != 0) SETERRQ(1, "It doesn't support B matrix type!");
 
   /* Optimized version: trivial case */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
@@ -202,7 +195,6 @@ PetscErrorCode SlepcDenseMatProdTriang(
   }
  
   SETERRQ(1, "It doesn't support A matrix type!");
-  PetscFunctionReturn(1);
 }
 
 /*
@@ -315,10 +307,7 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
   if ((_rA == 0) || (cA == 0)) { PetscFunctionReturn(0); }
 
   /* Memory check */
-  if (lw < cA) {
-    SETERRQ(1, "Insufficient memory for xGEQRF!");
-    PetscFunctionReturn(1);
-  }
+  if (lw < cA) SETERRQ(1, "Insufficient memory for xGEQRF!");
   
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseOrth,0,0,0,0);CHKERRQ(ierr);
   LAPACKgeqrf_(&rA, &cA, A, &ldA, tau, w, &lw, &info);
@@ -827,10 +816,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
     CHKERRQ(ierr);
   
   /* Other structures */
-  } else {
-    SETERRQ(1, "Matrix structure doesn't support by VecsMultI!");
-    PetscFunctionReturn(1);
-  }
+  } else SETERRQ(1, "Matrix structure doesn't support by VecsMultI!");
 
   ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
   ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
@@ -858,10 +844,7 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if ((rM == 0) || (cM == 0))
     PetscFunctionReturn(0);
     
-  if (sM != 0) {
-    SETERRQ(1, "Matrix structure doesn't support by VecsMultIc!");
-    PetscFunctionReturn(1);
-  }
+  if (sM != 0) SETERRQ(1, "Matrix structure doesn't support by VecsMultIc!");
 
   MPI_Comm_size(((PetscObject)V)->comm, &n);
 
@@ -918,10 +901,7 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
     ierr = SlepcDenseCopy(M, ldM, Wr, rM, rM, cM); CHKERRQ(ierr);
 
   /* Other structures */
-  } else {
-    SETERRQ(1, "Matrix structure doesn't support by VecsMultI!");
-    PetscFunctionReturn(1);
-  }
+  } else SETERRQ(1, "Matrix structure doesn't support by VecsMultI!");
 
   ierr = PetscLogEventEnd(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
@@ -1074,10 +1054,7 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
   for (i=sr->i1; i<sr->i2; i++)
     for (j=sr->ld*i+sr->s1; j<sr->ld*i+sr->e1; j++,k++) sr->M[j] = out[k];
 
-  if (k != size_out) {
-    SETERRQ(1, "Error in VecsMultS_copy_func!");
-    PetscFunctionReturn(1);
-  }
+  if (k != size_out) SETERRQ(1, "Error in VecsMultS_copy_func!");
 
   PetscFunctionReturn(0);
 }

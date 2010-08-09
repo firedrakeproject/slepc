@@ -329,7 +329,7 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
 {
   PetscErrorCode ierr;
   Vec            x,y,z;
-  PetscReal      w,norm;
+  PetscReal      norm;
   
   PetscFunctionBegin;
   
@@ -337,9 +337,6 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   ierr = VecDuplicate(V[0],&x);CHKERRQ(ierr);
   ierr = VecDuplicate(V[0],&y);CHKERRQ(ierr);
   if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr); }
-
-  /* compute eigenvalue */
-  w = SlepcAbsEigenvalue(eigr,eigi);
 
   /* compute eigenvector */
   ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);

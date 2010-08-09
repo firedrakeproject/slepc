@@ -442,9 +442,9 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
   /* S <- H, T <- G */
   d->ldS = d->ldT = d->ldpX = d->ldpY = d->size_H;
   ierr = SlepcDenseCopyTriang(d->S, 0, d->size_H, d->H, d->sH, d->ldH,
-                              d->size_H, d->size_H);
+                              d->size_H, d->size_H);CHKERRQ(ierr);
   ierr = SlepcDenseCopyTriang(d->T, 0, d->size_H, d->G, d->sG, d->ldH,
-                              d->size_H, d->size_H);
+                              d->size_H, d->size_H);CHKERRQ(ierr);
 
   /* S = Z'*H*Q, T = Z'*G*Q */
   n = d->size_H;

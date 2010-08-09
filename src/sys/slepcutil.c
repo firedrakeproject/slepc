@@ -403,7 +403,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
 
   PetscFunctionBegin;
 
-  ierr = SlepcUpdateStrideVectors(n_,V,s,1,e,Q,ldq_,qtrans);
+  ierr = SlepcUpdateStrideVectors(n_,V,s,1,e,Q,ldq_,qtrans);CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }

@@ -202,14 +202,8 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
   }
  
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
-  if (n == 0) {
-    SETERRQ(1, "n == 0!\n");
-    PetscFunctionReturn(1);
-  }
-  if (data->size_X < r_e-r_s) {
-    SETERRQ(1, "size_X < r_e-r_s!\n");
-    PetscFunctionReturn(1);
-  }
+  if (n == 0) SETERRQ(1, "n == 0!\n");
+  if (data->size_X < r_e-r_s) SETERRQ(1, "size_X < r_e-r_s!\n");
 
   /* Compute the eigenvectors of the selected pairs */
   pX = auxS; auxS+= d->size_H*d->size_H;

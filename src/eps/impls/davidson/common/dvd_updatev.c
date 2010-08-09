@@ -363,13 +363,13 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     d->max_size_V-= npreconv;
   } else {
     SETERRQ(1, "Untested case!");
-    ierr = SlepcUpdateVectorsZ(&d->cX[d->nconv], 0.0, 1.0, d->V, d->size_V,
+    /*ierr = SlepcUpdateVectorsZ(&d->cX[d->nconv], 0.0, 1.0, d->V, d->size_V,
                                d->pX, d->ldpX, d->size_H, npreconv);
     CHKERRQ(ierr);
     ierr = SlepcUpdateVectorsZ(d->V, 0.0, 1.0, d->V, d->size_V,
                                &pX[ldpX*npreconv], ldpX,
                                d->size_H, cMT); CHKERRQ(ierr);
-    inc_V = 0;
+    inc_V = 0;*/
   }
   d->size_cX+= npreconv;
   d->size_V -= npreconv;
