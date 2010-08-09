@@ -83,7 +83,7 @@ PetscErrorCode STSetUp_Precond(ST st)
 {
   Mat            P;
   PC             pc;
-  PetscTruth     t0, setmat, destroyP, builtP;
+  PetscTruth     t0, setmat, destroyP=PETSC_FALSE, builtP;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;

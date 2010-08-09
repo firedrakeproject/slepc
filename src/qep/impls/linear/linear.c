@@ -115,6 +115,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
       case QEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
       case QEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
       case QEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
+      default: SETERRQ(1,"Wrong value of which");
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);

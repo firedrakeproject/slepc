@@ -97,7 +97,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscTruth issym,PetscInt kini,Petsc
 {
   PetscErrorCode ierr;
   PetscInt       k,marker;
-  PetscScalar    re,im,*Z,*work2;
+  PetscScalar    re,im,*Z = work,*work2 = work;
   PetscReal      resnorm;
   PetscTruth     iscomplex,isshift;
 
