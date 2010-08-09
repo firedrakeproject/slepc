@@ -168,6 +168,8 @@ else:
 petscversion.Load(petscdir)
 if petscversion.VERSION < '3.1':
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION) 
+if petscversion.PATCHLEVEL < '4':
+  sys.exit('ERROR: PETSc 3.1 patchlevel 4 required. Please upgrade to petsc-3.1-p4 or later') 
 
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
