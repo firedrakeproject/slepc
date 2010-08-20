@@ -1090,11 +1090,11 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   }
   if (its!=PETSC_IGNORE) {
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
-    eps->balance_its = its;
+    else eps->balance_its = its;
   }
   if (cutoff!=PETSC_IGNORE) {
     if (cutoff==PETSC_DECIDE || cutoff==PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
-    eps->balance_cutoff = cutoff;
+    else eps->balance_cutoff = cutoff;
   }
   PetscFunctionReturn(0);
 }
