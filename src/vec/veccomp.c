@@ -112,7 +112,7 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             VecAXPY_Comp,
             VecAXPBY_Comp,
             VecMAXPY_Comp,
-            VecAXPY_Comp/*VecAYPX_Comp*/,
+            VecAYPX_Comp,
             VecWAXPY_Comp,
             VecAXPBYPCZ_Comp,
             VecPointwiseMult_Comp,
@@ -365,6 +365,28 @@ PetscErrorCode VecAXPY_Comp(Vec v, PetscScalar alpha, Vec w)
 
   for(i=0; i<vs->n->n; i++) {
     ierr = VecAXPY(vs->x[i], alpha, ws->x[i]); CHKERRQ(ierr);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "VecAYPX_Comp"
+PetscErrorCode VecAYPX_Comp(Vec v, PetscScalar alpha, Vec w)
+{
+  PetscErrorCode  ierr;
+  Vec_Comp        *vs = (Vec_Comp*)v->data,
+                  *ws = (Vec_Comp*)w->data;
+  PetscInt        i;
+
+  PetscFunctionBegin;
+
+  PetscValidVecComp(v);
+  PetscValidVecComp(w);
+
+  for(i=0; i<vs->n->n; i++) {
+    ierr = VecAYPX(vs->x[i], alpha, ws->x[i]); CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);

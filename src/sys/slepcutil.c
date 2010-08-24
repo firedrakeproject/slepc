@@ -206,7 +206,9 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscTruth iscomplex,PetscReal *norm)
 {
   PetscErrorCode ierr;
+#if !defined(PETSC_USE_COMPLEX)
   PetscReal      normr,normi,alpha;
+#endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)

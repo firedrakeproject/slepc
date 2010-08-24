@@ -154,12 +154,15 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps,PetscTruth explicitmatrix)
 {
   PetscErrorCode ierr;
   PetscInt       i,start,end,idx;
-  PetscScalar    *px,*py;
+  PetscScalar    *px;
   PetscReal      rn1,rn2;
   Vec            v0,xr,xi,wr,wi;
   Mat            A;
   IS             isV1,isV2;
   VecScatter     vsV1,vsV2;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    *py;
+#endif
   
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);

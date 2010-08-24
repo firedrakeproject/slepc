@@ -319,7 +319,7 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_COOKIE,1);
   PetscValidHeaderSpecific(mat,MAT_COOKIE,2);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetMatForPC_C",(void (**)())&f);CHKERRQ(ierr);
+  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetMatForPC_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,mat);CHKERRQ(ierr);
   }

@@ -1259,7 +1259,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt size_auxS, PetscTruth doProd)
 {
   PetscErrorCode  ierr;
-  PetscBLASInt    n, ldpX, ldpY, nout = n, info;
+  PetscBLASInt    n, ldpX, ldpY, nout, info;
   PetscScalar     *Sc, *Tc;
   const char      *side, *howmny;
 #if defined(PETSC_USE_COMPLEX)

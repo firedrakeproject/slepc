@@ -33,6 +33,7 @@ PetscErrorCode VecScale_Comp(Vec v, PetscScalar alpha);
 PetscErrorCode VecCopy_Comp(Vec v, Vec w);
 PetscErrorCode VecSwap_Comp(Vec v, Vec w);
 PetscErrorCode VecAXPY_Comp(Vec v, PetscScalar alpha, Vec w);
+PetscErrorCode VecAYPX_Comp(Vec v, PetscScalar alpha, Vec w);
 PetscErrorCode VecAXPBY_Comp(Vec v, PetscScalar alpha, PetscScalar beta, Vec w);
 PetscErrorCode VecMAXPY_Comp(Vec v, PetscInt n, const PetscScalar *alpha,
                             Vec *w);
