@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SLEPCVECCOMP_H)
-#define __SLEPCVECCOMP_H
+#if !defined(__SLEPCVEC_H)
+#define __SLEPCVEC_H
 PETSC_EXTERN_CXX_BEGIN
 
 #define VECCOMP  "comp"

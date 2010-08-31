@@ -22,7 +22,7 @@
 #include "petscmat.h"
 #include "private/vecimpl.h"          /*I  "petscvec.h"   I*/
 #include "veccomp_private.h"
-#include "veccomp.h"
+#include "slepcvec.h"
 
 typedef struct {
   PetscInt      n,        /* number of active subvectors */
@@ -54,7 +54,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
 #include "veccomp0.h"
 
 #undef __FUNCT__  
-#define __FUNCT__ "VecRegistre_Comp"
+#define __FUNCT__ "VecRegister_Comp"
 PetscErrorCode PETSCVEC_DLLEXPORT VecRegister_Comp(const char path[])
 {
   PetscErrorCode ierr;
@@ -262,7 +262,7 @@ PetscErrorCode PETSCVEC_DLLEXPORT VecCreateComp(MPI_Comm comm, PetscInt *Nx,
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "VecCreateCompWithVec"
+#define __FUNCT__ "VecCreateCompWithVecs"
 PetscErrorCode PETSCVEC_DLLEXPORT VecCreateCompWithVecs(Vec *x, PetscInt n,
                                                         Vec Vparent, Vec *V)
 {
