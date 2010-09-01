@@ -31,7 +31,7 @@ def Load(petscdir):
     PETSCVARIABLES = os.sep.join([petscdir,ARCH,'conf','petscvariables'])
   else:
     ISINSTALL = 1
-    ARCH = 'unknown'
+    ARCH = 'installed-petsc'
     PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
 
   try:

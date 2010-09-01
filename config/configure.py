@@ -115,7 +115,7 @@ for i in sys.argv[1:]:
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
-    print '  --prefix=<dir>                   : Specifiy location to install SLEPc (eg. /usr/local)'
+    print '  --prefix=<dir>                   : Specifiy location to install SLEPc (e.g., /usr/local)'
     print 'ARPACK:'
     print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
     print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
@@ -136,7 +136,7 @@ for i in sys.argv[1:]:
     print '  --download-slepc4py              : Download and install slepc4py in SLEPc directory'
     sys.exit(0)
   else:
-    sys.exit('ERROR: Invalid argument ' + i +' use -h for help')
+    sys.exit('ERROR: Invalid argument ' + i +'. Use -h for help')
 
 prefixinstall = not prefixdir==''
 
@@ -175,7 +175,7 @@ if petscversion.PATCHLEVEL < '4' and petscversion.RELEASE == '1':
 petscconf.Load(petscdir)
 if not petscconf.PRECISION in ['double','single','matsingle']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
-if prefixdir and not petscconf.ISINSTALL:
+if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Create architecture directory and configuration files
