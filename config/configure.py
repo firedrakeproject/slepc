@@ -179,14 +179,6 @@ if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Create architecture directory and configuration files
-try:
-  slepcvariables = open(os.sep.join([slepcdir,'conf','slepcvariables']),'w')
-  slepcvariables.write('PETSC_DIR='+petscdir+'\n')
-  slepcvariables.write('PETSC_ARCH='+petscconf.ARCH+'\n')
-  slepcvariables.write('SLEPC_DIR='+slepcdir+'\n')
-  slepcvariables.close() 
-except:
-  sys.exit('ERROR: cannot create default configuration file in ' + os.sep.join([slepcdir,'conf']))
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
 if not os.path.exists(archdir):
   try:
@@ -216,7 +208,7 @@ try:
   slepcrules = open(os.sep.join([confdir,'slepcrules']),'w')
 except:
   sys.exit('ERROR: cannot create rules file in ' + confdir)
-if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include/slepc.h'])):
+if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
   sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
 # Open log file

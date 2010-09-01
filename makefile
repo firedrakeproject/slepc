@@ -27,7 +27,6 @@ LOCDIR = .
 DIRS   = src include docs 
 
 # next line defines SLEPC_DIR, PETSC_DIR and PETSC_ARCH if they are not set
-include ./${PETSC_ARCH}/conf/slepcvariables
 include ${SLEPC_DIR}/conf/slepc_common
 
 #
@@ -242,7 +241,6 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/conf ; \
           fi;\
           cp -f conf/slepc_common* ${SLEPC_INSTALL_DIR}/conf;\
-          cp -f conf/slepc_common_variables_install ${SLEPC_INSTALL_DIR}/conf/slepc_common_variables;\
           cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_INSTALL_DIR}/conf;\
           cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_INSTALL_DIR}/conf;\
           if [ ! -d ${SLEPC_INSTALL_DIR}/lib ]; then \
