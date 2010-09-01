@@ -50,7 +50,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
     SETERRQ(PETSC_ERR_SUP,"Requested method is not available for generalized problems");
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL) 
+  if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) 
     SETERRQ(1,"Wrong value of eps->which");
 
   tr->restart = 0;
@@ -110,7 +110,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ncv = PetscBLASIntCast(eps->ncv);
   n = PetscBLASIntCast(eps->nloc);
   
-  if (eps->which==EPS_LARGEST_REAL) lohi = 1;
+  if (eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
   else SETERRQ(1,"Wrong value of eps->which");
 

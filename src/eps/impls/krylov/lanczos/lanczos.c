@@ -72,8 +72,6 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   switch (eps->which) {
     case EPS_LARGEST_IMAGINARY:
     case EPS_SMALLEST_IMAGINARY:
-    case EPS_TARGET_MAGNITUDE:
-    case EPS_TARGET_REAL:
     case EPS_TARGET_IMAGINARY:
       SETERRQ(1,"Wrong value of eps->which");
     default: ; /* default case to remove warning */
@@ -529,7 +527,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
-  PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv;
+  PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv,r;
   Vec            w=eps->work[1],f=eps->work[0];
   PetscScalar    *Y,stmp;
   PetscReal      *d,*e,*ritz,*bnd,anorm,beta,norm,rtmp,resnorm;
@@ -594,34 +592,10 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       if (restart >= n) {
         breakdown = PETSC_TRUE;
       } else {
-        switch (eps->which) {
-        case EPS_LARGEST_MAGNITUDE:
-        case EPS_SMALLEST_MAGNITUDE:
-          rtmp = PetscAbsReal(ritz[restart]);
-          break;
-        case EPS_LARGEST_REAL:      
-        case EPS_SMALLEST_REAL:
-          rtmp = ritz[restart];
-          break;
-        default: SETERRQ(1,"Wrong value of which");
-        }
         for (i=restart+1;i<n;i++)
           if (conv[i] == 'N') {
-            switch (eps->which) {
-            case EPS_LARGEST_MAGNITUDE:
-              if (rtmp < PetscAbsReal(ritz[i])) { rtmp = PetscAbsReal(ritz[i]); restart = i; }
-              break;
-            case EPS_SMALLEST_MAGNITUDE:
-              if (rtmp > PetscAbsReal(ritz[i])) { rtmp = PetscAbsReal(ritz[i]); restart = i; }
-              break;
-            case EPS_LARGEST_REAL:      
-              if (rtmp < ritz[i]) { rtmp = ritz[i]; restart = i; }
-              break;
-            case EPS_SMALLEST_REAL:
-              if (rtmp > ritz[i]) { rtmp = ritz[i]; restart = i; }
-              break;
-            default: SETERRQ(1,"Wrong value of which");
-            }
+            ierr = EPSCompareEigenvalues(eps,ritz[restart],0.0,ritz[i],0.0,&r);CHKERRQ(ierr);
+            if (r>0) restart = i;
           }
         ierr = SlepcVecMAXPBY(f,0.0,1.0,n,Y+restart*n,eps->V+nconv);CHKERRQ(ierr);
       }

@@ -98,6 +98,8 @@ PetscErrorCode EPSSolve(EPS eps)
   Mat            A,B;
   KSP            ksp;
   Vec            w,x;
+#define NUMEXTSOLV 5
+  const EPSType solvers[NUMEXTSOLV] = { EPSARPACK, EPSBLZPACK, EPSTRLAN, EPSBLOPEX, EPSPRIMME };
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
@@ -123,23 +125,32 @@ PetscErrorCode EPSSolve(EPS eps)
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
   EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);
 
+  flg = PETSC_FALSE;
+  for (i=0;i<NUMEXTSOLV && !flg;i++) {
+    ierr = PetscTypeCompare((PetscObject)eps,solvers[i],&flg);CHKERRQ(ierr);
+  }
+
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
-  /* temporarily change which */
-  data.old_which = eps->which;
-  data.old_which_func = eps->which_func;
-  data.old_which_ctx = eps->which_ctx;
-  eps->which = EPS_WHICH_USER;
-  eps->which_func = EPSSortForSTFunc;
-  eps->which_ctx = &data;
+  if (!flg) {
+    /* temporarily change which */
+    data.old_which = eps->which;
+    data.old_which_func = eps->which_func;
+    data.old_which_ctx = eps->which_ctx;
+    eps->which = EPS_WHICH_USER;
+    eps->which_func = EPSSortForSTFunc;
+    eps->which_ctx = &data;
+  }
 
   /* call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
 
-  /* restore which */
-  eps->which = data.old_which;
-  eps->which_func = data.old_which_func;
-  eps->which_ctx = data.old_which_ctx;
+  if (!flg) {
+    /* restore which */
+    eps->which = data.old_which;
+    eps->which_func = data.old_which_func;
+    eps->which_ctx = data.old_which_ctx;
+  }
 
   ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
