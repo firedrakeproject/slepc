@@ -1361,6 +1361,7 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
     case EPS_WHICH_USER:
       if (!eps->which_func) SETERRQ(1,"Undefined eigenvalue comparison function");
       ierr = (*eps->which_func)(eps,ar,ai,br,bi,result,eps->which_ctx);CHKERRQ(ierr);
+      a = 0.0; b = 0.0;
       break;
     case EPS_LARGEST_MAGNITUDE:
     case EPS_SMALLEST_MAGNITUDE:
