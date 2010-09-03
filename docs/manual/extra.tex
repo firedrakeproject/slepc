@@ -189,13 +189,13 @@ Each \slepc source code component directory has the following subdirectories:
 
 	It can be used for standard and generalized eigenvalue problems, both in real and complex arithmetic. It is implemented in Fortran 77 and it is based on the reverse communication interface. A parallel version, \parpack, is available with support for both MPI and BLACS.
 	\item[Installation.]
-	First of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. If \arpack is to be used with more than one processor, then it is necessary to uncompress also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz}. Make sure you delete any \texttt{mpif.h} files that could exist in the directory tree. After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack. 
+	First of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. Even if \arpack is to be used with just one processor, it is necessary to uncompress also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz}. Make sure you delete any \texttt{mpif.h} files that could exist in the directory tree. After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack. 
 	\end{description}
 
 \subsection*{\underline{\primme}}
 	\begin{description}
 	\setlength{\itemsep}{0pt}
-	\item[References.]\citep{Stathopoulos:2007:NOP}.
+	\item[References.]\citep{Stathopoulos:2010:PMS}.
 	\item[Website.] \url{http://www.cs.wm.edu/~andreas/software}.
 	\item[Version.] 1.1.
 	\item[Summary.] \primme (PReconditioned Iterative MultiMethod Eigensolver) is a C library for finding a number of eigenvalues and their corresponding eigenvectors of a real symmetric (or complex Hermitian) matrix. This library provides a multimethod eigensolver, based on Davidson/Jacobi-Davidson. Particular methods include GD+1, JDQMR, and LOBPCG. It supports preconditioning as well as the computation of interior eigenvalues.
@@ -236,7 +236,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 \subsection*{\underline{\blopex}}
 	\begin{description}
 	\setlength{\itemsep}{0pt}
-	\item[References.]\citep{Knyazev:2001:TOP}.
+	\item[References.]\citep{Knyazev:2007:BLO}.
 	\item[Website.] \url{http://code.google.com/p/blopex}.
 	\item[Summary.] \blopex is a package that implements the Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG) method for computing several extreme eigenpairs of symmetric positive generalized eigenproblems. Numerical comparisons suggest that this method is a genuine analog for eigenproblems of the standard preconditioned conjugate gradient method for symmetric linear systems.
 	\item[Installation.] In order to use \blopex from \slepc, it is a prior requirement that \petsc has been configured with \Verb!./configure --download-hypre --download-blopex!.

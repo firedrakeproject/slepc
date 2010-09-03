@@ -16,12 +16,12 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA.
 
-\bibitem[{Balay {\em et~al.\/}(2010)Balay, Buschelman, Eijkhout, Gropp,
+\bibitem[{Balay {\em et~al.\/}(2008)Balay, Buschelman, Eijkhout, Gropp,
   Kaushik, Knepley, McInnes, Smith, and Zhang}]{Balay:2002:PUM}
 Balay, S., K.~Buschelman, V.~Eijkhout, W.~Gropp, D.~Kaushik, M.~Knepley, L.~C.
-  McInnes, B.~Smith, and H.~Zhang (2010).
+  McInnes, B.~Smith, and H.~Zhang (2008).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.1, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.0.0, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
@@ -66,11 +66,12 @@ Hansen, P.~C. (1998).
   Aspects of Linear Inversion\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA.
 
-\bibitem[{Knyazev(2001)}]{Knyazev:2001:TOP}
-Knyazev, A.~V. (2001).
-\newblock Toward the Optimal Preconditioned Eigensolver: Locally Optimal Block
-  Preconditioned Conjugate Gradient Method.
-\newblock {\em {SIAM} J. Sci. Statist. Comput.\/}, 23(2):517--541.
+\bibitem[{Knyazev {\em et~al.\/}(2007)Knyazev, Argentati, Lashuk, and
+  Ovtchinnikov}]{Knyazev:2007:BLO}
+Knyazev, A.~V., M.~E. Argentati, I.~Lashuk, and E.~E. Ovtchinnikov (2007).
+\newblock Block Locally Optimal Preconditioned Eigenvalue Xolvers ({BLOPEX}) in
+  {HYPRE} and {PETSc}.
+\newblock {\em {SIAM} J. Sci. Comput.\/}, 29(5):2224--2239.
 
 \bibitem[{Lehoucq and Salinger(2001)}]{Lehoucq:2001:LEC}
 Lehoucq, R.~B. and A.~G. Salinger (2001).
@@ -145,11 +146,11 @@ Scott, D.~S. (1982).
   Approximations.
 \newblock {\em {SIAM} J. Sci. Statist. Comput.\/}, 3(1):68--75.
 
-\bibitem[{Stathopoulos(2007)}]{Stathopoulos:2007:NOP}
-Stathopoulos, A. (2007).
-\newblock Nearly Optimal Preconditioned Methods for {Hermitian} Eigenproblems
-  under Limited Memory. {Part I}: Seeking One Eigenvalue.
-\newblock {\em {SIAM} J. Sci. Comput.\/}, 29(2):481--514.
+\bibitem[{Stathopoulos and McCombs(2010)}]{Stathopoulos:2010:PMS}
+Stathopoulos, A. and J.~R. McCombs (2010).
+\newblock {PRIMME: PReconditioned Iterative MultiMethod Eigensolver}: Methods
+  and Software Description.
+\newblock {\em {ACM} Trans. Math. Software\/}, 37(2):21:1--21:30.
 
 \bibitem[{Stewart(2001)}]{Stewart:2001:MAV}
 Stewart, G.~W. (2001).
