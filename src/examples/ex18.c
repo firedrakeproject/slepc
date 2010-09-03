@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Eigenvalue problem associated with a Markov model of a random walk on a triangular grid. "
+static char help[] = "Solves the same problem as in ex5, but with a user-defined sorting criterion."
   "It is a standard nonsymmetric eigenproblem with real eigenvalues and the rightmost eigenvalue is known to be 1.\n"
   "This example illustrates how the user can set a custom spectrum selection.\n\n"
   "The command line options are:\n"
@@ -81,8 +81,8 @@ int main( int argc, char **argv )
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
 
   /*
-    Set the custom comparing routine in order to obtain the eigenvalues
-    closest to the target on the right only
+     Set the custom comparing routine in order to obtain the eigenvalues
+     closest to the target on the right only
   */
   ierr = EPSSetEigenvalueComparison(eps,MyEigenSort,&target);CHKERRQ(ierr);
 
