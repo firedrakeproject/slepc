@@ -129,8 +129,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   /* Davidson solvers only support STPRECOND */
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
-  if (t == PETSC_FALSE)
-    SETERRQ1(PETSC_ERR_SUP, "%s only works with precond spectral transformation",
+  if (!t) SETERRQ1(PETSC_ERR_SUP, "%s only works with precond spectral transformation",
     ((PetscObject)eps)->type_name);
 
   /* Extract pc from st->ksp */
@@ -138,7 +137,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = KSPGetPC(ksp, &pc); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t); CHKERRQ(ierr);
-  if (t == PETSC_TRUE) {
+  if (t) {
     pc = 0;
   } else {
     ierr = PetscObjectReference((PetscObject)pc); CHKERRQ(ierr);
@@ -152,28 +151,23 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   /* Setup problem specification in dvd */
   ierr = STGetOperators(eps->OP, &A, &B); CHKERRQ(ierr);
   ierr = PetscMemzero(dvd, sizeof(dvdDashboard)); CHKERRQ(ierr);
-  dvd->A = A; dvd->B = (eps->isgeneralized==PETSC_TRUE) ? B : PETSC_NULL;
+  dvd->A = A; dvd->B = eps->isgeneralized? B : PETSC_NULL;
   ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT |
-            (eps->ishermitian == PETSC_TRUE ? DVD_MAT_HERMITIAN : 0) |
-	    (((ispositive == PETSC_TRUE) &&
-	      (eps->isgeneralized == PETSC_FALSE)) ? DVD_MAT_POS_DEF : 0);
+            (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
+	    ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF : 0);
   /* Asume -eps_hermitian means hermitian-definite in generalized problems */
-  if ((ispositive == PETSC_FALSE) &&
-      (eps->isgeneralized == PETSC_FALSE) &&
-      (eps->ishermitian == PETSC_TRUE)) ispositive = PETSC_TRUE;
-  if (eps->isgeneralized == PETSC_FALSE)
+  if (!ispositive && !eps->isgeneralized && eps->ishermitian) ispositive = PETSC_TRUE;
+  if (!eps->isgeneralized)
     dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY |
               DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
   else 
     dvd->sB = DVD_MAT_IMPLICIT |
-              (eps->ishermitian == PETSC_TRUE ? DVD_MAT_HERMITIAN : 0) |
-              (ispositive == PETSC_TRUE ? DVD_MAT_POS_DEF : 0);
+              (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
+              (ispositive? DVD_MAT_POS_DEF : 0);
   ipB = DVD_IS(dvd->sB, DVD_MAT_POS_DEF)?PETSC_TRUE:PETSC_FALSE;
-  dvd->sEP = ((eps->isgeneralized == PETSC_FALSE) ||
-              ( (eps->isgeneralized == PETSC_TRUE) &&
-                (ipB == PETSC_TRUE)             ) ? DVD_EP_STD : 0) |
-	     (ispositive == PETSC_TRUE ? DVD_EP_HERMITIAN : 0);
+  dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
+	     (ispositive? DVD_EP_HERMITIAN : 0);
   dvd->nev = eps->nev;
   dvd->which = eps->which;
   switch(eps->which) {
@@ -214,10 +208,10 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
 
   /* Setup the type of starting subspace */
   ierr = EPSDAVIDSONGetKrylovStart_DAVIDSON(eps, &t); CHKERRQ(ierr);
-  init = t==PETSC_FALSE ? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
+  init = (!t)? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
 
   /* Setup IP */
-  if ((ipB == PETSC_TRUE) && (dvd->B)) {
+  if (ipB && dvd->B) {
     ierr = IPSetBilinearForm(eps->ip, dvd->B, IP_INNER_HERMITIAN); CHKERRQ(ierr);
   } else {
     ierr = IPSetBilinearForm(eps->ip, 0, IP_INNER_HERMITIAN); CHKERRQ(ierr);
@@ -373,7 +367,7 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
   ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &opi); CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"block size: %d\n", opi);CHKERRQ(ierr);
   ierr = EPSDAVIDSONGetKrylovStart_DAVIDSON(eps, &opb); CHKERRQ(ierr);
-  if(opb == PETSC_FALSE) {
+  if(!opb) {
     ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: Krylov\n");CHKERRQ(ierr);

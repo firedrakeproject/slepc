@@ -185,7 +185,7 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
     svd->IS = PETSC_NULL;
     svd->nini = 0;
   }
-  if (cyclic->setfromoptionscalled == PETSC_TRUE) {
+  if (cyclic->setfromoptionscalled) {
     ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
     cyclic->setfromoptionscalled = PETSC_FALSE;
   }

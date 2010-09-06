@@ -269,7 +269,7 @@ PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar 
     if (da < db) *r = -1;
     else if (da > db) *r = 1;
     else *r = 0;
-  } else if ((aisright == PETSC_TRUE) && (bisright == PETSC_FALSE))
+  } else if (aisright && !bisright)
     *r = -1; /* 'a' is on the right */
   else
     *r = 1;  /* 'b' is on the right */

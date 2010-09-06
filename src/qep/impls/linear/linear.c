@@ -124,7 +124,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   /* Transfer the trackall option from qep to eps */
   ierr = QEPGetTrackAll(qep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
-  if (ctx->setfromoptionscalled == PETSC_TRUE) {
+  if (ctx->setfromoptionscalled) {
     ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
     ctx->setfromoptionscalled = PETSC_FALSE;
   }

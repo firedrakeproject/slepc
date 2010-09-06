@@ -148,10 +148,10 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &isPrecond); CHKERRQ(ierr);
-  if (isPrecond == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "blopex only works with precond spectral transformation");
+  if (!isPrecond) SETERRQ(PETSC_ERR_SUP, "blopex only works with precond spectral transformation");
   ierr = STGetKSP(eps->OP, &blopex->ksp); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)blopex->ksp, KSPPREONLY, &isPreonly); CHKERRQ(ierr);
-  if (isPreonly == PETSC_FALSE)
+  if (!isPreonly)
     SETERRQ(PETSC_ERR_SUP, "blopex only works with preonly ksp of the spectral transformation");
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);

@@ -87,8 +87,8 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
 
   /* Transpose if needed */
-  if (At == PETSC_TRUE) tmp = rA, rA = cA, cA = tmp, qA = T;
-  if (Bt == PETSC_TRUE) tmp = rB, rB = cB, cB = tmp, qB = T;
+  if (At) tmp = rA, rA = cA, cA = tmp, qA = T;
+  if (Bt) tmp = rB, rB = cB, cB = tmp, qB = T;
   
   /* Check size */
   if (cA != rB) {
@@ -143,8 +143,8 @@ PetscErrorCode SlepcDenseMatProdTriang(
   if ((rA == 0) || (cB == 0)) { PetscFunctionReturn(0); }
 
   /* Transpose if needed */
-  if (At == PETSC_TRUE) tmp = rA, rA = cA, cA = tmp;
-  if (Bt == PETSC_TRUE) tmp = rB, rB = cB, cB = tmp;
+  if (At) tmp = rA, rA = cA, cA = tmp;
+  if (Bt) tmp = rB, rB = cB, cB = tmp;
   
   /* Check size */
   if (cA != rB) SETERRQ(1, "Matrix dimensions doesn't match!");
@@ -152,17 +152,17 @@ PetscErrorCode SlepcDenseMatProdTriang(
 
   /* Optimized version: trivial case */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
-    if ((At == PETSC_FALSE) && (Bt == PETSC_FALSE))     *C = *A * *B;
-    else if ((At == PETSC_TRUE) && (Bt == PETSC_FALSE)) *C = PetscConj(*A) * *B;
-    else if ((At == PETSC_FALSE) && (Bt == PETSC_TRUE)) *C = *A * PetscConj(*B);
-    else if ((At == PETSC_TRUE) && (Bt == PETSC_TRUE))  *C = PetscConj(*A) * PetscConj(*B);
+    if (!At && !Bt)     *C = *A * *B;
+    else if (At && !Bt) *C = PetscConj(*A) * *B;
+    else if (!At && Bt) *C = *A * PetscConj(*B);
+    else if (At && Bt)  *C = PetscConj(*A) * PetscConj(*B);
     PetscFunctionReturn(0);
   }
  
   /* Optimized versions: sA == 0 && sB == 0 */
   if ((sA == 0) && (sB == 0)) {
-    if (At == PETSC_TRUE) tmp = rA, rA = cA, cA = tmp;
-    if (Bt == PETSC_TRUE) tmp = rB, rB = cB, cB = tmp;
+    if (At) tmp = rA, rA = cA, cA = tmp;
+    if (Bt) tmp = rB, rB = cB, cB = tmp;
     ierr = SlepcDenseMatProd(C, ldC, 0.0, 1.0, A, ldA, rA, cA, At, B, ldB, rB,
                              cB, Bt); CHKERRQ(ierr);
     PetscFunctionReturn(ierr);
@@ -1217,7 +1217,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
         /* Else orthogonalize first against DS, and then against cX and V */
         ierr = IPOrthogonalize(ip, size_DS, DS, size_cX, PETSC_NULL, cX,
                                V[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
-        if(lindep == PETSC_FALSE) {
+        if(!lindep) {
           ierr = IPOrthogonalize(ip, 0, PETSC_NULL, i, PETSC_NULL, V,
                                  V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
         }
@@ -1226,11 +1226,11 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
         ierr = IPOrthogonalize(ip, size_cX, cX, i, PETSC_NULL, V,
                                V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
       }
-      if((lindep == PETSC_FALSE) && (norm > PETSC_MACHINE_EPSILON)) break;
+      if(!lindep && (norm > PETSC_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
       CHKERRQ(ierr);
     }
-    if((lindep == PETSC_TRUE) || (norm < PETSC_MACHINE_EPSILON)) {
+    if(lindep || (norm < PETSC_MACHINE_EPSILON)) {
         SETERRQ(1, "Error during the orthonormalization of the eigenvectors!");
     }
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
@@ -1284,7 +1284,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   if (!pX) ldpX = 1;
   if (!pY) ldpY = 1;
 
-  howmny = (doProd == PETSC_TRUE)?"B":"A";
+  howmny = doProd?"B":"A";
 
   Sc = auxS; auxS+= n*n; size_auxS-= n*n;
   if (T) Tc = auxS, auxS+= n*n, size_auxS-= n*n;
@@ -1308,7 +1308,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     alphar = auxS; auxS+= n; size_auxS-= n;
     alphai = auxS; auxS+= n; size_auxS-= n;
     beta = auxS; auxS+= n; size_auxS-= n;
-    if (doProd == PETSC_TRUE) {
+    if (doProd) {
       if (pX) pA = auxS, auxS+= n*n, size_auxS-= n*n, ldpA = n;
       else    pA = PETSC_NULL, ldpA = 0;
       if (pY) pB = auxS, auxS+= n*n, size_auxS-= n*n, ldpB = n;
@@ -1323,7 +1323,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
       SETERRQ(PETSC_ERR_LIB,"Insufficient auxiliar memory for xGGEV");
     LAPACKggev_(pY?"V":"N",pX?"V":"N",&n,Sc,&n,Tc,&n,alphar,alphai,beta,pB,&ldpB,pA,&ldpA,auxS,&n1,&info);
     if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
-    if (doProd == PETSC_TRUE) {
+    if (doProd) {
       if (pX) {
         /* pX <- pX * pA */
         ierr = SlepcDenseCopy(Sc, n, pX, ldpX, n, n); CHKERRQ(ierr);

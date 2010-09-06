@@ -121,7 +121,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     d->improveX_data = data;
     data->old_improveX = d->improveX;
     ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
-    data->ksp = t==PETSC_TRUE?0:ksp;
+    data->ksp = t?0:ksp;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
 

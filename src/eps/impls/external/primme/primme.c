@@ -116,7 +116,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
-  if (t == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "PRIMME only works with precond spectral transformation");
+  if (!t) SETERRQ(PETSC_ERR_SUP, "PRIMME only works with precond spectral transformation");
 
   /* Transfer SLEPc options to PRIMME options */
   primme->n = eps->n;
@@ -166,7 +166,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (primme->correctionParams.precondition) {
     ierr = STGetKSP(eps->OP, &ops->ksp); CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)ops->ksp, KSPPREONLY, &t); CHKERRQ(ierr);
-    if (t == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "PRIMME only works with preonly ksp of the spectral transformation");
+    if (!t) SETERRQ(PETSC_ERR_SUP, "PRIMME only works with preonly ksp of the spectral transformation");
     primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }

@@ -46,7 +46,7 @@ int main( int argc, char **argv )
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,&flag);CHKERRQ(ierr);
-  if( flag==PETSC_FALSE ) m=n;
+  if(!flag) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nFiedler vector of a 2-D regular mesh, N=%d (%dx%d grid)\n\n",N,n,m);CHKERRQ(ierr);
 

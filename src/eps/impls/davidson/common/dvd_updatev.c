@@ -101,12 +101,12 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
                               max_size_V*b->max_size_X /* testConv:res_0 */ );
   b->max_size_V = mpd;
   b->size_V = max_size_V;
-  b->own_vecs+= max_size_V*(harm==PETSC_TRUE?2:1);      /* V, W? */
+  b->own_vecs+= max_size_V*(harm?2:1);      /* V, W? */
   b->own_scalars+= max_size_V*2 /* eigr, eigr */ +
                    max_size_V /* nR */   +
                    max_size_V /* nX */   +
                    max_size_V /* errest */ +
-                   2*b->max_size_V*b->max_size_V*(harm==PETSC_TRUE?2:1)
+                   2*b->max_size_V*b->max_size_V*(harm?2:1)
                                                /* MTX,MTY?,oldU,oldV? */;
 //  b->max_size_oldX = plusk;
 
@@ -147,7 +147,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     d->W = PETSC_NULL;
     d->MTY = PETSC_NULL;
     d->ldMTY = 0;
-    if (harm == PETSC_TRUE) {
+    if (harm) {
       d->W = b->free_vecs; b->free_vecs+= max_size_V;
       d->MTY = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       data->oldV = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
@@ -189,7 +189,7 @@ PetscTruth dvd_isrestarting_fullV(dvdDashboard *d)
 #undef ONE
 
   /* Check old isRestarting function */
-  if ((restart == PETSC_FALSE) && (data->old_isRestarting))
+  if (!restart && data->old_isRestarting)
     restart = data->old_isRestarting(d);
 
   PetscFunctionReturn(restart);
@@ -235,7 +235,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
   ierr = d->calcpairs_selectPairs(d, data->min_size_V); CHKERRQ(ierr);
 
   /* If the subspaces doesn't need restart, add new vector */
-  if (d->isRestarting(d) == PETSC_FALSE) {
+  if (!d->isRestarting(d)) {
     i = d->size_V;
     ierr = dvd_updateV_update_gen(d); CHKERRQ(ierr);
 
@@ -326,9 +326,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     ierr = IPOrthogonalize(d->ipI, 0, PETSC_NULL, d->size_cX+i, PETSC_NULL,
                            d->BcX, d->BcX[d->size_cX+i], PETSC_NULL,
                            &norm, &lindep); CHKERRQ(ierr);
-    if(lindep == PETSC_TRUE) {
-        SETERRQ(1, "Error during orth(BcX, B*cX(new))!");
-    }
+    if(lindep) SETERRQ(1, "Error during orth(BcX, B*cX(new))!");
     ierr = VecScale(d->BcX[d->size_cX+i], 1.0/norm); CHKERRQ(ierr);
   }
 
@@ -582,7 +580,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
   /* Get the converged pairs */
   ierr = dvd_updateV_testConv(d, 0, size_D,
-    data->allResiduals==PETSC_TRUE?d->size_V:size_D, d->auxV, d->auxS,
+    data->allResiduals?d->size_V:size_D, d->auxV, d->auxS,
     &d->npreconv); CHKERRQ(ierr);
 
   /* Notify the changes in V */
@@ -626,7 +624,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   
   *nConv = s;
   for(i=s, conv=PETSC_TRUE;
-      (conv == PETSC_TRUE || data->allResiduals == PETSC_TRUE) && (i < e);
+      (conv || data->allResiduals) && (i < e);
       i++) {
     if (i >= pre) {
       ierr = d->calcpairs_X(d, i, i+1, &auxV[1]); CHKERRQ(ierr);
@@ -638,7 +636,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
     }
     norm = d->nR[i]/d->nX[i];
     c = d->testConv(d, d->eigr[i], d->eigi[i], norm, &d->errest[i]);
-    if (conv == PETSC_TRUE && c == PETSC_TRUE) *nConv = i+1;
+    if (conv && c) *nConv = i+1;
     else conv = PETSC_FALSE;
   }
   pre = PetscMax(pre, i);

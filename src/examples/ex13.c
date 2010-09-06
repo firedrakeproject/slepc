@@ -48,7 +48,7 @@ int main( int argc, char **argv )
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,&flag);CHKERRQ(ierr);
-  if( flag==PETSC_FALSE ) m=n;
+  if(!flag) m=n;
   N = n*m;
   ierr = PetscOptionsGetInt(PETSC_NULL,"-nulldim",&nulldim,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized Symmetric Eigenproblem, N=%d (%dx%d grid), null(B)=%d\n\n",N,n,m,nulldim);CHKERRQ(ierr);

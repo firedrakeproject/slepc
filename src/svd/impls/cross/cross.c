@@ -138,7 +138,7 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
-  if (cross->setfromoptionscalled == PETSC_TRUE) {
+  if (cross->setfromoptionscalled) {
     ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
     cross->setfromoptionscalled = PETSC_FALSE;
   }

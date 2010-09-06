@@ -68,8 +68,7 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
       } else {
         t1 = PETSC_TRUE;
       }
-      ierr = PCSetType(pc, (t0 == PETSC_TRUE && t1 == PETSC_TRUE)?
-                             PCJACOBI:PCNONE); CHKERRQ(ierr);
+      ierr = PCSetType(pc, (t0 && t1)? PCJACOBI:PCNONE); CHKERRQ(ierr);
     }
   }
 
@@ -96,7 +95,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t0); CHKERRQ(ierr);
   ierr = STPrecondGetKSPHasMat(st, &setmat); CHKERRQ(ierr); 
-  if (t0 == PETSC_TRUE && setmat == PETSC_FALSE) PetscFunctionReturn(0);
+  if (t0 && !setmat) PetscFunctionReturn(0);
 
   /* Check if a user matrix is set */
   ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
@@ -140,19 +139,18 @@ PetscErrorCode STSetUp_Precond(ST st)
     ierr = PCSetType(pc, PCNONE); CHKERRQ(ierr);
 
     /* If some matrix has to be set to ksp, set ksp to KSPPREONLY */
-    if (setmat == PETSC_TRUE) {
+    if (setmat) {
       ierr = STMatShellCreate(st, &P);CHKERRQ(ierr);
       destroyP = PETSC_TRUE;
       ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
     }
   }
 
-  ierr = KSPSetOperators(st->ksp, setmat==PETSC_TRUE?P:PETSC_NULL, P,
-                         DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,setmat?P:PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
-  if (destroyP == PETSC_TRUE) {
+  if (destroyP) {
     ierr = MatDestroy(P); CHKERRQ(ierr);
-  } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP == PETSC_TRUE) {
+  } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP) {
     if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX) {
       if (st->B) {
         ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr); 
@@ -285,7 +283,7 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PCGetOperatorsSet(pc, PETSC_NULL, &flag); CHKERRQ(ierr);
-  if (flag == PETSC_TRUE) {
+  if (flag) {
     ierr = PCGetOperators(pc, PETSC_NULL, mat, PETSC_NULL); CHKERRQ(ierr);
   } else
     *mat = PETSC_NULL;

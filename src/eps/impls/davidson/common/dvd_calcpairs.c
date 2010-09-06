@@ -539,7 +539,7 @@ PetscErrorCode dvd_calcpairs_X(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
   }
 
   /* nX[i] <- ||X[i]|| */
-  if (d->correctXnorm == PETSC_TRUE) for(i=0; i<r_e-r_s; i++) {
+  if (d->correctXnorm) for(i=0; i<r_e-r_s; i++) {
     ierr = VecNorm(X[i], NORM_2, &d->nX[r_s+i]); CHKERRQ(ierr);
   } else for(i=0; i<r_e-r_s; i++) {
     d->nX[r_s+i] = 1.0;
@@ -661,7 +661,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
     ierr = IPOrthogonalize(d->ipI, 0, PETSC_NULL, d->size_cX, PETSC_NULL,
                            cX, R[i], PETSC_NULL, &d->nR[r_s+i], &lindep);
     CHKERRQ(ierr);
-    if((lindep == PETSC_TRUE) || (d->nR[r_s+i] < PETSC_MACHINE_EPSILON)) {
+    if(lindep || (d->nR[r_s+i] < PETSC_MACHINE_EPSILON)) {
         SETERRQ(1, "Error during the residual computation of the eigenvectors!");
     }
 

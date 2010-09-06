@@ -85,7 +85,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
-  if (t == PETSC_FALSE) SETERRQ(PETSC_ERR_SUP, "gd only works with preonly ksp of the spectral transformation");
+  if (!t) SETERRQ(PETSC_ERR_SUP, "gd only works with preonly ksp of the spectral transformation");
 
   PetscFunctionReturn(0);
 }

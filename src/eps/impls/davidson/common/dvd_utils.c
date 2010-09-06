@@ -122,16 +122,16 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d, dvdBlackboard *b)
 
   /* Check if the problem matrices support GetDiagonal */
   ierr = MatHasOperation(d->A, MATOP_GET_DIAGONAL, &t); CHKERRQ(ierr);
-  if ((t == PETSC_TRUE) && d->B) {
+  if (t && d->B) {
     ierr = MatHasOperation(d->B, MATOP_GET_DIAGONAL, &t); CHKERRQ(ierr);
   }
 
   /* Setting configuration constrains */
-  b->own_vecs+= t==PETSC_TRUE?( (d->B == 0)?1:2 ) : 0;
+  b->own_vecs+= t?( (d->B == 0)?1:2 ) : 0;
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    if (t == PETSC_TRUE) {
+    if (t) {
       ierr = PetscMalloc(sizeof(dvdJacobiPrecond), &dvdjp); CHKERRQ(ierr);
       dvdjp->diagA = *b->free_vecs; b->free_vecs++;
       ierr = MatGetDiagonal(d->A,dvdjp->diagA); CHKERRQ(ierr);
@@ -415,7 +415,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
     ierr = PetscMalloc(sizeof(dvdHarmonic), &dvdh); CHKERRQ(ierr);
     dvdh->withTarget = fixedTarget;
     dvdh->mode = mode;
-    if (fixedTarget == PETSC_TRUE) dvd_harm_transf(dvdh, t);
+    if (fixedTarget) dvd_harm_transf(dvdh, t);
     d->calcpairs_W_data = dvdh;
     d->calcpairs_W = dvd_harm_updateW;
     d->calcpairs_proj_trans = dvd_harm_proj;
@@ -520,7 +520,7 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
   PetscFunctionBegin;
 
   /* Update the target if it is necessary */
-  if (data->withTarget == PETSC_FALSE) dvd_harm_transf(data, d->eigr[0]);
+  if (!data->withTarget) dvd_harm_transf(data, d->eigr[0]);
     
   for(i=d->V_new_s; i<d->V_new_e; i++) {
     /* W(i) <- Wa*AV(i) - Wb*BV(i) */
