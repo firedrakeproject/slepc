@@ -509,7 +509,9 @@ PetscErrorCode QEPDestroy(QEP qep)
   ierr = QEPMonitorCancel(qep);CHKERRQ(ierr);
 
   ierr = IPDestroy(qep->ip);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(qep->rand);CHKERRQ(ierr);
+  if (qep->rand) {
+    ierr = PetscRandomDestroy(qep->rand);CHKERRQ(ierr);
+  }
 
   if (qep->M) { ierr = MatDestroy(qep->M);CHKERRQ(ierr); }
   if (qep->C) { ierr = MatDestroy(qep->C);CHKERRQ(ierr); }
