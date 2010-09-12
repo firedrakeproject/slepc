@@ -63,6 +63,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
       ierr = PCGetOperators(pc, PETSC_NULL, &P, &str); CHKERRQ(ierr);
       ierr = PetscObjectReference((PetscObject)P); CHKERRQ(ierr);
       ierr = PCSetOperators(pc, P, P, str); CHKERRQ(ierr);
+      ierr = MatDestroy(P); CHKERRQ(ierr);
       ierr = PCSetUp(pc); CHKERRQ(ierr);
 
       DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);

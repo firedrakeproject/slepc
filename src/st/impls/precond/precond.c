@@ -104,6 +104,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (P) {
     builtP = PETSC_FALSE;
     destroyP = PETSC_TRUE;
+    ierr = PetscObjectReference((PetscObject)P);CHKERRQ(ierr);
   } else {
     builtP = PETSC_TRUE;
 
@@ -328,6 +329,8 @@ EXTERN_C_BEGIN
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 {
   PC             pc;
+  Mat            A;
+  PetscTruth     flag;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -335,7 +338,18 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscValidHeaderSpecific(mat,MAT_COOKIE,2);
 
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
-  ierr = PCSetOperators(pc, PETSC_NULL, mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+  /* Yes, all these lines are needed to safely set mat as the preconditioner
+     matrix in pc */
+  ierr = PCGetOperatorsSet(pc, &flag, PETSC_NULL); CHKERRQ(ierr);
+  if (flag) {
+    ierr = PCGetOperators(pc, &A, PETSC_NULL, PETSC_NULL); CHKERRQ(ierr);
+    ierr = PetscObjectReference((PetscObject)A); CHKERRQ(ierr);
+  } else
+    A = PETSC_NULL;
+  ierr = PetscObjectReference((PetscObject)mat); CHKERRQ(ierr);
+  ierr = PCSetOperators(pc, A, mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+  if (A) { ierr = MatDestroy(A); CHKERRQ(ierr); }
+  ierr = MatDestroy(mat); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
