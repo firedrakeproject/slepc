@@ -368,7 +368,7 @@ typedef struct {
 
 /* Routines for initV step */
 PetscErrorCode dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
-PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
+PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b,
                         PetscInt size_userV, PetscInt k);
 PetscErrorCode dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
 
@@ -408,11 +408,11 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
 /* Methods */
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
   HarmType_t harmMode, KSP ksp, InitType_t init, PetscTruth allResiduals);
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
   IP ip, HarmType_t harmMode, PetscTruth fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init, PetscTruth allResiduals);
 

@@ -29,7 +29,7 @@
 #define __FUNCT__ "dvd_schm_basic_preconf"
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
   HarmType_t harmMode, KSP ksp, InitType_t init, PetscTruth allResiduals)
 {
   PetscErrorCode ierr;
@@ -51,14 +51,14 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     CHKERRQ(ierr);
   
     /* Setup the initial subspace for V */
-    if (initV) {
-      ierr = dvd_initV_user(d, b, initV, size_initV, ini_size_V); CHKERRQ(ierr);
+    if (size_initV) {
+      ierr = dvd_initV_user(d, b, size_initV, ini_size_V); CHKERRQ(ierr);
     } else switch(init) {
     case DVD_INITV_CLASSIC:
       ierr = dvd_initV_classic(d, b, ini_size_V); CHKERRQ(ierr); break;
     case DVD_INITV_KRYLOV:
       ierr = dvd_initV_krylov(d, b, ini_size_V); CHKERRQ(ierr); break;
-		}
+    }
   
     /* Setup the convergence in order to use the SLEPc convergence test */
     ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
@@ -89,7 +89,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
 #define __FUNCT__ "dvd_schm_basic_conf"
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, Vec *initV, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
   IP ip, HarmType_t harmMode, PetscTruth fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init, PetscTruth allResiduals)
 {
@@ -113,8 +113,8 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   CHKERRQ(ierr);
 
   /* Setup the initial subspace for V */
-  if (initV) {
-    ierr = dvd_initV_user(d, b, initV, size_initV, ini_size_V); CHKERRQ(ierr);
+  if (size_initV) {
+    ierr = dvd_initV_user(d, b, size_initV, ini_size_V); CHKERRQ(ierr);
   } else switch(init) {
   case DVD_INITV_CLASSIC:
     ierr = dvd_initV_classic(d, b, ini_size_V); CHKERRQ(ierr); break;

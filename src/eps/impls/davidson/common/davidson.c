@@ -221,13 +221,13 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONGetFix_DAVIDSON(eps, &fix); CHKERRQ(ierr);
 
   /* Orthonormalize the DS */
-  ierr = dvd_orthV(eps->ip, PETSC_NULL, 0, PETSC_NULL, 0, eps->DS, 0, eps->nds,
-                   PETSC_NULL, 0, eps->rand); CHKERRQ(ierr);
+  ierr = dvd_orthV(eps->ip, PETSC_NULL, 0, PETSC_NULL, 0, eps->DS, 0,
+                   PetscAbs(eps->nds), PETSC_NULL, 0, eps->rand); CHKERRQ(ierr);
 
   /* Preconfigure dvd */
   ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
-                                initv, eps->IS,
-                                eps->nini,
+                                initv,
+                                PetscAbs(eps->nini),
                                 plusk, pc, harm,
                                 PETSC_NULL, init, eps->trackall);
   CHKERRQ(ierr);
@@ -253,8 +253,8 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
 
   /* Configure dvd for a basic GD */
   ierr = dvd_schm_basic_conf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
-                             initv, eps->IS,
-                             eps->nini, plusk, pc,
+                             initv,
+                             PetscAbs(eps->nini), plusk, pc,
                              eps->ip, harm, dvd->withTarget,
                              eps->target, ksp,
                              fix, init, eps->trackall);

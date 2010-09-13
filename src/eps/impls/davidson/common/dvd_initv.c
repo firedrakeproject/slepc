@@ -118,7 +118,6 @@ PetscErrorCode dvd_initV_classic_d(dvdDashboard *d)
 */
 
 typedef struct {
-  Vec *userV;           /* custom initial search subspace */
   PetscInt size_userV,  /* size of userV */
     k;                  /* desired initial subspace size */
   void *old_initV_data; /* old initV data */
@@ -126,7 +125,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_user"
-PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
+PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b,
                         PetscInt size_userV, PetscInt k)
 {
   PetscErrorCode  ierr;
@@ -142,7 +141,6 @@ PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b, Vec *userV,
     ierr = PetscMalloc(sizeof(dvdInitV_User), &data); CHKERRQ(ierr);
     data->k = k;
     data->size_userV = size_userV;
-    data->userV = userV;
     data->old_initV_data = d->initV_data;
     d->initV_data = data;
     d->initV = dvd_initV_user_0;
@@ -162,10 +160,10 @@ PetscErrorCode dvd_initV_user_0(dvdDashboard *d)
 
   PetscFunctionBegin;
 
+  /* The user vectors are already in V */
+  i = PetscMin(data->size_userV,d->max_size_V);
+
   /* Generate a set of random initial vectors and orthonormalize them */
-  for (i=0; i<PetscMin(data->size_userV,d->max_size_V); i++) {
-    ierr = VecCopy(data->userV[i], d->V[i]); CHKERRQ(ierr);
-  }
   for (; i<PetscMin(data->k,d->max_size_V); i++) {
     ierr = SlepcVecSetRandom(d->V[i], d->eps->rand); CHKERRQ(ierr);
   }
