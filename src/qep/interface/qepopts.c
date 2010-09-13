@@ -709,7 +709,8 @@ PetscErrorCode QEPSetTrackAll(QEP qep,PetscTruth trackall)
 #undef __FUNCT__  
 #define __FUNCT__ "QEPGetTrackAll"
 /*@
-    QEPGetTrackAll - Returns the flag indicating whether all residuals must be computed explicitly or not.
+    QEPGetTrackAll - Returns the flag indicating whether all residual norms must
+    be computed or not.
 
     Not Collective
 
