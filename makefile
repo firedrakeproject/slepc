@@ -249,7 +249,7 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
           fi;\
           if [ -d ${PETSC_ARCH}/lib ]; then \
-            cp -f ${PETSC_ARCH}/lib/libslepc*.* ${SLEPC_INSTALL_DIR}/lib;\
+            cp -f -r ${PETSC_ARCH}/lib/libslepc*.* ${SLEPC_INSTALL_DIR}/lib;\
             ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.a ;\
             ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
             ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} slepc4py; \
