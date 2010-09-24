@@ -176,7 +176,7 @@ ranlib:
 
 # Deletes SLEPc libraries
 deletelibs:
-	-${RM} -f ${SLEPC_LIB_DIR}/libslepc*.*
+	-${RM} -r ${SLEPC_LIB_DIR}/libslepc*.*
 
 # Cleans up build
 allclean: deletelibs
