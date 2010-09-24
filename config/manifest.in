@@ -1,0 +1,13 @@
+include makefile
+include config/makefile
+recursive-include config *.py *.c
+
+recursive-include conf *
+recursive-include include *
+recursive-include src *
+
+exclude conf/slepcvariables
+recursive-exclude src/docs *
+recursive-exclude src/examples *
+recursive-exclude include *.o
+recursive-exclude src *.o
