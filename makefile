@@ -50,7 +50,7 @@ all:
 	   echo "=========================================";\
 	 fi
 	
-all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs build shared_nomesg_noinstall slepc4py_noinstall
+all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build shared_nomesg_noinstall slepc4py_noinstall
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -172,14 +172,16 @@ testfortran_uni: info
 
 # Ranlib on the libraries
 ranlib:
-	${RANLIB} ${SLEPC_LIB_DIR}/*.${LIB_SUFFIX}
+	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 
 # Deletes SLEPc libraries
 deletelibs:
 	-${RM} -r ${SLEPC_LIB_DIR}/libslepc*.*
+deletemods:
+	-${RM} -f ${SLEPC_DIR}/${PETSC_ARCH}/include/slepc*.mod
 
 # Cleans up build
-allclean: deletelibs
+allclean: deletelibs deletemods
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean tree
 
 #
@@ -249,10 +251,10 @@ install:
 	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
           fi;\
           if [ -d ${PETSC_ARCH}/lib ]; then \
-            cp -f -r ${PETSC_ARCH}/lib/libslepc*.* ${SLEPC_INSTALL_DIR}/lib;\
-            ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.a ;\
-            ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
-            ${OMAKE} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} slepc4py; \
+            cp -f ${PETSC_ARCH}/lib/*.${AR_LIB_SUFFIX} ${SLEPC_INSTALL_DIR}/lib;\
+            ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.${AR_LIB_SUFFIX} ;\
+            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
+            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} slepc4py; \
           fi;\
           echo "====================================";\
 	  echo "If using sh/bash, do the following:";\
