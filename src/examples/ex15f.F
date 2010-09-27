@@ -125,8 +125,8 @@
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call SVDGetDimensions(svd,nsv,PETSC_NULL_INTEGER,
-     +                      PETSC_NULL_INTEGER,ierr)
+      call SVDGetDimensions(svd,nsv,PETSC_NULL_INTEGER,                 &
+     &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nsv
       endif
@@ -156,8 +156,8 @@
         endif
         do i=0,nconv-1
 !         ** Get converged singular triplet: i-th singular value is stored in sigma
-          call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_OBJECT,
-     +         PETSC_NULL_OBJECT,ierr)
+          call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_OBJECT,     &
+     &         PETSC_NULL_OBJECT,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
           call SVDComputeRelativeError(svd,i,error,ierr)

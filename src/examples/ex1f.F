@@ -147,8 +147,8 @@
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,
-     +                      PETSC_NULL_INTEGER,ierr)
+      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,                 &
+     &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif
@@ -179,8 +179,8 @@
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL_OBJECT,
-     +                         PETSC_NULL_OBJECT,ierr)
+          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL_OBJECT,           &
+     &                         PETSC_NULL_OBJECT,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)

@@ -93,8 +93,8 @@
 !     the eigensystem, Ax=kx
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_OBJECT,A,
-     &                    ierr)
+      call MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_OBJECT,   &
+     &                    A,ierr)
       call MatShellSetOperation(A,MATOP_MULT,MatIsing_Mult,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -126,14 +126,14 @@
       if (rank .eq. 0) then
         write(*,'(A,A)') ' Solution method: ', tname
       endif
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,
-     +                      PETSC_NULL_INTEGER,ierr)
+      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,                 &
+     &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,'(A,I2)') ' Number of requested eigenvalues:', nev
       endif
       call EPSGetTolerances(eps,tol,maxit,ierr)
       if (rank .eq. 0) then
-        write(*,'(A,1PE10.4,A,I6)') ' Stopping condition: tol=', tol, 
+        write(*,'(A,1PE10.4,A,I6)') ' Stopping condition: tol=', tol,   &
      &                              ', maxit=', maxit
       endif
 
@@ -155,8 +155,8 @@
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL_OBJECT,
-     +                         PETSC_NULL_OBJECT,ierr)
+          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL_OBJECT,           &
+     &                         PETSC_NULL_OBJECT,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)
