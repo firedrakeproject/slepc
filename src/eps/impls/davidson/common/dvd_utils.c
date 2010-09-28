@@ -242,7 +242,6 @@ PetscErrorCode dvd_prof_init() {
     ierr = PetscLogStageRegister("Dvd_step_orthV",
   		               &stages[DVD_STAGE_ORTHV]); CHKERRQ(ierr);
   }
-  ierr = dvd_blas_prof_init(); CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }

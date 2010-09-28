@@ -35,29 +35,6 @@ void dvd_sum_local(void *in, void *out, PetscMPIInt *cnt,MPI_Datatype *t);
 PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
                                    void *ptr);
 
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_blas_prof_init"
-PetscErrorCode dvd_blas_prof_init() {
-  PetscErrorCode  ierr;
-
-  PetscFunctionBegin;
-
-  if (SLEPC_SlepcDenseMatProd) PetscFunctionReturn(0);
-  ierr = PetscLogEventRegister("DenseMatProd", EPS_COOKIE,
-                               &SLEPC_SlepcDenseMatProd); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseOrth", EPS_COOKIE,
-                               &SLEPC_SlepcDenseOrth); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatInvProd", EPS_COOKIE,
-                               &SLEPC_SlepcDenseMatInvProd); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatNorm", EPS_COOKIE,
-                               &SLEPC_SlepcDenseNorm); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseCopy", EPS_COOKIE,
-                               &SLEPC_SlepcDenseCopy); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("VecsMult", EPS_COOKIE,
-                               &SLEPC_VecsMult); CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 /*
   Compute C <- a*A*B + b*C, where
     ldC, the leading dimension of C,

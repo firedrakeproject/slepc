@@ -76,9 +76,6 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     ierr = dvd_improvex_jd(d, b, ksp, bs); CHKERRQ(ierr);
     ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KBXX); CHKERRQ(ierr);
     ierr = dvd_improvex_jd_lit_const(d, b, 0, 0.0, 0.0); CHKERRQ(ierr);
-
-    /* Setup the profiler */
-    ierr = dvd_profiler(d, b); CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);
@@ -142,9 +139,6 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   ierr = KSPGetTolerances(ksp, &tol, PETSC_NULL, PETSC_NULL, &maxits);
   CHKERRQ(ierr);
   ierr = dvd_improvex_jd_lit_const(d, b, maxits, tol, fix); CHKERRQ(ierr);
-
-  /* Setup the profiler */
-  ierr = dvd_profiler(d, b); CHKERRQ(ierr);
 
   check_sum1 = DVD_CHECKSUM(b);
   if ((check_sum0 != check_sum1) ||

@@ -62,8 +62,6 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONSetInitialSize_DAVIDSON(eps, 5); CHKERRQ(ierr);
   ierr = EPSDAVIDSONSetFix_DAVIDSON(eps, 0.01); CHKERRQ(ierr);
 
-  ierr = dvd_prof_init(); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 

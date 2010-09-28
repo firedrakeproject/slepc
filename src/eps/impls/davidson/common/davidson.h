@@ -417,7 +417,6 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscReal fix, InitType_t init, PetscTruth allResiduals);
 
 /* BLAS routines */
-PetscErrorCode dvd_blas_prof_init();
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   PetscScalar a,
   const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscTruth At,

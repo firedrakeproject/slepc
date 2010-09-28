@@ -89,7 +89,8 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 */
 PetscTruth  SlepcBeganPetsc = PETSC_FALSE; 
 PetscTruth  SlepcInitializeCalled = PETSC_FALSE;
-extern PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY;
+extern PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY, SLEPC_SlepcDenseMatProd, SLEPC_SlepcDenseOrth,
+                     SLEPC_SlepcDenseMatInvProd, SLEPC_SlepcDenseNorm, SLEPC_SlepcDenseCopy, SLEPC_VecsMult;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 extern PetscDLLibrary DLLibrariesLoaded;
@@ -165,6 +166,12 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
 
   ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("VecMAXPBY",0,&SLEPC_VecMAXPBY);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseMatProd", EPS_COOKIE, &SLEPC_SlepcDenseMatProd); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseOrth", EPS_COOKIE, &SLEPC_SlepcDenseOrth); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseMatInvProd", EPS_COOKIE, &SLEPC_SlepcDenseMatInvProd); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseMatNorm", EPS_COOKIE, &SLEPC_SlepcDenseNorm); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseCopy", EPS_COOKIE, &SLEPC_SlepcDenseCopy); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("VecsMult", EPS_COOKIE, &SLEPC_VecsMult); CHKERRQ(ierr);
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */
