@@ -24,6 +24,12 @@ import os
 import sys
 import time
 
+# should be run from the toplevel
+configDir = os.path.abspath('config')
+if not os.path.isdir(configDir):
+  raise RuntimeError('Run configure from $SLEPC_DIR, not '+os.path.abspath('.'))
+sys.path.insert(0, configDir)
+
 import petscversion
 import petscconf
 import log
