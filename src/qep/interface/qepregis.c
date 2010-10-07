@@ -37,7 +37,7 @@ EXTERN_C_END
 
 .seealso:  QEPRegisterDynamic()
 @*/
-PetscErrorCode QEPRegisterAll(char *path)
+PetscErrorCode QEPRegisterAll(const char *path)
 {
   PetscErrorCode ierr;
 

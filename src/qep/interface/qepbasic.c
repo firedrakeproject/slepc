@@ -60,7 +60,7 @@ PetscErrorCode QEPFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode QEPInitializePackage(char *path) {
+PetscErrorCode QEPInitializePackage(const char *path) {
   char           logList[256];
   char           *className;
   PetscTruth     opt;

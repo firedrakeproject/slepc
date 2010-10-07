@@ -60,7 +60,7 @@ PetscErrorCode EPSFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode EPSInitializePackage(char *path) {
+PetscErrorCode EPSInitializePackage(const char *path) {
   char              logList[256];
   char             *className;
   PetscTruth        opt;

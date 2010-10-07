@@ -44,7 +44,7 @@ EXTERN_C_END
 
 .seealso: STRegisterDynamic()
 @*/
-PetscErrorCode STRegisterAll(char *path)
+PetscErrorCode STRegisterAll(const char *path)
 {
   PetscErrorCode ierr;
 

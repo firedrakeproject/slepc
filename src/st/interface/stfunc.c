@@ -59,7 +59,7 @@ PetscErrorCode STFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode STInitializePackage(char *path) {
+PetscErrorCode STInitializePackage(const char *path) {
   char              logList[256];
   char             *className;
   PetscTruth        opt;

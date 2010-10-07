@@ -59,7 +59,7 @@ EXTERN_C_END
 
 .seealso:  EPSRegisterDynamic()
 @*/
-PetscErrorCode EPSRegisterAll(char *path)
+PetscErrorCode EPSRegisterAll(const char *path)
 {
   PetscErrorCode ierr;
 

@@ -111,8 +111,8 @@ typedef struct {
 } QEPMONITOR_CONV;
 EXTERN PetscErrorCode QEPMonitorDestroy_Converged(QEPMONITOR_CONV*);
 
-EXTERN PetscErrorCode QEPRegisterAll(char *);
-EXTERN PetscErrorCode QEPInitializePackage(char *);
+EXTERN PetscErrorCode QEPRegisterAll(const char *);
+EXTERN PetscErrorCode QEPInitializePackage(const char *);
 EXTERN PetscErrorCode QEPFinalizePackage(void);
 
 EXTERN PetscErrorCode QEPDestroy_Default(QEP);

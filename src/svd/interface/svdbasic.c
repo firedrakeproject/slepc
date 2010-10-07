@@ -60,7 +60,7 @@ PetscErrorCode SVDFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode SVDInitializePackage(char *path)
+PetscErrorCode SVDInitializePackage(const char *path)
 {
   char              logList[256];
   char              *className;

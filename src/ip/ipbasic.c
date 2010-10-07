@@ -40,7 +40,7 @@ PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode IPInitializePackage(char *path) 
+PetscErrorCode IPInitializePackage(const char *path) 
 {
   static PetscTruth initialized = PETSC_FALSE;
   char              logList[256];

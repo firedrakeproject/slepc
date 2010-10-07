@@ -131,8 +131,8 @@ typedef struct {
 } EPSMONITOR_CONV;
 EXTERN PetscErrorCode EPSMonitorDestroy_Converged(EPSMONITOR_CONV*);
 
-EXTERN PetscErrorCode EPSRegisterAll(char *);
-EXTERN PetscErrorCode EPSInitializePackage(char *);
+EXTERN PetscErrorCode EPSRegisterAll(const char *);
+EXTERN PetscErrorCode EPSInitializePackage(const char *);
 EXTERN PetscErrorCode EPSFinalizePackage(void);
 
 EXTERN PetscErrorCode EPSDestroy_Default(EPS);

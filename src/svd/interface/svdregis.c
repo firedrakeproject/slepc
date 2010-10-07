@@ -40,7 +40,7 @@ EXTERN_C_END
 
 .seealso:  SVDRegisterDynamic()
 @*/
-PetscErrorCode SVDRegisterAll(char *path)
+PetscErrorCode SVDRegisterAll(const char *path)
 {
   PetscErrorCode ierr;
 

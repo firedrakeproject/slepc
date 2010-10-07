@@ -59,7 +59,6 @@ typedef enum { IP_ORTH_REFINE_NEVER,
 S*/
 typedef struct _p_IP* IP;
 
-EXTERN PetscErrorCode IPInitializePackage(char *path);
 EXTERN PetscErrorCode IPCreate(MPI_Comm,IP*);
 EXTERN PetscErrorCode IPSetOptionsPrefix(IP,const char *);
 EXTERN PetscErrorCode IPAppendOptionsPrefix(IP,const char *);

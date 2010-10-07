@@ -24,7 +24,6 @@
 
 #include "slepcip.h"
 
-extern PetscCookie IP_COOKIE;
 extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 
 struct _p_IP {
@@ -42,6 +41,7 @@ struct _p_IP {
   Vec            Bx;
 };
 
+EXTERN PetscErrorCode IPInitializePackage(const char *);
 EXTERN PetscErrorCode IPApplyMatrix_Private(IP,Vec);
 EXTERN PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 

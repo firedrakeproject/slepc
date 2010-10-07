@@ -66,8 +66,8 @@ struct _p_ST {
   
 };
 
-EXTERN PetscErrorCode STRegisterAll(char*);
-EXTERN PetscErrorCode STInitializePackage(char*);
+EXTERN PetscErrorCode STRegisterAll(const char*);
+EXTERN PetscErrorCode STInitializePackage(const char*);
 EXTERN PetscErrorCode STFinalizePackage(void);
 
 EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);

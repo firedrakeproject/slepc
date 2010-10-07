@@ -84,8 +84,8 @@ struct _p_SVD {
   PetscInt        matvecs;
 };
 
-EXTERN PetscErrorCode SVDRegisterAll(char *);
-EXTERN PetscErrorCode SVDInitializePackage(char*);
+EXTERN PetscErrorCode SVDRegisterAll(const char *);
+EXTERN PetscErrorCode SVDInitializePackage(const char*);
 EXTERN PetscErrorCode SVDFinalizePackage(void);
 
 #define SVDMonitor(svd,it,nconv,sigma,errest,nest) \
