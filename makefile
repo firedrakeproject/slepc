@@ -42,7 +42,7 @@ all:
            echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es";\
            echo "********************************************************************"; \
            exit 1; \
-	 elif [ "${SLEPC_INSTALL_DIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the libraries are working do: make test";\
            echo "=========================================";\
 	 else \
@@ -206,62 +206,62 @@ chk_slepc_dir:
 install:
 	-@if [ "${PETSC_ARCH}" = "" ]; then \
 	  echo "PETSC_ARCH is undefined";\
-	elif [ "${SLEPC_INSTALL_DIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	  echo "Install directory is current directory; nothing needs to be done";\
         else \
-	  echo Installing SLEPc at ${SLEPC_INSTALL_DIR};\
-          if [ ! -d `dirname ${SLEPC_INSTALL_DIR}` ]; then \
-	    ${MKDIR} `dirname ${SLEPC_INSTALL_DIR}` ; \
+	  echo Installing SLEPc at ${SLEPC_DESTDIR};\
+          if [ ! -d `dirname ${SLEPC_DESTDIR}` ]; then \
+	    ${MKDIR} `dirname ${SLEPC_DESTDIR}` ; \
           fi;\
-          if [ ! -d ${SLEPC_INSTALL_DIR} ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR} ; \
+          if [ ! -d ${SLEPC_DESTDIR} ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR} ; \
           fi;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/include ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include ; \
+          if [ ! -d ${SLEPC_DESTDIR}/include ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR}/include ; \
           fi;\
-          cp -f include/*.h ${SLEPC_INSTALL_DIR}/include;\
+          cp -f include/*.h ${SLEPC_DESTDIR}/include;\
           if [ -f ${PETSC_ARCH}/include/slepceps.mod ]; then \
-            cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_INSTALL_DIR}/include;\
+            cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_DESTDIR}/include;\
           fi;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude ; \
+          if [ ! -d ${SLEPC_DESTDIR}/include/finclude ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR}/include/finclude ; \
           fi;\
-          cp -f include/finclude/*.h* ${SLEPC_INSTALL_DIR}/include/finclude;\
+          cp -f include/finclude/*.h* ${SLEPC_DESTDIR}/include/finclude;\
           if [ -d include/finclude/ftn-auto ]; then \
-            if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto ]; then \
-	      ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto ; \
+            if [ ! -d ${SLEPC_DESTDIR}/include/finclude/ftn-auto ]; then \
+	      ${MKDIR} ${SLEPC_DESTDIR}/include/finclude/ftn-auto ; \
             fi;\
-            cp -f include/finclude/ftn-auto/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-auto;\
+            cp -f include/finclude/ftn-auto/*.h90 ${SLEPC_DESTDIR}/include/finclude/ftn-auto;\
           fi;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom ; \
+          if [ ! -d ${SLEPC_DESTDIR}/include/finclude/ftn-custom ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR}/include/finclude/ftn-custom ; \
           fi;\
-          cp -f include/finclude/ftn-custom/*.h90 ${SLEPC_INSTALL_DIR}/include/finclude/ftn-custom;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/include/private ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/include/private ; \
+          cp -f include/finclude/ftn-custom/*.h90 ${SLEPC_DESTDIR}/include/finclude/ftn-custom;\
+          if [ ! -d ${SLEPC_DESTDIR}/include/private ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR}/include/private ; \
           fi;\
-          cp -f include/finclude/*.h ${SLEPC_INSTALL_DIR}/include/private;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/conf ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/conf ; \
+          cp -f include/finclude/*.h ${SLEPC_DESTDIR}/include/private;\
+          if [ ! -d ${SLEPC_DESTDIR}/conf ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR}/conf ; \
           fi;\
-          cp -f conf/slepc_common* ${SLEPC_INSTALL_DIR}/conf;\
-          cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_INSTALL_DIR}/conf;\
-          cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_INSTALL_DIR}/conf;\
-          if [ ! -d ${SLEPC_INSTALL_DIR}/lib ]; then \
-	    ${MKDIR} ${SLEPC_INSTALL_DIR}/lib ; \
+          cp -f conf/slepc_common* ${SLEPC_DESTDIR}/conf;\
+          cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_DESTDIR}/conf;\
+          cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_DESTDIR}/conf;\
+          if [ ! -d ${SLEPC_DESTDIR}/lib ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR}/lib ; \
           fi;\
           if [ -d ${PETSC_ARCH}/lib ]; then \
-            cp -f ${PETSC_ARCH}/lib/*.${AR_LIB_SUFFIX} ${SLEPC_INSTALL_DIR}/lib;\
-            ${RANLIB} ${SLEPC_INSTALL_DIR}/lib/*.${AR_LIB_SUFFIX} ;\
-            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} shared; \
-            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALL_DIR} slepc4py; \
+            cp -f ${PETSC_ARCH}/lib/*.${AR_LIB_SUFFIX} ${SLEPC_DESTDIR}/lib;\
+            ${RANLIB} ${SLEPC_DESTDIR}/lib/*.${AR_LIB_SUFFIX} ;\
+            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} shared; \
+            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} slepc4py; \
           fi;\
           echo "====================================";\
 	  echo "If using sh/bash, do the following:";\
-          echo "  SLEPC_DIR="${SLEPC_INSTALL_DIR}"; export SLEPC_DIR";\
+          echo "  SLEPC_DIR="${SLEPC_DESTDIR}"; export SLEPC_DIR";\
           echo "  unset PETSC_ARCH";\
           echo "If using csh/tcsh, do the following:";\
-          echo "  setenv SLEPC_DIR "${SLEPC_INSTALL_DIR};\
+          echo "  setenv SLEPC_DIR "${SLEPC_DESTDIR};\
           echo "  unsetenv PETSC_ARCH";\
           echo "Run the following to verify the install (remain in current directory for the tests):";\
           echo "  make test";\

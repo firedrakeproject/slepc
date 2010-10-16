@@ -21,7 +21,7 @@
 
 ALL: lib
 
-CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_INSTALL_DIR}/lib"'
+CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_DESTDIR}/lib"'
 FFLAGS   =
 SOURCEC  = slepcinit.c slepcutil.c
 SOURCEF  =

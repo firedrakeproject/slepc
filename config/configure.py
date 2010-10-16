@@ -207,7 +207,7 @@ try:
   slepcconf = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
     prefixdir = archdir
-  slepcconf.write('SLEPC_INSTALL_DIR =' + prefixdir +'\n')
+  slepcconf.write('SLEPC_DESTDIR =' + prefixdir +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
 try:
@@ -226,7 +226,7 @@ log.Write('Working directory: '+os.getcwd())
 log.Write('Python version:\n' + sys.version)
 log.Write('make: ' + petscconf.MAKE)
 log.Write('PETSc source directory: ' + petscdir)
-log.Write('PETSc install directory: ' + petscconf.INSTALL_DIR)
+log.Write('PETSc install directory: ' + petscconf.DESTDIR)
 log.Write('PETSc version: ' + petscversion.VERSION)
 log.Write('PETSc architecture: ' + petscconf.ARCH)
 log.Write('SLEPc source directory: ' + slepcdir)
@@ -240,7 +240,7 @@ if petscversion.VERSION > '3.1':
 if petscversion.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
 if petscconf.ISINSTALL:
-  if os.path.realpath(petscconf.INSTALL_DIR) != os.path.realpath(petscdir):
+  if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
 if not check.Link([],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
@@ -271,10 +271,11 @@ log.Println('='*80)
 log.Println('SLEPc Configuration')
 log.Println('='*80)
 log.Println('')
-log.Println('SLEPc source directory:')
+log.Println('SLEPc directory:')
 log.Println(' '+slepcdir)
-log.Println('SLEPc install directory:')
-log.Println(' '+prefixdir)  
+if archdir != prefixdir:
+  log.Println('SLEPc prefix directory:')
+  log.Println(' '+prefixdir)  
 log.Println('PETSc directory:')
 log.Println(' '+petscdir)
 log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')

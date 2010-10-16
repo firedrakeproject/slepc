@@ -115,12 +115,12 @@ def install(dest_dir, prefix=None, dry_run=False):
             find_executable('make'),
             'PETSC_DIR='+get_petsc_dir(),
             'PETSC_ARCH='+get_petsc_arch(),
-            'SLEPC_INSTALL_DIR='+dest_dir,
+            'SLEPC_DESTDIR='+dest_dir,
             'install',
             )))
     if status != 0: raise RuntimeError
     slepcvariables = os.path.join(dest_dir, 'conf', 'slepcvariables')
-    open(slepcvariables, 'a').write('SLEPC_INSTALL_DIR=%s\n' % prefix)
+    open(slepcvariables, 'a').write('SLEPC_DESTDIR=%s\n' % prefix)
 
 class context:
     def __init__(self):
