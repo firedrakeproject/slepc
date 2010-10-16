@@ -57,7 +57,7 @@ PetscErrorCode VecDotNorm2_Comp_Seq(Vec v, Vec w, PetscScalar *dp,
                                     PetscScalar *nm);
 PetscErrorCode VecDotNorm2_Comp_MPI(Vec v, Vec w, PetscScalar *dp,
                                     PetscScalar *nm);
-PetscErrorCode VecSqrt_Comp(Vec v);
+PetscErrorCode VecSqrtAbs_Comp(Vec v);
 PetscErrorCode VecAbs_Comp(Vec v);
 PetscErrorCode VecExp_Comp(Vec v);
 PetscErrorCode VecLog_Comp(Vec v);

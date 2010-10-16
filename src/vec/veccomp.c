@@ -38,11 +38,11 @@ typedef struct {
 } Vec_Comp;
 
 #if defined(PETSC_USE_DEBUG)
-#define PetscValidVecComp(x) \
-  if (((Vec_Comp*)(x)->data)->nx < ((Vec_Comp*)(x)->data)->n->n) { \
-    return PetscError(__LINE__,__FUNCT__,__FILE__,__SDIR__,1,0,"Invalid number of subvectors required!");}
+#define PetscValidVecComp(y) \
+  if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) { \
+    return PetscError(((PetscObject)(*((Vec_Comp*)(y)->data)->x))->comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,__SDIR__,1,0,"Invalid number of subvectors required!");}
 #else
-#define PetscValidVecComp(x)
+#define PetscValidVecComp(y)
 #endif
 
 static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
@@ -138,24 +138,23 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             VecMDot_Comp_Seq,
             0, /* 40 */
             0,
-            0, /* VecLoadIntoVectorNative */
             VecReciprocal_Comp,
-            0, /* VecViewNative */
             VecConjugate_Comp,
             0,0,
             0/*VecResetArray_Seq*/,
             0,
             VecMaxPointwiseDivide_Comp,
-            0/*VecLoad_Binary*/, /* 50 */
             VecPointwiseMax_Comp,
             VecPointwiseMaxAbs_Comp,
             VecPointwiseMin_Comp,
             0,
-            VecSqrt_Comp,
+            VecSqrtAbs_Comp,
             VecAbs_Comp,
             VecExp_Comp,
             VecLog_Comp,
             0/*VecShift_Comp*/,
+            0,
+            0,
             0,
             VecDotNorm2_Comp_MPI
           };
@@ -651,8 +650,8 @@ __FUNC_TEMPLATE1__(Conjugate)
 __FUNC_TEMPLATE1__(Reciprocal)
 
 #undef __FUNCT__  
-#define __FUNCT__ "VecSqrt_Comp"
-__FUNC_TEMPLATE1__(Sqrt)
+#define __FUNCT__ "VecSqrtAbs_Comp"
+__FUNC_TEMPLATE1__(SqrtAbs)
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecAbs_Comp"

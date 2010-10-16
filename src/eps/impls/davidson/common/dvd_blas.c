@@ -315,13 +315,13 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
   PetscFunctionBegin;
 
   if ((ldX < rX) || (ldY < rX)) {
-    SETERRQ(((PetscObject)*Y)->comm,1, "Leading dimension error");
+    SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
   }
   
   /* Quick exit */
   if (Y == X) {
     if (ldX != ldY) {
-      SETERRQ(((PetscObject)*Y)->comm,1, "Leading dimension error");
+      SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
     }
     PetscFunctionReturn(0);
   }
@@ -354,11 +354,11 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
   PetscFunctionBegin;
 
   if ((ldX < rX) || (ldY < rX)) {
-    SETERRQ(((PetscObject)*Y)->comm,1, "Leading dimension error");
+    SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
   }
 
   if (rX != cX) {
-    SETERRQ(((PetscObject)*Y)->comm,1, "Rectangular matrices not supported");
+    SETERRQ(PETSC_COMM_SELF,1, "Rectangular matrices not supported");
   }
 
   if (DVD_IS(sX,DVD_MAT_UTRIANG) &&

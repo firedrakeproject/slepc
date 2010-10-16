@@ -1081,7 +1081,7 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps, PetscScalar kr, PetscSca
     er = SlepcAbsEigenvalue(er,ei); 
   }
 #endif    
-  ierr = (*eps->conv_func)(eps,kr,ki,norm/er,error,eps->conv_ctx);CHKERRQ(ierr) 
+  ierr = (*eps->conv_func)(eps,kr,ki,norm/er,error,eps->conv_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

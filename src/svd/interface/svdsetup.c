@@ -207,7 +207,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* process initial vectors */
   if (svd->nini<0) {
     svd->nini = -svd->nini;
-    if (svd->nini>svd->ncv) SETERRQ(((PetscObject)svd)->comm,1,"The number of initial vectors is larger than ncv")
+    if (svd->nini>svd->ncv) SETERRQ(((PetscObject)svd)->comm,1,"The number of initial vectors is larger than ncv");
     k = 0;
     for (i=0;i<svd->nini;i++) {
       ierr = VecCopy(svd->IS[i],svd->V[k]);CHKERRQ(ierr);

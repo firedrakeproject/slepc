@@ -128,7 +128,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* process initial vectors */
   if (qep->nini<0) {
     qep->nini = -qep->nini;
-    if (qep->nini>qep->ncv) SETERRQ(((PetscObject)qep)->comm,1,"The number of initial vectors is larger than ncv")
+    if (qep->nini>qep->ncv) SETERRQ(((PetscObject)qep)->comm,1,"The number of initial vectors is larger than ncv");
     k = 0;
     for (i=0;i<qep->nini;i++) {
       ierr = VecCopy(qep->IS[i],qep->V[k]);CHKERRQ(ierr);
@@ -147,7 +147,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     if (!qep->leftvecs) PetscInfo(qep,"Ignoring initial left vectors\n");
     else {
       qep->ninil = -qep->ninil;
-      if (qep->ninil>qep->ncv) SETERRQ(((PetscObject)qep)->comm,1,"The number of initial left vectors is larger than ncv")
+      if (qep->ninil>qep->ncv) SETERRQ(((PetscObject)qep)->comm,1,"The number of initial left vectors is larger than ncv");
       k = 0;
       for (i=0;i<qep->ninil;i++) {
         ierr = VecCopy(qep->ISL[i],qep->W[k]);CHKERRQ(ierr);
