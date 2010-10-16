@@ -154,7 +154,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
       case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
       case 0:         type = "not yet set"; break;
-      default: SETERRQ(1,"Wrong value of eps->problem_type");
+      default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->problem_type");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
@@ -177,7 +177,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_HARMONIC_LARGEST: extr = "largest harmonic Ritz"; break;
         case EPS_REFINED:          extr = "refined Ritz"; break;
         case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
-        default: SETERRQ(1,"Wrong value of eps->extraction");
+        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->extraction");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
@@ -186,7 +186,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
         case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
         case EPS_BALANCE_USER:      bal = "user-defined matrix"; break;
-        default: SETERRQ(1,"Wrong value of eps->balance");
+        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->balance");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
       if (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE) {
@@ -241,7 +241,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       case EPS_SMALLEST_IMAGINARY:
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(1,"Wrong value of eps->which");
+      default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
     }    
     if (eps->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
@@ -447,7 +447,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
 
   ierr = PetscFListFind(EPSList,((PetscObject)eps)->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
 
-  if (!r) SETERRQ1(1,"Unknown EPS type given: %s",type);
+  if (!r) SETERRQ1(((PetscObject)eps)->comm,1,"Unknown EPS type given: %s",type);
 
   eps->setupcalled = 0;
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
@@ -824,7 +824,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscTruth* is)
   else *is = PETSC_FALSE;
   if( eps->setupcalled ) {
     if( eps->isgeneralized != *is ) { 
-      SETERRQ(0,"Warning: Inconsistent EPS state");
+      SETERRQ(((PetscObject)eps)->comm,0,"Warning: Inconsistent EPS state");
     }
   }
   PetscFunctionReturn(0);

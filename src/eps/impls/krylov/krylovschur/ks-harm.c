@@ -65,7 +65,7 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS) 
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"GETRF,GETRS - Lapack routines are unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF,GETRS - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
@@ -87,11 +87,11 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
   for (i=0;i<m;i++) 
     B[i+i*m] -= tau;
   LAPACKgetrf_(&m,&m,B,&m,ipiv,&info);
-  if (info<0) SETERRQ(PETSC_ERR_LIB,"Bad argument to LU factorization");
-  if (info>0) SETERRQ(PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
+  if (info<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Bad argument to LU factorization");
+  if (info>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
   ierr = PetscLogFlops(2.0*m*m*m/3.0);CHKERRQ(ierr);
   LAPACKgetrs_("C",&m,&one,B,&m,ipiv,g,&m,&info);
-  if (info) SETERRQ(PETSC_ERR_LIB,"GETRS - Bad solve");
+  if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"GETRS - Bad solve");
   ierr = PetscLogFlops(2.0*m*m-m);CHKERRQ(ierr);
 
   /* S = S + g*b' */

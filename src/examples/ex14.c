@@ -50,7 +50,7 @@ int main( int argc, char **argv )
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular value problem stored in file.\n\n");CHKERRQ(ierr);
   ierr = PetscOptionsGetString(PETSC_NULL,"-file",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
-    SETERRQ(1,"Must indicate a file name with the -file option.");
+    SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name with the -file option.");
   }
 
 #if defined(PETSC_USE_COMPLEX)

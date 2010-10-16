@@ -51,7 +51,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
-  if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
@@ -141,7 +141,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
-  if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
@@ -249,7 +249,7 @@ PetscErrorCode STSetUp(ST st)
   PetscInfo(st,"Setting up new ST\n");
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
-  if (!st->A) {SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
+  if (!st->A) {SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
   if (!((PetscObject)st)->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }

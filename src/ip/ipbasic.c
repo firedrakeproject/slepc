@@ -295,7 +295,7 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
       ip->orthog_type = type;
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
   }
   switch (refinement) {
     case IP_ORTH_REFINE_NEVER:
@@ -304,12 +304,12 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
       ip->orthog_ref = refinement;
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown refinement type");
+      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown refinement type");
   }
   if (eta == PETSC_DEFAULT) {
     ip->orthog_eta = 0.7071;
   } else {
-    if (eta <= 0.0 || eta > 1.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");    
+    if (eta <= 0.0 || eta > 1.0) SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");    
     ip->orthog_eta = eta;
   }
   PetscFunctionReturn(0);
@@ -394,7 +394,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
       case IP_ORTH_CGS:
         ierr = PetscViewerASCIIPrintf(viewer,"classical Gram-Schmidt\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(1,"Wrong value of ip->orth_type");
+      default: SETERRQ(((PetscObject)ip)->comm,1,"Wrong value of ip->orth_type");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: ");CHKERRQ(ierr);
     switch (ip->orthog_ref) {
@@ -407,10 +407,10 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
       case IP_ORTH_REFINE_ALWAYS:
         ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(1,"Wrong value of ip->orth_ref");
+      default: SETERRQ(((PetscObject)ip)->comm,1,"Wrong value of ip->orth_ref");
     }
   } else {
-    SETERRQ1(1,"Viewer type %s not supported for IP",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)ip)->comm,1,"Viewer type %s not supported for IP",((PetscObject)viewer)->type_name);
   }
   PetscFunctionReturn(0);
 }

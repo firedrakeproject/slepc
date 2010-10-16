@@ -67,10 +67,10 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
       PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
 #if defined(PETSC_USE_COMPLEX)
     if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-       SETERRQ(1,"IPNorm: The inner product is not well defined");
+       SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
-    if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
+    if (p<0.0) SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(p);
 #endif
   }
@@ -156,10 +156,10 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
 
 #if defined(PETSC_USE_COMPLEX)
     if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-       SETERRQ(1,"IPNorm: The inner product is not well defined");
+       SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
-    if (p<0.0) SETERRQ(1,"IPNorm: The inner product is not well defined");
+    if (p<0.0) SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(p);
 #endif
   }

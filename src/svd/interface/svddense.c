@@ -56,7 +56,7 @@ PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,
 {
 #if defined(SLEPC_MISSING_LAPACK_GESDD)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"GESDD - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESDD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscScalar    qwork,*work;
@@ -79,7 +79,7 @@ PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,
 #else
   LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,&qwork,&lwork,iwork,&info);
 #endif 
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   lwork = (PetscBLASInt)PetscRealPart(qwork);
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   
@@ -90,7 +90,7 @@ PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,
 #else
   LAPACKgesdd_("O",&M,&N,A,&M,sigma,U,&M,VT,&N,work,&lwork,iwork,&info);
 #endif
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SVD_Dense,0,0,0,0);CHKERRQ(ierr);

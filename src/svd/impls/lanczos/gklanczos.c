@@ -46,7 +46,7 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
   if (svd->ncv) { /* ncv set */
-    if (svd->ncv<svd->nsv) SETERRQ(1,"The value of ncv must be at least nsv"); 
+    if (svd->ncv<svd->nsv) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must be at least nsv"); 
   }
   else if (svd->mpd) { /* mpd set */
     svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
@@ -56,7 +56,7 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
     else { svd->mpd = 500; svd->ncv = PetscMin(N,svd->nsv+svd->mpd); }
   }
   if (!svd->mpd) svd->mpd = svd->ncv;
-  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!svd->max_it)
     svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->U) {
@@ -156,7 +156,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 {
 #if defined(SLEPC_MISSING_LAPACK_BDSDC)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"BDSDC - Lapack routine is unavailable.");
+  SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"BDSDC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;

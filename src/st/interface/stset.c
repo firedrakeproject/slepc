@@ -77,7 +77,7 @@ PetscErrorCode STSetType(ST st,const STType type)
 
   /* Determine the STCreateXXX routine for a particular type */
   ierr =  PetscFListFind(STList, ((PetscObject)st)->comm, type,(void (**)(void)) &r );CHKERRQ(ierr);
-  if (!r) SETERRQ1(1,"Unable to find requested ST type %s",type);
+  if (!r) SETERRQ1(((PetscObject)st)->comm,1,"Unable to find requested ST type %s",type);
   ierr = PetscFree(st->data);CHKERRQ(ierr);
 
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
@@ -219,7 +219,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
       st->str = str;
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid matrix structure flag");
+      SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid matrix structure flag");
   }
   PetscFunctionReturn(0);
 }

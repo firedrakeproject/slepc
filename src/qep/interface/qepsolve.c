@@ -81,7 +81,7 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = PetscLogEventEnd(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
 
   if (!qep->reason) {
-    SETERRQ(1,"Internal error, solver returned without setting converged reason");
+    SETERRQ(((PetscObject)qep)->comm,1,"Internal error, solver returned without setting converged reason");
   }
 
 #ifndef PETSC_USE_COMPLEX
@@ -280,10 +280,10 @@ PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScal
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (!qep->eigr || !qep->eigi || !qep->V) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
   }
   if (i<0 || i>=qep->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
 
   if (!qep->perm) k = i;
@@ -350,10 +350,10 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep, PetscInt i, PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (!qep->eigr || !qep->eigi) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
   }
   if (i<0 || i>=qep->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   if (qep->perm) i = qep->perm[i];  
   if (errest) *errest = qep->errest[i];
@@ -738,7 +738,7 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
       b = PetscAbsReal(bi);
 #endif
       break;
-    default: SETERRQ(1,"Wrong value of which");
+    default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of which");
   }
   switch(qep->which) {
     case QEP_LARGEST_MAGNITUDE:

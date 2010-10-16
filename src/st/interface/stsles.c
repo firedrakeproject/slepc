@@ -47,10 +47,10 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(b,VEC_CLASSID,2);
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
+  if (!st->ksp) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP"); }
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) { SETERRQ1(0,"Warning: KSP did not converge (%d)",reason); }
+  if (reason<0) { SETERRQ1(((PetscObject)st)->comm,0,"Warning: KSP did not converge (%d)",reason); }
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
   PetscInfo1(st,"Linear solve iterations=%d\n",its);
@@ -80,10 +80,10 @@ PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(b,VEC_CLASSID,2);
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
+  if (!st->ksp) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP"); }
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) { SETERRQ1(0,"Warning: KSP did not converge (%d)",reason); }
+  if (reason<0) { SETERRQ1(((PetscObject)st)->comm,0,"Warning: KSP did not converge (%d)",reason); }
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
   PetscInfo1(st,"Linear solve iterations=%d\n",its);
@@ -147,7 +147,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!((PetscObject)st)->type_name) { SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
+  if (!((PetscObject)st)->type_name) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
   if (ksp)  *ksp = st->ksp;
   PetscFunctionReturn(0);
 }

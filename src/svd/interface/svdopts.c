@@ -69,7 +69,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
       svd->setupcalled = 0;
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
+      SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
   PetscFunctionReturn(0);
 }
@@ -136,7 +136,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
     if (tol == PETSC_DEFAULT) {
       tol = 1e-7;
     } else {
-      if (tol < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      if (tol < 0.0) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       svd->tol = tol;
     }
   }
@@ -145,7 +145,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
       svd->max_it = 0;
       svd->setupcalled = 0;
     } else {
-      if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+      if (maxits < 0) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
       svd->max_it = maxits;
     }
   }
@@ -227,14 +227,14 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
 
   if (nsv != PETSC_IGNORE) {
-    if (nsv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
+    if (nsv<1) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
     svd->nsv = nsv;
   }
   if (ncv != PETSC_IGNORE) {
     if (ncv == PETSC_DEFAULT || ncv == PETSC_DECIDE) {
       svd->ncv = 0;
     } else {
-      if (ncv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+      if (ncv<1) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       svd->ncv = ncv;
     }
     svd->setupcalled = 0;
@@ -243,7 +243,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       svd->mpd = 0;
     } else {
-      if (mpd<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+      if (mpd<1) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
       svd->mpd = mpd;
     }
   }
@@ -324,7 +324,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
       }
       break;
   default:
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' parameter");    
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' parameter");    
   }
   PetscFunctionReturn(0);
 }

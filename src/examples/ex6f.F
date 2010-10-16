@@ -76,7 +76,7 @@
          if (rank .eq. 0) then
             write(*,*) 'This is a uniprocessor example only!'
          endif
-         SETERRQ(1,' ',ierr)
+         SETERRQ(PETSC_COMM_WORLD,1,' ',ierr)
       endif
       m = 30
       call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-m',m,flg,ierr)

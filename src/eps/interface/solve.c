@@ -161,7 +161,7 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
   if (!eps->reason) {
-    SETERRQ(1,"Internal error, solver returned without setting converged reason");
+    SETERRQ(((PetscObject)eps)->comm,1,"Internal error, solver returned without setting converged reason");
   }
 
   /* Map eigenvalues back to the original problem, necessary in some 
@@ -448,10 +448,10 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   if (!eps->V) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (!eps->ishermitian && eps->evecsavailable) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
   }
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
@@ -508,13 +508,13 @@ PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps, Vec *v)
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   if (!eps->leftvecs) {
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   if (!eps->W) {
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
   }
   if (!eps->ishermitian && eps->evecsavailable) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspaceLeft must be called before EPSGetEigenpairLeft,EPSComputeRelativeErrorLeft or EPSComputeResidualNormLeft"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspaceLeft must be called before EPSGetEigenpairLeft,EPSComputeRelativeErrorLeft or EPSComputeResidualNormLeft"); 
   }
   for (i=0;i<eps->nconv;i++) {
     ierr = VecCopy(eps->W[i],v[i]);CHKERRQ(ierr);
@@ -566,10 +566,10 @@ PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScal
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi || !eps->V) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
   ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr);
@@ -613,10 +613,10 @@ PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscSca
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
 
   if (!eps->perm) k = i;
@@ -673,10 +673,10 @@ PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->V) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   if (!eps->evecsavailable && (Vr || Vi) ) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
@@ -744,13 +744,13 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->leftvecs) {
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   if (!eps->W) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   if (!eps->evecsavailable && (Wr || Wi) ) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
@@ -809,10 +809,10 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps, PetscInt i, PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   if (eps->perm) i = eps->perm[i];  
   if (errest) *errest = eps->errest[i];
@@ -848,13 +848,13 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi) { 
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
   if (!eps->leftvecs) {
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
   if (eps->perm) i = eps->perm[i];  
   if (errest) *errest = eps->errest_left[i];
@@ -1005,7 +1005,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->leftvecs) {
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&u); CHKERRQ(ierr);
@@ -1359,7 +1359,7 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionBegin;
   switch(eps->which) {
     case EPS_WHICH_USER:
-      if (!eps->which_func) SETERRQ(1,"Undefined eigenvalue comparison function");
+      if (!eps->which_func) SETERRQ(((PetscObject)eps)->comm,1,"Undefined eigenvalue comparison function");
       ierr = (*eps->which_func)(eps,ar,ai,br,bi,result,eps->which_ctx);CHKERRQ(ierr);
       a = 0.0; b = 0.0;
       break;
@@ -1402,7 +1402,7 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
       b = PetscAbsReal(PetscImaginaryPart(br-eps->target));
 #endif
       break;
-    default: SETERRQ(1,"Wrong value of which");
+    default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of which");
   }
   switch(eps->which) {
     case EPS_WHICH_USER:
@@ -1487,8 +1487,8 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,i,PETSC_NULL,eps->V,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
-    if (i==0) { SETERRQ(1,"Initial vector is zero or belongs to the deflation space"); } 
-    else { SETERRQ(1,"Unable to generate more start vectors"); }
+    if (i==0) { SETERRQ(((PetscObject)eps)->comm,1,"Initial vector is zero or belongs to the deflation space"); } 
+    else { SETERRQ(((PetscObject)eps)->comm,1,"Unable to generate more start vectors"); }
   }
   ierr = VecScale(vec,1.0/norm);CHKERRQ(ierr);
 
@@ -1557,8 +1557,8 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscTruth *brea
   ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,i,PETSC_NULL,eps->W,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
-    if (i==0) { SETERRQ(1,"Left initial vector is zero"); }
-    else { SETERRQ(1,"Unable to generate more left start vectors"); }
+    if (i==0) { SETERRQ(((PetscObject)eps)->comm,1,"Left initial vector is zero"); }
+    else { SETERRQ(((PetscObject)eps)->comm,1,"Unable to generate more left start vectors"); }
   }
   ierr = VecScale(vec,1/norm);CHKERRQ(ierr);
 

@@ -101,11 +101,11 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Check some constraints and set some default values */ 
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
-  if (!ops->A) SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
+  if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian)
-    SETERRQ(PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized)
-    SETERRQ(PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
 
   /* Change the default sigma to inf if necessary */
@@ -116,7 +116,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
-  if (!t) SETERRQ(PETSC_ERR_SUP, "PRIMME only works with precond spectral transformation");
+  if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
   primme->n = eps->n;
@@ -140,18 +140,18 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       primme->target = primme_smallest;
       break;
     default:
-      SETERRQ(PETSC_ERR_SUP,"PRIMME only allows EPS_LARGEST_REAL and EPS_SMALLEST_REAL for 'which' value");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only allows EPS_LARGEST_REAL and EPS_SMALLEST_REAL for 'which' value");
       break;   
   }
   
   if (primme_set_method(ops->method, primme) < 0)
-    SETERRQ(PETSC_ERR_SUP,"PRIMME method not valid");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME method not valid");
   
   /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
   if (eps->ncv) primme->maxBasisSize = eps->ncv;
   else eps->ncv = primme->maxBasisSize;
   if (eps->ncv < eps->nev+primme->maxBlockSize)  
-    SETERRQ(PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
 
   if (eps->extraction) {
@@ -166,7 +166,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (primme->correctionParams.precondition) {
     ierr = STGetKSP(eps->OP, &ops->ksp); CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)ops->ksp, KSPPREONLY, &t); CHKERRQ(ierr);
-    if (!t) SETERRQ(PETSC_ERR_SUP, "PRIMME only works with preonly ksp of the spectral transformation");
+    if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "PRIMME only works with KSPPREONLY");
     primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
@@ -176,7 +176,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,eps->nloc,eps->n,PETSC_NULL,&ops->y);CHKERRQ(ierr);
  
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_PRIMME;
   PetscFunctionReturn(0);
 }
@@ -219,19 +219,19 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
       break;
 
     case -1:
-      SETERRQ(PETSC_ERR_SUP,"PRIMME: Failed to open output file");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: Failed to open output file");
       break;
 
     case -2:
-      SETERRQ(PETSC_ERR_SUP,"PRIMME: Insufficient integer or real workspace allocated");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: Insufficient integer or real workspace allocated");
       break;
 
     case -3:
-      SETERRQ(PETSC_ERR_SUP,"PRIMME: main_iter encountered a problem");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: main_iter encountered a problem");
       break;
 
     default:
-      SETERRQ(PETSC_ERR_SUP,"PRIMME: some parameters wrong configured");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: some parameters wrong configured");
       break;
   }
 
@@ -331,7 +331,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
   }
   
   ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
@@ -381,7 +381,7 @@ PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 
   if (bs == PETSC_DEFAULT) ops->primme.maxBlockSize = 1;
   else if (bs <= 0) { 
-    SETERRQ(1, "PRIMME: wrong block size"); 
+    SETERRQ(((PetscObject)eps)->comm,1, "PRIMME: wrong block size"); 
   } else ops->primme.maxBlockSize = bs;
   
   PetscFunctionReturn(0);

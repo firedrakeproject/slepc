@@ -37,21 +37,21 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   
   if (!eps->ishermitian)
-    SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
   if (eps->isgeneralized)
-    SETERRQ(PETSC_ERR_SUP,"Requested method is not available for generalized problems");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is not available for generalized problems");
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) 
-    SETERRQ(1,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   tr->restart = 0;
   tr->maxlan = PetscBLASIntCast(eps->nev+PetscMin(eps->nev,6));
@@ -66,7 +66,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_TRLAN;
   PetscFunctionReturn(0);
 }
@@ -112,7 +112,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   
   if (eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
-  else SETERRQ(1,"Wrong value of eps->which");
+  else SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   globaleps = eps;
 
@@ -145,7 +145,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
   
-  if (stat!=0) { SETERRQ1(PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);}
+  if (stat!=0) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);}
 
   PetscFunctionReturn(0);
 }

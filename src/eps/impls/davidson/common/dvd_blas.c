@@ -69,7 +69,7 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   
   /* Check size */
   if (cA != rB) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
+    SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
   }
   
   /* Do stub */
@@ -124,8 +124,8 @@ PetscErrorCode SlepcDenseMatProdTriang(
   if (Bt) tmp = rB, rB = cB, cB = tmp;
   
   /* Check size */
-  if (cA != rB) SETERRQ(1, "Matrix dimensions doesn't match!");
-  if (sB != 0) SETERRQ(1, "It doesn't support B matrix type!");
+  if (cA != rB) SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
+  if (sB != 0) SETERRQ(PETSC_COMM_SELF,1, "Matrix type not supported for B");
 
   /* Optimized version: trivial case */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
@@ -171,7 +171,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
     PetscFunctionReturn(0);
   }
  
-  SETERRQ(1, "It doesn't support A matrix type!");
+  SETERRQ(PETSC_COMM_SELF,1, "Matrix type not supported for A");
 }
 
 /*
@@ -240,7 +240,7 @@ PetscErrorCode SlepcDenseMatInvProd(
 
   /* Check size */
   if (_dimA != rB) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
+    SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
   }
 
   /* Quick exit */
@@ -252,7 +252,7 @@ PetscErrorCode SlepcDenseMatInvProd(
     ierr = PetscLogFlops(1);CHKERRQ(ierr);
   } else {
    LAPACKgesv_(&dimA, &cB, A, &ldA, p, B, &ldB, &info);
-   if (info) SETERRQ1(PETSC_ERR_LIB, "Error in Lapack GESV %d", info);
+   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack GESV %d", info);
   }
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatInvProd,0,0,0,0);CHKERRQ(ierr);
 
@@ -284,13 +284,13 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
   if ((_rA == 0) || (cA == 0)) { PetscFunctionReturn(0); }
 
   /* Memory check */
-  if (lw < cA) SETERRQ(1, "Insufficient memory for xGEQRF!");
+  if (lw < cA) SETERRQ(PETSC_COMM_SELF,1, "Insufficient memory for xGEQRF");
   
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseOrth,0,0,0,0);CHKERRQ(ierr);
   LAPACKgeqrf_(&rA, &cA, A, &ldA, tau, w, &lw, &info);
-  if (info) SETERRQ1(PETSC_ERR_LIB, "Error in Lapack xGEQRF %d", info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack xGEQRF %d", info);
   LAPACKorgqr_(&rA, &ltau, &ltau, A, &ldA, tau, w, &lw, &info);
-  if (info) SETERRQ1(PETSC_ERR_LIB, "Error in Lapack xORGQR %d", info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack xORGQR %d", info);
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseOrth,0,0,0,0);CHKERRQ(ierr);
 
   if (ncA) *ncA = ltau;
@@ -315,13 +315,13 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
   PetscFunctionBegin;
 
   if ((ldX < rX) || (ldY < rX)) {
-    SETERRQ(1, "Leading dimension error!");
+    SETERRQ(((PetscObject)*Y)->comm,1, "Leading dimension error");
   }
   
   /* Quick exit */
   if (Y == X) {
     if (ldX != ldY) {
-      SETERRQ(1, "Leading dimension error!");
+      SETERRQ(((PetscObject)*Y)->comm,1, "Leading dimension error");
     }
     PetscFunctionReturn(0);
   }
@@ -354,11 +354,11 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
   PetscFunctionBegin;
 
   if ((ldX < rX) || (ldY < rX)) {
-    SETERRQ(1, "Leading dimension error!");
+    SETERRQ(((PetscObject)*Y)->comm,1, "Leading dimension error");
   }
 
   if (rX != cX) {
-    SETERRQ(1, "SlepcDenseCopyTriang doesn't support rectangular matrices!");
+    SETERRQ(((PetscObject)*Y)->comm,1, "Rectangular matrices not supported");
   }
 
   if (DVD_IS(sX,DVD_MAT_UTRIANG) &&
@@ -458,7 +458,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   /* Compute the real number of columns */
   rcX = cX/dX;
   if (rcX != rM) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
+    SETERRQ(((PetscObject)*Y)->comm,1, "Matrix dimensions do not match");
   }
 
   if ((rcX == 0) || (rM == 0) || (cM == 0)) {
@@ -471,7 +471,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
     ierr = VecGetLocalSize(X[0], &rX); CHKERRQ(ierr);
     ierr = VecGetLocalSize(Y[0], &rY); CHKERRQ(ierr);
     if (rX != rY) {
-      SETERRQ(1, "The multivectors doesn't have the same dimension!");
+      SETERRQ(((PetscObject)*Y)->comm,1, "The multivectors do not have the same dimension");
     }
     ierr = VecGetArray(X[0], &px);CHKERRQ(ierr);
     ierr = VecGetArray(Y[0], &py);CHKERRQ(ierr);
@@ -499,7 +499,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
         ierr = VecScale(Y[i], alpha); CHKERRQ(ierr);
       }
   } else {
-    SETERRQ(1, "I don't support this case!");
+    SETERRQ(((PetscObject)*Y)->comm,1, "Unsupported case");
   }
 
   PetscFunctionReturn(0);
@@ -522,12 +522,12 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   PetscFunctionBegin;
 
   if (cX != rM) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
+    SETERRQ(((PetscObject)*X)->comm,1, "Matrix dimensions do not match");
   }
 
   rY = (lwork/2)/cX;
   if (rY <= 0) {
-    SETERRQ(1, "Insufficient work space given!");
+    SETERRQ(((PetscObject)*X)->comm,1, "Insufficient work space given");
   }
   Y = work; Z = &Y[cX*rY]; ldY = rY;
 
@@ -602,7 +602,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
   if (ldU != ldV) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
+    SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   }
   ierr = VecGetArray(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
@@ -765,7 +765,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
   if (ldU != ldV) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
+    SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   }
   ierr = VecGetArray(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
@@ -793,7 +793,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
     CHKERRQ(ierr);
   
   /* Other structures */
-  } else SETERRQ(1, "Matrix structure doesn't support by VecsMultI!");
+  } else SETERRQ(((PetscObject)*U)->comm,1, "Matrix structure not supported");
 
   ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
   ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
@@ -821,7 +821,7 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if ((rM == 0) || (cM == 0))
     PetscFunctionReturn(0);
     
-  if (sM != 0) SETERRQ(1, "Matrix structure doesn't support by VecsMultIc!");
+  if (sM != 0) SETERRQ(((PetscObject)V)->comm,1, "Matrix structure not supported");
 
   MPI_Comm_size(((PetscObject)V)->comm, &n);
 
@@ -878,7 +878,7 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
     ierr = SlepcDenseCopy(M, ldM, Wr, rM, rM, cM); CHKERRQ(ierr);
 
   /* Other structures */
-  } else SETERRQ(1, "Matrix structure doesn't support by VecsMultI!");
+  } else SETERRQ(((PetscObject)V)->comm,1, "Matrix structure not supported");
 
   ierr = PetscLogEventEnd(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
@@ -918,7 +918,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
   if (ldU != ldV) {
-    SETERRQ(1, "Matrix dimensions doesn't match!");
+    SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   }
   ierr = VecGetArray(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
@@ -1031,7 +1031,7 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
   for (i=sr->i1; i<sr->i2; i++)
     for (j=sr->ld*i+sr->s1; j<sr->ld*i+sr->e1; j++,k++) sr->M[j] = out[k];
 
-  if (k != size_out) SETERRQ(1, "Error in VecsMultS_copy_func!");
+  if (k != size_out) SETERRQ(PETSC_COMM_SELF,1, "Wrong size");
 
   PetscFunctionReturn(0);
 }
@@ -1065,7 +1065,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
 
   /* H <- chol(H) */
   LAPACKpbtrf_("U", &nn, &nn, H, &nn, &info);
-  if (info) SETERRQ1(PETSC_ERR_LIB, "Error in Lapack PBTRF %d", info);
+  if (info) SETERRQ1(((PetscObject)*V)->comm,PETSC_ERR_LIB, "Error in Lapack PBTRF %d", info);
 
   /* V <- V * inv(H) */
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
@@ -1127,10 +1127,10 @@ PetscErrorCode SlepcAllReduceSum(DvdReduction *r, PetscInt size_in,
   r->ops[r->size_ops].f = f;
   r->ops[r->size_ops].ptr = ptr;
   if (++(r->size_ops) > r->max_size_ops) {
-    SETERRQ(1, "max_size_ops is not enought!");
+    SETERRQ(PETSC_COMM_SELF,1, "max_size_ops is not large enough");
   }
   if ((r->size_in+= size_in) > r->max_size_in) {
-    SETERRQ(1, "max_size_in is not enought!");
+    SETERRQ(PETSC_COMM_SELF,1, "max_size_in is not large enough");
   }
 
   PetscFunctionReturn(0);
@@ -1208,7 +1208,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
       CHKERRQ(ierr);
     }
     if(lindep || (norm < PETSC_MACHINE_EPSILON)) {
-        SETERRQ(1, "Error during the orthonormalization of the eigenvectors!");
+        SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
     }
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
   }
@@ -1278,9 +1278,9 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #if defined(PETSC_USE_COMPLEX)
     auxR = (PetscReal*)auxS; auxS = (PetscScalar*)(auxR+2*n); size_auxS-= 2*n;
     if (size_auxS < 2*n)
-      SETERRQ(PETSC_ERR_LIB,"Insufficient auxiliar memory for xTGEVC");
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xTGEVC");
     LAPACKtgevc_(side,howmny,PETSC_NULL,&n,Sc,&n,Tc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTGEVC %i",info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTGEVC %i",info);
 #else
     alphar = auxS; auxS+= n; size_auxS-= n;
     alphai = auxS; auxS+= n; size_auxS-= n;
@@ -1297,9 +1297,9 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
        of T that represent complex conjugate eigenpairs to be zero */
     n1 = size_auxS;
     if (size_auxS < 8*n)
-      SETERRQ(PETSC_ERR_LIB,"Insufficient auxiliar memory for xGGEV");
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xGGEV");
     LAPACKggev_(pY?"V":"N",pX?"V":"N",&n,Sc,&n,Tc,&n,alphar,alphai,beta,pB,&ldpB,pA,&ldpA,auxS,&n1,&info);
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
     if (doProd) {
       if (pX) {
         /* pX <- pX * pA */
@@ -1322,12 +1322,12 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #if defined(PETSC_USE_COMPLEX)
     auxR = (PetscReal*)auxS; auxS = (PetscScalar*)(auxR+n); size_auxS-= n;
     if (size_auxS < 2*n)
-      SETERRQ(PETSC_ERR_LIB,"Insufficient auxiliar memory for xTREVC");
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xTREVC");
     LAPACKtrevc_(side,howmny,PETSC_NULL,&n,Sc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
 #else
     LAPACKtrevc_(side,howmny,PETSC_NULL,&n,Sc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,&info);
 #endif
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   }
 
   PetscFunctionReturn(0);
@@ -1361,7 +1361,7 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
       ierr = SlepcDenseCopy(Tc, 2, &T[i*ldT+i], ldT, 2, 2); CHKERRQ(ierr);
       LAPACKggev_("N","N",&two,Sc,&two,Tc,&two,&eigr[i],&eigi[i],beta,
                   PETSC_NULL, &two,PETSC_NULL,&two,auxS,&size_auxS,&info);
-      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
       eigr[i]  /= beta[0]; eigi[i]  /= beta[0];
       eigr[i+1]/= beta[1]; eigi[i+1]/= beta[1];
       i++;

@@ -84,16 +84,16 @@ PetscErrorCode EPSSetUp(EPS eps)
       ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
     }
   } else if ((B && !eps->isgeneralized) || (!B && eps->isgeneralized)) {
-    SETERRQ(0,"Warning: Inconsistent EPS state"); 
+    SETERRQ(((PetscObject)eps)->comm,0,"Warning: Inconsistent EPS state"); 
   }
 #if defined(PETSC_USE_COMPLEX)
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
   if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) {
-    SETERRQ(1,"Hermitian problems are not compatible with complex shifts")
+    SETERRQ(((PetscObject)eps)->comm,1,"Hermitian problems are not compatible with complex shifts")
   }
 #endif
   if (eps->ishermitian && eps->leftvecs) {
-    SETERRQ(1,"Requesting left eigenvectors not allowed in Hermitian problems")
+    SETERRQ(((PetscObject)eps)->comm,1,"Requesting left eigenvectors not allowed in Hermitian problems")
   }
   
   if (eps->ispositive) {
@@ -129,12 +129,12 @@ PetscErrorCode EPSSetUp(EPS eps)
   
   ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) {
-    SETERRQ(PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
   }
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STFOLD,&flg);CHKERRQ(ierr);
   if (flg && !eps->ishermitian) {
-    SETERRQ(PETSC_ERR_SUP,"Fold spectral transformation requires a Hermitian problem");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Fold spectral transformation requires a Hermitian problem");
   }
 
   if (eps->nds>0) {
@@ -166,7 +166,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* process initial vectors */
   if (eps->nini<0) {
     eps->nini = -eps->nini;
-    if (eps->nini>eps->ncv) SETERRQ(1,"The number of initial vectors is larger than ncv")
+    if (eps->nini>eps->ncv) SETERRQ(((PetscObject)eps)->comm,1,"The number of initial vectors is larger than ncv")
     k = 0;
     for (i=0;i<eps->nini;i++) {
       ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
@@ -185,7 +185,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     if (!eps->leftvecs) PetscInfo(eps,"Ignoring initial left vectors\n");
     else {
       eps->ninil = -eps->ninil;
-      if (eps->ninil>eps->ncv) SETERRQ(1,"The number of initial left vectors is larger than ncv")
+      if (eps->ninil>eps->ncv) SETERRQ(((PetscObject)eps)->comm,1,"The number of initial left vectors is larger than ncv")
       k = 0;
       for (i=0;i<eps->ninil;i++) {
         ierr = VecCopy(eps->ISL[i],eps->W[k]);CHKERRQ(ierr);
@@ -252,11 +252,11 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
   /* Check for square matrices */
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  if (m!=n) { SETERRQ(1,"A is a non-square matrix"); }
+  if (m!=n) { SETERRQ(((PetscObject)eps)->comm,1,"A is a non-square matrix"); }
   if (B) { 
     ierr = MatGetSize(B,&m0,&n);CHKERRQ(ierr);
-    if (m0!=n) { SETERRQ(1,"B is a non-square matrix"); }
-    if (m!=m0) { SETERRQ(1,"Dimensions of A and B do not match"); }
+    if (m0!=n) { SETERRQ(((PetscObject)eps)->comm,1,"B is a non-square matrix"); }
+    if (m!=m0) { SETERRQ(((PetscObject)eps)->comm,1,"Dimensions of A and B do not match"); }
   }
 
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
@@ -341,7 +341,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (n<=0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
+  if (n<=0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
 
   /* free previous vectors */
   ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
@@ -435,7 +435,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
   if (eps->nini<0) {
@@ -495,7 +495,7 @@ PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
   if (eps->ninil<0) {

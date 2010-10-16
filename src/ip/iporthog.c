@@ -191,7 +191,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
     break;
     
   default:
-    SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
+    SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
 
   PetscFunctionReturn(0);
@@ -275,7 +275,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
     break;
 
   default:
-    SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
+    SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
 
   /* recover H from workspace */
@@ -346,7 +346,7 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth 
       ierr = IPOrthogonalizeMGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
   
@@ -430,7 +430,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
 {
 #if defined(SLEPC_MISSING_LAPACK_GELQF) || defined(SLEPC_MISSING_LAPACK_ORMLQ)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"xGELQF - Lapack routine is unavailable.");
+  SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_SUP,"xGELQF - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   j,ione=1,lwork,info,n=n_;
@@ -450,7 +450,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGELQF %i",info);
+  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xGELQF %i",info);
   
   /*** First orthogonalization ***/
 
@@ -459,7 +459,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   ierr = IPMInnerProduct(ip,v,n,W,H);CHKERRQ(ierr);
   BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n);
   LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORMLQ %i",info);
+  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xORMLQ %i",info);
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H,V);CHKERRQ(ierr);
 
   /* compute norm of v */
@@ -542,7 +542,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
         ierr = IPCGSBiOrthogonalization(ip,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       default:
-        SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+        SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
     
     if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }

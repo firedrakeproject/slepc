@@ -154,7 +154,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
   if (found) {
     ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);CHKERRQ(ierr);
   } else {
-    SETERRQ1(1,"Unable to locate SLEPc dynamic library %s \n",libs);
+    SETERRQ1(PETSC_COMM_WORLD,1,"Unable to locate SLEPc dynamic library %s \n",libs);
   }
 #else
   ierr = STInitializePackage(PETSC_NULL); CHKERRQ(ierr);

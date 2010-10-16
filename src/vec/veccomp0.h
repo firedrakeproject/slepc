@@ -247,7 +247,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v, Vec w, PetscScalar *dp,
     ierr = VecRestoreArray(v, &vx);CHKERRQ(ierr);
     ierr = VecRestoreArray(w, &wx);CHKERRQ(ierr);
   } else
-    SETERRQ(PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
+    SETERRQ(((PetscObject)v)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
 
 #ifdef __WITH_MPI__
     /* [dp, nm] <- Allreduce([dp0, nm0]) */

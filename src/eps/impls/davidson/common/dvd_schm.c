@@ -144,7 +144,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   if ((check_sum0 != check_sum1) ||
       (b->free_vecs - fv > b->own_vecs) ||
       (b->free_scalars - fs > b->own_scalars))
-    SETERRQ(1, "Something awful happened!");
+    SETERRQ(PETSC_COMM_WORLD,1, "Something awful happened");
     
   PetscFunctionReturn(0);
 }

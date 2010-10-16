@@ -203,8 +203,8 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
   }
  
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
-  if (n == 0) SETERRQ(1, "n == 0!\n");
-  if (data->size_X < r_e-r_s) SETERRQ(1, "size_X < r_e-r_s!\n");
+  if (n == 0) SETERRQ(PETSC_COMM_SELF,1, "n == 0!\n");
+  if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s!\n");
 
   /* Compute the eigenvectors of the selected pairs */
   pX = auxS; auxS+= d->size_H*d->size_H;
@@ -499,7 +499,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
 #define DVD_NORMALIZE_UV(u,v,ierr,a) { \
     (ierr) = VecDot((u), (v), &(a)); CHKERRQ(ierr); \
     if ((a) == 0.0) { \
-      SETERRQ(1, "Error: inappropriate approximate eigenvector norm!"); \
+      SETERRQ(((PetscObject)u)->comm,1, "Inappropriate approximate eigenvector norm"); \
     } \
     if ((u) == (v)) { \
       ierr = VecScale((u), 1.0/PetscSqrtScalar(DVD_NORM_FOR_UV(a))); \
@@ -1063,7 +1063,7 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
     }
     ierr = d->improvex_precond(d, r_e-1, auxV[0], D[r_e-r_s-1]); CHKERRQ(ierr);
   } else {
-    SETERRQ(1, "Problem: r_e-r_s > max_size_D!");
+    SETERRQ(PETSC_COMM_SELF,1, "Problem: r_e-r_s > max_size_D!");
   }
 
   PetscFunctionReturn(0);

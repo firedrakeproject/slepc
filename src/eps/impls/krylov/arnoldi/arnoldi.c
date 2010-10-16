@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
@@ -62,11 +62,11 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
     else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
-    SETERRQ(1,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
@@ -85,7 +85,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
   }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_ARNOLDI;
   PetscFunctionReturn(0);
 }
@@ -302,7 +302,7 @@ PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,PetscInt lds,PetscScal
 PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e,PetscScalar *Q,PetscInt ldq,PetscScalar *H,PetscInt ldh_)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD) 
-  SETERRQ(PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
+  SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscTruth     isrefined;
@@ -338,7 +338,7 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
   #else
       LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,sigma+n,&info);
   #endif
-      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+      if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
       /* the smallest singular value is the new error estimate */
       eps->errest[k] = sigma[n-1];
       /* update vector with right singular vector associated to smallest singular value */
@@ -585,7 +585,7 @@ PetscErrorCode EPSView_ARNOLDI(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(1,"Viewer type %s not supported for EPSARNOLDI",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSARNOLDI",((PetscObject)viewer)->type_name);
   }
   if (arnoldi->delayed) {
     ierr = PetscViewerASCIIPrintf(viewer,"using delayed reorthogonalization\n");CHKERRQ(ierr);

@@ -52,7 +52,7 @@ int main( int argc, char **argv )
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n");CHKERRQ(ierr);
   ierr = PetscOptionsGetString(PETSC_NULL,"-f1",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
-    SETERRQ(1,"Must indicate a file name for matrix A with the -f1 option.");
+    SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix A with the -f1 option.");
   }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -66,7 +66,7 @@ int main( int argc, char **argv )
 
   ierr = PetscOptionsGetString(PETSC_NULL,"-f2",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
-    SETERRQ(1,"Must indicate a file name for matrix B with the -f2 option.");
+    SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix B with the -f2 option.");
   }
 
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);

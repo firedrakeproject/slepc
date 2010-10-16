@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
@@ -65,7 +65,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
     else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
@@ -73,15 +73,15 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
     case EPS_LARGEST_IMAGINARY:
     case EPS_SMALLEST_IMAGINARY:
     case EPS_TARGET_IMAGINARY:
-      SETERRQ(1,"Wrong value of eps->which");
+      SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
     default: ; /* default case to remove warning */
   }
   if (!eps->ishermitian)
-    SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) {
-    SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type\n");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type\n");
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -95,7 +95,7 @@ PetscErrorCode EPSSetUp_LANCZOS(EPS eps)
   }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_LANCZOS;
   PetscFunctionReturn(0);
 }
@@ -516,7 +516,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       ierr = PetscFree(T);CHKERRQ(ierr);
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type"); 
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type"); 
   }
   PetscFunctionReturn(0);
 }
@@ -737,7 +737,7 @@ PetscErrorCode EPSLanczosSetReorthog_LANCZOS(EPS eps,EPSLanczosReorthogType reor
       lanczos->reorthog = reorthog;
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
   }
   PetscFunctionReturn(0);
 }
@@ -846,7 +846,7 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(1,"Viewer type %s not supported for EPSLANCZOS",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSLANCZOS",((PetscObject)viewer)->type_name);
   }  
   ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",lanczoslist[lanczos->reorthog]);CHKERRQ(ierr);
   PetscFunctionReturn(0);

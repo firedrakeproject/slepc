@@ -76,7 +76,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->numbermonitors >= MAXSVDMONITORS) {
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Too many SVD monitors set");
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many SVD monitors set");
   }
   svd->monitor[svd->numbermonitors]           = monitor;
   svd->monitorcontext[svd->numbermonitors]    = (void*)mctx;

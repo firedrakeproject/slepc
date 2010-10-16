@@ -109,7 +109,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
-  SETERRQ(PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+  SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscInt       i;
@@ -143,7 +143,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #else
   LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
   /* normalize eigenvectors (when not using purification nor balancing)*/
   if (!(eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D))) {
@@ -212,7 +212,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #else
     LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
-    if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+    if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
     /* AW = W * Z */
     ierr = SlepcUpdateVectors(eps->nconv,eps->W,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);

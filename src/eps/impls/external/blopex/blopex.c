@@ -133,11 +133,11 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   PetscFunctionBegin;
   if (!eps->ishermitian) { 
-    SETERRQ(PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
   }
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) {
-    SETERRQ(1,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   }
 
   /* Change the default sigma to inf if necessary */
@@ -148,11 +148,11 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &isPrecond); CHKERRQ(ierr);
-  if (!isPrecond) SETERRQ(PETSC_ERR_SUP, "blopex only works with precond spectral transformation");
+  if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "blopex only works with STPRECOND");
   ierr = STGetKSP(eps->OP, &blopex->ksp); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)blopex->ksp, KSPPREONLY, &isPreonly); CHKERRQ(ierr);
   if (!isPreonly)
-    SETERRQ(PETSC_ERR_SUP, "blopex only works with preonly ksp of the spectral transformation");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "blopex only works with KSPPREONLY");
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
@@ -187,7 +187,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLOPEX;
   PetscFunctionReturn(0);
 }
@@ -214,7 +214,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
 #endif
-  if (info>0) SETERRQ1(PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
+  if (info>0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
 
   eps->its = its;
   eps->nconv = eps->ncv;

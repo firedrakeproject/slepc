@@ -76,30 +76,30 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscFunctionBegin;
   if (eps->ncv) {
     if( eps->ncv < PetscMin(eps->nev+10,eps->nev*2) )
-      SETERRQ(0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
+      SETERRQ(((PetscObject)eps)->comm,0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   }
   else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
   if (!eps->ishermitian)
-    SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (blz->slice || eps->isgeneralized) {
     ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&flg);CHKERRQ(ierr);
     if (!flg)
-      SETERRQ(PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
     ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
     if (!flg)
-      SETERRQ(PETSC_ERR_SUP,"Preonly KSP is needed for generalized problems or spectrum slicing");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Preonly KSP is needed for generalized problems or spectrum slicing");
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)pc,PCCHOLESKY,&flg);CHKERRQ(ierr);
     if (!flg)
-      SETERRQ(PETSC_ERR_SUP,"Cholesky PC is needed for generalized problems or spectrum slicing");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cholesky PC is needed for generalized problems or spectrum slicing");
   }
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL)
-    SETERRQ(1,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   k1 = PetscMin(eps->n,180);
   k2 = blz->block_size;
@@ -133,7 +133,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLZPACK;
   PetscFunctionReturn(0);
 }
@@ -262,7 +262,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     for (i = 0; i < 33; i++) {
       if (blz->istor[15] & (1 << i)) PetscStrcat(msg, blzpack_error[i]);
     }
-    SETERRQ2(PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15], msg); 
+    SETERRQ2(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15], msg); 
   }
   ierr = VecDestroy(x);CHKERRQ(ierr);
   ierr = VecDestroy(y);CHKERRQ(ierr);
@@ -317,7 +317,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"block size of the block-Lanczos algorithm: %d\n",blz->block_size);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"computational interval: [%f,%f]\n",blz->initial,blz->final);CHKERRQ(ierr);
@@ -378,7 +378,7 @@ PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
   else if (bs <= 0) { 
-    SETERRQ(1, "Incorrect block size"); 
+    SETERRQ(((PetscObject)eps)->comm,1, "Incorrect block size"); 
   } else blz->block_size = PetscBLASIntCast(bs);
   PetscFunctionReturn(0);
 }

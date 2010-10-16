@@ -57,7 +57,7 @@ int main( int argc, char **argv )
 
   ierr = PetscOptionsGetString(PETSC_NULL,"-M",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
-    SETERRQ(1,"Must indicate a file name for matrix M with the -M option.");
+    SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix M with the -M option.");
   }
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
   ierr = MatLoad(viewer,MATAIJ,&M);CHKERRQ(ierr);
@@ -65,7 +65,7 @@ int main( int argc, char **argv )
 
   ierr = PetscOptionsGetString(PETSC_NULL,"-C",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
-    SETERRQ(1,"Must indicate a file name for matrix C with the -C option.");
+    SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix C with the -C option.");
   }
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
   ierr = MatLoad(viewer,MATAIJ,&C);CHKERRQ(ierr);
@@ -73,7 +73,7 @@ int main( int argc, char **argv )
 
   ierr = PetscOptionsGetString(PETSC_NULL,"-K",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
-    SETERRQ(1,"Must indicate a file name for matrix K with the -K option.");
+    SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix K with the -K option.");
   }
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
   ierr = MatLoad(viewer,MATAIJ,&K);CHKERRQ(ierr);

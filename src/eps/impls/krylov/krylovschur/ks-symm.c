@@ -64,7 +64,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
 {
 #if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR) || defined(SLEPC_MISSING_LAPACK_STEQR)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
@@ -94,7 +94,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
   /* Reduce (2,2)-block of flipped S to tridiagonal form */
   lwork = PetscBLASIntCast(n_*n_-n_);
   LAPACKsytrd_("L",&n1,S+n2*(n+1),&n,d,e,Q,Q+n,&lwork,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
 
   /* Flip back diag and subdiag, put them in d and e */
   for (i=0;i<n-1;i++) {
@@ -105,7 +105,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
 
   /* Compute the orthogonal matrix used for tridiagonalization */
   LAPACKorgtr_("L",&n1,S+n2*(n+1),&n,Q,Q+n,&lwork,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
 
   /* Create full-size Q, flipped back to original order */
   for (i=0;i<n;i++) 
@@ -119,7 +119,7 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
 
   /* Solve the tridiagonal eigenproblem */
   LAPACKsteqr_("V",&n,d,e,Q,&n,S,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
 
   ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

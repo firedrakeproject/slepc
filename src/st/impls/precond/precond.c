@@ -40,7 +40,7 @@ typedef struct {
 #undef __FUNCT__  
 #define __FUNCT__ "SLEPcNotImplemented_Precond"
 PetscErrorCode SLEPcNotImplemented_Precond(ST st, Vec x, Vec y) {
-  SETERRQ(1, "STPrecond does not support some operation. Please, refer to the SLEPc Manual for more information.");
+  SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"Operation not implemented in STPRECOND.");
 }
 
 #undef __FUNCT__  

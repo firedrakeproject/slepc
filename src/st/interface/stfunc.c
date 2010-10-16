@@ -574,7 +574,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
         case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
         case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
-        default:                        SETERRQ(1,"Wrong structure flag");
+        default:                        SETERRQ(((PetscObject)st)->comm,1,"Wrong structure flag");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"Matrices A and B have %s\n",str);CHKERRQ(ierr);
     }
@@ -588,7 +588,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
     if (st->ops->view) {ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);}
   } else {
-    SETERRQ1(1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
   }
   PetscFunctionReturn(0);
 }

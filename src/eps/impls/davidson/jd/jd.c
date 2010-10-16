@@ -90,7 +90,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
-  if (t) SETERRQ(PETSC_ERR_SUP, "jd does not work with preonly ksp of the spectral transformation");
+  if (t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "EPSJD does not work with KSPPREONLY");
 
   PetscFunctionReturn(0);
 }

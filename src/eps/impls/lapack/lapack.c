@@ -47,7 +47,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->balance!=EPS_BALANCE_NONE)
-    SETERRQ(PETSC_ERR_SUP,"Balancing not supported in Lapack solvers");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in Lapack solvers");
 
   if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
   if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }

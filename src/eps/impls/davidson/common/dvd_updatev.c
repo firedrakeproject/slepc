@@ -326,7 +326,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     ierr = IPOrthogonalize(d->ipI, 0, PETSC_NULL, d->size_cX+i, PETSC_NULL,
                            d->BcX, d->BcX[d->size_cX+i], PETSC_NULL,
                            &norm, &lindep); CHKERRQ(ierr);
-    if(lindep) SETERRQ(1, "Error during orth(BcX, B*cX(new))!");
+    if(lindep) SETERRQ(((PetscObject)d->ipI)->comm,1, "Error during orth(BcX, B*cX(new))");
     ierr = VecScale(d->BcX[d->size_cX+i], 1.0/norm); CHKERRQ(ierr);
   }
 
@@ -360,7 +360,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     inc_V = npreconv;
     d->max_size_V-= npreconv;
   } else {
-    SETERRQ(1, "Untested case!");
+    SETERRQ(((PetscObject)d->ipI)->comm,1, "Unimplemented");
     /*ierr = SlepcUpdateVectorsZ(&d->cX[d->nconv], 0.0, 1.0, d->V, d->size_V,
                                d->pX, d->ldpX, d->size_H, npreconv);
     CHKERRQ(ierr);

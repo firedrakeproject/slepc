@@ -121,7 +121,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* check matrix */
   if (!svd->OP)
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSetOperator must be called first"); 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE, "SVDSetOperator must be called first"); 
   
   /* determine how to build the transpose */
   if (svd->transmode == PETSC_DECIDE) {
@@ -138,7 +138,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   switch (svd->transmode) {
     case SVD_TRANSPOSE_EXPLICIT:
       ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
-      if (!flg) SETERRQ(1,"Matrix has not defined the MatTranpose operation");
+      if (!flg) SETERRQ(((PetscObject)svd)->comm,1,"Matrix has not defined the MatTranpose operation");
       if (M>=N) {
         svd->A = svd->OP;
         ierr = MatTranspose(svd->OP, MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
@@ -149,7 +149,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       break;
     case SVD_TRANSPOSE_IMPLICIT:
       ierr = MatHasOperation(svd->OP,MATOP_MULT_TRANSPOSE,&flg);CHKERRQ(ierr);
-      if (!flg) SETERRQ(1,"Matrix has not defined the MatMultTranpose operation");
+      if (!flg) SETERRQ(((PetscObject)svd)->comm,1,"Matrix has not defined the MatMultTranpose operation");
       if (M>=N) {
         svd->A = svd->OP;
         svd->AT = PETSC_NULL;    
@@ -159,7 +159,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       }
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
+      SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
 
   /* initialize the random number generator */
@@ -170,9 +170,9 @@ PetscErrorCode SVDSetUp(SVD svd)
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
 
   if (svd->ncv > M || svd->ncv > N)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
   if (svd->nsv > svd->ncv)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   if (svd->ncv != svd->n) {
     /* free memory for previous solution  */
@@ -207,7 +207,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* process initial vectors */
   if (svd->nini<0) {
     svd->nini = -svd->nini;
-    if (svd->nini>svd->ncv) SETERRQ(1,"The number of initial vectors is larger than ncv")
+    if (svd->nini>svd->ncv) SETERRQ(((PetscObject)svd)->comm,1,"The number of initial vectors is larger than ncv")
     k = 0;
     for (i=0;i<svd->nini;i++) {
       ierr = VecCopy(svd->IS[i],svd->V[k]);CHKERRQ(ierr);
@@ -263,7 +263,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
   if (svd->nini<0) {

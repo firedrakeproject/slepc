@@ -111,7 +111,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  if (!shell->apply) SETERRQ(PETSC_ERR_USER,"No apply() routine provided to Shell ST");
+  if (!shell->apply) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_USER,"No apply() routine provided to Shell ST");
   PetscStackPush("STSHELL apply() user function");
   CHKMEMQ;
   ierr  = (*shell->apply)(st,x,y);CHKERRQ(ierr);
@@ -128,7 +128,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  if (!shell->applytrans) SETERRQ(PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
+  if (!shell->applytrans) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
   PetscStackPush("STSHELL applytranspose() user function");
   CHKMEMQ;
   ierr  = (*shell->applytrans)(st,x,y);CHKERRQ(ierr);
@@ -187,7 +187,7 @@ PetscErrorCode STView_Shell(ST st,PetscViewer viewer)
     if (ctx->name) {ierr = PetscViewerASCIIPrintf(viewer,"  ST Shell: %s\n",ctx->name);CHKERRQ(ierr);}
     else           {ierr = PetscViewerASCIIPrintf(viewer,"  ST Shell: no name\n");CHKERRQ(ierr);}
   } else {
-    SETERRQ1(1,"Viewer type %s not supported for STShell",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported for STShell",((PetscObject)viewer)->type_name);
   }
   PetscFunctionReturn(0);
 }
@@ -432,7 +432,7 @@ PetscErrorCode STShellGetName(ST st,char *name[])
   if (f) {
     ierr = (*f)(st,name);CHKERRQ(ierr);
   } else {
-    SETERRQ(PETSC_ERR_ARG_WRONG,"Not shell spectral transformation, cannot get name");
+    SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONG,"Not shell spectral transformation, cannot get name");
   }
   PetscFunctionReturn(0);
 }

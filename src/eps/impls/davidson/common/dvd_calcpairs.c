@@ -204,7 +204,7 @@ PetscErrorCode dvd_calcpairs_proj_qz(dvdDashboard *d)
   if ((d->size_V != d->V_new_e) || (d->size_V != d->size_H) ||
       (d->size_V != d->size_AV) || (DVD_ISNOT(d->sEP, DVD_EP_STD) && (
       (d->size_V != d->size_G) || (d->size_V != d->size_BV) ))) {
-    SETERRQ(1, "Consistency broken!");
+    SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
   }
 
   PetscFunctionReturn(0);
@@ -457,7 +457,7 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
               &a, d->eigr, beta, d->pY, &n, d->pX, &n,
               auxS, &n_auxS, auxR, PETSC_NULL, &info);
 #endif
-  if (info) SETERRQ1(PETSC_ERR_LIB, "Error in Lapack GGES %d", info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack GGES %d", info);
 
   /* eigr[i] <- eigr[i] / beta[i] */
   for (i=0; i<d->size_H; i++)
@@ -486,7 +486,7 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
       ( d->T &&
         ((d->ldS != d->ldT) || (d->ldpX != d->ldpY) ||
          (d->ldpX != d->size_H)) ) ) {
-     SETERRQ(1, "Error before ordering eigenpairs!");
+     SETERRQ(PETSC_COMM_SELF,1, "Error before ordering eigenpairs");
   }
 
   if (d->T) {
@@ -662,7 +662,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
                            cX, R[i], PETSC_NULL, &d->nR[r_s+i], &lindep);
     CHKERRQ(ierr);
     if(lindep || (d->nR[r_s+i] < PETSC_MACHINE_EPSILON)) {
-        SETERRQ(1, "Error during the residual computation of the eigenvectors!");
+        SETERRQ(PETSC_COMM_SELF,1, "Error during the residual computation of the eigenvectors");
     }
 
   } else for(i=0; i<r_e-r_s; i++) {
@@ -697,7 +697,7 @@ PetscErrorCode dvd_calcpairs_updateMatV(Mat A, Vec **AV, PetscInt *size_AV,
 
   /* f.AV(f.V_new) = A*f.V(f.V_new) */
   if (d->V_imm_e-d->V_imm_s + d->V_tra_e-d->V_tra_s != d->V_new_s) {
-    SETERRQ(1, "d->V_imm_e-d->V_imm_s + d->V_tra_e-d->V_tra_s != d->V_new_s !");
+    SETERRQ(((PetscObject)A)->comm,1, "Incompatible dimensions");
   }
 
   for (i=d->V_new_s; i<d->V_new_e; i++) {

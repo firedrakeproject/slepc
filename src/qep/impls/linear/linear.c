@@ -85,7 +85,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
     case QEP_GENERAL:    i = 0; break;
     case QEP_HERMITIAN:  i = 2; break;
     case QEP_GYROSCOPIC: i = 4; break;
-    default: SETERRQ(1,"Wrong value of qep->problem_type");
+    default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
   }
   i += ctx->cform-1;
 
@@ -115,7 +115,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
       case QEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
       case QEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
       case QEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
-      default: SETERRQ(1,"Wrong value of which");
+      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of which");
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
@@ -481,7 +481,7 @@ PetscErrorCode QEPLinearSetCompanionForm_LINEAR(QEP qep,PetscInt cform)
   if (cform==PETSC_IGNORE) PetscFunctionReturn(0);
   if (cform==PETSC_DECIDE || cform==PETSC_DEFAULT) ctx->cform = 1;
   else {
-    if (cform!=1 && cform!=2) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'cform'");
+    if (cform!=1 && cform!=2) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'cform'");
     ctx->cform = cform;
   }
   PetscFunctionReturn(0);

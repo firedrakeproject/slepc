@@ -462,7 +462,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   m = (e-s)/d;
   if (m==0) PetscFunctionReturn(0);
   PetscValidIntPointer(Q,5);
-  if (m<0 || n<0 || s<0 || m>n) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
+  if (m<0 || n<0 || s<0 || m>n) SETERRQ(((PetscObject)*V)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&l);CHKERRQ(ierr);
   ls = PetscBLASIntCast(l);
@@ -538,15 +538,15 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(y,VEC_CLASSID,1);
   if (!nv || !(y)->map->n) PetscFunctionReturn(0);
-  if (nv < 0) SETERRQ1(PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
+  if (nv < 0) SETERRQ1(((PetscObject)y)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
   PetscValidScalarPointer(a,3);
   PetscValidPointer(x,6);
   PetscValidHeaderSpecific(*x,VEC_CLASSID,6);
   PetscValidType(y,1);
   PetscValidType(*x,6);
   PetscCheckSameTypeAndComm(y,1,*x,6);
-  if ((*x)->map->N != (y)->map->N) SETERRQ(PETSC_ERR_ARG_INCOMP,"Incompatible vector global lengths");
-  if ((*x)->map->n != (y)->map->n) SETERRQ(PETSC_ERR_ARG_INCOMP,"Incompatible vector local lengths");
+  if ((*x)->map->N != (y)->map->N) SETERRQ(((PetscObject)y)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector global lengths");
+  if ((*x)->map->n != (y)->map->n) SETERRQ(((PetscObject)y)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector local lengths");
 
   ierr = PetscLogEventBegin(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);

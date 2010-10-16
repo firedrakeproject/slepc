@@ -65,7 +65,7 @@ PetscErrorCode QEPSortDenseSchur(QEP qep,PetscInt n_,PetscInt k,PetscScalar *T,P
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
+  SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscScalar    re,im;
@@ -113,7 +113,7 @@ PetscErrorCode QEPSortDenseSchur(QEP qep,PetscInt n_,PetscInt k,PetscScalar *T,P
 #else
       LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,&info);
 #endif
-      if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+      if (info) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       /* recover original eigenvalues from T matrix */
       for (j=i;j<n;j++) {
         wr[j] = T[j*ldt+j];

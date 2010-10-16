@@ -61,27 +61,27 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
-    SETERRQ(1,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&flg);CHKERRQ(ierr);
     if (!flg) 
-      SETERRQ(PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert ST");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert ST");
     ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
     if (mode == ST_MATMODE_INPLACE)
-      SETERRQ(PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   if (eps->extraction) {
      ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
   }
   if (eps->balance!=EPS_BALANCE_NONE)
-    SETERRQ(PETSC_ERR_SUP,"Balancing not supported in this solver");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->leftvecs) {
     ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
@@ -168,7 +168,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
-          SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+          SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
           /* beta1 is the norm of the residual associated to R(v) */
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
@@ -295,7 +295,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 
       /* delta = sqrt(y,z)_B */
       ierr = IPInnerProduct(eps->ip,y,z,&alpha);CHKERRQ(ierr);
-      if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
+      if (alpha==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Breakdown in two-sided Power/RQI");
       delta = PetscSqrtScalar(alpha);
 
       /* compute relative error */
@@ -315,7 +315,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
-          SETERRQ(PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+          SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
 #else 
           /* beta1 is the norm of the residual associated to R(v,w) */
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
@@ -360,7 +360,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
     ierr = VecCopy(y,v);CHKERRQ(ierr);
     ierr = VecCopy(z,w);CHKERRQ(ierr);
     ierr = IPInnerProduct(eps->ip,y,z,&alpha);CHKERRQ(ierr);
-    if (alpha==0.0) SETERRQ(1,"Breakdown in two-sided Power/RQI");
+    if (alpha==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Breakdown in two-sided Power/RQI");
     delta = PetscSqrtScalar(PetscAbsScalar(alpha));
     beta = 1.0/PetscConj(alpha/delta);
     delta = 1.0/delta;
@@ -434,7 +434,7 @@ PetscErrorCode EPSPowerSetShiftType_POWER(EPS eps,EPSPowerShiftType shift)
       power->shift_type = shift;
       break;
     default:
-      SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid shift type");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid shift type");
   }
   PetscFunctionReturn(0);
 }
@@ -552,7 +552,7 @@ PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(1,"Viewer type %s not supported for EPS_POWER",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS_POWER",((PetscObject)viewer)->type_name);
   }  
   ierr = PetscViewerASCIIPrintf(viewer,"shift type: %s\n",shift_list[power->shift_type]);CHKERRQ(ierr);
   PetscFunctionReturn(0);

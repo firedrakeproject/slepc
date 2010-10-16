@@ -65,7 +65,7 @@ PetscErrorCode QEPSetUp(QEP qep)
 
   /* Check matrices */
   if (!qep->M || !qep->C || !qep->K)
-    SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "QEPSetOperators must be called first"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSetOperators must be called first"); 
   
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,PETSC_NULL);CHKERRQ(ierr);
@@ -96,9 +96,9 @@ PetscErrorCode QEPSetUp(QEP qep)
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
 
   if (qep->ncv > 2*qep->n)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
   /* Free memory for previous solution  */
   if (qep->eigr) { 
@@ -128,7 +128,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* process initial vectors */
   if (qep->nini<0) {
     qep->nini = -qep->nini;
-    if (qep->nini>qep->ncv) SETERRQ(1,"The number of initial vectors is larger than ncv")
+    if (qep->nini>qep->ncv) SETERRQ(((PetscObject)qep)->comm,1,"The number of initial vectors is larger than ncv")
     k = 0;
     for (i=0;i<qep->nini;i++) {
       ierr = VecCopy(qep->IS[i],qep->V[k]);CHKERRQ(ierr);
@@ -147,7 +147,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     if (!qep->leftvecs) PetscInfo(qep,"Ignoring initial left vectors\n");
     else {
       qep->ninil = -qep->ninil;
-      if (qep->ninil>qep->ncv) SETERRQ(1,"The number of initial left vectors is larger than ncv")
+      if (qep->ninil>qep->ncv) SETERRQ(((PetscObject)qep)->comm,1,"The number of initial left vectors is larger than ncv")
       k = 0;
       for (i=0;i<qep->ninil;i++) {
         ierr = VecCopy(qep->ISL[i],qep->W[k]);CHKERRQ(ierr);
@@ -206,14 +206,14 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
 
   /* Check for square matrices */
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m!=n) { SETERRQ(1,"M is a non-square matrix"); }
+  if (m!=n) { SETERRQ(((PetscObject)qep)->comm,1,"M is a non-square matrix"); }
   m0=m;
   ierr = MatGetSize(C,&m,&n);CHKERRQ(ierr);
-  if (m!=n) { SETERRQ(1,"C is a non-square matrix"); }
-  if (m!=m0) { SETERRQ(1,"Dimensions of M and C do not match"); }
+  if (m!=n) { SETERRQ(((PetscObject)qep)->comm,1,"C is a non-square matrix"); }
+  if (m!=m0) { SETERRQ(((PetscObject)qep)->comm,1,"Dimensions of M and C do not match"); }
   ierr = MatGetSize(K,&m,&n);CHKERRQ(ierr);
-  if (m!=n) { SETERRQ(1,"K is a non-square matrix"); }
-  if (m!=m0) { SETERRQ(1,"Dimensions of M and K do not match"); }
+  if (m!=n) { SETERRQ(((PetscObject)qep)->comm,1,"K is a non-square matrix"); }
+  if (m!=m0) { SETERRQ(((PetscObject)qep)->comm,1,"Dimensions of M and K do not match"); }
 
   /* Store a copy of the matrices */
   ierr = PetscObjectReference((PetscObject)M);CHKERRQ(ierr);
@@ -302,7 +302,7 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
   if (qep->nini<0) {
@@ -362,7 +362,7 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
   if (qep->ninil<0) {

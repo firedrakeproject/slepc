@@ -170,7 +170,7 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
         ierr = PetscMemzero(va,sizeof(PetscScalar)*m);CHKERRQ(ierr);
         ierr = PetscMemcpy(&va[m],isa,sizeof(PetscScalar)*n);CHKERRQ(ierr);
       } else {
-        SETERRQ(PETSC_ERR_SUP,"Size of the initial subspace vectors should match to some dimension of A");
+        SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Size of the initial subspace vectors should match to some dimension of A");
       }
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
       ierr = VecRestoreArray(svd->IS[i],&isa);CHKERRQ(ierr);

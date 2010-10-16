@@ -42,7 +42,7 @@ PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
@@ -52,31 +52,31 @@ PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
     else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(1,"The value of ncv must not be larger than nev+mpd"); 
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   if (!eps->ishermitian)
-    SETERRQ(PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)
-    SETERRQ(1,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } if (eps->extraction != EPS_RITZ) {
-    SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
   }
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
   if (!isSinv) {
-    SETERRQ(PETSC_ERR_SUP,"Shift-and-invert ST is needed");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed");
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_DSITRLANCZOS;
   PetscFunctionReturn(0);
 }

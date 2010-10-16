@@ -88,7 +88,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &bs); CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
   if(eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
   } else if (eps->mpd) eps->ncv = eps->mpd + eps->nev + bs;
   else if (eps->nev<500)
     eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15))+bs;
@@ -96,27 +96,27 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
     eps->ncv = PetscMin(eps->n,eps->nev+500)+bs;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->mpd > eps->ncv)
-    SETERRQ(PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
   if (eps->mpd < 2)
-    SETERRQ(PETSC_ERR_SUP,"The mpd has to be greater than 2");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be greater than 2");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
-    SETERRQ(PETSC_ERR_SUP,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Wrong value of eps->which");
   if (!(eps->nev + bs <= eps->ncv))
-    SETERRQ(PETSC_ERR_SUP, "The ncv has to be greater than nev plus blocksize!");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "The ncv has to be greater than nev plus blocksize!");
 
   ierr = EPSDAVIDSONGetRestart_DAVIDSON(eps, &min_size_V, &plusk);
   CHKERRQ(ierr);
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5), eps->mpd/2);
   if (!(min_size_V+bs <= eps->mpd))
-    SETERRQ(PETSC_ERR_SUP, "The value of minv must be less than mpd minus blocksize");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "The value of minv must be less than mpd minus blocksize");
   ierr = EPSDAVIDSONGetInitialSize_DAVIDSON(eps, &initv); CHKERRQ(ierr);
   if (eps->mpd < initv)
-    SETERRQ(PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
   /* Davidson solvers do not support left eigenvectors */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
@@ -127,7 +127,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   /* Davidson solvers only support STPRECOND */
   ierr = STSetUp(eps->OP); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
-  if (!t) SETERRQ1(PETSC_ERR_SUP, "%s only works with precond spectral transformation",
+  if (!t) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_SUP, "%s only works with precond spectral transformation",
     ((PetscObject)eps)->type_name);
 
   /* Extract pc from st->ksp */
@@ -201,7 +201,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   case EPS_HARMONIC_RELATIVE: harm = DVD_HARM_RRR; break;
   case EPS_HARMONIC_RIGHT:    harm = DVD_HARM_REIGS; break;
   case EPS_HARMONIC_LARGEST:  harm = DVD_HARM_LEIGS; break;
-  default: SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type");
+  default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
   }
 
   /* Setup the type of starting subspace */
@@ -359,7 +359,7 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
   name = ((PetscObject)eps)->type_name;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ2(1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
+    SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   }
   
   ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &opi); CHKERRQ(ierr);
@@ -381,7 +381,7 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
 #undef __FUNCT__  
 #define __FUNCT__ "SLEPcNotImplemented"
 PetscErrorCode SLEPcNotImplemented() {
-  SETERRQ(1, "Not call this function!");
+  SETERRQ(PETSC_COMM_WORLD,1, "Do not call this function!");
 }
 
 
@@ -424,7 +424,7 @@ PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize)
 
   if(blocksize == PETSC_DEFAULT || blocksize == PETSC_DECIDE) blocksize = 1;
   if(blocksize <= 0)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
   data->blocksize = blocksize;
 
   PetscFunctionReturn(0);
@@ -455,10 +455,10 @@ PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plu
 
   if(minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
   if(minv <= 0)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
   if(plusk == PETSC_DEFAULT || plusk == PETSC_DECIDE) plusk = 5;
   if(plusk < 0)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
   data->minv = minv;
   data->plusk = plusk;
 
@@ -505,7 +505,7 @@ PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize)
 
   if(initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
   if(initialsize <= 0)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
   data->initialsize = initialsize;
 
   PetscFunctionReturn(0);
@@ -536,7 +536,7 @@ PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix)
 
   if(fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
   if(fix < 0.0)
-    SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
   data->fix = fix;
 
   PetscFunctionReturn(0);

@@ -36,7 +36,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev+2) SETERRQ(1,"The value of ncv must be at least nev+2"); 
+    if (eps->ncv<eps->nev+2) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev+2"); 
   } else /* set default value of ncv */
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
@@ -71,13 +71,13 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   }
 
   if (eps->balance!=EPS_BALANCE_NONE)
-    SETERRQ(PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_ARPACK;
   PetscFunctionReturn(0);
 }
@@ -146,7 +146,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   } else { 
     /* regular mode */
     if (eps->ishermitian && eps->isgeneralized)
-      SETERRQ(PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
     iparam[6] = 1;
     bmat[0] = 'I';
   }
@@ -160,7 +160,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         case EPS_TARGET_REAL:
         case EPS_LARGEST_REAL:       which = "LA"; break;
         case EPS_SMALLEST_REAL:      which = "SA"; break;
-        default: SETERRQ(1,"Wrong value of eps->which");
+        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
       }
     } else {
 #endif
@@ -174,7 +174,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         case EPS_TARGET_IMAGINARY:
         case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
         case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
-        default: SETERRQ(1,"Wrong value of eps->which");
+        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
       }
 #if !defined(PETSC_USE_COMPLEX)
     }
@@ -238,7 +238,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       ierr = VecResetArray(x); CHKERRQ(ierr);
       ierr = VecResetArray(y); CHKERRQ(ierr);
     } else if (ido != 99) {
-      SETERRQ1(1,"Internal error in ARPACK reverse comunication interface (ido=%i)\n",ido);
+      SETERRQ1(((PetscObject)eps)->comm,1,"Internal error in ARPACK reverse comunication interface (ido=%i)\n",ido);
     }
     
   } while (ido != 99);
@@ -246,9 +246,9 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   eps->nconv = iparam[4];
   eps->its = iparam[2];
   
-  if (info==3) { SETERRQ(1,"No shift could be applied in xxAUPD.\n"
+  if (info==3) { SETERRQ(((PetscObject)eps)->comm,1,"No shift could be applied in xxAUPD.\n"
                            "Try increasing the size of NCV relative to NEV."); }
-  else if (info!=0 && info!=1) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);}
+  else if (info!=0 && info!=1) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);}
 
   rvec = PETSC_TRUE;
 
@@ -278,7 +278,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
                resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
                ar->workl, &ar->lworkl, ar->rwork, &info, 1, 1, 2 );
 #endif
-    if (info!=0) { SETERRQ1(PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
+    if (info!=0) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
   }
 
   ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);

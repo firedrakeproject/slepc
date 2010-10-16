@@ -151,7 +151,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
       case QEP_HERMITIAN:  type = HERM " quadratic eigenvalue problem"; break;
       case QEP_GYROSCOPIC: type = "gyroscopic quadratic eigenvalue problem"; break;
       case 0:         type = "not yet set"; break;
-      default: SETERRQ(1,"Wrong value of qep->problem_type");
+      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
@@ -182,7 +182,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
       case QEP_SMALLEST_IMAGINARY:
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(1,"Wrong value of qep->which");
+      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->which");
     }    
     if (qep->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
@@ -343,7 +343,7 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
 
   ierr = PetscFListFind(QEPList,((PetscObject)qep)->comm,type,(void (**)(void))&r);CHKERRQ(ierr);
 
-  if (!r) SETERRQ1(1,"Unknown QEP type given: %s",type);
+  if (!r) SETERRQ1(((PetscObject)qep)->comm,1,"Unknown QEP type given: %s",type);
 
   qep->setupcalled = 0;
   ierr = PetscMemzero(qep->ops,sizeof(struct _QEPOps));CHKERRQ(ierr);

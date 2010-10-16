@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
@@ -69,11 +69,11 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
-    SETERRQ(1,"Wrong value of eps->which");
+    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) {
-    SETERRQ(PETSC_ERR_SUP,"Unsupported extraction type\n");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type\n");
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -87,7 +87,7 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_SUBSPACE;
   PetscFunctionReturn(0);
 }
@@ -104,7 +104,7 @@ static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,Petsc
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
   PetscFunctionBegin;
-  SETERRQ(PETSC_ERR_SUP,"GETRF,GETRI - Lapack routines are unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF,GETRI - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   *ipiv,lwork,info,n=n_,ldh=ldh_;
@@ -119,9 +119,9 @@ static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,Petsc
   ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
   hn = LAPACKlanhs_("I",&n,H,&ldh,rwork);
   LAPACKgetrf_(&n,&n,H,&ldh,ipiv,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
   LAPACKgetri_(&n,H,&ldh,ipiv,work,&lwork,&info);
-  if (info) SETERRQ1(PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
   hin = LAPACKlange_("I",&n,&n,H,&ldh,rwork);
   *cond = hn * hin;
   ierr = PetscFree(ipiv);CHKERRQ(ierr);

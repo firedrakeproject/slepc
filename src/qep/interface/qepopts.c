@@ -226,7 +226,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
     if (tol == PETSC_DEFAULT) {
       qep->tol = 1e-7;
     } else {
-      if (tol < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      if (tol < 0.0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       qep->tol = tol;
     }
   }
@@ -235,7 +235,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
       qep->max_it = 0;
       qep->setupcalled = 0;
     } else {
-      if (maxits < 0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+      if (maxits < 0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
       qep->max_it = maxits;
     }
   }
@@ -319,7 +319,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
 
   if( nev != PETSC_IGNORE ) {
-    if (nev<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    if (nev<1) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     qep->nev = nev;
     qep->setupcalled = 0;
   }
@@ -327,7 +327,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       qep->ncv = 0;
     } else {
-      if (ncv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+      if (ncv<1) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       qep->ncv = ncv;
     }
     qep->setupcalled = 0;
@@ -336,7 +336,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       qep->mpd = 0;
     } else {
-      if (mpd<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+      if (mpd<1) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
       qep->mpd = mpd;
     }
   }
@@ -402,7 +402,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
         }
         break;
       default:
-        SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+        SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
     }
   }
   PetscFunctionReturn(0);
@@ -561,7 +561,7 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
     if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
       qep->sfactor = 0.0;
     } else {
-      if (alpha < 0.0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
+      if (alpha < 0.0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
       qep->sfactor = alpha;
     }
   }
@@ -604,7 +604,7 @@ PetscErrorCode QEPSetProblemType(QEP qep,QEPProblemType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (type!=QEP_GENERAL && type!=QEP_HERMITIAN && type!=QEP_GYROSCOPIC)
-    SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   qep->problem_type = type;
   PetscFunctionReturn(0);
 }
