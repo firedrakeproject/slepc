@@ -175,10 +175,10 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps,PetscBool explicitmatrix)
     ierr = VecDuplicate(qep->V[0],&wi);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(qep->V[0],&start,&end);CHKERRQ(ierr);
     idx = start;
-    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV1);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,PETSC_COPY_VALUES,&isV1);CHKERRQ(ierr);      
     ierr = VecScatterCreate(xr,isV1,qep->V[0],PETSC_NULL,&vsV1);CHKERRQ(ierr);
     idx = start+qep->n;
-    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV2);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,PETSC_COPY_VALUES,&isV2);CHKERRQ(ierr);      
     ierr = VecScatterCreate(xr,isV2,qep->V[0],PETSC_NULL,&vsV2);CHKERRQ(ierr);
     for (i=0;i<qep->nconv;i++) {
       ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
@@ -319,10 +319,10 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps,PetscBool explicitmatrix)
   if (explicitmatrix) {  /* case 1: x needs to be scattered from the owning processes to the rest */
     ierr = VecGetOwnershipRange(qep->V[0],&start,&end);CHKERRQ(ierr);
     idx = start;
-    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV1);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,PETSC_COPY_VALUES,&isV1);CHKERRQ(ierr);      
     ierr = VecScatterCreate(xr,isV1,qep->V[0],PETSC_NULL,&vsV1);CHKERRQ(ierr);
     idx = start+qep->n;
-    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,&isV2);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)qep)->comm,end-start,1,&idx,PETSC_COPY_VALUES,&isV2);CHKERRQ(ierr);      
     ierr = VecScatterCreate(xr,isV2,qep->V[0],PETSC_NULL,&vsV2);CHKERRQ(ierr);
     for (i=0;i<qep->nconv;i++) {
       ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);

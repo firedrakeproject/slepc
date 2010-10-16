@@ -234,12 +234,12 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
     ierr = EPSGetOperationCounters(cyclic->eps,&svd->matvecs,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDMatGetSize(svd,&M,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(svd->U[0],&start,&end);CHKERRQ(ierr);
-    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&start,&isU);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&start,PETSC_COPY_VALUES,&isU);CHKERRQ(ierr);      
     ierr = VecScatterCreate(x,isU,svd->U[0],PETSC_NULL,&vsU);CHKERRQ(ierr);
 
     ierr = VecGetOwnershipRange(svd->V[0],&start,&end);CHKERRQ(ierr);
     idx = start + M;
-    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&idx,&isV);CHKERRQ(ierr);      
+    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&idx,PETSC_COPY_VALUES,&isV);CHKERRQ(ierr);      
     ierr = VecScatterCreate(x,isV,svd->V[0],PETSC_NULL,&vsV);CHKERRQ(ierr);
 
     for (i=0,j=0;i<svd->nconv;i++) {
