@@ -46,7 +46,7 @@ typedef struct {
 #endif
 
 static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
-                                             PetscTruth x_to_me, Vec_Comp_N* n);
+                                             PetscBool x_to_me, Vec_Comp_N* n);
 
 #include "veccomp0.h"
 
@@ -163,7 +163,7 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreate_Comp_Private"
 static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
-                                             PetscTruth x_to_me, Vec_Comp_N *n)
+                                             PetscBool x_to_me, Vec_Comp_N *n)
 {
   Vec_Comp        *s;
   PetscErrorCode  ierr;

@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  PetscTruth     flg;
+  PetscBool      flg;
   STMatMode      mode;
 
   PetscFunctionBegin;
@@ -106,7 +106,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
   Mat            A;
   PetscReal      relerr, norm, rt1, rt2, cs1, anorm;
   PetscScalar    theta, rho, delta, sigma, alpha2, beta1, sn1;
-  PetscTruth     breakdown,*select = PETSC_NULL,hasnorm;
+  PetscBool      breakdown,*select = PETSC_NULL,hasnorm;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -119,7 +119,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     ierr = MatHasOperation(A,MATOP_NORM,&hasnorm);CHKERRQ(ierr);
     if (hasnorm) {
       ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
-      ierr = PetscMalloc(eps->nev*sizeof(PetscTruth),&select);CHKERRQ(ierr);
+      ierr = PetscMalloc(eps->nev*sizeof(PetscBool),&select);CHKERRQ(ierr);
     }
   }
 
@@ -404,7 +404,7 @@ PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  PetscTruth     flg;
+  PetscBool      flg;
   PetscInt       i;
   const char     *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
 
@@ -546,7 +546,7 @@ PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  PetscTruth     isascii;
+  PetscBool      isascii;
   const char     *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
 
   PetscFunctionBegin;

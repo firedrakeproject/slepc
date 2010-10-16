@@ -38,7 +38,7 @@ extern PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal 
 PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscTruth     isSinv;
+  PetscBool      isSinv;
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
@@ -91,7 +91,7 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
   PetscScalar    *Q, sigma, lambda, zero = 0.0;
   PetscReal      *a,*b,*work,beta,distance = 1e-3;
   PetscInt       *iwork;
-  PetscTruth     breakdown;
+  PetscBool      breakdown;
 
   PetscFunctionBegin;
   ierr = PetscOptionsGetReal(PETSC_NULL,"-eps_distance",&distance,PETSC_NULL);CHKERRQ(ierr);

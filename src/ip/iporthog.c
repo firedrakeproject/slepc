@@ -30,7 +30,7 @@
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPOrthogonalizeMGS1"
-static PetscErrorCode IPOrthogonalizeMGS1(IP ip,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H)
+static PetscErrorCode IPOrthogonalizeMGS1(IP ip,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H)
 {
   PetscErrorCode ierr;
   PetscInt       j;
@@ -53,7 +53,7 @@ static PetscErrorCode IPOrthogonalizeMGS1(IP ip,PetscInt n,PetscTruth *which,Vec
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPOrthogonalizeCGS1"
-PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
+PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscInt       j;
@@ -128,7 +128,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTr
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPOrthogonalizeMGS"
-static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
+static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
@@ -202,11 +202,11 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPOrthogonalizeCGS"
-static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
+static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h,lc[100],*c;
-  PetscTruth     allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE;
+  PetscBool      allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE;
   PetscReal      onrm,nrm;
   PetscInt       j,k;
 
@@ -327,7 +327,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
 
 .seealso: IPSetOrthogonalization(), IPBiOrthogonalize()
 @*/
-PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscTruth *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscTruth *lindep)
+PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
 
@@ -391,7 +391,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   PetscErrorCode ierr;
   PetscInt       k;
   PetscReal      norm;
-  PetscTruth     lindep;
+  PetscBool      lindep;
   PetscRandom    rctx=PETSC_NULL;
   
   PetscFunctionBegin;
@@ -510,7 +510,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h;
-  PetscTruth     allocated = PETSC_FALSE;
+  PetscBool      allocated = PETSC_FALSE;
   PetscReal      lhnrm,*hnrm,lnrm,*nrm;
   PetscFunctionBegin;
   if (n==0) {

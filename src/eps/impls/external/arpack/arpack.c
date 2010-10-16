@@ -62,7 +62,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->workl);CHKERRQ(ierr); 
   ierr = PetscMalloc(ar->lworkl*sizeof(PetscScalar),&ar->workl);CHKERRQ(ierr);
   ierr = PetscFree(ar->select);CHKERRQ(ierr); 
-  ierr = PetscMalloc(ncv*sizeof(PetscTruth),&ar->select);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscBool),&ar->select);CHKERRQ(ierr);
   ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*eps->nloc*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
@@ -95,7 +95,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscScalar 	 sigmar, *pV, *resid;
   Vec         	 x, y, w = eps->work[0];
   Mat         	 A;
-  PetscTruth  	 isSinv, isShift, rvec;
+  PetscBool   	 isSinv, isShift, rvec;
   PetscBLASInt   fcomm;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
@@ -303,7 +303,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscTruth     isSinv;
+  PetscBool      isSinv;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);

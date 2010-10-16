@@ -118,8 +118,8 @@ EXTERN PetscErrorCode QEPSetInitialSpace(QEP,PetscInt,Vec*);
 EXTERN PetscErrorCode QEPSetInitialSpaceLeft(QEP,PetscInt,Vec*);
 EXTERN PetscErrorCode QEPSetWhichEigenpairs(QEP,QEPWhich);
 EXTERN PetscErrorCode QEPGetWhichEigenpairs(QEP,QEPWhich*);
-EXTERN PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscTruth);
-EXTERN PetscErrorCode QEPGetLeftVectorsWanted(QEP,PetscTruth*);
+EXTERN PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscBool);
+EXTERN PetscErrorCode QEPGetLeftVectorsWanted(QEP,PetscBool*);
 EXTERN PetscErrorCode QEPSetEigenvalueComparison(QEP,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 EXTERN PetscErrorCode QEPMonitorAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
@@ -128,8 +128,8 @@ EXTERN PetscErrorCode QEPMonitorConverged(QEP,PetscInt,PetscInt,PetscScalar*,Pet
 EXTERN PetscErrorCode QEPMonitorLG(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode QEPMonitorLGAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 
-EXTERN PetscErrorCode QEPSetTrackAll(QEP,PetscTruth);
-EXTERN PetscErrorCode QEPGetTrackAll(QEP,PetscTruth*);
+EXTERN PetscErrorCode QEPSetTrackAll(QEP,PetscBool);
+EXTERN PetscErrorCode QEPGetTrackAll(QEP,PetscBool*);
 
 EXTERN PetscErrorCode QEPSetOptionsPrefix(QEP,const char*);
 EXTERN PetscErrorCode QEPAppendOptionsPrefix(QEP,const char*);
@@ -169,8 +169,8 @@ EXTERN PetscErrorCode QEPRegisterDestroy(void);
 
 EXTERN PetscErrorCode QEPLinearSetCompanionForm(QEP,PetscInt);
 EXTERN PetscErrorCode QEPLinearGetCompanionForm(QEP,PetscInt*);
-EXTERN PetscErrorCode QEPLinearSetExplicitMatrix(QEP,PetscTruth);
-EXTERN PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscTruth*);
+EXTERN PetscErrorCode QEPLinearSetExplicitMatrix(QEP,PetscBool);
+EXTERN PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscBool*);
 EXTERN PetscErrorCode QEPLinearSetEPS(QEP,EPS);
 EXTERN PetscErrorCode QEPLinearGetEPS(QEP,EPS*);
 

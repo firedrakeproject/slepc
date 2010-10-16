@@ -69,7 +69,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor, lrstor, ncuv, k1, k2, k3, k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
-  PetscTruth     flg;
+  PetscBool      flg;
   KSP            ksp;
   PC             pc;
 
@@ -312,7 +312,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *) eps->data;
-  PetscTruth     isascii;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -332,7 +332,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscInt       bs,n;
   PetscReal      interval[2];
-  PetscTruth     flg;
+  PetscBool      flg;
   KSP            ksp;
   PC             pc;
 

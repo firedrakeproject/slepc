@@ -25,7 +25,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDMatMult"
-PetscErrorCode SVDMatMult(SVD svd,PetscTruth trans,Vec x,Vec y)
+PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
 {
   PetscErrorCode ierr;
 

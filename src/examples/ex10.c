@@ -53,7 +53,7 @@ int main( int argc, char **argv )
   PetscErrorCode ierr;
   PetscInt       n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0, nev, maxit, its, nconv;
   PetscScalar    value[3];
-  PetscTruth     isShell;
+  PetscBool      isShell;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

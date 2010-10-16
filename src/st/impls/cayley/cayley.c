@@ -25,7 +25,7 @@
 
 typedef struct {
   PetscScalar nu;
-  PetscTruth  nu_set;
+  PetscBool   nu_set;
   Vec         w2;
 } ST_CAYLEY;
 
@@ -298,7 +298,7 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
 {
   PetscErrorCode ierr;
   PetscScalar    nu;
-  PetscTruth     flg;
+  PetscBool      flg;
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
   PC             pc;
   const PCType   pctype;

@@ -50,7 +50,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   Vec            vds;  
   Mat            A,B; 
   PetscInt       i,k;
-  PetscTruth     flg,lindep;
+  PetscBool      flg,lindep;
   PetscScalar    *pDS;
   PetscReal      norm;
 #if defined(PETSC_USE_COMPLEX)

@@ -90,7 +90,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
   dvdImprovex_jd  *data;
   PetscInt        rA, cA, rlA, clA;
   Mat             A;
-  PetscTruth      t;
+  PetscBool       t;
 
   PetscFunctionBegin;
 

@@ -37,7 +37,7 @@ int main( int argc, char **argv )
   Vec            xr, xi;
   PetscErrorCode ierr;
   PetscInt       n=30, i, Istart, Iend, col[3], nev, maxit, its, nconv;
-  PetscTruth     FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
+  PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   PetscScalar    value[3];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

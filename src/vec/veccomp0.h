@@ -216,7 +216,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v, Vec w, PetscScalar *dp,
   PetscErrorCode  ierr;
   Vec_Comp        *vs = (Vec_Comp*)v->data, *ws = (Vec_Comp*)w->data;
   PetscInt        i, n;
-  PetscTruth      t0, t1;
+  PetscBool       t0, t1;
 #ifdef __WITH_MPI__
   PetscScalar     work[4];
 #endif

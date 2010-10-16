@@ -61,7 +61,7 @@ PetscFList STList = 0;
 PetscErrorCode STSetType(ST st,const STType type)
 {
   PetscErrorCode ierr,(*r)(ST);
-  PetscTruth match;
+  PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -139,7 +139,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscInt       i;
   PetscScalar    s;
   char           type[256];
-  PetscTruth     flg;
+  PetscBool      flg;
   const char     *mode_list[3] = { "copy", "inplace", "shell" };
   const char     *structure_list[3] = { "same", "different", "subset" };
 

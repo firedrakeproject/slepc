@@ -47,7 +47,7 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
-  PetscTruth     flg;
+  PetscBool      flg;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
@@ -57,7 +57,7 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsGetTruth(((PetscObject)qep)->prefix,"-qep_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
     ierr = MatView(qep->M,PETSC_VIEWER_BINARY_(((PetscObject)qep)->comm));CHKERRQ(ierr);
     ierr = MatView(qep->C,PETSC_VIEWER_BINARY_(((PetscObject)qep)->comm));CHKERRQ(ierr);
@@ -113,7 +113,7 @@ PetscErrorCode QEPSolve(QEP qep)
   }
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsGetTruth(((PetscObject)qep)->prefix,"-qep_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) { 
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",
                              PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);

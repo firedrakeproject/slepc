@@ -31,11 +31,11 @@
 #include "slepceps.h"
 
 typedef struct {
-  PetscTruth explicitmatrix;
-  EPS        eps;
-  PetscTruth setfromoptionscalled;
-  Mat        mat;
-  Vec        x1,x2,y1,y2;
+  PetscBool explicitmatrix;
+  EPS       eps;
+  PetscBool setfromoptionscalled;
+  Mat       mat;
+  Vec       x1,x2,y1,y2;
 } SVD_CYCLIC;
 
 #undef __FUNCT__  
@@ -91,7 +91,7 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   const PetscInt    *cols;
   const PetscScalar *vals;
   PetscScalar       *pU;
-  PetscTruth        trackall;
+  PetscBool         trackall;
   Vec               v;
   PetscScalar       *isa,*va;
 
@@ -320,13 +320,13 @@ PetscErrorCode SVDMonitor_CYCLIC(EPS eps,PetscInt its,PetscInt nconv,PetscScalar
 PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscTruth     set,val;
+  PetscBool      set,val;
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
   ST             st;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"CYCLIC Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
   }
@@ -347,7 +347,7 @@ PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicSetExplicitMatrix_CYCLIC"
-PetscErrorCode SVDCyclicSetExplicitMatrix_CYCLIC(SVD svd,PetscTruth explicitmatrix)
+PetscErrorCode SVDCyclicSetExplicitMatrix_CYCLIC(SVD svd,PetscBool explicitmatrix)
 {
   SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
 
@@ -376,9 +376,9 @@ EXTERN_C_END
 
 .seealso: SVDCyclicGetExplicitMatrix()
 @*/
-PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscTruth explicitmatrix)
+PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscTruth);
+  PetscErrorCode ierr, (*f)(SVD,PetscBool);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -392,7 +392,7 @@ PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscTruth explicitmatrix)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicGetExplicitMatrix_CYCLIC"
-PetscErrorCode SVDCyclicGetExplicitMatrix_CYCLIC(SVD svd,PetscTruth *explicitmatrix)
+PetscErrorCode SVDCyclicGetExplicitMatrix_CYCLIC(SVD svd,PetscBool *explicitmatrix)
 {
   SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
 
@@ -420,9 +420,9 @@ EXTERN_C_END
 
 .seealso: SVDCyclicSetExplicitMatrix()
 @*/
-PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscTruth *explicitmatrix)
+PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscTruth*);
+  PetscErrorCode ierr, (*f)(SVD,PetscBool*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);

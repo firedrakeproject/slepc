@@ -52,7 +52,7 @@
       PetscInt       nsv, maxit, its, nconv
       PetscMPIInt    rank
       PetscErrorCode ierr
-      PetscTruth     flg
+      PetscBool      flg
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program

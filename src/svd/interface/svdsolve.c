@@ -43,7 +43,7 @@
 PetscErrorCode SVDSolve(SVD svd) 
 {
   PetscErrorCode ierr;
-  PetscTruth     flg;
+  PetscBool      flg;
   PetscInt       i,*workperm;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;

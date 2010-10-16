@@ -77,7 +77,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   Mat             A,B;
   KSP             ksp;
   PC              pc, pc2;
-  PetscTruth      t,ipB,ispositive;
+  PetscBool       t,ipB,ispositive;
   HarmType_t      harm;
   InitType_t      init;
   PetscReal       fix;
@@ -349,9 +349,9 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
 PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
-  PetscTruth      isascii;
+  PetscBool       isascii;
   PetscInt        opi, opi0;
-  PetscTruth      opb;
+  PetscBool       opb;
   const char*     name;
 
   PetscFunctionBegin;
@@ -387,7 +387,7 @@ PetscErrorCode SLEPcNotImplemented() {
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDAVIDSONSetKrylovStart_DAVIDSON"
-PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscTruth krylovstart)
+PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart)
 {
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
@@ -401,7 +401,7 @@ PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscTruth krylovstart
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDAVIDSONGetKrylovStart_DAVIDSON"
-PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscTruth *krylovstart)
+PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscBool *krylovstart)
 {
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 

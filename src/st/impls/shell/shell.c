@@ -59,7 +59,7 @@ EXTERN_C_END
 PetscErrorCode STShellGetContext(ST st,void **ctx)
 {
   PetscErrorCode ierr;
-  PetscTruth     flg;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -92,7 +92,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
 {
   ST_Shell      *shell = (ST_Shell*)st->data;
   PetscErrorCode ierr;
-  PetscTruth     flg;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -179,7 +179,7 @@ PetscErrorCode STView_Shell(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   ST_Shell       *ctx = (ST_Shell*)st->data;
-  PetscTruth     isascii;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);

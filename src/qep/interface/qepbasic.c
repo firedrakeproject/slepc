@@ -26,7 +26,7 @@
 PetscFList QEPList = 0;
 PetscClassId QEP_CLASSID = 0;
 PetscLogEvent QEP_SetUp = 0, QEP_Solve = 0, QEP_Dense = 0;
-static PetscTruth QEPPackageInitialized = PETSC_FALSE;
+static PetscBool QEPPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPFinalizePackage"
@@ -63,7 +63,7 @@ PetscErrorCode QEPFinalizePackage(void)
 PetscErrorCode QEPInitializePackage(const char *path) {
   char           logList[256];
   char           *className;
-  PetscTruth     opt;
+  PetscBool      opt;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -130,7 +130,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const char     *type;
-  PetscTruth     isascii;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -326,7 +326,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 PetscErrorCode QEPSetType(QEP qep,const QEPType type)
 {
   PetscErrorCode ierr,(*r)(QEP);
-  PetscTruth match;
+  PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

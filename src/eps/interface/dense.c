@@ -853,7 +853,7 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscRe
    Workspace:
      work is workspace to store 3*nv scalars, nv booleans and nv reals
 */
-PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,PetscScalar *Y,PetscInt i,PetscTruth iscomplex,PetscInt nv_,PetscScalar *work)
+PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,PetscScalar *Y,PetscInt i,PetscBool iscomplex,PetscInt nv_,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -864,7 +864,7 @@ PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,Pet
   PetscBLASInt   mm,mout,info,lds,nv,inc = 1;
   PetscScalar    tmp,done=1.0,zero=0.0;
   PetscReal      norm;
-  PetscTruth     *select=(PetscTruth*)(work+4*nv_);
+  PetscBool      *select=(PetscBool*)(work+4*nv_);
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=(PetscReal*)(work+3*nv_);
 #endif

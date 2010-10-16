@@ -67,7 +67,7 @@ int main( int argc, char **argv )
   PetscReal   	 error, tol, re, im;
   PetscScalar 	 delta1, delta2, L, h, kr, ki, value[3];
   PetscInt    	 N=30, n, i, col[3], Istart, Iend, nev, maxit, its, nconv;
-  PetscTruth     FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
+  PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
   CTX_BRUSSEL    *ctx;
 

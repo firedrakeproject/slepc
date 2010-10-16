@@ -31,7 +31,7 @@
 #include "slepcblaslapack.h"
 
 typedef struct {
-  PetscTruth oneside;
+  PetscBool oneside;
 } SVD_TRLANCZOS;
 
 #undef __FUNCT__  
@@ -227,7 +227,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
   PetscScalar    *b,*Q,*PT,*swork;
   PetscInt       i,j,k,l,m,n,nv;
   Vec            v;
-  PetscTruth     conv;
+  PetscBool      conv;
   IPOrthogonalizationType orthog;
   
   PetscFunctionBegin;
@@ -372,12 +372,12 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
 PetscErrorCode SVDSetFromOptions_TRLANCZOS(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscTruth     set,val;
+  PetscBool      set,val;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"TRLANCZOS Singular Value Solver Options","SVD");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-svd_trlanczos_oneside","Lanczos one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-svd_trlanczos_oneside","Lanczos one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDTRLanczosSetOneSide(svd,val);CHKERRQ(ierr);
   }
@@ -388,7 +388,7 @@ PetscErrorCode SVDSetFromOptions_TRLANCZOS(SVD svd)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDTRLanczosSetOneSide_TRLANCZOS"
-PetscErrorCode SVDTRLanczosSetOneSide_TRLANCZOS(SVD svd,PetscTruth oneside)
+PetscErrorCode SVDTRLanczosSetOneSide_TRLANCZOS(SVD svd,PetscBool oneside)
 {
   SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS *)svd->data;
 
@@ -422,9 +422,9 @@ EXTERN_C_END
 
 .seealso: SVDLanczosSetOneSide()
 @*/
-PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscTruth oneside)
+PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscBool oneside)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscTruth);
+  PetscErrorCode ierr, (*f)(SVD,PetscBool);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -453,9 +453,9 @@ PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscTruth oneside)
 
 .seealso: SVDTRLanczosSetOneSide()
 @*/
-PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscTruth *oneside)
+PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscBool *oneside)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscTruth*);
+  PetscErrorCode ierr, (*f)(SVD,PetscBool*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -469,7 +469,7 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscTruth *oneside)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDTRLanczosGetOneSide_TRLANCZOS"
-PetscErrorCode SVDTRLanczosGetOneSide_TRLANCZOS(SVD svd,PetscTruth *oneside)
+PetscErrorCode SVDTRLanczosGetOneSide_TRLANCZOS(SVD svd,PetscBool *oneside)
 {
   SVD_TRLANCZOS    *lanczos = (SVD_TRLANCZOS *)svd->data;
 

@@ -56,7 +56,7 @@
       PetscInt       i1,i2,i3
       PetscMPIInt    rank
       PetscErrorCode ierr
-      PetscTruth     flg
+      PetscBool      flg
       PetscScalar    value(3)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

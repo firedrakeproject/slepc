@@ -35,7 +35,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  PetscTruth     flg;
+  PetscBool      flg;
   Mat            A,B;
   PetscScalar    shift;
   KSP            ksp;

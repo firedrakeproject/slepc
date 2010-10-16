@@ -69,7 +69,7 @@ PetscErrorCode dvd_calcpairs_WtMatV_gen(PetscScalar **H, MatType_t sH,
 #define __FUNCT__ "dvd_calcpairs_qz"
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
 {
-  PetscTruth      std_probl, her_probl;
+  PetscBool       std_probl, her_probl;
   PetscInt        i;
 
   PetscFunctionBegin;
@@ -636,7 +636,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
 {
   PetscInt        i;
   PetscErrorCode  ierr;
-  PetscTruth      lindep;
+  PetscBool       lindep;
   Vec             *cX;
 
   PetscFunctionBegin;

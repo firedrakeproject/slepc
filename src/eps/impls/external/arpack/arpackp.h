@@ -27,7 +27,7 @@
 #include "private/epsimpl.h"                /*I "slepceps.h" I*/
 
 typedef struct {
-  PetscTruth  *select;
+  PetscBool   *select;
   PetscScalar *workev;
   PetscScalar *workd;
   PetscScalar *workl;
@@ -97,7 +97,7 @@ EXTERN_C_BEGIN
 EXTERN void   ARsaupd_(MPI_Fint*,PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscBLASInt*,int,int);
-EXTERN void   ARseupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
+EXTERN void   ARseupd_(MPI_Fint*,PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
                        char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,
                        PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,
                        PetscBLASInt*,int,int,int);
@@ -106,7 +106,7 @@ EXTERN void   ARseupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscR
 EXTERN void   ARnaupd_(MPI_Fint*,PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscBLASInt*,int,int);
-EXTERN void   ARneupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
+EXTERN void   ARneupd_(MPI_Fint*,PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
                        PetscReal*,PetscReal*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscBLASInt*,int,int,int);
@@ -114,7 +114,7 @@ EXTERN void   ARneupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscReal*,PetscR
 EXTERN void   ARnaupd_(MPI_Fint*,PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscReal*,PetscBLASInt*,int,int);
-EXTERN void   ARneupd_(MPI_Fint*,PetscTruth*,char*,PetscTruth*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,
+EXTERN void   ARneupd_(MPI_Fint*,PetscBool*,char*,PetscBool*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,
                        PetscScalar*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,
                        PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,
                        PetscReal*,PetscBLASInt*,int,int,int);

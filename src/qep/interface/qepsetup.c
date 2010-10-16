@@ -48,7 +48,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i,k;
   PetscScalar    *pV;
-  PetscTruth     khas,mhas,lindep;
+  PetscBool      khas,mhas,lindep;
   PetscReal      knorm,mnorm,norm;
   
   PetscFunctionBegin;

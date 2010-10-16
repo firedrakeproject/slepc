@@ -49,8 +49,8 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
 #define __FUNCT__ "SlepcDenseMatProd"
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   PetscScalar a,
-  const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscTruth At,
-  const PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscTruth Bt)
+  const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscBool At,
+  const PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscBool Bt)
 {
   PetscErrorCode  ierr;
   PetscInt        tmp;
@@ -106,9 +106,9 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
 PetscErrorCode SlepcDenseMatProdTriang(
   PetscScalar *C, MatType_t sC, PetscInt ldC,
   const PetscScalar *A, MatType_t sA, PetscInt ldA, PetscInt rA, PetscInt cA,
-  PetscTruth At,
+  PetscBool At,
   const PetscScalar *B, MatType_t sB, PetscInt ldB, PetscInt rB, PetscInt cB,
-  PetscTruth Bt)
+  PetscBool Bt)
 {
   PetscErrorCode  ierr;
   PetscInt        tmp;
@@ -1176,7 +1176,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
 {
   PetscErrorCode  ierr;
   PetscInt        i, j;
-  PetscTruth      lindep;
+  PetscBool       lindep;
   PetscReal       norm;
   PetscScalar     *auxS0 = auxS;
  
@@ -1233,7 +1233,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
 PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *pX,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
-  PetscInt size_auxS, PetscTruth doProd)
+  PetscInt size_auxS, PetscBool doProd)
 {
   PetscErrorCode  ierr;
   PetscBLASInt    n, ldpX, ldpY, nout, info;

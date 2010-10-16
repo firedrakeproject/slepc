@@ -104,7 +104,7 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscTruth     flg,lindep;
+  PetscBool      flg,lindep;
   PetscInt       i,k,M,N,nloc;
   PetscScalar    *pV;
   PetscReal      norm;

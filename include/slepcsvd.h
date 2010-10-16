@@ -131,24 +131,24 @@ EXTERN PetscErrorCode SVDMonitorConverged(SVD,PetscInt,PetscInt,PetscReal*,Petsc
 EXTERN PetscErrorCode SVDMonitorLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 EXTERN PetscErrorCode SVDMonitorLGAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 
-EXTERN PetscErrorCode SVDSetTrackAll(SVD,PetscTruth);
-EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscTruth*);
+EXTERN PetscErrorCode SVDSetTrackAll(SVD,PetscBool);
+EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscBool*);
 
 EXTERN PetscErrorCode SVDDense(PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 
 EXTERN PetscErrorCode SVDCrossSetEPS(SVD,EPS);
 EXTERN PetscErrorCode SVDCrossGetEPS(SVD,EPS*);
 
-EXTERN PetscErrorCode SVDCyclicSetExplicitMatrix(SVD,PetscTruth);
-EXTERN PetscErrorCode SVDCyclicGetExplicitMatrix(SVD,PetscTruth*);
+EXTERN PetscErrorCode SVDCyclicSetExplicitMatrix(SVD,PetscBool);
+EXTERN PetscErrorCode SVDCyclicGetExplicitMatrix(SVD,PetscBool*);
 EXTERN PetscErrorCode SVDCyclicSetEPS(SVD,EPS);
 EXTERN PetscErrorCode SVDCyclicGetEPS(SVD,EPS*);
 
-EXTERN PetscErrorCode SVDLanczosSetOneSide(SVD,PetscTruth);
-EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscTruth*);
+EXTERN PetscErrorCode SVDLanczosSetOneSide(SVD,PetscBool);
+EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 
-EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscTruth);
-EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscTruth*);
+EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
+EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
 EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,PetscErrorCode(*)(SVD));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)

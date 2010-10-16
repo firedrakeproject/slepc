@@ -29,8 +29,8 @@
 #include "private/ipimpl.h"
 #include <stdlib.h>
 
-extern PetscTruth SlepcBeganPetsc;
-extern PetscTruth SlepcInitializeCalled;
+extern PetscBool SlepcBeganPetsc;
+extern PetscBool SlepcInitializeCalled;
 extern PetscLogEvent SLEPC_UpdateVectors;
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
@@ -59,8 +59,8 @@ EXTERN_C_BEGIN
 void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  char       libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
-  PetscTruth found;
+  char      libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
+  PetscBool found;
 #endif
   *ierr = 1;
   if (SlepcInitializeCalled) {*ierr = 0; return;}

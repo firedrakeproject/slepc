@@ -118,7 +118,7 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d, dvdBlackboard *b)
   PetscErrorCode  ierr;
   dvdJacobiPrecond
                   *dvdjp;
-  PetscTruth      t;
+  PetscBool       t;
 
   PetscFunctionBegin;
 
@@ -372,7 +372,7 @@ typedef struct {
   PetscScalar
     Wa, Wb,       /* span{W} = span{Wa*AV - Wb*BV} */
     Pa, Pb;       /* H=W'*(Pa*AV - Pb*BV), G=W'*(Wa*AV - Wb*BV) */
-  PetscTruth
+  PetscBool 
     withTarget;
   HarmType_t
     mode;
@@ -399,7 +399,7 @@ PetscErrorCode dvd_harm_sort(EPS eps, PetscScalar ar, PetscScalar ai,
 PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d);
 
 PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
-                             HarmType_t mode, PetscTruth fixedTarget,
+                             HarmType_t mode, PetscBool fixedTarget,
                              PetscScalar t)
 {
   PetscErrorCode  ierr;

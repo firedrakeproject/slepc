@@ -26,7 +26,7 @@
 PetscFList EPSList = 0;
 PetscClassId EPS_CLASSID = 0;
 PetscLogEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
-static PetscTruth EPSPackageInitialized = PETSC_FALSE;
+static PetscBool EPSPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFinalizePackage"
@@ -63,7 +63,7 @@ PetscErrorCode EPSFinalizePackage(void)
 PetscErrorCode EPSInitializePackage(const char *path) {
   char              logList[256];
   char             *className;
-  PetscTruth        opt;
+  PetscBool         opt;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -130,7 +130,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const char     *type,*extr,*bal;
-  PetscTruth     isascii;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -430,7 +430,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 PetscErrorCode EPSSetType(EPS eps,const EPSType type)
 {
   PetscErrorCode ierr,(*r)(EPS);
-  PetscTruth match;
+  PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -812,7 +812,7 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
    Level: intermediate
 
 @*/
-PetscErrorCode EPSIsGeneralized(EPS eps,PetscTruth* is)
+PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 {
   PetscErrorCode ierr;
   Mat            B;
@@ -847,7 +847,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscTruth* is)
    Level: intermediate
 
 @*/
-PetscErrorCode EPSIsHermitian(EPS eps,PetscTruth* is)
+PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);

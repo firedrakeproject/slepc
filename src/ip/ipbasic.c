@@ -42,10 +42,10 @@ PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
 @*/
 PetscErrorCode IPInitializePackage(const char *path) 
 {
-  static PetscTruth initialized = PETSC_FALSE;
+  static PetscBool initialized = PETSC_FALSE;
   char              logList[256];
   char              *className;
-  PetscTruth        opt;
+  PetscBool         opt;
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
@@ -375,7 +375,7 @@ PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrth
 PetscErrorCode IPView(IP ip,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscTruth     isascii;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);

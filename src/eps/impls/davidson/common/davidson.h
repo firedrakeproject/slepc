@@ -107,7 +107,7 @@ typedef struct _dvdDashboard {
   void *calcPairs_data;
 
   /* Eigenpair test for convergence */
-  PetscTruth (*testConv)(struct _dvdDashboard*, PetscScalar eigvr,
+  PetscBool (*testConv)(struct _dvdDashboard*, PetscScalar eigvr,
        PetscScalar eigvi, PetscReal res, PetscReal *error);
   void *testConv_data;
 
@@ -123,7 +123,7 @@ typedef struct _dvdDashboard {
   void *improveX_data;
 
   /* Check for restarting */
-  PetscTruth (*isRestarting)(struct _dvdDashboard*);
+  PetscBool (*isRestarting)(struct _dvdDashboard*);
   void *isRestarting_data;
 
   /* Perform restarting */
@@ -140,12 +140,12 @@ typedef struct _dvdDashboard {
   EPType_t sEP;     /* Problem specifications */
   PetscInt nev;     /* number of eigenpairs */
   EPSWhich which;   /* spectrum selection */
-  PetscTruth
+  PetscBool
     withTarget;     /* if there is a target */
   PetscScalar
     target[2];         /* target value */
   PetscReal tol;    /* tolerance */
-  PetscTruth
+  PetscBool
     correctXnorm;   /* if true, tol < |r|/|x| */
 
   /**** Subspaces specification ****/
@@ -330,7 +330,7 @@ typedef PetscErrorCode (*dvdPrecond)(dvdDashboard*, PetscInt i, Vec x, Vec Px);
 typedef PetscErrorCode (*dvdCallback)(dvdDashboard*);
 typedef PetscErrorCode (*e_Vchanged_type)(dvdDashboard*, PetscInt s_imm,
                          PetscInt e_imm, PetscInt s_new, PetscInt e_new);
-typedef PetscTruth (*isRestarting_type)(dvdDashboard*);
+typedef PetscBool (*isRestarting_type)(dvdDashboard*);
 typedef PetscErrorCode (*e_newIteration_type)(dvdDashboard*);
 typedef PetscErrorCode (*improveX_type)(dvdDashboard*, Vec *D, PetscInt max_size_D,
                                   PetscInt r_s, PetscInt r_e, PetscInt *size_D);
@@ -393,8 +393,8 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b);
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
                                      PetscInt bs, PetscInt max_size_V,
                                      PetscInt mpd, PetscInt min_size_V,
-                                     PetscInt plusk, PetscTruth harm,
-                                     PetscTruth allResiduals);
+                                     PetscInt plusk, PetscBool harm,
+                                     PetscBool allResiduals);
 
 /* Some utilities */
 PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc);
@@ -402,31 +402,31 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d, dvdBlackboard *b);
 PetscErrorCode dvd_profiler(dvdDashboard *d, dvdBlackboard *b);
 PetscErrorCode dvd_prof_init();
 PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
-                             HarmType_t mode, PetscTruth fixedTarget,
+                             HarmType_t mode, PetscBool fixedTarget,
                              PetscScalar t);
 
 /* Methods */
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
-  HarmType_t harmMode, KSP ksp, InitType_t init, PetscTruth allResiduals);
+  HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals);
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
-  IP ip, HarmType_t harmMode, PetscTruth fixedTarget, PetscScalar t, KSP ksp,
-  PetscReal fix, InitType_t init, PetscTruth allResiduals);
+  IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
+  PetscReal fix, InitType_t init, PetscBool allResiduals);
 
 /* BLAS routines */
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   PetscScalar a,
-  const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscTruth At,
-  const PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscTruth Bt);
+  const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscBool At,
+  const PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscBool Bt);
 PetscErrorCode SlepcDenseMatProdTriang(
   PetscScalar *C, MatType_t sC, PetscInt ldC,
   const PetscScalar *A, MatType_t sA, PetscInt ldA, PetscInt rA, PetscInt cA,
-  PetscTruth At,
+  PetscBool At,
   const PetscScalar *B, MatType_t sB, PetscInt ldB, PetscInt rB, PetscInt cB,
-  PetscTruth Bt);
+  PetscBool Bt);
 PetscErrorCode SlepcDenseMatInvProd(
   PetscScalar *A, PetscInt _ldA, PetscInt dimA,
   PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscInt *auxI);
@@ -481,7 +481,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
 PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldS_, PetscScalar *T, PetscInt ldT_, PetscScalar *pX,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
-  PetscInt size_auxS, PetscTruth doProd);
+  PetscInt size_auxS, PetscBool doProd);
 PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
   PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *eigr,
   PetscScalar *eigi);
@@ -493,8 +493,8 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps);
 PetscErrorCode EPSSetUp_DAVIDSON(EPS eps);
 PetscErrorCode EPSSolve_DAVIDSON(EPS eps);
 PetscErrorCode EPSComputeVectors_QZ(EPS eps);
-PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscTruth krylovstart);
-PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscTruth *krylovstart);
+PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart);
+PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscBool *krylovstart);
 PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize);
 PetscErrorCode EPSDAVIDSONGetBlockSize_DAVIDSON(EPS eps,PetscInt *blocksize);
 PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plusk);
@@ -510,10 +510,10 @@ typedef struct {
     initialsize,          /* initial size of V */
     minv,                 /* size of V after restarting */
     plusk;                /* keep plusk eigenvectors from the last iteration */
-  PetscTruth ipB;         /* truth if V'B*V=I */
+  PetscBool  ipB;         /* true if V'B*V=I */
   PetscInt   method;      /* method for improving the approximate solution */
   PetscReal  fix;         /* the fix parameter */
-  PetscTruth krylovstart; /* true if the starting subspace is a Krylov basis */
+  PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
 
   /**** Solver data ****/
   dvdDashboard ddb;

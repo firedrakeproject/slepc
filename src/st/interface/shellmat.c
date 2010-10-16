@@ -101,7 +101,7 @@ PetscErrorCode STMatShellCreate(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
   PetscInt       n, m, N, M;
-  PetscTruth     hasA, hasB;
+  PetscBool      hasA, hasB;
 
   PetscFunctionBegin;
   ierr = MatGetSize(st->A,&M,&N);CHKERRQ(ierr);  

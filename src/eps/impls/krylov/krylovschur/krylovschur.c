@@ -145,7 +145,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
   Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*work;
   PetscReal      beta;
-  PetscTruth     breakdown;
+  PetscBool      breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);

@@ -49,20 +49,20 @@ EXTERN PetscErrorCode SlepcFinalize(void);
 EXTERN PetscErrorCode SlepcInitializeFortran(void);
 
 EXTERN PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
-EXTERN PetscErrorCode SlepcIsHermitian(Mat,PetscTruth*);
+EXTERN PetscErrorCode SlepcIsHermitian(Mat,PetscBool*);
 #if !defined(PETSC_USE_COMPLEX)
 EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 #else
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
 #endif
-EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscTruth,PetscReal*);
+EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
 EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
-EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscTruth);
-EXTERN PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans);
+EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
+EXTERN PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
 EXTERN PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
  
-extern PetscTruth SlepcInitializeCalled;
+extern PetscBool SlepcInitializeCalled;
 
 PETSC_EXTERN_CXX_END
 #endif

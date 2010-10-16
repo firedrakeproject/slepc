@@ -102,14 +102,14 @@ PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
    Level: developer
 
 @*/
-PetscErrorCode SlepcIsHermitian(Mat A,PetscTruth *is)
+PetscErrorCode SlepcIsHermitian(Mat A,PetscBool *is)
 {
   PetscErrorCode ierr;
   PetscInt       M,N,m,n;
   Vec            x,w1,w2;
   MPI_Comm       comm;
   PetscReal      norm;
-  PetscTruth     has;
+  PetscBool      has;
 
   PetscFunctionBegin;
 
@@ -203,7 +203,7 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
    Level: developer
 
 @*/
-PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscTruth iscomplex,PetscReal *norm)
+PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *norm)
 {
   PetscErrorCode ierr;
 #if !defined(PETSC_USE_COMPLEX)
@@ -251,7 +251,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   MPI_Comm       comm;
   Mat            *M;
   IS             isrow, iscol;
-  PetscTruth     flg;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
@@ -399,7 +399,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
    Level: developer
 
 @*/
-PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans)
+PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans)
 {
   PetscErrorCode ierr;
 
@@ -448,7 +448,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
    Level: developer
 
 @*/
-PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscTruth qtrans)
+PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans)
 {
   PetscErrorCode ierr;
   PetscInt       l;

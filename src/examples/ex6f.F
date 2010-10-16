@@ -55,7 +55,7 @@
       PetscInt       nev, maxit, its, nconv
       PetscMPIInt    sz, rank
       PetscErrorCode ierr
-      PetscTruth     flg
+      PetscBool      flg
 
 !     This is the routine to use for matrix-free approach
 !

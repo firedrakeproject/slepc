@@ -382,7 +382,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 {
   PetscErrorCode ierr;
   char           type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscTruth     flg;
+  PetscBool      flg;
   const char     *mode_list[2] = { "explicit", "implicit" };
   PetscInt       i,j,k;
   PetscReal      r;
@@ -419,13 +419,13 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDSetDimensions(svd,i,j,k);CHKERRQ(ierr);
 
-  ierr = PetscOptionsTruthGroupBegin("-svd_largest","compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBoolGroupBegin("-svd_largest","compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr); }
-  ierr = PetscOptionsTruthGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBoolGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsTruth("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); 
   }
@@ -448,12 +448,12 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsTruth("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsBool("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
     ierr = SVDMonitorSet(svd,SVDMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsTruth("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsBool("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
     ierr = SVDMonitorSet(svd,SVDMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
@@ -492,7 +492,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
 .seealso: SVDGetTrackAll()
 @*/
-PetscErrorCode SVDSetTrackAll(SVD svd,PetscTruth trackall)
+PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -518,7 +518,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscTruth trackall)
 
 .seealso: SVDSetTrackAll()
 @*/
-PetscErrorCode SVDGetTrackAll(SVD svd,PetscTruth *trackall) 
+PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall) 
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -559,7 +559,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscTruth *trackall)
 PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
 {
   PetscErrorCode ierr;
-  PetscTruth     flg1,flg2;
+  PetscBool      flg1,flg2;
   EPS            eps;
 
   PetscFunctionBegin;
@@ -604,7 +604,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
 PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
 {
   PetscErrorCode ierr;
-  PetscTruth     flg1,flg2;
+  PetscBool      flg1,flg2;
   EPS            eps;
   
   PetscFunctionBegin;

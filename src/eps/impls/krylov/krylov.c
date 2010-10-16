@@ -40,7 +40,7 @@
    the columns of V. On exit, beta contains the B-norm of f and the next 
    Arnoldi vector can be computed as v_{m+1} = f / beta. 
 */
-PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
@@ -93,13 +93,13 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscTruth trans,PetscScalar *H,PetscInt 
    Workspace:
      work is workspace to store 5*nv scalars, nv booleans and nv reals (only if !issym)
 */
-PetscErrorCode EPSKrylovConvergence(EPS eps,PetscTruth issym,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscInt       k,marker;
   PetscScalar    re,im,*Z = work,*work2 = work;
   PetscReal      resnorm;
-  PetscTruth     iscomplex,isshift;
+  PetscBool      iscomplex,isshift;
 
   PetscFunctionBegin;
   if (!issym) { Z = work; work2 = work+2*nv; }
@@ -162,7 +162,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscTruth issym,PetscInt kini,Petsc
    computed as v_{m+1} = f / beta(end). 
 
 */
-PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscTruth *breakdown)
+PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;

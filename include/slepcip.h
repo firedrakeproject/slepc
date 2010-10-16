@@ -69,7 +69,7 @@ EXTERN PetscErrorCode IPGetOrthogonalization(IP,IPOrthogonalizationType*,IPOrtho
 EXTERN PetscErrorCode IPView(IP,PetscViewer);
 EXTERN PetscErrorCode IPDestroy(IP);
 
-EXTERN PetscErrorCode IPOrthogonalize(IP,PetscInt,Vec*,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscTruth*);
+EXTERN PetscErrorCode IPOrthogonalize(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscBool*);
 EXTERN PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt);
 

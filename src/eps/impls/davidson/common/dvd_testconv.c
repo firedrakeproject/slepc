@@ -25,10 +25,10 @@
 
 #include "davidson.h"
 
-PetscTruth dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
+PetscBool dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
                                 PetscScalar eigvi, PetscReal r,
                                 PetscReal *err);
-PetscTruth dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
+PetscBool dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
                                 PetscScalar eigvi, PetscReal r,
                                 PetscReal *err);
 
@@ -54,11 +54,11 @@ PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_testconv_basic_0"
-PetscTruth dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
+PetscBool dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
                                 PetscScalar eigvi, PetscReal r,
                                 PetscReal *err)
 {
-  PetscTruth      conv;
+  PetscBool       conv;
   PetscReal       eig_norm, errest;
 
   PetscFunctionBegin;
@@ -94,7 +94,7 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_testconv_slepc_0"
-PetscTruth dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
+PetscBool dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
                                 PetscScalar eigvi, PetscReal r,
                                 PetscReal *err)
 {

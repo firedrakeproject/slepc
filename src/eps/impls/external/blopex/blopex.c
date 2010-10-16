@@ -129,7 +129,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
-  PetscTruth      isPrecond, isPreonly;
+  PetscBool       isPrecond, isPreonly;
 
   PetscFunctionBegin;
   if (!eps->ishermitian) { 

@@ -31,10 +31,10 @@
 #include "slepceps.h"
 
 typedef struct {
-  EPS eps;
-  PetscTruth setfromoptionscalled;
-  Mat mat;
-  Vec w,diag;
+  EPS       eps;
+  PetscBool setfromoptionscalled;
+  Mat       mat;
+  Vec       w,diag;
 } SVD_CROSS;
 
 #undef __FUNCT__  
@@ -113,7 +113,7 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   PetscErrorCode    ierr;
   SVD_CROSS         *cross = (SVD_CROSS *)svd->data;
   PetscInt          n,i;
-  PetscTruth        trackall;
+  PetscBool         trackall;
 
   PetscFunctionBegin;
   if (cross->mat) { 

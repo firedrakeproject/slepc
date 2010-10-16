@@ -254,7 +254,7 @@ PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar 
 {
   PetscScalar     target = *(PetscScalar*)ctx;
   PetscReal       da,db;
-  PetscTruth      aisright, bisright;
+  PetscBool       aisright, bisright;
 
   PetscFunctionBegin;
 

@@ -23,14 +23,14 @@
 */
 
 typedef struct {
-  PetscTruth explicitmatrix;
+  PetscBool  explicitmatrix;
   PetscInt   cform;           /* companion form */
   PetscReal  sfactor;         /* scaling factor */
   Mat        A,B;             /* matrices of generalized eigenproblem */
   EPS        eps;             /* linear eigensolver for Az=lBz */
   Mat        M,C,K;           /* copy of QEP coefficient matrices */
   Vec        x1,x2,y1,y2;     /* work vectors */
-  PetscTruth setfromoptionscalled;
+  PetscBool  setfromoptionscalled;
 } QEP_LINEAR;
 
 /* N1 */

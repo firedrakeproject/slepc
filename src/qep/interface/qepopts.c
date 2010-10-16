@@ -45,7 +45,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 {
   PetscErrorCode ierr;
   char           type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscTruth     flg,val;
+  PetscBool      flg,val;
   PetscReal      r;
   PetscInt       i,j,k;
   PetscViewerASCIIMonitor monviewer;
@@ -61,11 +61,11 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       ierr = QEPSetType(qep,QEPLINEAR);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsTruthGroupBegin("-qep_general","general quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-qep_general","general quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-qep_hermitian","hermitian quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-qep_hermitian","hermitian quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetProblemType(qep,QEP_HERMITIAN);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-qep_gyroscopic","gyroscopic quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-qep_gyroscopic","gyroscopic quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetProblemType(qep,QEP_GYROSCOPIC);CHKERRQ(ierr);}
 
     r = PETSC_IGNORE;
@@ -76,9 +76,9 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsInt("-qep_max_it","Maximum number of iterations","QEPSetTolerances",qep->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = QEPSetTolerances(qep,r,i);CHKERRQ(ierr);
-    ierr = PetscOptionsTruthGroupBegin("-qep_convergence_default","Default (relative error) convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-qep_convergence_default","Default (relative error) convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetConvergenceTest(qep,QEPDefaultConverged,PETSC_NULL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-qep_convergence_absolute","Absolute error convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-qep_convergence_absolute","Absolute error convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetConvergenceTest(qep,QEPAbsoluteConverged,PETSC_NULL);CHKERRQ(ierr);}
 
     i = j = k = PETSC_IGNORE;
@@ -92,7 +92,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       Cancels all monitors hardwired into code before call to QEPSetFromOptions()
     */
     flg  = PETSC_FALSE;
-    ierr = PetscOptionsTruth("-qep_monitor_cancel","Remove any hardwired monitor routines","QEPMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-qep_monitor_cancel","Remove any hardwired monitor routines","QEPMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPMonitorCancel(qep); CHKERRQ(ierr);
     }
@@ -117,32 +117,32 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsTruth("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
     if (flg) {
       ierr = QEPMonitorSet(qep,QEPMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsTruth("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
     if (flg) {
       ierr = QEPMonitorSet(qep,QEPMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
 
-    ierr = PetscOptionsTruthGroupBegin("-qep_largest_magnitude","compute largest eigenvalues in magnitude","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-qep_largest_magnitude","compute largest eigenvalues in magnitude","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_MAGNITUDE);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-qep_smallest_magnitude","compute smallest eigenvalues in magnitude","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-qep_smallest_magnitude","compute smallest eigenvalues in magnitude","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-qep_largest_real","compute largest real parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-qep_largest_real","compute largest real parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_REAL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-qep_smallest_real","compute smallest real parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-qep_smallest_real","compute smallest real parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_REAL);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroup("-qep_largest_imaginary","compute largest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-qep_largest_imaginary","compute largest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_IMAGINARY);CHKERRQ(ierr);}
-    ierr = PetscOptionsTruthGroupEnd("-qep_smallest_imaginary","compute smallest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-qep_smallest_imaginary","compute smallest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
 
-    ierr = PetscOptionsTruth("-qep_left_vectors","Compute left eigenvectors also","QEPSetLeftVectorsWanted",qep->leftvecs,&val,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-qep_left_vectors","Compute left eigenvectors also","QEPSetLeftVectorsWanted",qep->leftvecs,&val,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPSetLeftVectorsWanted(qep,val);CHKERRQ(ierr);
     }
@@ -461,7 +461,7 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
 
 .seealso: QEPGetLeftVectorsWanted(), QEPGetEigenvectorLeft()
 @*/
-PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscTruth leftvecs)
+PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscBool leftvecs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -490,7 +490,7 @@ PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscTruth leftvecs)
 
 .seealso: QEPSetLeftVectorsWanted()
 @*/
-PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscTruth *leftvecs) 
+PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscBool *leftvecs) 
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -698,7 +698,7 @@ EXTERN PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
 
 .seealso: EPSGetTrackAll()
 @*/
-PetscErrorCode QEPSetTrackAll(QEP qep,PetscTruth trackall)
+PetscErrorCode QEPSetTrackAll(QEP qep,PetscBool trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -724,7 +724,7 @@ PetscErrorCode QEPSetTrackAll(QEP qep,PetscTruth trackall)
 
 .seealso: EPSSetTrackAll()
 @*/
-PetscErrorCode QEPGetTrackAll(QEP qep,PetscTruth *trackall) 
+PetscErrorCode QEPGetTrackAll(QEP qep,PetscBool *trackall) 
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

@@ -47,7 +47,7 @@ struct _p_ST {
   /*------------------------- User parameters --------------------------*/
   Mat            A,B;              /* Matrices which define the eigensystem */
   PetscScalar    sigma;            /* Value of the shift */
-  PetscTruth     sigma_set;        /* whether the user provided the shift or not */
+  PetscBool      sigma_set;        /* whether the user provided the shift or not */
   PetscScalar    defsigma;         /* Default value of the shift */
   STMatMode      shift_matrix;
   MatStructure   str;          /* whether matrices have the same pattern or not */

@@ -74,7 +74,7 @@ struct _p_SVD {
   PetscInt         setupcalled;
   SVDConvergedReason reason;
   IP               ip;
-  PetscTruth       trackall;
+  PetscBool        trackall;
   
   PetscErrorCode  (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
   PetscErrorCode  (*monitordestroy[MAXSVDMONITORS])(void*);
@@ -104,7 +104,7 @@ typedef struct {
 EXTERN PetscErrorCode SVDMonitorDestroy_Converged(SVDMONITOR_CONV*);
 
 EXTERN PetscErrorCode SVDDestroy_Default(SVD);
-EXTERN PetscErrorCode SVDMatMult(SVD,PetscTruth,Vec,Vec);
+EXTERN PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
 EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
 EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
 EXTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);

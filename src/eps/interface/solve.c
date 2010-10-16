@@ -88,7 +88,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscInt       i;
   PetscReal      re,im;
   PetscScalar    dot;
-  PetscTruth     flg,isfold;
+  PetscBool      flg,isfold;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
@@ -105,7 +105,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsGetTruth(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = MatView(A,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
@@ -237,7 +237,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsGetTruth(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) { 
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",
                              PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
@@ -1456,11 +1456,11 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
 
 .seealso: EPSSetInitialSpace()
 @*/
-PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdown)
+PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscReal      norm;
-  PetscTruth     lindep;
+  PetscBool      lindep;
   Vec            w;
   
   PetscFunctionBegin;
@@ -1530,11 +1530,11 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
 .seealso: EPSSetInitialSpaceLeft()
 
 @*/
-PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdown)
+PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscReal      norm;
-  PetscTruth     lindep;
+  PetscBool      lindep;
   Vec            w;
   
   PetscFunctionBegin;

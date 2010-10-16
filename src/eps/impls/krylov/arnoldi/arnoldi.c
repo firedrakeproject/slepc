@@ -41,7 +41,7 @@
 PetscErrorCode EPSSolve_ARNOLDI(EPS);
 
 typedef struct {
-  PetscTruth delayed;
+  PetscBool delayed;
 } EPS_ARNOLDI;
 
 #undef __FUNCT__  
@@ -98,7 +98,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
    reorthogonalization is delayed to the next Arnoldi step. This version is
    more scalable but in some cases convergence may stagnate.
 */
-PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
@@ -205,7 +205,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
    EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi1,
    but without reorthogonalization (only delayed normalization).
 */
-PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscTruth *breakdown)
+PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
@@ -305,7 +305,7 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
   SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscTruth     isrefined;
+  PetscBool      isrefined;
   PetscInt       i,j,k;
   PetscBLASInt   n1,lwork,idummy=1,info,n=n_,ldh=ldh_;
   PetscScalar    *B,sdummy,*work;
@@ -365,7 +365,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
   Vec            f=eps->work[0];
   PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
   PetscReal      beta,gnorm,corrf=1.0;
-  PetscTruth     breakdown;
+  PetscBool      breakdown;
   IPOrthogonalizationRefinementType orthog_ref;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
@@ -453,12 +453,12 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 PetscErrorCode EPSSetFromOptions_ARNOLDI(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscTruth     set,val;
+  PetscBool      set,val;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"ARNOLDI Options","EPS");CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr);
   }
@@ -469,7 +469,7 @@ PetscErrorCode EPSSetFromOptions_ARNOLDI(EPS eps)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSArnoldiSetDelayed_ARNOLDI"
-PetscErrorCode EPSArnoldiSetDelayed_ARNOLDI(EPS eps,PetscTruth delayed)
+PetscErrorCode EPSArnoldiSetDelayed_ARNOLDI(EPS eps,PetscBool delayed)
 {
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
@@ -503,9 +503,9 @@ EXTERN_C_END
 
 .seealso: EPSArnoldiGetDelayed()
 @*/
-PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscTruth delayed)
+PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscBool delayed)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscTruth);
+  PetscErrorCode ierr, (*f)(EPS,PetscBool);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -519,7 +519,7 @@ PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscTruth delayed)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSArnoldiGetDelayed_ARNOLDI"
-PetscErrorCode EPSArnoldiGetDelayed_ARNOLDI(EPS eps,PetscTruth *delayed)
+PetscErrorCode EPSArnoldiGetDelayed_ARNOLDI(EPS eps,PetscBool *delayed)
 {
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
@@ -547,9 +547,9 @@ EXTERN_C_END
 
 .seealso: EPSArnoldiSetDelayed()
 @*/
-PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscTruth *delayed)
+PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscTruth*);
+  PetscErrorCode ierr, (*f)(EPS,PetscBool*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -579,7 +579,7 @@ PetscErrorCode EPSDestroy_ARNOLDI(EPS eps)
 PetscErrorCode EPSView_ARNOLDI(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscTruth     isascii;
+  PetscBool      isascii;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;

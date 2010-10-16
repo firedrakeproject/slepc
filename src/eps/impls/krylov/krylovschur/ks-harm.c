@@ -175,7 +175,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
   Vec            u=eps->work[0];
   PetscScalar    *S=eps->T,*Q,*g,*work;
   PetscReal      beta,gnorm;
-  PetscTruth     breakdown;
+  PetscBool      breakdown;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);

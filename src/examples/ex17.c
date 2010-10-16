@@ -40,7 +40,7 @@ int main( int argc, char **argv )
   PetscInt    	 nev, maxit, i, its, nconv;
   char        	 filename[256];
   PetscViewer 	 viewer;
-  PetscTruth  	 flg;
+  PetscBool   	 flg;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

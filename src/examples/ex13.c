@@ -42,7 +42,7 @@ int main( int argc, char **argv )
   PetscScalar 	 kr, ki;
   PetscErrorCode ierr;
   PetscInt    	 N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv, nulldim=0;
-  PetscTruth  	 flag;
+  PetscBool   	 flag;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

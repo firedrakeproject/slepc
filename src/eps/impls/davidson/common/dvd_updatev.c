@@ -25,7 +25,7 @@
 
 #include "davidson.h"
 
-PetscTruth dvd_isrestarting_fullV(dvdDashboard *d);
+PetscBool dvd_isrestarting_fullV(dvdDashboard *d);
 PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d);
 PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
@@ -70,7 +70,7 @@ typedef struct {
     ldoldU,         /* leading dimension of oldU */
     size_oldU,      /* size of oldU */
     size_new_cY;    /* size of new_cY */
-  PetscTruth
+  PetscBool 
     allResiduals;   /* if computing all the residuals */
 } dvdManagV_basic;
 
@@ -79,8 +79,8 @@ typedef struct {
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
                                      PetscInt bs, PetscInt max_size_V,
                                      PetscInt mpd, PetscInt min_size_V,
-                                     PetscInt plusk, PetscTruth harm,
-                                     PetscTruth allResiduals)
+                                     PetscInt plusk, PetscBool harm,
+                                     PetscBool allResiduals)
 {
   PetscErrorCode  ierr;
   dvdManagV_basic *data;
@@ -169,9 +169,9 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_isrestarting_fullV"
-PetscTruth dvd_isrestarting_fullV(dvdDashboard *d)
+PetscBool dvd_isrestarting_fullV(dvdDashboard *d)
 {
-  PetscTruth      restart;
+  PetscBool       restart;
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;
@@ -268,7 +268,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   PetscScalar     *pX;
   PetscReal       norm;
   Vec             *new_cY=0, *cX, *cy;
-  PetscTruth      lindep;
+  PetscBool       lindep;
 
   PetscFunctionBegin;
 
@@ -617,7 +617,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
 #endif
   PetscReal       norm;
   PetscErrorCode  ierr;
-  PetscTruth      conv, c;
+  PetscBool       conv, c;
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;

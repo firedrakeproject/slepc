@@ -28,12 +28,12 @@ PetscErrorCode STSetFromOptions_Precond(ST st);
 EXTERN_C_BEGIN
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat);
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat);
-PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscTruth setmat);
-PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscTruth *setmat);
+PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat);
+PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat);
 EXTERN_C_END
 
 typedef struct {
-  PetscTruth     setmat;
+  PetscBool setmat;
 } ST_PRECOND;
 
 
@@ -51,7 +51,7 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
   PC             pc;
   const PCType   pctype;
   Mat            P;
-  PetscTruth     t0, t1;
+  PetscBool      t0, t1;
 
   PetscFunctionBegin;
 
@@ -82,7 +82,7 @@ PetscErrorCode STSetUp_Precond(ST st)
 {
   Mat            P;
   PC             pc;
-  PetscTruth     t0, setmat, destroyP=PETSC_FALSE, builtP;
+  PetscBool      t0, setmat, destroyP=PETSC_FALSE, builtP;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -277,7 +277,7 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
   PC             pc;
-  PetscTruth     flag;
+  PetscBool      flag;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -330,7 +330,7 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 {
   PC             pc;
   Mat            A;
-  PetscTruth     flag;
+  PetscBool      flag;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -373,9 +373,9 @@ EXTERN_C_END
 
 .seealso: STPrecondGetKSPHasMat(), TSetShift(), KSPSetOperators()
 @*/
-PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscTruth setmat)
+PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
 {
-  PetscErrorCode ierr, (*f)(ST,PetscTruth);
+  PetscErrorCode ierr, (*f)(ST,PetscBool);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -405,9 +405,9 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscTruth setmat)
 
 .seealso: STPrecondSetKSPHasMat(), STSetShift(), KSPSetOperators()
 @*/
-PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscTruth *setmat)
+PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
 {
-  PetscErrorCode ierr, (*f)(ST,PetscTruth*);
+  PetscErrorCode ierr, (*f)(ST,PetscBool*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -419,7 +419,7 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscTruth *setmat)
 }
 
 EXTERN_C_BEGIN
-PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscTruth setmat)
+PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;
 
@@ -434,7 +434,7 @@ PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscTruth setmat)
 EXTERN_C_END
 
 EXTERN_C_BEGIN
-PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscTruth *setmat)
+PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;
 

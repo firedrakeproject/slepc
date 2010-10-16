@@ -63,7 +63,7 @@ struct _p_EPS {
   PetscErrorCode (*conv_func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   void           *conv_ctx;
   EPSWhich       which;            /* which part of the spectrum to be sought */
-  PetscTruth     leftvecs;         /* if left eigenvectors are requested */
+  PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PetscErrorCode (*which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
   EPSProblemType problem_type;     /* which kind of problem to be solved */
@@ -72,9 +72,9 @@ struct _p_EPS {
   PetscInt       balance_its;      /* number of iterations of the balancing method */
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
   PetscReal      nrma, nrmb;       /* matrix norms */
-  PetscTruth     adaptive;         /* whether matrix norms are adaptively improved */
-  PetscTruth     trueres;          /* whether the true residual norm must be computed */
-  PetscTruth     trackall;         /* whether all the residuals must be computed */
+  PetscBool      adaptive;         /* whether matrix norms are adaptively improved */
+  PetscBool      trueres;          /* whether the true residual norm must be computed */
+  PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*------------------------- Working data --------------------------*/
   Vec         D,                /* diagonal matrix for balancing */
@@ -96,16 +96,16 @@ struct _p_EPS {
               nv,               /* size of current Schur decomposition */
               n, nloc,          /* problem dimensions (global, local) */
               allocated_ncv;    /* number of basis vectors allocated */
-  PetscTruth  evecsavailable;   /* computed eigenvectors */
+  PetscBool   evecsavailable;   /* computed eigenvectors */
   PetscRandom rand;             /* random number generator */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;
   Vec        *work;
 
-  PetscTruth ds_ortho;         /* if DS vectors have been stored and orthonormalized */  
+  PetscBool  ds_ortho;         /* if DS vectors have been stored and orthonormalized */  
   PetscInt   setupcalled;
-  PetscTruth isgeneralized,
+  PetscBool  isgeneralized,
              ispositive,
              ishermitian;
   EPSConvergedReason reason;     
@@ -150,11 +150,11 @@ EXTERN PetscErrorCode EPSComputeTrueResidual(EPS,PetscScalar,PetscScalar,PetscSc
 
 /* Private functions of the solver implementations */
 
-EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscTruth,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscTruth*);
-EXTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscTruth,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*,PetscScalar*);
-EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscTruth*);
+EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscBool,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
+EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
+EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
+EXTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*,PetscScalar*);
+EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscBool*);
 EXTERN PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 EXTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
 EXTERN PetscErrorCode EPSProjectedKSNonsym(EPS,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);

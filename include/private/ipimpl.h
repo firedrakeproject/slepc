@@ -43,6 +43,6 @@ struct _p_IP {
 
 EXTERN PetscErrorCode IPInitializePackage(const char *);
 EXTERN PetscErrorCode IPApplyMatrix_Private(IP,Vec);
-EXTERN PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscTruth*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
+EXTERN PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 
 #endif

@@ -126,8 +126,8 @@ EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
 EXTERN PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
 EXTERN PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
-EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscTruth *setmat);
-EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscTruth setmat);
+EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat);
+EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat);
 
 PETSC_EXTERN_CXX_END
 #endif

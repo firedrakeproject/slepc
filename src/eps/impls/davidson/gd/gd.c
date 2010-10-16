@@ -35,7 +35,7 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSSetFromOptions_GD(EPS eps)
 {
   PetscErrorCode  ierr;
-  PetscTruth      flg,op;
+  PetscBool       flg,op;
   PetscInt        opi,opi0;
 
   PetscFunctionBegin;
@@ -43,7 +43,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"GD Options","EPS");CHKERRQ(ierr);
 
   ierr = EPSGDGetKrylovStart(eps, &op); CHKERRQ(ierr);
-  ierr = PetscOptionsTruth("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg); CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetKrylovStart(eps, op); CHKERRQ(ierr); }
  
   ierr = EPSGDGetBlockSize(eps, &opi); CHKERRQ(ierr);
@@ -73,7 +73,7 @@ EXTERN_C_END
 PetscErrorCode EPSSetUp_GD(EPS eps)
 {
   PetscErrorCode  ierr;
-  PetscTruth      t;
+  PetscBool       t;
   KSP             ksp;
 
   PetscFunctionBegin;
@@ -163,9 +163,9 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
 
 .seealso: EPSGDGetKrylovStart()
 @*/
-PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscTruth krylovstart)
+PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscTruth);
+  PetscErrorCode ierr, (*f)(EPS,PetscBool);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -195,9 +195,9 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscTruth krylovstart)
 
 .seealso: EPSGDGetKrylovStart()
 @*/
-PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscTruth *krylovstart)
+PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscTruth*);
+  PetscErrorCode ierr, (*f)(EPS,PetscBool*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);

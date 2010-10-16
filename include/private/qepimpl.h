@@ -59,11 +59,11 @@ struct _p_QEP {
   PetscErrorCode (*conv_func)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   void           *conv_ctx;
   QEPWhich       which;            /* which part of the spectrum to be sought */
-  PetscTruth     leftvecs;         /* if left eigenvectors are requested */
+  PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PetscErrorCode (*which_func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
   QEPProblemType problem_type;     /* which kind of problem to be solved */
-  PetscTruth     trackall;         /* whether all the residuals must be computed */
+  PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*------------------------- Working data --------------------------*/
   Mat         M,C,K;            /* problem matrices */

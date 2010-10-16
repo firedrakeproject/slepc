@@ -25,7 +25,7 @@
 
 PetscClassId ST_CLASSID = 0;
 PetscLogEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
-static PetscTruth STPackageInitialized = PETSC_FALSE;
+static PetscBool STPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "STFinalizePackage"
@@ -60,9 +60,9 @@ PetscErrorCode STFinalizePackage(void)
 .seealso: SlepcInitialize()
 @*/
 PetscErrorCode STInitializePackage(const char *path) {
-  char              logList[256];
-  char             *className;
-  PetscTruth        opt;
+  char           logList[256];
+  char           *className;
+  PetscBool      opt;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -534,7 +534,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscErrorCode    ierr;
   const STType      cstr;
   const char*       str;
-  PetscTruth        isascii,isstring;
+  PetscBool         isascii,isstring;
   PetscViewerFormat format;
 
   PetscFunctionBegin;
@@ -598,7 +598,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 PetscErrorCode STView_Default(ST st,PetscViewer viewer) 
 {
   PetscErrorCode ierr;
-  PetscTruth     isascii,isstring;
+  PetscBool      isascii,isstring;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);

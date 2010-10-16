@@ -40,7 +40,7 @@ int main( int argc, char **argv )
   PetscErrorCode ierr;
   PetscInt    	 N, n=10, m, i, j, II, Istart, Iend, nev, maxit, its, nconv;
   PetscScalar 	 w;
-  PetscTruth  	 flag;
+  PetscBool   	 flag;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

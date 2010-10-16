@@ -30,7 +30,7 @@
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
-  HarmType_t harmMode, KSP ksp, InitType_t init, PetscTruth allResiduals)
+  HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals)
 {
   PetscErrorCode ierr;
   PetscInt       check_sum0, check_sum1;
@@ -87,8 +87,8 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
-  IP ip, HarmType_t harmMode, PetscTruth fixedTarget, PetscScalar t, KSP ksp,
-  PetscReal fix, InitType_t init, PetscTruth allResiduals)
+  IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
+  PetscReal fix, InitType_t init, PetscBool allResiduals)
 {
   PetscInt        check_sum0, check_sum1, maxits;
   Vec             *fv;

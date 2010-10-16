@@ -116,7 +116,7 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
 /*
   Compute a run of Q-Arnoldi iterations
 */
-PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscTruth *breakdown,PetscScalar *work)
+PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,l,m = *M;
@@ -225,7 +225,7 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   Vec            v=qep->work[0],w=qep->work[1];
   PetscScalar    *S=qep->T,*Q,*work;
   PetscReal      beta,norm,x,y;
-  PetscTruth     breakdown;
+  PetscBool      breakdown;
 
   PetscFunctionBegin;
 

@@ -87,8 +87,8 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
    Indicates whether SLEPc started PETSc, or whether it was 
    already started before SLEPc was initialized.
 */
-PetscTruth  SlepcBeganPetsc = PETSC_FALSE; 
-PetscTruth  SlepcInitializeCalled = PETSC_FALSE;
+PetscBool SlepcBeganPetsc = PETSC_FALSE; 
+PetscBool SlepcInitializeCalled = PETSC_FALSE;
 extern PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY, SLEPC_SlepcDenseMatProd, SLEPC_SlepcDenseOrth,
                      SLEPC_SlepcDenseMatInvProd, SLEPC_SlepcDenseNorm, SLEPC_SlepcDenseCopy, SLEPC_VecsMult;
 
@@ -125,7 +125,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
   PetscErrorCode info=0;
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
-  PetscTruth     found;
+  PetscBool      found;
 #endif
 
   PetscFunctionBegin;

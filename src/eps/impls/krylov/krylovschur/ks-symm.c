@@ -191,7 +191,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
   PetscScalar    *Q;
   PetscReal      *a,*b,*work,beta;
   PetscInt       *iwork;
-  PetscTruth     breakdown;
+  PetscBool      breakdown;
 
   PetscFunctionBegin;
   lds = PetscMin(eps->mpd,eps->ncv);

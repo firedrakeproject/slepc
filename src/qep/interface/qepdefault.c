@@ -196,7 +196,7 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscSca
   PetscInt       k,marker;
   PetscScalar    re,im,*Z,*work2;
   PetscReal      resnorm;
-  PetscTruth     iscomplex;
+  PetscBool      iscomplex;
 
   PetscFunctionBegin;
   Z = work; work2 = work+2*nv;

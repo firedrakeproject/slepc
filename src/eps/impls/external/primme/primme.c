@@ -91,7 +91,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscMPIInt    numProcs, procID;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
-  PetscTruth     t;
+  PetscBool      t;
 
   PetscFunctionBegin;
 
@@ -323,9 +323,9 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 #define __FUNCT__ "EPSView_PRIMME"
 PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  PetscTruth isascii;
-  primme_params *primme = &((EPS_PRIMME *)eps->data)->primme;
+  PetscErrorCode  ierr;
+  PetscBool       isascii;
+  primme_params   *primme = &((EPS_PRIMME *)eps->data)->primme;
   EPSPRIMMEMethod methodn;
 
   PetscFunctionBegin;
@@ -351,7 +351,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   PetscErrorCode ierr;
   EPS_PRIMME    *ops = (EPS_PRIMME *)eps->data;
   PetscInt       op;
-  PetscTruth     flg;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   

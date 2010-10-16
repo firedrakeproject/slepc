@@ -35,7 +35,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   QEP_LINEAR        *ctx = (QEP_LINEAR *)qep->data;
   PetscInt          i=0;
   EPSWhich          which;
-  PetscTruth        trackall;
+  PetscBool         trackall;
 
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
@@ -150,7 +150,7 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 
    If explicitmatrix==PETSC_TRUE then z is partitioned across processors, otherwise x is.
 */
-PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps,PetscTruth explicitmatrix)
+PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps,PetscBool explicitmatrix)
 {
   PetscErrorCode ierr;
   PetscInt       i,start,end,idx;
@@ -300,7 +300,7 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps,PetscTruth explicitmatrix)
 
    If explicitmatrix==PETSC_TRUE then z is partitioned across processors, otherwise x is.
 */
-PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps,PetscTruth explicitmatrix)
+PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps,PetscBool explicitmatrix)
 {
   PetscErrorCode ierr;
   PetscInt       i,start,end,offset,idx;
@@ -398,7 +398,7 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
-  PetscTruth     flg=PETSC_FALSE;
+  PetscBool      flg=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = EPSSolve(ctx->eps);CHKERRQ(ierr);
@@ -407,7 +407,7 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&qep->reason);CHKERRQ(ierr);
   ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,PETSC_NULL,&qep->linits);CHKERRQ(ierr);
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
-  ierr = PetscOptionsGetTruth(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) { 
     ierr = QEPLinearSelect_Simple(qep,ctx->eps,ctx->explicitmatrix);CHKERRQ(ierr);
   } else {
@@ -442,7 +442,7 @@ PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscSc
 PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscTruth     set,val;
+  PetscBool      set,val;
   PetscInt       i;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
   ST             st;
@@ -455,7 +455,7 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
     ierr = QEPLinearSetCompanionForm(qep,i);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsTruth("-qep_linear_explicitmatrix","Use explicit matrix in linearization","QEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-qep_linear_explicitmatrix","Use explicit matrix in linearization","QEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = QEPLinearSetExplicitMatrix(qep,val);CHKERRQ(ierr);
   }
@@ -568,7 +568,7 @@ PetscErrorCode QEPLinearGetCompanionForm(QEP qep,PetscInt *cform)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearSetExplicitMatrix_LINEAR"
-PetscErrorCode QEPLinearSetExplicitMatrix_LINEAR(QEP qep,PetscTruth explicitmatrix)
+PetscErrorCode QEPLinearSetExplicitMatrix_LINEAR(QEP qep,PetscBool explicitmatrix)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
@@ -597,9 +597,9 @@ EXTERN_C_END
 
 .seealso: QEPLinearGetExplicitMatrix()
 @*/
-PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscTruth explicitmatrix)
+PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscBool explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(QEP,PetscTruth);
+  PetscErrorCode ierr, (*f)(QEP,PetscBool);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -613,7 +613,7 @@ PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscTruth explicitmatrix)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearGetExplicitMatrix_LINEAR"
-PetscErrorCode QEPLinearGetExplicitMatrix_LINEAR(QEP qep,PetscTruth *explicitmatrix)
+PetscErrorCode QEPLinearGetExplicitMatrix_LINEAR(QEP qep,PetscBool *explicitmatrix)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
@@ -642,9 +642,9 @@ EXTERN_C_END
 
 .seealso: QEPLinearSetExplicitMatrix()
 @*/
-PetscErrorCode QEPLinearGetExplicitMatrix(QEP qep,PetscTruth *explicitmatrix)
+PetscErrorCode QEPLinearGetExplicitMatrix(QEP qep,PetscBool *explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(QEP,PetscTruth*);
+  PetscErrorCode ierr, (*f)(QEP,PetscBool*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

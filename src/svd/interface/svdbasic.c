@@ -26,7 +26,7 @@
 PetscFList SVDList = 0;
 PetscClassId SVD_CLASSID = 0;
 PetscLogEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
-static PetscTruth SVDPackageInitialized = PETSC_FALSE;
+static PetscBool SVDPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDFinalizePackage"
@@ -64,7 +64,7 @@ PetscErrorCode SVDInitializePackage(const char *path)
 {
   char              logList[256];
   char              *className;
-  PetscTruth        opt;
+  PetscBool         opt;
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
@@ -131,7 +131,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const SVDType  type;
-  PetscTruth     isascii;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -366,7 +366,7 @@ PetscErrorCode SVDDestroy_Default(SVD svd)
 PetscErrorCode SVDSetType(SVD svd,const SVDType type)
 {
   PetscErrorCode ierr,(*r)(SVD);
-  PetscTruth match;
+  PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
