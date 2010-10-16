@@ -288,7 +288,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   ierr = IPSetOptionsPrefix(qep->ip,((PetscObject)qep)->prefix);
   ierr = IPAppendOptionsPrefix(qep->ip,"qep_");
   PetscLogObjectParent(qep,qep->ip);
-  ierr = PetscPublishAll(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
  

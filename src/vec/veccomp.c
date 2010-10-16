@@ -212,7 +212,6 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
   ierr = VecSetSizes(v, s->n->lN, s->n->N); CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)v,VECCOMP); CHKERRQ(ierr);
-  ierr = PetscPublishAll(v); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

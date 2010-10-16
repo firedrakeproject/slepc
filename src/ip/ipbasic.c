@@ -116,7 +116,6 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->xid           = 0;
   ip->xstate        = 0;
 
-  ierr = PetscPublishAll(ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

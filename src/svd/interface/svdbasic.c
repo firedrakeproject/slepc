@@ -252,7 +252,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = IPAppendOptionsPrefix(svd->ip,"svd_");
   PetscLogObjectParent(svd,svd->ip);
 
-  ierr = PetscPublishAll(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
  

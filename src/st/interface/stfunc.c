@@ -186,7 +186,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
   
   *newst                  = st;
-  ierr = PetscPublishAll(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 
 }

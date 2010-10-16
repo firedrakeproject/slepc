@@ -392,7 +392,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   ierr = IPSetOptionsPrefix(eps->ip,((PetscObject)eps)->prefix);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");
   PetscLogObjectParent(eps,eps->ip);
-  ierr = PetscPublishAll(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
  
