@@ -143,7 +143,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 #else
 #define HERM "symmetric"
 #endif
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"EPS Object:\n");CHKERRQ(ierr);
     switch (eps->problem_type) {

@@ -143,7 +143,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
 #else
 #define HERM "symmetric"
 #endif
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"QEP Object:\n");CHKERRQ(ierr);
     switch (qep->problem_type) {

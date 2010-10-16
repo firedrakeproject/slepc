@@ -182,7 +182,7 @@ PetscErrorCode STView_Shell(ST st,PetscViewer viewer)
   PetscTruth     isascii;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (ctx->name) {ierr = PetscViewerASCIIPrintf(viewer,"  ST Shell: %s\n",ctx->name);CHKERRQ(ierr);}
     else           {ierr = PetscViewerASCIIPrintf(viewer,"  ST Shell: no name\n");CHKERRQ(ierr);}

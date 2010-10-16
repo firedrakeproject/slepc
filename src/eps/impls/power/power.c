@@ -550,7 +550,7 @@ PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
   const char     *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS_POWER",((PetscObject)viewer)->type_name);
   }  

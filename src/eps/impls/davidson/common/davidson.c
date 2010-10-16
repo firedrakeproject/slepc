@@ -357,7 +357,7 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   
   name = ((PetscObject)eps)->type_name;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
     SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   }
