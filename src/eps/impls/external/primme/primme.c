@@ -303,7 +303,7 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   EPS_PRIMME    *ops = (EPS_PRIMME *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   
   primme_Free(&ops->primme);
   ierr = VecDestroy(ops->x);CHKERRQ(ierr);
@@ -420,7 +420,7 @@ PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMESetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,bs);CHKERRQ(ierr);
@@ -466,7 +466,7 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
 
   PetscFunctionBegin;
   
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMEGetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,bs);CHKERRQ(ierr);
@@ -524,7 +524,7 @@ PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method)
 
   PetscFunctionBegin;
   
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMESetMethod_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,method); CHKERRQ(ierr);
@@ -578,7 +578,7 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
 
   PetscFunctionBegin;
   
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMEGetMethod_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,method); CHKERRQ(ierr);

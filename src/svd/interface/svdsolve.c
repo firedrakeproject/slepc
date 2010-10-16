@@ -49,7 +49,7 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscViewer    viewer;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
 
   if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
   svd->its = 0;
@@ -117,7 +117,7 @@ PetscErrorCode SVDSolve(SVD svd)
 PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = svd->its;
   PetscFunctionReturn(0);
@@ -152,7 +152,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(reason,2);
   *reason = svd->reason;
   PetscFunctionReturn(0);
@@ -180,7 +180,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
 PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(nconv,2);
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
@@ -224,7 +224,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
   Vec            w;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(sigma,3);
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
@@ -236,7 +236,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (M<N) { w = u; u = v; v = w; }
   if (u) {
-    PetscValidHeaderSpecific(u,VEC_COOKIE,4);
+    PetscValidHeaderSpecific(u,VEC_CLASSID,4);
     if (!svd->U) {
       ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
       ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
@@ -253,7 +253,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
     ierr = VecCopy(svd->U[svd->perm[i]],u);CHKERRQ(ierr);
   }
   if (v) {
-    PetscValidHeaderSpecific(v,VEC_COOKIE,5);   
+    PetscValidHeaderSpecific(v,VEC_CLASSID,5);   
     ierr = VecCopy(svd->V[svd->perm[i]],v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -292,7 +292,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, Pe
   PetscInt       M,N;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
   }
@@ -359,7 +359,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscReal      sigma,norm1,norm2;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(error,2);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
@@ -394,7 +394,7 @@ PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (matvecs) *matvecs = svd->matvecs; 
   if (dots) {
     ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);

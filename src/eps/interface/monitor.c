@@ -77,7 +77,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->numbermonitors >= MAXEPSMONITORS) {
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS monitors set");
   }
@@ -112,7 +112,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   for (i=0; i<eps->numbermonitors; i++) {
     if (eps->monitordestroy[i]) {
       ierr = (*eps->monitordestroy[i])(eps->monitorcontext[i]);CHKERRQ(ierr);
@@ -143,7 +143,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
 PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   *ctx =      (eps->monitorcontext[0]);
   PetscFunctionReturn(0);
 }

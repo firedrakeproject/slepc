@@ -37,7 +37,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
   PetscScalar    *pV,*pW;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->allocated_ncv != eps->ncv) {
     if (eps->allocated_ncv > 0) {
       ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
@@ -93,7 +93,7 @@ PetscErrorCode EPSFreeSolution(EPS eps)
   PetscScalar    *pV,*pW;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->allocated_ncv > 0) {
     ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
     ierr = PetscFree(eps->eigi);CHKERRQ(ierr);

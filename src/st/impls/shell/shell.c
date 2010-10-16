@@ -62,7 +62,7 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
   PetscTruth     flg;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(ctx,2); 
   ierr = PetscTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
   if (!flg) *ctx = 0; 
@@ -95,7 +95,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
   PetscTruth     flg;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
   if (flg) {
     shell->ctx = ctx;
@@ -289,7 +289,7 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
   PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,Vec,Vec));
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetApply_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,apply);CHKERRQ(ierr);
@@ -327,7 +327,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
   PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,Vec,Vec));
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetApplyTranspose_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,applytrans);CHKERRQ(ierr);
@@ -366,7 +366,7 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
   PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*));
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetBackTransform_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,backtr);CHKERRQ(ierr);
@@ -395,7 +395,7 @@ PetscErrorCode STShellSetName(ST st,const char name[])
   PetscErrorCode ierr, (*f)(ST,const char []);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetName_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,name);CHKERRQ(ierr);
@@ -427,7 +427,7 @@ PetscErrorCode STShellGetName(ST st,char *name[])
   PetscErrorCode ierr, (*f)(ST,char *[]);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STShellGetName_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,name);CHKERRQ(ierr);

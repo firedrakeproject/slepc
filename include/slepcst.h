@@ -26,7 +26,7 @@
 #include "petscksp.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscCookie ST_COOKIE;
+extern PetscClassId ST_CLASSID;
 
 /*S
      ST - Abstract SLEPc object that manages spectral transformations.

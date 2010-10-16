@@ -31,7 +31,7 @@ PetscErrorCode EPSDestroy_Default(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
 
   /* free work vectors */
@@ -47,7 +47,7 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = STBackTransform(eps->OP,eps->nconv,eps->eigr,eps->eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -261,7 +261,7 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->work)  {
     ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
   }

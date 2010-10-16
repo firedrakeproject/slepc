@@ -24,7 +24,7 @@
 #include "slepcsys.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscCookie IP_COOKIE;
+extern PetscClassId IP_CLASSID;
 
 /*E
     IPOrthogonalizationType - determines what type of orthogonalization to use

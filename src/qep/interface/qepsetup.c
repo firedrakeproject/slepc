@@ -52,7 +52,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   PetscReal      knorm,mnorm,norm;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
 
   if (qep->setupcalled) PetscFunctionReturn(0);
 
@@ -196,10 +196,10 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
   PetscInt       m,n,m0;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
-  PetscValidHeaderSpecific(M,MAT_COOKIE,2);
-  PetscValidHeaderSpecific(C,MAT_COOKIE,3);
-  PetscValidHeaderSpecific(K,MAT_COOKIE,4);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidHeaderSpecific(M,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(C,MAT_CLASSID,3);
+  PetscValidHeaderSpecific(K,MAT_CLASSID,4);
   PetscCheckSameComm(qep,1,M,2);
   PetscCheckSameComm(qep,1,C,3);
   PetscCheckSameComm(qep,1,K,4);
@@ -258,7 +258,7 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
 PetscErrorCode QEPGetOperators(QEP qep, Mat *M, Mat *C,Mat *K)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (M) { PetscValidPointer(M,2); *M = qep->M; }
   if (C) { PetscValidPointer(C,3); *C = qep->C; }
   if (K) { PetscValidPointer(K,4); *K = qep->K; }
@@ -301,7 +301,7 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
   PetscInt       i;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
@@ -361,7 +361,7 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
   PetscInt       i;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */

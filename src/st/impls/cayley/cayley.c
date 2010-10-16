@@ -373,7 +373,7 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
   PetscErrorCode ierr, (*f)(ST,PetscScalar);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STCayleySetAntishift_C",(void (**)(void))&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,nu);CHKERRQ(ierr);

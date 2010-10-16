@@ -218,7 +218,7 @@ PetscErrorCode SVDCrossSetEPS_CROSS(SVD svd,EPS eps)
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,2);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(cross->eps);CHKERRQ(ierr);  
@@ -249,7 +249,7 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
   PetscErrorCode ierr, (*f)(SVD,EPS eps);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCrossSetEPS_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,eps);CHKERRQ(ierr);
@@ -294,7 +294,7 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
   PetscErrorCode ierr, (*f)(SVD,EPS *eps);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCrossGetEPS_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,eps);CHKERRQ(ierr);

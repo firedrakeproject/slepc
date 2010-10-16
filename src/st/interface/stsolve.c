@@ -48,9 +48,9 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
@@ -93,7 +93,7 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(B,2);
   ierr = (*st->ops->getbilinearform)(st,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -138,9 +138,9 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   if (x == y) SETERRQ(PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
@@ -193,7 +193,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscScalar    *array,one = 1.0;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
 
   ierr = MatGetVecs(st->A,&in,&out);CHKERRQ(ierr);
@@ -244,7 +244,7 @@ PetscErrorCode STSetUp(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
 
   PetscInfo(st,"Setting up new ST\n");
   if (st->setupcalled) PetscFunctionReturn(0);
@@ -283,7 +283,7 @@ PetscErrorCode STPostSolve(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->ops->postsolve) {
     ierr = (*st->ops->postsolve)(st);CHKERRQ(ierr);
   }
@@ -314,7 +314,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->ops->backtr) {
     ierr = (*st->ops->backtr)(st,n,eigr,eigi);CHKERRQ(ierr);
   }

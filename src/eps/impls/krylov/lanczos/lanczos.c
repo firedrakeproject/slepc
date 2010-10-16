@@ -768,7 +768,7 @@ PetscErrorCode EPSLanczosSetReorthog(EPS eps,EPSLanczosReorthogType reorthog)
   PetscErrorCode ierr, (*f)(EPS,EPSLanczosReorthogType);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSLanczosSetReorthog_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,reorthog);CHKERRQ(ierr);
@@ -811,7 +811,7 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
   PetscErrorCode ierr, (*f)(EPS,EPSLanczosReorthogType*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSLanczosGetReorthog_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,reorthog);CHKERRQ(ierr);
@@ -827,7 +827,7 @@ PetscErrorCode EPSDestroy_LANCZOS(EPS eps)
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (lanczos->AV) { ierr = VecDestroyVecs(lanczos->AV,eps->ncv);CHKERRQ(ierr); }
   ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);

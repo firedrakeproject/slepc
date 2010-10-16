@@ -55,8 +55,8 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
   PetscScalar    p;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidPointer(norm,3);
   
   if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
@@ -103,8 +103,8 @@ PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
   PetscScalar    p;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidPointer(norm,3);
   
   if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
@@ -143,8 +143,8 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
   PetscScalar    p;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidPointer(norm,3);
   
   if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
@@ -198,9 +198,9 @@ PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   PetscValidScalarPointer(p,4);
       
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
@@ -248,9 +248,9 @@ PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   PetscValidScalarPointer(p,4);
   
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
@@ -300,9 +300,9 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(y,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   PetscValidScalarPointer(p,4);
   
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
@@ -356,10 +356,10 @@ PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar 
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidPointer(y,4);
-  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidHeaderSpecific(*y,VEC_CLASSID,4);
   PetscValidScalarPointer(p,5);
   
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
@@ -408,11 +408,11 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (n == 0) PetscFunctionReturn(0);
   PetscValidPointer(y,4);
-  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidHeaderSpecific(*y,VEC_CLASSID,4);
   PetscValidScalarPointer(p,5);
   
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
@@ -463,11 +463,11 @@ PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScal
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (n == 0) PetscFunctionReturn(0);
   PetscValidPointer(y,4);
-  PetscValidHeaderSpecific(*y,VEC_COOKIE,4);
+  PetscValidHeaderSpecific(*y,VEC_CLASSID,4);
   PetscValidScalarPointer(p,5);
   
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);

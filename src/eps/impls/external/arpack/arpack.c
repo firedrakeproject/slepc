@@ -321,7 +321,7 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
   ierr = PetscFree(ar->workl);CHKERRQ(ierr); 
   ierr = PetscFree(ar->select);CHKERRQ(ierr); 

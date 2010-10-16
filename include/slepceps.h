@@ -28,7 +28,7 @@
 #include "slepcip.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscCookie EPS_COOKIE;
+extern PetscClassId EPS_CLASSID;
 
 /*S
      EPS - Abstract SLEPc object that manages all the eigenvalue 

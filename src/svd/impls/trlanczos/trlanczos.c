@@ -427,7 +427,7 @@ PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscTruth oneside)
   PetscErrorCode ierr, (*f)(SVD,PetscTruth);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDTRLanczosSetOneSide_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,oneside);CHKERRQ(ierr);
@@ -458,7 +458,7 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscTruth *oneside)
   PetscErrorCode ierr, (*f)(SVD,PetscTruth*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,oneside);CHKERRQ(ierr);
@@ -488,7 +488,7 @@ PetscErrorCode SVDDestroy_TRLANCZOS(SVD svd)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = SVDDestroy_Default(svd);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosGetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);

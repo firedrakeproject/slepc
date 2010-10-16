@@ -50,9 +50,9 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (mat) {
-    PetscValidHeaderSpecific(mat,MAT_COOKIE,1);
+    PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
     PetscObjectReference((PetscObject)mat);
   }
   if (ip->matrix) {
@@ -87,7 +87,7 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
 PetscErrorCode IPGetBilinearForm(IP ip,Mat* mat,IPBilinearForm* form)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (mat) *mat = ip->matrix;
   if (form) *form = ip->bilinear_form;
   PetscFunctionReturn(0);
@@ -137,7 +137,7 @@ PetscErrorCode IPApplyMatrix(IP ip,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
     ierr = VecCopy(ip->Bx,y);CHKERRQ(ierr);

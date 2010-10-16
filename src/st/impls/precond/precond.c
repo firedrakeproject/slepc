@@ -264,7 +264,7 @@ PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
   PetscErrorCode ierr, (*f)(ST,Mat*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetMatForPC_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,mat);CHKERRQ(ierr);
@@ -280,7 +280,7 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   PetscTruth     flag;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
 
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PCGetOperatorsSet(pc, PETSC_NULL, &flag); CHKERRQ(ierr);
@@ -316,8 +316,8 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
   PetscErrorCode ierr, (*f)(ST,Mat);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(mat,MAT_COOKIE,2);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetMatForPC_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,mat);CHKERRQ(ierr);
@@ -334,8 +334,8 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(mat,MAT_COOKIE,2);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
 
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
@@ -378,7 +378,7 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscTruth setmat)
   PetscErrorCode ierr, (*f)(ST,PetscTruth);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,setmat);CHKERRQ(ierr);
@@ -410,7 +410,7 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscTruth *setmat)
   PetscErrorCode ierr, (*f)(ST,PetscTruth*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(st,setmat);CHKERRQ(ierr);
@@ -425,7 +425,7 @@ PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscTruth setmat)
 
   PetscFunctionBegin;
 
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
 
   data->setmat = setmat;
 
@@ -440,7 +440,7 @@ PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscTruth *setmat)
 
   PetscFunctionBegin;
 
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
 
   *setmat = data->setmat;
 

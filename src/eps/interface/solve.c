@@ -102,7 +102,7 @@ PetscErrorCode EPSSolve(EPS eps)
   const EPSType solvers[NUMEXTSOLV] = { EPSARPACK, EPSBLZPACK, EPSTRLAN, EPSBLOPEX, EPSPRIMME };
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetTruth(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
@@ -294,7 +294,7 @@ PetscErrorCode EPSSolve(EPS eps)
 PetscErrorCode EPSGetIterationNumber(EPS eps,PetscInt *its)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = eps->its;
   PetscFunctionReturn(0);
@@ -333,7 +333,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,Pets
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = STGetOperationCounters(eps->OP,ops,lits);CHKERRQ(ierr);
   if (dots) {
     ierr = IPGetOperationCounters(eps->ip,dots);CHKERRQ(ierr);
@@ -364,7 +364,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,Pets
 PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(nconv,2);
   *nconv = eps->nconv;
   PetscFunctionReturn(0);
@@ -401,7 +401,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(reason,2);
   *reason = eps->reason;
   PetscFunctionReturn(0);
@@ -444,9 +444,9 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(v,2);
-  PetscValidHeaderSpecific(*v,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   if (!eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -504,9 +504,9 @@ PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps, Vec *v)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(v,2);
-  PetscValidHeaderSpecific(*v,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   if (!eps->leftvecs) {
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
@@ -564,7 +564,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScal
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi || !eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -611,7 +611,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscSca
   PetscInt       k;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -671,7 +671,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
   PetscInt       k;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -742,7 +742,7 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
   PetscInt       k;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->leftvecs) {
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
@@ -807,7 +807,7 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 PetscErrorCode EPSGetErrorEstimate(EPS eps, PetscInt i, PetscReal *errest)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -846,7 +846,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps, PetscInt i, PetscReal *errest)
 PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -955,7 +955,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
   PetscScalar    kr, ki;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(norm,3);
   ierr = VecDuplicate(eps->V[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
@@ -1003,7 +1003,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
 #endif
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->leftvecs) {
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
@@ -1113,7 +1113,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
   PetscScalar    kr, ki;  
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
   PetscValidPointer(error,3);
   ierr = VecDuplicate(eps->V[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
@@ -1158,7 +1158,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
 #endif
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);  
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
   ierr = EPSComputeResidualNormLeft(eps,i,&norm); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&xi); CHKERRQ(ierr);
@@ -1464,8 +1464,8 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscTruth *breakdow
   Vec            w;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidHeaderSpecific(vec,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidHeaderSpecific(vec,VEC_CLASSID,3);
 
   ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
 
@@ -1538,8 +1538,8 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscTruth *brea
   Vec            w;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidHeaderSpecific(vec,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidHeaderSpecific(vec,VEC_CLASSID,3);
 
   ierr = VecDuplicate(eps->W[0],&w);CHKERRQ(ierr);
 

@@ -24,7 +24,7 @@
 #include "private/qepimpl.h"      /*I "slepcqep.h" I*/
 
 PetscFList QEPList = 0;
-PetscCookie QEP_COOKIE = 0;
+PetscClassId QEP_CLASSID = 0;
 PetscLogEvent QEP_SetUp = 0, QEP_Solve = 0, QEP_Dense = 0;
 static PetscTruth QEPPackageInitialized = PETSC_FALSE;
 
@@ -70,19 +70,19 @@ PetscErrorCode QEPInitializePackage(const char *path) {
   if (QEPPackageInitialized) PetscFunctionReturn(0);
   QEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscCookieRegister("Quadratic Eigenproblem Solver",&QEP_COOKIE);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Quadratic Eigenproblem Solver",&QEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = QEPRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister("QEPSetUp",QEP_COOKIE,&QEP_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("QEPSolve",QEP_COOKIE,&QEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("QEPDense",QEP_COOKIE,&QEP_Dense);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("QEPSetUp",QEP_CLASSID,&QEP_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("QEPSolve",QEP_CLASSID,&QEP_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("QEPDense",QEP_CLASSID,&QEP_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"qep",&className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscInfoDeactivateClass(QEP_COOKIE);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(QEP_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
@@ -90,7 +90,7 @@ PetscErrorCode QEPInitializePackage(const char *path) {
   if (opt) {
     ierr = PetscStrstr(logList,"qep",&className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogEventDeactivateClass(QEP_COOKIE);CHKERRQ(ierr);
+      ierr = PetscLogEventDeactivateClass(QEP_CLASSID);CHKERRQ(ierr);
     }
   }
   ierr = PetscRegisterFinalize(QEPFinalizePackage);CHKERRQ(ierr);
@@ -133,9 +133,9 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
   PetscTruth     isascii;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(qep,1,viewer,2);
 
 #if defined(PETSC_USE_COMPLEX)
@@ -244,7 +244,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   PetscValidPointer(outqep,2);
   *outqep = 0;
 
-  ierr = PetscHeaderCreate(qep,_p_QEP,struct _QEPOps,QEP_COOKIE,-1,"QEP",comm,QEPDestroy,QEPView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(qep,_p_QEP,struct _QEPOps,QEP_CLASSID,-1,"QEP",comm,QEPDestroy,QEPView);CHKERRQ(ierr);
   *outqep = qep;
 
   ierr = PetscMemzero(qep->ops,sizeof(struct _QEPOps));CHKERRQ(ierr);
@@ -329,7 +329,7 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
   PetscTruth match;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidCharPointer(type,2);
 
   ierr = PetscTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
@@ -373,7 +373,7 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
 PetscErrorCode QEPGetType(QEP qep,const QEPType *type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)qep)->type_name;
   PetscFunctionReturn(0);
@@ -481,7 +481,7 @@ PetscErrorCode QEPDestroy(QEP qep)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (--((PetscObject)qep)->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
@@ -545,8 +545,8 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
-  PetscValidHeaderSpecific(ip,IP_COOKIE,2);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(qep,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(qep->ip); CHKERRQ(ierr);
@@ -575,7 +575,7 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
 PetscErrorCode QEPGetIP(QEP qep,IP *ip)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(ip,2);
   *ip = qep->ip;
   PetscFunctionReturn(0);

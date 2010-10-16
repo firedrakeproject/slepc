@@ -43,8 +43,8 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  PetscValidHeaderSpecific(mat,MAT_COOKIE,2);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   PetscCheckSameComm(svd,1,mat,2);
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   if (svd->OP) {
@@ -75,7 +75,7 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
 PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(A,2);
   *A = svd->OP;
   PetscFunctionReturn(0);
@@ -110,7 +110,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscReal      norm;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
 
@@ -262,7 +262,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   PetscInt       i;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */

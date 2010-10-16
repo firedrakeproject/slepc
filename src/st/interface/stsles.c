@@ -44,9 +44,9 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(b,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
@@ -77,9 +77,9 @@ PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(b,VEC_COOKIE,2);
-  PetscValidHeaderSpecific(x,VEC_COOKIE,3);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (!st->ksp) { SETERRQ(PETSC_ERR_SUP,"ST has no associated KSP"); }
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
@@ -110,8 +110,8 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(ksp,KSP_COOKIE,2);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(st,1,ksp,2);
   ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
   if (st->ksp) {
@@ -146,7 +146,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
 PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!((PetscObject)st)->type_name) { SETERRQ(PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
   if (ksp)  *ksp = st->ksp;
   PetscFunctionReturn(0);
@@ -177,7 +177,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (ops) *ops = st->applys;
   if (lits) *lits = st->lineariterations;
   PetscFunctionReturn(0);
@@ -202,7 +202,7 @@ PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
 PetscErrorCode STResetOperationCounters(ST st)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   st->lineariterations = 0;
   st->applys = 0;
   PetscFunctionReturn(0);

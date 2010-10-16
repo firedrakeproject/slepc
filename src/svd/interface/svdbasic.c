@@ -24,7 +24,7 @@
 #include "private/svdimpl.h"      /*I "slepcsvd.h" I*/
 
 PetscFList SVDList = 0;
-PetscCookie SVD_COOKIE = 0;
+PetscClassId SVD_CLASSID = 0;
 PetscLogEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
 static PetscTruth SVDPackageInitialized = PETSC_FALSE;
 
@@ -71,19 +71,19 @@ PetscErrorCode SVDInitializePackage(const char *path)
   if (SVDPackageInitialized) PetscFunctionReturn(0);
   SVDPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscCookieRegister("Singular Value Solver",&SVD_COOKIE);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Singular Value Solver",&SVD_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = SVDRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister("SVDSetUp",SVD_COOKIE,&SVD_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("SVDSolve",SVD_COOKIE,&SVD_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("SVDDense",SVD_COOKIE,&SVD_Dense);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("SVDDense",SVD_CLASSID,&SVD_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList, "svd", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscInfoDeactivateClass(SVD_COOKIE);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(SVD_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
@@ -91,7 +91,7 @@ PetscErrorCode SVDInitializePackage(const char *path)
   if (opt) {
     ierr = PetscStrstr(logList, "svd", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogEventDeactivateClass(SVD_COOKIE);CHKERRQ(ierr);
+      ierr = PetscLogEventDeactivateClass(SVD_CLASSID);CHKERRQ(ierr);
     }
   }
   ierr = PetscRegisterFinalize(SVDFinalizePackage);CHKERRQ(ierr);
@@ -134,9 +134,9 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscTruth     isascii;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
@@ -215,7 +215,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
 
-  ierr = PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_COOKIE,-1,"SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,-1,"SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
   *outsvd = svd;
 
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
@@ -277,7 +277,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   PetscScalar    *p;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (--((PetscObject)svd)->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
@@ -327,7 +327,7 @@ PetscErrorCode SVDDestroy_Default(SVD svd)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -369,7 +369,7 @@ PetscErrorCode SVDSetType(SVD svd,const SVDType type)
   PetscTruth match;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidCharPointer(type,2);
 
   ierr = PetscTypeCompare((PetscObject)svd,type,&match);CHKERRQ(ierr);
@@ -413,7 +413,7 @@ PetscErrorCode SVDSetType(SVD svd,const SVDType type)
 PetscErrorCode SVDGetType(SVD svd,const SVDType *type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)svd)->type_name;
   PetscFunctionReturn(0);
@@ -525,8 +525,8 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
-  PetscValidHeaderSpecific(ip,IP_COOKIE,2);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(svd,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(svd->ip); CHKERRQ(ierr);
@@ -555,7 +555,7 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
 PetscErrorCode SVDGetIP(SVD svd,IP *ip)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(ip,2);
   *ip = svd->ip;
   PetscFunctionReturn(0);

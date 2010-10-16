@@ -54,8 +54,8 @@ PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
   PetscScalar    *px,t;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(x,VEC_COOKIE,1);
-  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_COOKIE,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,1);
+  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,2);
   if (!rctx) {
     MPI_Comm comm;
     ierr = PetscObjectGetComm((PetscObject)x,&comm);CHKERRQ(ierr);
@@ -254,7 +254,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscTruth     flg;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(mat,MAT_COOKIE,1);
+  PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
   PetscValidPointer(newmat,2);
 
   ierr = PetscObjectGetComm((PetscObject)mat,&comm);CHKERRQ(ierr);
@@ -536,12 +536,12 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   PetscScalar    *py,*px;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(y,VEC_COOKIE,1);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,1);
   if (!nv || !(y)->map->n) PetscFunctionReturn(0);
   if (nv < 0) SETERRQ1(PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
   PetscValidScalarPointer(a,3);
   PetscValidPointer(x,6);
-  PetscValidHeaderSpecific(*x,VEC_COOKIE,6);
+  PetscValidHeaderSpecific(*x,VEC_CLASSID,6);
   PetscValidType(y,1);
   PetscValidType(*x,6);
   PetscCheckSameTypeAndComm(y,1,*x,6);

@@ -508,7 +508,7 @@ PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscTruth delayed)
   PetscErrorCode ierr, (*f)(EPS,PetscTruth);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,delayed);CHKERRQ(ierr);
@@ -552,7 +552,7 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscTruth *delayed)
   PetscErrorCode ierr, (*f)(EPS,PetscTruth*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,delayed);CHKERRQ(ierr);
@@ -567,7 +567,7 @@ PetscErrorCode EPSDestroy_ARNOLDI(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);

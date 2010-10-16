@@ -23,7 +23,7 @@
 
 #include "private/stimpl.h"            /*I "slepcst.h" I*/
 
-PetscCookie ST_COOKIE = 0;
+PetscClassId ST_CLASSID = 0;
 PetscLogEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
 static PetscTruth STPackageInitialized = PETSC_FALSE;
 
@@ -69,19 +69,19 @@ PetscErrorCode STInitializePackage(const char *path) {
   if (STPackageInitialized) PetscFunctionReturn(0);
   STPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscCookieRegister("Spectral Transform",&ST_COOKIE);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Spectral Transform",&ST_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = STRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister("STSetUp",ST_COOKIE,&ST_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("STApply",ST_COOKIE,&ST_Apply);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("STApplyTranspose",ST_COOKIE,&ST_ApplyTranspose); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose); CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscInfoDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(ST_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
@@ -89,7 +89,7 @@ PetscErrorCode STInitializePackage(const char *path) {
   if (opt) {
     ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogEventDeactivateClass(ST_COOKIE);CHKERRQ(ierr);
+      ierr = PetscLogEventDeactivateClass(ST_CLASSID);CHKERRQ(ierr);
     }
   }
   ierr = PetscRegisterFinalize(STFinalizePackage);CHKERRQ(ierr);
@@ -115,7 +115,7 @@ PetscErrorCode STDestroy(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (--((PetscObject)st)->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
@@ -163,7 +163,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscValidPointer(newst,2);
   *newst = 0;
 
-  ierr = PetscHeaderCreate(st,_p_ST,struct _STOps,ST_COOKIE,-1,"ST",comm,STDestroy,STView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,-1,"ST",comm,STDestroy,STView);CHKERRQ(ierr);
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 
   st->A                   = 0;
@@ -214,9 +214,9 @@ PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(A,MAT_COOKIE,2);
-  if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   PetscCheckSameComm(st,1,A,2);
   if (B) PetscCheckSameComm(st,1,B,3);
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
@@ -250,7 +250,7 @@ PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
 PetscErrorCode STGetOperators(ST st,Mat *A,Mat *B)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (A) *A = st->A;
   if (B) *B = st->B;
   PetscFunctionReturn(0);
@@ -279,7 +279,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift); CHKERRQ(ierr);
@@ -309,7 +309,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
 PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (shift)  *shift = st->sigma;
   PetscFunctionReturn(0);
 }
@@ -332,7 +332,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   st->defsigma = defaultshift;
   PetscFunctionReturn(0);
 }
@@ -363,8 +363,8 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
-  PetscValidHeaderSpecific(D,VEC_COOKIE,2);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(D,VEC_CLASSID,2);
   PetscCheckSameComm(st,1,D,2);
   ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
   if (st->D) {
@@ -400,7 +400,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
 PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(D,2);
   *D = st->D;
   PetscFunctionReturn(0);
@@ -432,7 +432,7 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
@@ -465,7 +465,7 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
@@ -498,7 +498,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectGetOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -538,9 +538,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)st)->comm);
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2); 
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2); 
   PetscCheckSameComm(st,1,viewer,2);
 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);

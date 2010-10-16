@@ -24,7 +24,7 @@
 #include "private/epsimpl.h"      /*I "slepceps.h" I*/
 
 PetscFList EPSList = 0;
-PetscCookie EPS_COOKIE = 0;
+PetscClassId EPS_CLASSID = 0;
 PetscLogEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
 static PetscTruth EPSPackageInitialized = PETSC_FALSE;
 
@@ -70,19 +70,19 @@ PetscErrorCode EPSInitializePackage(const char *path) {
   if (EPSPackageInitialized) PetscFunctionReturn(0);
   EPSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscCookieRegister("Eigenproblem Solver",&EPS_COOKIE);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Eigenproblem Solver",&EPS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = EPSRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister("EPSSetUp",EPS_COOKIE,&EPS_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("EPSSolve",EPS_COOKIE,&EPS_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("EPSDense",EPS_COOKIE,&EPS_Dense); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSDense",EPS_CLASSID,&EPS_Dense); CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscInfoDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(EPS_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
@@ -90,7 +90,7 @@ PetscErrorCode EPSInitializePackage(const char *path) {
   if (opt) {
     ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogEventDeactivateClass(EPS_COOKIE);CHKERRQ(ierr);
+      ierr = PetscLogEventDeactivateClass(EPS_CLASSID);CHKERRQ(ierr);
     }
   }
   ierr = PetscRegisterFinalize(EPSFinalizePackage);CHKERRQ(ierr);
@@ -133,9 +133,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscTruth     isascii;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
 
 #if defined(PETSC_USE_COMPLEX)
@@ -324,7 +324,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscValidPointer(outeps,2);
   *outeps = 0;
 
-  ierr = PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_COOKIE,-1,"EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_CLASSID,-1,"EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
   *outeps = eps;
 
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
@@ -433,7 +433,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
   PetscTruth match;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidCharPointer(type,2);
 
   ierr = PetscTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
@@ -477,7 +477,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
 PetscErrorCode EPSGetType(EPS eps,const EPSType *type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)eps)->type_name;
   PetscFunctionReturn(0);
@@ -583,7 +583,7 @@ PetscErrorCode EPSDestroy(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (--((PetscObject)eps)->refct > 0) PetscFunctionReturn(0);
 
   /* if memory was published with AMS then destroy it */
@@ -638,7 +638,7 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   eps->target = target;
   ierr = STSetDefaultShift(eps->OP,target);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -667,7 +667,7 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
 PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (target) {
     *target = eps->target;
   }
@@ -699,8 +699,8 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidHeaderSpecific(st,ST_COOKIE,2);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,2);
   PetscCheckSameComm(eps,1,st,2);
   ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
   ierr = STDestroy(eps->OP); CHKERRQ(ierr);
@@ -729,7 +729,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 PetscErrorCode EPSGetST(EPS eps, ST *st)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(st,2);
   *st = eps->OP;
   PetscFunctionReturn(0);
@@ -759,8 +759,8 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidHeaderSpecific(ip,IP_COOKIE,2);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(eps,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(eps->ip); CHKERRQ(ierr);
@@ -789,7 +789,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
 PetscErrorCode EPSGetIP(EPS eps,IP *ip)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(ip,2);
   *ip = eps->ip;
   PetscFunctionReturn(0);
@@ -818,7 +818,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscTruth* is)
   Mat            B;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
   if( B ) *is = PETSC_TRUE;
   else *is = PETSC_FALSE;
@@ -850,7 +850,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscTruth* is)
 PetscErrorCode EPSIsHermitian(EPS eps,PetscTruth* is)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if( eps->ishermitian ) *is = PETSC_TRUE;
   else *is = PETSC_FALSE;
   PetscFunctionReturn(0);

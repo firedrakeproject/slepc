@@ -60,7 +60,7 @@
 PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (mode == PETSC_DEFAULT || mode == PETSC_DECIDE) mode = (SVDTransposeMode)PETSC_DECIDE;
   else switch (mode) {
     case SVD_TRANSPOSE_EXPLICIT:
@@ -97,7 +97,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(mode,2);
   *mode = svd->transmode;
   PetscFunctionReturn(0);
@@ -131,7 +131,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
 PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
       tol = 1e-7;
@@ -177,7 +177,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
 PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (tol)    *tol    = svd->tol;
   if (maxits) *maxits = svd->max_it;
   PetscFunctionReturn(0);
@@ -224,7 +224,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
 PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
 
   if (nsv != PETSC_IGNORE) {
     if (nsv<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
@@ -276,7 +276,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mpd)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (nsv) *nsv = svd->nsv;
   if (ncv) *ncv = svd->ncv;
   if (mpd) *mpd = svd->mpd;
@@ -314,7 +314,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
 PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   switch (which) {
     case SVD_LARGEST:
     case SVD_SMALLEST:
@@ -353,7 +353,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which) 
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(which,2);
   *which = svd->which;
   PetscFunctionReturn(0);
@@ -390,7 +390,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   SVDMONITOR_CONV *ctx;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   svd->setupcalled = 0;
   ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"Singular Value Solver (SVD) Options","SVD");CHKERRQ(ierr);
 
@@ -495,7 +495,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 PetscErrorCode SVDSetTrackAll(SVD svd,PetscTruth trackall)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   svd->trackall = trackall;
   PetscFunctionReturn(0);
 }
@@ -521,7 +521,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscTruth trackall)
 PetscErrorCode SVDGetTrackAll(SVD svd,PetscTruth *trackall) 
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(trackall,2);
   *trackall = svd->trackall;
   PetscFunctionReturn(0);
@@ -563,7 +563,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
   EPS            eps;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
@@ -608,7 +608,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   EPS            eps;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
@@ -651,7 +651,7 @@ PetscErrorCode SVDGetOptionsPrefix(SVD svd,const char *prefix[])
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(prefix,2);
   ierr = PetscObjectGetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);

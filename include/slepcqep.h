@@ -27,7 +27,7 @@
 #include "slepceps.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscCookie QEP_COOKIE;
+extern PetscClassId QEP_CLASSID;
 
 /*S
      QEP - Abstract SLEPc object that manages all the quadratic eigenvalue 

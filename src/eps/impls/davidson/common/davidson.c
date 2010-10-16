@@ -392,7 +392,7 @@ PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscTruth krylovstart
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   data->krylovstart = krylovstart;
 
@@ -406,7 +406,7 @@ PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscTruth *krylovstar
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   *krylovstart = data->krylovstart;
 
@@ -420,7 +420,7 @@ PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize)
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   if(blocksize == PETSC_DEFAULT || blocksize == PETSC_DECIDE) blocksize = 1;
   if(blocksize <= 0)
@@ -437,7 +437,7 @@ PetscErrorCode EPSDAVIDSONGetBlockSize_DAVIDSON(EPS eps,PetscInt *blocksize)
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   *blocksize = data->blocksize;
 
@@ -451,7 +451,7 @@ PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plu
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   if(minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
   if(minv <= 0)
@@ -472,7 +472,7 @@ PetscErrorCode EPSDAVIDSONGetRestart_DAVIDSON(EPS eps,PetscInt *minv,PetscInt *p
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   *minv = data->minv;
   *plusk = data->plusk;
@@ -487,7 +487,7 @@ PetscErrorCode EPSDAVIDSONGetInitialSize_DAVIDSON(EPS eps,PetscInt *initialsize)
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   *initialsize = data->initialsize;
 
@@ -501,7 +501,7 @@ PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize)
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   if(initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
   if(initialsize <= 0)
@@ -518,7 +518,7 @@ PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix)
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   *fix = data->fix;
 
@@ -532,7 +532,7 @@ PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix)
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   if(fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
   if(fix < 0.0)

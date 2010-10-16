@@ -168,7 +168,7 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscTruth krylovstart)
   PetscErrorCode ierr, (*f)(EPS,PetscTruth);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDSetKrylovStart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,krylovstart);CHKERRQ(ierr);
@@ -200,7 +200,7 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscTruth *krylovstart)
   PetscErrorCode ierr, (*f)(EPS,PetscTruth*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDGetKrylovStart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,krylovstart);CHKERRQ(ierr);
@@ -233,7 +233,7 @@ PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDSetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,blocksize);CHKERRQ(ierr);
@@ -265,7 +265,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDGetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,blocksize);CHKERRQ(ierr);
@@ -299,7 +299,7 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscErrorCode ierr, (*f)(EPS,PetscInt*,PetscInt*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDGetRestart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,minv,plusk);CHKERRQ(ierr);
@@ -337,7 +337,7 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscErrorCode ierr, (*f)(EPS,PetscInt,PetscInt);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDSetRestart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,minv,plusk);CHKERRQ(ierr);
@@ -374,7 +374,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDGetInitialSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,initialsize);CHKERRQ(ierr);
@@ -413,7 +413,7 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSGDSetInitialSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,initialsize);CHKERRQ(ierr);

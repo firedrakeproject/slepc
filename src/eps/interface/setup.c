@@ -58,7 +58,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 #endif
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
 
   if (eps->setupcalled) PetscFunctionReturn(0);
 
@@ -244,9 +244,9 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   PetscInt       m,n,m0;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
-  PetscValidHeaderSpecific(A,MAT_COOKIE,2);
-  if (B) PetscValidHeaderSpecific(B,MAT_COOKIE,3);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   PetscCheckSameComm(eps,1,A,2);
   if (B) PetscCheckSameComm(eps,1,B,3);
 
@@ -294,7 +294,7 @@ PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
   ST             st;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (A) PetscValidPointer(A,2);
   if (B) PetscValidPointer(B,3);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
@@ -340,7 +340,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
   PetscInt       i;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (n<=0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
 
   /* free previous vectors */
@@ -380,7 +380,7 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
   PetscScalar    *pV;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->nds > 0) {
     ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
     ierr = VecRestoreArray(eps->DS[0],PETSC_NULL);CHKERRQ(ierr);
@@ -434,7 +434,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscInt       i;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
@@ -494,7 +494,7 @@ PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
   PetscInt       i;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (n<0) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */

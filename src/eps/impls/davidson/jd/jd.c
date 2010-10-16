@@ -183,7 +183,7 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscTruth krylovstart)
   PetscErrorCode ierr, (*f)(EPS,PetscTruth);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,krylovstart);CHKERRQ(ierr);
@@ -215,7 +215,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscTruth *krylovstart)
   PetscErrorCode ierr, (*f)(EPS,PetscTruth*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,krylovstart);CHKERRQ(ierr);
@@ -248,7 +248,7 @@ PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,blocksize);CHKERRQ(ierr);
@@ -280,7 +280,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,blocksize);CHKERRQ(ierr);
@@ -314,7 +314,7 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscErrorCode ierr, (*f)(EPS,PetscInt*,PetscInt*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetRestart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,minv,plusk);CHKERRQ(ierr);
@@ -352,7 +352,7 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscErrorCode ierr, (*f)(EPS,PetscInt,PetscInt);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetRestart_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,minv,plusk);CHKERRQ(ierr);
@@ -389,7 +389,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetInitialSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,initialsize);CHKERRQ(ierr);
@@ -428,7 +428,7 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscErrorCode ierr, (*f)(EPS,PetscInt);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetInitialSize_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,initialsize);CHKERRQ(ierr);
@@ -459,7 +459,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
   PetscErrorCode ierr, (*f)(EPS,PetscReal*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetFix_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,fix);CHKERRQ(ierr);
@@ -495,7 +495,7 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
   PetscErrorCode ierr, (*f)(EPS,PetscReal);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetFix_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(eps,fix);CHKERRQ(ierr);

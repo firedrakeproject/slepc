@@ -52,7 +52,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   QEPMONITOR_CONV *ctx;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscOptionsBegin(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"Quadratic Eigenvalue Problem (QEP) Solver Options","QEP");CHKERRQ(ierr);
     ierr = PetscOptionsList("-qep_type","Quadratic Eigenvalue Problem method","QEPSetType",QEPList,(char*)(((PetscObject)qep)->type_name?((PetscObject)qep)->type_name:QEPLINEAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -185,7 +185,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (tol)    *tol    = qep->tol;
   if (maxits) *maxits = qep->max_it;
   PetscFunctionReturn(0);
@@ -221,7 +221,7 @@ PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
 PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
       qep->tol = 1e-7;
@@ -268,7 +268,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
 PetscErrorCode QEPGetDimensions(QEP qep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (nev) *nev = qep->nev;
   if (ncv) *ncv = qep->ncv;
   if (mpd) *mpd = qep->mpd;
@@ -316,7 +316,7 @@ PetscErrorCode QEPGetDimensions(QEP qep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
 
   if( nev != PETSC_IGNORE ) {
     if (nev<1) SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
@@ -386,7 +386,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (which!=PETSC_IGNORE) {
     if (which==PETSC_DECIDE || which==PETSC_DEFAULT) qep->which = (QEPWhich)0;
     else switch (which) {
@@ -432,7 +432,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
 PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which) 
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = qep->which;
   PetscFunctionReturn(0);
@@ -464,7 +464,7 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
 PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscTruth leftvecs)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (qep->leftvecs != leftvecs) {
     qep->leftvecs = leftvecs;
     qep->setupcalled = 0;
@@ -493,7 +493,7 @@ PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscTruth leftvecs)
 PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscTruth *leftvecs) 
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(leftvecs,2);
   *leftvecs = qep->leftvecs;
   PetscFunctionReturn(0);
@@ -523,7 +523,7 @@ PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscTruth *leftvecs)
 PetscErrorCode QEPGetScaleFactor(QEP qep,PetscReal *alpha)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (alpha) *alpha = qep->sfactor;
   PetscFunctionReturn(0);
 }
@@ -556,7 +556,7 @@ PetscErrorCode QEPGetScaleFactor(QEP qep,PetscReal *alpha)
 PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (alpha != PETSC_IGNORE) {
     if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
       qep->sfactor = 0.0;
@@ -602,7 +602,7 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
 PetscErrorCode QEPSetProblemType(QEP qep,QEPProblemType type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (type!=QEP_GENERAL && type!=QEP_HERMITIAN && type!=QEP_GYROSCOPIC)
     SETERRQ(PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   qep->problem_type = type;
@@ -629,7 +629,7 @@ PetscErrorCode QEPSetProblemType(QEP qep,QEPProblemType type)
 PetscErrorCode QEPGetProblemType(QEP qep,QEPProblemType *type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(type,2);
   *type = qep->problem_type;
   PetscFunctionReturn(0);
@@ -701,7 +701,7 @@ EXTERN PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
 PetscErrorCode QEPSetTrackAll(QEP qep,PetscTruth trackall)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   qep->trackall = trackall;
   PetscFunctionReturn(0);
 }
@@ -727,7 +727,7 @@ PetscErrorCode QEPSetTrackAll(QEP qep,PetscTruth trackall)
 PetscErrorCode QEPGetTrackAll(QEP qep,PetscTruth *trackall) 
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(trackall,2);
   *trackall = qep->trackall;
   PetscFunctionReturn(0);
@@ -765,7 +765,7 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(qep->ip,"qep_");CHKERRQ(ierr);
@@ -796,7 +796,7 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep, prefix);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(qep->ip,"qep_");CHKERRQ(ierr);
@@ -828,7 +828,7 @@ PetscErrorCode QEPGetOptionsPrefix(QEP qep,const char *prefix[])
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(prefix,2);
   ierr = PetscObjectGetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);

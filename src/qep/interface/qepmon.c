@@ -77,7 +77,7 @@ PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,Pets
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (qep->numbermonitors >= MAXQEPMONITORS) {
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Too many QEP monitors set");
   }
@@ -112,7 +112,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   for (i=0; i<qep->numbermonitors; i++) {
     if (qep->monitordestroy[i]) {
       ierr = (*qep->monitordestroy[i])(qep->monitorcontext[i]);CHKERRQ(ierr);
@@ -143,7 +143,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
 PetscErrorCode QEPGetMonitorContext(QEP qep, void **ctx)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   *ctx =      (qep->monitorcontext[0]);
   PetscFunctionReturn(0);
 }

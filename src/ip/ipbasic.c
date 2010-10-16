@@ -23,7 +23,7 @@
 
 #include "private/ipimpl.h"      /*I "slepcip.h" I*/
 
-PetscCookie IP_COOKIE = 0;
+PetscClassId IP_CLASSID = 0;
 PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
 
 #undef __FUNCT__  
@@ -52,17 +52,17 @@ PetscErrorCode IPInitializePackage(const char *path)
   if (initialized) PetscFunctionReturn(0);
   initialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscCookieRegister("Inner product",&IP_COOKIE);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Inner product",&IP_CLASSID);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister("IPOrthogonalize",IP_COOKIE,&IP_Orthogonalize); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("IPInnerProduct",IP_COOKIE,&IP_InnerProduct); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("IPApplyMatrix",IP_COOKIE,&IP_ApplyMatrix); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPOrthogonalize",IP_CLASSID,&IP_Orthogonalize); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPInnerProduct",IP_CLASSID,&IP_InnerProduct); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPApplyMatrix",IP_CLASSID,&IP_ApplyMatrix); CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-log_info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList, "ip", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscInfoDeactivateClass(IP_COOKIE);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(IP_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
@@ -70,7 +70,7 @@ PetscErrorCode IPInitializePackage(const char *path)
   if (opt) {
     ierr = PetscStrstr(logList, "ip", &className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogEventDeactivateClass(IP_COOKIE);CHKERRQ(ierr);
+      ierr = PetscLogEventDeactivateClass(IP_CLASSID);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -104,7 +104,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 
   PetscFunctionBegin;
   PetscValidPointer(newip,2);
-  ierr = PetscHeaderCreate(ip,_p_IP,int,IP_COOKIE,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(ip,_p_IP,int,IP_CLASSID,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
   *newip            = ip;
   ip->orthog_type   = IP_ORTH_CGS;
   ip->orthog_ref    = IP_ORTH_REFINE_IFNEEDED;
@@ -145,7 +145,7 @@ PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)ip,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -174,7 +174,7 @@ PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)ip,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -204,7 +204,7 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 {
  PetscErrorCode ierr;
  PetscFunctionBegin;
- PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+ PetscValidHeaderSpecific(ip,IP_CLASSID,1);
  PetscValidPointer(prefix,2);
  ierr = PetscObjectGetOptionsPrefix((PetscObject)ip, prefix);CHKERRQ(ierr);
  PetscFunctionReturn(0);
@@ -237,7 +237,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
   PetscInt       i,j;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = PetscOptionsBegin(((PetscObject)ip)->comm,((PetscObject)ip)->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
   i = ip->orthog_type;
   ierr = PetscOptionsEList("-orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
@@ -288,7 +288,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
 PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrthogonalizationRefinementType refinement, PetscReal eta)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   switch (type) {
     case IP_ORTH_CGS:
     case IP_ORTH_MGS:
@@ -339,7 +339,7 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
 PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement, PetscReal *eta)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (type) *type = ip->orthog_type;
   if (refinement) *refinement = ip->orthog_ref;
   if (eta) *eta = ip->orthog_eta;
@@ -378,9 +378,9 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
   PetscTruth     isascii;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ip)->comm);
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_COOKIE,2);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ip,1,viewer,2);
 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSC_VIEWER_ASCII,&isascii);CHKERRQ(ierr);
@@ -434,7 +434,7 @@ PetscErrorCode IPDestroy(IP ip)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (--((PetscObject)ip)->refct > 0) PetscFunctionReturn(0);
 
   if (ip->matrix) { ierr = MatDestroy(ip->matrix);CHKERRQ(ierr); }
@@ -464,7 +464,7 @@ PetscErrorCode IPDestroy(IP ip)
 PetscErrorCode IPGetOperationCounters(IP ip,PetscInt *dots)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidPointer(dots,2);
   *dots = ip->innerproducts;
   PetscFunctionReturn(0);
@@ -488,7 +488,7 @@ PetscErrorCode IPGetOperationCounters(IP ip,PetscInt *dots)
 PetscErrorCode IPResetOperationCounters(IP ip)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_COOKIE,1);
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ip->innerproducts = 0;
   PetscFunctionReturn(0);
 }

@@ -381,7 +381,7 @@ PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscTruth explicitmatrix)
   PetscErrorCode ierr, (*f)(SVD,PetscTruth);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,explicitmatrix);CHKERRQ(ierr);
@@ -425,7 +425,7 @@ PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscTruth *explicitmatrix)
   PetscErrorCode ierr, (*f)(SVD,PetscTruth*);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,explicitmatrix);CHKERRQ(ierr);
@@ -442,7 +442,7 @@ PetscErrorCode SVDCyclicSetEPS_CYCLIC(SVD svd,EPS eps)
   SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,2);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(cyclic->eps);CHKERRQ(ierr);  
@@ -473,7 +473,7 @@ PetscErrorCode SVDCyclicSetEPS(SVD svd,EPS eps)
   PetscErrorCode ierr, (*f)(SVD,EPS eps);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicSetEPS_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,eps);CHKERRQ(ierr);
@@ -518,7 +518,7 @@ PetscErrorCode SVDCyclicGetEPS(SVD svd,EPS *eps)
   PetscErrorCode ierr, (*f)(SVD,EPS *eps);
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicGetEPS_C",(void (**)())&f);CHKERRQ(ierr);
   if (f) {
     ierr = (*f)(svd,eps);CHKERRQ(ierr);

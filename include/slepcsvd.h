@@ -27,7 +27,7 @@
 #include "slepceps.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscCookie SVD_COOKIE;
+extern PetscClassId SVD_CLASSID;
 
 /*S
      SVD - Abstract SLEPc object that manages all the singular value 

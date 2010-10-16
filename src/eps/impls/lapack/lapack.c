@@ -200,7 +200,7 @@ PetscErrorCode EPSDestroy_LAPACK(EPS eps)
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_COOKIE,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
   if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
   if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }

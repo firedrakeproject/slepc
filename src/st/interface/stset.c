@@ -64,7 +64,7 @@ PetscErrorCode STSetType(ST st,const STType type)
   PetscTruth match;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidCharPointer(type,2);
 
   ierr = PetscTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
@@ -110,7 +110,7 @@ PetscErrorCode STSetType(ST st,const STType type)
 PetscErrorCode STGetType(ST st,const STType *type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)st)->type_name;
   PetscFunctionReturn(0);
@@ -144,7 +144,7 @@ PetscErrorCode STSetFromOptions(ST st)
   const char     *structure_list[3] = { "same", "different", "subset" };
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
 
   ierr = PetscOptionsBegin(((PetscObject)st)->comm,((PetscObject)st)->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);
     ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
@@ -211,7 +211,7 @@ PetscErrorCode STSetFromOptions(ST st)
 PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   switch (str) {
     case SAME_NONZERO_PATTERN:
     case DIFFERENT_NONZERO_PATTERN:
@@ -248,7 +248,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(str,2);
   *str = st->str;
   PetscFunctionReturn(0);
@@ -298,7 +298,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
 PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   st->shift_matrix = mode;
   PetscFunctionReturn(0);
 }
@@ -324,7 +324,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_COOKIE,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   *mode = st->shift_matrix;
   PetscFunctionReturn(0);
 }

@@ -54,7 +54,7 @@ PetscErrorCode QEPSolve(QEP qep)
   char           filename[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
 
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetTruth(((PetscObject)qep)->prefix,"-qep_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
@@ -169,7 +169,7 @@ PetscErrorCode QEPSolve(QEP qep)
 PetscErrorCode QEPGetIterationNumber(QEP qep,PetscInt *its)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidIntPointer(its,2);
   *its = qep->its;
   PetscFunctionReturn(0);
@@ -198,7 +198,7 @@ PetscErrorCode QEPGetIterationNumber(QEP qep,PetscInt *its)
 PetscErrorCode QEPGetConverged(QEP qep,PetscInt *nconv)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidIntPointer(nconv,2);
   *nconv = qep->nconv;
   PetscFunctionReturn(0);
@@ -234,7 +234,7 @@ PetscErrorCode QEPGetConverged(QEP qep,PetscInt *nconv)
 PetscErrorCode QEPGetConvergedReason(QEP qep,QEPConvergedReason *reason)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidIntPointer(reason,2);
   *reason = qep->reason;
   PetscFunctionReturn(0);
@@ -278,7 +278,7 @@ PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScal
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (!qep->eigr || !qep->eigi || !qep->V) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
   }
@@ -348,7 +348,7 @@ PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScal
 PetscErrorCode QEPGetErrorEstimate(QEP qep, PetscInt i, PetscReal *errest)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (!qep->eigr || !qep->eigi) { 
     SETERRQ(PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
   }
@@ -465,7 +465,7 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep, PetscInt i, PetscReal *norm)
   PetscScalar    kr,ki;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(norm,3);
   ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
@@ -546,7 +546,7 @@ PetscErrorCode QEPComputeRelativeError(QEP qep, PetscInt i, PetscReal *error)
   PetscScalar    kr,ki;  
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);  
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
   PetscValidPointer(error,3);
   ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
@@ -784,7 +784,7 @@ PetscErrorCode QEPGetOperationCounters(QEP qep,PetscInt* matvecs,PetscInt* dots,
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_COOKIE,1);
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (matvecs) *matvecs = qep->matvecs; 
   if (dots) {
     ierr = IPGetOperationCounters(qep->ip,dots);CHKERRQ(ierr);

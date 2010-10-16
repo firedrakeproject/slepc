@@ -74,7 +74,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
                              void *mctx,PetscErrorCode (*monitordestroy)(void*))
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->numbermonitors >= MAXSVDMONITORS) {
     SETERRQ(PETSC_ERR_ARG_OUTOFRANGE,"Too many SVD monitors set");
   }
@@ -109,7 +109,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   for (i=0; i<svd->numbermonitors; i++) {
     if (svd->monitordestroy[i]) {
       ierr = (*svd->monitordestroy[i])(svd->monitorcontext[i]);CHKERRQ(ierr);
@@ -140,7 +140,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
 PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_COOKIE,1);
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   *ctx =      (svd->monitorcontext[0]);
   PetscFunctionReturn(0);
 }
