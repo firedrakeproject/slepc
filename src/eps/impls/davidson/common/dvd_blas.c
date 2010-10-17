@@ -35,6 +35,8 @@ void dvd_sum_local(void *in, void *out, PetscMPIInt *cnt,MPI_Datatype *t);
 PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
                                    void *ptr);
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcDenseMatProd"
 /*
   Compute C <- a*A*B + b*C, where
     ldC, the leading dimension of C,
@@ -45,8 +47,6 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
     rB, cB, rows and columns of B,
     Bt, if true use the transpose of B instead
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseMatProd"
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   PetscScalar a,
   const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscBool At,
@@ -88,6 +88,8 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcDenseMatProdTriang"
 /*
   Compute C <- A*B, where
     sC, structure of C,
@@ -101,8 +103,6 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
     rB, cB, rows and columns of B,
     Bt, if true use the transpose of B instead
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseMatProdTriang"
 PetscErrorCode SlepcDenseMatProdTriang(
   PetscScalar *C, MatType_t sC, PetscInt ldC,
   const PetscScalar *A, MatType_t sA, PetscInt ldA, PetscInt rA, PetscInt cA,
@@ -174,6 +174,8 @@ PetscErrorCode SlepcDenseMatProdTriang(
   SETERRQ(PETSC_COMM_SELF,1, "Matrix type not supported for A");
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcDenseNorm"
 /*
   Normalize the columns of the matrix A, where
     ldA, the leading dimension of A,
@@ -181,8 +183,6 @@ PetscErrorCode SlepcDenseMatProdTriang(
   if eigi is given, the pairs of contiguous columns i i+1 such as eigi[i] != 0
   are normalized as being one column.
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseNorm"
 PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
                               PetscInt cA, PetscScalar *eigi)
 {
@@ -216,6 +216,8 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
 }
   
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcDenseMatInvProd"
 /*
   Compute B <- A\B, where
     ldA, the leading dimension of A,
@@ -225,8 +227,6 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
     auxI, auxiliary vector of size dimA,
     auxS, auxiliary vector of size cB
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseMatInvProd"
 PetscErrorCode SlepcDenseMatInvProd(
   PetscScalar *A, PetscInt _ldA, PetscInt _dimA,
   PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt _cB,
@@ -259,6 +259,8 @@ PetscErrorCode SlepcDenseMatInvProd(
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcDenseOrth"
 /*
   Compute A <- orth(A), where
     ldA, the leading dimension of A,
@@ -267,8 +269,6 @@ PetscErrorCode SlepcDenseMatInvProd(
     lauxS, size of auxS,
     ncA, new number of columns of A
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseOrth"
 PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
                               PetscInt _cA, PetscScalar *auxS, PetscInt _lauxS,
                               PetscInt *ncA)
@@ -298,14 +298,14 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcDenseCopy"
 /*
   Y <- X, where
   ldX, leading dimension of X,
   rX, cX, rows and columns of X
   ldY, leading dimension of Y
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseCopy"
 PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
                               PetscInt ldX, PetscInt rX, PetscInt cX)
 {
@@ -336,14 +336,14 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcDenseCopyTriang"
 /*
   Y <- X, where
   ldX, leading dimension of X,
   rX, cX, rows and columns of X
   ldY, leading dimension of Y
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseCopyTriang"
 PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
                                     PetscScalar *X, MatType_t sX, PetscInt ldX,
                                     PetscInt rX, PetscInt cX)
@@ -418,12 +418,12 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcUpdateVectorsZ"
 /*
   Compute Y[0..cM-1] <- alpha * X[0..cX-1] * M + beta * Y[0..cM-1],
   where X and Y are contiguous global vectors.
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcUpdateVectorsZ"
 PetscErrorCode SlepcUpdateVectorsZ(Vec *Y, PetscScalar beta, PetscScalar alpha,
   Vec *X, PetscInt cX, const PetscScalar *M, PetscInt ldM, PetscInt rM,
   PetscInt cM)
@@ -439,12 +439,12 @@ PetscErrorCode SlepcUpdateVectorsZ(Vec *Y, PetscScalar beta, PetscScalar alpha,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcUpdateVectorsS"
 /*
   Compute Y[0:dY:cM*dY-1] <- alpha * X[0:dX:cX-1] * M + beta * Y[0:dY:cM*dY-1],
   where X and Y are contiguous global vectors.
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcUpdateVectorsS"
 PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   PetscScalar alpha, Vec *X, PetscInt cX, PetscInt dX, const PetscScalar *M,
   PetscInt ldM, PetscInt rM, PetscInt cM)
@@ -505,12 +505,12 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcUpdateVectorsD"
 /*
   Compute X <- alpha * X[0:dX:cX-1] * M
   where X is a matrix with non-consecutive columns
 */
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcUpdateVectorsD"
 PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   const PetscScalar *M, PetscInt ldM, PetscInt rM, PetscInt cM,
   PetscScalar *work, PetscInt lwork)
@@ -573,6 +573,8 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
 
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "VecsMult"
 /* Computes M <- [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ]
                  [ W(sU:eU-1, 0:sV-1) W(sU:eU-1, sV:eV-1) ]
   where W = U' * V.
@@ -580,9 +582,6 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   (eU-sU)*sV+(eV-sV)*eU. But, if sU == 0, sV == 0 and eU == ldM, only workS0
   is needed, and of size eU*eV.
 */
-
-#undef __FUNCT__  
-#define __FUNCT__ "VecsMult"
 PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
                         Vec *U, PetscInt sU, PetscInt eU,
                         Vec *V, PetscInt sV, PetscInt eV,
@@ -736,7 +735,8 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
 }
 
 
-
+#undef __FUNCT__  
+#define __FUNCT__ "VecsMultIa"
 /* Computes M <- [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ]
                  [ W(sU:eU-1, 0:sV-1) W(sU:eU-1, sV:eV-1) ]
   where W = local_U' * local_V. Needs VecsMultIb for completing the operation!
@@ -744,9 +744,6 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   (eU-sU)*sV+(eV-sV)*eU. But, if sU == 0, sV == 0 and eU == ldM, only workS0
   is needed, and of size eU*eV.
 */
-
-#undef __FUNCT__  
-#define __FUNCT__ "VecsMultIa"
 PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           Vec *U, PetscInt sU, PetscInt eU,
                           Vec *V, PetscInt sV, PetscInt eV)
@@ -804,12 +801,11 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "VecsMultIc"
 /* Computes M <- nprocs*M
   where nprocs is the number of processors.
 */
-
-#undef __FUNCT__  
-#define __FUNCT__ "VecsMultIc"
 PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           PetscInt rM, PetscInt cM, Vec V)
 {
@@ -833,6 +829,8 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "VecsMultIb"
 /* Computes N <- Allreduce( [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ] )
                           ( [ W(sU:eU-1, 0:sV-1) W(sU:eU-1, sV:eV-1) ] )
   where W = U' * V.
@@ -840,9 +838,6 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
   (eU-sU)*sV+(eV-sV)*eU. But, if sU == 0, sV == 0 and eU == ldM, only workS0
   is needed, and of size eU*eV.
 */
-
-#undef __FUNCT__  
-#define __FUNCT__ "VecsMultIb"
 PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           PetscInt rM, PetscInt cM, PetscScalar *auxS,
                           Vec V)
@@ -890,15 +885,14 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "VecsMultS"
 /* Computes M <- [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ]
                  [ W(sU:eU-1, 0:sV-1) W(sU:eU-1, sV:eV-1) ]
   where W = U' * V.
   r, a DvdReduction structure,
   sr, an structure DvdMult_copy_func.
 */
-
-#undef __FUNCT__  
-#define __FUNCT__ "VecsMultS"
 PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
                          Vec *U, PetscInt sU, PetscInt eU,
                          Vec *V, PetscInt sV, PetscInt eV, DvdReduction *r,
@@ -1036,11 +1030,11 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "VecsOrthonormalize"
 /* Orthonormalize a chunk of parallel vector.
    NOTE: wS0 and wS1 must be of size n*n.
 */
-#undef __FUNCT__  
-#define __FUNCT__ "VecsOrthonormalize"
 PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
                                   PetscScalar *wS1)
 {
@@ -1087,12 +1081,11 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcAllReduceSumBegin"
 /* 
   Sum up several arrays with only one call to MPIReduce.
 */
-
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcAllReduceSumBegin"
 PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,
                                       PetscInt max_size_ops,
                                       PetscScalar *in, PetscScalar *out,

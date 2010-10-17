@@ -510,6 +510,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXZ"
 /* 
   Compute: u <- K^{-1}*B*X, v <- (theta[0]*A+theta[1]*B)*X,
            kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1],
@@ -518,8 +520,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXZ"
 PetscErrorCode dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
   PetscInt i_e, Vec **u, Vec **v, Vec **kr, Vec **auxV_, PetscScalar *theta,
   PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY, PetscInt ld)
@@ -615,6 +615,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXZY"
 /* 
   Compute: u <- K^{-1}*B*X, v <- (theta[0]*A+theta[1]*B)*Y,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
@@ -623,8 +625,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXZY"
 PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
   PetscInt i_e, Vec **u, Vec **v, Vec **kr, Vec **auxV_, PetscScalar *theta,
   PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY, PetscInt ld)
@@ -751,6 +751,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXX"
 /* 
   Compute: u <- K^{-1}*B*X, v <- X,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1]
@@ -759,8 +761,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXX"
 PetscErrorCode dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
   PetscInt i_e, Vec **u, Vec **v, Vec **kr, Vec **auxV_, PetscScalar *theta,
   PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY, PetscInt ld)
@@ -853,6 +853,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXY"
 /* 
   Compute: u <- K^{-1}*B*X, v <- Y,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- V*pY[i_s..i_e-1]
@@ -861,8 +863,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXX(dvdDashboard *d, PetscInt i_s,
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_jd_proj_uv_KBXY"
 PetscErrorCode dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
   PetscInt i_e, Vec **u, Vec **v, Vec **kr, Vec **auxV_, PetscScalar *theta,
   PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY, PetscInt ld)
@@ -955,10 +955,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXY(dvdDashboard *d, PetscInt i_s,
 }
 
 
-
-
 #undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_jd_lit"
+#define __FUNCT__ "dvd_improvex_jd_lit_const"
 PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
                                          PetscInt maxits, PetscReal tol,
                                          PetscReal fix)
@@ -1025,9 +1023,9 @@ typedef PetscInt (*funcV0_t)(dvdDashboard*, PetscInt, PetscInt, Vec*);
 typedef PetscInt (*funcV1_t)(dvdDashboard*, PetscInt, PetscInt, Vec*,
                              PetscScalar*, Vec);
 
-/* Compute D <- K^{-1} * funcV[r_s..r_e] */
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_PfuncV"
+/* Compute D <- K^{-1} * funcV[r_s..r_e] */
 PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
   PetscInt max_size_D, PetscInt r_s, PetscInt r_e, Vec *auxV,
   PetscScalar *auxS)
@@ -1070,14 +1068,14 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_get_eigenvectors"
 /* Compute the left and right projected eigenvectors where,
    pX, the returned right eigenvectors
    pY, the returned left eigenvectors,
    ld_, the leading dimension of pX and pY,
    auxS, auxiliar vector of size length 6*d->size_H
 */
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_get_eigenvectors"
 PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
   PetscScalar *pY, PetscInt ld, PetscScalar *auxS, PetscInt size_auxS)
 {

@@ -35,6 +35,8 @@ typedef struct {
 } EPSSortForSTData;
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSortForSTFunc"
 PetscErrorCode EPSSortForSTFunc(EPS eps, PetscScalar ar, PetscScalar ai,
                                 PetscScalar br, PetscScalar bi, PetscInt *r,
                                 void *ctx)

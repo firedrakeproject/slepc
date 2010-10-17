@@ -75,7 +75,6 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "STSetUp_Precond"
 PetscErrorCode STSetUp_Precond(ST st)
@@ -270,6 +269,8 @@ PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
 }
 
 EXTERN_C_BEGIN
+#undef __FUNCT__
+#define __FUNCT__ "STPrecondGetMatForPC_Precond"
 PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
@@ -320,6 +321,8 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
 }
 
 EXTERN_C_BEGIN
+#undef __FUNCT__
+#define __FUNCT__ "STPrecondSetMatForPC_Precond"
 PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 {
   PC             pc;
@@ -407,6 +410,8 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
 }
 
 EXTERN_C_BEGIN
+#undef __FUNCT__
+#define __FUNCT__ "STPrecondSetKSPHasMat_Precond"
 PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;
@@ -422,6 +427,8 @@ PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
 EXTERN_C_END
 
 EXTERN_C_BEGIN
+#undef __FUNCT__
+#define __FUNCT__ "STPrecondGetKSPHasMat_Precond"
 PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
 {
   ST_PRECOND     *data = (ST_PRECOND*)st->data;

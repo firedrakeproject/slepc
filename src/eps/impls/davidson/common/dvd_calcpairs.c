@@ -416,12 +416,12 @@ PetscErrorCode dvd_calcpairs_projeig_qz_std(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_projeig_qz_gen"
 /*
   auxS(dgges) = size_H (beta) + 8*size_H+16 (work)
   auxS(zgges) = size_H (beta) + 1+2*size_H (work) + 8*size_H (rwork)
 */
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_projeig_qz_gen"
 PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
@@ -574,14 +574,14 @@ PetscErrorCode dvd_calcpairs_Y(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_res_0"
 /* Compute the residual vectors R(i) <- (AV - BV*eigr(i))*pX(i), and also
    the norm, where
    i <- r_s..r_e,
    UL, auxiliar scalar matrix of size size_H*(r_e-r_s),
    auxV, auxiliar global vector.
 */
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_res_0"
 PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
                              Vec *R, PetscScalar *UL, Vec auxV)
 {
@@ -674,7 +674,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
 
 /**** Patterns implementation *************************************************/
 #undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcPairs_updateMatV"
+#define __FUNCT__ "dvd_calcpairs_updateMatV"
 PetscErrorCode dvd_calcpairs_updateMatV(Mat A, Vec **AV, PetscInt *size_AV,
                                         dvdDashboard *d)
 {
@@ -708,6 +708,8 @@ PetscErrorCode dvd_calcpairs_updateMatV(Mat A, Vec **AV, PetscInt *size_AV,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_WtMatV_gen"
 /*
   Compute f.H = [MTY'*H*MTX     W(tra)'*V(new);
                  W(new)'*V(tra) W(new)'*V(new) ]
@@ -717,8 +719,6 @@ PetscErrorCode dvd_calcpairs_updateMatV(Mat A, Vec **AV, PetscInt *size_AV,
   ldH, the leading dimension of H,
   auxS, auxiliary scalar vector of size ldH*max(tra,size_V),
   */
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_WtMatV_gen"
 PetscErrorCode dvd_calcpairs_WtMatV_gen(PetscScalar **H, MatType_t sH,
   PetscInt ldH, PetscInt *size_H, PetscScalar *MTY, PetscInt ldMTY,
   PetscScalar *MTX, PetscInt ldMTX, PetscInt rMT, PetscInt cMT, Vec *W,

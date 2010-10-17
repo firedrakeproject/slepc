@@ -563,13 +563,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
     PetscPrintf(PETSC_COMM_WORLD, "MON: D:%d H:%d\n", size_D, d->size_H);
     d->initV(d);
     d->calcPairs(d);
-    //SETERRQ(1, "D == 0!\n");
-    //PetscFunctionReturn(1);
   }
-
-//  PetscPrintf(PETSC_COMM_WORLD, "EIGS: ");
-//  for(i=0; i<d->size_H; i++) PetscPrintf(PETSC_COMM_WORLD, "%d:%g ", i, d->eigr[i]);
-//  PetscPrintf(PETSC_COMM_WORLD, "\n");
 
   /* Fill V with D */
   ierr = d->improveX(d, d->V+d->size_V, d->max_size_V-d->size_V, 0, size_D,
@@ -652,6 +646,8 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
 }
 
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_updateV_restartV_aux"
 /*
   U <- [pX(0:size_X-1) gs(pX(0:size_X-1), oldpX(0:size_plusk-1))]
   V <- V * U,
@@ -660,8 +656,6 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   auxS, auxiliar vector of size 2*ldpX, at least
   size_auxS, the size of auxS
 */
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_updateV_restartV_aux"
 PetscErrorCode dvd_updateV_restartV_aux(Vec *V, PetscInt size_V,
                                         PetscScalar *U, PetscInt ldU,
                                         PetscScalar *pX, PetscInt ldpX,
@@ -701,6 +695,8 @@ PetscErrorCode dvd_updateV_restartV_aux(Vec *V, PetscInt size_V,
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_updateV_YtWx"
 /*
   Compute S = [ Y' * W * x
                 y' * W * x ]
@@ -719,8 +715,6 @@ PetscErrorCode dvd_updateV_restartV_aux(Vec *V, PetscInt size_V,
   auxV, array of auxiliar vectors of size cx (at the end, auxV <- W*x),
   auxS, auxiliar scalar vector of size rH*cx.
 */
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_updateV_YtWx"
 PetscErrorCode dvd_updateV_YtWx(PetscScalar *S, PetscInt ldS,
                                 Vec *Y, PetscInt cY, Vec *y, PetscInt cy,
                                 Vec *W, PetscInt cW, PetscScalar *x,
