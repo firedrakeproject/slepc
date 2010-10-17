@@ -27,7 +27,8 @@
 #else
 #define __SUF__(A) A##_Seq
 #endif
-#define __QUOTEME(x) #x
+#define __QUOTEME_(x) #x
+#define __QUOTEME(x) __QUOTEME_(x)
 #define __SUF_C__(A) __QUOTEME(__SUF__(A))
 
 
