@@ -126,7 +126,7 @@ int main( int argc, char **argv )
     ierr = STShellSetBackTransform(st,SampleShellSTBackTransform);CHKERRQ(ierr);
 
     /* (Optional) Set a name for the transformation, used for STView() */
-    ierr = STShellSetName(st,"MyTransformation");CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)st,"MyTransformation");CHKERRQ(ierr);
 
     /* (Optional) Do any setup required for the new transformation */
     ierr = SampleShellSTSetUp(shell,st);CHKERRQ(ierr);

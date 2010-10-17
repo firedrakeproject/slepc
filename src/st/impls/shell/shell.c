@@ -32,7 +32,6 @@ typedef struct {
   PetscErrorCode (*apply)(ST,Vec,Vec);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*backtr)(ST,PetscInt n,PetscScalar*,PetscScalar*);
-  char           *name;
 } ST_Shell;
 EXTERN_C_END
 
@@ -163,32 +162,10 @@ PetscErrorCode STDestroy_Shell(ST st)
   ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(shell->name);CHKERRQ(ierr);
   ierr = PetscFree(shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetName_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellGetName_C","",PETSC_NULL);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STView_Shell"
-PetscErrorCode STView_Shell(ST st,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  ST_Shell       *ctx = (ST_Shell*)st->data;
-  PetscBool      isascii;
-
-  PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    if (ctx->name) {ierr = PetscViewerASCIIPrintf(viewer,"  ST Shell: %s\n",ctx->name);CHKERRQ(ierr);}
-    else           {ierr = PetscViewerASCIIPrintf(viewer,"  ST Shell: no name\n");CHKERRQ(ierr);}
-  } else {
-    SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported for STShell",((PetscObject)viewer)->type_name);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -227,34 +204,6 @@ PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,P
 
   PetscFunctionBegin;
   shell->backtr = backtr;
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "STShellSetName_Shell"
-PetscErrorCode STShellSetName_Shell(ST st,const char name[])
-{
-  ST_Shell *shell = (ST_Shell*)st->data;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(shell->name);CHKERRQ(ierr);    
-  ierr = PetscStrallocpy(name,&shell->name);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "STShellGetName_Shell"
-PetscErrorCode STShellGetName_Shell(ST st,char *name[])
-{
-  ST_Shell *shell = (ST_Shell*)st->data;
-
-  PetscFunctionBegin;
-  *name  = shell->name;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -366,61 +315,6 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STShellSetName"
-/*@C
-   STShellSetName - Sets an optional name to associate with a shell
-   spectral transformation.
-
-   Not Collective
-
-   Input Parameters:
-+  st   - the spectral transformation context
--  name - character string describing the shell spectral transformation
-
-   Level: developer
-
-.seealso: STShellGetName()
-@*/
-PetscErrorCode STShellSetName(ST st,const char name[])
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscTryMethod(st,"STShellSetName_C",(ST,const char []),(st,name));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STShellGetName"
-/*@C
-   STShellGetName - Gets an optional name that the user has set for a shell
-   spectral transformation.
-
-   Not Collective
-
-   Input Parameter:
-.  st - the spectral transformation context
-
-   Output Parameter:
-.  name - character string describing the shell spectral transformation 
-          (you should not free this)
-
-   Level: developer
-
-.seealso: STShellSetName()
-@*/
-PetscErrorCode STShellGetName(ST st,char *name[])
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscUseMethod(st,"STShellGetName_C",(ST,char *[]),(st,name));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STSetFromOptions_Shell"
 PetscErrorCode STSetFromOptions_Shell(ST st) 
 {
@@ -482,25 +376,21 @@ PetscErrorCode STCreate_Shell(ST st)
   ierr = PetscLogObjectMemory(st,sizeof(ST_Shell));CHKERRQ(ierr);
 
   st->data           = (void *) shell;
-  ((PetscObject)st)->name           = 0;
 
   st->ops->apply          = STApply_Shell;
   st->ops->applytrans     = STApplyTranspose_Shell;
   st->ops->backtr         = STBackTransform_Shell;
-  st->ops->view           = STView_Shell;
+  st->ops->view           = PETSC_NULL;
   st->ops->setfromoptions = STSetFromOptions_Shell;
 
   shell->apply       = 0;
   shell->applytrans  = 0;
   shell->backtr      = 0;
-  shell->name        = 0;
   shell->ctx         = 0;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",STShellSetApply_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","STShellSetApplyTranspose_Shell",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","STShellSetBackTransform_Shell",STShellSetBackTransform_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetName_C","STShellSetName_Shell",STShellSetName_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellGetName_C","STShellGetName_Shell",STShellGetName_Shell);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
