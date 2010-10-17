@@ -546,13 +546,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"ST Object:\n");CHKERRQ(ierr);
-    ierr = STGetType(st,&cstr);CHKERRQ(ierr);
-    if (cstr) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  type: %s\n",cstr);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  type: not yet set\n");CHKERRQ(ierr);
-    }
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)st,viewer,"ST Object");CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g\n",st->sigma);CHKERRQ(ierr);
 #else

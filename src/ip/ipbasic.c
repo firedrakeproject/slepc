@@ -384,7 +384,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"IP Object:\n");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ip,viewer,"IP Object");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
     switch (ip->orthog_type) {
       case IP_ORTH_MGS:

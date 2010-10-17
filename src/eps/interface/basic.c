@@ -145,7 +145,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 #endif
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"EPS Object:\n");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer,"EPS Object");CHKERRQ(ierr);
     switch (eps->problem_type) {
       case EPS_HEP:   type = HERM " eigenvalue problem"; break;
       case EPS_GHEP:  type = "generalized " HERM " eigenvalue problem"; break;
@@ -157,12 +157,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->problem_type");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
-    ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-    if (type) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  method: %s\n",type);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  method: not yet set\n");CHKERRQ(ierr);
-    }
     if (eps->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
