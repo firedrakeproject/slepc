@@ -416,16 +416,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMESetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,bs);CHKERRQ(ierr);
-  }
-  
+  ierr = PetscTryMethod(eps,"EPSPRIMMESetBlockSize_C",(EPS,PetscInt),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -462,16 +457,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMEGetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,bs);CHKERRQ(ierr);
-  }
-  
+  ierr = PetscTryMethod(eps,"EPSPRIMMEGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -520,16 +510,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPSPRIMMEMethod);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMESetMethod_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,method); CHKERRQ(ierr);
-  }
-  
+  ierr = PetscTryMethod(eps,"EPSPRIMMESetMethod_C",(EPS,EPSPRIMMEMethod),(eps,method));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -574,16 +559,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPSPRIMMEMethod*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPRIMMEGetMethod_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,method); CHKERRQ(ierr);
-  }
-  
+  ierr = PetscTryMethod(eps,"EPSPRIMMEGetMethod_C",(EPS,EPSPRIMMEMethod*),(eps,method));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -509,14 +509,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearSetCompanionForm(QEP qep,PetscInt cform)
 {
-  PetscErrorCode ierr, (*f)(QEP,PetscInt);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearSetCompanionForm_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(qep,cform);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(qep,"QEPLinearSetCompanionForm_C",(QEP,PetscInt),(qep,cform));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -554,14 +551,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearGetCompanionForm(QEP qep,PetscInt *cform)
 {
-  PetscErrorCode ierr, (*f)(QEP,PetscInt*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearGetCompanionForm_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(qep,cform);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(qep,"QEPLinearGetCompanionForm_C",(QEP,PetscInt*),(qep,cform));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -599,14 +593,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscBool explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(QEP,PetscBool);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearSetExplicitMatrix_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(qep,explicitmatrix);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(qep,"QEPLinearSetExplicitMatrix_C",(QEP,PetscBool),(qep,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -644,14 +635,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearGetExplicitMatrix(QEP qep,PetscBool *explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(QEP,PetscBool*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearGetExplicitMatrix_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(qep,explicitmatrix);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(qep,"QEPLinearGetExplicitMatrix_C",(QEP,PetscBool*),(qep,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -692,14 +680,12 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearSetEPS(QEP qep,EPS eps)
 {
-  PetscErrorCode ierr, (*f)(QEP,EPS);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearSetEPS_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(qep,eps);CHKERRQ(ierr);
-  }
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
+  ierr = PetscTryMethod(qep,"QEPLinearSetEPS_C",(QEP,EPS),(qep,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -737,14 +723,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode QEPLinearGetEPS(QEP qep,EPS *eps)
 {
-  PetscErrorCode ierr, (*f)(QEP,EPS*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)qep,"QEPLinearGetEPS_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(qep,eps);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(qep,"QEPLinearGetEPS_C",(QEP,EPS*),(qep,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

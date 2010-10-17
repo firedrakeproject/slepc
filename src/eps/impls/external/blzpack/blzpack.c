@@ -404,14 +404,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,bs);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSBlzpackSetBlockSize_C",(EPS,PetscInt),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -462,14 +459,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscReal,PetscReal);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSBlzpackSetInterval_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,initial,final);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSBlzpackSetInterval_C",(EPS,PetscReal,PetscReal),(eps,initial,final));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -507,14 +501,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSBlzpackSetNSteps(EPS eps,PetscInt nsteps)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,nsteps);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSBlzpackSetNSteps_C",(EPS,PetscInt),(eps,nsteps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

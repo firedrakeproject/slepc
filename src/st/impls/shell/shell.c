@@ -286,14 +286,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 {
-  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,Vec,Vec));
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetApply_C",(void (**)(void))&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,apply);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STShellSetApply_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,apply));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -324,14 +321,11 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 @*/
 PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
 {
-  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,Vec,Vec));
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetApplyTranspose_C",(void (**)(void))&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,applytrans);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STShellSetApplyTranspose_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,applytrans));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -363,14 +357,11 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
 @*/
 PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
 {
-  PetscErrorCode ierr, (*f)(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*));
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetBackTransform_C",(void (**)(void))&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,backtr);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STShellSetBackTransform_C",(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*)),(st,backtr));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -392,14 +383,11 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
 @*/
 PetscErrorCode STShellSetName(ST st,const char name[])
 {
-  PetscErrorCode ierr, (*f)(ST,const char []);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STShellSetName_C",(void (**)(void))&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,name);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STShellSetName_C",(ST,const char []),(st,name));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -424,16 +412,11 @@ PetscErrorCode STShellSetName(ST st,const char name[])
 @*/
 PetscErrorCode STShellGetName(ST st,char *name[])
 {
-  PetscErrorCode ierr, (*f)(ST,char *[]);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STShellGetName_C",(void (**)(void))&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,name);CHKERRQ(ierr);
-  } else {
-    SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONG,"Not shell spectral transformation, cannot get name");
-  }
+  ierr = PetscUseMethod(st,"STShellGetName_C",(ST,char *[]),(st,name));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

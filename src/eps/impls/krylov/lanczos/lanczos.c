@@ -765,14 +765,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSLanczosSetReorthog(EPS eps,EPSLanczosReorthogType reorthog)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPSLanczosReorthogType);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSLanczosSetReorthog_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,reorthog);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSLanczosSetReorthog_C",(EPS,EPSLanczosReorthogType),(eps,reorthog));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -808,14 +805,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPSLanczosReorthogType*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSLanczosGetReorthog_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,reorthog);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSLanczosGetReorthog_C",(EPS,EPSLanczosReorthogType*),(eps,reorthog));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

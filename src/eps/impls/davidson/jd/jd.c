@@ -180,14 +180,11 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
 @*/
 PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscBool);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,krylovstart);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDSetKrylovStart_C",(EPS,PetscBool),(eps,krylovstart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -212,14 +209,11 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
 @*/
 PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscBool*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,krylovstart);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -245,14 +239,11 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 @*/
 PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,blocksize);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDSetBlockSize_C",(EPS,PetscInt),(eps,blocksize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -277,14 +268,11 @@ PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
 @*/
 PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetBlockSize_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,blocksize);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -311,14 +299,11 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
 @*/
 PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt*,PetscInt*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetRestart_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,minv,plusk);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -349,14 +334,11 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 @*/
 PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt,PetscInt);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetRestart_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,minv,plusk);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDSetRestart_C",(EPS,PetscInt,PetscInt),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -386,14 +368,11 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 @*/
 PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetInitialSize_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,initialsize);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -425,14 +404,11 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 @*/
 PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscInt);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetInitialSize_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,initialsize);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDSetInitialSize_C",(EPS,PetscInt),(eps,initialsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -456,14 +432,11 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
 @*/
 PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscReal*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDGetFix_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,fix);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -492,13 +465,10 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
 @*/
 PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscReal);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSJDSetFix_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,fix);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSJDSetFix_C",(EPS,PetscReal),(eps,fix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

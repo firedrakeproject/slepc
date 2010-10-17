@@ -261,14 +261,11 @@ PetscErrorCode STDestroy_Precond(ST st)
 @*/
 PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
 {
-  PetscErrorCode ierr, (*f)(ST,Mat*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetMatForPC_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,mat);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STPrecondGetMatForPC_C",(ST,Mat*),(st,mat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -313,15 +310,12 @@ EXTERN_C_END
 @*/
 PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
 {
-  PetscErrorCode ierr, (*f)(ST,Mat);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetMatForPC_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,mat);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STPrecondSetMatForPC_C",(ST,Mat),(st,mat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -375,14 +369,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
 {
-  PetscErrorCode ierr, (*f)(ST,PetscBool);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,setmat);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STPrecondSetKSPHasMat_C",(ST,PetscBool),(st,setmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -407,14 +398,11 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
 @*/
 PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
 {
-  PetscErrorCode ierr, (*f)(ST,PetscBool*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,setmat);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,setmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

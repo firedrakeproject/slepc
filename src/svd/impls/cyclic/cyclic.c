@@ -378,14 +378,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscBool);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(svd,explicitmatrix);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(svd,"SVDCyclicSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -422,14 +419,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscBool*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(svd,explicitmatrix);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(svd,"SVDCyclicGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -470,14 +464,12 @@ EXTERN_C_END
 @*/
 PetscErrorCode SVDCyclicSetEPS(SVD svd,EPS eps)
 {
-  PetscErrorCode ierr, (*f)(SVD,EPS eps);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicSetEPS_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(svd,eps);CHKERRQ(ierr);
-  }
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
+  ierr = PetscTryMethod(svd,"SVDCyclicSetEPS_C",(SVD,EPS),(svd,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -515,14 +507,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode SVDCyclicGetEPS(SVD svd,EPS *eps)
 {
-  PetscErrorCode ierr, (*f)(SVD,EPS *eps);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDCyclicGetEPS_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(svd,eps);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(svd,"SVDCyclicGetEPS_C",(SVD,EPS*),(svd,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

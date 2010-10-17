@@ -370,14 +370,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
 {
-  PetscErrorCode ierr, (*f)(ST,PetscScalar);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)st,"STCayleySetAntishift_C",(void (**)(void))&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(st,nu);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

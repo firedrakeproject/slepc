@@ -359,14 +359,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscBool oneside)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscBool);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDLanczosSetOneSide_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(svd,oneside);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(svd,"SVDLanczosSetOneSide_C",(SVD,PetscBool),(svd,oneside));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -390,14 +387,11 @@ PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscBool oneside)
 @*/
 PetscErrorCode SVDLanczosGetOneSide(SVD svd,PetscBool *oneside)
 {
-  PetscErrorCode ierr, (*f)(SVD,PetscBool*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)svd,"SVDLanczosGetOneSide_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(svd,oneside);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(svd,"SVDLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

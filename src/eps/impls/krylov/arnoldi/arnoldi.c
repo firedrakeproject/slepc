@@ -505,14 +505,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscBool delayed)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscBool);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,delayed);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSArnoldiSetDelayed_C",(EPS,PetscBool),(eps,delayed));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -549,14 +546,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
 {
-  PetscErrorCode ierr, (*f)(EPS,PetscBool*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,delayed);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSArnoldiGetDelayed_C",(EPS,PetscBool*),(eps,delayed));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

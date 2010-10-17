@@ -472,14 +472,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPSPowerShiftType);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPowerSetShiftType_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,shift);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSPowerSetShiftType_C",(EPS,EPSPowerShiftType),(eps,shift));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -515,14 +512,11 @@ EXTERN_C_END
 @*/
 PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
 {
-  PetscErrorCode ierr, (*f)(EPS,EPSPowerShiftType*);
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectQueryFunction((PetscObject)eps,"EPSPowerGetShiftType_C",(void (**)())&f);CHKERRQ(ierr);
-  if (f) {
-    ierr = (*f)(eps,shift);CHKERRQ(ierr);
-  }
+  ierr = PetscTryMethod(eps,"EPSPowerGetShiftType_C",(EPS,EPSPowerShiftType*),(eps,shift));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
