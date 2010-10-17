@@ -119,8 +119,6 @@ EXTERN PetscErrorCode STShellSetContext(ST st,void *ctx);
 EXTERN PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec));
 EXTERN PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec));
 EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*));
-EXTERN PetscErrorCode STShellSetName(ST,const char[]);
-EXTERN PetscErrorCode STShellGetName(ST,char*[]);
 
 EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 

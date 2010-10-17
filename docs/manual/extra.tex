@@ -85,13 +85,6 @@ has to be invoked after the creation of the \ident{ST} object in order to provid
 	\end{Verbatim}
 can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user can make use of any required user-defined information via a context that can be retrieved with \ident{STShellGetContext}.
 
-	Finally, the application programmer can use the following function
-	\findex{STShellSetName}
-	\begin{Verbatim}[fontsize=\small]
-      STShellSetName(ST,const char*);
-	\end{Verbatim}
-to specify a name for the new shell transformation in order to identify it in the program's output (\ident{STView}).
-
 	\slepc further supports extensibility by allowing application programmers to code their own subroutines for unimplemented features such as new eigensolvers or new spectral transformations. It is possible to register these new methods to the system and use them as the rest of standard subroutines. For example, to implement a variant of the Subspace Iteration method, one could copy the \slepc code associated to the \texttt{subspace} solver, modify it and register a new \ident{EPS} type with the following line of code
 	\begin{Verbatim}[fontsize=\small]
 	EPSRegister("newsubspace",0,"EPSCreate_NEWSUB",EPSCreate_NEWSUB);
