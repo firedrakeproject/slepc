@@ -144,6 +144,18 @@ PetscErrorCode STSetUp_Fold(ST st)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "STView_Fold"
+PetscErrorCode STView_Fold(ST st,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->B) {
+    ierr = STView_Default(st,viewer);CHKERRQ(ierr);
+  } 
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetFromOptions_Fold"
@@ -206,7 +218,7 @@ PetscErrorCode STCreate_Fold(ST st)
   st->ops->applytrans      = STApplyTranspose_Fold;
   st->ops->backtr	   = STBackTransform_Fold;
   st->ops->setup	   = STSetUp_Fold;
-  st->ops->view 	   = STView_Default;
+  st->ops->view 	   = STView_Fold;
   st->ops->setfromoptions  = STSetFromOptions_Fold;
   st->ops->destroy	   = STDestroy_Fold;
   st->checknullspace	   = 0;
