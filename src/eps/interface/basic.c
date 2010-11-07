@@ -146,16 +146,17 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer,"EPS Object");CHKERRQ(ierr);
-    switch (eps->problem_type) {
-      case EPS_HEP:   type = HERM " eigenvalue problem"; break;
-      case EPS_GHEP:  type = "generalized " HERM " eigenvalue problem"; break;
-      case EPS_NHEP:  type = "non-" HERM " eigenvalue problem"; break;
-      case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
-      case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
-      case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
-      case 0:         type = "not yet set"; break;
-      default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->problem_type");
-    }
+    if (eps->problem_type) {
+      switch (eps->problem_type) {
+        case EPS_HEP:   type = HERM " eigenvalue problem"; break;
+        case EPS_GHEP:  type = "generalized " HERM " eigenvalue problem"; break;
+        case EPS_NHEP:  type = "non-" HERM " eigenvalue problem"; break;
+        case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
+        case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
+        case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
+        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->problem_type");
+      }
+    } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     if (eps->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);

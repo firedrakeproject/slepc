@@ -146,13 +146,14 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)qep,viewer,"QEP Object");CHKERRQ(ierr);
-    switch (qep->problem_type) {
-      case QEP_GENERAL:    type = "general quadratic eigenvalue problem"; break;
-      case QEP_HERMITIAN:  type = HERM " quadratic eigenvalue problem"; break;
-      case QEP_GYROSCOPIC: type = "gyroscopic quadratic eigenvalue problem"; break;
-      case 0:         type = "not yet set"; break;
-      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
-    }
+    if (qep->problem_type) {
+      switch (qep->problem_type) {
+        case QEP_GENERAL:    type = "general quadratic eigenvalue problem"; break;
+        case QEP_HERMITIAN:  type = HERM " quadratic eigenvalue problem"; break;
+        case QEP_GYROSCOPIC: type = "gyroscopic quadratic eigenvalue problem"; break;
+        default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
+      }
+    } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     if (!qep->which) {

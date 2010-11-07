@@ -161,7 +161,7 @@
       endif
  120  format (' Solution method: ',A)
       call EPSGetDimensions(solver,nev,PETSC_NULL_INTEGER,              &
-                            PETSC_NULL_INTEGER,ierr)
+     &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif

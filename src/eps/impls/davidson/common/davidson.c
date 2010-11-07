@@ -194,8 +194,10 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   dvd->eps = eps;
 
   /* Setup the extraction technique */
+  if (!eps->extraction) {
+    ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
+  }
   switch(eps->extraction) {
-  case 0:
   case EPS_RITZ:              harm = DVD_HARM_NONE; break;
   case EPS_HARMONIC:          harm = DVD_HARM_RR; break;
   case EPS_HARMONIC_RELATIVE: harm = DVD_HARM_RRR; break;
