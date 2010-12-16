@@ -66,16 +66,16 @@ struct _p_ST {
   
 };
 
-EXTERN PetscErrorCode STRegisterAll(const char*);
-EXTERN PetscErrorCode STInitializePackage(const char*);
-EXTERN PetscErrorCode STFinalizePackage(void);
+extern PetscErrorCode STRegisterAll(const char*);
+extern PetscErrorCode STInitializePackage(const char*);
+extern PetscErrorCode STFinalizePackage(void);
 
-EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
-EXTERN PetscErrorCode STView_Default(ST,PetscViewer);
-EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
-EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
-EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
-EXTERN PetscErrorCode STMatShellCreate(ST st,Mat *mat);
+extern PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
+extern PetscErrorCode STView_Default(ST,PetscViewer);
+extern PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
+extern PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
+extern PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
+extern PetscErrorCode STMatShellCreate(ST st,Mat *mat);
 
 #endif
 

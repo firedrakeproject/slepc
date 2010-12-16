@@ -129,34 +129,34 @@ typedef struct {
   PetscViewerASCIIMonitor viewer;
   PetscInt oldnconv;
 } EPSMONITOR_CONV;
-EXTERN PetscErrorCode EPSMonitorDestroy_Converged(EPSMONITOR_CONV*);
+extern PetscErrorCode EPSMonitorDestroy_Converged(EPSMONITOR_CONV*);
 
-EXTERN PetscErrorCode EPSRegisterAll(const char *);
-EXTERN PetscErrorCode EPSInitializePackage(const char *);
-EXTERN PetscErrorCode EPSFinalizePackage(void);
+extern PetscErrorCode EPSRegisterAll(const char *);
+extern PetscErrorCode EPSInitializePackage(const char *);
+extern PetscErrorCode EPSFinalizePackage(void);
 
-EXTERN PetscErrorCode EPSDestroy_Default(EPS);
-EXTERN PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);
-EXTERN PetscErrorCode EPSDefaultFreeWork(EPS);
-EXTERN PetscErrorCode EPSAllocateSolution(EPS);
-EXTERN PetscErrorCode EPSFreeSolution(EPS);
-EXTERN PetscErrorCode EPSBackTransform_Default(EPS);
-EXTERN PetscErrorCode EPSComputeVectors_Default(EPS);
-EXTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
-EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
-EXTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-EXTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-EXTERN PetscErrorCode EPSComputeTrueResidual(EPS,PetscScalar,PetscScalar,PetscScalar*,Vec*,PetscInt,PetscReal*);
+extern PetscErrorCode EPSDestroy_Default(EPS);
+extern PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);
+extern PetscErrorCode EPSDefaultFreeWork(EPS);
+extern PetscErrorCode EPSAllocateSolution(EPS);
+extern PetscErrorCode EPSFreeSolution(EPS);
+extern PetscErrorCode EPSBackTransform_Default(EPS);
+extern PetscErrorCode EPSComputeVectors_Default(EPS);
+extern PetscErrorCode EPSComputeVectors_Hermitian(EPS);
+extern PetscErrorCode EPSComputeVectors_Schur(EPS);
+extern PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+extern PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+extern PetscErrorCode EPSComputeTrueResidual(EPS,PetscScalar,PetscScalar,PetscScalar*,Vec*,PetscInt,PetscReal*);
 
 /* Private functions of the solver implementations */
 
-EXTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscBool,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
-EXTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
-EXTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
-EXTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*,PetscScalar*);
-EXTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscBool*);
-EXTERN PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
-EXTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
-EXTERN PetscErrorCode EPSProjectedKSNonsym(EPS,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
+extern PetscErrorCode EPSBasicArnoldi(EPS,PetscBool,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
+extern PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
+extern PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
+extern PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*,PetscScalar*);
+extern PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscBool*);
+extern PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
+extern PetscErrorCode EPSBuildBalance_Krylov(EPS);
+extern PetscErrorCode EPSProjectedKSNonsym(EPS,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
 
 #endif

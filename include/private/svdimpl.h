@@ -84,9 +84,9 @@ struct _p_SVD {
   PetscInt        matvecs;
 };
 
-EXTERN PetscErrorCode SVDRegisterAll(const char *);
-EXTERN PetscErrorCode SVDInitializePackage(const char*);
-EXTERN PetscErrorCode SVDFinalizePackage(void);
+extern PetscErrorCode SVDRegisterAll(const char *);
+extern PetscErrorCode SVDInitializePackage(const char*);
+extern PetscErrorCode SVDFinalizePackage(void);
 
 #define SVDMonitor(svd,it,nconv,sigma,errest,nest) \
         { PetscErrorCode _ierr; PetscInt _i,_im = svd->numbermonitors; \
@@ -101,13 +101,13 @@ typedef struct {
   PetscViewerASCIIMonitor viewer;
   PetscInt oldnconv;
 } SVDMONITOR_CONV;
-EXTERN PetscErrorCode SVDMonitorDestroy_Converged(SVDMONITOR_CONV*);
+extern PetscErrorCode SVDMonitorDestroy_Converged(SVDMONITOR_CONV*);
 
-EXTERN PetscErrorCode SVDDestroy_Default(SVD);
-EXTERN PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
-EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
-EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
-EXTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
-EXTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*);
+extern PetscErrorCode SVDDestroy_Default(SVD);
+extern PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
+extern PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
+extern PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
+extern PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
+extern PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*);
 
 #endif

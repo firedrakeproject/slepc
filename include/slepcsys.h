@@ -44,23 +44,23 @@ PETSC_EXTERN_CXX_BEGIN
 /*
     Initialization of SLEPc and other system routines
 */
-EXTERN PetscErrorCode SlepcInitialize(int*,char***,char[],const char[]);
-EXTERN PetscErrorCode SlepcFinalize(void);
-EXTERN PetscErrorCode SlepcInitializeFortran(void);
+extern PetscErrorCode SlepcInitialize(int*,char***,char[],const char[]);
+extern PetscErrorCode SlepcFinalize(void);
+extern PetscErrorCode SlepcInitializeFortran(void);
 
-EXTERN PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
-EXTERN PetscErrorCode SlepcIsHermitian(Mat,PetscBool*);
+extern PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
+extern PetscErrorCode SlepcIsHermitian(Mat,PetscBool*);
 #if !defined(PETSC_USE_COMPLEX)
-EXTERN PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
+extern PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 #else
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
 #endif
-EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
-EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
-EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
-EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
-EXTERN PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
-EXTERN PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
+extern PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
+extern PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
+extern PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
+extern PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
+extern PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
+extern PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
  
 extern PetscBool SlepcInitializeCalled;
 

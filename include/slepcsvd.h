@@ -89,74 +89,74 @@ typedef enum {/* converged */
               SVD_DIVERGED_BREAKDOWN           = -4,
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 
-EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
-EXTERN PetscErrorCode SVDSetIP(SVD,IP);
-EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
-EXTERN PetscErrorCode SVDSetType(SVD,const SVDType);
-EXTERN PetscErrorCode SVDGetType(SVD,const SVDType*);
-EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
-EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
-EXTERN PetscErrorCode SVDSetInitialSpace(SVD,PetscInt,Vec*);
-EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
-EXTERN PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
-EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);
-EXTERN PetscErrorCode SVDGetDimensions(SVD,PetscInt*,PetscInt*,PetscInt*);
-EXTERN PetscErrorCode SVDSetTolerances(SVD,PetscReal,PetscInt);
-EXTERN PetscErrorCode SVDGetTolerances(SVD,PetscReal*,PetscInt*);
-EXTERN PetscErrorCode SVDSetWhichSingularTriplets(SVD,SVDWhich);
-EXTERN PetscErrorCode SVDGetWhichSingularTriplets(SVD,SVDWhich*);
-EXTERN PetscErrorCode SVDSetFromOptions(SVD);
-EXTERN PetscErrorCode SVDSetOptionsPrefix(SVD,const char*);
-EXTERN PetscErrorCode SVDAppendOptionsPrefix(SVD,const char*);
-EXTERN PetscErrorCode SVDGetOptionsPrefix(SVD,const char*[]);
-EXTERN PetscErrorCode SVDSetUp(SVD);
-EXTERN PetscErrorCode SVDSolve(SVD);
-EXTERN PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);
-EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
-EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
-EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
-EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,PetscReal*);
-EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
-EXTERN PetscErrorCode SVDGetOperationCounters(SVD,PetscInt*,PetscInt*);
-EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
-EXTERN PetscErrorCode SVDDestroy(SVD);
+extern PetscErrorCode SVDCreate(MPI_Comm,SVD*);
+extern PetscErrorCode SVDSetIP(SVD,IP);
+extern PetscErrorCode SVDGetIP(SVD,IP*);
+extern PetscErrorCode SVDSetType(SVD,const SVDType);
+extern PetscErrorCode SVDGetType(SVD,const SVDType*);
+extern PetscErrorCode SVDSetOperator(SVD,Mat);
+extern PetscErrorCode SVDGetOperator(SVD,Mat*);
+extern PetscErrorCode SVDSetInitialSpace(SVD,PetscInt,Vec*);
+extern PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
+extern PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
+extern PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);
+extern PetscErrorCode SVDGetDimensions(SVD,PetscInt*,PetscInt*,PetscInt*);
+extern PetscErrorCode SVDSetTolerances(SVD,PetscReal,PetscInt);
+extern PetscErrorCode SVDGetTolerances(SVD,PetscReal*,PetscInt*);
+extern PetscErrorCode SVDSetWhichSingularTriplets(SVD,SVDWhich);
+extern PetscErrorCode SVDGetWhichSingularTriplets(SVD,SVDWhich*);
+extern PetscErrorCode SVDSetFromOptions(SVD);
+extern PetscErrorCode SVDSetOptionsPrefix(SVD,const char*);
+extern PetscErrorCode SVDAppendOptionsPrefix(SVD,const char*);
+extern PetscErrorCode SVDGetOptionsPrefix(SVD,const char*[]);
+extern PetscErrorCode SVDSetUp(SVD);
+extern PetscErrorCode SVDSolve(SVD);
+extern PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);
+extern PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
+extern PetscErrorCode SVDGetConverged(SVD,PetscInt*);
+extern PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
+extern PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,PetscReal*);
+extern PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
+extern PetscErrorCode SVDGetOperationCounters(SVD,PetscInt*,PetscInt*);
+extern PetscErrorCode SVDView(SVD,PetscViewer);
+extern PetscErrorCode SVDDestroy(SVD);
 
-EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
+extern PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
                                     void*,PetscErrorCode (*monitordestroy)(void*));
-EXTERN PetscErrorCode SVDMonitorCancel(SVD);
-EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
-EXTERN PetscErrorCode SVDMonitorAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
-EXTERN PetscErrorCode SVDMonitorFirst(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
-EXTERN PetscErrorCode SVDMonitorConverged(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
-EXTERN PetscErrorCode SVDMonitorLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
-EXTERN PetscErrorCode SVDMonitorLGAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+extern PetscErrorCode SVDMonitorCancel(SVD);
+extern PetscErrorCode SVDGetMonitorContext(SVD,void **);
+extern PetscErrorCode SVDMonitorAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+extern PetscErrorCode SVDMonitorFirst(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+extern PetscErrorCode SVDMonitorConverged(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+extern PetscErrorCode SVDMonitorLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+extern PetscErrorCode SVDMonitorLGAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
 
-EXTERN PetscErrorCode SVDSetTrackAll(SVD,PetscBool);
-EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscBool*);
+extern PetscErrorCode SVDSetTrackAll(SVD,PetscBool);
+extern PetscErrorCode SVDGetTrackAll(SVD,PetscBool*);
 
-EXTERN PetscErrorCode SVDDense(PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
+extern PetscErrorCode SVDDense(PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 
-EXTERN PetscErrorCode SVDCrossSetEPS(SVD,EPS);
-EXTERN PetscErrorCode SVDCrossGetEPS(SVD,EPS*);
+extern PetscErrorCode SVDCrossSetEPS(SVD,EPS);
+extern PetscErrorCode SVDCrossGetEPS(SVD,EPS*);
 
-EXTERN PetscErrorCode SVDCyclicSetExplicitMatrix(SVD,PetscBool);
-EXTERN PetscErrorCode SVDCyclicGetExplicitMatrix(SVD,PetscBool*);
-EXTERN PetscErrorCode SVDCyclicSetEPS(SVD,EPS);
-EXTERN PetscErrorCode SVDCyclicGetEPS(SVD,EPS*);
+extern PetscErrorCode SVDCyclicSetExplicitMatrix(SVD,PetscBool);
+extern PetscErrorCode SVDCyclicGetExplicitMatrix(SVD,PetscBool*);
+extern PetscErrorCode SVDCyclicSetEPS(SVD,EPS);
+extern PetscErrorCode SVDCyclicGetEPS(SVD,EPS*);
 
-EXTERN PetscErrorCode SVDLanczosSetOneSide(SVD,PetscBool);
-EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
+extern PetscErrorCode SVDLanczosSetOneSide(SVD,PetscBool);
+extern PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 
-EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
-EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
+extern PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
+extern PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
-EXTERN PetscErrorCode SVDRegister(const char*,const char*,const char*,PetscErrorCode(*)(SVD));
+extern PetscErrorCode SVDRegister(const char*,const char*,const char*,PetscErrorCode(*)(SVD));
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,0)
 #else
 #define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,d)
 #endif
-EXTERN PetscErrorCode SVDRegisterDestroy(void);
+extern PetscErrorCode SVDRegisterDestroy(void);
 
 PETSC_EXTERN_CXX_END
 #endif

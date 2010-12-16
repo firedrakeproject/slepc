@@ -587,7 +587,7 @@ PetscErrorCode EPSView_ARNOLDI(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN PetscErrorCode EPSSolve_TS_ARNOLDI(EPS);
+extern PetscErrorCode EPSSolve_TS_ARNOLDI(EPS);
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  

@@ -754,7 +754,7 @@ $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 
 .seealso: EPSSetConvergenceTest(),EPSSetTolerances()
 @*/
-EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
+extern PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);

@@ -69,11 +69,11 @@ typedef struct {
 
 EXTERN_C_BEGIN
 
-EXTERN void	 BLZpack_(PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,
+extern void	 BLZpack_(PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,
         		  PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*);
 
-EXTERN PetscBLASInt BLZistorr_(PetscBLASInt*,const char*,int);
-EXTERN PetscReal BLZrstorr_(PetscReal*,char*,int);
+extern PetscBLASInt BLZistorr_(PetscBLASInt*,const char*,int);
+extern PetscReal BLZrstorr_(PetscReal*,char*,int);
 
 EXTERN_C_END
 

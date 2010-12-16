@@ -30,7 +30,7 @@ def LinkWithOutput(functions,callbacks,flags):
   code = '#include "petscksp.h"\n'
   code += 'EXTERN_C_BEGIN\n'
   for f in functions:
-    code += 'EXTERN int\n' + f + '();\n'
+    code += 'extern int\n' + f + '();\n'
   code += 'EXTERN_C_END\n'
   
   for c in callbacks:

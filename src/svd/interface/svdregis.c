@@ -22,11 +22,11 @@
 #include "private/svdimpl.h"  /*I "slepcsvd.h" I*/
 
 EXTERN_C_BEGIN
-EXTERN PetscErrorCode SVDCreate_CROSS(SVD);
-EXTERN PetscErrorCode SVDCreate_CYCLIC(SVD);
-EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
-EXTERN PetscErrorCode SVDCreate_LANCZOS(SVD);
-EXTERN PetscErrorCode SVDCreate_TRLANCZOS(SVD);
+extern PetscErrorCode SVDCreate_CROSS(SVD);
+extern PetscErrorCode SVDCreate_CYCLIC(SVD);
+extern PetscErrorCode SVDCreate_LAPACK(SVD);
+extern PetscErrorCode SVDCreate_LANCZOS(SVD);
+extern PetscErrorCode SVDCreate_TRLANCZOS(SVD);
 EXTERN_C_END
   
 #undef __FUNCT__  

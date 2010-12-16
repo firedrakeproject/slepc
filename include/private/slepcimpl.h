@@ -26,6 +26,6 @@
 
 /* Private functions that are shared by several classes */
 
-EXTERN PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscBool,PetscInt,PetscScalar*);
+extern PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscBool,PetscInt,PetscScalar*);
 
 #endif

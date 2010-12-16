@@ -22,8 +22,8 @@
 #include "private/qepimpl.h"  /*I "slepcqep.h" I*/
 
 EXTERN_C_BEGIN
-EXTERN PetscErrorCode QEPCreate_LINEAR(QEP);
-EXTERN PetscErrorCode QEPCreate_QARNOLDI(QEP);
+extern PetscErrorCode QEPCreate_LINEAR(QEP);
+extern PetscErrorCode QEPCreate_QARNOLDI(QEP);
 EXTERN_C_END
   
 #undef __FUNCT__  

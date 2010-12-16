@@ -22,12 +22,12 @@
 #include "private/stimpl.h"          /*I   "slepcst.h"   I*/
 
 EXTERN_C_BEGIN
-EXTERN PetscErrorCode STCreate_Shell(ST);
-EXTERN PetscErrorCode STCreate_Shift(ST);
-EXTERN PetscErrorCode STCreate_Sinvert(ST);
-EXTERN PetscErrorCode STCreate_Cayley(ST);
-EXTERN PetscErrorCode STCreate_Fold(ST);
-EXTERN PetscErrorCode STCreate_Precond(ST);
+extern PetscErrorCode STCreate_Shell(ST);
+extern PetscErrorCode STCreate_Shift(ST);
+extern PetscErrorCode STCreate_Sinvert(ST);
+extern PetscErrorCode STCreate_Cayley(ST);
+extern PetscErrorCode STCreate_Fold(ST);
+extern PetscErrorCode STCreate_Precond(ST);
 EXTERN_C_END
 
 #undef __FUNCT__  

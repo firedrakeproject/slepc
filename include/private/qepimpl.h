@@ -109,18 +109,18 @@ typedef struct {
   PetscViewerASCIIMonitor viewer;
   PetscInt oldnconv;
 } QEPMONITOR_CONV;
-EXTERN PetscErrorCode QEPMonitorDestroy_Converged(QEPMONITOR_CONV*);
+extern PetscErrorCode QEPMonitorDestroy_Converged(QEPMONITOR_CONV*);
 
-EXTERN PetscErrorCode QEPRegisterAll(const char *);
-EXTERN PetscErrorCode QEPInitializePackage(const char *);
-EXTERN PetscErrorCode QEPFinalizePackage(void);
+extern PetscErrorCode QEPRegisterAll(const char *);
+extern PetscErrorCode QEPInitializePackage(const char *);
+extern PetscErrorCode QEPFinalizePackage(void);
 
-EXTERN PetscErrorCode QEPDestroy_Default(QEP);
-EXTERN PetscErrorCode QEPDefaultGetWork(QEP,PetscInt);
-EXTERN PetscErrorCode QEPDefaultFreeWork(QEP);
-EXTERN PetscErrorCode QEPComputeVectors_Schur(QEP);
-EXTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-EXTERN PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-EXTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal,PetscInt*,PetscScalar*);
+extern PetscErrorCode QEPDestroy_Default(QEP);
+extern PetscErrorCode QEPDefaultGetWork(QEP,PetscInt);
+extern PetscErrorCode QEPDefaultFreeWork(QEP);
+extern PetscErrorCode QEPComputeVectors_Schur(QEP);
+extern PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+extern PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+extern PetscErrorCode QEPKrylovConvergence(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal,PetscInt*,PetscScalar*);
 
 #endif
