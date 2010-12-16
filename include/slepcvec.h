@@ -27,11 +27,11 @@ PETSC_EXTERN_CXX_BEGIN
 
 #define VECCOMP  "comp"
 
-PetscErrorCode PETSCVEC_DLLEXPORT VecRegister_Comp(const char path[]);
-PetscErrorCode PETSCVEC_DLLEXPORT VecCreateComp(MPI_Comm comm, PetscInt *Nx,
+PetscErrorCode VecRegister_Comp(const char path[]);
+PetscErrorCode VecCreateComp(MPI_Comm comm, PetscInt *Nx,
                                                 PetscInt n, const VecType t,
                                                 Vec Vparent, Vec *V);
-PetscErrorCode PETSCVEC_DLLEXPORT VecCreateCompWithVecs(Vec *x, PetscInt n,
+PetscErrorCode VecCreateCompWithVecs(Vec *x, PetscInt n,
                                                         Vec Vparent, Vec *V);
 PetscErrorCode VecCompGetVecs(Vec win, const Vec **x, PetscInt *n);
 PetscErrorCode VecCompSetVecs(Vec win, Vec *x, PetscInt n);

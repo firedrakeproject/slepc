@@ -46,7 +46,7 @@ def FixFile(filename):
   data = match.sub(r'',data)
 
   ff = open(filename, 'w')
-  ff.write('#include "petscsys.h"\n#include "petscfix.h"\n'+data)
+  ff.write('#include "petscsys.h"\n#include "petscfix.h"\n#include "private/fortranimpl.h"\n'+data)
   ff.close()
   return
 
@@ -98,8 +98,6 @@ def FixDir(petscdir,dir):
     outbuf +=  'DIRS     =\n'
     outbuf +=  libbase + '\n'
     outbuf +=  locdir + '\n'
-#    outbuf +=  'include ${PETSC_DIR}/conf/base\n'
-#    outbuf +=  'include ${PETSC_DIR}/conf/test\n'
     outbuf +=  'include ${SLEPC_DIR}/conf/slepc_common  \n'
     ff = open(os.path.join(dir, 'makefile'), 'w')
     ff.write(outbuf)
@@ -109,7 +107,7 @@ def FixDir(petscdir,dir):
   if os.path.exists(dir) and os.path.isdir(dir) and os.listdir(dir) == []:
     os.rmdir(dir)
 
-  # Now process f90module.f90 file - and update include/finclude/ftn-auto
+  # save Fortran interface file generated (it is merged with others in a post-processing step)
   modfile = os.path.join(parentdir,'f90module.f90')
   if os.path.exists(modfile):
     fd = open(modfile)

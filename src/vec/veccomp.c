@@ -55,7 +55,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecRegister_Comp"
-PetscErrorCode PETSCVEC_DLLEXPORT VecRegister_Comp(const char path[])
+PetscErrorCode VecRegister_Comp(const char path[])
 {
   PetscErrorCode ierr;
 
@@ -219,7 +219,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreate_Comp"
-PetscErrorCode PETSCVEC_DLLEXPORT VecCreate_Comp(Vec V)
+PetscErrorCode VecCreate_Comp(Vec V)
 {
   PetscErrorCode  ierr;
 
@@ -235,7 +235,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateComp"
-PetscErrorCode PETSCVEC_DLLEXPORT VecCreateComp(MPI_Comm comm, PetscInt *Nx,
+PetscErrorCode VecCreateComp(MPI_Comm comm, PetscInt *Nx,
                                                 PetscInt n, const VecType t,
                                                 Vec Vparent, Vec *V)
 {
@@ -261,7 +261,7 @@ PetscErrorCode PETSCVEC_DLLEXPORT VecCreateComp(MPI_Comm comm, PetscInt *Nx,
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateCompWithVecs"
-PetscErrorCode PETSCVEC_DLLEXPORT VecCreateCompWithVecs(Vec *x, PetscInt n,
+PetscErrorCode VecCreateCompWithVecs(Vec *x, PetscInt n,
                                                         Vec Vparent, Vec *V)
 {
   PetscErrorCode  ierr;
