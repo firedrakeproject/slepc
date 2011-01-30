@@ -126,7 +126,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
 #define __FUNCT__ "QEPGetMonitorContext"
 /*@C
    QEPGetMonitorContext - Gets the monitor context, as set by 
-   QEPSetMonitor() for the FIRST monitor only.
+   QEPMonitorSet() for the FIRST monitor only.
 
    Not Collective
 
@@ -138,7 +138,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
 
    Level: intermediate
 
-.seealso: QEPSetMonitor(), QEPDefaultMonitor()
+.seealso: QEPMonitorSet(), QEPDefaultMonitor()
 @*/
 PetscErrorCode QEPGetMonitorContext(QEP qep, void **ctx)
 {

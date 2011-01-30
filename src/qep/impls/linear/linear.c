@@ -23,7 +23,7 @@
 */
 
 #include "private/qepimpl.h"         /*I "slepcqep.h" I*/
-#include "private/epsimpl.h"         /*I "slepceps.h" I*/
+#include "private/epsimpl.h"
 #include "slepceps.h"
 #include "linearp.h"
 

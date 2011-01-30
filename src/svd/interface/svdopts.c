@@ -210,8 +210,8 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
 
    The parameters ncv and mpd are intimately related, so that the user is advised
    to set one of them at most. Normal usage is the following:
-+  - In cases where nsv is small, the user sets ncv (a reasonable default is 2*nsv).
--  - In cases where nsv is large, the user sets mpd.
+   (a) In cases where nsv is small, the user sets ncv (a reasonable default is 2*nsv).
+   (b) In cases where nsv is large, the user sets mpd.
 
    The value of ncv should always be between nsv and (nsv+mpd), typically
    ncv=nsv+mpd. If nev is not too large, mpd=nsv is a reasonable choice, otherwise

@@ -331,10 +331,10 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 #define __FUNCT__ "EPSGDGetInitialSize"
 /*@
    EPSGDGetInitialSize - Gets the initial size of the searching space. In the 
-   case of EPSGetKrylovStart is PETSC_FALSE and the user provides vectors by
+   case of EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors by
    EPSSetInitialSpace, up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGetKrylovStart is PETSC_TRUE, the solver
+   random vectors. In the case of EPSGDGetKrylovStart is PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
@@ -349,7 +349,7 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 
    Level: advanced
 
-.seealso: EPSGDSetInitialSize(), EPSGetKrylovStart()
+.seealso: EPSGDSetInitialSize(), EPSGDGetKrylovStart()
 @*/
 PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
 {
@@ -365,10 +365,10 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
 #define __FUNCT__ "EPSGDSetInitialSize"
 /*@
    EPSGDSetInitialSize - Sets the initial size of the searching space. In the 
-   case of EPSGetKrylovStart is PETSC_FALSE and the user provides vectors by
+   case of EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors by
    EPSSetInitialSpace, up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGetKrylovStart is PETSC_TRUE, the solver
+   random vectors. In the case of EPSGDGetKrylovStart is PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
@@ -385,7 +385,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
    
    Level: advanced
 
-.seealso: EPSGDGetInitialSize(), EPSGetKrylovStart()
+.seealso: EPSGDGetInitialSize(), EPSGDGetKrylovStart()
 @*/
 PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
 {

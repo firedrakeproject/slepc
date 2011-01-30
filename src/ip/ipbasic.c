@@ -224,8 +224,6 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
    To see all options, run your program with the -help option.
 
    Level: beginner
-
-.seealso: 
 @*/
 PetscErrorCode IPSetFromOptions(IP ip)
 {
@@ -369,7 +367,7 @@ PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrth
 
    Level: beginner
 
-.seealso: IPView(), EPSView(), SVDView(), PetscViewerASCIIOpen()
+.seealso: EPSView(), SVDView(), PetscViewerASCIIOpen()
 @*/
 PetscErrorCode IPView(IP ip,PetscViewer viewer)
 {

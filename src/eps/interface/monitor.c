@@ -126,7 +126,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
 #define __FUNCT__ "EPSGetMonitorContext"
 /*@C
    EPSGetMonitorContext - Gets the monitor context, as set by 
-   EPSSetMonitor() for the FIRST monitor only.
+   EPSMonitorSet() for the FIRST monitor only.
 
    Not Collective
 
@@ -138,7 +138,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
 
    Level: intermediate
 
-.seealso: EPSSetMonitor()
+.seealso: EPSMonitorSet()
 @*/
 PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 {

@@ -191,7 +191,7 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
 
    Level: developer
 
-.seealso: IPSetBilinearForm(), IPApplyB(), VecDot(), IPMInnerProduct()
+.seealso: IPSetBilinearForm(), VecDot(), IPMInnerProduct()
 @*/
 PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -349,7 +349,7 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
 
    Level: developer
 
-.seealso: IPSetBilinearForm(), IPApplyB(), VecMDot(), IPInnerProduct()
+.seealso: IPSetBilinearForm(), VecMDot(), IPInnerProduct()
 @*/
 PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
