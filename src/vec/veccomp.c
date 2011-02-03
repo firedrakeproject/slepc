@@ -40,7 +40,7 @@ typedef struct {
 #if defined(PETSC_USE_DEBUG)
 #define PetscValidVecComp(y) \
   if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) { \
-    return PetscError(((PetscObject)(*((Vec_Comp*)(y)->data)->x))->comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,__SDIR__,1,0,"Invalid number of subvectors required!");}
+    return PetscError(((PetscObject)(*((Vec_Comp*)(y)->data)->x))->comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Invalid number of subvectors required!");}
 #else
 #define PetscValidVecComp(y)
 #endif
