@@ -33,6 +33,8 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
 PetscErrorCode dvd_matmult_jd(Mat A, Vec in, Vec out);
 PetscErrorCode dvd_matgetvecs_jd(Mat A, Vec *right, Vec *left);
 PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d);
+PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d);
+PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d);
 PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
                                    PetscInt max_size_D, PetscInt r_s,
                                    PetscInt r_e, PetscInt *size_D);
@@ -79,6 +81,7 @@ typedef struct {
     fix;                  /* tolerance for using the approx. eigenvalue */
   dvdDashboard
     *d;                   /* the currect dvdDashboard reference */
+  PC old_pc;              /* old pc in ksp */
 } dvdImprovex_jd;
 
 #undef __FUNCT__  
@@ -88,9 +91,8 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
-  PetscInt        rA, cA, rlA, clA;
-  Mat             A;
   PetscBool       t;
+  PC              pc;
 
   PetscFunctionBegin;
 
@@ -112,6 +114,14 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
                                            /* dvd_improvex_get_eigenvectors */
                              );
 
+  /* Setup the preconditioner */
+  if (ksp) {
+    ierr = KSPGetPC(ksp, &pc); CHKERRQ(ierr);
+    ierr = dvd_static_precond_PC(d, b, pc); CHKERRQ(ierr);
+  } else {
+    ierr = dvd_static_precond_PC(d, b, 0); CHKERRQ(ierr);
+  }
+
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdImprovex_jd), &data); CHKERRQ(ierr);
@@ -124,32 +134,88 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     data->ksp = t?0:ksp;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
+    data->ksp_max_size = max_bs;
 
     /* Create the reference vector */
     ierr = VecCreateCompWithVecs(d->V, max_bs, PETSC_NULL, &data->friends);
     CHKERRQ(ierr);
 
-    /* Setup the ksp */
-    if(data->ksp) {
-      /* Create the (I-v*u')*K*(A-s*B) matrix */
-      ierr = MatGetSize(d->A, &rA, &cA); CHKERRQ(ierr);
-      ierr = MatGetLocalSize(d->A, &rlA, &clA); CHKERRQ(ierr);
-      ierr = MatCreateShell(((PetscObject)d->A)->comm, rlA*max_bs, clA*max_bs,
-                            rA*max_bs, cA*max_bs, data, &A); CHKERRQ(ierr);
-      ierr = MatShellSetOperation(A, MATOP_MULT,
-                                  (void(*)(void))dvd_matmult_jd); CHKERRQ(ierr);
-      ierr = MatShellSetOperation(A, MATOP_GET_VECS,
-                                  (void(*)(void))dvd_matgetvecs_jd);
-      CHKERRQ(ierr);
-  
-      data->ksp_max_size = max_bs;
-      ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);
-      CHKERRQ(ierr);
-      ierr = KSPSetUp(data->ksp); CHKERRQ(ierr);
-      ierr = MatDestroy(A); CHKERRQ(ierr);
+    DVD_FL_ADD(d->startList, dvd_improvex_jd_start);
+    DVD_FL_ADD(d->endList, dvd_improvex_jd_end);
+    DVD_FL_ADD(d->destroyList, dvd_improvex_jd_d);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_start"
+PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscInt        rA, cA, rlA, clA;
+  Mat             A;
+  PetscBool       t;
+  PC              pc;
+
+  PetscFunctionBegin;
+
+  /* Setup the ksp */
+  if(data->ksp) {
+    /* Save the current pc and set a PCNONE */
+    ierr = KSPGetPC(data->ksp, &data->old_pc); CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)data->old_pc, PCNONE, &t);
+    CHKERRQ(ierr);
+    if (t) {
+      data->old_pc = 0;
+    } else {
+      ierr = PetscObjectReference((PetscObject)data->old_pc); CHKERRQ(ierr);
+      ierr = PCCreate(((PetscObject)d->eps)->comm, &pc); CHKERRQ(ierr);
+      ierr = PCSetType(pc, PCNONE); CHKERRQ(ierr);
+      ierr = PCSetOperators(pc, d->A, d->A, SAME_PRECONDITIONER); CHKERRQ(ierr);
+      ierr = KSPSetPC(data->ksp, pc); CHKERRQ(ierr);
+      ierr = PCDestroy(pc); CHKERRQ(ierr);
     }
 
-    DVD_FL_ADD(d->destroyList, dvd_improvex_jd_d);
+    /* Create the (I-v*u')*K*(A-s*B) matrix */
+    ierr = MatGetSize(d->A, &rA, &cA); CHKERRQ(ierr);
+    ierr = MatGetLocalSize(d->A, &rlA, &clA); CHKERRQ(ierr);
+    ierr = MatCreateShell(((PetscObject)d->A)->comm, rlA*data->ksp_max_size,
+                          clA*data->ksp_max_size, rA*data->ksp_max_size,
+                          cA*data->ksp_max_size, data, &A); CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A, MATOP_MULT,
+                                (void(*)(void))dvd_matmult_jd); CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A, MATOP_GET_VECS,
+                                (void(*)(void))dvd_matgetvecs_jd);
+    CHKERRQ(ierr);
+
+    ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);
+    CHKERRQ(ierr);
+    ierr = KSPSetUp(data->ksp); CHKERRQ(ierr);
+    ierr = MatDestroy(A); CHKERRQ(ierr);
+  } else
+    data->old_pc = 0;
+  
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_end"
+PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
+
+  PetscFunctionBegin;
+
+  /* Restore the pc of ksp */
+  if (data->old_pc) {
+    ierr = KSPSetPC(data->ksp, data->old_pc); CHKERRQ(ierr);
+    ierr = PCDestroy(data->old_pc); CHKERRQ(ierr);
+    data->old_pc = 0;
   }
 
   PetscFunctionReturn(0);

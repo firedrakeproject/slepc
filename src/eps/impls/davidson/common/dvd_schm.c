@@ -29,7 +29,7 @@
 #define __FUNCT__ "dvd_schm_basic_preconf"
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals)
 {
   PetscErrorCode ierr;
@@ -69,9 +69,6 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
       ierr = dvd_harm_conf(d, b, harmMode, PETSC_FALSE, 0.0); CHKERRQ(ierr);
     }
   
-    /* Setup the preconditioner */
-    ierr = dvd_static_precond_PC(d, b, pc); CHKERRQ(ierr);
-
     /* Setup the method for improving the eigenvectors */
     ierr = dvd_improvex_jd(d, b, ksp, bs); CHKERRQ(ierr);
     ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KBXX); CHKERRQ(ierr);
@@ -86,7 +83,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
 #define __FUNCT__ "dvd_schm_basic_conf"
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init, PetscBool allResiduals)
 {
@@ -127,9 +124,6 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   if (harmMode != DVD_HARM_NONE) {
     ierr = dvd_harm_conf(d, b, harmMode, fixedTarget, t); CHKERRQ(ierr);
   }
-
-  /* Setup the preconditioner */
-  ierr = dvd_static_precond_PC(d, b, pc); CHKERRQ(ierr);
 
   /* Setup the method for improving the eigenvectors */
   ierr = dvd_improvex_jd(d, b, ksp, bs); CHKERRQ(ierr);

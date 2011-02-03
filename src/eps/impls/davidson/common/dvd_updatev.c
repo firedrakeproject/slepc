@@ -25,6 +25,7 @@
 
 #include "davidson.h"
 
+PetscErrorCode dvd_updateV_start(dvdDashboard *d);
 PetscBool dvd_isrestarting_fullV(dvdDashboard *d);
 PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d);
 PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
@@ -56,6 +57,7 @@ typedef struct {
     plusk,          /* when restart, save plusk vectors from last iteration */
     mpd;            /* max size of the searching subspace */
   Vec *real_V,      /* real start vectors V */
+    *real_W,        /* real W */
     *new_cY;        /* new left converged eigenvectors from the last iter */
   void
     *old_updateV_data;
@@ -66,6 +68,10 @@ typedef struct {
   PetscScalar
     *oldU,          /* previous projected right igenvectors */
     *oldV;          /* previous projected left eigenvectors */
+  PetscReal
+    *real_nR,       /* real nR */
+    *real_nX,       /* real nX */
+    *real_errest;   /* real errest */
   PetscInt
     ldoldU,         /* leading dimension of oldU */
     size_oldU,      /* size of oldU */
@@ -84,7 +90,6 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
 {
   PetscErrorCode  ierr;
   dvdManagV_basic *data;
-  PetscInt        i;
 
   PetscFunctionBegin;
 
@@ -115,7 +120,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     ierr = PetscMalloc(sizeof(dvdManagV_basic), &data); CHKERRQ(ierr);
     data->real_max_size_V = max_size_V;
     data->min_size_V = min_size_V;
-    data->real_V = b->free_vecs; b->free_vecs+= max_size_V;
+    d->V = data->real_V = b->free_vecs; b->free_vecs+= max_size_V;
     data->bs = bs;
     data->plusk = plusk;
     data->new_cY = PETSC_NULL;
@@ -123,49 +128,78 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     data->mpd = mpd;
     data->allResiduals = allResiduals;
 
-    d->V = data->real_V;
-    d->max_size_V = data->real_max_size_V;
-    d->cX = data->real_V;
-    d->eigr = b->free_scalars; b->free_scalars+= max_size_V;
-    d->eigi = b->free_scalars; b->free_scalars+= max_size_V;
-#ifdef PETSC_USE_COMPLEX
-    for(i=0; i<max_size_V; i++) d->eigi[i] = 0.0;
-#endif
-    d->nR = (PetscReal*)b->free_scalars;
+    d->eigr = d->ceigr = b->free_scalars; b->free_scalars+= max_size_V;
+    d->eigi = d->ceigi = b->free_scalars; b->free_scalars+= max_size_V;
+    d->nR = data->real_nR = (PetscReal*)b->free_scalars;
     b->free_scalars = (PetscScalar*)(d->nR + max_size_V);
-    for(i=0; i<max_size_V; i++) d->nR[i] = PETSC_MAX;
-    d->nX = (PetscReal*)b->free_scalars;
+    d->nX = data->real_nX = (PetscReal*)b->free_scalars;
     b->free_scalars = (PetscScalar*)(d->nX + max_size_V);
-    d->errest = (PetscReal*)b->free_scalars;
+    d->errest = data->real_errest = (PetscReal*)b->free_scalars;
     b->free_scalars = (PetscScalar*)(d->errest + max_size_V);
-    d->ceigr = d->eigr;
-    d->ceigi = d->eigi;
     d->MTX = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     data->oldU = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
-    data->ldoldU = 0;
-    data->oldV = PETSC_NULL;
-    d->W = PETSC_NULL;
-    d->MTY = PETSC_NULL;
-    d->ldMTY = 0;
     if (harm) {
-      d->W = b->free_vecs; b->free_vecs+= max_size_V;
+      d->W = data->real_W = b->free_vecs; b->free_vecs+= max_size_V;
       d->MTY = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       data->oldV = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     }
 
-    data->size_oldU = 0;
     data->old_updateV_data = d->updateV_data;
     d->updateV_data = data;
     data->old_isRestarting = d->isRestarting;
     d->isRestarting = dvd_isrestarting_fullV;
     d->updateV = dvd_updateV_extrapol;
     d->preTestConv = dvd_updateV_testConv;
+    DVD_FL_ADD(d->startList, dvd_updateV_start);
     DVD_FL_ADD(d->endList, dvd_updateV_conv_finish);
     DVD_FL_ADD(d->destroyList, dvd_managementV_basic_d);
   }
 
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_updateV_start"
+PetscErrorCode dvd_updateV_start(dvdDashboard *d)
+{
+  dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
+  PetscInt        i;
+
+  PetscFunctionBegin;
+
+  data->new_cY = PETSC_NULL;
+  data->size_new_cY = 0;
+  d->V = data->real_V;
+  d->size_V = 0;
+  d->max_size_V = data->real_max_size_V;
+  d->cX = data->real_V;
+  d->size_cX = 0;
+  d->eigr = d->ceigr;
+  d->eigi = d->ceigi;
+#ifdef PETSC_USE_COMPLEX
+  for(i=0; i<d->max_size_V; i++) d->eigi[i] = 0.0;
+#endif
+  d->nR = data->real_nR;
+  for(i=0; i<d->max_size_V; i++) d->nR[i] = PETSC_MAX;
+  d->nX = data->real_nX;
+  d->errest = data->real_errest;
+  d->eigr = d->ceigr;
+  d->eigi = d->ceigi;
+  data->ldoldU = 0;
+  data->oldV = PETSC_NULL;
+  d->W = data->real_W;
+  d->MTY = PETSC_NULL;
+  d->ldMTY = 0;
+  data->size_oldU = 0;
+  d->nconv = 0;
+  d->npreconv = 0;
+  d->V_imm_s = d->V_imm_e = d->V_tra_s = d->V_tra_e = d->V_new_s = d->V_new_e
+    = 0;
+  d->size_D = 0;
+
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_isrestarting_fullV"

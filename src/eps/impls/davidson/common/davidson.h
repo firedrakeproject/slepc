@@ -263,7 +263,8 @@ typedef struct _dvdDashboard {
     ldcT,           /* leading dimension of cT */
     size_H,         /* rows and columns in H */
     size_G,         /* rows and columns in G */
-    size_MT;        /* rows in MT */
+    size_MT,        /* rows in MT */
+    max_size_cS;    /* max size of cS and cT */
 
   PetscInt V_imm_s,
     V_imm_e,        /* unchanged V columns, V_imm_s:V_imm_e-1 */
@@ -279,12 +280,28 @@ typedef struct _dvdDashboard {
   void* prof_data;  /* profiler data */
 } dvdDashboard;
 
-#define DVD_FL_ADD(list, fun) { \
+/* Add the function fun at the beginning of list */
+#define DVD_FL_ADD_BEGIN(list, fun) { \
   dvdFunctionList *fl=(list); \
   PetscErrorCode ierr; \
   ierr = PetscMalloc(sizeof(dvdFunctionList), &(list)); CHKERRQ(ierr); \
   (list)->f = (PetscErrorCode(*)(void*))(fun); \
   (list)->next = fl; }
+
+/* Add the function fun at the end of list */
+#define DVD_FL_ADD_END(list, fun) { \
+  if ((list)) {DVD_FL_ADD_END0(list, fun);} \
+  else {DVD_FL_ADD_BEGIN(list, fun);} }
+
+#define DVD_FL_ADD_END0(list, fun) { \
+  dvdFunctionList *fl=(list); \
+  PetscErrorCode ierr; \
+  for(;fl->next; fl = fl->next); \
+  ierr = PetscMalloc(sizeof(dvdFunctionList), &fl->next); CHKERRQ(ierr); \
+  fl->next->f = (PetscErrorCode(*)(void*))(fun); \
+  fl->next->next = PETSC_NULL; }
+
+#define DVD_FL_ADD(list, fun) DVD_FL_ADD_END(list, fun)
 
 #define DVD_FL_CALL(list, arg0) { \
   dvdFunctionList *fl; \
@@ -408,11 +425,11 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
 /* Methods */
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals);
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
-  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk, PC pc,
+  PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init, PetscBool allResiduals);
 
@@ -503,25 +520,3 @@ PetscErrorCode EPSDAVIDSONGetInitialSize_DAVIDSON(EPS eps,PetscInt *initialsize)
 PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize);
 PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix);
 PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix);
-
-typedef struct {
-  /**** Solver options ****/
-  PetscInt blocksize,     /* block size */
-    initialsize,          /* initial size of V */
-    minv,                 /* size of V after restarting */
-    plusk;                /* keep plusk eigenvectors from the last iteration */
-  PetscBool  ipB;         /* true if V'B*V=I */
-  PetscInt   method;      /* method for improving the approximate solution */
-  PetscReal  fix;         /* the fix parameter */
-  PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
-
-  /**** Solver data ****/
-  dvdDashboard ddb;
-
-  /**** Things to destroy ****/
-  PetscScalar *wS;
-  Vec         *wV;
-  PetscInt    size_wV;
-  PC          pc;         /* pc extracted from st->ksp */
-} EPS_DAVIDSON;
-

@@ -36,6 +36,7 @@
 #include "slepcblaslapack.h"
 
 PetscErrorCode dvd_calcpairs_proj_qz(dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_proj_qz_harm(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateV(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateW(dvdDashboard *d);
@@ -70,7 +71,6 @@ PetscErrorCode dvd_calcpairs_WtMatV_gen(PetscScalar **H, MatType_t sH,
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
 {
   PetscBool       std_probl, her_probl;
-  PetscInt        i;
 
   PetscFunctionBegin;
 
@@ -99,45 +99,27 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    d->size_AV = 0;
     d->real_AV = d->AV = b->free_vecs; b->free_vecs+= b->size_V;
     d->max_size_AV = b->size_V;
-    d->size_H = 0;
     d->H = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     d->real_H = d->H;
-    d->ldH = b->max_size_V;
     d->pX = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     d->S = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     d->cS = b->free_scalars; b->free_scalars+= b->max_nev*b->max_nev;
-    for (i=0; i<b->max_nev*b->max_nev; i++) d->cS[i] = 0.0;
+    d->max_size_cS = b->max_nev;
     d->ldcS = b->max_nev;
     d->ipV = ipI;
     d->ipW = ipI;
-    d->size_cX = d->size_cY = 0;
-    d->cY = PETSC_NULL;
-    d->pY = PETSC_NULL;
-    d->T = PETSC_NULL;
-    d->ldcT = PETSC_NULL;
-    d->cT = 0;
     if (d->B) {
-      d->size_BV = 0;
       d->real_BV = d->BV = b->free_vecs; b->free_vecs+= b->size_V;
-      d->max_size_BV = b->size_V;
     }
     if (!std_probl) {
-      d->size_G = 0;
       d->G = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       d->real_G = d->G;
       d->T = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       d->cT = b->free_scalars; b->free_scalars+= b->max_nev*b->max_nev;
-      for (i=0; i<b->max_nev*b->max_nev; i++) d->cT[i] = 0.0;
       d->ldcT = b->max_nev;
       d->pY = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
-      /* If the problem is GHEP without B-orthonormalization, active BcX */
-      if(her_probl) d->BcX = d->AV;
-
-      /* Else, active the left and right converged invariant subspaces */
-      else d->cY = d->AV;
     }
 
     d->calcPairs = d->W?dvd_calcpairs_proj_qz_harm:dvd_calcpairs_proj_qz;
@@ -147,6 +129,56 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
     d->calcpairs_X = dvd_calcpairs_X;
     d->calcpairs_Y = dvd_calcpairs_Y;
     d->ipI = ipI;
+    DVD_FL_ADD(d->startList, dvd_calcpairs_qz_start);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_calcpairs_qz_start"
+PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
+{
+  PetscBool       std_probl, her_probl;
+  PetscInt        i;
+
+  PetscFunctionBegin;
+
+  std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
+  her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
+
+  d->size_AV = 0;
+  d->AV = d->real_AV;
+  d->max_size_AV = d->max_size_V;
+  d->size_H = 0;
+  d->H = d->real_H;
+  d->ldH = d->max_size_V;
+  for (i=0; i<d->max_size_cS*d->max_size_cS; i++) d->cS[i] = 0.0;
+  d->size_cX = d->size_cY = 0;
+  d->cY = PETSC_NULL;
+  d->pY = PETSC_NULL;
+  d->T = PETSC_NULL;
+  d->ldcT = 0;
+  d->cT = PETSC_NULL;
+  d->size_BV = 0;
+  if (d->B) {
+    d->BV = d->real_BV;
+    d->max_size_BV = d->max_size_V;
+  } else {
+    d->BV = PETSC_NULL;
+    d->max_size_BV = 0;
+  }
+  d->size_G = 0;
+  d->G  = PETSC_NULL;
+  if (!std_probl) {
+    d->G = d->real_G;
+    for (i=0; i<d->max_size_cS*d->max_size_cS; i++) d->cT[i] = 0.0;
+    /* If the problem is GHEP without B-orthonormalization, active BcX */
+    if(her_probl) d->BcX = d->AV;
+
+    /* Else, active the left and right converged invariant subspaces */
+    else {d->cY = d->AV; d->BcX = PETSC_NULL; }
   }
 
   PetscFunctionReturn(0);

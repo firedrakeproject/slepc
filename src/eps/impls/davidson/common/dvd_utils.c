@@ -61,10 +61,13 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
       /* PC saves the matrix associated with the linear system, and it has to
          be initialize to a valid matrix */
       ierr = PCGetOperators(pc, PETSC_NULL, &P, &str); CHKERRQ(ierr);
-      ierr = PetscObjectReference((PetscObject)P); CHKERRQ(ierr);
-      ierr = PCSetOperators(pc, P, P, str); CHKERRQ(ierr);
-      ierr = MatDestroy(P); CHKERRQ(ierr);
-      ierr = PCSetUp(pc); CHKERRQ(ierr);
+      if (P) {
+        ierr = PetscObjectReference((PetscObject)P); CHKERRQ(ierr);
+        ierr = PCSetOperators(pc, P, P, str); CHKERRQ(ierr);
+        ierr = MatDestroy(P); CHKERRQ(ierr);
+        ierr = PCSetUp(pc); CHKERRQ(ierr);
+      } else
+        d->improvex_precond = dvd_precond_none;
 
       DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);
 

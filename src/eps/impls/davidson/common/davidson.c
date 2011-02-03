@@ -32,6 +32,26 @@
 
 PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer);
 
+typedef struct {
+  /**** Solver options ****/
+  PetscInt blocksize,     /* block size */
+    initialsize,          /* initial size of V */
+    minv,                 /* size of V after restarting */
+    plusk;                /* keep plusk eigenvectors from the last iteration */
+  PetscBool  ipB;         /* true if V'B*V=I */
+  PetscInt   method;      /* method for improving the approximate solution */
+  PetscReal  fix;         /* the fix parameter */
+  PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
+
+  /**** Solver data ****/
+  dvdDashboard ddb;
+
+  /**** Things to destroy ****/
+  PetscScalar *wS;
+  Vec         *wV;
+  PetscInt    size_wV;
+} EPS_DAVIDSON;
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_DAVIDSON"
 PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
@@ -53,7 +73,6 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON), &data); CHKERRQ(ierr);
   eps->data = data;
-  data->pc = 0;
 
   /* Set default values */
   ierr = EPSDAVIDSONSetKrylovStart_DAVIDSON(eps, PETSC_FALSE); CHKERRQ(ierr);
@@ -76,7 +95,6 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   PetscInt        i,nvecs,nscalars,min_size_V,plusk,bs,initv;
   Mat             A,B;
   KSP             ksp;
-  PC              pc, pc2;
   PetscBool       t,ipB,ispositive;
   HarmType_t      harm;
   InitType_t      init;
@@ -129,22 +147,6 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
   if (!t) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_SUP, "%s only works with precond spectral transformation",
     ((PetscObject)eps)->type_name);
-
-  /* Extract pc from st->ksp */
-  if (data->pc) { ierr = PCDestroy(data->pc); CHKERRQ(ierr); data->pc = 0; }
-  ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp, &pc); CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t); CHKERRQ(ierr);
-  if (t) {
-    pc = 0;
-  } else {
-    ierr = PetscObjectReference((PetscObject)pc); CHKERRQ(ierr);
-    data->pc = pc;
-    ierr = PCCreate(((PetscObject)eps)->comm, &pc2); CHKERRQ(ierr);
-    ierr = PCSetType(pc2, PCNONE); CHKERRQ(ierr);
-    ierr = KSPSetPC(ksp, pc2); CHKERRQ(ierr);
-    ierr = PCDestroy(pc2); CHKERRQ(ierr);
-  }
 
   /* Setup problem specification in dvd */
   ierr = STGetOperators(eps->OP, &A, &B); CHKERRQ(ierr);
@@ -225,10 +227,11 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
                    PetscAbs(eps->nds), PETSC_NULL, 0, eps->rand); CHKERRQ(ierr);
 
   /* Preconfigure dvd */
+  ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
                                 initv,
                                 PetscAbs(eps->nini),
-                                plusk, pc, harm,
+                                plusk, harm,
                                 PETSC_NULL, init, eps->trackall);
   CHKERRQ(ierr);
 
@@ -254,7 +257,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   /* Configure dvd for a basic GD */
   ierr = dvd_schm_basic_conf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
                              initv,
-                             PetscAbs(eps->nini), plusk, pc,
+                             PetscAbs(eps->nini), plusk,
                              eps->ip, harm, dvd->withTarget,
                              eps->target, ksp,
                              fix, init, eps->trackall);
@@ -275,7 +278,6 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
 PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
   EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard    *d = &data->ddb;
-  KSP             ksp;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
@@ -306,14 +308,6 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 
   if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-
-  /* Merge the pc extracted from st->ksp in EPSSetUp_DAVIDSON */
-  if (data->pc) {
-    ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
-    ierr = KSPSetPC(ksp, data->pc); CHKERRQ(ierr);
-    ierr = PCDestroy(data->pc); CHKERRQ(ierr);
-    data->pc = 0;
-  }
 
   PetscFunctionReturn(0);
 }
