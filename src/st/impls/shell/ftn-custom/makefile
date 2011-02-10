@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-#requirespackage   'PETSC_HAVE_FORTRAN'
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
 CFLAGS   =
 FFLAGS   =

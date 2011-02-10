@@ -21,7 +21,7 @@
 
 ALL: lib
 
-#requirespackage   'SLEPC_HAVE_TRLAN'
+#requiresdefine   'SLEPC_HAVE_TRLAN'
 #requiresscalar    real
 
 CFLAGS   =

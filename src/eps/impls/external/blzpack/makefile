@@ -21,7 +21,7 @@
 
 ALL: lib
 
-#requirespackage  'SLEPC_HAVE_BLZPACK'
+#requiresdefine  'SLEPC_HAVE_BLZPACK'
 #requiresscalar   real
 
 CFLAGS   =

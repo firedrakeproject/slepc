@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-#requirespackage   'PETSC_HAVE_FORTRAN'
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
 CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_DESTDIR}/lib"'
 FFLAGS   =

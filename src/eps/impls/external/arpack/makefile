@@ -21,7 +21,7 @@
 
 ALL: lib
 
-#requirespackage  'SLEPC_HAVE_ARPACK'
+#requiresdefine  'SLEPC_HAVE_ARPACK'
 
 CFLAGS   =
 FFLAGS   =

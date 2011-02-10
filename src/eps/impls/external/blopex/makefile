@@ -21,7 +21,7 @@
 
 ALL: lib
 
-#requirespackage  'PETSC_HAVE_BLOPEX'
+#requiresdefine  'PETSC_HAVE_BLOPEX'
 #requiresprecision double
 
 CFLAGS   = ${BLOPEX_INCLUDE}
