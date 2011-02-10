@@ -1,13 +1,13 @@
 include ${PETSC_DIR}/conf/rules
 
 chkslepc_dir:
-	@mypwd=`pwd`; cd ${true_SLEPC_DIR} 2>&1 > /dev/null; true_SLEPC_DIR=`pwd`; cd $${mypwd} 2>&1 >/dev/null; \
+	@mypwd=`pwd`; cd ${SLEPC_DIR} 2>&1 > /dev/null; true_SLEPC_DIR=`pwd`; cd $${mypwd} 2>&1 >/dev/null; \
         newpwd=`echo $${mypwd} | sed "s+$${true_SLEPC_DIR}+DUMMY+g"`;\
         hasslepc=`echo $${mypwd} | sed "s+slepc-+DUMMY+g"`;\
         if [ $${mypwd} = $${newpwd} -a $${hasslepc} != $${mypwd} ]; then \
           echo "*********************Warning*************************" ; \
-          echo "Your true_SLEPC_DIR may not match the directory you are in";\
-          echo "true_SLEPC_DIR " $${true_SLEPC_DIR} "Current directory" $${mypwd};\
+          echo "Your SLEPC_DIR may not match the directory you are in";\
+          echo "SLEPC_DIR " $${true_SLEPC_DIR} "Current directory" $${mypwd};\
           echo "******************************************************" ; \
         fi
 
