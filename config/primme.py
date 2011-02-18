@@ -26,13 +26,13 @@ import petscconf
 import log
 import check
 
-def Check(conf,directory,libs):
+def Check(conf,cmake,directory,libs):
   
   log.Write('='*80)
   log.Println('Checking PRIMME library...')
 
   if petscconf.PRECISION == 'single':
-    sys.exit('ERROR: PRIMME does not support single precision.')
+    log.Exit('ERROR: PRIMME does not support single precision.')
  
   functions_base = ['primme_set_method','primme_Free','primme_initialize']
   if directory:
@@ -59,9 +59,11 @@ def Check(conf,directory,libs):
       conf.write('SLEPC_HAVE_PRIMME = -DSLEPC_HAVE_PRIMME\n')
       conf.write('PRIMME_LIB =' + str.join(' ', l) + '\n')
       conf.write('PRIMME_FLAGS =' + str.join(' ', f) + '\n')
+      cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
+      cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
       return l+f
 
   log.Println('ERROR: Unable to link with PRIMME library')
-  print 'ERROR: In directories',dirs
-  print 'ERROR: With flags',libs,
+  log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))
+  log.Println('ERROR: With flags '+''.join([s+' ' for s in libs]))
   log.Exit('')

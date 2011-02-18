@@ -25,7 +25,7 @@ import sys
 import petscconf
 import check
 
-def Check(conf,directory,libs):
+def Check(conf,cmake,directory,libs):
 
   if petscconf.SCALAR == 'complex':
     sys.exit('ERROR: BLZPACK does not support complex numbers.') 
@@ -45,4 +45,4 @@ def Check(conf,directory,libs):
   else:
     dirs = check.GenerateGuesses('Blzpack')
 
-  return check.FortranLib(conf,'BLZPACK',dirs,libs,functions)
+  return check.FortranLib(conf,cmake,'BLZPACK',dirs,libs,functions)

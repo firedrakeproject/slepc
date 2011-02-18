@@ -26,7 +26,7 @@ import petscconf
 import log
 import check
 
-def Check(conf):
+def Check(conf,cmake):
   log.Write('='*80)
   log.Println('Checking LAPACK library...')
 
@@ -90,6 +90,9 @@ def Check(conf):
     if not check.Link([f],[],[]):
       missing.append(i)
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i[1:].upper())
+      cmake.write('set (SLEPC_MISSING_LAPACK_' + i[1:].upper() + ' YES)\n')
 
   conf.write('\n')
+  if missing:
+    cmake.write('mark_as_advanced (' + ''.join([s.upper()+' ' for s in missing]) + ')\n')
   return missing

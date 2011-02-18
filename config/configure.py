@@ -214,6 +214,10 @@ try:
   slepcrules = open(os.sep.join([confdir,'slepcrules']),'w')
 except:
   sys.exit('ERROR: cannot create rules file in ' + confdir)
+try:
+  cmake = open(os.sep.join([confdir,'SLEPcConfig.cmake']),'w')
+except:
+  sys.exit('ERROR: cannot create CMake configuration file in ' + confdir)
 if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
   sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
@@ -247,16 +251,16 @@ if not check.Link([],[],[]):
 
 # Check for external packages
 if havearpack:
-  arpacklibs = arpack.Check(slepcconf,arpackdir,arpacklibs)
+  arpacklibs = arpack.Check(slepcconf,cmake,arpackdir,arpacklibs)
 if haveblzpack:
-  blzpacklibs = blzpack.Check(slepcconf,blzpackdir,blzpacklibs)
+  blzpacklibs = blzpack.Check(slepcconf,cmake,blzpackdir,blzpacklibs)
 if havetrlan:
-  trlanlibs = trlan.Check(slepcconf,trlandir,trlanlibs)
+  trlanlibs = trlan.Check(slepcconf,cmake,trlandir,trlanlibs)
 if haveprimme:
-  primmelibs = primme.Check(slepcconf,primmedir,primmelibs)
+  primmelibs = primme.Check(slepcconf,cmake,primmedir,primmelibs)
 
 # Check for missing LAPACK functions
-missing = lapack.Check(slepcconf)
+missing = lapack.Check(slepcconf,cmake)
 
 # Download and install slepc4py
 if getslepc4py:
@@ -265,7 +269,9 @@ slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
 slepcconf.close()
 slepcrules.close()
+cmake.close()
 
+# Print summary
 log.Println('')
 log.Println('='*80)
 log.Println('SLEPc Configuration')

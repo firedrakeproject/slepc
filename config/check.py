@@ -111,7 +111,7 @@ def GenerateGuesses(name):
   dirs = [''] + dirs
   return dirs
 
-def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
+def FortranLib(conf,cmake,name,dirs,libs,functions,callbacks = []):
   log.Write('='*80)
   log.Println('Checking '+name+' library...')
 
@@ -133,11 +133,14 @@ def FortranLib(conf,name,dirs,libs,functions,callbacks = []):
   else:
     log.Write(error)
     log.Println('ERROR: Unable to link with library '+ name)
-    print 'ERROR: In directories',dirs
-    print 'ERROR: With flags',libs,
+    log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))
+    log.Println('ERROR: With flags '+''.join([s+' ' for s in libs]))
     log.Exit('')
     
 
   conf.write('SLEPC_HAVE_' + name + ' = -DSLEPC_HAVE_' + name + ' -DSLEPC_' + name + '_HAVE_'+mangling+'\n')
   conf.write(name + '_LIB = '+str.join(' ',flags)+'\n')
+  cmake.write('set (SLEPC_HAVE_' + name + ' YES)\n')
+  libname = ''.join([s.lstrip('-l')+' ' for s in l])
+  cmake.write('find_library (' + name + '_LIB ' + libname + 'HINTS '+ d +')\n')
   return flags
