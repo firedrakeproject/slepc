@@ -27,6 +27,7 @@
 #include "private/stimpl.h"
 #include "private/svdimpl.h"
 #include "private/ipimpl.h"
+#include "private/qepimpl.h"
 #include <stdlib.h>
 
 extern PetscBool SlepcBeganPetsc;
@@ -90,6 +91,7 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErro
   *ierr = STInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing ST package");return;}
   *ierr = EPSInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing EPS package");return;}
   *ierr = SVDInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing SVD package");return;}
+  *ierr = QEPInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing QEP package");return;}
   *ierr = IPInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing IP package");return;}
 #endif
 

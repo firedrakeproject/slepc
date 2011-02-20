@@ -37,5 +37,6 @@
 #define QEPConvergedReason PetscEnum
 
 #define QEPLINEAR    'linear'
+#define QEPQARNOLDI  'qarnoldi'
 
 #endif

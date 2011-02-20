@@ -24,3 +24,4 @@
 #include "finclude/slepcipdef.h"
 #include "finclude/slepcstdef.h"
 #include "finclude/slepcsvddef.h"
+#include "finclude/slepcqepdef.h"

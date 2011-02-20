@@ -25,3 +25,4 @@
 #include "finclude/slepcip.h"
 #include "finclude/slepcst.h"
 #include "finclude/slepcsvd.h"
+#include "finclude/slepcqep.h"
