@@ -26,7 +26,7 @@ FPPFLAGS   =
 LOCDIR     = src/examples/
 EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.c ex13.c ex14.c ex15.c ex16.c ex17.c ex18.c
 EXAMPLESCH = 
-EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F mvmisg.f ex15f.F
+EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F mvmisg.f ex15f.F ex16f90.F90
 
 TESTEXAMPLES_C  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
                   ex4.PETSc runex4_1 ex4.rm ex5.PETSc runex5_1 ex5.rm \
@@ -121,6 +121,10 @@ ex15f: ex15f.o chkopts
 ex16: ex16.o chkopts
 	-${CLINKER} -o ex16 ex16.o ${SLEPC_LIB}
 	${RM} ex16.o
+
+ex16f90: ex16f90.o chkopts
+	-${FLINKER} -o ex16f90 ex16f90.o ${SLEPC_LIB}
+	${RM} ex16f90.o
 
 ex17: ex17.o chkopts
 	-${CLINKER} -o ex17 ex17.o ${SLEPC_LIB}

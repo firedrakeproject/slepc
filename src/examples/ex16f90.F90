@@ -17,21 +17,21 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpirun -np n ex1f90 [-help] [-n <n>] [all SLEPc options] 
+!  Program usage: mpirun -np n ex16f90 [-help] [-n <n>] [-m <m>] [SLEPc opts] 
 !
-!  Description: Simple example that solves an eigensystem with the EPS object.
-!  The standard symmetric eigenvalue problem to be solved corresponds to the 
-!  Laplacian operator in 1 dimension. 
+!  Description: Simple example that solves a quadratic eigensystem with the
+!  QEP object. This is the Fortran90 equivalent to ex16.c
 !
 !  The command line options are:
-!    -n <n>, where <n> = number of grid points = matrix size
+!    -n <n>, where <n> = number of grid subdivisions in x dimension
+!    -m <m>, where <m> = number of grid subdivisions in y dimension
 !
 ! ---------------------------------------------------------------------- 
 !
       program main
 
-#include "finclude/slepcepsdef.h"
-      use slepceps
+#include "finclude/slepcqepdef.h"
+      use slepcqep
 
       implicit none
 
@@ -46,26 +46,24 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !
 !  Variables:
-!     A      operator matrix
-!     solver eigenproblem solver context
+!     M,C,K  problem matrices
+!     solver quadratic eigenproblem solver context
 
 #if defined(PETSC_USE_FORTRAN_DATATYPES)
-      type(Mat)      A
-      type(EPS)      solver
+      type(Mat)      M, C, K
+      type(QEP)      solver
 #else
-      Mat            A
-      EPS            solver
+      Mat            M, C, K
+      QEP            solver
 #endif
-      EPSType        tname
-      PetscReal      tol, error
+      QEPType        tname
+      PetscReal      tol, error, re, im
       PetscScalar    kr, ki
-      PetscInt       n, i, Istart, Iend
+      PetscInt       N, nx, ny, i, j, Istart, Iend, II
       PetscInt       nev, maxit, its, nconv
-      PetscInt       row(1), col(3)
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
-      PetscScalar    value(3)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -73,93 +71,100 @@
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
-      n = 30
-      call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-n',n,flg,ierr)
-
+      nx = 10
+      call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-n',nx,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-m',ny,flg,ierr)
+      if (.not. flg) then
+        ny = nx
+      endif
+      N = nx*ny
       if (rank .eq. 0) then
-        write(*,100) n
+        write(*,100) N, nx, ny
       endif
- 100  format (/'1-D Laplacian Eigenproblem, n =',I4,' (Fortran)')
+ 100  format (/'Quadratic Eigenproblem, N=',I6,' (',I4,'x',I4,' grid)')
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-!     Compute the operator matrix that defines the eigensystem, Ax=kx
+!     Compute the matrices that define the eigensystem, (k^2*K+k*X+M)x=0
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call MatCreate(PETSC_COMM_WORLD,A,ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
-      call MatSetFromOptions(A,ierr)
+!     ** K is the 2-D Laplacian
+      call MatCreate(PETSC_COMM_WORLD,K,ierr)
+      call MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
+      call MatSetFromOptions(K,ierr)
+      call MatGetOwnershipRange(K,Istart,Iend,ierr)
+      do II=Istart,Iend-1
+        i = II/nx
+        j = II-i*nx
+        if (i .gt. 0) then 
+          call MatSetValue(K,II,II-nx,-1.D0,INSERT_VALUES,ierr)
+        endif
+        if (i .lt. ny-1) then 
+          call MatSetValue(K,II,II+nx,-1.D0,INSERT_VALUES,ierr)
+        endif
+        if (j .gt. 0) then 
+          call MatSetValue(K,II,II-1,-1.D0,INSERT_VALUES,ierr)
+        endif
+        if (j .lt. nx-1) then 
+          call MatSetValue(K,II,II+1,-1.D0,INSERT_VALUES,ierr)
+        endif
+        call MatSetValue(K,II,II,4.D0,INSERT_VALUES,ierr)
+      end do
+      call MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY,ierr)
+      call MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY,ierr)
 
-      call MatGetOwnershipRange(A,Istart,Iend,ierr)
-      if (Istart .eq. 0) then 
-        row(1) = 0
-        col(1) = 0
-        col(2) = 1
-        value(1) =  2.0
-        value(2) = -1.0
-        call MatSetValues(A,1,row,2,col,value,INSERT_VALUES,ierr)
-        Istart = Istart+1
-      endif
-      if (Iend .eq. n) then 
-        row(1) = n-1
-        col(1) = n-2
-        col(2) = n-1
-        value(1) = -1.0
-        value(2) =  2.0
-        call MatSetValues(A,1,row,2,col,value,INSERT_VALUES,ierr)
-        Iend = Iend-1
-      endif
-      value(1) = -1.0
-      value(2) =  2.0
-      value(3) = -1.0
-      do i=Istart,Iend-1
-        row(1) = i
-        col(1) = i-1
-        col(2) = i
-        col(3) = i+1
-        call MatSetValues(A,1,row,3,col,value,INSERT_VALUES,ierr)
-      enddo
+!     ** C is the zero matrix
+      call MatCreate(PETSC_COMM_WORLD,C,ierr)
+      call MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
+      call MatSetFromOptions(C,ierr)
+      call MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY,ierr)
+      call MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY,ierr)
 
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
+!     ** M is the identity matrix
+      call MatCreate(PETSC_COMM_WORLD,M,ierr)
+      call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
+      call MatSetFromOptions(M,ierr)
+      call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr)
+      call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
+      call MatShift(M,1.D0,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-!     Create the eigensolver and display info
+!     Create the eigensolver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Create eigensolver context
-      call EPSCreate(PETSC_COMM_WORLD,solver,ierr)
+      call QEPCreate(PETSC_COMM_WORLD,solver,ierr)
 
-!     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(solver,A,PETSC_NULL_OBJECT,ierr)
-      call EPSSetProblemType(solver,EPS_HEP,ierr)
+!     ** Set matrices and problem type
+      call QEPSetOperators(solver,M,C,K,ierr)
+      call QEPSetProblemType(solver,QEP_GENERAL,ierr)
 
 !     ** Set solver parameters at runtime
-      call EPSSetFromOptions(solver,ierr)
+      call QEPSetFromOptions(solver,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSSolve(solver,ierr) 
-      call EPSGetIterationNumber(solver,its,ierr)
+      call QEPSolve(solver,ierr) 
+      call QEPGetIterationNumber(solver,its,ierr)
       if (rank .eq. 0) then
         write(*,110) its
       endif
  110  format (/' Number of iterations of the method:',I4)
   
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(solver,tname,ierr)
+      call QEPGetType(solver,tname,ierr)
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(solver,nev,PETSC_NULL_INTEGER,              &
+      call QEPGetDimensions(solver,nev,PETSC_NULL_INTEGER,              &
      &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif
  130  format (' Number of requested eigenvalues:',I4)
-      call EPSGetTolerances(solver,tol,maxit,ierr)
+      call QEPGetTolerances(solver,tol,maxit,ierr)
       if (rank .eq. 0) then
         write(*,140) tol, maxit
       endif
@@ -170,7 +175,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Get number of converged eigenpairs
-      call EPSGetConverged(solver,nconv,ierr)
+      call QEPGetConverged(solver,nconv,ierr)
       if (rank .eq. 0) then
         write(*,150) nconv
       endif
@@ -179,21 +184,24 @@
 !     ** Display eigenvalues and relative errors
       if (nconv.gt.0) then
         if (rank .eq. 0) then
-          write(*,*) '         k          ||Ax-kx||/||kx||'
-          write(*,*) ' ----------------- ------------------'
+          write(*,*) '         k          ||(k^2M+Ck+K)x||/||kx||'
+          write(*,*) ' ----------------- -------------------------'
         endif
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(solver,i,kr,ki,PETSC_NULL_OBJECT,        &
+          call QEPGetEigenpair(solver,i,kr,ki,PETSC_NULL_OBJECT,        &
      &                         PETSC_NULL_OBJECT,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
-          call EPSComputeRelativeError(solver,i,error,ierr)
+          call QEPComputeRelativeError(solver,i,error,ierr)
           if (rank .eq. 0) then
-            write(*,160) PetscRealPart(kr), error
+            if (ki.ne.0.D0) then
+              write(*,'(1P,E11.4,E11.4,A,E12.4)') kr, ki, ' j ', error
+            else
+              write(*,'(1P,A,E12.4,A,E12.4)') '   ', kr, '      ', error
+            endif
           endif
- 160      format (1P,'   ',E12.4,'       ',E12.4)
 
         enddo
         if (rank .eq. 0) then
@@ -202,9 +210,10 @@
       endif
 
 !     ** Free work space
-      call EPSDestroy(solver,ierr)
-      call MatDestroy(A,ierr)
-
+      call QEPDestroy(solver,ierr)
+      call MatDestroy(K,ierr)
+      call MatDestroy(C,ierr)
+      call MatDestroy(M,ierr)
       call SlepcFinalize(ierr)
       end
 
