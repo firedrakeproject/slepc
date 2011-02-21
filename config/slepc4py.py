@@ -31,7 +31,7 @@ def Install():
   '''
   Download and uncompress the slepc4py tarball
   '''
-  log.Write('='*80)
+  log.write('='*80)
   log.Println('Installing slepc4py...')
 
   # Test whether PETSc was installed with petsc4py

@@ -60,7 +60,7 @@ def LinkWithOutput(functions,callbacks,flags):
  
 def Link(functions,callbacks,flags):
   (result, output) = LinkWithOutput(functions,callbacks,flags)
-  log.Write(output)
+  log.write(output)
   return result
 
 def FortranLink(functions,callbacks,flags):
@@ -112,7 +112,7 @@ def GenerateGuesses(name):
   return dirs
 
 def FortranLib(conf,cmake,name,dirs,libs,functions,callbacks = []):
-  log.Write('='*80)
+  log.write('='*80)
   log.Println('Checking '+name+' library...')
 
   error = ''
@@ -129,9 +129,9 @@ def FortranLib(conf,cmake,name,dirs,libs,functions,callbacks = []):
     if mangling: break    
 
   if mangling:
-    log.Write(output)
+    log.write(output)
   else:
-    log.Write(error)
+    log.write(error)
     log.Println('ERROR: Unable to link with library '+ name)
     log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))
     log.Println('ERROR: With flags '+''.join([s+' ' for s in libs]))

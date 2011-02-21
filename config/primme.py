@@ -28,7 +28,7 @@ import check
 
 def Check(conf,cmake,directory,libs):
   
-  log.Write('='*80)
+  log.write('='*80)
   log.Println('Checking PRIMME library...')
 
   if petscconf.PRECISION == 'single':

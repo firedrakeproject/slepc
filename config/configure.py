@@ -223,19 +223,19 @@ if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])
 
 # Open log file
 log.Open(os.sep.join([confdir,'configure.log']))
-log.Write('='*80)
-log.Write('Starting Configure Run at '+time.ctime(time.time()))
-log.Write('Configure Options: '+str.join(' ',sys.argv))
-log.Write('Working directory: '+os.getcwd())
-log.Write('Python version:\n' + sys.version)
-log.Write('make: ' + petscconf.MAKE)
-log.Write('PETSc source directory: ' + petscdir)
-log.Write('PETSc install directory: ' + petscconf.DESTDIR)
-log.Write('PETSc version: ' + petscversion.VERSION)
-log.Write('PETSc architecture: ' + petscconf.ARCH)
-log.Write('SLEPc source directory: ' + slepcdir)
-log.Write('SLEPc install directory: ' + prefixdir)
-log.Write('='*80)
+log.write('='*80)
+log.write('Starting Configure Run at '+time.ctime(time.time()))
+log.write('Configure Options: '+str.join(' ',sys.argv))
+log.write('Working directory: '+os.getcwd())
+log.write('Python version:\n' + sys.version)
+log.write('make: ' + petscconf.MAKE)
+log.write('PETSc source directory: ' + petscdir)
+log.write('PETSc install directory: ' + petscconf.DESTDIR)
+log.write('PETSc version: ' + petscversion.VERSION)
+log.write('PETSc architecture: ' + petscconf.ARCH)
+log.write('SLEPc source directory: ' + slepcdir)
+log.write('SLEPc install directory: ' + prefixdir)
+log.write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
@@ -270,6 +270,21 @@ slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 slepcconf.close()
 slepcrules.close()
 cmake.close()
+
+# CMake stuff
+import cmakegen
+try:
+  cmakegen.main(slepcdir,petscdir,petscarch=petscconf.ARCH)
+except (OSError), e:
+  log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
+
+import cmakeboot
+try:
+  cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
+except (OSError), e:
+  log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
+except (ImportError, KeyError), e:
+  log.Exit('ERROR: Importing cmakeboot failed:\n' + str(e))
 
 # Print summary
 log.Println('')

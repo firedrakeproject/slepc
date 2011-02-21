@@ -37,7 +37,7 @@ def Print(string):
   print string,
   f.write(string+' ')
   
-def Write(string):
+def write(string):
   f.write(string)
   f.write('\n')
   

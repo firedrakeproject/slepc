@@ -27,7 +27,7 @@ import log
 import check
 
 def Check(conf,cmake):
-  log.Write('='*80)
+  log.write('='*80)
   log.Println('Checking LAPACK library...')
 
   # LAPACK standard functions
@@ -70,7 +70,7 @@ def Check(conf,cmake):
     f += '#endif\n'
     all.append(f)
 
-  log.Write('=== Checking all LAPACK functions...')
+  log.write('=== Checking all LAPACK functions...')
   if check.Link(all,[],[]):
     return []
 
@@ -86,7 +86,7 @@ def Check(conf,cmake):
     f += i + '\n'
     f += '#endif\n'
   
-    log.Write('=== Checking LAPACK '+i+' function...')
+    log.write('=== Checking LAPACK '+i+' function...')
     if not check.Link([f],[],[]):
       missing.append(i)
       conf.write(' -DSLEPC_MISSING_LAPACK_' + i[1:].upper())
