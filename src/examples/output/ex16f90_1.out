@@ -1,0 +1,14 @@
+
+Quadratic Eigenproblem, N=   100 (  10x  10 grid)
+
+ Number of iterations of the method:   9
+ Solution method: linear                                                                          
+ Number of requested eigenvalues:   1
+ Stopping condition: tol=1.0000E-07, maxit= 100
+ Number of converged eigenpairs:   2
+
+          k          ||(k^2M+Ck+K)x||/||kx||
+  ----------------- -------------------------
+-3.9252E-16 2.7996E+00 j   2.7540E-07
+-3.9252E-16-2.7996E+00 j   2.7540E-07
+
