@@ -61,6 +61,7 @@ def Check(conf,cmake,directory,libs):
       conf.write('PRIMME_FLAGS =' + str.join(' ', f) + '\n')
       cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
       cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
+      cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/PRIMMESRC/COMMONSRC)\n')
       return l+f
 
   log.Println('ERROR: Unable to link with PRIMME library')

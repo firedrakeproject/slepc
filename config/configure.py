@@ -269,6 +269,8 @@ slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
 slepcconf.close()
 slepcrules.close()
+cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
+cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
 cmake.close()
 
 # CMake stuff
