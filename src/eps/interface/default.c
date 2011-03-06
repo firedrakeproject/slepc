@@ -241,7 +241,7 @@ PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
 
   if (eps->nwork != nw) {
     if (eps->nwork > 0) {
-      ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
+      ierr = VecDestroyVecs(&eps->work,eps->nwork); CHKERRQ(ierr);
     }
     eps->nwork = nw;
     ierr = VecDuplicateVecs(eps->V[0],nw,&eps->work); CHKERRQ(ierr);
@@ -263,7 +263,7 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->work)  {
-    ierr = VecDestroyVecs(eps->work,eps->nwork); CHKERRQ(ierr);
+    ierr = VecDestroyVecs(&eps->work,eps->nwork); CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

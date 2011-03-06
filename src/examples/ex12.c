@@ -168,8 +168,8 @@ int main( int argc, char **argv )
 
     ierr = SlepcCheckOrthogonality(X,nconv,Y,nconv,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
-    ierr = VecDestroyVecs(X,nconv);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(Y,nconv);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(&X,nconv);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(&Y,nconv);CHKERRQ(ierr);
 
   }
   
