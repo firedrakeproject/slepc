@@ -102,7 +102,7 @@ info:
 build:
 	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast  tree 
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast  slepctree 
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 	-@echo "Completed building SLEPc libraries"
 	-@echo "========================================="
@@ -121,7 +121,7 @@ testexamples: info
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	   ACTION=testexamples_C  tree 
+	   ACTION=testexamples_C  slepctree 
 	-@echo "Completed compiling and running test examples"
 	-@echo "========================================="
 
@@ -135,7 +135,7 @@ testfortran: info
 	-@echo "========================================="
 	-@if [ "${FC}" != "" ]; then \
 	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	      ACTION=testexamples_Fortran  tree ; \
+	      ACTION=testexamples_Fortran  slepctree ; \
             echo "Completed compiling and running Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
@@ -150,7 +150,7 @@ testexamples_uni: info
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	   ACTION=testexamples_C_X11_MPIUni  tree 
+	   ACTION=testexamples_C_X11_MPIUni  slepctree 
 	-@echo "Completed compiling and running uniprocessor test examples"
 	-@echo "========================================="
 
@@ -162,7 +162,7 @@ testfortran_uni: info
 	-@echo "========================================="
 	-@if [ "${FC}" != "" ]; then \
             ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} 
-	      ACTION=testexamples_Fortran_MPIUni  tree; \
+	      ACTION=testexamples_Fortran_MPIUni  slepctree; \
             echo "Completed compiling and running uniprocessor Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
@@ -182,7 +182,7 @@ deletemods:
 
 # Cleans up build
 allclean: deletelibs deletemods
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean tree
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean slepctree
 
 #
 # Check if PETSC_DIR variable specified is valid
