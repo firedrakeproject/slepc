@@ -26,7 +26,7 @@ import petscconf
 import log
 import check
 
-def Check(conf,cmake,directory,libs):
+def Check(conf,vars,cmake,directory,libs):
   
   log.write('='*80)
   log.Println('Checking PRIMME library...')
@@ -56,9 +56,9 @@ def Check(conf,cmake,directory,libs):
       l =  libs
       f = []
     if check.Link(functions,[],l+f):
-      conf.write('SLEPC_HAVE_PRIMME = -DSLEPC_HAVE_PRIMME\n')
-      conf.write('PRIMME_LIB =' + str.join(' ', l) + '\n')
-      conf.write('PRIMME_FLAGS =' + str.join(' ', f) + '\n')
+      conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
+      vars.write('PRIMME_LIB =' + str.join(' ', l) + '\n')
+      vars.write('PRIMME_FLAGS =' + str.join(' ', f) + '\n')
       cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
       cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
       cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/PRIMMESRC/COMMONSRC)\n')

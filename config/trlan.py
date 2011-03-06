@@ -25,7 +25,7 @@ import sys
 import petscconf
 import check
 
-def Check(conf,cmake,directory,libs):
+def Check(conf,vars,cmake,directory,libs):
 
   if petscconf.SCALAR == 'complex':
     sys.exit('ERROR: TRLAN does not support complex numbers.') 
@@ -44,4 +44,4 @@ def Check(conf,cmake,directory,libs):
   else:
     dirs = check.GenerateGuesses('TRLan')
     
-  return check.FortranLib(conf,cmake,'TRLAN',dirs,libs,functions)
+  return check.FortranLib(conf,vars,cmake,'TRLAN',dirs,libs,functions)

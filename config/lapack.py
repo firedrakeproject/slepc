@@ -26,7 +26,7 @@ import petscconf
 import log
 import check
 
-def Check(conf,cmake):
+def Check(conf,vars,cmake):
   log.write('='*80)
   log.Println('Checking LAPACK library...')
 
@@ -76,7 +76,6 @@ def Check(conf,cmake):
 
   # check functions one by one
   missing = []
-  conf.write('SLEPC_MISSING_LAPACK =')
   for i in functions:
     f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
     f += i + '_\n'
@@ -89,10 +88,9 @@ def Check(conf,cmake):
     log.write('=== Checking LAPACK '+i+' function...')
     if not check.Link([f],[],[]):
       missing.append(i)
-      conf.write(' -DSLEPC_MISSING_LAPACK_' + i[1:].upper())
+      conf.write('#ifndef SLEPC_MISSING_LAPACK_' + i[1:].upper() + '\n#define SLEPC_MISSING_LAPACK_' + i[1:].upper() + ' 1\n#endif\n\n')
       cmake.write('set (SLEPC_MISSING_LAPACK_' + i[1:].upper() + ' YES)\n')
 
-  conf.write('\n')
   if missing:
     cmake.write('mark_as_advanced (' + ''.join([s.upper()+' ' for s in missing]) + ')\n')
   return missing

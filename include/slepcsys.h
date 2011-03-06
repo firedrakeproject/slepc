@@ -1,7 +1,6 @@
 /*
-   This is the main SLEPc include file (for C and C++).  It is included
-   by all other SLEPc include files, so it almost never has to be 
-   specifically included.
+   This include file contains definitions of system functions. It is included
+   by all other SLEPc include files.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -28,6 +27,13 @@
 
 /* ========================================================================== */
 /* 
+   slepcconf.h is created by the configure script and placed in ${PETSC_ARCH}/include.
+   It contains macro definitions set at configure time.
+*/
+#include "slepcconf.h"
+
+/* ========================================================================== */
+/* 
    Current SLEPc version number and release date
 */
 #include "slepcversion.h"
@@ -36,7 +42,7 @@
 /* 
    The PETSc include files. 
 */
-#include "petsc.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "petscmat.h"
 

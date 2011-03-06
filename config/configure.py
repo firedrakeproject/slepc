@@ -204,16 +204,22 @@ if not os.path.exists(incdir):
   except:
     sys.exit('ERROR: cannot create include directory ' + incdir)
 try:
-  slepcconf = open(os.sep.join([confdir,'slepcvariables']),'w')
+  slepcvars = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
     prefixdir = archdir
-  slepcconf.write('SLEPC_DESTDIR =' + prefixdir +'\n')
+  slepcvars.write('SLEPC_DESTDIR =' + prefixdir +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
 try:
   slepcrules = open(os.sep.join([confdir,'slepcrules']),'w')
 except:
   sys.exit('ERROR: cannot create rules file in ' + confdir)
+try:
+  slepcconf = open(os.sep.join([incdir,'slepcconf.h']),'w')
+  slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
+  slepcconf.write('#define __SLEPCCONF_H\n')
+except:
+  sys.exit('ERROR: cannot create configuration file in ' + confdir)
 try:
   cmake = open(os.sep.join([confdir,'SLEPcConfig.cmake']),'w')
 except:
@@ -251,24 +257,26 @@ if not check.Link([],[],[]):
 
 # Check for external packages
 if havearpack:
-  arpacklibs = arpack.Check(slepcconf,cmake,arpackdir,arpacklibs)
+  arpacklibs = arpack.Check(slepcconf,slepcvars,cmake,arpackdir,arpacklibs)
 if haveblzpack:
-  blzpacklibs = blzpack.Check(slepcconf,cmake,blzpackdir,blzpacklibs)
+  blzpacklibs = blzpack.Check(slepcconf,slepcvars,cmake,blzpackdir,blzpacklibs)
 if havetrlan:
-  trlanlibs = trlan.Check(slepcconf,cmake,trlandir,trlanlibs)
+  trlanlibs = trlan.Check(slepcconf,slepcvars,cmake,trlandir,trlanlibs)
 if haveprimme:
-  primmelibs = primme.Check(slepcconf,cmake,primmedir,primmelibs)
+  primmelibs = primme.Check(slepcconf,slepcvars,cmake,primmedir,primmelibs)
 
 # Check for missing LAPACK functions
-missing = lapack.Check(slepcconf,cmake)
+missing = lapack.Check(slepcconf,slepcvars,cmake)
 
 # Download and install slepc4py
 if getslepc4py:
   slepc4py.Install()
 slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
-slepcconf.close()
+slepcvars.close()
 slepcrules.close()
+slepcconf.write('#endif\n')
+slepcconf.close()
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
 cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
 cmake.close()
