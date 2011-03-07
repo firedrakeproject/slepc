@@ -142,6 +142,10 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
       d->W = data->real_W = b->free_vecs; b->free_vecs+= max_size_V;
       d->MTY = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       data->oldV = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
+    } else {
+      d->W = data->real_W = PETSC_NULL;
+      d->MTY = PETSC_NULL;
+      data->oldV = PETSC_NULL;
     }
 
     data->old_updateV_data = d->updateV_data;
