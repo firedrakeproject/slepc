@@ -23,6 +23,7 @@
 import os
 import sys
 import time
+import commands
 
 # should be run from the toplevel
 configDir = os.path.abspath('config')
@@ -184,6 +185,20 @@ if not petscconf.PRECISION in ['double','single','matsingle']:
 if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
+# Check whether this is a working copy of the Subversion repository
+subversion = 0
+if os.path.exists(os.sep.join([slepcdir,'config','checklink.c'])) and os.path.exists(os.sep.join([slepcdir,'.svn'])):
+  (result, output) = commands.getstatusoutput('svn info')
+  if result:
+    print 'WARNING: SLEPC_DIR appears to be a subversion working copy, but svn is not found in PATH'
+  else:
+    subversion = 1
+    for line in output.split('\n'):
+      if line.startswith('Last Changed Rev: '):
+        svnrev = line.split('Rev: ')[-1]
+      if line.startswith('Last Changed Date: '):
+        svndate = line.split('Date: ')[-1]
+
 # Create architecture directory and configuration files
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
 if not os.path.exists(archdir):
@@ -217,7 +232,10 @@ except:
 try:
   slepcconf = open(os.sep.join([incdir,'slepcconf.h']),'w')
   slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
-  slepcconf.write('#define __SLEPCCONF_H\n')
+  slepcconf.write('#define __SLEPCCONF_H\n\n')
+  if subversion:
+    slepcconf.write('#ifndef SLEPC_VERSION_SVN\n#define SLEPC_VERSION_SVN ' + svnrev + '\n#endif\n\n')
+    slepcconf.write('#ifndef SLEPC_VERSION_DATE_SVN\n#define SLEPC_VERSION_DATE_SVN "' + svndate + '"\n#endif\n\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
 try:

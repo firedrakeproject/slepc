@@ -36,27 +36,17 @@
 */
 PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
-  PetscErrorCode  info = 0;
+  PetscErrorCode ierr;
+  char           version[256];
   
   PetscFunctionBegin;
-
-  info = (*PetscHelpPrintf)(comm,"--------------------------------------------\
-------------------------------\n"); CHKERRQ(info);
-#if (PETSC_VERSION_RELEASE == 1)
-  info = (*PetscHelpPrintf)(comm,"SLEPc Release Version %d.%d.%d-%d, %s\n",
-#else
-  info = (*PetscHelpPrintf)(comm,"SLEPc Development Version %d.%d.%d-%d, %s\n",
-#endif
-    SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_SUBMINOR,SLEPC_VERSION_PATCH,SLEPC_VERSION_PATCH_DATE); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,"See docs/manual.html for help. \n"); CHKERRQ(info);
-#if !defined(PARCH_win32)
-  info = (*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR); CHKERRQ(info);
-#endif
-  info = (*PetscHelpPrintf)(comm,"--------------------------------------------\
-------------------------------\n"); CHKERRQ(info);
-
-  PetscFunctionReturn(info);
+  ierr = SlepcGetVersion(version,256);CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,"--------------------------------------------------------------------------\n");CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,"%s\n",version);CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO);CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,"See docs/manual.html for help.\n");CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
@@ -68,18 +58,13 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 */
 PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
-  PetscErrorCode  info = 0;
+  PetscErrorCode  ierr;
   
   PetscFunctionBegin;
-
-  info = (*PetscHelpPrintf)(comm,"--------------------------------------------\
-------------------------------\n"); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,"SLEPc help information includes that for the PETSc libraries, which provide\n"); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,"low-level system infrastructure and linear algebra tools.\n"); CHKERRQ(info);
-  info = (*PetscHelpPrintf)(comm,"--------------------------------------------\
-------------------------------\n"); CHKERRQ(info);
-
-  PetscFunctionReturn(info);
+  ierr = (*PetscHelpPrintf)(comm,"SLEPc help information includes that for the PETSc libraries, which provide\n");CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,"low-level system infrastructure and linear algebra tools.\n");CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,"--------------------------------------------------------------------------\n");CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 /* ------------------------Nasty global variables -------------------------------*/
@@ -134,9 +119,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
     PetscFunctionReturn(0); 
   }
 
-#if !defined(PARCH_t3d)
   info = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(info);
-#endif
 
   if (!PetscInitializeCalled) {
     info = PetscInitialize(argc,args,file,help);CHKERRQ(info);

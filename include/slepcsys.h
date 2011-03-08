@@ -37,6 +37,33 @@
    Current SLEPc version number and release date
 */
 #include "slepcversion.h"
+#define SLEPC_AUTHOR_INFO        "       The SLEPc Team\n    slepc-maint@grycap.upv.es\n http://www.grycap.upv.es/slepc\n"
+#if (SLEPC_VERSION_RELEASE == 1)
+#define SlepcGetVersion(version,len) PetscSNPrintf(version,len,"SLEPc Release Version %d.%d, Patch %d, %s", \
+                                         SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR, \
+					 SLEPC_VERSION_PATCH,SLEPC_VERSION_PATCH_DATE)
+#else
+#define SlepcGetVersion(version,len) PetscSNPrintf(version,len,"SLEPc Development SVN revision: %d  SVN Date: %s", \
+                                        SLEPC_VERSION_SVN, SLEPC_VERSION_DATE_SVN)
+#endif
+/*MC
+    SlepcGetVersion - Gets the SLEPc version information in a string.
+
+    Input Parameter:
+.   len - length of the string
+
+    Output Parameter:
+.   version - version string
+
+    Level: developer
+
+    Usage:
+    char version[256];
+    ierr = SlepcGetVersion(version,256);CHKERRQ(ierr)
+
+    Fortran Note:
+    This routine is not supported in Fortran.
+M*/
 
 /* ========================================================================== */
 /* 

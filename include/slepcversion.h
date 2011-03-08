@@ -8,9 +8,14 @@
 #define SLEPC_VERSION_PATCH      0
 #define SLEPC_VERSION_DATE       "August 4, 2010"
 #define SLEPC_VERSION_PATCH_DATE "unknown"
-#define SLEPC_AUTHOR_INFO        "        The SLEPc Team\n\
-   slepc-maint@grycap.upv.es\n\
- http://www.grycap.upv.es/slepc\n"
+
+#if !defined (SLEPC_VERSION_SVN)
+#define SLEPC_VERSION_SVN        "unknown"
+#endif
+
+#if !defined(SLEPC_VERSION_DATE_SVN)
+#define SLEPC_VERSION_DATE_SVN   "unknown"
+#endif
 
 #define SLEPC_VERSION_(MAJOR,MINOR,SUBMINOR) \
  ((SLEPC_VERSION_MAJOR == (MAJOR)) &&       \
