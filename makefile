@@ -67,33 +67,31 @@ info:
 	-@echo "-----------------------------------------"
 	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
 	-@echo "-----------------------------------------"
-	-@echo "Using PETSc configure options " ${CONFIGURE_OPTIONS}
+	-@echo "Using PETSc configure options:" ${CONFIGURE_OPTIONS}
 	-@echo "Using SLEPc configuration flags:"
 	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
+	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
 	-@echo "Using PETSc configuration flags:"
-	-@if [ -e ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h ]; then \
-	   grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h; \
-          else \
-	   grep "\#define " ${PETSC_DIR}/include/petscconf.h; \
-          fi
+	-@grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h;
 	-@echo "-----------------------------------------"
-	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_INCLUDE}"
+	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES}"
 	-@echo "------------------------------------------"
 	-@echo "Using C/C++ compiler: ${PCC} ${PCC_FLAGS} ${COPTFLAGS} ${CFLAGS}"
-	-@echo "C/C++ Compiler version: " `${CCV}`
 	-@if [ "${FC}" != "" ]; then \
+	   echo "Using Fortran include/module paths: ${PETSC_FC_INCLUDES}";\
 	   echo "Using Fortran compiler: ${FC} ${FC_FLAGS} ${FFLAGS} ${FPP_FLAGS}";\
-	   echo "Fortran Compiler version: " `${FCV}`;\
          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ linker: ${PCC_LINKER}"
+	-@echo "Using C/C++ flags: ${PCC_LINKER_FLAGS}"
 	-@if [ "${FC}" != "" ]; then \
 	   echo "Using Fortran linker: ${FC_LINKER}";\
+	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using libraries: ${SLEPC_LIB}"
 	-@echo "------------------------------------------"
-	-@echo "Using mpirun: ${MPIRUN}"
+	-@echo "Using mpiexec: ${MPIEXEC}"
 	-@echo "=========================================="
 
 #
