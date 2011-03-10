@@ -33,6 +33,9 @@
 extern PetscBool SlepcBeganPetsc;
 extern PetscBool SlepcInitializeCalled;
 extern PetscLogEvent SLEPC_UpdateVectors;
+extern PetscErrorCode SlepcInitialize_DynamicLibraries(void);
+extern PetscErrorCode SlepcInitialize_Packages(void);
+extern PetscErrorCode SlepcInitialize_LogEvents(void);
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define petscinitialize_              PETSCINITIALIZE
@@ -46,10 +49,6 @@ EXTERN_C_BEGIN
 extern void PETSC_STDCALL petscinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len));
 EXTERN_C_END
 
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-extern PetscDLLibrary DLLibrariesLoaded;
-#endif
-
 EXTERN_C_BEGIN
 /*
     SlepcInitialize - Version called from Fortran.
@@ -59,14 +58,13 @@ EXTERN_C_BEGIN
 */
 void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  char      libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
-  PetscBool found;
-#endif
+  PetscBool flg;
   *ierr = 1;
   if (SlepcInitializeCalled) {*ierr = 0; return;}
 
-  if (!PetscInitializeCalled) {
+  *ierr = PetscInitialized(&flg);
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialized failed");return;}
+  if (!flg) {
 #if defined(PETSC_HAVE_FORTRAN_MIXED_STR_ARG)
     petscinitialize_(filename,len,ierr);
 #else
@@ -77,25 +75,15 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErro
   }
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  *ierr = PetscStrcpy(libs,SLEPC_LIB_DIR);if (*ierr) return;
-  *ierr = PetscStrcat(libs,"/libslepc");if (*ierr) return;
-  *ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,1024,&found);if (*ierr) return;
-  if (found) {
-    *ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);if (*ierr) return;
-  } else {
-    *ierr = 1;
-    (*PetscErrorPrintf)("Unable to locate SLEPc dynamic library %s \n",libs);
-    return;
-  }
+  *ierr = SlepcInitialize_DynamicLibraries(); 
+  if (*ierr) {(*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return;}
 #else
-  *ierr = STInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing ST package");return;}
-  *ierr = EPSInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing EPS package");return;}
-  *ierr = SVDInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing SVD package");return;}
-  *ierr = QEPInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing QEP package");return;}
-  *ierr = IPInitializePackage(PETSC_NULL); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing IP package");return;}
+  *ierr = SlepcInitialize_Packages(); 
+  if (*ierr) {(*PetscErrorPrintf)("SlepcInitialize:Initializing packages\n");return;}
 #endif
 
-  *ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors); if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Registering log event");return;}
+  *ierr = SlepcInitialize_LogEvents(); 
+  if (*ierr) {(*PetscErrorPrintf)("SlepcInitialize:Initializing log events\n");return;}
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */

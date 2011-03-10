@@ -79,7 +79,68 @@ extern PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY, SLEPC_SlepcDenseMatPr
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 extern PetscDLLibrary DLLibrariesLoaded;
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcInitialize_DynamicLibraries"
+/*
+    SlepcInitialize_DynamicLibraries - Adds the default dynamic link libraries to the 
+    search path.
+*/ 
+PetscErrorCode SlepcInitialize_DynamicLibraries(void)
+{
+  PetscErrorCode ierr;
+  PetscBool      found;
+  char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
+
+  PetscFunctionBegin;
+  ierr = PetscStrcpy(libs,SLEPC_LIB_DIR);CHKERRQ(ierr);
+  ierr = PetscStrcat(libs,"/libslepc");CHKERRQ(ierr);
+  ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,1024,&found);CHKERRQ(ierr);
+  if (found) {
+    ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);CHKERRQ(ierr);
+  } else {
+    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\n You cannot move the dynamic libraries!");
+  }
+  PetscFunctionReturn(0);
+}
 #endif
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcInitialize_Packages"
+/*
+    SlepcInitialize_Packages - Initialize all SLEPc packages at the initialization.
+*/ 
+PetscErrorCode SlepcInitialize_Packages(void)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  ierr = STInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  ierr = QEPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcInitialize_LogEvents"
+/*
+    SlepcInitialize_LogEvents - Initialize log events not pertaining to any object class.
+*/ 
+PetscErrorCode SlepcInitialize_LogEvents(void)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("VecMAXPBY",0,&SLEPC_VecMAXPBY);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseMatProd",EPS_CLASSID,&SLEPC_SlepcDenseMatProd);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseOrth",EPS_CLASSID,&SLEPC_SlepcDenseOrth);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseMatInvProd",EPS_CLASSID,&SLEPC_SlepcDenseMatInvProd);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseMatNorm",EPS_CLASSID,&SLEPC_SlepcDenseNorm);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseCopy",EPS_CLASSID,&SLEPC_SlepcDenseCopy);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("VecsMult",EPS_CLASSID,&SLEPC_VecsMult);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcInitialize"
@@ -102,18 +163,13 @@ extern PetscDLLibrary DLLibrariesLoaded;
    
    Level: beginner
 
-.seealso: SlepcInitializeFortran(), SlepcFinalize(), PetscInitialize()
+.seealso: SlepcFinalize(), PetscInitialize()
 @*/
 PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char help[])
 {
   PetscErrorCode ierr;
   PetscErrorCode info=0;
   PetscBool      flg;
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
-  PetscBool      found;
-#endif
-
   PetscFunctionBegin;
 
   if (SlepcInitializeCalled) {
@@ -128,35 +184,12 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
-  /*
-      Load the dynamic libraries
-  */
-
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  ierr = PetscStrcpy(libs,SLEPC_LIB_DIR);CHKERRQ(ierr);
-  ierr = PetscStrcat(libs,"/libslepc");CHKERRQ(ierr);
-  ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,1024,&found);CHKERRQ(ierr);
-  if (found) {
-    ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);CHKERRQ(ierr);
-  } else {
-    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\n You cannot move the dynamic libraries!");
-  }
+  ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
 #else
-  ierr = STInitializePackage(PETSC_NULL); CHKERRQ(ierr);
-  ierr = EPSInitializePackage(PETSC_NULL); CHKERRQ(ierr);
-  ierr = SVDInitializePackage(PETSC_NULL); CHKERRQ(ierr);
-  ierr = QEPInitializePackage(PETSC_NULL); CHKERRQ(ierr);
-  ierr = IPInitializePackage(PETSC_NULL); CHKERRQ(ierr);
+  ierr = SlepcInitialize_Packages();CHKERRQ(ierr);
 #endif
-
-  ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("VecMAXPBY",0,&SLEPC_VecMAXPBY);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatProd", EPS_CLASSID, &SLEPC_SlepcDenseMatProd); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseOrth", EPS_CLASSID, &SLEPC_SlepcDenseOrth); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatInvProd", EPS_CLASSID, &SLEPC_SlepcDenseMatInvProd); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatNorm", EPS_CLASSID, &SLEPC_SlepcDenseNorm); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseCopy", EPS_CLASSID, &SLEPC_SlepcDenseCopy); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("VecsMult", EPS_CLASSID, &SLEPC_VecsMult); CHKERRQ(ierr);
+  ierr = SlepcInitialize_LogEvents();CHKERRQ(ierr);
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */
@@ -220,13 +253,8 @@ PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
   /*
       If we got here then PETSc was properly loaded
   */
-  ierr = STInitializePackage(path); CHKERRQ(ierr);
-  ierr = EPSInitializePackage(path); CHKERRQ(ierr);
-  ierr = SVDInitializePackage(path); CHKERRQ(ierr);
-  ierr = QEPInitializePackage(path); CHKERRQ(ierr);
-  ierr = IPInitializePackage(path); CHKERRQ(ierr);
+  ierr = SlepcInitialize_Packages();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
-
 #endif /* PETSC_USE_DYNAMIC_LIBRARIES */
