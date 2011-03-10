@@ -139,7 +139,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
   if (found) {
     ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);CHKERRQ(ierr);
   } else {
-    SETERRQ1(PETSC_COMM_WORLD,1,"Unable to locate SLEPc dynamic library %s \n",libs);
+    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\n You cannot move the dynamic libraries!");
   }
 #else
   ierr = STInitializePackage(PETSC_NULL); CHKERRQ(ierr);

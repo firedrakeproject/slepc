@@ -236,6 +236,7 @@ try:
   if subversion:
     slepcconf.write('#ifndef SLEPC_VERSION_SVN\n#define SLEPC_VERSION_SVN ' + svnrev + '\n#endif\n\n')
     slepcconf.write('#ifndef SLEPC_VERSION_DATE_SVN\n#define SLEPC_VERSION_DATE_SVN "' + svndate + '"\n#endif\n\n')
+    slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + prefixdir + '/lib"\n#endif\n\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
 try:
