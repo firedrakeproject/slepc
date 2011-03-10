@@ -108,6 +108,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
 {
   PetscErrorCode ierr;
   PetscErrorCode info=0;
+  PetscBool      flg;
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
   PetscBool      found;
@@ -121,7 +122,8 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char hel
 
   info = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(info);
 
-  if (!PetscInitializeCalled) {
+  ierr = PetscInitialized(&flg);CHKERRQ(ierr);
+  if (!flg) {
     info = PetscInitialize(argc,args,file,help);CHKERRQ(info);
     SlepcBeganPetsc = PETSC_TRUE;
   }
