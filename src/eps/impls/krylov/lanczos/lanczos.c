@@ -822,7 +822,7 @@ PetscErrorCode EPSDestroy_LANCZOS(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (lanczos->AV) { ierr = VecDestroyVecs(&lanczos->AV,eps->ncv);CHKERRQ(ierr); }
+  if (lanczos->AV) { ierr = VecDestroyVecs(eps->ncv,&lanczos->AV);CHKERRQ(ierr); }
   ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);

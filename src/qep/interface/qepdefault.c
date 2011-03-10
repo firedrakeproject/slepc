@@ -54,7 +54,7 @@ PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
 
   if (qep->nwork != nw) {
     if (qep->nwork > 0) {
-      ierr = VecDestroyVecs(&qep->work,qep->nwork); CHKERRQ(ierr);
+      ierr = VecDestroyVecs(qep->nwork,&qep->work); CHKERRQ(ierr);
     }
     qep->nwork = nw;
     ierr = PetscMalloc(nw*sizeof(Vec),&qep->work);CHKERRQ(ierr);
@@ -79,7 +79,7 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (qep->work)  {
-    ierr = VecDestroyVecs(&qep->work,qep->nwork);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
