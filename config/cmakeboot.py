@@ -66,6 +66,7 @@ class PETScMaker(script.Script):
 
  def cmakeboot(self, args, log):
    self.setup()
+   if not hasattr(self.cmake,'cmake'): return
    options = deque()
    langlist = [('C','C')]
    if hasattr(self.compilers,'FC'):
@@ -93,13 +94,12 @@ class PETScMaker(script.Script):
      options.append('-GUnix Makefiles')
    cmd = [self.cmake.cmake, self.slepcdir] + map(lambda x:x.strip(), options) + args
    archdir = os.path.join(self.slepcdir, self.arch.arch)
-   log.Println('Booting CMake')
    log.write('Invoking: %s\n' % cmd)
    output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir)
    if retcode:
-     log.Println('CMake process failed with status %d. Proceeding..' % (retcode,))
+     self.logPrintBox('CMake process failed with status %d. Proceeding..' % (retcode,))
    else:
-     log.Println('CMake configuration completed successfully.\n' +
+     self.logPrintBox('CMake configuration completed successfully.\n' +
                       'Can now use alternate build command [optionally with -j]: make -C %s' % quoteIfNeeded(archdir))
    return
 
