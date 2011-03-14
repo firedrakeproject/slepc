@@ -218,6 +218,7 @@ install:
 	    ${MKDIR} ${SLEPC_DESTDIR}/include ; \
           fi;\
           cp -f include/*.h ${SLEPC_DESTDIR}/include;\
+          cp -f ${PETSC_ARCH}/include/*.h ${SLEPC_DESTDIR}/include;\
           if [ -f ${PETSC_ARCH}/include/slepceps.mod ]; then \
             cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_DESTDIR}/include;\
           fi;\

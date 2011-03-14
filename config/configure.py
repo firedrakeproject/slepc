@@ -307,13 +307,15 @@ try:
 except (OSError), e:
   log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
 
-import cmakeboot
-try:
-  cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
-except (OSError), e:
-  log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
-except (ImportError, KeyError), e:
-  log.Exit('ERROR: Importing cmakeboot failed:\n' + str(e))
+# In a prefix-based PETSc installation we skip the last CMake step
+if not petscconf.ISINSTALL:
+  import cmakeboot
+  try:
+    cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
+  except (OSError), e:
+    log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
+  except (ImportError, KeyError), e:
+    log.Exit('ERROR: Importing cmakeboot failed:\n' + str(e))
 
 # Print summary
 log.Println('')

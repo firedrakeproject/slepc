@@ -78,10 +78,15 @@ slepc_html:
 slepctree: ${ACTION}
 	-@for dir in ${DIRS} ftn-auto ftn-custom f90-custom; do \
             if [ -d $$dir ]; then \
+              if [ "${PETSC_ARCH}" == "arch-installed-petsc" ]; then \
+                PETSCCONF="${PETSC_DIR}/include/petscconf.h" ; \
+              else \
+                PETSCCONF="${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h" ; \
+              fi; \
 	      r=`grep -w requirespackage $$dir/makefile`; \
               if [ "$$?" = 0 ]; then \
 		PKGFLG=`echo $$r | cut -d \' -f2`;\
-                grep -w "#define $${PKGFLG}" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; \
+                grep -w "#define $${PKGFLG}" $${PETSCCONF} > /dev/null; \
                 if [ "$$?" = 1 ]; then \
                   if [ "${PCONF}" != "" ]; then \
                     echo ${PCONF} | sed s/-D//g | grep -w "$${PKGFLG}" > /dev/null; \
@@ -96,7 +101,7 @@ slepctree: ${ACTION}
 	      r=`grep -w requiresfunction $$dir/makefile`; \
               if [ "$$?" = 0 ]; then \
 		PKGFLG=`echo $$r | cut -d \' -f2`;\
-                grep -w "#define $${PKGFLG}" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; \
+                grep -w "#define $${PKGFLG}" $${PETSCCONF} > /dev/null; \
                 if [ "$$?" = 1 ]; then \
                   if [ "${PCONF}" != "" ]; then \
                     echo ${PCONF} | sed s/-D//g | grep -w "$${PKGFLG}" > /dev/null; \
@@ -113,7 +118,7 @@ slepctree: ${ACTION}
 		PKGFLG=`echo $$r | cut -d \' -f2`;\
                 grep -w "#define $${PKGFLG}" ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h > /dev/null; \
                 if [ "$$?" = 1 ]; then \
-                  grep -w "#define $${PKGFLG}" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; \
+                  grep -w "#define $${PKGFLG}" $${PETSCCONF} > /dev/null; \
                   if [ "$$?" = 1 ]; then \
                     if [ "${PCONF}" != "" ]; then \
                       echo ${PCONF} | sed s/-D//g | grep -w "$${PKGFLG}" > /dev/null; \
