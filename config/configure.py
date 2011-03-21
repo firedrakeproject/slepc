@@ -25,6 +25,10 @@ import sys
 import time
 import commands
 
+# Use en_US as language so that BuildSystem parses compiler messages in english
+if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
+if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
+
 # should be run from the toplevel
 configDir = os.path.abspath('config')
 if not os.path.isdir(configDir):
@@ -236,9 +240,9 @@ try:
   if subversion:
     slepcconf.write('#ifndef SLEPC_VERSION_SVN\n#define SLEPC_VERSION_SVN ' + svnrev + '\n#endif\n\n')
     slepcconf.write('#ifndef SLEPC_VERSION_DATE_SVN\n#define SLEPC_VERSION_DATE_SVN "' + svndate + '"\n#endif\n\n')
-    slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + prefixdir + '/lib"\n#endif\n\n')
+  slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + prefixdir + '/lib"\n#endif\n\n')
 except:
-  sys.exit('ERROR: cannot create configuration file in ' + confdir)
+  sys.exit('ERROR: cannot create configuration header in ' + confdir)
 try:
   cmake = open(os.sep.join([confdir,'SLEPcConfig.cmake']),'w')
 except:
