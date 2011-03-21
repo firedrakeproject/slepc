@@ -301,14 +301,15 @@ cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
 cmake.close()
 
 # CMake stuff
-import cmakegen
-try:
-  cmakegen.main(slepcdir,petscdir,petscarch=petscconf.ARCH)
-except (OSError), e:
-  log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
+if sys.version_info >= (2,5):
+  import cmakegen
+  try:
+    cmakegen.main(slepcdir,petscdir,petscarch=petscconf.ARCH)
+  except (OSError), e:
+    log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
 
 # In a prefix-based PETSc installation we skip the last CMake step
-if not petscconf.ISINSTALL:
+if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
   import cmakeboot
   try:
     cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
