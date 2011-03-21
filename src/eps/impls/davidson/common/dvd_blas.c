@@ -1363,7 +1363,7 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
     {
       if (T[i*ldT+i] == 0.0) {
         if (PetscRealPart(S[i*ldS+i]) < 0.0) eigr[i] = PETSC_MIN_REAL;
-        else eigr[i] = PETSC_REAL_MAX;
+        else eigr[i] = PETSC_MAX_REAL;
       } else eigr[i] = S[i*ldS+i] / T[i*ldT+i];
       if (eigi) eigi[i] = 0.0;
     }

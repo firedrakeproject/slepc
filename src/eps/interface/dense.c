@@ -740,7 +740,7 @@ PetscErrorCode EPSSortDenseSchurGeneralized(EPS eps,PetscInt n_,PetscInt k0,Pets
         {
           if (S[j*ldt+j] == 0.0) {
             if (PetscRealPart(T[j*ldt+j]) < 0.0) wr[j] = PETSC_MIN_REAL;
-            else wr[j] = PETSC_REAL_MAX;
+            else wr[j] = PETSC_MAX_REAL;
           } else wr[j] = T[j*ldt+j] / S[j*ldt+j];
           wi[j] = 0.0;
         }
