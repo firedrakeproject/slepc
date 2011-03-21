@@ -154,7 +154,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       delta = norm;
 
       /* compute relative error */
-      if (rho == 0.0) relerr = PETSC_MAX;
+      if (rho == 0.0) relerr = PETSC_REAL_MAX;
       else relerr = 1.0 / (norm*PetscAbsScalar(rho));
 
       /* approximate eigenvalue is the shift */
@@ -299,7 +299,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       delta = PetscSqrtScalar(alpha);
 
       /* compute relative error */
-      if (rho == 0.0) relerr = PETSC_MAX;
+      if (rho == 0.0) relerr = PETSC_REAL_MAX;
       else relerr = 1.0 / (PetscAbsScalar(delta*rho));
       eps->errest[eps->nconv] = relerr;
       eps->errest_left[eps->nconv] = relerr;

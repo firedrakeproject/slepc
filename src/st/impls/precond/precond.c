@@ -111,13 +111,13 @@ PetscErrorCode STSetUp_Precond(ST st)
       ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
       //TODO: set the apply and apply transpose to st->mat
       destroyP = PETSC_TRUE;
-    } else if (!(PetscAbsScalar(st->sigma) < PETSC_MAX) && st->B) {
+    } else if (!(PetscAbsScalar(st->sigma) < PETSC_REAL_MAX) && st->B) {
       P = st->B;
       destroyP = PETSC_FALSE;
     } else if (st->sigma == 0.0) {
       P = st->A;
       destroyP = PETSC_FALSE;
-    } else if (PetscAbsScalar(st->sigma) < PETSC_MAX) {
+    } else if (PetscAbsScalar(st->sigma) < PETSC_REAL_MAX) {
       if (st->shift_matrix == ST_MATMODE_INPLACE) {
         P = st->A;
         destroyP = PETSC_FALSE;
@@ -151,7 +151,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (destroyP) {
     ierr = MatDestroy(P); CHKERRQ(ierr);
   } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP) {
-    if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX) {
+    if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_REAL_MAX) {
       if (st->B) {
         ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr); 
       } else { 
