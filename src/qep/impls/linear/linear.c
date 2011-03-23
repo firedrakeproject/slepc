@@ -22,9 +22,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/qepimpl.h"         /*I "slepcqep.h" I*/
-#include "private/epsimpl.h"
-#include "slepceps.h"
+#include <private/qepimpl.h>         /*I "slepcqep.h" I*/
+#include <private/epsimpl.h>         /*I "slepceps.h" I*/
 #include "linearp.h"
 
 #undef __FUNCT__  

@@ -26,9 +26,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/svdimpl.h"                /*I "slepcsvd.h" I*/
-#include "private/epsimpl.h"                /*I "slepceps.h" I*/
-#include "slepceps.h"
+#include <private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   PetscBool explicitmatrix;

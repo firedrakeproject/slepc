@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/svdimpl.h"      /*I "slepcsvd.h" I*/
+#include <private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 PetscFList SVDList = 0;
 PetscClassId SVD_CLASSID = 0;

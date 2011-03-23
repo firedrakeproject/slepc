@@ -19,9 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/fortranimpl.h"
-#include "slepcqep.h"
-#include "private/qepimpl.h"
+#include <private/fortranimpl.h>
+#include <private/qepimpl.h>
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define qepview_                    QEPVIEW

@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/qepimpl.h"  /*I "slepcqep.h" I*/
+#include <private/qepimpl.h>      /*I "slepcqep.h" I*/
 
 EXTERN_C_BEGIN
 extern PetscErrorCode QEPCreate_LINEAR(QEP);

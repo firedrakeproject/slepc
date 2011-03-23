@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/qepimpl.h"      /*I "slepcqep.h" I*/
+#include <private/qepimpl.h>      /*I "slepcqep.h" I*/
 
 PetscFList QEPList = 0;
 PetscClassId QEP_CLASSID = 0;

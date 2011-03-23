@@ -24,8 +24,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/qepimpl.h" /*I "slepcqep.h" I*/
-#include "slepcblaslapack.h"
+#include <private/qepimpl.h>          /*I "slepcqep.h" I*/
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSortDenseSchur"

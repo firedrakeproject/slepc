@@ -19,10 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "petscmat.h"
 #include "private/vecimpl.h"          /*I  "petscvec.h"   I*/
 #include "veccomp_private.h"
-#include "slepcvec.h"
+#include <slepcvec.h>
 
 typedef struct {
   PetscInt      n,        /* number of active subvectors */

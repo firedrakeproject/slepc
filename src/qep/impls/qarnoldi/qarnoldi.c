@@ -22,9 +22,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/qepimpl.h"         /*I "slepcqep.h" I*/
-#include "private/epsimpl.h"
-#include "petscblaslapack.h"
+#include <private/qepimpl.h>         /*I "slepcqep.h" I*/
+#include <petscblaslapack.h>
 
 typedef struct {
   KSP ksp;

@@ -22,8 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/qepimpl.h"         /*I "slepcqep.h" I*/
-#include "slepceps.h"
+#include <private/qepimpl.h>         /*I "slepcqep.h" I*/
 #include "linearp.h"
 
 /*

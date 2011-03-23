@@ -22,8 +22,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/svdimpl.h"        /*I "slepcsvd.h" I*/
-#include "slepcblaslapack.h"
+#include <private/svdimpl.h>        /*I "slepcsvd.h" I*/
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDDense"
