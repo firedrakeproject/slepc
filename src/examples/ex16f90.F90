@@ -30,7 +30,7 @@
 !
       program main
 
-#include "finclude/slepcqepdef.h"
+#include <finclude/slepcqepdef.h>
       use slepcqep
 
       implicit none
@@ -38,8 +38,8 @@
 ! For usage without modules, uncomment the following lines and remove 
 ! the previous lines between 'program main' and 'implicit none'
 !
-!#include "finclude/petsc.h"
-!#include "finclude/slepc.h"
+!#include <finclude/petsc.h>
+!#include <finclude/slepc.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations

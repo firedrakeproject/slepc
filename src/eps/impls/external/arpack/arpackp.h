@@ -24,7 +24,7 @@
 #if !defined(__ARPACKP_H)
 #define __ARPACKP_H
 
-#include "private/epsimpl.h"                /*I "slepceps.h" I*/
+#include <private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   PetscBool   *select;

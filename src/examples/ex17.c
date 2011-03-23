@@ -25,7 +25,7 @@ static char help[] = "Solves a quadratic eigenproblem (l^2*M + l*C + K)*x = 0 wi
   "  -C <filename>, where <filename> = matrix (C) file in PETSc binary form.\n"
   "  -K <filename>, where <filename> = matrix (K) file in PETSc binary form.\n\n";
 
-#include "slepcqep.h"
+#include <slepcqep.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

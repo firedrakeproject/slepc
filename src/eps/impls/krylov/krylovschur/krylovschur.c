@@ -39,8 +39,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/epsimpl.h"                /*I "slepceps.h" I*/
-#include "slepcblaslapack.h"
+#include <private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepcblaslapack.h>
 
 PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS);
 extern PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS);

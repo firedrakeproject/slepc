@@ -25,7 +25,7 @@ static char help[] = "Solves a generalized eigensystem Ax=kBx with matrices load
   "  -f1 <filename>, where <filename> = matrix (A) file in PETSc binary form.\n"
   "  -f2 <filename>, where <filename> = matrix (B) file in PETSc binary form.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

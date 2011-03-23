@@ -24,7 +24,7 @@
 #if !defined(__BLZPACKP_H)
 #define __BLZPACKP_H
 
-#include "private/epsimpl.h"
+#include <private/epsimpl.h>            /*I "slepceps.h" I*/
 
 typedef struct {
   PetscBLASInt         block_size;      /* block size */

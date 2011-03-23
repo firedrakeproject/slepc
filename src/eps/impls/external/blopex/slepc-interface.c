@@ -22,14 +22,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "petscsys.h"
-#include "petscvec.h"
-#include "petscmat.h"
+#include <petscsys.h>
+#include <petscvec.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "petscblaslapack.h"
-#include "interpreter.h"
-#include "temp_multivector.h"
+#define BlopexInt PetscInt
+#include <interpreter.h>
+#include <temp_multivector.h>
 #include "slepc-interface.h"
 
 static void* mv_TempMultiVectorCreateFromPETScVector( void* ii_, int n, void* sample )

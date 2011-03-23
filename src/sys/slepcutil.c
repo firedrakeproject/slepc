@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "slepcsys.h"                  /*I "slepcsys.h" I*/
-#include "petscblaslapack.h"
+#include <slepcsys.h>
+#include <petscblaslapack.h>
 #include <stdlib.h>
 
 PetscLogEvent SLEPC_UpdateVectors = 0, SLEPC_VecMAXPBY = 0;

@@ -25,7 +25,7 @@ static char help[] = "Illustrates the use of shell spectral transformations. "
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 /* Define context for user-provided spectral transformation */
 typedef struct {

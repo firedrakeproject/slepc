@@ -24,7 +24,7 @@ static char help[] = "Solves a singular value problem with the matrix loaded fro
   "The command line options are:\n"
   "  -file <filename>, where <filename> = matrix file in PETSc binary form.\n\n";
 
-#include "slepcsvd.h"
+#include <slepcsvd.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

@@ -24,7 +24,7 @@ static char help[] = "Singular value decomposition of the Lauchli matrix.\n"
   "  -n <n>, where <n> = matrix dimension.\n"
   "  -mu <mu>, where <mu> = subdiagonal value.\n\n";
 
-#include "slepcsvd.h"
+#include <slepcsvd.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

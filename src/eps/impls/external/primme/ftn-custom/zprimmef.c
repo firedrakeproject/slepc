@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/fortranimpl.h"
-#include "slepceps.h"
+#include <private/fortranimpl.h>
+#include <slepceps.h>
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define epsprimmegetmethod_  EPSPRIMMEGETMETHOD

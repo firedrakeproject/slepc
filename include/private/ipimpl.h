@@ -22,7 +22,7 @@
 #ifndef _IPIMPL
 #define _IPIMPL
 
-#include "slepcip.h"
+#include <slepcip.h>
 
 extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 

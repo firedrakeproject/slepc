@@ -72,6 +72,10 @@ M*/
 #include "petscsys.h"
 #include "petscvec.h"
 #include "petscmat.h"
+/*
+    slepcimpl.h contains definitions common to all SLEPc objects
+*/
+#include "private/slepcimpl.h"
 
 PETSC_EXTERN_CXX_BEGIN
 /*

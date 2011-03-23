@@ -22,7 +22,7 @@
 #ifndef _EPSIMPL
 #define _EPSIMPL
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 extern PetscFList EPSList;
 extern PetscLogEvent EPS_SetUp, EPS_Solve, EPS_Dense;

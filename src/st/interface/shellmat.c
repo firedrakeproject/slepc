@@ -24,7 +24,7 @@
 */
 
 
-#include "private/stimpl.h"
+#include <private/stimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatShellMult"

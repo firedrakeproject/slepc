@@ -24,7 +24,7 @@
 #if !defined(__TRLANP_H)
 #define __TRLANP_H
 
-#include "private/epsimpl.h"
+#include <private/epsimpl.h>          /*I "slepceps.h" I*/
 
 typedef struct {
   PetscBLASInt       maxlan;

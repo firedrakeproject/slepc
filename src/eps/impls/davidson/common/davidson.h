@@ -31,10 +31,9 @@
    options.
 */
 
-#include "petsc.h"
-#include "private/epsimpl.h"
-#include "private/stimpl.h"
-
+#include <private/epsimpl.h>         /*I "slepceps.h" I*/
+#include <private/stimpl.h>          /*I "slepcst.h" I*/
+#include <slepcblaslapack.h>
 
 typedef struct _dvdFunctionList {
   PetscErrorCode (*f)(void*);

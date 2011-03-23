@@ -19,9 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/fortranimpl.h"
-#include "slepceps.h"
-#include "private/epsimpl.h"
+#include <private/fortranimpl.h>
+#include <private/epsimpl.h>        /*I "slepceps.h" I*/
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define epsview_                    EPSVIEW

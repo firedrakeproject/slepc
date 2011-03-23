@@ -21,8 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/stimpl.h"      /*I "slepcst.h" I*/
-#include "petscsys.h"
+#include <private/stimpl.h>      /*I "slepcst.h" I*/
 
 /*
    Contains the list of registered ST routines

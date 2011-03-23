@@ -19,8 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "petscmat.h"
-#include "private/vecimpl.h"     /*I  "vec.h"  I*/
+#include <private/vecimpl.h>     /*I  "petsvec.h"  I*/
 
 #ifdef __WITH_MPI__
 #define __SUF__(A) A##_MPI

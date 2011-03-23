@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/fortranimpl.h" 
+#include <private/fortranimpl.h>
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define slepcinitializefortran_     SLEPCINITIALIZEFORTRAN

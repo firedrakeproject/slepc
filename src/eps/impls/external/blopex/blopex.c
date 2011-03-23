@@ -21,13 +21,14 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/stimpl.h"
-#include "private/epsimpl.h"
+#include <private/stimpl.h>       /*I "slepcst.h" I*/
+#include <private/epsimpl.h>      /*I "slepceps.h" I*/
+#define BlopexInt PetscInt
 #include "slepc-interface.h"
-#include "lobpcg.h"
-#include "interpreter.h"
-#include "multivector.h"
-#include "temp_multivector.h"
+#include <lobpcg.h>
+#include <interpreter.h>
+#include <multivector.h>
+#include <temp_multivector.h>
 
 PetscErrorCode EPSSolve_BLOPEX(EPS);
 
@@ -201,19 +202,19 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   
   PetscFunctionBegin;
   
-#ifdef PETSC_USE_COMPLEX
-  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
-  	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
-        eps,Precond_FnMultiVector,blopex->Y,
-        blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-        (komplex*)eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
-#else
-  info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
+//#ifdef PETSC_USE_COMPLEX
+//  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
+//  	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+//        eps,Precond_FnMultiVector,blopex->Y,
+//        blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
+//        eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
+//#else
+  info = lobpcg_solve(blopex->eigenvectors,eps,OperatorAMultiVector,
   	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
-#endif
+//#endif
   if (info>0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
 
   eps->its = its;

@@ -25,7 +25,7 @@ static char help[] = "Solves the same problem as in ex5, but with a user-defined
   "The command line options are:\n"
   "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 /* 
    User-defined routines

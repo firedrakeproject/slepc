@@ -24,7 +24,7 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
   "The command line options are:\n"
   "  -n <n>, where <n> = matrix dimension.\n\n";
 
-#include "slepcsvd.h"
+#include <slepcsvd.h>
 
 /*
    This example computes the singular values of an nxn Grcar matrix,

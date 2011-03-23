@@ -22,8 +22,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/epsimpl.h"
-#include "slepcblaslapack.h"
+#include <private/epsimpl.h>     /*I "slepceps.h" I*/
+#include <slepcblaslapack.h>
 
 typedef struct {
   Mat OP,A,B;

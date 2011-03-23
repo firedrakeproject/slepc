@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "../src/eps/impls/external/trlan/trlanp.h"
+#include <../src/eps/impls/external/trlan/trlanp.h>
 
 PetscErrorCode EPSSolve_TRLAN(EPS);
 

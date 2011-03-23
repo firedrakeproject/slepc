@@ -22,7 +22,7 @@
 #ifndef _STIMPL
 #define _STIMPL
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 extern PetscLogEvent ST_SetUp, ST_Apply, ST_ApplyB, ST_ApplyTranspose;
 extern PetscFList STList;

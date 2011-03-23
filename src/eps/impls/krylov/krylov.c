@@ -21,9 +21,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/epsimpl.h"                /*I "slepceps.h" I*/
-#include "private/slepcimpl.h"
-#include "slepcblaslapack.h"
+#include <private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <private/slepcimpl.h>              /*I "slepcsys.h" I*/
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSBasicArnoldi"

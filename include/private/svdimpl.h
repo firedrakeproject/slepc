@@ -22,8 +22,8 @@
 #ifndef _SVDIMPL
 #define _SVDIMPL
 
-#include "slepcsvd.h"
-#include "slepcip.h"
+#include <slepcsvd.h>
+#include <slepcip.h>
 
 extern PetscFList SVDList;
 extern PetscLogEvent SVD_SetUp, SVD_Solve, SVD_Dense;

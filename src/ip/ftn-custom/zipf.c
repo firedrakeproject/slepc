@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/fortranimpl.h"
-#include "slepcip.h"
+#include <private/fortranimpl.h>
+#include <slepcip.h>
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define ipcreate_                 IPCREATE

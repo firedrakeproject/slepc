@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/stimpl.h"          /*I "slepcst.h" I*/
+#include <private/stimpl.h>          /*I "slepcst.h" I*/
 
 typedef struct {
   Vec         w2;

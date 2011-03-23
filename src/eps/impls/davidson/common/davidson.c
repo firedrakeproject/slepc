@@ -25,10 +25,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/epsimpl.h"
-#include "private/stimpl.h"
 #include "davidson.h"
-#include "slepcblaslapack.h"
 
 PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer);
 

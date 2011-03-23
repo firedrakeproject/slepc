@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/ipimpl.h"      /*I "slepcip.h" I*/
+#include <private/ipimpl.h>      /*I "slepcip.h" I*/
 
 PetscClassId IP_CLASSID = 0;
 PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;

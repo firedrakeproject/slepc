@@ -28,7 +28,7 @@ static char help[] = "Generalized Symmetric eigenproblem.\n\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n"
   "  -nulldim <k>, where <k> = dimension of the nullspace of B.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

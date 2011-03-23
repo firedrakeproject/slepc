@@ -22,8 +22,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/ipimpl.h"      /*I "slepcip.h" I*/
-#include "slepcblaslapack.h"
+#include <private/ipimpl.h>      /*I "slepcip.h" I*/
+#include <slepcblaslapack.h>
 
 /* 
    IPOrthogonalizeMGS1 - Compute one step of Modified Gram-Schmidt 

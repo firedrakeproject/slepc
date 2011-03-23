@@ -24,7 +24,6 @@
 */
 
 #include "private/stimpl.h"        /*I "slepcst.h" I*/
-#include "slepceps.h"
 
 EXTERN_C_BEGIN 
 typedef struct {

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/stimpl.h"          /*I "slepcst.h" I*/
+#include <private/stimpl.h>          /*I "slepcst.h" I*/
 
 typedef struct {
   PetscScalar nu;

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/stimpl.h"          /*I "slepcst.h" I*/
+#include <private/stimpl.h>          /*I "slepcst.h" I*/
 
 PetscErrorCode STDestroy_Precond(ST st);
 PetscErrorCode STSetFromOptions_Precond(ST st); 

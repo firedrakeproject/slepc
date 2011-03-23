@@ -24,8 +24,8 @@ static char help[] = "Solves the same eigenproblem as in example ex2, but using 
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in both x and y dimensions.\n\n";
 
-#include "slepceps.h"
-#include "petscblaslapack.h"
+#include <slepceps.h>
+#include <petscblaslapack.h>
 
 /* 
    User-defined routines

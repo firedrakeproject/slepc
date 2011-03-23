@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/stimpl.h"          /*I   "slepcst.h"   I*/
+#include <private/stimpl.h>          /*I   "slepcst.h"   I*/
 
 EXTERN_C_BEGIN
 extern PetscErrorCode STCreate_Shell(ST);

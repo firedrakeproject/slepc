@@ -30,10 +30,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "slepc.h"
-#include "private/epsimpl.h"
 #include "davidson.h"
-#include "slepcblaslapack.h"
+#include <slepcblaslapack.h>
 
 PetscErrorCode dvd_calcpairs_proj_qz(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d);

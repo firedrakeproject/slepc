@@ -22,13 +22,6 @@
 */
 
 #include "private/fortranimpl.h" 
-#include "slepcsys.h"
-#include "private/epsimpl.h"
-#include "private/stimpl.h"
-#include "private/svdimpl.h"
-#include "private/ipimpl.h"
-#include "private/qepimpl.h"
-#include <stdlib.h>
 
 extern PetscBool SlepcBeganPetsc;
 extern PetscBool SlepcInitializeCalled;

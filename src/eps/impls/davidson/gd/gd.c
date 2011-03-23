@@ -21,10 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/epsimpl.h"                /*I "slepceps.h" I*/
-#include "private/stimpl.h"
-#include "../src/eps/impls/davidson/common/davidson.h"
-#include "slepcblaslapack.h"
+#include <../src/eps/impls/davidson/common/davidson.h>
 
 PetscErrorCode EPSSetUp_GD(EPS eps);
 PetscErrorCode EPSDestroy_GD(EPS eps);

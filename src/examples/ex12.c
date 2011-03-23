@@ -25,7 +25,7 @@ static char help[] = "Solves the same eigenproblem as in example ex5, but comput
   "The command line options are:\n"
   "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 /* 
    User-defined routines

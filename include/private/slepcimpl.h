@@ -22,7 +22,7 @@
 #ifndef _SLEPCIMPL
 #define _SLEPCIMPL
 
-#include "slepcsys.h"
+#include <slepcsys.h>
 
 /* Private functions that are shared by several classes */
 

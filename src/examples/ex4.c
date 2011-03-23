@@ -24,7 +24,7 @@ static char help[] = "Solves a standard eigensystem Ax=kx with the matrix loaded
   "The command line options are:\n"
   "  -file <filename>, where <filename> = matrix file in PETSc binary form.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

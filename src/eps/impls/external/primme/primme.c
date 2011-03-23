@@ -21,14 +21,14 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "petsc.h"
-#include "private/epsimpl.h"    /*I "slepceps.h" I*/
-#include "private/stimpl.h"
+#include <petscsys.h>
+#include <private/epsimpl.h>    /*I "slepceps.h" I*/
+#include <private/stimpl.h>     /*I "slepcst.h" I*/
 
 PetscErrorCode EPSSolve_PRIMME(EPS);
 
 EXTERN_C_BEGIN
-#include "primme.h"
+#include <primme.h>
 EXTERN_C_END
 
 typedef struct {

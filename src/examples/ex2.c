@@ -24,7 +24,7 @@ static char help[] = "Standard symmetric eigenproblem corresponding to the Lapla
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

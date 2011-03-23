@@ -22,7 +22,7 @@
 #ifndef _QEPIMPL
 #define _QEPIMPL
 
-#include "slepcqep.h"
+#include <slepcqep.h>
 
 extern PetscFList QEPList;
 extern PetscLogEvent QEP_SetUp, QEP_Solve, QEP_Dense;

@@ -23,7 +23,7 @@ static char help[] = "Standard symmetric eigenproblem corresponding to the Lapla
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

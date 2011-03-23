@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/epsimpl.h"      /*I "slepceps.h" I*/
+#include <private/epsimpl.h>      /*I "slepceps.h" I*/
 
 PetscFList EPSList = 0;
 PetscClassId EPS_CLASSID = 0;

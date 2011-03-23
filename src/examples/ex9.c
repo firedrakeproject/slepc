@@ -26,7 +26,7 @@ static char help[] = "Solves a problem associated to the Brusselator wave model 
   "  -alpha <alpha>, -beta <beta>, -delta1 <delta1>,  -delta2 <delta2>,\n"
   "       where <alpha> <beta> <delta1> <delta2> = model parameters.\n\n";
 
-#include "slepceps.h"
+#include <slepceps.h>
 
 /*
    This example computes the eigenvalues with largest real part of the 

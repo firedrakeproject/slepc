@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/fortranimpl.h"
-#include "slepcst.h"
+#include <private/fortranimpl.h>
+#include <slepcst.h>
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define stshellgetcontext_        STSHELLGETCONTEXT

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/epsimpl.h"   /*I "slepceps.h" I*/
+#include <private/epsimpl.h>   /*I "slepceps.h" I*/
 
 typedef struct {
   /* old values of eps */
