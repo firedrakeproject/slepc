@@ -296,6 +296,7 @@ if getslepc4py:
   slepc4py.Install()
 slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
+# Finish with configuration files
 slepcvars.close()
 slepcrules.close()
 slepcconf.write('#endif\n')
@@ -303,6 +304,11 @@ slepcconf.close()
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
 cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
 cmake.close()
+
+# Make Fortran stubs if necessary
+if subversion:
+  import generatefortranstubs
+  generatefortranstubs.main(petscconf.BFORT)
 
 # CMake stuff
 if sys.version_info >= (2,5):
