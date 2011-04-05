@@ -191,7 +191,7 @@ if prefixinstall and not petscconf.ISINSTALL:
 
 # Check whether this is a working copy of the Subversion repository
 subversion = 0
-if os.path.exists(os.sep.join([slepcdir,'config','checklink.c'])) and os.path.exists(os.sep.join([slepcdir,'.svn'])):
+if os.path.exists(os.sep.join([slepcdir,'src','docs'])) and os.path.exists(os.sep.join([slepcdir,'.svn'])):
   (result, output) = commands.getstatusoutput('svn info')
   if result:
     print 'WARNING: SLEPC_DIR appears to be a subversion working copy, but svn is not found in PATH'
