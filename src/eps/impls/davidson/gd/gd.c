@@ -21,6 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include "private/epsimpl.h"                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/common/davidson.h>
 
 PetscErrorCode EPSSetUp_GD(EPS eps);
