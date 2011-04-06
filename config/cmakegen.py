@@ -151,7 +151,7 @@ def main(slepcdir,petscdir,petscarch):
         writePackage(f,pkg,deps.split())
       f.write ('''
 add_library (slepc %s)
-target_link_libraries (slepc ${SLEPC_PACKAGE_LIBS})
+target_link_libraries (slepc ${PETSC_LIB} ${SLEPC_PACKAGE_LIBS} ${PETSC_PACKAGE_LIBS})
 if (PETSC_WIN32FE)
   set_target_properties (slepc PROPERTIES RULE_LAUNCH_COMPILE "${PETSC_WIN32FE}")
   set_target_properties (slepc PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")

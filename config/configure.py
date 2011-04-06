@@ -303,6 +303,7 @@ slepcconf.write('#endif\n')
 slepcconf.close()
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
 cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
+cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
 cmake.close()
 
 # Make Fortran stubs if necessary
