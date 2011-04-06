@@ -21,6 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include <private/epsimpl.h>          /*I "slepceps.h" I*/
 #include <../src/eps/impls/external/trlan/trlanp.h>
 
 PetscErrorCode EPSSolve_TRLAN(EPS);

@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include <private/epsimpl.h>        /*I "slepceps.h" I*/
 #include <../src/eps/impls/external/arpack/arpackp.h>
-#include <private/stimpl.h>        /*I "slepcst.h" I*/
 
 PetscErrorCode EPSSolve_ARPACK(EPS);
 
