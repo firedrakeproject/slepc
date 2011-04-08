@@ -15,9 +15,9 @@ def cmakeconditional(key,val):
     return val
   if key == 'precision':
     if val == 'double':
-      return 'PETSC_USE_SCALAR_DOUBLE'
+      return 'PETSC_USE_REAL_DOUBLE'
     elif val == 'single':
-      return 'PETSC_USE_SCALAR_SINGLE'
+      return 'PETSC_USE_REAL_SINGLE'
     raise RuntimeError('Unexpected precision: %r'%val)
   if key == 'scalar':
     if val == 'real':
@@ -139,7 +139,7 @@ def main(slepcdir,petscdir,petscarch):
   try:
     with os.fdopen(fd,'w') as f:
       writeRoot(f,petscdir,petscarch)
-      f.write('include_directories (${SLEPC_PACKAGE_INCLUDES})\n')
+      f.write('include_directories (${PETSC_PACKAGE_INCLUDES} ${SLEPC_PACKAGE_INCLUDES})\n')
       pkglist = [('sys'            , ''),
                  ('vec'            , 'sys'),
                  ('ip'             , 'sys'),
