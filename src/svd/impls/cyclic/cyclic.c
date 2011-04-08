@@ -86,12 +86,11 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
-  PetscInt          M,N,m,n,i,j,start,end,ncols,*pos,nloc,isl;
-  const PetscInt    *cols;
-  const PetscScalar *vals;
+  PetscInt          M,N,m,n,i,nloc,isl;
   PetscScalar       *pU;
   PetscBool         trackall;
   Vec               v;
+  Mat               Zm,Zn;
   PetscScalar       *isa,*va;
 
   PetscFunctionBegin;
@@ -105,38 +104,25 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
     ierr = VecDestroy(cyclic->y1);CHKERRQ(ierr); 
     ierr = VecDestroy(cyclic->y2);CHKERRQ(ierr); 
   }
-
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   if (cyclic->explicitmatrix) {
-    cyclic->x1 = cyclic->x2 = cyclic->y1 = cyclic->y2 = PETSC_NULL;
-    ierr = MatCreate(((PetscObject)svd)->comm,&cyclic->mat);CHKERRQ(ierr);
-    ierr = MatSetSizes(cyclic->mat,m+n,m+n,M+N,M+N);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(cyclic->mat);CHKERRQ(ierr);
-    if (svd->AT) {
-      ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
-      for (i=start;i<end;i++) {
-        ierr = MatGetRow(svd->AT,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-        j = i + M;
-        ierr = MatSetValues(cyclic->mat,1,&j,ncols,cols,vals,INSERT_VALUES);CHKERRQ(ierr);
-        ierr = MatSetValues(cyclic->mat,ncols,cols,1,&j,vals,INSERT_VALUES);CHKERRQ(ierr);
-        ierr = MatRestoreRow(svd->AT,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      }
-    } else {
-      ierr = PetscMalloc(sizeof(PetscInt)*n,&pos);CHKERRQ(ierr);
-      ierr = MatGetOwnershipRange(svd->A,&start,&end);CHKERRQ(ierr);
-      for (i=start;i<end;i++) {
-        ierr = MatGetRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-        for (j=0;j<ncols;j++) 
-          pos[j] = cols[j] + M;
-        ierr = MatSetValues(cyclic->mat,1,&i,ncols,pos,vals,INSERT_VALUES);CHKERRQ(ierr);
-        ierr = MatSetValues(cyclic->mat,ncols,pos,1,&i,vals,INSERT_VALUES);CHKERRQ(ierr);
-        ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(pos);CHKERRQ(ierr);
+    if (!svd->AT) {
+      SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
     }
-    ierr = MatAssemblyBegin(cyclic->mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(cyclic->mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatCreate(((PetscObject)svd)->comm,&Zm);CHKERRQ(ierr);
+    ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatCreate(((PetscObject)svd)->comm,&Zn);CHKERRQ(ierr);
+    ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);
+    ierr = MatDestroy(Zm);CHKERRQ(ierr);
+    ierr = MatDestroy(Zn);CHKERRQ(ierr);
   } else {
     ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
@@ -216,11 +202,9 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
-  PetscInt       i,j,M,m,idx,start,end;
+  PetscInt       i,j,M,N,m,n;
   PetscScalar    sigma,*px;
-  Vec            x;
-  IS             isU,isV;
-  VecScatter     vsU,vsV;
+  Vec            x,x1,x2;
   
   PetscFunctionBegin;
   ierr = EPSSolve(cyclic->eps);CHKERRQ(ierr);
@@ -229,62 +213,32 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
   ierr = EPSGetConvergedReason(cyclic->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
 
   ierr = MatGetVecs(cyclic->mat,&x,PETSC_NULL);CHKERRQ(ierr);
-  if (cyclic->explicitmatrix) {
-    ierr = EPSGetOperationCounters(cyclic->eps,&svd->matvecs,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = SVDMatGetSize(svd,&M,PETSC_NULL);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(svd->U[0],&start,&end);CHKERRQ(ierr);
-    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&start,PETSC_COPY_VALUES,&isU);CHKERRQ(ierr);      
-    ierr = VecScatterCreate(x,isU,svd->U[0],PETSC_NULL,&vsU);CHKERRQ(ierr);
-
-    ierr = VecGetOwnershipRange(svd->V[0],&start,&end);CHKERRQ(ierr);
-    idx = start + M;
-    ierr = ISCreateBlock(((PetscObject)svd)->comm,end-start,1,&idx,PETSC_COPY_VALUES,&isV);CHKERRQ(ierr);      
-    ierr = VecScatterCreate(x,isV,svd->V[0],PETSC_NULL,&vsV);CHKERRQ(ierr);
-
-    for (i=0,j=0;i<svd->nconv;i++) {
-      ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
-      if (PetscRealPart(sigma) > 0.0) {
-        svd->sigma[j] = PetscRealPart(sigma);
-        ierr = VecScatterBegin(vsU,x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-        ierr = VecScatterBegin(vsV,x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-        ierr = VecScatterEnd(vsU,x,svd->U[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-        ierr = VecScatterEnd(vsV,x,svd->V[j],INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-        ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
-        ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);	  	  
-        j++;
-      }
-    }
-      
-    ierr = ISDestroy(isU);CHKERRQ(ierr);
-    ierr = VecScatterDestroy(vsU);CHKERRQ(ierr);
-    ierr = ISDestroy(isV);CHKERRQ(ierr);
-    ierr = VecScatterDestroy(vsV);CHKERRQ(ierr);
-  } else {
-    ierr = SVDMatGetLocalSize(svd,&m,PETSC_NULL);CHKERRQ(ierr);
-    for (i=0,j=0;i<svd->nconv;i++) {
-      ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
-      if (PetscRealPart(sigma) > 0.0) {
-        svd->sigma[j] = PetscRealPart(sigma);
-        ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-        ierr = VecPlaceArray(cyclic->x1,px);CHKERRQ(ierr);
-        ierr = VecPlaceArray(cyclic->x2,px+m);CHKERRQ(ierr);
-        
-        ierr = VecCopy(cyclic->x1,svd->U[j]);CHKERRQ(ierr);
-        ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
-
-        ierr = VecCopy(cyclic->x2,svd->V[j]);CHKERRQ(ierr);
-        ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);	  
-        
-        ierr = VecResetArray(cyclic->x1);CHKERRQ(ierr);
-        ierr = VecResetArray(cyclic->x2);CHKERRQ(ierr);
-        ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-        j++;
-      }
+  ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
+  ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&x1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&x2);CHKERRQ(ierr);
+  for (i=0,j=0;i<svd->nconv;i++) {
+    ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
+    if (PetscRealPart(sigma) > 0.0) {
+      svd->sigma[j] = PetscRealPart(sigma);
+      ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+      ierr = VecCopy(x1,svd->U[j]);CHKERRQ(ierr);
+      ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
+      ierr = VecCopy(x2,svd->V[j]);CHKERRQ(ierr);
+      ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);	  
+      ierr = VecResetArray(x1);CHKERRQ(ierr);
+      ierr = VecResetArray(x2);CHKERRQ(ierr);
+      ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+      j++;
     }
   }
   svd->nconv = j;
 
   ierr = VecDestroy(x);CHKERRQ(ierr);
+  ierr = VecDestroy(x1);CHKERRQ(ierr);
+  ierr = VecDestroy(x2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -329,11 +283,7 @@ PetscErrorCode SVDSetFromOptions_CYCLIC(SVD svd)
   if (set) {
     ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
   }
-  if (cyclic->explicitmatrix) {
-    /* don't build the transpose */
-    if (svd->transmode == PETSC_DECIDE)
-      svd->transmode = SVD_TRANSPOSE_IMPLICIT;
-  } else {
+  if (!cyclic->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */ 
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
