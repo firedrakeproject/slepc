@@ -335,7 +335,7 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
     qep->data = 0;
   }
 
-  ierr = PetscFListFind(QEPList,((PetscObject)qep)->comm,type,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr = PetscFListFind(QEPList,((PetscObject)qep)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
 
   if (!r) SETERRQ1(((PetscObject)qep)->comm,1,"Unknown QEP type given: %s",type);
 

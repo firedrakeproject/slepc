@@ -373,7 +373,7 @@ PetscErrorCode SVDSetType(SVD svd,const SVDType type)
     svd->data = 0;
   }
 
-  ierr = PetscFListFind(SVDList,((PetscObject)svd)->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFListFind(SVDList,((PetscObject)svd)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
 
   if (!r) SETERRQ1(((PetscObject)svd)->comm,1,"Unknown SVD type given: %s",type);
 

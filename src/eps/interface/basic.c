@@ -439,7 +439,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
     eps->data = 0;
   }
 
-  ierr = PetscFListFind(EPSList,((PetscObject)eps)->comm,type,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFListFind(EPSList,((PetscObject)eps)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
 
   if (!r) SETERRQ1(((PetscObject)eps)->comm,1,"Unknown EPS type given: %s",type);
 
