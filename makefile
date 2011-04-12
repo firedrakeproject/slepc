@@ -72,7 +72,11 @@ info:
 	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
 	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
 	-@echo "Using PETSc configuration flags:"
-	-@grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h;
+	-@if [ "${PETSC_ARCH}" != "arch-installed-petsc" ]; then \
+	   grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h; \
+	 else \
+	   grep "\#define " ${PETSC_DIR}/include/petscconf.h; \
+         fi
 	-@echo "-----------------------------------------"
 	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES}"
 	-@echo "------------------------------------------"
@@ -239,7 +243,7 @@ install:
           if [ ! -d ${SLEPC_DESTDIR}/include/private ]; then \
 	    ${MKDIR} ${SLEPC_DESTDIR}/include/private ; \
           fi;\
-          cp -f include/finclude/*.h ${SLEPC_DESTDIR}/include/private;\
+          cp -f include/private/*.h ${SLEPC_DESTDIR}/include/private;\
           if [ ! -d ${SLEPC_DESTDIR}/conf ]; then \
 	    ${MKDIR} ${SLEPC_DESTDIR}/conf ; \
           fi;\
