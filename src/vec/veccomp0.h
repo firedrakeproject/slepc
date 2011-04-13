@@ -162,9 +162,6 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a, NormType t, PetscReal *norm)
   PetscErrorCode  ierr;
   Vec_Comp        *as = (Vec_Comp*)a->data;
   PetscInt        i;
-#ifdef __WITH_MPI__
-  PetscScalar     work0, norm0;
-#endif
 
   PetscFunctionBegin;
 
@@ -189,11 +186,11 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a, NormType t, PetscReal *norm)
 #ifdef __WITH_MPI__
   if (as->x[0]->ops->norm_local) {
     /* norm <- Allreduce(work) */
-    work0 = *norm;
-    ierr = MPI_Allreduce(&work0, &norm0, t==NORM_1_AND_2?2:1, MPIU_SCALAR,
+    work[0] = *norm;
+    if (t == NORM_1_AND_2) work[1] = norm[1];
+    ierr = MPI_Allreduce(work, norm, t==NORM_1_AND_2?2:1, MPIU_REAL,
                          t==NORM_INFINITY?MPI_MAX:MPIU_SUM,
                          ((PetscObject)a)->comm); CHKERRQ(ierr);
-    *norm = PetscRealPart(norm0);
   }
 #endif
 

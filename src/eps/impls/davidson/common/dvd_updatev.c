@@ -192,7 +192,6 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   data->ldoldU = 0;
   data->oldV = PETSC_NULL;
   d->W = data->real_W;
-  d->MTY = PETSC_NULL;
   d->ldMTY = 0;
   data->size_oldU = 0;
   d->nconv = 0;

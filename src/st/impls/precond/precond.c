@@ -347,6 +347,7 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   ierr = PCSetOperators(pc, A, mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
   if (A) { ierr = MatDestroy(A); CHKERRQ(ierr); }
   ierr = MatDestroy(mat); CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(st, PETSC_TRUE); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
