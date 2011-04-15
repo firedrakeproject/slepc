@@ -48,11 +48,11 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   if(flg) { ierr = EPSJDSetKrylovStart(eps, op); CHKERRQ(ierr); }
  
   ierr = EPSJDGetBlockSize(eps, &opi); CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_jd_blocksize","Number vectors add to the searching subspace (if 0, nev employed)","EPSJDSetBlockSize",opi,&opi,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_blocksize","Number vectors add to the searching subspace","EPSJDSetBlockSize",opi,&opi,&flg); CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetBlockSize(eps, opi); CHKERRQ(ierr); }
 
   ierr = EPSJDGetRestart(eps, &opi, &opi0); CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_jd_minv","Set the size of the searching subspace after restarting (if 0, eps_jd_bs is employed)","EPSJDSetRestart",opi,&opi,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_minv","Set the size of the searching subspace after restarting","EPSJDSetRestart",opi,&opi,&flg); CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetRestart(eps, opi, opi0); CHKERRQ(ierr); }
 
   ierr = PetscOptionsInt("-eps_jd_plusk","Set the number of saved eigenvectors from the previous iteration when restarting","EPSJDSetRestart",opi0,&opi0,&flg); CHKERRQ(ierr);
