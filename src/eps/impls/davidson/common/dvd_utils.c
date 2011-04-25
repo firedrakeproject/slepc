@@ -90,7 +90,6 @@ PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d)
   /* Free local data */
   ierr = PCDestroy(&dvdpc->pc);CHKERRQ(ierr);
   ierr = PetscFree(d->improvex_precond_data); CHKERRQ(ierr);
-  d->improvex_precond_data = PETSC_NULL;
 
   PetscFunctionReturn(0);
 }
@@ -350,9 +349,7 @@ PetscErrorCode dvd_profiler(dvdDashboard *d, dvdBlackboard *b)
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    if (d->prof_data) {
-      ierr = PetscFree(d->prof_data); CHKERRQ(ierr);
-    }
+    ierr = PetscFree(d->prof_data); CHKERRQ(ierr);
     ierr = PetscMalloc(sizeof(DvdProfiler), &p); CHKERRQ(ierr);
     d->prof_data = p;
     p->old_initV = d->initV; d->initV = dvd_initV_prof;
@@ -377,7 +374,6 @@ PetscErrorCode dvd_profiler_d(dvdDashboard *d)
 
   /* Free local data */
   ierr = PetscFree(p); CHKERRQ(ierr);
-  d->prof_data = PETSC_NULL;
 
   PetscFunctionReturn(0);
 }
@@ -470,7 +466,6 @@ PetscErrorCode dvd_harm_d(dvdDashboard *d)
 
   /* Free local data */
   ierr = PetscFree(d->calcpairs_W_data); CHKERRQ(ierr);
-  d->calcpairs_W_data = PETSC_NULL;
 
   PetscFunctionReturn(0);
 }

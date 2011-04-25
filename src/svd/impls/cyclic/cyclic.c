@@ -163,7 +163,6 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(svd->IS);CHKERRQ(ierr);
-    svd->IS = PETSC_NULL;
     svd->nini = 0;
   }
   if (cyclic->setfromoptionscalled) {

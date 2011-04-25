@@ -450,8 +450,6 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   if (m>100) {
     ierr = PetscFree(omega);CHKERRQ(ierr);
     ierr = PetscFree(omega_old);CHKERRQ(ierr);
-  }
-  if (m > 100) {
     ierr = PetscFree(which);CHKERRQ(ierr);
     ierr = PetscFree(which2);CHKERRQ(ierr);
     ierr = PetscFree(hwork);CHKERRQ(ierr);

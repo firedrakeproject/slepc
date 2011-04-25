@@ -329,9 +329,9 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
   for(i=0; i<data->size_wV; i++) {
     ierr = VecDestroy(&data->wV[i]); CHKERRQ(ierr);
   }
-  ierr = PetscFree(data->wV);
-  ierr = PetscFree(data->wS);
-  ierr = PetscFree(data); CHKERRQ(ierr);
+  ierr = PetscFree(data->wV);CHKERRQ(ierr);
+  ierr = PetscFree(data->wS);CHKERRQ(ierr);
+  ierr = PetscFree(data);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
