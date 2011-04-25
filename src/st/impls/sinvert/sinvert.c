@@ -114,7 +114,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->mat) { ierr = MatDestroy(st->mat);CHKERRQ(ierr); }
+  ierr = MatDestroy(&st->mat);CHKERRQ(ierr);
 
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;

@@ -84,7 +84,7 @@ PetscErrorCode VecDestroy_Comp(Vec v)
   PetscLogObjectState((PetscObject)v,"Length=%D",v->map->n);
 #endif
   for(i=0; i<vs->nx; i++) {
-    ierr = VecDestroy(vs->x[i]); CHKERRQ(ierr);
+    ierr = VecDestroy(&vs->x[i]); CHKERRQ(ierr);
   }
   if(--vs->n->friends <= 0) {
     ierr = PetscFree(vs->n); CHKERRQ(ierr);

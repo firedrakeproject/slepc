@@ -87,7 +87,7 @@ PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
       ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
       ierr = MatGetDiagonal(ctx->B,diagb);CHKERRQ(ierr);
       ierr = VecAXPY(diag,-ctx->sigma,diagb);CHKERRQ(ierr);
-      ierr = VecDestroy(diagb);CHKERRQ(ierr);
+      ierr = VecDestroy(&diagb);CHKERRQ(ierr);
     } else {
       ierr = VecShift(diag,-ctx->sigma);CHKERRQ(ierr);
     }

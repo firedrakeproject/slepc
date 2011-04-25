@@ -89,7 +89,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
       ierr = IPNorm(eps->ip,eps->V[i],&norm);CHKERRQ(ierr);
       ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
     }
-    ierr = VecDestroy(w);CHKERRQ(ierr);
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -176,7 +176,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
       ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr); 
       ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
     }
-    ierr = VecDestroy(w);CHKERRQ(ierr);
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
 
   /* Fix eigenvectors if balancing was used */
@@ -377,9 +377,9 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   ierr = EPSComputeResidualNorm_Private(eps,eigr,eigi,x,y,resnorm);
 
   /* free workspace */
-  ierr = VecDestroy(x);CHKERRQ(ierr);
-  ierr = VecDestroy(y);CHKERRQ(ierr);
-  if (!eps->ishermitian && eps->ispositive) { ierr = VecDestroy(z);CHKERRQ(ierr); }
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = VecDestroy(&y);CHKERRQ(ierr);
+  if (!eps->ishermitian && eps->ispositive) { ierr = VecDestroy(&z);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -447,9 +447,9 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     ierr = VecRestoreArray(eps->D,&pD);CHKERRQ(ierr);
   }
 
-  ierr = VecDestroy(r);CHKERRQ(ierr);
-  ierr = VecDestroy(p);CHKERRQ(ierr);
-  ierr = VecDestroy(z);CHKERRQ(ierr);
+  ierr = VecDestroy(&r);CHKERRQ(ierr);
+  ierr = VecDestroy(&p);CHKERRQ(ierr);
+  ierr = VecDestroy(&z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

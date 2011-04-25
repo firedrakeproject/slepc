@@ -265,8 +265,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     }
     SETERRQ2(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15], msg); 
   }
-  ierr = VecDestroy(x);CHKERRQ(ierr);
-  ierr = VecDestroy(y);CHKERRQ(ierr);
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = VecDestroy(&y);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

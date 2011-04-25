@@ -95,15 +95,11 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
 
   PetscFunctionBegin;
   
-  if (cyclic->mat) { 
-    ierr = MatDestroy(cyclic->mat);CHKERRQ(ierr);
-  }
-  if (cyclic->x1) { 
-    ierr = VecDestroy(cyclic->x1);CHKERRQ(ierr); 
-    ierr = VecDestroy(cyclic->x2);CHKERRQ(ierr); 
-    ierr = VecDestroy(cyclic->y1);CHKERRQ(ierr); 
-    ierr = VecDestroy(cyclic->y2);CHKERRQ(ierr); 
-  }
+  ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
+  ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr); 
+  ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr); 
+  ierr = VecDestroy(&cyclic->y1);CHKERRQ(ierr); 
+  ierr = VecDestroy(&cyclic->y2);CHKERRQ(ierr); 
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   if (cyclic->explicitmatrix) {
@@ -121,8 +117,8 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
     ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);
-    ierr = MatDestroy(Zm);CHKERRQ(ierr);
-    ierr = MatDestroy(Zn);CHKERRQ(ierr);
+    ierr = MatDestroy(&Zm);CHKERRQ(ierr);
+    ierr = MatDestroy(&Zn);CHKERRQ(ierr);
   } else {
     ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
@@ -159,12 +155,12 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
       }
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
       ierr = VecRestoreArray(svd->IS[i],&isa);CHKERRQ(ierr);
-      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
       svd->IS[i] = v;
     }
     ierr = EPSSetInitialSpace(cyclic->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
     for (i=0; i<-svd->nini; i++) {
-      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(svd->IS);CHKERRQ(ierr);
     svd->IS = PETSC_NULL;
@@ -181,7 +177,7 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
   if (svd->ncv != svd->n) {
     if (svd->U) {  
       ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]); CHKERRQ(ierr); }
       ierr = PetscFree(pU);CHKERRQ(ierr);
       ierr = PetscFree(svd->U);CHKERRQ(ierr);
     }
@@ -236,9 +232,9 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
   }
   svd->nconv = j;
 
-  ierr = VecDestroy(x);CHKERRQ(ierr);
-  ierr = VecDestroy(x1);CHKERRQ(ierr);
-  ierr = VecDestroy(x2);CHKERRQ(ierr);
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = VecDestroy(&x1);CHKERRQ(ierr);
+  ierr = VecDestroy(&x2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -490,13 +486,11 @@ PetscErrorCode SVDDestroy_CYCLIC(SVD svd)
 
   PetscFunctionBegin;
   ierr = EPSDestroy(cyclic->eps);CHKERRQ(ierr);
-  if (cyclic->mat) { ierr = MatDestroy(cyclic->mat);CHKERRQ(ierr); }
-  if (cyclic->x1) { 
-    ierr = VecDestroy(cyclic->x1);CHKERRQ(ierr);
-    ierr = VecDestroy(cyclic->x2);CHKERRQ(ierr);
-    ierr = VecDestroy(cyclic->y1);CHKERRQ(ierr);
-    ierr = VecDestroy(cyclic->y2);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
+  ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr);
+  ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr);
+  ierr = VecDestroy(&cyclic->y1);CHKERRQ(ierr);
+  ierr = VecDestroy(&cyclic->y2);CHKERRQ(ierr);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);

@@ -190,7 +190,7 @@ PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *ei
       ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)",errest[i]);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"\n");CHKERRQ(ierr);
-    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
+    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
 }
@@ -233,7 +233,7 @@ PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
     if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[nconv]);CHKERRQ(ierr); }
 #endif
     ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",errest[nconv]);CHKERRQ(ierr);
-    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
+    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
 }
@@ -289,7 +289,7 @@ PetscErrorCode QEPMonitorDestroy_Converged(QEPMONITOR_CONV *ctx)
 {
   PetscErrorCode  ierr;
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIMonitorDestroy(ctx->viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIMonitorDestroy(&ctx->viewer);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

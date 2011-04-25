@@ -344,7 +344,7 @@ PetscErrorCode QEPDestroy_QARNOLDI(QEP qep)
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI *)qep->data;
 
   PetscFunctionBegin;
-  ierr = KSPDestroy(ctx->ksp);CHKERRQ(ierr);
+  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
   ierr = QEPDestroy_Default(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

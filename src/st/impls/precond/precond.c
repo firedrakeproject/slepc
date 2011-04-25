@@ -149,7 +149,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   ierr = KSPSetOperators(st->ksp,setmat?P:PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
   if (destroyP) {
-    ierr = MatDestroy(P); CHKERRQ(ierr);
+    ierr = MatDestroy(&P);CHKERRQ(ierr);
   } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP) {
     if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) {
       if (st->B) {
@@ -345,8 +345,8 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
     A = PETSC_NULL;
   ierr = PetscObjectReference((PetscObject)mat); CHKERRQ(ierr);
   ierr = PCSetOperators(pc, A, mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
-  if (A) { ierr = MatDestroy(A); CHKERRQ(ierr); }
-  ierr = MatDestroy(mat); CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  ierr = MatDestroy(&mat);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(st, PETSC_TRUE); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);

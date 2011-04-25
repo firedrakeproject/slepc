@@ -175,7 +175,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
       ierr = PCSetType(pc, PCNONE); CHKERRQ(ierr);
       ierr = PCSetOperators(pc, d->A, d->A, SAME_PRECONDITIONER); CHKERRQ(ierr);
       ierr = KSPSetPC(data->ksp, pc); CHKERRQ(ierr);
-      ierr = PCDestroy(pc); CHKERRQ(ierr);
+      ierr = PCDestroy(&pc); CHKERRQ(ierr);
     }
 
     /* Create the (I-v*u')*K*(A-s*B) matrix */
@@ -193,7 +193,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);
     CHKERRQ(ierr);
     ierr = KSPSetUp(data->ksp); CHKERRQ(ierr);
-    ierr = MatDestroy(A); CHKERRQ(ierr);
+    ierr = MatDestroy(&A); CHKERRQ(ierr);
   } else
     data->old_pc = 0;
   
@@ -213,7 +213,7 @@ PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
   /* Restore the pc of ksp */
   if (data->old_pc) {
     ierr = KSPSetPC(data->ksp, data->old_pc); CHKERRQ(ierr);
-    ierr = PCDestroy(data->old_pc); CHKERRQ(ierr);
+    ierr = PCDestroy(&data->old_pc); CHKERRQ(ierr);
     data->old_pc = 0;
   }
 
@@ -234,7 +234,7 @@ PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
   d->improveX_data = data->old_improveX_data;
 
   /* Free local data and objects */
-  ierr = VecDestroy(data->friends); CHKERRQ(ierr);
+  ierr = VecDestroy(&data->friends); CHKERRQ(ierr);
   ierr = PetscFree(data); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
@@ -345,8 +345,8 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
       d->eps->OP->lineariterations+= lits;
   
       /* Destroy the composed ks and D */
-      ierr = VecDestroy(kr_comp); CHKERRQ(ierr);
-      ierr = VecDestroy(D_comp); CHKERRQ(ierr);
+      ierr = VecDestroy(&kr_comp); CHKERRQ(ierr);
+      ierr = VecDestroy(&D_comp); CHKERRQ(ierr);
     }
   }
   *size_D = i;
@@ -453,13 +453,13 @@ PetscErrorCode dvd_matgetvecs_jd(Mat A, Vec *right, Vec *left)
   if(right) {
     ierr = VecCreateCompWithVecs(r, n, data->friends, right); CHKERRQ(ierr);
     for (i=0; i<n; i++) {
-      ierr = VecDestroy(r[i]); CHKERRQ(ierr);
+      ierr = VecDestroy(&r[i]); CHKERRQ(ierr);
     }
   }
   if(left) {
     ierr = VecCreateCompWithVecs(l, n, data->friends, left); CHKERRQ(ierr);
     for (i=0; i<n; i++) {
-      ierr = VecDestroy(l[i]); CHKERRQ(ierr);
+      ierr = VecDestroy(&l[i]); CHKERRQ(ierr);
     }
   }
 

@@ -165,7 +165,7 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N2A(MPI_Comm comm,QEP_LINEAR *ctx,Mat
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = SlepcMatTile(-1.0,ctx->K,0.0,Id,0.0,Id,1.0,Id,A);CHKERRQ(ierr);
-  ierr = MatDestroy(Id);CHKERRQ(ierr);
+  ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -187,7 +187,7 @@ PetscErrorCode MatCreateExplicit_QEPLINEAR_N2B(MPI_Comm comm,QEP_LINEAR *ctx,Mat
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = SlepcMatTile(ctx->sfactor,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,1.0,Id,0.0,Id,B);CHKERRQ(ierr);
-  ierr = MatDestroy(Id);CHKERRQ(ierr);
+  ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

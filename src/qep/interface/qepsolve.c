@@ -109,7 +109,7 @@ PetscErrorCode QEPSolve(QEP qep)
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,filename,&viewer);CHKERRQ(ierr);
     ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
-    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   flg = PETSC_FALSE;
@@ -130,8 +130,8 @@ PetscErrorCode QEPSolve(QEP qep)
       ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
     }
     ierr = PetscDrawSPDraw(drawsp);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */
@@ -421,14 +421,14 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
     }
     ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
     *norm = SlepcAbsEigenvalue(nr,ni);
-    ierr = VecDestroy(v);CHKERRQ(ierr);
-    ierr = VecDestroy(y);CHKERRQ(ierr);
-    ierr = VecDestroy(z);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    ierr = VecDestroy(&y);CHKERRQ(ierr);
+    ierr = VecDestroy(&z);CHKERRQ(ierr);
   }
 #endif
 
-  ierr = VecDestroy(w);CHKERRQ(ierr);
-  ierr = VecDestroy(u);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -471,8 +471,8 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep, PetscInt i, PetscReal *norm)
   ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
   ierr = QEPGetEigenpair(qep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = QEPComputeResidualNorm_Private(qep,kr,ki,xr,xi,norm);CHKERRQ(ierr);
-  ierr = VecDestroy(xr);CHKERRQ(ierr);
-  ierr = VecDestroy(xi);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -552,8 +552,8 @@ PetscErrorCode QEPComputeRelativeError(QEP qep, PetscInt i, PetscReal *error)
   ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
   ierr = QEPGetEigenpair(qep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = QEPComputeRelativeError_Private(qep,kr,ki,xr,xi,error);CHKERRQ(ierr);  
-  ierr = VecDestroy(xr);CHKERRQ(ierr);
-  ierr = VecDestroy(xi);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

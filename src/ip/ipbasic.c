@@ -434,9 +434,9 @@ PetscErrorCode IPDestroy(IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (--((PetscObject)ip)->refct > 0) PetscFunctionReturn(0);
 
-  if (ip->matrix) { ierr = MatDestroy(ip->matrix);CHKERRQ(ierr); }
-  if (ip->Bx) { ierr = VecDestroy(ip->Bx);CHKERRQ(ierr); }
-  ierr = PetscHeaderDestroy(ip);CHKERRQ(ierr);
+  ierr = MatDestroy(&ip->matrix);CHKERRQ(ierr);
+  ierr = VecDestroy(&ip->Bx);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(&ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

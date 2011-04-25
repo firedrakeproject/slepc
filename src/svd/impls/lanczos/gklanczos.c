@@ -61,7 +61,7 @@ PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
     svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->U) {
     ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
-    for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+    for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]); CHKERRQ(ierr); }
     ierr = PetscFree(pU);CHKERRQ(ierr);
     ierr = PetscFree(svd->U);CHKERRQ(ierr);
   }
@@ -282,10 +282,10 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   }
   
   /* free working space */
-  ierr = VecDestroy(v);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
   if (lanczos->oneside) {
-    ierr = VecDestroy(u);CHKERRQ(ierr);
-    ierr = VecDestroy(u_1);CHKERRQ(ierr);
+    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    ierr = VecDestroy(&u_1);CHKERRQ(ierr);
   }
   ierr = PetscFree(alpha);CHKERRQ(ierr);
   ierr = PetscFree(beta);CHKERRQ(ierr);

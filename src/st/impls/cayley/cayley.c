@@ -187,7 +187,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
 
   PetscFunctionBegin;
 
-  if (st->mat) { ierr = MatDestroy(st->mat);CHKERRQ(ierr); }
+  ierr = MatDestroy(&st->mat);CHKERRQ(ierr);
 
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
@@ -225,8 +225,8 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   if (st->B) { 
-   if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
-   ierr = MatGetVecs(st->B,&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
+    ierr = MatGetVecs(st->B,&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
   }
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -403,7 +403,7 @@ PetscErrorCode STDestroy_Cayley(ST st)
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
 
   PetscFunctionBegin;
-  if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
+  ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);

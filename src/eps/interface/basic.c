@@ -594,17 +594,15 @@ PetscErrorCode EPSDestroy(EPS eps)
   ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   if (eps->rand) {
-    ierr = PetscRandomDestroy(eps->rand);CHKERRQ(ierr);
+    ierr = PetscRandomDestroy(&eps->rand);CHKERRQ(ierr);
   }
 
-  if (eps->D) {
-    ierr = VecDestroy(eps->D);CHKERRQ(ierr);
-  }
+  ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
 
   ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
-  ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(&eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

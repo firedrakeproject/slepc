@@ -416,7 +416,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
     if (R) R[k+ldr*k] = norm;
 
   }
-  if (rctx) { ierr = PetscRandomDestroy(rctx);CHKERRQ(ierr); }
+  ierr = PetscRandomDestroy(&rctx);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

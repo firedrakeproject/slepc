@@ -327,7 +327,7 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
   DVD_FL_DEL(dvd->endList);
 
   for(i=0; i<data->size_wV; i++) {
-    ierr = VecDestroy(data->wV[i]); CHKERRQ(ierr);
+    ierr = VecDestroy(&data->wV[i]); CHKERRQ(ierr);
   }
   ierr = PetscFree(data->wV);
   ierr = PetscFree(data->wS);

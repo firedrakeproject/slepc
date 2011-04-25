@@ -241,12 +241,12 @@ int main( int argc, char **argv )
      Free work space
   */
   ierr = EPSDestroy(eps);CHKERRQ(ierr);
-  ierr = MatDestroy(A);CHKERRQ(ierr);
-  ierr = MatDestroy(ctx->T);CHKERRQ(ierr);
-  ierr = VecDestroy(ctx->x1);CHKERRQ(ierr);
-  ierr = VecDestroy(ctx->x2);CHKERRQ(ierr);
-  ierr = VecDestroy(ctx->y1);CHKERRQ(ierr);
-  ierr = VecDestroy(ctx->y2);CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
@@ -325,8 +325,8 @@ PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
   ierr = VecSet(d1,-2.0*ctx->tau1 + ctx->beta - 1.0 + ctx->sigma);CHKERRQ(ierr);
   ierr = VecSet(d2,-2.0*ctx->tau2 - ctx->alpha*ctx->alpha + ctx->sigma);CHKERRQ(ierr);
 
-  ierr = VecDestroy(d1);CHKERRQ(ierr);
-  ierr = VecDestroy(d2);CHKERRQ(ierr);
+  ierr = VecDestroy(&d1);CHKERRQ(ierr);
+  ierr = VecDestroy(&d2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

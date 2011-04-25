@@ -202,7 +202,7 @@ int main( int argc, char **argv )
     ierr = SampleShellSTDestroy(shell);CHKERRQ(ierr);
   }
   ierr = EPSDestroy(eps);CHKERRQ(ierr);
-  ierr = MatDestroy(A);CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }
@@ -338,7 +338,7 @@ PetscErrorCode SampleShellSTDestroy(SampleShellST *shell)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = KSPDestroy(shell->ksp);CHKERRQ(ierr);
+  ierr = KSPDestroy(&shell->ksp);CHKERRQ(ierr);
   ierr = PetscFree(shell);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

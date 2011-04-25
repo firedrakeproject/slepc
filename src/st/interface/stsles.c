@@ -114,9 +114,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(st,1,ksp,2);
   ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
-  if (st->ksp) {
-    ierr = KSPDestroy(st->ksp);CHKERRQ(ierr);
-  }
+  ierr = KSPDestroy(&st->ksp);CHKERRQ(ierr);
   st->ksp = ksp;
   PetscFunctionReturn(0);
 }
@@ -235,7 +233,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
       c++;
     }
   }
-  ierr = VecDestroy(w);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
   if (c>0) {
     ierr = MatNullSpaceCreate(((PetscObject)st)->comm,PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
     ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);

@@ -40,7 +40,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->ncv!=svd->n) {  
     if (svd->U) {
       ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) { ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr); }
+      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]); CHKERRQ(ierr); }
       ierr = PetscFree(pU);CHKERRQ(ierr);
       ierr = PetscFree(svd->U);CHKERRQ(ierr);
     }
@@ -103,7 +103,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   svd->reason = SVD_CONVERGED_TOL;
 
   ierr = MatRestoreArray(mat,&pmat);CHKERRQ(ierr);
-  ierr = MatDestroy(mat);CHKERRQ(ierr);
+  ierr = MatDestroy(&mat);CHKERRQ(ierr);
   ierr = PetscFree(sigma);CHKERRQ(ierr);
   if (M>=N) {
      ierr = PetscFree(pVT);CHKERRQ(ierr);

@@ -140,8 +140,8 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
 	*beta = norm2;
 
 	if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-	ierr = VecDestroy(u);CHKERRQ(ierr);
-	ierr = VecDestroy(t);CHKERRQ(ierr);
+	ierr = VecDestroy(&u);CHKERRQ(ierr);
+	ierr = VecDestroy(&t);CHKERRQ(ierr);
 	PetscFunctionReturn(0);
       }
     }
@@ -193,8 +193,8 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   *breakdown = PETSC_FALSE;
   
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  ierr = VecDestroy(u);CHKERRQ(ierr);
-  ierr = VecDestroy(t);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&t);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }

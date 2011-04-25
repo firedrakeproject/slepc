@@ -115,13 +115,9 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   PetscBool         trackall;
 
   PetscFunctionBegin;
-  if (cross->mat) { 
-     ierr = MatDestroy(cross->mat);CHKERRQ(ierr);
-     ierr = VecDestroy(cross->w);CHKERRQ(ierr);
-  }
-  if (cross->diag) {
-     ierr = VecDestroy(cross->diag);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&cross->mat);CHKERRQ(ierr);
+  ierr = VecDestroy(&cross->w);CHKERRQ(ierr);
+  ierr = VecDestroy(&cross->diag);CHKERRQ(ierr);
   
   ierr = SVDMatGetLocalSize(svd,PETSC_NULL,&n);CHKERRQ(ierr);
   ierr = MatCreateShell(((PetscObject)svd)->comm,n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
@@ -148,7 +144,7 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   if (svd->nini < 0) {
     ierr = EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
     for(i=0; i<-svd->nini; i++) {
-      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(svd->IS);CHKERRQ(ierr);
     svd->nini = 0;
@@ -317,13 +313,9 @@ PetscErrorCode SVDDestroy_CROSS(SVD svd)
 
   PetscFunctionBegin;
   ierr = EPSDestroy(cross->eps);CHKERRQ(ierr);
-  if (cross->mat) { 
-    ierr = MatDestroy(cross->mat);CHKERRQ(ierr);
-    ierr = VecDestroy(cross->w);CHKERRQ(ierr);
-  }
-  if (cross->diag) {
-    ierr = VecDestroy(cross->diag);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&cross->mat);CHKERRQ(ierr);
+  ierr = VecDestroy(&cross->w);CHKERRQ(ierr);
+  ierr = VecDestroy(&cross->diag);CHKERRQ(ierr);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);

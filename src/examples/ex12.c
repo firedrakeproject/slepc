@@ -168,18 +168,18 @@ int main( int argc, char **argv )
 
     ierr = SlepcCheckOrthogonality(X,nconv,Y,nconv,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
-    ierr = VecDestroyVecs(&X,nconv);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(&Y,nconv);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(nconv,&X);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(nconv,&Y);CHKERRQ(ierr);
 
   }
   
   /* 
      Free work space
   */
-  ierr = VecDestroy(v0);CHKERRQ(ierr);
-  ierr = VecDestroy(w0);CHKERRQ(ierr);
+  ierr = VecDestroy(&v0);CHKERRQ(ierr);
+  ierr = VecDestroy(&w0);CHKERRQ(ierr);
   ierr = EPSDestroy(eps);CHKERRQ(ierr);
-  ierr = MatDestroy(A);CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

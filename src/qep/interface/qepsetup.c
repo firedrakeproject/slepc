@@ -108,7 +108,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = PetscFree(qep->errest);CHKERRQ(ierr);
     ierr = VecGetArray(qep->V[0],&pV);CHKERRQ(ierr);
     for (i=0;i<qep->ncv;i++) {
-      ierr = VecDestroy(qep->V[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&qep->V[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(qep->V);CHKERRQ(ierr);
@@ -132,7 +132,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     k = 0;
     for (i=0;i<qep->nini;i++) {
       ierr = VecCopy(qep->IS[i],qep->V[k]);CHKERRQ(ierr);
-      ierr = VecDestroy(qep->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&qep->IS[i]);CHKERRQ(ierr);
       ierr = IPOrthogonalize(qep->ip,0,PETSC_NULL,k,PETSC_NULL,qep->V,qep->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) PetscInfo(qep,"Linearly dependent initial vector found, removing...\n");
       else {
@@ -151,7 +151,7 @@ PetscErrorCode QEPSetUp(QEP qep)
       k = 0;
       for (i=0;i<qep->ninil;i++) {
         ierr = VecCopy(qep->ISL[i],qep->W[k]);CHKERRQ(ierr);
-        ierr = VecDestroy(qep->ISL[i]);CHKERRQ(ierr);
+        ierr = VecDestroy(&qep->ISL[i]);CHKERRQ(ierr);
         ierr = IPOrthogonalize(qep->ip,0,PETSC_NULL,k,PETSC_NULL,qep->W,qep->W[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
         if (norm==0.0 || lindep) PetscInfo(qep,"Linearly dependent initial left vector found, removing...\n");
         else {
@@ -217,19 +217,13 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
 
   /* Store a copy of the matrices */
   ierr = PetscObjectReference((PetscObject)M);CHKERRQ(ierr);
-  if (qep->M) {
-    ierr = MatDestroy(qep->M);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
   qep->M = M;
   ierr = PetscObjectReference((PetscObject)C);CHKERRQ(ierr);
-  if (qep->C) {
-    ierr = MatDestroy(qep->C);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&qep->C);CHKERRQ(ierr);
   qep->C = C;
   ierr = PetscObjectReference((PetscObject)K);CHKERRQ(ierr);
-  if (qep->K) {
-    ierr = MatDestroy(qep->K);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
   qep->K = K;
 
   qep->setupcalled = 0;
@@ -307,7 +301,7 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
   /* free previous non-processed vectors */
   if (qep->nini<0) {
     for (i=0;i<-qep->nini;i++) {
-      ierr = VecDestroy(qep->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&qep->IS[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(qep->IS);CHKERRQ(ierr);
   }
@@ -367,7 +361,7 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
   /* free previous non-processed vectors */
   if (qep->ninil<0) {
     for (i=0;i<-qep->ninil;i++) {
-      ierr = VecDestroy(qep->ISL[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&qep->ISL[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(qep->ISL);CHKERRQ(ierr);
   }

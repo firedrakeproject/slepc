@@ -183,8 +183,8 @@ PetscErrorCode EPSSolve(EPS eps)
       ierr = VecCopy(eps->W[i],w);CHKERRQ(ierr);
       ierr = KSPSolveTranspose(ksp,w,eps->W[i]);CHKERRQ(ierr);
     }
-    ierr = KSPDestroy(ksp);CHKERRQ(ierr);
-    ierr = VecDestroy(w);CHKERRQ(ierr);
+    ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
 
 #ifndef PETSC_USE_COMPLEX
@@ -221,7 +221,7 @@ PetscErrorCode EPSSolve(EPS eps)
         eps->eigr[i] /= dot;
       }
     }
-    ierr = VecDestroy(w);CHKERRQ(ierr);
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
 
   /* sort eigenvalues according to eps->which parameter */
@@ -235,7 +235,7 @@ PetscErrorCode EPSSolve(EPS eps)
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,filename,&viewer);CHKERRQ(ierr);
     ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
-    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   flg = PETSC_FALSE;
@@ -256,8 +256,8 @@ PetscErrorCode EPSSolve(EPS eps)
       ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
     }
     ierr = PetscDrawSPDraw(drawsp);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspaces */
@@ -915,12 +915,12 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScal
     }
     ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
     *norm = SlepcAbsEigenvalue(nr,ni);
-    ierr = VecDestroy(v);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
   }
 #endif
 
-  ierr = VecDestroy(w);CHKERRQ(ierr);
-  ierr = VecDestroy(u);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -963,8 +963,8 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
   ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,norm); CHKERRQ(ierr);
-  ierr = VecDestroy(xr); CHKERRQ(ierr);
-  ierr = VecDestroy(xi); CHKERRQ(ierr);
+  ierr = VecDestroy(&xr); CHKERRQ(ierr);
+  ierr = VecDestroy(&xi); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1047,11 +1047,11 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   }
 #endif
 
-  ierr = VecDestroy(w); CHKERRQ(ierr);
-  ierr = VecDestroy(v); CHKERRQ(ierr);
-  ierr = VecDestroy(u); CHKERRQ(ierr);
-  ierr = VecDestroy(xr); CHKERRQ(ierr);
-  ierr = VecDestroy(xi); CHKERRQ(ierr);
+  ierr = VecDestroy(&w); CHKERRQ(ierr);
+  ierr = VecDestroy(&v); CHKERRQ(ierr);
+  ierr = VecDestroy(&u); CHKERRQ(ierr);
+  ierr = VecDestroy(&xr); CHKERRQ(ierr);
+  ierr = VecDestroy(&xi); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1121,8 +1121,8 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
   ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi); CHKERRQ(ierr);
   ierr = EPSComputeRelativeError_Private(eps,kr,ki,xr,xi,error); CHKERRQ(ierr);  
-  ierr = VecDestroy(xr); CHKERRQ(ierr);
-  ierr = VecDestroy(xi); CHKERRQ(ierr);
+  ierr = VecDestroy(&xr); CHKERRQ(ierr);
+  ierr = VecDestroy(&xi); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1185,13 +1185,13 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
     ierr = VecNorm(u, NORM_2, &er); CHKERRQ(ierr);  
     ierr = VecAXPBY(xi, kr, ki, xr);  CHKERRQ(ierr);      
     ierr = VecNorm(xi, NORM_2, &ei); CHKERRQ(ierr);  
-    ierr = VecDestroy(u); CHKERRQ(ierr);  
+    ierr = VecDestroy(&u); CHKERRQ(ierr);  
     *error = norm / SlepcAbsEigenvalue(er, ei);
   }
 #endif    
   
-  ierr = VecDestroy(xr); CHKERRQ(ierr);
-  ierr = VecDestroy(xi); CHKERRQ(ierr);
+  ierr = VecDestroy(&xr); CHKERRQ(ierr);
+  ierr = VecDestroy(&xi); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1494,7 +1494,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
   }
   ierr = VecScale(vec,1.0/norm);CHKERRQ(ierr);
 
-  ierr = VecDestroy(w);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1564,6 +1564,6 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscBool *break
   }
   ierr = VecScale(vec,1/norm);CHKERRQ(ierr);
 
-  ierr = VecDestroy(w);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

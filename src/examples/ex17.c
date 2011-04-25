@@ -63,7 +63,7 @@ int main( int argc, char **argv )
   ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
   ierr = MatLoad(M,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
 
   ierr = PetscOptionsGetString(PETSC_NULL,"-C",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
@@ -73,7 +73,7 @@ int main( int argc, char **argv )
   ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
   ierr = MatSetFromOptions(C);CHKERRQ(ierr);
   ierr = MatLoad(C,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
 
   ierr = PetscOptionsGetString(PETSC_NULL,"-K",filename,256,&flg);CHKERRQ(ierr);
   if (!flg) {
@@ -83,7 +83,7 @@ int main( int argc, char **argv )
   ierr = MatCreate(PETSC_COMM_WORLD,&K);CHKERRQ(ierr);
   ierr = MatSetFromOptions(K);CHKERRQ(ierr);
   ierr = MatLoad(K,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and set various options
@@ -172,9 +172,9 @@ int main( int argc, char **argv )
      Free work space
   */
   ierr = QEPDestroy(qep);CHKERRQ(ierr);
-  ierr = MatDestroy(M);CHKERRQ(ierr);
-  ierr = MatDestroy(C);CHKERRQ(ierr);
-  ierr = MatDestroy(K);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = MatDestroy(&C);CHKERRQ(ierr);
+  ierr = MatDestroy(&K);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

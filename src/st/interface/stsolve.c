@@ -218,8 +218,8 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
     ierr = VecRestoreArray(out,&array);CHKERRQ(ierr);
   }
   ierr = PetscFree(rows);CHKERRQ(ierr);
-  ierr = VecDestroy(in);CHKERRQ(ierr);
-  ierr = VecDestroy(out);CHKERRQ(ierr);
+  ierr = VecDestroy(&in);CHKERRQ(ierr);
+  ierr = VecDestroy(&out);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -253,7 +253,7 @@ PetscErrorCode STSetUp(ST st)
   if (!((PetscObject)st)->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
-  if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); }
+  ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = MatGetVecs(st->A,&st->w,PETSC_NULL);CHKERRQ(ierr);
   if (st->ops->setup) {
     ierr = (*st->ops->setup)(st); CHKERRQ(ierr);

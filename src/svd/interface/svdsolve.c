@@ -80,7 +80,7 @@ PetscErrorCode SVDSolve(SVD svd)
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerASCIIOpen(((PetscObject)svd)->comm,filename,&viewer);CHKERRQ(ierr);
     ierr = SVDView(svd,viewer);CHKERRQ(ierr); 
-    ierr = PetscViewerDestroy(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */
@@ -324,10 +324,10 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, Pe
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
   }
 
-  ierr = VecDestroy(v);CHKERRQ(ierr);
-  ierr = VecDestroy(u);CHKERRQ(ierr);
-  if (x) { ierr = VecDestroy(x);CHKERRQ(ierr); }
-  if (y) { ierr = VecDestroy(y);CHKERRQ(ierr); }
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = VecDestroy(&y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

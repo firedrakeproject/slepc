@@ -138,7 +138,7 @@ PetscErrorCode STSetUp_Fold(ST st)
   if (st->B) {
     ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-    if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
+    ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
     ierr = MatGetVecs(st->B,&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
   } 
   PetscFunctionReturn(0);
@@ -194,7 +194,7 @@ PetscErrorCode STDestroy_Fold(ST st)
   ST_FOLD        *ctx = (ST_FOLD *) st->data;
 
   PetscFunctionBegin;
-  if (ctx->w2) { ierr = VecDestroy(ctx->w2);CHKERRQ(ierr); }
+  ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

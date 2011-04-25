@@ -106,7 +106,7 @@ int main( int argc, char **argv )
   ierr = MatGetVecs(A,&x,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecSet(x,1.0);CHKERRQ(ierr);
   ierr = EPSSetDeflationSpace(eps,1,&x);CHKERRQ(ierr);
-  ierr = VecDestroy(x);
+  ierr = VecDestroy(&x);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
@@ -176,7 +176,7 @@ int main( int argc, char **argv )
      Free work space
   */
   ierr = EPSDestroy(eps);CHKERRQ(ierr);
-  ierr = MatDestroy(A);CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

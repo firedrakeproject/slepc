@@ -97,7 +97,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->ispositive) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
     ierr = IPSetBilinearForm(eps->ip,B,IP_INNER_HERMITIAN);CHKERRQ(ierr);
-    ierr = MatDestroy(B);CHKERRQ(ierr);
+    ierr = MatDestroy(&B);CHKERRQ(ierr);
   } else {
     ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IP_INNER_HERMITIAN);CHKERRQ(ierr);
   }
@@ -140,7 +140,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       for (i=0;i<eps->nds;i++) {
         ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pDS+i*eps->nloc,&vds);CHKERRQ(ierr);
         ierr = VecCopy(eps->DS[i],vds);CHKERRQ(ierr);
-        ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
+        ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr);
         eps->DS[i] = vds;
       }
       /* orthonormalize vectors in DS */
@@ -166,7 +166,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     k = 0;
     for (i=0;i<eps->nini;i++) {
       ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
-      ierr = VecDestroy(eps->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&eps->IS[i]);CHKERRQ(ierr);
       ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent initial vector found, removing...\n");
       else {
@@ -185,7 +185,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       k = 0;
       for (i=0;i<eps->ninil;i++) {
         ierr = VecCopy(eps->ISL[i],eps->W[k]);CHKERRQ(ierr);
-        ierr = VecDestroy(eps->ISL[i]);CHKERRQ(ierr);
+        ierr = VecDestroy(&eps->ISL[i]);CHKERRQ(ierr);
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->W,eps->W[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
         if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent initial left vector found, removing...\n");
         else {
@@ -258,10 +258,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
   eps->setupcalled = 0;  /* so that next solve call will call setup */
 
-  if (eps->D) {
-    ierr = VecDestroy(eps->D);CHKERRQ(ierr);
-    eps->D = PETSC_NULL;
-  }
+  ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -381,7 +378,7 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
     ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
     ierr = VecRestoreArray(eps->DS[0],PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<eps->nds;i++) {
-      ierr = VecDestroy(eps->DS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr);
     }
     if (eps->setupcalled) {  /* before EPSSetUp, DS are just references */
       ierr = PetscFree(pV);CHKERRQ(ierr);
@@ -436,7 +433,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   /* free previous non-processed vectors */
   if (eps->nini<0) {
     for (i=0;i<-eps->nini;i++) {
-      ierr = VecDestroy(eps->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&eps->IS[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(eps->IS);CHKERRQ(ierr);
   }
@@ -496,7 +493,7 @@ PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
   /* free previous non-processed vectors */
   if (eps->ninil<0) {
     for (i=0;i<-eps->ninil;i++) {
-      ierr = VecDestroy(eps->ISL[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&eps->ISL[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(eps->ISL);CHKERRQ(ierr);
   }

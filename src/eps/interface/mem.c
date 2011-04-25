@@ -46,14 +46,14 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
       ierr = PetscFree(eps->errest_left);CHKERRQ(ierr); 
       ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
       for (i=0;i<eps->allocated_ncv;i++) {
-        ierr = VecDestroy(eps->V[i]);CHKERRQ(ierr);
+        ierr = VecDestroy(&eps->V[i]);CHKERRQ(ierr);
       }
       ierr = PetscFree(pV);CHKERRQ(ierr);
       ierr = PetscFree(eps->V);CHKERRQ(ierr);
       if (eps->W) {
         ierr = VecGetArray(eps->W[0],&pW);CHKERRQ(ierr);
         for (i=0;i<eps->allocated_ncv;i++) {
-          ierr = VecDestroy(eps->W[i]);CHKERRQ(ierr);
+          ierr = VecDestroy(&eps->W[i]);CHKERRQ(ierr);
         }
         ierr = PetscFree(pW);CHKERRQ(ierr);
         ierr = PetscFree(eps->W);CHKERRQ(ierr);
@@ -101,14 +101,14 @@ PetscErrorCode EPSFreeSolution(EPS eps)
     ierr = PetscFree(eps->errest_left);CHKERRQ(ierr);
     ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
     for (i=0;i<eps->allocated_ncv;i++) {
-      ierr = VecDestroy(eps->V[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&eps->V[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(eps->V);CHKERRQ(ierr);
     if (eps->W) {
       ierr = VecGetArray(eps->W[0],&pW);CHKERRQ(ierr);
       for (i=0;i<eps->allocated_ncv;i++) {
-        ierr = VecDestroy(eps->W[i]);CHKERRQ(ierr);
+        ierr = VecDestroy(&eps->W[i]);CHKERRQ(ierr);
       }
       ierr = PetscFree(pW);CHKERRQ(ierr);
       ierr = PetscFree(eps->W);CHKERRQ(ierr);

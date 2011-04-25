@@ -279,9 +279,9 @@ PetscErrorCode SVDDestroy(SVD svd)
     ierr = (*svd->ops->destroy)(svd); CHKERRQ(ierr);
   }
 
-  if (svd->OP) { ierr = MatDestroy(svd->OP);CHKERRQ(ierr); }
-  if (svd->A) { ierr = MatDestroy(svd->A);CHKERRQ(ierr); }
-  if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
+  ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
+  ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   if (svd->n) { 
     ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
     ierr = PetscFree(svd->perm);CHKERRQ(ierr);
@@ -289,14 +289,14 @@ PetscErrorCode SVDDestroy(SVD svd)
     if (svd->U) {
       ierr = VecGetArray(svd->U[0],&p);CHKERRQ(ierr);
       for (i=0;i<svd->n;i++) {
-        ierr = VecDestroy(svd->U[i]); CHKERRQ(ierr);
+        ierr = VecDestroy(&svd->U[i]); CHKERRQ(ierr);
       }
       ierr = PetscFree(p);CHKERRQ(ierr);
       ierr = PetscFree(svd->U);CHKERRQ(ierr);
     }
     ierr = VecGetArray(svd->V[0],&p);CHKERRQ(ierr);
     for (i=0;i<svd->n;i++) {
-      ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr); 
+      ierr = VecDestroy(&svd->V[i]);CHKERRQ(ierr); 
     }
     ierr = PetscFree(p);CHKERRQ(ierr);
     ierr = PetscFree(svd->V);CHKERRQ(ierr);
@@ -305,10 +305,10 @@ PetscErrorCode SVDDestroy(SVD svd)
   
   ierr = IPDestroy(svd->ip);CHKERRQ(ierr);
   if (svd->rand) {
-    ierr = PetscRandomDestroy(svd->rand);CHKERRQ(ierr);
+    ierr = PetscRandomDestroy(&svd->rand);CHKERRQ(ierr);
   }
   
-  ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(&svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

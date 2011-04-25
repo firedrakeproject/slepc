@@ -72,9 +72,7 @@ PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
     if (i>=low && i<high) px[i-low] = t;
   }
   ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-  if (randObj) {
-    ierr = PetscRandomDestroy(randObj);CHKERRQ(ierr);
-  }
+  ierr = PetscRandomDestroy(&randObj);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -142,9 +140,9 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscBool *is)
   ierr = VecAXPY(w2,-1.0,w1);CHKERRQ(ierr);
   ierr = VecNorm(w2,NORM_2,&norm);CHKERRQ(ierr);
   if (norm<1.0e-6) *is = PETSC_TRUE;
-  ierr = VecDestroy(x);CHKERRQ(ierr);
-  ierr = VecDestroy(w1);CHKERRQ(ierr);
-  ierr = VecDestroy(w2);CHKERRQ(ierr);
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = VecDestroy(&w1);CHKERRQ(ierr);
+  ierr = VecDestroy(&w2);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -266,12 +264,12 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     ierr = ISCreateStride(PETSC_COMM_SELF,m,0,1,&isrow);CHKERRQ(ierr);
     ierr = ISCreateStride(PETSC_COMM_SELF,n,0,1,&iscol);CHKERRQ(ierr);
     ierr = MatGetSubMatrices(mat,1,&isrow,&iscol,MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
-    ierr = ISDestroy(isrow);CHKERRQ(ierr);
-    ierr = ISDestroy(iscol);CHKERRQ(ierr);
+    ierr = ISDestroy(&isrow);CHKERRQ(ierr);
+    ierr = ISDestroy(&iscol);CHKERRQ(ierr);
 
     /* Fake support for "inplace" convert */
     if (*newmat == mat) {
-      ierr = MatDestroy(mat);CHKERRQ(ierr);
+      ierr = MatDestroy(&mat);CHKERRQ(ierr);
     }
     *newmat = *M;
     ierr = PetscFree(M);CHKERRQ(ierr);     
@@ -693,7 +691,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     if (!lev) { ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr); }
   }
   ierr = PetscFree(vals);CHKERRQ(ierr);
-  if (B) { ierr = VecDestroy(w);CHKERRQ(ierr); }
+  if (B) { ierr = VecDestroy(&w);CHKERRQ(ierr); }
   if (lev) *lev = PetscSqrtScalar(*lev);
   PetscFunctionReturn(0);
 }

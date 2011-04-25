@@ -69,16 +69,12 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   ctx->K = qep->K;
   ctx->sfactor = qep->sfactor;
 
-  if (ctx->A) { 
-    ierr = MatDestroy(ctx->A);CHKERRQ(ierr);
-    ierr = MatDestroy(ctx->B);CHKERRQ(ierr);
-  }
-  if (ctx->x1) { 
-    ierr = VecDestroy(ctx->x1);CHKERRQ(ierr); 
-    ierr = VecDestroy(ctx->x2);CHKERRQ(ierr); 
-    ierr = VecDestroy(ctx->y1);CHKERRQ(ierr); 
-    ierr = VecDestroy(ctx->y2);CHKERRQ(ierr); 
-  }
+  ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&ctx->B);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr); 
+  ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr); 
+  ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr); 
+  ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr); 
 
   switch (qep->problem_type) {
     case QEP_GENERAL:    i = 0; break;
@@ -214,10 +210,10 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
       ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
     }
   }
-  ierr = VecDestroy(wr);CHKERRQ(ierr);
-  ierr = VecDestroy(wi);CHKERRQ(ierr);
-  ierr = VecDestroy(xr);CHKERRQ(ierr);
-  ierr = VecDestroy(xi);CHKERRQ(ierr);
+  ierr = VecDestroy(&wr);CHKERRQ(ierr);
+  ierr = VecDestroy(&wi);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -278,9 +274,9 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
       ierr = SlepcVecNormalize(qep->V[i],PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
     }
   }
-  ierr = VecDestroy(w);CHKERRQ(ierr);
-  ierr = VecDestroy(xr);CHKERRQ(ierr);
-  ierr = VecDestroy(xi);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
@@ -651,16 +647,12 @@ PetscErrorCode QEPDestroy_LINEAR(QEP qep)
 
   PetscFunctionBegin;
   ierr = EPSDestroy(ctx->eps);CHKERRQ(ierr);
-  if (ctx->A) {
-    ierr = MatDestroy(ctx->A);CHKERRQ(ierr);
-    ierr = MatDestroy(ctx->B);CHKERRQ(ierr);
-  }
-  if (ctx->x1) { 
-    ierr = VecDestroy(ctx->x1);CHKERRQ(ierr);
-    ierr = VecDestroy(ctx->x2);CHKERRQ(ierr);
-    ierr = VecDestroy(ctx->y1);CHKERRQ(ierr);
-    ierr = VecDestroy(ctx->y2);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&ctx->B);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","",PETSC_NULL);CHKERRQ(ierr);

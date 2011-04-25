@@ -494,7 +494,7 @@ PetscErrorCode QEPDestroy(QEP qep)
     ierr = PetscFree(qep->errest);CHKERRQ(ierr);
     ierr = VecGetArray(qep->V[0],&pV);CHKERRQ(ierr);
     for (i=0;i<qep->ncv;i++) {
-      ierr = VecDestroy(qep->V[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&qep->V[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
     ierr = PetscFree(qep->V);CHKERRQ(ierr);
@@ -503,15 +503,13 @@ PetscErrorCode QEPDestroy(QEP qep)
   ierr = QEPMonitorCancel(qep);CHKERRQ(ierr);
 
   ierr = IPDestroy(qep->ip);CHKERRQ(ierr);
-  if (qep->rand) {
-    ierr = PetscRandomDestroy(qep->rand);CHKERRQ(ierr);
-  }
+  ierr = PetscRandomDestroy(&qep->rand);CHKERRQ(ierr);
 
-  if (qep->M) { ierr = MatDestroy(qep->M);CHKERRQ(ierr); }
-  if (qep->C) { ierr = MatDestroy(qep->C);CHKERRQ(ierr); }
-  if (qep->K) { ierr = MatDestroy(qep->K);CHKERRQ(ierr); }
+  ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
+  ierr = MatDestroy(&qep->C);CHKERRQ(ierr);
+  ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
 
-  ierr = PetscHeaderDestroy(qep);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(&qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

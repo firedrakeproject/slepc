@@ -180,7 +180,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
       ierr = PetscViewerASCIIMonitorPrintf(viewer," %g (%10.8e)",sigma[i],errest[i]);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"\n");CHKERRQ(ierr);
-    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
+    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
 }
@@ -216,7 +216,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d SVD nconv=%d first unconverged value (error)",its,nconv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIMonitorPrintf(viewer," %g (%10.8e)\n",sigma[nconv],errest[nconv]);CHKERRQ(ierr);
-    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(viewer);CHKERRQ(ierr);}
+    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
 }
@@ -264,7 +264,7 @@ PetscErrorCode SVDMonitorDestroy_Converged(SVDMONITOR_CONV *ctx)
 {
   PetscErrorCode  ierr;
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIMonitorDestroy(ctx->viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIMonitorDestroy(&ctx->viewer);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

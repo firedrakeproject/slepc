@@ -406,7 +406,7 @@ PetscErrorCode EPSDestroy_SUBSPACE(EPS eps)
   PetscFunctionBegin;
   ierr = VecGetArray(ctx->AV[0],&pAV);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) {
-    ierr = VecDestroy(ctx->AV[i]);CHKERRQ(ierr);
+    ierr = VecDestroy(&ctx->AV[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(pAV);CHKERRQ(ierr);
   ierr = PetscFree(ctx->AV);CHKERRQ(ierr);

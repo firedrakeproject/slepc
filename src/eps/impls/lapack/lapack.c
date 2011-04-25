@@ -49,9 +49,9 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (eps->balance!=EPS_BALANCE_NONE)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in Lapack solvers");
 
-  if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
-  if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
-  if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }
+  if (la->OP) { ierr = MatDestroy(&la->OP);CHKERRQ(ierr); }
+  if (la->A) { ierr = MatDestroy(&la->A);CHKERRQ(ierr); }
+  if (la->B) { ierr = MatDestroy(&la->B);CHKERRQ(ierr); }
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
@@ -201,9 +201,9 @@ PetscErrorCode EPSDestroy_LAPACK(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (la->OP) { ierr = MatDestroy(la->OP);CHKERRQ(ierr); }
-  if (la->A) { ierr = MatDestroy(la->A);CHKERRQ(ierr); }
-  if (la->B) { ierr = MatDestroy(la->B);CHKERRQ(ierr); }
+  if (la->OP) { ierr = MatDestroy(&la->OP);CHKERRQ(ierr); }
+  if (la->A) { ierr = MatDestroy(&la->A);CHKERRQ(ierr); }
+  if (la->B) { ierr = MatDestroy(&la->B);CHKERRQ(ierr); }
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);

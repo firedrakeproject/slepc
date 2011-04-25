@@ -47,9 +47,7 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   PetscCheckSameComm(svd,1,mat,2);
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  if (svd->OP) {
-    ierr = MatDestroy(svd->OP);CHKERRQ(ierr);
-  }
+  ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   svd->OP = mat;
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -131,8 +129,8 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   
   /* build transpose matrix */
-  if (svd->A) { ierr = MatDestroy(svd->A);CHKERRQ(ierr); }
-  if (svd->AT) { ierr = MatDestroy(svd->AT);CHKERRQ(ierr); }
+  ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
   switch (svd->transmode) {
@@ -182,7 +180,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       ierr = PetscFree(svd->errest);CHKERRQ(ierr);
       ierr = VecGetArray(svd->V[0],&pV);CHKERRQ(ierr);
       for (i=0;i<svd->n;i++) {
-        ierr = VecDestroy(svd->V[i]);CHKERRQ(ierr);
+        ierr = VecDestroy(&svd->V[i]);CHKERRQ(ierr);
       }
       ierr = PetscFree(pV);CHKERRQ(ierr);
       ierr = PetscFree(svd->V);CHKERRQ(ierr);
@@ -211,7 +209,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     k = 0;
     for (i=0;i<svd->nini;i++) {
       ierr = VecCopy(svd->IS[i],svd->V[k]);CHKERRQ(ierr);
-      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
       ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,k,PETSC_NULL,svd->V,svd->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) PetscInfo(svd,"Linearly dependent initial vector found, removing...\n");
       else {
@@ -268,7 +266,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   /* free previous non-processed vectors */
   if (svd->nini<0) {
     for (i=0;i<-svd->nini;i++) {
-      ierr = VecDestroy(svd->IS[i]);CHKERRQ(ierr);
+      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(svd->IS);CHKERRQ(ierr);
   }

@@ -122,17 +122,17 @@ PetscErrorCode STDestroy(ST st)
   ierr = PetscObjectDepublish(st);CHKERRQ(ierr);
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
-  if (st->A) { ierr = MatDestroy(st->A);CHKERRQ(ierr); }
-  if (st->B) { ierr = MatDestroy(st->B);CHKERRQ(ierr); }
-  if (st->ksp) { ierr = KSPDestroy(st->ksp);CHKERRQ(ierr); } 
-  if (st->w) { ierr = VecDestroy(st->w);CHKERRQ(ierr); } 
-  if (st->D) { ierr = VecDestroy(st->D);CHKERRQ(ierr); } 
-  if (st->wb){ ierr = VecDestroy(st->wb);CHKERRQ(ierr); } 
+  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
+  ierr = KSPDestroy(&st->ksp);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->w);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->D);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   if (st->shift_matrix != ST_MATMODE_INPLACE && st->mat) { 
-    ierr = MatDestroy(st->mat);CHKERRQ(ierr); 
+    ierr = MatDestroy(&st->mat);CHKERRQ(ierr); 
   }
 
-  ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(&st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -219,10 +219,10 @@ PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
   PetscCheckSameComm(st,1,A,2);
   if (B) PetscCheckSameComm(st,1,B,3);
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  if (st->A) { ierr = MatDestroy(st->A);CHKERRQ(ierr); }
+  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
   st->A = A;
   if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
-  if (st->B) { ierr = MatDestroy(st->B);CHKERRQ(ierr); }
+  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
   st->B = B;
   st->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -366,9 +366,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   PetscValidHeaderSpecific(D,VEC_CLASSID,2);
   PetscCheckSameComm(st,1,D,2);
   ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
-  if (st->D) {
-    ierr = VecDestroy(st->D); CHKERRQ(ierr);
-  }
+  ierr = VecDestroy(&st->D); CHKERRQ(ierr);
   st->D = D;
   if (!st->wb) {
     ierr = VecDuplicate(st->D,&st->wb); CHKERRQ(ierr);
