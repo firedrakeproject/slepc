@@ -283,10 +283,8 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   
   /* free working space */
   ierr = VecDestroy(&v);CHKERRQ(ierr);
-  if (lanczos->oneside) {
-    ierr = VecDestroy(&u);CHKERRQ(ierr);
-    ierr = VecDestroy(&u_1);CHKERRQ(ierr);
-  }
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&u_1);CHKERRQ(ierr);
   ierr = PetscFree(alpha);CHKERRQ(ierr);
   ierr = PetscFree(beta);CHKERRQ(ierr);
   ierr = PetscFree(Q);CHKERRQ(ierr);

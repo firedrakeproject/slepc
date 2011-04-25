@@ -214,7 +214,6 @@ PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
   if (data->old_pc) {
     ierr = KSPSetPC(data->ksp, data->old_pc); CHKERRQ(ierr);
     ierr = PCDestroy(&data->old_pc); CHKERRQ(ierr);
-    data->old_pc = 0;
   }
 
   PetscFunctionReturn(0);

@@ -379,7 +379,7 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   /* free workspace */
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
-  if (!eps->ishermitian && eps->ispositive) { ierr = VecDestroy(&z);CHKERRQ(ierr); }
+  ierr = VecDestroy(&z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

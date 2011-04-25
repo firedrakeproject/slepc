@@ -128,7 +128,7 @@ PetscErrorCode STDestroy(ST st)
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
-  if (st->shift_matrix != ST_MATMODE_INPLACE && st->mat) { 
+  if (st->shift_matrix != ST_MATMODE_INPLACE) { 
     ierr = MatDestroy(&st->mat);CHKERRQ(ierr); 
   }
 
