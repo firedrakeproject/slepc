@@ -356,6 +356,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->V               = 0;
   eps->W               = 0;
   eps->T               = 0;
+  eps->D               = 0;
   eps->DS              = 0;
   eps->IS              = 0;
   eps->ISL             = 0;
@@ -366,6 +367,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->errest_left     = 0;
   eps->OP              = 0;
   eps->ip              = 0;
+  eps->rand            = 0;
   eps->data            = 0;
   eps->nconv           = 0;
   eps->its             = 0;

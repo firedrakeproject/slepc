@@ -176,6 +176,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->w                   = 0;
   st->D                   = 0;
   st->wb                  = 0;
+  st->mat                 = 0;
   st->shift_matrix        = ST_MATMODE_COPY;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
   

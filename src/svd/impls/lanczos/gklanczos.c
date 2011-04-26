@@ -164,7 +164,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
   PetscScalar    *swork;
   PetscBLASInt   n,info,*iwork;
   PetscInt       i,j,k,m,nv;
-  Vec            v,u,u_1;
+  Vec            v,u=0,u_1=0;
   PetscBool      conv;
   
   PetscFunctionBegin;

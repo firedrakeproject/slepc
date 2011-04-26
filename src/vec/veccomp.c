@@ -170,7 +170,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
   PetscFunctionBegin;
 
   /* Allocate a new Vec_Comp */
-  ierr = PetscFree(v->data); CHKERRQ(ierr);
+  if (v->data) { ierr = PetscFree(v->data); CHKERRQ(ierr); }
   ierr = PetscNewLog(v, Vec_Comp, &s); CHKERRQ(ierr);
   ierr = PetscMemcpy(v->ops, &DvOps, sizeof(DvOps)); CHKERRQ(ierr);
   v->data  = (void*)s;

@@ -222,6 +222,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->U           = PETSC_NULL;
   svd->V           = PETSC_NULL;
   svd->IS          = PETSC_NULL;
+  svd->rand        = PETSC_NULL;
   svd->which       = SVD_LARGEST;
   svd->n           = 0;
   svd->nconv       = 0;
@@ -304,9 +305,7 @@ PetscErrorCode SVDDestroy(SVD svd)
   ierr = SVDMonitorCancel(svd);CHKERRQ(ierr);
   
   ierr = IPDestroy(svd->ip);CHKERRQ(ierr);
-  if (svd->rand) {
-    ierr = PetscRandomDestroy(&svd->rand);CHKERRQ(ierr);
-  }
+  ierr = PetscRandomDestroy(&svd->rand);CHKERRQ(ierr);
   
   ierr = PetscHeaderDestroy(&svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);

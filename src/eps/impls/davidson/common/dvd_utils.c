@@ -88,7 +88,7 @@ PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d)
   PetscFunctionBegin;
 
   /* Free local data */
-  ierr = PCDestroy(&dvdpc->pc);CHKERRQ(ierr);
+  if (dvdpc->pc) { ierr = PCDestroy(&dvdpc->pc);CHKERRQ(ierr); }
   ierr = PetscFree(d->improvex_precond_data); CHKERRQ(ierr);
 
   PetscFunctionReturn(0);

@@ -328,7 +328,7 @@ PetscErrorCode EPSNormRelativeConverged(EPS eps,PetscScalar eigr,PetscScalar eig
 PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscScalar *Z,Vec *V,PetscInt nv,PetscReal *resnorm)
 {
   PetscErrorCode ierr;
-  Vec            x,y,z;
+  Vec            x,y,z=0;
   PetscReal      norm;
   
   PetscFunctionBegin;

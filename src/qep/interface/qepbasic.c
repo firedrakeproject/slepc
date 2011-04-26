@@ -244,6 +244,9 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 
   ierr = PetscMemzero(qep->ops,sizeof(struct _QEPOps));CHKERRQ(ierr);
 
+  qep->M               = 0;
+  qep->C               = 0;
+  qep->K               = 0;
   qep->max_it          = 0;
   qep->nev             = 1;
   qep->ncv             = 0;
@@ -260,6 +263,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
   qep->V               = PETSC_NULL;
+  qep->W               = PETSC_NULL;
   qep->IS              = PETSC_NULL;
   qep->ISL             = PETSC_NULL;
   qep->T               = PETSC_NULL;
@@ -278,6 +282,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->reason          = QEP_CONVERGED_ITERATING;
   qep->numbermonitors  = 0;
   qep->trackall        = PETSC_FALSE;
+  qep->rand            = 0;
 
   ierr = IPCreate(comm,&qep->ip); CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,((PetscObject)qep)->prefix);
