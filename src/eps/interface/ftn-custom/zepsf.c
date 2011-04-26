@@ -23,6 +23,7 @@
 #include <private/epsimpl.h>        /*I "slepceps.h" I*/
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
+#define epsdestroy_                 EPSDESTROY
 #define epsview_                    EPSVIEW
 #define epssetoptionsprefix_        EPSSETOPTIONSPREFIX
 #define epsappendoptionsprefix_     EPSAPPENDOPTIONSPREFIX
@@ -51,6 +52,7 @@
 #define epssetconvergencetestfunction_ EPSSETCONVERGENCETESTFUNCTION
 #define epsseteigenvaluecomparison_ EPSSETEIGENVALUECOMPARISON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define epsdestroy_                 epsdestroy
 #define epsview_                    epsview
 #define epssetoptionsprefix_        epssetoptionsprefix
 #define epsappendoptionsprefix_     epsappendoptionsprefix
@@ -133,6 +135,11 @@ static PetscErrorCode ourdestroy(void* ctx)
 }
 
 EXTERN_C_BEGIN
+
+void PETSC_STDCALL epsdestroy_(EPS *eps, PetscErrorCode *ierr)
+{
+  *ierr = EPSDestroy(eps);
+}
 
 void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer, PetscErrorCode *ierr)
 {

@@ -562,7 +562,7 @@ PetscErrorCode EPSRegisterDestroy(void)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy"
-/*@
+/*@C
    EPSDestroy - Destroys the EPS context.
 
    Collective on EPS
