@@ -387,7 +387,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscInt       i,j,k;
   PetscReal      r;
   PetscViewerASCIIMonitor monviewer;
-  SVDMONITOR_CONV *ctx;
+  SlepcConvMonitor ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -438,7 +438,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   }
   ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
-      ierr = PetscNew(SVDMONITOR_CONV,&ctx);CHKERRQ(ierr);
+      ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&ctx->viewer);CHKERRQ(ierr);
       ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void*))SVDMonitorDestroy_Converged);CHKERRQ(ierr);
   }

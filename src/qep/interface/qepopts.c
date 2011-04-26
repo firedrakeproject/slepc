@@ -49,7 +49,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   PetscReal      r;
   PetscInt       i,j,k;
   PetscViewerASCIIMonitor monviewer;
-  QEPMONITOR_CONV *ctx;
+  SlepcConvMonitor ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -106,7 +106,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     }
     ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscNew(QEPMONITOR_CONV,&ctx);CHKERRQ(ierr);
+      ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&ctx->viewer);CHKERRQ(ierr);
       ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void*))QEPMonitorDestroy_Converged);CHKERRQ(ierr);
     }

@@ -112,7 +112,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   for (i=0; i<svd->numbermonitors; i++) {
     if (svd->monitordestroy[i]) {
-      ierr = (*svd->monitordestroy[i])(svd->monitorcontext[i]);CHKERRQ(ierr);
+      ierr = (*svd->monitordestroy[i])(&svd->monitorcontext[i]);CHKERRQ(ierr);
     }
   }
   svd->numbermonitors = 0;
@@ -243,9 +243,9 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
 @*/
 PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i;
-  SVDMONITOR_CONV *ctx = (SVDMONITOR_CONV*) dummy;
+  PetscErrorCode   ierr;
+  PetscInt         i;
+  SlepcConvMonitor ctx = (SlepcConvMonitor) dummy;
 
   PetscFunctionBegin;
   if (!its) {
@@ -260,12 +260,15 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDMonitorDestroy_Converged(SVDMONITOR_CONV *ctx)
+#undef __FUNCT__  
+#define __FUNCT__ "SVDMonitorDestroy_Converged"
+PetscErrorCode SVDMonitorDestroy_Converged(SlepcConvMonitor *ctx)
 {
   PetscErrorCode  ierr;
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIMonitorDestroy(&ctx->viewer);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  if (!*ctx) PetscFunctionReturn(0);
+  ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
+  ierr = PetscFree(*ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

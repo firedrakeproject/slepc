@@ -115,7 +115,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   for (i=0; i<eps->numbermonitors; i++) {
     if (eps->monitordestroy[i]) {
-      ierr = (*eps->monitordestroy[i])(eps->monitorcontext[i]);CHKERRQ(ierr);
+      ierr = (*eps->monitordestroy[i])(&eps->monitorcontext[i]);CHKERRQ(ierr);
     }
   }
   eps->numbermonitors = 0;
@@ -268,10 +268,10 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 @*/
 PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i;
-  PetscScalar     er,ei;
-  EPSMONITOR_CONV *ctx = (EPSMONITOR_CONV*) dummy;
+  PetscErrorCode   ierr;
+  PetscInt         i;
+  PetscScalar      er,ei;
+  SlepcConvMonitor ctx = (SlepcConvMonitor) dummy;
 
   PetscFunctionBegin;
   if (!its) {
@@ -294,12 +294,15 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSMonitorDestroy_Converged(EPSMONITOR_CONV *ctx)
+#undef __FUNCT__  
+#define __FUNCT__ "EPSMonitorDestroy_Converged"
+PetscErrorCode EPSMonitorDestroy_Converged(SlepcConvMonitor *ctx)
 {
-  PetscErrorCode  ierr;
+  PetscErrorCode ierr;
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIMonitorDestroy(&ctx->viewer);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  if (!*ctx) PetscFunctionReturn(0);
+  ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
+  ierr = PetscFree(*ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

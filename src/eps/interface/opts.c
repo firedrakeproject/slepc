@@ -51,7 +51,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscInt       i,j,k;
   const char     *bal_list[4] = { "none", "oneside", "twoside","user" };
   PetscViewerASCIIMonitor monviewer;
-  EPSMONITOR_CONV *ctx;
+  SlepcConvMonitor ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -140,7 +140,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     }
     ierr = PetscOptionsString("-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscNew(EPSMONITOR_CONV,&ctx);CHKERRQ(ierr);
+      ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&ctx->viewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void*))EPSMonitorDestroy_Converged);CHKERRQ(ierr);
     }

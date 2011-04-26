@@ -24,6 +24,13 @@
 
 #include <slepcsys.h>
 
+/* context for monitors of type XXXMonitorConverged */
+struct _n_SlepcConvMonitor {
+  PetscViewerASCIIMonitor viewer;
+  PetscInt oldnconv;
+};
+typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
+
 /* Private functions that are shared by several classes */
 
 extern PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscBool,PetscInt,PetscScalar*);

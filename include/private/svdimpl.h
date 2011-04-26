@@ -96,12 +96,7 @@ extern PetscErrorCode SVDFinalizePackage(void);
 	  } \
 	}
 
-/* context for SVDMonitorConverged */
-typedef struct {
-  PetscViewerASCIIMonitor viewer;
-  PetscInt oldnconv;
-} SVDMONITOR_CONV;
-extern PetscErrorCode SVDMonitorDestroy_Converged(SVDMONITOR_CONV*);
+extern PetscErrorCode SVDMonitorDestroy_Converged(SlepcConvMonitor*);
 
 extern PetscErrorCode SVDDestroy_Default(SVD);
 extern PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);

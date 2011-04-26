@@ -115,7 +115,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   for (i=0; i<qep->numbermonitors; i++) {
     if (qep->monitordestroy[i]) {
-      ierr = (*qep->monitordestroy[i])(qep->monitorcontext[i]);CHKERRQ(ierr);
+      ierr = (*qep->monitordestroy[i])(&qep->monitorcontext[i]);CHKERRQ(ierr);
     }
   }
   qep->numbermonitors = 0;
@@ -262,9 +262,9 @@ PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
 @*/
 PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i;
-  QEPMONITOR_CONV *ctx = (QEPMONITOR_CONV*) dummy;
+  PetscErrorCode   ierr;
+  PetscInt         i;
+  SlepcConvMonitor ctx = (SlepcConvMonitor) dummy;
 
   PetscFunctionBegin;
   if (!its) {
@@ -285,12 +285,15 @@ PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode QEPMonitorDestroy_Converged(QEPMONITOR_CONV *ctx)
+#undef __FUNCT__  
+#define __FUNCT__ "QEPMonitorDestroy_Converged"
+PetscErrorCode QEPMonitorDestroy_Converged(SlepcConvMonitor *ctx)
 {
   PetscErrorCode  ierr;
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIMonitorDestroy(&ctx->viewer);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  if (!*ctx) PetscFunctionReturn(0);
+  ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
+  ierr = PetscFree(*ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
