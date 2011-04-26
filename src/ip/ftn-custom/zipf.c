@@ -24,6 +24,7 @@
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
 #define ipcreate_                 IPCREATE
+#define ipdestroy_                IPDESTROY
 #define ipsetoptionsprefix_       IPSETOPTIONSPREFIX
 #define ipappendoptionsprefix_    IPAPPENDOPTIONSPREFIX
 #define ipgetoptionsprefix_       IGSETOPTIONSPREFIX
@@ -32,6 +33,7 @@
 #define ipgetbilinarform_         IPGETBILINARFORM
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define ipcreate_                 ipcreate
+#define ipdestroy_                ipdestroy
 #define ipsetoptionsprefix_       ipsetoptionsprefix
 #define ipappendoptionsprefix_    ipappendoptionsprefix
 #define ipgetoptionsprefix_       ipgetoptionsprefix
@@ -45,6 +47,11 @@ EXTERN_C_BEGIN
 void PETSC_STDCALL ipcreate_(MPI_Fint *comm,IP *newip,PetscErrorCode *ierr)
 {
   *ierr = IPCreate(MPI_Comm_f2c(*(comm)),newip);
+}
+
+void PETSC_STDCALL ipdestroy_(IP *ip, PetscErrorCode *ierr)
+{
+  *ierr = IPDestroy(ip);
 }
 
 void PETSC_STDCALL ipsetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),

@@ -23,9 +23,10 @@
 #include <slepcsvd.h>
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
+#define svddestroy_                  SVDDESTROY
 #define svdmonitorall_               SVDMONITORALL
 #define svdmonitorlg_                SVDMONITORLG
-#define svdmonitorlgall_                SVDMONITORLGALL
+#define svdmonitorlgall_             SVDMONITORLGALL
 #define svdview_                     SVDVIEW
 #define svdcreate_                   SVDCREATE
 #define svdsettype_                  SVDSETTYPE
@@ -39,6 +40,7 @@
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
 #define svdgetconvergedreason_       SVDGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define svddestroy_                  svddestroy
 #define svdmonitorall_               svdmonitorall
 #define svdmonitorlgall_             svdmonitorlgall
 #define svdview_                     svdview
@@ -95,6 +97,11 @@ static PetscErrorCode ourdestroy(void* ctx)
 }
 
 EXTERN_C_BEGIN
+
+void PETSC_STDCALL svddestroy_(SVD *svd, PetscErrorCode *ierr)
+{
+  *ierr = SVDDestroy(svd);
+}
 
 void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer, PetscErrorCode *ierr)
 {

@@ -414,7 +414,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPDestroy"
-/*@
+/*@C
    IPDestroy - Destroys IP context that was created with IPCreate().
 
    Collective on IP
@@ -426,17 +426,17 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
 
 .seealso: IPCreate()
 @*/
-PetscErrorCode IPDestroy(IP ip)
+PetscErrorCode IPDestroy(IP *ip)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  if (--((PetscObject)ip)->refct > 0) PetscFunctionReturn(0);
-
-  ierr = MatDestroy(&ip->matrix);CHKERRQ(ierr);
-  ierr = VecDestroy(&ip->Bx);CHKERRQ(ierr);
-  ierr = PetscHeaderDestroy(&ip);CHKERRQ(ierr);
+  if (!*ip) PetscFunctionReturn(0);
+  PetscValidHeaderSpecific(*ip,IP_CLASSID,1);
+  if (--((PetscObject)(*ip))->refct > 0) { *ip = 0; PetscFunctionReturn(0); }
+  ierr = MatDestroy(&(*ip)->matrix);CHKERRQ(ierr);
+  ierr = VecDestroy(&(*ip)->Bx);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -23,6 +23,7 @@
 #include <private/qepimpl.h>
 
 #ifdef PETSC_HAVE_FORTRAN_CAPS
+#define qepdestroy_                 QEPDESTROY
 #define qepview_                    QEPVIEW
 #define qepsetoptionsprefix_        QEPSETOPTIONSPREFIX
 #define qepappendoptionsprefix_     QEPAPPENDOPTIONSPREFIX
@@ -41,6 +42,7 @@
 #define qepgetproblemtype_          QEPGETPROBLEMTYPE
 #define qepgetconvergedreason_      QEPGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define qepdestroy_                 qepdestroy
 #define qepview_                    qepview
 #define qepsetoptionsprefix_        qepsetoptionsprefix
 #define qepappendoptionsprefix_     qepappendoptionsprefix
@@ -113,6 +115,11 @@ static PetscErrorCode ourdestroy(void* ctx)
 }
 
 EXTERN_C_BEGIN
+
+void PETSC_STDCALL qepdestroy_(QEP *qep, PetscErrorCode *ierr)
+{
+  *ierr = QEPDestroy(qep);
+}
 
 void PETSC_STDCALL qepview_(QEP *qep,PetscViewer *viewer, PetscErrorCode *ierr)
 {

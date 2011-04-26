@@ -251,7 +251,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
  
 #undef __FUNCT__  
 #define __FUNCT__ "SVDDestroy"
-/*@
+/*@C
    SVDDestroy - Destroys the SVD context.
 
    Collective on SVD
@@ -263,51 +263,46 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
 .seealso: SVDCreate(), SVDSetUp(), SVDSolve()
 @*/
-PetscErrorCode SVDDestroy(SVD svd)
+PetscErrorCode SVDDestroy(SVD *svd)
 {
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    *p;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (--((PetscObject)svd)->refct > 0) PetscFunctionReturn(0);
-
-  /* if memory was published with AMS then destroy it */
-  ierr = PetscObjectDepublish(svd);CHKERRQ(ierr);
-
-  if (svd->ops->destroy) {
-    ierr = (*svd->ops->destroy)(svd); CHKERRQ(ierr);
+  if (!*svd) PetscFunctionReturn(0);
+  PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
+  if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
+  ierr = PetscObjectDepublish(*svd);CHKERRQ(ierr);
+  if ((*svd)->ops->destroy) {
+    ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr);
   }
-
-  ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  if (svd->n) { 
-    ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
-    ierr = PetscFree(svd->perm);CHKERRQ(ierr);
-    ierr = PetscFree(svd->errest);CHKERRQ(ierr);
-    if (svd->U) {
-      ierr = VecGetArray(svd->U[0],&p);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) {
-        ierr = VecDestroy(&svd->U[i]); CHKERRQ(ierr);
+  ierr = MatDestroy(&(*svd)->OP);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*svd)->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*svd)->AT);CHKERRQ(ierr);
+  if ((*svd)->n) { 
+    ierr = PetscFree((*svd)->sigma);CHKERRQ(ierr);
+    ierr = PetscFree((*svd)->perm);CHKERRQ(ierr);
+    ierr = PetscFree((*svd)->errest);CHKERRQ(ierr);
+    if ((*svd)->U) {
+      ierr = VecGetArray((*svd)->U[0],&p);CHKERRQ(ierr);
+      for (i=0;i<(*svd)->n;i++) {
+        ierr = VecDestroy(&(*svd)->U[i]); CHKERRQ(ierr);
       }
       ierr = PetscFree(p);CHKERRQ(ierr);
-      ierr = PetscFree(svd->U);CHKERRQ(ierr);
+      ierr = PetscFree((*svd)->U);CHKERRQ(ierr);
     }
-    ierr = VecGetArray(svd->V[0],&p);CHKERRQ(ierr);
-    for (i=0;i<svd->n;i++) {
-      ierr = VecDestroy(&svd->V[i]);CHKERRQ(ierr); 
+    ierr = VecGetArray((*svd)->V[0],&p);CHKERRQ(ierr);
+    for (i=0;i<(*svd)->n;i++) {
+      ierr = VecDestroy(&(*svd)->V[i]);CHKERRQ(ierr); 
     }
     ierr = PetscFree(p);CHKERRQ(ierr);
-    ierr = PetscFree(svd->V);CHKERRQ(ierr);
+    ierr = PetscFree((*svd)->V);CHKERRQ(ierr);
   }
-  ierr = SVDMonitorCancel(svd);CHKERRQ(ierr);
-  
-  ierr = IPDestroy(svd->ip);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&svd->rand);CHKERRQ(ierr);
-  
-  ierr = PetscHeaderDestroy(&svd);CHKERRQ(ierr);
+  ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);
+  ierr = IPDestroy(&(*svd)->ip);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -520,7 +515,7 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(svd,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(svd->ip); CHKERRQ(ierr);
+  ierr = IPDestroy(&svd->ip); CHKERRQ(ierr);
   svd->ip = ip;
   PetscFunctionReturn(0);
 }

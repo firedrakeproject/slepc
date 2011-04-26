@@ -583,8 +583,8 @@ PetscErrorCode EPSDestroy(EPS *eps)
   PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
   if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
   ierr = PetscObjectDepublish(*eps);CHKERRQ(ierr);
-  ierr = STDestroy((*eps)->OP);CHKERRQ(ierr);
-  ierr = IPDestroy((*eps)->ip);CHKERRQ(ierr);
+  ierr = STDestroy(&(*eps)->OP);CHKERRQ(ierr);
+  ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
   if ((*eps)->ops->destroy) {
     ierr = (*(*eps)->ops->destroy)(*eps); CHKERRQ(ierr);
   }
@@ -688,7 +688,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,2);
   PetscCheckSameComm(eps,1,st,2);
   ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
-  ierr = STDestroy(eps->OP); CHKERRQ(ierr);
+  ierr = STDestroy(&eps->OP); CHKERRQ(ierr);
   eps->OP = st;
   PetscFunctionReturn(0);
 }
@@ -748,7 +748,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(eps,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(eps->ip); CHKERRQ(ierr);
+  ierr = IPDestroy(&eps->ip); CHKERRQ(ierr);
   eps->ip = ip;
   PetscFunctionReturn(0);
 }

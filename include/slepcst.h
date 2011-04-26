@@ -54,7 +54,7 @@ E*/
 #define STPRECOND   "precond"
 
 extern PetscErrorCode STCreate(MPI_Comm,ST*);
-extern PetscErrorCode STDestroy(ST);
+extern PetscErrorCode STDestroy(ST*);
 extern PetscErrorCode STSetType(ST,const STType);
 extern PetscErrorCode STGetType(ST,const STType*);
 extern PetscErrorCode STSetOperators(ST,Mat,Mat);

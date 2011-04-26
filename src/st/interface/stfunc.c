@@ -98,7 +98,7 @@ PetscErrorCode STInitializePackage(const char *path) {
 
 #undef __FUNCT__  
 #define __FUNCT__ "STDestroy"
-/*@
+/*@C
    STDestroy - Destroys ST context that was created with STCreate().
 
    Collective on ST
@@ -110,29 +110,28 @@ PetscErrorCode STInitializePackage(const char *path) {
 
 .seealso: STCreate(), STSetUp()
 @*/
-PetscErrorCode STDestroy(ST st)
+PetscErrorCode STDestroy(ST *st)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (--((PetscObject)st)->refct > 0) PetscFunctionReturn(0);
-
-  /* if memory was published with AMS then destroy it */
-  ierr = PetscObjectDepublish(st);CHKERRQ(ierr);
-
-  if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
-  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
-  ierr = KSPDestroy(&st->ksp);CHKERRQ(ierr);
-  ierr = VecDestroy(&st->w);CHKERRQ(ierr);
-  ierr = VecDestroy(&st->D);CHKERRQ(ierr);
-  ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
-  if (st->shift_matrix != ST_MATMODE_INPLACE) { 
-    ierr = MatDestroy(&st->mat);CHKERRQ(ierr); 
+  if (!*st) PetscFunctionReturn(0);
+  PetscValidHeaderSpecific(*st,ST_CLASSID,1);
+  if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
+  ierr = PetscObjectDepublish(*st);CHKERRQ(ierr);
+  if ((*st)->ops->destroy) {
+    ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr);
   }
-
-  ierr = PetscHeaderDestroy(&st);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*st)->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*st)->B);CHKERRQ(ierr);
+  ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
+  ierr = VecDestroy(&(*st)->w);CHKERRQ(ierr);
+  ierr = VecDestroy(&(*st)->D);CHKERRQ(ierr);
+  ierr = VecDestroy(&(*st)->wb);CHKERRQ(ierr);
+  if ((*st)->shift_matrix != ST_MATMODE_INPLACE) { 
+    ierr = MatDestroy(&(*st)->mat);CHKERRQ(ierr); 
+  }
+  ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -26,6 +26,7 @@
 #define stsettype_                STSETTYPE           
 #define stgettype_                STGETTYPE
 #define stcreate_                 STCREATE
+#define stdestroy_                STDESTROY
 #define stgetoperators_           STGETOPERATORS
 #define stsetoptionsprefix_       STSETOPTIONSPREFIX
 #define stappendoptionsprefix_    STAPPENDOPTIONSPREFIX
@@ -36,6 +37,7 @@
 #define stsettype_                stsettype
 #define stgettype_                stgettype
 #define stcreate_                 stcreate
+#define stdestroy_                stdestroy
 #define stgetoperators_           stgetoperators
 #define stsetoptionsprefix_       stsetoptionsprefix
 #define stappendoptionsprefix_    stappendoptionsprefix
@@ -67,6 +69,11 @@ void PETSC_STDCALL stgettype_(ST *st,CHAR name PETSC_MIXED_LEN(len),PetscErrorCo
 void PETSC_STDCALL stcreate_(MPI_Fint *comm,ST *newst,PetscErrorCode *ierr)
 {
   *ierr = STCreate(MPI_Comm_f2c(*(comm)),newst);
+}
+
+void PETSC_STDCALL stdestroy_(ST *st, PetscErrorCode *ierr)
+{
+  *ierr = STDestroy(st);
 }
 
 void PETSC_STDCALL stgetoperators_(ST *st,Mat *mat,Mat *pmat,PetscErrorCode *ierr)

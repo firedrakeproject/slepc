@@ -146,7 +146,7 @@ int main( int argc, char **argv )
   /* 
      Free work space
   */
-  ierr = SVDDestroy(svd);CHKERRQ(ierr);
+  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);

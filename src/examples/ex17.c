@@ -171,7 +171,7 @@ int main( int argc, char **argv )
   /* 
      Free work space
   */
-  ierr = QEPDestroy(qep);CHKERRQ(ierr);
+  ierr = QEPDestroy(&qep);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);

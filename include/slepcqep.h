@@ -77,7 +77,7 @@ typedef enum { QEP_LARGEST_MAGNITUDE=1,
                QEP_SMALLEST_IMAGINARY } QEPWhich;
 
 extern PetscErrorCode QEPCreate(MPI_Comm,QEP*);
-extern PetscErrorCode QEPDestroy(QEP);
+extern PetscErrorCode QEPDestroy(QEP*);
 extern PetscErrorCode QEPSetType(QEP,const QEPType);
 extern PetscErrorCode QEPGetType(QEP,const QEPType*);
 extern PetscErrorCode QEPSetProblemType(QEP,QEPProblemType);
