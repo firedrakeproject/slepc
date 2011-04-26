@@ -216,7 +216,7 @@ PetscErrorCode SVDCrossSetEPS_CROSS(SVD svd,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
-  ierr = EPSDestroy(cross->eps);CHKERRQ(ierr);  
+  ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);  
   cross->eps = eps;
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -312,7 +312,7 @@ PetscErrorCode SVDDestroy_CROSS(SVD svd)
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSDestroy(cross->eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   ierr = MatDestroy(&cross->mat);CHKERRQ(ierr);
   ierr = VecDestroy(&cross->w);CHKERRQ(ierr);
   ierr = VecDestroy(&cross->diag);CHKERRQ(ierr);

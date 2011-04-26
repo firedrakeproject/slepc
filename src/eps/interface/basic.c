@@ -572,37 +572,28 @@ PetscErrorCode EPSRegisterDestroy(void)
 
 .seealso: EPSCreate(), EPSSetUp(), EPSSolve()
 @*/
-PetscErrorCode EPSDestroy(EPS eps)
+PetscErrorCode EPSDestroy(EPS *eps)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (--((PetscObject)eps)->refct > 0) PetscFunctionReturn(0);
-
-  /* if memory was published with AMS then destroy it */
-  ierr = PetscObjectDepublish(eps);CHKERRQ(ierr);
-
-  ierr = STDestroy(eps->OP);CHKERRQ(ierr);
-  ierr = IPDestroy(eps->ip);CHKERRQ(ierr);
-
-  if (eps->ops->destroy) {
-    ierr = (*eps->ops->destroy)(eps); CHKERRQ(ierr);
+  if (!*eps) PetscFunctionReturn(0);
+  PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
+  if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
+  ierr = PetscObjectDepublish(*eps);CHKERRQ(ierr);
+  ierr = STDestroy((*eps)->OP);CHKERRQ(ierr);
+  ierr = IPDestroy((*eps)->ip);CHKERRQ(ierr);
+  if ((*eps)->ops->destroy) {
+    ierr = (*(*eps)->ops->destroy)(*eps); CHKERRQ(ierr);
   }
-  
-  ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
-  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
-  if (eps->rand) {
-    ierr = PetscRandomDestroy(&eps->rand);CHKERRQ(ierr);
-  }
-
-  ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
-
-  ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
-  ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
-
-  ierr = PetscHeaderDestroy(&eps);CHKERRQ(ierr);
+  ierr = PetscFree((*eps)->T);CHKERRQ(ierr);
+  ierr = PetscFree((*eps)->Tl);CHKERRQ(ierr);
+  ierr = PetscFree((*eps)->perm);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
+  ierr = VecDestroy(&(*eps)->D);CHKERRQ(ierr);
+  ierr = EPSRemoveDeflationSpace(*eps);CHKERRQ(ierr);
+  ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

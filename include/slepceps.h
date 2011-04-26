@@ -137,7 +137,7 @@ typedef enum { EPS_CONV_ABS=1,
                EPS_CONV_USER } EPSConv;
 
 extern PetscErrorCode EPSCreate(MPI_Comm,EPS *);
-extern PetscErrorCode EPSDestroy(EPS);
+extern PetscErrorCode EPSDestroy(EPS*);
 extern PetscErrorCode EPSSetType(EPS,const EPSType);
 extern PetscErrorCode EPSGetType(EPS,const EPSType*);
 extern PetscErrorCode EPSSetProblemType(EPS,EPSProblemType);

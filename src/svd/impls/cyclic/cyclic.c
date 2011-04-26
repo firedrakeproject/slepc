@@ -383,7 +383,7 @@ PetscErrorCode SVDCyclicSetEPS_CYCLIC(SVD svd,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
-  ierr = EPSDestroy(cyclic->eps);CHKERRQ(ierr);  
+  ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);  
   cyclic->eps = eps;
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -484,7 +484,7 @@ PetscErrorCode SVDDestroy_CYCLIC(SVD svd)
   SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSDestroy(cyclic->eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr);

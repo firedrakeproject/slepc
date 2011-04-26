@@ -201,7 +201,7 @@ int main( int argc, char **argv )
   if (isShell) {
     ierr = SampleShellSTDestroy(shell);CHKERRQ(ierr);
   }
-  ierr = EPSDestroy(eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;

@@ -159,7 +159,7 @@ int main( int argc, char **argv )
   /* 
      Free work space
   */
-  ierr = EPSDestroy(eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);

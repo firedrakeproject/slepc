@@ -544,7 +544,7 @@ PetscErrorCode QEPLinearSetEPS_LINEAR(QEP qep,EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(qep,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
-  ierr = EPSDestroy(ctx->eps);CHKERRQ(ierr);  
+  ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);  
   ctx->eps = eps;
   qep->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -646,7 +646,7 @@ PetscErrorCode QEPDestroy_LINEAR(QEP qep)
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
-  ierr = EPSDestroy(ctx->eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->B);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
