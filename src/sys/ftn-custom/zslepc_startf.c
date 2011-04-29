@@ -21,7 +21,7 @@
 
 #include <private/fortranimpl.h>
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define slepcinitializefortran_     SLEPCINITIALIZEFORTRAN
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define slepcinitializefortran_     slepcinitializefortran

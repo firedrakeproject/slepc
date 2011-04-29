@@ -356,7 +356,7 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
     ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
     ierr = VecNormalize(x,&norm);CHKERRQ(ierr);
   }
-#ifndef PETSC_USE_COMPLEX      
+#if !defined(PETSC_USE_COMPLEX)
   /* compute imaginary part of eigenvector */
   if (!eps->ishermitian && eigi != 0.0) {
     ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Z+nv,V);CHKERRQ(ierr);

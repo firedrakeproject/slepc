@@ -84,7 +84,7 @@ PetscErrorCode QEPSolve(QEP qep)
     SETERRQ(((PetscObject)qep)->comm,1,"Internal error, solver returned without setting converged reason");
   }
 
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
   for (i=0;i<qep->nconv-1;i++) {
     if (qep->eigi[i] != 0) {
@@ -289,7 +289,7 @@ PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScal
   else k = qep->perm[i];
 
   /* eigenvalue */
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   if (eigr) *eigr = qep->eigr[k];
   if (eigi) *eigi = 0;
 #else
@@ -298,7 +298,7 @@ PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScal
 #endif
   
   /* eigenvector */
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   if (Vr) { ierr = VecCopy(qep->V[k],Vr);CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
 #else
@@ -369,7 +369,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
   PetscErrorCode ierr;
   Vec            u,w;
   Mat            M=qep->M,C=qep->C,K=qep->K;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   Vec            v,y,z;
   PetscReal      ni,nr;
   PetscScalar    a1,a2;
@@ -379,7 +379,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
   ierr = VecDuplicate(qep->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
   
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
@@ -391,7 +391,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
       ierr = VecAXPY(u,kr*kr,w);CHKERRQ(ierr);            /* u=l^2*M*x+l*C*x+K*x */
     }
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecDuplicate(u,&v);CHKERRQ(ierr);
     ierr = VecDuplicate(u,&y);CHKERRQ(ierr);
@@ -484,13 +484,13 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep, PetscScalar kr, PetscSca
 {
   PetscErrorCode ierr;
   PetscReal      norm, er;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscReal      ei;
 #endif
   
   PetscFunctionBegin;
   ierr = QEPComputeResidualNorm_Private(qep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
@@ -500,7 +500,7 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep, PetscScalar kr, PetscSca
     } else {
       *error = norm/er;
     }
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);  
     ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);  
@@ -592,7 +592,7 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
     re = eigr[perm[i]];
     im = eigi[perm[i]];
     j = i + 1;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
     if (im != 0) {
       /* complex eigenvalue */
       i--;
@@ -602,14 +602,14 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
     while (j<n) {
       ierr = QEPCompareEigenvalues(qep,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
       if (result >= 0) break;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
       if (im == 0) { 
         if (eigi[perm[j]] == 0) {
 #endif
           tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
           j++;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
         } else {
           tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp;
           j+=2;

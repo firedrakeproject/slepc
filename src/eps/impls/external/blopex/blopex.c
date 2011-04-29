@@ -172,7 +172,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   } else
     blopex->Y = PETSC_NULL;
 
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   blopex->blap_fn.zpotrf = PETSC_zpotrf_interface;
   blopex->blap_fn.zhegv = PETSC_zsygv_interface;
 #else
@@ -199,7 +199,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   
   PetscFunctionBegin;
   
-//#ifdef PETSC_USE_COMPLEX
+//#if defined(PETSC_USE_COMPLEX)
 //  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
 //        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
 //        eps,Precond_FnMultiVector,blopex->Y,

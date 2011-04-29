@@ -76,7 +76,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
   her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
 
   /* Setting configuration constrains */
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   /* if the last converged eigenvalue is complex its conjugate pair is also
      converged */
   b->max_nev = PetscMax(b->max_nev, d->nev+1);

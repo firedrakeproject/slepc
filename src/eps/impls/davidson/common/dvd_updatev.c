@@ -180,7 +180,7 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   d->size_cX = 0;
   d->eigr = d->ceigr;
   d->eigi = d->ceigi;
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   for(i=0; i<d->max_size_V; i++) d->eigi[i] = 0.0;
 #endif
   d->nR = data->real_nR;
@@ -317,7 +317,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     npreconv = d->npreconv;
 
   /* Constrains the converged pairs to nev */
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   /* Tries to maintain together conjugate eigenpairs */
   for(i = 0;
       (i + (d->eigi[i]!=0.0?1:0) < npreconv) && (d->nconv + i < d->nev);
@@ -450,7 +450,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 
   /* Lock the converged pairs */
   d->eigr+= npreconv;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (d->eigi) d->eigi+= npreconv;
 #endif
   d->nconv+= npreconv;
@@ -643,7 +643,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
                                     PetscInt *nConv)
 {
   PetscInt        i;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscInt        j;
 #endif
   PetscReal       norm;
@@ -672,7 +672,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   }
   pre = PetscMax(pre, i);
 
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   /* Enforce converged conjugate conjugate complex eigenpairs */
   for(j=0; j<*nConv; j++) if(d->eigi[j] != 0.0) j++;
   if(j > *nConv) (*nConv)--;

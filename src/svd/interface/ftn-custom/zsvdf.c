@@ -22,7 +22,7 @@
 #include <private/fortranimpl.h>
 #include <slepcsvd.h>
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define svddestroy_                  SVDDESTROY
 #define svdmonitorall_               SVDMONITORALL
 #define svdmonitorlg_                SVDMONITORLG

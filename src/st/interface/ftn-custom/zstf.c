@@ -22,7 +22,7 @@
 #include <private/fortranimpl.h>
 #include <slepcst.h>
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define stsettype_                STSETTYPE           
 #define stgettype_                STGETTYPE
 #define stcreate_                 STCREATE

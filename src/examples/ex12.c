@@ -141,7 +141,7 @@ int main( int argc, char **argv )
       ierr = EPSComputeRelativeError(eps,i,&error1);CHKERRQ(ierr);
       ierr = EPSComputeRelativeErrorLeft(eps,i,&error2);CHKERRQ(ierr);
 
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);
       im = PetscImaginaryPart(kr);
 #else

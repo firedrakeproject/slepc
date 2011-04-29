@@ -178,7 +178,7 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
 
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
   for (i=0; i<eps->nconv-1; i++) {
     if (eps->eigi[i] != 0) {
@@ -611,7 +611,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscSca
   }
   if (!eps->perm) k = i;
   else k = eps->perm[i];
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = 0;
 #else
@@ -672,7 +672,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
   }  
   if (!eps->perm) k = i;
   else k = eps->perm[i];
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   if (Vr) { ierr = VecCopy(eps->V[k], Vr); CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
 #else
@@ -744,7 +744,7 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
   }  
   if (!eps->perm) k = i;
   else k = eps->perm[i];
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   if (Wr) { ierr = VecCopy(eps->W[k], Wr); CHKERRQ(ierr); }
   if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
 #else
@@ -857,7 +857,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScal
   PetscErrorCode ierr;
   Vec            u, w;
   Mat            A, B;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   Vec            v;
   PetscReal      ni, nr;
 #endif
@@ -867,7 +867,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScal
   ierr = VecDuplicate(eps->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
@@ -878,7 +878,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScal
       ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*x-k*B*x */
     }
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecDuplicate(eps->V[0],&v); CHKERRQ(ierr);
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*xr */
@@ -983,7 +983,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   Vec            u, v, w, xr, xi;
   Mat            A, B;
   PetscScalar    kr, ki;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscReal      ni, nr;
 #endif
   
@@ -1001,7 +1001,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   ierr = EPSGetEigenvalue(eps,i,&kr,&ki); CHKERRQ(ierr);
   ierr = EPSGetEigenvectorLeft(eps,i,xr,xi); CHKERRQ(ierr);
 
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
@@ -1012,7 +1012,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
       ierr = VecAXPY( u, -kr, w); CHKERRQ(ierr); /* u=A'*x-k*B'*x */
     }
     ierr = VecNorm( u, NORM_2, norm); CHKERRQ(ierr);  
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = MatMultTranspose( A, xr, u ); CHKERRQ(ierr); /* u=A'*xr */
     if (eps->isgeneralized) { ierr = MatMultTranspose( B, xr, v ); CHKERRQ(ierr); }
@@ -1048,18 +1048,18 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps, PetscScalar kr, PetscSca
 {
   PetscErrorCode ierr;
   PetscReal      norm, er;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscReal      ei;
 #endif
   
   PetscFunctionBegin;
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
 
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (ki == 0) {
 #endif
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);  
     ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
@@ -1137,7 +1137,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
   Vec            xr, xi;  
   PetscScalar    kr, ki;  
   PetscReal      norm, er;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   Vec            u;
   PetscReal      ei;
 #endif
@@ -1150,7 +1150,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
   ierr = EPSGetEigenvalue(eps,i,&kr,&ki); CHKERRQ(ierr);
   ierr = EPSGetEigenvectorLeft(eps,i,xr,xi); CHKERRQ(ierr);
 
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
@@ -1160,7 +1160,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
     } else {
       *error = norm / er;
     }
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecDuplicate(xi, &u); CHKERRQ(ierr);  
     ierr = VecCopy(xi, u); CHKERRQ(ierr);  
@@ -1219,7 +1219,7 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
     re = eigr[perm[i]];
     im = eigi[perm[i]];
     j = i + 1;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
     if (im != 0) {
       /* complex eigenvalue */
       i--;
@@ -1229,14 +1229,14 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
     while (j<n) {
       ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
       if (result < 0) break;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
       if (im == 0) { 
         if (eigi[perm[j]] == 0) {
 #endif
           tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
           j++;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
         } else {
           tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp;
           j+=2;

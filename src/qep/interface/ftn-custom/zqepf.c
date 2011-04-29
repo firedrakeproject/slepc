@@ -22,7 +22,7 @@
 #include <private/fortranimpl.h>
 #include <private/qepimpl.h>
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define qepdestroy_                 QEPDESTROY
 #define qepview_                    QEPVIEW
 #define qepsetoptionsprefix_        QEPSETOPTIONSPREFIX

@@ -22,7 +22,7 @@
 #include <private/fortranimpl.h>
 #include <slepcst.h>
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define stshellgetcontext_        STSHELLGETCONTEXT
 #define stshellsetapply_          STSHELLSETAPPLY
 #define stshellsetapplytranspose_ STSHELLSETAPPLYTRANSPOSE

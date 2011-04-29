@@ -22,7 +22,7 @@
 #include <private/fortranimpl.h>
 #include <slepceps.h>
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define epsprimmegetmethod_  EPSPRIMMEGETMETHOD
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsprimmegetmethod_  epsprimmegetmethod

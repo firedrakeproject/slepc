@@ -98,7 +98,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
   /* Setting configuration constrains */
   /* If the arithmetic is real and the problem is not Hermitian, then
      the block size is incremented in one */
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   if (DVD_ISNOT(d->sEP, DVD_EP_HERMITIAN)) {
     max_bs++;
     b->max_size_X = PetscMax(b->max_size_X, max_bs);
@@ -279,7 +279,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
 
   for(i=0, s=0; i<n; i+=s) {
     /* If the selected eigenvalue is complex, but the arithmetic is real... */
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
     if (PetscAbsScalar(d->eigi[i] != 0.0)) { 
       if (i+2 <= max_size_D) s=2; else break;
     } else
@@ -391,7 +391,7 @@ PetscErrorCode dvd_matmult_jd(Mat A, Vec in, Vec out)
     Bx = inx;
 
   for(i=0; i<n; i++) {
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
     if(data->d->eigi[data->r_s+i] != 0.0) {
       /* aux_i   <- [ t_2i+1*A*inx_i   - t_2i*Bx_i + ti_i*Bx_i+1;
          aux_i+1      t_2i+1*A*inx_i+1 - ti_i*Bx_i - t_2i*Bx_i+1  ] */
@@ -725,7 +725,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
     Bx = *u;
 
   for(i=0; i<n; i++) {
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
     if(d->eigi[i_s+i] != 0.0) {
       /* [v_i v_i+1 Bx_i Bx_i+1]*= [ theta_2i'    0
                                        0         theta_2i'
@@ -1051,7 +1051,7 @@ PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
 
   PetscFunctionBegin;
 
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   a = sqrt(d->eigr[i]*d->eigr[i]+d->eigi[i]*d->eigi[i]);
 #else
   a = PetscAbsScalar(d->eigr[i]);
@@ -1060,18 +1060,18 @@ PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
   if (d->nR[i]/a < data->fix) {
     theta[0] = d->eigr[i];
     theta[1] = 1.0;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
     *thetai = d->eigi[i];
 #endif
   } else {
     theta[0] = d->target[0];
     theta[1] = d->target[1];
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
     *thetai = 0.0;
 #endif
 }
 
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   if(thetai) *thetai = 0.0;
 #endif
   *maxits = data->maxits;

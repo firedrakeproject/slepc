@@ -133,13 +133,13 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
 {
   ST_CAYLEY   *ctx = (ST_CAYLEY *) st->data;
   PetscInt    j;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscScalar t,i,r;
 #endif
 
   PetscFunctionBegin;
   PetscValidPointer(eigr,3);
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(eigi,4);
   for (j=0;j<n;j++) {
     if (eigi[j] == 0.0) eigr[j] = (ctx->nu + eigr[j] * st->sigma) / (eigr[j] - 1.0);

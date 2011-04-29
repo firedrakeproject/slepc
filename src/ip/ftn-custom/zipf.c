@@ -22,7 +22,7 @@
 #include <private/fortranimpl.h>
 #include <slepcip.h>
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define ipcreate_                 IPCREATE
 #define ipdestroy_                IPDESTROY
 #define ipsetoptionsprefix_       IPSETOPTIONSPREFIX

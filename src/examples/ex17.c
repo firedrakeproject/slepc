@@ -152,7 +152,7 @@ int main( int argc, char **argv )
       */
       ierr = QEPComputeRelativeError(qep,i,&error);CHKERRQ(ierr);
 
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);
       im = PetscImaginaryPart(kr);
 #else

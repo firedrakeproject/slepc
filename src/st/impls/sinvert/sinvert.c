@@ -66,13 +66,13 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
 PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt    j;
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscScalar t;
 #endif
 
   PetscFunctionBegin;
   PetscValidPointer(eigr,3);
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(eigi,4);
   for (j=0;j<n;j++) {
     if (eigi[j] == 0) eigr[j] = 1.0 / eigr[j] + st->sigma;

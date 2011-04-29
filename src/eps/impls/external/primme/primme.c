@@ -188,7 +188,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscErrorCode ierr;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   PetscScalar    *a;
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
   PetscInt       i;
   PetscReal      *evals;
 #endif
@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   /* Call PRIMME solver */
   ierr = VecGetArray(eps->V[0], &a); CHKERRQ(ierr);
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
   ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
 #else
   /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */

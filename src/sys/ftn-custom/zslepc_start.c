@@ -30,7 +30,7 @@ extern PetscErrorCode SlepcInitialize_DynamicLibraries(void);
 extern PetscErrorCode SlepcInitialize_Packages(void);
 extern PetscErrorCode SlepcInitialize_LogEvents(void);
 
-#ifdef PETSC_HAVE_FORTRAN_CAPS
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define petscinitialize_              PETSCINITIALIZE
 #define slepcinitialize_              SLEPCINITIALIZE
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
