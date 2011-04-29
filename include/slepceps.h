@@ -275,6 +275,7 @@ E*/
 typedef enum { EPS_POWER_SHIFT_CONSTANT,
                EPS_POWER_SHIFT_RAYLEIGH,
                EPS_POWER_SHIFT_WILKINSON } EPSPowerShiftType;
+extern const char *EPSPowerShiftTypes[];
 
 extern PetscErrorCode EPSPowerSetShiftType(EPS,EPSPowerShiftType);
 extern PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);

@@ -28,6 +28,8 @@ PetscClassId EPS_CLASSID = 0;
 PetscLogEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
 static PetscBool EPSPackageInitialized = PETSC_FALSE;
 
+const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerShiftTypes","EPS_POWER_SHIFT_",0};
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFinalizePackage"
 /*@C

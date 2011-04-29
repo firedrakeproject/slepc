@@ -397,16 +397,15 @@ PetscErrorCode EPSBackTransform_POWER(EPS eps)
 #define __FUNCT__ "EPSSetFromOptions_POWER"
 PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
 {
-  PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
-  PetscBool      flg;
-  PetscInt       i;
-  const char     *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
+  PetscErrorCode    ierr;
+  EPS_POWER         *power = (EPS_POWER *)eps->data;
+  PetscBool         flg;
+  EPSPowerShiftType shift;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"POWER Options","EPS");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",shift_list,3,shift_list[power->shift_type],&i,&flg);CHKERRQ(ierr);
-  if (flg ) power->shift_type = (EPSPowerShiftType)i;
+  ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr); }
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
   }
@@ -537,14 +536,13 @@ PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
   PetscBool      isascii;
-  const char     *shift_list[3] = { "constant", "rayleigh", "wilkinson" };
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS_POWER",((PetscObject)viewer)->type_name);
   }  
-  ierr = PetscViewerASCIIPrintf(viewer,"shift type: %s\n",shift_list[power->shift_type]);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"shift type: %s\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
