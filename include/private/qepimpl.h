@@ -97,7 +97,6 @@ struct _p_QEP {
 };
 
 extern PetscErrorCode QEPMonitor(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
-extern PetscErrorCode QEPMonitorDestroy_Converged(SlepcConvMonitor*);
 
 extern PetscErrorCode QEPRegisterAll(const char *);
 extern PetscErrorCode QEPInitializePackage(const char *);

@@ -89,7 +89,6 @@ extern PetscErrorCode SVDInitializePackage(const char*);
 extern PetscErrorCode SVDFinalizePackage(void);
 
 extern PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
-extern PetscErrorCode SVDMonitorDestroy_Converged(SlepcConvMonitor*);
 
 extern PetscErrorCode SVDDestroy_Default(SVD);
 extern PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);

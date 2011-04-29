@@ -117,7 +117,6 @@ struct _p_EPS {
 };
 
 extern PetscErrorCode EPSMonitor(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
-extern PetscErrorCode EPSMonitorDestroy_Converged(SlepcConvMonitor*);
 
 extern PetscErrorCode EPSRegisterAll(const char *);
 extern PetscErrorCode EPSInitializePackage(const char *);
