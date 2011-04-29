@@ -278,18 +278,6 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDMonitorDestroy_Converged"
-PetscErrorCode SVDMonitorDestroy_Converged(SlepcConvMonitor *ctx)
-{
-  PetscErrorCode  ierr;
-  PetscFunctionBegin;
-  if (!*ctx) PetscFunctionReturn(0);
-  ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
-  ierr = PetscFree(*ctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "SVDMonitorLG"
 PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {

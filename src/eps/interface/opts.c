@@ -142,7 +142,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&ctx->viewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void*))EPSMonitorDestroy_Converged);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void*))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {

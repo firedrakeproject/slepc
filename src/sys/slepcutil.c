@@ -893,3 +893,20 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   ierr = PetscLogEventEnd(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcConvMonitorDestroy"
+/*
+  Clean up context used in monitors of type XXXMonitorConverged.
+  This function is shared by EPS, SVD, QEP
+*/
+PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  if (!*ctx) PetscFunctionReturn(0);
+  ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
+  ierr = PetscFree(*ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

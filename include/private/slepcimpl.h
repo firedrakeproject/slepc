@@ -34,5 +34,6 @@ typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 /* Private functions that are shared by several classes */
 
 extern PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscBool,PetscInt,PetscScalar*);
+extern PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx);
 
 #endif

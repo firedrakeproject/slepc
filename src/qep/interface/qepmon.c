@@ -303,18 +303,6 @@ PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScal
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPMonitorDestroy_Converged"
-PetscErrorCode QEPMonitorDestroy_Converged(SlepcConvMonitor *ctx)
-{
-  PetscErrorCode  ierr;
-  PetscFunctionBegin;
-  if (!*ctx) PetscFunctionReturn(0);
-  ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
-  ierr = PetscFree(*ctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "QEPMonitorLG"
 PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {

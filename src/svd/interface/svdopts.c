@@ -440,7 +440,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&ctx->viewer);CHKERRQ(ierr);
-      ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void*))SVDMonitorDestroy_Converged);CHKERRQ(ierr);
+      ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void*))SlepcConvMonitorDestroy);CHKERRQ(ierr);
   }
   ierr = PetscOptionsString("-svd_monitor","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
