@@ -322,6 +322,7 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(mode,2);
   *mode = st->shift_matrix;
   PetscFunctionReturn(0);
 }

@@ -404,17 +404,17 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetWhichEigenpairs"
 /*@
-    EPSSetWhichEigenpairs - Specifies which portion of the spectrum is 
-    to be sought.
+   EPSSetWhichEigenpairs - Specifies which portion of the spectrum is 
+   to be sought.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps   - eigensolver context obtained from EPSCreate()
--   which - the portion of the spectrum to be sought
+   Input Parameters:
++  eps   - eigensolver context obtained from EPSCreate()
+-  which - the portion of the spectrum to be sought
 
-    Possible values:
-    The parameter 'which' can have one of these values
+   Possible values:
+   The parameter 'which' can have one of these values
     
 +     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
@@ -427,7 +427,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
 -     EPS_WHICH_USER - user defined ordering set with EPSSetEigenvalueComparison()
 
-    Options Database Keys:
+   Options Database Keys:
 +   -eps_largest_magnitude - Sets largest eigenvalues in magnitude
 .   -eps_smallest_magnitude - Sets smallest eigenvalues in magnitude
 .   -eps_largest_real - Sets largest real parts
@@ -438,19 +438,19 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -eps_target_real - Sets real parts closest to target
 -   -eps_target_imaginary - Sets imaginary parts closest to target
 
-    Notes:
-    Not all eigensolvers implemented in EPS account for all the possible values
-    stated above. Also, some values make sense only for certain types of 
-    problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
-    and EPS_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
-    for eigenvalue selection.
+   Notes:
+   Not all eigensolvers implemented in EPS account for all the possible values
+   stated above. Also, some values make sense only for certain types of 
+   problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
+   and EPS_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
+   for eigenvalue selection.
     
-    The target is a scalar value provided with EPSSetTarget().
+   The target is a scalar value provided with EPSSetTarget().
 
-    The criterion EPS_TARGET_IMAGINARY is available only in case PETSc and
-    SLEPc have been built with complex scalars.
+   The criterion EPS_TARGET_IMAGINARY is available only in case PETSc and
+   SLEPc have been built with complex scalars.
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetEigenvalueComparison(), EPSSortEigenvalues(), EPSWhich
 @*/
@@ -488,21 +488,21 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetWhichEigenpairs"
 /*@C
-    EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be 
-    sought.
+   EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be 
+   sought.
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   eps - eigensolver context obtained from EPSCreate()
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
 
-    Output Parameter:
-.   which - the portion of the spectrum to be sought
+   Output Parameter:
+.  which - the portion of the spectrum to be sought
 
-    Notes:
-    See EPSSetWhichEigenpairs() for possible values of 'which'.
+   Notes:
+   See EPSSetWhichEigenpairs() for possible values of 'which'.
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSSetWhichEigenpairs(), EPSWhich
 @*/
@@ -518,23 +518,23 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetLeftVectorsWanted"
 /*@
-    EPSSetLeftVectorsWanted - Specifies which eigenvectors are required.
+   EPSSetLeftVectorsWanted - Specifies which eigenvectors are required.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps      - the eigensolver context
--   leftvecs - whether left eigenvectors are required or not
+   Input Parameters:
++  eps      - the eigensolver context
+-  leftvecs - whether left eigenvectors are required or not
 
-    Options Database Keys:
-.   -eps_left_vectors <boolean> - Sets/resets the boolean flag 'leftvecs'
+   Options Database Keys:
+.  -eps_left_vectors <boolean> - Sets/resets the boolean flag 'leftvecs'
 
-    Notes:
-    If the user sets leftvecs=PETSC_TRUE then the solver uses a variant of
-    the algorithm that computes both right and left eigenvectors. This is
-    usually much more costly. This option is not available in all solvers.
+   Notes:
+   If the user sets leftvecs=PETSC_TRUE then the solver uses a variant of
+   the algorithm that computes both right and left eigenvectors. This is
+   usually much more costly. This option is not available in all solvers.
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSGetLeftVectorsWanted(), EPSGetEigenvectorLeft()
 @*/
@@ -552,18 +552,18 @@ PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetLeftVectorsWanted"
 /*@
-    EPSGetLeftVectorsWanted - Returns the flag indicating whether left 
-    eigenvectors are required or not.
+   EPSGetLeftVectorsWanted - Returns the flag indicating whether left 
+   eigenvectors are required or not.
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   eps - the eigensolver context
+   Input Parameter:
+.  eps - the eigensolver context
 
-    Output Parameter:
-.   leftvecs - the returned flag
+   Output Parameter:
+.  leftvecs - the returned flag
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSSetLeftVectorsWanted(), EPSWhich
 @*/
@@ -579,36 +579,36 @@ PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscBool *leftvecs)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetMatrixNorms"
 /*@
-    EPSSetMatrixNorms - Gives the reference values of the matrix norms
-    and specifies whether these values should be improved adaptively.
+   EPSSetMatrixNorms - Gives the reference values of the matrix norms
+   and specifies whether these values should be improved adaptively.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps      - the eigensolver context
-.   nrma     - a reference value for the norm of matrix A
-.   nrmb     - a reference value for the norm of matrix B
--   adaptive - whether matrix norms are improved adaptively
+   Input Parameters:
++  eps      - the eigensolver context
+.  nrma     - a reference value for the norm of matrix A
+.  nrmb     - a reference value for the norm of matrix B
+-  adaptive - whether matrix norms are improved adaptively
 
-    Options Database Keys:
-+   -eps_norm_a <nrma> - norm of A
-.   -eps_norm_b <nrma> - norm of B
--   -eps_norms_adaptive <boolean> - Sets/resets the boolean flag 'adaptive'
+   Options Database Keys:
++  -eps_norm_a <nrma> - norm of A
+.  -eps_norm_b <nrma> - norm of B
+-  -eps_norms_adaptive <boolean> - Sets/resets the boolean flag 'adaptive'
 
-    Notes:
-    If the user sets adaptive=PETSC_FALSE then the solver uses the values
-    of nrma and nrmb for the matrix norms, and these values do not change
-    throughout the iteration.
+   Notes:
+   If the user sets adaptive=PETSC_FALSE then the solver uses the values
+   of nrma and nrmb for the matrix norms, and these values do not change
+   throughout the iteration.
 
-    If the user sets adaptive=PETSC_TRUE then the solver tries to adaptively
-    improve the supplied values, with the numerical information generated
-    during the iteration. This option is not available in all solvers.
+   If the user sets adaptive=PETSC_TRUE then the solver tries to adaptively
+   improve the supplied values, with the numerical information generated
+   during the iteration. This option is not available in all solvers.
 
-    If a passed value is PETSC_DEFAULT, the corresponding norm will be set to 1.
-    If a passed value is PETSC_DETERMINE, the corresponding norm will be computed
-    as the NORM_INFINITY with MatNorm().
+   If a passed value is PETSC_DEFAULT, the corresponding norm will be set to 1.
+   If a passed value is PETSC_DETERMINE, the corresponding norm will be computed
+   as the NORM_INFINITY with MatNorm().
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSGetMatrixNorms()
 @*/
@@ -648,21 +648,21 @@ PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscBool
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetMatrixNorms"
 /*@
-    EPSGetMatrixNorms - Returns the value of the matrix norms (either set
-    by the user or estimated by the solver) and the flag indicating whether
-    the norms are being adaptively improved.
+   EPSGetMatrixNorms - Returns the value of the matrix norms (either set
+   by the user or estimated by the solver) and the flag indicating whether
+   the norms are being adaptively improved.
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   eps - the eigensolver context
+   Input Parameter:
+.  eps - the eigensolver context
 
-    Output Parameters:
-+   nrma     - the norm of matrix A
-.   nrmb     - the norm of matrix B
--   adaptive - whether matrix norms are improved adaptively
+   Output Parameters:
++  nrma     - the norm of matrix A
+.  nrmb     - the norm of matrix B
+-  adaptive - whether matrix norms are improved adaptively
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSSetMatrixNorms()
 @*/
@@ -670,9 +670,6 @@ PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBo
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(nrma,2);
-  PetscValidPointer(nrmb,3);
-  PetscValidPointer(adaptive,4);
   if (nrma) *nrma = eps->nrma;
   if (nrmb) *nrmb = eps->nrmb;
   if (adaptive) *adaptive = eps->adaptive;
@@ -682,17 +679,17 @@ PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBo
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetEigenvalueComparison"
 /*@C
-    EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
-    when EPSSetWhichEigenpairs() is set to EPS_WHICH_USER.
+   EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   when EPSSetWhichEigenpairs() is set to EPS_WHICH_USER.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps  - eigensolver context obtained from EPSCreate()
-.   func - a pointer to the comparison function
--   ctx  - a context pointer (the last parameter to the comparison function)
+   Input Parameters:
++  eps  - eigensolver context obtained from EPSCreate()
+.  func - a pointer to the comparison function
+-  ctx  - a context pointer (the last parameter to the comparison function)
 
-    Calling Sequence of func:
+   Calling Sequence of func:
 $   func(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 
 +   eps    - eigensolver context obtained from EPSCreate()
@@ -703,13 +700,13 @@ $   func(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,Pet
 .   res    - result of comparison
 -   ctx    - optional context, as set by EPSSetEigenvalueComparison()
 
-    Note:
-    The returning parameter 'res' can be:
-+   negative - if the 1st eigenvalue is preferred to the 2st one
-.   zero     - if both eigenvalues are equally preferred
--   positive - if the 2st eigenvalue is preferred to the 1st one
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
 
-    Level: advanced
+   Level: advanced
 
 .seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich
 @*/
@@ -725,17 +722,17 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetConvergenceTestFunction"
 /*@C
-    EPSSetConvergenceTestFunction - Sets a function to compute the error estimate
-    used in the convergence test.
+   EPSSetConvergenceTestFunction - Sets a function to compute the error estimate
+   used in the convergence test.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps  - eigensolver context obtained from EPSCreate()
-.   func - a pointer to the convergence test function
--   ctx  - a context pointer (the last parameter to the convergence test function)
+   Input Parameters:
++  eps  - eigensolver context obtained from EPSCreate()
+.  func - a pointer to the convergence test function
+-  ctx  - a context pointer (the last parameter to the convergence test function)
 
-    Calling Sequence of func:
+   Calling Sequence of func:
 $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 
 +   eps    - eigensolver context obtained from EPSCreate()
@@ -745,11 +742,11 @@ $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 .   errest - (output) computed error estimate
 -   ctx    - optional context, as set by EPSSetConvergenceTest()
 
-    Note:
-    If the error estimate returned by the convergence test function is less than
-    the tolerance, then the eigenvalue is accepted as converged.
+   Note:
+   If the error estimate returned by the convergence test function is less than
+   the tolerance, then the eigenvalue is accepted as converged.
 
-    Level: advanced
+   Level: advanced
 
 .seealso: EPSSetConvergenceTest(),EPSSetTolerances()
 @*/
@@ -769,28 +766,28 @@ extern PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*fun
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetConvergenceTest"
 /*@
-    EPSSetConvergenceTest - Specifies how to compute the error estimate
-    used in the convergence test.
+   EPSSetConvergenceTest - Specifies how to compute the error estimate
+   used in the convergence test.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps   - eigensolver context obtained from EPSCreate()
--   conv  - the type of convergence test
+   Input Parameters:
++  eps   - eigensolver context obtained from EPSCreate()
+-  conv  - the type of convergence test
 
-    Options Database Keys:
-+   -eps_conv_abs - Sets the absolute convergence test
-.   -eps_conv_eig - Sets the convergence test relative to the eigenvalue
--   -eps_conv_norm - Sets the convergence test relative to the matrix norms
+   Options Database Keys:
++  -eps_conv_abs - Sets the absolute convergence test
+.  -eps_conv_eig - Sets the convergence test relative to the eigenvalue
+-  -eps_conv_norm - Sets the convergence test relative to the matrix norms
 
-    Note:
-    The parameter 'conv' can have one of these values
+   Note:
+   The parameter 'conv' can have one of these values
 +     EPS_CONV_ABS - absolute error ||r||
 .     EPS_CONV_EIG - error relative to the eigenvalue l, ||r||/|l|
 .     EPS_CONV_NORM - error relative to the matrix norms, ||r||/(||A||+|l|*||B||)
 -     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction() 
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSGetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSConv
 @*/
@@ -813,18 +810,18 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetConvergenceTest"
 /*@
-    EPSGetConvergenceTest - Gets the method used to compute the error estimate
-    used in the convergence test.
+   EPSGetConvergenceTest - Gets the method used to compute the error estimate
+   used in the convergence test.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-.   eps   - eigensolver context obtained from EPSCreate()
+   Input Parameters:
+.  eps   - eigensolver context obtained from EPSCreate()
 
-    Output Parameters:
-.   conv  - the type of convergence test
+   Output Parameters:
+.  conv  - the type of convergence test
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSConv
 @*/
@@ -1123,9 +1120,6 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(bal,2);
-  PetscValidPointer(its,3);
-  PetscValidPointer(cutoff,4);
   if (bal)    *bal = eps->balance;
   if (its)    *its = eps->balance_its;
   if (cutoff) *cutoff = eps->balance_cutoff;
@@ -1135,29 +1129,29 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetTrueResidual"
 /*@
-    EPSSetTrueResidual - Specifies if the solver must compute the true residual
-    explicitly or not.
+   EPSSetTrueResidual - Specifies if the solver must compute the true residual
+   explicitly or not.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps     - the eigensolver context
--   trueres - whether true residuals are required or not
+   Input Parameters:
++  eps     - the eigensolver context
+-  trueres - whether true residuals are required or not
 
-    Options Database Keys:
-.   -eps_true_residual <boolean> - Sets/resets the boolean flag 'trueres'
+   Options Database Keys:
+.  -eps_true_residual <boolean> - Sets/resets the boolean flag 'trueres'
 
-    Notes:
-    If the user sets trueres=PETSC_TRUE then the solver explicitly computes
-    the true residual for each eigenpair approximation, and uses it for
-    convergence testing. Computing the residual is usually an expensive
-    operation. Some solvers (e.g., Krylov solvers) can avoid this computation
-    by using a cheap estimate of the residual norm, but this may sometimes
-    give inaccurate results (especially if a spectral transform is being
-    used). On the contrary, preconditioned eigensolvers (e.g., Davidson solvers)
-    do rely on computing the true residual, so this option is irrelevant for them.
+   Notes:
+   If the user sets trueres=PETSC_TRUE then the solver explicitly computes
+   the true residual for each eigenpair approximation, and uses it for
+   convergence testing. Computing the residual is usually an expensive
+   operation. Some solvers (e.g., Krylov solvers) can avoid this computation
+   by using a cheap estimate of the residual norm, but this may sometimes
+   give inaccurate results (especially if a spectral transform is being
+   used). On the contrary, preconditioned eigensolvers (e.g., Davidson solvers)
+   do rely on computing the true residual, so this option is irrelevant for them.
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSGetTrueResidual()
 @*/
@@ -1172,18 +1166,18 @@ PetscErrorCode EPSSetTrueResidual(EPS eps,PetscBool trueres)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetTrueResidual"
 /*@C
-    EPSGetTrueResidual - Returns the flag indicating whether true
-    residuals must be computed explicitly or not.
+   EPSGetTrueResidual - Returns the flag indicating whether true
+   residuals must be computed explicitly or not.
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   eps - the eigensolver context
+   Input Parameter:
+.  eps - the eigensolver context
 
-    Output Parameter:
-.   trueres - the returned flag
+   Output Parameter:
+.  trueres - the returned flag
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSSetTrueResidual()
 @*/
@@ -1199,25 +1193,25 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetTrackAll"
 /*@
-    EPSSetTrackAll - Specifies if the solver must compute the residual norm of all
-    approximate eigenpairs or not.
+   EPSSetTrackAll - Specifies if the solver must compute the residual norm of all
+   approximate eigenpairs or not.
 
-    Collective on EPS
+   Collective on EPS
 
-    Input Parameters:
-+   eps      - the eigensolver context
--   trackall - whether to compute all residuals or not
+   Input Parameters:
++  eps      - the eigensolver context
+-  trackall - whether to compute all residuals or not
 
-    Notes:
-    If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
-    the residual norm for each eigenpair approximation. Computing the residual is
-    usually an expensive operation and solvers commonly compute only the residual 
-    associated to the first unconverged eigenpair.
+   Notes:
+   If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
+   the residual norm for each eigenpair approximation. Computing the residual is
+   usually an expensive operation and solvers commonly compute only the residual 
+   associated to the first unconverged eigenpair.
 
-    The options '-eps_monitor_all' and '-eps_monitor_draw_all' automatically
-    activate this option.
+   The options '-eps_monitor_all' and '-eps_monitor_draw_all' automatically
+   activate this option.
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSGetTrackAll()
 @*/
@@ -1232,18 +1226,18 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscBool trackall)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetTrackAll"
 /*@
-    EPSGetTrackAll - Returns the flag indicating whether all residual norms must
-    be computed or not.
+   EPSGetTrackAll - Returns the flag indicating whether all residual norms must
+   be computed or not.
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   eps - the eigensolver context
+   Input Parameter:
+.  eps - the eigensolver context
 
-    Output Parameter:
-.   trackall - the returned flag
+   Output Parameter:
+.  trackall - the returned flag
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: EPSSetTrackAll()
 @*/

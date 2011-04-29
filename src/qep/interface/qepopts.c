@@ -523,7 +523,8 @@ PetscErrorCode QEPGetScaleFactor(QEP qep,PetscReal *alpha)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (alpha) *alpha = qep->sfactor;
+  PetscValidPointer(alpha,2);
+  *alpha = qep->sfactor;
   PetscFunctionReturn(0);
 }
 

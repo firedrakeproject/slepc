@@ -146,7 +146,8 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!((PetscObject)st)->type_name) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
-  if (ksp)  *ksp = st->ksp;
+  PetscValidPointer(ksp,2);
+  *ksp = st->ksp;
   PetscFunctionReturn(0);
 }
 

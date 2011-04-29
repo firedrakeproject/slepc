@@ -653,7 +653,8 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (target) *target = eps->target;
+  PetscValidPointer(target,2);
+  *target = eps->target;
   PetscFunctionReturn(0);
 }
 

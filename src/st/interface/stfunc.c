@@ -310,7 +310,8 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (shift) *shift = st->sigma;
+  PetscValidPointer(shift,2);
+  *shift = st->sigma;
   PetscFunctionReturn(0);
 }
 
@@ -497,6 +498,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(prefix,2);
   ierr = PetscObjectGetOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
