@@ -34,13 +34,12 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSSetFromOptions_JD"
 PetscErrorCode EPSSetFromOptions_JD(EPS eps)
 {
-  PetscErrorCode  ierr;
-  PetscBool       flg,op;
-  PetscInt        opi,opi0;
-  PetscReal       opf;
+  PetscErrorCode ierr;
+  PetscBool      flg,op;
+  PetscInt       opi,opi0;
+  PetscReal      opf;
 
   PetscFunctionBegin;
-  
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"JD Options","EPS");CHKERRQ(ierr);
 
   ierr = EPSJDGetKrylovStart(eps, &op); CHKERRQ(ierr);
@@ -67,22 +66,19 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   if(flg) { ierr = EPSJDSetFix(eps, opf); CHKERRQ(ierr); }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-  
   PetscFunctionReturn(0);
 }  
 EXTERN_C_END
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_JD"
 PetscErrorCode EPSSetUp_JD(EPS eps)
 {
-  PetscErrorCode  ierr;
-  PetscBool       t;
-  KSP             ksp;
+  PetscErrorCode ierr;
+  PetscBool      t;
+  KSP            ksp;
 
   PetscFunctionBegin;
-
   /* Setup common for all davidson solvers */
   ierr = EPSSetUp_DAVIDSON(eps); CHKERRQ(ierr);
 
@@ -91,20 +87,18 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
   if (t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "EPSJD does not work with KSPPREONLY");
-
   PetscFunctionReturn(0);
 }
-
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_JD"
-PetscErrorCode EPSCreate_JD(EPS eps) {
-  PetscErrorCode  ierr;
-  KSP             ksp;
+PetscErrorCode EPSCreate_JD(EPS eps)
+{
+  PetscErrorCode ierr;
+  KSP            ksp;
 
   PetscFunctionBegin;
-
   /* Load the DAVIDSON solver */
   ierr = EPSCreate_DAVIDSON(eps); CHKERRQ(ierr);
 
@@ -128,7 +122,6 @@ PetscErrorCode EPSCreate_JD(EPS eps) {
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetInitialSize_C","EPSDAVIDSONGetInitialSize_DAVIDSON",EPSDAVIDSONGetInitialSize_DAVIDSON);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetFix_C","EPSDAVIDSONSetFix_DAVIDSON",EPSDAVIDSONSetFix_DAVIDSON);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","EPSDAVIDSONGetFix_DAVIDSON",EPSDAVIDSONGetFix_DAVIDSON);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -140,7 +133,6 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -151,12 +143,9 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetFix_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","",PETSC_NULL);CHKERRQ(ierr);
-
   ierr = EPSDestroy_DAVIDSON(eps);
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDSetKrylovStart"

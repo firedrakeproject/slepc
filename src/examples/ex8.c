@@ -46,12 +46,12 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  PetscErrorCode ierr;
   Mat            A;               /* Grcar matrix */
   SVD            svd;             /* singular value solver context */
   PetscInt       N=30, Istart, Iend, i, col[5], nconv1, nconv2;
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
   PetscReal      sigma_1, sigma_n;
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

@@ -113,6 +113,7 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 PetscErrorCode SlepcInitialize_Packages(void)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   ierr = STInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSInitializePackage(PETSC_NULL);CHKERRQ(ierr);
@@ -130,6 +131,7 @@ PetscErrorCode SlepcInitialize_Packages(void)
 PetscErrorCode SlepcInitialize_LogEvents(void)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("VecMAXPBY",0,&SLEPC_VecMAXPBY);CHKERRQ(ierr);
@@ -167,17 +169,14 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
 @*/
 PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char help[])
 {
-  PetscErrorCode ierr;
-  PetscErrorCode info=0;
+  PetscErrorCode ierr,info=0;
   PetscBool      flg;
-  PetscFunctionBegin;
 
+  PetscFunctionBegin;
   if (SlepcInitializeCalled) {
     PetscFunctionReturn(0); 
   }
-
   info = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(info);
-
   ierr = PetscInitialized(&flg);CHKERRQ(ierr);
   if (!flg) {
     info = PetscInitialize(argc,args,file,help);CHKERRQ(info);
@@ -219,13 +218,10 @@ PetscErrorCode SlepcFinalize(void)
   
   PetscFunctionBegin;
   PetscInfo(0,"SLEPc successfully ended!\n");
-
   if (SlepcBeganPetsc) {
     info = PetscFinalize();CHKERRQ(info);
   }
-
   SlepcInitializeCalled = PETSC_FALSE;
-
   PetscFunctionReturn(info);
 }
 

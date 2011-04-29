@@ -73,6 +73,7 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
 PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
+
   PetscFunctionBegin;
   PetscValidPointer(eigr,3);
   for (j=0;j<n;j++) {
@@ -118,7 +119,6 @@ PetscErrorCode STSetFromOptions_Shift(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
-
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
@@ -133,7 +133,6 @@ PetscErrorCode STSetFromOptions_Shift(ST st)
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
     }
   }
-
   PetscFunctionReturn(0);
 }
 

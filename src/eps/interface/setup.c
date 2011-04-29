@@ -59,9 +59,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   if (eps->setupcalled) PetscFunctionReturn(0);
-
   ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
 
   /* Set default solver type */
@@ -257,9 +255,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
   eps->setupcalled = 0;  /* so that next solve call will call setup */
-
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 

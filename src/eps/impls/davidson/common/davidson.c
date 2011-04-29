@@ -51,12 +51,12 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_DAVIDSON"
-PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
-  PetscErrorCode  ierr;
-  EPS_DAVIDSON    *data;
+PetscErrorCode EPSCreate_DAVIDSON(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-
   ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_FALSE); CHKERRQ(ierr);
 
@@ -77,28 +77,26 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps) {
   ierr = EPSDAVIDSONSetRestart_DAVIDSON(eps, 6, 0); CHKERRQ(ierr);
   ierr = EPSDAVIDSONSetInitialSize_DAVIDSON(eps, 5); CHKERRQ(ierr);
   ierr = EPSDAVIDSONSetFix_DAVIDSON(eps, 0.01); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_DAVIDSON"
-PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
-  PetscErrorCode  ierr;
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
-  dvdDashboard    *dvd = &data->ddb;
-  dvdBlackboard   b;
-  PetscInt        i,nvecs,nscalars,min_size_V,plusk,bs,initv;
-  Mat             A,B;
-  KSP             ksp;
-  PetscBool       t,ipB,ispositive;
-  HarmType_t      harm;
-  InitType_t      init;
-  PetscReal       fix;
+PetscErrorCode EPSSetUp_DAVIDSON(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
+  dvdDashboard   *dvd = &data->ddb;
+  dvdBlackboard  b;
+  PetscInt       i,nvecs,nscalars,min_size_V,plusk,bs,initv;
+  Mat            A,B;
+  KSP            ksp;
+  PetscBool      t,ipB,ispositive;
+  HarmType_t     harm;
+  InitType_t     init;
+  PetscReal      fix;
 
   PetscFunctionBegin;
-
   /* Setup EPS options and get the problem specification */
   ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &bs); CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
@@ -229,8 +227,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
                                 initv,
                                 PetscAbs(eps->nini),
                                 plusk, harm,
-                                PETSC_NULL, init, eps->trackall);
-  CHKERRQ(ierr);
+                                PETSC_NULL, init, eps->trackall);CHKERRQ(ierr);
 
   /* Reserve memory */
   nvecs = b.max_size_auxV + b.own_vecs;
@@ -241,8 +238,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   data->size_wV = nvecs;
   for (i=0; i<nvecs; i++) {
     ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm, eps->nloc, PETSC_DECIDE,
-                                 data->wS+i*eps->nloc, &data->wV[i]);
-    CHKERRQ(ierr);
+                                 data->wS+i*eps->nloc, &data->wV[i]);CHKERRQ(ierr);
   }
   b.free_vecs = data->wV;
   b.free_scalars = data->wS + nvecs*eps->nloc;
@@ -257,28 +253,25 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
                              PetscAbs(eps->nini), plusk,
                              eps->ip, harm, dvd->withTarget,
                              eps->target, ksp,
-                             fix, init, eps->trackall);
-  CHKERRQ(ierr);
+                             fix, init, eps->trackall);CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
   eps->eigr = dvd->eigr;
   eps->eigi = dvd->eigi;
   eps->errest = dvd->errest;
   eps->V = dvd->V;
-
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_DAVIDSON"
-PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
-  dvdDashboard    *d = &data->ddb;
-  PetscErrorCode  ierr;
+PetscErrorCode EPSSolve_DAVIDSON(EPS eps)
+{
+  EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
+  dvdDashboard   *d = &data->ddb;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
   /* Call the starting routines */
   DVD_FL_CALL(d->startList, d);
 
@@ -305,21 +298,19 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 
   if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_DAVIDSON"
-PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
-  dvdDashboard    *dvd = &data->ddb;
-  PetscErrorCode  ierr;
-  PetscInt        i;
+PetscErrorCode EPSDestroy_DAVIDSON(EPS eps)
+{
+  EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
+  dvdDashboard   *dvd = &data->ddb;
+  PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
-
   /* Call step destructors and destroys the list */
   DVD_FL_CALL(dvd->destroyList, dvd);
   DVD_FL_DEL(dvd->destroyList);
@@ -332,23 +323,19 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps) {
   ierr = PetscFree(data->wV);CHKERRQ(ierr);
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
   ierr = PetscFree(data);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSView_DAVIDSON"
 PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode  ierr;
-  PetscBool       isascii;
-  PetscInt        opi, opi0;
-  PetscBool       opb;
-  const char*     name;
+  PetscErrorCode ierr;
+  PetscBool      isascii, opb;
+  PetscInt       opi, opi0;
+  const char*    name;
 
   PetscFunctionBegin;
-  
   name = ((PetscObject)eps)->type_name;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
@@ -366,29 +353,25 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
   ierr = EPSDAVIDSONGetRestart_DAVIDSON(eps, &opi, &opi0); CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"size of the subspace after restarting: %d\n", opi);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"number of vectors after restarting from the previous iteration: %d\n", opi0);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "SLEPcNotImplemented"
-PetscErrorCode SLEPcNotImplemented() {
+PetscErrorCode SLEPcNotImplemented()
+{
   SETERRQ(PETSC_COMM_WORLD,1, "Do not call this function!");
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDAVIDSONSetKrylovStart_DAVIDSON"
 PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   data->krylovstart = krylovstart;
-
   PetscFunctionReturn(0);
 }
 
@@ -396,13 +379,11 @@ PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart)
 #define __FUNCT__ "EPSDAVIDSONGetKrylovStart_DAVIDSON"
 PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscBool *krylovstart)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   *krylovstart = data->krylovstart;
-
   PetscFunctionReturn(0);
 }
 
@@ -410,16 +391,14 @@ PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscBool *krylovstart
 #define __FUNCT__ "EPSDAVIDSONSetBlockSize_DAVIDSON"
 PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   if(blocksize == PETSC_DEFAULT || blocksize == PETSC_DECIDE) blocksize = 1;
   if(blocksize <= 0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
   data->blocksize = blocksize;
-
   PetscFunctionReturn(0);
 }
 
@@ -427,13 +406,11 @@ PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize)
 #define __FUNCT__ "EPSDAVIDSONGetBlockSize_DAVIDSON"
 PetscErrorCode EPSDAVIDSONGetBlockSize_DAVIDSON(EPS eps,PetscInt *blocksize)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   *blocksize = data->blocksize;
-
   PetscFunctionReturn(0);
 }
 
@@ -441,11 +418,10 @@ PetscErrorCode EPSDAVIDSONGetBlockSize_DAVIDSON(EPS eps,PetscInt *blocksize)
 #define __FUNCT__ "EPSDAVIDSONSetRestart_DAVIDSON"
 PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plusk)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   if(minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
   if(minv <= 0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
@@ -454,7 +430,6 @@ PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plu
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
   data->minv = minv;
   data->plusk = plusk;
-
   PetscFunctionReturn(0);
 }
 
@@ -462,14 +437,12 @@ PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plu
 #define __FUNCT__ "EPSDAVIDSONGetRestart_DAVIDSON"
 PetscErrorCode EPSDAVIDSONGetRestart_DAVIDSON(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   *minv = data->minv;
   *plusk = data->plusk;
-
   PetscFunctionReturn(0);
 }
 
@@ -477,13 +450,11 @@ PetscErrorCode EPSDAVIDSONGetRestart_DAVIDSON(EPS eps,PetscInt *minv,PetscInt *p
 #define __FUNCT__ "EPSDAVIDSONGetInitialSize_DAVIDSON"
 PetscErrorCode EPSDAVIDSONGetInitialSize_DAVIDSON(EPS eps,PetscInt *initialsize)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   *initialsize = data->initialsize;
-
   PetscFunctionReturn(0);
 }
 
@@ -491,16 +462,14 @@ PetscErrorCode EPSDAVIDSONGetInitialSize_DAVIDSON(EPS eps,PetscInt *initialsize)
 #define __FUNCT__ "EPSDAVIDSONSetInitialSize_DAVIDSON"
 PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   if(initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
   if(initialsize <= 0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
   data->initialsize = initialsize;
-
   PetscFunctionReturn(0);
 }
 
@@ -508,13 +477,11 @@ PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize)
 #define __FUNCT__ "EPSDAVIDSONGetFix_DAVIDSON"
 PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   *fix = data->fix;
-
   PetscFunctionReturn(0);
 }
 
@@ -522,19 +489,16 @@ PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix)
 #define __FUNCT__ "EPSDAVIDSONSetFix_DAVIDSON"
 PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix)
 {
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   if(fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
   if(fix < 0.0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
   data->fix = fix;
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_QZ"
@@ -549,14 +513,13 @@ PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix)
  */
 PetscErrorCode EPSComputeVectors_QZ(EPS eps)
 {
-  PetscErrorCode  ierr;
-  EPS_DAVIDSON    *data = (EPS_DAVIDSON*)eps->data;
-  dvdDashboard    *d = &data->ddb;
-  PetscScalar     *pX, *auxS;
-  PetscInt        size_auxS;
+  PetscErrorCode ierr;
+  EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
+  dvdDashboard   *d = &data->ddb;
+  PetscScalar    *pX, *auxS;
+  PetscInt       size_auxS;
 
   PetscFunctionBegin;
-
   /* Compute the eigenvectors associated to (cS, cT) */
   ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv, &pX); CHKERRQ(ierr);
   size_auxS = 11*d->nconv + 4*d->nconv*d->nconv; 
@@ -566,8 +529,7 @@ PetscErrorCode EPSComputeVectors_QZ(EPS eps)
                                   size_auxS, PETSC_FALSE); CHKERRQ(ierr);
 
   /* pX[i] <- pX[i] / ||pX[i]|| */
-  ierr = SlepcDenseNorm(pX, d->nconv, d->nconv, d->nconv, d->ceigi);
-  CHKERRQ(ierr);
+  ierr = SlepcDenseNorm(pX, d->nconv, d->nconv, d->nconv, d->ceigi);CHKERRQ(ierr);
 
   /* V <- cX * pX */ 
   ierr = SlepcUpdateVectorsZ(eps->V, 0.0, 1.0, d->cX, d->size_cX, pX,
@@ -577,6 +539,5 @@ PetscErrorCode EPSComputeVectors_QZ(EPS eps)
   ierr = PetscFree(auxS); CHKERRQ(ierr);
 
   eps->evecsavailable = PETSC_TRUE;
-
   PetscFunctionReturn(0);
 }

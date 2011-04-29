@@ -72,7 +72,6 @@ PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,Pe
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
-
   n = PetscBLASIntCast(n_);
   /* quick return */
   if (n == 1) {
@@ -186,11 +185,10 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
 PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lds,lt,nv,m;
+  PetscInt       i,k,l,lds,lt,nv,m,*iwork;
   Vec            u=eps->work[0];
   PetscScalar    *Q;
   PetscReal      *a,*b,*work,beta;
-  PetscInt       *iwork;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -254,9 +252,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
 
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv+eps->nconv);CHKERRQ(ierr);
     eps->nconv = k;
-    
   } 
-
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(a);CHKERRQ(ierr);
   ierr = PetscFree(b);CHKERRQ(ierr);

@@ -91,12 +91,11 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
   char           bmat[1], howmny[] = "A";
   const char     *which;
-  PetscBLASInt   n, iparam[11], ipntr[14], ido, info, nev, ncv;
+  PetscBLASInt   n, iparam[11], ipntr[14], ido, info, nev, ncv, fcomm;
   PetscScalar    sigmar, *pV, *resid;
   Vec            x, y, w = eps->work[0];
   Mat            A;
   PetscBool      isSinv, isShift, rvec;
-  PetscBLASInt   fcomm;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
@@ -294,7 +293,6 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 

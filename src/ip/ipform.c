@@ -86,7 +86,7 @@ PetscErrorCode IPGetBilinearForm(IP ip,Mat* mat,IPBilinearForm* form)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  if (mat) *mat = ip->matrix;
+  if (mat)  *mat  = ip->matrix;
   if (form) *form = ip->bilinear_form;
   PetscFunctionReturn(0);
 }

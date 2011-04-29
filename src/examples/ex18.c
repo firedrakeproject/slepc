@@ -32,14 +32,12 @@ static char help[] = "Solves the same problem as in ex5, but with a user-defined
 */
 
 PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar br, PetscScalar bi, PetscInt *r, void *ctx);
-
 PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  PetscErrorCode ierr;
   Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
@@ -47,6 +45,7 @@ int main( int argc, char **argv )
   PetscReal      error, tol, re, im;
   PetscScalar    kr, ki, target=0.5;
   PetscInt       N, m=15, nev, maxit, i, its, nconv;
+  PetscErrorCode ierr;
   
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -197,8 +196,8 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
   PetscReal       pd, pu;
-  PetscErrorCode  ierr;
   PetscInt        Istart, Iend, i, j, jmax, ix=0;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
@@ -250,12 +249,11 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
 */
 PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar br, PetscScalar bi, PetscInt *r, void *ctx)
 {
-  PetscScalar     target = *(PetscScalar*)ctx;
-  PetscReal       da,db;
-  PetscBool       aisright, bisright;
+  PetscScalar target = *(PetscScalar*)ctx;
+  PetscReal   da,db;
+  PetscBool   aisright, bisright;
 
   PetscFunctionBegin;
-
   if (PetscRealPart(target) < PetscRealPart(ar)) aisright = PETSC_TRUE;
   else aisright = PETSC_FALSE;
   if (PetscRealPart(target) < PetscRealPart(br)) bisright = PETSC_TRUE;
@@ -271,6 +269,5 @@ PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar 
     *r = -1; /* 'a' is on the right */
   else
     *r = 1;  /* 'b' is on the right */
-
   PetscFunctionReturn(0);
 }

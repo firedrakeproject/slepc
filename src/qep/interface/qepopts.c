@@ -43,13 +43,13 @@
 @*/
 PetscErrorCode QEPSetFromOptions(QEP qep)
 {
-  PetscErrorCode ierr;
-  char           type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool      flg,val;
-  PetscReal      r;
-  PetscInt       i,j,k;
+  PetscErrorCode          ierr;
+  char                    type[256],monfilename[PETSC_MAX_PATH_LEN];
+  PetscBool               flg,val;
+  PetscReal               r;
+  PetscInt                i,j,k;
   PetscViewerASCIIMonitor monviewer;
-  SlepcConvMonitor ctx;
+  SlepcConvMonitor        ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -317,7 +317,6 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-
   if( nev != PETSC_IGNORE ) {
     if (nev<1) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     qep->nev = nev;
@@ -677,24 +676,24 @@ extern PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSetTrackAll"
 /*@
-    QEPSetTrackAll - Specifies if the solver must compute the residual of all
-    approximate eigenpairs or not.
+   QEPSetTrackAll - Specifies if the solver must compute the residual of all
+   approximate eigenpairs or not.
 
-    Collective on QEP
+   Collective on QEP
 
-    Input Parameters:
-+   qep      - the eigensolver context
--   trackall - whether compute all residuals or not
+   Input Parameters:
++  qep      - the eigensolver context
+-  trackall - whether compute all residuals or not
 
-    Notes:
-    If the user sets trackall=PETSC_TRUE then the solver explicitly computes
-    the residual for each eigenpair approximation. Computing the residual is
-    usually an expensive operation and solvers commonly compute the associated
-    residual to the first unconverged eigenpair.
-    The options '-qep_monitor_all' and '-qep_monitor_draw_all' automatically
-    activates this option.
+   Notes:
+   If the user sets trackall=PETSC_TRUE then the solver explicitly computes
+   the residual for each eigenpair approximation. Computing the residual is
+   usually an expensive operation and solvers commonly compute the associated
+   residual to the first unconverged eigenpair.
+   The options '-qep_monitor_all' and '-qep_monitor_draw_all' automatically
+   activates this option.
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: QEPGetTrackAll()
 @*/
@@ -709,18 +708,18 @@ PetscErrorCode QEPSetTrackAll(QEP qep,PetscBool trackall)
 #undef __FUNCT__  
 #define __FUNCT__ "QEPGetTrackAll"
 /*@
-    QEPGetTrackAll - Returns the flag indicating whether all residual norms must
-    be computed or not.
+   QEPGetTrackAll - Returns the flag indicating whether all residual norms must
+   be computed or not.
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   qep - the eigensolver context
+   Input Parameter:
+.  qep - the eigensolver context
 
-    Output Parameter:
-.   trackall - the returned flag
+   Output Parameter:
+.  trackall - the returned flag
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: QEPSetTrackAll()
 @*/
@@ -764,6 +763,7 @@ PetscErrorCode QEPGetTrackAll(QEP qep,PetscBool *trackall)
 PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
@@ -795,6 +795,7 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
 PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep, prefix);CHKERRQ(ierr);
@@ -827,6 +828,7 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
 PetscErrorCode QEPGetOptionsPrefix(QEP qep,const char *prefix[])
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(prefix,2);

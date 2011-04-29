@@ -61,7 +61,6 @@ typedef struct {
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  PetscErrorCode ierr;
   Mat            A;               /* eigenvalue problem matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
@@ -70,6 +69,7 @@ int main( int argc, char **argv )
   PetscInt       N=30, n, i, col[3], Istart, Iend, nev, maxit, its, nconv;
   PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   CTX_BRUSSEL    *ctx;
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -256,10 +256,10 @@ int main( int argc, char **argv )
 #define __FUNCT__ "MatBrussel_Mult"
 PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
   PetscInt       n;
   PetscScalar    *px, *py;
   CTX_BRUSSEL    *ctx;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -308,11 +308,11 @@ PetscErrorCode MatBrussel_Shift(PetscScalar* a,Mat Y)
 PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
 {
   Vec            d1, d2;
-  PetscErrorCode ierr;
   PetscInt       n;
   PetscScalar    *pd;
   MPI_Comm       comm;
   CTX_BRUSSEL    *ctx;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -330,5 +330,4 @@ PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 

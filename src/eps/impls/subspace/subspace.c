@@ -390,7 +390,6 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-
   PetscFunctionReturn(0);
 }
 

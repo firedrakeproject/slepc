@@ -97,7 +97,6 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
   /* S = S + g*b' */
   for (i=0;i<m;i++) 
     S[i+(m-1)*lds] = S[i+(m-1)*lds] + g[i]*beta;
-
   PetscFunctionReturn(0);
 #endif
 }
@@ -247,9 +246,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
       ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
     }
     eps->nconv = k;
-
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
-    
   } 
 
   ierr = PetscFree(Q);CHKERRQ(ierr);

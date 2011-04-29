@@ -28,9 +28,9 @@
 #define __FUNCT__ "SVDSetUp_LAPACK"
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
-  PetscErrorCode  ierr;
-  PetscInt        N,i,nloc;
-  PetscScalar     *pU;
+  PetscErrorCode ierr;
+  PetscInt       N,i,nloc;
+  PetscScalar    *pU;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -58,11 +58,11 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 #define __FUNCT__ "SVDSolve_LAPACK"
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
-  PetscErrorCode  ierr;
-  PetscInt        M,N,n,i,j,k;
-  Mat             mat;
-  PetscScalar     *pU,*pVT,*pmat,*pu,*pv;
-  PetscReal       *sigma;
+  PetscErrorCode ierr;
+  PetscInt       M,N,n,i,j,k;
+  Mat            mat;
+  PetscScalar    *pU,*pVT,*pmat,*pu,*pv;
+  PetscReal      *sigma;
   
   PetscFunctionBegin;
   ierr = MatConvert(svd->OP,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);

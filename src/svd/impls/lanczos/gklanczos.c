@@ -38,10 +38,10 @@ typedef struct {
 #define __FUNCT__ "SVDSetUp_LANCZOS"
 PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
 {
-  PetscErrorCode  ierr;
-  SVD_LANCZOS     *lanczos = (SVD_LANCZOS *)svd->data;
-  PetscInt        i,N,nloc;
-  PetscScalar     *pU;
+  PetscErrorCode ierr;
+  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  PetscInt       i,N,nloc;
+  PetscScalar    *pU;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -319,7 +319,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDLanczosSetOneSide_LANCZOS"
 PetscErrorCode SVDLanczosSetOneSide_LANCZOS(SVD svd,PetscBool oneside)
 {
-  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
   if (lanczos->oneside != oneside) {
@@ -398,7 +398,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDLanczosGetOneSide_LANCZOS"
 PetscErrorCode SVDLanczosGetOneSide_LANCZOS(SVD svd,PetscBool *oneside)
 {
-  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
   PetscValidPointer(oneside,2);

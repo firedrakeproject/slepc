@@ -37,20 +37,20 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "STShellGetContext"
 /*@C
-    STShellGetContext - Returns the user-provided context associated with a shell ST
+   STShellGetContext - Returns the user-provided context associated with a shell ST
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   st - spectral transformation context
+   Input Parameter:
+.  st - spectral transformation context
 
-    Output Parameter:
-.   ctx - the user provided context
+   Output Parameter:
+.  ctx - the user provided context
 
-    Level: advanced
+   Level: advanced
 
-    Notes:
-    This routine is intended for use within various shell routines
+   Notes:
+   This routine is intended for use within various shell routines
     
 .seealso: STShellSetContext()
 @*/
@@ -88,7 +88,7 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
 @*/
 PetscErrorCode STShellSetContext(ST st,void *ctx)
 {
-  ST_Shell      *shell = (ST_Shell*)st->data;
+  ST_Shell       *shell = (ST_Shell*)st->data;
   PetscErrorCode ierr;
   PetscBool      flg;
 
@@ -112,7 +112,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   if (!shell->apply) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_USER,"No apply() routine provided to Shell ST");
   PetscStackPush("STSHELL apply() user function");
   CHKMEMQ;
-  ierr  = (*shell->apply)(st,x,y);CHKERRQ(ierr);
+  ierr = (*shell->apply)(st,x,y);CHKERRQ(ierr);
   CHKMEMQ;
   PetscStackPop;
   PetscFunctionReturn(0);
@@ -129,7 +129,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   if (!shell->applytrans) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
   PetscStackPush("STSHELL applytranspose() user function");
   CHKMEMQ;
-  ierr  = (*shell->applytrans)(st,x,y);CHKERRQ(ierr);
+  ierr = (*shell->applytrans)(st,x,y);CHKERRQ(ierr);
   CHKMEMQ;
   PetscStackPop;
   PetscFunctionReturn(0);
@@ -146,7 +146,7 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   if (shell->backtr) {
     PetscStackPush("STSHELL backtransform() user function");
     CHKMEMQ;
-    ierr  = (*shell->backtr)(st,n,eigr,eigi);CHKERRQ(ierr);
+    ierr = (*shell->backtr)(st,n,eigr,eigi);CHKERRQ(ierr);
     CHKMEMQ;
     PetscStackPop;
   }
@@ -323,7 +323,6 @@ PetscErrorCode STSetFromOptions_Shell(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
-
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
@@ -338,7 +337,6 @@ PetscErrorCode STSetFromOptions_Shell(ST st)
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
     }
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -390,7 +388,6 @@ PetscErrorCode STCreate_Shell(ST st)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",STShellSetApply_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","STShellSetApplyTranspose_Shell",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","STShellSetBackTransform_Shell",STShellSetBackTransform_Shell);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

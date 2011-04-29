@@ -25,27 +25,20 @@
 
 typedef struct {
   /* old values of eps */
-  EPSWhich
-    old_which;
-  PetscErrorCode
-    (*old_which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,
-                      PetscInt*,void*);
-  void
-    *old_which_ctx;
+  EPSWhich old_which;
+  PetscErrorCode (*old_which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar, PetscInt*,void*);
+  void *old_which_ctx;
 } EPSSortForSTData;
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSortForSTFunc"
 PetscErrorCode EPSSortForSTFunc(EPS eps, PetscScalar ar, PetscScalar ai,
-                                PetscScalar br, PetscScalar bi, PetscInt *r,
-                                void *ctx)
+                                PetscScalar br, PetscScalar bi, PetscInt *r, void *ctx)
 {
   EPSSortForSTData *data = (EPSSortForSTData*)ctx;
-  PetscErrorCode  ierr;
+  PetscErrorCode   ierr;
 
   PetscFunctionBegin;
-
   /* Back-transform the harmonic values */
   ierr = STBackTransform(eps->OP,1,&ar,&ai);CHKERRQ(ierr);
   ierr = STBackTransform(eps->OP,1,&br,&bi);CHKERRQ(ierr);
@@ -60,10 +53,8 @@ PetscErrorCode EPSSortForSTFunc(EPS eps, PetscScalar ar, PetscScalar ai,
   eps->which = EPS_WHICH_USER;
   eps->which_func = EPSSortForSTFunc;
   eps->which_ctx = data;
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve"
@@ -263,7 +254,6 @@ PetscErrorCode EPSSolve(EPS eps)
   /* Remove the initial subspaces */
   eps->nini = 0;
   eps->ninil = 0;
-
   PetscFunctionReturn(0);
 }
 
@@ -575,7 +565,6 @@ PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScal
   }
   ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
   ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr);
-  
   PetscFunctionReturn(0);
 }
 
@@ -620,7 +609,6 @@ PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscSca
   if (i<0 || i>=eps->nconv) { 
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
   }
-
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #ifdef PETSC_USE_COMPLEX
@@ -630,7 +618,6 @@ PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscSca
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = eps->eigi[k];
 #endif
-  
   PetscFunctionReturn(0);
 }
 
@@ -683,7 +670,6 @@ PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
   if (!eps->evecsavailable && (Vr || Vi) ) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
-
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #ifdef PETSC_USE_COMPLEX
@@ -704,7 +690,6 @@ PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
     if (Vi) { ierr = VecSet(Vi,0.0); CHKERRQ(ierr); }
   }
 #endif
-  
   PetscFunctionReturn(0);
 }
 
@@ -757,7 +742,6 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
   if (!eps->evecsavailable && (Wr || Wi) ) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
-
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #ifdef PETSC_USE_COMPLEX
@@ -778,7 +762,6 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
     if (Wi) { ierr = VecSet(Wi,0.0); CHKERRQ(ierr); }
   }
 #endif
-  
   PetscFunctionReturn(0);
 }
 

@@ -109,10 +109,10 @@ PetscErrorCode ShellMatGetDiagonal_CROSS(Mat B,Vec d)
 #define __FUNCT__ "SVDSetUp_CROSS"
 PetscErrorCode SVDSetUp_CROSS(SVD svd)
 {
-  PetscErrorCode    ierr;
-  SVD_CROSS         *cross = (SVD_CROSS *)svd->data;
-  PetscInt          n,i;
-  PetscBool         trackall;
+  PetscErrorCode ierr;
+  SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
+  PetscInt       n,i;
+  PetscBool      trackall;
 
   PetscFunctionBegin;
   ierr = MatDestroy(&cross->mat);CHKERRQ(ierr);
@@ -197,7 +197,7 @@ PetscErrorCode SVDMonitor_CROSS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar 
 #define __FUNCT__ "SVDSetFromOptions_CROSS"
 PetscErrorCode SVDSetFromOptions_CROSS(SVD svd)
 {
-  SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
+  SVD_CROSS *cross = (SVD_CROSS *)svd->data;
 
   PetscFunctionBegin;
   cross->setfromoptionscalled = PETSC_TRUE;

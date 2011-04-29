@@ -62,7 +62,7 @@ PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,
   PetscScalar    qwork,*work;
   PetscBLASInt   n,info,lwork,*iwork,M,N;
 #if defined(PETSC_USE_COMPLEX)
-  PetscReal       *rwork;
+  PetscReal      *rwork;
 #endif 
   
   PetscFunctionBegin;
@@ -97,3 +97,4 @@ PetscErrorCode SVDDense(PetscInt M_,PetscInt N_,PetscScalar* A,PetscReal* sigma,
   PetscFunctionReturn(0);
 #endif 
 }
+

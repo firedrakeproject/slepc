@@ -61,9 +61,9 @@ PetscErrorCode EPSFinalizePackage(void)
 .seealso: SlepcInitialize()
 @*/
 PetscErrorCode EPSInitializePackage(const char *path) {
-  char              logList[256];
-  char             *className;
-  PetscBool         opt;
+  char           logList[256];
+  char           *className;
+  PetscBool      opt;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -653,9 +653,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (target) {
-    *target = eps->target;
-  }
+  if (target) *target = eps->target;
   PetscFunctionReturn(0);
 }
 

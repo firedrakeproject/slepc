@@ -110,7 +110,6 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscBool *is)
   PetscBool      has;
 
   PetscFunctionBegin;
-
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscTypeCompare((PetscObject)A,MATSEQSBAIJ,is);CHKERRQ(ierr);
   if (*is) PetscFunctionReturn(0);
@@ -143,7 +142,6 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscBool *is)
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&w1);CHKERRQ(ierr);
   ierr = VecDestroy(&w2);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -171,6 +169,7 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscBool *is)
 PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 {
   PetscReal xabs,yabs,w,z,t;
+
   PetscFunctionBegin;
   xabs = PetscAbsReal(x);
   yabs = PetscAbsReal(y);
@@ -254,7 +253,6 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
   PetscValidPointer(newmat,2);
-
   ierr = PetscObjectGetComm((PetscObject)mat,&comm);CHKERRQ(ierr);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
 
@@ -283,7 +281,6 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     /* convert matrix to MatSeqDense */
     ierr = MatConvert(mat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);  
 }
 
@@ -291,10 +288,9 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 #define __FUNCT__ "SlepcMatTile_SEQAIJ"
 static PetscErrorCode SlepcMatTile_SEQAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,j,M1,M2,N1,N2;
-  PetscInt       *nnz,ncols,*scols;
-  PetscScalar    *svals,*buf;
+  PetscErrorCode    ierr;
+  PetscInt          i,j,M1,M2,N1,N2,*nnz,ncols,*scols;
+  PetscScalar       *svals,*buf;
   const PetscInt    *cols;
   const PetscScalar *vals;
 
@@ -395,10 +391,9 @@ static PetscErrorCode SlepcMatTile_SEQAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
 static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode ierr;
-  PetscInt       p,i,j,N1,N2,m1,m2,n1,n2;
-  PetscInt       *dnz,*onz,ncols,*scols,start,gstart;
-  PetscInt       *map1,*map2,np;
-  PetscScalar    *svals,*buf;
+  PetscInt          p,i,j,N1,N2,m1,m2,n1,n2,*map1,*map2,np;
+  PetscInt          *dnz,*onz,ncols,*scols,start,gstart;
+  PetscScalar       *svals,*buf;
   const PetscInt    *cols,*mapptr1,*mapptr2;
   const PetscScalar *vals;
 
@@ -615,10 +610,8 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
     }
     else SETERRQ(((PetscObject)A)->comm,PETSC_ERR_SUP,"Not implemented for this matrix type");
   }
-
   ierr = MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);  
 }
 
@@ -737,9 +730,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
   ierr = SlepcUpdateStrideVectors(n_,V,s,1,e,Q,ldq_,qtrans);CHKERRQ(ierr);
-  
   PetscFunctionReturn(0);
 }
 
@@ -903,6 +894,7 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
 PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   if (!*ctx) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);

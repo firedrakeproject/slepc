@@ -31,7 +31,6 @@ static char help[] = "Solves a generalized eigensystem Ax=kBx with matrices load
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  PetscErrorCode ierr;
   Mat            A,B;             /* matrices */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
@@ -41,7 +40,7 @@ int main( int argc, char **argv )
   char           filename[256];
   PetscViewer    viewer;
   PetscBool      flg;
-
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

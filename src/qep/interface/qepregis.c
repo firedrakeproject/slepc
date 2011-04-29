@@ -29,11 +29,11 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "QEPRegisterAll"
 /*@C
-  QEPRegisterAll - Registers all the solvers in the QEP package.
+   QEPRegisterAll - Registers all the solvers in the QEP package.
 
-  Not Collective
+   Not Collective
 
-  Level: advanced
+   Level: advanced
 
 .seealso:  QEPRegisterDynamic()
 @*/

@@ -38,9 +38,9 @@ typedef struct {
 #define __FUNCT__ "SVDSetUp_TRLANCZOS"
 PetscErrorCode SVDSetUp_TRLANCZOS(SVD svd)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i,N,nloc;
-  PetscScalar     *pU;
+  PetscErrorCode ierr;
+  PetscInt       i,N,nloc;
+  PetscScalar    *pU;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -473,7 +473,6 @@ PetscErrorCode SVDTRLanczosGetOneSide_TRLANCZOS(SVD svd,PetscBool *oneside)
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDDestroy_TRLANCZOS"

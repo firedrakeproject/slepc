@@ -33,12 +33,11 @@ int main( int argc, char **argv )
   EPS            eps;         /* eigenproblem solver context */
   const EPSType  type;
   PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
+  PetscScalar    kr, ki, value[3];
   Vec            xr, xi;
-  PetscErrorCode ierr;
   PetscInt       n=30, i, Istart, Iend, col[3], nev, maxit, its, nconv;
   PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
-  PetscScalar    value[3];
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

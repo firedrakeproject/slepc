@@ -30,12 +30,11 @@
 #define __FUNCT__ "QEPSetUp_LINEAR"
 PetscErrorCode QEPSetUp_LINEAR(QEP qep)
 {
-  PetscErrorCode    ierr;
-  QEP_LINEAR        *ctx = (QEP_LINEAR *)qep->data;
-  PetscInt          i=0;
-  EPSWhich          which;
-  PetscBool         trackall;
-
+  PetscErrorCode ierr;
+  QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
+  PetscInt       i=0;
+  EPSWhich       which;
+  PetscBool      trackall;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_QEPLINEAR_N1A, MatCreateExplicit_QEPLINEAR_N1B },   /* N1 */
@@ -127,7 +126,6 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,&qep->tol,&qep->max_it);CHKERRQ(ierr);
   if (qep->nini>0 || qep->ninil>0) PetscInfo(qep,"Ignoring initial vectors\n");
-
   PetscFunctionReturn(0);
 }
 
@@ -159,7 +157,6 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
   ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-
   ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&wr);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&wi);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
@@ -214,7 +211,6 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
   ierr = VecDestroy(&wi);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -241,7 +237,6 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-
   ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&w);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
@@ -277,7 +272,6 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -338,12 +332,10 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"LINEAR Quadratic Eigenvalue Problem solver Options","QEP");CHKERRQ(ierr);
-
   ierr = PetscOptionsInt("-qep_linear_cform","Number of the companion form","QEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
     ierr = QEPLinearSetCompanionForm(qep,i);CHKERRQ(ierr);
   }
-
   ierr = PetscOptionsBool("-qep_linear_explicitmatrix","Use explicit matrix in linearization","QEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = QEPLinearSetExplicitMatrix(qep,val);CHKERRQ(ierr);
@@ -353,7 +345,6 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
-
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ctx->setfromoptionscalled = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -537,8 +528,8 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "QEPLinearSetEPS_LINEAR"
 PetscErrorCode QEPLinearSetEPS_LINEAR(QEP qep,EPS eps)
 {
-  PetscErrorCode  ierr;
-  QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
+  PetscErrorCode ierr;
+  QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
@@ -624,8 +615,8 @@ PetscErrorCode QEPLinearGetEPS(QEP qep,EPS *eps)
 #define __FUNCT__ "QEPView_LINEAR"
 PetscErrorCode QEPView_LINEAR(QEP qep,PetscViewer viewer)
 {
-  PetscErrorCode  ierr;
-  QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
+  PetscErrorCode ierr;
+  QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
   if (ctx->explicitmatrix) {
@@ -642,8 +633,8 @@ PetscErrorCode QEPView_LINEAR(QEP qep,PetscViewer viewer)
 #define __FUNCT__ "QEPDestroy_LINEAR"
 PetscErrorCode QEPDestroy_LINEAR(QEP qep)
 {
-  PetscErrorCode  ierr;
-  QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
+  PetscErrorCode ierr;
+  QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);

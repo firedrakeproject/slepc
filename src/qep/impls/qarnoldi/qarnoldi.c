@@ -37,7 +37,6 @@ PetscErrorCode QEPSetUp_QARNOLDI(QEP qep)
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI *)qep->data;
   
   PetscFunctionBegin;
-
   if (qep->ncv) { /* ncv set */
     if (qep->ncv<qep->nev) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must be at least nev"); 
   }
@@ -61,7 +60,6 @@ PetscErrorCode QEPSetUp_QARNOLDI(QEP qep)
 
   ierr = KSPSetOperators(ctx->ksp,qep->M,qep->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(ctx->ksp);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -227,7 +225,6 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
   PetscBool      breakdown;
 
   PetscFunctionBegin;
-
   ierr = PetscMemzero(S,qep->ncv*qep->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   lwork = 7*qep->ncv;
@@ -292,9 +289,7 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
     ierr = SlepcUpdateVectors(nv,qep->V,qep->nconv,k+l,Q,nv,PETSC_FALSE);CHKERRQ(ierr);
 
     qep->nconv = k;
-
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
-    
   } 
 
   for (j=0;j<qep->nconv;j++) {

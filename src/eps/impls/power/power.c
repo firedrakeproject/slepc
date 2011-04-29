@@ -232,12 +232,9 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
         }
       }
     }
-
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
   }
-
   ierr = PetscFree(select);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -377,10 +374,8 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       ierr = EPSGetStartVectorLeft(eps,eps->nconv,w,PETSC_NULL);CHKERRQ(ierr);
     }
   }
-
   if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-
   PetscFunctionReturn(0);
 }
 
@@ -389,7 +384,7 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 PetscErrorCode EPSBackTransform_POWER(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_POWER *power = (EPS_POWER *)eps->data;
+  EPS_POWER      *power = (EPS_POWER *)eps->data;
 
   PetscFunctionBegin;
   if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) {
@@ -486,6 +481,7 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSPowerGetShiftType_POWER(EPS eps,EPSPowerShiftType *shift)
 {
   EPS_POWER  *power = (EPS_POWER *)eps->data;
+
   PetscFunctionBegin;
   *shift = power->shift_type;
   PetscFunctionReturn(0);

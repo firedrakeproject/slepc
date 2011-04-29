@@ -39,7 +39,8 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "SLEPcNotImplemented_Precond"
-PetscErrorCode SLEPcNotImplemented_Precond(ST st, Vec x, Vec y) {
+PetscErrorCode SLEPcNotImplemented_Precond(ST st, Vec x, Vec y)
+{
   SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"Operation not implemented in STPRECOND.");
 }
 
@@ -54,7 +55,6 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
   PetscBool      t0, t1;
 
   PetscFunctionBegin;
-
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PetscObjectGetType((PetscObject)pc, &pctype); CHKERRQ(ierr);
   ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
@@ -71,7 +71,6 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
       ierr = PCSetType(pc, (t0 && t1)? PCJACOBI:PCNONE); CHKERRQ(ierr);
     }
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -85,7 +84,6 @@ PetscErrorCode STSetUp_Precond(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
@@ -159,7 +157,6 @@ PetscErrorCode STSetUp_Precond(ST st)
       }
     }
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -170,15 +167,12 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
-  
   st->sigma = newshift;
   if (st->shift_matrix != ST_MATMODE_SHELL) {
     ierr =  STSetUp_Precond(st); CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -191,7 +185,6 @@ PetscErrorCode STCreate_Precond(ST st)
   ST_PRECOND     *data;
 
   PetscFunctionBegin;
-
   ierr = PetscNew(ST_PRECOND, &data); CHKERRQ(ierr);
   st->data                 = data;
 
@@ -215,7 +208,6 @@ PetscErrorCode STCreate_Precond(ST st)
 
   ierr = STPrecondSetKSPHasMat_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
   ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -227,14 +219,11 @@ PetscErrorCode STDestroy_Precond(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
-
   ierr = PetscFree(st->data); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -279,14 +268,12 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PCGetOperatorsSet(pc, PETSC_NULL, &flag); CHKERRQ(ierr);
   if (flag) {
     ierr = PCGetOperators(pc, PETSC_NULL, mat, PETSC_NULL); CHKERRQ(ierr);
   } else
     *mat = PETSC_NULL;
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -333,7 +320,6 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
-
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
      matrix in pc */
@@ -348,7 +334,6 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&mat);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(st, PETSC_TRUE); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -415,14 +400,11 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STPrecondSetKSPHasMat_Precond"
 PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
 {
-  ST_PRECOND     *data = (ST_PRECOND*)st->data;
+  ST_PRECOND *data = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-
   data->setmat = setmat;
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -432,14 +414,11 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STPrecondGetKSPHasMat_Precond"
 PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
 {
-  ST_PRECOND     *data = (ST_PRECOND*)st->data;
+  ST_PRECOND *data = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-
   *setmat = data->setmat;
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

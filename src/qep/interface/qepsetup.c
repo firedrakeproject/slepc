@@ -53,9 +53,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-
   if (qep->setupcalled) PetscFunctionReturn(0);
-
   ierr = PetscLogEventBegin(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);
 
   /* Set default solver type */
@@ -163,7 +161,6 @@ PetscErrorCode QEPSetUp(QEP qep)
       ierr = PetscFree(qep->ISL);CHKERRQ(ierr);
     }
   }
-
   ierr = PetscLogEventEnd(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);
   qep->setupcalled = 1;
   PetscFunctionReturn(0);

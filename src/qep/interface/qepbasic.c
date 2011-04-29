@@ -23,18 +23,18 @@
 
 #include <private/qepimpl.h>      /*I "slepcqep.h" I*/
 
-PetscFList QEPList = 0;
-PetscClassId QEP_CLASSID = 0;
-PetscLogEvent QEP_SetUp = 0, QEP_Solve = 0, QEP_Dense = 0;
+PetscFList       QEPList = 0;
+PetscClassId     QEP_CLASSID = 0;
+PetscLogEvent    QEP_SetUp = 0, QEP_Solve = 0, QEP_Dense = 0;
 static PetscBool QEPPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPFinalizePackage"
 /*@C
-  QEPFinalizePackage - This function destroys everything in the Slepc interface to the QEP package. It is
-  called from SlepcFinalize().
+   QEPFinalizePackage - This function destroys everything in the Slepc interface
+   to the QEP package. It is called from SlepcFinalize().
 
-  Level: developer
+   Level: developer
 
 .seealso: SlepcFinalize()
 @*/
@@ -49,18 +49,19 @@ PetscErrorCode QEPFinalizePackage(void)
 #undef __FUNCT__  
 #define __FUNCT__ "QEPInitializePackage"
 /*@C
-  QEPInitializePackage - This function initializes everything in the QEP package. It is called
-  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to QEPCreate()
-  when using static libraries.
+   QEPInitializePackage - This function initializes everything in the QEP package. It is called
+   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to QEPCreate()
+   when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or PETSC_NULL
+   Input Parameter:
+.  path - The dynamic library path, or PETSC_NULL
 
-  Level: developer
+   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode QEPInitializePackage(const char *path) {
+PetscErrorCode QEPInitializePackage(const char *path)
+{
   char           logList[256];
   char           *className;
   PetscBool      opt;
@@ -330,7 +331,6 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidCharPointer(type,2);
-
   ierr = PetscTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 

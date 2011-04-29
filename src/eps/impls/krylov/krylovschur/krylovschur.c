@@ -211,9 +211,7 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
     eps->nconv = k;
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
-    
   } 
-
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -225,13 +223,13 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_KRYLOVSCHUR(EPS eps)
 {
   PetscFunctionBegin;
-  eps->data                      = PETSC_NULL;
-  eps->ops->setup                = EPSSetUp_KRYLOVSCHUR;
-  eps->ops->setfromoptions       = PETSC_NULL;
-  eps->ops->destroy              = EPSDestroy_Default;
-  eps->ops->view                 = PETSC_NULL;
-  eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Schur;
+  eps->data                = PETSC_NULL;
+  eps->ops->setup          = EPSSetUp_KRYLOVSCHUR;
+  eps->ops->setfromoptions = PETSC_NULL;
+  eps->ops->destroy        = EPSDestroy_Default;
+  eps->ops->view           = PETSC_NULL;
+  eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->computevectors = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

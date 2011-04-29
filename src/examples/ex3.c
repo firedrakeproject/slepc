@@ -43,8 +43,8 @@ int main( int argc, char **argv )
   PetscReal      error, tol, re, im;
   PetscScalar    kr, ki;
   PetscMPIInt    size;
-  PetscErrorCode ierr;
   PetscInt       N, n=10, nev, maxit, i, its, nconv;
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
@@ -198,9 +198,9 @@ static void tv( int nx, PetscScalar *x, PetscScalar *y )
 PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
 {
   void           *ctx;
-  PetscErrorCode ierr;
   int            nx, lo, j, one=1;
   PetscScalar    *px, *py, dmone=-1.0;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext( A, &ctx ); CHKERRQ(ierr);
@@ -237,5 +237,4 @@ PetscErrorCode MatLaplacian2D_GetDiagonal( Mat A, Vec diag )
   ierr = VecSet(diag,4.0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 

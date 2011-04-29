@@ -30,7 +30,6 @@ static char help[] = "Standard symmetric eigenproblem corresponding to the Lapla
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  PetscErrorCode ierr;
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
@@ -38,6 +37,7 @@ int main( int argc, char **argv )
   PetscScalar    kr, ki;
   PetscInt       N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv;
   PetscBool      flag;
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

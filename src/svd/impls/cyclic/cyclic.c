@@ -39,7 +39,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "ShellMatMult_CYCLIC"
-PetscErrorCode ShellMatMult_CYCLIC(Mat B,Vec x, Vec y)
+static PetscErrorCode ShellMatMult_CYCLIC(Mat B,Vec x, Vec y)
 {
   PetscErrorCode ierr;
   SVD            svd;
@@ -70,7 +70,7 @@ PetscErrorCode ShellMatMult_CYCLIC(Mat B,Vec x, Vec y)
 
 #undef __FUNCT__  
 #define __FUNCT__ "ShellMatGetDiagonal_CYCLIC"
-PetscErrorCode ShellMatGetDiagonal_CYCLIC(Mat B,Vec diag)
+static PetscErrorCode ShellMatGetDiagonal_CYCLIC(Mat B,Vec diag)
 {
   PetscErrorCode ierr;
   
@@ -79,22 +79,19 @@ PetscErrorCode ShellMatGetDiagonal_CYCLIC(Mat B,Vec diag)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetUp_CYCLIC"
 PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
 {
-  PetscErrorCode    ierr;
-  SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
-  PetscInt          M,N,m,n,i,nloc,isl;
-  PetscScalar       *pU;
-  PetscBool         trackall;
-  Vec               v;
-  Mat               Zm,Zn;
-  PetscScalar       *isa,*va;
+  PetscErrorCode ierr;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
+  PetscInt       M,N,m,n,i,nloc,isl;
+  PetscScalar    *pU,*isa,*va;
+  PetscBool      trackall;
+  Vec            v;
+  Mat            Zm,Zn;
 
   PetscFunctionBegin;
-  
   ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr); 
   ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr); 
@@ -187,7 +184,6 @@ PetscErrorCode SVDSetUp_CYCLIC(SVD svd)
       ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
     }
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -377,7 +373,7 @@ EXTERN_C_BEGIN
 PetscErrorCode SVDCyclicSetEPS_CYCLIC(SVD svd,EPS eps)
 {
   PetscErrorCode  ierr;
-  SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC      *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
@@ -463,8 +459,8 @@ PetscErrorCode SVDCyclicGetEPS(SVD svd,EPS *eps)
 #define __FUNCT__ "SVDView_CYCLIC"
 PetscErrorCode SVDView_CYCLIC(SVD svd,PetscViewer viewer)
 {
-  PetscErrorCode  ierr;
-  SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
+  PetscErrorCode ierr;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
   if (cyclic->explicitmatrix) {
@@ -480,8 +476,8 @@ PetscErrorCode SVDView_CYCLIC(SVD svd,PetscViewer viewer)
 #define __FUNCT__ "SVDDestroy_CYCLIC"
 PetscErrorCode SVDDestroy_CYCLIC(SVD svd)
 {
-  PetscErrorCode  ierr;
-  SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
+  PetscErrorCode ierr;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
@@ -503,8 +499,8 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDCreate_CYCLIC"
 PetscErrorCode SVDCreate_CYCLIC(SVD svd)
 {
-  PetscErrorCode  ierr;
-  SVD_CYCLIC *cyclic;
+  PetscErrorCode ierr;
+  SVD_CYCLIC     *cyclic;
   
   PetscFunctionBegin;
   ierr = PetscNew(SVD_CYCLIC,&cyclic);CHKERRQ(ierr);

@@ -41,21 +41,19 @@ typedef struct {
   KSP                        ksp;
 } EPS_BLOPEX;
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "Precond_FnSingleVector"
 static void Precond_FnSingleVector(void *data,void *x,void *y)
 {
-  PetscErrorCode  ierr;
-  EPS             eps = (EPS)data;
-  EPS_BLOPEX      *blopex = (EPS_BLOPEX*)eps->data;
-  PetscInt        lits;
+  PetscErrorCode ierr;
+  EPS            eps = (EPS)data;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
+  PetscInt       lits;
       
   PetscFunctionBegin;
   ierr = KSPSolve(blopex->ksp,(Vec)x,(Vec)y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
   ierr = KSPGetIterationNumber(blopex->ksp, &lits); CHKERRABORT(PETSC_COMM_WORLD,ierr);
   eps->OP->lineariterations+= lits;
-
   PetscFunctionReturnVoid();
 }
 
@@ -63,8 +61,8 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
 #define __FUNCT__ "Precond_FnMultiVector"
 static void Precond_FnMultiVector(void *data,void *x,void *y)
 {
-  EPS             eps = (EPS)data;
-  EPS_BLOPEX      *blopex = (EPS_BLOPEX*)eps->data;
+  EPS        eps = (EPS)data;
+  EPS_BLOPEX *blopex = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
   blopex->ii.Eval(Precond_FnSingleVector,data,x,y);
@@ -123,14 +121,13 @@ static void OperatorBMultiVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_BLOPEX"
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
-  PetscErrorCode  ierr;
-  EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
-  PetscBool       isPrecond, isPreonly;
+  PetscErrorCode ierr;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
+  PetscBool      isPrecond, isPreonly;
 
   PetscFunctionBegin;
   if (!eps->ishermitian) { 
@@ -197,8 +194,8 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #define __FUNCT__ "EPSSolve_BLOPEX"
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
-  EPS_BLOPEX      *blopex = (EPS_BLOPEX *)eps->data;
-  int             info,its;
+  EPS_BLOPEX *blopex = (EPS_BLOPEX *)eps->data;
+  int        info,its;
   
   PetscFunctionBegin;
   
@@ -221,7 +218,6 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   eps->nconv = eps->ncv;
   if (info==-1) eps->reason = EPS_DIVERGED_ITS;
   else eps->reason = EPS_CONVERGED_TOL;
-  
   PetscFunctionReturn(0);
 }
 
@@ -252,7 +248,6 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   const char*    prefix;
 
   PetscFunctionBegin;
-
   ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE); CHKERRQ(ierr);
 

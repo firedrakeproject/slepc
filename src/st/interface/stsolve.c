@@ -162,26 +162,26 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 #undef __FUNCT__  
 #define __FUNCT__ "STComputeExplicitOperator"
 /*@
-    STComputeExplicitOperator - Computes the explicit operator associated
-    to the eigenvalue problem with the specified spectral transformation.  
+   STComputeExplicitOperator - Computes the explicit operator associated
+   to the eigenvalue problem with the specified spectral transformation.  
 
-    Collective on ST
+   Collective on ST
 
-    Input Parameter:
-.   st - the spectral transform context
+   Input Parameter:
+.  st - the spectral transform context
 
-    Output Parameter:
-.   mat - the explicit operator
+   Output Parameter:
+.  mat - the explicit operator
 
-    Notes:
-    This routine builds a matrix containing the explicit operator. For 
-    example, in generalized problems with shift-and-invert spectral
-    transformation the result would be matrix (A - s B)^-1 B.
-    
-    This computation is done by applying the operator to columns of the 
-    identity matrix. Note that the result is a dense matrix.
+   Notes:
+   This routine builds a matrix containing the explicit operator. For 
+   example, in generalized problems with shift-and-invert spectral
+   transformation the result would be matrix (A - s B)^-1 B.
 
-    Level: advanced
+   This computation is done by applying the operator to columns of the 
+   identity matrix. Note that the result is a dense matrix.
+
+   Level: advanced
 
 .seealso: STApply()   
 @*/
@@ -245,7 +245,6 @@ PetscErrorCode STSetUp(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-
   PetscInfo(st,"Setting up new ST\n");
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
@@ -287,7 +286,6 @@ PetscErrorCode STPostSolve(ST st)
   if (st->ops->postsolve) {
     ierr = (*st->ops->postsolve)(st);CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -318,6 +316,5 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   if (st->ops->backtr) {
     ierr = (*st->ops->backtr)(st,n,eigr,eigi);CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
 }

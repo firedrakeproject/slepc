@@ -184,11 +184,9 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
       ierr = PetscFree(pW);CHKERRQ(ierr);
     }
   }
-
   eps->nconv = eps->ncv;
   eps->its   = 1;  
   eps->reason = EPS_CONVERGED_TOL;
-  
   PetscFunctionReturn(0);
 }
 

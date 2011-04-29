@@ -136,7 +136,6 @@ PetscErrorCode QEPSolve(QEP qep)
 
   /* Remove the initial subspace */
   qep->nini = 0;
-
   PetscFunctionReturn(0);
 }
 
@@ -317,7 +316,6 @@ PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScal
     if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
   }
 #endif
-  
   PetscFunctionReturn(0);
 }
 
@@ -492,7 +490,6 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep, PetscScalar kr, PetscSca
   
   PetscFunctionBegin;
   ierr = QEPComputeResidualNorm_Private(qep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
-
 #ifndef PETSC_USE_COMPLEX
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
@@ -514,7 +511,6 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep, PetscScalar kr, PetscSca
     }
   }
 #endif    
-  
   PetscFunctionReturn(0);
 }
 
@@ -714,7 +710,7 @@ PetscErrorCode QEPSortEigenvaluesReal(QEP qep,PetscInt n,PetscReal *eig,PetscInt
 @*/
 PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
 {
-  PetscReal      a,b;
+  PetscReal a,b;
 
   PetscFunctionBegin;
   switch(qep->which) {

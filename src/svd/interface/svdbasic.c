@@ -23,18 +23,18 @@
 
 #include <private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
-PetscFList SVDList = 0;
-PetscClassId SVD_CLASSID = 0;
-PetscLogEvent SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
+PetscFList       SVDList = 0;
+PetscClassId     SVD_CLASSID = 0;
+PetscLogEvent    SVD_SetUp = 0, SVD_Solve = 0, SVD_Dense = 0;
 static PetscBool SVDPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDFinalizePackage"
 /*@C
-  SVDFinalizePackage - This function destroys everything in the Slepc interface to the SVD package. It is
-  called from SlepcFinalize().
+   SVDFinalizePackage - This function destroys everything in the Slepc interface
+   to the SVD package. It is called from SlepcFinalize().
 
-  Level: developer
+   Level: developer
 
 .seealso: SlepcFinalize()
 @*/
@@ -49,23 +49,23 @@ PetscErrorCode SVDFinalizePackage(void)
 #undef __FUNCT__  
 #define __FUNCT__ "SVDInitializePackage"
 /*@C
-  SVDInitializePackage - This function initializes everything in the SVD package. It is called
-  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to SVDCreate()
-  when using static libraries.
+   SVDInitializePackage - This function initializes everything in the SVD package. It is called
+   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to SVDCreate()
+   when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or PETSC_NULL
+   Input Parameter:
+.  path - The dynamic library path, or PETSC_NULL
 
-  Level: developer
+   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
 PetscErrorCode SVDInitializePackage(const char *path)
 {
-  char              logList[256];
-  char              *className;
-  PetscBool         opt;
-  PetscErrorCode    ierr;
+  char           logList[256];
+  char           *className;
+  PetscBool      opt;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (SVDPackageInitialized) PetscFunctionReturn(0);
@@ -207,7 +207,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
-
   ierr = PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,-1,"SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
   *outsvd = svd;
 
@@ -245,7 +244,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = IPSetOptionsPrefix(svd->ip,((PetscObject)svd)->prefix);
   ierr = IPAppendOptionsPrefix(svd->ip,"svd_");
   PetscLogObjectParent(svd,svd->ip);
-
   PetscFunctionReturn(0);
 }
  
@@ -449,9 +447,9 @@ M*/
 #undef __FUNCT__  
 #define __FUNCT__ "SVDRegister"
 /*@C
-  SVDRegister - See SVDRegisterDynamic()
+   SVDRegister - See SVDRegisterDynamic()
 
-  Level: advanced
+   Level: advanced
 @*/
 PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(SVD))
 {
@@ -515,7 +513,7 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(svd,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&svd->ip); CHKERRQ(ierr);
+  ierr = IPDestroy(&svd->ip);CHKERRQ(ierr);
   svd->ip = ip;
   PetscFunctionReturn(0);
 }

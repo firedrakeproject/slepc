@@ -154,7 +154,6 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PC             pc;                             
   
   PetscFunctionBegin;
-
   ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
@@ -190,7 +189,6 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   lflag = 0;           /* reverse communication interface flag */
 
   do {
-
     BLZpack_( blz->istor, blz->rstor, &sigma, &nneig, blz->u, blz->v, 
               &lflag, &nvopu, blz->eig, pV );
 
@@ -267,7 +265,6 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   }
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 

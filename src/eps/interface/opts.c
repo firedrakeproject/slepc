@@ -43,15 +43,15 @@
 @*/
 PetscErrorCode EPSSetFromOptions(EPS eps)
 {
-  PetscErrorCode ierr;
-  char           type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool      flg,val;
-  PetscReal      r,nrma,nrmb;
-  PetscScalar    s;
-  PetscInt       i,j,k;
-  const char     *bal_list[4] = { "none", "oneside", "twoside","user" };
+  PetscErrorCode          ierr;
+  char                    type[256],monfilename[PETSC_MAX_PATH_LEN];
+  PetscBool               flg,val;
+  PetscReal               r,nrma,nrmb;
+  PetscScalar             s;
+  PetscInt                i,j,k;
+  const char              *bal_list[4] = { "none", "oneside", "twoside","user" };
   PetscViewerASCIIMonitor monviewer;
-  SlepcConvMonitor ctx;
+  SlepcConvMonitor        ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -376,7 +376,6 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   if( nev != PETSC_IGNORE ) {
     if (nev<1) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     eps->nev = nev;
@@ -879,7 +878,6 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-
   switch (type) {
     case EPS_HEP:
       eps->isgeneralized = PETSC_FALSE;
@@ -927,7 +925,6 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   }
   eps->problem_type = type;
-
   PetscFunctionReturn(0);
 }
 
@@ -1290,6 +1287,7 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
 PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
@@ -1322,6 +1320,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
 PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
@@ -1355,6 +1354,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
 PetscErrorCode EPSGetOptionsPrefix(EPS eps,const char *prefix[])
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(prefix,2);

@@ -238,7 +238,6 @@ PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
   if (eps->nwork != nw) {
     if (eps->nwork > 0) {
       ierr = VecDestroyVecs(eps->nwork,&eps->work); CHKERRQ(ierr);
@@ -247,7 +246,6 @@ PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
     ierr = VecDuplicateVecs(eps->V[0],nw,&eps->work); CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,nw,eps->work);
   }
-  
   PetscFunctionReturn(0);
 }
 
@@ -276,6 +274,7 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 PetscErrorCode EPSEigRelativeConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
+
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res;
@@ -304,6 +303,7 @@ PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 PetscErrorCode EPSNormRelativeConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
+
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res / (eps->nrma + w*eps->nrmb);
@@ -332,7 +332,6 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   PetscReal      norm;
   
   PetscFunctionBegin;
-  
   /* allocate workspace */
   ierr = VecDuplicate(V[0],&x);CHKERRQ(ierr);
   ierr = VecDuplicate(V[0],&y);CHKERRQ(ierr);

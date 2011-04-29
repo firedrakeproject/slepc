@@ -23,7 +23,7 @@
 
 #include <private/ipimpl.h>      /*I "slepcip.h" I*/
 
-PetscClassId IP_CLASSID = 0;
+PetscClassId  IP_CLASSID = 0;
 PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
 
 #undef __FUNCT__  
@@ -43,10 +43,10 @@ PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
 PetscErrorCode IPInitializePackage(const char *path) 
 {
   static PetscBool initialized = PETSC_FALSE;
-  char              logList[256];
-  char              *className;
-  PetscBool         opt;
-  PetscErrorCode    ierr;
+  char             logList[256];
+  char             *className;
+  PetscBool        opt;
+  PetscErrorCode   ierr;
 
   PetscFunctionBegin;
   if (initialized) PetscFunctionReturn(0);
@@ -99,8 +99,8 @@ PetscErrorCode IPInitializePackage(const char *path)
 @*/
 PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 {
+  IP             ip;
   PetscErrorCode ierr;
-  IP ip;
 
   PetscFunctionBegin;
   PetscValidPointer(newip,2);
@@ -115,7 +115,6 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->Bx            = PETSC_NULL;
   ip->xid           = 0;
   ip->xstate        = 0;
-
   PetscFunctionReturn(0);
 }
 
@@ -143,6 +142,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)ip,prefix);CHKERRQ(ierr);
@@ -172,6 +172,7 @@ PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
 PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)ip,prefix);CHKERRQ(ierr);
@@ -201,12 +202,13 @@ PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
 @*/
 PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 {
- PetscErrorCode ierr;
- PetscFunctionBegin;
- PetscValidHeaderSpecific(ip,IP_CLASSID,1);
- PetscValidPointer(prefix,2);
- ierr = PetscObjectGetOptionsPrefix((PetscObject)ip, prefix);CHKERRQ(ierr);
- PetscFunctionReturn(0);
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidPointer(prefix,2);
+  ierr = PetscObjectGetOptionsPrefix((PetscObject)ip, prefix);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 
@@ -227,11 +229,11 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 @*/
 PetscErrorCode IPSetFromOptions(IP ip)
 {
-  PetscErrorCode ierr;
   const char     *orth_list[2] = { "mgs" , "cgs" };
   const char     *ref_list[3] = { "never" , "ifneeded", "always" };
   PetscReal      r;
   PetscInt       i,j;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
@@ -371,15 +373,14 @@ PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrth
 @*/
 PetscErrorCode IPView(IP ip,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscBool      isascii;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ip)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ip,1,viewer,2);
-
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ip,viewer,"IP Object");CHKERRQ(ierr);

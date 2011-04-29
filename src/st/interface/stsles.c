@@ -39,8 +39,8 @@
 */
 PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 {
-  PetscErrorCode ierr;
-  PetscInt       its;
+  PetscErrorCode     ierr;
+  PetscInt           its;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;

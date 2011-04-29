@@ -34,7 +34,6 @@ PetscErrorCode QEPDestroy_Default(QEP qep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscFree(qep->data);CHKERRQ(ierr);
-
   /* free work vectors */
   ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -51,7 +50,6 @@ PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
   PetscInt       i;
 
   PetscFunctionBegin;
-
   if (qep->nwork != nw) {
     if (qep->nwork > 0) {
       ierr = VecDestroyVecs(qep->nwork,&qep->work); CHKERRQ(ierr);
@@ -63,7 +61,6 @@ PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
     }
     ierr = PetscLogObjectParents(qep,nw,qep->work);
   }
-  
   PetscFunctionReturn(0);
 }
 
@@ -92,6 +89,7 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
 PetscErrorCode QEPDefaultConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
+
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res;
@@ -132,7 +130,6 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   PetscFunctionBegin;
   ncv = PetscBLASIntCast(qep->ncv);
   nconv = PetscBLASIntCast(qep->nconv);
- 
   ierr = PetscMalloc(nconv*nconv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
   ierr = PetscMalloc(3*nconv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -219,7 +216,6 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscSca
   }
   if (marker!=-1) k = marker;
   *kout = k;
-
   PetscFunctionReturn(0);
 }
 

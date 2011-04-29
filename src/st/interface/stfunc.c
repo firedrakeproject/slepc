@@ -23,17 +23,17 @@
 
 #include <private/stimpl.h>            /*I "slepcst.h" I*/
 
-PetscClassId ST_CLASSID = 0;
-PetscLogEvent ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
+PetscClassId     ST_CLASSID = 0;
+PetscLogEvent    ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "STFinalizePackage"
 /*@C
-  STFinalizePackage - This function destroys everything in the Slepc interface to the ST package. It is
-  called from SlepcFinalize().
+   STFinalizePackage - This function destroys everything in the Slepc interface 
+   to the ST package. It is called from SlepcFinalize().
 
-  Level: developer
+   Level: developer
 
 .seealso: SlepcFinalize()
 @*/
@@ -48,18 +48,19 @@ PetscErrorCode STFinalizePackage(void)
 #undef __FUNCT__  
 #define __FUNCT__ "STInitializePackage"
 /*@C
-  STInitializePackage - This function initializes everything in the ST package. It is called
-  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to STCreate()
-  when using static libraries.
+   STInitializePackage - This function initializes everything in the ST package. It is called
+   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to STCreate()
+   when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or PETSC_NULL
+   Input Parameter:
+.  path - The dynamic library path, or PETSC_NULL
 
-  Level: developer
+   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode STInitializePackage(const char *path) {
+PetscErrorCode STInitializePackage(const char *path)
+{
   char           logList[256];
   char           *className;
   PetscBool      opt;
@@ -187,7 +188,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   
   *newst                  = st;
   PetscFunctionReturn(0);
-
 }
 
 #undef __FUNCT__  
@@ -212,6 +212,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
@@ -309,7 +310,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (shift)  *shift = st->sigma;
+  if (shift) *shift = st->sigma;
   PetscFunctionReturn(0);
 }
 
@@ -369,7 +370,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   ierr = VecDestroy(&st->D); CHKERRQ(ierr);
   st->D = D;
   if (!st->wb) {
-    ierr = VecDuplicate(st->D,&st->wb); CHKERRQ(ierr);
+    ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -648,9 +649,9 @@ M*/
 #undef __FUNCT__  
 #define __FUNCT__ "STRegister"
 /*@C
-  STRegister - See STRegisterDynamic()
+   STRegister - See STRegisterDynamic()
 
-  Level: advanced
+   Level: advanced
 @*/
 PetscErrorCode STRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(ST))
 {

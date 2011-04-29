@@ -50,7 +50,6 @@ PetscErrorCode SVDSolve(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-
   if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
   svd->its = 0;
   svd->matvecs = 0;
@@ -85,7 +84,6 @@ PetscErrorCode SVDSolve(SVD svd)
 
   /* Remove the initial subspace */
   svd->nini = 0;
-
   PetscFunctionReturn(0);
 }
 

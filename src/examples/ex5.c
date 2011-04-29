@@ -36,7 +36,6 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  PetscErrorCode ierr;
   Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
@@ -44,6 +43,7 @@ int main( int argc, char **argv )
   PetscReal      error, tol, re, im;
   PetscScalar    kr, ki;
   PetscInt       N, m=15, nev, maxit, i, its, nconv;
+  PetscErrorCode ierr;
   
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -186,8 +186,8 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
   PetscReal       pd, pu;
-  PetscErrorCode  ierr;
   PetscInt        Istart, Iend, i, j, jmax, ix=0;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);

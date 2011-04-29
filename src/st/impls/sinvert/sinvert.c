@@ -65,12 +65,15 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
 #define __FUNCT__ "STBackTransform_Sinvert"
 PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
-  PetscInt j;
+  PetscInt    j;
 #ifndef PETSC_USE_COMPLEX
   PetscScalar t;
+#endif
+
   PetscFunctionBegin;
-  PetscValidPointer(eigr,2);
-  PetscValidPointer(eigi,3);
+  PetscValidPointer(eigr,3);
+#ifndef PETSC_USE_COMPLEX
+  PetscValidPointer(eigi,4);
   for (j=0;j<n;j++) {
     if (eigi[j] == 0) eigr[j] = 1.0 / eigr[j] + st->sigma;
     else {
@@ -80,8 +83,6 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscS
     }
   }
 #else
-  PetscFunctionBegin;
-  PetscValidPointer(eigr,2);
   for (j=0;j<n;j++) {
     eigr[j] = 1.0 / eigr[j] + st->sigma;
   }
@@ -162,7 +163,6 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   MatStructure   flg;
 
   PetscFunctionBegin;
-
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
   
@@ -226,7 +226,6 @@ PetscErrorCode STSetFromOptions_Sinvert(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
-
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
@@ -241,7 +240,6 @@ PetscErrorCode STSetFromOptions_Sinvert(ST st)
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
     }
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -252,7 +250,6 @@ PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
   st->data                 = 0;
-
   st->ops->apply           = STApply_Sinvert;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Sinvert;
@@ -262,9 +259,7 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->setshift        = STSetShift_Sinvert;
   st->ops->view            = STView_Default;
   st->ops->setfromoptions = STSetFromOptions_Sinvert;
-  
   st->checknullspace      = STCheckNullSpace_Default;
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

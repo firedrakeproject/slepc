@@ -140,6 +140,5 @@ PetscErrorCode QEPSortDenseSchur(QEP qep,PetscInt n_,PetscInt k,PetscScalar *T,P
 #endif
   ierr = PetscLogEventEnd(QEP_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-
 #endif 
 }

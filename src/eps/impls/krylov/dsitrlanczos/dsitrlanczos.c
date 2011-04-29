@@ -86,11 +86,10 @@ PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
 PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lds,lt,nv,m;
+  PetscInt       i,k,l,lds,lt,nv,m,*iwork;
   Vec            u=eps->work[0];
   PetscScalar    *Q, sigma, lambda, zero = 0.0;
   PetscReal      *a,*b,*work,beta,distance = 1e-3;
-  PetscInt       *iwork;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -180,9 +179,7 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
 
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv+eps->nconv);CHKERRQ(ierr);
     eps->nconv = k;
-    
   } 
-
   ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(a);CHKERRQ(ierr);
   ierr = PetscFree(b);CHKERRQ(ierr);
@@ -197,12 +194,12 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_DSITRLANCZOS(EPS eps)
 {
   PetscFunctionBegin;
-  eps->data                      = PETSC_NULL;
-  eps->ops->setup                = EPSSetUp_DSITRLANCZOS;
-  eps->ops->setfromoptions       = PETSC_NULL;
-  eps->ops->destroy              = EPSDestroy_Default;
-  eps->ops->view                 = PETSC_NULL;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
+  eps->data                = PETSC_NULL;
+  eps->ops->setup          = EPSSetUp_DSITRLANCZOS;
+  eps->ops->setfromoptions = PETSC_NULL;
+  eps->ops->destroy        = EPSDestroy_Default;
+  eps->ops->view           = PETSC_NULL;
+  eps->ops->computevectors = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

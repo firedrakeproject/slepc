@@ -171,9 +171,7 @@ PetscErrorCode STSetFromOptions(ST st)
     }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-
   ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr); 
-
   PetscFunctionReturn(0);
 }
 

@@ -225,7 +225,6 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-
   if (nsv != PETSC_IGNORE) {
     if (nsv<1) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
     svd->nsv = nsv;
@@ -380,14 +379,14 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 @*/
 PetscErrorCode SVDSetFromOptions(SVD svd)
 {
-  PetscErrorCode ierr;
-  char           type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool      flg;
-  const char     *mode_list[2] = { "explicit", "implicit" };
-  PetscInt       i,j,k;
-  PetscReal      r;
+  PetscErrorCode          ierr;
+  char                    type[256],monfilename[PETSC_MAX_PATH_LEN];
+  PetscBool               flg;
+  const char              *mode_list[2] = { "explicit", "implicit" };
+  PetscInt                i,j,k;
+  PetscReal               r;
   PetscViewerASCIIMonitor monviewer;
-  SlepcConvMonitor ctx;
+  SlepcConvMonitor        ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -470,25 +469,25 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetTrackAll"
 /*@
-    SVDSetTrackAll - Specifies if the solver must compute the residual norm of all
-    approximate singular value or not.
+   SVDSetTrackAll - Specifies if the solver must compute the residual norm of all
+   approximate singular value or not.
 
-    Collective on SVD
+   Collective on SVD
 
-    Input Parameters:
-+   svd      - the singular value solver context
--   trackall - whether to compute all residuals or not
+   Input Parameters:
++  svd      - the singular value solver context
+-  trackall - whether to compute all residuals or not
 
-    Notes:
-    If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
-    the residual norm for each singular value approximation. Computing the residual is
-    usually an expensive operation and solvers commonly compute only the residual 
-    associated to the first unconverged singular value.
+   Notes:
+   If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
+   the residual norm for each singular value approximation. Computing the residual is
+   usually an expensive operation and solvers commonly compute only the residual 
+   associated to the first unconverged singular value.
 
-    The options '-svd_monitor_all' and '-svd_monitor_draw_all' automatically
-    activate this option.
+   The options '-svd_monitor_all' and '-svd_monitor_draw_all' automatically
+   activate this option.
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: SVDGetTrackAll()
 @*/
@@ -503,18 +502,18 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
 #undef __FUNCT__  
 #define __FUNCT__ "SVDGetTrackAll"
 /*@
-    SVDGetTrackAll - Returns the flag indicating whether all residual norms must
-    be computed or not.
+   SVDGetTrackAll - Returns the flag indicating whether all residual norms must
+   be computed or not.
 
-    Not Collective
+   Not Collective
 
-    Input Parameter:
-.   svd - the singular value solver context
+   Input Parameter:
+.  svd - the singular value solver context
 
-    Output Parameter:
-.   trackall - the returned flag
+   Output Parameter:
+.  trackall - the returned flag
 
-    Level: intermediate
+   Level: intermediate
 
 .seealso: SVDSetTrackAll()
 @*/
@@ -650,6 +649,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
 PetscErrorCode SVDGetOptionsPrefix(SVD svd,const char *prefix[])
 {
   PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(prefix,2);

@@ -101,6 +101,7 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
+
   PetscFunctionBegin;
   PetscValidScalarPointer(eigr,3);
   PetscValidScalarPointer(eigi,4);
@@ -167,7 +168,6 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
-
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
@@ -182,7 +182,6 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
     }
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -208,7 +207,6 @@ PetscErrorCode STCreate_Fold(ST st)
   ST_FOLD        *ctx;
 
   PetscFunctionBegin;
-
   ierr = PetscNew(ST_FOLD,&ctx); CHKERRQ(ierr);
   PetscLogObjectMemory(st,sizeof(ST_FOLD));
   st->data                 = (void *) ctx;
@@ -222,7 +220,6 @@ PetscErrorCode STCreate_Fold(ST st)
   st->ops->setfromoptions  = STSetFromOptions_Fold;
   st->ops->destroy         = STDestroy_Fold;
   st->checknullspace       = 0;
-  
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

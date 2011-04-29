@@ -47,7 +47,6 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   PetscReal      norm;
 
   PetscFunctionBegin;
-  
   for (j=k;j<m-1;j++) {
     if (trans) { ierr = STApplyTranspose(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
     else { ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr); }
@@ -64,7 +63,6 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   if (trans) { ierr = STApplyTranspose(eps->OP,V[m-1],f);CHKERRQ(ierr); }
   else { ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr); }
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,m,PETSC_NULL,V,f,H+ldh*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
-  
   PetscFunctionReturn(0);
 }
 
@@ -135,7 +133,6 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscInt kini,PetscI
   }
   if (marker!=-1) k = marker;
   *kout = k;
-
   PetscFunctionReturn(0);
 }
 

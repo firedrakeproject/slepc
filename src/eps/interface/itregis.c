@@ -64,7 +64,6 @@ PetscErrorCode EPSRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
   ierr = EPSRegisterDynamic(EPSPOWER,path,"EPSCreate_POWER",EPSCreate_POWER);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSSUBSPACE,path,"EPSCreate_SUBSPACE",EPSCreate_SUBSPACE);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSARNOLDI,path,"EPSCreate_ARNOLDI",EPSCreate_ARNOLDI);CHKERRQ(ierr);

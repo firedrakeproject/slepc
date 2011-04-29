@@ -123,7 +123,7 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
   PetscFunctionBegin;
   ierr = MatGetLocalSize(st->B,&n,&m);CHKERRQ(ierr);
   ierr = MatCreateShell(((PetscObject)st)->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);  
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -135,8 +135,11 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
   PetscInt    j;
 #ifndef PETSC_USE_COMPLEX
   PetscScalar t,i,r;
+#endif
+
   PetscFunctionBegin;
   PetscValidPointer(eigr,3);
+#ifndef PETSC_USE_COMPLEX
   PetscValidPointer(eigi,4);
   for (j=0;j<n;j++) {
     if (eigi[j] == 0.0) eigr[j] = (ctx->nu + eigr[j] * st->sigma) / (eigr[j] - 1.0);
@@ -151,8 +154,6 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
     }
   }
 #else
-  PetscFunctionBegin;
-  PetscValidPointer(eigr,2);
   for (j=0;j<n;j++) {
     eigr[j] = (ctx->nu + eigr[j] * st->sigma) / (eigr[j] - 1.0);
   }
@@ -186,7 +187,6 @@ PetscErrorCode STSetUp_Cayley(ST st)
   ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
 
   PetscFunctionBegin;
-
   ierr = MatDestroy(&st->mat);CHKERRQ(ierr);
 
   /* if the user did not set the shift, use the target value */
@@ -305,7 +305,6 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
-
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
@@ -439,7 +438,6 @@ PetscErrorCode STCreate_Cayley(ST st)
   ctx->nu_set              = PETSC_FALSE;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

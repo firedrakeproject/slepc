@@ -31,7 +31,6 @@ static char help[] = "Computes the smallest nonzero eigenvalue of the Laplacian 
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  PetscErrorCode ierr;
   EPS            eps;             /* eigenproblem solver context */
   Mat            A;               /* operator matrix */
   Vec            x;
@@ -41,6 +40,7 @@ int main( int argc, char **argv )
   PetscInt       N, n=10, m, i, j, II, Istart, Iend, nev, maxit, its, nconv;
   PetscScalar    w;
   PetscBool      flag;
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

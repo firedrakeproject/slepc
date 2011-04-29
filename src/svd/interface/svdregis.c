@@ -32,11 +32,11 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "SVDRegisterAll"
 /*@C
-  SVDRegisterAll - Registers all the singular value solvers in the SVD package.
+   SVDRegisterAll - Registers all the singular value solvers in the SVD package.
 
-  Not Collective
+   Not Collective
 
-  Level: advanced
+   Level: advanced
 
 .seealso:  SVDRegisterDynamic()
 @*/

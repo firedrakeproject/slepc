@@ -135,7 +135,6 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
   PetscReal      onrm,nrm;
 
   PetscFunctionBegin;
-  
   if (H) { 
     for (i=0;i<n;i++) 
       H[i] = 0; 
@@ -193,7 +192,6 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
   default:
     SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -333,7 +331,6 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
-  
   if (nds==0 && n==0) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
     if (lindep) *lindep = PETSC_FALSE;
@@ -349,7 +346,6 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *
       SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
-  
   ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 }
@@ -395,7 +391,6 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   PetscRandom    rctx=PETSC_NULL;
   
   PetscFunctionBegin;
-
   for (k=m; k<n; k++) {
 
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
@@ -417,7 +412,6 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
 
   }
   ierr = PetscRandomDestroy(&rctx);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -437,7 +431,6 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   PetscScalar    shh[100],*lhh,*vw,*tau,one=1.0,*work;
 
   PetscFunctionBegin;
-
   /* Don't allocate small arrays */
   if (n<=100) lhh = shh;
   else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
@@ -512,12 +505,12 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
   PetscScalar    lh[100],*h;
   PetscBool      allocated = PETSC_FALSE;
   PetscReal      lhnrm,*hnrm,lnrm,*nrm;
+
   PetscFunctionBegin;
   if (n==0) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
   } else {
     ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
-    
     /* allocate H if needed */
     if (!H) {
       if (n<=100) h = lh;
@@ -546,7 +539,6 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
     }
     
     if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
-    
     ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   } 
   PetscFunctionReturn(0);

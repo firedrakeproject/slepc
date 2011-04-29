@@ -348,7 +348,8 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   PetscInt       i,j,m = *M;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta;
   PetscBool      *which,lwhich[100],*which2,lwhich2[100],
-                 reorth = PETSC_FALSE,force_reorth = PETSC_FALSE,fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
+                 reorth = PETSC_FALSE,force_reorth = PETSC_FALSE,
+                 fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
   PetscScalar    *hwork,lhwork[100];
 
   PetscFunctionBegin;
@@ -478,12 +479,12 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 */
 static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *m,Vec f,PetscBool *breakdown,PetscReal anorm)
 {
-  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  PetscScalar    *T;
+  PetscInt       i,n=*m;
+  PetscReal      betam;
   PetscErrorCode ierr;
   IPOrthogonalizationRefinementType orthog_ref;
-  PetscScalar *T;
-  PetscInt i,n=*m;
-  PetscReal betam;
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
@@ -523,7 +524,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
 #define __FUNCT__ "EPSSolve_LANCZOS"
 PetscErrorCode EPSSolve_LANCZOS(EPS eps)
 {
-  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
   PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv,r;
   Vec            w=eps->work[1],f=eps->work[0];
@@ -777,6 +778,7 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSLanczosGetReorthog_LANCZOS(EPS eps,EPSLanczosReorthogType *reorthog)
 {
   EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+
   PetscFunctionBegin;
   *reorthog = lanczos->reorthog;
   PetscFunctionReturn(0);

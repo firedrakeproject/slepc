@@ -158,7 +158,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  *ctx =      (svd->monitorcontext[0]);
+  *ctx = (svd->monitorcontext[0]);
   PetscFunctionReturn(0);
 }
 
@@ -282,17 +282,13 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
 PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer) monctx;
-  PetscDraw      draw;
-  PetscDrawLG    lg;
+  PetscDraw      draw,draw1;
+  PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
   PetscReal      x,y,p;
-  PetscDraw      draw1;
-  PetscDrawLG    lg1;
 
   PetscFunctionBegin;
-
   if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm); }
-
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
@@ -331,19 +327,14 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
 PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer) monctx;
-  PetscDraw      draw;
-  PetscDrawLG    lg;
+  PetscDraw      draw,draw1;
+  PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
   PetscReal      *x,*y,p;
-  int            n = PetscMin(svd->nsv,255);
-  PetscInt       i;
-  PetscDraw      draw1;
-  PetscDrawLG    lg1;
+  PetscInt       i,n = PetscMin(svd->nsv,255);
 
   PetscFunctionBegin;
-
   if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm); }
-
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);

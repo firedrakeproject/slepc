@@ -213,7 +213,6 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
   PetscReal      norm=0.0;
 
   PetscFunctionBegin;
-
   for (j=k;j<m;j++) {
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
@@ -249,7 +248,6 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
   ierr = IPNorm(eps->ip,f,beta);CHKERRQ(ierr);
   ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
   *breakdown = PETSC_FALSE;
-  
   PetscFunctionReturn(0);
 }
 
@@ -471,7 +469,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSArnoldiSetDelayed_ARNOLDI"
 PetscErrorCode EPSArnoldiSetDelayed_ARNOLDI(EPS eps,PetscBool delayed)
 {
-  EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
+  EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
   arnoldi->delayed = delayed;
@@ -518,7 +516,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSArnoldiGetDelayed_ARNOLDI"
 PetscErrorCode EPSArnoldiGetDelayed_ARNOLDI(EPS eps,PetscBool *delayed)
 {
-  EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
+  EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
   *delayed = arnoldi->delayed;

@@ -78,7 +78,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
 {
   PetscErrorCode ierr;
   Vec            x,y;
-  PetscBLASInt            i;
+  PetscBLASInt   i;
 
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
@@ -107,7 +107,6 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscScalar    *pV;
   
   PetscFunctionBegin;
-
   ncv = PetscBLASIntCast(eps->ncv);
   n = PetscBLASIntCast(eps->nloc);
   
@@ -147,7 +146,6 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   eps->reason = EPS_CONVERGED_TOL;
   
   if (stat!=0) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);}
-
   PetscFunctionReturn(0);
 }
 

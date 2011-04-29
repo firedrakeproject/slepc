@@ -307,8 +307,7 @@ PetscErrorCode EPSDenseGHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscReal 
 #else
   PetscErrorCode ierr;
   PetscScalar    *work;
-  PetscBLASInt   itype = 1,*iwork,info,n,
-                 liwork;
+  PetscBLASInt   itype = 1,*iwork,info,n,liwork;
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -896,7 +895,6 @@ PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,Pet
   norm = BLASnrm2_(&mm,Y,&inc);
   tmp = 1.0 / norm;
   BLASscal_(&mm,&tmp,Y,&inc);
-
   PetscFunctionReturn(0);
 #endif
 }
