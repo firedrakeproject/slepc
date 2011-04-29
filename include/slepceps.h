@@ -297,6 +297,7 @@ typedef enum { EPS_LANCZOS_REORTHOG_LOCAL,
                EPS_LANCZOS_REORTHOG_PERIODIC,
                EPS_LANCZOS_REORTHOG_PARTIAL, 
                EPS_LANCZOS_REORTHOG_DELAYED } EPSLanczosReorthogType;
+extern const char *EPSLanczosReorthogTypes[];
 
 extern PetscErrorCode EPSLanczosSetReorthog(EPS,EPSLanczosReorthogType);
 extern PetscErrorCode EPSLanczosGetReorthog(EPS,EPSLanczosReorthogType*);
@@ -327,6 +328,7 @@ typedef enum { EPS_PRIMME_DYNAMIC,
                EPS_PRIMME_SUBSPACE_ITERATION,
                EPS_PRIMME_LOBPCG_ORTHOBASIS,
                EPS_PRIMME_LOBPCG_ORTHOBASISW } EPSPRIMMEMethod;
+extern const char *EPSPRIMMEMethods[];
 
 extern PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs);
 extern PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method);

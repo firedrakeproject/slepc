@@ -40,23 +40,6 @@ typedef struct {
   Vec x,y;                        /* auxiliar vectors */ 
 } EPS_PRIMME;
 
-const char *methodList[] = {
-  "dynamic",
-  "default_min_time",
-  "default_min_matvecs",
-  "arnoldi",
-  "gd",
-  "gd_plusk",
-  "gd_olsen_plusk",
-  "jd_olsen_plusk",
-  "rqi",
-  "jdqr",
-  "jdqmr",
-  "jdqmr_etol",
-  "subspace_iteration",
-  "lobpcg_orthobasis",
-  "lobpcg_orthobasis_window"
-};
 EPSPRIMMEMethod methodN[] = {
   EPS_PRIMME_DYNAMIC,
   EPS_PRIMME_DEFAULT_MIN_TIME,
@@ -328,8 +311,8 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   }
   
   ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
-  ierr = EPSPRIMMEGetMethod(eps, &methodn);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver method: %s\n", methodList[methodn]);CHKERRQ(ierr);
+  ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
 
   /* Display PRIMME params */
   primme_display_params(*primme);
@@ -340,21 +323,18 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSSetFromOptions_PRIMME"
 PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
 {
-  PetscErrorCode ierr;
-  EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
-  PetscInt       op;
-  PetscBool      flg;
+  PetscErrorCode  ierr;
+  EPS_PRIMME      *ctx = (EPS_PRIMME *)eps->data;
+  PetscInt        bs;
+  EPSPRIMMEMethod meth;
+  PetscBool       flg;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"PRIMME Options","EPS");CHKERRQ(ierr);
-
-  op = ops->primme.maxBlockSize; 
-  ierr = PetscOptionsInt("-eps_primme_block_size"," maximum block size","EPSPRIMMESetBlockSize",op,&op,&flg); CHKERRQ(ierr);
-  if (flg) {ierr = EPSPRIMMESetBlockSize(eps,op);CHKERRQ(ierr);}
-  op = 0;
-  ierr = PetscOptionsEList("-eps_primme_method","set method for solving the eigenproblem",
-                           "EPSPRIMMESetMethod",methodList,15,methodList[1],&op,&flg); CHKERRQ(ierr);
-  if (flg) { ierr = EPSPRIMMESetMethod(eps, methodN[op]);CHKERRQ(ierr); }
+  ierr = PetscOptionsInt("-eps_primme_block_size","Maximum block size","EPSPRIMMESetBlockSize",ctx->primme.maxBlockSize,&bs,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSPRIMMESetBlockSize(eps,bs);CHKERRQ(ierr); }
+  ierr = PetscOptionsEnum("-eps_primme_method","Method for solving the eigenproblem","EPSPRIMMESetMethod",EPSPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg); CHKERRQ(ierr);
+  if (flg) { ierr = EPSPRIMMESetMethod(eps,meth);CHKERRQ(ierr); }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

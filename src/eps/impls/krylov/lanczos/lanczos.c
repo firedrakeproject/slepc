@@ -699,21 +699,19 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-static const char *lanczoslist[6] = { "local", "full", "selective", "periodic", "partial" , "delayed" };
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetFromOptions_LANCZOS"
 PetscErrorCode EPSSetFromOptions_LANCZOS(EPS eps)
 {
-  PetscErrorCode ierr;
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
-  PetscBool      flg;
-  PetscInt       i;
+  PetscErrorCode         ierr;
+  EPS_LANCZOS            *lanczos = (EPS_LANCZOS *)eps->data;
+  PetscBool              flg;
+  EPSLanczosReorthogType reorthog;
 
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"LANCZOS Options","EPS");CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",lanczoslist,6,lanczoslist[lanczos->reorthog],&i,&flg);CHKERRQ(ierr);
-  if (flg) lanczos->reorthog = (EPSLanczosReorthogType)i;
+  ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)lanczos->reorthog,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr); }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -842,7 +840,7 @@ PetscErrorCode EPSView_LANCZOS(EPS eps,PetscViewer viewer)
   if (!isascii) {
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSLANCZOS",((PetscObject)viewer)->type_name);
   }  
-  ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",lanczoslist[lanczos->reorthog]);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",EPSLanczosReorthogTypes[lanczos->reorthog]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
