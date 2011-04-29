@@ -345,7 +345,7 @@ PetscErrorCode STSetFromOptions_Shell(ST st)
 /*MC
    STSHELL - Creates a new spectral transformation class.
           This is intended to provide a simple class to use with EPS.
-	  You should not use this if you plan to make a complete class.
+          You should not use this if you plan to make a complete class.
 
   Level: advanced
 

@@ -50,16 +50,16 @@ struct _SVDOps {
 struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
   Mat              OP;          /* problem matrix */
-  Mat              A;	        /* problem matrix (m>n) */
+  Mat              A;           /* problem matrix (m>n) */
   Mat              AT;          /* transposed matrix */
   SVDTransposeMode transmode;   /* transpose mode */
-  PetscReal        *sigma;	/* singular values */
+  PetscReal        *sigma;      /* singular values */
   PetscInt         *perm;       /* permutation for singular value ordering */
-  Vec              *U,*V;	/* left and right singular vectors */
+  Vec              *U,*V;       /* left and right singular vectors */
   Vec              *IS;         /* placeholder for references to user-provided initial space */
   PetscInt         n;           /* maximun size of descomposition */
   SVDWhich         which;       /* which singular values are computed */
-  PetscInt         nconv;	/* number of converged values */
+  PetscInt         nconv;       /* number of converged values */
   PetscInt         nsv;         /* number of requested values */
   PetscInt         ncv;         /* basis size */
   PetscInt         mpd;         /* maximum dimension of projected problem */
@@ -69,8 +69,8 @@ struct _p_SVD {
   PetscReal        tol;         /* tolerance */
   PetscReal        *errest;     /* error estimates */
   PetscRandom      rand;        /* random number generator */
-  void             *data;	/* placeholder for misc stuff associated
-                   		   with a particular solver */
+  void             *data;       /* placeholder for misc stuff associated
+                                   with a particular solver */
   PetscInt         setupcalled;
   SVDConvergedReason reason;
   IP               ip;

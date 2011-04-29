@@ -240,20 +240,14 @@ PetscErrorCode dvd_prof_init()
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   if (!stages[0]) {
     ierr = PetscLogStageRegister("Dvd_step_initV", &stages[DVD_STAGE_INITV]);
     CHKERRQ(ierr);
-    ierr = PetscLogStageRegister("Dvd_step_calcPairs",
-  		               &stages[DVD_STAGE_CALCPAIRS]); CHKERRQ(ierr);
-    ierr = PetscLogStageRegister("Dvd_step_improveX",
-  		               &stages[DVD_STAGE_IMPROVEX]); CHKERRQ(ierr);
-    ierr = PetscLogStageRegister("Dvd_step_updateV",
-  		               &stages[DVD_STAGE_UPDATEV]); CHKERRQ(ierr);
-    ierr = PetscLogStageRegister("Dvd_step_orthV",
-  		               &stages[DVD_STAGE_ORTHV]); CHKERRQ(ierr);
+    ierr = PetscLogStageRegister("Dvd_step_calcPairs",&stages[DVD_STAGE_CALCPAIRS]);CHKERRQ(ierr);
+    ierr = PetscLogStageRegister("Dvd_step_improveX",&stages[DVD_STAGE_IMPROVEX]);CHKERRQ(ierr);
+    ierr = PetscLogStageRegister("Dvd_step_updateV",&stages[DVD_STAGE_UPDATEV]);CHKERRQ(ierr);
+    ierr = PetscLogStageRegister("Dvd_step_orthV",&stages[DVD_STAGE_ORTHV]);CHKERRQ(ierr);
   }
-  
   PetscFunctionReturn(0);
 }
 

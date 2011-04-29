@@ -265,7 +265,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
         ierr = IPOrthogonalizeCGS1(ip,nds,DS,n,which,V,v,c,PETSC_NULL,&nrm);CHKERRQ(ierr); 
       }
       for (j=0;j<n;j++) 
-	if (!which || which[j]) h[nds+j] += c[nds+j];
+        if (!which || which[j]) h[nds+j] += c[nds+j];
     }
     if (norm) *norm = nrm;
     if (lindep) {

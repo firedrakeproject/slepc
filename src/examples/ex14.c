@@ -30,15 +30,15 @@ static char help[] = "Solves a singular value problem with the matrix loaded fro
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 A;		  /* operator matrix */
-  SVD         	 svd;		  /* singular value problem solver context */
-  const SVDType  type;
-  PetscReal   	 error, tol, sigma;
   PetscErrorCode ierr;
-  PetscInt    	 nsv, maxit, i, its, nconv;
-  char        	 filename[256];
-  PetscViewer 	 viewer;
-  PetscBool   	 flg;
+  Mat            A;               /* operator matrix */
+  SVD            svd;             /* singular value problem solver context */
+  const SVDType  type;
+  PetscReal      error, tol, sigma;
+  PetscInt       nsv, maxit, i, its, nconv;
+  char           filename[256];
+  PetscViewer    viewer;
+  PetscBool      flg;
 
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

@@ -47,11 +47,11 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
 int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
-  Mat         	 A;		  /* Grcar matrix */
+  Mat            A;               /* Grcar matrix */
   SVD            svd;             /* singular value solver context */
-  PetscInt    	 N=30, Istart, Iend, i, col[5], nconv1, nconv2;
-  PetscScalar 	 value[] = { -1, 1, 1, 1, 1 };
-  PetscReal   	 sigma_1, sigma_n;
+  PetscInt       N=30, Istart, Iend, i, col[5], nconv1, nconv2;
+  PetscScalar    value[] = { -1, 1, 1, 1, 1 };
+  PetscReal      sigma_1, sigma_n;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -71,8 +71,7 @@ int main( int argc, char **argv )
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
     if (i==0) {
       ierr = MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
-    }
-    else {
+    } else {
       ierr = MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES);CHKERRQ(ierr);
     }
   }

@@ -144,10 +144,10 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     switch (svd->transmode) {
       case SVD_TRANSPOSE_EXPLICIT:
         ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: explicit\n");CHKERRQ(ierr);
-	break;
+        break;
       case SVD_TRANSPOSE_IMPLICIT:
         ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: implicit\n");CHKERRQ(ierr);
-	break;
+        break;
       default:
         ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: not yet set\n");CHKERRQ(ierr);
     }

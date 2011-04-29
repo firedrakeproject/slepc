@@ -640,7 +640,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #define __FUNCT__ "dvd_updateV_testConv"
 PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
                                     PetscInt e, Vec *auxV, PetscScalar *auxS,
-			                              PetscInt *nConv)
+                                    PetscInt *nConv)
 {
   PetscInt        i;
 #ifndef PETSC_USE_COMPLEX

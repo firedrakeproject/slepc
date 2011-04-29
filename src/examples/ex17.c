@@ -31,16 +31,16 @@ static char help[] = "Solves a quadratic eigenproblem (l^2*M + l*C + K)*x = 0 wi
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 M, C, K;         /* problem matrices */
-  QEP         	 qep;             /* quadratic eigenproblem solver context */
-  const QEPType  type;
-  PetscReal   	 error, tol, re, im;
-  PetscScalar 	 kr, ki;
   PetscErrorCode ierr;
-  PetscInt    	 nev, maxit, i, its, nconv;
-  char        	 filename[256];
-  PetscViewer 	 viewer;
-  PetscBool   	 flg;
+  Mat            M, C, K;         /* problem matrices */
+  QEP            qep;             /* quadratic eigenproblem solver context */
+  const QEPType  type;
+  PetscReal      error, tol, re, im;
+  PetscScalar    kr, ki;
+  PetscInt       nev, maxit, i, its, nconv;
+  char           filename[256];
+  PetscViewer    viewer;
+  PetscBool      flg;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

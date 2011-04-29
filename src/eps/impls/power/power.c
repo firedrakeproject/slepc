@@ -188,16 +188,16 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
           else rho = rt2;
 #endif 
         }
-	/* update operator according to new shift */
-	PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
-	ierr = STSetShift(eps->OP,rho);
-	PetscPopErrorHandler();
-	if (ierr) {
+        /* update operator according to new shift */
+        PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
+        ierr = STSetShift(eps->OP,rho);
+        PetscPopErrorHandler();
+        if (ierr) {
           eps->eigr[eps->nconv] = rho;
-	  relerr = PETSC_MACHINE_EPSILON;
-	  rho = sigma;
+          relerr = PETSC_MACHINE_EPSILON;
+          rho = sigma;
           ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
-	} 	
+        }
       }
     }
 
@@ -224,12 +224,12 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) eps->reason = EPS_CONVERGED_TOL;
       else {
-	v = eps->V[eps->nconv];
-	ierr = EPSGetStartVector(eps,eps->nconv,v,&breakdown);CHKERRQ(ierr);
-	if (breakdown) {
+        v = eps->V[eps->nconv];
+        ierr = EPSGetStartVector(eps,eps->nconv,v,&breakdown);CHKERRQ(ierr);
+        if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
-	  PetscInfo(eps,"Unable to generate more start vectors\n");
-	}
+          PetscInfo(eps,"Unable to generate more start vectors\n");
+        }
       }
     }
 
@@ -335,17 +335,17 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
           else rho = rt2;
 #endif 
         }
-	/* update operator according to new shift */
-	PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
-	ierr = STSetShift(eps->OP,rho);
-	PetscPopErrorHandler();
-	if (ierr) {
+        /* update operator according to new shift */
+        PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
+        ierr = STSetShift(eps->OP,rho);
+        PetscPopErrorHandler();
+        if (ierr) {
           eps->eigr[eps->nconv] = rho;
-	  eps->errest[eps->nconv] = PETSC_MACHINE_EPSILON;
-	  eps->errest_left[eps->nconv] = PETSC_MACHINE_EPSILON;
-	  rho = sigma;
+          eps->errest[eps->nconv] = PETSC_MACHINE_EPSILON;
+          eps->errest_left[eps->nconv] = PETSC_MACHINE_EPSILON;
+          rho = sigma;
           ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
-	}
+        }
       }
     }
 

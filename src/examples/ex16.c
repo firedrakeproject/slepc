@@ -30,14 +30,14 @@ static char help[] = "Quadratic eigenproblem for testing the QEP object.\n\n"
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 M, C, K;         /* problem matrices */
-  QEP         	 qep;             /* quadratic eigenproblem solver context */
-  const QEPType  type;
-  PetscReal   	 error, tol, re, im;
-  PetscScalar 	 kr, ki;
   PetscErrorCode ierr;
-  PetscInt    	 N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv;
-  PetscBool   	 flag;
+  Mat            M, C, K;         /* problem matrices */
+  QEP            qep;             /* quadratic eigenproblem solver context */
+  const QEPType  type;
+  PetscReal      error, tol, re, im;
+  PetscScalar    kr, ki;
+  PetscInt       N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv;
+  PetscBool      flag;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

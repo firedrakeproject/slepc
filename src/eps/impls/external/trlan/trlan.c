@@ -89,7 +89,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
     ierr = STApply(globaleps->OP,x,y);CHKERRQ(ierr);
     ierr = IPOrthogonalize(globaleps->ip,0,PETSC_NULL,globaleps->nds,PETSC_NULL,globaleps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecResetArray(x);CHKERRQ(ierr);
-    ierr = VecResetArray(y);CHKERRQ(ierr);	
+    ierr = VecResetArray(y);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
@@ -103,8 +103,8 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   ipar[32], n, lohi, stat, ncv; 
-  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;	   
-  PetscScalar    *pV;				   
+  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;   
+  PetscScalar    *pV;
   
   PetscFunctionBegin;
 

@@ -215,23 +215,23 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     nritzo = 0;
     for (i=0;i<n;i++)
       if (norm*PetscAbsScalar(Y[i*n+n-1]) < PETSC_SQRT_MACHINE_EPSILON*anorm)
-	nritzo++;
+        nritzo++;
 
     if (nritzo>nritz) {
       nritz = 0;
       for (i=0;i<n;i++) {
-	if (norm*PetscAbsScalar(Y[i*n+n-1]) < PETSC_SQRT_MACHINE_EPSILON*anorm) {
-	  ierr = SlepcVecMAXPBY(lanczos->AV[nritz],0.0,1.0,n,Y+i*n,V+k);CHKERRQ(ierr);
+        if (norm*PetscAbsScalar(Y[i*n+n-1]) < PETSC_SQRT_MACHINE_EPSILON*anorm) {
+          ierr = SlepcVecMAXPBY(lanczos->AV[nritz],0.0,1.0,n,Y+i*n,V+k);CHKERRQ(ierr);
           nritz++;
-	}
+        }
       }
     }
 
     if (nritz > 0) {
       ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,nritz,PETSC_NULL,lanczos->AV,f,hwork,&norm,breakdown);CHKERRQ(ierr);
       if (*breakdown) {
-	*M = j+1;
-	break;
+        *M = j+1;
+        break;
       }
     }
     
@@ -325,12 +325,12 @@ static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delt
       /* find left interval */
       for (k=i;k>=0;k--) {
         if (PetscAbsReal(mu[k])<eta || which[k]) break;
-	else which[k] = PETSC_TRUE;
+        else which[k] = PETSC_TRUE;
       }
       /* find right interval */
       for (k=i+1;k<j;k++) {
         if (PetscAbsReal(mu[k])<eta || which[k]) break;
-	else which[k] = PETSC_TRUE;
+        else which[k] = PETSC_TRUE;
       }
     }
   PetscFunctionReturnVoid();
@@ -398,36 +398,36 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       /* Estimate ||A|| if needed */ 
       if (estimate_anorm) {
         if (j>k) anorm = PetscMax(anorm,PetscAbsReal(alpha[j-k])+norm+beta[j-k-1]);
-	else anorm = PetscMax(anorm,PetscAbsReal(alpha[j-k])+norm);
+        else anorm = PetscMax(anorm,PetscAbsReal(alpha[j-k])+norm);
       }
 
       /* Check if reorthogonalization is needed */
       reorth = PETSC_FALSE;
       if (j>k) {      
-	update_omega(omega,omega_old,j-k,alpha,beta-1,eps1,anorm);
-	for (i=0;i<j-k;i++)
-	  if (PetscAbsScalar(omega[i]) > delta) reorth = PETSC_TRUE;
+        update_omega(omega,omega_old,j-k,alpha,beta-1,eps1,anorm);
+        for (i=0;i<j-k;i++)
+          if (PetscAbsScalar(omega[i]) > delta) reorth = PETSC_TRUE;
       }
 
       if (reorth || force_reorth) {
-	if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_PERIODIC) {
-	  /* Periodic reorthogonalization */
-	  if (force_reorth) force_reorth = PETSC_FALSE;
-	  else force_reorth = PETSC_TRUE;
-	  ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,j-k,PETSC_NULL,V+k,f,hwork,&norm,breakdown);CHKERRQ(ierr);
-	  for (i=0;i<j-k;i++)
+        if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_PERIODIC) {
+          /* Periodic reorthogonalization */
+          if (force_reorth) force_reorth = PETSC_FALSE;
+          else force_reorth = PETSC_TRUE;
+          ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,j-k,PETSC_NULL,V+k,f,hwork,&norm,breakdown);CHKERRQ(ierr);
+          for (i=0;i<j-k;i++)
             omega[i] = eps1;
-	} else {
-	  /* Partial reorthogonalization */
-	  if (force_reorth) force_reorth = PETSC_FALSE;
-	  else {
-	    force_reorth = PETSC_TRUE;
-	    compute_int(which2,omega,j-k,delta,eta);
-	    for (i=0;i<j-k;i++) 
-	      if (which2[i]) omega[i] = eps1;
-	  }
-	  ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,j-k,which2,V+k,f,hwork,&norm,breakdown);CHKERRQ(ierr);	
-	}	
+        } else {
+          /* Partial reorthogonalization */
+          if (force_reorth) force_reorth = PETSC_FALSE;
+          else {
+            force_reorth = PETSC_TRUE;
+            compute_int(which2,omega,j-k,delta,eta);
+            for (i=0;i<j-k;i++) 
+              if (which2[i]) omega[i] = eps1;
+          }
+          ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,j-k,which2,V+k,f,hwork,&norm,breakdown);CHKERRQ(ierr);
+        }
       }
     }
     
@@ -437,7 +437,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     }
     if (!fro && norm*delta < anorm*eps1) {
       fro = PETSC_TRUE;
-      PetscInfo1(eps,"Switching to full reorthogonalization at iteration %i\n",eps->its);	
+      PetscInfo1(eps,"Switching to full reorthogonalization at iteration %i\n",eps->its);
     }
     
     beta[j-k] = norm;
@@ -633,11 +633,11 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
     /* purge spurious ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
       for (i=0;i<k;i++) {
-	ierr = VecNorm(eps->V[nconv+i],NORM_2,&norm);CHKERRQ(ierr);
+        ierr = VecNorm(eps->V[nconv+i],NORM_2,&norm);CHKERRQ(ierr);
         ierr = VecScale(eps->V[nconv+i],1.0/norm);CHKERRQ(ierr);
         ierr = STApply(eps->OP,eps->V[nconv+i],w);CHKERRQ(ierr);
-	ierr = VecAXPY(w,-ritz[i],eps->V[nconv+i]);CHKERRQ(ierr);
-	ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = VecAXPY(w,-ritz[i],eps->V[nconv+i]);CHKERRQ(ierr);
+        ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
         ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],norm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
         if (bnd[i]>=eps->tol) conv[i] = 'S';
       }
@@ -669,13 +669,13 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
      if (eps->reason == EPS_CONVERGED_ITERATING) { /* copy restart vector */
       if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL && !breakdown) {
         /* Reorthonormalize restart vector */
-	ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,nconv,PETSC_NULL,eps->V,f,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-	ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,nconv,PETSC_NULL,eps->V,f,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
       }
       if (breakdown) {
-	/* Use random vector for restarting */
-	PetscInfo(eps,"Using random vector for restart\n");
-	ierr = EPSGetStartVector(eps,nconv,f,&breakdown);CHKERRQ(ierr);
+        /* Use random vector for restarting */
+        PetscInfo(eps,"Using random vector for restart\n");
+        ierr = EPSGetStartVector(eps,nconv,f,&breakdown);CHKERRQ(ierr);
       }
       if (breakdown) { /* give up */
         eps->reason = EPS_DIVERGED_BREAKDOWN;

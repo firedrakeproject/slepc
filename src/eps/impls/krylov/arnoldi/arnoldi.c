@@ -136,20 +136,20 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
       ierr = VecDotEnd(u,V[j-2],&dot2);CHKERRQ(ierr);
       if (PetscAbsScalar(dot2/norm2) > PETSC_MACHINE_EPSILON) {
         *breakdown = PETSC_TRUE;
-	*M = j-1;
-	*beta = norm2;
+        *M = j-1;
+        *beta = norm2;
 
-	if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-	ierr = VecDestroy(&u);CHKERRQ(ierr);
-	ierr = VecDestroy(&t);CHKERRQ(ierr);
-	PetscFunctionReturn(0);
+        if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
+        ierr = VecDestroy(&u);CHKERRQ(ierr);
+        ierr = VecDestroy(&t);CHKERRQ(ierr);
+        PetscFunctionReturn(0);
       }
     }
     
     if (j>k) {      
       norm1 = sqrt(PetscRealPart(dot));
       for (i=0;i<j;i++)
-	H[ldh*j+i] = H[ldh*j+i]/norm1;
+        H[ldh*j+i] = H[ldh*j+i]/norm1;
       H[ldh*j+j] = H[ldh*j+j]/dot;
       
       ierr = VecCopy(V[j],t);CHKERRQ(ierr);
@@ -234,7 +234,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
       H[ldh*(j-1)+j] = norm;
 
       for (i=0;i<j;i++)
-	H[ldh*j+i] = H[ldh*j+i]/norm;
+        H[ldh*j+i] = H[ldh*j+i]/norm;
       H[ldh*j+j] = H[ldh*j+j]/dot;      
       ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
     }
@@ -430,7 +430,7 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
       ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       if (breakdown) {
         eps->reason = EPS_DIVERGED_BREAKDOWN;
-	PetscInfo(eps,"Unable to generate more start vectors\n");
+        PetscInfo(eps,"Unable to generate more start vectors\n");
       }
     }
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;

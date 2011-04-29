@@ -211,17 +211,17 @@ PetscErrorCode STCreate_Fold(ST st)
 
   ierr = PetscNew(ST_FOLD,&ctx); CHKERRQ(ierr);
   PetscLogObjectMemory(st,sizeof(ST_FOLD));
-  st->data		  = (void *) ctx;
+  st->data                 = (void *) ctx;
 
-  st->ops->apply	   = STApply_Fold;
+  st->ops->apply           = STApply_Fold;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Fold;
-  st->ops->backtr	   = STBackTransform_Fold;
-  st->ops->setup	   = STSetUp_Fold;
-  st->ops->view 	   = STView_Fold;
+  st->ops->backtr          = STBackTransform_Fold;
+  st->ops->setup           = STSetUp_Fold;
+  st->ops->view            = STView_Fold;
   st->ops->setfromoptions  = STSetFromOptions_Fold;
-  st->ops->destroy	   = STDestroy_Fold;
-  st->checknullspace	   = 0;
+  st->ops->destroy         = STDestroy_Fold;
+  st->checknullspace       = 0;
   
   PetscFunctionReturn(0);
 }

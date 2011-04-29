@@ -43,14 +43,14 @@ PetscErrorCode SampleShellSTDestroy(SampleShellST*);
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat            A;		  /* operator matrix */
-  EPS            eps;		  /* eigenproblem solver context */
-  ST             st;		  /* spectral transformation context */
-  SampleShellST  *shell;	  /* user-defined spectral transform context */
+  PetscErrorCode ierr;
+  Mat            A;               /* operator matrix */
+  EPS            eps;             /* eigenproblem solver context */
+  ST             st;              /* spectral transformation context */
+  SampleShellST  *shell;          /* user-defined spectral transform context */
   const EPSType  type;
   PetscReal      error, tol, re, im;
   PetscScalar    kr, ki;
-  PetscErrorCode ierr;
   PetscInt       n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0, nev, maxit, its, nconv;
   PetscScalar    value[3];
   PetscBool      isShell;

@@ -152,7 +152,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
   ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT |
             (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
-	    ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF : 0);
+            ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF : 0);
   /* Asume -eps_hermitian means hermitian-definite in generalized problems */
   if (!ispositive && !eps->isgeneralized && eps->ishermitian) ispositive = PETSC_TRUE;
   if (!eps->isgeneralized)
@@ -164,7 +164,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps) {
               (ispositive? DVD_MAT_POS_DEF : 0);
   ipB = DVD_IS(dvd->sB, DVD_MAT_POS_DEF)?PETSC_TRUE:PETSC_FALSE;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
-	     (ispositive? DVD_EP_HERMITIAN : 0);
+             (ispositive? DVD_EP_HERMITIAN : 0);
   dvd->nev = eps->nev;
   dvd->which = eps->which;
   switch(eps->which) {

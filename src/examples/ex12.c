@@ -37,14 +37,14 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
 int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
-  Vec         	 v0,w0;           /* initial vector */
-  Vec         	 *X,*Y;           /* right and left eigenvectors */
-  Mat         	 A;               /* operator matrix */
-  EPS         	 eps;             /* eigenproblem solver context */
+  Vec            v0,w0;           /* initial vector */
+  Vec            *X,*Y;           /* right and left eigenvectors */
+  Mat            A;               /* operator matrix */
+  EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal   	 error1, error2, tol, re, im;
-  PetscScalar 	 kr, ki;
-  PetscInt    	 nev, maxit, i, its, nconv, N, m=15;
+  PetscReal      error1, error2, tol, re, im;
+  PetscScalar    kr, ki;
+  PetscInt       nev, maxit, i, its, nconv, N, m=15;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -201,7 +201,7 @@ int main( int argc, char **argv )
     state probability distribution of the system, which is the eigevector 
     associated with the eigenvalue one and scaled in such a way that the sum all
     the components is equal to one.
-
+cut -d : -f 1 | uniq | xargs gvim
     Note: the code will actually compute the transpose of the stochastic matrix
     that contains the transition probabilities.
 */
@@ -224,15 +224,13 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
         /* north */
         if( i==1 ) { 
           ierr = MatSetValue( A, ix-1, ix, 2*pd, INSERT_VALUES );CHKERRQ(ierr);
-        }
-	else {
+        } else {
           ierr = MatSetValue( A, ix-1, ix, pd, INSERT_VALUES );CHKERRQ(ierr);
         }
         /* east */
         if( j==1 ) { 
           ierr = MatSetValue( A, ix-1, ix+jmax-1, 2*pd, INSERT_VALUES );CHKERRQ(ierr);
-        }
-	else {
+        } else {
           ierr = MatSetValue( A, ix-1, ix+jmax-1, pd, INSERT_VALUES );CHKERRQ(ierr);
         }
       }

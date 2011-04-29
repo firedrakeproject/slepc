@@ -195,8 +195,8 @@ PetscErrorCode STSetFromOptions(ST st)
    Options Database Key:
 .  -st_matstructure <str> - Indicates the structure flag, where <str> is one
          of 'same' (A and B have the same nonzero pattern), 'different' (A 
-	 and B have different nonzero pattern) or 'subset' (B's nonzero 
-	 pattern is a subset of A's).
+         and B have different nonzero pattern) or 'subset' (B's nonzero 
+         pattern is a subset of A's).
 
    Note:
    By default, the sparsity patterns are assumed to be different. If the

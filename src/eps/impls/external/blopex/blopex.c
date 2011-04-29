@@ -75,9 +75,9 @@ static void Precond_FnMultiVector(void *data,void *x,void *y)
 #define __FUNCT__ "OperatorASingleVector"
 static void OperatorASingleVector(void *data,void *x,void *y)
 {
-  PetscErrorCode  ierr;
-  EPS		  eps = (EPS)data;
-  Mat             A;
+  PetscErrorCode ierr;
+  EPS            eps = (EPS)data;
+  Mat            A;
  
   PetscFunctionBegin;
   ierr = STGetOperators(eps->OP,&A,PETSC_NULL); CHKERRABORT(PETSC_COMM_WORLD,ierr);
@@ -89,8 +89,8 @@ static void OperatorASingleVector(void *data,void *x,void *y)
 #define __FUNCT__ "OperatorAMultiVector"
 static void OperatorAMultiVector(void *data,void *x,void *y)
 {
-  EPS		  eps = (EPS)data;
-  EPS_BLOPEX	  *blopex = (EPS_BLOPEX*)eps->data;
+  EPS        eps = (EPS)data;
+  EPS_BLOPEX *blopex = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
   blopex->ii.Eval(OperatorASingleVector,data,x,y);
@@ -101,9 +101,9 @@ static void OperatorAMultiVector(void *data,void *x,void *y)
 #define __FUNCT__ "OperatorBSingleVector"
 static void OperatorBSingleVector(void *data,void *x,void *y)
 {
-  PetscErrorCode  ierr;
-  EPS		  eps = (EPS)data;
-  Mat             B;
+  PetscErrorCode ierr;
+  EPS            eps = (EPS)data;
+  Mat            B;
   
   PetscFunctionBegin;
   ierr = STGetOperators(eps->OP,PETSC_NULL,&B); CHKERRABORT(PETSC_COMM_WORLD,ierr);
@@ -115,8 +115,8 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
 #define __FUNCT__ "OperatorBMultiVector"
 static void OperatorBMultiVector(void *data,void *x,void *y)
 {
-  EPS		  eps = (EPS)data;
-  EPS_BLOPEX	  *blopex = (EPS_BLOPEX*)eps->data;
+  EPS        eps = (EPS)data;
+  EPS_BLOPEX *blopex = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
   blopex->ii.Eval(OperatorBSingleVector,data,x,y);
@@ -204,13 +204,13 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   
 //#ifdef PETSC_USE_COMPLEX
 //  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
-//  	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+//        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
 //        eps,Precond_FnMultiVector,blopex->Y,
 //        blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
 //        eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
 //#else
   info = lobpcg_solve(blopex->eigenvectors,eps,OperatorAMultiVector,
-  	eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);

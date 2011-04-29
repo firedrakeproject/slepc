@@ -34,15 +34,15 @@ static char help[] = "Generalized Symmetric eigenproblem.\n\n"
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 A, B;		  /* matrices */
-  EPS         	 eps;		  /* eigenproblem solver context */
-  ST          	 st;		  /* spectral transformation context */
-  const EPSType  type;
-  PetscReal   	 error, tol, re, im;
-  PetscScalar 	 kr, ki;
   PetscErrorCode ierr;
-  PetscInt    	 N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv, nulldim=0;
-  PetscBool   	 flag;
+  Mat            A, B;        /* matrices */
+  EPS            eps;         /* eigenproblem solver context */
+  ST             st;          /* spectral transformation context */
+  const EPSType  type;
+  PetscReal      error, tol, re, im;
+  PetscScalar    kr, ki;
+  PetscInt       N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv, nulldim=0;
+  PetscBool      flag;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 

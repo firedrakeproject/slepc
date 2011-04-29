@@ -45,17 +45,10 @@ PetscErrorCode SVDRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  
-  ierr = SVDRegisterDynamic(SVDCROSS, path,"SVDCreate_CROSS", 
-		  SVDCreate_CROSS);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDCYCLIC, path,"SVDCreate_CYCLIC", 
-		  SVDCreate_CYCLIC);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDLAPACK, path,"SVDCreate_LAPACK", 
-		  SVDCreate_LAPACK);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDLANCZOS, path,"SVDCreate_LANCZOS", 
-		  SVDCreate_LANCZOS);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDTRLANCZOS, path,"SVDCreate_TRLANCZOS", 
-		  SVDCreate_TRLANCZOS);CHKERRQ(ierr);
-  
+  ierr = SVDRegisterDynamic(SVDCROSS,path,"SVDCreate_CROSS",SVDCreate_CROSS);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDCYCLIC,path,"SVDCreate_CYCLIC",SVDCreate_CYCLIC);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDLAPACK,path,"SVDCreate_LAPACK",SVDCreate_LAPACK);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDLANCZOS,path,"SVDCreate_LANCZOS",SVDCreate_LANCZOS);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDTRLANCZOS,path,"SVDCreate_TRLANCZOS",SVDCreate_TRLANCZOS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

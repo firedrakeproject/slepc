@@ -30,12 +30,12 @@ static char help[] = "Singular value decomposition of the Lauchli matrix.\n"
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 A;               /* operator matrix */
-  Vec            u,v;             /* left and right singular vectors */
-  SVD         	 svd;             /* singular value problem solver context */
-  const SVDType  type;
-  PetscReal   	 error, tol, sigma, mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscErrorCode ierr;
+  Mat            A;               /* operator matrix */
+  Vec            u,v;             /* left and right singular vectors */
+  SVD            svd;             /* singular value problem solver context */
+  const SVDType  type;
+  PetscReal      error, tol, sigma, mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscInt       n=100, i, j, Istart, Iend, nsv, maxit, its, nconv;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

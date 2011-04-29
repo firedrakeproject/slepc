@@ -88,21 +88,20 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_ARPACK  	 *ar = (EPS_ARPACK *)eps->data;
-  char        	 bmat[1], howmny[] = "A";
-  const char  	 *which;
-  PetscBLASInt   n, iparam[11], ipntr[14], ido, info,
-		 nev, ncv;
-  PetscScalar 	 sigmar, *pV, *resid;
-  Vec         	 x, y, w = eps->work[0];
-  Mat         	 A;
-  PetscBool   	 isSinv, isShift, rvec;
+  EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
+  char           bmat[1], howmny[] = "A";
+  const char     *which;
+  PetscBLASInt   n, iparam[11], ipntr[14], ido, info, nev, ncv;
+  PetscScalar    sigmar, *pV, *resid;
+  Vec            x, y, w = eps->work[0];
+  Mat            A;
+  PetscBool      isSinv, isShift, rvec;
   PetscBLASInt   fcomm;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
+
   PetscFunctionBegin;
-  
   nev = PetscBLASIntCast(eps->nev);
   ncv = PetscBLASIntCast(eps->ncv);
   fcomm = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm));
@@ -211,28 +210,28 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       
       if (ido == -1) { 
         /* Y = OP * X for for the initialization phase to 
-	   force the starting vector into the range of OP */
-	ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
+           force the starting vector into the range of OP */
+        ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
       } else if (ido == 2) {
         /* Y = B * X */
-	ierr = IPApplyMatrix(eps->ip,x,y); CHKERRQ(ierr);
+        ierr = IPApplyMatrix(eps->ip,x,y); CHKERRQ(ierr);
       } else { /* ido == 1 */
         if (iparam[6] == 3 && bmat[0] == 'G') {
           /* Y = OP * X for shift-and-invert with B semi-positive definite */
-	  ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
-	} else if (iparam[6] == 2) {
+          ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
+        } else if (iparam[6] == 2) {
           /* X=A*X Y=B^-1*X for shift with B positive definite */
-	  ierr = MatMult(A,x,y);CHKERRQ(ierr);
-	  if (sigmar != 0.0) {
-	    ierr = IPApplyMatrix(eps->ip,x,w);CHKERRQ(ierr);
+          ierr = MatMult(A,x,y);CHKERRQ(ierr);
+          if (sigmar != 0.0) {
+            ierr = IPApplyMatrix(eps->ip,x,w);CHKERRQ(ierr);
             ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
-	  }
+          }
           ierr = VecCopy(y,x); CHKERRQ(ierr);
           ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
-	} else  {
+        } else  {
           /* Y = OP * X */
-	  ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);        
-	}
+          ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);        
+        }
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       }
             
@@ -258,18 +257,18 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     if (eps->ishermitian) {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv);CHKERRQ(ierr);
       ARseupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,  
-        	 pV, &n, &sigmar, 
-        	 bmat, &n, which, &nev, &eps->tol,
-        	 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-        	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
+                 pV, &n, &sigmar, 
+                 bmat, &n, which, &nev, &eps->tol,
+                 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
+                 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
     else {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
       ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
-        	 pV, &n, &sigmar, &sigmai, ar->workev, 
-        	 bmat, &n, which, &nev, &eps->tol,
-        	 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-        	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
+                 pV, &n, &sigmar, &sigmai, ar->workev, 
+                 bmat, &n, which, &nev, &eps->tol,
+                 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
+                 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
 #else
     ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);

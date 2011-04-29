@@ -222,7 +222,7 @@ PetscErrorCode SVDSolve_CYCLIC(SVD svd)
       ierr = VecCopy(x1,svd->U[j]);CHKERRQ(ierr);
       ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
       ierr = VecCopy(x2,svd->V[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);	  
+      ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);
       ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);

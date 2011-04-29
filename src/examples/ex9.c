@@ -61,14 +61,14 @@ typedef struct {
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 A;		  /* eigenvalue problem matrix */
-  EPS         	 eps;		  /* eigenproblem solver context */
-  const EPSType  type;
-  PetscReal   	 error, tol, re, im;
-  PetscScalar 	 delta1, delta2, L, h, kr, ki, value[3];
-  PetscInt    	 N=30, n, i, col[3], Istart, Iend, nev, maxit, its, nconv;
-  PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
+  Mat            A;               /* eigenvalue problem matrix */
+  EPS            eps;             /* eigenproblem solver context */
+  const EPSType  type;
+  PetscReal      error, tol, re, im;
+  PetscScalar    delta1, delta2, L, h, kr, ki, value[3];
+  PetscInt       N=30, n, i, col[3], Istart, Iend, nev, maxit, its, nconv;
+  PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
   CTX_BRUSSEL    *ctx;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

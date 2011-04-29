@@ -41,7 +41,7 @@
 #if (SLEPC_VERSION_RELEASE == 1)
 #define SlepcGetVersion(version,len) PetscSNPrintf(version,len,"SLEPc Release Version %d.%d, Patch %d, %s", \
                                          SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR, \
-					 SLEPC_VERSION_PATCH,SLEPC_VERSION_PATCH_DATE)
+                                         SLEPC_VERSION_PATCH,SLEPC_VERSION_PATCH_DATE)
 #else
 #define SlepcGetVersion(version,len) PetscSNPrintf(version,len,"SLEPc Development SVN revision: %d  SVN Date: %s", \
                                         SLEPC_VERSION_SVN, SLEPC_VERSION_DATE_SVN)

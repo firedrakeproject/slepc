@@ -42,11 +42,7 @@ PetscErrorCode QEPRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-
-  ierr = QEPRegisterDynamic(QEPLINEAR, path,"QEPCreate_LINEAR", 
-		  QEPCreate_LINEAR);CHKERRQ(ierr);
-  ierr = QEPRegisterDynamic(QEPQARNOLDI, path,"QEPCreate_QARNOLDI", 
-		  QEPCreate_QARNOLDI);CHKERRQ(ierr);
-
+  ierr = QEPRegisterDynamic(QEPLINEAR,path,"QEPCreate_LINEAR",QEPCreate_LINEAR);CHKERRQ(ierr);
+  ierr = QEPRegisterDynamic(QEPQARNOLDI,path,"QEPCreate_QARNOLDI",QEPCreate_QARNOLDI);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
