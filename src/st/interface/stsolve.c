@@ -55,6 +55,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
+  if (!st->ops->apply) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST does not have apply");
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */
@@ -145,6 +146,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 
   if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
 
+  if (!st->ops->applytrans) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST does not have applytrans");
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */

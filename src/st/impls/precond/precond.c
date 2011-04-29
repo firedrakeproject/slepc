@@ -36,14 +36,6 @@ typedef struct {
   PetscBool setmat;
 } ST_PRECOND;
 
-
-#undef __FUNCT__  
-#define __FUNCT__ "SLEPcNotImplemented_Precond"
-PetscErrorCode SLEPcNotImplemented_Precond(ST st, Vec x, Vec y)
-{
-  SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"Operation not implemented in STPRECOND.");
-}
-
 #undef __FUNCT__  
 #define __FUNCT__ "STSetFromOptions_Precond"
 PetscErrorCode STSetFromOptions_Precond(ST st) 
@@ -188,9 +180,7 @@ PetscErrorCode STCreate_Precond(ST st)
   ierr = PetscNew(ST_PRECOND, &data); CHKERRQ(ierr);
   st->data                 = data;
 
-  st->ops->apply           = SLEPcNotImplemented_Precond;
   st->ops->getbilinearform = STGetBilinearForm_Default;
-  st->ops->applytrans      = SLEPcNotImplemented_Precond;
   st->ops->postsolve       = PETSC_NULL;
   st->ops->backtr          = PETSC_NULL;
   st->ops->setup           = STSetUp_Precond;

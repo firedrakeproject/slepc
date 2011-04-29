@@ -357,13 +357,6 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SLEPcNotImplemented"
-PetscErrorCode SLEPcNotImplemented()
-{
-  SETERRQ(PETSC_COMM_WORLD,1, "Do not call this function!");
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSDAVIDSONSetKrylovStart_DAVIDSON"
 PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart)
 {
