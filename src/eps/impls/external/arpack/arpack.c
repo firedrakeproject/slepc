@@ -256,7 +256,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   if (eps->nconv > 0) {
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
-      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv); 
+      ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv);CHKERRQ(ierr);
       ARseupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,  
         	 pV, &n, &sigmar, 
         	 bmat, &n, which, &nev, &eps->tol,
@@ -264,7 +264,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
     else {
-      EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv); 
+      ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
       ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
         	 pV, &n, &sigmar, &sigmai, ar->workev, 
         	 bmat, &n, which, &nev, &eps->tol,
@@ -272,7 +272,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         	 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
     }
 #else
-    EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv); 
+    ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
     ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,
                pV, &n, &sigmar, ar->workev, 
                bmat, &n, which, &nev, &eps->tol,

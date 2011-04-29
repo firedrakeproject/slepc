@@ -74,7 +74,7 @@ PetscErrorCode QEPSolve(QEP qep)
   qep->matvecs = 0;
   qep->linits = 0;
   for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
-  QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);
+  ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);

@@ -202,7 +202,7 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
     }
 
     eps->errest[eps->nconv] = relerr;
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1);CHKERRQ(ierr);
 
     /* purge previously converged eigenvectors */
     if (select) {
@@ -349,8 +349,8 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
       }
     }
 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1); 
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest_left,eps->nconv+1); 
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest_left,eps->nconv+1);CHKERRQ(ierr);
 
     /* purge previously converged eigenvectors */
     ierr = IPBiOrthogonalize(eps->ip,eps->nconv,eps->V,eps->W,z,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);

@@ -96,14 +96,7 @@ struct _p_QEP {
   PetscInt    numbermonitors; 
 };
 
-#define QEPMonitor(qep,it,nconv,eigr,eigi,errest,nest) \
-        { PetscErrorCode _ierr; PetscInt _i,_im = qep->numbermonitors; \
-          for ( _i=0; _i<_im; _i++ ) {\
-            _ierr=(*qep->monitor[_i])(qep,it,nconv,eigr,eigi,errest,nest,qep->monitorcontext[_i]);\
-            CHKERRQ(_ierr); \
-	  } \
-	}
-
+extern PetscErrorCode QEPMonitor(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
 extern PetscErrorCode QEPMonitorDestroy_Converged(SlepcConvMonitor*);
 
 extern PetscErrorCode QEPRegisterAll(const char *);

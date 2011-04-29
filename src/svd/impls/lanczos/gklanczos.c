@@ -278,7 +278,7 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
     }
         
     svd->nconv += k;
-    SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);
+    ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
   
   /* free working space */

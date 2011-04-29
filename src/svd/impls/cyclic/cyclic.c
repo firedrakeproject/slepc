@@ -259,7 +259,7 @@ PetscErrorCode SVDMonitor_CYCLIC(EPS eps,PetscInt its,PetscInt nconv,PetscScalar
     }
   }
   nest = j;
-  SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);
+  ierr = SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

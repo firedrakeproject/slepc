@@ -294,7 +294,7 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps) {
 
     /* Monitor progress */
     eps->nconv = d->nconv;
-    EPSMonitor(eps, eps->its+1, eps->nconv, eps->eigr, eps->eigi, eps->errest, d->size_H+d->nconv);
+    ierr = EPSMonitor(eps, eps->its+1, eps->nconv, eps->eigr, eps->eigi, eps->errest, d->size_H+d->nconv);CHKERRQ(ierr);
 
     /* Test for convergence */
     if (eps->nconv >= eps->nev) break;

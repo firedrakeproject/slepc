@@ -189,7 +189,7 @@ PetscErrorCode SVDMonitor_CROSS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar 
     svd->sigma[i] = sqrt(PetscRealPart(er));
     svd->errest[i] = errest[i];
   }
-  SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);
+  ierr = SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

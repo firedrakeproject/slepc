@@ -661,7 +661,7 @@ PetscErrorCode EPSSolve_LANCZOS(EPS eps)
       eps->eigr[nconv+i] = ritz[i];
       eps->errest[nconv+i] = bnd[i];
     }
-    EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nconv+n);
+    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nconv+n);CHKERRQ(ierr);
     nconv = nconv+k;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;

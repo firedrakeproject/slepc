@@ -24,6 +24,23 @@
 #include <private/epsimpl.h>   /*I "slepceps.h" I*/
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSMonitor"
+/*
+   Runs the user provided monitor routines, if any.
+*/
+PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,n = eps->numbermonitors;
+
+  PetscFunctionBegin;
+  for (i=0;i<n;i++) {
+    ierr = (*eps->monitor[i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[i]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSMonitorSet"
 /*@C
    EPSMonitorSet - Sets an ADDITIONAL function to be called at every 

@@ -58,7 +58,7 @@ PetscErrorCode SVDSolve(SVD svd)
   svd->reason = SVD_CONVERGED_ITERATING;
   ierr = IPResetOperationCounters(svd->ip);CHKERRQ(ierr);
   for (i=0;i<svd->ncv;i++) svd->sigma[i]=svd->errest[i]=0.0;
-  SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);
+  ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);

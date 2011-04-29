@@ -116,14 +116,7 @@ struct _p_EPS {
   PetscInt    numbermonitors; 
 };
 
-#define EPSMonitor(eps,it,nconv,eigr,eigi,errest,nest) \
-        { PetscErrorCode _ierr; PetscInt _i,_im = eps->numbermonitors; \
-          for ( _i=0; _i<_im; _i++ ) {\
-            _ierr=(*eps->monitor[_i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[_i]);\
-            CHKERRQ(_ierr); \
-	  } \
-	}
-
+extern PetscErrorCode EPSMonitor(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
 extern PetscErrorCode EPSMonitorDestroy_Converged(SlepcConvMonitor*);
 
 extern PetscErrorCode EPSRegisterAll(const char *);

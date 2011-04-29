@@ -125,7 +125,7 @@ PetscErrorCode EPSSolve(EPS eps)
   eps->nconv = 0;
   eps->its = 0;
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
-  EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);
+  ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
 
   flg = PETSC_FALSE;
   for (i=0;i<NUMEXTSOLV && !flg;i++) {

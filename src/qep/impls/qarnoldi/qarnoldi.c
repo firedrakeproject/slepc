@@ -293,7 +293,7 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
 
     qep->nconv = k;
 
-    QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);
+    ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
     
   } 
 

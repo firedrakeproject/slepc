@@ -326,7 +326,7 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
       if (eps->nconv>=nv) break;
     }
     
-    EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv); 
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     if (eps->nconv>=eps->nev) break;
     
     /* Compute nxtsrr (iteration of next projection step) */

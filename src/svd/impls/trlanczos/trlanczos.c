@@ -344,7 +344,7 @@ PetscErrorCode SVDSolve_TRLANCZOS(SVD svd)
     }
     
     svd->nconv += k;
-    SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);
+    ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
   
   /* orthonormalize U columns in one side method */

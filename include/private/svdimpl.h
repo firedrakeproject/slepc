@@ -88,14 +88,7 @@ extern PetscErrorCode SVDRegisterAll(const char *);
 extern PetscErrorCode SVDInitializePackage(const char*);
 extern PetscErrorCode SVDFinalizePackage(void);
 
-#define SVDMonitor(svd,it,nconv,sigma,errest,nest) \
-        { PetscErrorCode _ierr; PetscInt _i,_im = svd->numbermonitors; \
-          for ( _i=0; _i<_im; _i++ ) {\
-            _ierr=(*svd->monitor[_i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[_i]);\
-            CHKERRQ(_ierr); \
-	  } \
-	}
-
+extern PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
 extern PetscErrorCode SVDMonitorDestroy_Converged(SlepcConvMonitor*);
 
 extern PetscErrorCode SVDDestroy_Default(SVD);

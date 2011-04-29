@@ -24,6 +24,23 @@
 #include <private/svdimpl.h>   /*I "slepcsvd.h" I*/
 
 #undef __FUNCT__  
+#define __FUNCT__ "SVDMonitor"
+/*
+   Runs the user provided monitor routines, if any.
+*/
+PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,n = svd->numbermonitors;
+
+  PetscFunctionBegin;
+  for (i=0;i<n;i++) {
+    ierr = (*svd->monitor[i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[i]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SVDMonitorSet"
 /*@C
    SVDMonitorSet - Sets an ADDITIONAL function to be called at every 

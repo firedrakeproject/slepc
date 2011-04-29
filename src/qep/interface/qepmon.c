@@ -24,6 +24,23 @@
 #include <private/qepimpl.h>      /*I "slepcqep.h" I*/
 
 #undef __FUNCT__  
+#define __FUNCT__ "QEPMonitor"
+/*
+   Runs the user provided monitor routines, if any.
+*/
+PetscErrorCode QEPMonitor(QEP qep,PetscInt it,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,n = qep->numbermonitors;
+
+  PetscFunctionBegin;
+  for (i=0;i<n;i++) {
+    ierr = (*qep->monitor[i])(qep,it,nconv,eigr,eigi,errest,nest,qep->monitorcontext[i]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "QEPMonitorSet"
 /*@C
    QEPMonitorSet - Sets an ADDITIONAL function to be called at every 

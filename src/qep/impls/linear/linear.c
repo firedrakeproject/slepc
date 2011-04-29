@@ -322,7 +322,7 @@ PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscSc
     if (0.0 < errest[i] && errest[i] < qep->tol) nconv++;
   }
   ierr = STBackTransform(eps->OP,nest,qep->eigr,qep->eigi);CHKERRQ(ierr);
-  QEPMonitor(qep,its,nconv,qep->eigr,qep->eigi,qep->errest,nest);
+  ierr = QEPMonitor(qep,its,nconv,qep->eigr,qep->eigi,qep->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
