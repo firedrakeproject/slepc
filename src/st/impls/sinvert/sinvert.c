@@ -101,7 +101,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
     if( st->B ) {
       ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
     } else {
-      ierr = MatShift(st->A,st->sigma); CHKERRQ(ierr);
+      ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);
     }
     st->setupcalled = 0;
   }
@@ -198,7 +198,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
     break;
   default:
     if (st->mat) {
-      ierr = MatCopy(st->A,st->mat,SUBSET_NONZERO_PATTERN); CHKERRQ(ierr);
+      ierr = MatCopy(st->A,st->mat,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
     } else {
       ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
     }

@@ -206,7 +206,7 @@ PetscErrorCode STCreate_Fold(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(st,ST_FOLD,&st->data); CHKERRQ(ierr);
+  ierr = PetscNewLog(st,ST_FOLD,&st->data);CHKERRQ(ierr);
   st->ops->apply           = STApply_Fold;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Fold;

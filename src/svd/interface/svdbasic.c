@@ -285,7 +285,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
     if ((*svd)->U) {
       ierr = VecGetArray((*svd)->U[0],&p);CHKERRQ(ierr);
       for (i=0;i<(*svd)->n;i++) {
-        ierr = VecDestroy(&(*svd)->U[i]); CHKERRQ(ierr);
+        ierr = VecDestroy(&(*svd)->U[i]);CHKERRQ(ierr);
       }
       ierr = PetscFree(p);CHKERRQ(ierr);
       ierr = PetscFree((*svd)->U);CHKERRQ(ierr);
@@ -361,7 +361,7 @@ PetscErrorCode SVDSetType(SVD svd,const SVDType type)
 
   if (svd->data) {
     /* destroy the old private SVD context */
-    ierr = (*svd->ops->destroy)(svd); CHKERRQ(ierr);
+    ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr);
     svd->data = 0;
   }
 
@@ -371,7 +371,7 @@ PetscErrorCode SVDSetType(SVD svd,const SVDType type)
 
   svd->setupcalled = 0;
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
-  ierr = (*r)(svd); CHKERRQ(ierr);
+  ierr = (*r)(svd);CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)svd,type);CHKERRQ(ierr);
   PetscFunctionReturn(0);

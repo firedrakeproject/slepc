@@ -173,7 +173,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   if (svd->ncv != svd->n) {
     if (svd->U) {  
       ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]); CHKERRQ(ierr); }
+      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]);CHKERRQ(ierr); }
       ierr = PetscFree(pU);CHKERRQ(ierr);
       ierr = PetscFree(svd->U);CHKERRQ(ierr);
     }
@@ -246,7 +246,7 @@ PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,PetscScalar
   nconv = 0;
   for (i=0,j=0;i<nest;i++) {
     er = eigr[i]; ei = eigi[i];
-    ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+    ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
     if (PetscRealPart(er) > 0.0) {
       svd->sigma[j] = PetscRealPart(er);
       svd->errest[j] = errest[i];

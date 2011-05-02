@@ -227,7 +227,7 @@ PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
   PetscFunctionBegin;
   ierr   = PetscNew(SampleShellST,&newctx);CHKERRQ(ierr);
   ierr   = KSPCreate(PETSC_COMM_WORLD,&newctx->ksp);CHKERRQ(ierr);
-  ierr   = KSPAppendOptionsPrefix(newctx->ksp,"st_"); CHKERRQ(ierr);
+  ierr   = KSPAppendOptionsPrefix(newctx->ksp,"st_");CHKERRQ(ierr);
   *shell = newctx;
   PetscFunctionReturn(0);
 }

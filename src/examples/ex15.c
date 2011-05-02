@@ -137,7 +137,7 @@ int main( int argc, char **argv )
       */
       ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",sigma); CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",sigma);CHKERRQ(ierr);
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);

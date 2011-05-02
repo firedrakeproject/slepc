@@ -94,11 +94,11 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP, 3e300); CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->OP, 3e300);CHKERRQ(ierr);
   }
 
-  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t); CHKERRQ(ierr);
+  ierr = STSetUp(eps->OP);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t);CHKERRQ(ierr);
   if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
@@ -147,8 +147,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Setup the preconditioner */
   ops->eps = eps;
   if (primme->correctionParams.precondition) {
-    ierr = STGetKSP(eps->OP, &ops->ksp); CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)ops->ksp, KSPPREONLY, &t); CHKERRQ(ierr);
+    ierr = STGetKSP(eps->OP, &ops->ksp);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)ops->ksp, KSPPREONLY, &t);CHKERRQ(ierr);
     if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "PRIMME only works with KSPPREONLY");
     primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
@@ -183,18 +183,18 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ops->primme.iseed[0] = -1;
 
   /* Call PRIMME solver */
-  ierr = VecGetArray(eps->V[0], &a); CHKERRQ(ierr);
+  ierr = VecGetArray(eps->V[0], &a);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
 #else
   /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
-  ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals); CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals);CHKERRQ(ierr);
   ierr = zprimme(evals, (Complex_Z*)a, eps->errest, &ops->primme);
   for (i=0;i<eps->ncv;i++)
     eps->eigr[i] = evals[i];
-  ierr = PetscFree(evals); CHKERRQ(ierr);
+  ierr = PetscFree(evals);CHKERRQ(ierr);
 #endif
-  ierr = VecRestoreArray(eps->V[0], &a); CHKERRQ(ierr);
+  ierr = VecRestoreArray(eps->V[0], &a);CHKERRQ(ierr);
   
   switch(ierr) {
     case 0: /* Successful */
@@ -333,7 +333,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"PRIMME Options","EPS");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_primme_block_size","Maximum block size","EPSPRIMMESetBlockSize",ctx->primme.maxBlockSize,&bs,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSPRIMMESetBlockSize(eps,bs);CHKERRQ(ierr); }
-  ierr = PetscOptionsEnum("-eps_primme_method","Method for solving the eigenproblem","EPSPRIMMESetMethod",EPSPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsEnum("-eps_primme_method","Method for solving the eigenproblem","EPSPRIMMESetMethod",EPSPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSPRIMMESetMethod(eps,meth);CHKERRQ(ierr); }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -538,8 +538,8 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   EPS_PRIMME     *primme;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE); CHKERRQ(ierr);
+  ierr = STSetType(eps->OP, STPRECOND);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE);CHKERRQ(ierr);
 
   ierr = PetscNewLog(eps,EPS_PRIMME,&primme);CHKERRQ(ierr);
   eps->data                      = (void *) primme;

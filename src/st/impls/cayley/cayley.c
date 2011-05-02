@@ -172,7 +172,7 @@ PetscErrorCode STPostSolve_Cayley(ST st)
     if (st->B) {
       ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
     } else { 
-      ierr = MatShift(st->A,st->sigma); CHKERRQ(ierr); 
+      ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr); 
     }
     st->setupcalled = 0;
   }
@@ -280,7 +280,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);    
     break;
   default:
-    ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN); CHKERRQ(ierr);
+    ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
     if (newshift != 0.0) {   
       if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
@@ -321,7 +321,7 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   }
 
   ierr = PetscOptionsBegin(((PetscObject)st)->comm,((PetscObject)st)->prefix,"ST Cayley Options","ST");CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg); CHKERRQ(ierr);
+  ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = STCayleySetAntishift(st,nu);CHKERRQ(ierr);
   }

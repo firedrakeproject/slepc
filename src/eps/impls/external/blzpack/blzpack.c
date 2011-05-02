@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         if (blz->slice || eps->isgeneralized) { 
           ierr = STAssociatedKSPSolve( eps->OP, x, y );CHKERRQ(ierr);
         } else {
-          ierr = STApply( eps->OP, x, y ); CHKERRQ(ierr);
+          ierr = STApply( eps->OP, x, y );CHKERRQ(ierr);
         }
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
@@ -222,7 +222,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray( x, blz->u+i*eps->nloc );CHKERRQ(ierr);
         ierr = VecPlaceArray( y, blz->v+i*eps->nloc );CHKERRQ(ierr);
-        ierr = IPApplyMatrix(eps->ip, x, y ); CHKERRQ(ierr);
+        ierr = IPApplyMatrix(eps->ip, x, y );CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
@@ -247,7 +247,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     
   } while (lflag > 0);
 
-  ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);
+  ierr = VecRestoreArray( eps->V[0], &pV );CHKERRQ(ierr);
 
   eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
   eps->reason = EPS_CONVERGED_TOL;

@@ -141,14 +141,14 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP, 3e300); CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->OP, 3e300);CHKERRQ(ierr);
   }
 
-  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &isPrecond); CHKERRQ(ierr);
+  ierr = STSetUp(eps->OP);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &isPrecond);CHKERRQ(ierr);
   if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "blopex only works with STPRECOND");
-  ierr = STGetKSP(eps->OP, &blopex->ksp); CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)blopex->ksp, KSPPREONLY, &isPreonly); CHKERRQ(ierr);
+  ierr = STGetKSP(eps->OP, &blopex->ksp);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)blopex->ksp, KSPPREONLY, &isPreonly);CHKERRQ(ierr);
   if (!isPreonly)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "blopex only works with KSPPREONLY");
 
@@ -248,8 +248,8 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   const char*    prefix;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE); CHKERRQ(ierr);
+  ierr = STSetType(eps->OP, STPRECOND);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE);CHKERRQ(ierr);
 
   ierr = PetscNewLog(eps,EPS_BLOPEX,&blopex);CHKERRQ(ierr);
   ierr = KSPCreate(((PetscObject)eps)->comm,&blopex->ksp);CHKERRQ(ierr);

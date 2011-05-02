@@ -110,8 +110,7 @@ int main( int argc, char **argv )
      Get number of converged approximate eigenpairs
   */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %d\n\n",nconv);
-         CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
     /*
@@ -203,10 +202,10 @@ PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
-  ierr = MatShellGetContext( A, &ctx ); CHKERRQ(ierr);
+  ierr = MatShellGetContext( A, &ctx );CHKERRQ(ierr);
   nx = *(int *)ctx;
-  ierr = VecGetArray( x, &px ); CHKERRQ(ierr);
-  ierr = VecGetArray( y, &py ); CHKERRQ(ierr);
+  ierr = VecGetArray( x, &px );CHKERRQ(ierr);
+  ierr = VecGetArray( y, &py );CHKERRQ(ierr);
 
   tv( nx, &px[0], &py[0] );
   BLASaxpy_( &nx, &dmone, &px[nx], &one, &py[0], &one );
@@ -222,8 +221,8 @@ PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
   tv( nx, &px[lo], &py[lo]);
   BLASaxpy_( &nx, &dmone, &px[lo-nx], &one, &py[lo], &one );
 
-  ierr = VecRestoreArray( x, &px ); CHKERRQ(ierr);
-  ierr = VecRestoreArray( y, &py ); CHKERRQ(ierr);
+  ierr = VecRestoreArray( x, &px );CHKERRQ(ierr);
+  ierr = VecRestoreArray( y, &py );CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

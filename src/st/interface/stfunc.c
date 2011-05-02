@@ -76,7 +76,7 @@ PetscErrorCode STInitializePackage(const char *path)
   /* Register Events */
   ierr = PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
@@ -283,7 +283,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscValidLogicalCollectiveScalar(st,shift,2);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
-      ierr = (*st->ops->setshift)(st,shift); CHKERRQ(ierr);
+      ierr = (*st->ops->setshift)(st,shift);CHKERRQ(ierr);
     }
   }
   st->sigma = shift;
@@ -370,7 +370,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   PetscValidHeaderSpecific(D,VEC_CLASSID,2);
   PetscCheckSameComm(st,1,D,2);
   ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
-  ierr = VecDestroy(&st->D); CHKERRQ(ierr);
+  ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->D = D;
   if (!st->wb) {
     ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);

@@ -201,7 +201,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = IPView(qep->ip,viewer); CHKERRQ(ierr);
+    ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
     if (qep->ops->view) {
@@ -285,7 +285,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->trackall        = PETSC_FALSE;
   qep->rand            = 0;
 
-  ierr = IPCreate(comm,&qep->ip); CHKERRQ(ierr);
+  ierr = IPCreate(comm,&qep->ip);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,((PetscObject)qep)->prefix);
   ierr = IPAppendOptionsPrefix(qep->ip,"qep_");
   ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
@@ -336,7 +336,7 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
 
   if (qep->data) {
     /* destroy the old private QEP context */
-    ierr = (*qep->ops->destroy)(qep); CHKERRQ(ierr);
+    ierr = (*qep->ops->destroy)(qep);CHKERRQ(ierr);
     qep->data = 0;
   }
 
@@ -485,7 +485,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
   if (--((PetscObject)(*qep))->refct > 0) { *qep = 0; PetscFunctionReturn(0); }
   ierr = PetscObjectDepublish(*qep);CHKERRQ(ierr);
   if ((*qep)->ops->destroy) {
-    ierr = (*(*qep)->ops->destroy)(*qep); CHKERRQ(ierr);
+    ierr = (*(*qep)->ops->destroy)(*qep);CHKERRQ(ierr);
   }
   ierr = PetscFree((*qep)->T);CHKERRQ(ierr);
   if ((*qep)->eigr) { 
@@ -538,7 +538,7 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(qep,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&qep->ip); CHKERRQ(ierr);
+  ierr = IPDestroy(&qep->ip);CHKERRQ(ierr);
   qep->ip = ip;
   ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);

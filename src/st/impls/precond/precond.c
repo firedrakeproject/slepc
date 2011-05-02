@@ -47,20 +47,20 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
   PetscBool      t0, t1;
 
   PetscFunctionBegin;
-  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
-  ierr = PetscObjectGetType((PetscObject)pc, &pctype); CHKERRQ(ierr);
-  ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
+  ierr = KSPGetPC(st->ksp, &pc);CHKERRQ(ierr);
+  ierr = PetscObjectGetType((PetscObject)pc, &pctype);CHKERRQ(ierr);
+  ierr = STPrecondGetMatForPC(st, &P);CHKERRQ(ierr);
   if (!pctype && st->A) {
     if (P || st->shift_matrix == ST_MATMODE_SHELL) {
-      ierr = PCSetType(pc, PCJACOBI); CHKERRQ(ierr);
+      ierr = PCSetType(pc, PCJACOBI);CHKERRQ(ierr);
     } else {
-      ierr = MatHasOperation(st->A, MATOP_DUPLICATE, &t0); CHKERRQ(ierr);
+      ierr = MatHasOperation(st->A, MATOP_DUPLICATE, &t0);CHKERRQ(ierr);
       if (st->B) {
-        ierr = MatHasOperation(st->A, MATOP_AXPY, &t1); CHKERRQ(ierr);
+        ierr = MatHasOperation(st->A, MATOP_AXPY, &t1);CHKERRQ(ierr);
       } else {
         t1 = PETSC_TRUE;
       }
-      ierr = PCSetType(pc, (t0 && t1)? PCJACOBI:PCNONE); CHKERRQ(ierr);
+      ierr = PCSetType(pc, (t0 && t1)? PCJACOBI:PCNONE);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -80,14 +80,14 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   /* If pc is none and any matrix has to be set, exit */
-  ierr = STSetFromOptions_Precond(st); CHKERRQ(ierr);
-  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t0); CHKERRQ(ierr);
-  ierr = STPrecondGetKSPHasMat(st, &setmat); CHKERRQ(ierr); 
+  ierr = STSetFromOptions_Precond(st);CHKERRQ(ierr);
+  ierr = KSPGetPC(st->ksp, &pc);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t0);CHKERRQ(ierr);
+  ierr = STPrecondGetKSPHasMat(st, &setmat);CHKERRQ(ierr); 
   if (t0 && !setmat) PetscFunctionReturn(0);
 
   /* Check if a user matrix is set */
-  ierr = STPrecondGetMatForPC(st, &P); CHKERRQ(ierr);
+  ierr = STPrecondGetMatForPC(st, &P);CHKERRQ(ierr);
 
   /* If not, create A - shift*B */
   if (P) {
@@ -112,13 +112,13 @@ PetscErrorCode STSetUp_Precond(ST st)
         P = st->A;
         destroyP = PETSC_FALSE;
       } else {
-        ierr = MatDuplicate(st->A, MAT_COPY_VALUES, &P); CHKERRQ(ierr);
+        ierr = MatDuplicate(st->A, MAT_COPY_VALUES, &P);CHKERRQ(ierr);
         destroyP = PETSC_TRUE;
       } 
       if (st->B) {
-        ierr = MatAXPY(P, -st->sigma, st->B, st->str); CHKERRQ(ierr); 
+        ierr = MatAXPY(P, -st->sigma, st->B, st->str);CHKERRQ(ierr); 
       } else {
-        ierr = MatShift(P, -st->sigma); CHKERRQ(ierr); 
+        ierr = MatShift(P, -st->sigma);CHKERRQ(ierr); 
       }
     } else 
       builtP = PETSC_FALSE;
@@ -126,13 +126,13 @@ PetscErrorCode STSetUp_Precond(ST st)
 
   /* If P was not possible to obtain, set pc to PCNONE */
   if (!P) {
-    ierr = PCSetType(pc, PCNONE); CHKERRQ(ierr);
+    ierr = PCSetType(pc, PCNONE);CHKERRQ(ierr);
 
     /* If some matrix has to be set to ksp, set ksp to KSPPREONLY */
     if (setmat) {
       ierr = STMatShellCreate(st, &P);CHKERRQ(ierr);
       destroyP = PETSC_TRUE;
-      ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
+      ierr = KSPSetType(st->ksp, KSPPREONLY);CHKERRQ(ierr);
     }
   }
 
@@ -163,7 +163,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   if (!st->setupcalled) PetscFunctionReturn(0);
   st->sigma = newshift;
   if (st->shift_matrix != ST_MATMODE_SHELL) {
-    ierr =  STSetUp_Precond(st); CHKERRQ(ierr);
+    ierr =  STSetUp_Precond(st);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -209,7 +209,7 @@ PetscErrorCode STDestroy_Precond(ST st)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscFree(st->data); CHKERRQ(ierr);
+  ierr = PetscFree(st->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -252,10 +252,10 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   PetscBool      flag;
 
   PetscFunctionBegin;
-  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
-  ierr = PCGetOperatorsSet(pc, PETSC_NULL, &flag); CHKERRQ(ierr);
+  ierr = KSPGetPC(st->ksp, &pc);CHKERRQ(ierr);
+  ierr = PCGetOperatorsSet(pc, PETSC_NULL, &flag);CHKERRQ(ierr);
   if (flag) {
-    ierr = PCGetOperators(pc, PETSC_NULL, mat, PETSC_NULL); CHKERRQ(ierr);
+    ierr = PCGetOperators(pc, PETSC_NULL, mat, PETSC_NULL);CHKERRQ(ierr);
   } else
     *mat = PETSC_NULL;
   PetscFunctionReturn(0);
@@ -306,20 +306,20 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
+  ierr = KSPGetPC(st->ksp, &pc);CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
      matrix in pc */
-  ierr = PCGetOperatorsSet(pc, &flag, PETSC_NULL); CHKERRQ(ierr);
+  ierr = PCGetOperatorsSet(pc, &flag, PETSC_NULL);CHKERRQ(ierr);
   if (flag) {
-    ierr = PCGetOperators(pc, &A, PETSC_NULL, PETSC_NULL); CHKERRQ(ierr);
-    ierr = PetscObjectReference((PetscObject)A); CHKERRQ(ierr);
+    ierr = PCGetOperators(pc, &A, PETSC_NULL, PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   } else
     A = PETSC_NULL;
-  ierr = PetscObjectReference((PetscObject)mat); CHKERRQ(ierr);
-  ierr = PCSetOperators(pc, A, mat, DIFFERENT_NONZERO_PATTERN); CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
+  ierr = PCSetOperators(pc, A, mat, DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&mat);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(st, PETSC_TRUE); CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(st, PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

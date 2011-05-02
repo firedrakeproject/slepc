@@ -54,9 +54,9 @@ PetscErrorCode IPInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Inner product",&IP_CLASSID);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister("IPOrthogonalize",IP_CLASSID,&IP_Orthogonalize); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("IPInnerProduct",IP_CLASSID,&IP_InnerProduct); CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("IPApplyMatrix",IP_CLASSID,&IP_ApplyMatrix); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPOrthogonalize",IP_CLASSID,&IP_Orthogonalize);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPInnerProduct",IP_CLASSID,&IP_InnerProduct);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("IPApplyMatrix",IP_CLASSID,&IP_ApplyMatrix);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {

@@ -42,28 +42,28 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"JD Options","EPS");CHKERRQ(ierr);
 
-  ierr = EPSJDGetKrylovStart(eps, &op); CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_jd_krylov_start","Start the searching subspace with a krylov basis","EPSJDSetKrylovStart",op,&op,&flg); CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetKrylovStart(eps, op); CHKERRQ(ierr); }
+  ierr = EPSJDGetKrylovStart(eps, &op);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_jd_krylov_start","Start the searching subspace with a krylov basis","EPSJDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetKrylovStart(eps, op);CHKERRQ(ierr); }
  
-  ierr = EPSJDGetBlockSize(eps, &opi); CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_jd_blocksize","Number vectors add to the searching subspace","EPSJDSetBlockSize",opi,&opi,&flg); CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetBlockSize(eps, opi); CHKERRQ(ierr); }
+  ierr = EPSJDGetBlockSize(eps, &opi);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_blocksize","Number vectors add to the searching subspace","EPSJDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetBlockSize(eps, opi);CHKERRQ(ierr); }
 
-  ierr = EPSJDGetRestart(eps, &opi, &opi0); CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_jd_minv","Set the size of the searching subspace after restarting","EPSJDSetRestart",opi,&opi,&flg); CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetRestart(eps, opi, opi0); CHKERRQ(ierr); }
+  ierr = EPSJDGetRestart(eps, &opi, &opi0);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_minv","Set the size of the searching subspace after restarting","EPSJDSetRestart",opi,&opi,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetRestart(eps, opi, opi0);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsInt("-eps_jd_plusk","Set the number of saved eigenvectors from the previous iteration when restarting","EPSJDSetRestart",opi0,&opi0,&flg); CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetRestart(eps, opi, opi0); CHKERRQ(ierr); }
+  ierr = PetscOptionsInt("-eps_jd_plusk","Set the number of saved eigenvectors from the previous iteration when restarting","EPSJDSetRestart",opi0,&opi0,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetRestart(eps, opi, opi0);CHKERRQ(ierr); }
 
-  ierr = EPSJDGetInitialSize(eps, &opi); CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_jd_initial_size","Set the initial size of the searching subspace","EPSJDSetInitialSize",opi,&opi,&flg); CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetInitialSize(eps, opi); CHKERRQ(ierr); }
+  ierr = EPSJDGetInitialSize(eps, &opi);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_initial_size","Set the initial size of the searching subspace","EPSJDSetInitialSize",opi,&opi,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetInitialSize(eps, opi);CHKERRQ(ierr); }
 
-  ierr = EPSJDGetFix(eps, &opf); CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg); CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetFix(eps, opf); CHKERRQ(ierr); }
+  ierr = EPSJDGetFix(eps, &opf);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetFix(eps, opf);CHKERRQ(ierr); }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -80,12 +80,12 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
 
   PetscFunctionBegin;
   /* Setup common for all davidson solvers */
-  ierr = EPSSetUp_Davidson(eps); CHKERRQ(ierr);
+  ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
 
   /* Check some constraints */ 
-  ierr = STSetUp(eps->OP); CHKERRQ(ierr);
-  ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
+  ierr = STSetUp(eps->OP);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t);CHKERRQ(ierr);
   if (t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "EPSJD does not work with KSPPREONLY");
   PetscFunctionReturn(0);
 }
@@ -100,12 +100,12 @@ PetscErrorCode EPSCreate_JD(EPS eps)
 
   PetscFunctionBegin;
   /* Load the Davidson solver */
-  ierr = EPSCreate_Davidson(eps); CHKERRQ(ierr);
+  ierr = EPSCreate_Davidson(eps);CHKERRQ(ierr);
 
   /* Set the default ksp of the st to gmres */
-  ierr = STGetKSP(eps->OP, &ksp); CHKERRQ(ierr);
-  ierr = KSPSetType(ksp, KSPGMRES); CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp, 1e-3, 1e-10, PETSC_DEFAULT, 90); CHKERRQ(ierr);
+  ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp, KSPGMRES);CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp, 1e-3, 1e-10, PETSC_DEFAULT, 90);CHKERRQ(ierr);
 
   /* Overload the JD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_JD;

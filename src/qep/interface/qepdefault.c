@@ -52,12 +52,12 @@ PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
   PetscFunctionBegin;
   if (qep->nwork != nw) {
     if (qep->nwork > 0) {
-      ierr = VecDestroyVecs(qep->nwork,&qep->work); CHKERRQ(ierr);
+      ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
     }
     qep->nwork = nw;
     ierr = PetscMalloc(nw*sizeof(Vec),&qep->work);CHKERRQ(ierr);
     for (i=0;i<nw;i++) {
-      ierr = MatGetVecs(qep->M,PETSC_NULL,qep->work+i); CHKERRQ(ierr);
+      ierr = MatGetVecs(qep->M,PETSC_NULL,qep->work+i);CHKERRQ(ierr);
     }
     ierr = PetscLogObjectParents(qep,nw,qep->work);
   }

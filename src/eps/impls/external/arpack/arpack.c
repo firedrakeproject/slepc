@@ -201,19 +201,19 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     if (ido == -1 || ido == 1 || ido == 2) {
       if (ido == 1 && iparam[6] == 3 && bmat[0] == 'G') {
         /* special case for shift-and-invert with B semi-positive definite*/
-        ierr = VecPlaceArray(x,&ar->workd[ipntr[2]-1]); CHKERRQ(ierr);
+        ierr = VecPlaceArray(x,&ar->workd[ipntr[2]-1]);CHKERRQ(ierr);
       } else {
-        ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]); CHKERRQ(ierr);
+        ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]);CHKERRQ(ierr);
       }
-      ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]); CHKERRQ(ierr);
+      ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]);CHKERRQ(ierr);
       
       if (ido == -1) { 
         /* Y = OP * X for for the initialization phase to 
            force the starting vector into the range of OP */
-        ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);
+        ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
       } else if (ido == 2) {
         /* Y = B * X */
-        ierr = IPApplyMatrix(eps->ip,x,y); CHKERRQ(ierr);
+        ierr = IPApplyMatrix(eps->ip,x,y);CHKERRQ(ierr);
       } else { /* ido == 1 */
         if (iparam[6] == 3 && bmat[0] == 'G') {
           /* Y = OP * X for shift-and-invert with B semi-positive definite */
@@ -225,17 +225,17 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
             ierr = IPApplyMatrix(eps->ip,x,w);CHKERRQ(ierr);
             ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
           }
-          ierr = VecCopy(y,x); CHKERRQ(ierr);
+          ierr = VecCopy(y,x);CHKERRQ(ierr);
           ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
         } else  {
           /* Y = OP * X */
-          ierr = STApply(eps->OP,x,y); CHKERRQ(ierr);        
+          ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);        
         }
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       }
             
-      ierr = VecResetArray(x); CHKERRQ(ierr);
-      ierr = VecResetArray(y); CHKERRQ(ierr);
+      ierr = VecResetArray(x);CHKERRQ(ierr);
+      ierr = VecResetArray(y);CHKERRQ(ierr);
     } else if (ido != 99) {
       SETERRQ1(((PetscObject)eps)->comm,1,"Internal error in ARPACK reverse comunication interface (ido=%i)\n",ido);
     }
@@ -280,8 +280,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     if (info!=0) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
   }
 
-  ierr = VecRestoreArray( eps->V[0], &pV ); CHKERRQ(ierr);
-  ierr = VecRestoreArray( eps->work[1], &resid ); CHKERRQ(ierr);
+  ierr = VecRestoreArray( eps->V[0], &pV );CHKERRQ(ierr);
+  ierr = VecRestoreArray( eps->work[1], &resid );CHKERRQ(ierr);
   if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 

@@ -200,7 +200,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d EPS nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
       er = eigr[i]; ei = eigi[i];
-      ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+      ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
@@ -248,7 +248,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d EPS nconv=%d first unconverged value (error)",its,nconv);CHKERRQ(ierr);
     er = eigr[nconv]; ei = eigi[nconv];
-    ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+    ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
@@ -297,7 +297,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3d EPS converged value (error) #%d",its,i);CHKERRQ(ierr);
       er = eigr[i]; ei = eigi[i];
-      ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+      ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g%+gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
@@ -352,7 +352,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
   if (eps->ishermitian) {
     er = eigr[nconv]; ei = eigi[nconv];
-    ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+    ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
     myeigr = PetscRealPart(er);
     ierr = PetscDrawLGAddPoint(lg1,&x,&myeigr);CHKERRQ(ierr);
     ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
@@ -413,7 +413,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscMalloc(sizeof(PetscReal)*n,&myeigr);CHKERRQ(ierr);
     for(i=0;i<n;i++) {
       er = eigr[i]; ei = eigi[i];
-      ierr = STBackTransform(eps->OP, 1, &er, &ei); CHKERRQ(ierr);
+      ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
       if (i < nest) myeigr[i] = PetscRealPart(er);
       else myeigr[i] = 0.0;
     }

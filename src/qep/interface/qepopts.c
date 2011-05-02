@@ -94,7 +94,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     flg  = PETSC_FALSE;
     ierr = PetscOptionsBool("-qep_monitor_cancel","Remove any hardwired monitor routines","QEPMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
     if (flg) {
-      ierr = QEPMonitorCancel(qep); CHKERRQ(ierr);
+      ierr = QEPMonitorCancel(qep);CHKERRQ(ierr);
     }
     /*
       Prints approximate eigenvalues and error estimates at each iteration
@@ -156,7 +156,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  ierr = IPSetFromOptions(qep->ip); CHKERRQ(ierr);
+  ierr = IPSetFromOptions(qep->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

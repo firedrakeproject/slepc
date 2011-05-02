@@ -81,7 +81,7 @@ PetscErrorCode EPSInitializePackage(const char *path) {
   /* Register Events */
   ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("EPSDense",EPS_CLASSID,&EPS_Dense); CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSDense",EPS_CLASSID,&EPS_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
   if (opt) {
@@ -283,14 +283,14 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = IPView(eps->ip,viewer); CHKERRQ(ierr);
-    ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
+    ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
+    ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
     if (eps->ops->view) {
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
     }
-    ierr = STView(eps->OP,viewer); CHKERRQ(ierr);
+    ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -388,9 +388,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->numbermonitors  = 0;
 
-  ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
+  ierr = STCreate(comm,&eps->OP);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
-  ierr = IPCreate(comm,&eps->ip); CHKERRQ(ierr);
+  ierr = IPCreate(comm,&eps->ip);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(eps->ip,((PetscObject)eps)->prefix);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");
   ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
@@ -442,7 +442,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
 
   if (eps->data) {
     /* destroy the old private EPS context */
-    ierr = (*eps->ops->destroy)(eps); CHKERRQ(ierr);
+    ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr);
     eps->data = 0;
   }
 
@@ -452,7 +452,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
 
   eps->setupcalled = 0;
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
-  ierr = (*r)(eps); CHKERRQ(ierr);
+  ierr = (*r)(eps);CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)eps,type);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -591,7 +591,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   ierr = STDestroy(&(*eps)->OP);CHKERRQ(ierr);
   ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
   if ((*eps)->ops->destroy) {
-    ierr = (*(*eps)->ops->destroy)(*eps); CHKERRQ(ierr);
+    ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr);
   }
   ierr = PetscFree((*eps)->T);CHKERRQ(ierr);
   ierr = PetscFree((*eps)->Tl);CHKERRQ(ierr);
@@ -692,7 +692,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,2);
   PetscCheckSameComm(eps,1,st,2);
   ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
-  ierr = STDestroy(&eps->OP); CHKERRQ(ierr);
+  ierr = STDestroy(&eps->OP);CHKERRQ(ierr);
   eps->OP = st;
   ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -753,7 +753,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,2);
   PetscCheckSameComm(eps,1,ip,2);
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&eps->ip); CHKERRQ(ierr);
+  ierr = IPDestroy(&eps->ip);CHKERRQ(ierr);
   eps->ip = ip;
   ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);

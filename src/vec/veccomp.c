@@ -79,13 +79,13 @@ PetscErrorCode VecDestroy_Comp(Vec v)
   PetscLogObjectState((PetscObject)v,"Length=%D",v->map->n);
 #endif
   for(i=0; i<vs->nx; i++) {
-    ierr = VecDestroy(&vs->x[i]); CHKERRQ(ierr);
+    ierr = VecDestroy(&vs->x[i]);CHKERRQ(ierr);
   }
   if(--vs->n->friends <= 0) {
-    ierr = PetscFree(vs->n); CHKERRQ(ierr);
+    ierr = PetscFree(vs->n);CHKERRQ(ierr);
   }
-  ierr = PetscFree(vs->x); CHKERRQ(ierr);
-  ierr = PetscFree(vs); CHKERRQ(ierr);
+  ierr = PetscFree(vs->x);CHKERRQ(ierr);
+  ierr = PetscFree(vs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -163,28 +163,30 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
 
   PetscFunctionBegin;
   /* Allocate a new Vec_Comp */
-  if (v->data) { ierr = PetscFree(v->data); CHKERRQ(ierr); }
-  ierr = PetscNewLog(v, Vec_Comp, &s); CHKERRQ(ierr);
-  ierr = PetscMemcpy(v->ops, &DvOps, sizeof(DvOps)); CHKERRQ(ierr);
+  if (v->data) { ierr = PetscFree(v->data);CHKERRQ(ierr); }
+  ierr = PetscNewLog(v, Vec_Comp, &s);CHKERRQ(ierr);
+  ierr = PetscMemcpy(v->ops, &DvOps, sizeof(DvOps));CHKERRQ(ierr);
   v->data  = (void*)s;
   v->petscnative     = PETSC_FALSE;
 
   /* Allocate the array of Vec, if it is needed to be done */
   if (x_to_me != PETSC_TRUE) {
-    ierr = PetscMalloc(sizeof(Vec)*nx, &s->x); CHKERRQ(ierr);
-    ierr = PetscMemcpy(s->x, x, sizeof(Vec)*nx); CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(Vec)*nx, &s->x);CHKERRQ(ierr);
+    ierr = PetscMemcpy(s->x, x, sizeof(Vec)*nx);CHKERRQ(ierr);
   } else
     s->x = x;
 
   s->nx = nx;
   for(i=0; i<nx; i++) {
-    ierr = VecGetSize(x[i], &k); CHKERRQ(ierr); N+= k;
-    ierr = VecGetLocalSize(x[i], &k); CHKERRQ(ierr); lN+= k;
+    ierr = VecGetSize(x[i], &k);CHKERRQ(ierr);
+    N+= k;
+    ierr = VecGetLocalSize(x[i], &k);CHKERRQ(ierr);
+    lN+= k;
   }
  
   /* Allocate the shared structure, if it is not given */
   if (!n) {
-    ierr = PetscNewLog(v, Vec_Comp_N, &n); CHKERRQ(ierr);
+    ierr = PetscNewLog(v, Vec_Comp_N, &n);CHKERRQ(ierr);
     s->n = n;
     n->n = nx;
     n->N = N;
@@ -200,9 +202,9 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v, Vec *x, PetscInt nx,
   }
 
   /* Set the virtual sizes as the real sizes of the vector */
-  ierr = VecSetSizes(v, s->n->lN, s->n->N); CHKERRQ(ierr);
+  ierr = VecSetSizes(v, s->n->lN, s->n->N);CHKERRQ(ierr);
 
-  ierr = PetscObjectChangeTypeName((PetscObject)v,VECCOMP); CHKERRQ(ierr);
+  ierr = PetscObjectChangeTypeName((PetscObject)v,VECCOMP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -230,12 +232,12 @@ PetscErrorCode VecCreateComp(MPI_Comm comm, PetscInt *Nx,
   PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = VecCreate(comm, V); CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*n, &x); CHKERRQ(ierr);
+  ierr = VecCreate(comm, V);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(Vec)*n, &x);CHKERRQ(ierr);
   for(i=0; i<n; i++) {
-    ierr = VecCreate(comm, &x[i]); CHKERRQ(ierr);
-    ierr = VecSetSizes(x[i], PETSC_DECIDE, Nx[i]); CHKERRQ(ierr);
-    ierr = VecSetType(x[i], t); CHKERRQ(ierr);
+    ierr = VecCreate(comm, &x[i]);CHKERRQ(ierr);
+    ierr = VecSetSizes(x[i], PETSC_DECIDE, Nx[i]);CHKERRQ(ierr);
+    ierr = VecSetType(x[i], t);CHKERRQ(ierr);
   }
   ierr = VecCreate_Comp_Private(*V, x, n, PETSC_TRUE,
                            Vparent?((Vec_Comp*)Vparent->data)->n:PETSC_NULL);CHKERRQ(ierr);
@@ -250,9 +252,9 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x, PetscInt n, Vec Vparent, Vec *V)
   PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = VecCreate(((PetscObject)x[0])->comm, V); CHKERRQ(ierr);
+  ierr = VecCreate(((PetscObject)x[0])->comm, V);CHKERRQ(ierr);
   for(i=0; i<n; i++) {
-    ierr = PetscObjectReference((PetscObject)x[i]); CHKERRQ(ierr);
+    ierr = PetscObjectReference((PetscObject)x[i]);CHKERRQ(ierr);
   }
   ierr = VecCreate_Comp_Private(*V, x, n, PETSC_FALSE,
                            Vparent?((Vec_Comp*)Vparent->data)->n:PETSC_NULL);CHKERRQ(ierr);
@@ -272,10 +274,10 @@ PetscErrorCode VecDuplicate_Comp(Vec win, Vec *V)
 
   PetscValidVecComp(win);
 
-  ierr = VecCreate(((PetscObject)win)->comm, V); CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*s->nx, &x); CHKERRQ(ierr);
+  ierr = VecCreate(((PetscObject)win)->comm, V);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(Vec)*s->nx, &x);CHKERRQ(ierr);
   for(i=0; i<s->nx; i++) {
-    ierr = VecDuplicate(s->x[i], &x[i]); CHKERRQ(ierr);
+    ierr = VecDuplicate(s->x[i], &x[i]);CHKERRQ(ierr);
   }
   ierr = VecCreate_Comp_Private(*V, x, s->nx, PETSC_TRUE, s->n);CHKERRQ(ierr);
 
@@ -307,10 +309,10 @@ PetscErrorCode VecCompSetVecs(Vec win, Vec *x, PetscInt n)
 
   if(x) {
     if (n > s->nx) {
-      ierr = PetscFree(s->x); CHKERRQ(ierr);
-      ierr = PetscMalloc(sizeof(Vec)*n, &s->x); CHKERRQ(ierr);
+      ierr = PetscFree(s->x);CHKERRQ(ierr);
+      ierr = PetscMalloc(sizeof(Vec)*n, &s->x);CHKERRQ(ierr);
     }
-    ierr = PetscMemcpy(s->x, x, sizeof(Vec)*n); CHKERRQ(ierr);
+    ierr = PetscMemcpy(s->x, x, sizeof(Vec)*n);CHKERRQ(ierr);
     s->nx = n;
   }
   s->n->n = n;
@@ -329,7 +331,7 @@ PetscErrorCode VecAXPY_Comp(Vec v, PetscScalar alpha, Vec w)
   PetscValidVecComp(v);
   PetscValidVecComp(w);
   for(i=0; i<vs->n->n; i++) {
-    ierr = VecAXPY(vs->x[i], alpha, ws->x[i]); CHKERRQ(ierr);
+    ierr = VecAXPY(vs->x[i], alpha, ws->x[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -346,7 +348,7 @@ PetscErrorCode VecAYPX_Comp(Vec v, PetscScalar alpha, Vec w)
   PetscValidVecComp(v);
   PetscValidVecComp(w);
   for(i=0; i<vs->n->n; i++) {
-    ierr = VecAYPX(vs->x[i], alpha, ws->x[i]); CHKERRQ(ierr);
+    ierr = VecAYPX(vs->x[i], alpha, ws->x[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -363,7 +365,7 @@ PetscErrorCode VecAXPBY_Comp(Vec v, PetscScalar alpha, PetscScalar beta, Vec w)
   PetscValidVecComp(v);
   PetscValidVecComp(w);
   for(i=0; i<vs->n->n; i++) {
-    ierr = VecAXPBY(vs->x[i], alpha, beta, ws->x[i]); CHKERRQ(ierr);
+    ierr = VecAXPBY(vs->x[i], alpha, beta, ws->x[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -381,14 +383,14 @@ PetscErrorCode VecMAXPY_Comp(Vec v, PetscInt n, const PetscScalar *alpha, Vec *w
   PetscValidVecComp(v);
   for(i=0; i<n; i++) PetscValidVecComp(w[i]);
 
-  ierr = PetscMalloc(sizeof(Vec)*n, &wx); CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(Vec)*n, &wx);CHKERRQ(ierr);
 
   for(j=0; j<vs->n->n; j++) {
     for(i=0; i<n; i++) wx[i] = ((Vec_Comp*)w[i]->data)->x[j];
-    ierr = VecMAXPY(vs->x[j], n, alpha, wx); CHKERRQ(ierr);
+    ierr = VecMAXPY(vs->x[j], n, alpha, wx);CHKERRQ(ierr);
   }
 
-  ierr = PetscFree(wx); CHKERRQ(ierr);
+  ierr = PetscFree(wx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -407,7 +409,7 @@ PetscErrorCode VecWAXPY_Comp(Vec v, PetscScalar alpha, Vec w, Vec z)
   PetscValidVecComp(w);
   PetscValidVecComp(z);
   for(i=0; i<vs->n->n; i++) {
-    ierr = VecWAXPY(vs->x[i], alpha, ws->x[i], zs->x[i]); CHKERRQ(ierr);
+    ierr = VecWAXPY(vs->x[i], alpha, ws->x[i], zs->x[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -430,8 +432,7 @@ PetscErrorCode VecAXPBYPCZ_Comp(Vec v, PetscScalar alpha, PetscScalar beta,
   PetscValidVecComp(z);
 
   for(i=0; i<vs->n->n; i++) {
-    ierr = VecAXPBYPCZ(vs->x[i], alpha, beta, gamma, ws->x[i], zs->x[i]);
-    CHKERRQ(ierr);
+    ierr = VecAXPBYPCZ(vs->x[i], alpha, beta, gamma, ws->x[i], zs->x[i]);CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);
@@ -477,11 +478,12 @@ PetscErrorCode VecMax_Comp(Vec v, PetscInt *idx, PetscReal *z)
     PetscFunctionReturn(0);
 
   if (vs->n->n > 0) {
-    ierr = VecMax(vs->x[0], idx?&idxp:PETSC_NULL, &zp); CHKERRQ(ierr);
+    ierr = VecMax(vs->x[0], idx?&idxp:PETSC_NULL, &zp);CHKERRQ(ierr);
   }
   for (i=1; i<vs->n->n; i++) {
-    ierr = VecGetSize(vs->x[i-1], &s0); CHKERRQ(ierr); s+= s0;
-    ierr = VecMax(vs->x[i], idx?&idxp:PETSC_NULL, &z0); CHKERRQ(ierr);
+    ierr = VecGetSize(vs->x[i-1], &s0);CHKERRQ(ierr);
+    s+= s0;
+    ierr = VecMax(vs->x[i], idx?&idxp:PETSC_NULL, &z0);CHKERRQ(ierr);
     if(zp < z0) {
       if(idx) *idx = s+idxp;
       zp = z0;
@@ -507,11 +509,12 @@ PetscErrorCode VecMin_Comp(Vec v, PetscInt *idx, PetscReal *z)
     PetscFunctionReturn(0);
 
   if (vs->n->n > 0) {
-    ierr = VecMin(vs->x[0], idx?&idxp:PETSC_NULL, &zp); CHKERRQ(ierr);
+    ierr = VecMin(vs->x[0], idx?&idxp:PETSC_NULL, &zp);CHKERRQ(ierr);
   }
   for (i=1; i<vs->n->n; i++) {
-    ierr = VecGetSize(vs->x[i-1], &s0); CHKERRQ(ierr); s+= s0;
-    ierr = VecMin(vs->x[i], idx?&idxp:PETSC_NULL, &z0); CHKERRQ(ierr);
+    ierr = VecGetSize(vs->x[i-1], &s0);CHKERRQ(ierr);
+    s+= s0;
+    ierr = VecMin(vs->x[i], idx?&idxp:PETSC_NULL, &z0);CHKERRQ(ierr);
     if(zp > z0) {
       if(idx) *idx = s+idxp;
       zp = z0;
@@ -536,9 +539,9 @@ PetscErrorCode VecMaxPointwiseDivide_Comp(Vec v, Vec w, PetscReal *m)
 
   if(!m || vs->n->n == 0)
     PetscFunctionReturn(0);
-  ierr = VecMaxPointwiseDivide(vs->x[0], ws->x[0], m); CHKERRQ(ierr);
+  ierr = VecMaxPointwiseDivide(vs->x[0], ws->x[0], m);CHKERRQ(ierr);
   for (i=1; i<vs->n->n; i++) {
-    ierr = VecMaxPointwiseDivide(vs->x[i], ws->x[i], &work); CHKERRQ(ierr);
+    ierr = VecMaxPointwiseDivide(vs->x[i], ws->x[i], &work);CHKERRQ(ierr);
     *m = PetscMax(*m, work);
   }
   PetscFunctionReturn(0);
@@ -561,7 +564,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v) \
   PetscValidVecComp(v); \
 \
   for(i=0; i<vs->n->n; i++) { \
-    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i]); CHKERRQ(ierr); \
+    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i]);CHKERRQ(ierr); \
   } \
 \
   PetscFunctionReturn(0);\
@@ -604,7 +607,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, T0 __a) \
   PetscValidVecComp(v); \
 \
   for(i=0; i<vs->n->n; i++) { \
-    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], __a); CHKERRQ(ierr); \
+    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], __a);CHKERRQ(ierr); \
   } \
 \
   PetscFunctionReturn(0);\
@@ -645,7 +648,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w) \
   PetscValidVecComp(w); \
 \
   for(i=0; i<vs->n->n; i++) { \
-    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], ws->x[i]); CHKERRQ(ierr); \
+    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], ws->x[i]);CHKERRQ(ierr); \
   } \
 \
   PetscFunctionReturn(0);\
@@ -676,8 +679,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v, Vec w, Vec z) \
   PetscValidVecComp(z); \
 \
   for(i=0; i<vs->n->n; i++) { \
-    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], ws->x[i], zs->x[i]); \
-    CHKERRQ(ierr); \
+    ierr = __COMPOSE2__(Vec,NAME)(vs->x[i], ws->x[i], zs->x[i]);CHKERRQ(ierr); \
   } \
 \
   PetscFunctionReturn(0);\

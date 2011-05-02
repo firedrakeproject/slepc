@@ -40,7 +40,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->ncv!=svd->n) {  
     if (svd->U) {
       ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]); CHKERRQ(ierr); }
+      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]);CHKERRQ(ierr); }
       ierr = PetscFree(pU);CHKERRQ(ierr);
       ierr = PetscFree(svd->U);CHKERRQ(ierr);
     }

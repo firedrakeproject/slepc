@@ -128,7 +128,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     flg  = PETSC_FALSE;
     ierr = PetscOptionsBool("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
     if (flg) {
-      ierr = EPSMonitorCancel(eps); CHKERRQ(ierr);
+      ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
     }
     /*
       Prints approximate eigenvalues and error estimates at each iteration
@@ -214,8 +214,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  ierr = IPSetFromOptions(eps->ip); CHKERRQ(ierr);
-  ierr = STSetFromOptions(eps->OP); CHKERRQ(ierr);
+  ierr = IPSetFromOptions(eps->ip);CHKERRQ(ierr);
+  ierr = STSetFromOptions(eps->OP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1337,7 +1337,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
-  ierr = STAppendOptionsPrefix(eps->OP,prefix); CHKERRQ(ierr);
+  ierr = STAppendOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");CHKERRQ(ierr);
   PetscFunctionReturn(0);

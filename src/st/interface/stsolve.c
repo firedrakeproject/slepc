@@ -53,7 +53,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
-  if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
+  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->apply) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST does not have apply");
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
@@ -145,7 +145,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
-  if (!st->setupcalled) { ierr = STSetUp(st); CHKERRQ(ierr); }
+  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->applytrans) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST does not have applytrans");
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
@@ -214,7 +214,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
     ierr = VecAssemblyBegin(in);CHKERRQ(ierr);
     ierr = VecAssemblyEnd(in);CHKERRQ(ierr);
 
-    ierr = STApply(st,in,out); CHKERRQ(ierr);
+    ierr = STApply(st,in,out);CHKERRQ(ierr);
     
     ierr = VecGetArray(out,&array);CHKERRQ(ierr);
     ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr); 
@@ -258,7 +258,7 @@ PetscErrorCode STSetUp(ST st)
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = MatGetVecs(st->A,&st->w,PETSC_NULL);CHKERRQ(ierr);
   if (st->ops->setup) {
-    ierr = (*st->ops->setup)(st); CHKERRQ(ierr);
+    ierr = (*st->ops->setup)(st);CHKERRQ(ierr);
   }
   st->setupcalled = 1;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);

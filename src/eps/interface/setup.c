@@ -121,7 +121,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
-  ierr = STSetUp(eps->OP); CHKERRQ(ierr); 
+  ierr = STSetUp(eps->OP);CHKERRQ(ierr); 
   
   ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP)
