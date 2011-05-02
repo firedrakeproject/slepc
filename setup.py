@@ -77,7 +77,7 @@ def get_petsc_dir():
     return PETSC_DIR
 
 def get_petsc_arch():
-    PETSC_ARCH = os.environ.get('PETSC_ARCH') or 'installed-petsc'
+    PETSC_ARCH = os.environ.get('PETSC_ARCH') or 'arch-installed-petsc'
     return PETSC_ARCH
 
 def config(dry_run=False):
@@ -139,7 +139,7 @@ class cmd_build(_build):
 
     def initialize_options(self):
         _build.initialize_options(self)
-        PETSC_ARCH = os.environ.get('PETSC_ARCH', 'installed-petsc')
+        PETSC_ARCH = os.environ.get('PETSC_ARCH', 'arch-installed-petsc')
         self.build_base = os.path.join(PETSC_ARCH, 'build-python')
 
     def run(self):
