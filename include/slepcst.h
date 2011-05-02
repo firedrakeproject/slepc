@@ -120,6 +120,7 @@ extern PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 extern PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec));
 extern PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*));
 
+extern PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
 extern PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
 extern PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);

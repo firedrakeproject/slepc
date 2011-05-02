@@ -365,7 +365,7 @@ EXTERN_C_END
    OP = inv(A - sigma B)*(A + nu B). This function sets the value of nu.
    Use STSetShift() for setting sigma.
 
-.seealso: STSetShift()
+.seealso: STSetShift(), STCayleyGetAntishift()
 @*/
 PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
 {
@@ -374,6 +374,46 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "STCayleyGetAntishift_Cayley"
+PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
+{
+  ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
+
+  PetscFunctionBegin;
+  *nu = ctx->nu;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "STCayleyGetAntishift"
+/*@
+   STCayleyGetAntishift - Gets the value of the anti-shift used in the Cayley
+   spectral transformation.
+
+   Collective on ST
+
+   Input Parameter:
+.  st  - the spectral transformation context
+
+   Output Parameter:
+.  nu  - the anti-shift
+
+   Level: intermediate
+
+.seealso: STGetShift(), STCayleySetAntishift()
+@*/
+PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  ierr = PetscTryMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
