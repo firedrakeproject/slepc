@@ -27,7 +27,7 @@
 
 #include "davidson.h"
 
-PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer);
+PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer);
 
 typedef struct {
   /**** Solver options ****/
@@ -50,8 +50,8 @@ typedef struct {
 } EPS_DAVIDSON;
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSCreate_DAVIDSON"
-PetscErrorCode EPSCreate_DAVIDSON(EPS eps)
+#define __FUNCT__ "EPSCreate_Davidson"
+PetscErrorCode EPSCreate_Davidson(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data;
@@ -61,28 +61,28 @@ PetscErrorCode EPSCreate_DAVIDSON(EPS eps)
   ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_FALSE); CHKERRQ(ierr);
 
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
-  eps->ops->solve                = EPSSolve_DAVIDSON;
-  eps->ops->setup                = EPSSetUp_DAVIDSON;
-  eps->ops->destroy              = EPSDestroy_DAVIDSON;
+  eps->ops->solve                = EPSSolve_Davidson;
+  eps->ops->setup                = EPSSetUp_Davidson;
+  eps->ops->destroy              = EPSDestroy_Davidson;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_QZ;
-  eps->ops->view                 = EPSView_DAVIDSON;
+  eps->ops->view                 = EPSView_Davidson;
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON), &data); CHKERRQ(ierr);
   eps->data = data;
 
   /* Set default values */
-  ierr = EPSDAVIDSONSetKrylovStart_DAVIDSON(eps, PETSC_FALSE); CHKERRQ(ierr);
-  ierr = EPSDAVIDSONSetBlockSize_DAVIDSON(eps, 1); CHKERRQ(ierr);
-  ierr = EPSDAVIDSONSetRestart_DAVIDSON(eps, 6, 0); CHKERRQ(ierr);
-  ierr = EPSDAVIDSONSetInitialSize_DAVIDSON(eps, 5); CHKERRQ(ierr);
-  ierr = EPSDAVIDSONSetFix_DAVIDSON(eps, 0.01); CHKERRQ(ierr);
+  ierr = EPSDavidsonSetKrylovStart_Davidson(eps, PETSC_FALSE); CHKERRQ(ierr);
+  ierr = EPSDavidsonSetBlockSize_Davidson(eps, 1); CHKERRQ(ierr);
+  ierr = EPSDavidsonSetRestart_Davidson(eps, 6, 0); CHKERRQ(ierr);
+  ierr = EPSDavidsonSetInitialSize_Davidson(eps, 5); CHKERRQ(ierr);
+  ierr = EPSDavidsonSetFix_Davidson(eps, 0.01); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetUp_DAVIDSON"
-PetscErrorCode EPSSetUp_DAVIDSON(EPS eps)
+#define __FUNCT__ "EPSSetUp_Davidson"
+PetscErrorCode EPSSetUp_Davidson(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
@@ -98,7 +98,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps)
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
-  ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &bs); CHKERRQ(ierr);
+  ierr = EPSDavidsonGetBlockSize_Davidson(eps, &bs); CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
   if(eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
@@ -119,12 +119,12 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps)
   if (!(eps->nev + bs <= eps->ncv))
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "The ncv has to be greater than nev plus blocksize!");
 
-  ierr = EPSDAVIDSONGetRestart_DAVIDSON(eps, &min_size_V, &plusk);
+  ierr = EPSDavidsonGetRestart_Davidson(eps, &min_size_V, &plusk);
   CHKERRQ(ierr);
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5), eps->mpd/2);
   if (!(min_size_V+bs <= eps->mpd))
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "The value of minv must be less than mpd minus blocksize");
-  ierr = EPSDAVIDSONGetInitialSize_DAVIDSON(eps, &initv); CHKERRQ(ierr);
+  ierr = EPSDavidsonGetInitialSize_Davidson(eps, &initv); CHKERRQ(ierr);
   if (eps->mpd < initv)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
@@ -204,7 +204,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps)
   }
 
   /* Setup the type of starting subspace */
-  ierr = EPSDAVIDSONGetKrylovStart_DAVIDSON(eps, &t); CHKERRQ(ierr);
+  ierr = EPSDavidsonGetKrylovStart_Davidson(eps, &t); CHKERRQ(ierr);
   init = (!t)? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
 
   /* Setup IP */
@@ -215,7 +215,7 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps)
   }
 
   /* Get the fix parameter */
-  ierr = EPSDAVIDSONGetFix_DAVIDSON(eps, &fix); CHKERRQ(ierr);
+  ierr = EPSDavidsonGetFix_Davidson(eps, &fix); CHKERRQ(ierr);
 
   /* Orthonormalize the DS */
   ierr = dvd_orthV(eps->ip, PETSC_NULL, 0, PETSC_NULL, 0, eps->DS, 0,
@@ -264,8 +264,8 @@ PetscErrorCode EPSSetUp_DAVIDSON(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_DAVIDSON"
-PetscErrorCode EPSSolve_DAVIDSON(EPS eps)
+#define __FUNCT__ "EPSSolve_Davidson"
+PetscErrorCode EPSSolve_Davidson(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
@@ -302,8 +302,8 @@ PetscErrorCode EPSSolve_DAVIDSON(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_DAVIDSON"
-PetscErrorCode EPSDestroy_DAVIDSON(EPS eps)
+#define __FUNCT__ "EPSDestroy_Davidson"
+PetscErrorCode EPSDestroy_Davidson(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
@@ -327,8 +327,8 @@ PetscErrorCode EPSDestroy_DAVIDSON(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSView_DAVIDSON"
-PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
+#define __FUNCT__ "EPSView_Davidson"
+PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii, opb;
@@ -342,23 +342,23 @@ PetscErrorCode EPSView_DAVIDSON(EPS eps,PetscViewer viewer)
     SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   }
   
-  ierr = EPSDAVIDSONGetBlockSize_DAVIDSON(eps, &opi); CHKERRQ(ierr);
+  ierr = EPSDavidsonGetBlockSize_Davidson(eps, &opi); CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"block size: %d\n", opi);CHKERRQ(ierr);
-  ierr = EPSDAVIDSONGetKrylovStart_DAVIDSON(eps, &opb); CHKERRQ(ierr);
+  ierr = EPSDavidsonGetKrylovStart_Davidson(eps, &opb); CHKERRQ(ierr);
   if(!opb) {
     ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: Krylov\n");CHKERRQ(ierr);
   }
-  ierr = EPSDAVIDSONGetRestart_DAVIDSON(eps, &opi, &opi0); CHKERRQ(ierr);
+  ierr = EPSDavidsonGetRestart_Davidson(eps, &opi, &opi0); CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"size of the subspace after restarting: %d\n", opi);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"number of vectors after restarting from the previous iteration: %d\n", opi0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONSetKrylovStart_DAVIDSON"
-PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart)
+#define __FUNCT__ "EPSDavidsonSetKrylovStart_Davidson"
+PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -369,8 +369,8 @@ PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONGetKrylovStart_DAVIDSON"
-PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscBool *krylovstart)
+#define __FUNCT__ "EPSDavidsonGetKrylovStart_Davidson"
+PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -381,8 +381,8 @@ PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscBool *krylovstart
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONSetBlockSize_DAVIDSON"
-PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize)
+#define __FUNCT__ "EPSDavidsonSetBlockSize_Davidson"
+PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -396,8 +396,8 @@ PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONGetBlockSize_DAVIDSON"
-PetscErrorCode EPSDAVIDSONGetBlockSize_DAVIDSON(EPS eps,PetscInt *blocksize)
+#define __FUNCT__ "EPSDavidsonGetBlockSize_Davidson"
+PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -408,8 +408,8 @@ PetscErrorCode EPSDAVIDSONGetBlockSize_DAVIDSON(EPS eps,PetscInt *blocksize)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONSetRestart_DAVIDSON"
-PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plusk)
+#define __FUNCT__ "EPSDavidsonSetRestart_Davidson"
+PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plusk)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -427,8 +427,8 @@ PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plu
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONGetRestart_DAVIDSON"
-PetscErrorCode EPSDAVIDSONGetRestart_DAVIDSON(EPS eps,PetscInt *minv,PetscInt *plusk)
+#define __FUNCT__ "EPSDavidsonGetRestart_Davidson"
+PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -440,8 +440,8 @@ PetscErrorCode EPSDAVIDSONGetRestart_DAVIDSON(EPS eps,PetscInt *minv,PetscInt *p
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONGetInitialSize_DAVIDSON"
-PetscErrorCode EPSDAVIDSONGetInitialSize_DAVIDSON(EPS eps,PetscInt *initialsize)
+#define __FUNCT__ "EPSDavidsonGetInitialSize_Davidson"
+PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -452,8 +452,8 @@ PetscErrorCode EPSDAVIDSONGetInitialSize_DAVIDSON(EPS eps,PetscInt *initialsize)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONSetInitialSize_DAVIDSON"
-PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize)
+#define __FUNCT__ "EPSDavidsonSetInitialSize_Davidson"
+PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -467,8 +467,8 @@ PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONGetFix_DAVIDSON"
-PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix)
+#define __FUNCT__ "EPSDavidsonGetFix_Davidson"
+PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -479,8 +479,8 @@ PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDAVIDSONSetFix_DAVIDSON"
-PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix)
+#define __FUNCT__ "EPSDavidsonSetFix_Davidson"
+PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 

@@ -30,8 +30,8 @@ typedef struct {
 } QEP_QARNOLDI;
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPSetUp_QARNOLDI"
-PetscErrorCode QEPSetUp_QARNOLDI(QEP qep)
+#define __FUNCT__ "QEPSetUp_QArnoldi"
+PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI *)qep->data;
@@ -214,8 +214,8 @@ PetscErrorCode QEPProjectedKSNonsym(QEP qep,PetscInt l,PetscScalar *S,PetscInt l
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPSolve_QARNOLDI"
-PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
+#define __FUNCT__ "QEPSolve_QArnoldi"
+PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,k,l,lwork,nv;
@@ -308,8 +308,8 @@ PetscErrorCode QEPSolve_QARNOLDI(QEP qep)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPSetFromOptions_QARNOLDI"
-PetscErrorCode QEPSetFromOptions_QARNOLDI(QEP qep)
+#define __FUNCT__ "QEPSetFromOptions_QArnoldi"
+PetscErrorCode QEPSetFromOptions_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI *)qep->data;
@@ -320,8 +320,8 @@ PetscErrorCode QEPSetFromOptions_QARNOLDI(QEP qep)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPView_QARNOLDI"
-PetscErrorCode QEPView_QARNOLDI(QEP qep,PetscViewer viewer)
+#define __FUNCT__ "QEPView_QArnoldi"
+PetscErrorCode QEPView_QArnoldi(QEP qep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI *)qep->data;
@@ -332,8 +332,8 @@ PetscErrorCode QEPView_QARNOLDI(QEP qep,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPDestroy_QARNOLDI"
-PetscErrorCode QEPDestroy_QARNOLDI(QEP qep)
+#define __FUNCT__ "QEPDestroy_QArnoldi"
+PetscErrorCode QEPDestroy_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI *)qep->data;
@@ -346,8 +346,8 @@ PetscErrorCode QEPDestroy_QARNOLDI(QEP qep)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPCreate_QARNOLDI"
-PetscErrorCode QEPCreate_QARNOLDI(QEP qep)
+#define __FUNCT__ "QEPCreate_QArnoldi"
+PetscErrorCode QEPCreate_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_QARNOLDI   *ctx;
@@ -356,11 +356,11 @@ PetscErrorCode QEPCreate_QARNOLDI(QEP qep)
   ierr = PetscNew(QEP_QARNOLDI,&ctx);CHKERRQ(ierr);
   PetscLogObjectMemory(qep,sizeof(QEP_QARNOLDI));
   qep->data                      = ctx;
-  qep->ops->solve                = QEPSolve_QARNOLDI;
-  qep->ops->setup                = QEPSetUp_QARNOLDI;
-  qep->ops->setfromoptions       = QEPSetFromOptions_QARNOLDI;
-  qep->ops->destroy              = QEPDestroy_QARNOLDI;
-  qep->ops->view                 = QEPView_QARNOLDI;
+  qep->ops->solve                = QEPSolve_QArnoldi;
+  qep->ops->setup                = QEPSetUp_QArnoldi;
+  qep->ops->setfromoptions       = QEPSetFromOptions_QArnoldi;
+  qep->ops->destroy              = QEPDestroy_QArnoldi;
+  qep->ops->view                 = QEPView_QArnoldi;
 
   ierr = KSPCreate(((PetscObject)qep)->comm,&ctx->ksp);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)qep)->prefix);CHKERRQ(ierr);

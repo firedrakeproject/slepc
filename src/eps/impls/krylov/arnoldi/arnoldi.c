@@ -38,15 +38,15 @@
 #include <private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_ARNOLDI(EPS);
+PetscErrorCode EPSSolve_Arnoldi(EPS);
 
 typedef struct {
   PetscBool delayed;
 } EPS_ARNOLDI;
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetUp_ARNOLDI"
-PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
+#define __FUNCT__ "EPSSetUp_Arnoldi"
+PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_ARNOLDI(EPS eps)
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
-  eps->ops->solve = EPSSolve_ARNOLDI;
+  eps->ops->solve = EPSSolve_Arnoldi;
   PetscFunctionReturn(0);
 }
 
@@ -355,8 +355,8 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_ARNOLDI"
-PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
+#define __FUNCT__ "EPSSolve_Arnoldi"
+PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,lwork,nv;
@@ -447,15 +447,15 @@ PetscErrorCode EPSSolve_ARNOLDI(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetFromOptions_ARNOLDI"
-PetscErrorCode EPSSetFromOptions_ARNOLDI(EPS eps)
+#define __FUNCT__ "EPSSetFromOptions_Arnoldi"
+PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"ARNOLDI Options","EPS");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"Arnoldi Options","EPS");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr);
@@ -466,8 +466,8 @@ PetscErrorCode EPSSetFromOptions_ARNOLDI(EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSArnoldiSetDelayed_ARNOLDI"
-PetscErrorCode EPSArnoldiSetDelayed_ARNOLDI(EPS eps,PetscBool delayed)
+#define __FUNCT__ "EPSArnoldiSetDelayed_Arnoldi"
+PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
 {
   EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI *)eps->data;
 
@@ -513,8 +513,8 @@ PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscBool delayed)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSArnoldiGetDelayed_ARNOLDI"
-PetscErrorCode EPSArnoldiGetDelayed_ARNOLDI(EPS eps,PetscBool *delayed)
+#define __FUNCT__ "EPSArnoldiGetDelayed_Arnoldi"
+PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 {
   EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI *)eps->data;
 
@@ -553,8 +553,8 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_ARNOLDI"
-PetscErrorCode EPSDestroy_ARNOLDI(EPS eps)
+#define __FUNCT__ "EPSDestroy_Arnoldi"
+PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -567,8 +567,8 @@ PetscErrorCode EPSDestroy_ARNOLDI(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSView_ARNOLDI"
-PetscErrorCode EPSView_ARNOLDI(EPS eps,PetscViewer viewer)
+#define __FUNCT__ "EPSView_Arnoldi"
+PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
@@ -577,7 +577,7 @@ PetscErrorCode EPSView_ARNOLDI(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSARNOLDI",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Arnoldi",((PetscObject)viewer)->type_name);
   }
   if (arnoldi->delayed) {
     ierr = PetscViewerASCIIPrintf(viewer,"using delayed reorthogonalization\n");CHKERRQ(ierr);
@@ -585,12 +585,12 @@ PetscErrorCode EPSView_ARNOLDI(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-extern PetscErrorCode EPSSolve_TS_ARNOLDI(EPS);
+extern PetscErrorCode EPSSolve_TS_Arnoldi(EPS);
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSCreate_ARNOLDI"
-PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
+#define __FUNCT__ "EPSCreate_Arnoldi"
+PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_ARNOLDI    *arnoldi;
@@ -599,15 +599,15 @@ PetscErrorCode EPSCreate_ARNOLDI(EPS eps)
   ierr = PetscNew(EPS_ARNOLDI,&arnoldi);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_ARNOLDI));
   eps->data                      = (void *)arnoldi;
-  eps->ops->setup                = EPSSetUp_ARNOLDI;
-  eps->ops->setfromoptions       = EPSSetFromOptions_ARNOLDI;
-  eps->ops->destroy              = EPSDestroy_ARNOLDI;
-  eps->ops->view                 = EPSView_ARNOLDI;
+  eps->ops->setup                = EPSSetUp_Arnoldi;
+  eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
+  eps->ops->destroy              = EPSDestroy_Arnoldi;
+  eps->ops->view                 = EPSView_Arnoldi;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   arnoldi->delayed               = PETSC_FALSE;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_ARNOLDI",EPSArnoldiSetDelayed_ARNOLDI);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_ARNOLDI",EPSArnoldiGetDelayed_ARNOLDI);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_Arnoldi",EPSArnoldiSetDelayed_Arnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_Arnoldi",EPSArnoldiGetDelayed_Arnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

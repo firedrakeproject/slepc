@@ -166,8 +166,8 @@ PetscErrorCode EPSRecoverHarmonic(PetscScalar *S,PetscInt n_,PetscInt k,PetscInt
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_KRYLOVSCHUR_HARMONIC"
-PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS eps)
+#define __FUNCT__ "EPSSolve_KrylovSchur_Harmonic"
+PetscErrorCode EPSSolve_KrylovSchur_Harmonic(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,l,lwork,nv;

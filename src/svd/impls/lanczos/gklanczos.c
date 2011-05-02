@@ -35,8 +35,8 @@ typedef struct {
 } SVD_LANCZOS;
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSetUp_LANCZOS"
-PetscErrorCode SVDSetUp_LANCZOS(SVD svd)
+#define __FUNCT__ "SVDSetUp_Lanczos"
+PetscErrorCode SVDSetUp_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
@@ -151,8 +151,8 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSolve_LANCZOS"
-PetscErrorCode SVDSolve_LANCZOS(SVD svd)
+#define __FUNCT__ "SVDSolve_Lanczos"
+PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
 #if defined(SLEPC_MISSING_LAPACK_BDSDC)
   PetscFunctionBegin;
@@ -297,15 +297,15 @@ PetscErrorCode SVDSolve_LANCZOS(SVD svd)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSetFromOptions_LANCZOS"
-PetscErrorCode SVDSetFromOptions_LANCZOS(SVD svd)
+#define __FUNCT__ "SVDSetFromOptions_Lanczos"
+PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"LANCZOS Singular Value Solver Options","SVD");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"Lanczos Singular Value Solver Options","SVD");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDLanczosSetOneSide(svd,val);CHKERRQ(ierr);
@@ -316,8 +316,8 @@ PetscErrorCode SVDSetFromOptions_LANCZOS(SVD svd)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDLanczosSetOneSide_LANCZOS"
-PetscErrorCode SVDLanczosSetOneSide_LANCZOS(SVD svd,PetscBool oneside)
+#define __FUNCT__ "SVDLanczosSetOneSide_Lanczos"
+PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
 {
   SVD_LANCZOS *lanczos = (SVD_LANCZOS *)svd->data;
 
@@ -395,8 +395,8 @@ PetscErrorCode SVDLanczosGetOneSide(SVD svd,PetscBool *oneside)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDLanczosGetOneSide_LANCZOS"
-PetscErrorCode SVDLanczosGetOneSide_LANCZOS(SVD svd,PetscBool *oneside)
+#define __FUNCT__ "SVDLanczosGetOneSide_Lanczos"
+PetscErrorCode SVDLanczosGetOneSide_Lanczos(SVD svd,PetscBool *oneside)
 {
   SVD_LANCZOS *lanczos = (SVD_LANCZOS *)svd->data;
 
@@ -408,8 +408,8 @@ PetscErrorCode SVDLanczosGetOneSide_LANCZOS(SVD svd,PetscBool *oneside)
 EXTERN_C_END
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDDestroy_LANCZOS"
-PetscErrorCode SVDDestroy_LANCZOS(SVD svd)
+#define __FUNCT__ "SVDDestroy_Lanczos"
+PetscErrorCode SVDDestroy_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
 
@@ -422,8 +422,8 @@ PetscErrorCode SVDDestroy_LANCZOS(SVD svd)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDView_LANCZOS"
-PetscErrorCode SVDView_LANCZOS(SVD svd,PetscViewer viewer)
+#define __FUNCT__ "SVDView_Lanczos"
+PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
@@ -435,8 +435,8 @@ PetscErrorCode SVDView_LANCZOS(SVD svd,PetscViewer viewer)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDCreate_LANCZOS"
-PetscErrorCode SVDCreate_LANCZOS(SVD svd)
+#define __FUNCT__ "SVDCreate_Lanczos"
+PetscErrorCode SVDCreate_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos;
@@ -445,14 +445,14 @@ PetscErrorCode SVDCreate_LANCZOS(SVD svd)
   ierr = PetscNew(SVD_LANCZOS,&lanczos);CHKERRQ(ierr);
   PetscLogObjectMemory(svd,sizeof(SVD_LANCZOS));
   svd->data                = (void *)lanczos;
-  svd->ops->setup          = SVDSetUp_LANCZOS;
-  svd->ops->solve          = SVDSolve_LANCZOS;
-  svd->ops->destroy        = SVDDestroy_LANCZOS;
-  svd->ops->setfromoptions = SVDSetFromOptions_LANCZOS;
-  svd->ops->view           = SVDView_LANCZOS;
+  svd->ops->setup          = SVDSetUp_Lanczos;
+  svd->ops->solve          = SVDSolve_Lanczos;
+  svd->ops->destroy        = SVDDestroy_Lanczos;
+  svd->ops->setfromoptions = SVDSetFromOptions_Lanczos;
+  svd->ops->view           = SVDView_Lanczos;
   lanczos->oneside         = PETSC_FALSE;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","SVDLanczosSetOneSide_LANCZOS",SVDLanczosSetOneSide_LANCZOS);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosGetOneSide_C","SVDLanczosGetOneSide_LANCZOS",SVDLanczosGetOneSide_LANCZOS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","SVDLanczosSetOneSide_Lanczos",SVDLanczosSetOneSide_Lanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosGetOneSide_C","SVDLanczosGetOneSide_Lanczos",SVDLanczosGetOneSide_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

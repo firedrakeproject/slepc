@@ -285,8 +285,8 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SlepcMatTile_SEQAIJ"
-static PetscErrorCode SlepcMatTile_SEQAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
+#define __FUNCT__ "SlepcMatTile_SeqAIJ"
+static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,M1,M2,N1,N2,*nnz,ncols,*scols;
@@ -606,7 +606,7 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
     ierr = PetscTypeCompare((PetscObject)*G,MATSEQAIJ,&flg1);CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)A,MATSEQAIJ,&flg2);CHKERRQ(ierr);
     if (flg1 && flg2) {
-      ierr = SlepcMatTile_SEQAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
+      ierr = SlepcMatTile_SeqAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
     }
     else SETERRQ(((PetscObject)A)->comm,PETSC_ERR_SUP,"Not implemented for this matrix type");
   }

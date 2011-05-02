@@ -22,12 +22,12 @@
 #include <private/epsimpl.h>  /*I "slepceps.h" I*/
 
 EXTERN_C_BEGIN
-extern PetscErrorCode EPSCreate_POWER(EPS);
-extern PetscErrorCode EPSCreate_SUBSPACE(EPS);
-extern PetscErrorCode EPSCreate_ARNOLDI(EPS);
-extern PetscErrorCode EPSCreate_LANCZOS(EPS);
-extern PetscErrorCode EPSCreate_KRYLOVSCHUR(EPS);
-extern PetscErrorCode EPSCreate_DSITRLANCZOS(EPS);
+extern PetscErrorCode EPSCreate_Power(EPS);
+extern PetscErrorCode EPSCreate_Subspace(EPS);
+extern PetscErrorCode EPSCreate_Arnoldi(EPS);
+extern PetscErrorCode EPSCreate_Lanczos(EPS);
+extern PetscErrorCode EPSCreate_KrylovSchur(EPS);
+extern PetscErrorCode EPSCreate_DSITRLanczos(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
 extern PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
@@ -64,12 +64,12 @@ PetscErrorCode EPSRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSRegisterDynamic(EPSPOWER,path,"EPSCreate_POWER",EPSCreate_POWER);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSSUBSPACE,path,"EPSCreate_SUBSPACE",EPSCreate_SUBSPACE);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSARNOLDI,path,"EPSCreate_ARNOLDI",EPSCreate_ARNOLDI);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSLANCZOS,path,"EPSCreate_LANCZOS",EPSCreate_LANCZOS);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSKRYLOVSCHUR,path,"EPSCreate_KRYLOVSCHUR",EPSCreate_KRYLOVSCHUR);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSDSITRLANCZOS,path,"EPSCreate_DSITRLANCZOS",EPSCreate_DSITRLANCZOS);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSPOWER,path,"EPSCreate_POWER",EPSCreate_Power);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSSUBSPACE,path,"EPSCreate_SUBSPACE",EPSCreate_Subspace);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSARNOLDI,path,"EPSCreate_ARNOLDI",EPSCreate_Arnoldi);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSLANCZOS,path,"EPSCreate_LANCZOS",EPSCreate_Lanczos);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSKRYLOVSCHUR,path,"EPSCreate_KRYLOVSCHUR",EPSCreate_KrylovSchur);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSDSITRLANCZOS,path,"EPSCreate_DSITRLANCZOS",EPSCreate_DSITRLanczos);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegisterDynamic(EPSARPACK,path,"EPSCreate_ARPACK",EPSCreate_ARPACK);CHKERRQ(ierr);
 #endif

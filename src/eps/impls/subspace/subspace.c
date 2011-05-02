@@ -39,15 +39,15 @@
 #include <private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_SUBSPACE(EPS);
+PetscErrorCode EPSSolve_Subspace(EPS);
 
 typedef struct {
   Vec *AV;
 } EPS_SUBSPACE;
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetUp_SUBSPACE"
-PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
+#define __FUNCT__ "EPSSetUp_Subspace"
+PetscErrorCode EPSSetUp_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -88,7 +88,7 @@ PetscErrorCode EPSSetUp_SUBSPACE(EPS eps)
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
-  eps->ops->solve = EPSSolve_SUBSPACE;
+  eps->ops->solve = EPSSolve_Subspace;
   PetscFunctionReturn(0);
 }
 
@@ -228,8 +228,8 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_SUBSPACE"
-PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
+#define __FUNCT__ "EPSSolve_Subspace"
+PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
@@ -394,8 +394,8 @@ PetscErrorCode EPSSolve_SUBSPACE(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_SUBSPACE"
-PetscErrorCode EPSDestroy_SUBSPACE(EPS eps)
+#define __FUNCT__ "EPSDestroy_Subspace"
+PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -415,8 +415,8 @@ PetscErrorCode EPSDestroy_SUBSPACE(EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSCreate_SUBSPACE"
-PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
+#define __FUNCT__ "EPSCreate_Subspace"
+PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_SUBSPACE   *ctx;
@@ -425,8 +425,8 @@ PetscErrorCode EPSCreate_SUBSPACE(EPS eps)
   ierr = PetscNew(EPS_SUBSPACE,&ctx);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_SUBSPACE));
   eps->data                      = (void *) ctx;
-  eps->ops->setup                = EPSSetUp_SUBSPACE;
-  eps->ops->destroy              = EPSDestroy_SUBSPACE;
+  eps->ops->setup                = EPSSetUp_Subspace;
+  eps->ops->destroy              = EPSDestroy_Subspace;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);

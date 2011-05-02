@@ -22,8 +22,8 @@
 #include <private/qepimpl.h>      /*I "slepcqep.h" I*/
 
 EXTERN_C_BEGIN
-extern PetscErrorCode QEPCreate_LINEAR(QEP);
-extern PetscErrorCode QEPCreate_QARNOLDI(QEP);
+extern PetscErrorCode QEPCreate_Linear(QEP);
+extern PetscErrorCode QEPCreate_QArnoldi(QEP);
 EXTERN_C_END
   
 #undef __FUNCT__  
@@ -42,7 +42,7 @@ PetscErrorCode QEPRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = QEPRegisterDynamic(QEPLINEAR,path,"QEPCreate_LINEAR",QEPCreate_LINEAR);CHKERRQ(ierr);
-  ierr = QEPRegisterDynamic(QEPQARNOLDI,path,"QEPCreate_QARNOLDI",QEPCreate_QARNOLDI);CHKERRQ(ierr);
+  ierr = QEPRegisterDynamic(QEPLINEAR,path,"QEPCreate_LINEAR",QEPCreate_Linear);CHKERRQ(ierr);
+  ierr = QEPRegisterDynamic(QEPQARNOLDI,path,"QEPCreate_QARNOLDI",QEPCreate_QArnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

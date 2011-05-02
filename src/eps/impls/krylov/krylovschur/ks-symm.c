@@ -181,8 +181,8 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_KRYLOVSCHUR_SYMM"
-PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS eps)
+#define __FUNCT__ "EPSSolve_KrylovSchur_Symm"
+PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,l,lds,lt,nv,m,*iwork;

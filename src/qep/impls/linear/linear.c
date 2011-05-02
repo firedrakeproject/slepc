@@ -27,8 +27,8 @@
 #include "linearp.h"
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPSetUp_LINEAR"
-PetscErrorCode QEPSetUp_LINEAR(QEP qep)
+#define __FUNCT__ "QEPSetUp_Linear"
+PetscErrorCode QEPSetUp_Linear(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
@@ -37,28 +37,28 @@ PetscErrorCode QEPSetUp_LINEAR(QEP qep)
   PetscBool      trackall;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
-    { MatCreateExplicit_QEPLINEAR_N1A, MatCreateExplicit_QEPLINEAR_N1B },   /* N1 */
-    { MatCreateExplicit_QEPLINEAR_N2A, MatCreateExplicit_QEPLINEAR_N2B },   /* N2 */
-    { MatCreateExplicit_QEPLINEAR_S1A, MatCreateExplicit_QEPLINEAR_S1B },   /* S1 */
-    { MatCreateExplicit_QEPLINEAR_S2A, MatCreateExplicit_QEPLINEAR_S2B },   /* S2 */
-    { MatCreateExplicit_QEPLINEAR_H1A, MatCreateExplicit_QEPLINEAR_H1B },   /* H1 */
-    { MatCreateExplicit_QEPLINEAR_H2A, MatCreateExplicit_QEPLINEAR_H2B }    /* H2 */
+    { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
+    { MatCreateExplicit_Linear_N2A, MatCreateExplicit_Linear_N2B },   /* N2 */
+    { MatCreateExplicit_Linear_S1A, MatCreateExplicit_Linear_S1B },   /* S1 */
+    { MatCreateExplicit_Linear_S2A, MatCreateExplicit_Linear_S2B },   /* S2 */
+    { MatCreateExplicit_Linear_H1A, MatCreateExplicit_Linear_H1B },   /* H1 */
+    { MatCreateExplicit_Linear_H2A, MatCreateExplicit_Linear_H2B }    /* H2 */
   };
   PetscErrorCode (*fmult[][2])(Mat,Vec,Vec) = {
-    { MatMult_QEPLINEAR_N1A, MatMult_QEPLINEAR_N1B },
-    { MatMult_QEPLINEAR_N2A, MatMult_QEPLINEAR_N2B },
-    { MatMult_QEPLINEAR_S1A, MatMult_QEPLINEAR_S1B },
-    { MatMult_QEPLINEAR_S2A, MatMult_QEPLINEAR_S2B },
-    { MatMult_QEPLINEAR_H1A, MatMult_QEPLINEAR_H1B },
-    { MatMult_QEPLINEAR_H2A, MatMult_QEPLINEAR_H2B }
+    { MatMult_Linear_N1A, MatMult_Linear_N1B },
+    { MatMult_Linear_N2A, MatMult_Linear_N2B },
+    { MatMult_Linear_S1A, MatMult_Linear_S1B },
+    { MatMult_Linear_S2A, MatMult_Linear_S2B },
+    { MatMult_Linear_H1A, MatMult_Linear_H1B },
+    { MatMult_Linear_H2A, MatMult_Linear_H2B }
   };
   PetscErrorCode (*fgetdiagonal[][2])(Mat,Vec) = {
-    { MatGetDiagonal_QEPLINEAR_N1A, MatGetDiagonal_QEPLINEAR_N1B },
-    { MatGetDiagonal_QEPLINEAR_N2A, MatGetDiagonal_QEPLINEAR_N2B },
-    { MatGetDiagonal_QEPLINEAR_S1A, MatGetDiagonal_QEPLINEAR_S1B },
-    { MatGetDiagonal_QEPLINEAR_S2A, MatGetDiagonal_QEPLINEAR_S2B },
-    { MatGetDiagonal_QEPLINEAR_H1A, MatGetDiagonal_QEPLINEAR_H1B },
-    { MatGetDiagonal_QEPLINEAR_H2A, MatGetDiagonal_QEPLINEAR_H2B }
+    { MatGetDiagonal_Linear_N1A, MatGetDiagonal_Linear_N1B },
+    { MatGetDiagonal_Linear_N2A, MatGetDiagonal_Linear_N2B },
+    { MatGetDiagonal_Linear_S1A, MatGetDiagonal_Linear_S1B },
+    { MatGetDiagonal_Linear_S2A, MatGetDiagonal_Linear_S2B },
+    { MatGetDiagonal_Linear_H1A, MatGetDiagonal_Linear_H1B },
+    { MatGetDiagonal_Linear_H2A, MatGetDiagonal_Linear_H2B }
   };
 
   PetscFunctionBegin;
@@ -276,8 +276,8 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPSolve_LINEAR"
-PetscErrorCode QEPSolve_LINEAR(QEP qep)
+#define __FUNCT__ "QEPSolve_Linear"
+PetscErrorCode QEPSolve_Linear(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
@@ -300,8 +300,8 @@ PetscErrorCode QEPSolve_LINEAR(QEP qep)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSMonitor_QEP_LINEAR"
-PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+#define __FUNCT__ "EPSMonitor_Linear"
+PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i;
   QEP            qep = (QEP)ctx;
@@ -321,8 +321,8 @@ PetscErrorCode EPSMonitor_QEP_LINEAR(EPS eps,PetscInt its,PetscInt nconv,PetscSc
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPSetFromOptions_LINEAR"
-PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
+#define __FUNCT__ "QEPSetFromOptions_Linear"
+PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
@@ -331,7 +331,7 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"LINEAR Quadratic Eigenvalue Problem solver Options","QEP");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"Linear Quadratic Eigenvalue Problem solver Options","QEP");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-qep_linear_cform","Number of the companion form","QEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
     ierr = QEPLinearSetCompanionForm(qep,i);CHKERRQ(ierr);
@@ -352,8 +352,8 @@ PetscErrorCode QEPSetFromOptions_LINEAR(QEP qep)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPLinearSetCompanionForm_LINEAR"
-PetscErrorCode QEPLinearSetCompanionForm_LINEAR(QEP qep,PetscInt cform)
+#define __FUNCT__ "QEPLinearSetCompanionForm_Linear"
+PetscErrorCode QEPLinearSetCompanionForm_Linear(QEP qep,PetscInt cform)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
@@ -399,8 +399,8 @@ PetscErrorCode QEPLinearSetCompanionForm(QEP qep,PetscInt cform)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPLinearGetCompanionForm_LINEAR"
-PetscErrorCode QEPLinearGetCompanionForm_LINEAR(QEP qep,PetscInt *cform)
+#define __FUNCT__ "QEPLinearGetCompanionForm_Linear"
+PetscErrorCode QEPLinearGetCompanionForm_Linear(QEP qep,PetscInt *cform)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
@@ -441,8 +441,8 @@ PetscErrorCode QEPLinearGetCompanionForm(QEP qep,PetscInt *cform)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPLinearSetExplicitMatrix_LINEAR"
-PetscErrorCode QEPLinearSetExplicitMatrix_LINEAR(QEP qep,PetscBool explicitmatrix)
+#define __FUNCT__ "QEPLinearSetExplicitMatrix_Linear"
+PetscErrorCode QEPLinearSetExplicitMatrix_Linear(QEP qep,PetscBool explicitmatrix)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
@@ -483,8 +483,8 @@ PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscBool explicitmatrix)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPLinearGetExplicitMatrix_LINEAR"
-PetscErrorCode QEPLinearGetExplicitMatrix_LINEAR(QEP qep,PetscBool *explicitmatrix)
+#define __FUNCT__ "QEPLinearGetExplicitMatrix_Linear"
+PetscErrorCode QEPLinearGetExplicitMatrix_Linear(QEP qep,PetscBool *explicitmatrix)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
@@ -525,8 +525,8 @@ PetscErrorCode QEPLinearGetExplicitMatrix(QEP qep,PetscBool *explicitmatrix)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPLinearSetEPS_LINEAR"
-PetscErrorCode QEPLinearSetEPS_LINEAR(QEP qep,EPS eps)
+#define __FUNCT__ "QEPLinearSetEPS_Linear"
+PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
@@ -571,8 +571,8 @@ PetscErrorCode QEPLinearSetEPS(QEP qep,EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPLinearGetEPS_LINEAR"
-PetscErrorCode QEPLinearGetEPS_LINEAR(QEP qep,EPS *eps)
+#define __FUNCT__ "QEPLinearGetEPS_Linear"
+PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
@@ -612,8 +612,8 @@ PetscErrorCode QEPLinearGetEPS(QEP qep,EPS *eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPView_LINEAR"
-PetscErrorCode QEPView_LINEAR(QEP qep,PetscViewer viewer)
+#define __FUNCT__ "QEPView_Linear"
+PetscErrorCode QEPView_Linear(QEP qep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
@@ -630,8 +630,8 @@ PetscErrorCode QEPView_LINEAR(QEP qep,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPDestroy_LINEAR"
-PetscErrorCode QEPDestroy_LINEAR(QEP qep)
+#define __FUNCT__ "QEPDestroy_Linear"
+PetscErrorCode QEPDestroy_Linear(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
@@ -658,8 +658,8 @@ PetscErrorCode QEPDestroy_LINEAR(QEP qep)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "QEPCreate_LINEAR"
-PetscErrorCode QEPCreate_LINEAR(QEP qep)
+#define __FUNCT__ "QEPCreate_Linear"
+PetscErrorCode QEPCreate_Linear(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx;
@@ -668,17 +668,17 @@ PetscErrorCode QEPCreate_LINEAR(QEP qep)
   ierr = PetscNew(QEP_LINEAR,&ctx);CHKERRQ(ierr);
   PetscLogObjectMemory(qep,sizeof(QEP_LINEAR));
   qep->data                      = (void *)ctx;
-  qep->ops->solve                = QEPSolve_LINEAR;
-  qep->ops->setup                = QEPSetUp_LINEAR;
-  qep->ops->setfromoptions       = QEPSetFromOptions_LINEAR;
-  qep->ops->destroy              = QEPDestroy_LINEAR;
-  qep->ops->view                 = QEPView_LINEAR;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","QEPLinearSetCompanionForm_LINEAR",QEPLinearSetCompanionForm_LINEAR);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","QEPLinearGetCompanionForm_LINEAR",QEPLinearGetCompanionForm_LINEAR);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","QEPLinearSetEPS_LINEAR",QEPLinearSetEPS_LINEAR);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","QEPLinearGetEPS_LINEAR",QEPLinearGetEPS_LINEAR);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","QEPLinearSetExplicitMatrix_LINEAR",QEPLinearSetExplicitMatrix_LINEAR);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","QEPLinearGetExplicitMatrix_LINEAR",QEPLinearGetExplicitMatrix_LINEAR);CHKERRQ(ierr);
+  qep->ops->solve                = QEPSolve_Linear;
+  qep->ops->setup                = QEPSetUp_Linear;
+  qep->ops->setfromoptions       = QEPSetFromOptions_Linear;
+  qep->ops->destroy              = QEPDestroy_Linear;
+  qep->ops->view                 = QEPView_Linear;
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","QEPLinearSetCompanionForm_Linear",QEPLinearSetCompanionForm_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","QEPLinearGetCompanionForm_Linear",QEPLinearGetCompanionForm_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","QEPLinearSetEPS_Linear",QEPLinearSetEPS_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","QEPLinearGetEPS_Linear",QEPLinearGetEPS_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","QEPLinearSetExplicitMatrix_Linear",QEPLinearSetExplicitMatrix_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","QEPLinearGetExplicitMatrix_Linear",QEPLinearGetExplicitMatrix_Linear);CHKERRQ(ierr);
 
   ierr = EPSCreate(((PetscObject)qep)->comm,&ctx->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
@@ -686,7 +686,7 @@ PetscErrorCode QEPCreate_LINEAR(QEP qep)
   ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);  
   PetscLogObjectParent(qep,ctx->eps);
   ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(ctx->eps,EPSMonitor_QEP_LINEAR,qep,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,PETSC_NULL);CHKERRQ(ierr);
   ctx->explicitmatrix = PETSC_FALSE;
   ctx->cform = 1;
   ctx->A = PETSC_NULL;

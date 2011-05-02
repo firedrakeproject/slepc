@@ -37,8 +37,8 @@ typedef struct {
 } SVD_CROSS;
 
 #undef __FUNCT__  
-#define __FUNCT__ "ShellMatMult_CROSS"
-PetscErrorCode ShellMatMult_CROSS(Mat B,Vec x, Vec y)
+#define __FUNCT__ "ShellMatMult_Cross"
+PetscErrorCode ShellMatMult_Cross(Mat B,Vec x, Vec y)
 {
   PetscErrorCode ierr;
   SVD            svd;
@@ -53,8 +53,8 @@ PetscErrorCode ShellMatMult_CROSS(Mat B,Vec x, Vec y)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "ShellMatGetDiagonal_CROSS"
-PetscErrorCode ShellMatGetDiagonal_CROSS(Mat B,Vec d)
+#define __FUNCT__ "ShellMatGetDiagonal_Cross"
+PetscErrorCode ShellMatGetDiagonal_Cross(Mat B,Vec d)
 {
   PetscErrorCode    ierr;
   SVD               svd;
@@ -106,8 +106,8 @@ PetscErrorCode ShellMatGetDiagonal_CROSS(Mat B,Vec d)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSetUp_CROSS"
-PetscErrorCode SVDSetUp_CROSS(SVD svd)
+#define __FUNCT__ "SVDSetUp_Cross"
+PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
@@ -121,8 +121,8 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
   
   ierr = SVDMatGetLocalSize(svd,PETSC_NULL,&n);CHKERRQ(ierr);
   ierr = MatCreateShell(((PetscObject)svd)->comm,n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))ShellMatMult_CROSS);CHKERRQ(ierr);  
-  ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_CROSS);CHKERRQ(ierr);  
+  ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cross);CHKERRQ(ierr);  
+  ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cross);CHKERRQ(ierr);  
   ierr = SVDMatGetVecs(svd,PETSC_NULL,&cross->w);CHKERRQ(ierr);
 
   ierr = EPSSetOperators(cross->eps,cross->mat,PETSC_NULL);CHKERRQ(ierr);
@@ -153,8 +153,8 @@ PetscErrorCode SVDSetUp_CROSS(SVD svd)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSolve_CROSS"
-PetscErrorCode SVDSolve_CROSS(SVD svd)
+#define __FUNCT__ "SVDSolve_Cross"
+PetscErrorCode SVDSolve_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
@@ -174,8 +174,8 @@ PetscErrorCode SVDSolve_CROSS(SVD svd)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDMonitor_CROSS"
-PetscErrorCode SVDMonitor_CROSS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+#define __FUNCT__ "SVDMonitor_Cross"
+PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i;
   SVD            svd = (SVD)ctx;
@@ -194,8 +194,8 @@ PetscErrorCode SVDMonitor_CROSS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar 
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDSetFromOptions_CROSS"
-PetscErrorCode SVDSetFromOptions_CROSS(SVD svd)
+#define __FUNCT__ "SVDSetFromOptions_Cross"
+PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
 {
   SVD_CROSS *cross = (SVD_CROSS *)svd->data;
 
@@ -206,8 +206,8 @@ PetscErrorCode SVDSetFromOptions_CROSS(SVD svd)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDCrossSetEPS_CROSS"
-PetscErrorCode SVDCrossSetEPS_CROSS(SVD svd,EPS eps)
+#define __FUNCT__ "SVDCrossSetEPS_Cross"
+PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
@@ -252,8 +252,8 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDCrossGetEPS_CROSS"
-PetscErrorCode SVDCrossGetEPS_CROSS(SVD svd,EPS *eps)
+#define __FUNCT__ "SVDCrossGetEPS_Cross"
+PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
 {
   SVD_CROSS *cross = (SVD_CROSS *)svd->data;
 
@@ -293,8 +293,8 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDView_CROSS"
-PetscErrorCode SVDView_CROSS(SVD svd,PetscViewer viewer)
+#define __FUNCT__ "SVDView_Cross"
+PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
@@ -305,8 +305,8 @@ PetscErrorCode SVDView_CROSS(SVD svd,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDDestroy_CROSS"
-PetscErrorCode SVDDestroy_CROSS(SVD svd)
+#define __FUNCT__ "SVDDestroy_Cross"
+PetscErrorCode SVDDestroy_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
@@ -324,8 +324,8 @@ PetscErrorCode SVDDestroy_CROSS(SVD svd)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "SVDCreate_CROSS"
-PetscErrorCode SVDCreate_CROSS(SVD svd)
+#define __FUNCT__ "SVDCreate_Cross"
+PetscErrorCode SVDCreate_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross;
@@ -335,13 +335,13 @@ PetscErrorCode SVDCreate_CROSS(SVD svd)
   ierr = PetscNew(SVD_CROSS,&cross);CHKERRQ(ierr);
   PetscLogObjectMemory(svd,sizeof(SVD_CROSS));
   svd->data                = (void *)cross;
-  svd->ops->solve          = SVDSolve_CROSS;
-  svd->ops->setup          = SVDSetUp_CROSS;
-  svd->ops->setfromoptions = SVDSetFromOptions_CROSS;
-  svd->ops->destroy        = SVDDestroy_CROSS;
-  svd->ops->view           = SVDView_CROSS;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","SVDCrossSetEPS_CROSS",SVDCrossSetEPS_CROSS);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","SVDCrossGetEPS_CROSS",SVDCrossGetEPS_CROSS);CHKERRQ(ierr);
+  svd->ops->solve          = SVDSolve_Cross;
+  svd->ops->setup          = SVDSetUp_Cross;
+  svd->ops->setfromoptions = SVDSetFromOptions_Cross;
+  svd->ops->destroy        = SVDDestroy_Cross;
+  svd->ops->view           = SVDView_Cross;
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","SVDCrossSetEPS_Cross",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","SVDCrossGetEPS_Cross",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
 
   ierr = EPSCreate(((PetscObject)svd)->comm,&cross->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
@@ -350,7 +350,7 @@ PetscErrorCode SVDCreate_CROSS(SVD svd)
   PetscLogObjectParent(svd,cross->eps);
   ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(cross->eps,SVDMonitor_CROSS,svd,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
   ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   cross->mat = PETSC_NULL;

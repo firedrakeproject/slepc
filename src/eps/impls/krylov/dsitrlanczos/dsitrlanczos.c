@@ -29,13 +29,13 @@
 #include <private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_DSITRLANCZOS(EPS);
+PetscErrorCode EPSSolve_DSITRLanczos(EPS);
 
 extern PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,PetscReal *b,PetscScalar *eig,PetscScalar *Q,PetscReal *work,PetscInt *perm);
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetUp_DSITRLANCZOS"
-PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
+#define __FUNCT__ "EPSSetUp_DSITRLanczos"
+PetscErrorCode EPSSetUp_DSITRLanczos(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      isSinv;
@@ -77,13 +77,13 @@ PetscErrorCode EPSSetUp_DSITRLANCZOS(EPS eps)
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
-  eps->ops->solve = EPSSolve_DSITRLANCZOS;
+  eps->ops->solve = EPSSolve_DSITRLanczos;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_DSITRLANCZOS"
-PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
+#define __FUNCT__ "EPSSolve_DSITRLanczos"
+PetscErrorCode EPSSolve_DSITRLanczos(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,l,lds,lt,nv,m,*iwork;
@@ -190,12 +190,12 @@ PetscErrorCode EPSSolve_DSITRLANCZOS(EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSCreate_DSITRLANCZOS"
-PetscErrorCode EPSCreate_DSITRLANCZOS(EPS eps)
+#define __FUNCT__ "EPSCreate_DSITRLanczos"
+PetscErrorCode EPSCreate_DSITRLanczos(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                = PETSC_NULL;
-  eps->ops->setup          = EPSSetUp_DSITRLANCZOS;
+  eps->ops->setup          = EPSSetUp_DSITRLanczos;
   eps->ops->setfromoptions = PETSC_NULL;
   eps->ops->destroy        = EPSDestroy_Default;
   eps->ops->view           = PETSC_NULL;

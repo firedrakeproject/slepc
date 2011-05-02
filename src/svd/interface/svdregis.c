@@ -22,11 +22,11 @@
 #include <private/svdimpl.h>       /*I "slepcsvd.h" I*/
 
 EXTERN_C_BEGIN
-extern PetscErrorCode SVDCreate_CROSS(SVD);
-extern PetscErrorCode SVDCreate_CYCLIC(SVD);
+extern PetscErrorCode SVDCreate_Cross(SVD);
+extern PetscErrorCode SVDCreate_Cyclic(SVD);
 extern PetscErrorCode SVDCreate_LAPACK(SVD);
-extern PetscErrorCode SVDCreate_LANCZOS(SVD);
-extern PetscErrorCode SVDCreate_TRLANCZOS(SVD);
+extern PetscErrorCode SVDCreate_Lanczos(SVD);
+extern PetscErrorCode SVDCreate_TRLanczos(SVD);
 EXTERN_C_END
   
 #undef __FUNCT__  
@@ -45,10 +45,10 @@ PetscErrorCode SVDRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SVDRegisterDynamic(SVDCROSS,path,"SVDCreate_CROSS",SVDCreate_CROSS);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDCYCLIC,path,"SVDCreate_CYCLIC",SVDCreate_CYCLIC);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDCROSS,path,"SVDCreate_CROSS",SVDCreate_Cross);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDCYCLIC,path,"SVDCreate_CYCLIC",SVDCreate_Cyclic);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDLAPACK,path,"SVDCreate_LAPACK",SVDCreate_LAPACK);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDLANCZOS,path,"SVDCreate_LANCZOS",SVDCreate_LANCZOS);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDTRLANCZOS,path,"SVDCreate_TRLANCZOS",SVDCreate_TRLANCZOS);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDLANCZOS,path,"SVDCreate_LANCZOS",SVDCreate_Lanczos);CHKERRQ(ierr);
+  ierr = SVDRegisterDynamic(SVDTRLANCZOS,path,"SVDCreate_TRLANCZOS",SVDCreate_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

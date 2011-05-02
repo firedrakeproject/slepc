@@ -504,18 +504,18 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
 
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();
-PetscErrorCode EPSCreate_DAVIDSON(EPS eps);
-PetscErrorCode EPSDestroy_DAVIDSON(EPS eps);
-PetscErrorCode EPSSetUp_DAVIDSON(EPS eps);
-PetscErrorCode EPSSolve_DAVIDSON(EPS eps);
+PetscErrorCode EPSCreate_Davidson(EPS eps);
+PetscErrorCode EPSDestroy_Davidson(EPS eps);
+PetscErrorCode EPSSetUp_Davidson(EPS eps);
+PetscErrorCode EPSSolve_Davidson(EPS eps);
 PetscErrorCode EPSComputeVectors_QZ(EPS eps);
-PetscErrorCode EPSDAVIDSONSetKrylovStart_DAVIDSON(EPS eps,PetscBool krylovstart);
-PetscErrorCode EPSDAVIDSONGetKrylovStart_DAVIDSON(EPS eps,PetscBool *krylovstart);
-PetscErrorCode EPSDAVIDSONSetBlockSize_DAVIDSON(EPS eps,PetscInt blocksize);
-PetscErrorCode EPSDAVIDSONGetBlockSize_DAVIDSON(EPS eps,PetscInt *blocksize);
-PetscErrorCode EPSDAVIDSONSetRestart_DAVIDSON(EPS eps,PetscInt minv,PetscInt plusk);
-PetscErrorCode EPSDAVIDSONGetRestart_DAVIDSON(EPS eps,PetscInt *minv,PetscInt *plusk);
-PetscErrorCode EPSDAVIDSONGetInitialSize_DAVIDSON(EPS eps,PetscInt *initialsize);
-PetscErrorCode EPSDAVIDSONSetInitialSize_DAVIDSON(EPS eps,PetscInt initialsize);
-PetscErrorCode EPSDAVIDSONGetFix_DAVIDSON(EPS eps,PetscReal *fix);
-PetscErrorCode EPSDAVIDSONSetFix_DAVIDSON(EPS eps,PetscReal fix);
+PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart);
+PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart);
+PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize);
+PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize);
+PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plusk);
+PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *plusk);
+PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize);
+PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize);
+PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix);
+PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix);

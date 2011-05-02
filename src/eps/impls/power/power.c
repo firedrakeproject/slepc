@@ -43,16 +43,16 @@
 #include <private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_POWER(EPS);
-PetscErrorCode EPSSolve_TS_POWER(EPS);
+PetscErrorCode EPSSolve_Power(EPS);
+PetscErrorCode EPSSolve_TS_Power(EPS);
 
 typedef struct {
   EPSPowerShiftType shift_type;
 } EPS_POWER;
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetUp_POWER"
-PetscErrorCode EPSSetUp_POWER(EPS eps)
+#define __FUNCT__ "EPSSetUp_Power"
+PetscErrorCode EPSSetUp_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
@@ -90,14 +90,14 @@ PetscErrorCode EPSSetUp_POWER(EPS eps)
   }
 
   /* dispatch solve method */
-  if (eps->leftvecs) eps->ops->solve = EPSSolve_TS_POWER;
-  else eps->ops->solve = EPSSolve_POWER;
+  if (eps->leftvecs) eps->ops->solve = EPSSolve_TS_Power;
+  else eps->ops->solve = EPSSolve_Power;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_POWER"
-PetscErrorCode EPSSolve_POWER(EPS eps)
+#define __FUNCT__ "EPSSolve_Power"
+PetscErrorCode EPSSolve_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
@@ -239,8 +239,8 @@ PetscErrorCode EPSSolve_POWER(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_TS_POWER"
-PetscErrorCode EPSSolve_TS_POWER(EPS eps)
+#define __FUNCT__ "EPSSolve_TS_Power"
+PetscErrorCode EPSSolve_TS_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
@@ -380,8 +380,8 @@ PetscErrorCode EPSSolve_TS_POWER(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSBackTransform_POWER"
-PetscErrorCode EPSBackTransform_POWER(EPS eps)
+#define __FUNCT__ "EPSBackTransform_Power"
+PetscErrorCode EPSBackTransform_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
@@ -394,8 +394,8 @@ PetscErrorCode EPSBackTransform_POWER(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetFromOptions_POWER"
-PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
+#define __FUNCT__ "EPSSetFromOptions_Power"
+PetscErrorCode EPSSetFromOptions_Power(EPS eps)
 {
   PetscErrorCode    ierr;
   EPS_POWER         *power = (EPS_POWER *)eps->data;
@@ -403,7 +403,7 @@ PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
   EPSPowerShiftType shift;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"POWER Options","EPS");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"Power Options","EPS");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr); }
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
@@ -415,8 +415,8 @@ PetscErrorCode EPSSetFromOptions_POWER(EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSPowerSetShiftType_POWER"
-PetscErrorCode EPSPowerSetShiftType_POWER(EPS eps,EPSPowerShiftType shift)
+#define __FUNCT__ "EPSPowerSetShiftType_Power"
+PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift)
 {
   EPS_POWER *power = (EPS_POWER *)eps->data;
 
@@ -476,8 +476,8 @@ PetscErrorCode EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSPowerGetShiftType_POWER"
-PetscErrorCode EPSPowerGetShiftType_POWER(EPS eps,EPSPowerShiftType *shift)
+#define __FUNCT__ "EPSPowerGetShiftType_Power"
+PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shift)
 {
   EPS_POWER  *power = (EPS_POWER *)eps->data;
 
@@ -516,8 +516,8 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_POWER"
-PetscErrorCode EPSDestroy_POWER(EPS eps)
+#define __FUNCT__ "EPSDestroy_Power"
+PetscErrorCode EPSDestroy_Power(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -530,8 +530,8 @@ PetscErrorCode EPSDestroy_POWER(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSView_POWER"
-PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
+#define __FUNCT__ "EPSView_Power"
+PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
@@ -540,7 +540,7 @@ PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) {
-    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS_POWER",((PetscObject)viewer)->type_name);
+    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Power",((PetscObject)viewer)->type_name);
   }  
   ierr = PetscViewerASCIIPrintf(viewer,"shift type: %s\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -548,8 +548,8 @@ PetscErrorCode EPSView_POWER(EPS eps,PetscViewer viewer)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSCreate_POWER"
-PetscErrorCode EPSCreate_POWER(EPS eps)
+#define __FUNCT__ "EPSCreate_Power"
+PetscErrorCode EPSCreate_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power;
@@ -558,15 +558,15 @@ PetscErrorCode EPSCreate_POWER(EPS eps)
   ierr = PetscNew(EPS_POWER,&power);CHKERRQ(ierr);
   PetscLogObjectMemory(eps,sizeof(EPS_POWER));
   eps->data                      = (void *) power;
-  eps->ops->setup                = EPSSetUp_POWER;
-  eps->ops->setfromoptions       = EPSSetFromOptions_POWER;
-  eps->ops->destroy              = EPSDestroy_POWER;
-  eps->ops->view                 = EPSView_POWER;
-  eps->ops->backtransform        = EPSBackTransform_POWER;
+  eps->ops->setup                = EPSSetUp_Power;
+  eps->ops->setfromoptions       = EPSSetFromOptions_Power;
+  eps->ops->destroy              = EPSDestroy_Power;
+  eps->ops->view                 = EPSView_Power;
+  eps->ops->backtransform        = EPSBackTransform_Power;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   power->shift_type              = EPS_POWER_SHIFT_CONSTANT;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","EPSPowerSetShiftType_POWER",EPSPowerSetShiftType_POWER);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_POWER",EPSPowerGetShiftType_POWER);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","EPSPowerSetShiftType_Power",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_Power",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

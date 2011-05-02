@@ -42,13 +42,13 @@
 #include <private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS);
-extern PetscErrorCode EPSSolve_KRYLOVSCHUR_HARMONIC(EPS);
-extern PetscErrorCode EPSSolve_KRYLOVSCHUR_SYMM(EPS);
+PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
+extern PetscErrorCode EPSSolve_KrylovSchur_Harmonic(EPS);
+extern PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSetUp_KRYLOVSCHUR"
-PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
+#define __FUNCT__ "EPSSetUp_KrylovSchur"
+PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -87,14 +87,14 @@ PetscErrorCode EPSSetUp_KRYLOVSCHUR(EPS eps)
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->ishermitian) {
     switch (eps->extraction) {
-      case EPS_RITZ:     eps->ops->solve = EPSSolve_KRYLOVSCHUR_SYMM; break;
-      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KRYLOVSCHUR_HARMONIC; break;
+      case EPS_RITZ:     eps->ops->solve = EPSSolve_KrylovSchur_Symm; break;
+      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;
       default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
     }
   } else {
     switch (eps->extraction) {
-      case EPS_RITZ: eps->ops->solve = EPSSolve_KRYLOVSCHUR_DEFAULT; break;
-      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KRYLOVSCHUR_HARMONIC; break;
+      case EPS_RITZ: eps->ops->solve = EPSSolve_KrylovSchur_Default; break;
+      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;
       default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
     }
   }
@@ -137,8 +137,8 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,PetscInt l,PetscScalar *S,PetscInt l
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSolve_KRYLOVSCHUR_DEFAULT"
-PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
+#define __FUNCT__ "EPSSolve_KrylovSchur_Default"
+PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,l,lwork,nv;
@@ -219,12 +219,12 @@ PetscErrorCode EPSSolve_KRYLOVSCHUR_DEFAULT(EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "EPSCreate_KRYLOVSCHUR"
-PetscErrorCode EPSCreate_KRYLOVSCHUR(EPS eps)
+#define __FUNCT__ "EPSCreate_KrylovSchur"
+PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
   PetscFunctionBegin;
   eps->data                = PETSC_NULL;
-  eps->ops->setup          = EPSSetUp_KRYLOVSCHUR;
+  eps->ops->setup          = EPSSetUp_KrylovSchur;
   eps->ops->setfromoptions = PETSC_NULL;
   eps->ops->destroy        = EPSDestroy_Default;
   eps->ops->view           = PETSC_NULL;
