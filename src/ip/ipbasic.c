@@ -124,7 +124,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
    IPSetOptionsPrefix - Sets the prefix used for searching for all 
    IP options in the database.
 
-   Collective on IP
+   Logically Collective on IP
 
    Input Parameters:
 +  ip - the innerproduct context
@@ -155,7 +155,7 @@ PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
    IPAppendOptionsPrefix - Appends to the prefix used for searching for all 
    IP options in the database.
 
-   Collective on IP
+   Logically Collective on IP
 
    Input Parameters:
 +  ip - the innerproduct context
@@ -255,7 +255,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
    IPSetOrthogonalization - Specifies the type of orthogonalization technique
    to be used (classical or modified Gram-Schmidt with or without refinement).
 
-   Collective on IP
+   Logically Collective on IP
 
    Input Parameters:
 +  ip         - the innerproduct context
@@ -477,7 +477,7 @@ PetscErrorCode IPGetOperationCounters(IP ip,PetscInt *dots)
    IPResetOperationCounters - Resets the counters for inner product operations 
    made by of the IP object.
 
-   Collective on IP
+   Logically Collective on IP
 
    Input Parameter:
 .  ip - the inner product context

@@ -321,7 +321,7 @@ PetscErrorCode SVDDestroy_Default(SVD svd)
 /*@C
    SVDSetType - Selects the particular solver to be used in the SVD object. 
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd      - the singular value solver context

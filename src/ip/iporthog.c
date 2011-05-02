@@ -293,7 +293,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,PetscInt n,P
 /*@
    IPOrthogonalize - Orthogonalize a vector with respect to two set of vectors.
 
-   Collective on IP
+   Collective on IP and Vec
 
    Input Parameters:
 +  ip     - the inner product (IP) context
@@ -355,7 +355,7 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *
 /*@
    IPQRDecomposition - Compute the QR factorization of a set of vectors.
 
-   Collective on IP
+   Collective on IP and Vec
 
    Input Parameters:
 +  ip - the eigenproblem solver context
@@ -471,7 +471,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
 /*@
    IPBiOrthogonalize - Bi-orthogonalize a vector with respect to a set of vectors.
 
-   Collective on IP
+   Collective on IP and Vec
 
    Input Parameters:
 +  ip - the inner product context

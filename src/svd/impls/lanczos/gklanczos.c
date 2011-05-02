@@ -336,7 +336,7 @@ EXTERN_C_END
    SVDLanczosSetOneSide - Indicate if the variant of the Lanczos method 
    to be used is one-sided or two-sided.
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd     - singular value solver
@@ -372,7 +372,7 @@ PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscBool oneside)
    SVDLanczosGetOneSide - Gets if the variant of the Lanczos method 
    to be used is one-sided or two-sided.
 
-   Collective on SVD
+   Not Collective
 
    Input Parameters:
 .  svd     - singular value solver

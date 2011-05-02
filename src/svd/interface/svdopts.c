@@ -29,7 +29,7 @@
    SVDSetTransposeMode - Sets how to handle the transpose of the matrix 
    associated with the singular value problem.
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd  - the singular value solver context
@@ -81,7 +81,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
    SVDGetTransposeMode - Gets the mode used to compute the transpose 
    of the matrix associated with the singular value problem.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  svd  - the singular value solver context
@@ -110,7 +110,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
    SVDSetTolerances - Sets the tolerance and maximum
    iteration count used by the default SVD convergence testers. 
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -192,7 +192,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
    SVDSetDimensions - Sets the number of singular values to compute
    and the dimension of the subspace.
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -294,7 +294,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
     SVDSetWhichSingularTriplets - Specifies which singular triplets are 
     to be sought.
 
-    Collective on SVD
+    Logically Collective on SVD
 
     Input Parameter:
 .   svd - singular value solver context obtained from SVDCreate()
@@ -479,7 +479,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
    SVDSetTrackAll - Specifies if the solver must compute the residual norm of all
    approximate singular value or not.
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd      - the singular value solver context
@@ -541,7 +541,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
    SVDSetOptionsPrefix - Sets the prefix used for searching for all 
    SVD options in the database.
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -594,7 +594,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
    SVDAppendOptionsPrefix - Appends to the prefix used for searching for all 
    SVD options in the database.
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd - the singular value solver context

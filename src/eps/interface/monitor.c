@@ -46,7 +46,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
    EPSMonitorSet - Sets an ADDITIONAL function to be called at every 
    iteration to monitor the error estimates for each requested eigenpair.
       
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
@@ -109,7 +109,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
 /*@
    EPSMonitorCancel - Clears all monitors for an EPS object.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 .  eps - eigensolver context obtained from EPSCreate()
@@ -185,7 +185,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps, void **ctx)
 
    Level: intermediate
 
-.seealso: EPSMonitorSet()
+.seealso: EPSMonitorSet(), EPSMonitorFirst(), EPSMonitorConverged()
 @*/
 PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
@@ -235,7 +235,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 
    Level: intermediate
 
-.seealso: EPSMonitorSet()
+.seealso: EPSMonitorSet(), EPSMonitorAll(), EPSMonitorConverged()
 @*/
 PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
@@ -281,7 +281,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 
    Level: intermediate
 
-.seealso: EPSMonitorSet()
+.seealso: EPSMonitorSet(), EPSMonitorFirst(), EPSMonitorAll()
 @*/
 PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {

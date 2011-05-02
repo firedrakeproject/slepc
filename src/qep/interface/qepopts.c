@@ -197,7 +197,7 @@ PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
    QEPSetTolerances - Sets the tolerance and maximum iteration count used
    by the QEP convergence tests. 
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep - the quadratic eigensolver context
@@ -283,7 +283,7 @@ PetscErrorCode QEPGetDimensions(QEP qep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    QEPSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep - the quadratic eigensolver context
@@ -353,7 +353,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     QEPSetWhichEigenpairs - Specifies which portion of the spectrum is 
     to be sought.
 
-    Collective on QEP
+    Logically Collective on QEP
 
     Input Parameters:
 +   qep   - eigensolver context obtained from QEPCreate()
@@ -448,7 +448,7 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
 /*@
     QEPSetLeftVectorsWanted - Specifies which eigenvectors are required.
 
-    Collective on QEP
+    Logically Collective on QEP
 
     Input Parameters:
 +   qep      - the quadratic eigensolver context
@@ -541,7 +541,7 @@ PetscErrorCode QEPGetScaleFactor(QEP qep,PetscReal *alpha)
    QEPSetScaleFactor - Sets the scaling factor to be used for scaling the
    quadratic problem before attempting to solve.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep   - the quadratic eigensolver context
@@ -581,7 +581,7 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
 /*@
    QEPSetProblemType - Specifies the type of the quadratic eigenvalue problem.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep      - the quadratic eigensolver context
@@ -650,7 +650,7 @@ PetscErrorCode QEPGetProblemType(QEP qep,QEPProblemType *type)
     QEPSetConvergenceTest - Sets a function to compute the error estimate used in 
     the convergence test.
 
-    Collective on QEP
+    Logically Collective on QEP
 
     Input Parameters:
 +   qep  - eigensolver context obtained from QEPCreate()
@@ -690,7 +690,7 @@ extern PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
    QEPSetTrackAll - Specifies if the solver must compute the residual of all
    approximate eigenpairs or not.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep      - the eigensolver context
@@ -750,7 +750,7 @@ PetscErrorCode QEPGetTrackAll(QEP qep,PetscBool *trackall)
    QEPSetOptionsPrefix - Sets the prefix used for searching for all 
    QEP options in the database.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep - the quadratic eigensolver context
@@ -790,7 +790,7 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
    QEPAppendOptionsPrefix - Appends to the prefix used for searching for all 
    QEP options in the database.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep - the quadratic eigensolver context

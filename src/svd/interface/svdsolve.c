@@ -194,7 +194,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
    as computed by SVDSolve(). The solution consists in the singular value and its left 
    and right singular vectors.
 
-   Not Collective
+   Not Collective, but vectors are shared by all processors that share the SVD
 
    Input Parameters:
 +  svd - singular value solver context 
@@ -292,6 +292,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, Pe
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveInt(svd,i,2);
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
   }

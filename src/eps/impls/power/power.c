@@ -441,7 +441,7 @@ EXTERN_C_END
    iteration. This can be used to emulate the Rayleigh Quotient Iteration
    (RQI) method.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -494,7 +494,7 @@ EXTERN_C_END
    EPSPowerGetShiftType - Gets the type of shifts used during the power
    iteration. 
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context

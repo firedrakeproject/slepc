@@ -46,7 +46,7 @@ PetscErrorCode QEPMonitor(QEP qep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
    QEPMonitorSet - Sets an ADDITIONAL function to be called at every 
    iteration to monitor the error estimates for each requested eigenpair.
       
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep     - eigensolver context obtained from QEPCreate()
@@ -109,7 +109,7 @@ PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,Pets
 /*@
    QEPMonitorCancel - Clears all monitors for a QEP object.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 .  qep - eigensolver context obtained from QEPCreate()
@@ -185,7 +185,7 @@ PetscErrorCode QEPGetMonitorContext(QEP qep, void **ctx)
 
    Level: intermediate
 
-.seealso: QEPMonitorSet()
+.seealso: QEPMonitorSet(), QEPMonitorFirst(), QEPMonitorConverged()
 @*/
 PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
@@ -232,7 +232,7 @@ PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *ei
 
    Level: intermediate
 
-.seealso: QEPMonitorSet()
+.seealso: QEPMonitorSet(), QEPMonitorAll(), QEPMonitorConverged()
 @*/
 PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
@@ -275,7 +275,7 @@ PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
 
    Level: intermediate
 
-.seealso: QEPMonitorSet()
+.seealso: QEPMonitorSet(), QEPMonitorFirst(), QEPMonitorAll()
 @*/
 PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {

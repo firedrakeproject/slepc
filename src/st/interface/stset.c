@@ -33,7 +33,7 @@ PetscFList STList = 0;
 /*@C
    STSetType - Builds ST for a particular spectral transformation.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameter:
 +  st   - the spectral transformation context.
@@ -180,10 +180,9 @@ PetscErrorCode STSetFromOptions(ST st)
 /*@
    STSetMatStructure - Sets an internal MatStructure attribute to 
    indicate which is the relation of the sparsity pattern of the two matrices
-   A and B constituting the generalized eigenvalue problem. This function
-   has no effect in the case of standard eigenproblems.
+   A and B constituting the generalized eigenvalue problem.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st  - the spectral transformation context
@@ -196,10 +195,12 @@ PetscErrorCode STSetFromOptions(ST st)
          and B have different nonzero pattern) or 'subset' (B's nonzero 
          pattern is a subset of A's).
 
-   Note:
+   Notes:
    By default, the sparsity patterns are assumed to be different. If the
    patterns are equal or a subset then it is recommended to set this attribute
    for efficiency reasons (in particular, for internal MatAXPY() operations).
+
+   This function has no effect in the case of standard eigenproblems.
    
    Level: advanced
 
@@ -227,10 +228,9 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 /*@
    STGetMatStructure - Gets the internal MatStructure attribute to 
    indicate which is the relation of the sparsity pattern of the two matrices
-   A and B constituting the generalized eigenvalue problem. This function
-   has no effect in the case of standard eigenproblems.
+   A and B constituting the generalized eigenvalue problem.
 
-   Collective on ST
+   Not Collective
 
    Input Parameters:
 .  st  - the spectral transformation context
@@ -238,6 +238,9 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
    Output Parameters:
 .  str - either SAME_NONZERO_PATTERN, DIFFERENT_NONZERO_PATTERN or
          SUBSET_NONZERO_PATTERN
+
+   Note:
+   This function has no effect in the case of standard eigenproblems.
 
    Level: advanced
 
@@ -258,7 +261,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    STSetMatMode - Sets a flag to indicate how the matrix is
    being shifted in the shift-and-invert and Cayley spectral transformations.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -308,7 +311,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
    STGetMatMode - Gets a flag that indicates how the matrix is being 
    shifted in the shift-and-invert and Cayley spectral transformations.
 
-   Collective on ST
+   Not Collective
 
    Input Parameter:
 .  st - the spectral transformation context

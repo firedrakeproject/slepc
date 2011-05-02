@@ -402,7 +402,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 /*@C
    EPSSetType - Selects the particular solver to be used in the EPS object. 
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps  - the eigensolver context
@@ -609,7 +609,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
 /*@
    EPSSetTarget - Sets the value of the target.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -640,7 +640,7 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
 /*@
    EPSGetTarget - Gets the value of the target.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  eps - eigensolver context
@@ -669,7 +669,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 /*@
    EPSSetST - Associates a spectral transformation object to the eigensolver. 
 
-   Collective on EPS and ST
+   Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
@@ -679,7 +679,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
    Use EPSGetST() to retrieve the spectral transformation context (for example,
    to free it at the end of the computations).
 
-   Level: advanced
+   Level: developer
 
 .seealso: EPSGetST()
 @*/
@@ -730,7 +730,7 @@ PetscErrorCode EPSGetST(EPS eps, ST *st)
 /*@
    EPSSetIP - Associates an inner product object to the eigensolver. 
 
-   Collective on EPS and IP
+   Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
@@ -762,8 +762,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetIP"
 /*@C
-   EPSGetIP - Obtain the inner product object associated
-   to the eigensolver object.
+   EPSGetIP - Obtain the inner product object associated to the eigensolver object.
 
    Not Collective
 
@@ -802,6 +801,7 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
 
    Level: intermediate
 
+.seealso: EPSIsHermitian()
 @*/
 PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 {
@@ -837,6 +837,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 
    Level: intermediate
 
+.seealso: EPSIsGeneralized()
 @*/
 PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {

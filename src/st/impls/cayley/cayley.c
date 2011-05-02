@@ -349,7 +349,7 @@ EXTERN_C_END
    STCayleySetAntishift - Sets the value of the anti-shift for the Cayley
    spectral transformation.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st  - the spectral transformation context
@@ -396,7 +396,7 @@ EXTERN_C_END
    STCayleyGetAntishift - Gets the value of the anti-shift used in the Cayley
    spectral transformation.
 
-   Collective on ST
+   Not Collective
 
    Input Parameter:
 .  st  - the spectral transformation context

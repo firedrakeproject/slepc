@@ -30,7 +30,7 @@ PetscLogEvent SLEPC_UpdateVectors = 0, SLEPC_VecMAXPBY = 0;
 /*@
    SlepcVecSetRandom - Sets all components of a vector to random numbers.
 
-   Collective on Vec
+   Logically Collective on Vec
 
    Input/Output Parameter:
 .  x  - the vector
@@ -153,7 +153,7 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscBool *is)
    SlepcAbsEigenvalue - Returns the absolute value of a complex number given
    its real and imaginary parts.
 
-   Not collective
+   Not Collective
 
    Input parameters:
 +  x  - the real part of the complex number
@@ -187,7 +187,7 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
 /*@C
    SlepcVecNormalize - Normalizes a possibly complex vector by the 2-norm.
 
-   Not collective
+   Collective on Vec
 
    Input parameters:
 +  xr         - the real part of the vector (overwritten on output)
@@ -231,7 +231,7 @@ PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *no
    SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential 
    dense format replicating the values in every processor.
 
-   Collective
+   Collective on Mat
 
    Input parameters:
 +  A  - the source matrix
@@ -694,7 +694,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 /*@
    SlepcUpdateVectors - Update a set of vectors V as V(:,s:e-1) = V*Q(:,s:e-1).
 
-   Collective on Vec
+   Not Collective
 
    Input parameters:
 +  n      - number of vectors in V
@@ -740,7 +740,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const
    SlepcUpdateStrideVectors - Update a set of vectors V as
    V(:,s:d:e-1) = V*Q(:,s:e-1).
 
-   Collective on Vec
+   Not Collective
 
    Input parameters:
 +  n      - number of vectors in V
@@ -833,7 +833,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
 /*@
    SlepcVecMAXPBY - Computes y = beta*y + sum alpha*a[j]*x[j]
 
-   Collective on Vec
+   Logically Collective on Vec
 
    Input parameters:
 +  beta   - scalar beta
@@ -863,7 +863,10 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   PetscValidHeaderSpecific(y,VEC_CLASSID,1);
   if (!nv || !(y)->map->n) PetscFunctionReturn(0);
   if (nv < 0) SETERRQ1(((PetscObject)y)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
-  PetscValidScalarPointer(a,3);
+  PetscValidLogicalCollectiveScalar(y,alpha,2);
+  PetscValidLogicalCollectiveScalar(y,beta,3);
+  PetscValidLogicalCollectiveInt(y,nv,4);
+  PetscValidScalarPointer(a,5);
   PetscValidPointer(x,6);
   PetscValidHeaderSpecific(*x,VEC_CLASSID,6);
   PetscValidType(y,1);

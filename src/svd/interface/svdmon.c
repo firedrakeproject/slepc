@@ -181,7 +181,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd, void **ctx)
 
    Level: intermediate
 
-.seealso: SVDMonitorSet()
+.seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorConverged()
 @*/
 PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
 {
@@ -221,7 +221,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 
    Level: intermediate
 
-.seealso: SVDMonitorSet()
+.seealso: SVDMonitorSet(), SVDMonitorAll(), SVDMonitorConverged()
 @*/
 PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
 {
@@ -256,7 +256,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
 
    Level: intermediate
 
-.seealso: SVDMonitorSet()
+.seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorAll()
 @*/
 PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *dummy)
 {

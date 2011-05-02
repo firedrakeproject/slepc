@@ -153,7 +153,7 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
    EPSJDSetKrylovStart - Activates or deactivates starting the searching
    subspace with a Krylov basis. 
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -181,17 +181,17 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDGetKrylovStart"
 /*@
-   EPSJDGetKrylovStart - Gets if the searching subspace is started with a
+   EPSJDGetKrylovStart - Returns a flag indicating if the searching subspace is started with a
    Krylov basis.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-.  krylovstart - boolean flag indicating if starting the searching subspace
-   with a Krylov basis is enabled.
+.  krylovstart - boolean flag indicating if the searching subspace is started
+   with a Krylov basis
 
    Level: advanced
 
@@ -211,18 +211,17 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDSetBlockSize"
 /*@
-   EPSJDSetBlockSize - Sets the number of vectors added to the searching space
-   every iteration.
+   EPSJDSetBlockSize - Sets the number of vectors to be added to the searching space
+   in every iteration.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  blocksize - non-zero positive integer
+-  blocksize - number of vectors added to the search space in every iteration
 
    Options Database Key:
-.  -eps_jd_blocksize - integer indicating the number of vectors added to the
-   searching space every iteration. 
+.  -eps_jd_blocksize - number of vectors added to the searching space every iteration
    
    Level: advanced
 
@@ -242,17 +241,16 @@ PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDGetBlockSize"
 /*@
-   EPSJDGetBlockSize - Gets the number of vectors added to the searching space
-   every iteration.
+   EPSJDGetBlockSize - Returns the number of vectors to be added to the searching space
+   in every iteration.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  blocksize - integer indicating the number of vectors added to the searching
-   space every iteration.
+.  blocksize - number of vectors added to the search space in every iteration
 
    Level: advanced
 
@@ -275,16 +273,14 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
    EPSJDGetRestart - Gets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-+  minv - non-zero positive integer indicating the number of vectors of the
-   searching subspace after restarting
--  plusk - positive integer indicating the number of vectors saved from the
-   previous iteration   
++  minv - number of vectors of the searching subspace after restarting
+-  plusk - number of vectors saved from the previous iteration   
 
    Level: advanced
 
@@ -308,20 +304,16 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
    EPSJDSetRestart - Sets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
-.  minv - non-zero positive integer indicating the number of vectors of the
-   searching subspace after restarting
--  plusk - positive integer indicating the number of vectors saved from the
-   previous iteration   
+.  minv - number of vectors of the searching subspace after restarting
+-  plusk - number of vectors saved from the previous iteration   
 
-   Options Database Key:
-+  -eps_jd_minv - non-zero positive integer indicating the number of vectors
-    of the searching subspace after restarting
--  -eps_jd_plusk - positive integer indicating the number of vectors saved
-    from the previous iteration   
+   Options Database Keys:
++  -eps_jd_minv - number of vectors of the searching subspace after restarting
+-  -eps_jd_plusk - number of vectors saved from the previous iteration   
    
    Level: advanced
 
@@ -342,22 +334,23 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDGetInitialSize"
 /*@
-   EPSJDGetInitialSize - Gets the initial size of the searching space. In the 
-   case of EPSJDGetKrylovStart is PETSC_FALSE and the user provides vectors by
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
-   provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSJDGetKrylovStart is PETSC_TRUE, the solver
-   gets the first vector provided by the user or, if not, a random vector,
-   and expands the Krylov basis up to initialsize vectors.
+   EPSJDGetInitialSize - Returns the initial size of the searching space.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  initialsize - non-zero positive integer indicating the number of vectors of
-   the initial searching subspace
+.  initialsize - number of vectors of the initial searching subspace
+
+   Notes:
+   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   provided vectors are not enough, the solver completes the subspace with
+   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   gets the first vector provided by the user or, if not available, a random vector,
+   and expands the Krylov basis up to initialsize vectors.
 
    Level: advanced
 
@@ -377,25 +370,25 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDSetInitialSize"
 /*@
-   EPSJDSetInitialSize - Sets the initial size of the searching space. In the 
-   case of EPSJDGetKrylovStart is PETSC_FALSE and the user provides vectors by
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
-   provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSJDGetKrylovStart is PETSC_TRUE, the solver
-   gets the first vector provided by the user or, if not, a random vector,
-   and expands the Krylov basis up to initialsize vectors.
+   EPSJDSetInitialSize - Sets the initial size of the searching space.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  initialsize - non-zero positive integer indicating the number of vectors of
-   the initial searching subspace
+-  initialsize - number of vectors of the initial searching subspace
 
    Options Database Key:
-.  -eps_jd_initial_size - non-zero positive integer indicating the number of
-    vectors of the initial searching subspace
+.  -eps_jd_initial_size - number of vectors of the initial searching subspace
    
+   Notes:
+   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   provided vectors are not enough, the solver completes the subspace with
+   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   gets the first vector provided by the user or, if not available, a random vector,
+   and expands the Krylov basis up to initialsize vectors.
+
    Level: advanced
 
 .seealso: EPSJDGetInitialSize(), EPSJDGetKrylovStart()
@@ -414,16 +407,21 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDGetFix"
 /*@
-   EPSJDGetFix - Gets the threshold for changing the target in the correction
-   equation. The target in the correction equation is fixed at the first
-   iterations. When the norm of the residual vector is lower than this value
+   EPSJDGetFix - Returns the threshold for changing the target in the correction
+   equation.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  fix - threshold for changing the target
+
+   Note:
+   The target in the correction equation is fixed at the first iterations.
+   When the norm of the residual vector is lower than the fix value,
    the target is set to the corresponding eigenvalue.
-
-   Collective on EPS
-
-   Input Parameters:
-+  eps - the eigenproblem solver context
--  fix - positive float number
 
    Level: advanced
 
@@ -444,21 +442,22 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
 #define __FUNCT__ "EPSJDSetFix"
 /*@
    EPSJDSetFix - Sets the threshold for changing the target in the correction
-   equation. The target in the correction equation is fixed at the first
-   iterations. When the norm of the residual vector is lower than this value
-   the target is set to the corresponding eigenvalue.
+   equation.
 
-   Collective on EPS
+   Logically Collective on EPS
 
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameter:
-.  fix - positive float number
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  fix - threshold for changing the target
 
    Options Database Key:
-.  -eps_jd_fix
+.  -eps_jd_fix - the fix value
    
+   Note:
+   The target in the correction equation is fixed at the first iterations.
+   When the norm of the residual vector is lower than the fix value,
+   the target is set to the corresponding eigenvalue.
+
    Level: advanced
 
 .seealso: EPSJDGetFix()

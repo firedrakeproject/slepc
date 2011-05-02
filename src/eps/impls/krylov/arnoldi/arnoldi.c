@@ -483,7 +483,7 @@ EXTERN_C_END
    EPSArnoldiSetDelayed - Activates or deactivates delayed reorthogonalization 
    in the Arnoldi iteration. 
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -531,7 +531,7 @@ EXTERN_C_END
    EPSArnoldiGetDelayed - Gets the type of reorthogonalization used during the Arnoldi
    iteration. 
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context

@@ -71,6 +71,8 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
    IPGetBilinearForm - Retrieves the bilinear form to be used for
    inner products.
 
+   Not collective, though a parallel Mat may be returned
+
    Input Parameter:
 .  ip    - the inner product context
 
@@ -115,7 +117,7 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
    IPApplyMatrix - Multiplies a vector with the matrix associated to the
                    bilinear form.
 
-   Collective on IP
+   Neighbor-wise Collective on IP and Vec
 
    Input Parameters:
 +  ip    - the inner product context

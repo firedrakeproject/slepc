@@ -467,6 +467,7 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep, PetscInt i, PetscReal *norm)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(qep,i,2);
   PetscValidPointer(norm,3);
   ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
@@ -546,6 +547,7 @@ PetscErrorCode QEPComputeRelativeError(QEP qep, PetscInt i, PetscReal *error)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
+  PetscValidLogicalCollectiveInt(qep,i,2);
   PetscValidPointer(error,3);
   ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);

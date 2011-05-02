@@ -138,14 +138,14 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
    EPSGDSetKrylovStart - Activates or deactivates starting the searching
    subspace with a Krylov basis. 
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
 -  krylovstart - boolean flag
 
    Options Database Key:
-.  -eps_gd_krylovstart - Activates starting the searching subspace with a
+.  -eps_gd_krylov_start - Activates starting the searching subspace with a
     Krylov basis
    
    Level: advanced
@@ -166,17 +166,17 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDGetKrylovStart"
 /*@
-   EPSGDGetKrylovStart - Gets if the searching subspace is started with a
+   EPSGDGetKrylovStart - Returns a flag indicating if the search subspace is started with a
    Krylov basis.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-.  krylovstart - boolean flag indicating if starting the searching subspace
-   with a Krylov basis is enabled.
+.  krylovstart - boolean flag indicating if the search subspace is started
+   with a Krylov basis
 
    Level: advanced
 
@@ -196,18 +196,17 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDSetBlockSize"
 /*@
-   EPSGDSetBlockSize - Sets the number of vectors added to the searching space
-   every iteration.
+   EPSGDSetBlockSize - Sets the number of vectors to be added to the searching space
+   in every iteration.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  blocksize - non-zero positive integer
+-  blocksize - number of vectors added to the search space in every iteration
 
    Options Database Key:
-.  -eps_gd_blocksize - integer indicating the number of vectors added to the
-   searching space every iteration. 
+.  -eps_gd_blocksize - number of vectors added to the search space in every iteration
    
    Level: advanced
 
@@ -227,17 +226,16 @@ PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDGetBlockSize"
 /*@
-   EPSGDGetBlockSize - Gets the number of vectors added to the searching space
-   every iteration.
+   EPSGDGetBlockSize - Returns the number of vectors to be added to the searching space
+   in every iteration.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  blocksize - integer indicating the number of vectors added to the searching
-   space every iteration.
+.  blocksize - number of vectors added to the search space in every iteration
 
    Level: advanced
 
@@ -260,16 +258,14 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
    EPSGDGetRestart - Gets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-+  minv - non-zero positive integer indicating the number of vectors of the
-   searching subspace after restarting
--  plusk - positive integer indicating the number of vectors saved from the
-   previous iteration   
++  minv - number of vectors of the searching subspace after restarting
+-  plusk - number of vectors saved from the previous iteration   
 
    Level: advanced
 
@@ -293,20 +289,16 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
    EPSGDSetRestart - Sets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
-.  minv - non-zero positive integer indicating the number of vectors of the
-   searching subspace after restarting
--  plusk - positive integer indicating the number of vectors saved from the
-   previous iteration   
+.  minv - number of vectors of the searching subspace after restarting
+-  plusk - number of vectors saved from the previous iteration   
 
-   Options Database Key:
-+  -eps_gd_minv - non-zero positive integer indicating the number of vectors
-    of the searching subspace after restarting
--  -eps_gd_plusk - positive integer indicating the number of vectors saved
-    from the previous iteration   
+   Options Database Keys:
++  -eps_gd_minv - number of vectors of the searching subspace after restarting
+-  -eps_gd_plusk - number of vectors saved from the previous iteration   
    
    Level: advanced
 
@@ -327,22 +319,23 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDGetInitialSize"
 /*@
-   EPSGDGetInitialSize - Gets the initial size of the searching space. In the 
-   case of EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors by
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
-   provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart is PETSC_TRUE, the solver
-   gets the first vector provided by the user or, if not, a random vector,
-   and expands the Krylov basis up to initialsize vectors.
+   EPSGDGetInitialSize - Returns the initial size of the searching space.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  initialsize - non-zero positive integer indicating the number of vectors of
-   the initial searching subspace
+.  initialsize - number of vectors of the initial searching subspace
+
+   Notes:
+   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   provided vectors are not enough, the solver completes the subspace with
+   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   gets the first vector provided by the user or, if not available, a random vector,
+   and expands the Krylov basis up to initialsize vectors.
 
    Level: advanced
 
@@ -362,25 +355,25 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDSetInitialSize"
 /*@
-   EPSGDSetInitialSize - Sets the initial size of the searching space. In the 
-   case of EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors by
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
-   provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart is PETSC_TRUE, the solver
-   gets the first vector provided by the user or, if not, a random vector,
-   and expands the Krylov basis up to initialsize vectors.
+   EPSGDSetInitialSize - Sets the initial size of the searching space.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  initialsize - non-zero positive integer indicating the number of vectors of
-   the initial searching subspace
+-  initialsize - number of vectors of the initial searching subspace
 
    Options Database Key:
-.  -eps_gd_initial_size - non-zero positive integer indicating the number of
-    vectors of the initial searching subspace
+.  -eps_gd_initial_size - number of vectors of the initial searching subspace
    
+   Notes:
+   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   provided vectors are not enough, the solver completes the subspace with
+   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   gets the first vector provided by the user or, if not available, a random vector,
+   and expands the Krylov basis up to initialsize vectors.
+
    Level: advanced
 
 .seealso: EPSGDGetInitialSize(), EPSGDGetKrylovStart()

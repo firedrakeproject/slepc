@@ -96,7 +96,7 @@ PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
    STSetKSP - Sets the KSP object associated with the spectral 
    transformation.
 
-   Not collective
+   Collective on ST
 
    Input Parameters:
 +  st   - the spectral transformation context
@@ -126,7 +126,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
    STGetKSP - Gets the KSP object associated with the spectral
    transformation.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -190,7 +190,7 @@ PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
    inner product operations and total number of linear iterations used by 
    the ST object.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameter:
 .  st - the spectral transformation context

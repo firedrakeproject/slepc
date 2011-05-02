@@ -256,7 +256,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
    EPSSetTolerances - Sets the tolerance and maximum iteration count used
    by the EPS convergence tests. 
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigensolver context
@@ -342,7 +342,7 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    EPSSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigensolver context
@@ -412,7 +412,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    EPSSetWhichEigenpairs - Specifies which portion of the spectrum is 
    to be sought.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps   - eigensolver context obtained from EPSCreate()
@@ -526,7 +526,7 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 /*@
    EPSSetLeftVectorsWanted - Specifies which eigenvectors are required.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -589,7 +589,7 @@ PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscBool *leftvecs)
    EPSSetMatrixNorms - Gives the reference values of the matrix norms
    and specifies whether these values should be improved adaptively.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -692,7 +692,7 @@ PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBo
    EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
    when EPSSetWhichEigenpairs() is set to EPS_WHICH_USER.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps  - eigensolver context obtained from EPSCreate()
@@ -736,7 +736,7 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
    EPSSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps  - eigensolver context obtained from EPSCreate()
@@ -780,7 +780,7 @@ extern PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*fun
    EPSSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps   - eigensolver context obtained from EPSCreate()
@@ -825,7 +825,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
    EPSGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
 
-   Collective on EPS
+   Not Collective
 
    Input Parameters:
 .  eps   - eigensolver context obtained from EPSCreate()
@@ -852,7 +852,7 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 /*@
    EPSSetProblemType - Specifies the type of the eigenvalue problem.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -970,7 +970,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
    EPSSetExtraction - Specifies the type of extraction technique to be employed 
    by the eigensolver.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps  - the eigensolver context
@@ -1040,7 +1040,7 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
    EPSSetBalance - Specifies the balancing technique to be employed by the
    eigensolver, and some parameters associated to it.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps    - the eigensolver context
@@ -1149,7 +1149,7 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
    EPSSetTrueResidual - Specifies if the solver must compute the true residual
    explicitly or not.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps     - the eigensolver context
@@ -1214,7 +1214,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
    EPSSetTrackAll - Specifies if the solver must compute the residual norm of all
    approximate eigenpairs or not.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps      - the eigensolver context
@@ -1275,7 +1275,7 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
    EPSSetOptionsPrefix - Sets the prefix used for searching for all 
    EPS options in the database.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigensolver context
@@ -1316,7 +1316,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
    EPSAppendOptionsPrefix - Appends to the prefix used for searching for all 
    EPS options in the database.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigensolver context

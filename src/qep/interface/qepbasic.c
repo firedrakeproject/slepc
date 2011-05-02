@@ -297,7 +297,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 /*@C
    QEPSetType - Selects the particular solver to be used in the QEP object. 
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep      - the quadratic eigensolver context
@@ -515,7 +515,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
 /*@
    QEPSetIP - Associates an inner product object to the quadratic eigensolver. 
 
-   Collective on QEP and IP
+   Collective on QEP
 
    Input Parameters:
 +  qep - eigensolver context obtained from QEPCreate()

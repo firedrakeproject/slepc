@@ -81,6 +81,8 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
 /*@
    IPNormBegin - Starts a split phase norm computation.
 
+   Collective on IP and Vec
+
    Input Parameters:
 +  ip   - the inner product context
 .  x    - input vector
@@ -116,6 +118,8 @@ PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
 #define __FUNCT__ "IPNormEnd"
 /*@
    IPNormEnd - Ends a split phase norm computation.
+
+   Collective on IP and Vec
 
    Input Parameters:
 +  ip   - the inner product context
@@ -221,6 +225,8 @@ PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
 /*@
    IPInnerProductBegin - Starts a split phase inner product computation.
 
+   Collective on IP and Vec
+
    Input Parameters:
 +  ip - the inner product context
 .  x  - the first vector
@@ -269,6 +275,8 @@ PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
 #define __FUNCT__ "IPInnerProductEnd"
 /*@
    IPInnerProductEnd - Ends a split phase inner product computation.
+
+   Collective on IP and Vec
 
    Input Parameters:
 +  ip - the inner product context
@@ -377,6 +385,8 @@ PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar 
 /*@
    IPMInnerProductBegin - Starts a split phase multiple inner product computation.
 
+   Collective on IP and Vec
+
    Input Parameters:
 +  ip - the inner product context
 .  x  - the first input vector
@@ -428,6 +438,8 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
 #define __FUNCT__ "IPMInnerProductEnd"
 /*@
    IPMInnerProductEnd - Ends a split phase multiple inner product computation.
+
+   Collective on IP and Vec
 
    Input Parameters:
 +  ip - the inner product context

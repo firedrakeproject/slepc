@@ -220,22 +220,20 @@ PetscErrorCode STDestroy_Precond(ST st)
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondGetMatForPC"
 /*@
-   STPrecondGetMatForPC - Gets the matrix previously set by STPrecondSetMatForPC.
-   This matrix will be passed as parameter in the KSPSetOperator function as
-   the matrix to be used in constructing the preconditioner.
+   STPrecondGetMatForPC - Returns the matrix previously set by STPrecondSetMatForPC().
 
-   Collective on ST
+   Not Collective, but the Mat is shared by all processors that share the ST
 
    Input Parameter:
 .  st - the spectral transformation context
 
    Output Parameter:
 .  mat - the matrix that will be used in constructing the preconditioner or
-   PETSC_NULL if any previous matrix was set by STPrecondSetMatForPC.
+   PETSC_NULL if no matrix was set by STPrecondSetMatForPC().
 
    Level: advanced
 
-.seealso: STPrecondSetMatForPC(), KSPSetOperator()
+.seealso: STPrecondSetMatForPC()
 @*/
 PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
 {
@@ -271,12 +269,9 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondSetMatForPC"
 /*@
-   STPrecondSetMatForPC - Sets the matrix that will be passed as parameter in
-   the KSPSetOperators function as the matrix to be used in constructing the
-   preconditioner. If any matrix is set or mat is PETSC_NULL, A - sigma*B will
-   be used, being sigma the value set by STSetShift
+   STPrecondSetMatForPC - Sets the matrix that must be used to build the preconditioner.
 
-   Collective on ST
+   Logically Collective on ST and Mat
 
    Input Parameter:
 +  st - the spectral transformation context
@@ -284,7 +279,13 @@ EXTERN_C_END
 
    Level: advanced
 
-.seealso: STPrecondSetMatForPC(), KSPSetOperators()
+   Notes:
+   This matrix will be passed to the KSP object (via KSPSetOperators) as
+   the matrix to be used when constructing the preconditioner.
+   If no matrix is set or mat is set to PETSC_NULL, A - sigma*B will
+   be used to build the preconditioner, being sigma the value set by STSetShift().
+
+.seealso: STPrecondSetMatForPC(), STSetShift()
 @*/
 PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
 {
@@ -343,7 +344,7 @@ EXTERN_C_END
 
    Level: developer
 
-.seealso: STPrecondGetKSPHasMat(), TSetShift(), KSPSetOperators()
+.seealso: STPrecondGetKSPHasMat(), STSetShift()
 @*/
 PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
 {
@@ -362,7 +363,7 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
    STPrecondGetKSPHasMat - Gets if during the STSetUp the KSP matrix associated
    to the linear system is set with the matrix for building the preconditioner.
 
-   Collective on ST
+   Not Collective
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -373,7 +374,7 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
 
    Level: developer
 
-.seealso: STPrecondSetKSPHasMat(), STSetShift(), KSPSetOperators()
+.seealso: STPrecondSetKSPHasMat(), STSetShift()
 @*/
 PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
 {

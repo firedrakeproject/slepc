@@ -71,13 +71,13 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetContext"
 /*@
-    STShellSetContext - sets the context for a shell ST
+   STShellSetContext - sets the context for a shell ST
 
-   Collective on ST
+   Logically Collective on ST
 
-    Input Parameters:
-+   st - the shell ST
--   ctx - the context
+   Input Parameters:
++  st - the shell ST
+-  ctx - the context
 
    Level: advanced
 
@@ -213,7 +213,7 @@ EXTERN_C_END
    STShellSetApply - Sets routine to use as the application of the 
    operator to a vector in the user-defined spectral transformation.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st    - the spectral transformation context
@@ -248,7 +248,7 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
    STShellSetApplyTranspose - Sets routine to use as the application of the 
    transposed operator to a vector in the user-defined spectral transformation.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st    - the spectral transformation context
@@ -284,7 +284,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
    eigensolution process has finished in order to transform back the
    computed eigenvalues.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st     - the spectral transformation context

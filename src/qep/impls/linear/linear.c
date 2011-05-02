@@ -374,7 +374,7 @@ EXTERN_C_END
    QEPLinearSetCompanionForm - Choose between the two companion forms available
    for the linearization of the quadratic problem.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep   - quadratic eigenvalue solver
@@ -417,7 +417,7 @@ EXTERN_C_END
    QEPLinearGetCompanionForm - Returns the number of the companion form that
    will be used for the linearization of the quadratic problem.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  qep  - quadratic eigenvalue solver
@@ -459,7 +459,7 @@ EXTERN_C_END
    QEPLinearSetExplicitMatrix - Indicate if the matrices A and B for the linearization
    of the quadratic problem must be built explicitly.
 
-   Collective on QEP
+   Logically Collective on QEP
 
    Input Parameters:
 +  qep      - quadratic eigenvalue solver
@@ -502,7 +502,7 @@ EXTERN_C_END
    QEPLinearGetExplicitMatrix - Returns the flag indicating if the matrices A and B
    for the linearization of the quadratic problem are built explicitly.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  qep  - quadratic eigenvalue solver

@@ -746,7 +746,7 @@ EXTERN_C_END
    EPSLanczosSetReorthog - Sets the type of reorthogonalization used during the Lanczos
    iteration. 
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -790,7 +790,7 @@ EXTERN_C_END
    EPSLanczosGetReorthog - Gets the type of reorthogonalization used during the Lanczos
    iteration. 
 
-   Collective on EPS
+   Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context

@@ -76,7 +76,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
    STGetBilinearForm - Returns the matrix used in the bilinear form with a 
    generalized problem with semi-definite B.
 
-   Collective on ST and Mat
+   Not collective, though a parallel Mat may be returned
 
    Input Parameters:
 .  st - the spectral transformation context
@@ -84,8 +84,9 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
    Output Parameter:
 .  B - output matrix
 
-   Note:
-   The output matrix B must be destroyed after use.
+   Notes:
+   The output matrix B must be destroyed after use. It will be PETSC_NULL in
+   case of standard eigenproblems.
    
    Level: developer
 @*/
@@ -298,7 +299,7 @@ PetscErrorCode STPostSolve(ST st)
    spectral transformations which require to transform the computed 
    eigenvalues back to the original eigenvalue problem.
 
-   Collective on ST
+   Not Collective
 
    Input Parameters:
    st   - the spectral transformation context

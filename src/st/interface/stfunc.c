@@ -261,7 +261,7 @@ PetscErrorCode STGetOperators(ST st,Mat *A,Mat *B)
 /*@
    STSetShift - Sets the shift associated with the spectral transformation.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -296,7 +296,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
 /*@
    STGetShift - Gets the shift associated with the spectral transformation.
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -322,7 +322,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
    STSetDefaultShift - Sets the value of the shift that should be employed if
    the user did not specify one.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -413,7 +413,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
    STSetOptionsPrefix - Sets the prefix used for searching for all 
    ST options in the database.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st     - the spectral transformation context
@@ -446,7 +446,7 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
    STAppendOptionsPrefix - Appends to the prefix used for searching for all 
    ST options in the database.
 
-   Collective on ST
+   Logically Collective on ST
 
    Input Parameters:
 +  st     - the spectral transformation context

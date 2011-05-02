@@ -947,6 +947,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidPointer(norm,3);
   ierr = VecDuplicate(eps->V[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
@@ -995,6 +996,8 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
+  PetscValidPointer(norm,3);
   if (!eps->leftvecs) {
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
@@ -1105,6 +1108,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
+  PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidPointer(error,3);
   ierr = VecDuplicate(eps->V[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&xi); CHKERRQ(ierr);
@@ -1151,6 +1155,8 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
   ierr = EPSComputeResidualNormLeft(eps,i,&norm); CHKERRQ(ierr);
+  PetscValidLogicalCollectiveInt(eps,i,2);
+  PetscValidPointer(error,3);
   ierr = VecDuplicate(eps->W[0],&xr); CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&xi); CHKERRQ(ierr);
   ierr = EPSGetEigenvalue(eps,i,&kr,&ki); CHKERRQ(ierr);

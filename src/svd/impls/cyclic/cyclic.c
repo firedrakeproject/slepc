@@ -303,7 +303,7 @@ EXTERN_C_END
    SVDCyclicSetExplicitMatrix - Indicate if the eigensolver operator 
    H(A) = [ 0  A ; A^T 0 ] must be computed explicitly.
 
-   Collective on SVD
+   Logically Collective on SVD
 
    Input Parameters:
 +  svd      - singular value solver
@@ -345,7 +345,7 @@ EXTERN_C_END
 /*@
    SVDCyclicGetExplicitMatrix - Returns the flag indicating if H(A) is built explicitly
 
-   Not collective
+   Not Collective
 
    Input Parameter:
 .  svd  - singular value solver
