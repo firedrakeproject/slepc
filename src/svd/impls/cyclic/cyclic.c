@@ -322,6 +322,7 @@ PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveBool(svd,explicitmatrix,2);
   ierr = PetscTryMethod(svd,"SVDCyclicSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -334,7 +335,6 @@ PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmatr
   SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(explicitmatrix,2);
   *explicitmatrix = cyclic->explicitmatrix;
   PetscFunctionReturn(0);
 }
@@ -363,6 +363,7 @@ PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(explicitmatrix,2);
   ierr = PetscTryMethod(svd,"SVDCyclicGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -376,8 +377,6 @@ PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   SVD_CYCLIC      *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
-  PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);  
   cyclic->eps = eps;
@@ -409,6 +408,7 @@ PetscErrorCode SVDCyclicSetEPS(SVD svd,EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
+  PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscTryMethod(svd,"SVDCyclicSetEPS_C",(SVD,EPS),(svd,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -421,7 +421,6 @@ PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
   SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(eps,2);
   *eps = cyclic->eps;
   PetscFunctionReturn(0);
 }
@@ -451,6 +450,7 @@ PetscErrorCode SVDCyclicGetEPS(SVD svd,EPS *eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(eps,2);
   ierr = PetscTryMethod(svd,"SVDCyclicGetEPS_C",(SVD,EPS*),(svd,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

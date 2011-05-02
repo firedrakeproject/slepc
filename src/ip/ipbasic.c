@@ -288,6 +288,9 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ip,type,2);
+  PetscValidLogicalCollectiveEnum(ip,refinement,3);
+  PetscValidLogicalCollectiveReal(ip,eta,4);
   switch (type) {
     case IP_ORTH_CGS:
     case IP_ORTH_MGS:

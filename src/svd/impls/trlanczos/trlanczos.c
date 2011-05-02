@@ -428,6 +428,7 @@ PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscBool oneside)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveBool(svd,oneside,2);
   ierr = PetscTryMethod(svd,"SVDTRLanczosSetOneSide_C",(SVD,PetscBool),(svd,oneside));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -456,6 +457,7 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscBool *oneside)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(oneside,2);
   ierr = PetscTryMethod(svd,"SVDTRLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -468,7 +470,6 @@ PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *oneside)
   SVD_TRLANCZOS    *lanczos = (SVD_TRLANCZOS *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(oneside,2);
   *oneside = lanczos->oneside;
   PetscFunctionReturn(0);
 }

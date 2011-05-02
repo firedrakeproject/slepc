@@ -361,6 +361,7 @@ PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscBool oneside)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveBool(svd,oneside,2);
   ierr = PetscTryMethod(svd,"SVDLanczosSetOneSide_C",(SVD,PetscBool),(svd,oneside));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -389,6 +390,7 @@ PetscErrorCode SVDLanczosGetOneSide(SVD svd,PetscBool *oneside)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(oneside,2);
   ierr = PetscTryMethod(svd,"SVDLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -401,7 +403,6 @@ PetscErrorCode SVDLanczosGetOneSide_Lanczos(SVD svd,PetscBool *oneside)
   SVD_LANCZOS *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(oneside,2);
   *oneside = lanczos->oneside;
   PetscFunctionReturn(0);
 }
@@ -414,7 +415,6 @@ PetscErrorCode SVDDestroy_Lanczos(SVD svd)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = SVDDestroy_Default(svd);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosGetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);

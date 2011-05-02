@@ -393,6 +393,7 @@ PetscErrorCode QEPLinearSetCompanionForm(QEP qep,PetscInt cform)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(qep,cform,2);
   ierr = PetscTryMethod(qep,"QEPLinearSetCompanionForm_C",(QEP,PetscInt),(qep,cform));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -405,7 +406,6 @@ PetscErrorCode QEPLinearGetCompanionForm_Linear(QEP qep,PetscInt *cform)
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(cform,2);
   *cform = ctx->cform;
   PetscFunctionReturn(0);
 }
@@ -435,6 +435,7 @@ PetscErrorCode QEPLinearGetCompanionForm(QEP qep,PetscInt *cform)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidIntPointer(cform,2);
   ierr = PetscTryMethod(qep,"QEPLinearGetCompanionForm_C",(QEP,PetscInt*),(qep,cform));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -477,6 +478,7 @@ PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscBool explicitmatrix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(qep,explicitmatrix,2);
   ierr = PetscTryMethod(qep,"QEPLinearSetExplicitMatrix_C",(QEP,PetscBool),(qep,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -489,7 +491,6 @@ PetscErrorCode QEPLinearGetExplicitMatrix_Linear(QEP qep,PetscBool *explicitmatr
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(explicitmatrix,2);
   *explicitmatrix = ctx->explicitmatrix;
   PetscFunctionReturn(0);
 }
@@ -519,6 +520,7 @@ PetscErrorCode QEPLinearGetExplicitMatrix(QEP qep,PetscBool *explicitmatrix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidPointer(explicitmatrix,2);
   ierr = PetscTryMethod(qep,"QEPLinearGetExplicitMatrix_C",(QEP,PetscBool*),(qep,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -532,8 +534,6 @@ PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
   QEP_LINEAR     *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
-  PetscCheckSameComm(qep,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);  
   ctx->eps = eps;
@@ -565,6 +565,7 @@ PetscErrorCode QEPLinearSetEPS(QEP qep,EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
+  PetscCheckSameComm(qep,1,eps,2);
   ierr = PetscTryMethod(qep,"QEPLinearSetEPS_C",(QEP,EPS),(qep,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -577,7 +578,6 @@ PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
   QEP_LINEAR *ctx = (QEP_LINEAR *)qep->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(eps,2);
   *eps = ctx->eps;
   PetscFunctionReturn(0);
 }
@@ -607,6 +607,7 @@ PetscErrorCode QEPLinearGetEPS(QEP qep,EPS *eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidPointer(eps,2);
   ierr = PetscTryMethod(qep,"QEPLinearGetEPS_C",(QEP,EPS*),(qep,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

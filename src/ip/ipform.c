@@ -51,8 +51,9 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ip,form,3);
   if (mat) {
-    PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
+    PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
     PetscObjectReference((PetscObject)mat);
   }
   ierr = MatDestroy(&ip->matrix);CHKERRQ(ierr);

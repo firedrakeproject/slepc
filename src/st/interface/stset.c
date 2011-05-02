@@ -209,6 +209,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(st,str,2);
   switch (str) {
     case SAME_NONZERO_PATTERN:
     case DIFFERENT_NONZERO_PATTERN:
@@ -296,6 +297,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(st,mode,2);
   st->shift_matrix = mode;
   PetscFunctionReturn(0);
 }

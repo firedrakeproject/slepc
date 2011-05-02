@@ -61,6 +61,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,mode,2);
   if (mode == PETSC_DEFAULT || mode == PETSC_DECIDE) mode = (SVDTransposeMode)PETSC_DECIDE;
   else switch (mode) {
     case SVD_TRANSPOSE_EXPLICIT:
@@ -132,6 +133,8 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveReal(svd,tol,2);
+  PetscValidLogicalCollectiveInt(svd,maxits,3);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
       tol = 1e-7;
@@ -225,6 +228,9 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveInt(svd,nsv,2);
+  PetscValidLogicalCollectiveInt(svd,ncv,3);
+  PetscValidLogicalCollectiveInt(svd,mpd,4);
   if (nsv != PETSC_IGNORE) {
     if (nsv<1) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
     svd->nsv = nsv;
@@ -314,6 +320,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,which,2);
   switch (which) {
     case SVD_LARGEST:
     case SVD_SMALLEST:
@@ -495,6 +502,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveBool(svd,trackall,2);
   svd->trackall = trackall;
   PetscFunctionReturn(0);
 }

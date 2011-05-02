@@ -387,6 +387,7 @@ PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,bs,2);
   ierr = PetscTryMethod(eps,"EPSPRIMMESetBlockSize_C",(EPS,PetscInt),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -433,7 +434,7 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMESetMethod_PRIMME"
-PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps, EPSPRIMMEMethod method)
+PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 
@@ -471,12 +472,13 @@ EXTERN_C_END
 
 .seealso: EPSPRIMMEGetMethod(), EPSPRIMMEMethod
 @*/
-PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method)
+PetscErrorCode EPSPRIMMESetMethod(EPS eps,EPSPRIMMEMethod method)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,method,2);
   ierr = PetscTryMethod(eps,"EPSPRIMMESetMethod_C",(EPS,EPSPRIMMEMethod),(eps,method));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -484,7 +486,7 @@ PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSPRIMMEGetMethod_PRIMME"
-PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps, EPSPRIMMEMethod *method)
+PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
 {
   EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
 

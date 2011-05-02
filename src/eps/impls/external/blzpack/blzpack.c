@@ -406,6 +406,7 @@ PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,bs,2);
   ierr = PetscTryMethod(eps,"EPSBlzpackSetBlockSize_C",(EPS,PetscInt),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -461,6 +462,8 @@ PetscErrorCode EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveReal(eps,initial,2);
+  PetscValidLogicalCollectiveReal(eps,final,3);
   ierr = PetscTryMethod(eps,"EPSBlzpackSetInterval_C",(EPS,PetscReal,PetscReal),(eps,initial,final));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -503,6 +506,7 @@ PetscErrorCode EPSBlzpackSetNSteps(EPS eps,PetscInt nsteps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,nsteps,2);
   ierr = PetscTryMethod(eps,"EPSBlzpackSetNSteps_C",(EPS,PetscInt),(eps,nsteps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

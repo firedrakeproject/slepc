@@ -280,6 +280,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(st,shift,2);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift); CHKERRQ(ierr);
@@ -310,7 +311,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(shift,2);
+  PetscValidScalarPointer(shift,2);
   *shift = st->sigma;
   PetscFunctionReturn(0);
 }
@@ -334,6 +335,7 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(st,defaultshift,2);
   st->defsigma = defaultshift;
   PetscFunctionReturn(0);
 }

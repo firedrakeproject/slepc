@@ -234,7 +234,7 @@ PetscErrorCode QEPGetConvergedReason(QEP qep,QEPConvergedReason *reason)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  PetscValidIntPointer(reason,2);
+  PetscValidPointer(reason,2);
   *reason = qep->reason;
   PetscFunctionReturn(0);
 }
@@ -271,13 +271,15 @@ PetscErrorCode QEPGetConvergedReason(QEP qep,QEPConvergedReason *reason)
 
 .seealso: QEPSolve(), QEPGetConverged(), QEPSetWhichEigenpairs()
 @*/
-PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
+PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
 {
   PetscInt       k;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(qep,1,Vr,6); }
+  if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(qep,1,Vi,7); }
   if (!qep->eigr || !qep->eigi || !qep->V) { 
     SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
   }
@@ -343,10 +345,11 @@ PetscErrorCode QEPGetEigenpair(QEP qep, PetscInt i, PetscScalar *eigr, PetscScal
 
 .seealso: QEPComputeRelativeError()
 @*/
-PetscErrorCode QEPGetErrorEstimate(QEP qep, PetscInt i, PetscReal *errest)
+PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidPointer(errest,3);
   if (!qep->eigr || !qep->eigi) { 
     SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
   }

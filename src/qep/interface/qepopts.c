@@ -222,6 +222,8 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(qep,tol,2);
+  PetscValidLogicalCollectiveInt(qep,maxits,3);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
       qep->tol = 1e-7;
@@ -317,6 +319,9 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(qep,nev,2);
+  PetscValidLogicalCollectiveInt(qep,ncv,3);
+  PetscValidLogicalCollectiveInt(qep,mpd,4);
   if( nev != PETSC_IGNORE ) {
     if (nev<1) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     qep->nev = nev;
@@ -386,6 +391,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(qep,which,2);
   if (which!=PETSC_IGNORE) {
     if (which==PETSC_DECIDE || which==PETSC_DEFAULT) qep->which = (QEPWhich)0;
     else switch (which) {
@@ -464,6 +470,7 @@ PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscBool leftvecs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(qep,leftvecs,2);
   if (qep->leftvecs != leftvecs) {
     qep->leftvecs = leftvecs;
     qep->setupcalled = 0;
@@ -557,6 +564,7 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(qep,alpha,2);
   if (alpha != PETSC_IGNORE) {
     if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
       qep->sfactor = 0.0;
@@ -603,6 +611,7 @@ PetscErrorCode QEPSetProblemType(QEP qep,QEPProblemType type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(qep,type,2);
   if (type!=QEP_GENERAL && type!=QEP_HERMITIAN && type!=QEP_GYROSCOPIC)
     SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   qep->problem_type = type;
@@ -669,6 +678,7 @@ $   func(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal* erre
 extern PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
 {
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   qep->conv_func = func;
   qep->conv_ctx = ctx;
   PetscFunctionReturn(0);
@@ -702,6 +712,7 @@ PetscErrorCode QEPSetTrackAll(QEP qep,PetscBool trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(qep,trackall,2);
   qep->trackall = trackall;
   PetscFunctionReturn(0);
 }

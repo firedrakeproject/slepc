@@ -223,7 +223,8 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(sigma,3);
+  if (u) { PetscValidHeaderSpecific(u,VEC_CLASSID,4); PetscCheckSameComm(svd,1,u,4); }
+  if (v) { PetscValidHeaderSpecific(v,VEC_CLASSID,5); PetscCheckSameComm(svd,1,v,5); }
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
     SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
   }
@@ -358,7 +359,8 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(error,2);
+  PetscValidLogicalCollectiveInt(svd,i,2);
+  PetscValidPointer(error,3);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
   *error = sqrt(norm1*norm1+norm2*norm2);

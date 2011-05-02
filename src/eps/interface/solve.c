@@ -490,7 +490,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
 
 .seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve(), EPSGetInvariantSubspace
 @*/
-PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps, Vec *v)
+PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps,Vec *v)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -551,7 +551,7 @@ PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps, Vec *v)
 .seealso: EPSGetEigenvalue(), EPSGetEigenvector(), EPSGetEigenvectorLeft(), EPSSolve(), 
           EPSGetConverged(), EPSSetWhichEigenpairs(), EPSGetInvariantSubspace()
 @*/
-PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *eigi, Vec Vr, Vec Vi)
+PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
 {
   PetscErrorCode ierr;
 
@@ -597,7 +597,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps, PetscInt i, PetscScalar *eigr, PetscScal
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetEigenpair()
 @*/
-PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscScalar *eigi)
+PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt       k;
 
@@ -654,13 +654,15 @@ PetscErrorCode EPSGetEigenvalue(EPS eps, PetscInt i, PetscScalar *eigr, PetscSca
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetEigenpair(), EPSGetEigenvectorLeft()
 @*/
-PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
+PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 {
   PetscErrorCode ierr;
   PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Vr,3); }
+  if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   if (!eps->V) { 
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -723,13 +725,15 @@ PetscErrorCode EPSGetEigenvector(EPS eps, PetscInt i, Vec Vr, Vec Vi)
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), 
           EPSGetEigenpair(), EPSGetEigenvector()
 @*/
-PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
+PetscErrorCode EPSGetEigenvectorLeft(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 {
   PetscErrorCode ierr;
   PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Wr,3); }
+  if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
   if (!eps->leftvecs) {
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
@@ -789,10 +793,11 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps, PetscInt i, Vec Wr, Vec Wi)
 
 .seealso: EPSComputeRelativeError()
 @*/
-PetscErrorCode EPSGetErrorEstimate(EPS eps, PetscInt i, PetscReal *errest)
+PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(errest,3);
   if (!eps->eigr || !eps->eigi) { 
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -832,6 +837,7 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(errest,3);
   if (!eps->eigr || !eps->eigi) { 
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
   }
@@ -1450,7 +1456,9 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidHeaderSpecific(vec,VEC_CLASSID,3);
+  PetscCheckSameComm(eps,1,vec,3);
 
   ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
 
@@ -1524,7 +1532,9 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscBool *break
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidHeaderSpecific(vec,VEC_CLASSID,3);
+  PetscCheckSameComm(eps,1,vec,3);
 
   ierr = VecDuplicate(eps->W[0],&w);CHKERRQ(ierr);
 

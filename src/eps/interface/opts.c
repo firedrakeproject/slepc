@@ -281,6 +281,8 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveReal(eps,tol,2);
+  PetscValidLogicalCollectiveInt(eps,maxits,3);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
       eps->tol = 1e-7;
@@ -376,6 +378,9 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,nev,2);
+  PetscValidLogicalCollectiveInt(eps,ncv,3);
+  PetscValidLogicalCollectiveInt(eps,mpd,4);
   if( nev != PETSC_IGNORE ) {
     if (nev<1) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     eps->nev = nev;
@@ -458,6 +463,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,which,2);
   if (which!=PETSC_IGNORE) {
     if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
     else switch (which) {
@@ -542,6 +548,7 @@ PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,leftvecs,2);
   if (eps->leftvecs != leftvecs) {
     eps->leftvecs = leftvecs;
     eps->setupcalled = 0;
@@ -616,6 +623,9 @@ PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscBool
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveReal(eps,nrma,2);
+  PetscValidLogicalCollectiveReal(eps,nrmb,3);
+  PetscValidLogicalCollectiveBool(eps,adaptive,4);
   if (nrma != PETSC_IGNORE) {
     if (nrma == PETSC_DEFAULT) eps->nrma = 1.0;
     else if (nrma == PETSC_DETERMINE) {
@@ -713,6 +723,7 @@ $   func(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,Pet
 PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   eps->which_func = func;
   eps->which_ctx = ctx;
   eps->which = EPS_WHICH_USER;
@@ -795,6 +806,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,conv,2);
   switch(conv) {
   case EPS_CONV_EIG: eps->conv_func = EPSEigRelativeConverged; break;
   case EPS_CONV_NORM: eps->conv_func = EPSNormRelativeConverged; break; 
@@ -875,6 +887,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,type,2);
   switch (type) {
     case EPS_HEP:
       eps->isgeneralized = PETSC_FALSE;
@@ -990,6 +1003,7 @@ PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,extr,2);
   eps->extraction = extr;
   PetscFunctionReturn(0);
 }
@@ -1069,6 +1083,9 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,bal,2);
+  PetscValidLogicalCollectiveInt(eps,its,3);
+  PetscValidLogicalCollectiveReal(eps,cutoff,4);
   if (bal!=PETSC_IGNORE) {
     if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPS_BALANCE_TWOSIDE;
     else switch (bal) {
@@ -1159,6 +1176,7 @@ PetscErrorCode EPSSetTrueResidual(EPS eps,PetscBool trueres)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,trueres,2);
   eps->trueres = trueres;
   PetscFunctionReturn(0);
 }
@@ -1219,6 +1237,7 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscBool trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,trackall,2);
   eps->trackall = trackall;
   PetscFunctionReturn(0);
 }

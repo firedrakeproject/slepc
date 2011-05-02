@@ -213,8 +213,6 @@ PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   SVD_CROSS      *cross = (SVD_CROSS *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
-  PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);  
   cross->eps = eps;
@@ -246,6 +244,7 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
+  PetscCheckSameComm(svd,1,eps,2);
   ierr = PetscTryMethod(svd,"SVDCrossSetEPS_C",(SVD,EPS),(svd,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -288,6 +287,7 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(eps,2);
   ierr = PetscTryMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

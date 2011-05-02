@@ -629,6 +629,7 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(eps,target,2);
   eps->target = target;
   ierr = STSetDefaultShift(eps->OP,target);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -658,7 +659,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(target,2);
+  PetscValidScalarPointer(target,2);
   *target = eps->target;
   PetscFunctionReturn(0);
 }

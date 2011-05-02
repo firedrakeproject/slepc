@@ -243,6 +243,7 @@ PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(mat,2);
   ierr = PetscTryMethod(st,"STPrecondGetMatForPC_C",(ST,Mat*),(st,mat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -257,7 +258,6 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   PetscBool      flag;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   ierr = PCGetOperatorsSet(pc, PETSC_NULL, &flag); CHKERRQ(ierr);
   if (flag) {
@@ -293,6 +293,7 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
+  PetscCheckSameComm(st,1,mat,2);
   ierr = PetscTryMethod(st,"STPrecondSetMatForPC_C",(ST,Mat),(st,mat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -308,8 +309,6 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   ierr = KSPGetPC(st->ksp, &pc); CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
      matrix in pc */
@@ -352,6 +351,7 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveBool(st,setmat,2);
   ierr = PetscTryMethod(st,"STPrecondSetKSPHasMat_C",(ST,PetscBool),(st,setmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -381,6 +381,7 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(setmat,2);
   ierr = PetscTryMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,setmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -393,7 +394,6 @@ PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
   ST_PRECOND *data = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   data->setmat = setmat;
   PetscFunctionReturn(0);
 }
@@ -407,7 +407,6 @@ PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
   ST_PRECOND *data = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
   *setmat = data->setmat;
   PetscFunctionReturn(0);
 }

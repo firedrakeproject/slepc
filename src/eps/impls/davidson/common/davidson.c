@@ -363,7 +363,6 @@ PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   data->krylovstart = krylovstart;
   PetscFunctionReturn(0);
 }
@@ -375,7 +374,6 @@ PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   *krylovstart = data->krylovstart;
   PetscFunctionReturn(0);
 }
@@ -387,7 +385,6 @@ PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if(blocksize == PETSC_DEFAULT || blocksize == PETSC_DECIDE) blocksize = 1;
   if(blocksize <= 0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
@@ -402,7 +399,6 @@ PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   *blocksize = data->blocksize;
   PetscFunctionReturn(0);
 }
@@ -414,7 +410,6 @@ PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plu
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if(minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
   if(minv <= 0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
@@ -433,7 +428,6 @@ PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *p
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   *minv = data->minv;
   *plusk = data->plusk;
   PetscFunctionReturn(0);
@@ -446,7 +440,6 @@ PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   *initialsize = data->initialsize;
   PetscFunctionReturn(0);
 }
@@ -458,7 +451,6 @@ PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if(initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
   if(initialsize <= 0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
@@ -473,7 +465,6 @@ PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   *fix = data->fix;
   PetscFunctionReturn(0);
 }
@@ -485,7 +476,6 @@ PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if(fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
   if(fix < 0.0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
