@@ -174,12 +174,9 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;
-  ST_PRECOND     *data;
 
   PetscFunctionBegin;
-  ierr = PetscNew(ST_PRECOND, &data); CHKERRQ(ierr);
-  st->data                 = data;
-
+  ierr = PetscNewLog(st,ST_PRECOND,&st->data);CHKERRQ(ierr);
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->postsolve       = PETSC_NULL;
   st->ops->backtr          = PETSC_NULL;
@@ -188,7 +185,6 @@ PetscErrorCode STCreate_Precond(ST st)
   st->ops->view            = STView_Default;
   st->ops->destroy         = STDestroy_Precond;
   st->ops->setfromoptions  = STSetFromOptions_Precond;
-  
   st->checknullspace       = PETSC_NULL;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","STPrecondGetMatForPC_Precond",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
@@ -196,8 +192,8 @@ PetscErrorCode STCreate_Precond(ST st)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","STPrecondGetKSPHasMat_Precond",STPrecondGetKSPHasMat_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","STPrecondSetKSPHasMat_Precond",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
 
-  ierr = STPrecondSetKSPHasMat_Precond(st, PETSC_TRUE); CHKERRQ(ierr);
-  ierr = KSPSetType(st->ksp, KSPPREONLY); CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat_Precond(st,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

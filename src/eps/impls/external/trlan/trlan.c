@@ -170,12 +170,9 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_TRLAN      *trlan;
 
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_TRLAN,&trlan);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_TRLAN));
-  eps->data                      = (void *) trlan;
+  ierr = PetscNewLog(eps,EPS_TRLAN,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->backtransform        = EPSBackTransform_Default;

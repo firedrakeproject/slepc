@@ -595,19 +595,15 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_ARNOLDI    *arnoldi;
   
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_ARNOLDI,&arnoldi);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_ARNOLDI));
-  eps->data                      = (void *)arnoldi;
+  ierr = PetscNewLog(eps,EPS_ARNOLDI,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
   eps->ops->destroy              = EPSDestroy_Arnoldi;
   eps->ops->view                 = EPSView_Arnoldi;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
-  arnoldi->delayed               = PETSC_FALSE;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_Arnoldi",EPSArnoldiSetDelayed_Arnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_Arnoldi",EPSArnoldiGetDelayed_Arnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);

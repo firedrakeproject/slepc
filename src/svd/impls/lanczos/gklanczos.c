@@ -439,18 +439,14 @@ EXTERN_C_BEGIN
 PetscErrorCode SVDCreate_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
-  SVD_LANCZOS    *lanczos;
 
   PetscFunctionBegin;
-  ierr = PetscNew(SVD_LANCZOS,&lanczos);CHKERRQ(ierr);
-  PetscLogObjectMemory(svd,sizeof(SVD_LANCZOS));
-  svd->data                = (void *)lanczos;
+  ierr = PetscNewLog(svd,SVD_LANCZOS,&svd->data);CHKERRQ(ierr);
   svd->ops->setup          = SVDSetUp_Lanczos;
   svd->ops->solve          = SVDSolve_Lanczos;
   svd->ops->destroy        = SVDDestroy_Lanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_Lanczos;
   svd->ops->view           = SVDView_Lanczos;
-  lanczos->oneside         = PETSC_FALSE;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","SVDLanczosSetOneSide_Lanczos",SVDLanczosSetOneSide_Lanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosGetOneSide_C","SVDLanczosGetOneSide_Lanczos",SVDLanczosGetOneSide_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);

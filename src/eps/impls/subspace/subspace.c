@@ -419,12 +419,9 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_SUBSPACE   *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_SUBSPACE,&ctx);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_SUBSPACE));
-  eps->data                      = (void *) ctx;
+  ierr = PetscNewLog(eps,EPS_SUBSPACE,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_Subspace;
   eps->ops->destroy              = EPSDestroy_Subspace;
   eps->ops->backtransform        = EPSBackTransform_Default;

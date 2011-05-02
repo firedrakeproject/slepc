@@ -339,12 +339,9 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_ARPACK     *arpack;
 
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_ARPACK,&arpack);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_ARPACK));
-  eps->data                      = (void *) arpack;
+  ierr = PetscNewLog(eps,EPS_ARPACK,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
   eps->ops->backtransform        = EPSBackTransform_ARPACK;

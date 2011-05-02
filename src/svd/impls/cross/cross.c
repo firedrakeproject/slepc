@@ -333,8 +333,7 @@ PetscErrorCode SVDCreate_Cross(SVD svd)
   ST             st;
   
   PetscFunctionBegin;
-  ierr = PetscNew(SVD_CROSS,&cross);CHKERRQ(ierr);
-  PetscLogObjectMemory(svd,sizeof(SVD_CROSS));
+  ierr = PetscNewLog(svd,SVD_CROSS,&cross);CHKERRQ(ierr);
   svd->data                = (void *)cross;
   svd->ops->solve          = SVDSolve_Cross;
   svd->ops->setup          = SVDSetUp_Cross;

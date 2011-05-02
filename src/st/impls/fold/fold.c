@@ -204,13 +204,9 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Fold(ST st)
 {
   PetscErrorCode ierr;
-  ST_FOLD        *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNew(ST_FOLD,&ctx); CHKERRQ(ierr);
-  PetscLogObjectMemory(st,sizeof(ST_FOLD));
-  st->data                 = (void *) ctx;
-
+  ierr = PetscNewLog(st,ST_FOLD,&st->data); CHKERRQ(ierr);
   st->ops->apply           = STApply_Fold;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Fold;

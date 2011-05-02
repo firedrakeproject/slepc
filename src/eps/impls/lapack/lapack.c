@@ -213,12 +213,9 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_LAPACK     *la;
 
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_LAPACK,&la);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_LAPACK));
-  eps->data                      = (void *) la;
+  ierr = PetscNewLog(eps,EPS_LAPACK,&eps->data);CHKERRQ(ierr);
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;

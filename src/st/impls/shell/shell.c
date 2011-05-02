@@ -365,26 +365,15 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Shell(ST st)
 {
   PetscErrorCode ierr;
-  ST_Shell       *shell;
 
   PetscFunctionBegin;
-  st->ops->destroy = STDestroy_Shell;
-  ierr = PetscNew(ST_Shell,&shell);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(st,sizeof(ST_Shell));CHKERRQ(ierr);
-
-  st->data           = (void *) shell;
-
+  ierr = PetscNewLog(st,ST_Shell,&st->data);CHKERRQ(ierr);
   st->ops->apply          = STApply_Shell;
   st->ops->applytrans     = STApplyTranspose_Shell;
   st->ops->backtr         = STBackTransform_Shell;
   st->ops->view           = PETSC_NULL;
   st->ops->setfromoptions = STSetFromOptions_Shell;
-
-  shell->apply       = 0;
-  shell->applytrans  = 0;
-  shell->backtr      = 0;
-  shell->ctx         = 0;
-
+  st->ops->destroy        = STDestroy_Shell;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",STShellSetApply_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","STShellSetApplyTranspose_Shell",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","STShellSetBackTransform_Shell",STShellSetBackTransform_Shell);CHKERRQ(ierr);

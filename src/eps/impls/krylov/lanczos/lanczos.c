@@ -852,19 +852,15 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_Lanczos(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_LANCZOS    *lanczos;
 
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_LANCZOS,&lanczos);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_LANCZOS));
-  eps->data                      = (void *) lanczos;
+  ierr = PetscNewLog(eps,EPS_LANCZOS,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_Lanczos;
   eps->ops->setfromoptions       = EPSSetFromOptions_Lanczos;
   eps->ops->destroy              = EPSDestroy_Lanczos;
   eps->ops->view                 = EPSView_Lanczos;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Hermitian;
-  lanczos->reorthog              = EPS_LANCZOS_REORTHOG_LOCAL;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","EPSLanczosSetReorthog_Lanczos",EPSLanczosSetReorthog_Lanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_Lanczos",EPSLanczosGetReorthog_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);

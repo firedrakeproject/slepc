@@ -456,13 +456,9 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Cayley(ST st)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNew(ST_CAYLEY,&ctx); CHKERRQ(ierr);
-  PetscLogObjectMemory(st,sizeof(ST_CAYLEY));
-  st->data                 = (void *) ctx;
-
+  ierr = PetscNewLog(st,ST_CAYLEY,&st->data);CHKERRQ(ierr);
   st->ops->apply           = STApply_Cayley;
   st->ops->getbilinearform = STGetBilinearForm_Cayley;
   st->ops->applytrans      = STApplyTranspose_Cayley;
@@ -473,12 +469,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->setshift        = STSetShift_Cayley;
   st->ops->destroy         = STDestroy_Cayley;
   st->ops->view            = STView_Cayley;
-  
   st->checknullspace       = STCheckNullSpace_Default;
-
-  ctx->nu                  = 0.0;
-  ctx->nu_set              = PETSC_FALSE;
-
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

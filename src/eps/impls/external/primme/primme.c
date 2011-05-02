@@ -541,8 +541,7 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   ierr = STSetType(eps->OP, STPRECOND); CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE); CHKERRQ(ierr);
 
-  ierr = PetscNew(EPS_PRIMME,&primme);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_PRIMME));
+  ierr = PetscNewLog(eps,EPS_PRIMME,&primme);CHKERRQ(ierr);
   eps->data                      = (void *) primme;
   eps->ops->setup                = EPSSetUp_PRIMME;
   eps->ops->setfromoptions       = EPSSetFromOptions_PRIMME;

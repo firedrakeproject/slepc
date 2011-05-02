@@ -353,8 +353,7 @@ PetscErrorCode QEPCreate_QArnoldi(QEP qep)
   QEP_QARNOLDI   *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNew(QEP_QARNOLDI,&ctx);CHKERRQ(ierr);
-  PetscLogObjectMemory(qep,sizeof(QEP_QARNOLDI));
+  ierr = PetscNewLog(qep,QEP_QARNOLDI,&ctx);CHKERRQ(ierr);
   qep->data                      = ctx;
   qep->ops->solve                = QEPSolve_QArnoldi;
   qep->ops->setup                = QEPSetUp_QArnoldi;

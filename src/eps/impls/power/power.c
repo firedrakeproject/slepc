@@ -554,19 +554,15 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_Power(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_POWER      *power;
 
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_POWER,&power);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_POWER));
-  eps->data                      = (void *) power;
+  ierr = PetscNewLog(eps,EPS_POWER,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_Power;
   eps->ops->setfromoptions       = EPSSetFromOptions_Power;
   eps->ops->destroy              = EPSDestroy_Power;
   eps->ops->view                 = EPSView_Power;
   eps->ops->backtransform        = EPSBackTransform_Power;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-  power->shift_type              = EPS_POWER_SHIFT_CONSTANT;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","EPSPowerSetShiftType_Power",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_Power",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);

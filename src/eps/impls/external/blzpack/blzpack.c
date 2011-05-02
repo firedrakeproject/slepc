@@ -520,8 +520,7 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   EPS_BLZPACK    *blzpack;
 
   PetscFunctionBegin;
-  ierr = PetscNew(EPS_BLZPACK,&blzpack);CHKERRQ(ierr);
-  PetscLogObjectMemory(eps,sizeof(EPS_BLZPACK));
+  ierr = PetscNewLog(eps,EPS_BLZPACK,&blzpack);CHKERRQ(ierr);
   eps->data                      = (void *) blzpack;
   eps->ops->setup                = EPSSetUp_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
