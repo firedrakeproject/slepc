@@ -243,7 +243,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = IPCreate(comm,&svd->ip);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(svd->ip,((PetscObject)svd)->prefix);
   ierr = IPAppendOptionsPrefix(svd->ip,"svd_");
-  PetscLogObjectParent(svd,svd->ip);
+  ierr = PetscLogObjectParent(svd,svd->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
  
@@ -515,6 +515,7 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(&svd->ip);CHKERRQ(ierr);
   svd->ip = ip;
+  ierr = PetscLogObjectParent(svd,svd->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

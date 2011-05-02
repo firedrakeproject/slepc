@@ -216,6 +216,7 @@ PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);  
   cross->eps = eps;
+  ierr = PetscLogObjectParent(svd,cross->eps);CHKERRQ(ierr);
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -347,7 +348,7 @@ PetscErrorCode SVDCreate_Cross(SVD svd)
   ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);  
-  PetscLogObjectParent(svd,cross->eps);
+  ierr = PetscLogObjectParent(svd,cross->eps);CHKERRQ(ierr);
   ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,PETSC_NULL);CHKERRQ(ierr);

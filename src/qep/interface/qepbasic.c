@@ -288,7 +288,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   ierr = IPCreate(comm,&qep->ip); CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,((PetscObject)qep)->prefix);
   ierr = IPAppendOptionsPrefix(qep->ip,"qep_");
-  PetscLogObjectParent(qep,qep->ip);
+  ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
  
@@ -540,6 +540,7 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(&qep->ip); CHKERRQ(ierr);
   qep->ip = ip;
+  ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

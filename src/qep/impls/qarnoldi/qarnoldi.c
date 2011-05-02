@@ -366,7 +366,7 @@ PetscErrorCode QEPCreate_QArnoldi(QEP qep)
   ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)qep)->prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(ctx->ksp,"qep_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)qep,1);CHKERRQ(ierr);  
-  PetscLogObjectParent(qep,ctx->ksp);
+  ierr = PetscLogObjectParent(qep,ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

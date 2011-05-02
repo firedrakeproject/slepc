@@ -389,11 +389,11 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->numbermonitors  = 0;
 
   ierr = STCreate(comm,&eps->OP); CHKERRQ(ierr);
-  PetscLogObjectParent(eps,eps->OP);
+  ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
   ierr = IPCreate(comm,&eps->ip); CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(eps->ip,((PetscObject)eps)->prefix);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");
-  PetscLogObjectParent(eps,eps->ip);
+  ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
  
@@ -405,8 +405,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
    Collective on EPS
 
    Input Parameters:
-+  eps      - the eigensolver context
--  type     - a known method
++  eps  - the eigensolver context
+-  type - a known method
 
    Options Database Key:
 .  -eps_type <method> - Sets the method; use -help for a list 
@@ -667,8 +667,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetST"
 /*@
-   EPSSetST - Associates a spectral transformation object to the
-   eigensolver. 
+   EPSSetST - Associates a spectral transformation object to the eigensolver. 
 
    Collective on EPS and ST
 
@@ -695,6 +694,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
   ierr = STDestroy(&eps->OP); CHKERRQ(ierr);
   eps->OP = st;
+  ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -755,6 +755,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(&eps->ip); CHKERRQ(ierr);
   eps->ip = ip;
+  ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -116,6 +116,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
   ierr = KSPDestroy(&st->ksp);CHKERRQ(ierr);
   st->ksp = ksp;
+  ierr = PetscLogObjectParent(st,st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

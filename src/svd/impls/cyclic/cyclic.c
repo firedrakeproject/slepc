@@ -380,6 +380,7 @@ PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);  
   cyclic->eps = eps;
+  ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -520,7 +521,7 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);  
-  PetscLogObjectParent(svd,cyclic->eps);
+  ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
   ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,PETSC_NULL);CHKERRQ(ierr);

@@ -537,6 +537,7 @@ PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);  
   ctx->eps = eps;
+  ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
   qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -685,7 +686,7 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);  
-  PetscLogObjectParent(qep,ctx->eps);
+  ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
   ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
   ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,PETSC_NULL);CHKERRQ(ierr);
   ctx->explicitmatrix = PETSC_FALSE;
