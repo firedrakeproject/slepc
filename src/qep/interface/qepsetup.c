@@ -63,7 +63,7 @@ PetscErrorCode QEPSetUp(QEP qep)
 
   /* Check matrices */
   if (!qep->M || !qep->C || !qep->K)
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSetOperators must be called first"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSetOperators must be called first"); 
   
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,PETSC_NULL);CHKERRQ(ierr);
@@ -246,7 +246,7 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
 
 .seealso: QEPSolve(), QEPSetOperators()
 @*/
-PetscErrorCode QEPGetOperators(QEP qep, Mat *M, Mat *C,Mat *K)
+PetscErrorCode QEPGetOperators(QEP qep,Mat *M,Mat *C,Mat *K)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

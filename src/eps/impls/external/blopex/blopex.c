@@ -52,7 +52,7 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
       
   PetscFunctionBegin;
   ierr = KSPSolve(blopex->ksp,(Vec)x,(Vec)y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
-  ierr = KSPGetIterationNumber(blopex->ksp, &lits); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = KSPGetIterationNumber(blopex->ksp,&lits); CHKERRABORT(PETSC_COMM_WORLD,ierr);
   eps->OP->lineariterations+= lits;
   PetscFunctionReturnVoid();
 }
@@ -127,7 +127,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
-  PetscBool      isPrecond, isPreonly;
+  PetscBool      isPrecond,isPreonly;
 
   PetscFunctionBegin;
   if (!eps->ishermitian) { 
@@ -141,16 +141,16 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP, 3e300);CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->OP,3e300);CHKERRQ(ierr);
   }
 
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &isPrecond);CHKERRQ(ierr);
-  if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "blopex only works with STPRECOND");
-  ierr = STGetKSP(eps->OP, &blopex->ksp);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)blopex->ksp, KSPPREONLY, &isPreonly);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&isPrecond);CHKERRQ(ierr);
+  if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with STPRECOND");
+  ierr = STGetKSP(eps->OP,&blopex->ksp);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)blopex->ksp,KSPPREONLY,&isPreonly);CHKERRQ(ierr);
   if (!isPreonly)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "blopex only works with KSPPREONLY");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with KSPPREONLY");
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
@@ -168,7 +168,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   mv_MultiVectorSetRandom(blopex->eigenvectors,1234);
 
   if (eps->nds > 0) {
-    blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii, eps->nds, eps->DS);
+    blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->DS);
   } else
     blopex->Y = PETSC_NULL;
 
@@ -248,15 +248,15 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   const char*    prefix;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP, STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
 
   ierr = PetscNewLog(eps,EPS_BLOPEX,&blopex);CHKERRQ(ierr);
   ierr = KSPCreate(((PetscObject)eps)->comm,&blopex->ksp);CHKERRQ(ierr);
   ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(blopex->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(blopex->ksp,"eps_blopex_");CHKERRQ(ierr);
-  eps->data                      = (void *) blopex;
+  eps->data                      = (void*)blopex;
   eps->ops->setup                = EPSSetUp_BLOPEX;
   eps->ops->setfromoptions       = PETSC_NULL;
   eps->ops->destroy              = EPSDestroy_BLOPEX;

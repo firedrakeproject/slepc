@@ -31,20 +31,20 @@ static char help[] = "Solves the same problem as in ex5, but with a user-defined
    User-defined routines
 */
 
-PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar br, PetscScalar bi, PetscInt *r, void *ctx);
-PetscErrorCode MatMarkovModel( PetscInt m, Mat A );
+PetscErrorCode MyEigenSort(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx);
+PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki, target=0.5;
-  PetscInt       N, m=15, nev, maxit, i, its, nconv;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki,target=0.5;
+  PetscInt       N,m=15,nev,maxit,i,its,nconv;
   PetscErrorCode ierr;
   
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -62,7 +62,7 @@ int main( int argc, char **argv )
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
   ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatMarkovModel( m, A );CHKERRQ(ierr);
+  ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and set various options
@@ -103,7 +103,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -132,9 +132,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n" );CHKERRQ(ierr);
+         "   ----------------- ------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -158,7 +158,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 
@@ -192,48 +192,48 @@ int main( int argc, char **argv )
     Note: the code will actually compute the transpose of the stochastic matrix
     that contains the transition probabilities.
 */
-PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
+PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
-  PetscReal       pd, pu;
-  PetscInt        Istart, Iend, i, j, jmax, ix=0;
+  PetscReal       pd,pu;
+  PetscInt        Istart,Iend,i,j,jmax,ix=0;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for( i=1; i<=m; i++ ) {
+  for (i=1;i<=m;i++) {
     jmax = m-i+1;
-    for( j=1; j<=jmax; j++ ) {
+    for (j=1;j<=jmax;j++) {
       ix = ix + 1;
-      if( ix-1<Istart || ix>Iend ) continue;  /* compute only owned rows */
-      if( j!=jmax ) {
+      if (ix-1<Istart || ix>Iend) continue;  /* compute only owned rows */
+      if (j!=jmax) {
         pd = cst*(PetscReal)(i+j-1);
         /* north */
-        if( i==1 ) { 
-          ierr = MatSetValue( A, ix-1, ix, 2*pd, INSERT_VALUES );CHKERRQ(ierr);
+        if (i==1) { 
+          ierr = MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES);CHKERRQ(ierr);
         } else {
-          ierr = MatSetValue( A, ix-1, ix, pd, INSERT_VALUES );CHKERRQ(ierr);
+          ierr = MatSetValue(A,ix-1,ix,pd,INSERT_VALUES);CHKERRQ(ierr);
         }
         /* east */
-        if( j==1 ) { 
-          ierr = MatSetValue( A, ix-1, ix+jmax-1, 2*pd, INSERT_VALUES );CHKERRQ(ierr);
+        if (j==1) { 
+          ierr = MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES);CHKERRQ(ierr);
         } else {
-          ierr = MatSetValue( A, ix-1, ix+jmax-1, pd, INSERT_VALUES );CHKERRQ(ierr);
+          ierr = MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES);CHKERRQ(ierr);
         }
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
-      if( j>1 ) {
-        ierr = MatSetValue( A, ix-1, ix-2, pu, INSERT_VALUES );CHKERRQ(ierr);
+      if (j>1) {
+        ierr = MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES);CHKERRQ(ierr);
       }
       /* west */
-      if( i>1 ) {
-        ierr = MatSetValue( A, ix-1, ix-jmax-2, pu, INSERT_VALUES );CHKERRQ(ierr);
+      if (i>1) {
+        ierr = MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES);CHKERRQ(ierr);
       }
     }
   }
-  ierr = MatAssemblyBegin( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
-  ierr = MatAssemblyEnd( A, MAT_FINAL_ASSEMBLY );CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -247,11 +247,11 @@ PetscErrorCode MatMarkovModel( PetscInt m, Mat A )
     In this example, the preferred value is the one closest to the target,
     but on the right side.
 */
-PetscErrorCode MyEigenSort(EPS eps, PetscScalar ar, PetscScalar ai, PetscScalar br, PetscScalar bi, PetscInt *r, void *ctx)
+PetscErrorCode MyEigenSort(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   PetscScalar target = *(PetscScalar*)ctx;
   PetscReal   da,db;
-  PetscBool   aisright, bisright;
+  PetscBool   aisright,bisright;
 
   PetscFunctionBegin;
   if (PetscRealPart(target) < PetscRealPart(ar)) aisright = PETSC_TRUE;

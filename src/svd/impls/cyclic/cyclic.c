@@ -39,7 +39,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "ShellMatMult_Cyclic"
-static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x, Vec y)
+static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   SVD            svd;
@@ -246,7 +246,7 @@ PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,PetscScalar
   nconv = 0;
   for (i=0,j=0;i<nest;i++) {
     er = eigr[i]; ei = eigi[i];
-    ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
     if (PetscRealPart(er) > 0.0) {
       svd->sigma[j] = PetscRealPart(er);
       svd->errest[j] = errest[i];

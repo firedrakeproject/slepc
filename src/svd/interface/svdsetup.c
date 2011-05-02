@@ -119,7 +119,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* check matrix */
   if (!svd->OP)
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE, "SVDSetOperator must be called first"); 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first"); 
   
   /* determine how to build the transpose */
   if (svd->transmode == PETSC_DECIDE) {
@@ -139,9 +139,9 @@ PetscErrorCode SVDSetUp(SVD svd)
       if (!flg) SETERRQ(((PetscObject)svd)->comm,1,"Matrix has not defined the MatTranpose operation");
       if (M>=N) {
         svd->A = svd->OP;
-        ierr = MatTranspose(svd->OP, MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
+        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
       } else {
-        ierr = MatTranspose(svd->OP, MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
+        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
         svd->AT = svd->OP;
       }
       break;

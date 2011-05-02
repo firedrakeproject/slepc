@@ -25,7 +25,7 @@
 
 PetscFList       QEPList = 0;
 PetscClassId     QEP_CLASSID = 0;
-PetscLogEvent    QEP_SetUp = 0, QEP_Solve = 0, QEP_Dense = 0;
+PetscLogEvent    QEP_SetUp = 0,QEP_Solve = 0,QEP_Dense = 0;
 static PetscBool QEPPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
@@ -186,7 +186,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",qep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",qep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",qep->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", qep->max_it);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",qep->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",qep->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",qep->sfactor);CHKERRQ(ierr);
     if (qep->nini!=0) {

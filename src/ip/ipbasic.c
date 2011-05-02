@@ -24,7 +24,7 @@
 #include <private/ipimpl.h>      /*I "slepcip.h" I*/
 
 PetscClassId  IP_CLASSID = 0;
-PetscLogEvent IP_InnerProduct = 0, IP_Orthogonalize = 0, IP_ApplyMatrix = 0;
+PetscLogEvent IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPInitializePackage"
@@ -58,17 +58,17 @@ PetscErrorCode IPInitializePackage(const char *path)
   ierr = PetscLogEventRegister("IPInnerProduct",IP_CLASSID,&IP_InnerProduct);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("IPApplyMatrix",IP_CLASSID,&IP_ApplyMatrix);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList, "ip", &className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"ip",&className);CHKERRQ(ierr);
     if (className) {
       ierr = PetscInfoDeactivateClass(IP_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-log_summary_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList, "ip", &className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"ip",&className);CHKERRQ(ierr);
     if (className) {
       ierr = PetscLogEventDeactivateClass(IP_CLASSID);CHKERRQ(ierr);
     }
@@ -207,7 +207,7 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)ip, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectGetOptionsPrefix((PetscObject)ip,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -229,8 +229,8 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 @*/
 PetscErrorCode IPSetFromOptions(IP ip)
 {
-  const char     *orth_list[2] = { "mgs" , "cgs" };
-  const char     *ref_list[3] = { "never" , "ifneeded", "always" };
+  const char     *orth_list[2] = {"mgs","cgs"};
+  const char     *ref_list[3] = {"never","ifneeded","always"};
   PetscReal      r;
   PetscInt       i,j;
   PetscErrorCode ierr;
@@ -284,7 +284,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
 .seealso: IPOrthogonalize(), IPGetOrthogonalization(), IPOrthogonalizationType,
           IPOrthogonalizationRefinementType
 @*/
-PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrthogonalizationRefinementType refinement, PetscReal eta)
+PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type,IPOrthogonalizationRefinementType refinement,PetscReal eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
@@ -338,7 +338,7 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type, IPOrth
 .seealso: IPOrthogonalize(), IPSetOrthogonalization(), IPOrthogonalizationType,
           IPOrthogonalizationRefinementType
 @*/
-PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement, PetscReal *eta)
+PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement,PetscReal *eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);

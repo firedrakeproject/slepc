@@ -322,12 +322,12 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(qep,nev,2);
   PetscValidLogicalCollectiveInt(qep,ncv,3);
   PetscValidLogicalCollectiveInt(qep,mpd,4);
-  if( nev != PETSC_IGNORE ) {
+  if (nev != PETSC_IGNORE) {
     if (nev<1) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     qep->nev = nev;
     qep->setupcalled = 0;
   }
-  if( ncv != PETSC_IGNORE ) {
+  if (ncv != PETSC_IGNORE) {
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       qep->ncv = 0;
     } else {
@@ -336,7 +336,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     }
     qep->setupcalled = 0;
   }
-  if( mpd != PETSC_IGNORE ) {
+  if (mpd != PETSC_IGNORE) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       qep->mpd = 0;
     } else {
@@ -810,7 +810,7 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(qep->ip,"qep_");CHKERRQ(ierr);
   PetscFunctionReturn(0);

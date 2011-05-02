@@ -39,24 +39,24 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"GD Options","EPS");CHKERRQ(ierr);
 
-  ierr = EPSGDGetKrylovStart(eps, &op);CHKERRQ(ierr);
+  ierr = EPSGDGetKrylovStart(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSGDSetKrylovStart(eps, op);CHKERRQ(ierr); }
+  if(flg) { ierr = EPSGDSetKrylovStart(eps,op);CHKERRQ(ierr); }
  
-  ierr = EPSGDGetBlockSize(eps, &opi);CHKERRQ(ierr);
+  ierr = EPSGDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_blocksize","Number vectors add to the searching subspace","EPSGDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSGDSetBlockSize(eps, opi);CHKERRQ(ierr); }
+  if(flg) { ierr = EPSGDSetBlockSize(eps,opi);CHKERRQ(ierr); }
 
-  ierr = EPSGDGetRestart(eps, &opi, &opi0);CHKERRQ(ierr);
+  ierr = EPSGDGetRestart(eps,&opi,&opi0);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_minv","Set the size of the searching subspace after restarting","EPSGDSetRestart",opi,&opi,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSGDSetRestart(eps, opi, opi0);CHKERRQ(ierr); }
+  if(flg) { ierr = EPSGDSetRestart(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsInt("-eps_gd_plusk","Set the number of saved eigenvectors from the previous iteration when restarting","EPSGDSetRestart",opi0,&opi0,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSGDSetRestart(eps, opi, opi0);CHKERRQ(ierr); }
+  if(flg) { ierr = EPSGDSetRestart(eps,opi,opi0);CHKERRQ(ierr); }
 
-  ierr = EPSGDGetInitialSize(eps, &opi);CHKERRQ(ierr);
+  ierr = EPSGDGetInitialSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_initial_size","Set the initial size of the searching subspace","EPSGDSetInitialSize",opi,&opi,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSGDSetInitialSize(eps, opi);CHKERRQ(ierr); }
+  if(flg) { ierr = EPSGDSetInitialSize(eps,opi);CHKERRQ(ierr); }
 
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -77,9 +77,9 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
 
   /* Check some constraints */ 
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t);CHKERRQ(ierr);
-  if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "EPSGD only works with KSPPREONLY");
+  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
+  if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");
   PetscFunctionReturn(0);
 }
 

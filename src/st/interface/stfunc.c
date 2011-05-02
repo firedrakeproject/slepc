@@ -24,7 +24,7 @@
 #include <private/stimpl.h>            /*I "slepcst.h" I*/
 
 PetscClassId     ST_CLASSID = 0;
-PetscLogEvent    ST_SetUp = 0, ST_Apply = 0, ST_ApplyTranspose = 0;
+PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
@@ -78,17 +78,17 @@ PetscErrorCode STInitializePackage(const char *path)
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"st",&className);CHKERRQ(ierr);
     if (className) {
       ierr = PetscInfoDeactivateClass(ST_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-log_summary_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList, "st", &className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"st",&className);CHKERRQ(ierr);
     if (className) {
       ierr = PetscLogEventDeactivateClass(ST_CLASSID);CHKERRQ(ierr);
     }
@@ -501,7 +501,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)st, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectGetOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

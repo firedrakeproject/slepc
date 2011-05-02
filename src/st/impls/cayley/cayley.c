@@ -34,7 +34,7 @@ typedef struct {
 PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
   PetscScalar    nu = ctx->nu;
   
   PetscFunctionBegin;
@@ -61,7 +61,7 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
   PetscScalar    nu = ctx->nu;
   
   PetscFunctionBegin;
@@ -94,7 +94,7 @@ PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&st);CHKERRQ(ierr);
-  ctx = (ST_CAYLEY *) st->data;
+  ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
   
   if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
@@ -131,7 +131,7 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 #define __FUNCT__ "STBackTransform_Cayley"
 PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
-  ST_CAYLEY   *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY   *ctx = (ST_CAYLEY*)st->data;
   PetscInt    j;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar t,i,r;
@@ -184,7 +184,7 @@ PetscErrorCode STPostSolve_Cayley(ST st)
 PetscErrorCode STSetUp_Cayley(ST st)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
   ierr = MatDestroy(&st->mat);CHKERRQ(ierr);
@@ -237,7 +237,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
 PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
   MatStructure   flg;
 
   PetscFunctionBegin;
@@ -280,7 +280,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);    
     break;
   default:
-    ierr = MatCopy(st->A, st->mat,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatCopy(st->A,st->mat,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
     if (newshift != 0.0) {   
       if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
@@ -299,7 +299,7 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   PetscErrorCode ierr;
   PetscScalar    nu;
   PetscBool      flg;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
   PC             pc;
   const PCType   pctype;
   const KSPType  ksptype;
@@ -334,7 +334,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STCayleySetAntishift_Cayley"
 PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 {
-  ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
   ctx->nu = newshift;
@@ -382,7 +382,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STCayleyGetAntishift_Cayley"
 PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
 {
-  ST_CAYLEY *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
   *nu = ctx->nu;
@@ -424,7 +424,7 @@ PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
 PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -441,7 +441,7 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 PetscErrorCode STDestroy_Cayley(ST st)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY *) st->data;
+  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
   ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);

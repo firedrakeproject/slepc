@@ -203,7 +203,6 @@ PetscErrorCode QEPGetConverged(QEP qep,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "QEPGetConvergedReason"
 /*@C
@@ -281,10 +280,10 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(qep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(qep,1,Vi,7); }
   if (!qep->eigr || !qep->eigi || !qep->V) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
   }
   if (i<0 || i>=qep->nconv) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
 
   if (!qep->perm) k = i;
@@ -351,10 +350,10 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(errest,3);
   if (!qep->eigr || !qep->eigi) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE, "QEPSolve must be called first"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
   }
   if (i<0 || i>=qep->nconv) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
   if (qep->perm) i = qep->perm[i];  
   if (errest) *errest = qep->errest[i];
@@ -367,7 +366,7 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
    QEPComputeResidualNorm_Private - Computes the norm of the residual vector 
    associated with an eigenpair.
 */
-PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScalar ki, Vec xr, Vec xi, PetscReal *norm)
+PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
 {
   PetscErrorCode ierr;
   Vec            u,w;
@@ -459,7 +458,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep, PetscScalar kr, PetscScal
 
 .seealso: QEPSolve(), QEPGetConverged(), QEPSetWhichEigenpairs()
 @*/
-PetscErrorCode QEPComputeResidualNorm(QEP qep, PetscInt i, PetscReal *norm)
+PetscErrorCode QEPComputeResidualNorm(QEP qep,PetscInt i,PetscReal *norm)
 {
   PetscErrorCode ierr;
   Vec            xr,xi;
@@ -484,10 +483,10 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep, PetscInt i, PetscReal *norm)
    QEPComputeRelativeError_Private - Computes the relative error bound 
    associated with an eigenpair.
 */
-PetscErrorCode QEPComputeRelativeError_Private(QEP qep, PetscScalar kr, PetscScalar ki, Vec xr, Vec xi, PetscReal *error)
+PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
 {
   PetscErrorCode ierr;
-  PetscReal      norm, er;
+  PetscReal      norm,er;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ei;
 #endif
@@ -539,7 +538,7 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep, PetscScalar kr, PetscSca
 
 .seealso: QEPSolve(), QEPComputeResidualNorm(), QEPGetErrorEstimate()
 @*/
-PetscErrorCode QEPComputeRelativeError(QEP qep, PetscInt i, PetscReal *error)
+PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
   Vec            xr,xi;  

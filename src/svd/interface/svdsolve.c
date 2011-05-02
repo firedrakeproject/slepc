@@ -181,7 +181,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(nconv,2);
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
   }
   *nconv = svd->nconv;
   PetscFunctionReturn(0);
@@ -213,7 +213,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 
 .seealso: SVDSolve(),  SVDGetConverged()
 @*/
-PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec u, Vec v)
+PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,Vec v)
 {
   PetscErrorCode ierr;
   PetscReal      norm;
@@ -226,10 +226,10 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
   if (u) { PetscValidHeaderSpecific(u,VEC_CLASSID,4); PetscCheckSameComm(svd,1,u,4); }
   if (v) { PetscValidHeaderSpecific(v,VEC_CLASSID,5); PetscCheckSameComm(svd,1,v,5); }
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
   }
   if (i<0 || i>=svd->nconv) { 
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
   *sigma = svd->sigma[svd->perm[i]];
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
@@ -283,7 +283,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd, PetscInt i, PetscReal *sigma, Vec 
 
 .seealso: SVDSolve(), SVDGetConverged(), SVDComputeRelativeError()
 @*/
-PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, PetscReal *norm2)
+PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
   Vec            u,v,x = PETSC_NULL,y = PETSC_NULL;
@@ -294,10 +294,10 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd, PetscInt i, PetscReal *norm1, Pe
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
   if (svd->reason == SVD_CONVERGED_ITERATING) { 
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE, "SVDSolve must be called first"); 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
   }
   if (i<0 || i>=svd->nconv) { 
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
   
   ierr = MatGetVecs(svd->OP,&v,&u);CHKERRQ(ierr);

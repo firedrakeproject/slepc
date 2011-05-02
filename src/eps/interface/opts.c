@@ -49,7 +49,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscReal               r,nrma,nrmb;
   PetscScalar             s;
   PetscInt                i,j,k;
-  const char              *bal_list[4] = { "none", "oneside", "twoside","user" };
+  const char              *bal_list[4] = {"none","oneside","twoside","user"};
   PetscViewerASCIIMonitor monviewer;
   SlepcConvMonitor        ctx;
 
@@ -97,7 +97,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr);}
 
     if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
-    ierr = PetscOptionsEList("-eps_balance", "Balancing method","EPSSetBalance",bal_list,4,bal_list[eps->balance-EPS_BALANCE_NONE],&i,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-eps_balance","Balancing method","EPSSetBalance",bal_list,4,bal_list[eps->balance-EPS_BALANCE_NONE],&i,&flg);CHKERRQ(ierr);
     if (flg) { eps->balance = (EPSBalance)(i+EPS_BALANCE_NONE); }
     r = j = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,PETSC_NULL);CHKERRQ(ierr);
@@ -381,12 +381,12 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(eps,nev,2);
   PetscValidLogicalCollectiveInt(eps,ncv,3);
   PetscValidLogicalCollectiveInt(eps,mpd,4);
-  if( nev != PETSC_IGNORE ) {
+  if (nev != PETSC_IGNORE) {
     if (nev<1) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     eps->nev = nev;
     eps->setupcalled = 0;
   }
-  if( ncv != PETSC_IGNORE ) {
+  if (ncv != PETSC_IGNORE) {
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       eps->ncv = 0;
     } else {
@@ -395,7 +395,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
     }
     eps->setupcalled = 0;
   }
-  if( mpd != PETSC_IGNORE ) {
+  if (mpd != PETSC_IGNORE) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       eps->mpd = 0;
     } else {
@@ -1303,7 +1303,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");CHKERRQ(ierr);
@@ -1336,7 +1336,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   ierr = STAppendOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");CHKERRQ(ierr);
@@ -1371,6 +1371,6 @@ PetscErrorCode EPSGetOptionsPrefix(EPS eps,const char *prefix[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)eps, prefix);CHKERRQ(ierr);
+  ierr = PetscObjectGetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -199,7 +199,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STShellSetBackTransform_Shell"
 PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
 {
-  ST_Shell *shell = (ST_Shell *) st->data;
+  ST_Shell *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
   shell->backtr = backtr;

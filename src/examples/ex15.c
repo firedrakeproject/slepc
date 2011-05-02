@@ -28,14 +28,14 @@ static char help[] = "Singular value decomposition of the Lauchli matrix.\n"
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   Vec            u,v;             /* left and right singular vectors */
   SVD            svd;             /* singular value problem solver context */
   const SVDType  type;
-  PetscReal      error, tol, sigma, mu=PETSC_SQRT_MACHINE_EPSILON;
-  PetscInt       n=100, i, j, Istart, Iend, nsv, maxit, its, nconv;
+  PetscReal      error,tol,sigma,mu=PETSC_SQRT_MACHINE_EPSILON;
+  PetscInt       n=100,i,j,Istart,Iend,nsv,maxit,its,nconv;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -96,7 +96,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDGetIterationNumber(svd, &its);CHKERRQ(ierr);
+  ierr = SVDGetIterationNumber(svd,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -125,8 +125,8 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "          sigma           residual norm\n"
-         "  --------------------- ------------------\n" );CHKERRQ(ierr);
-    for( i=0; i<nconv; i++ ) {
+         "  --------------------- ------------------\n");CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
       /* 
          Get converged singular triplets: i-th singular value is stored in sigma
       */
@@ -140,7 +140,7 @@ int main( int argc, char **argv )
       ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",sigma);CHKERRQ(ierr);
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

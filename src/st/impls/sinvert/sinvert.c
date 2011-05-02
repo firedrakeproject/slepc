@@ -98,7 +98,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
 
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) {
-    if( st->B ) {
+    if (st->B) {
       ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
     } else {
       ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);

@@ -157,7 +157,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
 
 .seealso: QEPMonitorSet(), QEPDefaultMonitor()
 @*/
-PetscErrorCode QEPGetMonitorContext(QEP qep, void **ctx)
+PetscErrorCode QEPGetMonitorContext(QEP qep,void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

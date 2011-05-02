@@ -28,14 +28,14 @@ static char help[] = "Solves a standard eigensystem Ax=kx with the matrix loaded
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
-  PetscInt       nev, maxit, i, its, nconv;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki;
+  PetscInt       nev,maxit,i,its,nconv;
   char           filename[256];
   PetscViewer    viewer;
   PetscBool      flg;
@@ -88,7 +88,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -117,8 +117,8 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k             ||Ax-kx||/||kx||\n"
-         "  --------------------- ------------------\n" );CHKERRQ(ierr);
-    for( i=0; i<nconv; i++ ) {
+         "  --------------------- ------------------\n");CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
       /* 
          Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
          ki (imaginary part)
@@ -137,14 +137,14 @@ int main( int argc, char **argv )
       re = kr;
       im = ki;
 #endif
-      if( im != 0.0 ) {
+      if (im != 0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," % 6f %+6f i",re,im);CHKERRQ(ierr);
       } else {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",re);CHKERRQ(ierr);
       }
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

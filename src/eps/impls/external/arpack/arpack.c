@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
 #else
-  if( eps->ishermitian ) {
+  if (eps->ishermitian) {
     ar->lworkl = PetscBLASIntCast(ncv*(ncv+8));
   } else {
     ar->lworkl = PetscBLASIntCast(3*ncv*ncv+6*ncv);
@@ -89,13 +89,13 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
-  char           bmat[1], howmny[] = "A";
+  char           bmat[1],howmny[] = "A";
   const char     *which;
-  PetscBLASInt   n, iparam[11], ipntr[14], ido, info, nev, ncv, fcomm;
-  PetscScalar    sigmar, *pV, *resid;
-  Vec            x, y, w = eps->work[0];
+  PetscBLASInt   n,iparam[11],ipntr[14],ido,info,nev,ncv,fcomm;
+  PetscScalar    sigmar,*pV,*resid;
+  Vec            x,y,w = eps->work[0];
   Mat            A;
-  PetscBool      isSinv, isShift, rvec;
+  PetscBool      isSinv,isShift,rvec;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
@@ -183,19 +183,19 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
-      ARsaupd_( &fcomm, &ido, bmat, &n, which, &nev, &eps->tol,
-                resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-                ar->workl, &ar->lworkl, &info, 1, 2 );
+      ARsaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
+               resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
+               ar->workl,&ar->lworkl,&info,1,2);
     }
     else {
-      ARnaupd_( &fcomm, &ido, bmat, &n, which, &nev, &eps->tol,
-                resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-                ar->workl, &ar->lworkl, &info, 1, 2 );
+      ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
+               resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
+               ar->workl,&ar->lworkl,&info,1,2);
     }
 #else
-    ARnaupd_( &fcomm, &ido, bmat, &n, which, &nev, &eps->tol,
-              resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-              ar->workl, &ar->lworkl, ar->rwork, &info, 1, 2 );
+    ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
+             resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
+             ar->workl,&ar->lworkl,ar->rwork,&info,1,2);
 #endif
     
     if (ido == -1 || ido == 1 || ido == 2) {
@@ -255,34 +255,34 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv);CHKERRQ(ierr);
-      ARseupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,  
-                 pV, &n, &sigmar, 
-                 bmat, &n, which, &nev, &eps->tol,
-                 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-                 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
+      ARseupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,
+                pV,&n,&sigmar,
+                bmat,&n,which,&nev,&eps->tol,
+                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
+                ar->workl,&ar->lworkl,&info,1,1,2);
     }
     else {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
-      ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr, eps->eigi, 
-                 pV, &n, &sigmar, &sigmai, ar->workev, 
-                 bmat, &n, which, &nev, &eps->tol,
-                 resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-                 ar->workl, &ar->lworkl, &info, 1, 1, 2 );
+      ARneupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,eps->eigi,
+                pV,&n,&sigmar,&sigmai,ar->workev,
+                bmat,&n,which,&nev,&eps->tol,
+                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
+                ar->workl,&ar->lworkl,&info,1,1,2);
     }
 #else
     ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
-    ARneupd_ ( &fcomm, &rvec, howmny, ar->select, eps->eigr,
-               pV, &n, &sigmar, ar->workev, 
-               bmat, &n, which, &nev, &eps->tol,
-               resid, &ncv, pV, &n, iparam, ipntr, ar->workd, 
-               ar->workl, &ar->lworkl, ar->rwork, &info, 1, 1, 2 );
+    ARneupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,
+              pV,&n,&sigmar,ar->workev,
+              bmat,&n,which,&nev,&eps->tol,
+              resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
+              ar->workl,&ar->lworkl,ar->rwork,&info,1,1,2);
 #endif
     if (info!=0) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
   }
 
-  ierr = VecRestoreArray( eps->V[0], &pV );CHKERRQ(ierr);
-  ierr = VecRestoreArray( eps->work[1], &resid );CHKERRQ(ierr);
-  if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
+  ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = VecRestoreArray(eps->work[1],&resid);CHKERRQ(ierr);
+  if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 
   if (eps->ishermitian) {

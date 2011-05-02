@@ -102,7 +102,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   ipar[32], n, lohi, stat, ncv; 
+  PetscBLASInt   ipar[32],n,lohi,stat,ncv; 
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;   
   PetscScalar    *pV;
   
@@ -136,9 +136,9 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
 
-  TRLan_ ( MatMult_TRLAN, ipar, &n, &ncv, eps->eigr, pV, &n, tr->work, &tr->lwork );
+  TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork);
 
-  ierr = VecRestoreArray( eps->V[0], &pV );CHKERRQ(ierr);
+  ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
 
   stat        = ipar[0];
   eps->nconv  = ipar[3];

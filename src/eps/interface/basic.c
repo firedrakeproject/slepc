@@ -25,7 +25,7 @@
 
 PetscFList EPSList = 0;
 PetscClassId EPS_CLASSID = 0;
-PetscLogEvent EPS_SetUp = 0, EPS_Solve = 0, EPS_Dense = 0;
+PetscLogEvent EPS_SetUp = 0,EPS_Solve = 0,EPS_Dense = 0;
 static PetscBool EPSPackageInitialized = PETSC_FALSE;
 
 const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerShiftType","EPS_POWER_SHIFT_",0};
@@ -83,17 +83,17 @@ PetscErrorCode EPSInitializePackage(const char *path) {
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSDense",EPS_CLASSID,&EPS_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-info_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"eps",&className);CHKERRQ(ierr);
     if (className) {
       ierr = PetscInfoDeactivateClass(EPS_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL, "-log_summary_exclude", logList, 256, &opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList, "eps", &className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"eps",&className);CHKERRQ(ierr);
     if (className) {
       ierr = PetscLogEventDeactivateClass(EPS_CLASSID);CHKERRQ(ierr);
     }
@@ -255,7 +255,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",eps->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",eps->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",eps->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n", eps->max_it);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     switch(eps->conv) {
@@ -716,7 +716,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 
 .seealso: EPSSetST()
 @*/
-PetscErrorCode EPSGetST(EPS eps, ST *st)
+PetscErrorCode EPSGetST(EPS eps,ST *st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -811,10 +811,10 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
-  if( B ) *is = PETSC_TRUE;
+  if (B) *is = PETSC_TRUE;
   else *is = PETSC_FALSE;
-  if( eps->setupcalled ) {
-    if( eps->isgeneralized != *is ) { 
+  if (eps->setupcalled) {
+    if (eps->isgeneralized!=*is) { 
       SETERRQ(((PetscObject)eps)->comm,0,"Warning: Inconsistent EPS state");
     }
   }
@@ -843,7 +843,7 @@ PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if( eps->ishermitian ) *is = PETSC_TRUE;
+  if (eps->ishermitian) *is = PETSC_TRUE;
   else *is = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

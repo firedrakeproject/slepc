@@ -277,7 +277,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
 .seealso: EPSSolve(), EPSGetST(), STGetOperators(), STSetOperators()
 @*/
-PetscErrorCode EPSGetOperators(EPS eps, Mat *A, Mat *B)
+PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 {
   PetscErrorCode ierr;
   ST             st;

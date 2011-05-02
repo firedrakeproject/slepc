@@ -244,7 +244,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     }
     svd->setupcalled = 0;
   }
-  if( mpd != PETSC_IGNORE ) {
+  if (mpd != PETSC_IGNORE) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       svd->mpd = 0;
     } else {
@@ -389,7 +389,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscErrorCode          ierr;
   char                    type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscBool               flg;
-  const char              *mode_list[2] = { "explicit", "implicit" };
+  const char              *mode_list[2] = {"explicit","implicit"};
   PetscInt                i,j,k;
   PetscReal               r;
   PetscViewerASCIIMonitor monviewer;

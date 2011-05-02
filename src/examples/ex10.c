@@ -41,16 +41,16 @@ PetscErrorCode SampleShellSTDestroy(SampleShellST*);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main (int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   ST             st;              /* spectral transformation context */
   SampleShellST  *shell;          /* user-defined spectral transform context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki, value[3];
-  PetscInt       n=30, i, col[3], Istart, Iend, FirstBlock=0, LastBlock=0, nev, maxit, its, nconv;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki,value[3];
+  PetscInt       n=30,i,col[3],Istart,Iend,FirstBlock=0,LastBlock=0,nev,maxit,its,nconv;
   PetscBool      isShell;
   PetscErrorCode ierr;
 
@@ -71,7 +71,7 @@ int main( int argc, char **argv )
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
   value[0]=-1.0; value[1]=2.0; value[2]=-1.0;
-  for( i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++ ) {
+  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1;
     ierr = MatSetValues(A,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
   }
@@ -136,7 +136,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -165,9 +165,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n" );CHKERRQ(ierr);
+         "   ----------------- ------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -191,7 +191,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

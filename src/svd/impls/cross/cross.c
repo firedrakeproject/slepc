@@ -38,7 +38,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "ShellMatMult_Cross"
-PetscErrorCode ShellMatMult_Cross(Mat B,Vec x, Vec y)
+PetscErrorCode ShellMatMult_Cross(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   SVD            svd;
@@ -185,7 +185,7 @@ PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar 
   PetscFunctionBegin;
   for (i=0;i<nest;i++) {
     er = eigr[i]; ei = eigi[i];
-    ierr = STBackTransform(eps->OP, 1, &er, &ei);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
     svd->sigma[i] = sqrt(PetscRealPart(er));
     svd->errest[i] = errest[i];
   }

@@ -97,8 +97,8 @@ static PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 PetscErrorCode STMatShellCreate(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
-  PetscInt       n, m, N, M;
-  PetscBool      hasA, hasB;
+  PetscInt       n,m,N,M;
+  PetscBool      hasA,hasB;
 
   PetscFunctionBegin;
   ierr = MatGetSize(st->A,&M,&N);CHKERRQ(ierr);  
@@ -109,7 +109,7 @@ PetscErrorCode STMatShellCreate(ST st,Mat *mat)
 
   ierr = MatHasOperation(st->A,MATOP_GET_DIAGONAL,&hasA);CHKERRQ(ierr);
   if (st->B) { ierr = MatHasOperation(st->B,MATOP_GET_DIAGONAL,&hasB);CHKERRQ(ierr); }
-  if ( (hasA && !st->B) || (hasA && hasB) ) {
+  if ((hasA && !st->B) || (hasA && hasB)) {
     ierr = MatShellSetOperation(*mat,MATOP_GET_DIAGONAL,(void(*)(void))STMatShellGetDiagonal);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

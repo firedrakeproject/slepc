@@ -57,8 +57,8 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP, STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_FALSE);CHKERRQ(ierr);
+  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_FALSE);CHKERRQ(ierr);
 
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_Davidson;
@@ -68,15 +68,15 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_QZ;
   eps->ops->view                 = EPSView_Davidson;
 
-  ierr = PetscMalloc(sizeof(EPS_DAVIDSON), &data);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(EPS_DAVIDSON),&data);CHKERRQ(ierr);
   eps->data = data;
 
   /* Set default values */
-  ierr = EPSDavidsonSetKrylovStart_Davidson(eps, PETSC_FALSE);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetBlockSize_Davidson(eps, 1);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetRestart_Davidson(eps, 6, 0);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetInitialSize_Davidson(eps, 5);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetFix_Davidson(eps, 0.01);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetKrylovStart_Davidson(eps,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetBlockSize_Davidson(eps,1);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetRestart_Davidson(eps,6,0);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetInitialSize_Davidson(eps,5);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetFix_Davidson(eps,0.01);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -98,7 +98,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
-  ierr = EPSDavidsonGetBlockSize_Davidson(eps, &bs);CHKERRQ(ierr);
+  ierr = EPSDavidsonGetBlockSize_Davidson(eps,&bs);CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
   if(eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
@@ -117,13 +117,13 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Wrong value of eps->which");
   if (!(eps->nev + bs <= eps->ncv))
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "The ncv has to be greater than nev plus blocksize!");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize!");
 
-  ierr = EPSDavidsonGetRestart_Davidson(eps, &min_size_V, &plusk);CHKERRQ(ierr);
-  if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5), eps->mpd/2);
+  ierr = EPSDavidsonGetRestart_Davidson(eps,&min_size_V,&plusk);CHKERRQ(ierr);
+  if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
   if (!(min_size_V+bs <= eps->mpd))
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "The value of minv must be less than mpd minus blocksize");
-  ierr = EPSDavidsonGetInitialSize_Davidson(eps, &initv);CHKERRQ(ierr);
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
+  ierr = EPSDavidsonGetInitialSize_Davidson(eps,&initv);CHKERRQ(ierr);
   if (eps->mpd < initv)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
@@ -133,18 +133,18 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP, 3e300);CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->OP,3e300);CHKERRQ(ierr);
   }
  
   /* Davidson solvers only support STPRECOND */
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t);CHKERRQ(ierr);
-  if (!t) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_SUP, "%s only works with precond spectral transformation",
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
+  if (!t) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_SUP,"%s only works with precond spectral transformation",
     ((PetscObject)eps)->type_name);
 
   /* Setup problem specification in dvd */
-  ierr = STGetOperators(eps->OP, &A, &B);CHKERRQ(ierr);
-  ierr = PetscMemzero(dvd, sizeof(dvdDashboard));CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
   dvd->A = A; dvd->B = eps->isgeneralized? B : PETSC_NULL;
   ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT |
@@ -159,7 +159,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     dvd->sB = DVD_MAT_IMPLICIT |
               (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
               (ispositive? DVD_MAT_POS_DEF : 0);
-  ipB = DVD_IS(dvd->sB, DVD_MAT_POS_DEF)?PETSC_TRUE:PETSC_FALSE;
+  ipB = DVD_IS(dvd->sB,DVD_MAT_POS_DEF)?PETSC_TRUE:PETSC_FALSE;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
              (ispositive? DVD_EP_HERMITIAN : 0);
   dvd->nev = eps->nev;
@@ -203,40 +203,40 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   }
 
   /* Setup the type of starting subspace */
-  ierr = EPSDavidsonGetKrylovStart_Davidson(eps, &t);CHKERRQ(ierr);
+  ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&t);CHKERRQ(ierr);
   init = (!t)? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
 
   /* Setup IP */
   if (ipB && dvd->B) {
-    ierr = IPSetBilinearForm(eps->ip, dvd->B, IP_INNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetBilinearForm(eps->ip,dvd->B,IP_INNER_HERMITIAN);CHKERRQ(ierr);
   } else {
-    ierr = IPSetBilinearForm(eps->ip, 0, IP_INNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetBilinearForm(eps->ip,0,IP_INNER_HERMITIAN);CHKERRQ(ierr);
   }
 
   /* Get the fix parameter */
-  ierr = EPSDavidsonGetFix_Davidson(eps, &fix);CHKERRQ(ierr);
+  ierr = EPSDavidsonGetFix_Davidson(eps,&fix);CHKERRQ(ierr);
 
   /* Orthonormalize the DS */
-  ierr = dvd_orthV(eps->ip, PETSC_NULL, 0, PETSC_NULL, 0, eps->DS, 0,
-                   PetscAbs(eps->nds), PETSC_NULL, 0, eps->rand);CHKERRQ(ierr);
+  ierr = dvd_orthV(eps->ip,PETSC_NULL,0,PETSC_NULL,0,eps->DS,0,
+                   PetscAbs(eps->nds),PETSC_NULL,0,eps->rand);CHKERRQ(ierr);
 
   /* Preconfigure dvd */
-  ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
-  ierr = dvd_schm_basic_preconf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
+  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_preconf(dvd,&b,eps->ncv,eps->mpd,min_size_V,bs,
                                 initv,
                                 PetscAbs(eps->nini),
-                                plusk, harm,
-                                PETSC_NULL, init, eps->trackall);CHKERRQ(ierr);
+                                plusk,harm,
+                                PETSC_NULL,init,eps->trackall);CHKERRQ(ierr);
 
   /* Reserve memory */
   nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
-  ierr = PetscMalloc((nvecs*eps->nloc+nscalars)*sizeof(PetscScalar), &data->wS);CHKERRQ(ierr);
-  ierr = PetscMalloc(nvecs*sizeof(Vec), &data->wV);CHKERRQ(ierr);
+  ierr = PetscMalloc((nvecs*eps->nloc+nscalars)*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
+  ierr = PetscMalloc(nvecs*sizeof(Vec),&data->wV);CHKERRQ(ierr);
   data->size_wV = nvecs;
   for (i=0; i<nvecs; i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm, eps->nloc, PETSC_DECIDE,
-                                 data->wS+i*eps->nloc, &data->wV[i]);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,
+                                 data->wS+i*eps->nloc,&data->wV[i]);CHKERRQ(ierr);
   }
   b.free_vecs = data->wV;
   b.free_scalars = data->wS + nvecs*eps->nloc;
@@ -246,12 +246,12 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   dvd->size_auxS = b.max_size_auxS;
 
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd, &b, eps->ncv, eps->mpd, min_size_V, bs,
+  ierr = dvd_schm_basic_conf(dvd,&b,eps->ncv,eps->mpd,min_size_V,bs,
                              initv,
-                             PetscAbs(eps->nini), plusk,
-                             eps->ip, harm, dvd->withTarget,
-                             eps->target, ksp,
-                             fix, init, eps->trackall);CHKERRQ(ierr);
+                             PetscAbs(eps->nini),plusk,
+                             eps->ip,harm,dvd->withTarget,
+                             eps->target,ksp,
+                             fix,init,eps->trackall);CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
   eps->eigr = dvd->eigr;
@@ -271,7 +271,7 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 
   PetscFunctionBegin;
   /* Call the starting routines */
-  DVD_FL_CALL(d->startList, d);
+  DVD_FL_CALL(d->startList,d);
 
   for(eps->its=0; eps->its < eps->max_it; eps->its++) {
     /* Initialize V, if it is needed */
@@ -285,16 +285,16 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 
     /* Monitor progress */
     eps->nconv = d->nconv;
-    ierr = EPSMonitor(eps, eps->its+1, eps->nconv, eps->eigr, eps->eigi, eps->errest, d->size_H+d->nconv);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its+1,eps->nconv,eps->eigr,eps->eigi,eps->errest,d->size_H+d->nconv);CHKERRQ(ierr);
 
     /* Test for convergence */
     if (eps->nconv >= eps->nev) break;
   }
 
   /* Call the ending routines */
-  DVD_FL_CALL(d->endList, d);
+  DVD_FL_CALL(d->endList,d);
 
-  if( eps->nconv >= eps->nev ) eps->reason = EPS_CONVERGED_TOL;
+  if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
   PetscFunctionReturn(0);
 }
@@ -310,7 +310,7 @@ PetscErrorCode EPSDestroy_Davidson(EPS eps)
 
   PetscFunctionBegin;
   /* Call step destructors and destroys the list */
-  DVD_FL_CALL(dvd->destroyList, dvd);
+  DVD_FL_CALL(dvd->destroyList,dvd);
   DVD_FL_DEL(dvd->destroyList);
   DVD_FL_DEL(dvd->startList);
   DVD_FL_DEL(dvd->endList);
@@ -329,8 +329,8 @@ PetscErrorCode EPSDestroy_Davidson(EPS eps)
 PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscBool      isascii, opb;
-  PetscInt       opi, opi0;
+  PetscBool      isascii,opb;
+  PetscInt       opi,opi0;
   const char*    name;
 
   PetscFunctionBegin;
@@ -340,17 +340,17 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
     SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   }
   
-  ierr = EPSDavidsonGetBlockSize_Davidson(eps, &opi);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"block size: %d\n", opi);CHKERRQ(ierr);
-  ierr = EPSDavidsonGetKrylovStart_Davidson(eps, &opb);CHKERRQ(ierr);
+  ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"block size: %d\n",opi);CHKERRQ(ierr);
+  ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&opb);CHKERRQ(ierr);
   if(!opb) {
     ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: Krylov\n");CHKERRQ(ierr);
   }
-  ierr = EPSDavidsonGetRestart_Davidson(eps, &opi, &opi0);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"size of the subspace after restarting: %d\n", opi);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"number of vectors after restarting from the previous iteration: %d\n", opi0);CHKERRQ(ierr);
+  ierr = EPSDavidsonGetRestart_Davidson(eps,&opi,&opi0);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"size of the subspace after restarting: %d\n",opi);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"number of vectors after restarting from the previous iteration: %d\n",opi0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -497,24 +497,24 @@ PetscErrorCode EPSComputeVectors_QZ(EPS eps)
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
-  PetscScalar    *pX, *auxS;
+  PetscScalar    *pX,*auxS;
   PetscInt       size_auxS;
 
   PetscFunctionBegin;
   /* Compute the eigenvectors associated to (cS, cT) */
-  ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv, &pX);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv,&pX);CHKERRQ(ierr);
   size_auxS = 11*d->nconv + 4*d->nconv*d->nconv; 
-  ierr = PetscMalloc(sizeof(PetscScalar)*size_auxS, &auxS);CHKERRQ(ierr);
-  ierr = dvd_compute_eigenvectors(d->nconv, d->cS, d->ldcS, d->cT, d->ldcT,
-                                  pX, d->nconv, PETSC_NULL, 0, auxS,
-                                  size_auxS, PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*size_auxS,&auxS);CHKERRQ(ierr);
+  ierr = dvd_compute_eigenvectors(d->nconv,d->cS,d->ldcS,d->cT,d->ldcT,
+                                  pX,d->nconv,PETSC_NULL,0,auxS,
+                                  size_auxS,PETSC_FALSE);CHKERRQ(ierr);
 
   /* pX[i] <- pX[i] / ||pX[i]|| */
-  ierr = SlepcDenseNorm(pX, d->nconv, d->nconv, d->nconv, d->ceigi);CHKERRQ(ierr);
+  ierr = SlepcDenseNorm(pX,d->nconv,d->nconv,d->nconv,d->ceigi);CHKERRQ(ierr);
 
   /* V <- cX * pX */ 
-  ierr = SlepcUpdateVectorsZ(eps->V, 0.0, 1.0, d->cX, d->size_cX, pX,
-                             d->nconv, d->nconv, d->nconv);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,
+                             d->nconv,d->nconv,d->nconv);CHKERRQ(ierr);
 
   ierr = PetscFree(pX);CHKERRQ(ierr);
   ierr = PetscFree(auxS);CHKERRQ(ierr);

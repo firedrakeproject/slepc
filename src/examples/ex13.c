@@ -32,15 +32,15 @@ static char help[] = "Generalized Symmetric eigenproblem.\n\n"
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
-  Mat            A, B;        /* matrices */
+  Mat            A,B;         /* matrices */
   EPS            eps;         /* eigenproblem solver context */
   ST             st;          /* spectral transformation context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
-  PetscInt       N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv, nulldim=0;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki;
+  PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j,its,nconv,nulldim=0;
   PetscBool      flag;
   PetscErrorCode ierr;
 
@@ -66,7 +66,7 @@ int main( int argc, char **argv )
   ierr = MatSetFromOptions(B);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for( II=Istart; II<Iend; II++ ) { 
+  for (II=Istart;II<Iend;II++) { 
     i = II/n; j = II-i*n;  
     if(i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if(i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
@@ -115,7 +115,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -144,9 +144,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kBx||/||kx||\n"
-         "   ----------------- ------------------\n" );CHKERRQ(ierr);
+         "   ----------------- ------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -170,7 +170,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

@@ -44,7 +44,7 @@ PetscErrorCode QEPDestroy_Default(QEP qep)
 /*
   QEPDefaultGetWork - Gets a number of work vectors.
  */
-PetscErrorCode QEPDefaultGetWork(QEP qep, PetscInt nw)
+PetscErrorCode QEPDefaultGetWork(QEP qep,PetscInt nw)
 {
   PetscErrorCode ierr;
   PetscInt       i;

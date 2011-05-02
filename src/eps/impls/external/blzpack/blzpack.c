@@ -68,7 +68,7 @@ const char* blzpack_error[33] = {
 PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       listor, lrstor, ncuv, k1, k2, k3, k4;
+  PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscBool      flg;
   KSP            ksp;
@@ -76,7 +76,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if( eps->ncv < PetscMin(eps->nev+10,eps->nev*2) )
+    if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2))
       SETERRQ(((PetscObject)eps)->comm,0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   }
   else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
@@ -146,8 +146,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscInt       nn;
-  PetscBLASInt   i, nneig, lflag, nvopu;      
-  Vec            x, y;                           
+  PetscBLASInt   i,nneig,lflag,nvopu;      
+  Vec            x,y;                           
   PetscScalar    sigma,*pV;                      
   Mat            A;                              
   KSP            ksp;                            
@@ -189,19 +189,18 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   lflag = 0;           /* reverse communication interface flag */
 
   do {
-    BLZpack_( blz->istor, blz->rstor, &sigma, &nneig, blz->u, blz->v, 
-              &lflag, &nvopu, blz->eig, pV );
+    BLZpack_(blz->istor,blz->rstor,&sigma,&nneig,blz->u,blz->v,&lflag,&nvopu,blz->eig,pV);
 
     switch (lflag) {
     case 1:
       /* compute v = OP u */
       for (i=0;i<nvopu;i++) {
-        ierr = VecPlaceArray( x, blz->u+i*eps->nloc );CHKERRQ(ierr);
-        ierr = VecPlaceArray( y, blz->v+i*eps->nloc );CHKERRQ(ierr);
+        ierr = VecPlaceArray(x,blz->u+i*eps->nloc);CHKERRQ(ierr);
+        ierr = VecPlaceArray(y,blz->v+i*eps->nloc);CHKERRQ(ierr);
         if (blz->slice || eps->isgeneralized) { 
-          ierr = STAssociatedKSPSolve( eps->OP, x, y );CHKERRQ(ierr);
+          ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
         } else {
-          ierr = STApply( eps->OP, x, y );CHKERRQ(ierr);
+          ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
         }
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->DS,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
@@ -220,9 +219,9 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     case 2:  
       /* compute v = B u */
       for (i=0;i<nvopu;i++) {
-        ierr = VecPlaceArray( x, blz->u+i*eps->nloc );CHKERRQ(ierr);
-        ierr = VecPlaceArray( y, blz->v+i*eps->nloc );CHKERRQ(ierr);
-        ierr = IPApplyMatrix(eps->ip, x, y );CHKERRQ(ierr);
+        ierr = VecPlaceArray(x,blz->u+i*eps->nloc);CHKERRQ(ierr);
+        ierr = VecPlaceArray(y,blz->v+i*eps->nloc);CHKERRQ(ierr);
+        ierr = IPApplyMatrix(eps->ip,x,y);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
@@ -247,7 +246,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     
   } while (lflag > 0);
 
-  ierr = VecRestoreArray( eps->V[0], &pV );CHKERRQ(ierr);
+  ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
 
   eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
   eps->reason = EPS_CONVERGED_TOL;
@@ -259,9 +258,9 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   if (lflag!=0) { 
     char msg[2048] = "";
     for (i = 0; i < 33; i++) {
-      if (blz->istor[15] & (1 << i)) PetscStrcat(msg, blzpack_error[i]);
+      if (blz->istor[15] & (1 << i)) PetscStrcat(msg,blzpack_error[i]);
     }
-    SETERRQ2(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15], msg); 
+    SETERRQ2(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15],msg); 
   }
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
@@ -309,7 +308,7 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
 PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK *) eps->data;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
@@ -371,12 +370,12 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSBlzpackSetBlockSize_BLZPACK"
 PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;;
+  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;;
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
   else if (bs <= 0) { 
-    SETERRQ(((PetscObject)eps)->comm,1, "Incorrect block size"); 
+    SETERRQ(((PetscObject)eps)->comm,1,"Incorrect block size"); 
   } else blz->block_size = PetscBLASIntCast(bs);
   PetscFunctionReturn(0);
 }
@@ -417,7 +416,7 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSBlzpackSetInterval_BLZPACK(EPS eps,PetscReal initial,PetscReal final)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;;
+  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;;
 
   PetscFunctionBegin;
   blz->initial    = initial;
@@ -473,7 +472,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSBlzpackSetNSteps_BLZPACK"
 PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK *) eps->data;
+  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;
 
   PetscFunctionBegin;
   if (nsteps == PETSC_DEFAULT) blz->nsteps = 0;
@@ -521,7 +520,7 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,EPS_BLZPACK,&blzpack);CHKERRQ(ierr);
-  eps->data                      = (void *) blzpack;
+  eps->data                      = (void*)blzpack;
   eps->ops->setup                = EPSSetUp_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
   eps->ops->destroy              = EPSDestroy_BLZPACK;

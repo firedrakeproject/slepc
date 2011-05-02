@@ -23,7 +23,7 @@
 #include <petscblaslapack.h>
 #include <stdlib.h>
 
-PetscLogEvent SLEPC_UpdateVectors = 0, SLEPC_VecMAXPBY = 0;
+PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"
@@ -247,7 +247,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscMPIInt    size;
   MPI_Comm       comm;
   Mat            *M;
-  IS             isrow, iscol;
+  IS             isrow,iscol;
   PetscBool      flg;
 
   PetscFunctionBegin;

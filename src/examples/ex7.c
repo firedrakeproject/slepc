@@ -29,14 +29,14 @@ static char help[] = "Solves a generalized eigensystem Ax=kBx with matrices load
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            A,B;             /* matrices */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
-  PetscInt       nev, maxit, i, its, lits, nconv;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki;
+  PetscInt       nev,maxit,i,its,lits,nconv;
   char           filename[256];
   PetscViewer    viewer;
   PetscBool      flg;
@@ -104,7 +104,7 @@ int main( int argc, char **argv )
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
   ierr = EPSGetOperationCounters(eps,PETSC_NULL,PETSC_NULL,&lits);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of linear iterations of the method: %d\n",lits);CHKERRQ(ierr);
@@ -131,8 +131,8 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k             ||Ax-kBx||/||kx||\n"
-         "  --------------------- ------------------\n" );CHKERRQ(ierr);
-    for( i=0; i<nconv; i++ ) {
+         "  --------------------- ------------------\n");CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
       /* 
          Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
          ki (imaginary part)
@@ -151,14 +151,14 @@ int main( int argc, char **argv )
       re = kr;
       im = ki;
 #endif
-      if( im != 0.0 ) {
+      if (im != 0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," % 6f %+6f i",re,im);CHKERRQ(ierr);
       } else {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",re);CHKERRQ(ierr);
       }
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

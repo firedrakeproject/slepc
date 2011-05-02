@@ -27,16 +27,16 @@ static char help[] = "Standard symmetric eigenproblem corresponding to the Lapla
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki, value[3];
-  Vec            xr, xi;
-  PetscInt       n=30, i, Istart, Iend, col[3], nev, maxit, its, nconv;
-  PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki,value[3];
+  Vec            xr,xi;
+  PetscInt       n=30,i,Istart,Iend,col[3],nev,maxit,its,nconv;
+  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -56,7 +56,7 @@ int main( int argc, char **argv )
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
   value[0]=-1.0; value[1]=2.0; value[2]=-1.0;
-  for( i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++ ) {
+  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1;
     ierr = MatSetValues(A,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
   }
@@ -126,9 +126,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n" );CHKERRQ(ierr);
+         "   ----------------- ------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -152,7 +152,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

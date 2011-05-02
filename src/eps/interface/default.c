@@ -233,7 +233,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 /*
   EPSDefaultGetWork - Gets a number of work vectors.
  */
-PetscErrorCode EPSDefaultGetWork(EPS eps, PetscInt nw)
+PetscErrorCode EPSDefaultGetWork(EPS eps,PetscInt nw)
 {
   PetscErrorCode ierr;
 
@@ -390,10 +390,10 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
 */
 PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
 {
-  Vec            z, p, r;
-  PetscInt       i, j;
+  Vec            z,p,r;
+  PetscInt       i,j;
   PetscReal      norma;
-  PetscScalar    *pz, *pr, *pp, *pD;
+  PetscScalar    *pz,*pr,*pp,*pD;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;

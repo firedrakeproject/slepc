@@ -71,9 +71,9 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScalar *h,PetscBLASInt j,Vec *V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   ione = 1, j_1 = j+1;
-  PetscReal      x, y;
-  PetscScalar    dot, one = 1.0, zero = 0.0;
+  PetscBLASInt   ione = 1,j_1 = j+1;
+  PetscReal      x,y;
+  PetscScalar    dot,one = 1.0,zero = 0.0;
 
   PetscFunctionBegin;
   /* compute norm of v and w */
@@ -118,7 +118,7 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
   PetscErrorCode ierr;
   PetscInt       i,j,l,m = *M;
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI *)qep->data;
-  Vec            t = qep->work[2], u = qep->work[3];
+  Vec            t = qep->work[2],u = qep->work[3];
   IPOrthogonalizationRefinementType refinement;
   PetscReal      norm,onorm,eta;
   PetscScalar    *c = work + m;

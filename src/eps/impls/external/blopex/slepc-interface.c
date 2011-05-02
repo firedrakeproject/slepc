@@ -31,7 +31,7 @@
 #include <temp_multivector.h>
 #include "slepc-interface.h"
 
-static void* mv_TempMultiVectorCreateFromPETScVector( void* ii_, int n, void* sample )
+static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,int n,void* sample)
 {
   int i;
   Vec *vecs = (Vec*)sample;
@@ -39,48 +39,43 @@ static void* mv_TempMultiVectorCreateFromPETScVector( void* ii_, int n, void* sa
   mv_TempMultiVector* x;
   mv_InterfaceInterpreter* ii = (mv_InterfaceInterpreter*)ii_;
 
-  x = (mv_TempMultiVector*) malloc(sizeof(mv_TempMultiVector));
-  assert( x != NULL );
+  x = (mv_TempMultiVector*)malloc(sizeof(mv_TempMultiVector));
+  assert(x!=NULL);
   
   x->interpreter = ii;
   x->numVectors = n;
   
-  x->vector = (void**) calloc( n, sizeof(void*) );
-  assert( x->vector != NULL );
+  x->vector = (void**)calloc(n,sizeof(void*));
+  assert(x->vector!=NULL);
 
   x->ownsVectors = 1;
   x->mask = NULL;
   x->ownsMask = 0;
 
-  for ( i = 0; i < n; i++ ) {
+  for (i=0;i<n;i++) {
     x->vector[i] = (void*)vecs[i];
   }
-
   return x;
 }
 
-static void mv_TempMultiPETSCVectorDestroy( void* x_ )
+static void mv_TempMultiPETSCVectorDestroy(void* x_)
 {
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
 
-  if ( x == NULL )
+  if (x==NULL)
     return;
 
-  if ( x->ownsVectors && x->vector != NULL ) {
-       free(x->vector);
-  }
-  if ( x->mask && x->ownsMask )
-    free(x->mask);
+  if (x->ownsVectors && x->vector!=NULL) free(x->vector);
+  if (x->mask && x->ownsMask) free(x->mask);
   free(x);
 }
-
 
 /*
     Create an InterfaceInterpreter using the PETSc implementation
     but overloading CreateMultiVector that doesn't create any
     new vector.
 */
-int SLEPCSetupInterpreter( mv_InterfaceInterpreter *i )
+int SLEPCSetupInterpreter(mv_InterfaceInterpreter *i)
 {
   PETSCSetupInterpreter(i);
   i->CreateMultiVector = mv_TempMultiVectorCreateFromPETScVector;
@@ -92,7 +87,7 @@ int SLEPCSetupInterpreter( mv_InterfaceInterpreter *i )
     Change the multivector destructor in order to destroy the multivector
     structure without destroy the PETSc vectors.
 */
-void SLEPCSetupInterpreterForDignifiedDeath( mv_InterfaceInterpreter *i )
+void SLEPCSetupInterpreterForDignifiedDeath(mv_InterfaceInterpreter *i)
 {
   i->DestroyMultiVector = mv_TempMultiPETSCVectorDestroy;
 }

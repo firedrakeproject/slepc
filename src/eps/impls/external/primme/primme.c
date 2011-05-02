@@ -58,13 +58,13 @@ EPSPRIMMEMethod methodN[] = {
   EPS_PRIMME_LOBPCG_ORTHOBASISW
 };
 
-static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme);
-static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme);
+static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *primme);
+static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme);
 
-void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params *primme)
+void par_GlobalSumDouble(void *sendBuf,void *recvBuf,int *count,primme_params *primme)
 {
   PetscErrorCode ierr;
-  ierr = MPI_Allreduce((double*)sendBuf, (double*)recvBuf, *count, MPI_DOUBLE, MPI_SUM, ((PetscObject)(primme->commInfo))->comm);CHKERRABORT(((PetscObject)(primme->commInfo))->comm,ierr);
+  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,((PetscObject)(primme->commInfo))->comm);CHKERRABORT(((PetscObject)(primme->commInfo))->comm,ierr);
 }
 
 #undef __FUNCT__  
@@ -72,7 +72,7 @@ void par_GlobalSumDouble(void *sendBuf, void *recvBuf, int *count, primme_params
 PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscMPIInt    numProcs, procID;
+  PetscMPIInt    numProcs,procID;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
   primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
   PetscBool      t;
@@ -83,7 +83,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   
   /* Check some constraints and set some default values */ 
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
-  ierr = STGetOperators(eps->OP, &ops->A, PETSC_NULL);
+  ierr = STGetOperators(eps->OP,&ops->A,PETSC_NULL);
   if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
@@ -94,12 +94,12 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP, 3e300);CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->OP,3e300);CHKERRQ(ierr);
   }
 
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP, STPRECOND, &t);CHKERRQ(ierr);
-  if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "PRIMME only works with STPRECOND");
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
+  if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
   primme->n = eps->n;
@@ -127,7 +127,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       break;   
   }
   
-  if (primme_set_method(ops->method, primme) < 0)
+  if (primme_set_method(ops->method,primme) < 0)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME method not valid");
   
   /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
@@ -147,9 +147,9 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Setup the preconditioner */
   ops->eps = eps;
   if (primme->correctionParams.precondition) {
-    ierr = STGetKSP(eps->OP, &ops->ksp);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)ops->ksp, KSPPREONLY, &t);CHKERRQ(ierr);
-    if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP, "PRIMME only works with KSPPREONLY");
+    ierr = STGetKSP(eps->OP,&ops->ksp);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&t);CHKERRQ(ierr);
+    if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
     primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
@@ -183,18 +183,18 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ops->primme.iseed[0] = -1;
 
   /* Call PRIMME solver */
-  ierr = VecGetArray(eps->V[0], &a);CHKERRQ(ierr);
+  ierr = VecGetArray(eps->V[0],&a);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = dprimme(eps->eigr, a, eps->errest, &ops->primme);
+  ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);
 #else
   /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
   ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals);CHKERRQ(ierr);
-  ierr = zprimme(evals, (Complex_Z*)a, eps->errest, &ops->primme);
+  ierr = zprimme(evals,(Complex_Z*)a,eps->errest,&ops->primme);
   for (i=0;i<eps->ncv;i++)
     eps->eigr[i] = evals[i];
   ierr = PetscFree(evals);CHKERRQ(ierr);
 #endif
-  ierr = VecRestoreArray(eps->V[0], &a);CHKERRQ(ierr);
+  ierr = VecRestoreArray(eps->V[0],&a);CHKERRQ(ierr);
   
   switch(ierr) {
     case 0: /* Successful */
@@ -226,53 +226,52 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
 #undef __FUNCT__  
 #define __FUNCT__ "multMatvec_PRIMME"
-static void multMatvec_PRIMME(void *in, void *out, int *blockSize, primme_params *primme)
+static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *primme)
 {
   PetscErrorCode ierr;
-  PetscInt       i, N = primme->n;
+  PetscInt       i,N = primme->n;
   EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
-  Vec            x = ops->x, y = ops->y;
+  Vec            x = ops->x,y = ops->y;
   Mat            A = ops->A;
 
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x, (PetscScalar*)in+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecPlaceArray(y, (PetscScalar*)out+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
 
-    ierr = MatMult(A, x, y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = MatMult(A,x,y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
     
-    ierr = VecResetArray(x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecResetArray(y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(x);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
   }
   PetscFunctionReturnVoid();
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "applyPreconditioner_PRIMME"
-static void applyPreconditioner_PRIMME(void *in, void *out, int *blockSize, struct primme_params *primme)
+static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme)
 {
   PetscErrorCode ierr;
-  PetscInt       i, N = primme->n, lits;
+  PetscInt       i,N = primme->n,lits;
   EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
-  Vec            x = ops->x, y = ops->y;
+  Vec            x = ops->x,y = ops->y;
  
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x, (PetscScalar*)in+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecPlaceArray(y, (PetscScalar*)out+N*i ); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
 
-    ierr = KSPSolve(ops->ksp, x, y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = KSPGetIterationNumber(ops->ksp, &lits); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(PETSC_COMM_WORLD,ierr);
     ops->eps->OP->lineariterations+= lits;
     
-    ierr = VecResetArray(x); CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecResetArray(y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(x);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
   }
   PetscFunctionReturnVoid();
 } 
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_PRIMME"
@@ -344,12 +343,12 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSPRIMMESetBlockSize_PRIMME"
 PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 {
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
+  EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->primme.maxBlockSize = 1;
   else if (bs <= 0) { 
-    SETERRQ(((PetscObject)eps)->comm,1, "PRIMME: wrong block size"); 
+    SETERRQ(((PetscObject)eps)->comm,1,"PRIMME: wrong block size"); 
   } else ops->primme.maxBlockSize = bs;
   PetscFunctionReturn(0);
 }
@@ -397,7 +396,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSPRIMMEGetBlockSize_PRIMME"
 PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
 {
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
+  EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
   if (bs) *bs = ops->primme.maxBlockSize;
@@ -436,7 +435,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSPRIMMESetMethod_PRIMME"
 PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
 {
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
+  EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
   if (method == PETSC_DEFAULT) ops->method = DEFAULT_MIN_TIME;
@@ -488,7 +487,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSPRIMMEGetMethod_PRIMME"
 PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
 {
-  EPS_PRIMME *ops = (EPS_PRIMME *) eps->data;
+  EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
   if (method) *method = (EPSPRIMMEMethod)ops->method;
@@ -538,11 +537,11 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   EPS_PRIMME     *primme;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP, STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP, PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
 
   ierr = PetscNewLog(eps,EPS_PRIMME,&primme);CHKERRQ(ierr);
-  eps->data                      = (void *) primme;
+  eps->data                      = (void*)primme;
   eps->ops->setup                = EPSSetUp_PRIMME;
   eps->ops->setfromoptions       = EPSSetFromOptions_PRIMME;
   eps->ops->destroy              = EPSDestroy_PRIMME;

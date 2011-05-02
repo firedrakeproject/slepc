@@ -53,21 +53,21 @@ PetscErrorCode MatBrussel_GetDiagonal(Mat,Vec);
 
 typedef struct {
   Mat         T;
-  Vec         x1, x2, y1, y2;
-  PetscScalar alpha, beta, tau1, tau2, sigma;
+  Vec         x1,x2,y1,y2;
+  PetscScalar alpha,beta,tau1,tau2,sigma;
 } CTX_BRUSSEL;
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            A;               /* eigenvalue problem matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    delta1, delta2, L, h, kr, ki, value[3];
-  PetscInt       N=30, n, i, col[3], Istart, Iend, nev, maxit, its, nconv;
-  PetscBool      FirstBlock=PETSC_FALSE, LastBlock=PETSC_FALSE;
+  PetscReal      error,tol,re,im;
+  PetscScalar    delta1,delta2,L,h,kr,ki,value[3];
+  PetscInt       N=30,n,i,col[3],Istart,Iend,nev,maxit,its,nconv;
+  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   CTX_BRUSSEL    *ctx;
   PetscErrorCode ierr;
 
@@ -110,7 +110,7 @@ int main( int argc, char **argv )
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==N) LastBlock=PETSC_TRUE;
   value[0]=1.0; value[1]=-2.0; value[2]=1.0;
-  for( i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++ ) {
+  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1;
     ierr = MatSetValues(ctx->T,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
   }
@@ -178,7 +178,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
   
   /*
@@ -207,8 +207,8 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k             ||Ax-kx||/||kx||\n"
-         "  --------------------- ------------------\n" );CHKERRQ(ierr);
-    for( i=0; i<nconv; i++ ) {
+         "  --------------------- ------------------\n");CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
       /* 
          Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
          ki (imaginary part)
@@ -227,14 +227,14 @@ int main( int argc, char **argv )
       re = kr;
       im = ki;
 #endif
-      if( im != 0.0 ) {
+      if (im != 0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," % 6f %+6f i",re,im);CHKERRQ(ierr);
       } else {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",re);CHKERRQ(ierr);
       }
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 
@@ -257,7 +257,7 @@ int main( int argc, char **argv )
 PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
   PetscInt       n;
-  PetscScalar    *px, *py;
+  PetscScalar    *px,*py;
   CTX_BRUSSEL    *ctx;
   PetscErrorCode ierr;
 
@@ -298,7 +298,7 @@ PetscErrorCode MatBrussel_Shift(PetscScalar* a,Mat Y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext( Y, (void**)&ctx );CHKERRQ(ierr);
+  ierr = MatShellGetContext(Y,(void**)&ctx);CHKERRQ(ierr);
   ctx->sigma += *a;
   PetscFunctionReturn(0);
 }
@@ -307,7 +307,7 @@ PetscErrorCode MatBrussel_Shift(PetscScalar* a,Mat Y)
 #define __FUNCT__ "MatBrussel_GetDiagonal"
 PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
 {
-  Vec            d1, d2;
+  Vec            d1,d2;
   PetscInt       n;
   PetscScalar    *pd;
   MPI_Comm       comm;

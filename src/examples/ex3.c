@@ -30,20 +30,20 @@ static char help[] = "Solves the same eigenproblem as in example ex2, but using 
 /* 
    User-defined routines
 */
-PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y );
-PetscErrorCode MatLaplacian2D_GetDiagonal( Mat A, Vec diag );
+PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y);
+PetscErrorCode MatLaplacian2D_GetDiagonal(Mat A,Vec diag);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki;
   PetscMPIInt    size;
-  PetscInt       N, n=10, nev, maxit, i, its, nconv;
+  PetscInt       N,n=10,nev,maxit,i,its,nconv;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -89,7 +89,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -118,9 +118,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n" );CHKERRQ(ierr);
+         "   ----------------- ------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -144,7 +144,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 
@@ -161,9 +161,9 @@ int main( int argc, char **argv )
     tridiagonal matrix with DD on the diagonal, DL on the subdiagonal, and 
     DU on the superdiagonal.
  */   
-static void tv( int nx, PetscScalar *x, PetscScalar *y )
+static void tv(int nx,PetscScalar *x,PetscScalar *y)
 {
-  PetscScalar dd, dl, du;
+  PetscScalar dd,dl,du;
   int         j;
 
   dd  = 4.0;
@@ -171,7 +171,7 @@ static void tv( int nx, PetscScalar *x, PetscScalar *y )
   du  = -1.0;
 
   y[0] =  dd*x[0] + du*x[1];
-  for( j=1; j<nx-1; j++ )
+  for (j=1;j<nx-1;j++)
     y[j] = dl*x[j-1] + dd*x[j] + du*x[j+1]; 
   y[nx-1] = dl*x[nx-2] + dd*x[nx-1]; 
 }
@@ -194,41 +194,41 @@ static void tv( int nx, PetscScalar *x, PetscScalar *y )
  
     The subroutine TV is called to compute y<--T*x.
  */
-PetscErrorCode MatLaplacian2D_Mult( Mat A, Vec x, Vec y )
+PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
 {
   void           *ctx;
-  int            nx, lo, j, one=1;
-  PetscScalar    *px, *py, dmone=-1.0;
+  int            nx,lo,j,one=1;
+  PetscScalar    *px,*py,dmone=-1.0;
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
-  ierr = MatShellGetContext( A, &ctx );CHKERRQ(ierr);
-  nx = *(int *)ctx;
-  ierr = VecGetArray( x, &px );CHKERRQ(ierr);
-  ierr = VecGetArray( y, &py );CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
+  nx = *(int*)ctx;
+  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
 
-  tv( nx, &px[0], &py[0] );
-  BLASaxpy_( &nx, &dmone, &px[nx], &one, &py[0], &one );
+  tv(nx,&px[0],&py[0]);
+  BLASaxpy_(&nx,&dmone,&px[nx],&one,&py[0],&one);
 
-  for( j=2; j<nx; j++ ) {
+  for (j=2;j<nx;j++) {
     lo = (j-1)*nx;
-    tv( nx, &px[lo], &py[lo]);
-    BLASaxpy_( &nx, &dmone, &px[lo-nx], &one, &py[lo], &one );
-    BLASaxpy_( &nx, &dmone, &px[lo+nx], &one, &py[lo], &one );
+    tv(nx,&px[lo],&py[lo]);
+    BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one);
+    BLASaxpy_(&nx,&dmone,&px[lo+nx],&one,&py[lo],&one);
   }
 
   lo = (nx-1)*nx;
-  tv( nx, &px[lo], &py[lo]);
-  BLASaxpy_( &nx, &dmone, &px[lo-nx], &one, &py[lo], &one );
+  tv(nx,&px[lo],&py[lo]);
+  BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one);
 
-  ierr = VecRestoreArray( x, &px );CHKERRQ(ierr);
-  ierr = VecRestoreArray( y, &py );CHKERRQ(ierr);
+  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "MatLaplacian2D_GetDiagonal"
-PetscErrorCode MatLaplacian2D_GetDiagonal( Mat A, Vec diag )
+PetscErrorCode MatLaplacian2D_GetDiagonal(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
 

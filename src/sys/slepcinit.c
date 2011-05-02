@@ -74,8 +74,8 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 */
 PetscBool SlepcBeganPetsc = PETSC_FALSE; 
 PetscBool SlepcInitializeCalled = PETSC_FALSE;
-extern PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY, SLEPC_SlepcDenseMatProd, SLEPC_SlepcDenseOrth,
-                     SLEPC_SlepcDenseMatInvProd, SLEPC_SlepcDenseNorm, SLEPC_SlepcDenseCopy, SLEPC_VecsMult;
+extern PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,
+                     SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseNorm,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 extern PetscDLLibrary DLLibrariesLoaded;

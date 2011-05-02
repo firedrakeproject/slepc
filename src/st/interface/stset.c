@@ -75,7 +75,7 @@ PetscErrorCode STSetType(ST st,const STType type)
   st->setupcalled = 0;
 
   /* Determine the STCreateXXX routine for a particular type */
-  ierr =  PetscFListFind(STList, ((PetscObject)st)->comm, type,PETSC_TRUE,(void (**)(void)) &r );CHKERRQ(ierr);
+  ierr =  PetscFListFind(STList,((PetscObject)st)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)st)->comm,1,"Unable to find requested ST type %s",type);
   ierr = PetscFree(st->data);CHKERRQ(ierr);
 
@@ -139,8 +139,8 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscScalar    s;
   char           type[256];
   PetscBool      flg;
-  const char     *mode_list[3] = { "copy", "inplace", "shell" };
-  const char     *structure_list[3] = { "same", "different", "subset" };
+  const char     *mode_list[3] = {"copy","inplace","shell"};
+  const char     *structure_list[3] = {"same","different","subset"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -160,10 +160,10 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg);CHKERRQ(ierr);
     if (flg) { ierr = STSetShift(st,s);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEList("-st_matmode", "Shift matrix mode","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-st_matmode","Shift matrix mode","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
     if (flg) { st->shift_matrix = (STMatMode)i; }
 
-    ierr = PetscOptionsEList("-st_matstructure", "Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-st_matstructure","Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
     if (flg) { st->str = (MatStructure)i; }
     
     if (st->ops->setfromoptions) {

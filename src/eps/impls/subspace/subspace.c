@@ -330,7 +330,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     if (eps->nconv>=eps->nev) break;
     
     /* Compute nxtsrr (iteration of next projection step) */
-    nxtsrr = PetscMin(eps->max_it,PetscMax((PetscInt)floor(stpfac*its), init));
+    nxtsrr = PetscMin(eps->max_it,PetscMax((PetscInt)floor(stpfac*its),init));
     
     if (ngrp!=nogrp || ngrp==0 || arsd>=oarsd) {
       idsrr = nxtsrr - its;
@@ -344,7 +344,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv*ncv);CHKERRQ(ierr);
     ierr = EPSHessCond(nv,U,ncv,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
-    nxtort = PetscMin(its+idort, nxtsrr);
+    nxtort = PetscMin(its+idort,nxtsrr);
 
     /* V(:,idx) = AV(:,idx) */
     for (i=eps->nconv;i<nv;i++) {
@@ -388,7 +388,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   ierr = PetscFree(itrsd);CHKERRQ(ierr);
   ierr = PetscFree(itrsdold);CHKERRQ(ierr);
 
-  if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
+  if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
   PetscFunctionReturn(0);
 }

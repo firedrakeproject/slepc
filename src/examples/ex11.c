@@ -29,15 +29,15 @@ static char help[] = "Computes the smallest nonzero eigenvalue of the Laplacian 
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main (int argc,char **argv)
 {
   EPS            eps;             /* eigenproblem solver context */
   Mat            A;               /* operator matrix */
   Vec            x;
   const EPSType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
-  PetscInt       N, n=10, m, i, j, II, Istart, Iend, nev, maxit, its, nconv;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki;
+  PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev,maxit,its,nconv;
   PetscScalar    w;
   PetscBool      flag;
   PetscErrorCode ierr;
@@ -61,7 +61,7 @@ int main( int argc, char **argv )
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for( II=Istart; II<Iend; II++ ) { 
+  for (II=Istart;II<Iend;II++) { 
     i = II/n; j = II-i*n;
     w = 0.0;
     if(i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
@@ -113,7 +113,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -142,9 +142,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n" );CHKERRQ(ierr);
+         "   ----------------- ------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -168,7 +168,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

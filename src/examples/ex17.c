@@ -29,14 +29,14 @@ static char help[] = "Solves a quadratic eigenproblem (l^2*M + l*C + K)*x = 0 wi
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
-  Mat            M, C, K;         /* problem matrices */
+  Mat            M,C,K;           /* problem matrices */
   QEP            qep;             /* quadratic eigenproblem solver context */
   const QEPType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
-  PetscInt       nev, maxit, i, its, nconv;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki;
+  PetscInt       nev,maxit,i,its,nconv;
   char           filename[256];
   PetscViewer    viewer;
   PetscBool      flg;
@@ -109,7 +109,7 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = QEPSolve(qep);CHKERRQ(ierr);
-  ierr = QEPGetIterationNumber(qep, &its);CHKERRQ(ierr);
+  ierr = QEPGetIterationNumber(qep,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
 
   /*
@@ -138,9 +138,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||(k^2M+Ck+K)x||/||kx||\n"
-         "   ----------------- -------------------------\n" );CHKERRQ(ierr);
+         "   ----------------- -------------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for(i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -164,7 +164,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

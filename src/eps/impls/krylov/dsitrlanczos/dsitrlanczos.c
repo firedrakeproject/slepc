@@ -88,7 +88,7 @@ PetscErrorCode EPSSolve_DSITRLanczos(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,k,l,lds,lt,nv,m,*iwork;
   Vec            u=eps->work[0];
-  PetscScalar    *Q, sigma, lambda, zero = 0.0;
+  PetscScalar    *Q,sigma,lambda,zero = 0.0;
   PetscReal      *a,*b,*work,beta,distance = 1e-3;
   PetscBool      breakdown;
 

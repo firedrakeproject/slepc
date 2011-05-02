@@ -102,10 +102,10 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
   PetscInt       i;
-  Vec            v, y, e;
+  Vec            v,y,e;
   Mat            A;
-  PetscReal      relerr, norm, rt1, rt2, cs1, anorm;
-  PetscScalar    theta, rho, delta, sigma, alpha2, beta1, sn1;
+  PetscReal      relerr,norm,rt1,rt2,cs1,anorm;
+  PetscScalar    theta,rho,delta,sigma,alpha2,beta1,sn1;
   PetscBool      breakdown,*select = PETSC_NULL,hasnorm;
 
   PetscFunctionBegin;
@@ -244,10 +244,10 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
-  Vec            v, w, y, z, e;
+  Vec            v,w,y,z,e;
   Mat            A;
-  PetscReal      relerr, norm, rt1, rt2, cs1;
-  PetscScalar    theta, alpha, beta, rho, delta, sigma, alpha2, beta1, sn1;
+  PetscReal      relerr,norm,rt1,rt2,cs1;
+  PetscScalar    theta,alpha,beta,rho,delta,sigma,alpha2,beta1,sn1;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -374,7 +374,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
       ierr = EPSGetStartVectorLeft(eps,eps->nconv,w,PETSC_NULL);CHKERRQ(ierr);
     }
   }
-  if( eps->nconv == eps->nev ) eps->reason = EPS_CONVERGED_TOL;
+  if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
   PetscFunctionReturn(0);
 }

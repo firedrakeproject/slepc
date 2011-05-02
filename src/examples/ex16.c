@@ -28,14 +28,14 @@ static char help[] = "Quadratic eigenproblem for testing the QEP object.\n\n"
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
-  Mat            M, C, K;         /* problem matrices */
+  Mat            M,C,K;           /* problem matrices */
   QEP            qep;             /* quadratic eigenproblem solver context */
   const QEPType  type;
-  PetscReal      error, tol, re, im;
-  PetscScalar    kr, ki;
-  PetscInt       N, n=10, m, Istart, Iend, II, nev, maxit, i, j, its, nconv;
+  PetscReal      error,tol,re,im;
+  PetscScalar    kr,ki;
+  PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j,its,nconv;
   PetscBool      flag;
   PetscErrorCode ierr;
 
@@ -57,7 +57,7 @@ int main( int argc, char **argv )
   ierr = MatSetFromOptions(K);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
-  for( II=Istart; II<Iend; II++ ) { 
+  for (II=Istart;II<Iend;II++) { 
     i = II/n; j = II-i*n;  
     if(i>0) { ierr = MatSetValue(K,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if(i<m-1) { ierr = MatSetValue(K,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
@@ -113,7 +113,7 @@ int main( int argc, char **argv )
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = QEPGetIterationNumber(qep, &its);CHKERRQ(ierr);
+  ierr = QEPGetIterationNumber(qep,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
   ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
@@ -138,9 +138,9 @@ int main( int argc, char **argv )
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||(k^2M+Ck+K)x||/||kx||\n"
-         "   ----------------- -------------------------\n" );CHKERRQ(ierr);
+         "   ----------------- -------------------------\n");CHKERRQ(ierr);
 
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
@@ -164,7 +164,7 @@ int main( int argc, char **argv )
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
   /* 

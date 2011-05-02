@@ -164,10 +164,10 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
     ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
   } else {
     for (i=0; i<eps->ncv; i++) {
-      ierr = VecGetOwnershipRange(eps->V[i], &low, &high);CHKERRQ(ierr);
-      ierr = VecGetArray(eps->V[i], &array);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array, pV+i*n+low, (high-low)*sizeof(PetscScalar));
-      ierr = VecRestoreArray(eps->V[i], &array);CHKERRQ(ierr);
+      ierr = VecGetOwnershipRange(eps->V[i],&low,&high);CHKERRQ(ierr);
+      ierr = VecGetArray(eps->V[i],&array);CHKERRQ(ierr);
+      ierr = PetscMemcpy(array,pV+i*n+low,(high-low)*sizeof(PetscScalar));
+      ierr = VecRestoreArray(eps->V[i],&array);CHKERRQ(ierr);
     }
     ierr = PetscFree(pV);CHKERRQ(ierr);
   }
@@ -176,10 +176,10 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
       ierr = VecRestoreArray(eps->W[0],&pW);CHKERRQ(ierr);
     } else {
       for (i=0; i<eps->ncv; i++) {
-        ierr = VecGetOwnershipRange(eps->W[i], &low, &high);CHKERRQ(ierr);
-        ierr = VecGetArray(eps->W[i], &array);CHKERRQ(ierr);
-        ierr = PetscMemcpy(array, pW+i*n+low, (high-low)*sizeof(PetscScalar));
-        ierr = VecRestoreArray(eps->W[i], &array);CHKERRQ(ierr);
+        ierr = VecGetOwnershipRange(eps->W[i],&low,&high);CHKERRQ(ierr);
+        ierr = VecGetArray(eps->W[i],&array);CHKERRQ(ierr);
+        ierr = PetscMemcpy(array,pW+i*n+low,(high-low)*sizeof(PetscScalar));
+        ierr = VecRestoreArray(eps->W[i],&array);CHKERRQ(ierr);
       }
       ierr = PetscFree(pW);CHKERRQ(ierr);
     }

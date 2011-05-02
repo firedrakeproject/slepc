@@ -32,8 +32,8 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSortForSTFunc"
-PetscErrorCode EPSSortForSTFunc(EPS eps, PetscScalar ar, PetscScalar ai,
-                                PetscScalar br, PetscScalar bi, PetscInt *r, void *ctx)
+PetscErrorCode EPSSortForSTFunc(EPS eps,PetscScalar ar,PetscScalar ai,
+                                PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   EPSSortForSTData *data = (EPSSortForSTData*)ctx;
   PetscErrorCode   ierr;
@@ -47,7 +47,7 @@ PetscErrorCode EPSSortForSTFunc(EPS eps, PetscScalar ar, PetscScalar ai,
   eps->which = data->old_which;
   eps->which_func = data->old_which_func;
   eps->which_ctx = data->old_which_ctx;
-  ierr = EPSCompareEigenvalues(eps, ar, ai, br, bi, r);CHKERRQ(ierr);
+  ierr = EPSCompareEigenvalues(eps,ar,ai,br,bi,r);CHKERRQ(ierr);
 
   /* Restore the eps values */
   eps->which = EPS_WHICH_USER;
@@ -92,7 +92,7 @@ PetscErrorCode EPSSolve(EPS eps)
   KSP            ksp;
   Vec            w,x;
 #define NUMEXTSOLV 5
-  const EPSType solvers[NUMEXTSOLV] = { EPSARPACK, EPSBLZPACK, EPSTRLAN, EPSBLOPEX, EPSPRIMME };
+  const EPSType solvers[NUMEXTSOLV] = { EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME };
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -218,8 +218,8 @@ PetscErrorCode EPSSolve(EPS eps)
   /* sort eigenvalues according to eps->which parameter */
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   if (eps->nconv > 0) {
-    ierr = PetscMalloc(sizeof(PetscInt)*eps->nconv, &eps->perm);CHKERRQ(ierr);
-    ierr = EPSSortEigenvalues(eps, eps->nconv, eps->eigr, eps->eigi, eps->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscInt)*eps->nconv,&eps->perm);CHKERRQ(ierr);
+    ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
   }
 
   ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
@@ -236,7 +236,7 @@ PetscErrorCode EPSSolve(EPS eps)
                              PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for( i=0; i<eps->nconv; i++ ) {
+    for (i=0;i<eps->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(eps->eigr[i]);
       im = PetscImaginaryPart(eps->eigi[i]);
@@ -430,7 +430,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 
 .seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve(), EPSGetInvariantSubspaceLeft()
 @*/
-PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
+PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -440,10 +440,10 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps, Vec *v)
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   if (!eps->V) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   }
   if (!eps->ishermitian && eps->evecsavailable) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm"); 
   }
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
@@ -500,13 +500,13 @@ PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps,Vec *v)
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   if (!eps->leftvecs) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   if (!eps->W) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
   }
   if (!eps->ishermitian && eps->evecsavailable) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSGetInvariantSubspaceLeft must be called before EPSGetEigenpairLeft,EPSComputeRelativeErrorLeft or EPSComputeResidualNormLeft"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspaceLeft must be called before EPSGetEigenpairLeft,EPSComputeRelativeErrorLeft or EPSComputeResidualNormLeft"); 
   }
   for (i=0;i<eps->nconv;i++) {
     ierr = VecCopy(eps->W[i],v[i]);CHKERRQ(ierr);
@@ -558,10 +558,10 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi || !eps->V) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
   ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
   ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr);
@@ -604,10 +604,10 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->eigr || !eps->eigi) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
   if (!eps->perm) k = i;
   else k = eps->perm[i];
@@ -664,31 +664,31 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Vr,3); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   if (!eps->V) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
-  if (!eps->evecsavailable && (Vr || Vi) ) { 
+  if (!eps->evecsavailable && (Vr || Vi)) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = VecCopy(eps->V[k], Vr);CHKERRQ(ierr); }
+  if (Vr) { ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k], Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecCopy(eps->V[k+1], Vi);CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr); }
+    if (Vi) { ierr = VecCopy(eps->V[k+1],Vi);CHKERRQ(ierr); }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k-1], Vr);CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->V[k-1],Vr);CHKERRQ(ierr); }
     if (Vi) { 
-      ierr = VecCopy(eps->V[k], Vi);CHKERRQ(ierr); 
+      ierr = VecCopy(eps->V[k],Vi);CHKERRQ(ierr); 
       ierr = VecScale(Vi,-1.0);CHKERRQ(ierr); 
     }
   } else { /* real eigenvalue */
-    if (Vr) { ierr = VecCopy(eps->V[k], Vr);CHKERRQ(ierr); }
+    if (Vr) { ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
   }
 #endif
@@ -735,34 +735,34 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Wr,3); }
   if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
   if (!eps->leftvecs) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   if (!eps->W) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
-  if (!eps->evecsavailable && (Wr || Wi) ) { 
+  if (!eps->evecsavailable && (Wr || Wi)) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-  if (Wr) { ierr = VecCopy(eps->W[k], Wr);CHKERRQ(ierr); }
+  if (Wr) { ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr); }
   if (Wi) { ierr = VecSet(Wi,0.0);CHKERRQ(ierr); }
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->W[k], Wr);CHKERRQ(ierr); }
-    if (Wi) { ierr = VecCopy(eps->W[k+1], Wi);CHKERRQ(ierr); }
+    if (Wr) { ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr); }
+    if (Wi) { ierr = VecCopy(eps->W[k+1],Wi);CHKERRQ(ierr); }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->W[k-1], Wr);CHKERRQ(ierr); }
+    if (Wr) { ierr = VecCopy(eps->W[k-1],Wr);CHKERRQ(ierr); }
     if (Wi) { 
-      ierr = VecCopy(eps->W[k], Wi);CHKERRQ(ierr); 
+      ierr = VecCopy(eps->W[k],Wi);CHKERRQ(ierr); 
       ierr = VecScale(Wi,-1.0);CHKERRQ(ierr); 
     }
   } else { /* real eigenvalue */
-    if (Wr) { ierr = VecCopy(eps->W[k], Wr);CHKERRQ(ierr); }
+    if (Wr) { ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr); }
     if (Wi) { ierr = VecSet(Wi,0.0);CHKERRQ(ierr); }
   }
 #endif
@@ -799,10 +799,10 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(errest,3);
   if (!eps->eigr || !eps->eigi) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
   if (eps->perm) i = eps->perm[i];  
   if (errest) *errest = eps->errest[i];
@@ -833,19 +833,19 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 
 .seealso: EPSComputeRelativeErrorLeft()
 @*/
-PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
+PetscErrorCode EPSGetErrorEstimateLeft(EPS eps,PetscInt i,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(errest,3);
   if (!eps->eigr || !eps->eigi) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "EPSSolve must be called first"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   }
   if (!eps->leftvecs) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   if (i<0 || i>=eps->nconv) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE, "Argument 2 out of range"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   }
   if (eps->perm) i = eps->perm[i];  
   if (errest) *errest = eps->errest_left[i];
@@ -858,14 +858,14 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps, PetscInt i, PetscReal *errest)
    EPSComputeResidualNorm_Private - Computes the norm of the residual vector 
    associated with an eigenpair.
 */
-PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScalar ki, Vec xr, Vec xi, PetscReal *norm)
+PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            u, w;
-  Mat            A, B;
+  Vec            u,w;
+  Mat            A,B;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v;
-  PetscReal      ni, nr;
+  PetscReal      ni,nr;
 #endif
   
   PetscFunctionBegin;
@@ -939,11 +939,11 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps, PetscScalar kr, PetscScal
 
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
+PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            xr, xi;
-  PetscScalar    kr, ki;
+  Vec            xr,xi;
+  PetscScalar    kr,ki;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -984,14 +984,14 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps, PetscInt i, PetscReal *norm)
 
 .seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
 @*/
-PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
+PetscErrorCode EPSComputeResidualNormLeft(EPS eps,PetscInt i,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            u, v, w, xr, xi;
-  Mat            A, B;
-  PetscScalar    kr, ki;
+  Vec            u,v,w,xr,xi;
+  Mat            A,B;
+  PetscScalar    kr,ki;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscReal      ni, nr;
+  PetscReal      ni,nr;
 #endif
   
   PetscFunctionBegin;
@@ -999,7 +999,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidPointer(norm,3);
   if (!eps->leftvecs) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE, "Must request left vectors with EPSSetLeftVectorsWanted"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetLeftVectorsWanted"); 
   }
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&u);CHKERRQ(ierr);
@@ -1014,28 +1014,28 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    ierr = MatMultTranspose( A, xr, u );CHKERRQ(ierr); /* u=A'*x */
+    ierr = MatMultTranspose(A,xr,u);CHKERRQ(ierr); /* u=A'*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      if (eps->isgeneralized) { ierr = MatMultTranspose( B, xr, w );CHKERRQ(ierr); }
-      else { ierr = VecCopy( xr, w );CHKERRQ(ierr); } /* w=B'*x */
-      ierr = VecAXPY( u, -kr, w);CHKERRQ(ierr); /* u=A'*x-k*B'*x */
+      if (eps->isgeneralized) { ierr = MatMultTranspose(B,xr,w);CHKERRQ(ierr); }
+      else { ierr = VecCopy(xr,w);CHKERRQ(ierr); } /* w=B'*x */
+      ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr); /* u=A'*x-k*B'*x */
     }
-    ierr = VecNorm( u, NORM_2, norm);CHKERRQ(ierr);  
+    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = MatMultTranspose( A, xr, u );CHKERRQ(ierr); /* u=A'*xr */
-    if (eps->isgeneralized) { ierr = MatMultTranspose( B, xr, v );CHKERRQ(ierr); }
-    else { ierr = VecCopy( xr, v );CHKERRQ(ierr); } /* v=B'*xr */
-    ierr = VecAXPY( u, -kr, v );CHKERRQ(ierr); /* u=A'*xr-kr*B'*xr */
-    if (eps->isgeneralized) { ierr = MatMultTranspose( B, xi, w );CHKERRQ(ierr); }
-    else { ierr = VecCopy( xi, w );CHKERRQ(ierr); } /* w=B'*xi */
-    ierr = VecAXPY( u, ki, w );CHKERRQ(ierr); /* u=A'*xr-kr*B'*xr+ki*B'*xi */
-    ierr = VecNorm( u, NORM_2, &nr );CHKERRQ(ierr);
-    ierr = MatMultTranspose( A, xi, u );CHKERRQ(ierr); /* u=A'*xi */
-    ierr = VecAXPY( u, -kr, w );CHKERRQ(ierr); /* u=A'*xi-kr*B'*xi */
-    ierr = VecAXPY( u, -ki, v );CHKERRQ(ierr); /* u=A'*xi-kr*B'*xi-ki*B'*xr */
-    ierr = VecNorm( u, NORM_2, &ni );CHKERRQ(ierr);
-    *norm = SlepcAbsEigenvalue( nr, ni );
+    ierr = MatMultTranspose(A,xr,u);CHKERRQ(ierr); /* u=A'*xr */
+    if (eps->isgeneralized) { ierr = MatMultTranspose(B,xr,v);CHKERRQ(ierr); }
+    else { ierr = VecCopy(xr,v);CHKERRQ(ierr); } /* v=B'*xr */
+    ierr = VecAXPY(u,-kr,v);CHKERRQ(ierr); /* u=A'*xr-kr*B'*xr */
+    if (eps->isgeneralized) { ierr = MatMultTranspose(B,xi,w);CHKERRQ(ierr); }
+    else { ierr = VecCopy(xi,w);CHKERRQ(ierr); } /* w=B'*xi */
+    ierr = VecAXPY(u,ki,w);CHKERRQ(ierr); /* u=A'*xr-kr*B'*xr+ki*B'*xi */
+    ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);
+    ierr = MatMultTranspose(A,xi,u);CHKERRQ(ierr); /* u=A'*xi */
+    ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr); /* u=A'*xi-kr*B'*xi */
+    ierr = VecAXPY(u,-ki,v);CHKERRQ(ierr); /* u=A'*xi-kr*B'*xi-ki*B'*xr */
+    ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
+    *norm = SlepcAbsEigenvalue(nr,ni);
   }
 #endif
 
@@ -1053,10 +1053,10 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps, PetscInt i, PetscReal *norm)
    EPSComputeRelativeError_Private - Computes the relative error bound 
    associated with an eigenpair.
 */
-PetscErrorCode EPSComputeRelativeError_Private(EPS eps, PetscScalar kr, PetscScalar ki, Vec xr, Vec xi, PetscReal *error)
+PetscErrorCode EPSComputeRelativeError_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
 {
   PetscErrorCode ierr;
-  PetscReal      norm, er;
+  PetscReal      norm,er;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ei;
 #endif
@@ -1100,11 +1100,11 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps, PetscScalar kr, PetscSca
 
 .seealso: EPSSolve(), EPSComputeResidualNorm(), EPSGetErrorEstimate()
 @*/
-PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
+PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr, xi;  
-  PetscScalar    kr, ki;  
+  Vec            xr,xi;  
+  PetscScalar    kr,ki;  
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
@@ -1141,12 +1141,12 @@ PetscErrorCode EPSComputeRelativeError(EPS eps, PetscInt i, PetscReal *error)
 
 .seealso: EPSSolve(), EPSComputeResidualNormLeft(), EPSGetErrorEstimateLeft()
 @*/
-PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error)
+PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr, xi;  
-  PetscScalar    kr, ki;  
-  PetscReal      norm, er;
+  Vec            xr,xi;  
+  PetscScalar    kr,ki;  
+  PetscReal      norm,er;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            u;
   PetscReal      ei;
@@ -1166,7 +1166,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
   if (ki == 0 || 
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    ierr = VecNorm(xr, NORM_2, &er);CHKERRQ(ierr);
+    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
       *error =  norm / (PetscAbsScalar(kr) * er);
     } else {
@@ -1174,14 +1174,14 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps, PetscInt i, PetscReal *error
     }
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = VecDuplicate(xi, &u);CHKERRQ(ierr);  
-    ierr = VecCopy(xi, u);CHKERRQ(ierr);  
-    ierr = VecAXPBY(u, kr, -ki, xr);CHKERRQ(ierr);   
-    ierr = VecNorm(u, NORM_2, &er);CHKERRQ(ierr);  
-    ierr = VecAXPBY(xi, kr, ki, xr);CHKERRQ(ierr);      
-    ierr = VecNorm(xi, NORM_2, &ei);CHKERRQ(ierr);  
+    ierr = VecDuplicate(xi,&u);CHKERRQ(ierr);  
+    ierr = VecCopy(xi,u);CHKERRQ(ierr);  
+    ierr = VecAXPBY(u,kr,-ki,xr);CHKERRQ(ierr);   
+    ierr = VecNorm(u,NORM_2,&er);CHKERRQ(ierr);  
+    ierr = VecAXPBY(xi,kr,ki,xr);CHKERRQ(ierr);      
+    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);  
     ierr = VecDestroy(&u);CHKERRQ(ierr);  
-    *error = norm / SlepcAbsEigenvalue(er, ei);
+    *error = norm / SlepcAbsEigenvalue(er,ei);
   }
 #endif    
   

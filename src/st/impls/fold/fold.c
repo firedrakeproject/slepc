@@ -33,7 +33,7 @@ typedef struct {
 PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_FOLD        *ctx = (ST_FOLD *) st->data;
+  ST_FOLD        *ctx = (ST_FOLD*)st->data;
 
   PetscFunctionBegin;
   if (st->B) {
@@ -67,7 +67,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_FOLD        *ctx = (ST_FOLD *) st->data;
+  ST_FOLD        *ctx = (ST_FOLD*)st->data;
 
   PetscFunctionBegin;
   if (st->B) {
@@ -130,7 +130,7 @@ PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScal
 PetscErrorCode STSetUp_Fold(ST st)
 {
   PetscErrorCode ierr;
-  ST_FOLD        *ctx = (ST_FOLD *) st->data;
+  ST_FOLD        *ctx = (ST_FOLD*)st->data;
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
@@ -190,7 +190,7 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
 PetscErrorCode STDestroy_Fold(ST st)
 {
   PetscErrorCode ierr;
-  ST_FOLD        *ctx = (ST_FOLD *) st->data;
+  ST_FOLD        *ctx = (ST_FOLD*)st->data;
 
   PetscFunctionBegin;
   ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
