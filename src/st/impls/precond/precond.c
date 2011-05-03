@@ -178,14 +178,11 @@ PetscErrorCode STCreate_Precond(ST st)
   PetscFunctionBegin;
   ierr = PetscNewLog(st,ST_PRECOND,&st->data);CHKERRQ(ierr);
   st->ops->getbilinearform = STGetBilinearForm_Default;
-  st->ops->postsolve       = PETSC_NULL;
-  st->ops->backtr          = PETSC_NULL;
   st->ops->setup           = STSetUp_Precond;
   st->ops->setshift        = STSetShift_Precond;
   st->ops->view            = STView_Default;
   st->ops->destroy         = STDestroy_Precond;
   st->ops->setfromoptions  = STSetFromOptions_Precond;
-  st->checknullspace       = PETSC_NULL;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","STPrecondGetMatForPC_Precond",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","STPrecondSetMatForPC_Precond",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);

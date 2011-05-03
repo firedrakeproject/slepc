@@ -249,7 +249,6 @@ EXTERN_C_BEGIN
 PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
-  st->data                 = 0;
   st->ops->apply           = STApply_Sinvert;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Sinvert;
@@ -258,8 +257,8 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->setup           = STSetUp_Sinvert;
   st->ops->setshift        = STSetShift_Sinvert;
   st->ops->view            = STView_Default;
-  st->ops->setfromoptions = STSetFromOptions_Sinvert;
-  st->checknullspace      = STCheckNullSpace_Default;
+  st->ops->setfromoptions  = STSetFromOptions_Sinvert;
+  st->ops->checknullspace  = STCheckNullSpace_Default;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

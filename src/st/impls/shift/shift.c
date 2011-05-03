@@ -149,7 +149,6 @@ PetscErrorCode STCreate_Shift(ST st)
   st->ops->setfromoptions  = STSetFromOptions_Shift;
   st->ops->setup           = STSetUp_Shift;
   st->ops->view            = STView_Shift;
-  st->checknullspace       = 0;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

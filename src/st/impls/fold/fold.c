@@ -215,7 +215,6 @@ PetscErrorCode STCreate_Fold(ST st)
   st->ops->view            = STView_Fold;
   st->ops->setfromoptions  = STSetFromOptions_Fold;
   st->ops->destroy         = STDestroy_Fold;
-  st->checknullspace       = 0;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

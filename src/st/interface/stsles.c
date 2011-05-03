@@ -272,8 +272,12 @@ PetscErrorCode STCheckNullSpace(ST st,PetscInt n,const Vec V[])
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (n>0 && st->checknullspace) {
-    ierr = (*st->checknullspace)(st,n,V);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveInt(st,n,2);
+  if (n>0 && st->ops->checknullspace) {
+    PetscValidPointer(V,3);
+    PetscValidHeaderSpecific(V[0],VEC_CLASSID,3);
+    ierr = (*st->ops->checknullspace)(st,n,V);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

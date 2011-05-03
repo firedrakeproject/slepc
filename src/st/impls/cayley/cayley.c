@@ -469,7 +469,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->setshift        = STSetShift_Cayley;
   st->ops->destroy         = STDestroy_Cayley;
   st->ops->view            = STView_Cayley;
-  st->checknullspace       = STCheckNullSpace_Default;
+  st->ops->checknullspace  = STCheckNullSpace_Default;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
