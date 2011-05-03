@@ -100,6 +100,10 @@ extern PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const P
 extern PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
 extern PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
  
+extern PetscErrorCode SlepcVecDuplicateVecs(Vec,PetscInt,Vec**);
+extern PetscErrorCode SlepcVecDestroyVecs(PetscInt,Vec**);
+extern PetscErrorCode SlepcVecsContiguous(Vec**V,PetscBool*);
+
 extern PetscBool SlepcInitializeCalled;
 
 PETSC_EXTERN_CXX_END

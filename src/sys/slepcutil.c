@@ -889,6 +889,139 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "Contiguous_ArrayDestroy"
+static PetscErrorCode Contiguous_ArrayDestroy(void *ctx)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *pV = (PetscScalar*) ctx;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(pV);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcVecDuplicateVecs"
+/*@
+   SlepcVecDuplicateVecs - Creates several vectors of the same type as an existing vector,
+   with contiguous storage.
+
+   Collective on Vec
+
+   Input Parameters:
++  v - a vector to mimic
+-  m - the number of vectors to obtain
+
+   Output Parameter:
+.  V - location to put pointer to array of vectors
+
+   Notes:
+   The only difference with respect to PETSc's VecDuplicateVecs() is that storage is
+   contiguous, that is, the array of values of V[1] immediately follows the array
+   of V[0], and so on.
+
+   Use SlepcVecDestroyVecs() to free the space.
+
+   Level: developer
+
+.seealso: SlepcVecDestroyVecs()
+@*/
+PetscErrorCode SlepcVecDuplicateVecs(Vec v,PetscInt m,Vec *V[])
+{
+  PetscErrorCode ierr;
+  PetscInt       i,nloc;
+  PetscScalar    *pV;
+  PetscContainer container;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(v,VEC_CLASSID,1);
+  PetscValidLogicalCollectiveInt(v,m,2);
+  PetscValidPointer(V,3);
+  PetscValidType(v,1);
+  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
+  ierr = PetscMalloc(m*sizeof(Vec),V);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
+  ierr = PetscMalloc(m*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+  for (i=0;i<m;i++) {
+    ierr = VecCreateMPIWithArray(((PetscObject)v)->comm,nloc,PETSC_DECIDE,pV+i*nloc,*V+i);CHKERRQ(ierr);
+  }
+  ierr = PetscContainerCreate(((PetscObject)v)->comm,&container);CHKERRQ(ierr);
+  ierr = PetscContainerSetPointer(container,pV);CHKERRQ(ierr);
+  ierr = PetscContainerSetUserDestroy(container,Contiguous_ArrayDestroy);CHKERRQ(ierr);
+  ierr = PetscObjectCompose((PetscObject)(*V[0]),"contiguous",(PetscObject)container);CHKERRQ(ierr);
+  ierr = PetscContainerDestroy(&container);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcVecDestroyVecs"
+/*@
+   SlepcVecDestroyVecs - Frees a block of vectors obtained with SlepcVecDuplicateVecs().
+
+   Collective on Vec
+
+   Input Parameters:
++  m - the number of vectors previously obtained
+-  V - pointer to array of vectors
+
+   Level: developer
+
+.seealso: SlepcVecDuplicateVecs()
+@*/
+PetscErrorCode SlepcVecDestroyVecs(PetscInt m,Vec *V[])
+{
+  PetscErrorCode ierr;
+  PetscInt       i,nloc;
+  PetscScalar    *pV;
+  PetscContainer container;
+  PetscBool      contiguous;
+
+  PetscFunctionBegin;
+  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
+  PetscValidPointer(V,2);
+  PetscValidHeaderSpecific(*V[0],VEC_CLASSID,2);
+  PetscValidLogicalCollectiveInt(*V[0],m,1);
+  ierr = SlepcVecsContiguous(V,&contiguous);CHKERRQ(ierr);
+  if (!contiguous) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"V must have been created with SlepcVecDuplicateVecs()");
+  for (i=0;i<m;i++) {
+    ierr = VecDestroy(*V+i);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(*V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcVecsContiguous"
+/*@
+   SlepcVecsContiguous - Whether a block of vectors was obtained with SlepcVecDuplicateVecs().
+
+   Not Collective
+
+   Input Parameters:
+.  V - pointer to array of vectors
+
+   Output Parameters:
+.  contiguous - true if V has contiguous storage
+
+   Level: developer
+
+.seealso: SlepcVecDuplicateVecs()
+@*/
+PetscErrorCode SlepcVecsContiguous(Vec *V[],PetscBool *contiguous)
+{
+  PetscErrorCode ierr;
+  PetscContainer container;
+
+  PetscFunctionBegin;
+  PetscValidPointer(V,1);
+  PetscValidHeaderSpecific(*V[0],VEC_CLASSID,1);
+  ierr = PetscObjectQuery((PetscObject)(*V[0]),"contiguous",(PetscObject*)&container);CHKERRQ(ierr);
+  if (container) *contiguous=PETSC_TRUE;
+  else *contiguous=PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcConvMonitorDestroy"
 /*
