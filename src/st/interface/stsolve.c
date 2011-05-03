@@ -190,10 +190,11 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 @*/
 PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 {
-  PetscErrorCode ierr;
-  Vec            in,out;
-  PetscInt       i,M,m,*rows,start,end;
-  PetscScalar    *array,one = 1.0;
+  PetscErrorCode    ierr;
+  Vec               in,out;
+  PetscInt          i,M,m,*rows,start,end;
+  const PetscScalar *array;
+  PetscScalar       one = 1.0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -216,9 +217,9 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 
     ierr = STApply(st,in,out);CHKERRQ(ierr);
     
-    ierr = VecGetArray(out,&array);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(out,&array);CHKERRQ(ierr);
     ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr); 
-    ierr = VecRestoreArray(out,&array);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(out,&array);CHKERRQ(ierr);
   }
   ierr = PetscFree(rows);CHKERRQ(ierr);
   ierr = VecDestroy(&in);CHKERRQ(ierr);

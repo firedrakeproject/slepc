@@ -196,15 +196,16 @@ static void tv(int nx,PetscScalar *x,PetscScalar *y)
  */
 PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
 {
-  void           *ctx;
-  int            nx,lo,j,one=1;
-  PetscScalar    *px,*py,dmone=-1.0;
-  PetscErrorCode ierr;
+  void              *ctx;
+  int               nx,lo,j,one=1;
+  const PetscScalar *px;
+  PetscScalar       *py,dmone=-1.0;
+  PetscErrorCode    ierr;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   nx = *(int*)ctx;
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
 
   tv(nx,&px[0],&py[0]);
@@ -221,7 +222,7 @@ PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
   tv(nx,&px[lo],&py[lo]);
   BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one);
 
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

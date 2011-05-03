@@ -256,15 +256,16 @@ int main(int argc,char **argv)
 #define __FUNCT__ "MatBrussel_Mult"
 PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 {
-  PetscInt       n;
-  PetscScalar    *px,*py;
-  CTX_BRUSSEL    *ctx;
-  PetscErrorCode ierr;
+  PetscInt          n;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  CTX_BRUSSEL       *ctx;
+  PetscErrorCode    ierr;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x2,px+n);CHKERRQ(ierr);
@@ -281,7 +282,7 @@ PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
   ierr = VecAXPY(ctx->y2,-ctx->beta,ctx->x1);CHKERRQ(ierr);
   ierr = VecAXPY(ctx->y2,-ctx->alpha * ctx->alpha + ctx->sigma,ctx->x2);CHKERRQ(ierr);
 
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);

@@ -446,9 +446,10 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   PetscScalar alpha, Vec *X, PetscInt cX, PetscInt dX, const PetscScalar *M,
   PetscInt ldM, PetscInt rM, PetscInt cM)
 {
-  PetscErrorCode  ierr;
-  PetscScalar     *px, *py;
-  PetscInt        rX, rY, ldX, ldY, i, rcX;
+  PetscErrorCode    ierr;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  PetscInt          rX, rY, ldX, ldY, i, rcX;
 
   PetscFunctionBegin;
 
@@ -470,7 +471,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
     if (rX != rY) {
       SETERRQ(((PetscObject)*Y)->comm,1, "The multivectors do not have the same dimension");
     }
-    ierr = VecGetArray(X[0], &px);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(X[0], &px);CHKERRQ(ierr);
     ierr = VecGetArray(Y[0], &py);CHKERRQ(ierr);
 
     /* Update the strides */
@@ -480,8 +481,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
     ierr = SlepcDenseMatProd(py, ldY, beta, alpha, px, ldX, rX, rcX,
                     PETSC_FALSE, M, ldM, rM, cM, PETSC_FALSE); CHKERRQ(ierr);
   
-    ierr = VecRestoreArray(X[0], &px);CHKERRQ(ierr);
-    ierr = PetscObjectStateDecrease((PetscObject)X[0]); CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(X[0], &px);CHKERRQ(ierr);
     ierr = VecRestoreArray(Y[0], &py);CHKERRQ(ierr);
     for(i=1; i<cM; i++) {
       ierr = PetscObjectStateIncrease((PetscObject)Y[dY*i]); CHKERRQ(ierr);
@@ -512,9 +512,9 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   const PetscScalar *M, PetscInt ldM, PetscInt rM, PetscInt cM,
   PetscScalar *work, PetscInt lwork)
 {
-  PetscErrorCode  ierr;
-  PetscScalar     **px, *Y, *Z;
-  PetscInt        rX, i, j, rY, rY0, ldY;
+  PetscErrorCode ierr;
+  PetscScalar    **px, *Y, *Z;
+  PetscInt       rX, i, j, rY, rY0, ldY;
 
   PetscFunctionBegin;
 
@@ -584,9 +584,10 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
                         Vec *V, PetscInt sV, PetscInt eV,
                         PetscScalar *workS0, PetscScalar *workS1)
 {
-  PetscErrorCode  ierr;
-  PetscInt        ldU, ldV, i, j, k;
-  PetscScalar     *pu, *pv, *W, *Wr;
+  PetscErrorCode    ierr;
+  PetscInt          ldU, ldV, i, j, k;
+  const PetscScalar *pu, *pv;
+  PetscScalar       *W, *Wr;
 
   PetscFunctionBegin;
 
@@ -600,8 +601,8 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if (ldU != ldV) {
     SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   }
-  ierr = VecGetArray(U[0], &pu);CHKERRQ(ierr);
-  ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(U[0], &pu);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(V[0], &pv);CHKERRQ(ierr);
 
   if (workS0)
     W = workS0;
@@ -723,11 +724,8 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     ierr = PetscFree(W); CHKERRQ(ierr);
   }
 
-  ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
-  ierr = VecRestoreArray(V[0], &pv); CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)V[0]); CHKERRQ(ierr);
-
+  ierr = VecRestoreArrayRead(U[0], &pu); CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(V[0], &pv); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -895,9 +893,10 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
                          Vec *V, PetscInt sV, PetscInt eV, DvdReduction *r,
                          DvdMult_copy_func *sr)
 {
-  PetscErrorCode  ierr;
-  PetscInt        ldU, ldV;
-  PetscScalar     *pu, *pv, *W;
+  PetscErrorCode    ierr;
+  PetscInt          ldU, ldV;
+  const PetscScalar *pu, *pv;
+  PetscScalar       *W;
 
   PetscFunctionBegin;
 
@@ -911,8 +910,8 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if (ldU != ldV) {
     SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   }
-  ierr = VecGetArray(U[0], &pu);CHKERRQ(ierr);
-  ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(U[0], &pu);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(V[0], &pv);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
@@ -998,11 +997,8 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   ierr = PetscLogEventEnd(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
-  ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
-  ierr = VecRestoreArray(V[0], &pv); CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)V[0]); CHKERRQ(ierr);
-
+  ierr = VecRestoreArrayRead(U[0], &pu); CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(V[0], &pv); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

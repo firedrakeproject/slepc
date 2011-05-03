@@ -855,9 +855,10 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
 @*/
 PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,PetscScalar a[],Vec x[])
 {
-  PetscErrorCode ierr;
-  PetscBLASInt   n,m,one=1;
-  PetscScalar    *py,*px;
+  PetscErrorCode    ierr;
+  PetscBLASInt      n,m,one=1;
+  PetscScalar       *py;
+  const PetscScalar *px;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(y,VEC_CLASSID,1);
@@ -877,12 +878,12 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
 
   ierr = PetscLogEventBegin(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecGetArray(*x,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(*x,&px);CHKERRQ(ierr);
   n = PetscBLASIntCast(nv);
   m = PetscBLASIntCast((y)->map->n);
   BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
-  ierr = VecRestoreArray(*x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(*x,&px);CHKERRQ(ierr);
   ierr = PetscLogFlops(nv*2*(y)->map->n);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

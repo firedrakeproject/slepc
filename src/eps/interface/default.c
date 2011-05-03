@@ -390,11 +390,12 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
 */
 PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
 {
-  Vec            z,p,r;
-  PetscInt       i,j;
-  PetscReal      norma;
-  PetscScalar    *pz,*pr,*pp,*pD;
-  PetscErrorCode ierr;
+  Vec               z,p,r;
+  PetscInt          i,j;
+  PetscReal         norma;
+  PetscScalar       *pz,*pD;
+  const PetscScalar *pr,*pp;
+  PetscErrorCode    ierr;
 
   PetscFunctionBegin;
   ierr = VecDuplicate(eps->V[0],&r);CHKERRQ(ierr);
@@ -430,8 +431,8 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     }
     
     /* Adjust values of D */
-    ierr = VecGetArray(r,&pr);CHKERRQ(ierr);
-    ierr = VecGetArray(p,&pp);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(r,&pr);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(p,&pp);CHKERRQ(ierr);
     ierr = VecGetArray(eps->D,&pD);CHKERRQ(ierr);
     for (i=0;i<eps->nloc;i++) {
       if (eps->balance == EPS_BALANCE_TWOSIDE) {
@@ -441,8 +442,8 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
         if (pp[i]!=0.0) pD[i] *= 1.0/PetscAbsScalar(pp[i]);
       }
     }
-    ierr = VecRestoreArray(r,&pr);CHKERRQ(ierr);
-    ierr = VecRestoreArray(p,&pp);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(r,&pr);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(p,&pp);CHKERRQ(ierr);
     ierr = VecRestoreArray(eps->D,&pD);CHKERRQ(ierr);
   }
 

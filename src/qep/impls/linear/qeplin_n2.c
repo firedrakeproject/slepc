@@ -37,15 +37,16 @@
 #define __FUNCT__ "MatMult_Linear_N2A"
 PetscErrorCode MatMult_Linear_N2A(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  QEP_LINEAR     *ctx;
-  PetscScalar    *px,*py;
-  PetscInt       m;
+  PetscErrorCode    ierr;
+  QEP_LINEAR        *ctx;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  PetscInt          m;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
@@ -60,7 +61,7 @@ PetscErrorCode MatMult_Linear_N2A(Mat A,Vec x,Vec y)
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -69,15 +70,16 @@ PetscErrorCode MatMult_Linear_N2A(Mat A,Vec x,Vec y)
 #define __FUNCT__ "MatMult_Linear_N2B"
 PetscErrorCode MatMult_Linear_N2B(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  QEP_LINEAR     *ctx;
-  PetscScalar    *px,*py;
-  PetscInt       m;
+  PetscErrorCode    ierr;
+  QEP_LINEAR        *ctx;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  PetscInt          m;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
@@ -94,7 +96,7 @@ PetscErrorCode MatMult_Linear_N2B(Mat B,Vec x,Vec y)
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

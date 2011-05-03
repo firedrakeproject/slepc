@@ -41,17 +41,18 @@ typedef struct {
 #define __FUNCT__ "ShellMatMult_Cyclic"
 static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  SVD            svd;
-  SVD_CYCLIC     *cyclic;
-  PetscScalar    *px,*py;
-  PetscInt       m;
+  PetscErrorCode    ierr;
+  SVD               svd;
+  SVD_CYCLIC        *cyclic;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  PetscInt          m;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cyclic = (SVD_CYCLIC *)svd->data;
   ierr = SVDMatGetLocalSize(svd,&m,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(cyclic->x1,px);CHKERRQ(ierr);
   ierr = VecPlaceArray(cyclic->x2,px+m);CHKERRQ(ierr);
@@ -63,7 +64,7 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
   ierr = VecResetArray(cyclic->x2);CHKERRQ(ierr);
   ierr = VecResetArray(cyclic->y1);CHKERRQ(ierr);
   ierr = VecResetArray(cyclic->y2);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -83,13 +84,14 @@ static PetscErrorCode ShellMatGetDiagonal_Cyclic(Mat B,Vec diag)
 #define __FUNCT__ "SVDSetUp_Cyclic"
 PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
-  PetscErrorCode ierr;
-  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
-  PetscInt       M,N,m,n,i,nloc,isl;
-  PetscScalar    *pU,*isa,*va;
-  PetscBool      trackall;
-  Vec            v;
-  Mat            Zm,Zn;
+  PetscErrorCode    ierr;
+  SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
+  PetscInt          M,N,m,n,i,nloc,isl;
+  const PetscScalar *isa;
+  PetscScalar       *pU,*va;
+  PetscBool         trackall;
+  Vec               v;
+  Mat               Zm,Zn;
 
   PetscFunctionBegin;
   ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
@@ -139,7 +141,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     for (i=0; i<-svd->nini; i++) {
       ierr = MatGetVecs(cyclic->mat,&v,PETSC_NULL);CHKERRQ(ierr);
       ierr = VecGetArray(v,&va);CHKERRQ(ierr);
-      ierr = VecGetArray(svd->IS[i],&isa);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
       ierr = VecGetSize(svd->IS[i],&isl);CHKERRQ(ierr);
       if (isl == m) {
         ierr = PetscMemcpy(va,isa,sizeof(PetscScalar)*m);CHKERRQ(ierr);
@@ -151,7 +153,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
         SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Size of the initial subspace vectors should match to some dimension of A");
       }
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
-      ierr = VecRestoreArray(svd->IS[i],&isa);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
       svd->IS[i] = v;
     }
@@ -191,11 +193,12 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 #define __FUNCT__ "SVDSolve_Cyclic"
 PetscErrorCode SVDSolve_Cyclic(SVD svd)
 {
-  PetscErrorCode ierr;
-  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
-  PetscInt       i,j,M,N,m,n;
-  PetscScalar    sigma,*px;
-  Vec            x,x1,x2;
+  PetscErrorCode    ierr;
+  SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
+  PetscInt          i,j,M,N,m,n;
+  PetscScalar       sigma;
+  const PetscScalar *px;
+  Vec               x,x1,x2;
   
   PetscFunctionBegin;
   ierr = EPSSolve(cyclic->eps);CHKERRQ(ierr);
@@ -212,7 +215,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
     ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {
       svd->sigma[j] = PetscRealPart(sigma);
-      ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
       ierr = VecCopy(x1,svd->U[j]);CHKERRQ(ierr);
@@ -221,7 +224,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
       ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);
-      ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
       j++;
     }
   }
