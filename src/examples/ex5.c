@@ -24,7 +24,7 @@ static char help[] = "Eigenvalue problem associated with a Markov model of a ran
   "This example illustrates how the user can set the initial vector.\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
-cut -d : -f 1 | uniq | xargs gvim
+
 #include <slepceps.h>
 
 /* 

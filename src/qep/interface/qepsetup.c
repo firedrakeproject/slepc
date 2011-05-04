@@ -47,9 +47,9 @@ PetscErrorCode QEPSetUp(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
-  PetscScalar    *pV;
   PetscBool      khas,mhas,lindep;
   PetscReal      knorm,mnorm,norm;
+  Vec            t;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -104,12 +104,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
     ierr = PetscFree(qep->perm);CHKERRQ(ierr);
     ierr = PetscFree(qep->errest);CHKERRQ(ierr);
-    ierr = VecGetArray(qep->V[0],&pV);CHKERRQ(ierr);
-    for (i=0;i<qep->ncv;i++) {
-      ierr = VecDestroy(&qep->V[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(pV);CHKERRQ(ierr);
-    ierr = PetscFree(qep->V);CHKERRQ(ierr);
+    ierr = SlepcVecDestroyVecs(qep->ncv,&qep->V);CHKERRQ(ierr);
   }
 
   /* Allocate memory for next solution */
@@ -117,11 +112,9 @@ PetscErrorCode QEPSetUp(QEP qep)
   ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*sizeof(Vec),&qep->V);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*qep->nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
-  for (i=0;i<qep->ncv;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,PETSC_DECIDE,pV+i*qep->nloc,&qep->V[i]);CHKERRQ(ierr);
-  }
+  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
+  ierr = SlepcVecDuplicateVecs(t,qep->ncv,&qep->V);CHKERRQ(ierr);
+  ierr = VecDestroy(&t);CHKERRQ(ierr);
 
   /* process initial vectors */
   if (qep->nini<0) {

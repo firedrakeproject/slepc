@@ -161,7 +161,7 @@ int main(int argc,char **argv)
     tridiagonal matrix with DD on the diagonal, DL on the subdiagonal, and 
     DU on the superdiagonal.
  */   
-static void tv(int nx,PetscScalar *x,PetscScalar *y)
+static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 {
   PetscScalar dd,dl,du;
   int         j;

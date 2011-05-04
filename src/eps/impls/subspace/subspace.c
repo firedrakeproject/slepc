@@ -52,7 +52,6 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
-  PetscScalar    *pAV;
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
@@ -77,11 +76,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*sizeof(Vec),&ctx->AV);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->nloc*sizeof(PetscScalar),&pAV);CHKERRQ(ierr);
-  for (i=0;i<eps->ncv;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pAV+i*eps->nloc,&ctx->AV[i]);CHKERRQ(ierr);
-  }
+  ierr = SlepcVecDuplicateVecs(eps->V[0],eps->ncv,&ctx->AV);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
@@ -399,16 +394,10 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscScalar    *pAV;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecGetArray(ctx->AV[0],&pAV);CHKERRQ(ierr);
-  for (i=0;i<eps->ncv;i++) {
-    ierr = VecDestroy(&ctx->AV[i]);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(pAV);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->AV);CHKERRQ(ierr);
+  ierr = SlepcVecDestroyVecs(eps->ncv,&ctx->AV);CHKERRQ(ierr);
   ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

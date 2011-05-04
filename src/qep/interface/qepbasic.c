@@ -476,8 +476,6 @@ PetscErrorCode QEPRegisterDestroy(void)
 PetscErrorCode QEPDestroy(QEP *qep)
 {
   PetscErrorCode ierr;
-  PetscScalar    *pV;
-  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*qep) PetscFunctionReturn(0);
@@ -493,12 +491,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
     ierr = PetscFree((*qep)->eigi);CHKERRQ(ierr);
     ierr = PetscFree((*qep)->perm);CHKERRQ(ierr);
     ierr = PetscFree((*qep)->errest);CHKERRQ(ierr);
-    ierr = VecGetArray((*qep)->V[0],&pV);CHKERRQ(ierr);
-    for (i=0;i<(*qep)->ncv;i++) {
-      ierr = VecDestroy(&(*qep)->V[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(pV);CHKERRQ(ierr);
-    ierr = PetscFree((*qep)->V);CHKERRQ(ierr);
+    ierr = SlepcVecDestroyVecs((*qep)->ncv,&(*qep)->V);CHKERRQ(ierr);
   }
   ierr = QEPMonitorCancel(*qep);CHKERRQ(ierr);
   ierr = IPDestroy(&(*qep)->ip);CHKERRQ(ierr);
