@@ -23,18 +23,17 @@
 
 #if !defined(__SLEPCVEC_H)
 #define __SLEPCVEC_H
+#include "petscvec.h"
+
 PETSC_EXTERN_CXX_BEGIN
 
 #define VECCOMP  "comp"
 
-PetscErrorCode VecRegister_Comp(const char path[]);
-PetscErrorCode VecCreateComp(MPI_Comm comm, PetscInt *Nx,
-                                                PetscInt n, const VecType t,
-                                                Vec Vparent, Vec *V);
-PetscErrorCode VecCreateCompWithVecs(Vec *x, PetscInt n,
-                                                        Vec Vparent, Vec *V);
-PetscErrorCode VecCompGetVecs(Vec win, const Vec **x, PetscInt *n);
-PetscErrorCode VecCompSetVecs(Vec win, Vec *x, PetscInt n);
+PetscErrorCode VecRegister_Comp(const char[]);
+PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,const VecType,Vec,Vec*);
+PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
+PetscErrorCode VecCompGetVecs(Vec,const Vec**,PetscInt*);
+PetscErrorCode VecCompSetVecs(Vec,Vec*,PetscInt);
 
 PETSC_EXTERN_CXX_END
 #endif

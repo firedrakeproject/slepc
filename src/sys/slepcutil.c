@@ -972,9 +972,7 @@ PetscErrorCode SlepcVecDuplicateVecs(Vec v,PetscInt m,Vec *V[])
 PetscErrorCode SlepcVecDestroyVecs(PetscInt m,Vec *V[])
 {
   PetscErrorCode ierr;
-  PetscInt       i,nloc;
-  PetscScalar    *pV;
-  PetscContainer container;
+  PetscInt       i;
   PetscBool      contiguous;
 
   PetscFunctionBegin;
