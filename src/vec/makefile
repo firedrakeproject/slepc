@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = veccomp.c contiguous.c
+SOURCEC  = vecutil.c veccomp.c contiguous.c
 SOURCEF  = 
 SOURCEH  = veccomp0.h veccomp_private.h
-OBJSC    = veccomp.o contiguous.o
+OBJSC    = vecutil.o veccomp.o contiguous.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
