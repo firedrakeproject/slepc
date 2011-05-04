@@ -27,13 +27,18 @@
 
 PETSC_EXTERN_CXX_BEGIN
 
+/* VecComp: Vec composed of several smaller Vecs */
 #define VECCOMP  "comp"
+extern PetscErrorCode VecRegister_Comp(const char[]);
+extern PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,const VecType,Vec,Vec*);
+extern PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
+extern PetscErrorCode VecCompGetVecs(Vec,const Vec**,PetscInt*);
+extern PetscErrorCode VecCompSetVecs(Vec,Vec*,PetscInt);
 
-PetscErrorCode VecRegister_Comp(const char[]);
-PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,const VecType,Vec,Vec*);
-PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
-PetscErrorCode VecCompGetVecs(Vec,const Vec**,PetscInt*);
-PetscErrorCode VecCompSetVecs(Vec,Vec*,PetscInt);
+/* Vecs with contiguous array storage */
+extern PetscErrorCode SlepcVecDuplicateVecs(Vec,PetscInt,Vec**);
+extern PetscErrorCode SlepcVecDestroyVecs(PetscInt,Vec**);
+extern PetscErrorCode SlepcVecsContiguous(Vec**V,PetscBool*);
 
 PETSC_EXTERN_CXX_END
 #endif
