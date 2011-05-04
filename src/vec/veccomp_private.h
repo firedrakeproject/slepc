@@ -22,9 +22,6 @@
 #ifndef _VECCOMP_P_
 #define _VECCOMP_P_
 
-EXTERN_C_BEGIN
-PetscErrorCode VecCreate_Comp(Vec V);
-EXTERN_C_END
 PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V);
 PetscErrorCode VecDestroy_Comp(Vec v);
 PetscErrorCode VecSet_Comp(Vec v,PetscScalar alpha);

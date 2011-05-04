@@ -52,18 +52,6 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
 #include "veccomp0.h"
 
 #undef __FUNCT__  
-#define __FUNCT__ "VecRegister_Comp"
-PetscErrorCode VecRegister_Comp(const char path[])
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecRegisterDynamic(VECCOMP,path,"VecCreate_Comp",VecCreate_Comp);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-
-#undef __FUNCT__  
 #define __FUNCT__ "VecDestroy_Comp"
 PetscErrorCode VecDestroy_Comp(Vec v)
 {
@@ -215,6 +203,17 @@ PetscErrorCode VecCreate_Comp(Vec V)
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "VecRegister_Comp"
+PetscErrorCode VecRegister_Comp(const char path[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = VecRegisterDynamic(VECCOMP,path,"VecCreate_Comp",VecCreate_Comp);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateComp"

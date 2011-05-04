@@ -26,6 +26,7 @@
 #include <private/qepimpl.h>          /*I "slepcqep.h" I*/
 #include <private/ipimpl.h>           /*I "slepcip.h" I*/
 #include <stdlib.h>
+#include <slepcvec.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcPrintVersion"
@@ -120,6 +121,8 @@ PetscErrorCode SlepcInitialize_Packages(void)
   ierr = SVDInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = QEPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = IPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  /* New special type of Vec, implemented in SLEPc */
+  ierr = VecRegister_Comp(PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
