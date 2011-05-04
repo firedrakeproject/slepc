@@ -39,22 +39,6 @@ extern PetscErrorCode VecCompSetVecs(Vec,Vec*,PetscInt);
 extern PetscErrorCode SlepcVecDuplicateVecs(Vec,PetscInt,Vec**);
 extern PetscErrorCode SlepcVecDestroyVecs(PetscInt,Vec**);
 
-#if !defined(PETSC_USE_DEBUG)
-#define SlepcValidVecsContiguous(V,m,arg) do {} while (0)
-#else
-#define SlepcValidVecsContiguous(V,m,arg) \
-  do { \
-    PetscErrorCode __ierr; \
-    PetscInt       __i; \
-    PetscContainer __container; \
-    for (__i=0;__i<m;__i++) { \
-      PetscValidHeaderSpecific((V)[__i],VEC_CLASSID,arg); \
-      __ierr = PetscObjectQuery((PetscObject)((V)[__i]),"contiguous",(PetscObject*)&__container);CHKERRQ(__ierr); \
-      if (!__container) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Contiguous check failed in argument # %d",arg); \
-    } \
-  } while (0)
-#endif
-
 /* Vec-related operations that have two versions, for contiguous and regular Vecs */
 extern PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
 extern PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);

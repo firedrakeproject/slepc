@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepcvec.h>            /*I "slepcvec.h" I*/
+#include <private/vecimplslepc.h>            /*I "slepcvec.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"

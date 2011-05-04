@@ -21,15 +21,10 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepcvec.h>            /*I "slepcvec.h" I*/
+#include <private/vecimplslepc.h>            /*I "slepcvec.h" I*/
 #include <petscblaslapack.h>
 
 PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0;
-
-typedef struct {
-  PetscScalar *array;    /* pointer to common storage */
-  PetscInt    nvecs;     /* number of vectors that share this array */
-} Vecs_Contiguous;
 
 #undef __FUNCT__
 #define __FUNCT__ "Vecs_ContiguousDestroy"

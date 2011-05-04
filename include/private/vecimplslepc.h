@@ -19,9 +19,61 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _VECCOMP_P_
-#define _VECCOMP_P_
+#ifndef _VECIMPLSLEPC
+#define _VECIMPLSLEPC
 
+#include <slepcvec.h>
+
+extern PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY;
+
+/* context for the storage of contiguous Vecs */
+typedef struct {
+  PetscScalar *array;    /* pointer to common storage */
+  PetscInt    nvecs;     /* number of vectors that share this array */
+} Vecs_Contiguous;
+
+#if !defined(PETSC_USE_DEBUG)
+
+#define SlepcValidVecsContiguous(V,m,arg) do {} while (0)
+#define PetscValidVecComp(y) do {} while (0)
+
+#else
+
+#define SlepcValidVecsContiguous(V,m,arg) \
+  do { \
+    PetscErrorCode __ierr; \
+    PetscInt       __i; \
+    PetscContainer __container; \
+    for (__i=0;__i<m;__i++) { \
+      PetscValidHeaderSpecific((V)[__i],VEC_CLASSID,arg); \
+      __ierr = PetscObjectQuery((PetscObject)((V)[__i]),"contiguous",(PetscObject*)&__container);CHKERRQ(__ierr); \
+      if (!__container) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Contiguous check failed in argument # %d",arg); \
+    } \
+  } while (0)
+
+#define PetscValidVecComp(y) \
+  do { \
+    if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) \
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of subvectors required!"); \
+  } while (0)
+
+#endif
+
+/* Contexts for VecComp */
+typedef struct {
+  PetscInt      n,        /* number of active subvectors */
+                N,        /* virtual global size */
+                lN,       /* virtual local size */
+                friends;  /* number of vectors sharing this structure */
+} Vec_Comp_N;
+
+typedef struct {
+  Vec           *x;       /* the vectors */
+  PetscInt      nx;       /* number of available subvectors */
+  Vec_Comp_N    *n;       /* structure shared by friend vectors */
+} Vec_Comp;
+
+/* Operations implemented in VecComp */
 PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V);
 PetscErrorCode VecDestroy_Comp(Vec v);
 PetscErrorCode VecSet_Comp(Vec v,PetscScalar alpha);

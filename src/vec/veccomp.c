@@ -20,31 +20,7 @@
 */
 
 #include "private/vecimpl.h"          /*I  "petscvec.h"   I*/
-#include "veccomp_private.h"
-#include <slepcvec.h>
-
-typedef struct {
-  PetscInt      n,        /* number of active subvectors */
-                N,        /* virtual global size */
-                lN,       /* virtual local size */
-                friends;  /* number of vectors sharing this structure */
-} Vec_Comp_N;
-
-typedef struct {
-  Vec           *x;       /* the vectors */
-  PetscInt      nx;       /* number of available subvectors */
-  Vec_Comp_N    *n;       /* structure shared by friend vectors */
-} Vec_Comp;
-
-#if defined(PETSC_USE_DEBUG)
-#define PetscValidVecComp(y) \
-  if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) { \
-    return PetscError(((PetscObject)(*((Vec_Comp*)(y)->data)->x))->comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Invalid number of subvectors required!");}
-#else
-#define PetscValidVecComp(y)
-#endif
-
-static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool x_to_me,Vec_Comp_N* n);
+#include <private/vecimplslepc.h>     /*I "slepcvec.h" I*/
 
 #include "veccomp0.h"
 
@@ -76,7 +52,6 @@ PetscErrorCode VecDestroy_Comp(Vec v)
   ierr = PetscFree(vs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             VecDuplicateVecs_Default,
