@@ -124,6 +124,7 @@ PetscErrorCode SlepcVecDestroyVecs(PetscInt m,Vec *V[])
 
   PetscFunctionBegin;
   PetscValidPointer(V,2);
+  if (!*V) PetscFunctionReturn(0);
   if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
   SlepcValidVecsContiguous(*V,m,2);
   for (i=0;i<m;i++) {

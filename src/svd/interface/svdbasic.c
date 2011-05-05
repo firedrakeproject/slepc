@@ -281,9 +281,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
     ierr = PetscFree((*svd)->sigma);CHKERRQ(ierr);
     ierr = PetscFree((*svd)->perm);CHKERRQ(ierr);
     ierr = PetscFree((*svd)->errest);CHKERRQ(ierr);
-    if ((*svd)->U) {
-      ierr = SlepcVecDestroyVecs((*svd)->n,&(*svd)->U);CHKERRQ(ierr);
-    }
+    ierr = SlepcVecDestroyVecs((*svd)->n,&(*svd)->U);CHKERRQ(ierr);
     ierr = SlepcVecDestroyVecs((*svd)->n,&(*svd)->V);CHKERRQ(ierr);
   }
   ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);

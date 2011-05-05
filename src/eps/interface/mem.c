@@ -72,9 +72,7 @@ PetscErrorCode EPSFreeSolution(EPS eps)
     ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
     ierr = PetscFree(eps->errest_left);CHKERRQ(ierr); 
     ierr = SlepcVecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);
-    if (eps->W) {
-      ierr = SlepcVecDestroyVecs(eps->allocated_ncv,&eps->W);CHKERRQ(ierr);
-    }
+    ierr = SlepcVecDestroyVecs(eps->allocated_ncv,&eps->W);CHKERRQ(ierr);
     eps->allocated_ncv = 0;
   }
   PetscFunctionReturn(0);

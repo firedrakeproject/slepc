@@ -38,9 +38,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->mpd) PetscInfo(svd,"Warning: parameter mpd ignored\n");
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {  
-    if (svd->U) {
-      ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-    }
+    ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
     ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
