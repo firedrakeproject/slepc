@@ -95,6 +95,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   HarmType_t     harm;
   InitType_t     init;
   PetscReal      fix;
+  Vec            tvec;
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
@@ -228,18 +229,16 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                                 plusk,harm,
                                 PETSC_NULL,init,eps->trackall);CHKERRQ(ierr);
 
-  /* Reserve memory */
+  /* Allocate memory */
   nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
-  ierr = PetscMalloc((nvecs*eps->nloc+nscalars)*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
-  ierr = PetscMalloc(nvecs*sizeof(Vec),&data->wV);CHKERRQ(ierr);
+  ierr = PetscMalloc(nscalars*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&tvec);CHKERRQ(ierr);
+  ierr = SlepcVecDuplicateVecs(tvec,nvecs,&data->wV);CHKERRQ(ierr);
+  ierr = VecDestroy(&tvec);CHKERRQ(ierr);
   data->size_wV = nvecs;
-  for (i=0; i<nvecs; i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,
-                                 data->wS+i*eps->nloc,&data->wV[i]);CHKERRQ(ierr);
-  }
   b.free_vecs = data->wV;
-  b.free_scalars = data->wS + nvecs*eps->nloc;
+  b.free_scalars = data->wS;
   dvd->auxV = data->wV + b.own_vecs;
   dvd->auxS = b.free_scalars + b.own_scalars;
   dvd->size_auxV = b.max_size_auxV;
@@ -315,10 +314,7 @@ PetscErrorCode EPSDestroy_Davidson(EPS eps)
   DVD_FL_DEL(dvd->startList);
   DVD_FL_DEL(dvd->endList);
 
-  for(i=0; i<data->size_wV; i++) {
-    ierr = VecDestroy(&data->wV[i]);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(data->wV);CHKERRQ(ierr);
+  ierr = SlepcVecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);

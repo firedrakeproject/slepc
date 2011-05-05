@@ -19,6 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include <private/vecimplslepc.h>
 #include "davidson.h"
 
 PetscLogEvent SLEPC_SlepcDenseMatProd = 0;
@@ -452,6 +453,8 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   PetscInt          rX, rY, ldX, ldY, i, rcX;
 
   PetscFunctionBegin;
+  SlepcValidVecsContiguous(Y,cM*dY,1);
+  SlepcValidVecsContiguous(X,cX,5);
 
   /* Compute the real number of columns */
   rcX = cX/dX;
@@ -517,6 +520,7 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   PetscInt       rX, i, j, rY, rY0, ldY;
 
   PetscFunctionBegin;
+  SlepcValidVecsContiguous(X,cX,1);
 
   if (cX != rM) {
     SETERRQ(((PetscObject)*X)->comm,1, "Matrix dimensions do not match");
@@ -594,6 +598,9 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Check if quick exit */
   if ((eU-sU == 0) || (eV-sV == 0))
     PetscFunctionReturn(0);
+
+  SlepcValidVecsContiguous(U,eU,4);
+  SlepcValidVecsContiguous(V,eU,7);
     
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
@@ -753,6 +760,9 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if ((eU-sU == 0) || (eV-sV == 0))
     PetscFunctionReturn(0);
     
+  SlepcValidVecsContiguous(U,eU,4);
+  SlepcValidVecsContiguous(V,eU,7);
+
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
@@ -904,6 +914,9 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if ((eU-sU == 0) || (eV-sV == 0))
     PetscFunctionReturn(0);
     
+  SlepcValidVecsContiguous(U,eU,4);
+  SlepcValidVecsContiguous(V,eU,7);
+
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
