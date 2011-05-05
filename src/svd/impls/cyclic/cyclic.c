@@ -88,9 +88,9 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
   PetscInt          M,N,m,n,i,nloc,isl;
   const PetscScalar *isa;
-  PetscScalar       *pU,*va;
+  PetscScalar       *va;
   PetscBool         trackall;
-  Vec               v;
+  Vec               v,t;
   Mat               Zm,Zn;
 
   PetscFunctionBegin;
@@ -174,17 +174,12 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 
   if (svd->ncv != svd->n) {
     if (svd->U) {  
-      ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]);CHKERRQ(ierr); }
-      ierr = PetscFree(pU);CHKERRQ(ierr);
-      ierr = PetscFree(svd->U);CHKERRQ(ierr);
+      ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     }
-    ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
-    for (i=0;i<svd->ncv;i++) {
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
-    }
+    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
+    ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

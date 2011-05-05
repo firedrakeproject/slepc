@@ -40,7 +40,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
   PetscInt       i,N,nloc;
-  PetscScalar    *pU;
+  Vec            t;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -60,17 +60,12 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->ncv!=svd->n) {  
     if (svd->U) {
-      ierr = VecGetArray(svd->U[0],&pU);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) { ierr = VecDestroy(&svd->U[i]);CHKERRQ(ierr); }
-      ierr = PetscFree(pU);CHKERRQ(ierr);
-      ierr = PetscFree(svd->U);CHKERRQ(ierr);
+      ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     }
-    ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
-    for (i=0;i<svd->ncv;i++) {
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+i*nloc,&svd->U[i]);CHKERRQ(ierr);
-    }
+    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
+    ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

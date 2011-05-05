@@ -265,7 +265,6 @@ PetscErrorCode SVDDestroy(SVD *svd)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscScalar    *p;
   
   PetscFunctionBegin;
   if (!*svd) PetscFunctionReturn(0);
@@ -283,19 +282,9 @@ PetscErrorCode SVDDestroy(SVD *svd)
     ierr = PetscFree((*svd)->perm);CHKERRQ(ierr);
     ierr = PetscFree((*svd)->errest);CHKERRQ(ierr);
     if ((*svd)->U) {
-      ierr = VecGetArray((*svd)->U[0],&p);CHKERRQ(ierr);
-      for (i=0;i<(*svd)->n;i++) {
-        ierr = VecDestroy(&(*svd)->U[i]);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(p);CHKERRQ(ierr);
-      ierr = PetscFree((*svd)->U);CHKERRQ(ierr);
+      ierr = SlepcVecDestroyVecs((*svd)->n,&(*svd)->U);CHKERRQ(ierr);
     }
-    ierr = VecGetArray((*svd)->V[0],&p);CHKERRQ(ierr);
-    for (i=0;i<(*svd)->n;i++) {
-      ierr = VecDestroy(&(*svd)->V[i]);CHKERRQ(ierr); 
-    }
-    ierr = PetscFree(p);CHKERRQ(ierr);
-    ierr = PetscFree((*svd)->V);CHKERRQ(ierr);
+    ierr = SlepcVecDestroyVecs((*svd)->n,&(*svd)->V);CHKERRQ(ierr);
   }
   ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);
   ierr = IPDestroy(&(*svd)->ip);CHKERRQ(ierr);

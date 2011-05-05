@@ -104,7 +104,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscErrorCode ierr;
   PetscBool      flg,lindep;
   PetscInt       i,k,M,N,nloc;
-  PetscScalar    *pV;
+  Vec            t;
   PetscReal      norm;
   
   PetscFunctionBegin;
@@ -178,27 +178,20 @@ PetscErrorCode SVDSetUp(SVD svd)
       ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
       ierr = PetscFree(svd->perm);CHKERRQ(ierr);
       ierr = PetscFree(svd->errest);CHKERRQ(ierr);
-      ierr = VecGetArray(svd->V[0],&pV);CHKERRQ(ierr);
-      for (i=0;i<svd->n;i++) {
-        ierr = VecDestroy(&svd->V[i]);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(pV);CHKERRQ(ierr);
-      ierr = PetscFree(svd->V);CHKERRQ(ierr);
+      ierr = SlepcVecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
     }
     /* allocate memory for next solution */
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscInt),&svd->perm);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(svd->ncv*sizeof(Vec),&svd->V);CHKERRQ(ierr);
     if (svd->A) {
       ierr = MatGetLocalSize(svd->A,PETSC_NULL,&nloc);CHKERRQ(ierr);
     } else {
       ierr = MatGetLocalSize(svd->AT,&nloc,PETSC_NULL);CHKERRQ(ierr);
     }
-    ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
-    for (i=0;i<svd->ncv;i++) {
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pV+i*nloc,&svd->V[i]);CHKERRQ(ierr);
-    }
+    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
+    ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->V);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
     svd->n = svd->ncv;
   }
 

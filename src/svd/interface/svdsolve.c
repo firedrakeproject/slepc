@@ -219,7 +219,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscReal      norm;
   PetscInt       j,nloc,M,N;
   PetscScalar    *pU;
-  Vec            w;
+  Vec            w,t;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -235,14 +235,11 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (M<N) { w = u; u = v; v = w; }
   if (u) {
-    PetscValidHeaderSpecific(u,VEC_CLASSID,4);
     if (!svd->U) {
-      ierr = PetscMalloc(sizeof(Vec)*svd->ncv,&svd->U);CHKERRQ(ierr);
       ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
-      ierr = PetscMalloc(svd->ncv*nloc*sizeof(PetscScalar),&pU);CHKERRQ(ierr);
-      for (j=0;j<svd->ncv;j++) {
-        ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,pU+j*nloc,&svd->U[j]);CHKERRQ(ierr);
-      }
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
+      ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
+      ierr = VecDestroy(&t);CHKERRQ(ierr);
       for (j=0;j<svd->nconv;j++) {
         ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
         ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,j,PETSC_NULL,svd->U,svd->U[j],PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
@@ -252,7 +249,6 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
     ierr = VecCopy(svd->U[svd->perm[i]],u);CHKERRQ(ierr);
   }
   if (v) {
-    PetscValidHeaderSpecific(v,VEC_CLASSID,5);   
     ierr = VecCopy(svd->V[svd->perm[i]],v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
