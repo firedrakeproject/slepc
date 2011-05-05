@@ -50,7 +50,6 @@ typedef struct {
 PetscErrorCode EPSSetUp_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
 
   PetscFunctionBegin;
@@ -393,7 +392,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
 
   PetscFunctionBegin;

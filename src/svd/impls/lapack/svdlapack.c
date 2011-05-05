@@ -29,7 +29,7 @@
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       N,i,nloc;
+  PetscInt       N,nloc;
   Vec            t;
 
   PetscFunctionBegin;

@@ -264,7 +264,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 PetscErrorCode SVDDestroy(SVD *svd)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   if (!*svd) PetscFunctionReturn(0);

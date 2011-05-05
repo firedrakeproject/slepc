@@ -40,7 +40,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
-  PetscInt       i,N,nloc;
+  PetscInt       N,nloc;
   Vec            t;
 
   PetscFunctionBegin;

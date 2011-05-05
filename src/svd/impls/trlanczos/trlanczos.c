@@ -39,7 +39,7 @@ typedef struct {
 PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       i,N,nloc;
+  PetscInt       N,nloc;
   Vec            t;
 
   PetscFunctionBegin;

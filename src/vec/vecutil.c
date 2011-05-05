@@ -22,6 +22,7 @@
 */
 
 #include <private/vecimplslepc.h>            /*I "slepcvec.h" I*/
+#include <slepcsys.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcVecSetRandom"

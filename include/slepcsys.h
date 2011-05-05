@@ -73,6 +73,10 @@ M*/
 #include "petscvec.h"
 #include "petscmat.h"
 /*
+    slepcvec.h contains extensions to PETSc Vec's
+*/
+#include "slepcvec.h"
+/*
     slepcimpl.h contains definitions common to all SLEPc objects
 */
 #include "private/slepcimpl.h"

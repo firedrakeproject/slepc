@@ -218,7 +218,6 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscErrorCode ierr;
   PetscReal      norm;
   PetscInt       j,nloc,M,N;
-  PetscScalar    *pU;
   Vec            w,t;
 
   PetscFunctionBegin;
