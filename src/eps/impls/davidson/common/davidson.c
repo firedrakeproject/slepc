@@ -88,7 +88,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       i,nvecs,nscalars,min_size_V,plusk,bs,initv;
+  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive;
@@ -305,7 +305,6 @@ PetscErrorCode EPSDestroy_Davidson(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   /* Call step destructors and destroys the list */
