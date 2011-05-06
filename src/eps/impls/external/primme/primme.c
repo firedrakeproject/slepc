@@ -281,7 +281,6 @@ PetscErrorCode EPSResetDestroy_PRIMME(EPS eps)
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   primme_Free(&ops->primme);
   ierr = VecDestroy(&ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(&ops->y);CHKERRQ(ierr);
@@ -296,7 +295,6 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","",PETSC_NULL);CHKERRQ(ierr);

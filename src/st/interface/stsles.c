@@ -44,9 +44,6 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
-  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (!st->ksp) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP"); }
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
@@ -77,9 +74,6 @@ PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
-  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (!st->ksp) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP"); }
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);

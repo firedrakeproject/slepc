@@ -198,7 +198,6 @@ PetscErrorCode EPSReset_LAPACK(EPS eps)
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = MatDestroy(&la->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&la->A);CHKERRQ(ierr); 
   ierr = MatDestroy(&la->B);CHKERRQ(ierr);
@@ -213,7 +212,6 @@ PetscErrorCode EPSDestroy_LAPACK(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

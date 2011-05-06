@@ -71,9 +71,7 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscS
 #endif
 
   PetscFunctionBegin;
-  PetscValidPointer(eigr,3);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(eigi,4);
   for (j=0;j<n;j++) {
     if (eigi[j] == 0) eigr[j] = 1.0 / eigr[j] + st->sigma;
     else {

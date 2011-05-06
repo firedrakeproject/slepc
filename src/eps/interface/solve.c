@@ -1219,6 +1219,10 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
   PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
+  PetscValidScalarPointer(eigr,3);
+  PetscValidScalarPointer(eigi,4);
+  PetscValidIntPointer(perm,5);
   for (i=0; i<n; i++) { perm[i] = i; }
   /* insertion sort */
   for (i=n-1; i>=0; i--) {
@@ -1295,6 +1299,9 @@ PetscErrorCode EPSSortEigenvaluesReal(EPS eps,PetscInt n,PetscReal *eig,PetscInt
   PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
+  PetscValidPointer(eig,3);
+  PetscValidIntPointer(perm,4);
   for (i=0; i<n; i++) { perm[i] = i; }
   /* insertion sort */
   for (i=1; i<n; i++) {
@@ -1348,6 +1355,8 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
   PetscReal      a,b;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
+  PetscValidIntPointer(result,6);
   switch(eps->which) {
     case EPS_WHICH_USER:
       if (!eps->which_func) SETERRQ(((PetscObject)eps)->comm,1,"Undefined eigenvalue comparison function");

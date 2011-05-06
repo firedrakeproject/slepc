@@ -157,7 +157,6 @@ PetscErrorCode EPSReset_TRLAN(EPS eps)
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(tr->work);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -170,7 +169,6 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

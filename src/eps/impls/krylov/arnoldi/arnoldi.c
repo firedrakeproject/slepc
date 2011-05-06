@@ -560,7 +560,6 @@ PetscErrorCode EPSReset_Arnoldi(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
@@ -574,7 +573,6 @@ PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);

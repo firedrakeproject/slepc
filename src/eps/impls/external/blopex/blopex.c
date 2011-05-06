@@ -197,7 +197,6 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   int        info,its;
   
   PetscFunctionBegin;
-  
 //#if defined(PETSC_USE_COMPLEX)
 //  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
 //        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,

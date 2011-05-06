@@ -297,7 +297,6 @@ PetscErrorCode SVDDestroy_Default(SVD svd)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

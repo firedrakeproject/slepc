@@ -31,7 +31,6 @@ PetscErrorCode EPSReset_Default(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -44,7 +43,6 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = STBackTransform(eps->OP,eps->nconv,eps->eigr,eps->eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -254,7 +252,6 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = SlepcVecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -103,8 +103,6 @@ PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScal
   PetscInt j;
 
   PetscFunctionBegin;
-  PetscValidScalarPointer(eigr,3);
-  PetscValidScalarPointer(eigi,4);
   for (j=0;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi[j] == 0) {

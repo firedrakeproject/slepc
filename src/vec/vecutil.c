@@ -102,6 +102,8 @@ PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *no
 #endif
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(xr,VEC_CLASSID,1);
+  PetscValidHeaderSpecific(xi,VEC_CLASSID,2);
 #if !defined(PETSC_USE_COMPLEX)
   if (iscomplex) {
     ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);

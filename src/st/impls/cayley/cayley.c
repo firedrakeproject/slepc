@@ -138,9 +138,7 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
 #endif
 
   PetscFunctionBegin;
-  PetscValidPointer(eigr,3);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(eigi,4);
   for (j=0;j<n;j++) {
     if (eigi[j] == 0.0) eigr[j] = (ctx->nu + eigr[j] * st->sigma) / (eigr[j] - 1.0);
     else {

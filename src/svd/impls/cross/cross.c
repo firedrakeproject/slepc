@@ -258,7 +258,6 @@ PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
   SVD_CROSS *cross = (SVD_CROSS *)svd->data;
 
   PetscFunctionBegin;
-  PetscValidPointer(eps,2);
   *eps = cross->eps;
   PetscFunctionReturn(0);
 }

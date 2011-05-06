@@ -330,6 +330,9 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBool *
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ip,nds,2);
+  PetscValidLogicalCollectiveInt(ip,n,4);
   ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   if (nds==0 && n==0) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
@@ -507,6 +510,8 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
   PetscReal      lhnrm,*hnrm,lnrm,*nrm;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ip,n,2);
   if (n==0) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
   } else {

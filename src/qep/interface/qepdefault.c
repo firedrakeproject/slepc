@@ -32,7 +32,6 @@ PetscErrorCode QEPDestroy_Default(QEP qep)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscFree(qep->data);CHKERRQ(ierr);
   /* free work vectors */
   ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
@@ -74,7 +73,6 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (qep->work)  {
     ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
   }

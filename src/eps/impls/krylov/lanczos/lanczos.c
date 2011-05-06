@@ -821,7 +821,6 @@ PetscErrorCode EPSReset_Lanczos(EPS eps)
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = SlepcVecDestroyVecs(eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -834,7 +833,6 @@ PetscErrorCode EPSDestroy_Lanczos(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);

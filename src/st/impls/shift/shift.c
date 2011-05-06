@@ -75,7 +75,6 @@ PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   PetscInt j;
 
   PetscFunctionBegin;
-  PetscValidPointer(eigr,3);
   for (j=0;j<n;j++) {
     eigr[j] -= st->sigma;
   }

@@ -289,7 +289,6 @@ PetscErrorCode EPSReset_BLZPACK(EPS eps)
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(blz->istor);CHKERRQ(ierr);
   ierr = PetscFree(blz->rstor);CHKERRQ(ierr);
   ierr = PetscFree(blz->u);CHKERRQ(ierr);
@@ -306,7 +305,6 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","",PETSC_NULL);CHKERRQ(ierr);

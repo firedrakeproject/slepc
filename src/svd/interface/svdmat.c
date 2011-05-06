@@ -30,9 +30,6 @@ PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   svd->matvecs++;
   if (trans) {
     if (svd->AT) {
@@ -57,7 +54,6 @@ PetscErrorCode SVDMatGetVecs(SVD svd,Vec *x,Vec *y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->A) {
     ierr = MatGetVecs(svd->A,x,y);CHKERRQ(ierr);
   } else {
@@ -73,7 +69,6 @@ PetscErrorCode SVDMatGetSize(SVD svd,PetscInt *m,PetscInt *n)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->A) {
     ierr = MatGetSize(svd->A,m,n);CHKERRQ(ierr);
   } else {
@@ -89,7 +84,6 @@ PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscInt *n)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->A) {
     ierr = MatGetLocalSize(svd->A,m,n);CHKERRQ(ierr);
   } else {

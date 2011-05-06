@@ -474,7 +474,6 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = SVDDestroy_Default(svd);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosGetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);

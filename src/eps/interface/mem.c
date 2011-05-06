@@ -36,7 +36,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
   Vec            t;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->allocated_ncv != eps->ncv) {
     ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
@@ -66,7 +65,6 @@ PetscErrorCode EPSFreeSolution(EPS eps)
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->allocated_ncv > 0) {
     ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
     ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
