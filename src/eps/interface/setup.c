@@ -77,8 +77,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!eps->problem_type) {
     if (B==PETSC_NULL) {
       ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
-    }
-    else {
+    } else {
       ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
     }
   } else if ((B && !eps->isgeneralized) || (!B && eps->isgeneralized)) {
@@ -103,10 +102,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 
-  /* initialize the random number generator */
-  ierr = PetscRandomCreate(((PetscObject)eps)->comm,&eps->rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
-
   /* initialization of matrix norms */
   if (eps->nrma == PETSC_DETERMINE) {
     ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
@@ -121,6 +116,19 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
+
+  /* Build balancing matrix if required */
+  if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
+    if (!eps->D) {
+      ierr = VecDuplicate(eps->V[0],&eps->D);CHKERRQ(ierr);
+    } else {
+      ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
+    }
+    ierr = EPSBuildBalance_Krylov(eps);CHKERRQ(ierr);
+    ierr = STSetBalanceMatrix(eps->OP,eps->D);CHKERRQ(ierr);
+  }
+
+  /* Setup ST */
   ierr = STSetUp(eps->OP);CHKERRQ(ierr); 
   
   ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
@@ -196,18 +204,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     }
   }
 
-  /* Build balancing matrix if required */
-  if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
-    if (!eps->D) {
-      ierr = VecDuplicate(eps->V[0],&eps->D);CHKERRQ(ierr);
-    }
-    else {
-      ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
-    }
-    ierr = EPSBuildBalance_Krylov(eps);CHKERRQ(ierr);
-    ierr = STSetBalanceMatrix(eps->OP,eps->D);CHKERRQ(ierr);
-  }
-
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
   eps->setupcalled = 1;
   PetscFunctionReturn(0);
@@ -228,9 +224,12 @@ PetscErrorCode EPSSetUp(EPS eps)
    Notes: 
    To specify a standard eigenproblem, use PETSC_NULL for parameter B.
 
+   It must be called after EPSSetUp(). If it is called again after EPSSetUp() then
+   the EPS object is reset.
+
    Level: beginner
 
-.seealso: EPSSolve(), EPSGetST(), STGetOperators()
+.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetOperators()
 @*/
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
@@ -253,9 +252,8 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     if (m!=m0) SETERRQ(((PetscObject)eps)->comm,1,"Dimensions of A and B do not match");
   }
 
+  if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
-  eps->setupcalled = 0;  /* so that next solve call will call setup */
-  ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

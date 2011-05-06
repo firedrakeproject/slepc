@@ -337,7 +337,7 @@ PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  ctx->nu = newshift;
+  ctx->nu     = newshift;
   ctx->nu_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -437,15 +437,25 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STDestroy_Cayley"
-PetscErrorCode STDestroy_Cayley(ST st)
+#define __FUNCT__ "STReset_Cayley"
+PetscErrorCode STReset_Cayley(ST st)
 {
   PetscErrorCode ierr;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
   ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STDestroy_Cayley"
+PetscErrorCode STDestroy_Cayley(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(st->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -468,6 +478,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->setup           = STSetUp_Cayley;
   st->ops->setshift        = STSetShift_Cayley;
   st->ops->destroy         = STDestroy_Cayley;
+  st->ops->reset           = STReset_Cayley;
   st->ops->view            = STView_Cayley;
   st->ops->checknullspace  = STCheckNullSpace_Default;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);

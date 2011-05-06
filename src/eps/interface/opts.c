@@ -214,6 +214,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     }
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
+  ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   ierr = IPSetFromOptions(eps->ip);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->OP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -725,8 +726,8 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,Pet
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   eps->which_func = func;
-  eps->which_ctx = ctx;
-  eps->which = EPS_WHICH_USER;
+  eps->which_ctx  = ctx;
+  eps->which      = EPS_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
@@ -845,7 +846,6 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
   *conv = eps->conv;
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetProblemType"

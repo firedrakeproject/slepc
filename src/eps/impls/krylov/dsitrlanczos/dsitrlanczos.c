@@ -194,11 +194,8 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_DSITRLanczos(EPS eps)
 {
   PetscFunctionBegin;
-  eps->data                = PETSC_NULL;
   eps->ops->setup          = EPSSetUp_DSITRLanczos;
-  eps->ops->setfromoptions = PETSC_NULL;
-  eps->ops->destroy        = EPSDestroy_Default;
-  eps->ops->view           = PETSC_NULL;
+  eps->ops->reset          = EPSReset_Default;
   eps->ops->computevectors = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }

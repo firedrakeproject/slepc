@@ -154,7 +154,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   if (!st->setupcalled) PetscFunctionReturn(0);
   st->sigma = newshift;
   if (st->shift_matrix != ST_MATMODE_SHELL) {
-    ierr =  STSetUp_Precond(st);CHKERRQ(ierr);
+    ierr = STSetUp_Precond(st);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -173,8 +173,7 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   ierr = PCGetOperatorsSet(pc,PETSC_NULL,&flag);CHKERRQ(ierr);
   if (flag) {
     ierr = PCGetOperators(pc,PETSC_NULL,mat,PETSC_NULL);CHKERRQ(ierr);
-  } else
-    *mat = PETSC_NULL;
+  } else *mat = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -361,11 +360,11 @@ PetscErrorCode STDestroy_Precond(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = PetscFree(st->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscFree(st->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

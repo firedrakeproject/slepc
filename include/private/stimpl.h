@@ -39,6 +39,7 @@ struct _STOps {
   PetscErrorCode (*postsolve)(ST);  
   PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*);  
   PetscErrorCode (*destroy)(ST);
+  PetscErrorCode (*reset)(ST);
   PetscErrorCode (*view)(ST,PetscViewer);
   PetscErrorCode (*checknullspace)(ST,PetscInt,const Vec[]);
 };

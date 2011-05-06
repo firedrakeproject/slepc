@@ -98,6 +98,41 @@ PetscErrorCode STInitializePackage(const char *path)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STReset"
+/*@
+   STReset - Resets the ST context and removes any allocated objects.
+
+   Collective on ST
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Level: advanced
+
+.seealso: STDestroy()
+@*/
+PetscErrorCode STReset(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
+  if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
+  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->w);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->D);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
+  if (st->shift_matrix != ST_MATMODE_INPLACE) { 
+    ierr = MatDestroy(&st->mat);CHKERRQ(ierr); 
+  }
+  ierr = STResetOperationCounters(st);CHKERRQ(ierr);
+  st->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STDestroy"
 /*@C
    STDestroy - Destroys ST context that was created with STCreate().
@@ -120,18 +155,8 @@ PetscErrorCode STDestroy(ST *st)
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
   if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
   ierr = PetscObjectDepublish(*st);CHKERRQ(ierr);
-  if ((*st)->ops->destroy) {
-    ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr);
-  }
-  ierr = MatDestroy(&(*st)->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*st)->B);CHKERRQ(ierr);
+  if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*st)->w);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*st)->D);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*st)->wb);CHKERRQ(ierr);
-  if ((*st)->shift_matrix != ST_MATMODE_INPLACE) { 
-    ierr = MatDestroy(&(*st)->mat);CHKERRQ(ierr); 
-  }
   ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -185,8 +210,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
-  
-  *newst                  = st;
+  *newst = st;
   PetscFunctionReturn(0);
 }
 
@@ -205,9 +229,12 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
    Notes:
    To specify a standard eigenproblem, use PETSC_NULL for B.
 
+   It must be called after STSetUp(). If it is called again after STSetUp() then
+   the ST object is reset.
+
    Level: intermediate
 
-.seealso: STGetOperators()
+.seealso: STGetOperators(), STSetUp(), STReset()
  @*/
 PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
 {
@@ -219,13 +246,11 @@ PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
   if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   PetscCheckSameComm(st,1,A,2);
   if (B) PetscCheckSameComm(st,1,B,3);
+  if (st->setupcalled) { ierr = STReset(st);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
   st->A = A;
   if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
-  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
   st->B = B;
-  st->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -372,9 +397,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->D = D;
-  if (!st->wb) {
-    ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
-  }
+  st->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

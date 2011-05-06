@@ -150,8 +150,8 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_TRLAN"
-PetscErrorCode EPSDestroy_TRLAN(EPS eps)
+#define __FUNCT__ "EPSReset_TRLAN"
+PetscErrorCode EPSReset_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
@@ -159,8 +159,19 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscFree(tr->work);CHKERRQ(ierr);
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_TRLAN"
+PetscErrorCode EPSDestroy_TRLAN(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -175,6 +186,7 @@ PetscErrorCode EPSCreate_TRLAN(EPS eps)
   ierr = PetscNewLog(eps,EPS_TRLAN,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;
+  eps->ops->reset                = EPSReset_TRLAN;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);

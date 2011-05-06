@@ -324,7 +324,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   *outeps = 0;
 
   ierr = PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_CLASSID,-1,"EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
-  *outeps = eps;
 
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
 
@@ -384,15 +383,17 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ispositive      = PETSC_FALSE;
   eps->setupcalled     = 0;
   eps->reason          = EPS_CONVERGED_ITERATING;
-
   eps->numbermonitors  = 0;
 
+  ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(eps,eps->rand);CHKERRQ(ierr);
   ierr = STCreate(comm,&eps->OP);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
   ierr = IPCreate(comm,&eps->ip);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(eps->ip,((PetscObject)eps)->prefix);
   ierr = IPAppendOptionsPrefix(eps->ip,"eps_");
   ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
+  *outeps = eps;
   PetscFunctionReturn(0);
 }
  
@@ -439,21 +440,15 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
   ierr = PetscTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  if (eps->data) {
-    /* destroy the old private EPS context */
-    ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr);
-    eps->data = 0;
-  }
-
   ierr = PetscFListFind(EPSList,((PetscObject)eps)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
-  if (!r) SETERRQ1(((PetscObject)eps)->comm,1,"Unknown EPS type given: %s",type);
+  if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
+  ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
 
   eps->setupcalled = 0;
-  ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
-  ierr = (*r)(eps);CHKERRQ(ierr);
-
   ierr = PetscObjectChangeTypeName((PetscObject)eps,type);CHKERRQ(ierr);
+  ierr = (*r)(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -565,6 +560,36 @@ PetscErrorCode EPSRegisterDestroy(void)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSReset"
+/*@
+   EPSReset - Resets the EPS context to the setupcalled=0 state and removes any
+   allocated objects.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Level: advanced
+
+.seealso: EPSDestroy()
+@*/
+PetscErrorCode EPSReset(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
+  if (eps->OP) { ierr = STReset(eps->OP);CHKERRQ(ierr); }
+  if (eps->ip) { ierr = IPReset(eps->ip);CHKERRQ(ierr); }
+  ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
+  eps->problem_type = 0;
+  eps->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy"
 /*@C
    EPSDestroy - Destroys the EPS context.
@@ -586,17 +611,12 @@ PetscErrorCode EPSDestroy(EPS *eps)
   if (!*eps) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
   if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
+  ierr = EPSReset(*eps);CHKERRQ(ierr);
   ierr = PetscObjectDepublish(*eps);CHKERRQ(ierr);
+  if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
   ierr = STDestroy(&(*eps)->OP);CHKERRQ(ierr);
   ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
-  if ((*eps)->ops->destroy) {
-    ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr);
-  }
-  ierr = PetscFree((*eps)->T);CHKERRQ(ierr);
-  ierr = PetscFree((*eps)->Tl);CHKERRQ(ierr);
-  ierr = PetscFree((*eps)->perm);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*eps)->D);CHKERRQ(ierr);
   ierr = EPSRemoveDeflationSpace(*eps);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);

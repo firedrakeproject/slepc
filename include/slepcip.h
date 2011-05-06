@@ -68,6 +68,7 @@ extern PetscErrorCode IPSetOrthogonalization(IP,IPOrthogonalizationType,IPOrthog
 extern PetscErrorCode IPGetOrthogonalization(IP,IPOrthogonalizationType*,IPOrthogonalizationRefinementType*,PetscReal*);
 extern PetscErrorCode IPView(IP,PetscViewer);
 extern PetscErrorCode IPDestroy(IP*);
+extern PetscErrorCode IPReset(IP);
 
 extern PetscErrorCode IPOrthogonalize(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscBool*);
 extern PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);

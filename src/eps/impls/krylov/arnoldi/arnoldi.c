@@ -195,7 +195,6 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -555,6 +554,20 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSReset_Arnoldi"
+PetscErrorCode EPSReset_Arnoldi(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscFree(eps->T);CHKERRQ(ierr);
+  ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
+  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_Arnoldi"
 PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
 {
@@ -562,7 +575,7 @@ PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiSetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSArnoldiGetDelayed_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -601,6 +614,7 @@ PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   eps->ops->setup                = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
   eps->ops->destroy              = EPSDestroy_Arnoldi;
+  eps->ops->reset                = EPSReset_Arnoldi;
   eps->ops->view                 = EPSView_Arnoldi;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;

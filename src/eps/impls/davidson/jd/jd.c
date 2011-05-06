@@ -133,6 +133,7 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -143,7 +144,6 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetFix_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy_Davidson(eps);
   PetscFunctionReturn(0);
 }
 

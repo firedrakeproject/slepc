@@ -191,8 +191,8 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_LAPACK"
-PetscErrorCode EPSDestroy_LAPACK(EPS eps)
+#define __FUNCT__ "EPSReset_LAPACK"
+PetscErrorCode EPSReset_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
@@ -202,8 +202,19 @@ PetscErrorCode EPSDestroy_LAPACK(EPS eps)
   ierr = MatDestroy(&la->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&la->A);CHKERRQ(ierr); 
   ierr = MatDestroy(&la->B);CHKERRQ(ierr);
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_LAPACK"
+PetscErrorCode EPSDestroy_LAPACK(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -219,6 +230,7 @@ PetscErrorCode EPSCreate_LAPACK(EPS eps)
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->destroy              = EPSDestroy_LAPACK;
+  eps->ops->reset                = EPSReset_LAPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);

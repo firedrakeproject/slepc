@@ -35,6 +35,7 @@ struct _EPSOps {
   PetscErrorCode  (*setfromoptions)(EPS);
   PetscErrorCode  (*publishoptions)(EPS);
   PetscErrorCode  (*destroy)(EPS);
+  PetscErrorCode  (*reset)(EPS);
   PetscErrorCode  (*view)(EPS,PetscViewer);
   PetscErrorCode  (*backtransform)(EPS);
   PetscErrorCode  (*computevectors)(EPS);
@@ -122,7 +123,7 @@ extern PetscErrorCode EPSRegisterAll(const char *);
 extern PetscErrorCode EPSInitializePackage(const char *);
 extern PetscErrorCode EPSFinalizePackage(void);
 
-extern PetscErrorCode EPSDestroy_Default(EPS);
+extern PetscErrorCode EPSReset_Default(EPS);
 extern PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);
 extern PetscErrorCode EPSDefaultFreeWork(EPS);
 extern PetscErrorCode EPSAllocateSolution(EPS);

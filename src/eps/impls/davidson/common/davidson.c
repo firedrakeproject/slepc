@@ -63,7 +63,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_Davidson;
   eps->ops->setup                = EPSSetUp_Davidson;
-  eps->ops->destroy              = EPSDestroy_Davidson;
+  eps->ops->reset                = EPSReset_Davidson;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_QZ;
   eps->ops->view                 = EPSView_Davidson;
@@ -299,8 +299,8 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_Davidson"
-PetscErrorCode EPSDestroy_Davidson(EPS eps)
+#define __FUNCT__ "EPSReset_Davidson"
+PetscErrorCode EPSReset_Davidson(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
@@ -315,7 +315,6 @@ PetscErrorCode EPSDestroy_Davidson(EPS eps)
 
   ierr = SlepcVecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
-  ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

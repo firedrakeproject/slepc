@@ -282,8 +282,8 @@ PetscErrorCode EPSBackTransform_BLZPACK(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_BLZPACK"
-PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
+#define __FUNCT__ "EPSReset_BLZPACK"
+PetscErrorCode EPSReset_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
@@ -295,8 +295,19 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
   ierr = PetscFree(blz->u);CHKERRQ(ierr);
   ierr = PetscFree(blz->v);CHKERRQ(ierr);
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_BLZPACK"
+PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -524,6 +535,7 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   eps->ops->setup                = EPSSetUp_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
   eps->ops->destroy              = EPSDestroy_BLZPACK;
+  eps->ops->reset                = EPSReset_BLZPACK;
   eps->ops->view                 = EPSView_BLZPACK;
   eps->ops->backtransform        = EPSBackTransform_BLZPACK;
   eps->ops->computevectors       = EPSComputeVectors_Default;

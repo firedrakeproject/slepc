@@ -388,15 +388,27 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_Subspace"
-PetscErrorCode EPSDestroy_Subspace(EPS eps)
+#define __FUNCT__ "EPSReset_Subspace"
+PetscErrorCode EPSReset_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
 
   PetscFunctionBegin;
   ierr = SlepcVecDestroyVecs(eps->ncv,&ctx->AV);CHKERRQ(ierr);
-  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  ierr = PetscFree(eps->T);CHKERRQ(ierr);
+  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_Subspace"
+PetscErrorCode EPSDestroy_Subspace(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -411,6 +423,7 @@ PetscErrorCode EPSCreate_Subspace(EPS eps)
   ierr = PetscNewLog(eps,EPS_SUBSPACE,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_Subspace;
   eps->ops->destroy              = EPSDestroy_Subspace;
+  eps->ops->reset                = EPSReset_Subspace;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);

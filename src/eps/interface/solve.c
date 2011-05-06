@@ -109,9 +109,7 @@ PetscErrorCode EPSSolve(EPS eps)
   eps->reason = EPS_CONVERGED_ITERATING;
 
   /* call setup */
-  if (!eps->setupcalled){ ierr = EPSSetUp(eps);CHKERRQ(ierr); }
-  ierr = STResetOperationCounters(eps->OP);CHKERRQ(ierr);
-  ierr = IPResetOperationCounters(eps->ip);CHKERRQ(ierr);
+  if (!eps->setupcalled) { ierr = EPSSetUp(eps);CHKERRQ(ierr); }
   eps->evecsavailable = PETSC_FALSE;
   eps->nconv = 0;
   eps->its = 0;
@@ -216,11 +214,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* sort eigenvalues according to eps->which parameter */
-  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
-  if (eps->nconv > 0) {
-    ierr = PetscMalloc(sizeof(PetscInt)*eps->nconv,&eps->perm);CHKERRQ(ierr);
-    ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
-  }
+  ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
 
   ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {

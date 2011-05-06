@@ -505,7 +505,7 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();
 PetscErrorCode EPSCreate_Davidson(EPS eps);
-PetscErrorCode EPSDestroy_Davidson(EPS eps);
+PetscErrorCode EPSReset_Davidson(EPS eps);
 PetscErrorCode EPSSetUp_Davidson(EPS eps);
 PetscErrorCode EPSSolve_Davidson(EPS eps);
 PetscErrorCode EPSComputeVectors_QZ(EPS eps);

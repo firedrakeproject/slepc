@@ -186,15 +186,25 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STDestroy_Fold"
-PetscErrorCode STDestroy_Fold(ST st)
+#define __FUNCT__ "STReset_Fold"
+PetscErrorCode STReset_Fold(ST st)
 {
   PetscErrorCode ierr;
   ST_FOLD        *ctx = (ST_FOLD*)st->data;
 
   PetscFunctionBegin;
   ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STDestroy_Fold"
+PetscErrorCode STDestroy_Fold(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(st->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -215,6 +225,7 @@ PetscErrorCode STCreate_Fold(ST st)
   st->ops->view            = STView_Fold;
   st->ops->setfromoptions  = STSetFromOptions_Fold;
   st->ops->destroy         = STDestroy_Fold;
+  st->ops->reset           = STReset_Fold;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

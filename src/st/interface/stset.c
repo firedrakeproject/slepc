@@ -69,22 +69,15 @@ PetscErrorCode STSetType(ST st,const STType type)
   ierr = PetscTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  if (st->ops->destroy) {ierr =  (*st->ops->destroy)(st);CHKERRQ(ierr);}
-  ierr = PetscFListDestroy(&((PetscObject)st)->qlist);CHKERRQ(ierr);
-  st->data        = 0;
-  st->setupcalled = 0;
+  ierr =  PetscFListFind(STList,((PetscObject)st)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
-  /* Determine the STCreateXXX routine for a particular type */
-  ierr =  PetscFListFind(STList,((PetscObject)st)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)st)->comm,1,"Unable to find requested ST type %s",type);
-  ierr = PetscFree(st->data);CHKERRQ(ierr);
-
+  if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 
-  /* Call the STCreateXXX routine for this particular type */
-  ierr = (*r)(st);CHKERRQ(ierr);
-
+  st->setupcalled = 0;
   ierr = PetscObjectChangeTypeName((PetscObject)st,type);CHKERRQ(ierr);
+  ierr = (*r)(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

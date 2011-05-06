@@ -25,16 +25,13 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_Default"
-PetscErrorCode EPSDestroy_Default(EPS eps)
+#define __FUNCT__ "EPSReset_Default"
+PetscErrorCode EPSReset_Default(EPS eps)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
-
-  /* free work vectors */
   ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -239,11 +236,9 @@ PetscErrorCode EPSDefaultGetWork(EPS eps,PetscInt nw)
 
   PetscFunctionBegin;
   if (eps->nwork != nw) {
-    if (eps->nwork > 0) {
-      ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
-    }
+    ierr = SlepcVecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;
-    ierr = VecDuplicateVecs(eps->V[0],nw,&eps->work);CHKERRQ(ierr);
+    ierr = SlepcVecDuplicateVecs(eps->V[0],nw,&eps->work);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,nw,eps->work);
   }
   PetscFunctionReturn(0);
@@ -260,9 +255,7 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->work)  {
-    ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
-  }
+  ierr = SlepcVecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

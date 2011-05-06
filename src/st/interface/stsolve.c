@@ -245,22 +245,28 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 @*/
 PetscErrorCode STSetUp(ST st)
 {
+  PetscInt       n,k;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscInfo(st,"Setting up new ST\n");
-  if (st->setupcalled) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!st->A) {SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
+  if (st->setupcalled) PetscFunctionReturn(0);
+  PetscInfo(st,"Setting up new ST\n");
+  ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!((PetscObject)st)->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = MatGetVecs(st->A,&st->w,PETSC_NULL);CHKERRQ(ierr);
-  if (st->ops->setup) {
-    ierr = (*st->ops->setup)(st);CHKERRQ(ierr);
+  if (st->D) {
+    ierr = MatGetLocalSize(st->A,PETSC_NULL,&n);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
+    if (n != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %D (should be %D)",k,n);
+    ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
+    ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
   }
+  if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->setupcalled = 1;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

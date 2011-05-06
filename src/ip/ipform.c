@@ -56,11 +56,9 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
     PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
     PetscObjectReference((PetscObject)mat);
   }
-  ierr = MatDestroy(&ip->matrix);CHKERRQ(ierr);
-  ierr = VecDestroy(&ip->Bx);CHKERRQ(ierr);
+  ierr = IPReset(ip);CHKERRQ(ierr);
   ip->matrix = mat;
   ip->bilinear_form = form;
-  ip->xid = ip->xstate = 0;
   if (mat) { ierr = MatGetVecs(mat,&ip->Bx,PETSC_NULL);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }

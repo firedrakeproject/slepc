@@ -223,11 +223,8 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
   PetscFunctionBegin;
-  eps->data                = PETSC_NULL;
   eps->ops->setup          = EPSSetUp_KrylovSchur;
-  eps->ops->setfromoptions = PETSC_NULL;
-  eps->ops->destroy        = EPSDestroy_Default;
-  eps->ops->view           = PETSC_NULL;
+  eps->ops->reset          = EPSReset_Default;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);

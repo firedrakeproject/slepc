@@ -312,8 +312,8 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_ARPACK"
-PetscErrorCode EPSDestroy_ARPACK(EPS eps)
+#define __FUNCT__ "EPSReset_ARPACK"
+PetscErrorCode EPSReset_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
@@ -327,9 +327,20 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr); 
 #endif
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_ARPACK"
+PetscErrorCode EPSDestroy_ARPACK(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -344,6 +355,7 @@ PetscErrorCode EPSCreate_ARPACK(EPS eps)
   ierr = PetscNewLog(eps,EPS_ARPACK,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
+  eps->ops->reset                = EPSReset_ARPACK;
   eps->ops->backtransform        = EPSBackTransform_ARPACK;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);

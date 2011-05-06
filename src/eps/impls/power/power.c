@@ -525,7 +525,7 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -560,6 +560,7 @@ PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->setup                = EPSSetUp_Power;
   eps->ops->setfromoptions       = EPSSetFromOptions_Power;
   eps->ops->destroy              = EPSDestroy_Power;
+  eps->ops->reset                = EPSReset_Default;
   eps->ops->view                 = EPSView_Power;
   eps->ops->backtransform        = EPSBackTransform_Power;
   eps->ops->computevectors       = EPSComputeVectors_Default;

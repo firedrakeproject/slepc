@@ -274,8 +274,8 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 } 
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_PRIMME"
-PetscErrorCode EPSDestroy_PRIMME(EPS eps)
+#define __FUNCT__ "EPSReset_PRIMME"
+PetscErrorCode EPSResetDestroy_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
@@ -285,8 +285,19 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   primme_Free(&ops->primme);
   ierr = VecDestroy(&ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(&ops->y);CHKERRQ(ierr);
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_PRIMME"
+PetscErrorCode EPSDestroy_PRIMME(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -545,6 +556,7 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   eps->ops->setup                = EPSSetUp_PRIMME;
   eps->ops->setfromoptions       = EPSSetFromOptions_PRIMME;
   eps->ops->destroy              = EPSDestroy_PRIMME;
+  eps->ops->reset                = EPSReset_PRIMME;
   eps->ops->view                 = EPSView_PRIMME;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;

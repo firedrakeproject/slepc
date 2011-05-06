@@ -158,10 +158,9 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
 PetscErrorCode STDestroy_Shell(ST st)
 {
   PetscErrorCode ierr;
-  ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(shell);CHKERRQ(ierr);
+  ierr = PetscFree(st->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApplyTranspose_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetBackTransform_C","",PETSC_NULL);CHKERRQ(ierr);

@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
-    ierr = VecDuplicateVecs(eps->V[0],eps->ncv,&lanczos->AV);CHKERRQ(ierr);
+    ierr = SlepcVecDuplicateVecs(eps->V[0],eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   }
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
@@ -814,16 +814,28 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_Lanczos"
-PetscErrorCode EPSDestroy_Lanczos(EPS eps)
+#define __FUNCT__ "EPSReset_Lanczos"
+PetscErrorCode EPSReset_Lanczos(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (lanczos->AV) { ierr = VecDestroyVecs(eps->ncv,&lanczos->AV);CHKERRQ(ierr); }
-  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
+  ierr = SlepcVecDestroyVecs(eps->ncv,&lanczos->AV);CHKERRQ(ierr);
+  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_Lanczos"
+PetscErrorCode EPSDestroy_Lanczos(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosSetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSLanczosGetReorthog_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -858,6 +870,7 @@ PetscErrorCode EPSCreate_Lanczos(EPS eps)
   eps->ops->setup                = EPSSetUp_Lanczos;
   eps->ops->setfromoptions       = EPSSetFromOptions_Lanczos;
   eps->ops->destroy              = EPSDestroy_Lanczos;
+  eps->ops->reset                = EPSReset_Lanczos;
   eps->ops->view                 = EPSView_Lanczos;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Hermitian;

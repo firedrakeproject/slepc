@@ -162,7 +162,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   blopex->tol.absolute = eps->tol;
   blopex->tol.relative = 1e-50;
   
-  LOBPCG_InitRandomContext();
   SLEPCSetupInterpreter(&blopex->ii);
   blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
   mv_MultiVectorSetRandom(blopex->eigenvectors,1234);
@@ -222,19 +221,28 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_BLOPEX"
-PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
+#define __FUNCT__ "EPSReset_BLOPEX"
+PetscErrorCode EPSReset_BLOPEX(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
 
   PetscFunctionBegin;
-  LOBPCG_DestroyRandomContext();
-  SLEPCSetupInterpreterForDignifiedDeath(&blopex->ii);
   mv_MultiVectorDestroy(blopex->eigenvectors);
   mv_MultiVectorDestroy(blopex->Y);
+  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_BLOPEX"
+PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  LOBPCG_DestroyRandomContext();
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = EPSDestroy_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -248,20 +256,20 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   const char*    prefix;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
-
   ierr = PetscNewLog(eps,EPS_BLOPEX,&blopex);CHKERRQ(ierr);
+  eps->data                      = (void*)blopex;
+  eps->ops->setup                = EPSSetUp_BLOPEX;
+  eps->ops->destroy              = EPSDestroy_BLOPEX;
+  eps->ops->reset                = EPSReset_BLOPEX;
+  eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = KSPCreate(((PetscObject)eps)->comm,&blopex->ksp);CHKERRQ(ierr);
   ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(blopex->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(blopex->ksp,"eps_blopex_");CHKERRQ(ierr);
-  eps->data                      = (void*)blopex;
-  eps->ops->setup                = EPSSetUp_BLOPEX;
-  eps->ops->setfromoptions       = PETSC_NULL;
-  eps->ops->destroy              = EPSDestroy_BLOPEX;
-  eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
+  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
+  LOBPCG_InitRandomContext();
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
