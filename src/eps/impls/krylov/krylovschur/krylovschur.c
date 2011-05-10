@@ -217,6 +217,18 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSReset_KrylovSchur"
+PetscErrorCode EPSReset_KrylovSchur(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(eps->T);CHKERRQ(ierr);
+  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_KrylovSchur"
@@ -224,7 +236,7 @@ PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
   PetscFunctionBegin;
   eps->ops->setup          = EPSSetUp_KrylovSchur;
-  eps->ops->reset          = EPSReset_Default;
+  eps->ops->reset          = EPSReset_KrylovSchur;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
