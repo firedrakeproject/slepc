@@ -90,8 +90,7 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
 .seealso: EPSMonitorFirst(), EPSMonitorAll(), EPSMonitorLG(), EPSMonitorLGAll(), EPSMonitorCancel()
 @*/
-PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),
-                             void *mctx,PetscErrorCode (*monitordestroy)(void*))
+PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);

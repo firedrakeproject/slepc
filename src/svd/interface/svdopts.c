@@ -441,19 +441,19 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = PetscOptionsString("-svd_monitor_all","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
     ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
-    ierr = SVDMonitorSet(svd,SVDMonitorAll,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
   ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&ctx->viewer);CHKERRQ(ierr);
-      ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void*))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+      ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
   }
   ierr = PetscOptionsString("-svd_monitor","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
   if (flg) {
     ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,monfilename,((PetscObject)svd)->tablevel,&monviewer);CHKERRQ(ierr);
-    ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
   ierr = PetscOptionsBool("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 

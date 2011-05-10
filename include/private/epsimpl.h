@@ -112,7 +112,7 @@ struct _p_EPS {
   EPSConvergedReason reason;     
 
   PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*); 
-  PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void*);
+  PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void**);
   void       *monitorcontext[MAXEPSMONITORS];
   PetscInt    numbermonitors; 
 };

@@ -59,7 +59,7 @@
 
 EXTERN_C_BEGIN
 static void (PETSC_STDCALL *f1)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*);
-static void (PETSC_STDCALL *f2)(void*,PetscErrorCode*);
+static void (PETSC_STDCALL *f2)(void**,PetscErrorCode*);
 
 /*
    These are not usually called from Fortran but allow Fortran users 
@@ -89,7 +89,7 @@ static PetscErrorCode ourmonitor(SVD svd,PetscInt i,PetscInt nc,PetscReal *sigma
   return 0;
 }
 
-static PetscErrorCode ourdestroy(void* ctx)
+static PetscErrorCode ourdestroy(void** ctx)
 {
   PetscErrorCode ierr = 0;
   (*f2)(ctx,&ierr);CHKERRQ(ierr);
@@ -138,8 +138,7 @@ void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
   *ierr = SVDGetIP(*svd,ip);
 }
 
-void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
-                                  void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
+void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void **,PetscErrorCode *),PetscErrorCode *ierr)
 {
   if ((void(*)())monitor == (void(*)())svdmonitorall_) {
     *ierr = SVDMonitorSet(*svd,SVDMonitorAll,0,0);

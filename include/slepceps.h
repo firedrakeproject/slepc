@@ -185,8 +185,7 @@ extern PetscErrorCode EPSGetInvariantSubspaceLeft(EPS,Vec*);
 extern PetscErrorCode EPSGetErrorEstimate(EPS,PetscInt,PetscReal*);
 extern PetscErrorCode EPSGetErrorEstimateLeft(EPS,PetscInt,PetscReal*);
 
-extern PetscErrorCode EPSMonitorSet(EPS,PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),
-                                    void*,PetscErrorCode (*monitordestroy)(void*));
+extern PetscErrorCode EPSMonitorSet(EPS,PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 extern PetscErrorCode EPSMonitorCancel(EPS);
 extern PetscErrorCode EPSGetMonitorContext(EPS,void **);
 extern PetscErrorCode EPSGetIterationNumber(EPS,PetscInt*);

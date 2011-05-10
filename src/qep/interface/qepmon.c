@@ -90,8 +90,7 @@ $     monitor (QEP qep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
 .seealso: QEPMonitorFirst(), QEPMonitorAll(), QEPMonitorLG(), QEPMonitorLGAll(), QEPMonitorCancel()
 @*/
-PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),
-                             void *mctx,PetscErrorCode (*monitordestroy)(void*))
+PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

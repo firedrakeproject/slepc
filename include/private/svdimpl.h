@@ -78,7 +78,7 @@ struct _p_SVD {
   PetscBool        trackall;
   
   PetscErrorCode  (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
-  PetscErrorCode  (*monitordestroy[MAXSVDMONITORS])(void*);
+  PetscErrorCode  (*monitordestroy[MAXSVDMONITORS])(void**);
   void            *monitorcontext[MAXSVDMONITORS];
   PetscInt        numbermonitors;
   

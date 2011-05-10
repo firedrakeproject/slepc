@@ -102,18 +102,18 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsString("-qep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorFirst,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&ctx->viewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void*))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-qep_monitor_all","Monitor approximate eigenvalues and error estimates","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorAll,monviewer,(PetscErrorCode (*)(void*))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;

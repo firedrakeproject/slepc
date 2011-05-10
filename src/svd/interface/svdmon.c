@@ -87,8 +87,7 @@ $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscRea
 
 .seealso: SVDMonitorFirst(), SVDMonitorAll(), SVDMonitorLG(), SVDMonitorLGAll(), SVDMonitorCancel()
 @*/
-PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
-                             void *mctx,PetscErrorCode (*monitordestroy)(void*))
+PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);

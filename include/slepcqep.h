@@ -107,8 +107,7 @@ extern PetscErrorCode QEPComputeRelativeError(QEP,PetscInt,PetscReal*);
 extern PetscErrorCode QEPComputeResidualNorm(QEP,PetscInt,PetscReal*);
 extern PetscErrorCode QEPGetErrorEstimate(QEP,PetscInt,PetscReal*);
 
-extern PetscErrorCode QEPMonitorSet(QEP,PetscErrorCode (*)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),
-                                    void*,PetscErrorCode (*monitordestroy)(void*));
+extern PetscErrorCode QEPMonitorSet(QEP,PetscErrorCode (*)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 extern PetscErrorCode QEPMonitorCancel(QEP);
 extern PetscErrorCode QEPGetMonitorContext(QEP,void **);
 extern PetscErrorCode QEPGetIterationNumber(QEP,PetscInt*);

@@ -122,8 +122,7 @@ extern PetscErrorCode SVDView(SVD,PetscViewer);
 extern PetscErrorCode SVDDestroy(SVD*);
 extern PetscErrorCode SVDReset(SVD);
 
-extern PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),
-                                    void*,PetscErrorCode (*monitordestroy)(void*));
+extern PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 extern PetscErrorCode SVDMonitorCancel(SVD);
 extern PetscErrorCode SVDGetMonitorContext(SVD,void **);
 extern PetscErrorCode SVDMonitorAll(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);

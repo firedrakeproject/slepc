@@ -91,7 +91,7 @@ struct _p_QEP {
   QEPConvergedReason reason;     
 
   PetscErrorCode (*monitor[MAXQEPMONITORS])(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*); 
-  PetscErrorCode (*monitordestroy[MAXQEPMONITORS])(void*);
+  PetscErrorCode (*monitordestroy[MAXQEPMONITORS])(void**);
   void       *monitorcontext[MAXQEPMONITORS];
   PetscInt    numbermonitors; 
 };

@@ -125,10 +125,10 @@ static PetscErrorCode ourmonitor(EPS eps,PetscInt i,PetscInt nc,PetscScalar *er,
   return 0;
 }
 
-static PetscErrorCode ourdestroy(void* ctx)
+static PetscErrorCode ourdestroy(void** ctx)
 {
   PetscErrorCode ierr = 0;
-  EPS            eps = (EPS)ctx;
+  EPS            eps = *(EPS*)ctx;
   void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[1];
   (*(void (PETSC_STDCALL *)(void*,PetscErrorCode*))(((PetscObject)eps)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
   return 0;
