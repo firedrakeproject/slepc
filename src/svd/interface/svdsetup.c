@@ -46,10 +46,10 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   PetscCheckSameComm(svd,1,mat,2);
+  if (svd->setupcalled) { ierr = SVDReset(svd);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   svd->OP = mat;
-  svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -118,8 +118,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
 
   /* check matrix */
-  if (!svd->OP)
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first"); 
+  if (!svd->OP) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first"); 
   
   /* determine how to build the transpose */
   if (svd->transmode == PETSC_DECIDE) {
@@ -129,8 +128,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   
   /* build transpose matrix */
-  ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
   switch (svd->transmode) {
@@ -159,10 +156,6 @@ PetscErrorCode SVDSetUp(SVD svd)
     default:
       SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
-
-  /* initialize the random number generator */
-  ierr = PetscRandomCreate(((PetscObject)svd)->comm,&svd->rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
 
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);

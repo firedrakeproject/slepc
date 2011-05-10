@@ -66,8 +66,10 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
   else switch (mode) {
     case SVD_TRANSPOSE_EXPLICIT:
     case SVD_TRANSPOSE_IMPLICIT:
-      svd->transmode = mode;
-      svd->setupcalled = 0;
+      if (svd->transmode!=mode) {
+        svd->transmode = mode;
+        svd->setupcalled = 0;
+      }
       break;
     default:
       SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
@@ -464,8 +466,9 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDMonitorSet(svd,SVDMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
-
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
+
+  ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
   ierr = IPSetFromOptions(svd->ip);CHKERRQ(ierr);
   if (svd->ops->setfromoptions) {
     ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);

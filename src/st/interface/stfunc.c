@@ -247,8 +247,10 @@ PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
   PetscCheckSameComm(st,1,A,2);
   if (B) PetscCheckSameComm(st,1,B,3);
   if (st->setupcalled) { ierr = STReset(st);CHKERRQ(ierr); }
+  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   st->A = A;
+  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
   if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
   st->B = B;
   PetscFunctionReturn(0);

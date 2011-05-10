@@ -52,10 +52,8 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
   svd->its = 0;
-  svd->matvecs = 0;
   svd->nconv = 0;
   svd->reason = SVD_CONVERGED_ITERATING;
-  ierr = IPResetOperationCounters(svd->ip);CHKERRQ(ierr);
   for (i=0;i<svd->ncv;i++) svd->sigma[i]=svd->errest[i]=0.0;
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
 

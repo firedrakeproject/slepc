@@ -50,7 +50,7 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
-  cyclic = (SVD_CYCLIC *)svd->data;
+  cyclic = (SVD_CYCLIC*)svd->data;
   ierr = SVDMatGetLocalSize(svd,&m,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
@@ -85,7 +85,7 @@ static PetscErrorCode ShellMatGetDiagonal_Cyclic(Mat B,Vec diag)
 PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
-  SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
   PetscInt          M,N,m,n,i,nloc,isl;
   const PetscScalar *isa;
   PetscScalar       *va;
@@ -94,17 +94,10 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   Mat               Zm,Zn;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
-  ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr); 
-  ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr); 
-  ierr = VecDestroy(&cyclic->y1);CHKERRQ(ierr); 
-  ierr = VecDestroy(&cyclic->y2);CHKERRQ(ierr); 
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   if (cyclic->explicitmatrix) {
-    if (!svd->AT) {
-      SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
-    }
+    if (!svd->AT) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
     ierr = MatCreate(((PetscObject)svd)->comm,&Zm);CHKERRQ(ierr);
     ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
     ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
@@ -187,7 +180,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 PetscErrorCode SVDSolve_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
-  SVD_CYCLIC        *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
   PetscInt          i,j,M,N,m,n;
   PetscScalar       sigma;
   const PetscScalar *px;
@@ -261,7 +254,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
-  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
   ST             st;
 
   PetscFunctionBegin;
@@ -285,7 +278,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDCyclicSetExplicitMatrix_Cyclic"
 PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explicitmatrix)
 {
-  SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
   cyclic->explicitmatrix = explicitmatrix;
@@ -328,7 +321,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDCyclicGetExplicitMatrix_Cyclic"
 PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmatrix)
 {
-  SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
   *explicitmatrix = cyclic->explicitmatrix;
@@ -370,7 +363,7 @@ EXTERN_C_BEGIN
 PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
 {
   PetscErrorCode  ierr;
-  SVD_CYCLIC      *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC      *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
@@ -415,7 +408,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDCyclicGetEPS_Cyclic"
 PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
 {
-  SVD_CYCLIC *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
   *eps = cyclic->eps;
@@ -457,7 +450,7 @@ PetscErrorCode SVDCyclicGetEPS(SVD svd,EPS *eps)
 PetscErrorCode SVDView_Cyclic(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
   if (cyclic->explicitmatrix) {
@@ -470,19 +463,31 @@ PetscErrorCode SVDView_Cyclic(SVD svd,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SVDDestroy_Cyclic"
-PetscErrorCode SVDDestroy_Cyclic(SVD svd)
+#define __FUNCT__ "SVDReset_Cyclic"
+PetscErrorCode SVDReset_Cyclic(SVD svd)
 {
   PetscErrorCode ierr;
-  SVD_CYCLIC     *cyclic = (SVD_CYCLIC *)svd->data;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
+  ierr = EPSReset(cyclic->eps);CHKERRQ(ierr);
   ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->y1);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->y2);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDDestroy_Cyclic"
+PetscErrorCode SVDDestroy_Cyclic(SVD svd)
+{
+  PetscErrorCode ierr;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
+
+  PetscFunctionBegin;
+  ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -506,6 +511,7 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   svd->ops->setup                = SVDSetUp_Cyclic;
   svd->ops->setfromoptions       = SVDSetFromOptions_Cyclic;
   svd->ops->destroy              = SVDDestroy_Cyclic;
+  svd->ops->reset                = SVDReset_Cyclic;
   svd->ops->view                 = SVDView_Cyclic;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","SVDCyclicSetEPS_Cyclic",SVDCyclicSetEPS_Cyclic);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","SVDCyclicGetEPS_Cyclic",SVDCyclicGetEPS_Cyclic);CHKERRQ(ierr);

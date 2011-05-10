@@ -58,7 +58,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->ncv!=svd->n) {  
-    ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
     ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
@@ -468,13 +467,24 @@ PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *oneside)
 EXTERN_C_END
 
 #undef __FUNCT__  
+#define __FUNCT__ "SVDReset_TRLanczos"
+PetscErrorCode SVDReset_TRLanczos(SVD svd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SVDDestroy_TRLanczos"
 PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SVDDestroy_Default(svd);CHKERRQ(ierr);
+  ierr = PetscFree(svd->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosGetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -504,6 +514,7 @@ PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
   svd->ops->destroy        = SVDDestroy_TRLanczos;
+  svd->ops->reset          = SVDReset_TRLanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_TRLanczos;
   svd->ops->view           = SVDView_TRLanczos;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","SVDTRLanczosSetOneSide_TRLanczos",SVDTRLanczosSetOneSide_TRLanczos);CHKERRQ(ierr);

@@ -36,6 +36,7 @@ struct _SVDOps {
   PetscErrorCode  (*setfromoptions)(SVD);
   PetscErrorCode  (*publishoptions)(SVD);
   PetscErrorCode  (*destroy)(SVD);
+  PetscErrorCode  (*reset)(SVD);
   PetscErrorCode  (*view)(SVD,PetscViewer);
 };
 
@@ -90,7 +91,6 @@ extern PetscErrorCode SVDFinalizePackage(void);
 
 extern PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
 
-extern PetscErrorCode SVDDestroy_Default(SVD);
 extern PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
 extern PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
 extern PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);

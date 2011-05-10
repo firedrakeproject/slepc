@@ -38,7 +38,6 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->mpd) PetscInfo(svd,"Warning: parameter mpd ignored\n");
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {  
-    ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
     ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
@@ -106,6 +105,28 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SVDReset_LAPACK"
+PetscErrorCode SVDReset_LAPACK(SVD svd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SVDDestroy_LAPACK"
+PetscErrorCode SVDDestroy_LAPACK(SVD svd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(svd->data);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCreate_LAPACK"
@@ -114,7 +135,8 @@ PetscErrorCode SVDCreate_LAPACK(SVD svd)
   PetscFunctionBegin;
   svd->ops->setup   = SVDSetUp_LAPACK;
   svd->ops->solve   = SVDSolve_LAPACK;
-  svd->ops->destroy = SVDDestroy_Default;
+  svd->ops->destroy = SVDDestroy_LAPACK;
+  svd->ops->reset   = SVDReset_LAPACK;
   if (svd->transmode == PETSC_DECIDE)
     svd->transmode = SVD_TRANSPOSE_IMPLICIT; /* don't build the transpose */
   PetscFunctionReturn(0);
