@@ -226,7 +226,15 @@ try:
   slepcvars = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
     prefixdir = archdir
-  slepcvars.write('SLEPC_DESTDIR =' + prefixdir +'\n')
+  slepcvars.write('SLEPC_DESTDIR = ' + prefixdir +'\n')
+  testruns = petscconf.TEST_RUNS.split()
+  testruns.remove('VALGRIND')
+  testruns.remove('PTHREAD')
+  testruns.remove('X11')
+  testruns.remove('C_X11')
+  testruns.remove('F90_NoComplex')
+  testruns.remove('Fortran_NoComplex')
+  slepcvars.write('TEST_RUNS = ' + ' '.join(testruns) +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
 try:

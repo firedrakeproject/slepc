@@ -23,7 +23,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS
   
   if 'PETSC_ARCH' in os.environ:
     ISINSTALL = 0
@@ -50,6 +50,8 @@ def Load(petscdir):
         DESTDIR = v
       elif k == 'BFORT':
 	BFORT = v
+      elif k == 'TEST_RUNS':
+	TEST_RUNS = v
     f.close()
   except:
     sys.exit('ERROR: PETSc is not configured for architecture ' + ARCH)
