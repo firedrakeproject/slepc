@@ -51,7 +51,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   Mat            A,B; 
   PetscInt       i,k;
   PetscBool      flg,lindep;
-  PetscScalar    *pDS;
+  Vec            *newDS;
   PetscReal      norm;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
@@ -143,13 +143,13 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
       /* allocate memory and copy deflation basis vectors into DS */
-      ierr = PetscMalloc(eps->nds*eps->nloc*sizeof(PetscScalar),&pDS);CHKERRQ(ierr);
+      ierr = SlepcVecDuplicateVecs(eps->V[0],eps->nds,&newDS);CHKERRQ(ierr);
       for (i=0;i<eps->nds;i++) {
-        ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,pDS+i*eps->nloc,&vds);CHKERRQ(ierr);
-        ierr = VecCopy(eps->DS[i],vds);CHKERRQ(ierr);
+        ierr = VecCopy(eps->DS[i],newDS[i]);CHKERRQ(ierr);
         ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr);
-        eps->DS[i] = vds;
       }
+      ierr = PetscFree(eps->DS);CHKERRQ(ierr);
+      eps->DS = newDS;
       /* orthonormalize vectors in DS */
       k = 0;
       for (i=0;i<eps->nds;i++) {
@@ -160,6 +160,7 @@ PetscErrorCode EPSSetUp(EPS eps)
           k++;
         }
       }
+      for (i=k;i<eps->nds;i++) { ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr); }
       eps->nds = k;
       eps->ds_ortho = PETSC_TRUE;
     }
@@ -370,16 +371,13 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->nds > 0) {
-    ierr = VecGetArray(eps->DS[0],&pV);CHKERRQ(ierr);
-    ierr = VecRestoreArray(eps->DS[0],PETSC_NULL);CHKERRQ(ierr);
+  if (!eps->ds_ortho) {  /* before EPSSetUp, DS are just references */
     for (i=0;i<eps->nds;i++) {
       ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr);
     }
-    if (eps->setupcalled) {  /* before EPSSetUp, DS are just references */
-      ierr = PetscFree(pV);CHKERRQ(ierr);
-    }
     ierr = PetscFree(eps->DS);CHKERRQ(ierr);
+  } else {
+    ierr = SlepcVecDestroyVecs(eps->nds,&eps->DS);CHKERRQ(ierr);
   }
   eps->nds = 0;
   eps->setupcalled = 0;
