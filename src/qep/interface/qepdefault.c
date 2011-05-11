@@ -26,19 +26,6 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPDestroy_Default"
-PetscErrorCode QEPDestroy_Default(QEP qep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(qep->data);CHKERRQ(ierr);
-  /* free work vectors */
-  ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "QEPDefaultGetWork"
 /*
   QEPDefaultGetWork - Gets a number of work vectors.
@@ -46,18 +33,12 @@ PetscErrorCode QEPDestroy_Default(QEP qep)
 PetscErrorCode QEPDefaultGetWork(QEP qep,PetscInt nw)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   if (qep->nwork != nw) {
-    if (qep->nwork > 0) {
-      ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
-    }
+    ierr = SlepcVecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
     qep->nwork = nw;
-    ierr = PetscMalloc(nw*sizeof(Vec),&qep->work);CHKERRQ(ierr);
-    for (i=0;i<nw;i++) {
-      ierr = MatGetVecs(qep->M,PETSC_NULL,qep->work+i);CHKERRQ(ierr);
-    }
+    ierr = SlepcVecDuplicateVecs(qep->V[0],nw,&qep->work);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(qep,nw,qep->work);
   }
   PetscFunctionReturn(0);
@@ -73,9 +54,7 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (qep->work)  {
-    ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
-  }
+  ierr = SlepcVecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -216,5 +195,4 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscSca
   *kout = k;
   PetscFunctionReturn(0);
 }
-
 

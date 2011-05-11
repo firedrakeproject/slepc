@@ -86,10 +86,6 @@ PetscErrorCode QEPSetUp(QEP qep)
     else qep->sfactor = 1.0;
   }
 
-  /* initialize the random number generator */
-  ierr = PetscRandomCreate(((PetscObject)qep)->comm,&qep->rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
-
   /* Call specific solver setup */
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
 
@@ -206,6 +202,7 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
   if (m!=m0) { SETERRQ(((PetscObject)qep)->comm,1,"Dimensions of M and K do not match"); }
 
   /* Store a copy of the matrices */
+  if (qep->setupcalled) { ierr = QEPReset(qep);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)M);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
   qep->M = M;
@@ -215,8 +212,6 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
   ierr = PetscObjectReference((PetscObject)K);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
   qep->K = K;
-
-  qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

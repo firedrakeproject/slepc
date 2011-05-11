@@ -239,9 +239,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   PetscFunctionBegin;
   PetscValidPointer(outqep,2);
   *outqep = 0;
-
   ierr = PetscHeaderCreate(qep,_p_QEP,struct _QEPOps,QEP_CLASSID,-1,"QEP",comm,QEPDestroy,QEPView);CHKERRQ(ierr);
-  *outqep = qep;
 
   ierr = PetscMemzero(qep->ops,sizeof(struct _QEPOps));CHKERRQ(ierr);
 
@@ -285,10 +283,13 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->trackall        = PETSC_FALSE;
   qep->rand            = 0;
 
+  ierr = PetscRandomCreate(comm,&qep->rand);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(qep,qep->rand);CHKERRQ(ierr);
   ierr = IPCreate(comm,&qep->ip);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(qep->ip,((PetscObject)qep)->prefix);
   ierr = IPAppendOptionsPrefix(qep->ip,"qep_");
   ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
+  *outqep = qep;
   PetscFunctionReturn(0);
 }
  
@@ -331,24 +332,19 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidCharPointer(type,2);
+
   ierr = PetscTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  if (qep->data) {
-    /* destroy the old private QEP context */
-    ierr = (*qep->ops->destroy)(qep);CHKERRQ(ierr);
-    qep->data = 0;
-  }
-
   ierr = PetscFListFind(QEPList,((PetscObject)qep)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown QEP type given: %s",type);
 
-  if (!r) SETERRQ1(((PetscObject)qep)->comm,1,"Unknown QEP type given: %s",type);
+  if (qep->ops->destroy) { ierr = (*qep->ops->destroy)(qep);CHKERRQ(ierr); }
+  ierr = PetscMemzero(qep->ops,sizeof(struct _QEPOps));CHKERRQ(ierr);
 
   qep->setupcalled = 0;
-  ierr = PetscMemzero(qep->ops,sizeof(struct _QEPOps));CHKERRQ(ierr);
-  ierr = (*r)(qep);CHKERRQ(ierr);
-
   ierr = PetscObjectChangeTypeName((PetscObject)qep,type);CHKERRQ(ierr);
+  ierr = (*r)(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -460,6 +456,45 @@ PetscErrorCode QEPRegisterDestroy(void)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "QEPReset"
+/*@C
+   QEPReset - Resets the QEP context to the setupcalled=0 state and removes any
+   allocated objects.
+
+   Collective on QEP
+
+   Input Parameter:
+.  qep - eigensolver context obtained from QEPCreate()
+
+   Level: advanced
+
+.seealso: QEPDestroy()
+@*/
+PetscErrorCode QEPReset(QEP qep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  if (qep->ops->reset) { ierr = (qep->ops->reset)(qep);CHKERRQ(ierr); }
+  if (qep->ip) { ierr = IPReset(qep->ip);CHKERRQ(ierr); }
+  ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
+  ierr = MatDestroy(&qep->C);CHKERRQ(ierr);
+  ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
+  if (qep->eigr) { 
+    ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
+    ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
+    ierr = PetscFree(qep->perm);CHKERRQ(ierr);
+    ierr = PetscFree(qep->errest);CHKERRQ(ierr);
+    ierr = SlepcVecDestroyVecs(qep->ncv,&qep->V);CHKERRQ(ierr);
+  }
+  qep->matvecs     = 0;
+  qep->linits      = 0;
+  qep->setupcalled = 0;  
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "QEPDestroy"
 /*@C
    QEPDestroy - Destroys the QEP context.
@@ -481,24 +516,12 @@ PetscErrorCode QEPDestroy(QEP *qep)
   if (!*qep) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*qep,QEP_CLASSID,1);
   if (--((PetscObject)(*qep))->refct > 0) { *qep = 0; PetscFunctionReturn(0); }
+  ierr = QEPReset(*qep);CHKERRQ(ierr);
   ierr = PetscObjectDepublish(*qep);CHKERRQ(ierr);
-  if ((*qep)->ops->destroy) {
-    ierr = (*(*qep)->ops->destroy)(*qep);CHKERRQ(ierr);
-  }
-  ierr = PetscFree((*qep)->T);CHKERRQ(ierr);
-  if ((*qep)->eigr) { 
-    ierr = PetscFree((*qep)->eigr);CHKERRQ(ierr);
-    ierr = PetscFree((*qep)->eigi);CHKERRQ(ierr);
-    ierr = PetscFree((*qep)->perm);CHKERRQ(ierr);
-    ierr = PetscFree((*qep)->errest);CHKERRQ(ierr);
-    ierr = SlepcVecDestroyVecs((*qep)->ncv,&(*qep)->V);CHKERRQ(ierr);
-  }
-  ierr = QEPMonitorCancel(*qep);CHKERRQ(ierr);
+  if ((*qep)->ops->destroy) { ierr = (*(*qep)->ops->destroy)(*qep);CHKERRQ(ierr); }
   ierr = IPDestroy(&(*qep)->ip);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*qep)->rand);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*qep)->M);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*qep)->C);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*qep)->K);CHKERRQ(ierr);
+  ierr = QEPMonitorCancel(*qep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -35,6 +35,7 @@ struct _QEPOps {
   PetscErrorCode  (*setfromoptions)(QEP);
   PetscErrorCode  (*publishoptions)(QEP);
   PetscErrorCode  (*destroy)(QEP);
+  PetscErrorCode  (*reset)(QEP);
   PetscErrorCode  (*view)(QEP,PetscViewer);
 };
 
@@ -102,7 +103,6 @@ extern PetscErrorCode QEPRegisterAll(const char *);
 extern PetscErrorCode QEPInitializePackage(const char *);
 extern PetscErrorCode QEPFinalizePackage(void);
 
-extern PetscErrorCode QEPDestroy_Default(QEP);
 extern PetscErrorCode QEPDefaultGetWork(QEP,PetscInt);
 extern PetscErrorCode QEPDefaultFreeWork(QEP);
 extern PetscErrorCode QEPComputeVectors_Schur(QEP);

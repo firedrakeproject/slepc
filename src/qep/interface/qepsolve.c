@@ -68,11 +68,8 @@ PetscErrorCode QEPSolve(QEP qep)
   qep->reason = QEP_CONVERGED_ITERATING;
 
   if (!qep->setupcalled){ ierr = QEPSetUp(qep);CHKERRQ(ierr); }
-  ierr = IPResetOperationCounters(qep->ip);CHKERRQ(ierr);
   qep->nconv = 0;
   qep->its = 0;
-  qep->matvecs = 0;
-  qep->linits = 0;
   for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
   ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);CHKERRQ(ierr);
 
