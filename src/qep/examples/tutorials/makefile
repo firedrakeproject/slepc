@@ -30,7 +30,7 @@ MANSEC     = QEP
 
 TESTEXAMPLES_C   = ex16.PETSc runex16_1 ex16.rm \
                    ex17.PETSc runex17_1 ex17.rm
-TESTEXAMPLES_F90 = ex1f90.PETSc runex1f90_1 ex1f90.rm
+TESTEXAMPLES_F90 = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
