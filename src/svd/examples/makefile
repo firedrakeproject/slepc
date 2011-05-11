@@ -19,13 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+ALL:
 
-SOURCEH  = ../../include/private/svdimpl.h ../../include/slepcsvd.h
-DIRS     = interface impls examples
-LOCDIR   = src/svd/
-MANSEC   = SVD
+LOCDIR	 = src/svd/examples/
+DIRS	 = tests tutorials
 
 include ${SLEPC_DIR}/conf/slepc_common
-
 

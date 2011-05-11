@@ -22,7 +22,7 @@
 ALL: lib
 
 SOURCEH  = ../../include/private/stimpl.h ../../include/slepcst.h
-DIRS     = interface impls
+DIRS     = interface impls examples
 LOCDIR   = src/st/
 MANSEC   = ST
 

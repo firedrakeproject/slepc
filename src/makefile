@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip sys vec examples 
+DIRS     = eps st svd qep ip sys vec
 
 LOCDIR   = src/
 

@@ -23,26 +23,25 @@ CFLAGS	   =
 FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
-LOCDIR     = src/examples/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex8.c ex9.c ex10.c ex11.c ex12.c ex13.c ex14.c ex15.c ex16.c ex17.c ex18.c
-EXAMPLESCH = 
-EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F mvmisg.f ex15f.F ex16f90.F90
+LOCDIR     = src/eps/examples/tutorials/
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex12.c ex13.c ex18.c
+EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
+MANSEC     = EPS
 
-TESTEXAMPLES_C  = ex1.PETSc runex1_1 ex1.rm ex2.PETSc runex2_1 ex2.rm \
-                  ex4.PETSc runex4_1 ex4.rm ex5.PETSc runex5_1 ex5.rm \
-                  ex7.PETSc runex7_1 ex7.rm ex10.PETSc runex10_1 ex10.rm \
-                  ex11.PETSc runex11_1 ex11.rm ex12.PETSc runex12_1 ex12.rm \
-                  ex13.PETSc runex13_1 ex13.rm ex14.PETSc runex14_1 ex14.rm \
-                  ex15.PETSc runex15_1 ex15.rm ex16.PETSc runex16_1 ex16.rm \
-                  ex17.PETSc runex17_1 ex17.rm ex18.PETSc runex18_1 ex18.rm
-
-TESTEXAMPLES_FORTRAN  = ex1f.PETSc runex1f_1 ex1f.rm
-
-TESTEXAMPLES_FORTRAN_MPIUNI  = ex6f.PETSc runex6f_1 ex6f.rm
-
-TESTEXAMPLES_C_X11_MPIUNI  = ex3.PETSc runex3_1 ex3.rm
-
-TESTEXAMPLES_F90  = ex1f90.PETSc runex1f90_1 ex1f90.rm
+TESTEXAMPLES_C       = ex1.PETSc runex1_1 ex1.rm \
+                       ex2.PETSc runex2_1 ex2.rm \
+                       ex3.PETSc runex3_1 ex3.rm \
+                       ex4.PETSc runex4_1 ex4.rm \
+                       ex5.PETSc runex5_1 ex5.rm \
+                       ex7.PETSc runex7_1 ex7.rm \
+                       ex9.PETSc runex9_1 ex9.rm \
+                       ex11.PETSc runex11_1 ex11.rm \
+                       ex12.PETSc runex12_1 ex12.rm \
+                       ex13.PETSc runex13_1 ex13.rm \
+                       ex18.PETSc runex18_1 ex18.rm
+TESTEXAMPLES_FORTRAN = ex1f.PETSc runex1f_1 ex1f.rm \
+                       ex6f.PETSc runex6f_1 ex6f.rm
+TESTEXAMPLES_F90     = ex1f90.PETSc runex1f90_1 ex1f90.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -74,25 +73,17 @@ ex5: ex5.o chkopts
 	-${CLINKER} -o ex5 ex5.o ${SLEPC_LIB}
 	${RM} ex5.o
 
-ex6f: ex6f.o mvmisg.o chkopts
-	-${FLINKER} -o ex6f ex6f.o mvmisg.o ${SLEPC_LIB}
-	${RM} ex6f.o mvmisg.o
+ex6f: ex6f.o chkopts
+	-${FLINKER} -o ex6f ex6f.o ${SLEPC_LIB}
+	${RM} ex6f.o
 
 ex7: ex7.o chkopts
 	-${CLINKER} -o ex7 ex7.o ${SLEPC_LIB}
 	${RM} ex7.o
 
-ex8: ex8.o chkopts
-	-${CLINKER} -o ex8 ex8.o ${SLEPC_LIB}
-	${RM} ex8.o
-
 ex9: ex9.o chkopts
 	-${CLINKER} -o ex9 ex9.o ${SLEPC_LIB}
 	${RM} ex9.o
-
-ex10: ex10.o chkopts
-	-${CLINKER} -o ex10 ex10.o ${SLEPC_LIB}
-	${RM} ex10.o
 
 ex11: ex11.o chkopts
 	-${CLINKER} -o ex11 ex11.o ${SLEPC_LIB}
@@ -105,30 +96,6 @@ ex12: ex12.o chkopts
 ex13: ex13.o chkopts
 	-${CLINKER} -o ex13 ex13.o ${SLEPC_LIB}
 	${RM} ex13.o
-
-ex14: ex14.o chkopts
-	-${CLINKER} -o ex14 ex14.o ${SLEPC_LIB}
-	${RM} ex14.o
-
-ex15: ex15.o chkopts
-	-${CLINKER} -o ex15 ex15.o ${SLEPC_LIB}
-	${RM} ex15.o
-
-ex15f: ex15f.o chkopts
-	-${FLINKER} -o ex15f ex15f.o ${SLEPC_LIB}
-	${RM} ex15f.o
-
-ex16: ex16.o chkopts
-	-${CLINKER} -o ex16 ex16.o ${SLEPC_LIB}
-	${RM} ex16.o
-
-ex16f90: ex16f90.o chkopts
-	-${FLINKER} -o ex16f90 ex16f90.o ${SLEPC_LIB}
-	${RM} ex16f90.o
-
-ex17: ex17.o chkopts
-	-${CLINKER} -o ex17 ex17.o ${SLEPC_LIB}
-	${RM} ex17.o
 
 ex18: ex18.o chkopts
 	-${CLINKER} -o ex18 ex18.o ${SLEPC_LIB}
@@ -152,7 +119,7 @@ testex1: ex1.PETSc
            echo "C/C++ example src/examples/ex1 run successfully with 1 MPI process"; \
 	   else echo "Possible error running C/C++ src/examples/ex1 with 1 MPI process"; \
            cat ex1_1.tmp; fi; \
-           ${RM} -f ex1_1.tmp; fi
+           ${RM} -f ex1 ex1_1.tmp; fi
 
 runex1f_1:
 	-@${MPIEXEC} -np 1 ./ex1f > ex1f_1.tmp 2>&1;	  \
@@ -170,7 +137,7 @@ testex1f: ex1f.PETSc
            echo "Fortran example src/examples/ex1f run successfully with 1 MPI process"; \
 	   else echo "Possible error running Fortran src/examples/ex1f with 1 MPI process"; \
            cat ex1f_1.tmp; fi; \
-           ${RM} -f ex1f_1.tmp; fi
+           ${RM} -f ex1f ex1f_1.tmp; fi
 
 runex1f90_1:
 	-@${MPIEXEC} -np 1 ./ex1f90 > ex1f90_1.tmp 2>&1;	  \
@@ -202,12 +169,6 @@ runex5_1:
 	   else echo "Possible problem with ex5_1, diffs above"; fi; \
 	   ${RM} -f ex5_1.tmp
 
-runex5_2:
-	-@${MPIEXEC} -np 2 ./ex5 -st_shift 1 > ex5_2.tmp 2>&1;	  \
-	   if (${DIFF} output/ex5_1.out ex5_2.tmp) then true; \
-	   else echo "Possible problem with ex5_2, diffs above"; fi; \
-	   ${RM} -f ex5_2.tmp
-
 runex6f_1:
 	-@${MPIEXEC} -np 1 ./ex6f -st_shift 1 -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 > ex6f_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp) then true; \
@@ -220,23 +181,11 @@ runex7_1:
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp
 
-runex8_1:
-	-@${MPIEXEC} -np 1 ./ex8 > ex8_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex8_1.out ex8_1.tmp) then true; \
-	   else echo "Possible problem with ex8_1, diffs above"; fi; \
-	   ${RM} -f ex8_1.tmp
-
 runex9_1:
 	-@${MPIEXEC} -np 1 ./ex9 > ex9_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex9_1.out ex9_1.tmp) then true; \
 	   else echo "Possible problem with ex9_1, diffs above"; fi; \
 	   ${RM} -f ex9_1.tmp
-
-runex10_1:
-	-@${MPIEXEC} -np 1 ./ex10 > ex10_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex10_1.out ex10_1.tmp) then true; \
-	   else echo "Possible problem with ex10_1, diffs above"; fi; \
-	   ${RM} -f ex10_1.tmp
 
 runex11_1:
 	-@${MPIEXEC} -np 1 ./ex11 > ex11_1.tmp 2>&1;	  \
@@ -255,36 +204,6 @@ runex13_1:
 	   if (${DIFF} output/ex13_1.out ex13_1.tmp) then true; \
 	   else echo "Possible problem with ex13_1, diffs above"; fi; \
 	   ${RM} -f ex13_1.tmp
-
-runex14_1:
-	-@${MPIEXEC} -np 1 ./ex14 -file ${SLEPC_DIR}/src/mat/examples/rdb200.petsc > ex14_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex14_1.out ex14_1.tmp) then true; \
-	   else echo "Possible problem with ex14_1, diffs above"; fi; \
-	   ${RM} -f ex14_1.tmp
-
-runex15_1:
-	-@${MPIEXEC} -np 1 ./ex15 > ex15_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex15_1.out ex15_1.tmp) then true; \
-	   else echo "Possible problem with ex15_1, diffs above"; fi; \
-	   ${RM} -f ex15_1.tmp
-
-runex16_1:
-	-@${MPIEXEC} -np 1 ./ex16 > ex16_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex16_1.out ex16_1.tmp) then true; \
-	   else echo "Possible problem with ex16_1, diffs above"; fi; \
-	   ${RM} -f ex16_1.tmp
-
-runex16f90_1:
-	-@${MPIEXEC} -np 1 ./ex16f90 > ex16f90_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex16f90_1.out ex16f90_1.tmp) then true; \
-	   else echo "Possible problem with ex16f90_1, diffs above"; fi; \
-	   ${RM} -f ex16f90_1.tmp
-
-runex17_1:
-	-@${MPIEXEC} -np 1 ./ex17 -M ${SLEPC_DIR}/src/mat/examples/speaker107m.petsc -C ${SLEPC_DIR}/src/mat/examples/speaker107c.petsc -K ${SLEPC_DIR}/src/mat/examples/speaker107k.petsc -qep_linear_explicitmatrix > ex17_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex17_1.out ex17_1.tmp) then true; \
-	   else echo "Possible problem with ex17_1, diffs above"; fi; \
-	   ${RM} -f ex17_1.tmp
 
 runex18_1:
 	-@${MPIEXEC} -np 1 ./ex18 > ex18_1.tmp 2>&1;	  \

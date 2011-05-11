@@ -112,8 +112,8 @@ build:
 # Simple test examples for checking a correct installation
 test: 
 	-@echo "Running test examples to verify correct installation"
-	@cd src/examples; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testex1
-	@if [ "${FC}" != "" ]; then cd src/examples; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} testex1f; fi;
+	@cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testex1
+	@if [ "${FC}" != "" ]; then cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} testex1f; fi;
 	-@echo "Completed test examples"
 
 # Builds SLEPc test examples for C
@@ -139,33 +139,6 @@ testfortran: info
 	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
 	      ACTION=testexamples_Fortran  slepctree ; \
             echo "Completed compiling and running Fortran test examples"; \
-          else \
-            echo "Error: No FORTRAN compiler available"; \
-          fi
-	-@
-	-@echo "========================================="
-
-# Uni-processor examples in C
-testexamples_uni: info
-	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR EXAMPLES"
-	-@echo "Due to different numerical round-off on certain"
-	-@echo "machines some of the numbers may not match exactly."
-	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	   ACTION=testexamples_C_X11_MPIUni  slepctree 
-	-@echo "Completed compiling and running uniprocessor test examples"
-	-@echo "========================================="
-
-# Uni-processor examples in Fortran
-testfortran_uni: info
-	-@echo "BEGINNING TO COMPILE AND RUN TEST UNI-PROCESSOR FORTRAN EXAMPLES"
-	-@echo "Due to different numerical round-off on certain"
-	-@echo "machines some of the numbers may not match exactly."
-	-@echo "========================================="
-	-@if [ "${FC}" != "" ]; then \
-            ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} 
-	      ACTION=testexamples_Fortran_MPIUni  slepctree; \
-            echo "Completed compiling and running uniprocessor Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
           fi

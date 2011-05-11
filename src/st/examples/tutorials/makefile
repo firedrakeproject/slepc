@@ -19,13 +19,28 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+CFLAGS	   = 
+FFLAGS     =
+CPPFLAGS   = 
+FPPFLAGS   =
+LOCDIR     = src/st/examples/tutorials/
+EXAMPLESC  = ex10.c
+EXAMPLESF  = 
+MANSEC     = ST
 
-SOURCEH  = ../../include/private/svdimpl.h ../../include/slepcsvd.h
-DIRS     = interface impls examples
-LOCDIR   = src/svd/
-MANSEC   = SVD
+TESTEXAMPLES_C      = ex10.PETSc runex10_1 ex10.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
+ex10: ex10.o chkopts
+	-${CLINKER} -o ex10 ex10.o ${SLEPC_LIB}
+	${RM} ex10.o
+
+#------------------------------------------------------------------------------------
+
+runex10_1:
+	-@${MPIEXEC} -np 1 ./ex10 > ex10_1.tmp 2>&1;	  \
+	   if (${DIFF} output/ex10_1.out ex10_1.tmp) then true; \
+	   else echo "Possible problem with ex10_1, diffs above"; fi; \
+	   ${RM} -f ex10_1.tmp
 

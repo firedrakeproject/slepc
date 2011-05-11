@@ -1,0 +1,22 @@
+
+Lauchli SVD, n =100, mu=  0.1000E-06 (Fortran)
+
+ Number of iterations of the method:   1
+ Solution method: trlanczos                                                                       
+ Number of requested singular values: 1
+ Stopping condition: tol=1.0000E-07, maxit= 100
+ Number of converged approximate singular triplets:10
+
+        sigma          residual norm
+  ----------------- ------------------
+     1.0000E+01         1.6920E-15
+     1.0000E-07         6.3372E-10
+     1.0000E-07         1.8735E-09
+     1.0000E-07         4.1633E-10
+     1.0000E-07         1.1102E-09
+     1.0000E-07         5.4991E-09
+     1.0000E-07         1.8874E-08
+     1.0000E-07         6.2450E-10
+     1.0000E-07         3.3232E-16
+     1.0000E-07         1.7902E-08
+

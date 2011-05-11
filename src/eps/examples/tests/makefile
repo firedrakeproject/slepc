@@ -19,13 +19,19 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+CFLAGS	   = 
+FFLAGS     =
+CPPFLAGS   = 
+FPPFLAGS   =
+LOCDIR     = src/eps/examples/tests/
+EXAMPLESC  = 
+EXAMPLESF  = 
+MANSEC     = EPS
 
-SOURCEH  = ../../include/private/svdimpl.h ../../include/slepcsvd.h
-DIRS     = interface impls examples
-LOCDIR   = src/svd/
-MANSEC   = SVD
+TESTEXAMPLES_C       = 
 
 include ${SLEPC_DIR}/conf/slepc_common
 
+
+#------------------------------------------------------------------------------------
 
