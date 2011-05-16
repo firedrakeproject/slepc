@@ -189,7 +189,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   *newst = 0;
 
   ierr = PetscHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,-1,"ST",comm,STDestroy,STView);CHKERRQ(ierr);
-  ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 
   st->A                   = 0;
   st->B                   = 0;

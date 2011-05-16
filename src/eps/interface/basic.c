@@ -325,8 +325,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   ierr = PetscHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_CLASSID,-1,"EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
 
-  ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
-
   eps->max_it          = 0;
   eps->nev             = 1;
   eps->ncv             = 0;

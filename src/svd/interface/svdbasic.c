@@ -210,8 +210,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   *outsvd = 0;
   ierr = PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,-1,"SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
 
-  ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
-
   svd->OP             = PETSC_NULL;
   svd->A              = PETSC_NULL;
   svd->AT             = PETSC_NULL;
