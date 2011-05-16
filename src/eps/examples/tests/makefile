@@ -19,19 +19,29 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS	   = 
+CFLAGS     = 
 FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
-EXAMPLESC  = 
+EXAMPLESC  = test1.c
 EXAMPLESF  = 
 MANSEC     = EPS
+TESTS      = test1
 
-TESTEXAMPLES_C       = 
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
 
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
+	${RM} test1.o
 
 #------------------------------------------------------------------------------------
+
+runtest1_1:
+	-@${MPIEXEC} -np 1 ./test1 > test1_1.tmp 2>&1;    \
+	   if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
+	   else echo "Possible problem with ex1_1, diffs above"; fi; \
+	   ${RM} -f test1_1.tmp
 

@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS	   = 
+CFLAGS     = 
 FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
@@ -54,7 +54,7 @@ ex15f: ex15f.o chkopts
 #------------------------------------------------------------------------------------
 
 runex8_1:
-	-@${MPIEXEC} -np 1 ./ex8 > ex8_1.tmp 2>&1;	  \
+	-@${MPIEXEC} -np 1 ./ex8 > ex8_1.tmp 2>&1; \
 	   if (${DIFF} output/ex8_1.out ex8_1.tmp) then true; \
 	   else echo "Possible problem with ex8_1, diffs above"; fi; \
 	   ${RM} -f ex8_1.tmp
@@ -66,13 +66,13 @@ runex14_1:
 	   ${RM} -f ex14_1.tmp
 
 runex15_1:
-	-@${MPIEXEC} -np 1 ./ex15 > ex15_1.tmp 2>&1;	  \
+	-@${MPIEXEC} -np 1 ./ex15 > ex15_1.tmp 2>&1; \
 	   if (${DIFF} output/ex15_1.out ex15_1.tmp) then true; \
 	   else echo "Possible problem with ex15_1, diffs above"; fi; \
 	   ${RM} -f ex15_1.tmp
 
 runex15f_1:
-	-@${MPIEXEC} -np 1 ./ex15f > ex15f_1.tmp 2>&1;	  \
+	-@${MPIEXEC} -np 1 ./ex15f > ex15f_1.tmp 2>&1; \
 	   if (${DIFF} output/ex15f_1.out ex15f_1.tmp) then true; \
 	   else echo "Possible problem with ex15f_1, diffs above"; fi; \
 	   ${RM} -f ex15f_1.tmp

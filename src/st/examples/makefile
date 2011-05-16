@@ -21,8 +21,8 @@
 
 ALL:
 
-LOCDIR	 = src/st/examples/
-DIRS	 = tests tutorials
+LOCDIR   = src/st/examples/
+DIRS     = tests tutorials
 
 include ${SLEPC_DIR}/conf/slepc_common
 

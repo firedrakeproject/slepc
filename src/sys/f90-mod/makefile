@@ -28,16 +28,16 @@ SPECIALLIB     = yes
 SPECIALFASTLIB = yes
 
 
-CFLAGS	   = 
-FFLAGS	   = 
-SOURCEC	   = 
-SOURCEF	   = slepcmod.F
-SOURCEH	   = 
-OBJSC	   = 
-OBJSF	   = slepcmod.o
-LIBBASE	   = libslepc
-MANSEC	   = sys
-LOCDIR	   = src/sys/f90-mod/
+CFLAGS     = 
+FFLAGS     = 
+SOURCEC    = 
+SOURCEF    = slepcmod.F
+SOURCEH    = 
+OBJSC      = 
+OBJSF      = slepcmod.o
+LIBBASE    = libslepc
+MANSEC     = sys
+LOCDIR     = src/sys/f90-mod/
 CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/conf/slepc_common

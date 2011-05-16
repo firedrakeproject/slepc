@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS	   = 
+CFLAGS     = 
 FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =

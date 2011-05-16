@@ -1,0 +1,28 @@
+QR decomposition of random vectors.
+IP Object: 1 MPI processes
+  type not yet set
+  orthogonalization method: classical Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.707100)
+With regular storage.
+Level of orthogonality: < 1.e-12
+QR decomposition of random vectors.
+IP Object: 1 MPI processes
+  type not yet set
+  orthogonalization method: modified Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.707100)
+With regular storage.
+Level of orthogonality: < 1.e-12
+QR decomposition of random vectors.
+IP Object: 1 MPI processes
+  type not yet set
+  orthogonalization method: classical Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.707100)
+With contiguous storage.
+Level of orthogonality: < 1.e-12
+QR decomposition of random vectors.
+IP Object: 1 MPI processes
+  type not yet set
+  orthogonalization method: modified Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.707100)
+With contiguous storage.
+Level of orthogonality: < 1.e-12

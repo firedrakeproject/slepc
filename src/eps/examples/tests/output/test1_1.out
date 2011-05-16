@@ -1,0 +1,16 @@
+
+Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
+
+ Number of iterations of the method: 41
+ Number of converged approximate eigenpairs: 6
+
+           k          ||Ax-kBx||/||kx||
+   ----------------- ------------------
+       1.997669        4.09553e-12
+       1.994177        1.31527e-11
+       1.994177        5.43174e-12
+       1.990686        4.66455e-12
+       1.988376        8.56595e-12
+       1.984885        6.88387e-12
+
+Level of orthogonality: < 1.e-12

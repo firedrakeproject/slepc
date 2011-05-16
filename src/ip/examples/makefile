@@ -19,19 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     = 
-FFLAGS     =
-CPPFLAGS   = 
-FPPFLAGS   =
-LOCDIR     = src/qep/examples/tests/
-EXAMPLESC  = 
-EXAMPLESF  = 
-MANSEC     = QEP
+ALL:
 
-TESTEXAMPLES_C       = 
+LOCDIR   = src/ip/examples/
+DIRS     = tests
 
 include ${SLEPC_DIR}/conf/slepc_common
-
-
-#------------------------------------------------------------------------------------
 
