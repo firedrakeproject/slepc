@@ -72,6 +72,7 @@ PetscErrorCode STSetUp_Precond(ST st)
 
   /* If pc is none and no matrix has to be set, exit */
   ierr = STSetFromOptions_Precond(st);CHKERRQ(ierr);
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)pc,PCNONE,&t0);CHKERRQ(ierr);
   ierr = STPrecondGetKSPHasMat(st,&setmat);CHKERRQ(ierr); 
@@ -169,6 +170,7 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   PetscBool      flag;
 
   PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetOperatorsSet(pc,PETSC_NULL,&flag);CHKERRQ(ierr);
   if (flag) {
@@ -218,6 +220,7 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
      matrix in pc */
@@ -390,6 +393,7 @@ PetscErrorCode STCreate_Precond(ST st)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","STPrecondSetKSPHasMat_Precond",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
 
   ierr = STPrecondSetKSPHasMat_Precond(st,PETSC_TRUE);CHKERRQ(ierr);
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

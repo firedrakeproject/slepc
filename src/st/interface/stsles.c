@@ -138,10 +138,18 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
 @*/
 PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!((PetscObject)st)->type_name) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must call STSetType first"); }
   PetscValidPointer(ksp,2);
+  if (!st->ksp) {
+    ierr = KSPCreate(((PetscObject)st)->comm,&st->ksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(st,st->ksp);CHKERRQ(ierr);
+  }
   *ksp = st->ksp;
   PetscFunctionReturn(0);
 }
@@ -216,6 +224,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
   
   PetscFunctionBegin;
   ierr = PetscMalloc(n*sizeof(Vec),&T);CHKERRQ(ierr);
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,PETSC_NULL,&w);CHKERRQ(ierr);

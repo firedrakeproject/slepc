@@ -322,6 +322,7 @@ PetscErrorCode STSetFromOptions_Shell(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);

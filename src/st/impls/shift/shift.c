@@ -89,6 +89,7 @@ PetscErrorCode STSetUp_Shift(ST st)
 
   PetscFunctionBegin;
   if (st->B) {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   } 
@@ -118,6 +119,7 @@ PetscErrorCode STSetFromOptions_Shift(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);

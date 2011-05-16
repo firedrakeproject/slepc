@@ -118,6 +118,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   switch (st->shift_matrix) {
   case ST_MATMODE_INPLACE:
     st->mat = PETSC_NULL;
@@ -224,6 +225,7 @@ PetscErrorCode STSetFromOptions_Sinvert(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);

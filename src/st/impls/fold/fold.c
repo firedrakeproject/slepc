@@ -135,6 +135,7 @@ PetscErrorCode STSetUp_Fold(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   if (st->B) {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
@@ -166,6 +167,7 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
   const KSPType  ksptype;
 
   PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);

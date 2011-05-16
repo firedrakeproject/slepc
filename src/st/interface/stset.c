@@ -137,7 +137,6 @@ PetscErrorCode STSetFromOptions(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-
   ierr = PetscOptionsBegin(((PetscObject)st)->comm,((PetscObject)st)->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);
     ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -162,7 +161,6 @@ PetscErrorCode STSetFromOptions(ST st)
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
     }
-
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr); 
   PetscFunctionReturn(0);

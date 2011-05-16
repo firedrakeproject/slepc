@@ -182,14 +182,11 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 {
   PetscErrorCode ierr;
   ST             st;
-  const char     *prefix;
 
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
   *newst = 0;
-
   ierr = PetscHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,-1,"ST",comm,STDestroy,STView);CHKERRQ(ierr);
-
   st->A                   = 0;
   st->B                   = 0;
   st->sigma               = 0.0;
@@ -203,12 +200,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->mat                 = 0;
   st->shift_matrix        = ST_MATMODE_COPY;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
-  
-  ierr = KSPCreate(((PetscObject)st)->comm,&st->ksp);CHKERRQ(ierr);
-  ierr = STGetOptionsPrefix(st,&prefix);CHKERRQ(ierr);
-  ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
   *newst = st;
   PetscFunctionReturn(0);
 }
@@ -458,9 +449,10 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOptionsPrefix(st->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
+  ierr = PetscObjectSetOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -491,9 +483,10 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
+  ierr = PetscObjectAppendOptionsPrefix((PetscObject)st,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -627,10 +620,12 @@ PetscErrorCode STView_Default(ST st,PetscViewer viewer)
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"Associated KSP object\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else if (isstring) {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
