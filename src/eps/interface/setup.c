@@ -47,7 +47,6 @@
 PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
-  Vec            vds;  
   Mat            A,B; 
   PetscInt       i,k;
   PetscBool      flg,lindep;
@@ -367,7 +366,6 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscScalar    *pV;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
