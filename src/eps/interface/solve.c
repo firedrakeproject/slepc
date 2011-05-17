@@ -320,6 +320,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,Pets
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STGetOperationCounters(eps->OP,ops,lits);CHKERRQ(ierr);
   if (dots) {
     ierr = IPGetOperationCounters(eps->ip,dots);CHKERRQ(ierr);

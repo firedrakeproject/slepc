@@ -1303,8 +1303,9 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
+  ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
  
@@ -1334,8 +1335,9 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STAppendOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
+  ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

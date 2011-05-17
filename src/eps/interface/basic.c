@@ -287,6 +287,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
   }
   ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -382,8 +383,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->rand);CHKERRQ(ierr);
-  ierr = STCreate(((PetscObject)eps)->comm,&eps->OP);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
   ierr = IPCreate(comm,&eps->ip);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
   *outeps = eps;
@@ -643,6 +642,7 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveScalar(eps,target,2);
   eps->target = target;
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STSetDefaultShift(eps->OP,target);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -730,9 +730,15 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 @*/
 PetscErrorCode EPSGetST(EPS eps,ST *st)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(st,2);
+  if (!eps->OP) {
+    ierr = STCreate(((PetscObject)eps)->comm,&eps->OP);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
+  }
   *st = eps->OP;
   PetscFunctionReturn(0);
 }
@@ -822,6 +828,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
   if (B) *is = PETSC_TRUE;
   else *is = PETSC_FALSE;

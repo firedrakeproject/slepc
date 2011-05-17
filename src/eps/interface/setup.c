@@ -68,6 +68,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
   
   /* Set problem dimensions */
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   if (!A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
   ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
@@ -254,6 +255,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   }
 
   if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
