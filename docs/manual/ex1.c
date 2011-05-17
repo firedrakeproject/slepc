@@ -1,1 +1,1 @@
-../../src/examples/ex1.c
+../../src/eps/examples/tutorials/ex1.c
