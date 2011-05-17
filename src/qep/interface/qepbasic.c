@@ -283,8 +283,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   ierr = PetscRandomCreate(comm,&qep->rand);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(qep,qep->rand);CHKERRQ(ierr);
   ierr = IPCreate(comm,&qep->ip);CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(qep->ip,((PetscObject)qep)->prefix);
-  ierr = IPAppendOptionsPrefix(qep->ip,"qep_");
   ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
   *outqep = qep;
   PetscFunctionReturn(0);

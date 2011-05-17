@@ -586,8 +586,6 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
     ierr = EPSSetOptionsPrefix(eps,prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
   }
-  ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
-  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
 
@@ -631,8 +629,6 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
     ierr = EPSSetOptionsPrefix(eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
   }
-  ierr = IPSetOptionsPrefix(svd->ip,((PetscObject)svd)->prefix);CHKERRQ(ierr);
-  ierr = IPAppendOptionsPrefix(svd->ip,"svd_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

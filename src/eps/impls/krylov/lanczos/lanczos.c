@@ -479,12 +479,12 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 */
 static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *m,Vec f,PetscBool *breakdown,PetscReal anorm)
 {
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
-  PetscScalar    *T;
-  PetscInt       i,n=*m;
-  PetscReal      betam;
-  PetscErrorCode ierr;
-  IPOrthogonalizationRefinementType orthog_ref;
+  EPS_LANCZOS        *lanczos = (EPS_LANCZOS *)eps->data;
+  PetscScalar        *T;
+  PetscInt           i,n=*m;
+  PetscReal          betam;
+  PetscErrorCode     ierr;
+  IPOrthogRefineType orthog_ref;
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
@@ -504,7 +504,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
     case EPS_LANCZOS_REORTHOG_DELAYED:
       ierr = PetscMalloc(n*n*sizeof(PetscScalar),&T);CHKERRQ(ierr);
       ierr = IPGetOrthogonalization(eps->ip,PETSC_NULL,&orthog_ref,PETSC_NULL);CHKERRQ(ierr);
-      if (orthog_ref == IP_ORTH_REFINE_NEVER) {
+      if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
         ierr = EPSDelayedArnoldi1(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);       
       } else {
         ierr = EPSDelayedArnoldi(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);

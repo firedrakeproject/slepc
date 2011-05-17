@@ -357,14 +357,14 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
 #define __FUNCT__ "EPSSolve_Arnoldi"
 PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,k,lwork,nv;
-  Vec            f=eps->work[0];
-  PetscScalar    *H=eps->T,*U,*g,*work,*Hcopy;
-  PetscReal      beta,gnorm,corrf=1.0;
-  PetscBool      breakdown;
-  IPOrthogonalizationRefinementType orthog_ref;
-  EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
+  PetscErrorCode     ierr;
+  PetscInt           i,k,lwork,nv;
+  Vec                f=eps->work[0];
+  PetscScalar        *H=eps->T,*U,*g,*work,*Hcopy;
+  PetscReal          beta,gnorm,corrf=1.0;
+  PetscBool          breakdown;
+  IPOrthogRefineType orthog_ref;
+  EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -391,7 +391,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     if (!arnoldi->delayed) {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
-    } else if (orthog_ref == IP_ORTH_REFINE_NEVER) {
+    } else if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
       ierr = EPSDelayedArnoldi1(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
       ierr = EPSDelayedArnoldi(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);

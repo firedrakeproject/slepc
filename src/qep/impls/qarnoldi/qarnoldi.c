@@ -116,13 +116,13 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
 */
 PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,j,l,m = *M;
-  QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
-  Vec            t = qep->work[2],u = qep->work[3];
-  IPOrthogonalizationRefinementType refinement;
-  PetscReal      norm,onorm,eta;
-  PetscScalar    *c = work + m;
+  PetscErrorCode     ierr;
+  PetscInt           i,j,l,m = *M;
+  QEP_QARNOLDI       *ctx = (QEP_QARNOLDI*)qep->data;
+  Vec                t = qep->work[2],u = qep->work[3];
+  IPOrthogRefineType refinement;
+  PetscReal          norm,onorm,eta;
+  PetscScalar        *c = work + m;
 
   PetscFunctionBegin;
   ierr = IPGetOrthogonalization(qep->ip,PETSC_NULL,&refinement,&eta);CHKERRQ(ierr);
@@ -140,18 +140,18 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
 
     /* orthogonalize */
     switch (refinement) {
-      case IP_ORTH_REFINE_NEVER:
+      case IP_ORTHOG_REFINE_NEVER:
         ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,PETSC_NULL,&norm,work);CHKERRQ(ierr);
         *breakdown = PETSC_FALSE;
         break;
-      case IP_ORTH_REFINE_ALWAYS:
+      case IP_ORTHOG_REFINE_ALWAYS:
         ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,PETSC_NULL,PETSC_NULL,work);CHKERRQ(ierr);
         ierr = QEPQArnoldiCGS(qep,H,ldh,c,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
         for (i=0;i<j;i++) H[ldh*j+i] += c[i];
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
-      case IP_ORTH_REFINE_IFNEEDED:
+      case IP_ORTHOG_REFINE_IFNEEDED:
         ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
         /* ||q|| < eta ||h|| */
         l = 1;

@@ -780,8 +780,6 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
-  ierr = IPAppendOptionsPrefix(qep->ip,"qep_");CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
  
@@ -812,8 +810,6 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
-  ierr = IPAppendOptionsPrefix(qep->ip,"qep_");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

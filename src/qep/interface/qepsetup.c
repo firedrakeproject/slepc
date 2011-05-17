@@ -49,7 +49,6 @@ PetscErrorCode QEPSetUp(QEP qep)
   PetscInt       i,k;
   PetscBool      khas,mhas,lindep;
   PetscReal      knorm,mnorm,norm;
-  Vec            t;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

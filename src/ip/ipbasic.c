@@ -106,8 +106,8 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   PetscValidPointer(newip,2);
   ierr = PetscHeaderCreate(ip,_p_IP,int,IP_CLASSID,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
   *newip            = ip;
-  ip->orthog_type   = IP_ORTH_CGS;
-  ip->orthog_ref    = IP_ORTH_REFINE_IFNEEDED;
+  ip->orthog_type   = IP_ORTHOG_CGS;
+  ip->orthog_ref    = IP_ORTHOG_REFINE_IFNEEDED;
   ip->orthog_eta    = 0.7071;
   ip->bilinear_form = IP_INNER_HERMITIAN;
   ip->innerproducts = 0;
@@ -238,12 +238,12 @@ PetscErrorCode IPSetFromOptions(IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = PetscOptionsBegin(((PetscObject)ip)->comm,((PetscObject)ip)->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
   i = ip->orthog_type;
-  ierr = PetscOptionsEList("-orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-ip_orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
   j = ip->orthog_ref;
-  ierr = PetscOptionsEList("-orthog_refinement","Iterative refinement mode during orthogonalization","IPSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-ip_orthog_refine","Iterative refinement mode during orthogonalization","IPSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
   r = ip->orthog_eta;
-  ierr = PetscOptionsReal("-orthog_eta","Parameter of iterative refinement during orthogonalization","IPSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
-  ierr = IPSetOrthogonalization(ip,(IPOrthogonalizationType)i,(IPOrthogonalizationRefinementType)j,r);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-ip_orthog_eta","Parameter of iterative refinement during orthogonalization","IPSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPSetOrthogonalization(ip,(IPOrthogType)i,(IPOrthogRefineType)j,r);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -257,17 +257,15 @@ PetscErrorCode IPSetFromOptions(IP ip)
    Logically Collective on IP
 
    Input Parameters:
-+  ip         - the innerproduct context
-.  type       - the type of orthogonalization technique
-.  refinement - type of refinement
--  eta        - parameter for selective refinement
++  ip     - the innerproduct context
+.  type   - the type of orthogonalization technique
+.  refine - type of refinement
+-  eta    - parameter for selective refinement
 
    Options Database Keys:
-+  -orthog_type <type> -  Where <type> is cgs for Classical Gram-Schmidt
-                              orthogonalization (default)
-                              or mgs for Modified Gram-Schmidt orthogonalization
-.  -orthog_refinement <type> -  Where <type> is one of never, ifneeded
-                              (default) or always 
++  -orthog_type <type> - Where <type> is cgs for Classical Gram-Schmidt orthogonalization
+                         (default) or mgs for Modified Gram-Schmidt orthogonalization
+.  -orthog_refine <type> - Where <type> is one of never, ifneeded (default) or always 
 -  -orthog_eta <eta> -  For setting the value of eta
     
    Notes:  
@@ -280,29 +278,29 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
    Level: advanced
 
-.seealso: IPOrthogonalize(), IPGetOrthogonalization(), IPOrthogonalizationType,
-          IPOrthogonalizationRefinementType
+.seealso: IPOrthogonalize(), IPGetOrthogonalization(), IPOrthogType,
+          IPOrthogRefineType
 @*/
-PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type,IPOrthogonalizationRefinementType refinement,PetscReal eta)
+PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogType type,IPOrthogRefineType refine,PetscReal eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ip,type,2);
-  PetscValidLogicalCollectiveEnum(ip,refinement,3);
+  PetscValidLogicalCollectiveEnum(ip,refine,3);
   PetscValidLogicalCollectiveReal(ip,eta,4);
   switch (type) {
-    case IP_ORTH_CGS:
-    case IP_ORTH_MGS:
+    case IP_ORTHOG_CGS:
+    case IP_ORTHOG_MGS:
       ip->orthog_type = type;
       break;
     default:
       SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
   }
-  switch (refinement) {
-    case IP_ORTH_REFINE_NEVER:
-    case IP_ORTH_REFINE_IFNEEDED:
-    case IP_ORTH_REFINE_ALWAYS:
-      ip->orthog_ref = refinement;
+  switch (refine) {
+    case IP_ORTHOG_REFINE_NEVER:
+    case IP_ORTHOG_REFINE_IFNEEDED:
+    case IP_ORTHOG_REFINE_ALWAYS:
+      ip->orthog_ref = refine;
       break;
     default:
       SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown refinement type");
@@ -328,22 +326,22 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogonalizationType type,IPOrtho
 .  ip - inner product context 
 
    Output Parameter:
-+  type       - type of orthogonalization technique
-.  refinement - type of refinement
--  eta        - parameter for selective refinement
++  type   - type of orthogonalization technique
+.  refine - type of refinement
+-  eta    - parameter for selective refinement
 
    Level: advanced
 
-.seealso: IPOrthogonalize(), IPSetOrthogonalization(), IPOrthogonalizationType,
-          IPOrthogonalizationRefinementType
+.seealso: IPOrthogonalize(), IPSetOrthogonalization(), IPOrthogType,
+          IPOrthogRefineType
 @*/
-PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement,PetscReal *eta)
+PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogType *type,IPOrthogRefineType *refine,PetscReal *eta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  if (type) *type = ip->orthog_type;
-  if (refinement) *refinement = ip->orthog_ref;
-  if (eta) *eta = ip->orthog_eta;
+  if (type)   *type   = ip->orthog_type;
+  if (refine) *refine = ip->orthog_ref;
+  if (eta)    *eta    = ip->orthog_eta;
   PetscFunctionReturn(0);
 }
 
@@ -388,23 +386,23 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ip,viewer,"IP Object");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
     switch (ip->orthog_type) {
-      case IP_ORTH_MGS:
+      case IP_ORTHOG_MGS:
         ierr = PetscViewerASCIIPrintf(viewer,"modified Gram-Schmidt\n");CHKERRQ(ierr);
         break;
-      case IP_ORTH_CGS:
+      case IP_ORTHOG_CGS:
         ierr = PetscViewerASCIIPrintf(viewer,"classical Gram-Schmidt\n");CHKERRQ(ierr);
         break;
       default: SETERRQ(((PetscObject)ip)->comm,1,"Wrong value of ip->orth_type");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: ");CHKERRQ(ierr);
     switch (ip->orthog_ref) {
-      case IP_ORTH_REFINE_NEVER:
+      case IP_ORTHOG_REFINE_NEVER:
         ierr = PetscViewerASCIIPrintf(viewer,"never\n");CHKERRQ(ierr);
         break;
-      case IP_ORTH_REFINE_IFNEEDED:
+      case IP_ORTHOG_REFINE_IFNEEDED:
         ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %f)\n",ip->orthog_eta);CHKERRQ(ierr);
         break;
-      case IP_ORTH_REFINE_ALWAYS:
+      case IP_ORTHOG_REFINE_ALWAYS:
         ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);
         break;
       default: SETERRQ(((PetscObject)ip)->comm,1,"Wrong value of ip->orth_ref");
@@ -437,7 +435,7 @@ PetscErrorCode IPReset(IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = MatDestroy(&ip->matrix);CHKERRQ(ierr);
   ierr = VecDestroy(&ip->Bx);CHKERRQ(ierr);
-  ip->xid = 0;
+  ip->xid    = 0;
   ip->xstate = 0;
   ierr = IPResetOperationCounters(ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -82,7 +82,7 @@ void PETSC_STDCALL ipgetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),P
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogonalizationType *type,IPOrthogonalizationRefinementType *refinement,PetscReal *eta,PetscErrorCode *ierr)
+void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogType *type,IPOrthogRefineType *refinement,PetscReal *eta,PetscErrorCode *ierr)
 {
   *ierr = IPGetOrthogonalization(*ip,type,refinement,eta);
 }

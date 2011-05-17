@@ -28,17 +28,17 @@ extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 
 struct _p_IP {
   PETSCHEADER(int);
-  IPOrthogonalizationType orthog_type; /* which orthogonalization to use */
-  IPOrthogonalizationRefinementType orthog_ref;   /* refinement method */
-  PetscReal orthog_eta;
-  IPBilinearForm bilinear_form;
-  Mat matrix;
-  PetscInt innerproducts;
+  IPOrthogType       orthog_type;    /* which orthogonalization to use */
+  IPOrthogRefineType orthog_ref;     /* refinement method */
+  PetscReal          orthog_eta;     /* refinement threshold */
+  IPBilinearForm     bilinear_form;
+  Mat                matrix;
+  PetscInt           innerproducts;
 
   /*------------------------- Cache Bx product -------------------*/
-  PetscInt       xid;
-  PetscInt       xstate;
-  Vec            Bx;
+  PetscInt           xid;
+  PetscInt           xstate;
+  Vec                Bx;
 };
 
 extern PetscErrorCode IPInitializePackage(const char *);

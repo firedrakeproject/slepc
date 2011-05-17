@@ -385,8 +385,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   ierr = STCreate(((PetscObject)eps)->comm,&eps->OP);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
   ierr = IPCreate(comm,&eps->ip);CHKERRQ(ierr);
-  ierr = IPSetOptionsPrefix(eps->ip,((PetscObject)eps)->prefix);
-  ierr = IPAppendOptionsPrefix(eps->ip,"eps_");
   ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
   *outeps = eps;
   PetscFunctionReturn(0);

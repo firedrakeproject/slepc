@@ -27,26 +27,26 @@ PETSC_EXTERN_CXX_BEGIN
 extern PetscClassId IP_CLASSID;
 
 /*E
-    IPOrthogonalizationType - determines what type of orthogonalization to use
+    IPOrthogType - determines what type of orthogonalization to use
 
     Level: advanced
 
 .seealso: IPSetOrthogonalization(), IPGetOrthogonalization(), IPOrthogonalize()
 E*/
-typedef enum { IP_ORTH_MGS,
-               IP_ORTH_CGS } IPOrthogonalizationType;
+typedef enum { IP_ORTHOG_MGS,
+               IP_ORTHOG_CGS } IPOrthogType;
 
 /*E
-    IPOrthogonalizationRefinementType - determines what type of refinement
+    IPOrthogRefineType - determines what type of refinement
     to use during orthogonalization
 
     Level: advanced
 
 .seealso: IPSetOrthogonalization(), IPGetOrthogonalization(), IPOrthogonalize()
 E*/
-typedef enum { IP_ORTH_REFINE_NEVER,
-               IP_ORTH_REFINE_IFNEEDED,
-               IP_ORTH_REFINE_ALWAYS } IPOrthogonalizationRefinementType;
+typedef enum { IP_ORTHOG_REFINE_NEVER,
+               IP_ORTHOG_REFINE_IFNEEDED,
+               IP_ORTHOG_REFINE_ALWAYS } IPOrthogRefineType;
 
 /*S
      IP - Abstraction of a vector inner product, that can be defined
@@ -64,8 +64,8 @@ extern PetscErrorCode IPSetOptionsPrefix(IP,const char *);
 extern PetscErrorCode IPAppendOptionsPrefix(IP,const char *);
 extern PetscErrorCode IPGetOptionsPrefix(IP,const char *[]);
 extern PetscErrorCode IPSetFromOptions(IP);
-extern PetscErrorCode IPSetOrthogonalization(IP,IPOrthogonalizationType,IPOrthogonalizationRefinementType,PetscReal);
-extern PetscErrorCode IPGetOrthogonalization(IP,IPOrthogonalizationType*,IPOrthogonalizationRefinementType*,PetscReal*);
+extern PetscErrorCode IPSetOrthogonalization(IP,IPOrthogType,IPOrthogRefineType,PetscReal);
+extern PetscErrorCode IPGetOrthogonalization(IP,IPOrthogType*,IPOrthogRefineType*,PetscReal*);
 extern PetscErrorCode IPView(IP,PetscViewer);
 extern PetscErrorCode IPDestroy(IP*);
 extern PetscErrorCode IPReset(IP);
