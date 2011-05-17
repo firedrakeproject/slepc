@@ -335,16 +335,16 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   }
   
   ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"block size: %d\n",opi);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%d\n",opi);CHKERRQ(ierr);
   ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&opb);CHKERRQ(ierr);
   if(!opb) {
-    ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"type of the initial subspace: Krylov\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: Krylov\n");CHKERRQ(ierr);
   }
   ierr = EPSDavidsonGetRestart_Davidson(eps,&opi,&opi0);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"size of the subspace after restarting: %d\n",opi);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"number of vectors after restarting from the previous iteration: %d\n",opi0);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: size of the subspace after restarting: %d\n",opi);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: number of vectors after restarting from the previous iteration: %d\n",opi0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

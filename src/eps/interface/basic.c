@@ -150,6 +150,11 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer,"EPS Object");CHKERRQ(ierr);
+    if (eps->ops->view) {
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    }
     if (eps->problem_type) {
       switch (eps->problem_type) {
         case EPS_HEP:   type = HERM " eigenvalue problem"; break;
@@ -162,11 +167,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
-    if (eps->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
     if (eps->extraction) {
       switch (eps->extraction) {
         case EPS_RITZ:             extr = "Rayleigh-Ritz"; break;
@@ -281,16 +281,13 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",eps->nrmb);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
-    ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
     if (eps->ops->view) {
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
     }
-    ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
   }
+  ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
+  ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -385,7 +382,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->rand);CHKERRQ(ierr);
-  ierr = STCreate(comm,&eps->OP);CHKERRQ(ierr);
+  ierr = STCreate(((PetscObject)eps)->comm,&eps->OP);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
   ierr = IPCreate(comm,&eps->ip);CHKERRQ(ierr);
   ierr = IPSetOptionsPrefix(eps->ip,((PetscObject)eps)->prefix);

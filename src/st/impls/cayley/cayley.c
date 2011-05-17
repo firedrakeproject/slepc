@@ -428,11 +428,10 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g\n",ctx->nu);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %g\n",ctx->nu);CHKERRQ(ierr);
 #else
-  ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %g+%g i\n",PetscRealPart(ctx->nu),PetscImaginaryPart(ctx->nu));CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %g+%g i\n",PetscRealPart(ctx->nu),PetscImaginaryPart(ctx->nu));CHKERRQ(ierr);
 #endif
-  ierr = STView_Default(st,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

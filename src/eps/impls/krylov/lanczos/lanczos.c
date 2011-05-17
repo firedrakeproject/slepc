@@ -852,7 +852,7 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
   if (!isascii) {
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Lanczos",((PetscObject)viewer)->type_name);
   }  
-  ierr = PetscViewerASCIIPrintf(viewer,"reorthogonalization: %s\n",EPSLanczosReorthogTypes[lanczos->reorthog]);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Lanczos: %s reorthogonalization\n",EPSLanczosReorthogTypes[lanczos->reorthog]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

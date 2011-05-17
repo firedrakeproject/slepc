@@ -97,19 +97,6 @@ PetscErrorCode STSetUp_Shift(ST st)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STView_Shift"
-PetscErrorCode STView_Shift(ST st,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (st->B) {
-    ierr = STView_Default(st,viewer);CHKERRQ(ierr);
-  } 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STSetFromOptions_Shift"
 PetscErrorCode STSetFromOptions_Shift(ST st) 
 {
@@ -149,7 +136,6 @@ PetscErrorCode STCreate_Shift(ST st)
   st->ops->backtr          = STBackTransform_Shift;
   st->ops->setfromoptions  = STSetFromOptions_Shift;
   st->ops->setup           = STSetUp_Shift;
-  st->ops->view            = STView_Shift;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

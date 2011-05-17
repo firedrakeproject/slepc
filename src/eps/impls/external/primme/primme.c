@@ -318,9 +318,9 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
   }
   
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver block size: %d\n",primme->maxBlockSize);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%d\n",primme->maxBlockSize);CHKERRQ(ierr);
   ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"PRIMME solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
 
   /* Display PRIMME params */
   primme_display_params(*primme);

@@ -256,7 +256,6 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->backtr          = STBackTransform_Sinvert;
   st->ops->setup           = STSetUp_Sinvert;
   st->ops->setshift        = STSetShift_Sinvert;
-  st->ops->view            = STView_Default;
   st->ops->setfromoptions  = STSetFromOptions_Sinvert;
   st->ops->checknullspace  = STCheckNullSpace_Default;
   PetscFunctionReturn(0);

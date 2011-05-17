@@ -371,7 +371,6 @@ PetscErrorCode STCreate_Shell(ST st)
   st->ops->apply          = STApply_Shell;
   st->ops->applytrans     = STApplyTranspose_Shell;
   st->ops->backtr         = STBackTransform_Shell;
-  st->ops->view           = PETSC_NULL;
   st->ops->setfromoptions = STSetFromOptions_Shell;
   st->ops->destroy        = STDestroy_Shell;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",STShellSetApply_Shell);CHKERRQ(ierr);

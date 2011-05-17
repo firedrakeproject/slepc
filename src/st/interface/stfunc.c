@@ -553,8 +553,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscErrorCode    ierr;
   const STType      cstr;
   const char*       str;
-  PetscBool         isascii,isstring;
-  PetscViewerFormat format;
+  PetscBool         isascii,isstring,isshift,isfold;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -565,8 +564,12 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)st,viewer,"ST Object");CHKERRQ(ierr);
+    if (st->ops->view) {
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    }
 #if !defined(PETSC_USE_COMPLEX)
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g\n",st->sigma);CHKERRQ(ierr);
 #else
@@ -576,10 +579,10 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     case ST_MATMODE_COPY:
       break;
     case ST_MATMODE_INPLACE:
-      ierr = PetscViewerASCIIPrintf(viewer,"Shifting the matrix and unshifting at exit\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  shifting the matrix and unshifting at exit\n");CHKERRQ(ierr);
       break;
     case ST_MATMODE_SHELL:
-      ierr = PetscViewerASCIIPrintf(viewer,"Using a shell matrix\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
       break;
     }
     if (st->B && st->shift_matrix != ST_MATMODE_SHELL) { 
@@ -589,12 +592,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
         case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
         default:                        SETERRQ(((PetscObject)st)->comm,1,"Wrong structure flag");
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"Matrices A and B have %s\n",str);CHKERRQ(ierr);
-    }
-    if (st->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  matrices A and B have %s\n",str);CHKERRQ(ierr);
     }
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
@@ -603,30 +601,13 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   } else {
     SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "STView_Default"
-PetscErrorCode STView_Default(ST st,PetscViewer viewer) 
-{
-  PetscErrorCode ierr;
-  PetscBool      isascii,isstring;
-
-  PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
-  if (isascii) {
+  ierr = PetscTypeCompare((PetscObject)st,STSHIFT,&isshift);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)st,STFOLD,&isfold);CHKERRQ(ierr);
+  if (st->B || !(isshift || isfold)) {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"Associated KSP object\n");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"------------------------------\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-  } else if (isstring) {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

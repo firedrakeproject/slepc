@@ -383,7 +383,6 @@ PetscErrorCode STCreate_Precond(ST st)
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;
   st->ops->setshift        = STSetShift_Precond;
-  st->ops->view            = STView_Default;
   st->ops->destroy         = STDestroy_Precond;
   st->ops->setfromoptions  = STSetFromOptions_Precond;
 

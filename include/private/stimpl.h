@@ -71,7 +71,6 @@ extern PetscErrorCode STInitializePackage(const char*);
 extern PetscErrorCode STFinalizePackage(void);
 
 extern PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
-extern PetscErrorCode STView_Default(ST,PetscViewer);
 extern PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 extern PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
 extern PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);

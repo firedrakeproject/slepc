@@ -543,7 +543,7 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   if (!isascii) {
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Power",((PetscObject)viewer)->type_name);
   }  
-  ierr = PetscViewerASCIIPrintf(viewer,"shift type: %s\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Power: %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

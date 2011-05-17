@@ -325,8 +325,8 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
   if (!isascii) {
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"block size of the block-Lanczos algorithm: %d\n",blz->block_size);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"computational interval: [%f,%f]\n",blz->initial,blz->final);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: block size=%d\n",blz->block_size);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: computational interval [%f,%f]\n",blz->initial,blz->final);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
