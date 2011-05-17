@@ -54,6 +54,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   if (qep->problem_type != QEP_GENERAL)
     SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
 
+  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   ierr = PetscFree(qep->T);CHKERRQ(ierr);
   ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&qep->T);CHKERRQ(ierr);
   ierr = QEPDefaultGetWork(qep,4);CHKERRQ(ierr);
@@ -343,6 +344,7 @@ PetscErrorCode QEPReset_QArnoldi(QEP qep)
   ierr = PetscFree(qep->T);CHKERRQ(ierr);
   ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
   ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
+  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

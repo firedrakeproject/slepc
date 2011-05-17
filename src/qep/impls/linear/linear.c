@@ -126,6 +126,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,&qep->tol,&qep->max_it);CHKERRQ(ierr);
   if (qep->nini>0 || qep->ninil>0) PetscInfo(qep,"Ignoring initial vectors\n");
+  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -645,6 +646,7 @@ PetscErrorCode QEPReset_Linear(QEP qep)
   ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
   ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
+  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

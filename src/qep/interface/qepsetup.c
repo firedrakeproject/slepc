@@ -94,24 +94,6 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (qep->nev > qep->ncv)
     SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
-  /* Free memory for previous solution  */
-  if (qep->eigr) { 
-    ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
-    ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
-    ierr = PetscFree(qep->perm);CHKERRQ(ierr);
-    ierr = PetscFree(qep->errest);CHKERRQ(ierr);
-    ierr = SlepcVecDestroyVecs(qep->ncv,&qep->V);CHKERRQ(ierr);
-  }
-
-  /* Allocate memory for next solution */
-  ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
-  ierr = SlepcVecDuplicateVecs(t,qep->ncv,&qep->V);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-
   /* process initial vectors */
   if (qep->nini<0) {
     qep->nini = -qep->nini;
@@ -362,6 +344,55 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 
   qep->ninil = -n;
   qep->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPAllocateSolution"
+/*
+  QEPAllocateSolution - Allocate memory storage for common variables such
+  as eigenvalues and eigenvectors. All vectors in V (and W) share a
+  contiguous chunk of memory.
+*/
+PetscErrorCode QEPAllocateSolution(QEP qep)
+{
+  PetscErrorCode ierr;
+  Vec            t;
+  
+  PetscFunctionBegin;
+  if (qep->allocated_ncv != qep->ncv) {
+    ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
+    ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
+    ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
+    ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
+    ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
+    ierr = SlepcVecDuplicateVecs(t,qep->ncv,&qep->V);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    qep->allocated_ncv = qep->ncv;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPFreeSolution"
+/*
+  QEPFreeSolution - Free memory storage. This routine is related to 
+  QEPAllocateSolution().
+*/
+PetscErrorCode QEPFreeSolution(QEP qep)
+{
+  PetscErrorCode ierr;
+  
+  PetscFunctionBegin;
+  if (qep->allocated_ncv > 0) {
+    ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
+    ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
+    ierr = PetscFree(qep->errest);CHKERRQ(ierr); 
+    ierr = PetscFree(qep->perm);CHKERRQ(ierr); 
+    ierr = SlepcVecDestroyVecs(qep->allocated_ncv,&qep->V);CHKERRQ(ierr);
+    qep->allocated_ncv = 0;
+  }
   PetscFunctionReturn(0);
 }
 

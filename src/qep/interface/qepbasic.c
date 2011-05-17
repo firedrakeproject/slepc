@@ -248,6 +248,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->mpd             = 0;
   qep->nini            = 0;
   qep->ninil           = 0;
+  qep->allocated_ncv   = 0;
   qep->tol             = 1e-7;
   qep->sfactor         = 0.0;
   qep->conv_func       = QEPDefaultConverged;
@@ -477,13 +478,7 @@ PetscErrorCode QEPReset(QEP qep)
   ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->C);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
-  if (qep->eigr) { 
-    ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
-    ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
-    ierr = PetscFree(qep->perm);CHKERRQ(ierr);
-    ierr = PetscFree(qep->errest);CHKERRQ(ierr);
-    ierr = SlepcVecDestroyVecs(qep->ncv,&qep->V);CHKERRQ(ierr);
-  }
+  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
   qep->matvecs     = 0;
   qep->linits      = 0;
   qep->setupcalled = 0;  

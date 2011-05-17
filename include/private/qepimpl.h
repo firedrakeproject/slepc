@@ -54,7 +54,8 @@ struct _p_QEP {
                  nev,              /* number of eigenvalues to compute */
                  ncv,              /* number of basis vectors */
                  mpd,              /* maximum dimension of projected problem */
-                 nini, ninil;      /* number of initial vectors (negative means not copied yet) */
+                 nini, ninil,      /* number of initial vectors (negative means not copied yet) */
+                 allocated_ncv;    /* number of basis vectors allocated */
   PetscReal      tol;              /* tolerance */
   PetscReal      sfactor;          /* scaling factor of the quadratic problem */
   PetscErrorCode (*conv_func)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
@@ -105,6 +106,8 @@ extern PetscErrorCode QEPFinalizePackage(void);
 
 extern PetscErrorCode QEPDefaultGetWork(QEP,PetscInt);
 extern PetscErrorCode QEPDefaultFreeWork(QEP);
+extern PetscErrorCode QEPAllocateSolution(QEP);
+extern PetscErrorCode QEPFreeSolution(QEP);
 extern PetscErrorCode QEPComputeVectors_Schur(QEP);
 extern PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 extern PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
