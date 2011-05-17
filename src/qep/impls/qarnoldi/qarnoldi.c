@@ -326,7 +326,9 @@ PetscErrorCode QEPView_QArnoldi(QEP qep,PetscViewer viewer)
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
 
   PetscFunctionBegin;
+  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
   ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

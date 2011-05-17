@@ -453,12 +453,10 @@ PetscErrorCode SVDView_Cyclic(SVD svd,PetscViewer viewer)
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
-  if (cyclic->explicitmatrix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"cyclic matrix: explicit\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"cyclic matrix: implicit\n");CHKERRQ(ierr);
-  }
+  ierr = PetscViewerASCIIPrintf(viewer,"  Cyclic: %s matrix\n",cyclic->explicitmatrix?"explicit":"implicit");CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
   ierr = EPSView(cyclic->eps,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

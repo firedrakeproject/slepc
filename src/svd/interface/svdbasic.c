@@ -141,6 +141,11 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)svd,viewer,"SVD Object");CHKERRQ(ierr);
+    if (svd->ops->view) {
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    }
     switch (svd->transmode) {
       case SVD_TRANSPOSE_EXPLICIT:
         ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: explicit\n");CHKERRQ(ierr);
@@ -164,19 +169,12 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     if (svd->nini!=0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(svd->nini));CHKERRQ(ierr);
     }
-    if (svd->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
     if (svd->ops->view) {
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
     }
   }
+  ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

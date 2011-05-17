@@ -296,7 +296,9 @@ PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
+  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
   ierr = EPSView(cross->eps,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

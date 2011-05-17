@@ -147,6 +147,11 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)qep,viewer,"QEP Object");CHKERRQ(ierr);
+    if (qep->ops->view) {
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    }
     if (qep->problem_type) {
       switch (qep->problem_type) {
         case QEP_GENERAL:    type = "general quadratic eigenvalue problem"; break;
@@ -195,19 +200,12 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     if (qep->ninil!=0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %d\n",PetscAbs(qep->ninil));CHKERRQ(ierr);
     }
-    if (qep->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
     if (qep->ops->view) {
       ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
     }
   }
+  ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

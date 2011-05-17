@@ -621,13 +621,11 @@ PetscErrorCode QEPView_Linear(QEP qep,PetscViewer viewer)
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
 
   PetscFunctionBegin;
-  if (ctx->explicitmatrix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"linearized matrices: explicit\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"linearized matrices: implicit\n");CHKERRQ(ierr);
-  }
-  ierr = PetscViewerASCIIPrintf(viewer,"companion form: %d\n",ctx->cform);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s matrices\n",ctx->explicitmatrix? "explicit": "implicit");CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s companion form\n",ctx->cform==1? "1st": "2nd");CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
   ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
