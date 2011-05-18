@@ -49,6 +49,7 @@ PetscErrorCode STRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  STRegisterAllCalled = PETSC_TRUE;
   ierr = STRegisterDynamic(STSHELL  ,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSHIFT  ,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
   ierr = STRegisterDynamic(STSINVERT,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);

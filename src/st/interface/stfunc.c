@@ -42,6 +42,7 @@ PetscErrorCode STFinalizePackage(void)
   PetscFunctionBegin;
   STPackageInitialized = PETSC_FALSE;
   STList               = 0;
+  STRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -648,6 +649,6 @@ PetscErrorCode STRegisterDestroy(void)
 
   PetscFunctionBegin;
   ierr = PetscFListDestroy(&STList);CHKERRQ(ierr);
-  ierr = STRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+  STRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

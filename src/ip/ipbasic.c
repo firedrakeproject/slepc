@@ -24,6 +24,7 @@
 #include <private/ipimpl.h>      /*I "slepcip.h" I*/
 
 PetscFList       IPList = 0;
+PetscBool        IPRegisterAllCalled = PETSC_FALSE;
 PetscClassId     IP_CLASSID = 0;
 PetscLogEvent    IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
 static PetscBool IPPackageInitialized = PETSC_FALSE;
@@ -43,6 +44,7 @@ PetscErrorCode IPFinalizePackage(void)
   PetscFunctionBegin;
   IPPackageInitialized = PETSC_FALSE;
   IPList               = 0;
+  IPRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -332,6 +334,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  if (!IPRegisterAllCalled) { ierr = IPRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
   if (!((PetscObject)ip)->type_name) {
     /* Set default type (we do not allow changing it with -ip_type) */
 #if defined(PETSC_USE_COMPLEX)
@@ -658,7 +661,7 @@ PetscErrorCode IPRegisterDestroy(void)
 
   PetscFunctionBegin;
   ierr = PetscFListDestroy(&IPList);CHKERRQ(ierr);
-  ierr = IPRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+  IPRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -686,6 +689,7 @@ PetscErrorCode IPRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  IPRegisterAllCalled = PETSC_TRUE;
   ierr = IPRegisterDynamic(IPBILINEAR,path,"IPCreate_Bilinear",IPCreate_Bilinear);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = IPRegisterDynamic(IPSESQUILINEAR,path,"IPCreate_Sesquilinear",IPCreate_Sesquilinear);CHKERRQ(ierr);

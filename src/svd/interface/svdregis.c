@@ -45,6 +45,7 @@ PetscErrorCode SVDRegisterAll(const char *path)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  SVDRegisterAllCalled = PETSC_TRUE;
   ierr = SVDRegisterDynamic(SVDCROSS,path,"SVDCreate_CROSS",SVDCreate_Cross);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDCYCLIC,path,"SVDCreate_CYCLIC",SVDCreate_Cyclic);CHKERRQ(ierr);
   ierr = SVDRegisterDynamic(SVDLAPACK,path,"SVDCreate_LAPACK",SVDCreate_LAPACK);CHKERRQ(ierr);

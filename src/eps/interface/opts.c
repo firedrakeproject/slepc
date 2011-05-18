@@ -55,6 +55,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (!EPSRegisterAllCalled) { ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
   ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"Eigenproblem Solver (EPS) Options","EPS");CHKERRQ(ierr);
     ierr = PetscOptionsList("-eps_type","Eigenproblem Solver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {

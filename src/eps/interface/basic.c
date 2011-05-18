@@ -23,9 +23,10 @@
 
 #include <private/epsimpl.h>      /*I "slepceps.h" I*/
 
-PetscFList EPSList = 0;
-PetscClassId EPS_CLASSID = 0;
-PetscLogEvent EPS_SetUp = 0,EPS_Solve = 0,EPS_Dense = 0;
+PetscFList       EPSList = 0;
+PetscBool        EPSRegisterAllCalled = PETSC_FALSE;
+PetscClassId     EPS_CLASSID = 0;
+PetscLogEvent    EPS_SetUp = 0,EPS_Solve = 0,EPS_Dense = 0;
 static PetscBool EPSPackageInitialized = PETSC_FALSE;
 
 const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerShiftType","EPS_POWER_SHIFT_",0};
@@ -47,6 +48,7 @@ PetscErrorCode EPSFinalizePackage(void)
   PetscFunctionBegin;
   EPSPackageInitialized = PETSC_FALSE;
   EPSList               = 0;
+  EPSRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -506,7 +508,7 @@ PetscErrorCode EPSRegisterDestroy(void)
 
   PetscFunctionBegin;
   ierr = PetscFListDestroy(&EPSList);CHKERRQ(ierr);
-  ierr = EPSRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+  EPSRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

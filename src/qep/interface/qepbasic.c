@@ -24,6 +24,7 @@
 #include <private/qepimpl.h>      /*I "slepcqep.h" I*/
 
 PetscFList       QEPList = 0;
+PetscBool        QEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId     QEP_CLASSID = 0;
 PetscLogEvent    QEP_SetUp = 0,QEP_Solve = 0,QEP_Dense = 0;
 static PetscBool QEPPackageInitialized = PETSC_FALSE;
@@ -43,6 +44,7 @@ PetscErrorCode QEPFinalizePackage(void)
   PetscFunctionBegin;
   QEPPackageInitialized = PETSC_FALSE;
   QEPList               = 0;
+  QEPRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -405,7 +407,7 @@ PetscErrorCode QEPRegisterDestroy(void)
 
   PetscFunctionBegin;
   ierr = PetscFListDestroy(&QEPList);CHKERRQ(ierr);
-  ierr = QEPRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+  QEPRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

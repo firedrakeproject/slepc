@@ -23,9 +23,7 @@
 
 #include <private/stimpl.h>      /*I "slepcst.h" I*/
 
-/*
-   Contains the list of registered ST routines
-*/
+PetscBool  STRegisterAllCalled = PETSC_FALSE;
 PetscFList STList = 0;
 
 #undef __FUNCT__  
@@ -137,6 +135,7 @@ PetscErrorCode STSetFromOptions(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (!STRegisterAllCalled) { ierr = STRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
   ierr = PetscOptionsBegin(((PetscObject)st)->comm,((PetscObject)st)->prefix,"Spectral Transformation (ST) Options","ST");CHKERRQ(ierr);
     ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {

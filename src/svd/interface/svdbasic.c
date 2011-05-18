@@ -24,6 +24,7 @@
 #include <private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 PetscFList       SVDList = 0;
+PetscBool        SVDRegisterAllCalled = PETSC_FALSE;
 PetscClassId     SVD_CLASSID = 0;
 PetscLogEvent    SVD_SetUp = 0,SVD_Solve = 0,SVD_Dense = 0;
 static PetscBool SVDPackageInitialized = PETSC_FALSE;
@@ -43,6 +44,7 @@ PetscErrorCode SVDFinalizePackage(void)
   PetscFunctionBegin;
   SVDPackageInitialized = PETSC_FALSE;
   SVDList               = 0;
+  SVDRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -432,7 +434,7 @@ PetscErrorCode SVDRegisterDestroy(void)
 
   PetscFunctionBegin;
   ierr = PetscFListDestroy(&SVDList);CHKERRQ(ierr);
-  ierr = SVDRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+  SVDRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
