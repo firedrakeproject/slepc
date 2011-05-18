@@ -126,6 +126,7 @@ static void OperatorBMultiVector(void *data,void *x,void *y)
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
   PetscBool      isPrecond,isPreonly;
 
@@ -164,10 +165,12 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   
   SLEPCSetupInterpreter(&blopex->ii);
   blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
+  for (i=0;i<eps->ncv;i++) { ierr = PetscObjectReference((PetscObject)eps->V[i]);CHKERRQ(ierr); }
   mv_MultiVectorSetRandom(blopex->eigenvectors,1234);
 
   if (eps->nds > 0) {
     blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->DS);
+    for (i=0;i<eps->nds;i++) { ierr = PetscObjectReference((PetscObject)eps->DS[i]);CHKERRQ(ierr); }
   } else
     blopex->Y = PETSC_NULL;
 
@@ -197,19 +200,19 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   int        info,its;
   
   PetscFunctionBegin;
-//#if defined(PETSC_USE_COMPLEX)
-//  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
-//        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
-//        eps,Precond_FnMultiVector,blopex->Y,
-//        blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-//        eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
-//#else
-  info = lobpcg_solve(blopex->eigenvectors,eps,OperatorAMultiVector,
+#if defined(PETSC_USE_COMPLEX)
+  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
+        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+        eps,Precond_FnMultiVector,blopex->Y,
+        blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
+        (komplex*)eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
+#else
+  info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
         eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
-//#endif
+#endif
   if (info>0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
 
   eps->its = its;
@@ -251,21 +254,14 @@ EXTERN_C_BEGIN
 PetscErrorCode EPSCreate_BLOPEX(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_BLOPEX     *blopex;
-  const char*    prefix;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_BLOPEX,&blopex);CHKERRQ(ierr);
-  eps->data                      = (void*)blopex;
+  ierr = PetscNewLog(eps,EPS_BLOPEX,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_BLOPEX;
   eps->ops->destroy              = EPSDestroy_BLOPEX;
   eps->ops->reset                = EPSReset_BLOPEX;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-  ierr = KSPCreate(((PetscObject)eps)->comm,&blopex->ksp);CHKERRQ(ierr);
-  ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
-  ierr = KSPSetOptionsPrefix(blopex->ksp,prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(blopex->ksp,"eps_blopex_");CHKERRQ(ierr);
   ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
   LOBPCG_InitRandomContext();

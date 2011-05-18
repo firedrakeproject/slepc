@@ -27,8 +27,6 @@
 #define SLEPC_INTERFACE_HEADER
 
 #include <lobpcg.h>
-#define BlopexInt PetscInt
-typedef struct {double real, imag;} komplex;
 #ifdef BLOPEX_DIR
 #include "petsc-interface.h"
 #else
