@@ -28,13 +28,13 @@
 #include "slepcip.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscClassId EPS_CLASSID;
+extern PetscErrorCode EPSInitializePackage(const char[]);
 
 /*S
-     EPS - Abstract SLEPc object that manages all the eigenvalue 
-     problem solvers.
+    EPS - Abstract SLEPc object that manages all the eigenvalue 
+    problem solvers.
 
-   Level: beginner
+    Level: beginner
 
 .seealso:  EPSCreate(), ST
 S*/
@@ -43,7 +43,7 @@ typedef struct _p_EPS* EPS;
 /*E
     EPSType - String with the name of a SLEPc eigensolver
 
-   Level: beginner
+    Level: beginner
 
 .seealso: EPSSetType(), EPS
 E*/
@@ -63,6 +63,9 @@ E*/
 #define EPSTRLAN     "trlan"
 #define EPSBLOPEX    "blopex"
 #define EPSPRIMME    "primme"
+
+/* Logging support */
+extern PetscClassId EPS_CLASSID;
 
 /*E
     EPSProblemType - determines the type of eigenvalue problem
@@ -255,13 +258,52 @@ extern PetscErrorCode EPSDenseTridiagonal(PetscInt,PetscReal*,PetscReal*,PetscRe
 extern PetscErrorCode EPSGetStartVector(EPS,PetscInt,Vec,PetscBool*);
 extern PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec,PetscBool*);
 
-extern PetscErrorCode EPSRegister(const char*,const char*,const char*,PetscErrorCode(*)(EPS));
+extern PetscFList EPSList;
+extern PetscBool  EPSRegisterAllCalled;
+extern PetscErrorCode EPSRegisterAll(const char[]);
+extern PetscErrorCode EPSRegisterDestroy(void);
+extern PetscErrorCode EPSRegister(const char[],const char[],const char[],PetscErrorCode(*)(EPS));
+
+/*MC
+   EPSRegisterDynamic - Adds a method to the eigenproblem solver package.
+
+   Synopsis:
+   PetscErrorCode EPSRegisterDynamic(const char *name_solver,const char *path,const char *name_create,PetscErrorCode (*routine_create)(EPS))
+
+   Not Collective
+
+   Input Parameters:
++  name_solver - name of a new user-defined solver
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create the solver context
+-  routine_create - routine to create the solver context
+
+   Notes:
+   EPSRegisterDynamic() may be called multiple times to add several user-defined solvers.
+
+   If dynamic libraries are used, then the fourth input argument (routine_create)
+   is ignored.
+
+   Sample usage:
+.vb
+   EPSRegisterDynamic("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
+               "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     EPSSetType(eps,"my_solver")
+   or at runtime via the option
+$     -eps_type my_solver
+
+   Level: advanced
+
+.seealso: EPSRegisterDestroy(), EPSRegisterAll()
+M*/
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,0)
 #else
 #define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,d)
 #endif
-extern PetscErrorCode EPSRegisterDestroy(void);
 
 /* --------- options specific to particular eigensolvers -------- */
 

@@ -66,10 +66,6 @@ struct _p_ST {
   PetscInt     applys;
 };
 
-extern PetscErrorCode STRegisterAll(const char*);
-extern PetscErrorCode STInitializePackage(const char*);
-extern PetscErrorCode STFinalizePackage(void);
-
 extern PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 extern PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 extern PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);

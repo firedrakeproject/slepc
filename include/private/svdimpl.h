@@ -85,10 +85,6 @@ struct _p_SVD {
   PetscInt        matvecs;
 };
 
-extern PetscErrorCode SVDRegisterAll(const char *);
-extern PetscErrorCode SVDInitializePackage(const char*);
-extern PetscErrorCode SVDFinalizePackage(void);
-
 extern PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
 
 extern PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);

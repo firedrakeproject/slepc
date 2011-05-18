@@ -622,31 +622,6 @@ PetscErrorCode IPResetOperationCounters(IP ip)
   PetscFunctionReturn(0);
 }
 
-/*MC
-   IPRegisterDynamic - Adds an inner product to the IP package.
-
-   Synopsis:
-   IPRegisterDynamic(char *name,char *path,char *name_create,PetscErrorCode (*routine_create)(IP))
-
-   Not collective
-
-   Input Parameters:
-+  name - name of a new user-defined IP
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create context
--  routine_create - routine to create context
-
-   Notes:
-   IPRegisterDynamic() may be called multiple times to add several user-defined inner products.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Level: advanced
-
-.seealso: IPRegisterDestroy(), IPRegisterAll()
-M*/
-
 #undef __FUNCT__  
 #define __FUNCT__ "IPRegister"
 /*@C

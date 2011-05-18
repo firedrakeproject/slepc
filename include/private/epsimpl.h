@@ -119,10 +119,6 @@ struct _p_EPS {
 
 extern PetscErrorCode EPSMonitor(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
 
-extern PetscErrorCode EPSRegisterAll(const char *);
-extern PetscErrorCode EPSInitializePackage(const char *);
-extern PetscErrorCode EPSFinalizePackage(void);
-
 extern PetscErrorCode EPSReset_Default(EPS);
 extern PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);
 extern PetscErrorCode EPSDefaultFreeWork(EPS);

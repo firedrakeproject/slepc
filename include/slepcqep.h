@@ -27,7 +27,7 @@
 #include "slepceps.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscClassId QEP_CLASSID;
+extern PetscErrorCode QEPInitializePackage(const char[]);
 
 /*S
      QEP - Abstract SLEPc object that manages all the quadratic eigenvalue 
@@ -49,6 +49,9 @@ E*/
 #define QEPType      char*
 #define QEPLINEAR    "linear"
 #define QEPQARNOLDI  "qarnoldi"
+
+/* Logging support */
+extern PetscClassId QEP_CLASSID;
 
 /*E
     QEPProblemType - determines the type of the quadratic eigenproblem
@@ -157,13 +160,52 @@ extern PetscErrorCode QEPSortEigenvaluesReal(QEP,PetscInt,PetscReal*,PetscInt*);
 extern PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
 extern PetscErrorCode QEPSortDenseSchur(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
 
-extern PetscErrorCode QEPRegister(const char*,const char*,const char*,PetscErrorCode(*)(QEP));
+extern PetscFList QEPList;
+extern PetscBool  QEPRegisterAllCalled;
+extern PetscErrorCode QEPRegisterAll(const char[]);
+extern PetscErrorCode QEPRegisterDestroy(void);
+extern PetscErrorCode QEPRegister(const char[],const char[],const char[],PetscErrorCode(*)(QEP));
+
+/*MC
+   QEPRegisterDynamic - Adds a method to the quadratic eigenproblem solver package.
+
+   Synopsis:
+   PetscErrorCode QEPRegisterDynamic(const char *name_solver,const char *path,const char *name_create,PetscErrorCode (*routine_create)(QEP))
+
+   Not Collective
+
+   Input Parameters:
++  name_solver - name of a new user-defined solver
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create the solver context
+-  routine_create - routine to create the solver context
+
+   Notes:
+   QEPRegisterDynamic() may be called multiple times to add several user-defined solvers.
+
+   If dynamic libraries are used, then the fourth input argument (routine_create)
+   is ignored.
+
+   Sample usage:
+.vb
+   QEPRegisterDynamic("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
+               "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     QEPSetType(qep,"my_solver")
+   or at runtime via the option
+$     -qep_type my_solver
+
+   Level: advanced
+
+.seealso: QEPRegisterDestroy(), QEPRegisterAll()
+M*/
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define QEPRegisterDynamic(a,b,c,d) QEPRegister(a,b,c,0)
 #else
 #define QEPRegisterDynamic(a,b,c,d) QEPRegister(a,b,c,d)
 #endif
-extern PetscErrorCode QEPRegisterDestroy(void);
 
 /* --------- options specific to particular eigensolvers -------- */
 

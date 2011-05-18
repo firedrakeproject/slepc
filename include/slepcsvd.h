@@ -27,7 +27,7 @@
 #include "slepceps.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscClassId SVD_CLASSID;
+extern PetscErrorCode SVDInitializePackage(const char[]);
 
 /*S
      SVD - Abstract SLEPc object that manages all the singular value 
@@ -52,6 +52,9 @@ E*/
 #define SVDLAPACK      "lapack"
 #define SVDLANCZOS     "lanczos"
 #define SVDTRLANCZOS   "trlanczos"
+
+/* Logging support */
+extern PetscClassId SVD_CLASSID;
 
 /*E
     SVDTransposeMode - determines how to handle the transpose of the matrix
@@ -150,13 +153,52 @@ extern PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 extern PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
 extern PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
-extern PetscErrorCode SVDRegister(const char*,const char*,const char*,PetscErrorCode(*)(SVD));
+extern PetscFList SVDList;
+extern PetscBool  SVDRegisterAllCalled;
+extern PetscErrorCode SVDRegisterAll(const char[]);
+extern PetscErrorCode SVDRegisterDestroy(void);
+extern PetscErrorCode SVDRegister(const char[],const char[],const char[],PetscErrorCode(*)(SVD));
+
+/*MC
+   SVDRegisterDynamic - Adds a method to the singular value solver package.
+
+   Synopsis:
+   PetscErrorCode SVDRegisterDynamic(const char *name_solver,const char *path,const char *name_create,PetscErrorCode (*routine_create)(SVD))
+
+   Not Collective
+
+   Input Parameters:
++  name_solver - name of a new user-defined solver
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create the solver context
+-  routine_create - routine to create the solver context
+
+   Notes:
+   SVDRegisterDynamic() may be called multiple times to add several user-defined solvers.
+
+   If dynamic libraries are used, then the fourth input argument (routine_create)
+   is ignored.
+
+   Sample usage:
+.vb
+   SVDRegisterDynamic("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
+               "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     SVDSetType(svd,"my_solver")
+   or at runtime via the option
+$     -svd_type my_solver
+
+   Level: advanced
+
+.seealso: SVDRegisterDestroy(), SVDRegisterAll()
+M*/
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,0)
 #else
 #define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,d)
 #endif
-extern PetscErrorCode SVDRegisterDestroy(void);
 
 PETSC_EXTERN_CXX_END
 #endif

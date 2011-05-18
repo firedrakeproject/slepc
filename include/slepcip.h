@@ -24,8 +24,7 @@
 #include "slepcsys.h"
 PETSC_EXTERN_CXX_BEGIN
 
-extern PetscClassId IP_CLASSID;
-
+extern PetscErrorCode IPInitializePackage(const char[]);
 /*S
     IP - Abstraction of a vector inner product, that can be defined
     in different ways. Using this object is not required for application
@@ -50,6 +49,9 @@ E*/
 #define IPType         char*
 #define IPBILINEAR     "bilinear"
 #define IPSESQUILINEAR "sesquilinear"
+
+/* Logging support */
+extern PetscClassId IP_CLASSID;
 
 /*E
     IPOrthogType - determines what type of orthogonalization to use
@@ -113,13 +115,41 @@ extern PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
 extern PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
 extern PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
 
-extern PetscErrorCode IPRegister(const char*,const char*,const char*,PetscErrorCode(*)(IP));
+extern PetscFList IPList;
+extern PetscBool  IPRegisterAllCalled;
+extern PetscErrorCode IPRegisterAll(const char[]);
+extern PetscErrorCode IPRegister(const char[],const char[],const char[],PetscErrorCode(*)(IP));
+extern PetscErrorCode IPRegisterDestroy(void);
+
+/*MC
+   IPRegisterDynamic - Adds an inner product to the IP package.
+
+   Synopsis:
+   PetscErrorCode IPRegisterDynamic(const char *name,const char *path,const char *name_create,PetscErrorCode (*routine_create)(IP))
+
+   Not collective
+
+   Input Parameters:
++  name - name of a new user-defined IP
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create context
+-  routine_create - routine to create context
+
+   Notes:
+   IPRegisterDynamic() may be called multiple times to add several user-defined inner products.
+
+   If dynamic libraries are used, then the fourth input argument (routine_create)
+   is ignored.
+
+   Level: advanced
+
+.seealso: IPRegisterDestroy(), IPRegisterAll()
+M*/
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 #define IPRegisterDynamic(a,b,c,d) IPRegister(a,b,c,0)
 #else
 #define IPRegisterDynamic(a,b,c,d) IPRegister(a,b,c,d)
 #endif
-extern PetscErrorCode IPRegisterDestroy(void);
 
 extern PetscErrorCode IPGetOperationCounters(IP,PetscInt*);
 extern PetscErrorCode IPResetOperationCounters(IP);

@@ -612,44 +612,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-/*MC
-   STRegisterDynamic - Adds a method to the spectral transformation package.
-
-   Synopsis:
-   STRegisterDynamic(char *name_solver,char *path,char *name_create,PetscErrorCode (*routine_create)(ST))
-
-   Not collective
-
-   Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create method context
--  routine_create - routine to create method context
-
-   Notes:
-   STRegisterDynamic() may be called multiple times to add several user-defined spectral transformations.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Sample usage:
-.vb
-   STRegisterDynamic("my_solver","/home/username/my_lib/lib/libO/solaris/mylib.a",
-              "MySolverCreate",MySolverCreate);
-.ve
-
-   Then, your solver can be chosen with the procedural interface via
-$     STSetType(st,"my_solver")
-   or at runtime via the option
-$     -st_type my_solver
-
-   Level: advanced
-
-   $PETSC_DIR, $PETSC_ARCH and $PETSC_LIB_DIR occuring in pathname will be replaced with appropriate values.
-
-.seealso: STRegisterDestroy(), STRegisterAll()
-M*/
-
 #undef __FUNCT__  
 #define __FUNCT__ "STRegister"
 /*@C

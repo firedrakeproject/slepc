@@ -100,10 +100,6 @@ struct _p_QEP {
 
 extern PetscErrorCode QEPMonitor(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
 
-extern PetscErrorCode QEPRegisterAll(const char *);
-extern PetscErrorCode QEPInitializePackage(const char *);
-extern PetscErrorCode QEPFinalizePackage(void);
-
 extern PetscErrorCode QEPDefaultGetWork(QEP,PetscInt);
 extern PetscErrorCode QEPDefaultFreeWork(QEP);
 extern PetscErrorCode QEPAllocateSolution(QEP);
