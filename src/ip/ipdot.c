@@ -487,3 +487,36 @@ PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScal
   ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "IPCreate_Bilinear"
+PetscErrorCode IPCreate_Bilinear(IP ip)
+{
+  PetscFunctionBegin;
+  ip->ops->normbegin          = PETSC_NULL;
+  ip->ops->normend            = PETSC_NULL;
+  ip->ops->innerproductbegin  = PETSC_NULL;
+  ip->ops->innerproductend    = PETSC_NULL;
+  ip->ops->minnerproductbegin = PETSC_NULL;
+  ip->ops->minnerproductend   = PETSC_NULL;
+  PetscFunctionReturn(0);
+}
+
+#if defined(PETSC_USE_COMPLEX)
+#undef __FUNCT__  
+#define __FUNCT__ "IPCreate_Sesquilinear"
+PetscErrorCode IPCreate_Sesquilinear(IP ip)
+{
+  PetscFunctionBegin;
+  ip->ops->normbegin          = PETSC_NULL;
+  ip->ops->normend            = PETSC_NULL;
+  ip->ops->innerproductbegin  = PETSC_NULL;
+  ip->ops->innerproductend    = PETSC_NULL;
+  ip->ops->minnerproductbegin = PETSC_NULL;
+  ip->ops->minnerproductend   = PETSC_NULL;
+  PetscFunctionReturn(0);
+}
+#endif
+EXTERN_C_END
+

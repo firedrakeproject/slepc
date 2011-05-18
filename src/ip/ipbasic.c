@@ -23,8 +23,28 @@
 
 #include <private/ipimpl.h>      /*I "slepcip.h" I*/
 
-PetscClassId  IP_CLASSID = 0;
-PetscLogEvent IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
+PetscFList       IPList = 0;
+PetscClassId     IP_CLASSID = 0;
+PetscLogEvent    IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
+static PetscBool IPPackageInitialized = PETSC_FALSE;
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPFinalizePackage"
+/*@C
+   IPFinalizePackage - This function destroys everything in the Slepc interface 
+   to the IP package. It is called from SlepcFinalize().
+
+   Level: developer
+
+.seealso: SlepcFinalize()
+@*/
+PetscErrorCode IPFinalizePackage(void) 
+{
+  PetscFunctionBegin;
+  IPPackageInitialized = PETSC_FALSE;
+  IPList               = 0;
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPInitializePackage"
@@ -42,17 +62,18 @@ PetscLogEvent IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
 @*/
 PetscErrorCode IPInitializePackage(const char *path) 
 {
-  static PetscBool initialized = PETSC_FALSE;
   char             logList[256];
   char             *className;
   PetscBool        opt;
   PetscErrorCode   ierr;
 
   PetscFunctionBegin;
-  if (initialized) PetscFunctionReturn(0);
-  initialized = PETSC_TRUE;
+  if (IPPackageInitialized) PetscFunctionReturn(0);
+  IPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
   ierr = PetscClassIdRegister("Inner product",&IP_CLASSID);CHKERRQ(ierr);
+  /* Register Constructors */
+  ierr = IPRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("IPOrthogonalize",IP_CLASSID,&IP_Orthogonalize);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("IPInnerProduct",IP_CLASSID,&IP_InnerProduct);CHKERRQ(ierr);
@@ -73,6 +94,7 @@ PetscErrorCode IPInitializePackage(const char *path)
       ierr = PetscLogEventDeactivateClass(IP_CLASSID);CHKERRQ(ierr);
     }
   }
+  ierr = PetscRegisterFinalize(IPFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -104,7 +126,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 
   PetscFunctionBegin;
   PetscValidPointer(newip,2);
-  ierr = PetscHeaderCreate(ip,_p_IP,int,IP_CLASSID,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(ip,_p_IP,struct _IPOps,IP_CLASSID,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
   *newip            = ip;
   ip->orthog_type   = IP_ORTHOG_CGS;
   ip->orthog_ref    = IP_ORTHOG_REFINE_IFNEEDED;
@@ -212,6 +234,80 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "IPSetType"
+/*@C
+   IPSetType - Selects the type for the IP object.
+
+   Logically Collective on IP
+
+   Input Parameter:
++  ip   - the inner product context.
+-  type - a known type
+
+   Notes:
+   Two types are available: IPBILINEAR and IPSESQUILINEAR.
+
+   For complex scalars, the default is a sesquilinear form (x,y)=x^H*M*y and it is
+   also possible to choose a bilinear form (x,y)=x^T*M*y (without complex conjugation).
+   The latter could be useful e.g. in complex-symmetric eigensolvers.
+
+   In the case of real scalars, only the bilinear form (x,y)=x^T*M*y is available.
+
+   Level: advanced
+
+.seealso: IPGetType()
+
+@*/
+PetscErrorCode IPSetType(IP ip,const IPType type)
+{
+  PetscErrorCode ierr,(*r)(IP);
+  PetscBool      match;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidCharPointer(type,2);
+
+  ierr = PetscTypeCompare((PetscObject)ip,type,&match);CHKERRQ(ierr);
+  if (match) PetscFunctionReturn(0);
+
+  ierr =  PetscFListFind(IPList,((PetscObject)ip)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested IP type %s",type);
+
+  ierr = PetscMemzero(ip->ops,sizeof(struct _IPOps));CHKERRQ(ierr);
+
+  ierr = PetscObjectChangeTypeName((PetscObject)ip,type);CHKERRQ(ierr);
+  ierr = (*r)(ip);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPGetType"
+/*@C
+   IPGetType - Gets the IP type name (as a string) from the IP context.
+
+   Not Collective
+
+   Input Parameter:
+.  ip - the inner product context
+
+   Output Parameter:
+.  name - name of the inner product
+
+   Level: advanced
+
+.seealso: IPSetType()
+
+@*/
+PetscErrorCode IPGetType(IP ip,const IPType *type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  PetscValidPointer(type,2);
+  *type = ((PetscObject)ip)->type_name;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "IPSetFromOptions"
 /*@
    IPSetFromOptions - Sets IP options from the options database.
@@ -236,14 +332,22 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+  if (!((PetscObject)ip)->type_name) {
+    /* Set default type (we do not allow changing it with -ip_type) */
+#if defined(PETSC_USE_COMPLEX)
+    ierr = IPSetType(ip,IPSESQUILINEAR);CHKERRQ(ierr);
+#else
+    ierr = IPSetType(ip,IPBILINEAR);CHKERRQ(ierr);
+#endif
+  }
   ierr = PetscOptionsBegin(((PetscObject)ip)->comm,((PetscObject)ip)->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
-  i = ip->orthog_type;
-  ierr = PetscOptionsEList("-ip_orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
-  j = ip->orthog_ref;
-  ierr = PetscOptionsEList("-ip_orthog_refine","Iterative refinement mode during orthogonalization","IPSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
-  r = ip->orthog_eta;
-  ierr = PetscOptionsReal("-ip_orthog_eta","Parameter of iterative refinement during orthogonalization","IPSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
-  ierr = IPSetOrthogonalization(ip,(IPOrthogType)i,(IPOrthogRefineType)j,r);CHKERRQ(ierr);
+    i = ip->orthog_type;
+    ierr = PetscOptionsEList("-ip_orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
+    j = ip->orthog_ref;
+    ierr = PetscOptionsEList("-ip_orthog_refine","Iterative refinement mode during orthogonalization","IPSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
+    r = ip->orthog_eta;
+    ierr = PetscOptionsReal("-ip_orthog_eta","Parameter of iterative refinement during orthogonalization","IPSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPSetOrthogonalization(ip,(IPOrthogType)i,(IPOrthogRefineType)j,r);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -515,6 +619,102 @@ PetscErrorCode IPResetOperationCounters(IP ip)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ip->innerproducts = 0;
+  PetscFunctionReturn(0);
+}
+
+/*MC
+   IPRegisterDynamic - Adds an inner product to the IP package.
+
+   Synopsis:
+   IPRegisterDynamic(char *name,char *path,char *name_create,PetscErrorCode (*routine_create)(IP))
+
+   Not collective
+
+   Input Parameters:
++  name - name of a new user-defined IP
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create context
+-  routine_create - routine to create context
+
+   Notes:
+   IPRegisterDynamic() may be called multiple times to add several user-defined inner products.
+
+   If dynamic libraries are used, then the fourth input argument (routine_create)
+   is ignored.
+
+   Level: advanced
+
+.seealso: IPRegisterDestroy(), IPRegisterAll()
+M*/
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPRegister"
+/*@C
+   IPRegister - See IPRegisterDynamic()
+
+   Level: advanced
+@*/
+PetscErrorCode IPRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(IP))
+{
+  PetscErrorCode ierr;
+  char           fullname[256];
+
+  PetscFunctionBegin;
+  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFListAdd(&IPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPRegisterDestroy"
+/*@
+   IPRegisterDestroy - Frees the list of IP methods that were
+   registered by IPRegisterDynamic().
+
+   Not Collective
+
+   Level: advanced
+
+.seealso: IPRegisterDynamic(), IPRegisterAll()
+@*/
+PetscErrorCode IPRegisterDestroy(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFListDestroy(&IPList);CHKERRQ(ierr);
+  ierr = IPRegisterAll(PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+extern PetscErrorCode IPCreate_Bilinear(IP);
+#if defined(PETSC_USE_COMPLEX)
+extern PetscErrorCode IPCreate_Sesquilinear(IP);
+#endif
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPRegisterAll"
+/*@C
+   IPRegisterAll - Registers all of the inner products in the IP package.
+
+   Not Collective
+
+   Input Parameter:
+.  path - the library where the routines are to be found (optional)
+
+   Level: advanced
+@*/
+PetscErrorCode IPRegisterAll(const char *path)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = IPRegisterDynamic(IPBILINEAR,path,"IPCreate_Bilinear",IPCreate_Bilinear);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = IPRegisterDynamic(IPSESQUILINEAR,path,"IPCreate_Sesquilinear",IPCreate_Sesquilinear);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 

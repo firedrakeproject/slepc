@@ -26,6 +26,31 @@ PETSC_EXTERN_CXX_BEGIN
 
 extern PetscClassId IP_CLASSID;
 
+/*S
+    IP - Abstraction of a vector inner product, that can be defined
+    in different ways. Using this object is not required for application
+    programmers.
+
+    Level: beginner
+
+.seealso:  IPCreate()
+S*/
+typedef struct _p_IP* IP;
+
+/*E
+    IPType - String with the name of the inner product. For complex scalars,
+    it is possible to choose between a sesquilinear form (x,y)=x^H*M*y (the default)
+    or a bilinear form (x,y)=x^T*M*y (without complex conjugation). In the case
+    of real scalars, only the bilinear form (x,y)=x^T*M*y is available.
+
+    Level: advanced
+
+.seealso: IPSetType(), IP
+E*/
+#define IPType         char*
+#define IPBILINEAR     "bilinear"
+#define IPSESQUILINEAR "sesquilinear"
+
 /*E
     IPOrthogType - determines what type of orthogonalization to use
 
@@ -48,18 +73,9 @@ typedef enum { IP_ORTHOG_REFINE_NEVER,
                IP_ORTHOG_REFINE_IFNEEDED,
                IP_ORTHOG_REFINE_ALWAYS } IPOrthogRefineType;
 
-/*S
-     IP - Abstraction of a vector inner product, that can be defined
-     in different ways. Using this object is not required for application
-     programmers.
-
-   Level: beginner
-
-.seealso:  IPCreate()
-S*/
-typedef struct _p_IP* IP;
-
 extern PetscErrorCode IPCreate(MPI_Comm,IP*);
+extern PetscErrorCode IPSetType(IP,const IPType);
+extern PetscErrorCode IPGetType(IP,const IPType*);
 extern PetscErrorCode IPSetOptionsPrefix(IP,const char *);
 extern PetscErrorCode IPAppendOptionsPrefix(IP,const char *);
 extern PetscErrorCode IPGetOptionsPrefix(IP,const char *[]);
@@ -96,6 +112,14 @@ extern PetscErrorCode IPMInnerProductEnd(IP ip,Vec,PetscInt,const Vec[],PetscSca
 extern PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
 extern PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
 extern PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
+
+extern PetscErrorCode IPRegister(const char*,const char*,const char*,PetscErrorCode(*)(IP));
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#define IPRegisterDynamic(a,b,c,d) IPRegister(a,b,c,0)
+#else
+#define IPRegisterDynamic(a,b,c,d) IPRegister(a,b,c,d)
+#endif
+extern PetscErrorCode IPRegisterDestroy(void);
 
 extern PetscErrorCode IPGetOperationCounters(IP,PetscInt*);
 extern PetscErrorCode IPResetOperationCounters(IP);

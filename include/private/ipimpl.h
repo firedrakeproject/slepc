@@ -26,8 +26,19 @@
 
 extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 
+typedef struct _IPOps *IPOps;
+
+struct _IPOps {
+  PetscErrorCode (*normbegin)(IP,Vec,PetscScalar*);
+  PetscErrorCode (*normend)(IP,Vec,PetscScalar*);
+  PetscErrorCode (*innerproductbegin)(IP,Vec,Vec,PetscScalar*);
+  PetscErrorCode (*innerproductend)(IP,Vec,Vec,PetscScalar*);
+  PetscErrorCode (*minnerproductbegin)(IP,Vec,PetscInt,const Vec[],PetscScalar*);
+  PetscErrorCode (*minnerproductend)(IP,Vec,PetscInt,const Vec[],PetscScalar*);
+};
+
 struct _p_IP {
-  PETSCHEADER(int);
+  PETSCHEADER(struct _IPOps);
   IPOrthogType       orthog_type;    /* which orthogonalization to use */
   IPOrthogRefineType orthog_ref;     /* refinement method */
   PetscReal          orthog_eta;     /* refinement threshold */
@@ -41,7 +52,9 @@ struct _p_IP {
   Vec                Bx;
 };
 
+extern PetscErrorCode IPRegisterAll(const char*);
 extern PetscErrorCode IPInitializePackage(const char *);
+extern PetscErrorCode IPFinalizePackage(void);
 extern PetscErrorCode IPApplyMatrix_Private(IP,Vec);
 extern PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 
