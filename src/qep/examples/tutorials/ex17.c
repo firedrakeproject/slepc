@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PetscReal      error,tol,re,im;
   PetscScalar    kr,ki;
   PetscInt       nev,maxit,i,its,nconv;
-  char           filename[256];
+  char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg;
   PetscErrorCode ierr;
@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
 #endif
 
-  ierr = PetscOptionsGetString(PETSC_NULL,"-M",filename,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-M",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (!flg) {
     SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix M with the -M option.");
   }
@@ -65,7 +65,7 @@ int main(int argc,char **argv)
   ierr = MatLoad(M,viewer);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetString(PETSC_NULL,"-C",filename,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-C",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (!flg) {
     SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix C with the -C option.");
   }
@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   ierr = MatLoad(C,viewer);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetString(PETSC_NULL,"-K",filename,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-K",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (!flg) {
     SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix K with the -K option.");
   }

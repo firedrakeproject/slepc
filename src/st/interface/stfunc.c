@@ -660,7 +660,7 @@ M*/
 PetscErrorCode STRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(ST))
 {
   PetscErrorCode ierr;
-  char           fullname[256];
+  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);

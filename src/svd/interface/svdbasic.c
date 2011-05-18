@@ -447,7 +447,7 @@ M*/
 PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(SVD))
 {
   PetscErrorCode ierr;
-  char           fullname[256];
+  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);

@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PetscReal      error,tol,re,im;
   PetscScalar    kr,ki;
   PetscInt       nev,maxit,i,its,lits,nconv;
-  char           filename[256];
+  char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg;
   PetscErrorCode ierr;
@@ -49,7 +49,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n");CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(PETSC_NULL,"-f1",filename,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-f1",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (!flg) {
     SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix A with the -f1 option.");
   }
@@ -65,7 +65,7 @@ int main(int argc,char **argv)
   ierr = MatLoad(A,viewer);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetString(PETSC_NULL,"-f2",filename,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-f2",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (!flg) {
     SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix B with the -f2 option.");
   }

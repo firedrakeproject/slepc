@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscReal      error,tol,re,im;
   PetscScalar    kr,ki;
   PetscInt       nev,maxit,i,its,nconv;
-  char           filename[256];
+  char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg;
   PetscErrorCode ierr;
@@ -48,7 +48,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEigenproblem stored in file.\n\n");CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(PETSC_NULL,"-file",filename,256,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-file",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (!flg) {
     SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name with the -file option.");
   }
