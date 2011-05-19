@@ -67,6 +67,7 @@ PetscErrorCode QEPSolve(QEP qep)
   /* reset the convergence flag from the previous solves */
   qep->reason = QEP_CONVERGED_ITERATING;
 
+  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   if (!qep->setupcalled){ ierr = QEPSetUp(qep);CHKERRQ(ierr); }
   qep->nconv = 0;
   qep->its = 0;
@@ -793,6 +794,7 @@ PetscErrorCode QEPGetOperationCounters(QEP qep,PetscInt* matvecs,PetscInt* dots,
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (matvecs) *matvecs = qep->matvecs; 
   if (dots) {
+    if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(qep->ip,dots);CHKERRQ(ierr);
   }
   if (lits) *lits = qep->linits; 

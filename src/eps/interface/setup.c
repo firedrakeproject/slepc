@@ -92,6 +92,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->ishermitian && eps->leftvecs)
     SETERRQ(((PetscObject)eps)->comm,1,"Requesting left eigenvectors not allowed in Hermitian problems");
   
+  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   if (eps->ispositive) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
     ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);

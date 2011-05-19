@@ -391,6 +391,7 @@ PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (matvecs) *matvecs = svd->matvecs; 
   if (dots) {
+    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

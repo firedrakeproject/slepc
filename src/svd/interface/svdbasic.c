@@ -176,6 +176,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
     }
   }
+  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -240,8 +241,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   ierr = PetscRandomCreate(comm,&svd->rand);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(svd,svd->rand);CHKERRQ(ierr);
-  ierr = IPCreate(comm,&svd->ip);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(svd,svd->ip);CHKERRQ(ierr);
   *outsvd = svd;
   PetscFunctionReturn(0);
 }
@@ -493,9 +492,15 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
 @*/
 PetscErrorCode SVDGetIP(SVD svd,IP *ip)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(ip,2);
+  if (!svd->ip) {
+    ierr = IPCreate(((PetscObject)svd)->comm,&svd->ip);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(svd,svd->ip);CHKERRQ(ierr);
+  }
   *ip = svd->ip;
   PetscFunctionReturn(0);
 }

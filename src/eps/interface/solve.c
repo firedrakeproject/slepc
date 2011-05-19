@@ -323,6 +323,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,Pets
   if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STGetOperationCounters(eps->OP,ops,lits);CHKERRQ(ierr);
   if (dots) {
+    if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(eps->ip,dots);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

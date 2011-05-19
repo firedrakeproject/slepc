@@ -401,6 +401,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   svd->setupcalled = 0;
   if (!SVDRegisterAllCalled) { ierr = SVDRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"Singular Value Solver (SVD) Options","SVD");CHKERRQ(ierr);
 
   ierr = PetscOptionsList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);

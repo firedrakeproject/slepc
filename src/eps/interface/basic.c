@@ -288,6 +288,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
     }
   }
+  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
   if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
@@ -385,8 +386,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->rand);CHKERRQ(ierr);
-  ierr = IPCreate(comm,&eps->ip);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
   *outeps = eps;
   PetscFunctionReturn(0);
 }
@@ -757,9 +756,15 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
 @*/
 PetscErrorCode EPSGetIP(EPS eps,IP *ip)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(ip,2);
+  if (!eps->ip) {
+    ierr = IPCreate(((PetscObject)eps)->comm,&eps->ip);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
+  }
   *ip = eps->ip;
   PetscFunctionReturn(0);
 }

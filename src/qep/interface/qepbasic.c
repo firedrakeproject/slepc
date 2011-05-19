@@ -207,6 +207,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
       ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
     }
   }
+  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -284,8 +285,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 
   ierr = PetscRandomCreate(comm,&qep->rand);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(qep,qep->rand);CHKERRQ(ierr);
-  ierr = IPCreate(comm,&qep->ip);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
   *outqep = qep;
   PetscFunctionReturn(0);
 }
@@ -530,9 +529,15 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
 @*/
 PetscErrorCode QEPGetIP(QEP qep,IP *ip)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(ip,2);
+  if (!qep->ip) {
+    ierr = IPCreate(((PetscObject)qep)->comm,&qep->ip);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
+  }
   *ip = qep->ip;
   PetscFunctionReturn(0);
 }
