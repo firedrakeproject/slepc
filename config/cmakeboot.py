@@ -98,9 +98,9 @@ class PETScMaker(script.Script):
    output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir)
    if retcode:
      self.logPrintBox('CMake process failed with status %d. Proceeding..' % (retcode,))
+     return False
    else:
-     self.logPrintBox('CMake configuration completed successfully.\n' +
-                      'Can now use alternate build command [optionally with -j]: make -C %s' % quoteIfNeeded(archdir))
+     return True
    return
 
 def main(slepcdir, petscdir, petscarch, argDB=None, framework=None, log=StdoutLogger(), args=[]):
@@ -114,7 +114,7 @@ def main(slepcdir, petscdir, petscarch, argDB=None, framework=None, log=StdoutLo
   # and makes the result unpickleable.  This is not a problem when run
   # as a standalone program (because the database is read-only), but is
   # not okay when called from configure.
-  PETScMaker(slepcdir,petscdir,petscarch,argDB,framework).cmakeboot(args,log)
+  return PETScMaker(slepcdir,petscdir,petscarch,argDB,framework).cmakeboot(args,log)
 
 if __name__ == "__main__":
   main(slepcdir=os.environ['SLEPC_DIR'], petscdir=os.environ['PETSC_DIR'], petscarch=os.environ['PETSC_ARCH'], args=sys.argv[1:])

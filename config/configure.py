@@ -323,10 +323,11 @@ if sys.version_info >= (2,5):
     log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
 
 # In a prefix-based PETSc installation we skip the last CMake step
+cmakeok = False
 if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
   import cmakeboot
   try:
-    cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
+    cmakeok = cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
   except (OSError), e:
     log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
   except (ImportError, KeyError), e:
@@ -334,9 +335,9 @@ if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
 
 # Print summary
 log.Println('')
-log.Println('='*80)
+log.Println('='*79)
 log.Println('SLEPc Configuration')
-log.Println('='*80)
+log.Println('='*79)
 log.Println('')
 log.Println('SLEPc directory:')
 log.Println(' '+slepcdir)
@@ -366,11 +367,12 @@ if missing:
   log.Println('')
   log.Println('WARNING: Some SLEPc functionality will not be available')
   log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
-if petscconf.ISINSTALL:  
-  log.Println('')
-  log.Println('  **')
-  log.Println('  ** Before running "make" your PETSC_ARCH must be specified with:')
-  log.Println('  **  ** setenv PETSC_ARCH '+petscconf.ARCH+' (csh/tcsh)')
-  log.Println('  **  ** PETSC_ARCH='+petscconf.ARCH+' ; export PETSC_ARCH (sh/bash)')
-  log.Println('  **')
+print
+print 'xxx'+'='*73+'xxx'
+print ' Configure stage complete. Now build the SLEPc library with:'
+print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+petscconf.ARCH
+if cmakeok:
+  print ' or (experimental with cmake):'
+  print '   make -j4 -C '+archdir
+print 'xxx'+'='*73+'xxx'
 print

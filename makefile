@@ -30,8 +30,7 @@ DIRS   = src include docs
 include ${SLEPC_DIR}/conf/slepc_common
 
 #
-# Basic targets to build SLEPc libraries.
-# all: builds the C/C++ and Fortran libraries
+# Basic targets to build SLEPc library.
 all:
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkslepc_dir
@@ -43,10 +42,11 @@ all:
            echo "********************************************************************"; \
            exit 1; \
 	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-           echo "Now to check if the libraries are working do: make test";\
+           echo "Now to check if the library is working do: make test";\
            echo "=========================================";\
 	 else \
-	   echo "Now to install the libraries do: make install";\
+	   echo "Now to install the library do:";\
+	   echo "make SLEPC_DIR=${PWD} PETSC_DIR=${PETSC_DIR} PETSC_ARCH=arch-installed-petsc install";\
 	   echo "=========================================";\
 	 fi
 	
@@ -93,20 +93,20 @@ info:
 	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
          fi
 	-@echo "-----------------------------------------"
-	-@echo "Using libraries: ${SLEPC_LIB}"
+	-@echo "Using library: ${SLEPC_LIB}"
 	-@echo "------------------------------------------"
 	-@echo "Using mpiexec: ${MPIEXEC}"
 	-@echo "=========================================="
 
 #
-# Builds the SLEPc libraries
+# Builds the SLEPc library
 #
 build:
 	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast  slepctree 
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
-	-@echo "Completed building SLEPc libraries"
+	-@echo "Completed building the SLEPc library"
 	-@echo "========================================="
 
 # Simple test examples for checking a correct installation
@@ -145,11 +145,11 @@ testfortran: info
 	-@
 	-@echo "========================================="
 
-# Ranlib on the libraries
+# Ranlib on the library
 ranlib:
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 
-# Deletes SLEPc libraries
+# Deletes SLEPc library
 deletelibs:
 	-${RM} -r ${SLEPC_LIB_DIR}/libslepc*.*
 deletemods:
@@ -233,14 +233,10 @@ install:
             ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} slepc4py; \
           fi;\
           echo "====================================";\
-	  echo "If using sh/bash, do the following:";\
-          echo "  SLEPC_DIR="${SLEPC_DESTDIR}"; export SLEPC_DIR";\
-          echo "  unset PETSC_ARCH";\
-          echo "If using csh/tcsh, do the following:";\
-          echo "  setenv SLEPC_DIR "${SLEPC_DESTDIR};\
-          echo "  unsetenv PETSC_ARCH";\
-          echo "Run the following to verify the install (remain in current directory for the tests):";\
-          echo "  make test";\
+	  echo "Install complete.";\
+	  echo "It is usable with SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} [and no more PETSC_ARCH].";\
+          echo "Run the following to verify the install (in current directory):";\
+          echo "make SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} test";\
           echo "====================================";\
         fi;
 
