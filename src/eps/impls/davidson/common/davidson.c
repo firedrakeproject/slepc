@@ -209,9 +209,9 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Setup IP */
   if (ipB && dvd->B) {
-    ierr = IPSetBilinearForm(eps->ip,dvd->B,IP_INNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,dvd->B);CHKERRQ(ierr);
   } else {
-    ierr = IPSetBilinearForm(eps->ip,0,IP_INNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,PETSC_NULL);CHKERRQ(ierr);
   }
 
   /* Get the fix parameter */

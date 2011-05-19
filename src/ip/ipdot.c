@@ -41,7 +41,7 @@
    Notes:
    This function will usually compute the 2-norm of a vector, ||x||_2. But
    this behaviour may be different if using a non-standard inner product changed 
-   via IPSetBilinearForm(). For example, if using the B-inner product for 
+   via IPSetMatrix(). For example, if using the B-inner product for 
    positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B = 
    sqrt( x^H Bx ).
 
@@ -217,13 +217,13 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
    Notes:
    This function will usually compute the standard dot product of vectors
    x and y, (x,y)=y^H x. However this behaviour may be different if changed 
-   via IPSetBilinearForm(). This allows use of other inner products such as
+   via IPSetMatrix(). This allows use of other inner products such as
    the indefinite product y^T x for complex symmetric problems or the
    B-inner product for positive definite B, (x,y)_B=y^H Bx.
 
    Level: developer
 
-.seealso: IPSetBilinearForm(), VecDot(), IPMInnerProduct()
+.seealso: IPSetMatrix(), VecDot(), IPMInnerProduct()
 @*/
 PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -399,13 +399,13 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
    Notes:
    This function will usually compute the standard dot product of x and y_i, 
    (x,y_i)=y_i^H x, for each column of Y. However this behaviour may be different
-   if changed via IPSetBilinearForm(). This allows use of other inner products 
+   if changed via IPSetMatrix(). This allows use of other inner products 
    such as the indefinite product y_i^T x for complex symmetric problems or the
    B-inner product for positive definite B, (x,y_i)_B=y_i^H Bx.
 
    Level: developer
 
-.seealso: IPSetBilinearForm(), VecMDot(), IPInnerProduct()
+.seealso: IPSetMatrix(), VecMDot(), IPInnerProduct()
 @*/
 PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {

@@ -133,7 +133,6 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->orthog_type   = IP_ORTHOG_CGS;
   ip->orthog_ref    = IP_ORTHOG_REFINE_IFNEEDED;
   ip->orthog_eta    = 0.7071;
-  ip->bilinear_form = IP_INNER_HERMITIAN;
   ip->innerproducts = 0;
   ip->matrix        = PETSC_NULL;
   ip->Bx            = PETSC_NULL;

@@ -92,17 +92,8 @@ extern PetscErrorCode IPOrthogonalize(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,
 extern PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 extern PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt);
 
-/*E
-    IPBilinearForm - determines the type of bilinear/sesquilinear form
-
-    Level: developer
-
-.seealso: IPSetBilinearForm(), IPGetBilinearForm()
-E*/
-typedef enum { IP_INNER_HERMITIAN,
-               IP_INNER_SYMMETRIC } IPBilinearForm;
-extern PetscErrorCode IPSetBilinearForm(IP,Mat,IPBilinearForm);
-extern PetscErrorCode IPGetBilinearForm(IP,Mat*,IPBilinearForm*);
+extern PetscErrorCode IPSetMatrix(IP,Mat);
+extern PetscErrorCode IPGetMatrix(IP,Mat*);
 extern PetscErrorCode IPApplyMatrix(IP,Vec,Vec);
 
 extern PetscErrorCode IPInnerProduct(IP ip,Vec,Vec,PetscScalar*);

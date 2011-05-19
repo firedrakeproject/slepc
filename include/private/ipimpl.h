@@ -42,7 +42,6 @@ struct _p_IP {
   IPOrthogType       orthog_type;    /* which orthogonalization to use */
   IPOrthogRefineType orthog_ref;     /* refinement method */
   PetscReal          orthog_eta;     /* refinement threshold */
-  IPBilinearForm     bilinear_form;
   Mat                matrix;
   PetscInt           innerproducts;
 

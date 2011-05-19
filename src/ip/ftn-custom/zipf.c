@@ -30,7 +30,7 @@
 #define ipgetoptionsprefix_       IGSETOPTIONSPREFIX
 #define ipgetorthogonalization_   IPGETORTHOGONALIZATION
 #define ipview_                   IPVIEW
-#define ipgetbilinarform_         IPGETBILINARFORM
+#define ipgetmatrix_              IPGETMATRIX
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define ipcreate_                 ipcreate
 #define ipdestroy_                ipdestroy
@@ -39,7 +39,7 @@
 #define ipgetoptionsprefix_       ipgetoptionsprefix
 #define ipgetorthogonalization_   ipgetorthogonalization
 #define ipview_                   ipview
-#define ipgetbilinarform_         ipgetbilinarform
+#define ipgetmatrix_              ipgetmatrix
 #endif
 
 EXTERN_C_BEGIN
@@ -94,10 +94,9 @@ void PETSC_STDCALL ipview_(IP *ip,PetscViewer *viewer, PetscErrorCode *ierr)
   *ierr = IPView(*ip,v);
 }
 
-void PETSC_STDCALL ipgetbilinarform_(IP *ip,Mat *mat,IPBilinearForm* form,PetscErrorCode *ierr)
+void PETSC_STDCALL ipgetmatrix_(IP *ip,Mat *mat,PetscErrorCode *ierr)
 {
-  if (FORTRANNULLOBJECT(mat)) mat = PETSC_NULL;  
-  *ierr = IPGetBilinearForm(*ip,mat,form);
+  *ierr = IPGetMatrix(*ip,mat);
 }
 
 EXTERN_C_END

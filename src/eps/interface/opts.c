@@ -920,18 +920,6 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
       break;
-/*
-    case EPS_CSEP: 
-      eps->isgeneralized = PETSC_FALSE;
-      eps->ishermitian = PETSC_FALSE;
-      ierr = STSetBilinearForm(eps->OP,STINNER_SYMMETRIC);CHKERRQ(ierr);
-      break;
-    case EPS_GCSEP:
-      eps->isgeneralized = PETSC_TRUE;
-      eps->ishermitian = PETSC_FALSE;
-      ierr = STSetBilinearForm(eps->OP,STINNER_B_SYMMETRIC);CHKERRQ(ierr);
-      break;
-*/
     default:
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   }

@@ -94,10 +94,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   
   if (eps->ispositive) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
-    ierr = IPSetBilinearForm(eps->ip,B,IP_INNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
   } else {
-    ierr = IPSetBilinearForm(eps->ip,PETSC_NULL,IP_INNER_HERMITIAN);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,PETSC_NULL);CHKERRQ(ierr);
   }
   
   if (eps->nev > eps->n) eps->nev = eps->n;

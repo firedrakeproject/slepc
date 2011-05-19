@@ -1,5 +1,5 @@
 /*
-     Routines for setting the bilinear form
+     Routines for setting the matrix representation of the inner product.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -24,50 +24,46 @@
 #include <private/ipimpl.h>      /*I "slepcip.h" I*/
 
 #undef __FUNCT__  
-#define __FUNCT__ "IPSetBilinearForm"
+#define __FUNCT__ "IPSetMatrix"
 /*@
-   IPSetBilinearForm - Specifies the bilinear form to be used for
-   inner products.
+   IPSetMatrix - Specifies the matrix representation of the inner product.
 
    Collective on IP
 
    Input Parameters:
 +  ip    - the inner product context
-.  mat   - the matrix of the bilinear form (may be PETSC_NULL)
--  form  - the type of bilinear form
+-  mat   - the matrix (may be PETSC_NULL)
 
-   Note:
+   Notes:
+   A PETSC_NULL has the same effect as if the identity matrix was passed.
+
    This function is called by EPSSetProblemType() and usually need not be
    called by the user.
 
    Level: developer
 
-.seealso: IPGetBilinearForm(), IPInnerProduct(), IPNorm(), EPSSetProblemType(),
-          IPBilinearForm
+.seealso: IPGetMatrix(), IPInnerProduct(), IPNorm(), EPSSetProblemType()
 @*/
-PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
+PetscErrorCode IPSetMatrix(IP ip,Mat mat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  PetscValidLogicalCollectiveEnum(ip,form,3);
   if (mat) {
     PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
     PetscObjectReference((PetscObject)mat);
   }
   ierr = IPReset(ip);CHKERRQ(ierr);
   ip->matrix = mat;
-  ip->bilinear_form = form;
   if (mat) { ierr = MatGetVecs(mat,&ip->Bx,PETSC_NULL);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "IPGetBilinearForm"
+#define __FUNCT__ "IPGetMatrix"
 /*@C
-   IPGetBilinearForm - Retrieves the bilinear form to be used for
-   inner products.
+   IPGetMatrix - Retrieves the matrix representation of the inner product.
 
    Not collective, though a parallel Mat may be returned
 
@@ -75,20 +71,18 @@ PetscErrorCode IPSetBilinearForm(IP ip,Mat mat,IPBilinearForm form)
 .  ip    - the inner product context
 
    Output Parameter:
-+  mat   - the matrix of the bilinear form (may be PETSC_NULL)
--  form  - the type of bilinear form
+.  mat   - the matrix of the inner product (may be PETSC_NULL)
 
    Level: developer
 
-.seealso: IPSetBilinearForm(), IPInnerProduct(), IPNorm(), EPSSetProblemType(),
-          IPBilinearForm
+.seealso: IPSetMatrix(), IPInnerProduct(), IPNorm(), EPSSetProblemType()
 @*/
-PetscErrorCode IPGetBilinearForm(IP ip,Mat* mat,IPBilinearForm* form)
+PetscErrorCode IPGetMatrix(IP ip,Mat* mat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  if (mat)  *mat  = ip->matrix;
-  if (form) *form = ip->bilinear_form;
+  PetscValidPointer(mat,2);
+  *mat  = ip->matrix;
   PetscFunctionReturn(0);
 }
 
@@ -112,8 +106,7 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
 #undef __FUNCT__  
 #define __FUNCT__ "IPApplyMatrix"
 /*@
-   IPApplyMatrix - Multiplies a vector with the matrix associated to the
-                   bilinear form.
+   IPApplyMatrix - Multiplies a vector by the matrix representing the IP.
 
    Neighbor-wise Collective on IP and Vec
 
@@ -125,11 +118,11 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
 .  y     - the result  
 
    Note:
-   If the bilinear form has no associated matrix this function copies the vector.
+   If no matrix was specified this function copies the vector.
 
    Level: developer
 
-.seealso: IPSetBilinearForm(), IPInnerProduct(), IPNorm(), EPSSetProblemType() 
+.seealso: IPSetMatrix(), IPInnerProduct(), IPNorm(), EPSSetProblemType() 
 @*/
 PetscErrorCode IPApplyMatrix(IP ip,Vec x,Vec y)
 {
