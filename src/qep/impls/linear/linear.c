@@ -302,7 +302,7 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSMonitor_Linear"
-PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i;
   QEP            qep = (QEP)ctx;

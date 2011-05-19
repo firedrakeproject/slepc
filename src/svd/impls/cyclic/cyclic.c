@@ -224,7 +224,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDMonitor_Cyclic"
-PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i,j;
   SVD            svd = (SVD)ctx;

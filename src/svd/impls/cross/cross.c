@@ -171,7 +171,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDMonitor_Cross"
-PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i;
   SVD            svd = (SVD)ctx;
