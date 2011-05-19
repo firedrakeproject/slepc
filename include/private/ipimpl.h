@@ -29,8 +29,8 @@ extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 typedef struct _IPOps *IPOps;
 
 struct _IPOps {
-  PetscErrorCode (*normbegin)(IP,Vec,PetscScalar*);
-  PetscErrorCode (*normend)(IP,Vec,PetscScalar*);
+  PetscErrorCode (*normbegin)(IP,Vec,PetscReal*);
+  PetscErrorCode (*normend)(IP,Vec,PetscReal*);
   PetscErrorCode (*innerproductbegin)(IP,Vec,Vec,PetscScalar*);
   PetscErrorCode (*innerproductend)(IP,Vec,Vec,PetscScalar*);
   PetscErrorCode (*minnerproductbegin)(IP,Vec,PetscInt,const Vec[],PetscScalar*);

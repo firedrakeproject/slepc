@@ -52,26 +52,40 @@
 PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  PetscScalar    p;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidPointer(norm,3);
-  if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
-    ierr = VecNorm(x,NORM_2,norm);CHKERRQ(ierr);
+  ierr = (*ip->ops->normbegin)(ip,x,norm);CHKERRQ(ierr);
+  ierr = (*ip->ops->normend)(ip,x,norm);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormBegin_Bilinear"
+PetscErrorCode IPNormBegin_Bilinear(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormBegin_Sesquilinear"
+PetscErrorCode IPNormBegin_Sesquilinear(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  if (!ip->matrix) {
+    ierr = VecNormBegin(x,NORM_2,norm);CHKERRQ(ierr);
   } else {
-    ierr = IPInnerProduct(ip,x,x,&p);CHKERRQ(ierr);
-    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-      PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
-#if defined(PETSC_USE_COMPLEX)
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-       SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
-    *norm = PetscSqrtScalar(PetscRealPart(p));
-#else
-    if (p<0.0) SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
-    *norm = PetscSqrtScalar(p);
-#endif
+    ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -95,21 +109,58 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
 
 .seealso: IPNormEnd(), IPNorm(), IPInnerProduct(), IPMInnerProduct(), 
           IPInnerProductBegin(), IPInnerProductEnd()
-
 @*/
 PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  PetscScalar    p;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidPointer(norm,3);
-  if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
-    ierr = VecNormBegin(x,NORM_2,norm);CHKERRQ(ierr);
+  ierr = (*ip->ops->normbegin)(ip,x,norm);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormEnd_Bilinear"
+PetscErrorCode IPNormEnd_Bilinear(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
+#if defined(PETSC_USE_COMPLEX)
+  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+     SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(PetscRealPart(p));
+#else
+  if (p<0.0) SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+  *norm = PetscSqrtScalar(p);
+#endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormEnd_Sesquilinear"
+PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  if (!ip->matrix) {
+    ierr = VecNormEnd(x,NORM_2,norm);CHKERRQ(ierr);
   } else {
-    ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
+    ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
+    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+      PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+       SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+    *norm = PetscSqrtScalar(PetscRealPart(p));
   }
   PetscFunctionReturn(0);
 }
@@ -135,33 +186,16 @@ PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
 
 .seealso: IPNormBegin(), IPNorm(), IPInnerProduct(), IPMInnerProduct(), 
           IPInnerProductBegin(), IPInnerProductEnd()
-
 @*/
 PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  PetscScalar    p;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidPointer(norm,3);
-  if (!ip->matrix && ip->bilinear_form == IP_INNER_HERMITIAN) {
-    ierr = VecNormEnd(x,NORM_2,norm);CHKERRQ(ierr);
-  } else {
-    ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
-    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-      PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
-
-#if defined(PETSC_USE_COMPLEX)
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-       SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
-    *norm = PetscSqrtScalar(PetscRealPart(p));
-#else
-    if (p<0.0) SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
-    *norm = PetscSqrtScalar(p);
-#endif
-  }
+  ierr = (*ip->ops->normend)(ip,x,norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -202,21 +236,41 @@ PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscValidScalarPointer(p,4);
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   ip->innerproducts++;
+  ierr = (*ip->ops->innerproductbegin)(ip,x,y,p);CHKERRQ(ierr);
+  ierr = (*ip->ops->innerproductend)(ip,x,y,p);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPInnerProductBegin_Bilinear"
+PetscErrorCode IPInnerProductBegin_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecDot(ip->Bx,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecTDot(ip->Bx,y,p);CHKERRQ(ierr);
-    }
+    ierr = VecTDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
   } else {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecDot(x,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecTDot(x,y,p);CHKERRQ(ierr);
-    }
+    ierr = VecTDotBegin(x,y,p);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPInnerProductBegin_Sesquilinear"
+PetscErrorCode IPInnerProductBegin_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (ip->matrix) {
+    ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
+    ierr = VecDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
+  } else {
+    ierr = VecDotBegin(x,y,p);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -240,7 +294,6 @@ PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
 
 .seealso: IPInnerProductEnd(), IPInnerProduct(), IPNorm(), IPNormBegin(), 
           IPNormEnd(), IPMInnerProduct() 
-
 @*/
 PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -253,21 +306,38 @@ PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscValidScalarPointer(p,4);
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   ip->innerproducts++;
-  if (ip->matrix) {
-    ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecTDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
-    }
-  } else {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecDotBegin(x,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecTDotBegin(x,y,p);CHKERRQ(ierr);
-    }
-  }
+  ierr = (*ip->ops->innerproductbegin)(ip,x,y,p);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPInnerProductEnd_Bilinear"
+PetscErrorCode IPInnerProductEnd_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (ip->matrix) {
+    ierr = VecTDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
+  } else {
+    ierr = VecTDotEnd(x,y,p);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPInnerProductEnd_Sesquilinear"
+PetscErrorCode IPInnerProductEnd_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (ip->matrix) {
+    ierr = VecDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
+  } else {
+    ierr = VecDotEnd(x,y,p);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -293,7 +363,6 @@ PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
 
 .seealso: IPInnerProductBegin(), IPInnerProduct(), IPNorm(), IPNormBegin(), 
           IPNormEnd(), IPMInnerProduct() 
-
 @*/
 PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -305,19 +374,7 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   PetscValidScalarPointer(p,4);
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
-  if (ip->matrix) {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecTDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
-    }
-  } else {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecDotEnd(x,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecTDotEnd(x,y,p);CHKERRQ(ierr);
-    }
-  }
+  ierr = (*ip->ops->innerproductend)(ip,x,y,p);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -362,21 +419,41 @@ PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar 
   PetscValidScalarPointer(p,5);
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   ip->innerproducts += n;
+  ierr = (*ip->ops->minnerproductbegin)(ip,x,n,y,p);CHKERRQ(ierr);
+  ierr = (*ip->ops->minnerproductend)(ip,x,n,y,p);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPMInnerProductBegin_Bilinear"
+PetscErrorCode IPMInnerProductBegin_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecMDot(ip->Bx,n,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecMTDot(ip->Bx,n,y,p);CHKERRQ(ierr);
-    }
+    ierr = VecMTDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
   } else {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecMDot(x,n,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecMTDot(x,n,y,p);CHKERRQ(ierr);
-    }
+    ierr = VecMTDotBegin(x,n,y,p);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPMInnerProductBegin_Sesquilinear"
+PetscErrorCode IPMInnerProductBegin_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (ip->matrix) {
+    ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
+    ierr = VecMDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
+  } else {
+    ierr = VecMDotBegin(x,n,y,p);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -401,7 +478,6 @@ PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar 
 
 .seealso: IPMInnerProductEnd(), IPMInnerProduct(), IPNorm(), IPNormBegin(), 
           IPNormEnd(), IPInnerProduct() 
-
 @*/
 PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
@@ -416,21 +492,38 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
   PetscValidScalarPointer(p,5);
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   ip->innerproducts += n;
-  if (ip->matrix) {
-    ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecMDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecMTDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
-    }
-  } else {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecMDotBegin(x,n,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecMTDotBegin(x,n,y,p);CHKERRQ(ierr);
-    }
-  }
+  ierr = (*ip->ops->minnerproductbegin)(ip,x,n,y,p);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPMInnerProductEnd_Bilinear"
+PetscErrorCode IPMInnerProductEnd_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (ip->matrix) {
+    ierr = VecMTDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
+  } else {
+    ierr = VecMTDotEnd(x,n,y,p);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPMInnerProductEnd_Sesquilinear"
+PetscErrorCode IPMInnerProductEnd_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (ip->matrix) {
+    ierr = VecMDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
+  } else {
+    ierr = VecMDotEnd(x,n,y,p);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -457,7 +550,6 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
 
 .seealso: IPMInnerProductBegin(), IPMInnerProduct(), IPNorm(), IPNormBegin(), 
           IPNormEnd(), IPInnerProduct() 
-
 @*/
 PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
@@ -471,19 +563,7 @@ PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScal
   PetscValidHeaderSpecific(*y,VEC_CLASSID,4);
   PetscValidScalarPointer(p,5);
   ierr = PetscLogEventBegin(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
-  if (ip->matrix) {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecMDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecMTDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
-    }
-  } else {
-    if (ip->bilinear_form == IP_INNER_HERMITIAN) {
-      ierr = VecMDotEnd(x,n,y,p);CHKERRQ(ierr);
-    } else {
-      ierr = VecMTDotEnd(x,n,y,p);CHKERRQ(ierr);
-    }
-  }
+  ierr = (*ip->ops->minnerproductend)(ip,x,n,y,p);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(IP_InnerProduct,ip,x,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -494,12 +574,12 @@ EXTERN_C_BEGIN
 PetscErrorCode IPCreate_Bilinear(IP ip)
 {
   PetscFunctionBegin;
-  ip->ops->normbegin          = PETSC_NULL;
-  ip->ops->normend            = PETSC_NULL;
-  ip->ops->innerproductbegin  = PETSC_NULL;
-  ip->ops->innerproductend    = PETSC_NULL;
-  ip->ops->minnerproductbegin = PETSC_NULL;
-  ip->ops->minnerproductend   = PETSC_NULL;
+  ip->ops->normbegin          = IPNormBegin_Bilinear;
+  ip->ops->normend            = IPNormEnd_Bilinear;
+  ip->ops->innerproductbegin  = IPInnerProductBegin_Bilinear;
+  ip->ops->innerproductend    = IPInnerProductEnd_Bilinear;
+  ip->ops->minnerproductbegin = IPMInnerProductBegin_Bilinear;
+  ip->ops->minnerproductend   = IPMInnerProductEnd_Bilinear;
   PetscFunctionReturn(0);
 }
 
@@ -509,12 +589,12 @@ PetscErrorCode IPCreate_Bilinear(IP ip)
 PetscErrorCode IPCreate_Sesquilinear(IP ip)
 {
   PetscFunctionBegin;
-  ip->ops->normbegin          = PETSC_NULL;
-  ip->ops->normend            = PETSC_NULL;
-  ip->ops->innerproductbegin  = PETSC_NULL;
-  ip->ops->innerproductend    = PETSC_NULL;
-  ip->ops->minnerproductbegin = PETSC_NULL;
-  ip->ops->minnerproductend   = PETSC_NULL;
+  ip->ops->normbegin          = IPNormBegin_Sesquilinear;
+  ip->ops->normend            = IPNormEnd_Sesquilinear;
+  ip->ops->innerproductbegin  = IPInnerProductBegin_Sesquilinear;
+  ip->ops->innerproductend    = IPInnerProductEnd_Sesquilinear;
+  ip->ops->minnerproductbegin = IPMInnerProductBegin_Sesquilinear;
+  ip->ops->minnerproductend   = IPMInnerProductEnd_Sesquilinear;
   PetscFunctionReturn(0);
 }
 #endif
