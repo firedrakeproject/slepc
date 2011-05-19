@@ -164,6 +164,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cross->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
+    if (PetscRealPart(sigma)<0.0) SETERRQ(((PetscObject)svd)->comm,1,"Negative eigenvalue computed by EPS");
     svd->sigma[i] = sqrt(PetscRealPart(sigma));
   }
   PetscFunctionReturn(0);
