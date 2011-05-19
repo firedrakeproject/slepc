@@ -514,6 +514,13 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
         break;
       default: SETERRQ(((PetscObject)ip)->comm,1,"Wrong value of ip->orth_ref");
     }
+    if (ip->matrix) {
+      ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      ierr = MatView(ip->matrix,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+      ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    }
   } else {
     SETERRQ1(((PetscObject)ip)->comm,1,"Viewer type %s not supported for IP",((PetscObject)viewer)->type_name);
   }
