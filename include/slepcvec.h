@@ -42,7 +42,7 @@ extern PetscErrorCode SlepcVecDestroyVecs(PetscInt,Vec**);
 /* Vec-related operations that have two versions, for contiguous and regular Vecs */
 extern PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
 extern PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
-extern PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
+extern PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,const PetscScalar*,Vec*);
 
 /* Miscellaneous functions related to Vec */
 extern PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);

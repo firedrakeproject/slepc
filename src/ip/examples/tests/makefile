@@ -40,11 +40,11 @@ test1: test1.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@${MPIEXEC} -np 1 ./test1 -orthog_type cgs > test1_1.tmp 2>&1; \
-	  ${MPIEXEC} -np 1 ./test1 -orthog_type mgs >> test1_1.tmp 2>&1; \
-	  ${MPIEXEC} -np 1 ./test1 -orthog_type cgs -contiguous >> test1_1.tmp 2>&1; \
-	  ${MPIEXEC} -np 1 ./test1 -orthog_type mgs -contiguous >> test1_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./test1 -ip_orthog_type cgs > test1_1.tmp 2>&1; \
+	  ${MPIEXEC} -np 1 ./test1 -ip_orthog_type mgs >> test1_1.tmp 2>&1; \
+	  ${MPIEXEC} -np 1 ./test1 -ip_orthog_type cgs -contiguous >> test1_1.tmp 2>&1; \
+	  ${MPIEXEC} -np 1 ./test1 -ip_orthog_type mgs -contiguous >> test1_1.tmp 2>&1; \
 	  if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	  else echo "Possible problem with ex1_1, diffs above"; fi; \
+	  else echo "Possible problem with test1_1, diffs above"; fi; \
 	  ${RM} -f test1_1.tmp
 

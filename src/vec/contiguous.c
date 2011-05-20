@@ -291,19 +291,21 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
 .  y      - the vector to update
 
    Notes:
-   This routine is implemented with a call to BLAS, therefore x is an array 
-   of Vec which have the data stored contiguously in memory as a Fortran matrix.
-   PETSc does not create such arrays by default.
+   If x are Vec's with contiguous storage, then this the operation is done
+   through a call to BLAS. Otherwise, VecMAXPY is called.
 
    Level: developer
 
+.seealso: SlepcVecDuplicateVecs()
 @*/
-PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,PetscScalar a[],Vec x[])
+PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,const PetscScalar a[],Vec x[])
 {
   PetscErrorCode    ierr;
   PetscBLASInt      n,m,one=1;
   PetscScalar       *py;
   const PetscScalar *px;
+  PetscContainer    container;
+  Vec               z;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(y,VEC_CLASSID,1);
@@ -321,16 +323,27 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   if ((*x)->map->N != (y)->map->N) SETERRQ(((PetscObject)y)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector global lengths");
   if ((*x)->map->n != (y)->map->n) SETERRQ(((PetscObject)y)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector local lengths");
 
-  ierr = PetscLogEventBegin(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecGetArrayRead(*x,&px);CHKERRQ(ierr);
-  n = PetscBLASIntCast(nv);
-  m = PetscBLASIntCast((y)->map->n);
-  BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
-  ierr = VecRestoreArrayRead(*x,&px);CHKERRQ(ierr);
-  ierr = PetscLogFlops(nv*2*(y)->map->n);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectQuery((PetscObject)(x[0]),"contiguous",(PetscObject*)&container);CHKERRQ(ierr);
+  if (container) {
+    /* assume x Vecs are contiguous, use BLAS calls */
+    ierr = PetscLogEventBegin(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
+    ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(*x,&px);CHKERRQ(ierr);
+    n = PetscBLASIntCast(nv);
+    m = PetscBLASIntCast((y)->map->n);
+    BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one);
+    ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(*x,&px);CHKERRQ(ierr);
+    ierr = PetscLogFlops(nv*2*(y)->map->n);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
+  } else {
+    /* use regular Vec operations */
+    ierr = VecDuplicate(y,&z);CHKERRQ(ierr);
+    ierr = VecCopy(y,z);CHKERRQ(ierr);
+    ierr = VecMAXPY(y,nv,a,x);CHKERRQ(ierr);
+    ierr = VecAXPBY(y,beta-alpha,alpha,z);CHKERRQ(ierr);
+    ierr = VecDestroy(&z);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
