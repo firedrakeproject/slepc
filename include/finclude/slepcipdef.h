@@ -28,8 +28,7 @@
 #define IP PetscFortranAddr
 #endif
 
-#define IPOrthogonalizationType PetscEnum
-#define IPOrthogonalizationRefinementType PetscEnum
-#define IPBilinearForm PetscEnum
+#define IPOrthogType       PetscEnum
+#define IPOrthogRefineType PetscEnum
 
 #endif
