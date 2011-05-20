@@ -350,6 +350,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
     r = ip->orthog_eta;
     ierr = PetscOptionsReal("-ip_orthog_eta","Parameter of iterative refinement during orthogonalization","IPSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = IPSetOrthogonalization(ip,(IPOrthogType)i,(IPOrthogRefineType)j,r);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers((PetscObject)ip);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

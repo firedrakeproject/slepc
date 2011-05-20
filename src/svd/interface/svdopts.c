@@ -468,6 +468,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDMonitorSet(svd,SVDMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
+    ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);

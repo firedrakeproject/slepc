@@ -343,7 +343,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   PC             pc;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"BLZPACK Options","EPS");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("EPS BLZPACK Options");CHKERRQ(ierr);
 
   bs = blz->block_size;
   ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
@@ -370,7 +370,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
     ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

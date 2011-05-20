@@ -258,7 +258,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"Cyclic Singular Value Solver Options","SVD");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("SVD Cyclic Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
@@ -268,7 +268,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   cyclic->setfromoptionscalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

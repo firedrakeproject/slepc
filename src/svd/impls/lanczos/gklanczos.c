@@ -296,12 +296,12 @@ PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd)
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"Lanczos Singular Value Solver Options","SVD");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("SVD Lanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDLanczosSetOneSide(svd,val);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

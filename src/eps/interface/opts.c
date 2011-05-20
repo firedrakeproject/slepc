@@ -213,6 +213,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (eps->ops->setfromoptions) {
       ierr = (*eps->ops->setfromoptions)(eps);CHKERRQ(ierr);
     }
+    ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);

@@ -320,12 +320,12 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
     }
   }
 
-  ierr = PetscOptionsBegin(((PetscObject)st)->comm,((PetscObject)st)->prefix,"ST Cayley Options","ST");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
   ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = STCayleySetAntishift(st,nu);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

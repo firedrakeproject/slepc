@@ -454,12 +454,12 @@ PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps)
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"Arnoldi Options","EPS");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("EPS Arnoldi Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

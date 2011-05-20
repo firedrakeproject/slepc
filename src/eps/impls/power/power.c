@@ -403,13 +403,13 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps)
   EPSPowerShiftType shift;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"Power Options","EPS");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("EPS Power Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr); }
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

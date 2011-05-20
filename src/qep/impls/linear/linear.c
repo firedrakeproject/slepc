@@ -332,7 +332,7 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"Linear Quadratic Eigenvalue Problem solver Options","QEP");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("QEP Linear Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-qep_linear_cform","Number of the companion form","QEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
     ierr = QEPLinearSetCompanionForm(qep,i);CHKERRQ(ierr);
@@ -346,7 +346,7 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   ctx->setfromoptionscalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

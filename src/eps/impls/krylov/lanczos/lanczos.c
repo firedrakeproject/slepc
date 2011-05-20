@@ -709,10 +709,10 @@ PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
   EPSLanczosReorthogType reorthog;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsBegin(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"Lanczos Options","EPS");CHKERRQ(ierr);
+  ierr = PetscOptionsHead("EPS Lanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)lanczos->reorthog,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr); }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
