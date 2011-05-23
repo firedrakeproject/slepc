@@ -1,0 +1,27 @@
+
+1-D Laplacian Eigenproblem, n=30
+
+ Largest eigenvalues: 3 converged eigenpairs
+
+           k          ||Ax-kx||/||kx||
+   ----------------- ------------------
+       3.989739        4.72989e-09
+       3.959060        3.61221e-08
+       3.908279        9.16904e-08
+
+ Smallest eigenvalues: 5 converged eigenpairs
+
+           k          ||Ax-kx||/||kx||
+   ----------------- ------------------
+       0.010261        1.10251e-10
+       0.040940        1.98775e-09
+       0.091721        5.61168e-10
+       0.162084        5.04752e-09
+       0.251307          3.749e-09
+
+ Interior eigenvalues: 1 converged eigenpairs
+
+           k          ||Ax-kx||/||kx||
+   ----------------- ------------------
+       2.101298        1.51333e-08
+
