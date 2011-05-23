@@ -163,6 +163,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   }
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cyclic->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
+  svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
   if (svd->ncv != svd->n) {
