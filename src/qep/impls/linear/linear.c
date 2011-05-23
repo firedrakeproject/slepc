@@ -332,6 +332,7 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
   ST             st;
 
   PetscFunctionBegin;
+  ctx->setfromoptionscalled = PETSC_TRUE;
   ierr = PetscOptionsHead("QEP Linear Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-qep_linear_cform","Number of the companion form","QEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
@@ -347,7 +348,6 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-  ctx->setfromoptionscalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
