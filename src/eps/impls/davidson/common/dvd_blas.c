@@ -1234,6 +1234,10 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
   PetscInt size_auxS, PetscBool doProd)
 {
+#if defined(SLEPC_MISSING_LAPACK_GGEV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable.");
+#else
   PetscErrorCode  ierr;
   PetscBLASInt    n, ldpX, ldpY, nout, info;
   PetscScalar     *Sc, *Tc;
@@ -1247,7 +1251,6 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #endif
   
   PetscFunctionBegin;
-
   n = PetscBLASIntCast(n_);
   ldpX = PetscBLASIntCast(ldpX_);
   ldpY = PetscBLASIntCast(ldpY_);
@@ -1328,8 +1331,8 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   }
-
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
@@ -1344,6 +1347,10 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
   PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *eigr,
   PetscScalar *eigi)
 {
+#if defined(SLEPC_MISSING_LAPACK_GGEV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable.");
+#else
   PetscInt        i;
 #if !defined(PETSC_USE_COMPLEX)
   PetscErrorCode  ierr;
@@ -1352,7 +1359,6 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
 #endif
   
   PetscFunctionBegin;
-
   for (i=0; i<n; i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (i<n-1 && S[i*ldS+i+1] != 0.0) {
@@ -1374,6 +1380,6 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
       if (eigi) eigi[i] = 0.0;
     }
   }
-
   PetscFunctionReturn(0);
+#endif
 }

@@ -453,6 +453,10 @@ PetscErrorCode dvd_calcpairs_projeig_qz_std(dvdDashboard *d)
 */
 PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
 {
+#if defined(SLEPC_MISSING_LAPACK_GGES)
+  PetscFunctionBegin;
+  SETERRQ(((PetscObject)(d->eps))->comm,PETSC_ERR_SUP,"GGES - Lapack routine is unavailable.");
+#else
   PetscErrorCode  ierr;
   PetscScalar     *beta = d->auxS;
 #if !defined(PETSC_USE_COMPLEX)
@@ -467,7 +471,6 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
   PetscBLASInt    info,n,a;
 
   PetscFunctionBegin;
-
   /* S <- H, T <- G */
   d->ldS = d->ldT = d->ldpX = d->ldpY = d->size_H;
   ierr = SlepcDenseCopyTriang(d->S, 0, d->size_H, d->H, d->sH, d->ldH,
@@ -495,8 +498,8 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
 
   d->pX_type = (d->pX_type & !DVD_MAT_IDENTITY) | DVD_MAT_UNITARY;
   d->pY_type = (d->pY_type & !DVD_MAT_IDENTITY) | DVD_MAT_UNITARY;
-
   PetscFunctionReturn(0);
+#endif
 }
 
 
