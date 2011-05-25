@@ -68,12 +68,11 @@ PetscErrorCode dvd_calcpairs_WtMatV_gen(PetscScalar **H, MatType_t sH,
 #define __FUNCT__ "dvd_calcpairs_qz"
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
 {
-  PetscBool       std_probl, her_probl;
+  PetscBool       std_probl;
 
   PetscFunctionBegin;
 
   std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
-  her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
 
   /* Setting configuration constrains */
 #if !defined(PETSC_USE_COMPLEX)
