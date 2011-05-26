@@ -191,9 +191,9 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
   PetscFunctionBegin;
   if (its) {
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
-    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d SVD nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3D SVD nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g (%10.8e)",sigma[i],errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %G (%10.8e)",sigma[i],(double)errest[i]);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"\n");CHKERRQ(ierr);
     if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
@@ -230,8 +230,8 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   PetscFunctionBegin;
   if (its && nconv<nest) {
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)svd)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
-    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d SVD nconv=%d first unconverged value (error)",its,nconv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g (%10.8e)\n",sigma[nconv],errest[nconv]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3D SVD nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," %G (%10.8e)\n",sigma[nconv],(double)errest[nconv]);CHKERRQ(ierr);
     if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
@@ -268,8 +268,8 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
     ctx->oldnconv = 0;
   } else {
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3d SVD converged value (error) #%d",its,i);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g (%10.8e)\n",sigma[i],errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3D SVD converged value (error) #%D",its,i);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %G (%10.8e)\n",sigma[i],(double)errest[i]);CHKERRQ(ierr);
     }
     ctx->oldnconv = nconv;
   }

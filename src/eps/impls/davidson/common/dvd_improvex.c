@@ -529,8 +529,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10    || \
           PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
             PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10         ) { \
-        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its "\
-                            "Rayleigh quotient value %g+%g\n", \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its "\
+                            "Rayleigh quotient value %G+%G\n", \
                             (eigr)[(i_s)+(i)], \
                             (eigi)[(i_s)+1], (b)[8], (b)[9]); \
       } \
@@ -545,8 +545,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10     ) { \
-        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its " \
-               "Rayleigh quotient value %g+%g\n", \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its " \
+               "Rayleigh quotient value %G+%G\n", \
                PetscRealPart((eigr)[(i_s)+(i)]), \
                PetscImaginaryPart((eigr)[(i_s)+(i)]), PetscRealPart((b)[0]), \
                PetscImaginaryPart((b)[0])); \

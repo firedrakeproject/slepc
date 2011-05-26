@@ -136,14 +136,14 @@ PetscErrorCode EPSSolve_DSITRLanczos(EPS eps)
       lambda = eps->eigr[k+1];
       ierr = STBackTransform(eps->OP,1,&lambda,&zero);CHKERRQ(ierr);
       if (PetscAbsScalar(lambda - sigma)/PetscAbsScalar(sigma) > distance) {
-        ierr = PetscInfo2(eps,"Shift update its=%i sigma=%g\n",eps->its,lambda);
+        ierr = PetscInfo2(eps,"Shift update its=%D sigma=%G\n",eps->its,lambda);
         PetscPushErrorHandler(PetscReturnErrorHandler,PETSC_NULL);
         ierr = STSetShift(eps->OP,lambda);
         PetscPopErrorHandler();
         switch (ierr) {
         case PETSC_ERR_MAT_LU_ZRPVT:
         case PETSC_ERR_MAT_CH_ZRPVT:
-          ierr = PetscInfo2(eps,"Factorization error in shift update its=%i sigma=%g\n",eps->its,lambda);
+          ierr = PetscInfo2(eps,"Factorization error in shift update its=%D sigma=%G\n",eps->its,lambda);
           ierr = STSetShift(eps->OP,sigma);CHKERRQ(ierr);
           break;
         default:
@@ -156,7 +156,7 @@ PetscErrorCode EPSSolve_DSITRLanczos(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Start a new Lanczos factorization */
-        PetscInfo2(eps,"Breakdown in TR Lanczos method (it=%i norm=%g)\n",eps->its,beta);
+        PetscInfo2(eps,"Breakdown in TR Lanczos method (it=%D norm=%G)\n",eps->its,beta);
         ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;

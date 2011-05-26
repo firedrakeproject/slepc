@@ -276,7 +276,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     if (qep->reason == QEP_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Stop if breakdown */
-        PetscInfo2(qep,"Breakdown Quadratic Arnoldi method (it=%i norm=%g)\n",qep->its,beta);
+        PetscInfo2(qep,"Breakdown Quadratic Arnoldi method (it=%D norm=%G)\n",qep->its,beta);
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */

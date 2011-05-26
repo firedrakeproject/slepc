@@ -190,17 +190,17 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     if (qep->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",qep->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",qep->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",qep->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",qep->max_it);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",qep->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",qep->sfactor);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",qep->nev);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",qep->ncv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",qep->mpd);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",qep->max_it);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",qep->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",qep->sfactor);CHKERRQ(ierr);
     if (qep->nini!=0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(qep->nini));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(qep->nini));CHKERRQ(ierr);
     }
     if (qep->ninil!=0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %d\n",PetscAbs(qep->ninil));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(qep->ninil));CHKERRQ(ierr);
     }
   } else {
     if (qep->ops->view) {

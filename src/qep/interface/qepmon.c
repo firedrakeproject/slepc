@@ -195,15 +195,15 @@ PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscFunctionBegin;
   if (its) {
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
-    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d QEP nconv=%d Values (Errors)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3D QEP nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %G%+Gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," %G",eigr[i]);CHKERRQ(ierr);
+      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+Gi",eigi[i]);CHKERRQ(ierr); }
 #endif
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)",errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIMonitorPrintf(viewer,"\n");CHKERRQ(ierr);
     if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
@@ -241,14 +241,14 @@ PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscFunctionBegin;
   if (its && nconv<nest) {
     if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
-    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3d QEP nconv=%d first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3D QEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g%+gi",PetscRealPart(eigr[nconv]),PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," %G%+Gi",PetscRealPart(eigr[nconv]),PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," %g",eigr[nconv]);CHKERRQ(ierr);
-    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+gi",eigi[nconv]);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," %G",eigr[nconv]);CHKERRQ(ierr);
+    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+Gi",eigi[nconv]);CHKERRQ(ierr); }
 #endif
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",errest[nconv]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
     if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
@@ -287,14 +287,14 @@ PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScal
     ctx->oldnconv = 0;
   } else {
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3d QEP converged value (error) #%d",its,i);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3D QEP converged value (error) #%D",its,i);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g%+gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %G%+Gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %g",eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%+gi",eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %G",eigr[i]);CHKERRQ(ierr);
+      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%+Gi",eigi[i]);CHKERRQ(ierr); }
 #endif
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," (%10.8e)\n",errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
     }
     ctx->oldnconv = nconv;
   }

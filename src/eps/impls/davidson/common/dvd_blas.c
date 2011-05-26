@@ -1203,7 +1203,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
                                V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
       }
       if(!lindep && (norm > PETSC_MACHINE_EPSILON)) break;
-      ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
+      ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %D to the searching subspace\n", i);
       CHKERRQ(ierr);
     }
     if(lindep || (norm < PETSC_MACHINE_EPSILON)) {
@@ -1282,7 +1282,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     if (size_auxS < 2*n)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xTGEVC");
     LAPACKtgevc_(side,howmny,PETSC_NULL,&n,Sc,&n,Tc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTGEVC %i",info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTGEVC %d",info);
 #else
     alphar = auxS; auxS+= n; size_auxS-= n;
     alphai = auxS; auxS+= n; size_auxS-= n;
@@ -1301,7 +1301,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     if (size_auxS < 8*n)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xGGEV");
     LAPACKggev_(pY?"V":"N",pX?"V":"N",&n,Sc,&n,Tc,&n,alphar,alphai,beta,pB,&ldpB,pA,&ldpA,auxS,&n1,&info);
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %d",info);
     if (doProd) {
       if (pX) {
         /* pX <- pX * pA */
@@ -1329,7 +1329,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #else
     LAPACKtrevc_(side,howmny,PETSC_NULL,&n,Sc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,&info);
 #endif
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   }
   PetscFunctionReturn(0);
 #endif
@@ -1366,7 +1366,7 @@ PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
       ierr = SlepcDenseCopy(Tc, 2, &T[i*ldT+i], ldT, 2, 2); CHKERRQ(ierr);
       LAPACKggev_("N","N",&two,Sc,&two,Tc,&two,&eigr[i],&eigi[i],beta,
                   PETSC_NULL, &two,PETSC_NULL,&two,auxS,&size_auxS,&info);
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %i",info);
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %d",info);
       eigr[i]  /= beta[0]; eigi[i]  /= beta[0];
       eigr[i+1]/= beta[1]; eigi[i+1]/= beta[1];
       i++;

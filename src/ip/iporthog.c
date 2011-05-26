@@ -446,7 +446,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info);
-  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xGELQF %i",info);
+  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xGELQF %d",info);
   
   /*** First orthogonalization ***/
 
@@ -455,7 +455,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   ierr = IPMInnerProduct(ip,v,n,W,H);CHKERRQ(ierr);
   BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n);
   LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info);
-  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xORMLQ %i",info);
+  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xORMLQ %d",info);
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H,V);CHKERRQ(ierr);
 
   /* compute norm of v */

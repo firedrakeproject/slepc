@@ -191,10 +191,10 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
       if (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE) {
-        ierr = PetscViewerASCIIPrintf(viewer,", with its=%d",eps->balance_its);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",eps->balance_its);CHKERRQ(ierr);
       }
       if (eps->balance==EPS_BALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
-        ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%g",eps->balance_cutoff);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%G",eps->balance_cutoff);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
@@ -207,21 +207,21 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         break;
       case EPS_TARGET_MAGNITUDE:
 #if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g (in magnitude)\n",eps->target);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (in magnitude)\n",eps->target);CHKERRQ(ierr);
 #else
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g+%g i (in magnitude)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (in magnitude)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
 #endif
         break;
       case EPS_TARGET_REAL:
 #if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g (along the real axis)\n",eps->target);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (along the real axis)\n",eps->target);CHKERRQ(ierr);
 #else
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g+%g i (along the real axis)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the real axis)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
 #endif
         break;
 #if defined(PETSC_USE_COMPLEX)
       case EPS_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %g+%g i (along the imaginary axis)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the imaginary axis)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
         break;
 #endif
       case EPS_LARGEST_MAGNITUDE:
@@ -253,11 +253,11 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->trackall) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing all residuals (for tracking convergence)\n");CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %d\n",eps->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %d\n",eps->ncv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",eps->nev);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",eps->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",eps->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %d\n",eps->max_it);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",eps->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",eps->max_it);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     switch(eps->conv) {
     case EPS_CONV_ABS: 
@@ -270,17 +270,17 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
     if (eps->nini!=0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %d\n",PetscAbs(eps->nini));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(eps->nini));CHKERRQ(ierr);
     }
     if (eps->ninil!=0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %d\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
     }
     if (eps->nds>0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %d\n",eps->nds);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",eps->nds);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  estimates of matrix norms (%s): norm(A)=%g",eps->adaptive?"adaptive":"constant",eps->nrma);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  estimates of matrix norms (%s): norm(A)=%G",eps->adaptive?"adaptive":"constant",eps->nrma);CHKERRQ(ierr);
     if (eps->isgeneralized) {
-      ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",eps->nrmb);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%G",eps->nrmb);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   } else {

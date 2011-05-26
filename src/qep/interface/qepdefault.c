@@ -119,7 +119,7 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
 #else
   LAPACKtrevc_("R","A",PETSC_NULL,&nconv,qep->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
-  if (info) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (info) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
 
   /* normalize eigenvectors */
   for (i=0;i<qep->nconv;i++) {

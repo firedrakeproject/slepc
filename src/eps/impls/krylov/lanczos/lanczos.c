@@ -438,7 +438,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     }
     if (!fro && norm*delta < anorm*eps1) {
       fro = PETSC_TRUE;
-      PetscInfo1(eps,"Switching to full reorthogonalization at iteration %i\n",eps->its);
+      PetscInfo1(eps,"Switching to full reorthogonalization at iteration %D\n",eps->its);
     }
     
     beta[j-k] = norm;
@@ -584,7 +584,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* Compute restart vector */
     if (breakdown) {
-      PetscInfo2(eps,"Breakdown in Lanczos method (it=%i norm=%g)\n",eps->its,beta);
+      PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%G)\n",eps->its,beta);
     } else {
       restart = 0;
       while (restart<n && conv[restart] != 'N') restart++;

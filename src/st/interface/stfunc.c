@@ -572,9 +572,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g\n",st->sigma);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %G\n",st->sigma);CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %g+%g i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %G+%G i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
 #endif
     switch (st->shift_matrix) {
     case ST_MATMODE_COPY:
