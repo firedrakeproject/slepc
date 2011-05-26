@@ -184,7 +184,7 @@ if petscversion.PATCHLEVEL < '4' and petscversion.RELEASE == '1':
 
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
-if not petscconf.PRECISION in ['double','single','matsingle']:
+if not petscconf.PRECISION in ['double','single','__float128']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
 if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
