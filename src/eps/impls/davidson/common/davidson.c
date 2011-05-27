@@ -88,7 +88,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv;
+  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive;
@@ -134,7 +134,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP,3e300);CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->OP,PETSC_MAX_REAL);CHKERRQ(ierr);
   }
  
   /* Davidson solvers only support STPRECOND */
@@ -244,6 +244,10 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   dvd->size_auxV = b.max_size_auxV;
   dvd->size_auxS = b.max_size_auxS;
 
+  eps->errest_left = PETSC_NULL;
+  ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
+  for(i=0; i<eps->ncv; i++) eps->perm[i] = i;
+
   /* Configure dvd for a basic GD */
   ierr = dvd_schm_basic_conf(dvd,&b,eps->ncv,eps->mpd,min_size_V,bs,
                              initv,
@@ -257,6 +261,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   eps->eigi = dvd->eigi;
   eps->errest = dvd->errest;
   eps->V = dvd->V;
+
+  
   PetscFunctionReturn(0);
 }
 
@@ -266,6 +272,9 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
+  KSP            ksp;
+  PC             pc;
+  PetscBool      t;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -295,6 +304,14 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
+
+  /* Trick for PCView when an unused PC is showed */
+  ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp, &pc);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t);
+  if (t) {
+    ierr = PCSetOperators(pc, PETSC_NULL, PETSC_NULL, DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -315,6 +332,7 @@ PetscErrorCode EPSReset_Davidson(EPS eps)
 
   ierr = SlepcVecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
+  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

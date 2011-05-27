@@ -49,6 +49,9 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZ(dvdDashboard *d, PetscInt i_s,
 PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
   PetscInt i_e, Vec **u, Vec **v, Vec **kr, Vec **auxV_, PetscScalar *theta,
   PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY, PetscInt ld);
+PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d, PetscInt i_s,
+  PetscInt i_e, Vec **u, Vec **v, Vec **kr, Vec **auxV_, PetscScalar *theta,
+  PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY, PetscInt ld);
 PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
   PetscScalar* theta, PetscScalar* thetai,
   PetscInt *maxits, PetscReal *tol);
@@ -316,10 +319,10 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
       if (d->npreconv > 0) break;
     }
 
-    /* Compute kr <- kr - u*(v'*kr) */
+    /* Compute kr <- kr - v*(u'*kr) */
     for(j=0; j<s; j++) {
-      ierr = VecDot(kr[j], v[j], &a); CHKERRQ(ierr);
-      ierr = VecAXPY(kr[j], -a, u[j]); CHKERRQ(ierr);
+      ierr = VecDot(kr[j], u[j], &a); CHKERRQ(ierr);
+      ierr = VecAXPY(kr[j], -a, v[j]); CHKERRQ(ierr);
       ierr = VecScale(kr[j], -1.0); CHKERRQ(ierr);
     }
 
@@ -416,10 +419,10 @@ PetscErrorCode dvd_matmult_jd(Mat A, Vec in, Vec out)
                                      outx[i]); CHKERRQ(ierr);
   }
 
-  /* out <- out - u*(v'*out) */
+  /* out <- out - v*(u'*out) */
   for(i=0; i<n; i++) {
-    ierr = VecDot(outx[i], data->v[i], &a); CHKERRQ(ierr);
-    ierr = VecAXPY(outx[i], -a, data->u[i]); CHKERRQ(ierr);
+    ierr = VecDot(outx[i], data->u[i], &a); CHKERRQ(ierr);
+    ierr = VecAXPY(outx[i], -a, data->v[i]); CHKERRQ(ierr);
   }
 
   PetscFunctionReturn(0);
@@ -482,7 +485,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    switch(p) {
+    /* switch(p) {
     case DVD_PROJ_KBXX:
       d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KBXX; break;
     case DVD_PROJ_KBXY:
@@ -491,7 +494,9 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
       d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KBXZ; break;
     case DVD_PROJ_KBXZY:
       d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KBXZY; break;
-    }
+    } */
+    //TODO: Temporally broken other projectors!!
+    d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KZX;
   }
 
   PetscFunctionReturn(0);
@@ -808,6 +813,128 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
 
   /* Normalize the projector */
   for(i=0; i<n; i++) DVD_NORMALIZE_UV((*u)[i],(*v)[i],ierr,a);
+
+  /* Return the next free vector */
+  *auxV_ = auxV;
+
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_jd_proj_uv_KZX"
+/* 
+  Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
+  kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
+  where
+  auxV, 4*(i_e-i_s) auxiliar global vectors
+  pX,pY, the right and left eigenvectors of the projected system
+  ld, the leading dimension of pX and pY
+*/
+PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d, PetscInt i_s,
+  PetscInt i_e, Vec **u, Vec **v, Vec **kr, Vec **auxV_, PetscScalar *theta,
+  PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY, PetscInt ld)
+{
+  PetscErrorCode  ierr;
+  PetscInt        n = i_e - i_s, i;
+  PetscScalar     a, b[16];
+  Vec             *Ax, *Bx, *r, *auxV = *auxV_, X[4];
+  /* The memory manager doen't allow to call a subroutines */
+  PetscScalar     Z[size_Z];
+
+  PetscFunctionBegin;
+
+  /* Book space for u, v and kr */
+  *u = auxV; auxV+= n;
+  *kr = auxV; auxV+= n;
+  *v = auxV; auxV+= n;
+  r = auxV; auxV+= n;
+
+  /* u <- X(i) */
+  ierr = SlepcUpdateVectorsZ(*u, 0.0, 1.0, d->V, d->size_V, pX, ld,
+                             d->size_H, n); CHKERRQ(ierr);
+
+  /* v <- theta[0]A*u + theta[1]*B*u */
+
+  /* Bx <- B*X(i) */
+  Bx = *kr;
+  for(i=i_s; i<i_e; i++) d->nX[i] = 1.0;
+  if (d->BV) {
+    ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV, d->size_BV, pX, ld,
+                               d->size_H, n); CHKERRQ(ierr);
+  } else {
+    for(i=0; i<n; i++) {
+      if (d->B) {
+        ierr = MatMult(d->B, (*u)[i], Bx[i]); CHKERRQ(ierr);
+      } else {
+        ierr = VecCopy((*u)[i], Bx[i]); CHKERRQ(ierr);
+      }
+    }
+  }
+
+  /* Ax <- A*X(i) */
+  Ax = r;
+  ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV, d->size_AV, pX, ld,
+                             d->size_H, n); CHKERRQ(ierr);
+
+  /* v <- Y(i) */
+  ierr = SlepcUpdateVectorsZ(*v, 0.0, 1.0, d->W?d->W:d->V, d->size_V, pY, ld,
+                             d->size_H, n); CHKERRQ(ierr);
+
+  /* Recompute the eigenvalue */
+  DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, *v, Ax, Bx, b, ierr);
+
+  for(i=0; i<n; i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if(d->eigi[i_s+i] != 0.0) {
+      /* [r_i r_i+1 kr_i kr_i+1]*= [ theta_2i'    0            1        0   
+                                       0         theta_2i'     0        1   
+                                     theta_2i+1 -thetai_i   -eigr_i -eigi_i 
+                                     thetai_i    theta_2i+1  eigi_i -eigr_i ] */
+      b[0] = b[5] = PetscConj(theta[2*i]);
+      b[2] = b[7] = -theta[2*i+1];
+      b[6] = -(b[3] = thetai[i]);
+      b[1] = b[4] = 0.0;
+      b[8] = b[13] = 1.0;
+      b[10] = b[15] = -d->eigr[i_s+i];
+      b[14] = -(b[11] = d->eigi[i_s+i]);
+      b[9] = b[12] = 0.0;
+      X[0] = Ax[i]; X[1] = Ax[i+1]; X[2] = Bx[i]; X[3] = Bx[i+1];
+      ierr = SlepcUpdateVectorsD(X, 4, 1.0, b, 4, 4, 4, Z, size_Z);
+      CHKERRQ(ierr);
+      i++;
+    } else
+#endif
+    {
+      /* [Ax_i Bx_i]*= [ theta_2i'    1
+                        theta_2i+1  -eig_i ] */
+      b[0] = PetscConj(theta[i*2]);
+      b[1] = theta[i*2+1];
+      b[2] = 1.0;
+      b[3] = -d->eigr[i_s+i];
+      X[0] = Ax[i]; X[1] = Bx[i];
+      ierr = SlepcUpdateVectorsD(X, 2, 1.0, b, 2, 2, 2, Z, size_Z);
+      CHKERRQ(ierr);
+    }
+  }
+
+  /* v <- K^{-1} r = K^{-1}(theta_2i'*Ax + theta_2i+1*Bx) */
+  for(i=0; i<n; i++) {
+    ierr = d->improvex_precond(d, i_s+i, r[i], (*v)[i]); CHKERRQ(ierr);
+  }
+
+  /* kr <- K^{-1}*kr = K^{-1}*(Ax - eig_i*Bx) */
+  d->calcpairs_proj_res(d, i_s, i_e, Bx);
+  for(i=0; i<n; i++) {
+    ierr = VecCopy(Bx[i], r[i]); CHKERRQ(ierr);
+    ierr = d->improvex_precond(d, i_s+i, r[i], (*kr)[i]); CHKERRQ(ierr);
+  }
+
+  /* Free r */
+  auxV-= n;
+
+  /* Normalize the projector */
+  for(i=0; i<n; i++) DVD_NORMALIZE_UV((*v)[i],(*u)[i],ierr,a);
 
   /* Return the next free vector */
   *auxV_ = auxV;

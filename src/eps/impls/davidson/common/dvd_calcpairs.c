@@ -694,7 +694,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
                            cX, R[i], PETSC_NULL, &d->nR[r_s+i], &lindep);
     CHKERRQ(ierr);
     if(lindep || (d->nR[r_s+i] < PETSC_MACHINE_EPSILON)) {
-        SETERRQ(PETSC_COMM_SELF,1, "Error during the residual computation of the eigenvectors");
+      ierr = PetscInfo2(d->eps, "The computed eigenvector residual %D is too low, %G!\n", r_s+i, d->nR[r_s+i]);
     }
 
   } else for(i=0; i<r_e-r_s; i++) {
