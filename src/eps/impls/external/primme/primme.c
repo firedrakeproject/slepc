@@ -275,7 +275,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSReset_PRIMME"
-PetscErrorCode EPSResetDestroy_PRIMME(EPS eps)
+PetscErrorCode EPSReset_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;

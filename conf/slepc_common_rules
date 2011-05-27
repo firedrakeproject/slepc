@@ -88,14 +88,7 @@ slepctree: ${ACTION}
 		PKGFLG=`echo $$r | cut -d \' -f2`;\
                 grep -w "#define $${PKGFLG}" $${PETSCCONF} > /dev/null; \
                 if [ "$$?" = 1 ]; then \
-                  if [ "${PCONF}" != "" ]; then \
-                    echo ${PCONF} | sed s/-D//g | grep -w "$${PKGFLG}" > /dev/null; \
-                    if [ "$$?" = 1 ]; then \
-                      continue; \
-                    fi; \
-                  else \
-                    continue; \
-                  fi; \
+                  continue; \
                 fi; \
               fi; \
 	      r=`grep -w requiresfunction $$dir/makefile`; \
@@ -103,14 +96,7 @@ slepctree: ${ACTION}
 		PKGFLG=`echo $$r | cut -d \' -f2`;\
                 grep -w "#define $${PKGFLG}" $${PETSCCONF} > /dev/null; \
                 if [ "$$?" = 1 ]; then \
-                  if [ "${PCONF}" != "" ]; then \
-                    echo ${PCONF} | sed s/-D//g | grep -w "$${PKGFLG}" > /dev/null; \
-                    if [ "$$?" = 1 ]; then \
-                      continue; \
-                    fi; \
-                  else \
-                    continue; \
-                  fi; \
+                  continue; \
                 fi; \
               fi; \
 	      r=`grep -w requiresdefine $$dir/makefile`; \
@@ -120,14 +106,7 @@ slepctree: ${ACTION}
                 if [ "$$?" = 1 ]; then \
                   grep -w "#define $${PKGFLG}" $${PETSCCONF} > /dev/null; \
                   if [ "$$?" = 1 ]; then \
-                    if [ "${PCONF}" != "" ]; then \
-                      echo ${PCONF} | sed s/-D//g | grep -w "$${PKGFLG}" > /dev/null; \
-                      if [ "$$?" = 1 ]; then \
-                        continue; \
-                      fi; \
-                    else \
-                      continue; \
-                    fi; \
+                    continue; \
                   fi; \
                 fi; \
               fi; \
