@@ -253,6 +253,7 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 
   PetscFunctionBegin;
   ierr = SlepcVecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
+  eps->nwork = 0;
   PetscFunctionReturn(0);
 }
 

@@ -30,8 +30,8 @@ MANSEC     = EPS
 TESTS      = test1 test2 test3
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                     = test2.PETSc runtest2_1 test2.rm \
-                     = test3.PETSc runtest3_1 test3.rm 
+                       test2.PETSc runtest2_1 test2.rm \
+                       test3.PETSc runtest3_1 test3.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -48,12 +48,16 @@ test3: test3.o chkopts
 	${RM} test3.o
 
 #------------------------------------------------------------------------------------
-
+EPS = krylovschur arnoldi lanczos gd jd
 runtest1_1:
-	-@${MPIEXEC} -np 1 ./test1 > test1_1.tmp 2>&1;    \
-	   if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	   else echo "Possible problem with test1_1, diffs above"; fi; \
-	   ${RM} -f test1_1.tmp
+	-@touch test1_1.tmp; \
+	for eps in ${EPS}; do \
+	   echo "eps type $$eps" >> test1_1.tmp; \
+	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps >> test1_1.tmp 2>&1; \
+	done; \
+	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
+	else echo "Possible problem with test1_1, diffs above"; fi; \
+	${RM} -f test1_1.tmp
 
 runtest2_1:
 	-@${MPIEXEC} -np 1 ./test2 > test2_1.tmp 2>&1;    \

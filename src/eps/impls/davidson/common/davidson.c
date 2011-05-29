@@ -113,7 +113,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
   if (eps->mpd < 2)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be greater than 2");
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (!eps->max_it) eps->max_it = PetscMax(100*eps->ncv,2*eps->n);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Wrong value of eps->which");
