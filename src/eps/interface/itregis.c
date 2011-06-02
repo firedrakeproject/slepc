@@ -65,12 +65,12 @@ PetscErrorCode EPSRegisterAll(const char *path)
 
   PetscFunctionBegin;
   EPSRegisterAllCalled = PETSC_TRUE;
-  ierr = EPSRegisterDynamic(EPSKRYLOVSCHUR,path,"EPSCreate_KRYLOVSCHUR",EPSCreate_KrylovSchur);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSPOWER,path,"EPSCreate_POWER",EPSCreate_Power);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSSUBSPACE,path,"EPSCreate_SUBSPACE",EPSCreate_Subspace);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSARNOLDI,path,"EPSCreate_ARNOLDI",EPSCreate_Arnoldi);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSLANCZOS,path,"EPSCreate_LANCZOS",EPSCreate_Lanczos);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSDSITRLANCZOS,path,"EPSCreate_DSITRLANCZOS",EPSCreate_DSITRLanczos);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSKRYLOVSCHUR,path,"EPSCreate_KrylovSchur",EPSCreate_KrylovSchur);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSPOWER,path,"EPSCreate_Power",EPSCreate_Power);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSSUBSPACE,path,"EPSCreate_Subspace",EPSCreate_Subspace);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSARNOLDI,path,"EPSCreate_Arnoldi",EPSCreate_Arnoldi);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSLANCZOS,path,"EPSCreate_Lanczos",EPSCreate_Lanczos);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSDSITRLANCZOS,path,"EPSCreate_DSITRLanczos",EPSCreate_DSITRLanczos);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSGD,path,"EPSCreate_GD",EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSJD,path,"EPSCreate_JD",EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSLAPACK,path,"EPSCreate_LAPACK",EPSCreate_LAPACK);CHKERRQ(ierr);
