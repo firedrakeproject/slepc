@@ -60,10 +60,14 @@ runtest1_1:
 	${RM} -f test1_1.tmp
 
 runtest2_1:
-	-@${MPIEXEC} -np 1 ./test2 > test2_1.tmp 2>&1;    \
-	   if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
-	   else echo "Possible problem with test2_1, diffs above"; fi; \
-	   ${RM} -f test2_1.tmp
+	-@touch test1_1.tmp; \
+	for eps in ${EPS}; do \
+	   echo "eps type $$eps" >> test1_1.tmp; \
+	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps > test2_1.tmp 2>&1;    \
+	done; \
+	if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
+	else echo "Possible problem with test2_1, diffs above"; fi; \
+	${RM} -f test2_1.tmp
 
 runtest3_1:
 	-@${MPIEXEC} -np 1 ./test3 > test3_1.tmp 2>&1;    \

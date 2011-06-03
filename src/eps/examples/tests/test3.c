@@ -90,7 +90,6 @@ int main(int argc,char **argv)
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A1,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps, EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -98,7 +97,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Largest eigenvalues: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," First matrix: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
   if (nconv>0) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kx||/||kx||\n"
@@ -121,10 +120,9 @@ int main(int argc,char **argv)
                         Solve second eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetOperators(eps,A2,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps, EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Smallest eigenvalues: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Second matrix: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
   if (nconv>0) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "           k          ||Ax-kx||/||kx||\n"
