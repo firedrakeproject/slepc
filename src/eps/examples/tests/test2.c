@@ -29,11 +29,12 @@ int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
+  ST             st;
   PetscReal      error,re;
   PetscScalar    kr,value[3];
   Vec            xr;
   PetscInt       n=30,i,Istart,Iend,col[3],nconv;
-  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE,flg;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -129,11 +130,17 @@ int main(int argc,char **argv)
   }
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                    Solve for interior eigenvalues (target=2)
+                    Solve for interior eigenvalues (target=2.1)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSetTarget(eps,2);CHKERRQ(ierr);
-  ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);
+  ierr = EPSSetTarget(eps,2.1);CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)eps,EPSLANCZOS,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+    ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+  } else {
+    ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);
+  }
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Interior eigenvalues: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
