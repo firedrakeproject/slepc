@@ -536,7 +536,6 @@ PetscErrorCode EPSReset(EPS eps)
   if (eps->OP) { ierr = STReset(eps->OP);CHKERRQ(ierr); }
   if (eps->ip) { ierr = IPReset(eps->ip);CHKERRQ(ierr); }
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
-  eps->problem_type = 0;
   eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
