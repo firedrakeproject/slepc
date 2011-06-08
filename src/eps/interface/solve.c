@@ -44,7 +44,8 @@ PetscErrorCode EPSSortForSTFunc(EPS eps,PetscScalar ar,PetscScalar ai,
   ierr = STBackTransform(eps->OP,1,&br,&bi);CHKERRQ(ierr);
 
   /* Compare values using the user options for the eigenpairs selection */
-  eps->which = data->old_which;
+  if (data->old_which==EPS_ALL) eps->which = EPS_TARGET_MAGNITUDE;
+  else eps->which = data->old_which;
   eps->which_func = data->old_which_func;
   eps->which_ctx = data->old_which_ctx;
   ierr = EPSCompareEigenvalues(eps,ar,ai,br,bi,r);CHKERRQ(ierr);
@@ -225,7 +226,10 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* sort eigenvalues according to eps->which parameter */
+  flg = (eps->which == EPS_ALL);
+  if (flg) eps->which = EPS_SMALLEST_REAL;
   ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
+  if (flg) eps->which = EPS_ALL;
 
   if (!viewed) {
     ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);

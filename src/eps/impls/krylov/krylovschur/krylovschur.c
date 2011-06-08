@@ -17,8 +17,6 @@
        [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
            SIAM J. Matrix Analysis and App., 23(3), pp. 601-614, 2001. 
 
-   Last update: Feb 2009
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2010, Universidad Politecnica de Valencia, Spain
@@ -45,6 +43,7 @@
 PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Harmonic(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
+extern PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_KrylovSchur"
@@ -53,13 +52,27 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  /* spectrum slicing requires special treatment of default values */
+  if (eps->which==EPS_ALL) {
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Must define a computational interval when using EPS_ALL"); 
+    if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,1,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
+    if (!eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,1,"Spectrum slicing not implemented for standard eigenproblems yet"); 
+    if (!((PetscObject)(eps->OP))->type_name) { /* default to shift-and-invert */
+      ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
+    }
+    ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);
+    if (eps->nev==1) eps->nev = 20;  /* nev not set, use default value */
+    if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,1,"nev cannot be less than 10 in spectrum slicing runs"); 
+    eps->mpd = 2*eps->nev;
+    eps->ncv = 2*eps->nev;
+  }
+
+  /* proceed with the general case */
   if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
-  }
-  else if (eps->mpd) { /* mpd set */
+  } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
-  }
-  else { /* neither set: defaults depend on nev being small or large */
+  } else { /* neither set: defaults depend on nev being small or large */
     if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
     else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
   }
@@ -86,14 +99,17 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->ishermitian) {
-    switch (eps->extraction) {
-      case EPS_RITZ:     eps->ops->solve = EPSSolve_KrylovSchur_Symm; break;
-      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;
-      default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
+    if (eps->which==EPS_ALL) eps->ops->solve = EPSSolve_KrylovSchur_Slice;
+    else {
+      switch (eps->extraction) {
+        case EPS_RITZ:     eps->ops->solve = EPSSolve_KrylovSchur_Symm; break;
+        case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;
+        default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
+      }
     }
   } else {
     switch (eps->extraction) {
-      case EPS_RITZ: eps->ops->solve = EPSSolve_KrylovSchur_Default; break;
+      case EPS_RITZ:     eps->ops->solve = EPSSolve_KrylovSchur_Default; break;
       case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;
       default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
     }

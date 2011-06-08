@@ -2,22 +2,7 @@
 
    SLEPc eigensolver: "krylovschur"
 
-   Method: Krylov-Schur
-
-   Algorithm:
-
-       Single-vector Krylov-Schur method for both symmetric and non-symmetric
-       problems.
-
-   References:
-
-       [1] "Krylov-Schur Methods in SLEPc", SLEPc Technical Report STR-7, 
-           available at http://www.grycap.upv.es/slepc.
-
-       [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
-           SIAM J. Matrix Analysis and App., 23(3), pp. 601-614, 2001. 
-
-   Last update: Feb 2009
+   Method: Krylov-Schur for symmetric eigenproblems
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
