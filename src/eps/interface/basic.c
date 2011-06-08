@@ -242,6 +242,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       case EPS_SMALLEST_IMAGINARY:
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
+      case EPS_ALL:
+        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",eps->inta,eps->intb);CHKERRQ(ierr);
+        break;
       default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
     }    
     if (eps->leftvecs) {
@@ -345,6 +348,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;
   eps->target          = 0.0;
+  eps->inta            = 0.0;
+  eps->intb            = 0.0;
   eps->evecsavailable  = PETSC_FALSE;
   eps->problem_type    = (EPSProblemType)0;
   eps->extraction      = (EPSExtraction)0;
@@ -632,6 +637,72 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidScalarPointer(target,2);
   *target = eps->target;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetInterval"
+/*@
+   EPSSetInterval - Defines the computational interval for spectrum slicing.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps  - eigensolver context
+.  inta - left end of the interval
+-  intb - right end of the interval
+
+   Note:
+   Spectrum slicing is a technique employed for computing all eigenvalues of
+   symmetric eigenproblems in a given interval. This function provides the
+   interval to be considered. It must be used in combination with EPS_ALL, see
+   EPSSetWhichEigenpairs()
+   
+   Level: intermediate
+
+.seealso: EPSGetInterval(), EPSSetWhichEigenpairs()
+@*/
+PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveReal(eps,inta,2);
+  PetscValidLogicalCollectiveReal(eps,intb,3);
+  if (inta>=intb) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
+  eps->inta = inta;
+  eps->intb = intb;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGetInterval"
+/*@
+   EPSGetInterval - Gets the computational interval for spectrum slicing.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - eigensolver context
+
+   Output Parameters:
++  inta - left end of the interval
+-  intb - right end of the interval
+
+   Level: intermediate
+
+   Note:
+   If the interval was not set by the user, then zeros are returned.
+
+.seealso: EPSSetInterval()
+@*/
+PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(inta,2);
+  PetscValidPointer(intb,3);
+  if (inta) *inta = eps->inta;
+  if (intb) *intb = eps->intb;
   PetscFunctionReturn(0);
 }
 

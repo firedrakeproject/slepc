@@ -46,7 +46,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscErrorCode          ierr;
   char                    type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscBool               flg,val;
-  PetscReal               r,nrma,nrmb;
+  PetscReal               r,nrma,nrmb,array[2];
   PetscScalar             s;
   PetscInt                i,j,k;
   const char              *bal_list[4] = {"none","oneside","twoside","user"};
@@ -168,6 +168,13 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
       ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
     }
+    k = 2;
+    ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
+      ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
+      ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
+    }
 
     ierr = PetscOptionsBoolGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);}
@@ -185,8 +192,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);}
     ierr = PetscOptionsBoolGroup("-eps_target_real","compute eigenvalues with real parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_REAL);CHKERRQ(ierr);}
-    ierr = PetscOptionsBoolGroupEnd("-eps_target_imaginary","compute eigenvalues with imaginary parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_target_imaginary","compute eigenvalues with imaginary parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr);}
+    ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);}
 
     ierr = PetscOptionsBool("-eps_left_vectors","Compute left eigenvectors also","EPSSetLeftVectorsWanted",eps->leftvecs,&val,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -374,9 +383,16 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    ncv=nev+mpd. If nev is not too large, mpd=nev is a reasonable choice, otherwise
    a smaller value should be used.
 
+   When computing all eigenvalues in an interval, see EPSSetInterval(), the
+   meaning of nev changes. In that case, the number of eigenvalues in the
+   interval is not known a priori; the meaning of nev is then the number of
+   eigenvalues that are computed at a time when sweeping the interval from one
+   end to the other. The value of nev in this case may have an impact on overall
+   performance. The value of ncv should not be assigned in this case.
+
    Level: intermediate
 
-.seealso: EPSGetDimensions()
+.seealso: EPSGetDimensions(), EPSSetInterval()
 @*/
 PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
@@ -434,6 +450,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     EPS_TARGET_REAL - eigenvalues with real part closest to target
 .     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     EPS_ALL - all eigenvalues contained in a given interval
 -     EPS_WHICH_USER - user defined ordering set with EPSSetEigenvalueComparison()
 
    Options Database Keys:
@@ -445,7 +462,8 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -eps_smallest_imaginary - Sets smallest imaginary parts
 .   -eps_target_magnitude - Sets eigenvalues closest to target
 .   -eps_target_real - Sets real parts closest to target
--   -eps_target_imaginary - Sets imaginary parts closest to target
+.   -eps_target_imaginary - Sets imaginary parts closest to target
+-   -eps_all - Sets all eigenvalues in an interval
 
    Notes:
    Not all eigensolvers implemented in EPS account for all the possible values
@@ -459,9 +477,16 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    The criterion EPS_TARGET_IMAGINARY is available only in case PETSc and
    SLEPc have been built with complex scalars.
 
+   EPS_ALL is intended for use in combination with an interval (see
+   EPSSetInterval()), when all eigenvalues within the interval are requested.
+   In that case, the number of eigenvalues is unknown, so the nev parameter
+   has a different sense, see EPSSetDimensions().
+
    Level: intermediate
 
-.seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetEigenvalueComparison(), EPSSortEigenvalues(), EPSWhich
+.seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetInterval(),
+          EPSSetDimensions(), EPSSetEigenvalueComparison(),
+          EPSSortEigenvalues(), EPSWhich
 @*/
 PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
@@ -482,6 +507,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 #if defined(PETSC_USE_COMPLEX)
       case EPS_TARGET_IMAGINARY:
 #endif
+      case EPS_ALL:
       case EPS_WHICH_USER:
         if (eps->which != which) {
           eps->setupcalled = 0;

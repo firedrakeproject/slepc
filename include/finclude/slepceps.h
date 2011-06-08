@@ -59,6 +59,7 @@
       PetscEnum EPS_TARGET_MAGNITUDE
       PetscEnum EPS_TARGET_REAL
       PetscEnum EPS_TARGET_IMAGINARY
+      PetscEnum EPS_ALL
       PetscEnum EPS_WHICH_USER
 
       parameter (EPS_LARGEST_MAGNITUDE      =  1)
@@ -70,7 +71,8 @@
       parameter (EPS_TARGET_MAGNITUDE       =  7)
       parameter (EPS_TARGET_REAL            =  8)
       parameter (EPS_TARGET_IMAGINARY       =  9)
-      parameter (EPS_WHICH_USER             = 10)
+      parameter (EPS_ALL                    = 10)
+      parameter (EPS_WHICH_USER             = 11)
        
       PetscEnum EPS_BALANCE_NONE
       PetscEnum EPS_BALANCE_ONESIDE

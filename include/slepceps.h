@@ -113,6 +113,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE=1,
                EPS_TARGET_MAGNITUDE,
                EPS_TARGET_REAL, 
                EPS_TARGET_IMAGINARY,
+               EPS_ALL,
                EPS_WHICH_USER } EPSWhich;
 
 /*E
@@ -159,6 +160,8 @@ extern PetscErrorCode EPSView(EPS,PetscViewer);
 
 extern PetscErrorCode EPSSetTarget(EPS,PetscScalar);
 extern PetscErrorCode EPSGetTarget(EPS,PetscScalar*);
+extern PetscErrorCode EPSSetInterval(EPS,PetscReal,PetscReal);
+extern PetscErrorCode EPSGetInterval(EPS,PetscReal*,PetscReal*);
 extern PetscErrorCode EPSSetST(EPS,ST);
 extern PetscErrorCode EPSGetST(EPS,ST*);
 extern PetscErrorCode EPSSetIP(EPS,IP);
