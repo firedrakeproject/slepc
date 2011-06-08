@@ -81,12 +81,13 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscInt       i;
   PetscReal      re,im;
   PetscScalar    dot;
-  PetscBool      flg,isfold;
+  PetscBool      flg,isfold,viewed=PETSC_FALSE;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   STMatMode      matmode;
   char           filename[PETSC_MAX_PATH_LEN];
+  char           view[10];
   EPSSortForSTData data;
   Mat            A,B;
   KSP            ksp;
@@ -103,6 +104,16 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = MatView(A,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
     if (B) ierr = MatView(B,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
+  }
+
+  ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",view,10,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscStrcmp(view,"before",&viewed);CHKERRQ(ierr);
+    if (viewed){
+      PetscViewer viewer;
+      ierr = PetscViewerASCIIGetStdout(((PetscObject)eps)->comm,&viewer);CHKERRQ(ierr);
+      ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
+    }
   }
 
   /* reset the convergence flag from the previous solves */
@@ -216,11 +227,13 @@ PetscErrorCode EPSSolve(EPS eps)
   /* sort eigenvalues according to eps->which parameter */
   ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,filename,&viewer);CHKERRQ(ierr);
-    ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  if (!viewed) {
+    ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+    if (flg && !PetscPreLoadingOn) {
+      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,filename,&viewer);CHKERRQ(ierr);
+      ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
+      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    }
   }
 
   flg = PETSC_FALSE;
