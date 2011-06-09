@@ -390,6 +390,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->numbermonitors  = 0;
 
   ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->rand);CHKERRQ(ierr);
   *outeps = eps;
   PetscFunctionReturn(0);

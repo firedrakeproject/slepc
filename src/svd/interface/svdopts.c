@@ -471,7 +471,6 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
   ierr = IPSetFromOptions(svd->ip);CHKERRQ(ierr);
   if (svd->ops->setfromoptions) {
     ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);

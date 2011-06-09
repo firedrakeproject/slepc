@@ -159,7 +159,6 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)qep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
   ierr = IPSetFromOptions(qep->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

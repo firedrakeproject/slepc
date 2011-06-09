@@ -225,7 +225,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPSetFromOptions(eps->ip);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->OP);CHKERRQ(ierr);
