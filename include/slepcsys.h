@@ -89,7 +89,6 @@ extern PetscErrorCode SlepcInitialize(int*,char***,char[],const char[]);
 extern PetscErrorCode SlepcFinalize(void);
 extern PetscErrorCode SlepcInitializeFortran(void);
 
-extern PetscErrorCode SlepcIsHermitian(Mat,PetscBool*);
 #if !defined(PETSC_USE_COMPLEX)
 extern PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 #else
