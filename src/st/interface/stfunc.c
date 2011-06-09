@@ -554,7 +554,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscErrorCode    ierr;
   const STType      cstr;
   const char*       str;
-  PetscBool         isascii,isstring,isshift,isfold;
+  PetscBool         isascii,isstring,flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -602,9 +602,8 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   } else {
     SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
   }
-  ierr = PetscTypeCompare((PetscObject)st,STSHIFT,&isshift);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)st,STFOLD,&isfold);CHKERRQ(ierr);
-  if (st->B || !(isshift || isfold)) {
+  ierr = PetscTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD);CHKERRQ(ierr);
+  if (st->B || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);

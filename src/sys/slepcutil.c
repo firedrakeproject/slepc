@@ -57,9 +57,7 @@ PetscErrorCode SlepcIsHermitian(Mat A,PetscBool *is)
   PetscValidHeaderSpecific(A,MAT_CLASSID,1);
   PetscValidPointer(is,2);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscTypeCompare((PetscObject)A,MATSEQSBAIJ,is);CHKERRQ(ierr);
-  if (*is) PetscFunctionReturn(0);
-  ierr = PetscTypeCompare((PetscObject)A,MATMPISBAIJ,is);CHKERRQ(ierr);
+  ierr = PetscTypeCompareAny((PetscObject)A,is,MATSEQSBAIJ,MATMPISBAIJ);CHKERRQ(ierr);
   if (*is) PetscFunctionReturn(0);
 #endif
 
