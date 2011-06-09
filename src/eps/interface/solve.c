@@ -93,8 +93,6 @@ PetscErrorCode EPSSolve(EPS eps)
   Mat            A,B;
   KSP            ksp;
   Vec            w,x;
-#define NUMEXTSOLV 5
-  const EPSType solvers[NUMEXTSOLV] = { EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME };
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -128,13 +126,9 @@ PetscErrorCode EPSSolve(EPS eps)
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
   ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
 
-  flg = PETSC_FALSE;
-  for (i=0;i<NUMEXTSOLV && !flg;i++) {
-    ierr = PetscTypeCompare((PetscObject)eps,solvers[i],&flg);CHKERRQ(ierr);
-  }
-
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
+  ierr = PetscTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME);CHKERRQ(ierr);
   if (!flg) {
     /* temporarily change which */
     data.old_which = eps->which;
