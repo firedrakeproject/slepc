@@ -128,7 +128,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
-  ierr = PetscTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME);CHKERRQ(ierr);
+  ierr = PetscTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!flg) {
     /* temporarily change which */
     data.old_which = eps->which;
