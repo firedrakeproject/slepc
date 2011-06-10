@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
-    ierr = SlepcVecDuplicateVecs(eps->V[0],eps->ncv,&lanczos->AV);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->t,eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   }
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
@@ -821,7 +821,7 @@ PetscErrorCode EPSReset_Lanczos(EPS eps)
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
 
   PetscFunctionBegin;
-  ierr = SlepcVecDestroyVecs(eps->ncv,&lanczos->AV);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

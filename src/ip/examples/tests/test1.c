@@ -37,7 +37,9 @@ int main( int argc, char **argv )
   PetscBool      cont;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"QR decomposition of random vectors.\n",lev);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"QR decomposition of %d random vectors of length %d.\n",k,n);CHKERRQ(ierr); 
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -50,12 +52,12 @@ int main( int argc, char **argv )
 
   /* with/without contiguous storage */
   if (cont) {
-    ierr = SlepcVecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"With contiguous storage.\n",lev);CHKERRQ(ierr); 
+    ierr = SlepcVecSetTemplate(t);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"With contiguous storage.\n");CHKERRQ(ierr); 
   } else {
-    ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"With regular storage.\n",lev);CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"With regular storage.\n");CHKERRQ(ierr); 
   }
+  ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
 
   /* check orthogonality of QR of random vectors */
   for (i=0;i<k;i++) { ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr); }
@@ -63,8 +65,7 @@ int main( int argc, char **argv )
   ierr = SlepcCheckOrthogonality(V,k,PETSC_NULL,k,PETSC_NULL,&lev);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %A\n",lev);CHKERRQ(ierr); 
 
-  if (cont) { ierr = SlepcVecDestroyVecs(k,&V);CHKERRQ(ierr); }
-  else { ierr = VecDestroyVecs(k,&V);CHKERRQ(ierr); }
+  ierr = VecDestroyVecs(k,&V);CHKERRQ(ierr);
   ierr = IPDestroy(&ip);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&rctx);CHKERRQ(ierr);

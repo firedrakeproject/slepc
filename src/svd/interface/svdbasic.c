@@ -220,6 +220,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->U              = PETSC_NULL;
   svd->V              = PETSC_NULL;
   svd->IS             = PETSC_NULL;
+  svd->tl             = PETSC_NULL;
+  svd->tr             = PETSC_NULL;
   svd->rand           = PETSC_NULL;
   svd->which          = SVD_LARGEST;
   svd->n              = 0;
@@ -272,12 +274,14 @@ PetscErrorCode SVDReset(SVD svd)
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
+  ierr = VecDestroy(&svd->tl);CHKERRQ(ierr);
+  ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
   if (svd->n) { 
     ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
     ierr = PetscFree(svd->perm);CHKERRQ(ierr);
     ierr = PetscFree(svd->errest);CHKERRQ(ierr);
-    ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-    ierr = SlepcVecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
   }
   svd->transmode   = PETSC_DECIDE;
   svd->matvecs     = 0;

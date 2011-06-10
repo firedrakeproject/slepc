@@ -75,7 +75,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = SlepcVecDuplicateVecs(eps->V[0],eps->ncv,&ctx->AV);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(eps->t,eps->ncv,&ctx->AV);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
@@ -395,7 +395,7 @@ PetscErrorCode EPSReset_Subspace(EPS eps)
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
 
   PetscFunctionBegin;
-  ierr = SlepcVecDestroyVecs(eps->ncv,&ctx->AV);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->ncv,&ctx->AV);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);

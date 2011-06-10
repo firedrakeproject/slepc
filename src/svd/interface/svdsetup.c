@@ -103,8 +103,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      flg,lindep;
-  PetscInt       i,k,M,N,nloc;
-  Vec            t;
+  PetscInt       i,k,M,N;
   PetscReal      norm;
   
   PetscFunctionBegin;
@@ -158,6 +157,12 @@ PetscErrorCode SVDSetUp(SVD svd)
       SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
 
+  if (svd->A) {
+    ierr = SlepcMatGetVecsTemplate(svd->A,&svd->tr,&svd->tl);CHKERRQ(ierr);
+  } else {
+    ierr = SlepcMatGetVecsTemplate(svd->AT,&svd->tl,&svd->tr);CHKERRQ(ierr);
+  }
+
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
 
@@ -172,20 +177,13 @@ PetscErrorCode SVDSetUp(SVD svd)
       ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
       ierr = PetscFree(svd->perm);CHKERRQ(ierr);
       ierr = PetscFree(svd->errest);CHKERRQ(ierr);
-      ierr = SlepcVecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
+      ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
     }
     /* allocate memory for next solution */
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscInt),&svd->perm);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->errest);CHKERRQ(ierr);
-    if (svd->A) {
-      ierr = MatGetLocalSize(svd->A,PETSC_NULL,&nloc);CHKERRQ(ierr);
-    } else {
-      ierr = MatGetLocalSize(svd->AT,&nloc,PETSC_NULL);CHKERRQ(ierr);
-    }
-    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
-    ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->V);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(svd->tr,svd->ncv,&svd->V);CHKERRQ(ierr);
     svd->n = svd->ncv;
   }
 

@@ -270,6 +270,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->eigi            = PETSC_NULL;
   qep->errest          = PETSC_NULL;
   qep->data            = PETSC_NULL;
+  qep->t               = PETSC_NULL;
   qep->nconv           = 0;
   qep->its             = 0;
   qep->perm            = PETSC_NULL;
@@ -437,6 +438,7 @@ PetscErrorCode QEPReset(QEP qep)
   ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->C);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
+  ierr = VecDestroy(&qep->t);CHKERRQ(ierr);
   ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
   qep->matvecs     = 0;
   qep->linits      = 0;

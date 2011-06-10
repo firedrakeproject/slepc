@@ -67,6 +67,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(qep->M,&qep->nloc,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SlepcMatGetVecsTemplate(qep->M,&qep->t,PETSC_NULL);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!qep->problem_type) {
@@ -356,7 +357,6 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 PetscErrorCode QEPAllocateSolution(QEP qep)
 {
   PetscErrorCode ierr;
-  Vec            t;
   
   PetscFunctionBegin;
   if (qep->allocated_ncv != qep->ncv) {
@@ -365,9 +365,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
     ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
     ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
-    ierr = SlepcVecDuplicateVecs(t,qep->ncv,&qep->V);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(qep->t,qep->ncv,&qep->V);CHKERRQ(ierr);
     qep->allocated_ncv = qep->ncv;
   }
   PetscFunctionReturn(0);
@@ -389,7 +387,7 @@ PetscErrorCode QEPFreeSolution(QEP qep)
     ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
     ierr = PetscFree(qep->errest);CHKERRQ(ierr); 
     ierr = PetscFree(qep->perm);CHKERRQ(ierr); 
-    ierr = SlepcVecDestroyVecs(qep->allocated_ncv,&qep->V);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(qep->allocated_ncv,&qep->V);CHKERRQ(ierr);
     qep->allocated_ncv = 0;
   }
   PetscFunctionReturn(0);

@@ -73,6 +73,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
   ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&eps->nloc,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SlepcMatGetVecsTemplate(A,&eps->t,PETSC_NULL);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!eps->problem_type) {
@@ -144,7 +145,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
       /* allocate memory and copy deflation basis vectors into DS */
-      ierr = SlepcVecDuplicateVecs(eps->V[0],eps->nds,&newDS);CHKERRQ(ierr);
+      ierr = VecDuplicateVecs(eps->t,eps->nds,&newDS);CHKERRQ(ierr);
       for (i=0;i<eps->nds;i++) {
         ierr = VecCopy(eps->DS[i],newDS[i]);CHKERRQ(ierr);
         ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr);
@@ -368,18 +369,10 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
 PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!eps->ds_ortho) {  /* before EPSSetUp, DS are just references */
-    for (i=0;i<eps->nds;i++) {
-      ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(eps->DS);CHKERRQ(ierr);
-  } else {
-    ierr = SlepcVecDestroyVecs(eps->nds,&eps->DS);CHKERRQ(ierr);
-  }
+  ierr = VecDestroyVecs(eps->nds,&eps->DS);CHKERRQ(ierr);
   eps->nds = 0;
   eps->setupcalled = 0;
   eps->ds_ortho = PETSC_FALSE;

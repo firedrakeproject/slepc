@@ -36,9 +36,9 @@ PetscErrorCode QEPDefaultGetWork(QEP qep,PetscInt nw)
 
   PetscFunctionBegin;
   if (qep->nwork != nw) {
-    ierr = SlepcVecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
     qep->nwork = nw;
-    ierr = SlepcVecDuplicateVecs(qep->V[0],nw,&qep->work);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(qep->t,nw,&qep->work);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(qep,nw,qep->work);
   }
   PetscFunctionReturn(0);
@@ -54,7 +54,7 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcVecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

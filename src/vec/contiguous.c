@@ -42,33 +42,12 @@ static PetscErrorCode Vecs_ContiguousDestroy(void *ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcVecDuplicateVecs"
-/*@
-   SlepcVecDuplicateVecs - Creates several vectors of the same type as an existing vector,
-   with contiguous storage.
-
-   Collective on Vec
-
-   Input Parameters:
-+  v - a vector to mimic
--  m - the number of vectors to obtain
-
-   Output Parameter:
-.  V - location to put pointer to array of vectors
-
-   Notes:
-   The only difference with respect to PETSc's VecDuplicateVecs() is that storage is
-   contiguous, that is, the array of values of V[1] immediately follows the array
-   of V[0], and so on.
-
-   Use SlepcVecDestroyVecs() to free the space.
-
-   Level: developer
-
-.seealso: SlepcVecDestroyVecs()
-@*/
-PetscErrorCode SlepcVecDuplicateVecs(Vec v,PetscInt m,Vec *V[])
+#undef __FUNCT__
+#define __FUNCT__ "VecDuplicateVecs_Contiguous"
+/*
+  Version of VecDuplicateVecs that sets contiguous storage.
+*/
+static PetscErrorCode VecDuplicateVecs_Contiguous(Vec v,PetscInt m,Vec *V[])
 {
   PetscErrorCode  ierr;
   PetscInt        i,nloc;
@@ -77,11 +56,6 @@ PetscErrorCode SlepcVecDuplicateVecs(Vec v,PetscInt m,Vec *V[])
   Vecs_Contiguous *vc;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(v,VEC_CLASSID,1);
-  PetscValidLogicalCollectiveInt(v,m,2);
-  PetscValidPointer(V,3);
-  PetscValidType(v,1);
-  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
   /* Allocate array */
   ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
   ierr = PetscMalloc(m*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
@@ -103,34 +77,81 @@ PetscErrorCode SlepcVecDuplicateVecs(Vec v,PetscInt m,Vec *V[])
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SlepcVecDestroyVecs"
+#define __FUNCT__ "SlepcVecSetTemplate"
 /*@
-   SlepcVecDestroyVecs - Frees a block of vectors obtained with SlepcVecDuplicateVecs().
+   SlepcVecSetTemplate - Sets a vector as a template for contiguous storage.
 
    Collective on Vec
 
    Input Parameters:
-+  m - the number of vectors previously obtained
--  V - pointer to array of vectors
+.  v - the vector
+
+   Note:
+   Once this function is called, subsequent calls to VecDuplicateVecs()
+   with this vector will use a special version that generates vectors with
+   contiguous storage, that is, the array of values of V[1] immediately
+   follows the array of V[0], and so on.
+
+   Level: developer
+@*/
+PetscErrorCode SlepcVecSetTemplate(Vec v)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(v,VEC_CLASSID,1);
+  ierr = PetscTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
+  if (!flg) SETERRQ(((PetscObject)v)->comm,PETSC_ERR_SUP,"Only available for standard vectors (VECSEQ or VECMPI)");
+  v->ops->duplicatevecs = VecDuplicateVecs_Contiguous;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcMatGetVecsTemplate"
+/*@
+   SlepcMatGetVecsTemplate - Get vectors compatible with a matrix,
+   i.e. with the same parallel layout, and mark them as templates
+   for contiguous storage.
+   
+   Collective on Mat
+
+   Input Parameter:
+.  mat - the matrix
+
+   Output Parameters:
++  right - (optional) vector that the matrix can be multiplied against
+-  left  - (optional) vector that the matrix vector product can be stored in
+
+   Options Database Keys:
+.  -slepc_non_contiguous - Disable contiguous vector storage
+
+   Notes:
+   Use -slepc_non_contiguous to disable contiguous storage throughout SLEPc.
+   Contiguous storage is currently also disabled in AIJCUSP matrices.
 
    Level: developer
 
-.seealso: SlepcVecDuplicateVecs()
+.seealso: SlepcVecSetTemplate()
 @*/
-PetscErrorCode SlepcVecDestroyVecs(PetscInt m,Vec *V[])
+PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscBool      flg;
+  Vec            v;
 
   PetscFunctionBegin;
-  PetscValidPointer(V,2);
-  if (!*V) PetscFunctionReturn(0);
-  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
-  SlepcValidVecsContiguous(*V,m,2);
-  for (i=0;i<m;i++) {
-    ierr = VecDestroy(*V+i);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
+  PetscValidType(mat,1);
+  ierr = MatGetVecs(mat,right,left);CHKERRQ(ierr);
+  v = right? *right: *left;
+  ierr = PetscTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
+  if (!flg) PetscFunctionReturn(0);
+  ierr = PetscOptionsHasName(PETSC_NULL,"-slepc_non_contiguous",&flg);CHKERRQ(ierr);
+  if (!flg) {
+    if (right) { ierr = SlepcVecSetTemplate(*right);CHKERRQ(ierr); }
+    if (left) { ierr = SlepcVecSetTemplate(*left);CHKERRQ(ierr); }
   }
-  ierr = PetscFree(*V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -291,12 +312,12 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
 .  y      - the vector to update
 
    Notes:
-   If x are Vec's with contiguous storage, then this the operation is done
-   through a call to BLAS. Otherwise, VecMAXPY is called.
+   If x are Vec's with contiguous storage, then the operation is done
+   through a call to BLAS. Otherwise, VecMAXPY() is called.
 
    Level: developer
 
-.seealso: SlepcVecDuplicateVecs()
+.seealso: SlepcVecSetTemplate()
 @*/
 PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,const PetscScalar a[],Vec x[])
 {

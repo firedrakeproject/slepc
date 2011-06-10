@@ -23,6 +23,7 @@
 
 #if !defined(__SLEPCVEC_H)
 #define __SLEPCVEC_H
+#include "petscmat.h"
 #include "petscvec.h"
 
 PETSC_EXTERN_CXX_BEGIN
@@ -36,8 +37,8 @@ extern PetscErrorCode VecCompGetVecs(Vec,const Vec**,PetscInt*);
 extern PetscErrorCode VecCompSetVecs(Vec,Vec*,PetscInt);
 
 /* Vecs with contiguous array storage */
-extern PetscErrorCode SlepcVecDuplicateVecs(Vec,PetscInt,Vec**);
-extern PetscErrorCode SlepcVecDestroyVecs(PetscInt,Vec**);
+extern PetscErrorCode SlepcVecSetTemplate(Vec);
+extern PetscErrorCode SlepcMatGetVecsTemplate(Mat,Vec*,Vec*);
 
 /* Vec-related operations that have two versions, for contiguous and regular Vecs */
 extern PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);

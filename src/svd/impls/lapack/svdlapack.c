@@ -29,8 +29,7 @@
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       N,nloc;
-  Vec            t;
+  PetscInt       N;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
@@ -38,10 +37,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->mpd) PetscInfo(svd,"Warning: parameter mpd ignored\n");
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {  
-    ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
-    ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -112,7 +108,7 @@ PetscErrorCode SVDReset_LAPACK(SVD svd)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

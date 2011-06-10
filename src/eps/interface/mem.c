@@ -33,7 +33,6 @@
 PetscErrorCode EPSAllocateSolution(EPS eps)
 {
   PetscErrorCode ierr;
-  Vec            t;
   
   PetscFunctionBegin;
   if (eps->allocated_ncv != eps->ncv) {
@@ -43,12 +42,10 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
-    ierr = SlepcVecDuplicateVecs(t,eps->ncv,&eps->V);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->t,eps->ncv,&eps->V);CHKERRQ(ierr);
     if (eps->leftvecs) {
-      ierr = SlepcVecDuplicateVecs(t,eps->ncv,&eps->W);CHKERRQ(ierr);
+      ierr = VecDuplicateVecs(eps->t,eps->ncv,&eps->W);CHKERRQ(ierr);
     }
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
     eps->allocated_ncv = eps->ncv;
   }
   PetscFunctionReturn(0);
@@ -71,8 +68,8 @@ PetscErrorCode EPSFreeSolution(EPS eps)
     ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
     ierr = PetscFree(eps->errest_left);CHKERRQ(ierr); 
     ierr = PetscFree(eps->perm);CHKERRQ(ierr); 
-    ierr = SlepcVecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);
-    ierr = SlepcVecDestroyVecs(eps->allocated_ncv,&eps->W);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(eps->allocated_ncv,&eps->W);CHKERRQ(ierr);
     eps->allocated_ncv = 0;
   }
   PetscFunctionReturn(0);

@@ -100,6 +100,7 @@ struct _p_EPS {
               allocated_ncv;    /* number of basis vectors allocated */
   PetscBool   evecsavailable;   /* computed eigenvectors */
   PetscRandom rand;             /* random number generator */
+  Vec         t;                /* template vector */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt   nwork;

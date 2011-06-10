@@ -95,7 +95,6 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   HarmType_t     harm;
   InitType_t     init;
   PetscReal      fix;
-  Vec            tvec;
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
@@ -233,9 +232,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc(nscalars*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&tvec);CHKERRQ(ierr);
-  ierr = SlepcVecDuplicateVecs(tvec,nvecs,&data->wV);CHKERRQ(ierr);
-  ierr = VecDestroy(&tvec);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(eps->t,nvecs,&data->wV);CHKERRQ(ierr);
   data->size_wV = nvecs;
   b.free_vecs = data->wV;
   b.free_scalars = data->wS;
@@ -330,7 +327,7 @@ PetscErrorCode EPSReset_Davidson(EPS eps)
   DVD_FL_DEL(dvd->startList);
   DVD_FL_DEL(dvd->endList);
 
-  ierr = SlepcVecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);

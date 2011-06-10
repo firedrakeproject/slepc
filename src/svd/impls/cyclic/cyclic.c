@@ -86,11 +86,11 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          M,N,m,n,i,nloc,isl;
+  PetscInt          M,N,m,n,i,isl;
   const PetscScalar *isa;
   PetscScalar       *va;
   PetscBool         trackall;
-  Vec               v,t;
+  Vec               v;
   Mat               Zm,Zn;
 
   PetscFunctionBegin;
@@ -167,11 +167,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
   if (svd->ncv != svd->n) {
-    ierr = SlepcVecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-    ierr = SVDMatGetLocalSize(svd,&nloc,PETSC_NULL);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,nloc,PETSC_DECIDE,PETSC_NULL,&t);CHKERRQ(ierr);
-    ierr = SlepcVecDuplicateVecs(t,svd->ncv,&svd->U);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

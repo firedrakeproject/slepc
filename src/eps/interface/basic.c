@@ -367,6 +367,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->DS              = 0;
   eps->IS              = 0;
   eps->ISL             = 0;
+  eps->t               = 0;
   eps->ds_ortho        = PETSC_FALSE;
   eps->eigr            = 0;
   eps->eigi            = 0;
@@ -541,6 +542,7 @@ PetscErrorCode EPSReset(EPS eps)
   if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
   if (eps->OP) { ierr = STReset(eps->OP);CHKERRQ(ierr); }
   if (eps->ip) { ierr = IPReset(eps->ip);CHKERRQ(ierr); }
+  ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
   eps->setupcalled = 0;
   PetscFunctionReturn(0);

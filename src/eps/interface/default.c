@@ -234,9 +234,9 @@ PetscErrorCode EPSDefaultGetWork(EPS eps,PetscInt nw)
 
   PetscFunctionBegin;
   if (eps->nwork != nw) {
-    ierr = SlepcVecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;
-    ierr = SlepcVecDuplicateVecs(eps->V[0],nw,&eps->work);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->t,nw,&eps->work);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,nw,eps->work);
   }
   PetscFunctionReturn(0);
@@ -252,7 +252,7 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcVecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   eps->nwork = 0;
   PetscFunctionReturn(0);
 }
