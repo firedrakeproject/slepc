@@ -315,7 +315,7 @@ if subversion:
   generatefortranstubs.main(petscconf.BFORT)
 
 # CMake stuff
-if sys.version_info >= (2,5):
+if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
   import cmakegen
   try:
     cmakegen.main(slepcdir,petscdir,petscarch=petscconf.ARCH)
@@ -332,6 +332,10 @@ if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
     log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
   except (ImportError, KeyError), e:
     log.Exit('ERROR: Importing cmakeboot failed:\n' + str(e))
+  # remove files created by PETSc's script
+  for f in ['build.log','build.log.bkp','RDict.log']:
+    try: os.remove(f)
+    except OSError: pass
 
 # Print summary
 log.Println('')
