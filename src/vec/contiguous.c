@@ -157,10 +157,10 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectors_Noncontiguous_Inplace"
-/*@
+/*
    SlepcUpdateVectors_Noncontiguous_Inplace - V = V*Q for regular vectors
    (non-contiguous).
-@*/
+*/
 static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m,Vec *V,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
 {
   PetscInt       i,j,k,ls;
@@ -196,7 +196,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m,Vec *V
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectors_Noncontiguous"
-/*@
+/*
    SlepcUpdateVectors_Noncontiguous - V(:,s:e-1) = V*Q(:,s:e-1) for 
    regular vectors (non-contiguous).
 
@@ -204,7 +204,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m,Vec *V
    correspond to the columns s:e-1, the computation is done as
                   V2 := V2*Q2 + V1*Q1 + V3*Q3
    (the first term is computed with SlepcUpdateVectors_Noncontiguous_Inplace).
-@*/
+*/
 static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
 {
   PetscInt       i,j,m,ln;
