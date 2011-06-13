@@ -21,7 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <private/epsimpl.h>       /*I "slepceps.h" I*/
+#include <private/ipimpl.h>        /*I "slepcip.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp"

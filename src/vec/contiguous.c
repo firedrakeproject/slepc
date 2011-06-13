@@ -156,42 +156,94 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "SlepcUpdateVectors_Noncontiguous"
+#define __FUNCT__ "SlepcUpdateVectors_Noncontiguous_Inplace"
 /*@
-   SlepcUpdateVectors_Noncontiguous - V(:,s:e-1) = V*Q(:,s:e-1) for 
-   regular vectors (non-contiguous).
+   SlepcUpdateVectors_Noncontiguous_Inplace - V = V*Q for regular vectors
+   (non-contiguous).
 @*/
-static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
+static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m,Vec *V,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
 {
-  PetscInt       i,j,k,ls,m;
+  PetscInt       i,j,k,ls;
   PetscScalar    t,*pv,*work;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
-  m = e-s;
   ierr = PetscMalloc(sizeof(PetscScalar)*m,&work);CHKERRQ(ierr);
   for (i=0;i<ls;i++) {
-    for (j=s;j<e;j++) {
+    for (j=0;j<m;j++) {
       t = 0;
-      for (k=0;k<n;k++) {
+      for (k=0;k<m;k++) {
         ierr = VecGetArray(V[k],&pv);CHKERRQ(ierr);
         if (qtrans) t += pv[i]*Q[k*ldq+j];
         else        t += pv[i]*Q[j*ldq+k];
         ierr = VecRestoreArray(V[k],&pv);CHKERRQ(ierr);
       }
-      work[j-s] = t;
+      work[j] = t;
     }
-    for (j=s;j<e;j++) {
+    for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
-      pv[i] = work[j-s];
+      pv[i] = work[j];
       ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
     }
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscLogFlops(m*n*2.0*ls);CHKERRQ(ierr);
+  ierr = PetscLogFlops(m*m*2.0*ls);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcUpdateVectors_Noncontiguous"
+/*@
+   SlepcUpdateVectors_Noncontiguous - V(:,s:e-1) = V*Q(:,s:e-1) for 
+   regular vectors (non-contiguous).
+
+   Writing V = [ V1 V2 V3 ] and Q = [ Q1 Q2 Q3 ], where the V2 and Q2
+   correspond to the columns s:e-1, the computation is done as
+                  V2 := V2*Q2 + V1*Q1 + V3*Q3
+   (the first term is computed with SlepcUpdateVectors_Noncontiguous_Inplace).
+@*/
+static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
+{
+  PetscInt       i,j,m,ln;
+  PetscScalar    *pq,qt[100];
+  PetscBool      allocated = PETSC_FALSE;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  m = e-s;
+  if (qtrans) {
+    ln = PetscMax(s,n-e);
+    if (ln<=100) pq = qt;
+    else {
+      ierr = PetscMalloc(ln*sizeof(PetscScalar),&pq);CHKERRQ(ierr);
+      allocated = PETSC_TRUE;
+    }
+  }
+  /* V2 */
+  pq = (PetscScalar*)Q+s*ldq+s;
+  ierr = SlepcUpdateVectors_Noncontiguous_Inplace(m,V+s,pq,ldq,qtrans);CHKERRQ(ierr);
+  /* V1 */
+  if (s>0) {
+    for (i=s;i<e;i++) {
+      if (qtrans) {
+        for (j=0;j<s;j++) pq[j] = Q[i+j*ldq];
+      } else pq = (PetscScalar*)Q+i*ldq;
+      ierr = VecMAXPY(V[i],s,pq,V);CHKERRQ(ierr);
+    }
+  }
+  /* V3 */
+  if (n>e) {
+    for (i=s;i<e;i++) {
+      if (qtrans) {
+        for (j=0;j<n-e;j++) pq[j] = Q[i+(j+e)*ldq];
+      } else pq = (PetscScalar*)Q+i*ldq+e;
+      ierr = VecMAXPY(V[i],n-e,pq,V+e);CHKERRQ(ierr);
+    }
+  }
+  if (allocated) { ierr = PetscFree(pq);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

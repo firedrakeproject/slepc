@@ -22,6 +22,7 @@
 */
 
 #include <private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <private/ipimpl.h>       /*I "slepcip.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetOperator"
