@@ -309,6 +309,26 @@ PetscErrorCode IPGetType(IP ip,const IPType *type)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "IPSetDefaultType_Private"
+/*
+  Sets the default IP type, depending on whether complex arithmetic
+  is used or not.
+*/
+PetscErrorCode IPSetDefaultType_Private(IP ip)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ip,IP_CLASSID,1);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = IPSetType(ip,IPSESQUILINEAR);CHKERRQ(ierr);
+#else
+  ierr = IPSetType(ip,IPBILINEAR);CHKERRQ(ierr);
+#endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "IPSetFromOptions"
 /*@
    IPSetFromOptions - Sets IP options from the options database.
@@ -334,13 +354,9 @@ PetscErrorCode IPSetFromOptions(IP ip)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   if (!IPRegisterAllCalled) { ierr = IPRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  /* Set default type (we do not allow changing it with -ip_type) */
   if (!((PetscObject)ip)->type_name) {
-    /* Set default type (we do not allow changing it with -ip_type) */
-#if defined(PETSC_USE_COMPLEX)
-    ierr = IPSetType(ip,IPSESQUILINEAR);CHKERRQ(ierr);
-#else
-    ierr = IPSetType(ip,IPBILINEAR);CHKERRQ(ierr);
-#endif
+    ierr = IPSetDefaultType_Private(ip);CHKERRQ(ierr);
   }
   ierr = PetscOptionsBegin(((PetscObject)ip)->comm,((PetscObject)ip)->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
     i = ip->orthog_type;

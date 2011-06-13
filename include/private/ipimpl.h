@@ -51,6 +51,7 @@ struct _p_IP {
   Vec                Bx;
 };
 
+extern PetscErrorCode IPSetDefaultType_Private(IP);
 extern PetscErrorCode IPApplyMatrix_Private(IP,Vec);
 extern PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 

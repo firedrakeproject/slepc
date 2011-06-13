@@ -61,14 +61,20 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
 
-  /* Set default solver type */
+  /* Set default solver type (EPSSetFromOptions was not called) */
   if (!((PetscObject)eps)->type_name) {
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
-  if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
+  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
+  if (!((PetscObject)eps->OP)->type_name) {
+      ierr = STSetType(eps->OP,STSHIFT);CHKERRQ(ierr);
+  }
+  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
+  if (!((PetscObject)eps->ip)->type_name) {
+    ierr = IPSetDefaultType_Private(eps->ip);CHKERRQ(ierr);
+  }
   
   /* Set problem dimensions */
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   if (!A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
   ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
@@ -93,7 +99,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->ishermitian && eps->leftvecs)
     SETERRQ(((PetscObject)eps)->comm,1,"Requesting left eigenvectors not allowed in Hermitian problems");
   
-  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   if (eps->ispositive) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
     ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);
@@ -121,6 +126,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 
   /* Build balancing matrix if required */
+  if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
       ierr = VecDuplicate(eps->V[0],&eps->D);CHKERRQ(ierr);

@@ -55,9 +55,13 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (qep->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);
 
-  /* Set default solver type */
+  /* Set default solver type (QEPSetFromOptions was not called) */
   if (!((PetscObject)qep)->type_name) {
     ierr = QEPSetType(qep,QEPLINEAR);CHKERRQ(ierr);
+  }
+  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
+  if (!((PetscObject)qep->ip)->type_name) {
+    ierr = IPSetDefaultType_Private(qep->ip);CHKERRQ(ierr);
   }
 
   /* Check matrices */

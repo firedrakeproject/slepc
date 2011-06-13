@@ -112,9 +112,13 @@ PetscErrorCode SVDSetUp(SVD svd)
   ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
 
-  /* Set default solver type */
+  /* Set default solver type (SVDSetFromOptions was not called) */
   if (!((PetscObject)svd)->type_name) {
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
+  }
+  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
+  if (!((PetscObject)svd->ip)->type_name) {
+    ierr = IPSetDefaultType_Private(svd->ip);CHKERRQ(ierr);
   }
 
   /* check matrix */

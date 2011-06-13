@@ -61,6 +61,12 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {
       ierr = EPSSetType(eps,type);CHKERRQ(ierr);
     }
+    /*
+      Set the type if it was never set.
+    */
+    if (!((PetscObject)eps)->type_name) {
+      ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
+    }
 
     ierr = PetscOptionsBoolGroupBegin("-eps_hermitian","hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);}
@@ -74,13 +80,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) {ierr = EPSSetProblemType(eps,EPS_PGNHEP);CHKERRQ(ierr);}
     ierr = PetscOptionsBoolGroupEnd("-eps_gen_indefinite","generalized hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetProblemType(eps,EPS_GHIEP);CHKERRQ(ierr);}
-
-    /*
-      Set the type if it was never set.
-    */
-    if (!((PetscObject)eps)->type_name) {
-      ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
-    }
 
     ierr = PetscOptionsBoolGroupBegin("-eps_ritz","Rayleigh-Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);}
