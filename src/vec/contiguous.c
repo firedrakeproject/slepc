@@ -156,6 +156,46 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "SlepcUpdateVectors_Noncontiguous"
+/*@
+   SlepcUpdateVectors_Noncontiguous - V(:,s:e-1) = V*Q(:,s:e-1) for 
+   regular vectors (non-contiguous).
+@*/
+static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
+{
+  PetscInt       i,j,k,ls,m;
+  PetscScalar    t,*pv,*work;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
+  m = e-s;
+  ierr = PetscMalloc(sizeof(PetscScalar)*m,&work);CHKERRQ(ierr);
+  for (i=0;i<ls;i++) {
+    for (j=s;j<e;j++) {
+      t = 0;
+      for (k=0;k<n;k++) {
+        ierr = VecGetArray(V[k],&pv);CHKERRQ(ierr);
+        if (qtrans) t += pv[i]*Q[k*ldq+j];
+        else        t += pv[i]*Q[j*ldq+k];
+        ierr = VecRestoreArray(V[k],&pv);CHKERRQ(ierr);
+      }
+      work[j-s] = t;
+    }
+    for (j=s;j<e;j++) {
+      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
+      pv[i] = work[j-s];
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+    }
+  }
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscLogFlops(m*n*2.0*ls);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectors"
 /*@
    SlepcUpdateVectors - Update a set of vectors V as V(:,s:e-1) = V*Q(:,s:e-1).
@@ -191,12 +231,26 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
    Level: developer
 
 @*/
-PetscErrorCode SlepcUpdateVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans)
+PetscErrorCode SlepcUpdateVectors(PetscInt n,Vec *V,PetscInt s,PetscInt e,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
 {
+  PetscContainer container;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcUpdateStrideVectors(n_,V,s,1,e,Q,ldq_,qtrans);CHKERRQ(ierr);
+  if (n<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",n);
+  if (n==0 || s>=e) PetscFunctionReturn(0);
+  PetscValidPointer(V,2);
+  PetscValidHeaderSpecific(*V,VEC_CLASSID,2);
+  PetscValidType(*V,2);
+  PetscValidScalarPointer(Q,5);
+  ierr = PetscObjectQuery((PetscObject)(V[0]),"contiguous",(PetscObject*)&container);CHKERRQ(ierr);
+  if (container) {
+    /* contiguous Vecs, use BLAS calls */
+    ierr = SlepcUpdateStrideVectors(n,V,s,1,e,Q,ldq,qtrans);CHKERRQ(ierr);
+  } else {
+    /* use regular Vec operations */
+    ierr = SlepcUpdateVectors_Noncontiguous(n,V,s,e,Q,ldq,qtrans);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
