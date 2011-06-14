@@ -425,10 +425,10 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
 
 .seealso: SlepcVecSetTemplate()
 @*/
-PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,const PetscScalar a[],Vec x[])
+PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,PetscScalar a[],Vec x[])
 {
   PetscErrorCode    ierr;
-  PetscBLASInt      n,m,one=1;
+  PetscBLASInt      i,n,m,one=1;
   PetscScalar       *py;
   const PetscScalar *px;
   PetscContainer    container;
@@ -465,11 +465,18 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
     ierr = PetscLogEventEnd(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
   } else {
     /* use regular Vec operations */
-    ierr = VecDuplicate(y,&z);CHKERRQ(ierr);
-    ierr = VecCopy(y,z);CHKERRQ(ierr);
-    ierr = VecMAXPY(y,nv,a,x);CHKERRQ(ierr);
-    ierr = VecAXPBY(y,beta-alpha,alpha,z);CHKERRQ(ierr);
-    ierr = VecDestroy(&z);CHKERRQ(ierr);
+    if (alpha==-beta) {
+      for (i=0;i<nv;i++) a[i] = -a[i];
+      ierr = VecMAXPY(y,nv,a,x);CHKERRQ(ierr);
+      for (i=0;i<nv;i++) a[i] = -a[i];
+      ierr = VecScale(y,beta);CHKERRQ(ierr);
+    } else {
+      ierr = VecDuplicate(y,&z);CHKERRQ(ierr);
+      ierr = VecCopy(y,z);CHKERRQ(ierr);
+      ierr = VecMAXPY(y,nv,a,x);CHKERRQ(ierr);
+      ierr = VecAXPBY(y,beta-alpha,alpha,z);CHKERRQ(ierr);
+      ierr = VecDestroy(&z);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
