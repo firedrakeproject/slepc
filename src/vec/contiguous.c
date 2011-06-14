@@ -161,30 +161,45 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
    SlepcUpdateVectors_Noncontiguous_Inplace - V = V*Q for regular vectors
    (non-contiguous).
 */
-static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m,Vec *V,const PetscScalar *Q,PetscInt ldq,PetscBool qtrans)
+static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *V,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans)
 {
-  PetscInt       i,j,k,ls;
-  PetscScalar    t,*pv,*work;
+  PetscInt       l;
+  PetscBLASInt   j,ls,bs=64,m,k,ldq;
+  PetscScalar    *pv,*pq=(PetscScalar*)Q,*work,*out,one=1.0,zero=0.0;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(V[0],&ls);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*m,&work);CHKERRQ(ierr);
-  for (i=0;i<ls;i++) {
-    for (j=0;j<m;j++) {
-      t = 0;
-      for (k=0;k<m;k++) {
-        ierr = VecGetArray(V[k],&pv);CHKERRQ(ierr);
-        if (qtrans) t += pv[i]*Q[k*ldq+j];
-        else        t += pv[i]*Q[j*ldq+k];
-        ierr = VecRestoreArray(V[k],&pv);CHKERRQ(ierr);
-      }
-      work[j] = t;
-    }
+  ierr = VecGetLocalSize(V[0],&l);CHKERRQ(ierr);
+  ls = PetscBLASIntCast(l);  
+  m = PetscBLASIntCast(m_);
+  ldq = PetscBLASIntCast(ldq_);
+  ierr = PetscMalloc(sizeof(PetscScalar)*2*bs*m,&work);CHKERRQ(ierr);
+  out = work+m*bs;
+  k = ls % bs;
+  if (k) {
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
-      pv[i] = work[j];
+      ierr = PetscMemcpy(work+j*bs,pv,k*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+    }
+    BLASgemm_("N",qtrans?"T":"N",&k,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs);
+    for (j=0;j<m;j++) {
+      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pv,out+j*bs,k*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+    }
+  }
+  for (;k<ls;k+=bs) {
+    for (j=0;j<m;j++) {
+      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
+      ierr = PetscMemcpy(work+j*bs,pv+k,bs*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+    }
+    BLASgemm_("N",qtrans?"C":"N",&bs,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs);
+    for (j=0;j<m;j++) {
+      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pv+k,out+j*bs,bs*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
     }
   }
@@ -366,7 +381,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
   if (qtrans) {
     pq = (PetscScalar*)Q+s;
-    qt = "T";
+    qt = "C";
   } else {
     pq = (PetscScalar*)Q+s*ldq;
     qt = "N";
