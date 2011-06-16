@@ -183,7 +183,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *
       ierr = PetscMemcpy(work+j*bs,pv,k*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
     }
-    BLASgemm_("N",qtrans?"T":"N",&k,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs);
+    BLASgemm_("N",qtrans?"C":"N",&k,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs);
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
       ierr = PetscMemcpy(pv,out+j*bs,k*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -238,8 +238,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscIn
     }
   }
   /* V2 */
-  pq = (PetscScalar*)Q+s*ldq+s;
-  ierr = SlepcUpdateVectors_Noncontiguous_Inplace(m,V+s,pq,ldq,qtrans);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectors_Noncontiguous_Inplace(m,V+s,Q+s*ldq+s,ldq,qtrans);CHKERRQ(ierr);
   /* V1 */
   if (s>0) {
     for (i=s;i<e;i++) {
