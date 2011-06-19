@@ -188,28 +188,28 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
 @*/
 PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
-  PetscErrorCode          ierr;
-  PetscInt                i;
-  PetscScalar             er,ei;
-  PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscScalar    er,ei;
+  PetscViewer    viewer = dummy? (PetscViewer)dummy: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
 
   PetscFunctionBegin;
   if (its) {
-    if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
-    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3D EPS nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
       er = eigr[i]; ei = eigi[i];
       ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," %G",er);CHKERRQ(ierr);
-      if (ei!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %G",er);CHKERRQ(ierr);
+      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
 #endif
-      ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIMonitorPrintf(viewer,"\n");CHKERRQ(ierr);
-    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -238,24 +238,24 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 @*/
 PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
 {
-  PetscErrorCode          ierr;
-  PetscScalar             er,ei;
-  PetscViewerASCIIMonitor viewer = (PetscViewerASCIIMonitor) dummy;
+  PetscErrorCode ierr;
+  PetscScalar    er,ei;
+  PetscViewer    viewer = dummy? (PetscViewer)dummy: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
-    if (!dummy) {ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,"stdout",0,&viewer);CHKERRQ(ierr);}
-    ierr = PetscViewerASCIIMonitorPrintf(viewer,"%3D EPS nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
     er = eigr[nconv]; ei = eigi[nconv];
     ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," %G",er);CHKERRQ(ierr);
-    if (ei!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer," %G",er);CHKERRQ(ierr);
+    if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
 #endif
-    ierr = PetscViewerASCIIMonitorPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
-    if (!dummy) {ierr = PetscViewerASCIIMonitorDestroy(&viewer);CHKERRQ(ierr);}
+    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -287,23 +287,25 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   PetscErrorCode   ierr;
   PetscInt         i;
   PetscScalar      er,ei;
-  SlepcConvMonitor ctx = (SlepcConvMonitor) dummy;
+  SlepcConvMonitor ctx = (SlepcConvMonitor)dummy;
 
   PetscFunctionBegin;
   if (!its) {
     ctx->oldnconv = 0;
   } else {
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%3D EPS converged value (error) #%D",its,i);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIAddTab(ctx->viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(ctx->viewer,"%3D EPS converged value (error) #%D",its,i);CHKERRQ(ierr);
       er = eigr[i]; ei = eigi[i];
       ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(ctx->viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," %G",er);CHKERRQ(ierr);
-      if (ei!=0.0) { ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer,"%+Gi",ei);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(ctx->viewer," %G",er);CHKERRQ(ierr);
+      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(ctx->viewer,"%+Gi",ei);CHKERRQ(ierr); }
 #endif
-      ierr = PetscViewerASCIIMonitorPrintf(ctx->viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(ctx->viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIISubtractTab(ctx->viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
     }
     ctx->oldnconv = nconv;
   }

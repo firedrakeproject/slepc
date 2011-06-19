@@ -43,15 +43,15 @@
 @*/
 PetscErrorCode EPSSetFromOptions(EPS eps)
 {
-  PetscErrorCode          ierr;
-  char                    type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool               flg,val;
-  PetscReal               r,nrma,nrmb,array[2];
-  PetscScalar             s;
-  PetscInt                i,j,k;
-  const char              *bal_list[4] = {"none","oneside","twoside","user"};
-  PetscViewerASCIIMonitor monviewer;
-  SlepcConvMonitor        ctx;
+  PetscErrorCode   ierr;
+  char             type[256],monfilename[PETSC_MAX_PATH_LEN];
+  PetscBool        flg,val;
+  PetscReal        r,nrma,nrmb,array[2];
+  PetscScalar      s;
+  PetscInt         i,j,k;
+  const char       *bal_list[4] = {"none","oneside","twoside","user"};
+  PetscViewer      monviewer;
+  SlepcConvMonitor ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -135,19 +135,19 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     */
     ierr = PetscOptionsString("-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&ctx->viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)eps)->comm,monfilename,((PetscObject)eps)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;

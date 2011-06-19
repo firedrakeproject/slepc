@@ -534,7 +534,7 @@ PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
 
   PetscFunctionBegin;
   if (!*ctx) PetscFunctionReturn(0);
-  ierr = PetscViewerASCIIMonitorDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
   ierr = PetscFree(*ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

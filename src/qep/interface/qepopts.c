@@ -43,13 +43,13 @@
 @*/
 PetscErrorCode QEPSetFromOptions(QEP qep)
 {
-  PetscErrorCode          ierr;
-  char                    type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool               flg,val;
-  PetscReal               r;
-  PetscInt                i,j,k;
-  PetscViewerASCIIMonitor monviewer;
-  SlepcConvMonitor        ctx;
+  PetscErrorCode   ierr;
+  char             type[256],monfilename[PETSC_MAX_PATH_LEN];
+  PetscBool        flg,val;
+  PetscReal        r;
+  PetscInt         i,j,k;
+  PetscViewer      monviewer;
+  SlepcConvMonitor ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -103,19 +103,19 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     */
     ierr = PetscOptionsString("-qep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&ctx->viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-qep_monitor_all","Monitor approximate eigenvalues and error estimates","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIMonitorCreate(((PetscObject)qep)->comm,monfilename,((PetscObject)qep)->tablevel,&monviewer);CHKERRQ(ierr);
-      ierr = QEPMonitorSet(qep,QEPMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerASCIIMonitorDestroy);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;

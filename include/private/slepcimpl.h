@@ -26,8 +26,8 @@
 
 /* context for monitors of type XXXMonitorConverged */
 struct _n_SlepcConvMonitor {
-  PetscViewerASCIIMonitor viewer;
-  PetscInt oldnconv;
+  PetscViewer viewer;
+  PetscInt    oldnconv;
 };
 typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 
