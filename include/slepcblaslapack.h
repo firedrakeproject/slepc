@@ -29,7 +29,7 @@
 
 /* Macros for building LAPACK names */
 #if defined(PETSC_BLASLAPACK_UNDERSCORE)
-#if defined(PETSC_USE_SINGLE)
+#if defined(PETSC_USE_REAL_SINGLE)
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) s##lcase##_
 #if defined(PETSC_USE_COMPLEX)
 #define SLEPC_BLASLAPACK(lcase,ucase) c##lcase##_
@@ -46,7 +46,7 @@
 #endif
 
 #elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)
-#if defined(PETSC_USE_SINGLE)
+#if defined(PETSC_USE_REAL_SINGLE)
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) S##ucase
 #if defined(PETSC_USE_COMPLEX)
 #define SLEPC_BLASLAPACK(lcase,ucase) C##ucase
@@ -63,7 +63,7 @@
 #endif
 
 #else
-#if defined(PETSC_USE_SINGLE)
+#if defined(PETSC_USE_REAL_SINGLE)
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) s##lcase
 #if defined(PETSC_USE_COMPLEX)
 #define SLEPC_BLASLAPACK(lcase,ucase) c##lcase
