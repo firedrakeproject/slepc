@@ -304,13 +304,15 @@ typedef struct _dvdDashboard {
 
 #define DVD_FL_CALL(list, arg0) { \
   dvdFunctionList *fl; \
-  for(fl=(list); fl; fl=fl->next) (*(dvdCallback)fl->f)((arg0)); }
+  for(fl=(list); fl; fl=fl->next) \
+    if(*(dvdCallback)fl->f) (*(dvdCallback)fl->f)((arg0)); }
 
 #define DVD_FL_DEL(list) { \
   dvdFunctionList *fl=(list), *oldfl; \
   PetscErrorCode ierr; \
   while(fl) { \
-    oldfl = fl; fl = fl->next; ierr = PetscFree(oldfl); CHKERRQ(ierr); }}
+    oldfl = fl; fl = fl->next; ierr = PetscFree(oldfl); CHKERRQ(ierr); } \
+  (list) = PETSC_NULL;}
 
 /*
   The blackboard configuration structure: saves information about the memory
