@@ -232,6 +232,12 @@ if not os.path.exists(incdir):
     os.mkdir(incdir)
   except:
     sys.exit('ERROR: cannot create include directory ' + incdir)
+libdir = os.sep.join([archdir,'lib'])
+if not os.path.exists(libdir):
+  try:
+    os.mkdir(libdir)
+  except:
+    sys.exit('ERROR: cannot create lib directory ' + libdir)
 try:
   slepcvars = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
