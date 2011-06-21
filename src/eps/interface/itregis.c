@@ -38,7 +38,7 @@ extern PetscErrorCode EPSCreate_BLZPACK(EPS);
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
 extern PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
-#if defined(PETSC_HAVE_BLOPEX)
+#if defined(SLEPC_HAVE_BLOPEX)
 extern PetscErrorCode EPSCreate_BLOPEX(EPS);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
@@ -83,7 +83,7 @@ PetscErrorCode EPSRegisterAll(const char *path)
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
   ierr = EPSRegisterDynamic(EPSTRLAN,path,"EPSCreate_TRLAN",EPSCreate_TRLAN);CHKERRQ(ierr);
 #endif
-#if defined(PETSC_HAVE_BLOPEX)
+#if defined(SLEPC_HAVE_BLOPEX)
   ierr = EPSRegisterDynamic(EPSBLOPEX,path,"EPSCreate_BLOPEX",EPSCreate_BLOPEX);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)

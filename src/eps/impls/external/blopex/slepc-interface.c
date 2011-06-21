@@ -26,9 +26,8 @@
 #include <petscvec.h>
 #include <assert.h>
 #include <stdlib.h>
-#define BlopexInt PetscInt
-#include <interpreter.h>
-#include <temp_multivector.h>
+#include <blopex_interpreter.h>
+#include <blopex_temp_multivector.h>
 #include "slepc-interface.h"
 
 static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,int n,void* sample)

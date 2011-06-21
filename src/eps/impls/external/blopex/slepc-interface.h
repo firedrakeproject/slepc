@@ -26,12 +26,8 @@
 #ifndef SLEPC_INTERFACE_HEADER
 #define SLEPC_INTERFACE_HEADER
 
-#include <lobpcg.h>
-#ifdef BLOPEX_DIR
+#include <blopex_lobpcg.h>
 #include "petsc-interface.h"
-#else
-#include <../src/contrib/blopex/petsc-interface/petsc-interface.h>
-#endif
 
 extern int
 SLEPCSetupInterpreter( mv_InterfaceInterpreter *ii );

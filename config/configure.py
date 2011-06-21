@@ -44,6 +44,7 @@ import blzpack
 import trlan  
 import lapack
 import primme
+import blopex
 import slepc4py
 
 if not hasattr(sys, 'version_info') or not sys.version_info[1] >= 2:
@@ -83,6 +84,9 @@ trlanlibs = []
 haveprimme = 0
 primmedir = ''
 primmelibs = []
+getblopex = 0
+haveblopex = 0
+blopexurl = ''
 getslepc4py = 0
 prefixdir = ''
 
@@ -119,6 +123,10 @@ for i in sys.argv[1:]:
     haveprimme = 1
   elif i.startswith('--with-primme'):
     haveprimme = not i.endswith('=0')
+  elif i.startswith('--download-blopex'):
+    getblopex = not i.endswith('=0')
+    try: blopexurl = i.split('=')[1]
+    except IndexError: pass
   elif i.startswith('--download-slepc4py'):
     getslepc4py = not i.endswith('=0')
   elif i.startswith('--prefix='):
@@ -143,6 +151,8 @@ for i in sys.argv[1:]:
     print '  --with-primme                    : Indicate if you wish to test for PRIMME'
     print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
     print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
+    print 'BLOPEX:'
+    print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
     print 'slepc4py:'
     print '  --download-slepc4py              : Download and install slepc4py in SLEPc directory'
     sys.exit(0)
@@ -290,6 +300,9 @@ if havetrlan:
   trlanlibs = trlan.Check(slepcconf,slepcvars,cmake,trlandir,trlanlibs)
 if haveprimme:
   primmelibs = primme.Check(slepcconf,slepcvars,cmake,primmedir,primmelibs)
+if getblopex:
+  blopexlibs = blopex.Install(slepcconf,slepcvars,cmake,blopexurl,archdir)
+  haveblopex = 1
 
 # Check for missing LAPACK functions
 missing = lapack.Check(slepcconf,slepcvars,cmake)
@@ -363,6 +376,9 @@ if havetrlan:
 if haveprimme:
   log.Println('PRIMME library flags:')
   log.Println(' '+str.join(' ',primmelibs))
+if haveblopex:
+  log.Println('BLOPEX library flags:')
+  log.Println(' '+str.join(' ',blopexlibs))
 if missing:
   log.Println('LAPACK missing functions:')
   log.Print('  ')

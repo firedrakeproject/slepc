@@ -21,15 +21,15 @@
 
 ALL: lib
 
-#requiresdefine  'PETSC_HAVE_BLOPEX'
+#requiresdefine  'SLEPC_HAVE_BLOPEX'
 #requiresprecision double
 
-CFLAGS   = ${BLOPEX_INCLUDE}
+CFLAGS   = ${BLOPEX_INCLUDE} -DBlopexInt=PetscInt
 FFLAGS   =
-SOURCEC  = blopex.c slepc-interface.c
+SOURCEC  = blopex.c slepc-interface.c petsc-interface.c
 SOURCEF  = 
-SOURCEH  = slepc-interface.h
-OBJSC    = blopex.o slepc-interface.o
+SOURCEH  = slepc-interface.h petsc-interface.h
+OBJSC    = blopex.o slepc-interface.o petsc-interface.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

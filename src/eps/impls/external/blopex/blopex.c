@@ -23,12 +23,11 @@
 
 #include <private/stimpl.h>       /*I "slepcst.h" I*/
 #include <private/epsimpl.h>      /*I "slepceps.h" I*/
-#define BlopexInt PetscInt
 #include "slepc-interface.h"
-#include <lobpcg.h>
-#include <interpreter.h>
-#include <multivector.h>
-#include <temp_multivector.h>
+#include <blopex_lobpcg.h>
+#include <blopex_interpreter.h>
+#include <blopex_multivector.h>
+#include <blopex_temp_multivector.h>
 
 PetscErrorCode EPSSolve_BLOPEX(EPS);
 
