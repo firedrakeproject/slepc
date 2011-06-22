@@ -29,10 +29,12 @@ def Load(petscdir):
     ISINSTALL = 0
     ARCH = os.environ['PETSC_ARCH']
     PETSCVARIABLES = os.sep.join([petscdir,ARCH,'conf','petscvariables'])
+    PETSCCONF_H = os.sep.join([petscdir,ARCH,'include','petscconf.h'])
   else:
     ISINSTALL = 1
     ARCH = 'arch-installed-petsc'
     PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
+    PETSCCONF_H = os.sep.join([petscdir,'include','petscconf.h'])
 
   try:
     f = open(PETSCVARIABLES)
@@ -68,7 +70,6 @@ def Load(petscdir):
   except:
     sys.exit('ERROR: PETSc is not configured for architecture ' + ARCH)
 
-  PETSCCONF_H = os.sep.join([petscdir,ARCH,'include','petscconf.h'])
   IND64 = 0
   try:
     f = open(PETSCCONF_H)
