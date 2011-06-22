@@ -88,7 +88,9 @@ Unable to download package %s from: %s
   # Configure
   g = open(os.path.join(destDir,'Makefile.inc'),'w')
   g.write('CC          = '+petscconf.CC+'\n') 
-  g.write('CFLAGS      = '+petscconf.CC_FLAGS.replace('-Wall','').replace('-Wshadow','')+'\n')
+  if petscconf.IND64: blopexint = ' -DBlopexInt="long long" '
+  else: blopexint = ''
+  g.write('CFLAGS      = '+petscconf.CC_FLAGS.replace('-Wall','').replace('-Wshadow','')+blopexint+'\n')
   g.write('AR          = '+petscconf.AR+' '+petscconf.AR_FLAGS+'\n')
   g.write('AR_LIB_SUFFIX = '+petscconf.AR_LIB_SUFFIX+'\n')
   g.write('RANLIB      = '+petscconf.RANLIB+'\n')

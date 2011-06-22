@@ -30,7 +30,7 @@
 #include <blopex_temp_multivector.h>
 #include "slepc-interface.h"
 
-static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,int n,void* sample)
+static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,BlopexInt n,void* sample)
 {
   int i;
   Vec *vecs = (Vec*)sample;

@@ -224,7 +224,8 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
 static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode ierr;
-  PetscInt          p,i,j,N1,N2,m1,m2,n1,n2,*map1,*map2,np;
+  PetscMPIInt       np;
+  PetscInt          p,i,j,N1,N2,m1,m2,n1,n2,*map1,*map2;
   PetscInt          *dnz,*onz,ncols,*scols,start,gstart;
   PetscScalar       *svals,*buf;
   const PetscInt    *cols,*mapptr1,*mapptr2;

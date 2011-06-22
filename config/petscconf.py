@@ -23,7 +23,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64
   
   if 'PETSC_ARCH' in os.environ:
     ISINSTALL = 0
@@ -67,3 +67,16 @@ def Load(petscdir):
     f.close()
   except:
     sys.exit('ERROR: PETSc is not configured for architecture ' + ARCH)
+
+  PETSCCONF_H = os.sep.join([petscdir,ARCH,'include','petscconf.h'])
+  IND64 = 0
+  try:
+    f = open(PETSCCONF_H)
+    for l in f.readlines():
+      l = l.split()
+      if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_64BIT_INDICES' and l[2]=='1':
+	IND64 = 1
+    f.close()
+  except:
+    sys.exit('ERROR: cannot open petscconf.h')
+
