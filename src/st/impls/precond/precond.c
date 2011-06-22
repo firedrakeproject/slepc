@@ -89,17 +89,13 @@ PetscErrorCode STSetUp_Precond(ST st)
   } else {
     builtP = PETSC_TRUE;
 
-    if (st->shift_matrix == ST_MATMODE_SHELL) {
-      ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
-      //TODO: set the apply and apply transpose to st->mat
-      destroyP = PETSC_TRUE;
-    } else if (!(PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) && st->B) {
+    if (!(PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) && st->B) {
       P = st->B;
       destroyP = PETSC_FALSE;
     } else if (st->sigma == 0.0) {
       P = st->A;
       destroyP = PETSC_FALSE;
-    } else if (PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) {
+    } else if (PetscAbsScalar(st->sigma) < PETSC_MAX_REAL && st->shift_matrix != ST_MATMODE_SHELL) {
       if (st->shift_matrix == ST_MATMODE_INPLACE) {
         P = st->A;
         destroyP = PETSC_FALSE;
