@@ -170,7 +170,7 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
 
 .seealso: SlepcFinalize(), PetscInitialize()
 @*/
-PetscErrorCode SlepcInitialize(int *argc,char ***args,char file[],const char help[])
+PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const char help[])
 {
   PetscErrorCode ierr,info=0;
   PetscBool      flg;
@@ -227,6 +227,74 @@ PetscErrorCode SlepcFinalize(void)
   SlepcInitializeCalled = PETSC_FALSE;
   PetscFunctionReturn(info);
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcInitialized"
+/*@
+   SlepcInitialized - Determine whether SLEPc is initialized.
+  
+   Level: beginner
+
+.seealso: SlepcInitialize(), SlepcInitializeFortran()
+@*/
+PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
+{
+  PetscFunctionBegin;
+  PetscValidPointer(isInitialized,1);
+  *isInitialized = SlepcInitializeCalled;
+  PetscFunctionReturn(0);
+}
+
+#if defined(PETSC_HAVE_MATLAB_ENGINE)
+extern PetscBool PetscBeganMPI;
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcInitializeMatlab"
+/*
+   SlepcInitializeMatlab - Calls SlepcInitialize() from MATLAB (analogue to
+   PetscInitializeMatlab).
+
+   Collective
+  
+   Level: advanced
+
+.seealso: SlepcInitialize()
+*/
+PetscErrorCode SlepcInitializeMatlab(int argc,char **args,const char *filename,const char *help)
+{
+  PetscErrorCode ierr;
+  int            myargc = argc;
+  char           **myargs = args;
+
+  PetscFunctionBegin;
+  ierr = SlepcInitialize(&myargc,&myargs,filename,help);
+  ierr = PetscPopSignalHandler();CHKERRQ(ierr);
+  PetscBeganMPI = PETSC_FALSE;
+  PetscFunctionReturn(ierr);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcInitializedMatlab"
+/*
+   SlepcInitializedMatlab - Has SLEPc been initialized already?
+
+   Not Collective
+  
+   Level: advanced
+
+   Notes: this is called only by the SLEPc MATLAB interface.
+
+.seealso: SlepcInitialize()
+*/
+int SlepcInitializedMatlab(void)
+{
+  PetscBool flg;
+
+  SlepcInitialized(&flg);
+  if (flg) return 1;
+  else return 0;
+}
+#endif
 
 #ifdef PETSC_USE_DYNAMIC_LIBRARIES
 EXTERN_C_BEGIN

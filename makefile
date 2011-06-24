@@ -220,6 +220,16 @@ install:
           if [ ! -d ${SLEPC_DESTDIR}/conf ]; then \
 	    ${MKDIR} ${SLEPC_DESTDIR}/conf ; \
           fi;\
+          for dir in bin bin/matlab bin/matlab/classes bin/matlab/classes/examples \
+              bin/matlab/classes/examples/tutorials; \
+          do \
+            if [ ! -d ${SLEPC_DESTDIR}/$$dir ]; then ${MKDIR} ${SLEPC_DESTDIR}/$$dir; fi;\
+          done; \
+          for dir in bin/matlab/classes bin/matlab/classes/examples/tutorials; \
+          do \
+            cp -f $$dir/*.m ${SLEPC_DESTDIR}/$$dir;\
+          done; \
+          cp -f bin/matlab/classes/slepcmatlabheader.h ${SLEPC_DESTDIR}/bin/matlab/classes;\
           cp -f conf/slepc_common* ${SLEPC_DESTDIR}/conf;\
           cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_DESTDIR}/conf;\
           cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_DESTDIR}/conf;\

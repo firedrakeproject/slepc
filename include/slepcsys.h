@@ -85,9 +85,10 @@ PETSC_EXTERN_CXX_BEGIN
 /*
     Initialization of SLEPc and other system routines
 */
-extern PetscErrorCode SlepcInitialize(int*,char***,char[],const char[]);
+extern PetscErrorCode SlepcInitialize(int*,char***,const char[],const char[]);
 extern PetscErrorCode SlepcFinalize(void);
 extern PetscErrorCode SlepcInitializeFortran(void);
+extern PetscErrorCode SlepcInitialized(PetscBool*);
 
 #if !defined(PETSC_USE_COMPLEX)
 extern PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
