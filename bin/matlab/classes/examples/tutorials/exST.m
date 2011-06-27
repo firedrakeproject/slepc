@@ -8,9 +8,9 @@
 %  Set the Matlab path and initialize SLEPc
 %
 path(path,'../../')
-if exist('PetscInitialize')~=2
+if ~exist('PetscInitialize','file')
   PETSC_DIR = getenv('PETSC_DIR');
-  if (length(PETSC_DIR) == 0) 
+  if isempty(PETSC_DIR) 
     error('Must set environment variable PETSC_DIR or add the appropriate dir to Matlab path')
   end
   path(path,[PETSC_DIR '/bin/matlab/classes'])
@@ -49,7 +49,7 @@ nconv = eps.GetConverged();
 fprintf('           k          ||Ax-kx||/||kx||\n')
 fprintf('   ----------------- ------------------\n')
 for i=1:nconv
-  lambda = eps.GetEigenvalue(i);
+  lambda = eps.GetEigenpair(i);
   relerr = eps.ComputeRelativeError(i);
   if isreal(lambda)
     fprintf('    %14.2f        %12g\n',lambda,relerr)

@@ -8,9 +8,9 @@
 %  Set the Matlab path and initialize SLEPc
 %
 path(path,'../../')
-if exist('PetscInitialize')~=2
+if ~exist('PetscInitialize','file')
   PETSC_DIR = getenv('PETSC_DIR');
-  if (length(PETSC_DIR) == 0) 
+  if isempty(PETSC_DIR) 
     error('Must set environment variable PETSC_DIR or add the appropriate dir to Matlab path')
   end
   path(path,[PETSC_DIR '/bin/matlab/classes'])
@@ -21,14 +21,14 @@ SlepcInitialize({'-malloc','-malloc_debug','-malloc_dump'});
 %  Create the Lauchli matrix
 %
 n = 100;
-mu = 1e-6;
+mu = 1e-7;
 mat = PetscMat();
 mat.SetType('seqaij');
-mat.SetSizes(n,n,n,n);
+mat.SetSizes(n+1,n,n+1,n);
 for i=1:n
   mat.SetValues(1,i,1.0);
 end
-for i=2:n
+for i=2:n+1
   mat.SetValues(i,i-1,mu);
 end
 mat.AssemblyBegin(PetscMat.FINAL_ASSEMBLY);
@@ -39,8 +39,8 @@ mat.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 %  Create the solver, pass the matrix and solve the problem
 %
 svd = SlepcSVD();
-svd.SetType('cross');
 svd.SetOperator(mat);
+svd.SetType('trlanczos');
 svd.SetFromOptions();
 svd.Solve();
 nconv = svd.GetConverged();

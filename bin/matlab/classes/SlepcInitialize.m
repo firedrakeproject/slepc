@@ -16,10 +16,10 @@ end
 if ~libisloaded('libslepc')
   SLEPC_DIR = getenv('SLEPC_DIR');
   PETSC_ARCH = getenv('PETSC_ARCH');
-  if (length(SLEPC_DIR) == 0) 
+  if isempty(SLEPC_DIR)
     disp('Must have environmental variable SLEPC_DIR set')
   end
-  if (length(PETSC_ARCH) == 0) 
+  if isempty(PETSC_ARCH)
     disp('Must have environmental variable PETSC_ARCH set')
   end
   loadlibrary([SLEPC_DIR '/' PETSC_ARCH '/lib/' 'libslepc'], [SLEPC_DIR '/bin/matlab/classes/slepcmatlabheader.h']);
@@ -28,10 +28,10 @@ end
 if ~libisloaded('libpetsc')
   PETSC_DIR = getenv('PETSC_DIR');
   PETSC_ARCH = getenv('PETSC_ARCH');
-  if (length(PETSC_DIR) == 0) 
+  if isempty(PETSC_DIR)
     disp('Must have environmental variable PETSC_DIR set')
   end
-  if (length(PETSC_ARCH) == 0) 
+  if isempty(PETSC_ARCH)
     disp('Must have environmental variable PETSC_ARCH set')
   end
   loadlibrary([PETSC_DIR '/' PETSC_ARCH '/lib/' 'libpetsc'], [PETSC_DIR '/bin/matlab/classes/matlabheader.h']);

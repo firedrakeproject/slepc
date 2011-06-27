@@ -1,6 +1,6 @@
 %%
 %
-%  Solves a simple eigenvalue problem with SLEPc
+%  Solves a standard eigenvalue problem with SLEPc
 %  User creates directly a PETSc Mat
 %
 
@@ -8,9 +8,9 @@
 %  Set the Matlab path and initialize SLEPc
 %
 path(path,'../../')
-if exist('PetscInitialize')~=2
+if ~exist('PetscInitialize','file')
   PETSC_DIR = getenv('PETSC_DIR');
-  if (length(PETSC_DIR) == 0) 
+  if isempty(PETSC_DIR) 
     error('Must set environment variable PETSC_DIR or add the appropriate dir to Matlab path')
   end
   path(path,[PETSC_DIR '/bin/matlab/classes'])
@@ -48,9 +48,13 @@ nconv = eps.GetConverged();
 fprintf('           k          ||Ax-kx||/||kx||\n')
 fprintf('   ----------------- ------------------\n')
 for i=1:nconv
-  lambda = eps.GetEigenvalue(i);
+  lambda = eps.GetEigenpair(i);
   relerr = eps.ComputeRelativeError(i);
-  fprintf('   %12f       %12g\n',lambda,relerr)
+  if isreal(lambda)
+    fprintf('    %12f        %12g\n',lambda,relerr)
+  else
+    fprintf('  %12f%+12f      %12g\n',real(lambda),imag(lambda),relerr)
+  end
 end
 %eps.View();
 

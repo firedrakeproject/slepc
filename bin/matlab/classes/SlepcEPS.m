@@ -91,10 +91,10 @@ classdef SlepcEPS < PetscObject
       nconv = 0;
       [err,nconv] = calllib('libslepc', 'EPSGetConverged', obj.pobj,nconv);PetscCHKERRQ(err);
     end
-    function [lambda,err] = GetEigenvalue(obj,i)
+    function [lambda,err] = GetEigenpair(obj,i)
       lambda = 0.0;
       img = 0.0;
-      [err,lambda,img] = calllib('libslepc', 'EPSGetEigenvalue', obj.pobj,i-1,lambda,img);PetscCHKERRQ(err);
+      [err,lambda,img] = calllib('libslepc', 'EPSGetEigenpair', obj.pobj,i-1,lambda,img,0,0);PetscCHKERRQ(err);
       if img~=0.0, lambda = lambda+j*img; end
     end
     function [relerr,err] = ComputeRelativeError(obj,i)
