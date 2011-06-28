@@ -70,6 +70,9 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON),&data);CHKERRQ(ierr);
   eps->data = data;
+  data->wS = PETSC_NULL;
+  data->wV = PETSC_NULL;
+  data->size_wV = 0;
 
   /* Set default values */
   ierr = EPSDavidsonSetKrylovStart_Davidson(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -229,6 +232,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                                 PETSC_NULL,init,eps->trackall);CHKERRQ(ierr);
 
   /* Allocate memory */
+  ierr = EPSReset_Davidson(eps);CHKERRQ(ierr);
   nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc(nscalars*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
@@ -327,7 +331,9 @@ PetscErrorCode EPSReset_Davidson(EPS eps)
   DVD_FL_DEL(dvd->startList);
   DVD_FL_DEL(dvd->endList);
 
-  ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
+  if (data->size_wV > 0) {
+    ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
+  }
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
   ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
