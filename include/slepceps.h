@@ -240,7 +240,6 @@ typedef enum {/* converged */
               /* diverged */
               EPS_DIVERGED_ITS                 = -3,
               EPS_DIVERGED_BREAKDOWN           = -4,
-              EPS_DIVERGED_NONSYMMETRIC        = -5,
               EPS_CONVERGED_ITERATING          =  0} EPSConvergedReason;
 
 extern PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);

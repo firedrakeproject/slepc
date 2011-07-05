@@ -387,8 +387,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
    Possible values for reason:
 +  EPS_CONVERGED_TOL - converged up to tolerance
 .  EPS_DIVERGED_ITS - required more than its to reach convergence
-.  EPS_DIVERGED_BREAKDOWN - generic breakdown in method
--  EPS_DIVERGED_NONSYMMETRIC - The operator is nonsymmetric
+-  EPS_DIVERGED_BREAKDOWN - generic breakdown in method
 
    Note:
    Can only be called after the call to EPSSolve() is complete.
