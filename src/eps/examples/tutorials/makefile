@@ -24,7 +24,8 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex12.c ex13.c ex18.c
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex12.c ex13.c \
+             ex18.c ex19.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
@@ -38,7 +39,8 @@ TESTEXAMPLES_C       = ex1.PETSc runex1_1 ex1.rm \
                        ex11.PETSc runex11_1 ex11.rm \
                        ex12.PETSc runex12_1 ex12.rm \
                        ex13.PETSc runex13_1 ex13.rm \
-                       ex18.PETSc runex18_1 ex18.rm
+                       ex18.PETSc runex18_1 ex18.rm \
+                       ex19.PETSc runex19_1 ex19.rm
 TESTEXAMPLES_FORTRAN = ex1f.PETSc runex1f_1 ex1f.rm \
                        ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90     = ex1f90.PETSc runex1f90_1 ex1f90.rm
@@ -100,6 +102,10 @@ ex13: ex13.o chkopts
 ex18: ex18.o chkopts
 	-${CLINKER} -o ex18 ex18.o ${SLEPC_LIB}
 	${RM} ex18.o
+
+ex19: ex19.o chkopts
+	-${CLINKER} -o ex19 ex19.o ${SLEPC_LIB}
+	${RM} ex19.o
 
 #------------------------------------------------------------------------------------
 
@@ -210,4 +216,10 @@ runex18_1:
 	   if (${DIFF} output/ex18_1.out ex18_1.tmp) then true; \
 	   else echo "Possible problem with ex18_1, diffs above"; fi; \
 	   ${RM} -f ex18_1.tmp
+
+runex19_1:
+	-@${MPIEXEC} -np 1 ./ex19 > ex19_1.tmp 2>&1; \
+	   if (${DIFF} output/ex19_1.out ex19_1.tmp) then true; \
+	   else echo "Possible problem with ex19_1, diffs above"; fi; \
+	   ${RM} -f ex19_1.tmp
 

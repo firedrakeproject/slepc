@@ -1,0 +1,15 @@
+
+3-D Laplacian Eigenproblem
+
+ Grid partitioning: 1 1 1
+ Number of iterations of the method: 23
+ Solution method: blopex
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-08, maxit=100
+ Number of converged approximate eigenpairs: 1
+
+           k          ||Ax-kx||/||kx||
+   ----------------- ------------------
+       0.243042         1.5279e-08
+
