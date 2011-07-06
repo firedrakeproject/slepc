@@ -20,8 +20,7 @@
 */
 
 static char help[] = "Standard symmetric eigenproblem for the 3-D Laplacian built with the DM interface.\n\n"
-"Use -da_grid_x <nx> etc. to change the problem size.\n\n"
-"Shows also how to select an external eigensolver if available, e.g., BLOPEX.\n\n";
+"Use -da_grid_x <nx> etc. to change the problem size.\n\n";
 
 #include <slepceps.h>
 #include <petscdmda.h>
@@ -67,9 +66,6 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
   DM             da;
-  ST             st;
-  KSP            ksp;
-  PC             pc;
   PetscReal      error,tol,re,im;
   PetscScalar    kr,ki;
   PetscInt       m,n,p,nev,maxit,i,its,nconv;
@@ -118,16 +114,6 @@ int main(int argc,char **argv)
   /*
      Set specific solver options
   */
-#if SLEPC_HAVE_BLOPEX
-  ierr = EPSSetType(eps,EPSBLOPEX);CHKERRQ(ierr);
-  /* set the preconditioner to be used by BLOPEX, e.g., bjacobi */
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
-#else
-  ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
-#endif
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,1e-8,100);CHKERRQ(ierr);
 
