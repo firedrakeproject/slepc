@@ -341,21 +341,23 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<=0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
+  if (n<0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
 
   /* free previous vectors */
   ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
 
   /* get references of passed vectors */
-  ierr = PetscMalloc(n*sizeof(Vec),&eps->DS);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)ds[i]);CHKERRQ(ierr);
-    eps->DS[i] = ds[i];
+  if (n>0) {
+    ierr = PetscMalloc(n*sizeof(Vec),&eps->DS);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = PetscObjectReference((PetscObject)ds[i]);CHKERRQ(ierr);
+      eps->DS[i] = ds[i];
+    }
+    eps->setupcalled = 0;
+    eps->ds_ortho = PETSC_FALSE;
   }
 
   eps->nds = n;
-  eps->setupcalled = 0;
-  eps->ds_ortho = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -435,14 +437,16 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   }
 
   /* get references of passed vectors */
-  ierr = PetscMalloc(n*sizeof(Vec),&eps->IS);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-    eps->IS[i] = is[i];
+  if (n>0) {
+    ierr = PetscMalloc(n*sizeof(Vec),&eps->IS);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
+      eps->IS[i] = is[i];
+    }
+    eps->setupcalled = 0;
   }
 
   eps->nini = -n;
-  eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -496,14 +500,16 @@ PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
   }
 
   /* get references of passed vectors */
-  ierr = PetscMalloc(n*sizeof(Vec),&eps->ISL);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-    eps->ISL[i] = is[i];
+  if (n>0) {
+    ierr = PetscMalloc(n*sizeof(Vec),&eps->ISL);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
+      eps->ISL[i] = is[i];
+    }
+    eps->setupcalled = 0;
   }
 
   eps->ninil = -n;
-  eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
