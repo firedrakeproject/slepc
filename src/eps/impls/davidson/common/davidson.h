@@ -386,7 +386,7 @@ typedef struct {
 
 /* Routines for initV step */
 PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,
-                         PetscInt user, PetscTruth krylov);
+                         PetscInt user, PetscBool krylov);
 
 /* Routines for calcPairs step */
 PetscErrorCode dvd_calcpairs_rr(dvdDashboard *d, dvdBlackboard *b);

@@ -38,7 +38,7 @@ typedef struct {
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV"
 PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,
-                         PetscInt user, PetscTruth krylov)
+                         PetscInt user, PetscBool krylov)
 {
   PetscErrorCode  ierr;
   dvdInitV        *data;
