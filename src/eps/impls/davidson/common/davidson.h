@@ -385,10 +385,8 @@ typedef struct {
 } DvdMult_copy_func;
 
 /* Routines for initV step */
-PetscErrorCode dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
-PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b,
-                        PetscInt size_userV, PetscInt k);
-PetscErrorCode dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k);
+PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,
+                         PetscInt user, PetscTruth krylov);
 
 /* Routines for calcPairs step */
 PetscErrorCode dvd_calcpairs_rr(dvdDashboard *d, dvdBlackboard *b);

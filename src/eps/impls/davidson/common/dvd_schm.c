@@ -51,14 +51,8 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     CHKERRQ(ierr);
   
     /* Setup the initial subspace for V */
-    if (size_initV) {
-      ierr = dvd_initV_user(d, b, size_initV, ini_size_V); CHKERRQ(ierr);
-    } else switch(init) {
-    case DVD_INITV_CLASSIC:
-      ierr = dvd_initV_classic(d, b, ini_size_V); CHKERRQ(ierr); break;
-    case DVD_INITV_KRYLOV:
-      ierr = dvd_initV_krylov(d, b, ini_size_V); CHKERRQ(ierr); break;
-    }
+    ierr = dvd_initV(d, b, ini_size_V, size_initV, init == DVD_INITV_KRYLOV);
+    CHKERRQ(ierr);
   
     /* Setup the convergence in order to use the SLEPc convergence test */
     ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
@@ -107,14 +101,8 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   CHKERRQ(ierr);
 
   /* Setup the initial subspace for V */
-  if (size_initV) {
-    ierr = dvd_initV_user(d, b, size_initV, ini_size_V); CHKERRQ(ierr);
-  } else switch(init) {
-  case DVD_INITV_CLASSIC:
-    ierr = dvd_initV_classic(d, b, ini_size_V); CHKERRQ(ierr); break;
-  case DVD_INITV_KRYLOV:
-    ierr = dvd_initV_krylov(d, b, ini_size_V); CHKERRQ(ierr); break;
-  }
+  ierr = dvd_initV(d, b, ini_size_V, size_initV, init == DVD_INITV_KRYLOV);
+  CHKERRQ(ierr);
 
   /* Setup the convergence in order to use the SLEPc convergence test */
   ierr = dvd_testconv_slepc(d, b); CHKERRQ(ierr);

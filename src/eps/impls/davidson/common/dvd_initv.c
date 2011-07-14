@@ -26,44 +26,43 @@
 #include "davidson.h"
 
 PetscErrorCode dvd_initV_classic_0(dvdDashboard *d);
-PetscErrorCode dvd_initV_classic_d(dvdDashboard *d);
-
-PetscErrorCode dvd_initV_user_0(dvdDashboard *d);
-PetscErrorCode dvd_initV_user_d(dvdDashboard *d);
-
 PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d);
-PetscErrorCode dvd_initV_krylov_d(dvdDashboard *d);
-
-/*
-  Fill V with a random subspace
-*/
+PetscErrorCode dvd_initV_d(dvdDashboard *d);
 
 typedef struct {
-  PetscInt k;           /* number of vectors initialized */
+  PetscInt k,           /* desired initial subspace size */
+  user;                 /* number of user initial vectors */
   void *old_initV_data; /* old initV data */
-} dvdInitV_Classic;
+} dvdInitV;
 
 #undef __FUNCT__  
-#define __FUNCT__ "dvd_initV_classic"
-PetscErrorCode dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
+#define __FUNCT__ "dvd_initV"
+PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,
+                         PetscInt user, PetscTruth krylov)
 {
   PetscErrorCode  ierr;
-  dvdInitV_Classic
-                  *data;
+  dvdInitV        *data;
 
   PetscFunctionBegin;
 
   /* Setting configuration constrains */
   b->max_size_V = PetscMax(b->max_size_V, k);
+  if (krylov)
+    b->max_size_auxV = PetscMax(b->max_size_auxV, 1);
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdInitV_Classic), &data); CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(dvdInitV), &data); CHKERRQ(ierr);
     data->k = k;
+    data->user = PetscMin(k, user);
     data->old_initV_data = d->initV_data;
     d->initV_data = data;
-    d->initV = dvd_initV_classic_0;
-    DVD_FL_ADD(d->destroyList, dvd_initV_classic_d);
+    if (krylov) {
+      d->initV = dvd_initV_krylov_0;
+    } else {
+      d->initV = dvd_initV_classic_0;
+    }
+    DVD_FL_ADD(d->destroyList, dvd_initV_d);
   }
 
   PetscFunctionReturn(0);
@@ -75,190 +74,61 @@ PetscErrorCode dvd_initV_classic(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
 PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
-  dvdInitV_Classic
-                  *data = (dvdInitV_Classic*)d->initV_data;
-  PetscInt        i;
+  dvdInitV        *data = (dvdInitV*)d->initV_data;
+  PetscInt        i, user = PetscMin(data->user, d->max_size_V),
+                  k = PetscMin(data->k, d->max_size_V);
 
   PetscFunctionBegin;
 
   /* Generate a set of random initial vectors and orthonormalize them */
-  for (i=0; i<PetscMin(data->k,d->max_size_V); i++) {
+  for (i=user; i<k; i++) {
     ierr = SlepcVecSetRandom(d->V[i], d->eps->rand); CHKERRQ(ierr);
   }
   d->size_V = i;
   d->V_imm_s = 0; d->V_imm_e = 0;
   d->V_tra_s = 0; d->V_tra_e = 0;
   d->V_new_s = 0; d->V_new_e = i;
+
+  /* After that the user vectors will be destroyed */
+  data->user = 0;
  
   PetscFunctionReturn(0);
 }
-
-
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_initV_classic_d"
-PetscErrorCode dvd_initV_classic_d(dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-  dvdInitV_Classic
-                  *data = (dvdInitV_Classic*)d->initV_data;
-
-  PetscFunctionBegin;
-
-  /* Restore changes in dvdDashboard */
-  d->initV_data = data->old_initV_data;
-
-  /* Free local data */
-  ierr = PetscFree(data); CHKERRQ(ierr);
-
-  PetscFunctionReturn(0);
-}
-
-/*
-  Fill V with user vectors
-*/
-
-typedef struct {
-  PetscInt size_userV,  /* size of userV */
-    k;                  /* desired initial subspace size */
-  void *old_initV_data; /* old initV data */
-} dvdInitV_User;
-
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_initV_user"
-PetscErrorCode dvd_initV_user(dvdDashboard *d, dvdBlackboard *b,
-                        PetscInt size_userV, PetscInt k)
-{
-  PetscErrorCode  ierr;
-  dvdInitV_User   *data;
-
-  PetscFunctionBegin;
-
-  /* Setting configuration constrains */
-  b->max_size_V = PetscMax(b->max_size_V, k);
-
-  /* Setup the step */
-  if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdInitV_User), &data); CHKERRQ(ierr);
-    data->k = k;
-    data->size_userV = size_userV;
-    data->old_initV_data = d->initV_data;
-    d->initV_data = data;
-    d->initV = dvd_initV_user_0;
-    DVD_FL_ADD(d->destroyList, dvd_initV_user_d);
-  }
-
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_initV_user_0"
-PetscErrorCode dvd_initV_user_0(dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-  dvdInitV_User   *data = (dvdInitV_User*)d->initV_data;
-  PetscInt        i;
-
-  PetscFunctionBegin;
-
-  /* The user vectors are already in V */
-  i = PetscMin(data->size_userV,d->max_size_V);
-
-  /* Generate a set of random initial vectors and orthonormalize them */
-  for (; i<PetscMin(data->k,d->max_size_V); i++) {
-    ierr = SlepcVecSetRandom(d->V[i], d->eps->rand); CHKERRQ(ierr);
-  }
-  d->size_V = i;
-  d->V_imm_s = 0; d->V_imm_e = 0;
-  d->V_tra_s = 0; d->V_tra_e = 0;
-  d->V_new_s = 0; d->V_new_e = i;
- 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_initV_user_d"
-PetscErrorCode dvd_initV_user_d(dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-  dvdInitV_User   *data = (dvdInitV_User*)d->initV_data;
-
-  PetscFunctionBegin;
-
-  /* Restore changes in dvdDashboard */
-  d->initV_data = data->old_initV_data;
-
-  /* Free local data */
-  ierr = PetscFree(data); CHKERRQ(ierr);
-
-  PetscFunctionReturn(0);
-}
-
-
-/*
-  Start with a krylov subspace with the matrix A
-*/
-
-typedef struct {
-  PetscInt k;           /* number of steps of arnoldi */
-  void *old_initV_data; /* old initV data */
-} dvdInitV_Krylov;
-
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_initV_krylov"
-PetscErrorCode dvd_initV_krylov(dvdDashboard *d, dvdBlackboard *b, PetscInt k)
-{
-  PetscErrorCode  ierr;
-  dvdInitV_Krylov *data;
-
-  PetscFunctionBegin;
-
-  /* Setting configuration constrains */
-  b->max_size_auxV = PetscMax(b->max_size_auxV, 2);
-
-  /* Setup the step */
-  if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdInitV_Krylov), &data); CHKERRQ(ierr);
-    data->k = k;
-    data->old_initV_data = d->initV_data;
-    d->initV_data = data;
-    d->initV = dvd_initV_krylov_0;
-    DVD_FL_ADD(d->destroyList, dvd_initV_krylov_d);
-  }
-
-  PetscFunctionReturn(0);
-}
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_krylov_0"
 PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
-  dvdInitV_Krylov *data = (dvdInitV_Krylov*)d->initV_data;
-  PetscReal       norm;
-  PetscInt        i;
+  dvdInitV        *data = (dvdInitV*)d->initV_data;
+  PetscInt        i, user = PetscMin(data->user, d->max_size_V),
+                  k = PetscMin(data->k, d->max_size_V);
   Vec             *cX = d->BcX? d->BcX : ( (d->cY && !d->W)? d->cY : d->cX );
 
   PetscFunctionBegin;
 
-  /* Generate a random vector for starting the arnoldi method */
-  ierr = SlepcVecSetRandom(d->V[0], d->eps->rand); CHKERRQ(ierr);
-  ierr = IPNorm(d->ipV, d->V[0], &norm); CHKERRQ(ierr);
-  ierr = VecScale(d->V[0], 1.0/norm); CHKERRQ(ierr);
+  /* If needed, generate a random vector for starting the arnoldi method */
+  if (user == 0) {
+    ierr = SlepcVecSetRandom(d->V[0], d->eps->rand); CHKERRQ(ierr);
+    user = 1;
+  }
 
   /* Perform k steps of Arnoldi with the operator K^{-1}*(t[1]*A-t[2]*B) */
-  for (i=1; i<PetscMin(data->k,d->max_size_V); i++) {
-   /* aux <- theta[1]A*in - theta[0]*B*in */
+  ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, 0,
+                   user, d->auxS, d->auxV[0], d->eps->rand); CHKERRQ(ierr);
+  for (i=user; i<k; i++) {
+    /* aux <- theta[1]A*in - theta[0]*B*in */
     if (d->B) {
-      ierr = MatMult(d->A, d->V[i-1], d->V[i]); CHKERRQ(ierr);
-      ierr = MatMult(d->B, d->V[i-1], d->auxV[0]); CHKERRQ(ierr);
-      ierr = VecAXPBY(d->V[i], -d->target[0], d->target[1], d->auxV[0]);
+      ierr = MatMult(d->A, d->V[i-user], d->V[i]); CHKERRQ(ierr);
+      ierr = MatMult(d->B, d->V[i-user], d->auxV[0]); CHKERRQ(ierr);
+      ierr = VecAXPBY(d->auxV[0], d->target[1], -d->target[0], d->V[i]);
       CHKERRQ(ierr);
     } else {
-      ierr = MatMult(d->A, d->V[i-1], d->V[i]); CHKERRQ(ierr);
-      ierr = VecAXPBY(d->V[i], -d->target[0], d->target[1], d->V[i-1]);
+      ierr = MatMult(d->A, d->V[i-user], d->auxV[0]); CHKERRQ(ierr);
+      ierr = VecAXPBY(d->auxV[0], -d->target[0], d->target[1], d->V[i-user]);
       CHKERRQ(ierr);
     }
+    ierr = d->improvex_precond(d, 0, d->auxV[0], d->V[i]); CHKERRQ(ierr);
     ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, i,
                      i+1, d->auxS, d->auxV[0], d->eps->rand); CHKERRQ(ierr);
   }
@@ -268,15 +138,18 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   d->V_tra_s = 0; d->V_tra_e = 0;
   d->V_new_s = 0; d->V_new_e = i;
 
+  /* After that the user vectors will be destroyed */
+  data->user = 0;
+
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "dvd_initV_krylov_d"
-PetscErrorCode dvd_initV_krylov_d(dvdDashboard *d)
+#define __FUNCT__ "dvd_initV_d"
+PetscErrorCode dvd_initV_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
-  dvdInitV_Krylov *data = (dvdInitV_Krylov*)d->initV_data;
+  dvdInitV        *data = (dvdInitV*)d->initV_data;
 
   PetscFunctionBegin;
 
