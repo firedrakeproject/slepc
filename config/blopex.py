@@ -25,7 +25,6 @@ import log
 import petscconf
 import urllib
 import urlparse
-import tarfile
 import commands
 
 def Install(conf,vars,cmake,url,archdir):
@@ -77,13 +76,17 @@ Unable to download package %s from: %s
       for name in dirs:
         os.rmdir(os.path.join(root, name))
   try:
-    tar = tarfile.open(localFile, "r:gz")
-    tar.extractall(path=externdir)
-    tar.close()
+    if sys.version_info >= (2,5):
+      import tarfile
+      tar = tarfile.open(localFile, "r:gz")
+      tar.extractall(path=externdir)
+      tar.close()
+      os.remove(localFile)
+    else:
+      result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+archiveZip+'; tar -xf '+archiveZip.split('.gz')[0])
+      os.remove(localFile.split('.gz')[0])
   except RuntimeError, e:
     raise RuntimeError('Error uncompressing '+archiveZip+': '+str(e))
-
-  os.remove(localFile)
 
   # Configure
   g = open(os.path.join(destDir,'Makefile.inc'),'w')
