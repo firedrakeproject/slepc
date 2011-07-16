@@ -23,6 +23,20 @@
 
 #include <private/ipimpl.h>      /*I "slepcip.h" I*/
 
+/* The following definitions are intended to avoid using the "T" versions
+   of dot products in the case of real scalars */
+#if defined(PETSC_USE_COMPLEX)
+#define VecXDotBegin  VecTDotBegin
+#define VecXDotEnd    VecTDotEnd  
+#define VecMXDotBegin VecMTDotBegin
+#define VecMXDotEnd   VecMTDotEnd  
+#else
+#define VecXDotBegin  VecDotBegin
+#define VecXDotEnd    VecDotEnd  
+#define VecMXDotBegin VecMDotBegin
+#define VecMXDotEnd   VecMDotEnd  
+#endif
+
 #undef __FUNCT__  
 #define __FUNCT__ "IPNorm"
 /*@
@@ -251,9 +265,9 @@ PetscErrorCode IPInnerProductBegin_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscFunctionBegin;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    ierr = VecTDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
+    ierr = VecXDotBegin(ip->Bx,y,p);CHKERRQ(ierr);
   } else {
-    ierr = VecTDotBegin(x,y,p);CHKERRQ(ierr);
+    ierr = VecXDotBegin(x,y,p);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -319,9 +333,9 @@ PetscErrorCode IPInnerProductEnd_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
 
   PetscFunctionBegin;
   if (ip->matrix) {
-    ierr = VecTDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
+    ierr = VecXDotEnd(ip->Bx,y,p);CHKERRQ(ierr);
   } else {
-    ierr = VecTDotEnd(x,y,p);CHKERRQ(ierr);
+    ierr = VecXDotEnd(x,y,p);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -434,9 +448,9 @@ PetscErrorCode IPMInnerProductBegin_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[
   PetscFunctionBegin;
   if (ip->matrix) {
     ierr = IPApplyMatrix_Private(ip,x);CHKERRQ(ierr);
-    ierr = VecMTDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
+    ierr = VecMXDotBegin(ip->Bx,n,y,p);CHKERRQ(ierr);
   } else {
-    ierr = VecMTDotBegin(x,n,y,p);CHKERRQ(ierr);
+    ierr = VecMXDotBegin(x,n,y,p);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -505,9 +519,9 @@ PetscErrorCode IPMInnerProductEnd_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[],
 
   PetscFunctionBegin;
   if (ip->matrix) {
-    ierr = VecMTDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
+    ierr = VecMXDotEnd(ip->Bx,n,y,p);CHKERRQ(ierr);
   } else {
-    ierr = VecMTDotEnd(x,n,y,p);CHKERRQ(ierr);
+    ierr = VecMXDotEnd(x,n,y,p);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
