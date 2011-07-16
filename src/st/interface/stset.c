@@ -155,7 +155,13 @@ PetscErrorCode STSetFromOptions(ST st)
     if (flg) { st->shift_matrix = (STMatMode)i; }
 
     ierr = PetscOptionsEList("-st_matstructure","Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
-    if (flg) { st->str = (MatStructure)i; }
+    if (flg) { 
+      switch (i) {
+        case 0: ierr = STSetMatStructure(st,SAME_NONZERO_PATTERN);CHKERRQ(ierr); break;
+        case 1: ierr = STSetMatStructure(st,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr); break;
+        case 2: ierr = STSetMatStructure(st,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr); break;
+      }
+    }
     
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
