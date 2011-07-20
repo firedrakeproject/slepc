@@ -188,13 +188,22 @@ PETSC_VectorSize( void *x )
   VecGetSize( (Vec)x, &N );
   return(N);
 }
+
 int
-LOBPCG_InitRandomContext(void)
+LOBPCG_InitRandomContext(MPI_Comm comm)
 {
-    PetscErrorCode ierr;
+  PetscErrorCode ierr;
   /* PetscScalar rnd_bound = 1.0; */
 
-  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&LOBPCG_RandomContext);CHKERRQ(ierr);
+  ierr = PetscRandomCreate(comm,&LOBPCG_RandomContext);CHKERRQ(ierr);
+
+  return 0;
+}
+
+int
+LOBPCG_SetFromOptionsRandomContext(void)
+{
+  PetscErrorCode ierr;
   ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr);
 
 #ifdef PETSC_USE_COMPLEX

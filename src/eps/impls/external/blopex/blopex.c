@@ -259,6 +259,19 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetFromOptions_BLOPEX"
+PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
+{
+  PetscErrorCode  ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("EPS BLOPEX Options");CHKERRQ(ierr);
+  LOBPCG_SetFromOptionsRandomContext();
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_BLOPEX"
@@ -269,13 +282,14 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,EPS_BLOPEX,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_BLOPEX;
+  eps->ops->setfromoptions       = EPSSetFromOptions_BLOPEX;
   eps->ops->destroy              = EPSDestroy_BLOPEX;
   eps->ops->reset                = EPSReset_BLOPEX;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
-  LOBPCG_InitRandomContext();
+  LOBPCG_InitRandomContext(((PetscObject)eps)->comm);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
