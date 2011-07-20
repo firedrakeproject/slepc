@@ -359,6 +359,7 @@ PetscErrorCode SVDCreate_Cross(SVD svd)
   ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);  
   ierr = PetscLogObjectParent(svd,cross->eps);CHKERRQ(ierr);
+  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,PETSC_NULL);CHKERRQ(ierr);

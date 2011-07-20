@@ -515,6 +515,7 @@ PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   svd->ops->view           = SVDView_TRLanczos;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","SVDTRLanczosSetOneSide_TRLanczos",SVDTRLanczosSetOneSide_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosGetOneSide_C","SVDTRLanczosGetOneSide_TRLanczos",SVDTRLanczosGetOneSide_TRLanczos);CHKERRQ(ierr);
+  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

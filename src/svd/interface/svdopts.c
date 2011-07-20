@@ -401,7 +401,6 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   svd->setupcalled = 0;
   if (!SVDRegisterAllCalled) { ierr = SVDRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = PetscOptionsBegin(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"Singular Value Solver (SVD) Options","SVD");CHKERRQ(ierr);
 
   ierr = PetscOptionsList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
@@ -411,7 +410,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",0);CHKERRQ(ierr);
+  ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",&flg);CHKERRQ(ierr);
 
   ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,2,svd->transmode == PETSC_DECIDE ? "decide" : mode_list[svd->transmode],&i,&flg);CHKERRQ(ierr);
   if (flg) {
@@ -468,13 +467,16 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDMonitorSet(svd,SVDMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
-
-  ierr = IPSetFromOptions(svd->ip);CHKERRQ(ierr);
   if (svd->ops->setfromoptions) {
     ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);
   }
+
+  ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
+  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+
+  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
+  ierr = IPSetFromOptions(svd->ip);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -46,7 +46,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscBool        flg,val;
-  PetscReal        r,nrma,nrmb,array[2];
+  PetscReal        r,nrma,nrmb,array[2]={0,0};
   PetscScalar      s;
   PetscInt         i,j,k;
   const char       *bal_list[4] = {"none","oneside","twoside","user"};
@@ -227,6 +227,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPSetFromOptions(eps->ip);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->OP);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

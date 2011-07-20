@@ -824,7 +824,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KZX"
 /* 
-  Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
+  Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*Y,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
   where
   auxV, 4*(i_e-i_s) auxiliar global vectors

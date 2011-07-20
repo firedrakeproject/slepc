@@ -519,6 +519,7 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);  
   ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
+  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,PETSC_NULL);CHKERRQ(ierr);
