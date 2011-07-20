@@ -220,7 +220,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* sort eigenvalues according to eps->which parameter */
-  flg = (eps->which == EPS_ALL);
+  flg = (eps->which == EPS_ALL)? PETSC_TRUE: PETSC_FALSE;
   if (flg) eps->which = EPS_SMALLEST_REAL;
   ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
   if (flg) eps->which = EPS_ALL;

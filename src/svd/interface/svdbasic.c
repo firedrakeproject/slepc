@@ -282,7 +282,7 @@ PetscErrorCode SVDReset(SVD svd)
     ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
   }
-  svd->transmode   = PETSC_DECIDE;
+  svd->transmode   = (SVDTransposeMode)PETSC_DECIDE;
   svd->matvecs     = 0;
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
