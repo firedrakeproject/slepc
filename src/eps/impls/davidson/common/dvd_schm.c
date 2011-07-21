@@ -51,8 +51,8 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     CHKERRQ(ierr);
   
     /* Setup the initial subspace for V */
-    ierr = dvd_initV(d, b, ini_size_V, size_initV, init == DVD_INITV_KRYLOV);
-    CHKERRQ(ierr);
+    ierr = dvd_initV(d, b, ini_size_V, size_initV,
+                     init==DVD_INITV_KRYLOV?PETSC_TRUE:PETSC_FALSE); CHKERRQ(ierr);
   
     /* Setup the convergence in order to use the SLEPc convergence test */
     ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
@@ -101,8 +101,8 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   CHKERRQ(ierr);
 
   /* Setup the initial subspace for V */
-  ierr = dvd_initV(d, b, ini_size_V, size_initV, init == DVD_INITV_KRYLOV);
-  CHKERRQ(ierr);
+  ierr = dvd_initV(d, b, ini_size_V, size_initV,
+                   init==DVD_INITV_KRYLOV?PETSC_TRUE:PETSC_FALSE); CHKERRQ(ierr);
 
   /* Setup the convergence in order to use the SLEPc convergence test */
   ierr = dvd_testconv_slepc(d, b); CHKERRQ(ierr);
