@@ -47,6 +47,10 @@ test3: test3.o chkopts
 	-${CLINKER} -o test3 test3.o ${SLEPC_LIB}
 	${RM} test3.o
 
+test4: test4.o chkopts
+	-${CLINKER} -o test4 test4.o ${SLEPC_LIB}
+	${RM} test4.o
+
 #------------------------------------------------------------------------------------
 EPS = krylovschur arnoldi lanczos gd jd
 runtest1_1:
@@ -78,4 +82,14 @@ runtest3_1:
 	if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
 	else echo "Possible problem with test3_1, diffs above"; fi; \
 	${RM} -f test3_1.tmp
+
+runtest4_1:
+	-@touch test4_1.tmp; \
+	for eps in ${EPS}; do \
+	   echo "eps type $$eps" >> test4_1.tmp; \
+	   ${MPIEXEC} -np 1 ./test4 -type $$eps >> test4_1.tmp 2>&1;    \
+	done; \
+	if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
+	else echo "Possible problem with test4_1, diffs above"; fi; \
+#	${RM} -f test4_1.tmp
 
