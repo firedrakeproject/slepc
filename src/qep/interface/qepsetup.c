@@ -64,6 +64,9 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (!((PetscObject)qep->ip)->type_name) {
     ierr = IPSetDefaultType_Private(qep->ip);CHKERRQ(ierr);
   }
+  if (!((PetscObject)qep->rand)->type_name) {
+    ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
+  }
 
   /* Check matrices */
   if (!qep->M || !qep->C || !qep->K)

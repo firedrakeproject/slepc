@@ -698,6 +698,7 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);  
   ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
+  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
   ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,PETSC_NULL);CHKERRQ(ierr);
   ctx->explicitmatrix = PETSC_FALSE;
