@@ -1,0 +1,106 @@
+qep type linear
+
+Quadratic Eigenproblem, N=100 (10x10 grid)
+QEP type: linear
+
+ Number of iterations of the method: 9
+ Solution method: linear
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=100
+ Number of converged approximate eigenpairs: 2
+
+           k          ||(k^2M+Ck+K)x||/||kx||
+   ----------------- -------------------------
+ -0.000000+2.799638 j     2.75404e-07
+ -0.000000-2.799638 j     2.75404e-07
+
+qep type qarnoldi
+
+Quadratic Eigenproblem, N=100 (10x10 grid)
+QEP type: qarnoldi
+
+ Number of iterations of the method: 9
+ Solution method: qarnoldi
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=100
+ Number of converged approximate eigenpairs: 2
+
+           k          ||(k^2M+Ck+K)x||/||kx||
+   ----------------- -------------------------
+  0.000000+2.799638 j     2.00845e-07
+  0.000000-2.799638 j     2.00845e-07
+
+qep type linear eps type krylovschur
+
+Quadratic Eigenproblem, N=100 (10x10 grid)
+QEP type: linear
+EPS type: krylovschur
+
+ Number of iterations of the method: 9
+ Solution method: linear
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=100
+ Number of converged approximate eigenpairs: 2
+
+           k          ||(k^2M+Ck+K)x||/||kx||
+   ----------------- -------------------------
+ -0.000000+2.799638 j     2.75404e-07
+ -0.000000-2.799638 j     2.75404e-07
+
+qep type linear eps type arnoldi
+
+Quadratic Eigenproblem, N=100 (10x10 grid)
+QEP type: linear
+EPS type: arnoldi
+
+ Number of iterations of the method: 13
+ Solution method: linear
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=100
+ Number of converged approximate eigenpairs: 2
+
+           k          ||(k^2M+Ck+K)x||/||kx||
+   ----------------- -------------------------
+ -0.000000+2.799638 j     2.25356e-06
+ -0.000000-2.799638 j     2.25356e-06
+
+qep type linear eps type gd
+
+Quadratic Eigenproblem, N=100 (10x10 grid)
+QEP type: linear
+EPS type: gd
+
+ Number of iterations of the method: 167
+ Solution method: linear
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=1700
+ Number of converged approximate eigenpairs: 2
+
+           k          ||(k^2M+Ck+K)x||/||kx||
+   ----------------- -------------------------
+  0.000000+2.799638 j     1.88004e-07
+  0.000000-2.799638 j     1.88004e-07
+
+qep type linear eps type jd
+
+Quadratic Eigenproblem, N=100 (10x10 grid)
+QEP type: linear
+EPS type: jd
+
+ Number of iterations of the method: 133
+ Solution method: linear
+
+ Number of requested eigenvalues: 1
+ Stopping condition: tol=1e-07, maxit=1700
+ Number of converged approximate eigenpairs: 2
+
+           k          ||(k^2M+Ck+K)x||/||kx||
+   ----------------- -------------------------
+  0.000000+2.799638 j     1.66914e-07
+  0.000000-2.799638 j     1.66914e-07
+

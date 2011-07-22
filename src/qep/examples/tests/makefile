@@ -28,10 +28,32 @@ EXAMPLESC  =
 EXAMPLESF  = 
 MANSEC     = QEP
 
-TESTEXAMPLES_C       = 
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
+	${RM} test1.o
 
 #------------------------------------------------------------------------------------
+QEP = qarnoldi
+QEPEPS = linear
+EPS = krylovschur arnoldi gd jd
+
+runtest1_1:
+	-@touch test1_1.tmp; \
+	for qep in ${QEPEPS} ${QEP}; do \
+	   echo "qep type $$qep" >> test1_1.tmp; \
+	   ${MPIEXEC} -np 1 ./test1 -type $$qep >> test1_1.tmp 2>&1; \
+	done; \
+	for qep in ${QEPEPS}; do \
+	   for eps in ${EPS}; do \
+	      echo "qep type $$qep eps type $$eps" >> test1_1.tmp; \
+	      ${MPIEXEC} -np 1 ./test1 -type $$qep -epstype $$eps >> test1_1.tmp 2>&1; \
+           done; \
+	done; \
+	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
+	else echo "Possible problem with test1_1, diffs above"; fi; \
+	${RM} -f test1_1.tmp
 
