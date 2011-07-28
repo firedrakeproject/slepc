@@ -60,11 +60,16 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (!((PetscObject)(eps->OP))->type_name) { /* default to shift-and-invert */
       ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
     }
-    ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);
+    if(eps->intb >= PETSC_MAX_REAL){/* right-open interval */
+      if(eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,1,"The defined computational interval should have at least one of their sides bounded");
+      ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);
+    }else ierr = STSetDefaultShift(eps->OP,eps->intb);CHKERRQ(ierr);
+
     if (eps->nev==1) eps->nev = 20;  /* nev not set, use default value */
     if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,1,"nev cannot be less than 10 in spectrum slicing runs"); 
     eps->mpd = 2*eps->nev;
     eps->ncv = 2*eps->nev;
+    eps->ops->backtransform = PETSC_NULL;
   }
 
   /* proceed with the general case */
