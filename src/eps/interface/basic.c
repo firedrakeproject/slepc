@@ -654,11 +654,19 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 .  inta - left end of the interval
 -  intb - right end of the interval
 
-   Note:
+   Options Database Key:
+.  -eps_interval <a,b> - set [a,b] as the interval of interest
+
+   Notes:
    Spectrum slicing is a technique employed for computing all eigenvalues of
    symmetric eigenproblems in a given interval. This function provides the
    interval to be considered. It must be used in combination with EPS_ALL, see
-   EPSSetWhichEigenpairs()
+   EPSSetWhichEigenpairs().
+
+   In the command-line option, two values must be provided. For an open interval,
+   one can give an infinite, e.g., -eps_interval 1.0,inf or -eps_interval -inf,1.0.
+   An open interval in the programmatic intervace can be specified with 
+   PETSC_MAX_REAL and -PETSC_MAX_REAL.
    
    Level: intermediate
 
