@@ -26,6 +26,39 @@ static char help[] = "Standard symmetric eigenproblem for the 3-D Laplacian buil
 #include <slepceps.h>
 #include <petscdmda.h>
 
+#undef __FUNCT__
+#define __FUNCT__ "GetExactEigenvalues"
+PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nconv,PetscReal *exact)
+{
+  PetscInt       n,i,j,k,l;
+  PetscReal      *evals,ax,ay,az,sx,sy,sz;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ax = PETSC_PI/2/(M+1);
+  ay = PETSC_PI/2/(N+1);
+  az = PETSC_PI/2/(P+1);
+  n = ceil(pow(nconv,0.33333)+1);
+  ierr = PetscMalloc(n*n*n*sizeof(PetscReal),&evals);CHKERRQ(ierr);
+  l = 0;
+  for (i=1;i<=n;i++) {
+    sx = sin(ax*i);
+    for (j=1;j<=n;j++) {
+      sy = sin(ay*j);
+      for (k=1;k<=n;k++) {
+        sz = sin(az*k);
+        evals[l++] = 4.0*(sx*sx+sy*sy+sz*sz);
+      }
+    }
+  }
+  ierr = PetscSortReal(n*n*n,evals);CHKERRQ(ierr);
+  for (i=0;i<nconv;i++) exact[i] = evals[i];
+  ierr = PetscFree(evals);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FillMatrix"
 PetscErrorCode FillMatrix(DM da,Mat A)
 {
   PetscErrorCode ierr;
@@ -68,9 +101,9 @@ int main(int argc,char **argv)
   const EPSType  type;
   DM             da;
   Vec            v0;
-  PetscReal      error,tol,re,im;
+  PetscReal      error,tol,re,im,*exact;
   PetscScalar    kr,ki;
-  PetscInt       m,n,p,nev,maxit,i,its,nconv,seed;
+  PetscInt       M,N,P,m,n,p,nev,maxit,i,its,nconv,seed;
   PetscLogDouble t1,t2,t3;
   PetscBool      flg;
   PetscRandom    rctx;
@@ -90,7 +123,7 @@ int main(int argc,char **argv)
                       1,1,PETSC_NULL,PETSC_NULL,PETSC_NULL,&da);CHKERRQ(ierr);
 
   /* print DM information */
-  ierr = DMDAGetInfo(da,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&m,&n,&p,
+  ierr = DMDAGetInfo(da,PETSC_NULL,&M,&N,&P,&m,&n,&p,
                      PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,
                      PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Grid partitioning: %d %d %d\n",m,n,p);CHKERRQ(ierr);
@@ -170,12 +203,14 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
+    ierr = PetscMalloc(nconv*sizeof(PetscReal),&exact);CHKERRQ(ierr);
+    ierr = GetExactEigenvalues(M,N,P,nconv,exact);CHKERRQ(ierr);
     /*
        Display eigenvalues and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
+         "           k          ||Ax-kx||/||kx||       Error \n"
+         "   ----------------- ------------------ -----------------\n");CHKERRQ(ierr);
 
     for (i=0;i<nconv;i++) {
       /* 
@@ -195,12 +230,12 @@ int main(int argc,char **argv)
       re = kr;
       im = ki;
 #endif 
-      if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",re,im,error);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g\n",re,error);CHKERRQ(ierr); 
+      if (im!=0.0) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalue should be real!");
+      else {
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",re,error,PetscAbsReal(re-exact[i]));CHKERRQ(ierr); 
       }
     }
+    ierr = PetscFree(exact);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
   
