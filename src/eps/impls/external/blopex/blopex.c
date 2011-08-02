@@ -134,7 +134,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
-  PetscBool      isPrecond,isPreonly;
+  PetscBool      isPrecond;
 
   PetscFunctionBegin;
   if (!eps->ishermitian) { 
@@ -155,9 +155,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&isPrecond);CHKERRQ(ierr);
   if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with STPRECOND");
   ierr = STGetKSP(eps->OP,&blopex->ksp);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)blopex->ksp,KSPPREONLY,&isPreonly);CHKERRQ(ierr);
-  if (!isPreonly)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with KSPPREONLY");
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
