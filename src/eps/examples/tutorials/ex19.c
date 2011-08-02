@@ -20,6 +20,7 @@
 */
 
 static char help[] = "Standard symmetric eigenproblem for the 3-D Laplacian built with the DM interface.\n\n"
+"Use -seed <k> to modify the random initial vector.\n"
 "Use -da_grid_x <nx> etc. to change the problem size.\n\n";
 
 #include <slepceps.h>
@@ -66,11 +67,13 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
   DM             da;
+  Vec            v0;
   PetscReal      error,tol,re,im;
   PetscScalar    kr,ki;
-  PetscInt       m,n,p,nev,maxit,i,its,nconv;
+  PetscInt       m,n,p,nev,maxit,i,its,nconv,seed;
   PetscLogDouble t1,t2,t3;
   PetscBool      flg;
+  PetscRandom    rctx;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -96,6 +99,17 @@ int main(int argc,char **argv)
   ierr = DMGetMatrix(da,MATAIJ,&A);CHKERRQ(ierr);
   ierr = FillMatrix(da,A);CHKERRQ(ierr);
 
+  /* create random initial vector */
+  seed = 1;
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&seed,PETSC_NULL);CHKERRQ(ierr);
+  if (seed<0) SETERRQ(PETSC_COMM_WORLD,1,"Seed must be >=0");
+  ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
+  for (i=0;i<seed;i++) {   /* simulate different seeds in the random generator */
+    ierr = VecSetRandom(v0,rctx);CHKERRQ(ierr);
+  }
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -116,6 +130,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,1e-8,100);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
@@ -183,7 +198,7 @@ int main(int argc,char **argv)
       if (im!=0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",re,im,error);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g\n",re,error);CHKERRQ(ierr); 
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
@@ -202,6 +217,8 @@ int main(int argc,char **argv)
   */
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
+  ierr = VecDestroy(&v0);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&rctx);CHKERRQ(ierr);
   ierr = DMDestroy(&da);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
