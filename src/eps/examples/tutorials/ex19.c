@@ -209,8 +209,8 @@ int main(int argc,char **argv)
        Display eigenvalues and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||       Error \n"
-         "   ----------------- ------------------ -----------------\n");CHKERRQ(ierr);
+         "           k          ||Ax-kx||/||kx||   Eigenvalue Error \n"
+         "   ----------------- ------------------ ------------------\n");CHKERRQ(ierr);
 
     for (i=0;i<nconv;i++) {
       /* 

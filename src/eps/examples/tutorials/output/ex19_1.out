@@ -9,8 +9,8 @@
  Stopping condition: tol=1e-08, maxit=100
  Number of converged approximate eigenpairs: 13
 
-           k          ||Ax-kx||/||kx||       Error 
-   ----------------- ------------------ -----------------
+           k          ||Ax-kx||/||kx||   Eigenvalue Error 
+   ----------------- ------------------ ------------------
        0.243042        3.34915e-14         4.16334e-16
        0.479521        5.58182e-13         4.21885e-15
        0.479521        1.74895e-10         1.11022e-15
