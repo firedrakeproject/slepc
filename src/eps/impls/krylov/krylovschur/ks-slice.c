@@ -245,7 +245,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   if(deg==1){
     for(i=0;i < k; i++){
       theta = PetscRealPart(eps->eigr[i]);
-      if(PetscAbs(theta*sPres->value*eps->tol*10)>1){
+      if(PetscAbsReal(theta*sPres->value*eps->tol*10)>1){
         if(db>=1){ierr = PetscPrintf(PETSC_COMM_WORLD,"DEGENERATED SHIFT\n");CHKERRQ(ierr);}
         sr->nDeg++;
         sPres->deg = PETSC_TRUE;
@@ -367,7 +367,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
     if(sPres->neigs==0){// no value has been accepted
       if(sPres->neighb[0]){
         // multiplying by 10 the previous distance
-        *newS = sPres->value + 10*(sr->dir)*PetscAbs(sPres->value - sPres->neighb[0]->value);
+        *newS = sPres->value + 10*(sr->dir)*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
       }else {//first shift
         if(eps->nconv != 0){
            //unaccepted values give information for next shift
@@ -379,9 +379,9 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
            }
            //avoiding substraction of eigenvalues (might be the same).
            if(idxP>0){
-             d_prev = PetscAbs(sPres->value - PetscRealPart(eps->eigr[0]))/(idxP+0.3);
+             d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[0]))/(idxP+0.3);
            }else {
-             d_prev = PetscAbs(sPres->value - PetscRealPart(eps->eigr[eps->nconv-1]))/(eps->nconv+0.3);
+             d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[eps->nconv-1]))/(eps->nconv+0.3);
            }
            *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
         }else{//no values found, no information for next shift
@@ -395,13 +395,13 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         s = s->neighb[0];//looking for previous shifts with eigenvalues within
       }
       if(s){
-        d_prev = PetscAbs( (sPres->value - s->value)/(sPres->inertia - s->inertia));
+        d_prev = PetscAbsReal( (sPres->value - s->value)/(sPres->inertia - s->inertia));
       }else{//firts shift. average distance obtained with values in this shift        
-        d_prev = PetscAbs( sr->eig[sPres->index+sPres->neigs-1] - sPres->value)/(sPres->neigs+0.3); 
+        d_prev = PetscAbsReal( PetscRealPart(sr->eig[sPres->index+sPres->neigs-1]) - sPres->value)/(sPres->neigs+0.3); 
       }
       // average distance is used for next shift by adding it to value on the rigth or to shift
-      if( (sr->dir)*(sr->eig[sPres->index + sPres->neigs -1] - sPres->value) >0){
-        *newS = sr->eig[sPres->index + sPres->neigs -1]+ ((sr->dir)*d_prev*(eps->nev))/2;   
+      if( (sr->dir)*(PetscRealPart(sr->eig[sPres->index + sPres->neigs -1]) - sPres->value) >0){
+        *newS = PetscRealPart(sr->eig[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(eps->nev))/2;   
       }else{//last accepted value is on the left of shift. adding to shift.
         *newS = sPres->value + ((sr->dir)*d_prev*(eps->nev))/2;
       }
@@ -538,7 +538,7 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
       k++;
       lambda = PetscRealPart(sr->eig[sr->perm[i]]);
       lambda2 = PetscRealPart(sr->eig[sr->perm[i-1]]);
-      if( PetscAbs((lambda - lambda2)/lambda) > sr->tolDeg){//relative tolerance 
+      if( PetscAbsReal((lambda - lambda2)/lambda) > sr->tolDeg){//relative tolerance 
         break;
       }
     }
@@ -606,7 +606,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   PetscScalar    *eigi;
   Vec            t,w;
   SR             sr;
-  PetscReal      orthMax,inerd;
+  PetscReal      orthMax;
+  PetscScalar    inerd;
   double         t1,t2;
  
   PetscFunctionBegin;
@@ -738,9 +739,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     for(i=0;i < sr->indexEig; i++){
       ierr = MatMult(B,sr->V[i],w);CHKERRQ(ierr);
       for(j=0;j < sr->indexEig;j++){
-        ierr = VecDot(w,sr->V[j],&inerd);CHKERRQ(ierr);
-        if(i == j)inerd-=1;
-        if(inerd>orthMax){orthMax = inerd; imax = i; jmax = j;}
+        if(i != j) {
+          ierr = VecDot(w,sr->V[j],&inerd);CHKERRQ(ierr);
+          if(PetscRealPart(inerd)>orthMax){orthMax = PetscRealPart(inerd); imax = i; jmax = j;}
+        }
       }
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);    
