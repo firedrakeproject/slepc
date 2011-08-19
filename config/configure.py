@@ -25,7 +25,7 @@ import sys
 import time
 import commands
 
-# Use en_US as language so that BuildSystem parses compiler messages in english
+# Use en_US as language so that compiler messages are in English
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
 
@@ -207,6 +207,8 @@ if os.path.exists(os.sep.join([slepcdir,'src','docs'])) and os.path.exists(os.se
     print 'WARNING: SLEPC_DIR appears to be a subversion working copy, but svn is not found in PATH'
   else:
     subversion = 1
+    svnrev = '-1'
+    svndate = '-1'
     for line in output.split('\n'):
       if line.startswith('Last Changed Rev: '):
         svnrev = line.split('Rev: ')[-1]
