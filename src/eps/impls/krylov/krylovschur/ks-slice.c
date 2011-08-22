@@ -46,7 +46,7 @@ typedef struct _n_shift *shift;
 struct _n_shift{
   PetscReal	value;
   PetscInt	inertia;
-  PetscBool	compl[2]; //
+  PetscBool	comp[2]; //
   shift  	neighb[2];//
   PetscInt	index;    //
   PetscInt	neigs;    //
@@ -105,8 +105,8 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscScalar val, shift neighb0,shif
   if(neighb0) neighb0->neighb[1] = s;
   s->neighb[1] = neighb1;
   if(neighb1) neighb1->neighb[0] = s;
-  s->compl[0] = PETSC_FALSE;
-  s->compl[1] = PETSC_FALSE;
+  s->comp[0] = PETSC_FALSE;
+  s->comp[1] = PETSC_FALSE;
   s->index = -1;
   s->neigs = 0;
   s->deg = PETSC_FALSE;
@@ -319,8 +319,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     eps->nconv = k;
   }
   /* check for completion */
-  sPres->compl[0] = (count0 >= sPres->nsch[0])?PETSC_TRUE:PETSC_FALSE;
-  sPres->compl[1] = (count1 >= sPres->nsch[1])?PETSC_TRUE:PETSC_FALSE;
+  sPres->comp[0] = (count0 >= sPres->nsch[0])?PETSC_TRUE:PETSC_FALSE;
+  sPres->comp[1] = (count1 >= sPres->nsch[1])?PETSC_TRUE:PETSC_FALSE;
   if(db>=1){ierr = PetscPrintf(PETSC_COMM_WORLD," found count0=%d(of %d) and count1=%d(of %d)\n",count0,sPres->nsch[0],count1,sPres->nsch[1]);CHKERRQ(ierr);}
   sr->itsKs += eps->its;  
 
@@ -460,7 +460,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
   ierr = sortRealEigenvalues(eps->eigr,eps->perm,eps->nconv,PETSC_FALSE,sr->dir);
   /* values stored in global array */
   // condition for avoiding comparing whith a non-existing end.
-  cond = (!sPres->neighb[1] && !sr->hasEnd); 
+  cond = (!sPres->neighb[1] && !sr->hasEnd)?PETSC_TRUE:PETSC_FALSE; 
   for( i=0; i < eps->nconv ;i++ ){
     lambda = PetscRealPart(eps->eigr[eps->perm[i]]);
     if(db>1){ierr = EPSComputeRelativeError(eps,eps->perm[i],&error);CHKERRQ(ierr);}
@@ -717,11 +717,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     ierr = EPSKrylovSchur_Slice(eps);CHKERRQ(ierr);
     ierr = EPSStoreEigenpairs(eps);CHKERRQ(ierr);
     /* select new shift */
-    if(!sr->sPres->compl[1]){
+    if(!sr->sPres->comp[1]){
       ierr = EPSGetNewShiftValue(eps,1,&newS);CHKERRQ(ierr);
       ierr = EPSCreateShift(eps,newS,sr->sPres,sr->sPres->neighb[1]);
     }
-    if(!sr->sPres->compl[0]){
+    if(!sr->sPres->comp[0]){
       // completing earlier interval
       ierr = EPSGetNewShiftValue(eps,0,&newS);CHKERRQ(ierr);
       ierr = EPSCreateShift(eps,newS,sr->sPres->neighb[0],sr->sPres);
