@@ -209,7 +209,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
   *outsvd = 0;
-  ierr = PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,-1,"SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,-1,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
 
   svd->OP             = PETSC_NULL;
   svd->A              = PETSC_NULL;

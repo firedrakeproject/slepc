@@ -128,7 +128,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 
   PetscFunctionBegin;
   PetscValidPointer(newip,2);
-  ierr = PetscHeaderCreate(ip,_p_IP,struct _IPOps,IP_CLASSID,-1,"IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
+  ierr = PetscHeaderCreate(ip,_p_IP,struct _IPOps,IP_CLASSID,-1,"IP","Inner Product","IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
   *newip            = ip;
   ip->orthog_type   = IP_ORTHOG_CGS;
   ip->orthog_ref    = IP_ORTHOG_REFINE_IFNEEDED;
