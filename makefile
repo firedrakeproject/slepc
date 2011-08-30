@@ -34,7 +34,12 @@ include ${SLEPC_DIR}/conf/slepc_common
 all:
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkslepc_dir
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
+	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
+           echo "Building SLEPc using CMake with ${MAKE_NP} build threads"; \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake; \
+	 else \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy; \
+	 fi
 	-@egrep -i "( error | error:)" ${PETSC_ARCH}/conf/make.log > /dev/null; if [ "$$?" = "0" ]; then \
            echo "********************************************************************"; \
            echo "  Error during compile, check ${PETSC_ARCH}/conf/make.log"; \
@@ -50,6 +55,13 @@ all:
 	   echo "=========================================";\
 	 fi
 	
+all-cmake:
+	@${OMAKE} -j ${MAKE_NP} -C ${PETSC_ARCH} VERBOSE=1 2>&1 | tee ${PETSC_ARCH}/conf/make.log \
+	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/petsc[[:lower:]]*.dir/| -o lib/libpetsc|CMakeFiles/petsc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'
+
+all-legacy:
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
+
 all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build shared_nomesg slepc4py_noinstall
 #
 # Prints information about the system and version of SLEPc being compiled

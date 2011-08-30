@@ -23,7 +23,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE
   
   if 'PETSC_ARCH' in os.environ:
     ISINSTALL = 0
@@ -36,6 +36,7 @@ def Load(petscdir):
     PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
     PETSCCONF_H = os.sep.join([petscdir,'include','petscconf.h'])
 
+  BUILD_USING_CMAKE = 0
   try:
     f = open(PETSCVARIABLES)
     for l in f.readlines():
@@ -66,6 +67,8 @@ def Load(petscdir):
 	AR_LIB_SUFFIX = v
       elif k == 'RANLIB':
 	RANLIB = v
+      elif k == 'PETSC_BUILD_USING_CMAKE':
+	BUILD_USING_CMAKE = v
     f.close()
   except:
     sys.exit('ERROR: PETSc is not configured for architecture ' + ARCH)

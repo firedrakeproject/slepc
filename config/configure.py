@@ -320,32 +320,23 @@ if getslepc4py:
   slepc4py.Install()
 slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
-# Finish with configuration files
-slepcvars.close()
-slepcrules.close()
-slepcconf.write('#endif\n')
-slepcconf.close()
-cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
-cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
-cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
-cmake.close()
-
 # Make Fortran stubs if necessary
 if subversion:
   import generatefortranstubs
   generatefortranstubs.main(petscconf.BFORT)
 
 # CMake stuff
-if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
+cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
+cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
+cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
+cmake.close()
+cmakeok = False
+if sys.version_info >= (2,5) and not petscconf.ISINSTALL and petscconf.BUILD_USING_CMAKE:
   import cmakegen
   try:
     cmakegen.main(slepcdir,petscdir,petscarch=petscconf.ARCH)
   except (OSError), e:
     log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
-
-# In a prefix-based PETSc installation we skip the last CMake step
-cmakeok = False
-if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
   import cmakeboot
   try:
     cmakeok = cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
@@ -357,6 +348,14 @@ if sys.version_info >= (2,5) and not petscconf.ISINSTALL:
   for f in ['build.log','build.log.bkp','RDict.log']:
     try: os.remove(f)
     except OSError: pass
+if cmakeok:
+  slepcvars.write('SLEPC_BUILD_USING_CMAKE = 1\n')
+
+# Finish with configuration files
+slepcvars.close()
+slepcrules.close()
+slepcconf.write('#endif\n')
+slepcconf.close()
 
 # Print summary
 log.Println('')
@@ -397,10 +396,9 @@ if missing:
   log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 print
 print 'xxx'+'='*73+'xxx'
-print ' Configure stage complete. Now build the SLEPc library with:'
+if cmakeok: buildtype = 'cmake'
+else: buildtype = 'legacy'
+print ' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):'
 print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+petscconf.ARCH
-if cmakeok:
-  print ' or (experimental with cmake):'
-  print '   make -j4 -C '+archdir
 print 'xxx'+'='*73+'xxx'
 print
