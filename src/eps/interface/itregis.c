@@ -27,7 +27,6 @@ extern PetscErrorCode EPSCreate_Subspace(EPS);
 extern PetscErrorCode EPSCreate_Arnoldi(EPS);
 extern PetscErrorCode EPSCreate_Lanczos(EPS);
 extern PetscErrorCode EPSCreate_KrylovSchur(EPS);
-extern PetscErrorCode EPSCreate_DSITRLanczos(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
 extern PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
@@ -70,7 +69,6 @@ PetscErrorCode EPSRegisterAll(const char *path)
   ierr = EPSRegisterDynamic(EPSSUBSPACE,path,"EPSCreate_Subspace",EPSCreate_Subspace);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSARNOLDI,path,"EPSCreate_Arnoldi",EPSCreate_Arnoldi);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSLANCZOS,path,"EPSCreate_Lanczos",EPSCreate_Lanczos);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSDSITRLANCZOS,path,"EPSCreate_DSITRLanczos",EPSCreate_DSITRLanczos);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSGD,path,"EPSCreate_GD",EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSJD,path,"EPSCreate_JD",EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSLAPACK,path,"EPSCreate_LAPACK",EPSCreate_LAPACK);CHKERRQ(ierr);

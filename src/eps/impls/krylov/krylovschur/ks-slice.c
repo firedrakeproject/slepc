@@ -175,7 +175,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   shift          sPres;
   PetscBool      complIterating;/* shows whether iterations are made for completion */
   PetscBool       sch0,sch1;//shows whether values are looked after on each side
-  PetscInt        iterCompl,n0,n1;
+  PetscInt        iterCompl=0,n0,n1;
   //PetscReal       res;
 
   SR             sr;

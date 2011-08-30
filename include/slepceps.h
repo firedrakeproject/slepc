@@ -53,7 +53,6 @@ E*/
 #define EPSARNOLDI   "arnoldi"
 #define EPSLANCZOS   "lanczos"
 #define EPSKRYLOVSCHUR "krylovschur"
-#define EPSDSITRLANCZOS "dsitrlanczos"
 #define EPSGD        "gd"
 #define EPSJD        "jd"
 #define EPSLAPACK    "lapack"

@@ -28,7 +28,7 @@ SOURCEF  =
 SOURCEH  = 
 OBJSC    = krylov.o
 LIBBASE  = libslepc
-DIRS     = arnoldi lanczos krylovschur dsitrlanczos
+DIRS     = arnoldi lanczos krylovschur
 LOCDIR   = src/eps/impls/krylov/
 MANSEC   = EPS
 
