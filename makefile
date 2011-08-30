@@ -57,7 +57,7 @@ all:
 	
 all-cmake:
 	@${OMAKE} -j ${MAKE_NP} -C ${PETSC_ARCH} VERBOSE=1 2>&1 | tee ${PETSC_ARCH}/conf/make.log \
-	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/petsc[[:lower:]]*.dir/| -o lib/libpetsc|CMakeFiles/petsc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'
+	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/slepc[[:lower:]]*.dir/| -o lib/libslepc|CMakeFiles/slepc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'
 
 all-legacy:
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
