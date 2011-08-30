@@ -139,4 +139,8 @@ slepctree: ${ACTION}
             ${OMAKE} slepctree ACTION=${ACTION}  PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} DATAFILESPATH=${DATAFILESPATH} BASE_DIR=${BASE_DIR});\
 	  done
 
+# uses the cmake infrastructure to build/rebuild the libraries
+slepc_cmake:
+	make -j ${MAKE_NP} -C ${SLEPC_DIR}/${PETSC_ARCH}
+
 include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcrules
