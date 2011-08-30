@@ -58,7 +58,7 @@ struct _n_shift{
 
 /* Type of data  for storing the state of spectrum slicing*/
 struct _n_SR{
-  PetscReal       int0,int1; // extrems of the interval
+  PetscReal       int0,int1; // extremes of the interval
   PetscInt        dir; // determines the order of values in eig (+1 incr, -1 decr)
   PetscBool       hasEnd; // tells whether the interval has an end
   PetscInt        inertia0,inertia1;
@@ -90,7 +90,7 @@ typedef struct _n_SR  *SR;
 */
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreateShift"
-static PetscErrorCode EPSCreateShift(EPS eps,PetscScalar val, shift neighb0,shift neighb1)
+static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val, shift neighb0,shift neighb1)
 {
   PetscErrorCode   ierr;
   shift            s,*pending2;
@@ -222,7 +222,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
           iwork[j++]=i;
         }else iwork[conv+k++]=i;
       }
-      for(i=0;i<nv;i++)a[i]=eps->eigr[eps->nconv+i];
+      for(i=0;i<nv;i++) a[i]=PetscRealPart(eps->eigr[eps->nconv+i]);
       for(i=0;i<nv;i++){
         eps->eigr[eps->nconv+i] = a[iwork[i]];
       }
@@ -396,10 +396,10 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
       }
       if(s){
         d_prev = PetscAbsReal( (sPres->value - s->value)/(sPres->inertia - s->inertia));
-      }else{//firts shift. average distance obtained with values in this shift        
+      }else{//first shift. average distance obtained with values in this shift        
         d_prev = PetscAbsReal( PetscRealPart(sr->eig[sPres->index+sPres->neigs-1]) - sPres->value)/(sPres->neigs+0.3); 
       }
-      // average distance is used for next shift by adding it to value on the rigth or to shift
+      // average distance is used for next shift by adding it to value on the right or to shift
       if( (sr->dir)*(PetscRealPart(sr->eig[sPres->index + sPres->neigs -1]) - sPres->value) >0){
         *newS = PetscRealPart(sr->eig[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(eps->nev))/2;   
       }else{//last accepted value is on the left of shift. adding to shift.
@@ -675,7 +675,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"dir=%d inertia in 0(=%g) %d and in 1(=%g) %d\n",sr->dir,sr->int0,sr->inertia0,sr->int1,sr->inertia1);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"numEigs=%d\n\n",sr->numEigs);
   }
-  /* only whith eigenvalues present in the interval ...*/
+  /* only with eigenvalues present in the interval ...*/
   if(sr->numEigs==0){ 
     eps->reason = EPS_CONVERGED_TOL;
     PetscFunctionReturn(0);
