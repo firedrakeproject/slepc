@@ -1177,12 +1177,7 @@ PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
   PetscReal       a;
 
   PetscFunctionBegin;
-
-#if !defined(PETSC_USE_COMPLEX)
-  a = sqrt(d->eigr[i]*d->eigr[i]+d->eigi[i]*d->eigi[i]);
-#else
-  a = PetscAbsScalar(d->eigr[i]);
-#endif
+  a = PetscAbsScalar(d->eigr[i],d->eig[i]);
 
   if (d->nR[i]/a < data->fix) {
     theta[0] = d->eigr[i];

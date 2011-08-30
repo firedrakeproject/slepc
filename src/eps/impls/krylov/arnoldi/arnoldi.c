@@ -147,7 +147,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
     }
     
     if (j>k) {      
-      norm1 = sqrt(PetscRealPart(dot));
+      norm1 = PetscSqrtReal(PetscRealPart(dot));
       for (i=0;i<j;i++)
         H[ldh*j+i] = H[ldh*j+i]/norm1;
       H[ldh*j+j] = H[ldh*j+j]/dot;
@@ -227,7 +227,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     }
     
     if (j>k) {      
-      norm = sqrt(PetscRealPart(dot));
+      norm = PetscSqrtReal(PetscRealPart(dot));
       ierr = VecScale(V[j],1.0/norm);CHKERRQ(ierr);
       H[ldh*(j-1)+j] = norm;
 
@@ -409,7 +409,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
       gnorm = 0.0;
       for (i=0;i<nv;i++)
         gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-      corrf = sqrt(1.0+gnorm);
+      corrf = PetscSqrtReal(1.0+gnorm);
     }
 
     /* Solve projected problem */ 

@@ -354,7 +354,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscValidPointer(error,3);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
-  *error = sqrt(norm1*norm1+norm2*norm2);
+  *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
   if (sigma>*error) *error /= sigma;
   PetscFunctionReturn(0);
 }

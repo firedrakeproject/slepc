@@ -623,7 +623,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   if(db>=1){ierr = PetscPrintf(PETSC_COMM_WORLD,"Options: allKs=%d, def=%d, deg=%d \n",allKs,def,deg);CHKERRQ(ierr);}
   ierr = PetscMalloc(sizeof(struct _n_SR),&sr);CHKERRQ(ierr);
   eps->data = sr;
-  sr->tolDeg = sqrt(eps->tol);//default
+  sr->tolDeg = PetscSqrtReal(eps->tol);//default
   ierr = PetscOptionsGetReal(PETSC_NULL,"-toldeg",&sr->tolDeg,PETSC_NULL);CHKERRQ(ierr);
   if(db>=1){ierr = PetscPrintf(PETSC_COMM_WORLD,"toldeg=%g\n",sr->tolDeg);CHKERRQ(ierr);}
   sr->defMin = 0;

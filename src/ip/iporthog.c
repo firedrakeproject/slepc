@@ -100,7 +100,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBo
   }
     
   /* compute |v| */
-  if (onorm) *onorm = sqrt(PetscRealPart(alpha));
+  if (onorm) *onorm = PetscSqrtReal(PetscRealPart(alpha));
 
   if (norm) {
     if (!ip->matrix) {
@@ -114,7 +114,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,PetscInt n,PetscBo
       *norm = PetscRealPart(alpha)-sum;
       if (*norm <= 0.0) {
         ierr = IPNorm(ip,v,norm);CHKERRQ(ierr);
-      } else *norm = sqrt(*norm);
+      } else *norm = PetscSqrtReal(*norm);
     } else {
       /* compute |v'| */
       ierr = IPNorm(ip,v,norm);CHKERRQ(ierr);

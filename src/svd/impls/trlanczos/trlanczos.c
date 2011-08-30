@@ -135,13 +135,13 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
       ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b);CHKERRQ(ierr);
       break;
     case IP_ORTHOG_REFINE_IFNEEDED:
-      onorm = sqrt(PetscRealPart(dot)) / a;
+      onorm = PetscSqrtReal(PetscRealPart(dot)) / a;
       sum = 0.0;
       for (j=0;j<i;j++) {
         sum += PetscRealPart(work[j] * PetscConj(work[j]));
       }
       b = PetscRealPart(dot)/(a*a) - sum;
-      if (b>0.0) b = sqrt(b);
+      if (b>0.0) b = PetscSqrtReal(b);
       else {
         ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
       }
@@ -183,13 +183,13 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,n,PETSC_NULL,V,v,work,PETSC_NULL,&b);CHKERRQ(ierr);
     break;
   case IP_ORTHOG_REFINE_IFNEEDED:
-    onorm = sqrt(PetscRealPart(dot)) / a;
+    onorm = PetscSqrtReal(PetscRealPart(dot)) / a;
     sum = 0.0;
     for (j=0;j<i;j++) {
       sum += PetscRealPart(work[j] * PetscConj(work[j]));
     }
     b = PetscRealPart(dot)/(a*a) - sum;
-    if (b>0.0) b = sqrt(b);
+    if (b>0.0) b = PetscSqrtReal(b);
     else {
       ierr = IPNorm(svd->ip,v,&b);CHKERRQ(ierr);
     }

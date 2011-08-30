@@ -53,7 +53,7 @@ PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
   z = PetscMin(xabs,yabs);
   if (z == 0.0) PetscFunctionReturn(w);
   t = z/w;
-  PetscFunctionReturn(w*sqrt(1.0+t*t));  
+  PetscFunctionReturn(w*PetscSqrtReal(1.0+t*t));  
 }
 
 #endif

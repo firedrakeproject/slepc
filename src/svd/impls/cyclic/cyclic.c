@@ -203,9 +203,9 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
       ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
       ierr = VecCopy(x1,svd->U[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->U[j],1.0/sqrt(2.0));CHKERRQ(ierr);
+      ierr = VecScale(svd->U[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
       ierr = VecCopy(x2,svd->V[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->V[j],1.0/sqrt(2.0));CHKERRQ(ierr);
+      ierr = VecScale(svd->V[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);

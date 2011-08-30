@@ -209,11 +209,11 @@ static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *
 
   for (i=l;i<m;i++) {
     if (i == m-1) {
-      rsd[i] = sqrt(rsd[i]);  
+      rsd[i] = PetscSqrtReal(rsd[i]);  
     } else if (T[i+1+(ldt*i)]==0.0) {
-      rsd[i] = sqrt(rsd[i]);
+      rsd[i] = PetscSqrtReal(rsd[i]);
     } else {
-      rsd[i] = sqrt((rsd[i]+rsd[i+1])/2.0);
+      rsd[i] = PetscSqrtReal((rsd[i]+rsd[i+1])/2.0);
       rsd[i+1] = rsd[i];
       i++;
     }

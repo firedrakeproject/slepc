@@ -494,8 +494,8 @@ PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_
       /* complex eigenvalue */
       wr[j] = H[j*ldh+j];
       wr[j+1] = H[j*ldh+j];
-      wi[j] = sqrt(PetscAbsReal(H[j*ldh+j+1])) *
-              sqrt(PetscAbsReal(H[(j+1)*ldh+j]));
+      wi[j] = PetscSqrtReal(PetscAbsReal(H[j*ldh+j+1])) *
+              PetscSqrtReal(PetscAbsReal(H[(j+1)*ldh+j]));
       wi[j+1] = -wi[j];
       j++;
     }
@@ -604,8 +604,8 @@ PetscErrorCode EPSSortDenseSchur(EPS eps,PetscInt n_,PetscInt k,PetscScalar *T,P
 #if !defined(PETSC_USE_COMPLEX)
         if (j<n-1 && T[j*ldt+j+1] != 0.0) {
           /* complex conjugate eigenvalue */
-          wi[j] = sqrt(PetscAbsReal(T[j*ldt+j+1])) *
-                  sqrt(PetscAbsReal(T[(j+1)*ldt+j]));
+          wi[j] = PetscSqrtReal(PetscAbsReal(T[j*ldt+j+1])) *
+                  PetscSqrtReal(PetscAbsReal(T[(j+1)*ldt+j]));
           wr[j+1] = wr[j];
           wi[j+1] = -wi[j];
           j++;

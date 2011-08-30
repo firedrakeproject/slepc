@@ -81,7 +81,7 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
   if (onorm) {
     ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-    *onorm = sqrt(x*x+y*y);
+    *onorm = PetscSqrtReal(x*x+y*y);
   }
 
   /* orthogonalize: compute h */
@@ -104,7 +104,7 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
   if (norm) {
     ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-    *norm = sqrt(x*x+y*y);CHKERRQ(ierr);
+    *norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -240,7 +240,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   ierr = SlepcVecSetRandom(w,qep->rand);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-  norm = sqrt(x*x+y*y);CHKERRQ(ierr);
+  norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
   ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
   ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
   

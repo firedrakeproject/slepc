@@ -428,7 +428,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     for (i=0;i<eps->nloc;i++) {
       if (eps->balance == EPS_BALANCE_TWOSIDE) {
         if (PetscAbsScalar(pp[i])>eps->balance_cutoff*norma && pr[i]!=0.0)
-          pD[i] *= sqrt(PetscAbsScalar(pr[i]/pp[i]));
+          pD[i] *= PetscSqrtReal(PetscAbsScalar(pr[i]/pp[i]));
       } else {
         if (pp[i]!=0.0) pD[i] *= 1.0/PetscAbsScalar(pp[i]);
       }

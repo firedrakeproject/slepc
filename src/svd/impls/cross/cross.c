@@ -165,7 +165,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   for (i=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cross->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma)<0.0) SETERRQ(((PetscObject)svd)->comm,1,"Negative eigenvalue computed by EPS");
-    svd->sigma[i] = sqrt(PetscRealPart(sigma));
+    svd->sigma[i] = PetscSqrtReal(PetscRealPart(sigma));
   }
   PetscFunctionReturn(0);
 }
@@ -183,7 +183,7 @@ static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
   for (i=0;i<nest;i++) {
     er = eigr[i]; ei = eigi[i];
     ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
-    svd->sigma[i] = sqrt(PetscRealPart(er));
+    svd->sigma[i] = PetscSqrtReal(PetscRealPart(er));
     svd->errest[i] = errest[i];
   }
   ierr = SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);CHKERRQ(ierr);

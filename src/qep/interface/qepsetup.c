@@ -89,7 +89,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     if (khas && mhas) {
       ierr = MatNorm(qep->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
       ierr = MatNorm(qep->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
-      qep->sfactor = sqrt(knorm/mnorm);
+      qep->sfactor = PetscSqrtReal(knorm/mnorm);
     }
     else qep->sfactor = 1.0;
   }
