@@ -27,7 +27,7 @@ import urllib
 import urlparse
 import commands
 
-def Install(conf,vars,cmake,url,archdir):
+def Install(conf,vars,cmake,tmpdir,url,archdir):
   '''
   Download and uncompress the BLOPEX tarball
   '''

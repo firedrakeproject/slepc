@@ -24,6 +24,8 @@ import os
 import sys
 import time
 import commands
+import tempfile
+import shutil
 
 # Use en_US as language so that compiler messages are in English
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
@@ -134,7 +136,7 @@ for i in sys.argv[1:]:
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
-    print '  --prefix=<dir>                   : Specifiy location to install SLEPc (e.g., /usr/local)'
+    print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
     print 'ARPACK:'
     print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
     print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
@@ -271,6 +273,24 @@ except:
 if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
   sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
+# Create temporary directory and makefile for running tests
+try:
+  tmpdir = tempfile.mkdtemp(prefix='slepc-')
+  if not os.path.isdir(tmpdir): os.mkdir(tmpdir)
+except:
+  sys.exit('ERROR: cannot create temporary directory')
+try:
+  makefile = open(os.sep.join([tmpdir,'makefile']),'w')
+  makefile.write('include ${PETSC_DIR}/conf/variables\n')
+  makefile.write('include ${PETSC_DIR}/conf/rules\n')
+  makefile.write('checklink: checklink.o chkopts\n')
+  makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
+  makefile.write('\t@${RM} -f checklink checklink.o\n')
+  makefile.write('LOCDIR = ./\n')
+  makefile.close()
+except:
+  sys.exit('ERROR: cannot create makefile in temporary directory')
+
 # Open log file
 log.Open(os.sep.join([confdir,'configure.log']))
 log.write('='*80)
@@ -296,24 +316,24 @@ if petscversion.RELEASE != '1':
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
-if not check.Link([],[],[]):
+if not check.Link(tmpdir,[],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
 # Check for external packages
 if havearpack:
-  arpacklibs = arpack.Check(slepcconf,slepcvars,cmake,arpackdir,arpacklibs)
+  arpacklibs = arpack.Check(slepcconf,slepcvars,cmake,tmpdir,arpackdir,arpacklibs)
 if haveblzpack:
-  blzpacklibs = blzpack.Check(slepcconf,slepcvars,cmake,blzpackdir,blzpacklibs)
+  blzpacklibs = blzpack.Check(slepcconf,slepcvars,cmake,tmpdir,blzpackdir,blzpacklibs)
 if havetrlan:
-  trlanlibs = trlan.Check(slepcconf,slepcvars,cmake,trlandir,trlanlibs)
+  trlanlibs = trlan.Check(slepcconf,slepcvars,cmake,tmpdir,trlandir,trlanlibs)
 if haveprimme:
-  primmelibs = primme.Check(slepcconf,slepcvars,cmake,primmedir,primmelibs)
+  primmelibs = primme.Check(slepcconf,slepcvars,cmake,tmpdir,primmedir,primmelibs)
 if getblopex:
-  blopexlibs = blopex.Install(slepcconf,slepcvars,cmake,blopexurl,archdir)
+  blopexlibs = blopex.Install(slepcconf,slepcvars,cmake,tmpdir,blopexurl,archdir)
   haveblopex = 1
 
 # Check for missing LAPACK functions
-missing = lapack.Check(slepcconf,slepcvars,cmake)
+missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
 # Download and install slepc4py
 if getslepc4py:
@@ -356,6 +376,7 @@ slepcvars.close()
 slepcrules.close()
 slepcconf.write('#endif\n')
 slepcconf.close()
+shutil.rmtree(tmpdir)
 
 # Print summary
 log.Println('')

@@ -25,7 +25,7 @@ import sys
 import petscconf
 import check
 
-def Check(conf,vars,cmake,directory,libs):
+def Check(conf,vars,cmake,tmpdir,directory,libs):
 
   if petscconf.SCALAR == 'real':
     if petscconf.PRECISION == 'single':
@@ -48,4 +48,4 @@ def Check(conf,vars,cmake,directory,libs):
   else:
     dirs = check.GenerateGuesses('Arpack')
     
-  return check.FortranLib(conf,vars,cmake,'ARPACK',dirs,libs,functions)
+  return check.FortranLib(tmpdir,conf,vars,cmake,'ARPACK',dirs,libs,functions)

@@ -26,7 +26,7 @@ import commands
 import petscconf
 import log
 
-def LinkWithOutput(functions,callbacks,flags):
+def LinkWithOutput(tmpdir,functions,callbacks,flags):
   code = '#include "petscksp.h"\n'
   code += 'EXTERN_C_BEGIN\n'
   for f in functions:
@@ -45,25 +45,21 @@ def LinkWithOutput(functions,callbacks,flags):
     code += f + '();\n'
   code += 'return 0;\n}\n'
   
-  os.chdir('config')
-  cfile = open('checklink.c','w')
+  cfile = open(os.sep.join([tmpdir,'checklink.c']),'w')
   cfile.write(code)
   cfile.close()
-  (result, output) = commands.getstatusoutput(petscconf.MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
-  if os.path.exists('checklink.o'):
-    os.unlink('checklink.o')
-  os.chdir(os.pardir)
+  (result, output) = commands.getstatusoutput(petscconf.MAKE + ' -C ' + tmpdir + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
   if result:
     return (0,code + output)
   else:
     return (1,code + output)  
  
-def Link(functions,callbacks,flags):
-  (result, output) = LinkWithOutput(functions,callbacks,flags)
+def Link(tmpdir,functions,callbacks,flags):
+  (result, output) = LinkWithOutput(tmpdir,functions,callbacks,flags)
   log.write(output)
   return result
 
-def FortranLink(functions,callbacks,flags):
+def FortranLink(tmpdir,functions,callbacks,flags):
   output =  '\n=== With linker flags: '+str.join(' ',flags)
 
   f = []
@@ -72,7 +68,7 @@ def FortranLink(functions,callbacks,flags):
   c = []
   for i in callbacks:
     c.append(i+'_')
-  (result, output1) = LinkWithOutput(f,c,flags) 
+  (result, output1) = LinkWithOutput(tmpdir,f,c,flags) 
   output1 = '\n====== With underscore Fortran names\n' + output1
   if result: return ('UNDERSCORE',output1)
 
@@ -82,11 +78,11 @@ def FortranLink(functions,callbacks,flags):
   c = []
   for i in callbacks:
     c.append(i.upper())  
-  (result, output2) = LinkWithOutput(f,c,flags) 
+  (result, output2) = LinkWithOutput(tmpdir,f,c,flags) 
   output2 = '\n====== With capital Fortran names\n' + output2
   if result: return ('CAPS',output2)
 
-  (result, output3) = LinkWithOutput(functions,callbacks,flags) 
+  (result, output3) = LinkWithOutput(tmpdir,functions,callbacks,flags) 
   output3 = '\n====== With unmodified Fortran names\n' + output3
   if result: return ('STDCALL',output3)
   
@@ -123,7 +119,7 @@ def FortranLib(conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
 	flags = ['-L' + d] + l
       else:
 	flags = l
-      (mangling, output) = FortranLink(functions,callbacks,flags)
+      (mangling, output) = FortranLink(tmpdir,functions,callbacks,flags)
       error += output
       if mangling: break
     if mangling: break    
