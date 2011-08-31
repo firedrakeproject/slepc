@@ -107,7 +107,7 @@ def GenerateGuesses(name):
   dirs = [''] + dirs
   return dirs
 
-def FortranLib(conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
+def FortranLib(tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
   log.write('='*80)
   log.Println('Checking '+name+' library...')
 
