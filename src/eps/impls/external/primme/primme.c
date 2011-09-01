@@ -311,6 +311,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscBool       isascii;
   primme_params   *primme = &((EPS_PRIMME *)eps->data)->primme;
   EPSPRIMMEMethod methodn;
+  PetscMPIInt     rank;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -323,7 +324,8 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
 
   /* Display PRIMME params */
-  primme_display_params(*primme);
+  ierr = MPI_Comm_rank(((PetscObject)eps)->comm,&rank);CHKERRQ(ierr);
+  if (!rank) primme_display_params(*primme);
   PetscFunctionReturn(0);
 }
 
