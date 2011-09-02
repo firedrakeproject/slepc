@@ -141,6 +141,10 @@ slepctree: ${ACTION}
 
 # uses the cmake infrastructure to build/rebuild the libraries
 slepc_cmake:
-	make -j ${MAKE_NP} -C ${SLEPC_DIR}/${PETSC_ARCH}
+	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
+	   ${OMAKE} -j ${MAKE_NP} -C ${SLEPC_DIR}/${PETSC_ARCH}; \
+	 else \
+           echo "CMake builds are disabled"; \
+	 fi
 
 include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcrules
