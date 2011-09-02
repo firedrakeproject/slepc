@@ -97,6 +97,9 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     ierr = STSetDefaultShift(eps->OP,3e300);CHKERRQ(ierr);
   }
 
+  /* Avoid setting the automatic shift when a target is set */
+  ierr = STSetDefaultShift(eps->OP,0.0);CHKERRQ(ierr);
+
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
   if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
@@ -122,8 +125,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     case EPS_SMALLEST_REAL:
       primme->target = primme_smallest;
       break;
+    case EPS_TARGET_MAGNITUDE:
+    case EPS_TARGET_REAL:
+      primme->target = primme_closest_abs;
+      primme->numTargetShifts = 1;
+      primme->targetShifts = &eps->target;
+      break;
     default:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only allows EPS_LARGEST_REAL and EPS_SMALLEST_REAL for 'which' value");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"'which' value does not supported by PRIMME");
       break;   
   }
   
