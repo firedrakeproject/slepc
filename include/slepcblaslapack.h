@@ -36,6 +36,13 @@
 #else
 #define SLEPC_BLASLAPACK(lcase,ucase) s##lcase##_
 #endif
+#elif defined(PETSC_USE_REAL___FLOAT128)
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) q##lcase##_
+#if defined(PETSC_USE_COMPLEX)
+#define SLEPC_BLASLAPACK(lcase,ucase) w##lcase##_
+#else
+#define SLEPC_BLASLAPACK(lcase,ucase) q##lcase##_
+#endif
 #else
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) d##lcase##_
 #if defined(PETSC_USE_COMPLEX)
@@ -53,6 +60,13 @@
 #else
 #define SLEPC_BLASLAPACK(lcase,ucase) S##ucase
 #endif
+#elif defined(PETSC_USE_REAL___FLOAT128)
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) Q##ucase
+#if defined(PETSC_USE_COMPLEX)
+#define SLEPC_BLASLAPACK(lcase,ucase) W##ucase
+#else
+#define SLEPC_BLASLAPACK(lcase,ucase) Q##ucase
+#endif
 #else
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) D##ucase
 #if defined(PETSC_USE_COMPLEX)
@@ -69,6 +83,13 @@
 #define SLEPC_BLASLAPACK(lcase,ucase) c##lcase
 #else
 #define SLEPC_BLASLAPACK(lcase,ucase) s##lcase
+#endif
+#elif defined(PETSC_USE_REAL___FLOAT128)
+#define SLEPC_BLASLAPACKREAL(lcase,ucase) q##lcase
+#if defined(PETSC_USE_COMPLEX)
+#define SLEPC_BLASLAPACK(lcase,ucase) w##lcase
+#else
+#define SLEPC_BLASLAPACK(lcase,ucase) q##lcase
 #endif
 #else
 #define SLEPC_BLASLAPACKREAL(lcase,ucase) d##lcase

@@ -38,12 +38,16 @@ def Check(conf,vars,cmake,tmpdir):
     l += ['orghr','syevr','sygvd','ormlq']
     if petscconf.PRECISION == 'single':
       prefix = 's'
+    if petscconf.PRECISION == '__float128':
+      prefix = 'q'
     else:
       prefix = 'd'
   else:
     l += ['unghr','heevr','hegvd','unmlq','ungtr','hetrd']
     if petscconf.PRECISION == 'single':
       prefix = 'c'
+    if petscconf.PRECISION == '__float128':
+      prefix = 'w'
     else:
       prefix = 'z'
 
@@ -55,6 +59,8 @@ def Check(conf,vars,cmake,tmpdir):
   # LAPACK functions which are always used in real version 
   if petscconf.PRECISION == 'single':
     functions += ['sstevr','sbdsdc','ssteqr','sorgtr','ssytrd','slamch','slag2']
+  elif petscconf.PRECISION == '__float128':
+    functions += ['qstevr','qbdsdc','qsteqr','qorgtr','qsytrd','qlamch','qlag2']
   else:
     functions += ['dstevr','dbdsdc','dsteqr','dorgtr','dsytrd','dlamch','dlag2']
    
