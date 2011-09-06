@@ -75,10 +75,10 @@ def bootstrap():
     from distutils.dir_util import mkpath
     pkgdir = os.path.join('config', 'pypi')
     pkgfile = os.path.join(pkgdir, '__init__.py')
-    if not os.path.exists(pkgdir):
-        mkpath(pkgdir)
-    if not os.path.exists(pkgfile):
-        open(pkgfile, 'wt').write(init_py)
+    if not os.path.exists(pkgdir): mkpath(pkgdir)
+    fh = open(pkgfile, 'wt')
+    fh.write(init_py)
+    fh.close()
     if ('setuptools' in sys.modules):
         metadata['zip_safe'] = False
         if not PETSC_DIR:
