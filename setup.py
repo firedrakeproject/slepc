@@ -10,6 +10,15 @@ and can be used for either standard or generalized eigenproblems, with
 real or complex arithmetic. It can also be used for computing a
 partial SVD of a large, sparse, rectangular matrix, and to solve
 quadratic eigenvalue problems
+
+.. tip::
+
+  You can also install `slepc-dev`_ with::
+
+    $ pip install slepc==dev petsc==dev
+
+  .. _petsc-dev: http://www.grycap.upv.es/slepc/
+                 svn/trunk/#egg=slepc-dev
 """
 
 import sys, os
@@ -44,10 +53,22 @@ metadata = {
 }
 
 def bootstrap():
+    from os.path import join, isdir, abspath
     # Set SLEPC_DIR
-    SLEPC_DIR  = os.path.abspath(os.getcwd())
+    SLEPC_DIR  = abspath(os.getcwd())
     os.environ['SLEPC_DIR']  = SLEPC_DIR
-    if not os.environ.get('PETSC_DIR'):
+    # Check PETSC_DIR/PETSC_ARCH
+    PETSC_DIR  = os.environ.get('PETSC_DIR',  "")
+    PETSC_ARCH = os.environ.get('PETSC_ARCH', "")
+    if not (PETSC_DIR and isdir(PETSC_DIR)):
+        PETSC_DIR = None
+        try: del os.environ['PETSC_DIR']
+        except KeyError: pass
+        PETSC_ARCH = None
+        try: del os.environ['PETSC_ARCH']
+        except KeyError: pass
+    elif not isdir(join(PETSC_DIR, PETSC_ARCH)):
+        PETSC_ARCH = None
         try: del os.environ['PETSC_ARCH']
         except KeyError: pass
     # Generate package __init__.py file
@@ -58,22 +79,20 @@ def bootstrap():
         mkpath(pkgdir)
     if not os.path.exists(pkgfile):
         open(pkgfile, 'wt').write(init_py)
-    if not os.environ.get('PETSC_DIR'):
-        if (('distribute' in sys.modules) or
-            ('setuptools' in sys.modules)):
-            metadata['install_requires']= ['petsc']
-    if 'setuptools' in sys.modules:
+    if ('setuptools' in sys.modules):
         metadata['zip_safe'] = False
+        if not PETSC_DIR:
+            metadata['install_requires']= ['petsc']
 
 def get_petsc_dir():
     PETSC_DIR = os.environ.get('PETSC_DIR')
-    if not PETSC_DIR:
-        try:
-            import petsc
-            PETSC_DIR = petsc.get_petsc_dir()
-        except ImportError:
-            log.warn("PETSC_DIR not specified")
-            PETSC_DIR = os.path.join(os.path.sep, 'usr', 'local', 'petsc')
+    if PETSC_DIR: return PETSC_DIR
+    try:
+        import petsc
+        PETSC_DIR = petsc.get_petsc_dir()
+    except ImportError:
+        log.warn("PETSC_DIR not specified")
+        PETSC_DIR = os.path.join(os.path.sep, 'usr', 'local', 'petsc')
     return PETSC_DIR
 
 def get_petsc_arch():
@@ -120,7 +139,9 @@ def install(dest_dir, prefix=None, dry_run=False):
             )))
     if status != 0: raise RuntimeError
     slepcvariables = os.path.join(dest_dir, 'conf', 'slepcvariables')
-    open(slepcvariables, 'a').write('SLEPC_DESTDIR=%s\n' % prefix)
+    fh = open(slepcvariables, 'a')
+    fh.write('SLEPC_DESTDIR=%s\n' % prefix)
+    fh.close()
 
 class context:
     def __init__(self):
