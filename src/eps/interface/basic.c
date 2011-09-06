@@ -33,7 +33,7 @@ const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerS
 const char *EPSLanczosReorthogTypes[] = {"LOCAL","FULL","SELECTIVE","PERIODIC","PARTIAL","DELAYED","EPSLanczosReorthogType","EPS_LANCZOS_REORTHOG_",0};
 const char *EPSPRIMMEMethods[] = {"DYNAMIC","DEFAULT_MIN_TIME","DEFAULT_MIN_MATVECS","ARNOLDI","GD","GD_PLUSK","GD_OLSEN_PLUSK","JD_OLSEN_PLUSK","RQI","JDQR","JDQMR","JDQMR_ETOL","SUBSPACE_ITERATION","LOBPCG_ORTHOBASIS","LOBPCG_ORTHOBASISW","EPSPRIMMEMethod","EPS_PRIMME_",0};
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSFinalizePackage"
 /*@C
   EPSFinalizePackage - This function destroys everything in the Slepc interface to the EPS package. It is
@@ -52,7 +52,7 @@ PetscErrorCode EPSFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSInitializePackage"
 /*@C
   EPSInitializePackage - This function initializes everything in the EPS package. It is called
@@ -103,7 +103,7 @@ PetscErrorCode EPSInitializePackage(const char *path) {
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSView"
 /*@C
    EPSView - Prints the EPS data structure.
@@ -298,7 +298,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate"
 /*@C
    EPSCreate - Creates the default EPS context.
@@ -396,7 +396,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscFunctionReturn(0);
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetType"
 /*@C
    EPSSetType - Selects the particular solver to be used in the EPS object. 
@@ -451,7 +451,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetType"
 /*@C
    EPSGetType - Gets the EPS type as a string from the EPS object.
@@ -477,7 +477,7 @@ PetscErrorCode EPSGetType(EPS eps,const EPSType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRegister"
 /*@C
   EPSRegister - See EPSRegisterDynamic()
@@ -495,7 +495,7 @@ PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRegisterDestroy"
 /*@
    EPSRegisterDestroy - Frees the list of EPS methods that were
@@ -517,7 +517,7 @@ PetscErrorCode EPSRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset"
 /*@
    EPSReset - Resets the EPS context to the setupcalled=0 state and removes any
@@ -547,7 +547,7 @@ PetscErrorCode EPSReset(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy"
 /*@C
    EPSDestroy - Destroys the EPS context.
@@ -581,7 +581,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetTarget"
 /*@
    EPSSetTarget - Sets the value of the target.
@@ -613,7 +613,7 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetTarget"
 /*@
    EPSGetTarget - Gets the value of the target.
@@ -642,7 +642,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetInterval"
 /*@
    EPSSetInterval - Defines the computational interval for spectrum slicing.
@@ -684,7 +684,7 @@ PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetInterval"
 /*@
    EPSGetInterval - Gets the computational interval for spectrum slicing.
@@ -716,7 +716,7 @@ PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetST"
 /*@
    EPSSetST - Associates a spectral transformation object to the eigensolver. 
@@ -750,7 +750,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetST"
 /*@C
    EPSGetST - Obtain the spectral transformation (ST) object associated
@@ -783,7 +783,7 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetIP"
 /*@
    EPSSetIP - Associates an inner product object to the eigensolver. 
@@ -817,7 +817,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetIP"
 /*@C
    EPSGetIP - Obtain the inner product object associated to the eigensolver object.
@@ -849,7 +849,7 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSIsGeneralized"
 /*@
    EPSIsGeneralized - Ask if the EPS object corresponds to a generalized 
@@ -886,7 +886,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSIsHermitian"
 /*@
    EPSIsHermitian - Ask if the EPS object corresponds to a Hermitian 
