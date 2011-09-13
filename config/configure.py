@@ -189,10 +189,8 @@ else:
 
 # Check PETSc version
 petscversion.Load(petscdir)
-if petscversion.VERSION < '3.1':
+if petscversion.VERSION < '3.2':
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION) 
-if petscversion.PATCHLEVEL < '4' and petscversion.RELEASE == '1':
-  sys.exit('ERROR: PETSc 3.1 patchlevel 4 required. Please upgrade to petsc-3.1-p4 or later') 
 
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
@@ -309,7 +307,7 @@ log.write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
-if petscversion.VERSION > '3.1':
+if petscversion.VERSION > '3.2':
   log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version')
 if petscversion.RELEASE != '1':
   log.Println('WARNING: using PETSc development version')
