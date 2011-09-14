@@ -24,14 +24,16 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
 EXAMPLESF  = 
 MANSEC     = EPS
-TESTS      = test1 test2 test3
+TESTS      = test1 test2 test3 test4 test5
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
-                       test3.PETSc runtest3_1 test3.rm 
+                       test3.PETSc runtest3_1 test3.rm \
+                       test4.PETSc runtest4_1 test4.rm \
+                       test5.PETSc runtest5_1 test5.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -50,6 +52,10 @@ test3: test3.o chkopts
 test4: test4.o chkopts
 	-${CLINKER} -o test4 test4.o ${SLEPC_LIB}
 	${RM} test4.o
+
+test5: test5.o chkopts
+	-${CLINKER} -o test5 test5.o ${SLEPC_LIB}
+	${RM} test5.o
 
 #------------------------------------------------------------------------------------
 EPS = krylovschur arnoldi lanczos gd jd
@@ -92,4 +98,14 @@ runtest4_1:
 	if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
 	else echo "Possible problem with test4_1, diffs above"; fi; \
 	${RM} -f test4_1.tmp
+
+runtest5_1:
+	-@touch test5_1.tmp; \
+	for eps in ${EPS}; do \
+	   echo "eps type $$eps" >> test5_1.tmp; \
+	   ${MPIEXEC} -np 1 ./test5 -type $$eps >> test5_1.tmp 2>&1;    \
+	done; \
+	if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
+	else echo "Possible problem with test5_1, diffs above"; fi; \
+	${RM} -f test5_1.tmp
 
