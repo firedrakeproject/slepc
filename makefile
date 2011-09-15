@@ -242,7 +242,7 @@ install:
             cp -f $$dir/*.m ${SLEPC_DESTDIR}/$$dir;\
           done; \
           cp -f bin/matlab/classes/slepcmatlabheader.h ${SLEPC_DESTDIR}/bin/matlab/classes;\
-          cp -f conf/slepc_common* ${SLEPC_DESTDIR}/conf;\
+          cp -f conf/slepc_* ${SLEPC_DESTDIR}/conf;\
           cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_DESTDIR}/conf;\
           cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_DESTDIR}/conf;\
           if [ ! -d ${SLEPC_DESTDIR}/lib ]; then \

@@ -10,7 +10,7 @@
 all_dummy:
 	-@true
 
-include ${SLEPC_DIR}/conf/slepc_common_variables
-include ${SLEPC_DIR}/conf/slepc_common_rules
+include ${SLEPC_DIR}/conf/slepc_variables
+include ${SLEPC_DIR}/conf/slepc_rules
 include ${PETSC_DIR}/conf/test
 
