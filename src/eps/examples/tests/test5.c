@@ -19,9 +19,10 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Tests different builds with a matrix loaded from a file.\n"
+static char help[] = "Test different builds with a matrix loaded from a file.\n"
   "This test is based on ex4.c in tutorials.\n"
-  "It loads test matrices available in PETSc's distribution.\n\n";
+  "It loads test matrices available in PETSc's distribution.\n"
+  "Add -symm or -herm to select the symmetric/Hermitian matrix.\n\n";
 
 #include <slepceps.h>
 
@@ -67,7 +68,7 @@ int main(int argc,char **argv)
 #endif
 
   ierr = PetscSNPrintf(filename,PETSC_MAX_PATH_LEN,"%s/share/petsc/datafiles/matrices/%s-%s-%s-%s",PETSC_DIR,prefix,scalar,ints,floats);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nReading matrix from a binary file...\n   %s\n",filename);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nReading matrix from binary file...\n  %s\n\n",filename);CHKERRQ(ierr);
   ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
@@ -79,6 +80,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  if (symm) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
+  else      { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
