@@ -19,26 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-include ${PETSC_DIR}/conf/variables
-include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
+include ${PETSC_DIR}/conf/test
 
-SLEPC_LIB_DIR	    = ${SLEPC_DIR}/${PETSC_ARCH}/lib
-SLEPC_INCLUDE       = -I${SLEPC_DIR} -I${SLEPC_DIR}/${PETSC_ARCH}/include -I${SLEPC_DIR}/include
-CC_INCLUDES         = ${PETSC_INCLUDE} ${SLEPC_INCLUDE}
-FC_INCLUDES         = ${PETSC_INCLUDE} ${SLEPC_INCLUDE}
-
-SLEPC_EXTERNAL_LIB  = ${ARPACK_LIB} ${BLZPACK_LIB} ${PLANSO_LIB} ${TRLAN_LIB} ${PRIMME_LIB} ${BLOPEX_LIB}
-OTHERSHAREDLIBS = ${SLEPC_EXTERNAL_LIB}
-
-INSTALL_LIB_DIR	= ${SLEPC_LIB_DIR}
-CCPPFLAGS	= ${PETSC_CCPPFLAGS} ${SLEPC_INCLUDE}
-FCPPFLAGS	= ${PETSC_FCPPFLAGS} ${SLEPC_INCLUDE}
-
-SLEPC_LIB         = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}
-
-# no longer required
-SLEPC_FORTRAN_LIB = 
-
-SHLIBS   = libslepc
-LIBNAME  = ${INSTALL_LIB_DIR}/${LIBBASE}.${AR_LIB_SUFFIX}
+testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
 

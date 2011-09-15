@@ -1,4 +1,23 @@
-include ${PETSC_DIR}/conf/rules
+#
+#  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  SLEPc - Scalable Library for Eigenvalue Problem Computations
+#  Copyright (c) 2002-2010, Universidad Politecnica de Valencia, Spain
+#
+#  This file is part of SLEPc.
+#     
+#  SLEPc is free software: you can redistribute it and/or modify it under  the
+#  terms of version 3 of the GNU Lesser General Public License as published by
+#  the Free Software Foundation.
+#
+#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
+#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
+#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+#  more details.
+#
+#  You  should have received a copy of the GNU Lesser General  Public  License
+#  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
+#  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#
 
 chkslepc_dir:
 	@mypwd=`pwd`; cd ${SLEPC_DIR} 2>&1 > /dev/null; true_SLEPC_DIR=`pwd`; cd $${mypwd} 2>&1 >/dev/null; \
@@ -75,7 +94,7 @@ slepc_html:
 	   cat makefile | ${C2HTML}  | ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml > $${loc}/makefile.html
 	-@${RM} /tmp/$$USER.htmlmap tmp
 
-slepctree: ${ACTION}
+slepc_tree: ${ACTION}
 	-@for dir in ${DIRS} ftn-auto ftn-custom f90-custom; do \
             if [ -d $$dir ]; then \
               if [ "${PETSC_ARCH}" = "arch-installed-petsc" ]; then \
@@ -136,7 +155,7 @@ slepctree: ${ACTION}
             fi; \
             (cd $$dir ; \
             echo ${ACTION} in: `pwd`; \
-            ${OMAKE} slepctree ACTION=${ACTION}  PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} DATAFILESPATH=${DATAFILESPATH} BASE_DIR=${BASE_DIR});\
+            ${OMAKE} slepc_tree ACTION=${ACTION}  PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} DATAFILESPATH=${DATAFILESPATH} BASE_DIR=${BASE_DIR});\
 	  done
 
 # uses the cmake infrastructure to build/rebuild the libraries
@@ -147,4 +166,5 @@ slepc_cmake:
            echo "CMake builds are disabled"; \
 	 fi
 
+include ${PETSC_DIR}/conf/rules
 include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcrules

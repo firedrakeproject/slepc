@@ -116,7 +116,7 @@ info:
 build:
 	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast  slepctree 
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast slepc_tree 
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 	-@echo "Completed building the SLEPc library"
 	-@echo "========================================="
@@ -135,7 +135,7 @@ testexamples: info
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	   ACTION=testexamples_C  slepctree 
+	   ACTION=testexamples_C slepc_tree 
 	-@echo "Completed compiling and running test examples"
 	-@echo "========================================="
 
@@ -149,7 +149,7 @@ testfortran: info
 	-@echo "========================================="
 	-@if [ "${FC}" != "" ]; then \
 	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	      ACTION=testexamples_Fortran  slepctree ; \
+	      ACTION=testexamples_Fortran slepc_tree ; \
             echo "Completed compiling and running Fortran test examples"; \
           else \
             echo "Error: No FORTRAN compiler available"; \
@@ -169,7 +169,7 @@ deletemods:
 
 # Cleans up build
 allclean: deletelibs deletemods
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean slepctree
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean slepc_tree
 
 #
 # Check if PETSC_DIR variable specified is valid
