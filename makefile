@@ -157,6 +157,23 @@ testfortran: info
 	-@
 	-@echo "========================================="
 
+# Test BLOPEX use
+testblopex:
+	-@echo "BEGINNING TO COMPILE AND RUN SLEPc BLOPEX TEST EXAMPLES"
+	-@echo "========================================="
+	-@echo "Due to different numerical round-off on certain"
+	-@echo "machines some of the results may not match exactly."
+	-@echo "========================================="
+	-@if [ "${BLOPEX_LIB}" != "" ]; then \
+	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
+	      ACTION=testexamples_BLOPEX slepc_tree ; \
+            echo "Completed compiling and running BLOPEX test examples"; \
+          else \
+            echo "Error: SLEPc has not been configured with BLOPEX"; \
+          fi
+	-@
+	-@echo "========================================="
+
 # Ranlib on the library
 ranlib:
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}

@@ -1,0 +1,58 @@
+eps type krylovschur
+
+Reading matrix from binary file...
+  $PETSC_DIR/share/petsc/datafiles/matrices/ns-real-int32-float64
+
+           k             ||Ax-kx||/||kx||
+  --------------------- ------------------
+        6.920722        9.67887e-16
+        5.806480        6.36741e-16
+        5.457556         5.8797e-16
+        4.700976        2.21401e-15
+        4.150569        5.96022e-16
+        4.092401        7.64348e-16
+        3.608795        6.84761e-16
+        3.170011         8.4364e-16
+        2.562318        1.20904e-15
+        1.841274        1.64206e-15
+        0.707703        3.61509e-15
+       -0.018805        1.25589e-13
+
+eps type arnoldi
+
+Reading matrix from binary file...
+  $PETSC_DIR/share/petsc/datafiles/matrices/ns-real-int32-float64
+
+           k             ||Ax-kx||/||kx||
+  --------------------- ------------------
+        6.920722        9.67887e-16
+        5.806480        6.36741e-16
+        5.457556         5.8797e-16
+        4.700976        2.21401e-15
+        4.150569        5.96022e-16
+        4.092401        7.64348e-16
+        3.608795        6.84761e-16
+        3.170011         8.4364e-16
+        2.562318        1.20904e-15
+        1.841274        1.64206e-15
+        0.707703        3.61509e-15
+       -0.018805        1.25589e-13
+
+eps type gd
+
+Reading matrix from binary file...
+  $PETSC_DIR/share/petsc/datafiles/matrices/ns-real-int32-float64
+
+           k             ||Ax-kx||/||kx||
+  --------------------- ------------------
+        6.920722        1.33797e-15
+
+eps type jd
+
+Reading matrix from binary file...
+  $PETSC_DIR/share/petsc/datafiles/matrices/ns-real-int32-float64
+
+           k             ||Ax-kx||/||kx||
+  --------------------- ------------------
+        6.920722        9.11188e-16
+

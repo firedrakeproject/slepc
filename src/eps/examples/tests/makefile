@@ -35,6 +35,8 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test4.PETSc runtest4_1 test4.rm \
                        test5.PETSc runtest5_1 test5.rm 
 
+TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm \
+
 include ${SLEPC_DIR}/conf/slepc_common
 
 test1: test1.o chkopts
@@ -58,10 +60,11 @@ test5: test5.o chkopts
 	${RM} test5.o
 
 #------------------------------------------------------------------------------------
-EPS = krylovschur arnoldi lanczos gd jd
+EPSALL = krylovschur arnoldi lanczos gd jd
+EPSNS  = krylovschur arnoldi gd jd
 runtest1_1:
 	-@touch test1_1.tmp; \
-	for eps in ${EPS}; do \
+	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test1_1.tmp; \
 	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps >> test1_1.tmp 2>&1; \
 	done; \
@@ -71,7 +74,7 @@ runtest1_1:
 
 runtest2_1:
 	-@touch test2_1.tmp; \
-	for eps in ${EPS}; do \
+	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test2_1.tmp; \
 	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps >> test2_1.tmp 2>&1;    \
 	done; \
@@ -81,7 +84,7 @@ runtest2_1:
 
 runtest3_1:
 	-@touch test3_1.tmp; \
-	for eps in ${EPS}; do \
+	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test3_1.tmp; \
 	   ${MPIEXEC} -np 1 ./test3 -eps_type $$eps >> test3_1.tmp 2>&1;    \
 	done; \
@@ -91,7 +94,7 @@ runtest3_1:
 
 runtest4_1:
 	-@touch test4_1.tmp; \
-	for eps in ${EPS}; do \
+	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test4_1.tmp; \
 	   ${MPIEXEC} -np 1 ./test4 -type $$eps >> test4_1.tmp 2>&1;    \
 	done; \
@@ -101,11 +104,17 @@ runtest4_1:
 
 runtest5_1:
 	-@touch test5_1.tmp; \
-	for eps in ${EPS}; do \
+	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test5 -type $$eps >> test5_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps >> test5_1.tmp 2>&1;    \
 	done; \
 	if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
 	else echo "Possible problem with test5_1, diffs above"; fi; \
 	${RM} -f test5_1.tmp
 
+runtest5_blopex:
+	-@touch test5_blopex.tmp; \
+	${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex >> test5_blopex.tmp 2>&1;    \
+	if (${DIFF} output/test5_blopex.out test5_blopex.tmp) then true; \
+	else echo "Possible problem with test5_blopex, diffs above"; fi; \
+	${RM} -f test5_blopex.tmp;
