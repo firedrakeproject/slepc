@@ -283,11 +283,12 @@ selects the GMRES solver with block Jacobi preconditioning. In the case of itera
 \end{Verbatim}
 	The shift-and-invert and Cayley transformations deserve special consideration. In these cases, the coefficient matrix is not a simple matrix but an expression that can be explicitly constructed or not, depending on the user's choice. This issue is examined in detail in \S\ref{sec:explicit} below.
 
-In many cases, especially if a shift-and-invert or Cayley transformation is being used, iterative methods may not be well suited for solving linear systems (because of the properties of the coefficient matrix that can be indefinite and badly conditioned). In such cases, during the execution of the application, the user may get the following message:
+In many cases, especially if a shift-and-invert or Cayley transformation is being used, iterative methods may not be well suited for solving linear systems (because of the properties of the coefficient matrix that can be indefinite and badly conditioned). When using an iterative linear solver, it may be helpful to run with the option \Verb!-st_ksp_converged_reason!, which will display the number of iterations required in each operator application.
+In extreme cases, the iterative solver fails, so \ident{EPSSolve} aborts with an error
 \begin{Verbatim}[fontsize=\small]
-	[0]PETSC ERROR: Warning: KSP did not converge (-3)!
+	[0]PETSC ERROR: KSP did not converge (reason=DIVERGED_ITS)!
 \end{Verbatim}
-If this happens, chances are that the \ident{EPS} object fails to compute the eigensolution or that the retrieved solution is wrong whatsoever. In that situation, it is necessary to use a direct method for solving the linear systems, as explained above.
+If this happens, it is necessary to use a direct method for solving the linear systems, as explained above.
 
 \paragraph{The Case of Preconditioned Eigensolvers.}
 

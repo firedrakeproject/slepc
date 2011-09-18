@@ -880,7 +880,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
   else *is = PETSC_FALSE;
   if (eps->setupcalled) {
     if (eps->isgeneralized!=*is) { 
-      SETERRQ(((PetscObject)eps)->comm,0,"Warning: Inconsistent EPS state");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
     }
   }
   PetscFunctionReturn(0);

@@ -93,7 +93,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
     }
   } else if ((B && !eps->isgeneralized) || (!B && eps->isgeneralized)) {
-    SETERRQ(((PetscObject)eps)->comm,0,"Warning: Inconsistent EPS state"); 
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
   }
 #if defined(PETSC_USE_COMPLEX)
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);

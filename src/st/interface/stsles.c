@@ -44,10 +44,10 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  if (!st->ksp) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP"); }
+  if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) { SETERRQ1(((PetscObject)st)->comm,0,"Warning: KSP did not converge (%d)",(int)reason); }
+  if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
   PetscInfo1(st,"Linear solve iterations=%D\n",its);
@@ -74,10 +74,10 @@ PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  if (!st->ksp) { SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP"); }
+  if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) { SETERRQ1(((PetscObject)st)->comm,0,"Warning: KSP did not converge (%d)",(int)reason); }
+  if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
   PetscInfo1(st,"Linear solve iterations=%D\n",its);

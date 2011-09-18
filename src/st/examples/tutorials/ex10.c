@@ -258,7 +258,7 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
 
   PetscFunctionBegin;
   ierr = STGetOperators(st,&A,&B);CHKERRQ(ierr);
-  if (B) { SETERRQ(((PetscObject)st)->comm,0,"Warning: This transformation is not intended for generalized problems"); }
+  if (B) { ierr = PetscInfo(B,"This transformation is not intended for generalized problems, ignoring matrix B");CHKERRQ(ierr); }
   ierr = KSPSetOperators(shell->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
