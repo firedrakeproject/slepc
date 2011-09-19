@@ -92,7 +92,11 @@ PetscErrorCode EPSSetUp(EPS eps)
     } else {
       ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
     }
-  } else if ((B && !eps->isgeneralized) || (!B && eps->isgeneralized)) {
+  } else if (!B && eps->isgeneralized) {
+    ierr = PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n");CHKERRQ(ierr);
+    eps->isgeneralized = PETSC_FALSE;
+    eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
+  } else if (B && !eps->isgeneralized) {
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
   }
 #if defined(PETSC_USE_COMPLEX)

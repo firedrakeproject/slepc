@@ -869,20 +869,9 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
 @*/
 PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 {
-  PetscErrorCode ierr;
-  Mat            B;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
-  ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
-  if (B) *is = PETSC_TRUE;
-  else *is = PETSC_FALSE;
-  if (eps->setupcalled) {
-    if (eps->isgeneralized!=*is) { 
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
-    }
-  }
+  *is = eps->isgeneralized;
   PetscFunctionReturn(0);
 }
 
@@ -908,7 +897,6 @@ PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->ishermitian) *is = PETSC_TRUE;
-  else *is = PETSC_FALSE;
+  *is = eps->ishermitian;
   PetscFunctionReturn(0);
 }
