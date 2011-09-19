@@ -64,7 +64,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->which!=EPS_LARGEST_MAGNITUDE)
@@ -77,9 +77,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (mode == ST_MATMODE_INPLACE)
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
-  if (eps->extraction) {
-     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
-  }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   if (eps->balance!=EPS_BALANCE_NONE)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -228,7 +226,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         ierr = EPSGetStartVector(eps,eps->nconv,v,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
-          PetscInfo(eps,"Unable to generate more start vectors\n");
+          ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
         }
       }
     }

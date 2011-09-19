@@ -43,7 +43,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   
   PetscFunctionBegin;
   eps->ncv = eps->n;
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n"); }
 
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->balance!=EPS_BALANCE_NONE)
@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       PetscFunctionReturn(0);
     }
   }
-  PetscInfo(eps,"Using slow explicit operator\n");
+  ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
   la->A = PETSC_NULL;
   la->B = PETSC_NULL;
   ierr = STComputeExplicitOperator(eps->OP,&la->OP);CHKERRQ(ierr);
@@ -89,9 +89,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (!flg) {
     ierr = SlepcMatConvertSeqDense(la->OP,&la->OP);CHKERRQ(ierr);
   }
-  if (eps->extraction) {
-     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
-  }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

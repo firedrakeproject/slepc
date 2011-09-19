@@ -438,7 +438,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     }
     if (!fro && norm*delta < anorm*eps1) {
       fro = PETSC_TRUE;
-      PetscInfo1(eps,"Switching to full reorthogonalization at iteration %D\n",eps->its);
+      ierr = PetscInfo1(eps,"Switching to full reorthogonalization at iteration %D\n",eps->its);CHKERRQ(ierr);
     }
     
     beta[j-k] = norm;
@@ -584,7 +584,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* Compute restart vector */
     if (breakdown) {
-      PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%G)\n",eps->its,beta);
+      ierr = PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
     } else {
       restart = 0;
       while (restart<n && conv[restart] != 'N') restart++;
@@ -675,12 +675,12 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       }
       if (breakdown) {
         /* Use random vector for restarting */
-        PetscInfo(eps,"Using random vector for restart\n");
+        ierr = PetscInfo(eps,"Using random vector for restart\n");CHKERRQ(ierr);
         ierr = EPSGetStartVector(eps,nconv,f,&breakdown);CHKERRQ(ierr);
       }
       if (breakdown) { /* give up */
         eps->reason = EPS_DIVERGED_BREAKDOWN;
-        PetscInfo(eps,"Unable to generate more start vectors\n");
+        ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
       } else {
         ierr = VecCopy(f,eps->V[nconv]);CHKERRQ(ierr);
       }

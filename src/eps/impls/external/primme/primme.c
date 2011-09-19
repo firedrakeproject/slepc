@@ -144,11 +144,9 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   else eps->ncv = primme->maxBasisSize;
   if (eps->ncv < eps->nev+primme->maxBlockSize)  
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
 
-  if (eps->extraction) {
-     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
-  }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   /* Set workspace */
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);

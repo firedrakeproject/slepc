@@ -170,8 +170,9 @@ PetscErrorCode EPSSetUp(EPS eps)
       k = 0;
       for (i=0;i<eps->nds;i++) {
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->DS,eps->DS[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
-        if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent deflation vector found, removing...\n");
-        else {
+        if (norm==0.0 || lindep) {
+          ierr = PetscInfo(eps,"Linearly dependent deflation vector found, removing...\n");CHKERRQ(ierr);
+        } else {
           ierr = VecScale(eps->DS[k],1.0/norm);CHKERRQ(ierr);
           k++;
         }
@@ -192,8 +193,9 @@ PetscErrorCode EPSSetUp(EPS eps)
       ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&eps->IS[i]);CHKERRQ(ierr);
       ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
-      if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent initial vector found, removing...\n");
-      else {
+      if (norm==0.0 || lindep) {
+        ierr = PetscInfo(eps,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr);
+      } else {
         ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
         k++;
       }
@@ -202,8 +204,9 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscFree(eps->IS);CHKERRQ(ierr);
   }
   if (eps->ninil<0) {
-    if (!eps->leftvecs) PetscInfo(eps,"Ignoring initial left vectors\n");
-    else {
+    if (!eps->leftvecs) {
+      ierr = PetscInfo(eps,"Ignoring initial left vectors\n");CHKERRQ(ierr);
+    } else {
       eps->ninil = -eps->ninil;
       if (eps->ninil>eps->ncv) SETERRQ(((PetscObject)eps)->comm,1,"The number of initial left vectors is larger than ncv");
       k = 0;
@@ -211,8 +214,9 @@ PetscErrorCode EPSSetUp(EPS eps)
         ierr = VecCopy(eps->ISL[i],eps->W[k]);CHKERRQ(ierr);
         ierr = VecDestroy(&eps->ISL[i]);CHKERRQ(ierr);
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->W,eps->W[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
-        if (norm==0.0 || lindep) PetscInfo(eps,"Linearly dependent initial left vector found, removing...\n");
-        else {
+        if (norm==0.0 || lindep) {
+          ierr = PetscInfo(eps,"Linearly dependent initial left vector found, removing...\n");CHKERRQ(ierr);
+        } else {
           ierr = VecScale(eps->W[k],1.0/norm);CHKERRQ(ierr);
           k++;
         }

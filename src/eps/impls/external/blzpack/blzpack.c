@@ -80,7 +80,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
       SETERRQ(((PetscObject)eps)->comm,0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   }
   else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
   if (!eps->ishermitian)
@@ -127,9 +127,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
   ierr = PetscMalloc(2*eps->ncv*sizeof(PetscReal),&blz->eig);CHKERRQ(ierr);
 
-  if (eps->extraction) {
-     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
-  }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
@@ -228,7 +226,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       break;
     case 3:  
       /* update shift */
-      PetscInfo1(eps,"Factorization update (sigma=%g)\n",sigma);
+      ierr = PetscInfo1(eps,"Factorization update (sigma=%g)\n",sigma);CHKERRQ(ierr);
       ierr = STSetShift(eps->OP,sigma);CHKERRQ(ierr);
       ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);

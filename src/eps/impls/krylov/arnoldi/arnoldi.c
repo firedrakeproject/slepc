@@ -78,7 +78,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (eps->leftvecs) {
     ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
-    PetscInfo(eps,"Warning: parameter mpd ignored\n");
+    ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr);
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   } else {
     ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
@@ -423,11 +423,11 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     if (breakdown) {
-      PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%G)\n",eps->its,beta);
+      ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
       ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       if (breakdown) {
         eps->reason = EPS_DIVERGED_BREAKDOWN;
-        PetscInfo(eps,"Unable to generate more start vectors\n");
+        ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
       }
     }
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;

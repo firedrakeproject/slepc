@@ -40,7 +40,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
     if (eps->ncv<eps->nev+2) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev+2"); 
   } else /* set default value of ncv */
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n);
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
 
@@ -67,9 +67,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*eps->nloc*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
-  if (eps->extraction) {
-     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
-  }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   if (eps->balance!=EPS_BALANCE_NONE)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");

@@ -157,7 +157,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = STGetKSP(eps->OP,&blopex->ksp);CHKERRQ(ierr);
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -186,9 +186,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
 #endif
 
-  if (eps->extraction) {
-     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
-  }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");

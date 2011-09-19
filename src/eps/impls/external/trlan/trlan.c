@@ -41,7 +41,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   }
   else eps->ncv = eps->nev;
-  if (eps->mpd) PetscInfo(eps,"Warning: parameter mpd ignored\n");
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   
   if (!eps->ishermitian)
@@ -60,9 +60,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   else { tr->lwork = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10)); }
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
-  if (eps->extraction) {
-     ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr);
-  }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
