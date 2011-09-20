@@ -243,7 +243,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
       case EPS_ALL:
-        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",eps->inta,eps->intb);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%G,%G]\n",eps->inta,eps->intb);CHKERRQ(ierr);
         break;
       default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
     }    
@@ -258,7 +258,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",eps->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",eps->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %d\n",eps->mpd);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",eps->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
