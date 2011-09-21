@@ -26,11 +26,11 @@ ALL: all
 LOCDIR = .
 DIRS   = src include docs 
 
-# next line defines SLEPC_DIR, PETSC_DIR and PETSC_ARCH if they are not set
+# Include the rest of makefiles
 include ${SLEPC_DIR}/conf/slepc_common
 
 #
-# Basic targets to build SLEPc library.
+# Basic targets to build SLEPc library
 all:
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkslepc_dir
@@ -114,11 +114,11 @@ info:
 # Builds the SLEPc library
 #
 build:
-	-@echo "BEGINNING TO COMPILE SLEPc LIBRARIES IN ALL DIRECTORIES"
+	-@echo "BEGINNING TO COMPILE LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast slepc_tree 
-	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
-	-@echo "Completed building the SLEPc library"
+	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}  > tmpf 2>&1 ; ${GREP} -v "has no symbols" tmpf; ${RM} tmpf;
+	-@echo "Completed building libraries"
 	-@echo "========================================="
 
 # Simple test examples for checking a correct installation
@@ -206,7 +206,9 @@ chk_slepc_dir:
 	  echo "You need to use / to separate directories, not \\!"; \
 	  echo "Aborting build"; \
 	  false; fi
-
+#
+# Install relevant files in the prefix directory
+#
 install:
 	-@if [ "${PETSC_ARCH}" = "" ]; then \
 	  echo "PETSC_ARCH is undefined";\
@@ -294,25 +296,29 @@ alldoc1: chk_loc deletemanualpages
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 	-${OMAKE} ACTION=slepc_manualpages tree_basic LOC=${LOC}
-	-${PETSC_DIR}/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
+	-${PYTHON} ${PETSC_DIR}/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
 	-${OMAKE} ACTION=manexamples tree_basic LOC=${LOC}
 
 # Builds .html versions of the source
-# html overwrites some stuff created by update-docs - hence this is done later.
 alldoc2: chk_loc
 	-${OMAKE} ACTION=slepc_html PETSC_DIR=${PETSC_DIR} alltree LOC=${LOC}
 	cp ${LOC}/docs/manual.htm ${LOC}/docs/index.html
 
-# Deletes man pages (HTML version)
+# Deletes documentation
+alldocclean: deletemanualpages allcleanhtml
 deletemanualpages: chk_loc
 	-@if [ -d ${LOC} -a -d ${LOC}/docs/manualpages ]; then \
           find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \; ;\
           ${RM} ${LOC}/docs/manualpages/manualpages.cit ;\
         fi
+allcleanhtml: 
+	-${OMAKE} ACTION=cleanhtml PETSC_DIR=${PETSC_DIR} alltree
 
 # Builds Fortran stub files
 allfortranstubs:
-	-@${SLEPC_DIR}/config/generatefortranstubs.py ${BFORT}
+	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py ${BFORT}
+deletefortranstubs:
+	-@find . -type d -name ftn-auto | xargs rm -rf 
 
 # -------------------------------------------------------------------------------
 #
@@ -326,7 +332,8 @@ countfortranfunctions:
 	sed "s/_$$//"; done | sort > /tmp/countfortranfunctions
 
 countcfunctions:
-	-@ grep "EXTERN " ${SLEPC_DIR}/include/*.h | grep "(" | tr -s ' ' | \
+	-@ ls ${SLEPC_DIR}/include/*.h | grep -v slepcblaslapack.h | \
+	xargs grep extern | grep "(" | tr -s ' ' | \
 	cut -d'(' -f1 | cut -d' ' -f3 | grep -v "\*" | tr -s '\012' |  \
 	tr 'A-Z' 'a-z' |  sort > /tmp/countcfunctions
 
@@ -367,5 +374,6 @@ checkbadfortranstubs:
 
 # Generate tags with PETSc's script
 alletags:
-	-@${PETSC_DIR}/bin/maint/generateetags.py
+	-@${PYTHON} ${PETSC_DIR}/bin/maint/generateetags.py
+	-@find config -type f -name "*.py" |grep -v SCCS | xargs etags -o TAGS_PYTHON
 
