@@ -363,11 +363,11 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
             im = ki;
 #endif 
             if (im!=0.0) {
-              ierr = PetscViewerASCIIPrintf(viewer,"%8.5F%+8.5Fj",re,im);CHKERRQ(ierr);
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
             } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%8.5F",re);CHKERRQ(ierr); 
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr); 
             }
-            if (8*i+j+1<eps->nev) { ierr = PetscViewerASCIIPrintf(viewer,",");CHKERRQ(ierr); }
+            if (8*i+j+1<eps->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
         }
         ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
@@ -392,9 +392,9 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
         im = ki;
 #endif 
         if (im!=0.0) {
-          ierr = PetscViewerASCIIPrintf(viewer," %9F%+9F j %12G\n",re,im,error);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer," % 9F%+9F i %12G\n",re,im,error);CHKERRQ(ierr);
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   %12F       %12G\n",re,error);CHKERRQ(ierr); 
+          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F       %12G\n",re,error);CHKERRQ(ierr); 
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
