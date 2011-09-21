@@ -126,7 +126,7 @@ int main(int argc,char **argv)
   ierr = DMDAGetInfo(da,PETSC_NULL,&M,&N,&P,&m,&n,&p,
                      PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,
                      PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Grid partitioning: %d %d %d\n",m,n,p);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Grid partitioning: %D %D %D\n",m,n,p);CHKERRQ(ierr);
 
   /* create and fill the matrix */
   ierr = DMGetMatrix(da,MATAIJ,&A);CHKERRQ(ierr);
@@ -180,7 +180,7 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscGetTime(&t3);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
@@ -188,9 +188,9 @@ int main(int argc,char **argv)
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %d\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
@@ -200,7 +200,7 @@ int main(int argc,char **argv)
      Get number of converged approximate eigenpairs
   */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
     ierr = PetscMalloc(nconv*sizeof(PetscReal),&exact);CHKERRQ(ierr);
@@ -232,7 +232,7 @@ int main(int argc,char **argv)
 #endif 
       if (im!=0.0) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalue should be real!");
       else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",re,error,PetscAbsReal(re-exact[i]));CHKERRQ(ierr); 
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12G       %12G        %12G\n",re,error,PetscAbsReal(re-exact[i]));CHKERRQ(ierr); 
       }
     }
     ierr = PetscFree(exact);CHKERRQ(ierr);
@@ -244,7 +244,7 @@ int main(int argc,char **argv)
   */
   ierr = PetscOptionsHasName(PETSC_NULL,"-showtimes",&flg);CHKERRQ(ierr);
   if (flg) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %g (setup), %g (solve)\n",t2-t1,t3-t2);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %G (setup), %G (solve)\n",t2-t1,t3-t2);CHKERRQ(ierr);
   }
 
   /* 

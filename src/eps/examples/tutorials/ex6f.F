@@ -49,10 +49,9 @@
       Mat            A
       EPS            eps
       EPSType        tname
-      PetscReal      tol, error
-      PetscScalar    kr, ki
-      PetscInt       N, m, i
-      PetscInt       nev, maxit, its, nconv
+      PetscReal      tol
+      PetscInt       N, m
+      PetscInt       nev, maxit, its
       PetscMPIInt    sz, rank
       PetscErrorCode ierr
       PetscBool      flg
@@ -141,36 +140,7 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-!     ** Get number of converged eigenpairs 
-      call EPSGetConverged(eps,nconv,ierr)
-      if (rank .eq. 0) then
-        write(*,'(A,I2)') ' Number of converged eigenpairs:', nconv
-      endif
-
-!     ** Display eigenvalues and relative errors
-      if (nconv.gt.0 .and. rank.eq.0) then
-        write(*,*)
-        write(*,*) '           k          ||Ax-kx||/||kx||'
-        write(*,*) '   ----------------- ------------------'
-        do i=0,nconv-1
-!         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
-!         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL_OBJECT,           &
-     &                         PETSC_NULL_OBJECT,ierr)
-
-!         ** Compute the relative error associated to each eigenpair
-          call EPSComputeRelativeError(eps,i,error,ierr)
-
-          if (ki.ne.0.D0) then
-            write(*,'(1P,E11.4,E11.4,A,E12.4)') kr, ki, ' j ', error
-          else
-            write(*,'(1P,A,E12.4,A,E12.4)') '   ', kr, '       ', error
-          endif
-        enddo
-      endif
-      write(*,*)
-
-!     ** Free work space
+      call EPSPrintSolution(eps,PETSC_NULL_OBJECT,ierr)
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 
@@ -200,7 +170,7 @@
 
       Mat            A
       Vec            x,y
-      integer        trans,one,N
+      PetscInt       trans,one,N
       PetscScalar    x_array(1),y_array(1)
       PetscOffset    i_x,i_y
       PetscErrorCode ierr
@@ -229,10 +199,10 @@
       SUBROUTINE MVMISG( TRANS, N, M, X, LDX, Y, LDY )
 !     ..
 !     .. Scalar Arguments ..
-      INTEGER            LDY, LDX, M, N, TRANS
+      PetscInt     LDY, LDX, M, N, TRANS
 !     ..
 !     .. Array Arguments ..
-      DOUBLE PRECISION   Y( LDY, * ), X( LDX, * )
+      PetscScalar  Y( LDY, * ), X( LDX, * )
 !     ..
 !
 !  Purpose
@@ -255,7 +225,7 @@
 !  N       (input) INTEGER
 !          The order of the matrix A. N has to be an even number.
 !
-!  M       (input) INTEGERS
+!  M       (input) INTEGER
 !          The number of columns of X to multiply.
 !
 !  X       (input) DOUBLE PRECISION array, dimension ( LDX, M )
@@ -274,17 +244,18 @@
 !
 !
 !     .. PARAMETERS ..
-      DOUBLE PRECISION   PI 
-      PARAMETER          ( PI = 3.141592653589793D+00 )
-      DOUBLE PRECISION   ALPHA, BETA
-      PARAMETER          ( ALPHA = PI/4, BETA = PI/4 ) 
+      PetscReal   PI 
+      PARAMETER   ( PI = 3.141592653589793D+00 )
+      PetscReal   ALPHA, BETA
+      PARAMETER   ( ALPHA = PI/4, BETA = PI/4 ) 
 !
 !     .. Local Variables .. 
-      INTEGER            I, K 
-      DOUBLE PRECISION   COSA, COSB, SINA, SINB, TEMP, TEMP1 
+      PetscInt    I, K 
+      PetscReal   COSA, COSB, SINA
+      PetscReal   SINB, TEMP, TEMP1 
 !
 !     .. Intrinsic functions ..
-      INTRINSIC          COS, SIN 
+      INTRINSIC   COS, SIN 
 !
       COSA = COS( ALPHA ) 
       SINA = SIN( ALPHA ) 

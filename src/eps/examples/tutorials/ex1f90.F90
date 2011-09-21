@@ -57,10 +57,9 @@
       EPS            solver
 #endif
       EPSType        tname
-      PetscReal      tol, error
-      PetscScalar    kr, ki
+      PetscReal      tol
       PetscInt       n, i, Istart, Iend
-      PetscInt       nev, maxit, its, nconv
+      PetscInt       nev, maxit, its
       PetscInt       row(1), col(3)
       PetscMPIInt    rank
       PetscErrorCode ierr
@@ -169,39 +168,7 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-!     ** Get number of converged eigenpairs
-      call EPSGetConverged(solver,nconv,ierr)
-      if (rank .eq. 0) then
-        write(*,150) nconv
-      endif
- 150  format (' Number of converged eigenpairs:',I4/)
-
-!     ** Display eigenvalues and relative errors
-      if (nconv.gt.0) then
-        if (rank .eq. 0) then
-          write(*,*) '         k          ||Ax-kx||/||kx||'
-          write(*,*) ' ----------------- ------------------'
-        endif
-        do i=0,nconv-1
-!         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
-!         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(solver,i,kr,ki,PETSC_NULL_OBJECT,        &
-     &                         PETSC_NULL_OBJECT,ierr)
-
-!         ** Compute the relative error associated to each eigenpair
-          call EPSComputeRelativeError(solver,i,error,ierr)
-          if (rank .eq. 0) then
-            write(*,160) PetscRealPart(kr), error
-          endif
- 160      format (1P,'   ',E12.4,'       ',E12.4)
-
-        enddo
-        if (rank .eq. 0) then
-          write(*,*)
-        endif
-      endif
-
-!     ** Free work space
+      call EPSPrintSolution(solver,PETSC_NULL_OBJECT,ierr)
       call EPSDestroy(solver,ierr)
       call MatDestroy(A,ierr)
 

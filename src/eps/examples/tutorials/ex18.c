@@ -42,18 +42,18 @@ int main(int argc,char **argv)
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      error,tol,re,im;
-  PetscScalar    kr,ki,target=0.5;
-  PetscInt       N,m=15,nev,maxit,i,its,nconv;
+  PetscReal      tol;
+  PetscScalar    target=0.5;
+  PetscInt       N,m=15,nev,maxit,its;
   PetscErrorCode ierr;
   
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,PETSC_NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%d (m=%d)\n",N,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n",N,m);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(PETSC_NULL,"-target",&target,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %g.\n\n",target);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %G.\n\n",target);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -104,7 +104,7 @@ int main(int argc,char **argv)
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
@@ -112,58 +112,15 @@ int main(int argc,char **argv)
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %d\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
-     Get number of converged approximate eigenpairs
-  */
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
-
-  if (nconv>0) {
-    /*
-       Display eigenvalues and relative errors
-    */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-
-    for (i=0;i<nconv;i++) {
-      /* 
-        Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
-        ki (imaginary part)
-      */
-      ierr = EPSGetEigenpair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      /*
-         Compute the relative error associated to each eigenpair
-      */
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
-#else
-      re = kr;
-      im = ki;
-#endif 
-      if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",re,im,error);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
-      }
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
-  
-  /* 
-     Free work space
-  */
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&v0);CHKERRQ(ierr);
