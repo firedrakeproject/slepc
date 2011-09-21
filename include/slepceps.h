@@ -156,6 +156,7 @@ extern PetscErrorCode EPSSetFromOptions(EPS);
 extern PetscErrorCode EPSSetUp(EPS);
 extern PetscErrorCode EPSSolve(EPS);
 extern PetscErrorCode EPSView(EPS,PetscViewer);
+extern PetscErrorCode EPSPrintSolution(EPS,PetscViewer);
 
 extern PetscErrorCode EPSSetTarget(EPS,PetscScalar);
 extern PetscErrorCode EPSGetTarget(EPS,PetscScalar*);
