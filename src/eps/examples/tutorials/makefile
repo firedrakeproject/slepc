@@ -29,20 +29,16 @@ EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex12.c ex13.c \
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
-TESTEXAMPLES_C       = ex1.PETSc runex1_1 ex1.rm \
-                       ex2.PETSc runex2_1 ex2.rm \
+TESTEXAMPLES_C       = ex2.PETSc runex2_1 ex2.rm \
                        ex3.PETSc runex3_1 ex3.rm \
                        ex4.PETSc runex4_1 ex4.rm \
                        ex5.PETSc runex5_1 ex5.rm \
                        ex7.PETSc runex7_1 ex7.rm \
                        ex9.PETSc runex9_1 ex9.rm \
                        ex11.PETSc runex11_1 ex11.rm \
-                       ex12.PETSc runex12_1 ex12.rm \
                        ex13.PETSc runex13_1 ex13.rm \
-                       ex18.PETSc runex18_1 ex18.rm \
-                       ex19.PETSc runex19_1 ex19.rm
-TESTEXAMPLES_FORTRAN = ex1f.PETSc runex1f_1 ex1f.rm \
-                       ex6f.PETSc runex6f_1 ex6f.rm
+                       ex18.PETSc runex18_1 ex18.rm
+TESTEXAMPLES_FORTRAN = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90     = ex1f90.PETSc runex1f90_1 ex1f90.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
@@ -115,86 +111,86 @@ runex1_1:
 	   else echo "Possible problem with ex1_1, diffs above"; fi; \
 	   ${RM} -f ex1_1.tmp
 
-testex1: ex1.PETSc
-	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-           echo "Running with batch filesystem; to test run src/examples/ex1 with" ; \
-           echo "your systems batch system"; \
-	else \
-           ${MPIEXEC} -np 1 ./ex1 > ex1_1.tmp 2>&1; \
-	   if (${DIFF} output/ex1_1.out ex1_1.tmp > /dev/null 2>&1) then \
-           echo "C/C++ example src/examples/ex1 run successfully with 1 MPI process"; \
-	   else echo "Possible error running C/C++ src/examples/ex1 with 1 MPI process"; \
-           cat ex1_1.tmp; fi; \
-           ${RM} -f ex1 ex1_1.tmp; fi
-
 runex1f_1:
 	-@${MPIEXEC} -np 1 ./ex1f > ex1f_1.tmp 2>&1; \
 	   if (${DIFF} output/ex1f_1.out ex1f_1.tmp) then true; \
 	   else echo "Possible problem with ex1f_1, diffs above"; fi; \
 	   ${RM} -f ex1f_1.tmp
 
-testex1f: ex1f.PETSc
-	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-	   echo "Running with batch filesystem; to test run src/examples/ex1f with" ; \
-	   echo "your systems batch system"; \
-	else \
-           ${MPIEXEC} -np 1 ./ex1f > ex1f_1.tmp 2>&1; \
-	   if (${DIFF} output/ex1f_1.out ex1f_1.tmp > /dev/null 2>&1) then \
-           echo "Fortran example src/examples/ex1f run successfully with 1 MPI process"; \
-	   else echo "Possible error running Fortran src/examples/ex1f with 1 MPI process"; \
-           cat ex1f_1.tmp; fi; \
-           ${RM} -f ex1f ex1f_1.tmp; fi
-
 runex1f90_1:
-	-@${MPIEXEC} -np 1 ./ex1f90 > ex1f90_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex1f90 -eps_nev 4 -eps_terse > ex1f90_1.tmp 2>&1; \
 	   if (${DIFF} output/ex1f90_1.out ex1f90_1.tmp) then true; \
 	   else echo "Possible problem with ex1f90_1, diffs above"; fi; \
 	   ${RM} -f ex1f90_1.tmp
 
 runex2_1:
-	-@${MPIEXEC} -np 1 ./ex2 > ex2_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex2 -eps_nev 4 -eps_terse > ex2_1.tmp 2>&1; \
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp) then true; \
 	   else echo "Possible problem with ex2_1, diffs above"; fi; \
 	   ${RM} -f ex2_1.tmp
 
+testex2: ex2.PETSc
+	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+           echo "Running with batch filesystem; to test run src/eps/examples/tutorials/ex2" ; \
+           echo "with your systems batch system"; \
+	else \
+           ${MPIEXEC} -np 1 ./ex2 -eps_nev 4 -eps_terse > ex2_1.tmp 2>&1; \
+	   if (${DIFF} output/ex2_1.out ex2_1.tmp > /dev/null 2>&1) then \
+           echo "C/C++ example src/eps/examples/tutorials/ex2 run successfully with 1 MPI process"; \
+	   else echo "Possible error running C/C++ src/eps/examples/tutorials/ex1 with 1 MPI process"; \
+           cat ex2_1.tmp; fi; \
+           ${RM} -f ex2 ex2_1.tmp; fi
+
 runex3_1:
-	-@${MPIEXEC} -np 1 ./ex3 > ex3_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex3 -eps_nev 4 -eps_terse > ex3_1.tmp 2>&1; \
 	   if (${DIFF} output/ex3_1.out ex3_1.tmp) then true; \
 	   else echo "Possible problem with ex3_1, diffs above"; fi; \
 	   ${RM} -f ex3_1.tmp
 
 runex4_1:
-	-@${MPIEXEC} -np 1 ./ex4 -file ${SLEPC_DIR}/src/mat/examples/rdb200.petsc > ex4_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex4 -file ${SLEPC_DIR}/src/mat/examples/rdb200.petsc -eps_nev 4 -eps_terse > ex4_1.tmp 2>&1; \
 	   if (${DIFF} output/ex4_1.out ex4_1.tmp) then true; \
 	   else echo "Possible problem with ex4_1, diffs above"; fi; \
 	   ${RM} -f ex4_1.tmp
 
 runex5_1:
-	-@${MPIEXEC} -np 1 ./ex5 -st_shift 1 > ex5_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex5 -st_shift 1 -eps_nev 4 -eps_terse > ex5_1.tmp 2>&1; \
 	   if (${DIFF} output/ex5_1.out ex5_1.tmp) then true; \
 	   else echo "Possible problem with ex5_1, diffs above"; fi; \
 	   ${RM} -f ex5_1.tmp
 
 runex6f_1:
-	-@${MPIEXEC} -np 1 ./ex6f -st_shift 1 -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 > ex6f_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex6f -st_shift 1 -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_terse > ex6f_1.tmp 2>&1; \
 	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp) then true; \
 	   else echo "Possible problem with ex6f_1, diffs above"; fi; \
 	   ${RM} -f ex6f_1.tmp
 
+testex6f: ex6f.PETSc
+	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+	   echo "Running with batch filesystem; to test run src/eps/examples/tutorials/ex6f " ; \
+	   echo "with your systems batch system"; \
+	else \
+           ${MPIEXEC} -np 1 ./ex6f -st_shift 1 -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_terse > ex6f_1.tmp 2>&1; \
+	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp > /dev/null 2>&1) then \
+           echo "Fortran example src/eps/examples/tutorials/ex6f run successfully with 1 MPI process"; \
+	   else echo "Possible error running Fortran src/eps/examples/tutorials/ex6f with 1 MPI process"; \
+           cat ex6f_1.tmp; fi; \
+           ${RM} -f ex6f ex6f_1.tmp; fi
+
 runex7_1:
-	-@${MPIEXEC} -np 1 ./ex7 -f1 ${SLEPC_DIR}/src/mat/examples/bfw62a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/bfw62b.petsc > ex7_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex7 -f1 ${SLEPC_DIR}/src/mat/examples/bfw62a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/bfw62b.petsc -eps_nev 4 -eps_terse > ex7_1.tmp 2>&1; \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp
 
 runex9_1:
-	-@${MPIEXEC} -np 1 ./ex9 > ex9_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex9 -eps_nev 4 -eps_terse > ex9_1.tmp 2>&1; \
 	   if (${DIFF} output/ex9_1.out ex9_1.tmp) then true; \
 	   else echo "Possible problem with ex9_1, diffs above"; fi; \
 	   ${RM} -f ex9_1.tmp
 
 runex11_1:
-	-@${MPIEXEC} -np 1 ./ex11 > ex11_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex11 -eps_nev 4 -eps_terse > ex11_1.tmp 2>&1; \
 	   if (${DIFF} output/ex11_1.out ex11_1.tmp) then true; \
 	   else echo "Possible problem with ex11_1, diffs above"; fi; \
 	   ${RM} -f ex11_1.tmp
@@ -206,13 +202,13 @@ runex12_1:
 	   ${RM} -f ex12_1.tmp
 
 runex13_1:
-	-@${MPIEXEC} -np 1 ./ex13 > ex13_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex13 -eps_nev 4 -eps_terse > ex13_1.tmp 2>&1; \
 	   if (${DIFF} output/ex13_1.out ex13_1.tmp) then true; \
 	   else echo "Possible problem with ex13_1, diffs above"; fi; \
 	   ${RM} -f ex13_1.tmp
 
 runex18_1:
-	-@${MPIEXEC} -np 1 ./ex18 > ex18_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex18 -eps_nev 4 -eps_terse > ex18_1.tmp 2>&1; \
 	   if (${DIFF} output/ex18_1.out ex18_1.tmp) then true; \
 	   else echo "Possible problem with ex18_1, diffs above"; fi; \
 	   ${RM} -f ex18_1.tmp

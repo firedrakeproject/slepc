@@ -35,7 +35,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test4.PETSc runtest4_1 test4.rm \
                        test5.PETSc runtest5_1 test5.rm 
 
-TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm \
+TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
 

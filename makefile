@@ -124,8 +124,8 @@ build:
 # Simple test examples for checking a correct installation
 test: 
 	-@echo "Running test examples to verify correct installation"
-	@cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testex1
-	@if [ "${FC}" != "" ]; then cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} testex1f; fi;
+	@cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testex2
+	@if [ "${FC}" != "" ]; then cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} testex6f; fi;
 	-@echo "Completed test examples"
 
 # Builds SLEPc test examples for C

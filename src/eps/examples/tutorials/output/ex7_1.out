@@ -2,17 +2,12 @@
 Generalized eigenproblem stored in file.
 
  Reading REAL matrices from binary files...
- Number of iterations of the method: 3
- Number of linear iterations of the method: 32
+ Number of iterations of the method: 4
+ Number of linear iterations of the method: 46
  Solution method: krylovschur
 
- Number of requested eigenvalues: 1
+ Number of requested eigenvalues: 4
  Stopping condition: tol=1e-07, maxit=100
- Number of converged approximate eigenpairs: 3
-
-           k             ||Ax-kBx||/||kx||
-  --------------------- ------------------
- -243874.978705 +6999.669272 i  8.73505e-16
- -243874.978705 -6999.669272 i  8.73505e-16
-       -212991.490685        2.88246e-12
+ All requested eigenvalues computed up to the required tolerance:
+     -243874.97870+6999.66927i, -243874.97870-6999.66927i, -212991.49278, -199807.74659
 
