@@ -105,7 +105,7 @@ PetscErrorCode EPSCreate_JD(EPS eps)
   /* Set the default ksp of the st to gmres */
   ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp,1e-3,1e-10,PETSC_DEFAULT,90);CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
 
   /* Overload the JD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_JD;
