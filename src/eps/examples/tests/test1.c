@@ -30,8 +30,7 @@ int main( int argc, char **argv )
   Mat            A,B;        /* matrices */
   EPS            eps;        /* eigenproblem solver context */
   Vec            *X,v;
-  PetscReal      error,re;
-  PetscScalar    kr,lev;
+  PetscScalar    lev;
   PetscInt       N,n=45,m,Istart,Iend,II,i,j,its,nconv;
   PetscBool      flag;
   PetscErrorCode ierr;
@@ -41,7 +40,7 @@ int main( int argc, char **argv )
   ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if(!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized Symmetric Eigenproblem, N=%d (%dx%d grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized Symmetric Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the matrices that define the eigensystem, Ax=kBx
@@ -89,33 +88,19 @@ int main( int argc, char **argv )
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n\n",nconv);CHKERRQ(ierr);
-
   if (nconv>0) {
     ierr = VecDuplicateVecs(v,nconv,&X);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kBx||/||kx||\n"
-         "   ----------------- ------------------\n" );CHKERRQ(ierr);
-
     for( i=0; i<nconv; i++ ) {
-      ierr = EPSGetEigenpair(eps,i,&kr,PETSC_NULL,X[i],PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-#else
-      re = kr;
-#endif 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
+      ierr = EPSGetEigenvector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n" );CHKERRQ(ierr);
     ierr = SlepcCheckOrthogonality(X,nconv,PETSC_NULL,nconv,B,&lev);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %A\n",lev);CHKERRQ(ierr); 
     ierr = VecDestroyVecs(nconv,&X);CHKERRQ(ierr);

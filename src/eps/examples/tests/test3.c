@@ -29,10 +29,9 @@ int main(int argc,char **argv)
 {
   Mat            A1,A2;       /* problem matrices */
   EPS            eps;         /* eigenproblem solver context */
-  PetscReal      error,re;
-  PetscScalar    kr,value[3];
-  Vec            d,xr;
-  PetscInt       n=30,i,Istart,Iend,col[3],nconv;
+  PetscScalar    value[3];
+  Vec            d;
+  PetscInt       n=30,i,Istart,Iend,col[3];
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscRandom    myrand;
   PetscErrorCode ierr;
@@ -40,7 +39,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%d\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
            Create matrix tridiag([-1 0 -1])
@@ -68,7 +67,6 @@ int main(int argc,char **argv)
 
   ierr = MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatGetVecs(A1,PETSC_NULL,&xr);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
        Create two matrices by filling the diagonal with rand values
@@ -96,55 +94,20 @@ int main(int argc,char **argv)
                         Solve first eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," First matrix: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-
-    for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenpair(eps,i,&kr,PETSC_NULL,xr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-#else
-      re = kr;
-#endif 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - First matrix - - -\n");CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                         Solve second eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetOperators(eps,A2,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Second matrix: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-
-    for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenpair(eps,i,&kr,PETSC_NULL,xr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-#else
-      re = kr;
-#endif 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Second matrix - - -\n");CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
   
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A1);CHKERRQ(ierr);
   ierr = MatDestroy(&A2);CHKERRQ(ierr);
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

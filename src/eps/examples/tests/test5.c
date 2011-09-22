@@ -32,9 +32,6 @@ int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
-  PetscReal      error,re,im;
-  PetscScalar    kr,ki;
-  PetscInt       i,nconv;
   char           filename[PETSC_MAX_PATH_LEN];
   const char     *prefix,*scalar,*ints,*floats;
   PetscViewer    viewer;
@@ -88,34 +85,7 @@ int main(int argc,char **argv)
                 Solve the eigensystem and display solution 
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k             ||Ax-kx||/||kx||\n"
-         "  --------------------- ------------------\n");CHKERRQ(ierr);
-    for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenpair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
-#else
-      re = kr;
-      im = ki;
-#endif
-      if (im != 0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," % 6f %+6f i",re,im);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",re);CHKERRQ(ierr);
-      }
-      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
-  
-  /* 
-     Free work space
-  */
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);

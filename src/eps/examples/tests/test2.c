@@ -30,17 +30,15 @@ int main(int argc,char **argv)
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   ST             st;
-  PetscReal      error,re;
-  PetscScalar    kr,value[3];
-  Vec            xr;
-  PetscInt       n=30,i,Istart,Iend,col[3],nconv;
+  PetscScalar    value[3];
+  PetscInt       n=30,i,Istart,Iend,col[3];
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE,flg;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%d\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -69,7 +67,6 @@ int main(int argc,char **argv)
 
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,PETSC_NULL,&xr);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                         Create the eigensolver
@@ -84,50 +81,16 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Largest eigenvalues: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-
-    for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenpair(eps,i,&kr,PETSC_NULL,xr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-#else
-      re = kr;
-#endif 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Largest eigenvalues - - -\n");CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Solve for smallest eigenvalues
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Smallest eigenvalues: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-
-    for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenpair(eps,i,&kr,PETSC_NULL,xr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-#else
-      re = kr;
-#endif 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Smallest eigenvalues - - -\n");CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Solve for interior eigenvalues (target=2.1)
@@ -142,29 +105,11 @@ int main(int argc,char **argv)
     ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);
   }
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Interior eigenvalues: %d converged eigenpairs\n\n",nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-
-    for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenpair(eps,i,&kr,PETSC_NULL,xr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-#else
-      re = kr;
-#endif 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",re,error);CHKERRQ(ierr); 
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Interior eigenvalues - - -\n");CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
   
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }
