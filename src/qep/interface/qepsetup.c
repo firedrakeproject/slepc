@@ -75,6 +75,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(qep->M,&qep->nloc,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecDestroy(&qep->t);CHKERRQ(ierr);
   ierr = SlepcMatGetVecsTemplate(qep->M,&qep->t,PETSC_NULL);CHKERRQ(ierr);
 
   /* Set default problem type */

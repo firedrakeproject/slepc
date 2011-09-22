@@ -165,6 +165,8 @@ PetscErrorCode SVDSetUp(SVD svd)
       SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
 
+  ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
+  ierr = VecDestroy(&svd->tl);CHKERRQ(ierr);
   if (svd->A) {
     ierr = SlepcMatGetVecsTemplate(svd->A,&svd->tr,&svd->tl);CHKERRQ(ierr);
   } else {
