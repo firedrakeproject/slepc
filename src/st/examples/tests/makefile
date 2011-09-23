@@ -28,7 +28,7 @@ EXAMPLESC  = test1.c
 EXAMPLESF  = 
 MANSEC     = ST
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
