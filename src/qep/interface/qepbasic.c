@@ -212,6 +212,111 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "QEPPrintSolution"
+/*@
+   QEPPrintSolution - Prints the computed eigenvalues.
+
+   Collective on QEP
+
+   Input Parameters:
++  qep - the eigensolver context
+-  viewer - optional visualization context
+
+   Options Database:
+.  -qep_terse - print only minimal information
+
+   Note:
+   By default, this function prints a table with eigenvalues and associated
+   relative errors. With -qep_terse only the eigenvalues are printed.
+
+   Level: intermediate
+
+.seealso: PetscViewerASCIIOpen()
+@*/
+PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
+{
+  PetscBool      terse,errok,isascii;
+  PetscReal      error,re,im;
+  PetscScalar    kr,ki;
+  PetscInt       i,j;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
+  PetscCheckSameComm(qep,1,viewer,2);
+  if (!qep->eigr || !qep->eigi || !qep->V) { 
+    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
+  }
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) PetscFunctionReturn(0);
+
+  ierr = PetscOptionsHasName(PETSC_NULL,"-qep_terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    if (qep->nconv<qep->nev) {
+      ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",qep->nev);CHKERRQ(ierr);
+    } else {
+      errok = PETSC_TRUE;
+      for (i=0;i<qep->nev;i++) {
+        ierr = QEPComputeRelativeError(qep,i,&error);CHKERRQ(ierr);
+        errok = (errok && error<qep->tol)? PETSC_TRUE: PETSC_FALSE;
+      }
+      if (errok) {
+        ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
+        for (i=0;i<=(qep->nev-1)/8;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
+          for (j=0;j<PetscMin(8,qep->nev-8*i);j++) {
+            ierr = QEPGetEigenpair(qep,8*i+j,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+            re = PetscRealPart(kr);
+            im = PetscImaginaryPart(kr);
+#else
+            re = kr;
+            im = ki;
+#endif 
+            if (im!=0.0) {
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
+            } else {
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr); 
+            }
+            if (8*i+j+1<qep->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
+          }
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
+      } else {
+        ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",qep->nev);CHKERRQ(ierr);
+      }
+    }
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer," Number of converged approximate eigenpairs: %D\n\n",qep->nconv);CHKERRQ(ierr);
+    if (qep->nconv>0) {
+      ierr = PetscViewerASCIIPrintf(viewer,
+           "           k          ||(k^2M+Ck+K)x||/||kx||\n"
+           "   ----------------- -------------------------\n");CHKERRQ(ierr);
+      for (i=0;i<qep->nconv;i++) {
+        ierr = QEPGetEigenpair(qep,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPComputeRelativeError(qep,i,&error);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+        re = PetscRealPart(kr);
+        im = PetscImaginaryPart(kr);
+#else
+        re = kr;
+        im = ki;
+#endif 
+        if (im!=0.0) {
+          ierr = PetscViewerASCIIPrintf(viewer," % 9F%+9F i     %12G\n",re,im,error);CHKERRQ(ierr);
+        } else {
+          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F           %12G\n",re,error);CHKERRQ(ierr); 
+        }
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "QEPCreate"
 /*@C

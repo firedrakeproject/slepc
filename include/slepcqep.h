@@ -92,6 +92,7 @@ extern PetscErrorCode QEPSetFromOptions(QEP);
 extern PetscErrorCode QEPSetUp(QEP);
 extern PetscErrorCode QEPSolve(QEP);
 extern PetscErrorCode QEPView(QEP,PetscViewer);
+extern PetscErrorCode QEPPrintSolution(QEP,PetscViewer);
 
 extern PetscErrorCode QEPSetIP(QEP,IP);
 extern PetscErrorCode QEPGetIP(QEP,IP*);

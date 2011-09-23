@@ -57,10 +57,9 @@
       QEP            solver
 #endif
       QEPType        tname
-      PetscReal      tol, error, re, im
-      PetscScalar    kr, ki
+      PetscReal      tol
       PetscInt       N, nx, ny, i, j, Istart, Iend, II
-      PetscInt       nev, maxit, its, nconv
+      PetscInt       nev, maxit, its
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
@@ -174,42 +173,7 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-!     ** Get number of converged eigenpairs
-      call QEPGetConverged(solver,nconv,ierr)
-      if (rank .eq. 0) then
-        write(*,150) nconv
-      endif
- 150  format (' Number of converged eigenpairs:',I4/)
-
-!     ** Display eigenvalues and relative errors
-      if (nconv.gt.0) then
-        if (rank .eq. 0) then
-          write(*,*) '         k          ||(k^2M+Ck+K)x||/||kx||'
-          write(*,*) ' ----------------- -------------------------'
-        endif
-        do i=0,nconv-1
-!         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
-!         ** (real part) and ki (imaginary part)
-          call QEPGetEigenpair(solver,i,kr,ki,PETSC_NULL_OBJECT,        &
-     &                         PETSC_NULL_OBJECT,ierr)
-
-!         ** Compute the relative error associated to each eigenpair
-          call QEPComputeRelativeError(solver,i,error,ierr)
-          if (rank .eq. 0) then
-            if (ki.ne.0.D0) then
-              write(*,'(1P,E11.4,E11.4,A,E12.4)') kr, ki, ' j ', error
-            else
-              write(*,'(1P,A,E12.4,A,E12.4)') '   ', kr, '      ', error
-            endif
-          endif
-
-        enddo
-        if (rank .eq. 0) then
-          write(*,*)
-        endif
-      endif
-
-!     ** Free work space
+      call QEPPrintSolution(solver,PETSC_NULL_OBJECT,ierr)
       call QEPDestroy(solver,ierr)
       call MatDestroy(K,ierr)
       call MatDestroy(C,ierr)
