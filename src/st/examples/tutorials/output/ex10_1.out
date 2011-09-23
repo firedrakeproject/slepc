@@ -4,13 +4,8 @@
  Number of iterations of the method: 4
  Solution method: krylovschur
 
- Number of requested eigenvalues: 1
+ Number of requested eigenvalues: 4
  Stopping condition: tol=1e-07, maxit=100
- Number of converged eigenpairs: 3
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       3.989739        4.72989e-09
-       3.959060        3.61221e-08
-       3.908279        9.16904e-08
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
 
