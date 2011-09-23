@@ -151,7 +151,7 @@
 !     ** Display singular values and relative errors
       if (nconv.gt.0) then
         if (rank .eq. 0) then
-          write(*,*) '       sigma          residual norm'
+          write(*,*) '       sigma          relative error'
           write(*,*) ' ----------------- ------------------'
         endif
         do i=0,nconv-1

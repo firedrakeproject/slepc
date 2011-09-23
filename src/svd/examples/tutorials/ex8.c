@@ -56,7 +56,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&N,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%d\n\n",N);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D\n\n",N);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         Generate the matrix 
@@ -100,11 +100,11 @@ int main(int argc,char **argv)
   ierr = SVDSetDimensions(svd,1,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                      Solve the eigensystem
+                      Solve the singular value problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /*
-     First request an eigenvalue from one end of the spectrum
+     First request a singular value from one end of the spectrum
   */
   ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
@@ -123,7 +123,7 @@ int main(int argc,char **argv)
   } 
 
   /*
-     Request an eigenvalue from the other end of the spectrum
+     Request a singular value from the other end of the spectrum
   */
   ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
@@ -145,8 +145,8 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6F, sigma_n=%6F\n",sigma_1,sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6F\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
   }  
  
   /* 

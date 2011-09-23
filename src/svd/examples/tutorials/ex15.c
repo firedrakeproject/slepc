@@ -42,7 +42,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(PETSC_NULL,"-mu",&mu,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%d x %d) mu=%g\n\n",n+1,n,mu);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%D x %D) mu=%G\n\n",n+1,n,mu);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                           Build the Lauchli matrix
@@ -97,7 +97,7 @@ int main(int argc,char **argv)
 
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   ierr = SVDGetIterationNumber(svd,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
@@ -105,9 +105,9 @@ int main(int argc,char **argv)
   ierr = SVDGetType(svd,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = SVDGetDimensions(svd,&nsv,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %d\n",nsv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %D\n",nsv);CHKERRQ(ierr);
   ierr = SVDGetTolerances(svd,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
@@ -117,14 +117,14 @@ int main(int argc,char **argv)
      Get number of converged singular triplets
   */
   ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %d\n\n",nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %D\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
     /*
        Display singular values and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "          sigma           residual norm\n"
+         "          sigma           relative error\n"
          "  --------------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       /* 
@@ -137,8 +137,8 @@ int main(int argc,char **argv)
       */
       ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",sigma);CHKERRQ(ierr);
-      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6F      ",sigma);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12G\n",error);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }

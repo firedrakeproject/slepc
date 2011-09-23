@@ -27,6 +27,7 @@ LOCDIR     = src/qep/examples/tests/
 EXAMPLESC  = test1.c
 EXAMPLESF  = 
 MANSEC     = QEP
+TESTS      = test1
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm
 

@@ -29,9 +29,8 @@ EXAMPLESF  = ex15f.F
 MANSEC     = SVD
 
 TESTEXAMPLES_C       = ex8.PETSc runex8_1 ex8.rm \
-                       ex14.PETSc runex14_1 ex14.rm \
-                       ex15.PETSc runex15_1 ex15.rm
-TESTEXAMPLES_FORTRAN = ex15f.PETSc runex15f_1 ex15f.rm
+                       ex14.PETSc runex14_1 ex14.rm
+TESTEXAMPLES_FORTRAN = 
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -60,7 +59,7 @@ runex8_1:
 	   ${RM} -f ex8_1.tmp
 
 runex14_1:
-	-@${MPIEXEC} -np 1 ./ex14 -file ${SLEPC_DIR}/src/mat/examples/rdb200.petsc > ex14_1.tmp 2>&1;	  \
+	-@${MPIEXEC} -np 1 ./ex14 -file ${SLEPC_DIR}/src/mat/examples/rdb200.petsc -svd_nsv 4 -svd_terse > ex14_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex14_1.out ex14_1.tmp) then true; \
 	   else echo "Possible problem with ex14_1, diffs above"; fi; \
 	   ${RM} -f ex14_1.tmp

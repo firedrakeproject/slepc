@@ -24,9 +24,10 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/svd/examples/tests/
-EXAMPLESC  = 
+EXAMPLESC  = test1.c
 EXAMPLESF  = 
 MANSEC     = SVD
+TESTS      = test1
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm
 
@@ -44,12 +45,10 @@ EPS = krylovschur arnoldi lanczos gd jd
 runtest1_1:
 	-@touch test1_1.tmp; \
 	for svd in ${SVDEPS} ${SVD}; do \
-	   echo "svd type $$svd" >> test1_1.tmp; \
 	   ${MPIEXEC} -np 1 ./test1 -type $$svd >> test1_1.tmp 2>&1; \
 	done; \
 	for svd in ${SVDEPS}; do \
 	   for eps in ${EPS}; do \
-	      echo "svd type $$svd eps type $$eps" >> test1_1.tmp; \
 	      ${MPIEXEC} -np 1 ./test1 -type $$svd -epstype $$eps >> test1_1.tmp 2>&1; \
            done; \
 	done; \

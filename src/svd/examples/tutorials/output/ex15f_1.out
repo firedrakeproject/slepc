@@ -7,7 +7,7 @@ Lauchli SVD, n =100, mu=  0.1000E-06 (Fortran)
  Stopping condition: tol=1.0000E-07, maxit= 100
  Number of converged approximate singular triplets:10
 
-        sigma          residual norm
+        sigma          relative error
   ----------------- ------------------
      1.0000E+01         1.6920E-15
      1.0000E-07         6.3372E-10

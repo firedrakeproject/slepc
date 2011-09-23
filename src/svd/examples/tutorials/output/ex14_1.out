@@ -5,12 +5,8 @@ Singular value problem stored in file.
  Number of iterations of the method: 3
  Solution method: cross
 
- Number of requested singular values: 1
+ Number of requested singular values: 4
  Stopping condition: tol=1e-07, maxit=100
- Number of converged approximate singular triplets: 2
-
-          sigma           residual norm
-  --------------------- ------------------
-        35.007519        1.40809e-10
-        34.104187         2.3481e-09
+ All requested singular values computed up to the required tolerance:
+     35.00752, 34.10419, 33.20131, 32.68111
 

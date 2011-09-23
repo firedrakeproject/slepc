@@ -8,7 +8,7 @@ Lauchli singular value decomposition, (101 x 100) mu=1e-07
  Stopping condition: tol=1e-07, maxit=100
  Number of converged approximate singular triplets: 10
 
-          sigma           residual norm
+          sigma           relative error
   --------------------- ------------------
         10.000000        1.69199e-15
         0.000000        6.33716e-10

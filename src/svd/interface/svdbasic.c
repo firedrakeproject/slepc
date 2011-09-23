@@ -181,6 +181,88 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "SVDPrintSolution"
+/*@
+   SVDPrintSolution - Prints the computed singular values.
+
+   Collective on SVD
+
+   Input Parameters:
++  svd - the singular value solver context
+-  viewer - optional visualization context
+
+   Options Database:
+.  -svd_terse - print only minimal information
+
+   Note:
+   By default, this function prints a table with singular values and associated
+   relative errors. With -svd_terse only the singular values are printed.
+
+   Level: intermediate
+
+.seealso: PetscViewerASCIIOpen()
+@*/
+PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
+{
+  PetscBool      terse,errok,isascii;
+  PetscReal      error,sigma;
+  PetscInt       i,j;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
+  PetscCheckSameComm(svd,1,viewer,2);
+  if (!svd->sigma) { 
+    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
+  }
+  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) PetscFunctionReturn(0);
+
+  ierr = PetscOptionsHasName(PETSC_NULL,"-svd_terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    if (svd->nconv<svd->nsv) {
+      ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D singular values converged\n\n",svd->nsv);CHKERRQ(ierr);
+    } else {
+      errok = PETSC_TRUE;
+      for (i=0;i<svd->nsv;i++) {
+        ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
+        errok = (errok && error<svd->tol)? PETSC_TRUE: PETSC_FALSE;
+      }
+      if (errok) {
+        ierr = PetscViewerASCIIPrintf(viewer," All requested singular values computed up to the required tolerance:");CHKERRQ(ierr);
+        for (i=0;i<=(svd->nsv-1)/8;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
+          for (j=0;j<PetscMin(8,svd->nsv-8*i);j++) {
+            ierr = SVDGetSingularTriplet(svd,8*i+j,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+            ierr = PetscViewerASCIIPrintf(viewer,"%.5F",sigma);CHKERRQ(ierr); 
+            if (8*i+j+1<svd->nsv) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
+          }
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
+      } else {
+        ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",svd->nsv);CHKERRQ(ierr);
+      }
+    }
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer," Number of converged approximate singular triplets: %D\n\n",svd->nconv);CHKERRQ(ierr);
+    if (svd->nconv>0) {
+      ierr = PetscViewerASCIIPrintf(viewer,
+           "          sigma            relative error\n"
+           "   --------------------- ------------------\n");CHKERRQ(ierr);
+      for (i=0;i<svd->nconv;i++) {
+        ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"       % 6F          %12G\n",sigma,error);CHKERRQ(ierr); 
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCreate"
 /*@C

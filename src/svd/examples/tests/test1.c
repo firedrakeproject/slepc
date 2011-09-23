@@ -61,7 +61,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&N,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(PETSC_NULL,"-type",svdtype,30,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(PETSC_NULL,"-epstype",epstype,30,&flg);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%d",N);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D",N);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD type: %s",svdtype);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEPS type: %s",epstype);CHKERRQ(ierr);
@@ -168,8 +168,8 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",sigma_1,sigma_n);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6F, sigma_n=%6F\n",sigma_1,sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6F\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
   }  
  
   /* 

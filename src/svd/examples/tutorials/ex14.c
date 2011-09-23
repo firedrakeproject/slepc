@@ -33,8 +33,8 @@ int main(int argc,char **argv)
   Mat            A;               /* operator matrix */
   SVD            svd;             /* singular value problem solver context */
   const SVDType  type;
-  PetscReal      error,tol,sigma;
-  PetscInt       nsv,maxit,i,its,nconv;
+  PetscReal      tol;
+  PetscInt       nsv,maxit,its;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg;
@@ -88,7 +88,7 @@ int main(int argc,char **argv)
 
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   ierr = SVDGetIterationNumber(svd,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %d\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
@@ -96,46 +96,15 @@ int main(int argc,char **argv)
   ierr = SVDGetType(svd,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = SVDGetDimensions(svd,&nsv,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %d\n",nsv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %D\n",nsv);CHKERRQ(ierr);
   ierr = SVDGetTolerances(svd,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%d\n",tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
-     Get number of converged singular triplets
-  */
-  ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %d\n\n",nconv);CHKERRQ(ierr);
-
-  if (nconv>0) {
-    /*
-       Display singular values and relative errors
-    */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "          sigma           residual norm\n"
-         "  --------------------- ------------------\n");CHKERRQ(ierr);
-    for (i=0;i<nconv;i++) {
-      /* 
-         Get converged singular triplets: i-th singular value is stored in sigma
-      */
-      ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-
-      /*
-         Compute the error associated to each singular triplet 
-      */
-      ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",sigma);CHKERRQ(ierr);
-      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",error);CHKERRQ(ierr);
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
-  
-  /* 
-     Free work space
-  */
+  ierr = SVDPrintSolution(svd,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
