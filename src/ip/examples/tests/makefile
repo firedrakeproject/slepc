@@ -53,7 +53,7 @@ runtest1_1:
 	  else echo "Possible problem with test1_1, diffs above"; fi; \
 	  ${RM} -f test1_1.tmp
 
-runtest2:
+runtest2_1:
 	-@${MPIEXEC} -np 1 ./test2 > test2_1.tmp 2>&1; \
 	  ${MPIEXEC} -np 1 ./test2 -qtrans >> test2_1.tmp 2>&1; \
 	  ${MPIEXEC} -np 1 ./test2 -contiguous >> test2_1.tmp 2>&1; \

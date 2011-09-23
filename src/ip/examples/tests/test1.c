@@ -39,7 +39,7 @@ int main( int argc, char **argv )
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"QR decomposition of %d random vectors of length %d.\n",k,n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"QR decomposition of %D random vectors of length %D.\n",k,n);CHKERRQ(ierr); 
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);

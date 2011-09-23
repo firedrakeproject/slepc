@@ -42,10 +42,10 @@ int main( int argc, char **argv )
   ierr = PetscOptionsGetInt(PETSC_NULL,"-s",&s,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-e",&e,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(PETSC_NULL,"-qtrans",&qtrans);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"V(:,%d:%d) = V*",s,e-1);CHKERRQ(ierr); 
-  if (qtrans) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(%d:%d,:)'",s,e-1);CHKERRQ(ierr); }
-  else { ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(:,%d:%d)",s,e-1);CHKERRQ(ierr); }
-  ierr = PetscPrintf(PETSC_COMM_WORLD," for random vectors of length %d (V has %d columns).\n",n,k);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"V(:,%D:%D) = V*",s,e-1);CHKERRQ(ierr); 
+  if (qtrans) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(%D:%D,:)'",s,e-1);CHKERRQ(ierr); }
+  else { ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(:,%D:%D)",s,e-1);CHKERRQ(ierr); }
+  ierr = PetscPrintf(PETSC_COMM_WORLD," for random vectors of length %D (V has %D columns).\n",n,k);CHKERRQ(ierr); 
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
