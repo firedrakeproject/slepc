@@ -2,69 +2,44 @@ eps type krylovschur
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 40
- Number of converged approximate eigenpairs: 6
-
-           k          ||Ax-kBx||/||kx||
-   ----------------- ------------------
-       1.997669         1.0473e-11
-       1.994177        2.20966e-11
-       1.994177        5.42329e-12
-       1.990686         9.7215e-12
-       1.988376         2.1931e-12
-       1.984885        7.65682e-12
+ Number of iterations of the method: 24
+ All requested eigenvalues computed up to the required tolerance:
+     3.99534, 3.98835, 3.98137, 3.97675
 
 Level of orthogonality: < 1.e-12
 eps type arnoldi
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 116
- Number of converged approximate eigenpairs: 6
+ Number of iterations of the method: 83
+ All requested eigenvalues computed up to the required tolerance:
+     3.99534, 3.98835, 3.98137, 3.97675
 
-           k          ||Ax-kBx||/||kx||
-   ----------------- ------------------
-       1.997669        6.17911e-12
-       1.994177        1.17758e-11
-       1.994177        2.10899e-11
-       1.990686        1.38764e-11
-       1.988376        1.93467e-11
-       1.988376        1.91701e-11
-
-Level of orthogonality: 5.05761e-12
+Level of orthogonality: < 1.e-12
 eps type lanczos
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 192
- Number of converged approximate eigenpairs: 1
-
-           k          ||Ax-kBx||/||kx||
-   ----------------- ------------------
-       1.997669        6.17911e-12
+ Number of iterations of the method: 213
+ All requested eigenvalues computed up to the required tolerance:
+     3.99534, 3.98835, 3.98137, 3.97675
 
 Level of orthogonality: < 1.e-12
 eps type gd
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 888
- Number of converged approximate eigenpairs: 6
+ Number of iterations of the method: 610
+ All requested eigenvalues computed up to the required tolerance:
+     3.99534, 3.98835, 3.98137, 3.97675
 
-           k          ||Ax-kBx||/||kx||
-   ----------------- ------------------
-       1.997669        1.98963e-11
-       1.994177        1.92685e-11
-       1.994177         1.7379e-11
-       1.990686        1.98418e-11
-       1.988376        1.86186e-11
-       1.988376        1.89309e-11
-
-Level of orthogonality: 0.00218308
+Level of orthogonality: < 1.e-12
 eps type jd
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 4050
- Number of converged approximate eigenpairs: 0
+ Number of iterations of the method: 142
+ All requested eigenvalues computed up to the required tolerance:
+     3.99534, 3.98835, 3.98137, 3.97675
 
+Level of orthogonality: < 1.e-12

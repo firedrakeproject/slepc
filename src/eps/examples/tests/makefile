@@ -66,7 +66,7 @@ runtest1_1:
 	-@touch test1_1.tmp; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test1_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps >> test1_1.tmp 2>&1; \
+	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -eps_nev 4 -eps_terse >> test1_1.tmp 2>&1; \
 	done; \
 	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
 	else echo "Possible problem with test1_1, diffs above"; fi; \
@@ -76,7 +76,7 @@ runtest2_1:
 	-@touch test2_1.tmp; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test2_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps >> test2_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse >> test2_1.tmp 2>&1;    \
 	done; \
 	if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
 	else echo "Possible problem with test2_1, diffs above"; fi; \
@@ -86,7 +86,7 @@ runtest3_1:
 	-@touch test3_1.tmp; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test3_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test3 -eps_type $$eps >> test3_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test3 -eps_type $$eps -eps_nev 4 -eps_terse >> test3_1.tmp 2>&1;    \
 	done; \
 	if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
 	else echo "Possible problem with test3_1, diffs above"; fi; \
@@ -96,7 +96,7 @@ runtest4_1:
 	-@touch test4_1.tmp; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test4_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test4 -type $$eps >> test4_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test4 -type $$eps -eps_terse >> test4_1.tmp 2>&1;    \
 	done; \
 	if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
 	else echo "Possible problem with test4_1, diffs above"; fi; \
@@ -106,7 +106,7 @@ runtest5_1:
 	-@touch test5_1.tmp; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps >> test5_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse >> test5_1.tmp 2>&1;    \
 	done; \
 	if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
 	else echo "Possible problem with test5_1, diffs above"; fi; \
@@ -114,7 +114,7 @@ runtest5_1:
 
 runtest5_blopex:
 	-@touch test5_blopex.tmp; \
-	${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex >> test5_blopex.tmp 2>&1;    \
+	${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex -eps_nev 4 -eps_terse >> test5_blopex.tmp 2>&1;    \
 	if (${DIFF} output/test5_blopex.out test5_blopex.tmp) then true; \
 	else echo "Possible problem with test5_blopex, diffs above"; fi; \
 	${RM} -f test5_blopex.tmp;

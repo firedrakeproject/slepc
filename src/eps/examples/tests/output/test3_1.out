@@ -2,83 +2,59 @@ eps type krylovschur
 
 Tridiagonal with random diagonal, n=30
 
- First matrix: 3 converged eigenpairs
+ - - - First matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61861, 2.53982, 2.46239, 2.33322
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.618614        8.63806e-11
-       2.539819        5.85851e-09
-       2.462390        1.17173e-08
-
- Second matrix: 3 converged eigenpairs
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.612235        9.58285e-09
-       2.586545         5.3439e-08
-       2.554145        8.14751e-08
+ - - - Second matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61224, 2.58655, 2.55415, 2.40928
 
 eps type arnoldi
 
 Tridiagonal with random diagonal, n=30
 
- First matrix: 1 converged eigenpairs
+ - - - First matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61861, 2.53982, 2.46239, 2.33322
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.618614        3.24258e-09
-
- Second matrix: 1 converged eigenpairs
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.612235        2.34553e-08
+ - - - Second matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61224, 2.58655, 2.55415, 2.40928
 
 eps type lanczos
 
 Tridiagonal with random diagonal, n=30
 
- First matrix: 1 converged eigenpairs
+ - - - First matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61861, 2.53982, 2.46239, 2.33322
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.618614        3.24258e-09
-
- Second matrix: 1 converged eigenpairs
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.612235        2.34553e-08
+ - - - Second matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61224, 2.58655, 2.55415, 2.40928
 
 eps type gd
 
 Tridiagonal with random diagonal, n=30
 
- First matrix: 1 converged eigenpairs
+ - - - First matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61861, 2.53982, 2.46239, 2.33322
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.618614        9.84893e-08
-
- Second matrix: 1 converged eigenpairs
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.612235        7.59716e-08
+ - - - Second matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61224, 2.58655, 2.55415, 2.40928
 
 eps type jd
 
 Tridiagonal with random diagonal, n=30
 
- First matrix: 1 converged eigenpairs
+ - - - First matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61861, 2.53982, 2.46239, 2.33322
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.618614        1.31781e-08
-
- Second matrix: 1 converged eigenpairs
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.612235        1.42216e-08
+ - - - Second matrix - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.61224, 2.58655, 2.55415, 2.40928
 

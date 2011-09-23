@@ -1,27 +1,80 @@
+eps type krylovschur
 
 1-D Laplacian Eigenproblem, n=30
 
- Largest eigenvalues: 3 converged eigenpairs
+ - - - Largest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       3.989739        4.72989e-09
-       3.959060        3.61221e-08
-       3.908279        9.16904e-08
+ - - - Smallest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     0.01026, 0.04094, 0.09172, 0.16208
 
- Smallest eigenvalues: 5 converged eigenpairs
+ - - - Interior eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.10130, 1.89870, 2.30286, 2.50131
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       0.010261        1.10251e-10
-       0.040940        1.98775e-09
-       0.091721        5.61168e-10
-       0.162084        5.04752e-09
-       0.251307          3.749e-09
+eps type arnoldi
 
- Interior eigenvalues: 1 converged eigenpairs
+1-D Laplacian Eigenproblem, n=30
 
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       2.101298        1.51333e-08
+ - - - Largest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
+
+ - - - Smallest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     0.01026, 0.04094, 0.09172, 0.16208
+
+ - - - Interior eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.10130, 1.89870, 2.30286, 1.69714
+
+eps type lanczos
+
+1-D Laplacian Eigenproblem, n=30
+
+ - - - Largest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
+
+ - - - Smallest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     0.01026, 0.04094, 0.09172, 0.16208
+
+ - - - Interior eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.10130, 1.89870, 2.30286, 2.50131
+
+eps type gd
+
+1-D Laplacian Eigenproblem, n=30
+
+ - - - Largest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
+
+ - - - Smallest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     0.01026, 0.04094, 0.09172, 0.16208
+
+ - - - Interior eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.10130, 1.89870, 2.30286, 2.50131
+
+eps type jd
+
+1-D Laplacian Eigenproblem, n=30
+
+ - - - Largest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
+
+ - - - Smallest eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     0.01026, 0.04094, 0.09172, 0.16208
+
+ - - - Interior eigenvalues - - -
+ All requested eigenvalues computed up to the required tolerance:
+     2.10130, 1.89870, 2.30286, 2.50131
 

@@ -6,77 +6,60 @@ EPS type: krylovschur
  Number of iterations of the method: 4
  Solution method: krylovschur
 
- Number of requested eigenvalues: 1
+ Number of requested eigenvalues: 4
  Stopping condition: tol=1e-07, maxit=100
- Number of converged eigenpairs: 3
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       3.989739        4.72989e-09
-       3.959060        3.61221e-08
-       3.908279        9.16904e-08
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
 
 eps type arnoldi
 
 1-D Laplacian Eigenproblem, n=30
 EPS type: arnoldi
 
- Number of iterations of the method: 5
+ Number of iterations of the method: 13
  Solution method: arnoldi
 
- Number of requested eigenvalues: 1
+ Number of requested eigenvalues: 4
  Stopping condition: tol=1e-07, maxit=100
- Number of converged eigenpairs: 1
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       3.989739          7.733e-09
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
 
 eps type lanczos
 
 1-D Laplacian Eigenproblem, n=30
 EPS type: lanczos
 
- Number of iterations of the method: 5
+ Number of iterations of the method: 13
  Solution method: lanczos
 
- Number of requested eigenvalues: 1
+ Number of requested eigenvalues: 4
  Stopping condition: tol=1e-07, maxit=100
- Number of converged eigenpairs: 1
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       3.989739          7.733e-09
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
 
 eps type gd
 
 1-D Laplacian Eigenproblem, n=30
 EPS type: gd
 
- Number of iterations of the method: 42
+ Number of iterations of the method: 65
  Solution method: gd
 
- Number of requested eigenvalues: 1
- Stopping condition: tol=1e-07, maxit=1700
- Number of converged eigenpairs: 1
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       3.989739        5.82112e-08
+ Number of requested eigenvalues: 4
+ Stopping condition: tol=1e-07, maxit=2000
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
 
 eps type jd
 
 1-D Laplacian Eigenproblem, n=30
 EPS type: jd
 
- Number of iterations of the method: 25
+ Number of iterations of the method: 40
  Solution method: jd
 
- Number of requested eigenvalues: 1
- Stopping condition: tol=1e-07, maxit=1700
- Number of converged eigenpairs: 1
-
-           k          ||Ax-kx||/||kx||
-   ----------------- ------------------
-       3.989739        1.08592e-08
+ Number of requested eigenvalues: 4
+ Stopping condition: tol=1e-07, maxit=2000
+ All requested eigenvalues computed up to the required tolerance:
+     3.98974, 3.95906, 3.90828, 3.83792
 
