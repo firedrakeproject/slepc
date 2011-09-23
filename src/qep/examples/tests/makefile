@@ -24,7 +24,7 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/qep/examples/tests/
-EXAMPLESC  = 
+EXAMPLESC  = test1.c
 EXAMPLESF  = 
 MANSEC     = QEP
 
@@ -44,13 +44,11 @@ EPS = krylovschur arnoldi gd jd
 runtest1_1:
 	-@touch test1_1.tmp; \
 	for qep in ${QEPEPS} ${QEP}; do \
-	   echo "qep type $$qep" >> test1_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test1 -type $$qep >> test1_1.tmp 2>&1; \
+	   ${MPIEXEC} -np 1 ./test1 -type $$qep -qep_terse >> test1_1.tmp 2>&1; \
 	done; \
 	for qep in ${QEPEPS}; do \
 	   for eps in ${EPS}; do \
-	      echo "qep type $$qep eps type $$eps" >> test1_1.tmp; \
-	      ${MPIEXEC} -np 1 ./test1 -type $$qep -epstype $$eps >> test1_1.tmp 2>&1; \
+	      ${MPIEXEC} -np 1 ./test1 -type $$qep -epstype $$eps -qep_terse >> test1_1.tmp 2>&1; \
            done; \
 	done; \
 	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
