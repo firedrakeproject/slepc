@@ -136,6 +136,8 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   
   /* build transpose matrix */
+  ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
   switch (svd->transmode) {

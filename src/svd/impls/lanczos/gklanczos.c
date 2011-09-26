@@ -57,7 +57,8 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   if (!svd->mpd) svd->mpd = svd->ncv;
   if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
-  if (!lanczos->oneside) {
+  if (!lanczos->oneside && svd->ncv != svd->n) {
+    if (svd->n) { ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr); }
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

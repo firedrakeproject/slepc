@@ -96,29 +96,31 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
-  if (cyclic->explicitmatrix) {
-    if (!svd->AT) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
-    ierr = MatCreate(((PetscObject)svd)->comm,&Zm);CHKERRQ(ierr);
-    ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatCreate(((PetscObject)svd)->comm,&Zn);CHKERRQ(ierr);
-    ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);
-    ierr = MatDestroy(&Zm);CHKERRQ(ierr);
-    ierr = MatDestroy(&Zn);CHKERRQ(ierr);
-  } else {
-    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->y1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->y2);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)svd)->comm,m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);  
-    ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);  
+  if (!cyclic->mat) {
+    if (cyclic->explicitmatrix) {
+      if (!svd->AT) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
+      ierr = MatCreate(((PetscObject)svd)->comm,&Zm);CHKERRQ(ierr);
+      ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
+      ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
+      ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+      ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+      ierr = MatCreate(((PetscObject)svd)->comm,&Zn);CHKERRQ(ierr);
+      ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
+      ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
+      ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+      ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+      ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);
+      ierr = MatDestroy(&Zm);CHKERRQ(ierr);
+      ierr = MatDestroy(&Zn);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->y1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->y2);CHKERRQ(ierr);
+      ierr = MatCreateShell(((PetscObject)svd)->comm,m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);  
+      ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);  
+    }
   }
 
   ierr = EPSSetOperators(cyclic->eps,cyclic->mat,PETSC_NULL);CHKERRQ(ierr);
