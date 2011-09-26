@@ -193,6 +193,15 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
                                 (void(*)(void))dvd_matgetvecs_jd);
     CHKERRQ(ierr);
 
+    /* Try to avoid KSPReset */
+    ierr = KSPGetOperatorsSet(data->ksp,&t,PETSC_NULL);CHKERRQ(ierr);
+    if (t) {
+      Mat M;
+      PetscInt rM;
+      ierr = KSPGetOperators(data->ksp,&M,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatGetSize(M,&rM,PETSC_NULL);CHKERRQ(ierr);
+      if (rM != rA*data->ksp_max_size) { ierr = KSPReset(data->ksp);CHKERRQ(ierr); }
+    }
     ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);
     CHKERRQ(ierr);
     ierr = KSPSetUp(data->ksp); CHKERRQ(ierr);
@@ -824,7 +833,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KBXZY(dvdDashboard *d, PetscInt i_s,
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KZX"
 /* 
-  Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*Y,
+  Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
   where
   auxV, 4*(i_e-i_s) auxiliar global vectors

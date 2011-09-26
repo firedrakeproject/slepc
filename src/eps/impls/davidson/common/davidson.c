@@ -73,6 +73,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   data->wS = PETSC_NULL;
   data->wV = PETSC_NULL;
   data->size_wV = 0;
+  ierr = PetscMemzero(&data->ddb,sizeof(dvdDashboard));CHKERRQ(ierr);
 
   /* Set default values */
   ierr = EPSDavidsonSetKrylovStart_Davidson(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -147,6 +148,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Setup problem specification in dvd */
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = EPSReset_Davidson(eps);CHKERRQ(ierr);
   ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
   dvd->A = A; dvd->B = eps->isgeneralized? B : PETSC_NULL;
   ispositive = eps->ispositive;
@@ -232,7 +234,6 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                                 PETSC_NULL,init,eps->trackall);CHKERRQ(ierr);
 
   /* Allocate memory */
-  ierr = EPSReset_Davidson(eps);CHKERRQ(ierr);
   nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc(nscalars*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
@@ -273,9 +274,6 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
-  KSP            ksp;
-  PC             pc;
-  PetscBool      t;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -306,13 +304,6 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 
-  /* Trick for PCView when an unused PC is showed */
-  ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp, &pc);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)pc, PCNONE, &t);
-  if (t) {
-    ierr = PCSetOperators(pc, PETSC_NULL, PETSC_NULL, DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
