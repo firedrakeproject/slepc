@@ -139,13 +139,13 @@ testex2: ex2.PETSc
            ${MPIEXEC} -np 1 ./ex2 -eps_nev 4 -eps_terse > ex2_1.tmp 2>&1; \
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp > /dev/null 2>&1) then \
            echo "C/C++ example src/eps/examples/tutorials/ex2 run successfully with 1 MPI process"; \
-	   else echo "Possible error running C/C++ src/eps/examples/tutorials/ex1 with 1 MPI process"; \
+	   else echo "Possible error running C/C++ src/eps/examples/tutorials/ex2 with 1 MPI process"; \
            cat ex2_1.tmp; fi; \
 	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/mpiexec.uni" ]; then \
            ${MPIEXEC} -np 2 ./ex2 -eps_nev 4 -eps_terse > ex2_1.tmp 2>&1; \
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp > /dev/null 2>&1) then \
            echo "C/C++ example src/eps/examples/tutorials/ex2 run successfully with 2 MPI process"; \
-	   else echo "Possible error running C/C++ src/eps/examples/tutorials/ex1 with 2 MPI process"; \
+	   else echo "Possible error running C/C++ src/eps/examples/tutorials/ex2 with 2 MPI process"; \
            cat ex2_1.tmp; fi; fi; \
            ${RM} -f ex2_1.tmp; \
            ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ex2.rm ; fi

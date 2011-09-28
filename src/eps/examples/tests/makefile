@@ -119,11 +119,22 @@ runtest5_1:
 	${RM} -f test5_1.tmp
 
 runtest5_blopex:
-	-@touch test5_blopex.tmp; \
-	${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex -eps_nev 4 -eps_terse >> test5_blopex.tmp 2>&1;    \
+	-@${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex -eps_nev 4 -eps_terse > test5_blopex.tmp 2>&1; \
 	if (${DIFF} output/test5_blopex.out test5_blopex.tmp) then true; \
 	else echo "Possible problem with test5_blopex, diffs above"; fi; \
 	${RM} -f test5_blopex.tmp;
+
+testtest5_blopex: test5.PETSc
+	@if [ "${PETSC_WITH_BATCH}" != "" -o "${MPIEXEC}" = "/bin/false" ]; then \
+           echo "Skipping BLOPEX test"; \
+	elif [ -f test5 ]; then \
+           ${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex -eps_nev 4 -eps_terse > test5_blopex.tmp 2>&1; \
+	   if (${DIFF} output/test5_blopex.out test5_blopex.tmp > /dev/null 2>&1) then \
+           echo "BLOPEX example src/eps/examples/tests/test5 run successfully with 1 MPI process"; \
+	   else echo "Possible error running BLOPEX src/eps/examples/tests/test5 with 1 MPI process"; \
+           cat test5_blopex.tmp; fi; \
+           ${RM} -f test5_blopex.tmp; \
+           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test5.rm ; fi
 
 runtest6_1:
 	-@touch test6_1.tmp; \

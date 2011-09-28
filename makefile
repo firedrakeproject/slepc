@@ -132,6 +132,7 @@ test_build:
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
 	@cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testex2
 	@if [ "${FC}" != "" ]; then cd src/eps/examples/tutorials; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testex6f; fi;
+	-@if [ "${BLOPEX_LIB}" != "" ]; then cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; fi; 
 	-@echo "Completed test examples"
 
 # Builds SLEPc test examples for C
@@ -160,7 +161,6 @@ testfortran: info
           else \
             echo "Error: No FORTRAN compiler available"; \
           fi
-	-@
 	-@echo "========================================="
 
 # Test BLOPEX use
@@ -177,7 +177,6 @@ testblopex:
           else \
             echo "Error: SLEPc has not been configured with BLOPEX"; \
           fi
-	-@
 	-@echo "========================================="
 
 # Ranlib on the library
