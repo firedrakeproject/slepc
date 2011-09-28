@@ -252,6 +252,24 @@
       </font>
     </td>
   </tr>
+  <tr valign="middle" bgcolor="#fff0d0"> 
+    <td width="138" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.2
+      </font>
+    </td>
+    <td width="175" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.2
+      </font>
+    </td>
+    <td width="75" height="21" align="center"> * </td>
+    <td width="146" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      Oct 2011
+      </font>
+    </td>
+  </tr>
 </table>
 
 <p>&nbsp;</p>
@@ -266,6 +284,12 @@ Changes in Version 3.2</font></b>
 
 <ul>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Computational intervals for symmetric eigenproblems, that activate a spectrum slicing mechanism to obtain all eigenvalues in a given interval, see EPSSetInterval.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Partial support (experimental) for GPU computing via PETSc's VECCUSP and MATAIJCUSP.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
     Performance improvement of solvers with explicit matrix such as SVDCYCLIC and QEPLINEAR
     (now use matrix preallocation).
     </font></li>
@@ -274,6 +298,9 @@ Changes in Version 3.2</font></b>
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     Added support for parallel builds with CMake.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added support for quad precision (configure PETSc --with-precision=__float128 with gcc-4.6 or later).
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     Interface changes: now all XXXDestroy() routines take a pointer to the object.
