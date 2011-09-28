@@ -24,16 +24,17 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c
 EXAMPLESF  = 
 MANSEC     = EPS
-TESTS      = test1 test2 test3 test4 test5
+TESTS      = test1 test2 test3 test4 test5 test6
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
                        test3.PETSc runtest3_1 test3.rm \
                        test4.PETSc runtest4_1 test4.rm \
-                       test5.PETSc runtest5_1 test5.rm 
+                       test5.PETSc runtest5_1 test5.rm \
+                       test6.PETSc runtest6_1 test6.rm 
 
 TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
 
@@ -58,6 +59,10 @@ test4: test4.o chkopts
 test5: test5.o chkopts
 	-${CLINKER} -o test5 test5.o ${SLEPC_LIB}
 	${RM} test5.o
+
+test6: test6.o chkopts
+	-${CLINKER} -o test6 test6.o ${SLEPC_LIB}
+	${RM} test6.o
 
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd
@@ -118,3 +123,14 @@ runtest5_blopex:
 	if (${DIFF} output/test5_blopex.out test5_blopex.tmp) then true; \
 	else echo "Possible problem with test5_blopex, diffs above"; fi; \
 	${RM} -f test5_blopex.tmp;
+
+runtest6_1:
+	-@touch test6_1.tmp; \
+	for eps in ${EPSNS}; do \
+	   echo "eps type $$eps" >> test6_1.tmp; \
+	   ${MPIEXEC} -np 1 ./test6 -eps_type $$eps -eps_nev 4 -eps_terse >> test6_1.tmp 2>&1;    \
+	done; \
+	if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
+	else echo "Possible problem with test6_1, diffs above"; fi; \
+#	${RM} -f test6_1.tmp
+
