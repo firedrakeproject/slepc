@@ -132,5 +132,5 @@ runtest6_1:
 	done; \
 	if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
 	else echo "Possible problem with test6_1, diffs above"; fi; \
-#	${RM} -f test6_1.tmp
+	${RM} -f test6_1.tmp
 
