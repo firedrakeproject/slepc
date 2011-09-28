@@ -276,6 +276,8 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
             re = kr;
             im = ki;
 #endif 
+            if (PetscAbs(re)/PetscAbs(im)<1e-14) re = 0.0;
+            if (PetscAbs(im)/PetscAbs(re)<1e-14) im = 0.0;
             if (im!=0.0) {
               ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
             } else {

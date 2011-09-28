@@ -6,9 +6,9 @@ QEP type: linear
  Solution method: linear
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-07, maxit=100
+ Stopping condition: tol=1e-10, maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     -0.00000+2.79964i, -0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
+     0.00000+2.79964i, 0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
 
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
@@ -18,9 +18,9 @@ QEP type: qarnoldi
  Solution method: qarnoldi
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-07, maxit=100
+ Stopping condition: tol=1e-10, maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     -0.00000+2.79964i, -0.00000-2.79964i, -0.00000+2.75708i, -0.00000-2.75708i
+     0.00000+2.79964i, 0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
 
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
@@ -31,46 +31,46 @@ EPS type: krylovschur
  Solution method: linear
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-07, maxit=100
+ Stopping condition: tol=1e-10, maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     -0.00000+2.79964i, -0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
+     0.00000+2.79964i, 0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
 
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 EPS type: arnoldi
 
- Number of iterations of the method: 12
+ Number of iterations of the method: 35
  Solution method: linear
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-07, maxit=100
+ Stopping condition: tol=1e-10, maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     0.00000+2.79964i, 0.00000-2.79964i, -0.00000+2.75708i, -0.00000-2.75708i
+     0.00000+2.79964i, 0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
 
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 EPS type: gd
 
- Number of iterations of the method: 259
+ Number of iterations of the method: 320
  Solution method: linear
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-07, maxit=2000
+ Stopping condition: tol=1e-10, maxit=2400
  All requested eigenvalues computed up to the required tolerance:
-     0.00000+2.79964i, 0.00000-2.79964i, -0.00000+2.75708i, -0.00000-2.75708i
+     0.00000+2.79964i, 0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
 
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 EPS type: jd
 
- Number of iterations of the method: 203
+ Number of iterations of the method: 301
  Solution method: linear
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-07, maxit=2000
+ Stopping condition: tol=1e-10, maxit=2400
  All requested eigenvalues computed up to the required tolerance:
-     0.00000+2.79964i, 0.00000-2.79964i, -0.00000+2.75708i, -0.00000-2.75708i
+     0.00000+2.79964i, 0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
 

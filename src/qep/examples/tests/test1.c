@@ -108,7 +108,8 @@ int main(int argc,char **argv)
   */
   ierr = QEPSetOperators(qep,M,C,K);CHKERRQ(ierr);
   ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
-  ierr = QEPSetDimensions(qep,4,20,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = QEPSetDimensions(qep,4,24,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = QEPSetTolerances(qep,1e-10,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /*
      Set solver type at runtime
