@@ -4,25 +4,25 @@ IP Object: 1 MPI processes
   orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
 With regular storage.
-Level of orthogonality: < 1.e-12
+Level of orthogonality below 100*eps
 QR decomposition of 6 random vectors of length 15.
 IP Object: 1 MPI processes
   type: bilinear
   orthogonalization method: modified Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
 With regular storage.
-Level of orthogonality: < 1.e-12
+Level of orthogonality below 100*eps
 QR decomposition of 6 random vectors of length 15.
 IP Object: 1 MPI processes
   type: bilinear
   orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
 With contiguous storage.
-Level of orthogonality: < 1.e-12
+Level of orthogonality below 100*eps
 QR decomposition of 6 random vectors of length 15.
 IP Object: 1 MPI processes
   type: bilinear
   orthogonalization method: modified Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
 With contiguous storage.
-Level of orthogonality: < 1.e-12
+Level of orthogonality below 100*eps

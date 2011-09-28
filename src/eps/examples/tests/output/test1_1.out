@@ -2,44 +2,39 @@ eps type krylovschur
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 24
  All requested eigenvalues computed up to the required tolerance:
      3.99534, 3.98835, 3.98137, 3.97675
 
-Level of orthogonality: < 1.e-12
+Level of orthogonality below the tolerance
 eps type arnoldi
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 83
  All requested eigenvalues computed up to the required tolerance:
      3.99534, 3.98835, 3.98137, 3.97675
 
-Level of orthogonality: < 1.e-12
+Level of orthogonality below the tolerance
 eps type lanczos
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 213
  All requested eigenvalues computed up to the required tolerance:
      3.99534, 3.98835, 3.98137, 3.97675
 
-Level of orthogonality: < 1.e-12
+Level of orthogonality below the tolerance
 eps type gd
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 610
  All requested eigenvalues computed up to the required tolerance:
      3.99534, 3.98835, 3.98137, 3.97675
 
-Level of orthogonality: < 1.e-12
+Level of orthogonality below the tolerance
 eps type jd
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- Number of iterations of the method: 142
  All requested eigenvalues computed up to the required tolerance:
      3.99534, 3.98835, 3.98137, 3.97675
 
-Level of orthogonality: < 1.e-12
+Level of orthogonality below the tolerance

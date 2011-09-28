@@ -108,7 +108,11 @@ int main( int argc, char **argv )
   ierr = MatRestoreArray(M,&pa);CHKERRQ(ierr);
   ierr = MatAXPY(M,-1.0,C,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatNorm(M,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Error against MatMatMult = %A.\n",nrm);CHKERRQ(ierr); 
+  if (nrm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Test gave correct result.\n");CHKERRQ(ierr); 
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Error against MatMatMult = %G.\n",nrm);CHKERRQ(ierr); 
+  }
 
   ierr = VecDestroyVecs(k,&V);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);

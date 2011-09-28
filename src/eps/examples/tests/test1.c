@@ -31,7 +31,8 @@ int main( int argc, char **argv )
   EPS            eps;        /* eigenproblem solver context */
   Vec            *X,v;
   PetscScalar    lev;
-  PetscInt       N,n=45,m,Istart,Iend,II,i,j,its,nconv;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscInt       N,n=45,m,Istart,Iend,II,i,j,nconv;
   PetscBool      flag;
   PetscErrorCode ierr;
 
@@ -78,8 +79,7 @@ int main( int argc, char **argv )
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(eps,6,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,1e-11,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -87,8 +87,6 @@ int main( int argc, char **argv )
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps, &its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
@@ -102,7 +100,11 @@ int main( int argc, char **argv )
       ierr = EPSGetEigenvector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
     }
     ierr = SlepcCheckOrthogonality(X,nconv,PETSC_NULL,nconv,B,&lev);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %A\n",lev);CHKERRQ(ierr); 
+    if (lev<tol) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr); 
+    } else {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %G\n",lev);CHKERRQ(ierr); 
+    }
     ierr = VecDestroyVecs(nconv,&X);CHKERRQ(ierr);
   }
   
