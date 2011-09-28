@@ -55,7 +55,7 @@ runex16_1:
 	   ${RM} -f ex16_1.tmp
 
 runex16f90_1:
-	-@${MPIEXEC} -np 1 ./ex16f90 > ex16f90_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex16f90 -qep_nev 4 -qep_ncv 20 -qep_terse > ex16f90_1.tmp 2>&1; \
 	   if (${DIFF} output/ex16f90_1.out ex16f90_1.tmp) then true; \
 	   else echo "Possible problem with ex16f90_1, diffs above"; fi; \
 	   ${RM} -f ex16f90_1.tmp
