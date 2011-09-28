@@ -1,6 +1,5 @@
 
 Reading matrix from binary file...
-  $PETSC_DIR/share/petsc/datafiles/matrices/spd-real-int32-float64
 
  All requested eigenvalues computed up to the required tolerance:
      0.96775, 1.96775, 2.38197, 3.20382
