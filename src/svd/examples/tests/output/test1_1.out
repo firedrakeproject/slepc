@@ -30,8 +30,8 @@ SVD type: lapack
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: trlanczos
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.000000
- Estimated condition number: sigma_1/sigma_n=   inf
+ Computed singular values: sigma_1=3.221487, sigma_n=0.955065
+ Estimated condition number: sigma_1/sigma_n=3.373056
 
 
 Estimate the condition number of a Grcar matrix, n=30

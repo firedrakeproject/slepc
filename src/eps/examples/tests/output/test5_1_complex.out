@@ -1,0 +1,28 @@
+eps type krylovschur
+
+Reading matrix from binary file...
+
+ All requested eigenvalues computed up to the required tolerance:
+     6.91999-0.01011i, 5.79911-0.07099i, 5.45754+0.00133i, 4.67482-0.10141i
+
+eps type arnoldi
+
+Reading matrix from binary file...
+
+ All requested eigenvalues computed up to the required tolerance:
+     6.91999-0.01011i, 5.79911-0.07099i, 5.45754+0.00133i, 4.67482-0.10141i
+
+eps type gd
+
+Reading matrix from binary file...
+
+ All requested eigenvalues computed up to the required tolerance:
+     6.91999-0.01011i, 5.79911-0.07099i, 5.45754+0.00133i, 4.67482-0.10141i
+
+eps type jd
+
+Reading matrix from binary file...
+
+ All requested eigenvalues computed up to the required tolerance:
+     6.91999-0.01011i, 5.79911-0.07099i, 5.45754+0.00133i, 4.67482-0.10141i
+

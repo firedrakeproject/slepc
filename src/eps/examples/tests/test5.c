@@ -36,6 +36,7 @@ int main(int argc,char **argv)
   const char     *prefix,*scalar,*ints,*floats;
   PetscViewer    viewer;
   PetscBool      flg,symm;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -79,6 +80,7 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   if (symm) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
   else      { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
+  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

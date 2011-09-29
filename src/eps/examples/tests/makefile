@@ -118,8 +118,13 @@ runtest5_1:
 	   echo "eps type $$eps" >> test5_1.tmp; \
 	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse >> test5_1.tmp 2>&1;    \
 	done; \
-	if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
-	else echo "Possible problem with test5_1, diffs above"; fi; \
+	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	  if (${DIFF} output/test5_1_complex.out test5_1.tmp) then true; \
+	  else echo "Possible problem with test5_1, diffs above"; fi; \
+	else \
+	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
+	  else echo "Possible problem with test5_1, diffs above"; fi; \
+	fi; \
 	${RM} -f test5_1.tmp
 
 runtest5_blopex:
