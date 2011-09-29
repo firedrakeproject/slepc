@@ -33,9 +33,9 @@ int main(int argc,char **argv)
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      tol;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscScalar    value[3];
-  PetscInt       n=30,i,Istart,Iend,col[3],nev,maxit,its;
+  PetscInt       n=30,i,Istart,Iend,col[3],nev;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   char           epstype[30] = "krylovschur";
   PetscErrorCode ierr;
@@ -89,6 +89,7 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
@@ -103,14 +104,10 @@ int main(int argc,char **argv)
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up

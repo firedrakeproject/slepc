@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   EPS            eps;         /* eigenproblem solver context */
   const EPSType  type;
   PetscScalar    value[3];
-  PetscInt       n=30,i,Istart,Iend,col[3],nev,its;
+  PetscInt       n=30,i,Istart,Iend,col[3],nev;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
 
@@ -95,8 +95,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);

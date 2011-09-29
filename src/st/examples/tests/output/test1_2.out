@@ -1,7 +1,6 @@
 
 1-D Laplacian Eigenproblem, n=30
 
- Number of iterations of the method: 4
  Solution method: krylovschur
 
  Number of requested eigenvalues: 4
@@ -11,7 +10,6 @@
 
 1-D Laplacian Eigenproblem, n=30
 
- Number of iterations of the method: 15
  Solution method: arnoldi
 
  Number of requested eigenvalues: 4
@@ -21,7 +19,6 @@
 
 1-D Laplacian Eigenproblem, n=30
 
- Number of iterations of the method: 13
  Solution method: lanczos
 
  Number of requested eigenvalues: 4
@@ -31,7 +28,6 @@
 
 1-D Laplacian Eigenproblem, n=30
 
- Number of iterations of the method: 89
  Solution method: gd
 
  Number of requested eigenvalues: 4
@@ -41,7 +37,6 @@
 
 1-D Laplacian Eigenproblem, n=30
 
- Number of iterations of the method: 35
  Solution method: jd
 
  Number of requested eigenvalues: 4

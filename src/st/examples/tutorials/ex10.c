@@ -50,7 +50,7 @@ int main (int argc,char **argv)
   const EPSType  type;
   PetscReal      tol;
   PetscScalar    value[3];
-  PetscInt       n=30,i,col[3],Istart,Iend,FirstBlock=0,LastBlock=0,nev,maxit,its;
+  PetscInt       n=30,i,col[3],Istart,Iend,FirstBlock=0,LastBlock=0,nev,maxit;
   PetscBool      isShell;
   PetscErrorCode ierr;
 
@@ -136,8 +136,6 @@ int main (int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
