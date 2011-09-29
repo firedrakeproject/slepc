@@ -25,9 +25,9 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c
-EXAMPLESF  = 
+EXAMPLESF  = test7f.F
 MANSEC     = EPS
-TESTS      = test1 test2 test3 test4 test5 test6
+TESTS      = test1 test2 test3 test4 test5 test6 test7f
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
@@ -35,7 +35,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test4.PETSc runtest4_1 test4.rm \
                        test5.PETSc runtest5_1 test5.rm \
                        test6.PETSc runtest6_1 test6.rm 
-
+TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
 TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
@@ -63,6 +63,10 @@ test5: test5.o chkopts
 test6: test6.o chkopts
 	-${CLINKER} -o test6 test6.o ${SLEPC_LIB}
 	${RM} test6.o
+
+test7f: test7f.o chkopts
+	-${FLINKER} -o test7f test7f.o ${SLEPC_LIB}
+	${RM} test7f.o
 
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd
@@ -145,4 +149,26 @@ runtest6_1:
 	if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
 	else echo "Possible problem with test6_1, diffs above"; fi; \
 	${RM} -f test6_1.tmp
+
+runtest7f_1:
+	-@${MPIEXEC} -np 1 ./test7f -eps_nev 4 -eps_terse > test7f_1.tmp 2>&1; \
+	   if (${DIFF} output/test7f_1.out test7f_1.tmp) then true; \
+	   else echo "Possible problem with test7f_1, diffs above"; fi; \
+	   ${RM} -f test7f_1.tmp
+
+testtest7f: test7f.PETSc
+	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+	   echo "Running with batch filesystem; to test run src/eps/examples/tests/test7f " ; \
+	   echo "with your systems batch system"; \
+        elif [ "${MPIEXEC}" = "/bin/false" ]; then \
+           echo "*mpiexec not found*. Please run src/eps/examples/tests/test7f manually"; \
+	elif [ -f test7f ]; then \
+           ${MPIEXEC} -np 1 ./test7f -eps_nev 4 -eps_terse > test7f_1.tmp 2>&1; \
+	   if (${DIFF} output/test7f_1.out test7f_1.tmp > /dev/null 2>&1) then \
+           echo "Fortran example src/eps/examples/tests/test7f run successfully with 1 MPI process"; \
+	   else echo "Possible error running Fortran src/eps/examples/tests/test7f with 1 MPI process"; \
+           cat test7f_1.tmp; fi; \
+           ${RM} -f test7f_1.tmp; \
+           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; fi
+
 

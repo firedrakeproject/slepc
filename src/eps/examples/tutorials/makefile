@@ -38,7 +38,7 @@ TESTEXAMPLES_C       = ex2.PETSc runex2_1 ex2.rm \
                        ex11.PETSc runex11_1 ex11.rm \
                        ex13.PETSc runex13_1 ex13.rm \
                        ex18.PETSc runex18_1 ex18.rm
-TESTEXAMPLES_FORTRAN = ex6f.PETSc runex6f_1 ex6f.rm
+TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90     = ex1f90.PETSc runex1f90_1 ex1f90.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
@@ -173,21 +173,6 @@ runex6f_1:
 	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp) then true; \
 	   else echo "Possible problem with ex6f_1, diffs above"; fi; \
 	   ${RM} -f ex6f_1.tmp
-
-testex6f: ex6f.PETSc
-	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-	   echo "Running with batch filesystem; to test run src/eps/examples/tutorials/ex6f " ; \
-	   echo "with your systems batch system"; \
-        elif [ "${MPIEXEC}" = "/bin/false" ]; then \
-           echo "*mpiexec not found*. Please run src/eps/examples/tutorials/ex6f manually"; \
-	elif [ -f ex6f ]; then \
-           ${MPIEXEC} -np 1 ./ex6f -st_shift 1 -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_terse > ex6f_1.tmp 2>&1; \
-	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp > /dev/null 2>&1) then \
-           echo "Fortran example src/eps/examples/tutorials/ex6f run successfully with 1 MPI process"; \
-	   else echo "Possible error running Fortran src/eps/examples/tutorials/ex6f with 1 MPI process"; \
-           cat ex6f_1.tmp; fi; \
-           ${RM} -f ex6f_1.tmp; \
-           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ex6f.rm ; fi
 
 runex7_1:
 	-@${MPIEXEC} -np 1 ./ex7 -f1 ${SLEPC_DIR}/src/mat/examples/bfw62a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/bfw62b.petsc -eps_nev 4 -eps_terse > ex7_1.tmp 2>&1; \
