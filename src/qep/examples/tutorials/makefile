@@ -28,9 +28,9 @@ EXAMPLESC  = ex16.c ex17.c
 EXAMPLESF  = ex16f90.F90
 MANSEC     = QEP
 
-TESTEXAMPLES_C   = ex16.PETSc runex16_1 ex16.rm \
-                   ex17.PETSc runex17_1 ex17.rm
-TESTEXAMPLES_F90 = ex16f90.PETSc runex16f90_1 ex16f90.rm
+TESTEXAMPLES_C           = ex16.PETSc runex16_1 ex16.rm
+TESTEXAMPLES_C_NOCOMPLEX = ex17.PETSc runex17_1 ex17.rm
+TESTEXAMPLES_F90         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -47,6 +47,7 @@ ex17: ex17.o chkopts
 	${RM} ex17.o
 
 #------------------------------------------------------------------------------------
+DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex16_1:
 	-@${MPIEXEC} -np 1 ./ex16 -qep_nev 4 -qep_ncv 20 -qep_terse > ex16_1.tmp 2>&1; \
@@ -61,7 +62,7 @@ runex16f90_1:
 	   ${RM} -f ex16f90_1.tmp
 
 runex17_1:
-	-@${MPIEXEC} -np 1 ./ex17 -M ${SLEPC_DIR}/src/mat/examples/speaker107m.petsc -C ${SLEPC_DIR}/src/mat/examples/speaker107c.petsc -K ${SLEPC_DIR}/src/mat/examples/speaker107k.petsc -qep_linear_explicitmatrix -qep_nev 4 -qep_ncv 20 -qep_tol 1e-9 -qep_terse > ex17_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex17 -M ${DATAPATH}/speaker107m.petsc -C ${DATAPATH}/speaker107c.petsc -K ${DATAPATH}/speaker107k.petsc -qep_linear_explicitmatrix -qep_nev 4 -qep_ncv 20 -qep_tol 1e-9 -qep_terse > ex17_1.tmp 2>&1; \
 	   if (${DIFF} output/ex17_1.out ex17_1.tmp) then true; \
 	   else echo "Possible problem with ex17_1, diffs above"; fi; \
 	   ${RM} -f ex17_1.tmp

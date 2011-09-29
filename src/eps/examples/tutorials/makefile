@@ -29,17 +29,17 @@ EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex12.c ex13.c \
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
-TESTEXAMPLES_C       = ex2.PETSc runex2_1 ex2.rm \
-                       ex3.PETSc runex3_1 ex3.rm \
-                       ex4.PETSc runex4_1 ex4.rm \
-                       ex5.PETSc runex5_1 ex5.rm \
-                       ex7.PETSc runex7_1 ex7.rm \
-                       ex9.PETSc runex9_1 ex9.rm \
-                       ex11.PETSc runex11_1 ex11.rm \
-                       ex13.PETSc runex13_1 ex13.rm \
-                       ex18.PETSc runex18_1 ex18.rm
+TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
+                                 ex3.PETSc runex3_1 ex3.rm \
+                                 ex5.PETSc runex5_1 ex5.rm \
+                                 ex9.PETSc runex9_1 ex9.rm \
+                                 ex11.PETSc runex11_1 ex11.rm \
+                                 ex13.PETSc runex13_1 ex13.rm \
+                                 ex18.PETSc runex18_1 ex18.rm
+TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
+                                 ex7.PETSc runex7_1 ex7.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
-TESTEXAMPLES_F90     = ex1f90.PETSc runex1f90_1 ex1f90.rm
+TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -104,6 +104,7 @@ ex19: ex19.o chkopts
 	${RM} ex19.o
 
 #------------------------------------------------------------------------------------
+DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex1_1:
 	-@${MPIEXEC} -np 1 ./ex1 > ex1_1.tmp 2>&1; \
@@ -157,7 +158,7 @@ runex3_1:
 	   ${RM} -f ex3_1.tmp
 
 runex4_1:
-	-@${MPIEXEC} -np 1 ./ex4 -file ${SLEPC_DIR}/src/mat/examples/rdb200.petsc -eps_nev 4 -eps_terse > ex4_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -eps_terse > ex4_1.tmp 2>&1; \
 	   if (${DIFF} output/ex4_1.out ex4_1.tmp) then true; \
 	   else echo "Possible problem with ex4_1, diffs above"; fi; \
 	   ${RM} -f ex4_1.tmp
@@ -175,7 +176,7 @@ runex6f_1:
 	   ${RM} -f ex6f_1.tmp
 
 runex7_1:
-	-@${MPIEXEC} -np 1 ./ex7 -f1 ${SLEPC_DIR}/src/mat/examples/bfw62a.petsc -f2 ${SLEPC_DIR}/src/mat/examples/bfw62b.petsc -eps_nev 4 -eps_terse > ex7_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -eps_terse > ex7_1.tmp 2>&1; \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp
