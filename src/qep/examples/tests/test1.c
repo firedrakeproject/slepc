@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   QEP            qep;             /* quadratic eigenproblem solver context */
   const QEPType  type;
   PetscReal      tol;
-  PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j,its;
+  PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j;
   PetscBool      flag;
   char           qeptype[30] = "linear", epstype[30] = "";
   EPS            eps;
@@ -132,8 +132,6 @@ int main(int argc,char **argv)
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = QEPGetIterationNumber(qep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
   ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = QEPGetDimensions(qep,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);

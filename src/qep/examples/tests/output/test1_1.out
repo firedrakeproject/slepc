@@ -2,7 +2,6 @@
 Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 
- Number of iterations of the method: 8
  Solution method: linear
 
  Number of requested eigenvalues: 4
@@ -14,7 +13,6 @@ QEP type: linear
 Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: qarnoldi
 
- Number of iterations of the method: 8
  Solution method: qarnoldi
 
  Number of requested eigenvalues: 4
@@ -27,7 +25,6 @@ Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 EPS type: krylovschur
 
- Number of iterations of the method: 8
  Solution method: linear
 
  Number of requested eigenvalues: 4
@@ -40,7 +37,6 @@ Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 EPS type: arnoldi
 
- Number of iterations of the method: 35
  Solution method: linear
 
  Number of requested eigenvalues: 4
@@ -53,7 +49,6 @@ Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 EPS type: gd
 
- Number of iterations of the method: 320
  Solution method: linear
 
  Number of requested eigenvalues: 4
@@ -66,7 +61,6 @@ Quadratic Eigenproblem, N=100 (10x10 grid)
 QEP type: linear
 EPS type: jd
 
- Number of iterations of the method: 301
  Solution method: linear
 
  Number of requested eigenvalues: 4
