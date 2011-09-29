@@ -59,7 +59,7 @@
       EPSType        tname
       PetscReal      tol
       PetscInt       n, i, Istart, Iend
-      PetscInt       nev, maxit, its
+      PetscInt       nev, maxit
       PetscInt       row(1), col(3)
       PetscMPIInt    rank
       PetscErrorCode ierr
@@ -140,11 +140,6 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       call EPSSolve(solver,ierr) 
-      call EPSGetIterationNumber(solver,its,ierr)
-      if (rank .eq. 0) then
-        write(*,110) its
-      endif
- 110  format (/' Number of iterations of the method:',I4)
   
 !     ** Optional: Get some information from the solver and display it
       call EPSGetType(solver,tname,ierr)

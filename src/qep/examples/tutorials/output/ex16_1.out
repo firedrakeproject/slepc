@@ -1,7 +1,6 @@
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
 
- Number of iterations of the method: 8
  Solution method: linear
 
  Number of requested eigenvalues: 4

@@ -1,7 +1,5 @@
 
 Quadratic Eigenproblem, N=   100 (  10x  10 grid)
-
- Number of iterations of the method:   8
  Solution method: linear                                                                          
  Number of requested eigenvalues:   4
  Stopping condition: tol=1.0000E-07, maxit= 100

@@ -59,7 +59,7 @@
       QEPType        tname
       PetscReal      tol
       PetscInt       N, nx, ny, i, j, Istart, Iend, II
-      PetscInt       nev, maxit, its
+      PetscInt       nev, maxit
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
@@ -145,11 +145,6 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       call QEPSolve(solver,ierr) 
-      call QEPGetIterationNumber(solver,its,ierr)
-      if (rank .eq. 0) then
-        write(*,110) its
-      endif
- 110  format (/' Number of iterations of the method:',I4)
   
 !     ** Optional: Get some information from the solver and display it
       call QEPGetType(solver,tname,ierr)
