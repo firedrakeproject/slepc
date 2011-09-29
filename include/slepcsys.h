@@ -97,7 +97,7 @@ extern PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
 #endif
 extern PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 extern PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
-extern PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscScalar*);
+extern PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscReal*);
  
 extern PetscBool SlepcInitializeCalled;
 

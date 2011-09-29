@@ -33,7 +33,7 @@ int main( int argc, char **argv )
   Vec            *V,t;
   PetscInt       i,n=15,k=6;
   PetscRandom    rctx;
-  PetscScalar    lev;
+  PetscReal      lev;
   PetscBool      cont;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

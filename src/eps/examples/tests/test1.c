@@ -30,8 +30,7 @@ int main( int argc, char **argv )
   Mat            A,B;        /* matrices */
   EPS            eps;        /* eigenproblem solver context */
   Vec            *X,v;
-  PetscScalar    lev;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      lev,tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       N,n=45,m,Istart,Iend,II,i,j,nconv;
   PetscBool      flag;
   PetscErrorCode ierr;

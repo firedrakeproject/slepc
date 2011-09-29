@@ -474,14 +474,12 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
 
    If matrix B is provided then the check uses the B-inner product, W'*B*V.
 
-   If lev is not PETSC_NULL, it will contain the level of orthogonality
-   computed as ||W'*V - I|| in the Frobenius norm. Otherwise, the matrix W'*V
-   is printed.
+   If lev is not PETSC_NULL, it will contain the maximum entry of matrix 
+   W'*V - I (in absolute value). Otherwise, the matrix W'*V is printed.
 
    Level: developer
-
 @*/
-PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscScalar *lev)
+PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscReal *lev)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
@@ -506,7 +504,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     }
     ierr = VecMDot(w,nv,V,vals);CHKERRQ(ierr);
     for (j=0;j<nv;j++) {
-      if (lev) *lev += (j==i)? (vals[j]-1.0)*(vals[j]-1.0): vals[j]*vals[j];
+      if (lev) *lev = PetscMax(*lev, PetscAbsScalar((j==i)? (vals[j]-1.0): vals[j]));
       else { 
 #if !defined(PETSC_USE_COMPLEX)
         ierr = PetscPrintf(comm," %12G  ",vals[j]);CHKERRQ(ierr); 
@@ -519,7 +517,6 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
   }
   ierr = PetscFree(vals);CHKERRQ(ierr);
   if (B) { ierr = VecDestroy(&w);CHKERRQ(ierr); }
-  if (lev) *lev = PetscSqrtScalar(*lev);
   PetscFunctionReturn(0);
 }
 
