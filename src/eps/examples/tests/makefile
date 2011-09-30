@@ -75,7 +75,7 @@ runtest1_1:
 	-@touch test1_1.tmp; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps" >> test1_1.tmp; \
-	   if [ "$$eps" == "lanczos" ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
+	   if [ "$$eps" = "lanczos" ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA -eps_terse >> test1_1.tmp 2>&1; \
 	done; \
 	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
