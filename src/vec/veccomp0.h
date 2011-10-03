@@ -123,73 +123,161 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#define __UNNORM__(A,T) \
-  switch(T) { \
-  case NORM_2: case NORM_FROBENIUS: (A) = (A)*(A); break; \
-  case NORM_1_AND_2: (&(A))[1] = ((&(A))[1])*((&(A))[1]); break; \
-  default: ; \
-  }
+#ifndef __VEC_NORM2_FUNCS_
+#define __VEC_NORM2_FUNCS_
+PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
+{
+  PetscReal q;
+  if (*scale0 > *scale1) { q = *scale1/(*scale0); *ssq1 = *ssq0 + q*q*(*ssq1); *scale1 = *scale0; }
+  else                   { q = *scale0/(*scale1); *ssq1+=         q*q*(*ssq0); }
+}
 
-#define __NORM__(A,T) \
-  switch(T) { \
-  case NORM_2: case NORM_FROBENIUS: (A) = sqrt(A); break; \
-  case NORM_1_AND_2: (&(A))[1] = sqrt((&(A))[1]); break; \
-  default: ; \
-  }
+PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal ssq,PetscReal scale)
+{
+  return scale*PetscSqrtReal(ssq);
+}
 
-#define __SUM_NORMS__(A,B,T) \
-  switch(T) { \
-  case NORM_1: case NORM_2: case NORM_FROBENIUS: (A) = (A)+(B); break; \
-  case NORM_1_AND_2: (A) = (A)+(B); (&(A))[1] = (&(A))[1]+(&(B))[1]; break; \
-  case NORM_INFINITY: (A) = PetscMax((A),(B)); break; \
-  default: ; \
+PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
+{
+  if (x != 0.0) {
+    PetscReal absx = PetscAbs(x), q;
+    if (*scale < absx) { q = *scale/absx; *ssq = 1.0 + *ssq*q*q; *scale = absx; }
+    else               { q = absx/(*scale); *ssq+= q*q; } 
   }
+}
+
+MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
+MPI_Op MPIU_NORM2_SUM=0;
+
+EXTERN_C_BEGIN
+#undef __FUNCT__
+#define __FUNCT__ "SlepcSumNorm2_Local"
+void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+{
+  PetscInt       i,count = *cnt;
+
+  PetscFunctionBegin;
+  if (*datatype == MPIU_NORM2) {
+    PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
+    for (i=0; i<count; i++) {
+      SumNorm2(&xin[i*2],&xin[i*2+1],&xout[i*2],&xout[i*2+1]);
+    }
+  } else if (*datatype == MPIU_NORM1_AND_2) {
+    PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
+    for (i=0; i<count; i++) {
+      xout[i*3]+= xin[i*3];
+      SumNorm2(&xin[i*3+1],&xin[i*3+2],&xout[i*3+1],&xout[i*3+2]);
+    }
+  } else {
+    (*PetscErrorPrintf)("Can only handle MPIU_NORM* data types");
+    MPI_Abort(MPI_COMM_WORLD,1);
+  }
+  PetscFunctionReturnVoid();
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "VecNormCompEnd"
+PetscErrorCode VecNormCompEnd()
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+
+  ierr = MPI_Type_free(&MPIU_NORM2);CHKERRQ(ierr);
+  ierr = MPI_Type_free(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
+  ierr = MPI_Op_free(&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "VecNormCompInit"
+PetscErrorCode VecNormCompInit()
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+
+  ierr = MPI_Type_contiguous(sizeof(PetscReal)*2,MPI_BYTE,&MPIU_NORM2);CHKERRQ(ierr);
+  ierr = MPI_Type_commit(&MPIU_NORM2);
+  ierr = MPI_Type_contiguous(sizeof(PetscReal)*3,MPI_BYTE,&MPIU_NORM1_AND_2);CHKERRQ(ierr);
+  ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);
+  ierr = MPI_Op_create(SlepcSumNorm2_Local,1,&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  ierr = PetscRegisterFinalize(VecNormCompEnd);
+  
+  PetscFunctionReturn(0);
+}
+#endif
 
 #undef __FUNCT__  
 #define __FUNCT__ __SUF_C__(VecNorm_Comp)
 PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
 {
-  PetscReal      work[2];
+  PetscReal      work[3],s=0.0;
   PetscErrorCode ierr;
   Vec_Comp       *as = (Vec_Comp*)a->data;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidVecComp(a);
-  *norm = 0.0;
-  if (as->x[0]->ops->norm_local) {
-    for (i=0;i<as->n->n;i++) {
+  /* Initialize norm */
+  switch(t) {
+  case NORM_1: case NORM_INFINITY: *norm = 0.0; break;
+  case NORM_2: case NORM_FROBENIUS: *norm = 1.0; s = 0.0; break;
+  case NORM_1_AND_2: norm[0] = 0.0; norm[1] = 1.0; s = 0.0; break;
+  }
+  for (i=0;i<as->n->n;i++) {
+    if (as->x[0]->ops->norm_local) {
       ierr = as->x[0]->ops->norm_local(as->x[i],t,work);CHKERRQ(ierr);
-      __UNNORM__(*work,t);
-      __SUM_NORMS__(*norm,*work,t);
-    }
-  } else {
-    for (i=0;i<as->n->n;i++) {
+    } else {
       ierr = VecNorm(as->x[i],t,work);CHKERRQ(ierr);
-      __UNNORM__(*work,t);
-      __SUM_NORMS__(*norm,*work,t);
+    }
+    /* norm+= work */
+    switch(t) {
+    case NORM_1: *norm+= *work; break;
+    case NORM_2: case NORM_FROBENIUS: AddNorm2(norm,&s,*work); break;
+    case NORM_1_AND_2: norm[0]+= work[0]; AddNorm2(&norm[1],&s,work[1]); break;
+    case NORM_INFINITY: *norm = PetscMax(*norm,*work); break;
     }
   }
 
   /* If def(__WITH_MPI__) and exists norm_local */
 #ifdef __WITH_MPI__
   if (as->x[0]->ops->norm_local) {
+    PetscReal work0[3];
     /* norm <- Allreduce(work) */
-    work[0] = *norm;
-    if (t == NORM_1_AND_2) work[1] = norm[1];
-    ierr = MPI_Allreduce(work,norm,t==NORM_1_AND_2?2:1,MPIU_REAL,
-                         t==NORM_INFINITY?MPI_MAX:MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+    switch(t) {
+    case NORM_1:
+      work[0] = *norm;
+      ierr = MPI_Allreduce(work,norm,1,MPIU_REAL,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+      break;
+    case NORM_2: case NORM_FROBENIUS:
+      work[0] = *norm; work[1] = s;
+      ierr = MPI_Allreduce(work,work0,1,MPIU_NORM2,MPIU_NORM2_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+      *norm = GetNorm2(work0[0],work0[1]);
+      break;
+    case NORM_1_AND_2:
+      work[0] = norm[0]; work[1] = norm[1]; work[2] = s;
+      ierr = MPI_Allreduce(work,work0,1,MPIU_NORM1_AND_2,MPIU_NORM2_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+      norm[0] = work0[0];
+      norm[1] = GetNorm2(work0[1],work0[2]);
+      break;
+    case NORM_INFINITY:
+      work[0] = *norm;
+      ierr = MPI_Allreduce(work,norm,1,MPIU_REAL,MPIU_MAX,((PetscObject)a)->comm);CHKERRQ(ierr);
+      break;
+    }
+  }
+#else
+  /* Norm correction */
+  switch(t) {
+  case NORM_2: case NORM_FROBENIUS: *norm = GetNorm2(*norm,s); break;
+  case NORM_1_AND_2: norm[1] = GetNorm2(norm[1],s); break;
+  default: ;
   }
 #endif
 
-  /* Norm correction */
-  __NORM__(*norm,t);
   PetscFunctionReturn(0);
 }
-
-#undef __NORM__
-#undef __SUM_NORMS__
-#undef __UNNORM__
 
 #undef __FUNCT__  
 #define __FUNCT__ __SUF_C__(VecDotNorm2_Comp)

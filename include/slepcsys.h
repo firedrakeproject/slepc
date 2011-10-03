@@ -90,8 +90,57 @@ extern PetscErrorCode SlepcFinalize(void);
 extern PetscErrorCode SlepcInitializeFortran(void);
 extern PetscErrorCode SlepcInitialized(PetscBool*);
 
+#undef __FUNCT__ 
+#define __FUNCT__ "SlepcAbs"
+/*@C
+   SlepcAbs - Returns sqrt(x**2+y**2), taking care not to cause unnecessary
+   overflow. It is based on LAPACK's DLAPY2.
+
+   Not Collective
+
+   Input parameters:
+.  x,y - the real numbers
+
+   Output parameter:
+.  return - the result
+
+   Level: developer
+@*/
+PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
+{
+  PetscReal w,z,t,xabs=PetscAbs(x),yabs=PetscAbs(y);
+
+  w = PetscMax(xabs,yabs);
+  z = PetscMin(xabs,yabs);
+  if (z == 0.0) return w;
+  t = z/w;
+  return w*PetscSqrtReal(1.0+t*t);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcAbsEigenvalue"
+/*@MC
+   SlepcAbsEigenvalue - Returns the absolute value of a complex number given
+   its real and imaginary parts.
+
+  Synopsis:
+   PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
+   Not Collective
+
+   Input parameters:
++  x  - the real part of the complex number
+-  y  - the imaginary part of the complex number
+
+   Notes: 
+   This function computes sqrt(x**2+y**2), taking care not to cause unnecessary
+   overflow. It is based on LAPACK's DLAPY2.
+
+   Level: developer
+
+@*/
 #if !defined(PETSC_USE_COMPLEX)
-extern PetscReal SlepcAbsEigenvalue(PetscScalar,PetscScalar);
+#define SlepcAbsEigenvalue(x,y) SlepcAbs(x,y)
 #else
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
 #endif

@@ -21,43 +21,6 @@
 
 #include <slepcsys.h>            /*I "slepcsys.h" I*/
 
-#if !defined(PETSC_USE_COMPLEX)
-
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcAbsEigenvalue"
-/*@C
-   SlepcAbsEigenvalue - Returns the absolute value of a complex number given
-   its real and imaginary parts.
-
-   Not Collective
-
-   Input parameters:
-+  x  - the real part of the complex number
--  y  - the imaginary part of the complex number
-
-   Notes: 
-   This function computes sqrt(x**2+y**2), taking care not to cause unnecessary
-   overflow. It is based on LAPACK's DLAPY2.
-
-   Level: developer
-
-@*/
-PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
-{
-  PetscReal xabs,yabs,w,z,t;
-
-  PetscFunctionBegin;
-  xabs = PetscAbsReal(x);
-  yabs = PetscAbsReal(y);
-  w = PetscMax(xabs,yabs);
-  z = PetscMin(xabs,yabs);
-  if (z == 0.0) PetscFunctionReturn(w);
-  t = z/w;
-  PetscFunctionReturn(w*PetscSqrtReal(1.0+t*t));  
-}
-
-#endif
-
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcMatConvertSeqDense"
 /*@C
