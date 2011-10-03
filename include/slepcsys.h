@@ -118,9 +118,7 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
 }
 
 
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcAbsEigenvalue"
-/*@MC
+/*MC
    SlepcAbsEigenvalue - Returns the absolute value of a complex number given
    its real and imaginary parts.
 
@@ -138,7 +136,7 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
 
    Level: developer
 
-@*/
+M*/
 #if !defined(PETSC_USE_COMPLEX)
 #define SlepcAbsEigenvalue(x,y) SlepcAbs(x,y)
 #else
