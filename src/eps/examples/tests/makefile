@@ -34,7 +34,11 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test3.PETSc runtest3_1 test3.rm \
                        test4.PETSc runtest4_1 test4.rm \
                        test5.PETSc runtest5_1 test5.rm \
-                       test6.PETSc runtest6_1 test6.rm 
+                       test6.PETSc runtest6_1 test6.rm \
+                       test8.PETSc runtest8_1 test8.rm \
+                       test9.PETSc runtest9_1 test9.rm \
+                       test10.PETSc runtest10_1 test10.rm \
+                       test11.PETSc runtest11_1 test11.rm 
 TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
 TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
 
@@ -68,60 +72,76 @@ test7f: test7f.o chkopts
 	-${FLINKER} -o test7f test7f.o ${SLEPC_LIB}
 	${RM} test7f.o
 
+test8: test8.o chkopts
+	-${CLINKER} -o test8 test8.o ${SLEPC_LIB}
+	${RM} test8.o
+
+test9: test9.o chkopts
+	-${CLINKER} -o test9 test9.o ${SLEPC_LIB}
+	${RM} test9.o
+
+test10: test10.o chkopts
+	-${CLINKER} -o test10 test10.o ${SLEPC_LIB}
+	${RM} test10.o
+
+test11: test11.o chkopts
+	-${CLINKER} -o test11 test11.o ${SLEPC_LIB}
+	${RM} test11.o
+
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd
 EPSNS  = krylovschur arnoldi gd jd
+TESTCODE = \
+	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
+	${DIFF} output/$${test}.out $${test}.tmp || \
+	echo "Possible problem with $${test}, diffs above"; \
+	${RM} -f $${test}.tmp
+
 runtest1_1:
-	-@touch test1_1.tmp; \
+	-@test=test1_1; \
 	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps" >> test1_1.tmp; \
+	   echo "eps type $$eps"; \
 	   if [ "$$eps" = "lanczos" ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
-	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA -eps_terse >> test1_1.tmp 2>&1; \
-	done; \
-	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	else echo "Possible problem with test1_1, diffs above"; fi; \
-	${RM} -f test1_1.tmp
+	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA -eps_terse 2>&1; \
+	done > $${test}.tmp; \
+	${TESTCODE}
 
 runtest2_1:
-	-@touch test2_1.tmp; \
+	-@test=test2_1; \
 	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps" >> test2_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse >> test2_1.tmp 2>&1;    \
-	done; \
-	if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
-	else echo "Possible problem with test2_1, diffs above"; fi; \
-	${RM} -f test2_1.tmp
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
+	done > $${test}.tmp; \
+	${TESTCODE}
 
 runtest3_1:
-	-@touch test3_1.tmp; \
+	-@test=test3_1; \
 	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps" >> test3_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test3 -eps_type $$eps -eps_nev 4 -eps_terse >> test3_1.tmp 2>&1;    \
-	done; \
-	if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
-	else echo "Possible problem with test3_1, diffs above"; fi; \
-	${RM} -f test3_1.tmp
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test3 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
+	done > $${test}.tmp; \
+	${TESTCODE}
 
 runtest4_1:
-	-@touch test4_1.tmp; \
+	-@test=test4_1; \
 	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps" >> test4_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test4 -type $$eps -eps_terse >> test4_1.tmp 2>&1;    \
-	done; \
-	if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
-	else echo "Possible problem with test4_1, diffs above"; fi; \
-	${RM} -f test4_1.tmp
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test4 -type $$eps -eps_terse 2>&1;    \
+	done > $${test}.tmp; \
+	${TESTCODE}
 
 runtest5_1:
-	-@touch test5_1.tmp; \
+	-@test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
 	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse >> test5_1.tmp 2>&1;    \
 	done; \
 	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	  [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1_complex.out; \
 	  if (${DIFF} output/test5_1_complex.out test5_1.tmp) then true; \
 	  else echo "Possible problem with test5_1, diffs above"; fi; \
 	else \
+	  [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1.out; \
 	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
 	  else echo "Possible problem with test5_1, diffs above"; fi; \
 	fi; \
@@ -146,14 +166,12 @@ testtest5_blopex: test5.PETSc
            ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test5.rm ; fi
 
 runtest6_1:
-	-@touch test6_1.tmp; \
+	-@test=test6_1; \
 	for eps in ${EPSNS}; do \
-	   echo "eps type $$eps" >> test6_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test6 -eps_type $$eps -eps_nev 4 -eps_terse >> test6_1.tmp 2>&1;    \
-	done; \
-	if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
-	else echo "Possible problem with test6_1, diffs above"; fi; \
-	${RM} -f test6_1.tmp
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test6 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
+	done > $${test}.tmp; \
+	${TESTCODE}
 
 runtest7f_1:
 	-@${MPIEXEC} -np 1 ./test7f -eps_nev 4 -eps_terse > test7f_1.tmp 2>&1; \
@@ -176,4 +194,35 @@ testtest7f: test7f.PETSc
            ${RM} -f test7f_1.tmp; \
            ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; fi
 
+runtest8_1:
+	-@test=test8_1; \
+	for eps in ${EPSALL}; do \
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1; \
+	done > $${test}.tmp; \
+	${TESTCODE}
 
+runtest9_1:
+	-@test=test9_1; \
+	for eps in ${EPSNS}; do \
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test9 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1; \
+	done > $${test}.tmp;\
+	${TESTCODE}
+
+runtest10_1:
+	-@test=test10_1; \
+	for eps in ${EPSALL}; do \
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test10 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1; \
+	done > $${test}.tmp;\
+	${TESTCODE}
+
+runtest11_1:
+	-@test=test11_1; \
+	for eps in ${EPSNS}; do \
+	   echo "eps type $$eps"; \
+	   if [ $$eps = arnoldi ]; then ops="-eps_ncv 40 -eps_max_it 1000"; else ops=""; fi; \
+	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$ops 2>&1; \
+	done > $${test}.tmp;\
+	${TESTCODE}
