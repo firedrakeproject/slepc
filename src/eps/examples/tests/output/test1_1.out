@@ -3,7 +3,7 @@ eps type krylovschur
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
  All requested eigenvalues computed up to the required tolerance:
-     3.99534, 3.98835, 3.98137, 3.97675
+     29.73524, 29.67536, 29.58873, 29.46785
 
 Level of orthogonality below the tolerance
 eps type arnoldi
@@ -11,7 +11,7 @@ eps type arnoldi
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
  All requested eigenvalues computed up to the required tolerance:
-     3.99534, 3.98835, 3.98137, 3.97675
+     29.73524, 29.67536, 29.58873, 29.46785
 
 Level of orthogonality below the tolerance
 eps type lanczos
@@ -19,7 +19,7 @@ eps type lanczos
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
  All requested eigenvalues computed up to the required tolerance:
-     3.99534, 3.98835, 3.98137, 3.97675
+     29.73524, 29.67536, 29.58873, 29.46785
 
 Level of orthogonality below the tolerance
 eps type gd
@@ -27,7 +27,7 @@ eps type gd
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
  All requested eigenvalues computed up to the required tolerance:
-     3.99534, 3.98835, 3.98137, 3.97675
+     29.73524, 29.67536, 29.58873, 29.46785
 
 Level of orthogonality below the tolerance
 eps type jd
@@ -35,6 +35,6 @@ eps type jd
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
  All requested eigenvalues computed up to the required tolerance:
-     3.99534, 3.98835, 3.98137, 3.97675
+     29.73524, 29.67536, 29.58873, 29.46785
 
 Level of orthogonality below the tolerance

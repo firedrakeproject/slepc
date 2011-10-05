@@ -110,7 +110,8 @@ runtest2_1:
 	-@test=test2_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
+	   if [ $$eps = arnoldi -o $$eps = jd ]; then EXTRA="-eps_ncv 30"; else EXTRA=""; fi; \
+	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}
 
@@ -222,7 +223,7 @@ runtest11_1:
 	-@test=test11_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ $$eps = arnoldi ]; then ops="-eps_ncv 40 -eps_max_it 1000"; else ops=""; fi; \
-	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$ops 2>&1; \
+	   if [ $$eps = arnoldi ]; then EXTRA="-eps_ncv 40 -eps_max_it 1000"; else EXTRA=""; fi; \
+	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}

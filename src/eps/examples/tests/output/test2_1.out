@@ -28,7 +28,7 @@ eps type arnoldi
 
  - - - Interior eigenvalues - - -
  All requested eigenvalues computed up to the required tolerance:
-     2.10130, 1.89870, 2.30286, 1.69714
+     2.10130, 1.89870, 2.30286, 2.50131
 
 eps type lanczos
 
