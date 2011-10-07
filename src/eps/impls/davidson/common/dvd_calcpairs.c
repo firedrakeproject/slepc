@@ -99,6 +99,10 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
                               b->max_size_V*b->max_size_V*4
                                                       /* SlepcReduction */ ),
                               std_probl?0:(b->max_size_V*11+16) /* projeig */);
+#if defined(PETSC_USE_COMPLEX)
+  b->max_size_auxS = PetscMax(b->max_size_auxS, b->max_size_V);
+                                           /* dvd_calcpairs_projeig_eig */
+#endif
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
@@ -414,12 +418,16 @@ PetscErrorCode dvd_calcpairs_VtBV_gen(dvdDashboard *d, DvdReduction *r,
   PetscFunctionReturn(0);
 }
 
-
+/* in complex, d->size_H real auxiliar values are needed */
 #undef __FUNCT__ 
 #define __FUNCT__ "dvd_calcpairs_projeig_eig"
 PetscErrorCode dvd_calcpairs_projeig_eig(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
+  PetscReal       *w;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt        i;
+#endif
 
   PetscFunctionBegin;
 
@@ -429,7 +437,16 @@ PetscErrorCode dvd_calcpairs_projeig_eig(dvdDashboard *d)
                               d->size_H, d->size_H);
 
   /* S = pX' * L * pX */
-  ierr = EPSDenseHEP(d->size_H, d->S, d->ldS, d->eigr, d->pX); CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  w = d->eigr;
+#else
+  w = (PetscReal*)d->auxS;
+  for (i=0; i<d->size_H; i++) w[i] = PetscRealPart(d->eigr[i]);
+#endif
+  ierr = EPSDenseHEP(d->size_H, d->S, d->ldS, w, d->pX); CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  for (i=0; i<d->size_H; i++) d->eigr[i] = w[i];
+#endif
 
   d->pX_type = (d->pX_type & !DVD_MAT_IDENTITY) | DVD_MAT_UNITARY;
 

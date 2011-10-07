@@ -71,7 +71,10 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   
   /* Do stub */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
-    *C = *A * *B;
+    if (!At && !Bt) *C = *A * *B;
+    else if (At && !Bt) *C = PetscConj(*A) * *B;
+    else if (!At && Bt) *C = *A * PetscConj(*B);
+    else *C = PetscConj(*A) * PetscConj(*B);
     m = n = k = 1;
   } else {
     m = rA; n = cB; k = cA;
@@ -351,7 +354,7 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
   case 1: /* transpose */
     for(i=0; i<cX; i++)
       for(j=0; j<rX; j++)
-        Y[ldY*j+i] = X[ldX*i+j];
+        Y[ldY*j+i] = PetscConj(X[ldX*i+j]);
     break;
 
   case 2: /* reflection from up */
@@ -1345,10 +1348,11 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSSortDenseHEP"
-PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscReal *w, PetscScalar *V, PetscInt ldV)
+PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, PetscScalar *V, PetscInt ldV)
 {
   PetscInt        i, j, result, pos;
-  PetscReal       t, re;
+  PetscReal       re;
+  PetscScalar     t;
   PetscBLASInt    n_ = PetscBLASIntCast(n), one=1;
   PetscErrorCode  ierr;
 
@@ -1356,13 +1360,13 @@ PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscReal *w, Pe
 
   /* selection sort */
   for (i=k;i<n-1;i++) {
-    re = w[i];
+    re = PetscRealPart(w[i]);
     pos = 0;
     /* find minimum eigenvalue */
     for (j=i+1;j<n;j++) { 
-      ierr = EPSCompareEigenvalues(eps,re,0,w[j],0,&result);CHKERRQ(ierr);
+      ierr = EPSCompareEigenvalues(eps,re,0,PetscRealPart(w[j]),0,&result);CHKERRQ(ierr);
       if (result > 0) {
-        re = w[j];
+        re = PetscRealPart(w[j]);
         pos = j;
       }
     }
