@@ -14,6 +14,7 @@ int main(int argc,char **argv)
   EPS            eps;         /* eigenproblem solver context */
   Vec            v0;          /* initial vector */
   PetscRandom    rand;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       n=30,i,Istart,Iend,seed=0x12345678;
   PetscErrorCode ierr;
 
@@ -38,6 +39,7 @@ int main(int argc,char **argv)
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
   /* set random initial vector */
   ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);

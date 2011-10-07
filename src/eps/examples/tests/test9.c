@@ -41,8 +41,8 @@ int main(int argc,char **argv)
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
-  PetscReal      tol;
-  PetscInt       N,m=15,nev,maxit,its;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscInt       N,m=15,nev,maxit;
   PetscScalar    origin=0.0;
   PetscErrorCode ierr;
   
@@ -75,6 +75,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
 
   /*
      Set the custom comparing routine in order to obtain the eigenvalues
@@ -101,8 +102,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it

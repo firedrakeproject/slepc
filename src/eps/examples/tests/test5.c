@@ -34,9 +34,9 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   char           filename[PETSC_MAX_PATH_LEN];
   const char     *prefix,*scalar,*ints,*floats;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscViewer    viewer;
   PetscBool      flg,symm;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);

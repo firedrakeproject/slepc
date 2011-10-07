@@ -30,6 +30,7 @@ int main(int argc,char **argv)
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   ST             st;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscScalar    value[3];
   PetscInt       n=30,i,Istart,Iend,col[3];
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE,flg;
@@ -74,6 +75,7 @@ int main(int argc,char **argv)
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

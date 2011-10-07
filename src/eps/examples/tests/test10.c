@@ -35,8 +35,8 @@ int main (int argc,char **argv)
   Mat            A;               /* operator matrix */
   Vec            x;
   const EPSType  type;
-  PetscReal      tol;
-  PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev,maxit,its;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev,maxit;
   PetscScalar    w;
   PetscBool      flag;
   PetscErrorCode ierr;
@@ -87,6 +87,7 @@ int main (int argc,char **argv)
   */
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
   
   /*
      Select portion of spectrum
@@ -112,8 +113,6 @@ int main (int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
