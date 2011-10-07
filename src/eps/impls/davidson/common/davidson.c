@@ -65,7 +65,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   eps->ops->setup                = EPSSetUp_Davidson;
   eps->ops->reset                = EPSReset_Davidson;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_QZ;
+  eps->ops->computevectors       = EPSComputeVectors_Davidson;
   eps->ops->view                 = EPSView_Davidson;
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON),&data);CHKERRQ(ierr);
@@ -81,6 +81,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   ierr = EPSDavidsonSetRestart_Davidson(eps,6,0);CHKERRQ(ierr);
   ierr = EPSDavidsonSetInitialSize_Davidson(eps,5);CHKERRQ(ierr);
   ierr = EPSDavidsonSetFix_Davidson(eps,0.01);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetBOrth_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -164,7 +165,10 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     dvd->sB = DVD_MAT_IMPLICIT |
               (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
               (ispositive? DVD_MAT_POS_DEF : 0);
-  ipB = DVD_IS(dvd->sB,DVD_MAT_POS_DEF)?PETSC_TRUE:PETSC_FALSE;
+  ipB = (data->ipB && DVD_IS(dvd->sB,DVD_MAT_POS_DEF))?PETSC_TRUE:PETSC_FALSE;
+  data->ipB = ipB;
+  dvd->ipV_oneMV = (ipB && dvd->B)? PETSC_TRUE : PETSC_FALSE;
+  dvd->correctXnorm = (ipB && dvd->B)? PETSC_TRUE : PETSC_FALSE;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
              (ispositive? DVD_EP_HERMITIAN : 0);
   dvd->nev = eps->nev;
@@ -346,7 +350,13 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
     SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   }
   
+  ierr = EPSDavidsonGetBOrth_Davidson(eps,&opb);CHKERRQ(ierr);
   ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
+  if(!opb) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is I-orthogonalized\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
+  }
   ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
   ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&opb);CHKERRQ(ierr);
   if(!opb) {
@@ -488,9 +498,32 @@ PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSComputeVectors_QZ"
+#define __FUNCT__ "EPSDavidsonSetBOrth_Davidson"
+PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,PetscBool borth)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  data->ipB = borth;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDavidsonGetBOrth_Davidson"
+PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,PetscBool *borth)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  *borth = data->ipB;
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeVectors_Davidson"
 /*
-  EPSComputeVectors_QZ - Compute eigenvectors from the vectors
+  EPSComputeVectors_Davidson - Compute eigenvectors from the vectors
   provided by the eigensolver. This version is intended for solvers 
   that provide Schur vectors from the QZ decompositon. Given the partial
   Schur decomposition OP*V=V*T, the following steps are performed:
@@ -498,7 +531,7 @@ PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
       2) compute eigenvectors of OP: X=V*Z
   If left eigenvectors are required then also do Z'*Tl=D*Z', Y=W*Z
  */
-PetscErrorCode EPSComputeVectors_QZ(EPS eps)
+PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
@@ -507,23 +540,26 @@ PetscErrorCode EPSComputeVectors_QZ(EPS eps)
   PetscInt       size_auxS;
 
   PetscFunctionBegin;
-  /* Compute the eigenvectors associated to (cS, cT) */
-  ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv,&pX);CHKERRQ(ierr);
-  size_auxS = 11*d->nconv + 4*d->nconv*d->nconv; 
-  ierr = PetscMalloc(sizeof(PetscScalar)*size_auxS,&auxS);CHKERRQ(ierr);
-  ierr = dvd_compute_eigenvectors(d->nconv,d->cS,d->ldcS,d->cT,d->ldcT,
-                                  pX,d->nconv,PETSC_NULL,0,auxS,
-                                  size_auxS,PETSC_FALSE);CHKERRQ(ierr);
 
-  /* pX[i] <- pX[i] / ||pX[i]|| */
-  ierr = SlepcDenseNorm(pX,d->nconv,d->nconv,d->nconv,d->ceigi);CHKERRQ(ierr);
-
-  /* V <- cX * pX */ 
-  ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,
-                             d->nconv,d->nconv,d->nconv);CHKERRQ(ierr);
-
-  ierr = PetscFree(pX);CHKERRQ(ierr);
-  ierr = PetscFree(auxS);CHKERRQ(ierr);
+  if (d->cS) {
+    /* Compute the eigenvectors associated to (cS, cT) */
+    ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv,&pX);CHKERRQ(ierr);
+    size_auxS = 11*d->nconv + 4*d->nconv*d->nconv; 
+    ierr = PetscMalloc(sizeof(PetscScalar)*size_auxS,&auxS);CHKERRQ(ierr);
+    ierr = dvd_compute_eigenvectors(d->nconv,d->cS,d->ldcS,d->cT,d->ldcT,
+                                    pX,d->nconv,PETSC_NULL,0,auxS,
+                                    size_auxS,PETSC_FALSE);CHKERRQ(ierr);
+  
+    /* pX[i] <- pX[i] / ||pX[i]|| */
+    ierr = SlepcDenseNorm(pX,d->nconv,d->nconv,d->nconv,d->ceigi);CHKERRQ(ierr);
+  
+    /* V <- cX * pX */ 
+    ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,
+                               d->nconv,d->nconv,d->nconv);CHKERRQ(ierr);
+  
+    ierr = PetscFree(pX);CHKERRQ(ierr);
+    ierr = PetscFree(auxS);CHKERRQ(ierr);
+  }
 
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);

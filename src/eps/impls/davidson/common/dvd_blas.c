@@ -23,7 +23,6 @@
 #include "davidson.h"
 
 PetscLogEvent SLEPC_SlepcDenseMatProd = 0;
-PetscLogEvent SLEPC_SlepcDenseMatInvProd = 0;
 PetscLogEvent SLEPC_SlepcDenseNorm = 0;
 PetscLogEvent SLEPC_SlepcDenseOrth = 0;
 PetscLogEvent SLEPC_SlepcDenseCopy = 0;
@@ -213,49 +212,6 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
   PetscFunctionReturn(0);
 }
   
-
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcDenseMatInvProd"
-/*
-  Compute B <- A\B, where
-    ldA, the leading dimension of A,
-    ldB, the leading dimension of B,
-    dimA, rows and columns of A,
-    rB, cB, rows and columns of B,
-    auxI, auxiliary vector of size dimA,
-    auxS, auxiliary vector of size cB
-*/
-PetscErrorCode SlepcDenseMatInvProd(
-  PetscScalar *A, PetscInt _ldA, PetscInt _dimA,
-  PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt _cB,
-  PetscInt *auxI)
-{
-  PetscErrorCode  ierr;
-  PetscBLASInt    *p = (PetscBLASInt*)auxI, dimA = _dimA, cB = _cB,
-                  ldA = _ldA, ldB = _ldB, info;
-
-  PetscFunctionBegin;
-
-  /* Check size */
-  if (_dimA != rB) {
-    SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
-  }
-
-  /* Quick exit */
-  if ((_dimA == 0) || (cB == 0)) { PetscFunctionReturn(0); }
-
-  ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatInvProd,0,0,0,0);CHKERRQ(ierr);
-  if (dimA == 1) {
-    *B = *B / *A;
-    ierr = PetscLogFlops(1);CHKERRQ(ierr);
-  } else {
-   LAPACKgesv_(&dimA, &cB, A, &ldA, p, B, &ldB, &info);
-   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack GESV %d", info);
-  }
-  ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatInvProd,0,0,0,0);CHKERRQ(ierr);
-
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcDenseOrth"
@@ -600,7 +556,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     PetscFunctionReturn(0);
 
   SlepcValidVecsContiguous(U,eU,4);
-  SlepcValidVecsContiguous(V,eU,7);
+  SlepcValidVecsContiguous(V,eV,7);
     
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
@@ -761,7 +717,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
     PetscFunctionReturn(0);
     
   SlepcValidVecsContiguous(U,eU,4);
-  SlepcValidVecsContiguous(V,eU,7);
+  SlepcValidVecsContiguous(V,eV,7);
 
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
@@ -915,7 +871,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
     PetscFunctionReturn(0);
     
   SlepcValidVecsContiguous(U,eU,4);
-  SlepcValidVecsContiguous(V,eU,7);
+  SlepcValidVecsContiguous(V,eV,7);
 
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
@@ -1213,6 +1169,57 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
  
   PetscFunctionReturn(0);
 }
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_BorthV"
+PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS, PetscInt size_DS, Vec *cX,
+                         Vec *BcX, PetscInt size_cX, Vec *V, Vec *BV,
+                         PetscInt V_new_s, PetscInt V_new_e,
+                         PetscScalar *auxS, Vec auxV, PetscRandom rand)
+{
+  PetscErrorCode  ierr;
+  PetscInt        i, j;
+  PetscBool       lindep;
+  PetscReal       norm;
+  PetscScalar     *auxS0 = auxS;
+ 
+  PetscFunctionBegin;
+ 
+  /* Orthonormalize V with IP */
+  for (i=V_new_s; i<V_new_e; i++) {
+    for(j=0; j<3; j++) {
+      if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
+      if (cX + size_cX == V) {
+        /* If cX and V are contiguous, orthogonalize in one step */
+        ierr = IPBOrthogonalize(ip, size_DS, DS, BDS, size_cX+i, PETSC_NULL, cX, BcX,
+                               V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+      } else if (DS) {
+        /* Else orthogonalize first against DS, and then against cX and V */
+        ierr = IPBOrthogonalize(ip, size_DS, DS, BDS, size_cX, PETSC_NULL, cX, BcX,
+                               V[i], BV[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
+        if(!lindep) {
+          ierr = IPBOrthogonalize(ip, 0, PETSC_NULL, PETSC_NULL, i, PETSC_NULL, V, BV,
+                                  V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+        }
+      } else {
+        /* Else orthogonalize first against cX and then against V */
+        ierr = IPBOrthogonalize(ip, size_cX, cX, BcX, i, PETSC_NULL, V, BV,
+                                V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+      }
+      if(!lindep && (norm > PETSC_MACHINE_EPSILON)) break;
+      ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
+      CHKERRQ(ierr);
+    }
+    if(lindep || (norm < PETSC_MACHINE_EPSILON)) {
+        SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors!");
+    }
+    ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
+    ierr = VecScale(BV[i], 1.0/norm); CHKERRQ(ierr);
+  }
+ 
+  PetscFunctionReturn(0);
+}
  
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_compute_eigenvectors"
@@ -1334,51 +1341,38 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #endif
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_compute_eigenvalues"
-/*
-  Compute the eigenvalues eigr+eigi*i associated to the Schur decomposition
-  (S, T), where
-  n, size of the eigenproblem
-  ldS, ldT, leading dimension of S and T
-*/
-PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
-  PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *eigr,
-  PetscScalar *eigi)
+
+EXTERN_C_BEGIN
+#undef __FUNCT__
+#define __FUNCT__ "EPSSortDenseHEP"
+PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscReal *w, PetscScalar *V, PetscInt ldV)
 {
-#if defined(SLEPC_MISSING_LAPACK_GGEV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable.");
-#else
-  PetscInt        i;
-#if !defined(PETSC_USE_COMPLEX)
+  PetscInt        i, j, result, pos;
+  PetscReal       t, re;
+  PetscBLASInt    n_ = PetscBLASIntCast(n), one=1;
   PetscErrorCode  ierr;
-  PetscScalar     Sc[4], Tc[4], beta[2], auxS[16];
-  PetscBLASInt    two=2, info, size_auxS=16;
-#endif
-  
+
   PetscFunctionBegin;
-  for (i=0; i<n; i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (i<n-1 && S[i*ldS+i+1] != 0.0) {
-      ierr = SlepcDenseCopy(Sc, 2, &S[i*ldS+i], ldS, 2, 2); CHKERRQ(ierr);
-      ierr = SlepcDenseCopy(Tc, 2, &T[i*ldT+i], ldT, 2, 2); CHKERRQ(ierr);
-      LAPACKggev_("N","N",&two,Sc,&two,Tc,&two,&eigr[i],&eigi[i],beta,
-                  PETSC_NULL, &two,PETSC_NULL,&two,auxS,&size_auxS,&info);
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %d",info);
-      eigr[i]  /= beta[0]; eigi[i]  /= beta[0];
-      eigr[i+1]/= beta[1]; eigi[i+1]/= beta[1];
-      i++;
-    } else
-#endif
-    {
-      if (T[i*ldT+i] == 0.0) {
-        if (PetscRealPart(S[i*ldS+i]) < 0.0) eigr[i] = PETSC_MIN_REAL;
-        else eigr[i] = PETSC_MAX_REAL;
-      } else eigr[i] = S[i*ldS+i] / T[i*ldT+i];
-      if (eigi) eigi[i] = 0.0;
+
+  /* selection sort */
+  for (i=k;i<n-1;i++) {
+    re = w[i];
+    pos = 0;
+    /* find minimum eigenvalue */
+    for (j=i+1;j<n;j++) { 
+      ierr = EPSCompareEigenvalues(eps,re,0,w[j],0,&result);CHKERRQ(ierr);
+      if (result > 0) {
+        re = w[j];
+        pos = j;
+      }
+    }
+    /* interchange the pairs i and pos */
+    if (pos) {
+      BLASswap_(&n_, &V[ldV*pos], &one, &V[ldV*i], &one);
+      t = w[i]; w[i] = w[pos]; w[pos] = t;
     }
   }
+
   PetscFunctionReturn(0);
-#endif
 }
+EXTERN_C_END

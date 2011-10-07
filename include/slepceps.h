@@ -387,6 +387,8 @@ extern PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk);
 extern PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk);
 extern PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize);
 extern PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize);
+extern PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth);
+extern PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth);
 
 extern PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart);
 extern PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart);

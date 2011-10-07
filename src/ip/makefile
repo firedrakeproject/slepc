@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = ipbasic.c ipdot.c iporthog.c ipform.c
+SOURCEC  = ipbasic.c ipdot.c iporthog.c ipborthog.c ipform.c
 SOURCEF  = 
-SOURCEH  = ../../include/private/ipimpl.h ../../include/slepcip.h
-OBJSC    = ipbasic.o ipdot.o iporthog.o ipform.o
+SOURCEH  = ../../include/private/ipimpl.h ../../include/slepcip.h ../eps/impls/davidson/common/davidson.h
+OBJSC    = ipbasic.o ipdot.o iporthog.o ipborthog.o ipform.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = IP

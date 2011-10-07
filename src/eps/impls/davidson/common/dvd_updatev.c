@@ -100,10 +100,11 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
   b->max_size_auxV = PetscMax(PetscMax(b->max_size_auxV,
                                        b->max_size_X /* updateV_conv_gen */ ),
                                        2 /* testConv */ );
-  b->max_size_auxS = PetscMax(PetscMax(PetscMax(b->max_size_auxS,
+  b->max_size_auxS = PetscMax(PetscMax(PetscMax(PetscMax(b->max_size_auxS,
                               max_size_V*b->max_size_X /* YtWx */ ),
                               max_size_V*2 /* SlepcDenseOrth  */ ), 
-                              max_size_V*b->max_size_X /* testConv:res_0 */ );
+                              max_size_V*b->max_size_X /* testConv:res_0 */ ),
+                              b->max_nev*b->max_nev*2 /* dvd_updateV_conv_finish */);
   b->max_size_V = mpd;
   b->size_V = max_size_V;
   b->own_vecs+= max_size_V*(harm?2:1);      /* V, W? */
@@ -393,6 +394,11 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     CHKERRQ(ierr);
     ierr = SlepcUpdateVectorsZ(d->V, 0.0, 1.0, d->V, d->size_V, pX,
                                ldpX, d->size_H, d->size_H); CHKERRQ(ierr);
+    if (d->ipV_oneMV) {
+      ierr = SlepcUpdateVectorsZ(d->BV, 0.0, 1.0, d->BV, d->size_V, pX,
+                                 ldpX, d->size_H, d->size_H); CHKERRQ(ierr);
+      d->doNotUpdateBV = PETSC_TRUE;
+    }
     d->V+= npreconv;
     inc_V = npreconv;
     d->max_size_V-= npreconv;
@@ -432,7 +438,8 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
       ierr = VecsMultIa(&d->cT[d->ldcT*size_cS+size_cX], 0, d->ldcT, cy, 0,
                         size_cy, &d->cX[size_cS], 0, npreconv); CHKERRQ(ierr);
     } else {
-      /* TODO: Only for nprecond==1 */
+      /* Only for nprecond==1 */
+      if (npreconv != 1) { SETERRQ(((PetscObject)d->A)->comm,1, "Unimplemented"); }
       ierr = MatMult(d->B, d->cX[d->size_cX-1], d->auxV[0]); CHKERRQ(ierr);
       ierr = VecsMultIa(&d->cT[d->ldcT*size_cS], 0, d->ldcT, cX, 0, size_cX,
                         &d->auxV[0], 0, npreconv); CHKERRQ(ierr);
@@ -481,6 +488,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
+/* VecsMultIb needs for auxS 2*nev*nev */
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_conv_finish"
 PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
@@ -494,8 +502,10 @@ PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
   PetscFunctionBegin;
 
   /* Finish cS and cT */
-  ierr = VecsMultIb(d->cS, 0, d->ldcS, d->nconv, d->nconv, d->auxS, d->V[0]);
-  CHKERRQ(ierr);
+  if (d->cS) {
+    ierr = VecsMultIb(d->cS, 0, d->ldcS, d->nconv, d->nconv, d->auxS, d->V[0]);
+    CHKERRQ(ierr);
+  }
   if (d->cT) {
     ierr = VecsMultIb(d->cT, 0, d->ldcT, d->nconv, d->nconv, d->auxS, d->V[0]);
     CHKERRQ(ierr);

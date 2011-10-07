@@ -145,7 +145,8 @@ typedef struct _dvdDashboard {
     target[2];         /* target value */
   PetscReal tol;    /* tolerance */
   PetscBool
-    correctXnorm;   /* if true, tol < |r|/|x| */
+    correctXnorm,   /* if true, norm of X are computed */
+    ipV_oneMV;      /* if true, it uses IPBOrthonormalize */
 
   /**** Subspaces specification ****/
   Vec *V,           /* searching subspace */
@@ -156,7 +157,8 @@ typedef struct _dvdDashboard {
     *AV,            /* A*V */
     *real_AV,       /* original A*V space */
     *BV,            /* B*V */
-    *real_BV;       /* original B*V space */
+    *real_BV,       /* original B*V space */
+    *BDS;           /* B * eps->DV */
   PetscInt size_V,  /* size of V */
     size_AV,        /* size of AV */
     size_BV,        /* size of BV */
@@ -166,7 +168,8 @@ typedef struct _dvdDashboard {
     max_size_V,     /* max size of V */
     max_size_X,     /* max size of X */
     max_size_AV,    /* max size of AV */
-    max_size_BV;    /* max size of BV */
+    max_size_BV,    /* max size of BV */
+    max_size_proj;  /* max size projected problem */
   EPS eps;          /* Connection to SLEPc */
  
   /**** Auxiliary space ****/
@@ -271,6 +274,9 @@ typedef struct _dvdDashboard {
     V_tra_e,        /* V(V_tra_e:) = V*MT(V_tra_s:V_tra_e-1) */
     V_new_s,
     V_new_e;        /* added to V the columns V_new_s:V_new_e */
+
+  PetscBool
+   doNotUpdateBV;   /* when true indicates that BV was updated yet */
 
   MT_type_t MT_type;
   orthoV_type_t orthoV_type;
@@ -443,9 +449,6 @@ PetscErrorCode SlepcDenseMatProdTriang(
   PetscBool At,
   const PetscScalar *B, MatType_t sB, PetscInt ldB, PetscInt rB, PetscInt cB,
   PetscBool Bt);
-PetscErrorCode SlepcDenseMatInvProd(
-  PetscScalar *A, PetscInt _ldA, PetscInt dimA,
-  PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscInt *auxI);
 PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
                               PetscInt cA, PetscScalar *eigi);
 PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
@@ -473,8 +476,6 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
                          Vec *U, PetscInt sU, PetscInt eU,
                          Vec *V, PetscInt sV, PetscInt eV, DvdReduction *r,
                          DvdMult_copy_func *sr);
-PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
-                          PetscInt rM, PetscInt cM, Vec V);
 PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           PetscInt rM, PetscInt cM, PetscScalar *auxS,
                           Vec V);
@@ -494,13 +495,15 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
                          PetscInt size_cX, Vec *V, PetscInt V_new_s,
                          PetscInt V_new_e, PetscScalar *auxS, Vec auxV,
                          PetscRandom rand);
+PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS, PetscInt size_DS, Vec *cX,
+                         Vec *BcX, PetscInt size_cX, Vec *V, Vec *BV,
+                         PetscInt V_new_s, PetscInt V_new_e,
+                         PetscScalar *auxS, Vec auxV, PetscRandom rand);
 PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldS_, PetscScalar *T, PetscInt ldT_, PetscScalar *pX,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
   PetscInt size_auxS, PetscBool doProd);
-PetscErrorCode dvd_compute_eigenvalues(PetscInt n, PetscScalar *S,
-  PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *eigr,
-  PetscScalar *eigi);
+PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscReal *w, PetscScalar *V, PetscInt ldV);
 
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();
@@ -508,7 +511,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps);
 PetscErrorCode EPSReset_Davidson(EPS eps);
 PetscErrorCode EPSSetUp_Davidson(EPS eps);
 PetscErrorCode EPSSolve_Davidson(EPS eps);
-PetscErrorCode EPSComputeVectors_QZ(EPS eps);
+PetscErrorCode EPSComputeVectors_Davidson(EPS eps);
 PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart);
 PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart);
 PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize);
@@ -519,3 +522,5 @@ PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
 PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize);
 PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix);
 PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix);
+PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,PetscBool borth);
+PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,PetscBool *borth);

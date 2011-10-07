@@ -42,6 +42,10 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = EPSGDGetKrylovStart(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetKrylovStart(eps,op);CHKERRQ(ierr); }
+
+  ierr = EPSGDGetBOrth(eps,&op);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_gd_borth","B-orthogonalize the searching subspace basis","EPSGDSetBOrth",op,&op,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSGDSetBOrth(eps,op);CHKERRQ(ierr); }
  
   ierr = EPSGDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_blocksize","Number vectors add to the searching subspace","EPSGDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
@@ -101,6 +105,8 @@ PetscErrorCode EPSCreate_GD(EPS eps)
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetKrylovStart_C","EPSDavidsonSetKrylovStart_Davidson",EPSDavidsonSetKrylovStart_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetKrylovStart_C","EPSDavidsonGetKrylovStart_Davidson",EPSDavidsonGetKrylovStart_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetBOrth_C","EPSDavidsonSetBOrth_Davidson",EPSDavidsonSetBOrth_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetBOrth_C","EPSDavidsonGetBOrth_Davidson",EPSDavidsonGetBOrth_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetBlockSize_C","EPSDavidsonSetBlockSize_Davidson",EPSDavidsonSetBlockSize_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetBlockSize_C","EPSDavidsonGetBlockSize_Davidson",EPSDavidsonGetBlockSize_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetRestart_C","EPSDavidsonSetRestart_Davidson",EPSDavidsonSetRestart_Davidson);CHKERRQ(ierr);
@@ -121,6 +127,8 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetKrylovStart_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetBOrth_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetBOrth_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetRestart_C","",PETSC_NULL);CHKERRQ(ierr);
@@ -387,3 +395,61 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGDSetBOrth"
+/*@
+   EPSGDSetBOrth - Activates or deactivates the B-orthogonalizetion of the searching
+   subspace in case of generalized Hermitian problems.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  borth - boolean flag
+
+   Options Database Key:
+.  -eps_gd_borth - Activates the B-orthogonalization of the searching subspace
+   
+   Level: advanced
+
+.seealso: EPSGDGetBOrth()
+@*/
+PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,borth,2);
+  ierr = PetscTryMethod(eps,"EPSGDSetBOrth_C",(EPS,PetscBool),(eps,borth));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGDGetBOrth"
+/*@
+   EPSGDGetBOrth - Returns a flag indicating if the search subspace basis is
+   B-orthogonalized.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
+.  borth - the boolean flag
+
+   Level: advanced
+
+.seealso: EPSGDGetKrylovStart()
+@*/
+PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(borth,2);
+  ierr = PetscTryMethod(eps,"EPSGDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}

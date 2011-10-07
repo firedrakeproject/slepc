@@ -111,8 +111,9 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
                                                                      auxV */
   b->max_size_auxS = PetscMax(b->max_size_auxS,
                               b->max_size_X*3 + /* theta, thetai */
+                              (DVD_IS(d->sEP, DVD_EP_HERMITIAN)?0:1)*(
                               2*b->max_size_V*b->max_size_V + /* pX, pY */
-                              11*b->max_size_V+4*b->max_size_V*b->max_size_V
+                              11*b->max_size_V+4*b->max_size_V*b->max_size_V)
                                            /* dvd_improvex_get_eigenvectors */
                              );
 
@@ -283,11 +284,15 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
   if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s!\n");
 
   /* Compute the eigenvectors of the selected pairs */
-  pX = auxS; auxS+= d->size_H*d->size_H;
-  pY = auxS; auxS+= d->size_H*d->size_H;
-  ierr = dvd_improvex_get_eigenvectors(d, pX, pY, d->size_H, auxS,
-                                       d->size_auxS-(auxS-d->auxS));
-  CHKERRQ(ierr);
+  if (DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
+    pX = pY = d->pX;
+  } else {
+    pX = auxS; auxS+= d->size_H*d->size_H;
+    pY = auxS; auxS+= d->size_H*d->size_H;
+    ierr = dvd_improvex_get_eigenvectors(d, pX, pY, d->size_H, auxS,
+                                         d->size_auxS-(auxS-d->auxS));
+    CHKERRQ(ierr);
+  }
 
   for(i=0, s=0; i<n; i+=s) {
     /* If the selected eigenvalue is complex, but the arithmetic is real... */
