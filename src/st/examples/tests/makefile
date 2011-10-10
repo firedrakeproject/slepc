@@ -39,22 +39,26 @@ test1: test1.o chkopts
 
 #------------------------------------------------------------------------------------
 
-EPS = krylovschur arnoldi lanczos gd jd
+EPS = krylovschur arnoldi gd jd
+
+TESTCODE = \
+	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
+	${DIFF} output/$${test}.out $${test}.tmp || \
+	echo "Possible problem with $${test}, diffs above"; \
+	${RM} -f $${test}.tmp
+
 runtest1_1:
-	-@touch test1_1.tmp; \
+	-@test=test1_1; \
 	for eps in ${EPS}; do \
-	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_matmode inplace -st_pc_type jacobi -eps_nev 4 -eps_terse >> test1_1.tmp 2>&1; \
-	done; \
-	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	else echo "Possible problem with test1_1, diffs above"; fi; \
-	${RM} -f test1_1.tmp
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_matmode inplace -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
+	done > $${test}.tmp; \
+	${TESTCODE}
 
 runtest1_2:
-	-@touch test1_2.tmp; \
+	-@test=test1_2; \
 	for eps in ${EPS}; do \
-	   ${MPIEXEC} -np 2 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_matmode inplace -st_pc_type jacobi -eps_nev 4 -eps_terse >> test1_2.tmp 2>&1; \
-	done; \
-	if (${DIFF} output/test1_2.out test1_2.tmp) then true; \
-	else echo "Possible problem with test1_2, diffs above"; fi; \
-	${RM} -f test1_2.tmp
-
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 2 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_matmode inplace -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
+	done > $${test}.tmp; \
+	${TESTCODE}
