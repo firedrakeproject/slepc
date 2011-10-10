@@ -104,7 +104,13 @@ int main(int argc,char **argv)
     ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
     ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   } else {
-    ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);
+    ierr = PetscTypeCompare((PetscObject)eps,EPSKRYLOVSCHUR,&flg);CHKERRQ(ierr);
+    if (!flg) {
+      ierr = PetscTypeCompare((PetscObject)eps,EPSARNOLDI,&flg);CHKERRQ(ierr);
+    }
+    if (flg) {
+      ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);
+    }
   }
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Interior eigenvalues - - -\n");CHKERRQ(ierr);

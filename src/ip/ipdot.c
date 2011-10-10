@@ -172,7 +172,7 @@ PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
     ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
     if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
       PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) 
        SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(PetscRealPart(p));
   }

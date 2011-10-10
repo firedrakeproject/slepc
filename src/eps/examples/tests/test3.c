@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   Mat            A1,A2;       /* problem matrices */
   EPS            eps;         /* eigenproblem solver context */
   PetscScalar    value[3];
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      tol=1000*PETSC_MACHINE_EPSILON,v;
   Vec            d;
   PetscInt       n=30,i,Istart,Iend,col[3];
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
@@ -76,9 +76,20 @@ int main(int argc,char **argv)
   ierr = MatGetVecs(A1,PETSC_NULL,&d);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&myrand);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(myrand);CHKERRQ(ierr);
-  ierr = VecSetRandom(d,myrand);CHKERRQ(ierr);
+  ierr = PetscRandomSetInterval(myrand,0.0,1.0);CHKERRQ(ierr);
+  for (i=0; i<n; i++) {
+    ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
+    ierr = VecSetValue(d,i,v,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = VecAssemblyBegin(d);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(d);CHKERRQ(ierr);
   ierr = MatDiagonalSet(A1,d,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecSetRandom(d,myrand);CHKERRQ(ierr);
+  for (i=0; i<n; i++) {
+    ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
+    ierr = VecSetValue(d,i,v,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = VecAssemblyBegin(d);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(d);CHKERRQ(ierr);
   ierr = MatDiagonalSet(A2,d,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecDestroy(&d);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&myrand);CHKERRQ(ierr);

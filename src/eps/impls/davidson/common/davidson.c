@@ -165,10 +165,10 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     dvd->sB = DVD_MAT_IMPLICIT |
               (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
               (ispositive? DVD_MAT_POS_DEF : 0);
-  ipB = (data->ipB && DVD_IS(dvd->sB,DVD_MAT_POS_DEF))?PETSC_TRUE:PETSC_FALSE;
+  ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_POS_DEF))?PETSC_TRUE:PETSC_FALSE;
   data->ipB = ipB;
-  dvd->ipV_oneMV = (ipB && dvd->B)? PETSC_TRUE : PETSC_FALSE;
-  dvd->correctXnorm = (ipB && dvd->B)? PETSC_TRUE : PETSC_FALSE;
+  dvd->ipV_oneMV = ipB;
+  dvd->correctXnorm = ipB;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
              (ispositive? DVD_EP_HERMITIAN : 0);
   dvd->nev = eps->nev;

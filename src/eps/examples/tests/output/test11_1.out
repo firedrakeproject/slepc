@@ -8,7 +8,7 @@ Searching closest eigenvalues to the right of 0.5.
  Number of requested eigenvalues: 4
  Stopping condition: tol=1e-11, maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     0.55740, 0.57028, 0.57143, 0.59894
+     0.51928, 0.55740, 0.57028, 0.57143
 
 eps type arnoldi
 
@@ -18,7 +18,7 @@ Searching closest eigenvalues to the right of 0.5.
  Solution method: arnoldi
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-11, maxit=200
+ Stopping condition: tol=1e-11, maxit=100
  All requested eigenvalues computed up to the required tolerance:
      0.51928, 0.55740, 0.57028, 0.57143
 

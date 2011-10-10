@@ -91,6 +91,7 @@ test11: test11.o chkopts
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd
 EPSNS  = krylovschur arnoldi gd jd
+
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
 	${DIFF} output/$${test}.out $${test}.tmp || \
@@ -207,7 +208,8 @@ runtest9_1:
 	-@test=test9_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test9 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1; \
+	   if [ $$eps = jd ]; then EXTRA="-st_ksp_type bcgsl -eps_jd_krylov_start"; else EXTRA=""; fi; \
+	   ${MPIEXEC} -np 1 ./test9 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}
 
@@ -215,7 +217,7 @@ runtest10_1:
 	-@test=test10_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test10 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1; \
+	   ${MPIEXEC} -np 1 ./test10 -eps_type $$eps -eps_nev 4 -m 11 -eps_terse 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}
 
@@ -223,7 +225,7 @@ runtest11_1:
 	-@test=test11_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ $$eps = arnoldi ]; then EXTRA="-eps_ncv 50 -eps_max_it 200"; else EXTRA=""; fi; \
+	   if [ $$eps = krylovschur -o $$eps = arnoldi ]; then EXTRA="-st_shift 0.5 -st_type sinvert"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}
