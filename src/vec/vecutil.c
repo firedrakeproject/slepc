@@ -85,7 +85,7 @@ PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
 
    Input parameters:
 +  xr         - the real part of the vector (overwritten on output)
-+  xi         - the imaginary part of the vector (not referenced if iscomplex is false)
+.  xi         - the imaginary part of the vector (not referenced if iscomplex is false)
 -  iscomplex - a flag that indicating if the vector is complex
 
    Output parameter:
@@ -104,10 +104,12 @@ PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *no
   PetscFunctionBegin;
   PetscValidHeaderSpecific(xr,VEC_CLASSID,1);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidHeaderSpecific(xi,VEC_CLASSID,2);
   if (iscomplex) {
-    ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);
-    ierr = VecNorm(xi,NORM_2,&normi);CHKERRQ(ierr);
+    PetscValidHeaderSpecific(xi,VEC_CLASSID,2);
+    ierr = VecNormBegin(xr,NORM_2,&normr);CHKERRQ(ierr);
+    ierr = VecNormBegin(xi,NORM_2,&normi);CHKERRQ(ierr);
+    ierr = VecNormEnd(xr,NORM_2,&normr);CHKERRQ(ierr);
+    ierr = VecNormEnd(xi,NORM_2,&normi);CHKERRQ(ierr);
     alpha = SlepcAbsEigenvalue(normr,normi);
     if (norm) *norm = alpha;
     alpha = 1.0 / alpha;
