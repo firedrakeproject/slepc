@@ -131,7 +131,7 @@ runex2_1:
 	   ${RM} -f ex2_1.tmp
 
 testex2: ex2.PETSc
-	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+	@ok=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
            echo "Running with batch filesystem; to test run src/eps/examples/tutorials/ex2" ; \
            echo "with your systems batch system"; \
         elif [ "${MPIEXEC}" = "/bin/false" ]; then \
@@ -141,15 +141,17 @@ testex2: ex2.PETSc
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp > /dev/null 2>&1) then \
            echo "C/C++ example src/eps/examples/tutorials/ex2 run successfully with 1 MPI process"; \
 	   else echo "Possible error running C/C++ src/eps/examples/tutorials/ex2 with 1 MPI process"; \
-           cat ex2_1.tmp; fi; \
+           cat ex2_1.tmp; ok=1; fi; \
 	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/mpiexec.uni" ]; then \
            ${MPIEXEC} -np 2 ./ex2 -eps_nev 4 -eps_terse > ex2_1.tmp 2>&1; \
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp > /dev/null 2>&1) then \
            echo "C/C++ example src/eps/examples/tutorials/ex2 run successfully with 2 MPI process"; \
 	   else echo "Possible error running C/C++ src/eps/examples/tutorials/ex2 with 2 MPI process"; \
-           cat ex2_1.tmp; fi; fi; \
+           cat ex2_1.tmp; ok=1; fi; fi; \
            ${RM} -f ex2_1.tmp; \
-           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ex2.rm ; fi
+           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ex2.rm; \
+	else ok=1; fi; \
+	exit $$ok
 
 runex3_1:
 	-@${MPIEXEC} -np 1 ./ex3 -eps_nev 4 -eps_terse > ex3_1.tmp 2>&1; \

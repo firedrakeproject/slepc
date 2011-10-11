@@ -182,7 +182,7 @@ runtest7f_1:
 	   ${RM} -f test7f_1.tmp
 
 testtest7f: test7f.PETSc
-	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+	@ok=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
 	   echo "Running with batch filesystem; to test run src/eps/examples/tests/test7f " ; \
 	   echo "with your systems batch system"; \
         elif [ "${MPIEXEC}" = "/bin/false" ]; then \
@@ -192,9 +192,11 @@ testtest7f: test7f.PETSc
 	   if (${DIFF} output/test7f_1.out test7f_1.tmp > /dev/null 2>&1) then \
            echo "Fortran example src/eps/examples/tests/test7f run successfully with 1 MPI process"; \
 	   else echo "Possible error running Fortran src/eps/examples/tests/test7f with 1 MPI process"; \
-           cat test7f_1.tmp; fi; \
+           cat test7f_1.tmp; ok=1; fi; \
            ${RM} -f test7f_1.tmp; \
-           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; fi
+           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; \
+	else ok=1; fi; \
+	exit $$ok
 
 runtest8_1:
 	-@test=test8_1; \
