@@ -114,7 +114,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,qep->nev,qep->ncv,qep->mpd);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,qep->tol,qep->max_it);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,qep->tol/10.0,qep->max_it);CHKERRQ(ierr);
   /* Transfer the trackall option from qep to eps */
   ierr = QEPGetTrackAll(qep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
@@ -124,7 +124,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   }
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(ctx->eps,&qep->tol,&qep->max_it);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(ctx->eps,PETSC_NULL,&qep->max_it);CHKERRQ(ierr);
   if (qep->nini>0 || qep->ninil>0) PetscInfo(qep,"Ignoring initial vectors\n");
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
