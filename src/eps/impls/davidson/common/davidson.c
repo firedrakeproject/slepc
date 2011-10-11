@@ -100,6 +100,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   HarmType_t     harm;
   InitType_t     init;
   PetscReal      fix;
+  PetscScalar    target;
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
@@ -173,34 +174,50 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
              (ispositive? DVD_EP_HERMITIAN : 0);
   dvd->nev = eps->nev;
   dvd->which = eps->which;
+  dvd->withTarget = PETSC_TRUE;
   switch(eps->which) {
   case EPS_TARGET_MAGNITUDE:
-  case EPS_TARGET_REAL:
   case EPS_TARGET_IMAGINARY:
-    dvd->withTarget = PETSC_TRUE;
-    dvd->target[0] = eps->target; dvd->target[1] = 1.0;
+    dvd->target[0] = target = eps->target; dvd->target[1] = 1.0;
     break;
 
-  case EPS_LARGEST_MAGNITUDE:
+  case EPS_TARGET_REAL:
+    dvd->target[0] = PetscRealPart(target = eps->target); dvd->target[1] = 1.0;
+    break;
+
   case EPS_LARGEST_REAL:
+  case EPS_LARGEST_MAGNITUDE:
   case EPS_LARGEST_IMAGINARY: //TODO: think about this case
   default:
-    dvd->withTarget = PETSC_TRUE;
-    dvd->target[0] = 1.0; dvd->target[1] = 0.0;
+    dvd->target[0] = 1.0; dvd->target[1] = target = 0.0;
     break;
  
   case EPS_SMALLEST_MAGNITUDE:
   case EPS_SMALLEST_REAL:
   case EPS_SMALLEST_IMAGINARY: //TODO: think about this case
-    dvd->withTarget = PETSC_TRUE;
-    dvd->target[0] = 0.0; dvd->target[1] = 1.0;
+    dvd->target[0] = target = 0.0; dvd->target[1] = 1.0;
+    break;
+
+  case EPS_WHICH_USER:
+    ierr = STGetShift(eps->OP,&target);CHKERRQ(ierr);
+    dvd->target[0] = target; dvd->target[1] = 1.0;
+    break;
+
+  case EPS_ALL:
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: which == EPS_ALL");
+    break;
   }
   dvd->tol = eps->tol;
   dvd->eps = eps;
 
   /* Setup the extraction technique */
   if (!eps->extraction) {
-    ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
+    if (ipB)
+      eps->extraction = EPS_RITZ;
+    else if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_IMAGINARY || eps->which == EPS_LARGEST_REAL)
+      eps->extraction = EPS_HARMONIC_LARGEST;
+    else
+      eps->extraction = EPS_RITZ;
   }
   switch(eps->extraction) {
   case EPS_RITZ:              harm = DVD_HARM_NONE; break;
@@ -259,7 +276,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                              initv,
                              PetscAbs(eps->nini),plusk,
                              eps->ip,harm,dvd->withTarget,
-                             eps->target,ksp,
+                             target,ksp,
                              fix,init,eps->trackall);CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
