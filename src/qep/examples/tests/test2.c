@@ -17,84 +17,97 @@
    You  should have received a copy of the GNU Lesser General  Public  License
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+   Example based on spring problem in NLEVP collection [1]. See the parameters
+   meaning at Example 2 in [2].
+
+   [1] T. Betcke, N. J. Higham, V. Mehrmann, C. Schroder, and F. Tisseur,
+       NLEVP: A Collection of Nonlinear Eigenvalue Problems, MIMS EPrint
+       2010.98, November 2010.
+   [2] F. Tisseur, Backward error and condition of polynomial eigenvalue
+       problems, Linear Algebra and its Applications, 309 (2000), pp. 339--361,
+       April 2000.
 */
 
-static char help[] = "Test the solution of a QEP without calling QEPSetFromOptions (based on ex16.c).\n\n"
+static char help[] = "Test the solution of a QEP from a finite element model of "
+  "damped mass-spring system (problem from NLEVP collection).\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
-  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n"
-  "  -type <qep_type> = qep type to test.\n"
-  "  -epstype <eps_type> = eps type to test (for linear).\n\n";
+  "  -n <n>, where <n> = number of grid subdivisions.\n"
+  "  -tau <tau>, where <tau> = tau parameter.\n"
+  "  -kappa <kappa>, where <kappa> = kappa paramter.\n\n";
 
-#include <slepcqep.h>
+#include "slepcqep.h"
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main(int argc,char **argv)
+int main( int argc, char **argv )
 {
-  Mat            M,C,K;           /* problem matrices */
-  QEP            qep;             /* quadratic eigenproblem solver context */
+  Mat         	 M, C, K;         /* problem matrices */
+  QEP         	 qep;             /* quadratic eigenproblem solver context */
   const QEPType  type;
-  PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j;
-  PetscBool      flag;
-  char           qeptype[30] = "linear", epstype[30] = "";
-  EPS            eps;
-  ST             st;
-  KSP            ksp;
-  PC             pc;
   PetscErrorCode ierr;
+  PetscInt    	 n=30,Istart,Iend,i,maxit,nev;
+  PetscScalar 	 mu=1.0,tau=10.0,kappa=5.0;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,&flag);CHKERRQ(ierr);
-  if(!flag) m=n;
-  N = n*m;
-  ierr = PetscOptionsGetString(PETSC_NULL,"-type",qeptype,30,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(PETSC_NULL,"-epstype",epstype,30,&flag);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)",N,n,m);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQEP type: %s",qeptype);CHKERRQ(ierr);
-  if (flag) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEPS type: %s",epstype);CHKERRQ(ierr);
-  }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\n");CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(PETSC_NULL,"-mu",&mu,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(PETSC_NULL,"-tau",&tau,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(PETSC_NULL,"-kappa",&kappa,PETSC_NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the matrices that define the eigensystem, (k^2*K+k*X+M)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* K is the 2-D Laplacian */
+  /* K is a tridiagonal */
   ierr = MatCreate(PETSC_COMM_WORLD,&K);CHKERRQ(ierr);
-  ierr = MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
+  ierr = MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(K);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
-  for (II=Istart;II<Iend;II++) { 
-    i = II/n; j = II-i*n;  
-    if(i>0) { ierr = MatSetValue(K,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if(i<m-1) { ierr = MatSetValue(K,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if(j>0) { ierr = MatSetValue(K,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if(j<n-1) { ierr = MatSetValue(K,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(K,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart; i<Iend; i++) {
+    if (i>0) {
+      ierr = MatSetValue(K,i,i-1,-kappa,INSERT_VALUES); CHKERRQ(ierr);
+    }
+    ierr = MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES); CHKERRQ(ierr);
+    if (i<n-1) {
+      ierr = MatSetValue(K,i,i+1,-kappa,INSERT_VALUES); CHKERRQ(ierr);
+    }
   }
 
   ierr = MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* C is the zero matrix */
+  /* C is a tridiagonal */
   ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
-  ierr = MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
+  ierr = MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(C);CHKERRQ(ierr);
+  
+  ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart; i<Iend; i++) {
+    if (i>0) {
+      ierr = MatSetValue(C,i,i-1,-tau,INSERT_VALUES); CHKERRQ(ierr);
+    }
+    ierr = MatSetValue(C,i,i,tau*3.0,INSERT_VALUES); CHKERRQ(ierr);
+    if (i<n-1) {
+      ierr = MatSetValue(C,i,i+1,-tau,INSERT_VALUES); CHKERRQ(ierr);
+    }
+  }
+
   ierr = MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   
-  /* M is the identity matrix */
+  /* M is a diagonal matrix */
   ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
-  ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
+  ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart; i<Iend; i++) {
+    ierr = MatSetValue(M,i,i,mu,INSERT_VALUES); CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(M,1.0);CHKERRQ(ierr);
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and set various options
@@ -106,37 +119,12 @@ int main(int argc,char **argv)
   ierr = QEPCreate(PETSC_COMM_WORLD,&qep);CHKERRQ(ierr);
 
   /* 
-     Set matrices and problem type
+     Set matrices, the problem type and other settings
   */
   ierr = QEPSetOperators(qep,M,C,K);CHKERRQ(ierr);
   ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
-  ierr = QEPSetDimensions(qep,4,20,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = QEPSetTolerances(qep,PETSC_SMALL,PETSC_DEFAULT);CHKERRQ(ierr);
-
-  /*
-     Set solver type at runtime
-  */
-  ierr = QEPSetType(qep,qeptype);CHKERRQ(ierr);
-  if (flag) {
-    ierr = PetscTypeCompare((PetscObject)qep,QEPLINEAR,&flag);CHKERRQ(ierr);
-    if (flag) {
-      ierr = QEPLinearGetEPS(qep,&eps);CHKERRQ(ierr);
-      ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
-      ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-      ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-      ierr = PetscTypeCompare((PetscObject)eps,EPSJD,&flag);CHKERRQ(ierr);
-      if (flag) {
-        ierr = EPSJDSetInitialSize(eps,1);CHKERRQ(ierr);
-        ierr = EPSJDSetFix(eps,PetscSqrtReal(PETSC_SMALL));CHKERRQ(ierr);
-      }
-      ierr = PetscTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
-      if (flag) {
-        ierr = EPSGDSetInitialSize(eps,1);CHKERRQ(ierr);
-      }
-    }
-  }
+  ierr = QEPSetFromOptions(qep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
@@ -159,7 +147,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = QEPPrintSolution(qep,PETSC_NULL);CHKERRQ(ierr);
-
+  
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Free work space
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -171,4 +159,3 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }
-
