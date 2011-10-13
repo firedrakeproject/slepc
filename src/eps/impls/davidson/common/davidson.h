@@ -503,7 +503,9 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldS_, PetscScalar *T, PetscInt ldT_, PetscScalar *pX,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
   PetscInt size_auxS, PetscBool doProd);
+PETSC_EXTERN_CXX_BEGIN
 PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, PetscScalar *V, PetscInt ldV);
+PETSC_EXTERN_CXX_END
 
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();

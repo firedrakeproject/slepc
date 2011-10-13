@@ -1345,7 +1345,6 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 }
 
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSSortDenseHEP"
 PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, PetscScalar *V, PetscInt ldV)
@@ -1353,10 +1352,11 @@ PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, 
   PetscInt        i, j, result, pos;
   PetscReal       re;
   PetscScalar     t;
-  PetscBLASInt    n_ = PetscBLASIntCast(n), one=1;
+  PetscBLASInt    n_,one=1;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
+  n_ = PetscBLASIntCast(n);
 
   /* selection sort */
   for (i=k;i<n-1;i++) {
@@ -1379,4 +1379,3 @@ PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, 
 
   PetscFunctionReturn(0);
 }
-EXTERN_C_END

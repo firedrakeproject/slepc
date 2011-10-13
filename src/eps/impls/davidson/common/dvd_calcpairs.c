@@ -350,7 +350,7 @@ PetscErrorCode dvd_calcpairs_updateBV(dvdDashboard *d)
   PetscFunctionBegin;
 
   /* f.BV(f.V_tra) = f.BV * f.MT; f.BV(f.V_new) = B*f.V(f.V_new) */
-  ierr = dvd_calcpairs_updateMatV(d->B, &d->BV, &d->size_BV, !d->doNotUpdateBV, !d->ipV_oneMV, d);
+  ierr = dvd_calcpairs_updateMatV(d->B, &d->BV, &d->size_BV, !d->doNotUpdateBV?PETSC_TRUE:PETSC_FALSE, !d->ipV_oneMV?PETSC_TRUE:PETSC_FALSE, d);
   CHKERRQ(ierr);
   d->doNotUpdateBV = PETSC_FALSE;
 
