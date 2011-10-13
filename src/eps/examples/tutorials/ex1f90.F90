@@ -58,7 +58,7 @@
 #endif
       EPSType        tname
       PetscReal      tol
-      PetscInt       n, i, Istart, Iend
+      PetscInt       n, i, Istart, Iend, one, two, three
       PetscInt       nev, maxit
       PetscInt       row(1), col(3)
       PetscMPIInt    rank
@@ -70,6 +70,9 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+      one = 1
+      two = 2
+      three = 3
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 30
@@ -95,7 +98,7 @@
         col(2) = 1
         value(1) =  2.0
         value(2) = -1.0
-        call MatSetValues(A,1,row,2,col,value,INSERT_VALUES,ierr)
+        call MatSetValues(A,one,row,two,col,value,INSERT_VALUES,ierr)
         Istart = Istart+1
       endif
       if (Iend .eq. n) then 
@@ -104,7 +107,7 @@
         col(2) = n-1
         value(1) = -1.0
         value(2) =  2.0
-        call MatSetValues(A,1,row,2,col,value,INSERT_VALUES,ierr)
+        call MatSetValues(A,one,row,two,col,value,INSERT_VALUES,ierr)
         Iend = Iend-1
       endif
       value(1) = -1.0
@@ -115,7 +118,7 @@
         col(1) = i-1
         col(2) = i
         col(3) = i+1
-        call MatSetValues(A,1,row,3,col,value,INSERT_VALUES,ierr)
+        call MatSetValues(A,one,row,three,col,value,INSERT_VALUES,ierr)
       enddo
 
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
