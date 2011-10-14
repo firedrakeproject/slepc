@@ -23,7 +23,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,FC,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE
   
   if 'PETSC_ARCH' in os.environ:
     ISINSTALL = 0
@@ -59,6 +59,8 @@ def Load(petscdir):
 	CC = v
       elif k == 'CC_FLAGS':
 	CC_FLAGS = v
+      elif k == 'FC' and not v=='':
+	FC = v
       elif k == 'AR':
 	AR = v
       elif k == 'AR_FLAGS':

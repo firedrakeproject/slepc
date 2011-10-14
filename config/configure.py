@@ -339,9 +339,12 @@ if getslepc4py:
 slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
 # Make Fortran stubs if necessary
-if subversion:
-  import generatefortranstubs
-  generatefortranstubs.main(petscconf.BFORT)
+if subversion and hasattr(petscconf,'FC'):
+  try:
+    import generatefortranstubs
+    generatefortranstubs.main(petscconf.BFORT)
+  except AttributeError:
+    sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
 
 # CMake stuff
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
