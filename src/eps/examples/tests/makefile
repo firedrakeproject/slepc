@@ -176,10 +176,9 @@ runtest6_1:
 	${TESTCODE}
 
 runtest7f_1:
-	-@${MPIEXEC} -np 1 ./test7f -eps_nev 4 -eps_terse > test7f_1.tmp 2>&1; \
-	   if (${DIFF} output/test7f_1.out test7f_1.tmp) then true; \
-	   else echo "Possible problem with test7f_1, diffs above"; fi; \
-	   ${RM} -f test7f_1.tmp
+	-@test=test7f_1; \
+	${MPIEXEC} -np 1 ./test7f -eps_nev 4 -eps_terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 testtest7f: test7f.PETSc
 	@ok=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
