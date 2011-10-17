@@ -39,20 +39,20 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,Vec *BDS,PetscInt
 
   PetscFunctionBegin;
   /* h = [DS V]^* Bv ; alpha = (v , v) */
-  ierr = VecsMultIa(H, 0, nds, DS, 0, nds, &Bv, 0, 1); CHKERRQ(ierr); j = nds;
+  ierr = VecsMultIa(H,0,nds,DS,0,nds,&Bv,0,1);CHKERRQ(ierr); j = nds;
   if (!which) {
-    ierr = VecsMultIa(H+j, 0, n, V, 0, n, &Bv, 0, 1); CHKERRQ(ierr); j+= n;
+    ierr = VecsMultIa(H+j,0,n,V,0,n,&Bv,0,1);CHKERRQ(ierr); j+= n;
   } else {
     for (i=0; i<n; i++) {
       if (which[i]) {
-        ierr = VecsMultIa(H+j, 0, 1, V+i, 0, 1, &Bv, 0, 1); CHKERRQ(ierr); j++;
+        ierr = VecsMultIa(H+j,0,1,V+i,0,1,&Bv,0,1);CHKERRQ(ierr); j++;
       }
     }
   }
   if (onorm || norm) {
-    ierr = VecsMultIa(H+j, 0, 1, &v, 0, 1, &Bv, 0, 1); CHKERRQ(ierr); j++;
+    ierr = VecsMultIa(H+j,0,1,&v,0,1,&Bv,0,1);CHKERRQ(ierr); j++;
   }
-  ierr = VecsMultIb(H, 0, j, j, 1, PETSC_NULL, v); CHKERRQ(ierr);
+  ierr = VecsMultIb(H,0,j,j,1,PETSC_NULL,v);CHKERRQ(ierr);
   if (onorm || norm) alpha = H[j-1]; 
 
   /* v = v - V h */
@@ -121,7 +121,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,Vec *BDS,Pe
     ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,n,which,V,BV,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     /* compute |v| */
     if (norm) {
-      ierr = VecDot(Bv, v, &alpha); CHKERRQ(ierr);
+      ierr = VecDot(Bv,v,&alpha); CHKERRQ(ierr);
       *norm = PetscSqrtReal(PetscRealPart(alpha));
     }
     /* linear dependence check does not work without refinement */
@@ -248,9 +248,9 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *DS, Vec *BDS,PetscInt n,
     case IP_ORTHOG_CGS:
       ierr = IPBOrthogonalizeCGS(ip,nds,DS,BDS,n,which,V,BV,v,Bv,H,norm,lindep);CHKERRQ(ierr); 
       break;
-    //case IP_ORTH_MGS:
-      //ierr = IPOrthogonalizeMGS(ip,nds,DS,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
-      //break;
+    case IP_ORTHOG_MGS:
+      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unsupported orthogonalization type");
+      break;
     default:
       SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
