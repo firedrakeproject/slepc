@@ -212,7 +212,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Setup the extraction technique */
   if (!eps->extraction) {
-    if (ipB)
+    if (ipB || ispositive)
       eps->extraction = EPS_RITZ;
     else if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_IMAGINARY || eps->which == EPS_LARGEST_REAL)
       eps->extraction = EPS_HARMONIC_LARGEST;
