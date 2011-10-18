@@ -34,7 +34,7 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.1}
+\newcommand{\slepcversion}{3.2}
 \newcommand{\slepchome}{http://www.grycap.upv.es/slepc}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
@@ -104,6 +104,7 @@
 
 \author{
 {\small\sffamily Developers:}\hspace*{4cm}\\
+  Carmen Campos\\
   Jos\'e E. Rom\'an\\
   Eloy Romero\\
   Andr\'es Tom\'as\\[3mm]
@@ -114,7 +115,7 @@
 
 \date{
 	To be used with \slepc \slepcversion\\
-	August, 2010
+	October, 2011
 }
 
 {
@@ -137,9 +138,9 @@
 %---------------------------------------------------
 \subsection*{Abstract}
 
-	This document describes \slepc, the {\em Scalable Library for Eigenvalue Problem Computations}, a software package for the solution of large sparse eigenproblems on parallel computers. It can be used for the solution of problems formulated in either standard or generalized form, as well as other related problems such as the singular value decomposition (SVD). \slepc is a general library in the sense that it covers both Hermitian and non-Hermitian problems, with either real or complex arithmetic.
+	This document describes \slepc, the {\em Scalable Library for Eigenvalue Problem Computations}, a software package for the solution of large sparse eigenproblems on parallel computers. It can be used for the solution of problems formulated in either standard or generalized form, as well as other related problems such as the singular value decomposition (SVD) or the quadratic eigenvalue problem (QEP). \slepc is a general library in the sense that it covers both Hermitian and non-Hermitian problems, with either real or complex arithmetic.
 
-	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from eigensolvers and SVD solvers, \slepc also provides built-in support for spectral transformations such as shift-and-invert.
+	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from eigensolvers, SVD and QEP solvers, \slepc also provides built-in support for spectral transformations such as shift-and-invert.
 
 	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2002:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
@@ -166,12 +167,11 @@
 
 \subsubsection*{What's New}
 
-In this version, the following parts of the Users Manual have been added or modified with respect to the previous one:
+The major changes in the Users Manual with respect to the previous version are:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
-\item Chapter \ref{cap:qep} is new, and describes the solvers for quadratic eigenproblems.
-\item A new section \ref{sec:precond} describes the new functionality associated to preconditioned solvers.
-\item Parts of chapter \ref{cap:eps} have been updated to include new \texttt{EPS} features, e.g., \S\ref{sec:defprob} and \S\ref{sec:retrsol}.
+\item A new subsection \ref{sec:slice} describes the new functionality related to the computation of all eigenvalues in a given interval.
+\item Two new sections have been added to chapter \ref{cap:add}, describing ongoing work to support GPU computing \S\ref{sec:gpu} and the Matlab interface \S\ref{sec:matlab}.
 \end{itemize}
 
 \subsubsection*{\slepc Technical Reports}

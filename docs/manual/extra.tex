@@ -64,6 +64,10 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation (for details see the manual page for \ident{SVDSetTransposeMode}).
 
 %---------------------------------------------------
+\section{GPU Computing}
+\label{sec:gpu}
+
+%---------------------------------------------------
 \section{Extending SLEPc}
 \label{sec:shell}
 
@@ -103,6 +107,7 @@ After this call, the new solver could be used in the same way as the rest of \sl
 
 	The directory structure of the \slepc software is very similar to that in \petsc. The root directory of \slepc contains the following directories:
 \begin{description}
+\item[\texttt{bin}] - Directory containing useful scripts. In particular, the Matlab interface is located here.
 \item[\texttt{conf}] - Directory containing the base \slepc makefile, to be included in application makefiles.
 \item[\texttt{config}] - \slepc configuration scripts. 
 \item[\texttt{docs}] - All documentation for \slepc, including this manual. The subdirectory \texttt{manualpages} contains the on-line manual pages of each \slepc routine.
@@ -112,6 +117,7 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \item[\texttt{finclude}] - include files for Fortran programmers.
 \item[\texttt{private}] - include files containing implementation details, for developer use only.
 \end{description}
+\item[\texttt{shared}] - Datafiles used by some examples.
 \item[\texttt{src}] - The source code for all \slepc components, which currently includes:
 \begin{description}
 \setlength{\itemsep}{0mm}
@@ -122,15 +128,13 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \item[\texttt{qep}] - quadratic eigenvalue problem solver.
 \item[\texttt{ip}] - inner product, for developer use only.
 \item[\texttt{vec}] - custom vector implementation, for developer use only.
-\item[\texttt{examples}] - example programs.
-\item[\texttt{mat/examples}] - matrices used by some examples.
 \end{description}
 \item[\texttt{\$PETSC\_ARCH}] - For each value of \ident{PETSC\_ARCH}, a directory exists containing files generated during installation of that particular configuration. The following subdirectories exist:
 \begin{description}
 \setlength{\itemsep}{0mm}
-\item[\texttt{lib}] - All the generated libraries.
-\item[\texttt{conf}] - Configuration parameters and log files.
-\item[\texttt{include}] - Automatically generated include files, such as Fortran 90 \texttt{*.mod} files.
+\item[\texttt{lib}] - all the generated libraries.
+\item[\texttt{conf}] - configuration parameters and log files.
+\item[\texttt{include}] - automatically generated include files, such as Fortran 90 \texttt{*.mod} files.
 \end{description}
 \end{description}
 
@@ -138,6 +142,12 @@ Each \slepc source code component directory has the following subdirectories:
 \begin{description}
 \item[\texttt{interface}] - The calling sequences for the abstract interface to the components. Code here does not know about particular implementations.
 \item[\texttt{impls}] - Source code for one or more implementations.
+\item[\texttt{examples}] - Example programs, classified in:
+\begin{description}
+\setlength{\itemsep}{0mm}
+\item[\texttt{tutorials}] - examples intended for learning to use \slepc.
+\item[\texttt{tests}] - examples used by testing scripts.
+\end{description}
 \end{description}
 
 %---------------------------------------------------
@@ -242,7 +252,10 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 
 	\slepc provides an interface for Fortran 77 programmers, very much like \petsc. As in the case of \petsc, there are slight differences between the C and Fortran \slepc interfaces, due to differences in Fortran syntax. For instance, the error checking variable is the final argument of all the routines in the Fortran interface, in contrast to the C convention of providing the error variable as the routine's return value.
 
-	The following code is a sample program written in Fortran 77. It is the Fortran equivalent of the program given in \S\ref{sec:simpleex} and can be found in \Verb!${SLEPC_DIR}/src/examples/ex1f.F!.
+	The following code is a sample program written in Fortran 77. It is the Fortran equivalent of the program given in \S\ref{sec:simpleex} and can be found in \Verb!${SLEPC_DIR}/src/eps/examples/tutorials! (file \texttt{ex1f.F}, see also the Fortran 90 counterpart \texttt{ex1f90.F90}).
 \MyVerbatimInput{ex1f.F}
 
+%---------------------------------------------------
+\section{Matlab Interface}
+\label{sec:matlab}
 

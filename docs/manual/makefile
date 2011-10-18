@@ -51,7 +51,7 @@ default: pdf
 
 pdf: slepc.pdf
 
-slepc.pdf: $(DOC_TEX) makefile
+slepc.pdf: $(DOC_SRC) makefile
 
 clean:
 	@ rm -f $(DOC_GEN)
