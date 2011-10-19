@@ -1,4 +1,4 @@
-\begin{thebibliography}{28}
+\begin{thebibliography}{29}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
 \bibitem[{Anderson {\em et~al.\/}(1992)Anderson, Bai, Bischof, Demmel,
@@ -17,9 +17,9 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA.
 
 \bibitem[{Balay {\em et~al.\/}(2011)Balay, Brown, Buschelman, Eijkhout, Gropp,
-  Kaushik, Knepley, McInnes, Smith, and Zhang}]{Balay:2002:PUM}
-Balay, S., J.~Brown, K.~Buschelman, V.~Eijkhout, W.~Gropp, D.~Kaushik, M.~Knepley, L.~C.
-  McInnes, B.~Smith, and H.~Zhang (2011).
+  Kaushik, Knepley, McInnes, Smith, and Zhang}]{Balay:2011:PUM}
+Balay, S., J.~Brown, K.~Buschelman, V.~Eijkhout, W.~Gropp, D.~Kaushik,
+  M.~Knepley, L.~C. McInnes, B.~Smith, and H.~Zhang (2011).
 \newblock {PETSc} Users Manual.
 \newblock Technical Report ANL-95/11 - Revision 3.2, Argonne National
   Laboratory.
@@ -60,6 +60,13 @@ Golub, G.~H. and H.~A. van~der Vorst (2000).
 \newblock Eigenvalue Computation in the 20th Century.
 \newblock {\em J. Comput. Appl. Math.\/}, 123(1-2):35--65.
 
+\bibitem[{Grimes {\em et~al.\/}(1994)Grimes, Lewis, and
+  Simon}]{Grimes:1994:SBL}
+Grimes, R.~G., J.~G. Lewis, and H.~D. Simon (1994).
+\newblock A Shifted Block {Lanczos} Algorithm for Solving Sparse Symmetric
+  Generalized Eigenproblems.
+\newblock {\em {SIAM} J. Matrix Anal. Appl.\/}, 15(1):228--272.
+
 \bibitem[{Hansen(1998)}]{Hansen:1998:RDI}
 Hansen, P.~C. (1998).
 \newblock {\em Rank-Deficient and Discrete Ill-Posed Problems: Numerical
@@ -69,8 +76,8 @@ Hansen, P.~C. (1998).
 \bibitem[{Knyazev {\em et~al.\/}(2007)Knyazev, Argentati, Lashuk, and
   Ovtchinnikov}]{Knyazev:2007:BLO}
 Knyazev, A.~V., M.~E. Argentati, I.~Lashuk, and E.~E. Ovtchinnikov (2007).
-\newblock Block Locally Optimal Preconditioned Eigenvalue Xolvers ({BLOPEX}) in
-  {HYPRE} and {PETSc}.
+\newblock {B}lock {L}ocally {O}ptimal {P}reconditioned {E}igenvalue {X}olvers
+  ({BLOPEX}) in {HYPRE} and {PETSc}.
 \newblock {\em {SIAM} J. Sci. Comput.\/}, 29(5):2224--2239.
 
 \bibitem[{Lehoucq and Salinger(2001)}]{Lehoucq:2001:LEC}
