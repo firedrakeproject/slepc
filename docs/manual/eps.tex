@@ -196,7 +196,7 @@ For all these reasons, the user is strongly recommended to always specify the pr
 	\end{Verbatim}
 allows the specification of the number of eigenvalues to compute, \texttt{nev}. The second argument can be set to prescribe the number of column vectors to be used by the solution algorithm, \texttt{ncv}, that is, the largest dimension of the working subspace. The third argument has to do with a more advanced usage, as explained in \S\ref{sec:large-nev}. These parameters can also be set at run time with the options \Verb!-eps_nev!, \Verb!-eps_ncv! and \Verb!-eps_mpd!. For example, the command line
 \begin{Verbatim}[fontsize=\small]
-	$ program -eps_nev 10 -eps_ncv 24
+	$ ./program -eps_nev 10 -eps_ncv 24
 \end{Verbatim}
 requests 10 eigenvalues and instructs to use 24 column vectors. Note that \texttt{ncv} must be at least equal to \texttt{nev}, although in general it is recommended (depending on the method) to work with a larger subspace, for instance $\mathtt{ncv}\geq2\cdot\mathtt{nev}$ or even more. The case that the user requests a relatively large number of eigenpairs is discussed in \S\ref{sec:large-nev}.
 
@@ -208,7 +208,7 @@ requests 10 eigenvalues and instructs to use 24 column vectors. Note that \textt
 
 \paragraph{Eigenvalues of Interest.}
 
-	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Sometimes the eigenvalues of interest are those closest to a given target value, $\tau$, measuring the distance either in the ordinary way or along the real (or imaginary) axis. Table \ref{tab:portion} sumarizes all the possibilities available for the function
+	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones, or even all eigenvalues in a given interval. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Sometimes the eigenvalues of interest are those closest to a given target value, $\tau$, measuring the distance either in the ordinary way or along the real (or imaginary) axis. Table \ref{tab:portion} summarizes all the possibilities available for the function
 	\findex{EPSSetWhichEigenpairs}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetWhichEigenpairs(EPS eps,EPSWhich which);
@@ -229,6 +229,13 @@ There are two possibilities for this:
 \item To use a spectral transformation such as shift-and-invert (see chapter \ref{cap:st}), where the subspace is built from a transformed problem (usually much more costly).
 \end{itemize}
 
+The special case of computing all eigenvalues in an interval is discussed in \S\ref{sec:slice}, since it is related also to spectral transformations. In this case, instead of a target value the user has to specify the computational interval with
+	\findex{EPSSetInterval}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetInterval(EPS eps,PetscScalar a,PetscScalar b);
+	\end{Verbatim}
+which is equivalent to \Verb!-eps_interval <a,b>!.
+
 To conclude this section, we mention the possibility of defining an arbitrary sorting criterion by means of \texttt{EPS\_WHICH\_USER} in combination with \ident{EPSSetEigenvalueComparison}.
 
 \begin{table}
@@ -245,6 +252,7 @@ To conclude this section, we mention the possibility of defining an arbitrary so
 \texttt{EPS\_TARGET\_MAGNITUDE}    & \texttt{-eps\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
 \texttt{EPS\_TARGET\_REAL}         & \texttt{-eps\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
 \texttt{EPS\_TARGET\_IMAGINARY}    & \texttt{-eps\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\
+\texttt{EPS\_ALL}                  & \texttt{-eps\_all}                 & All $\lambda\in[a,b]$ \\
 \hline
 \texttt{EPS\_WHICH\_USER}          &                                    & \emph{user-defined} \\\hline
 \end{tabular} }
@@ -262,7 +270,7 @@ To conclude this section, we mention the possibility of defining an arbitrary so
 \item Subspace Iteration with Rayleigh-Ritz projection and locking.
 \item Arnoldi method with explicit restart and deflation.
 \item Lanczos with explicit restart and deflation, using different reorthogonalization strategies.
-\item Krylov-Schur, a variation of Arnoldi/Lanczos with a very effective restarting technique.
+\item Krylov-Schur, a variation of Arnoldi with a very effective restarting technique. In the case of symmetric problems, this is equivalent to the thick-restart Lanczos method.
 \item Generalized Davidson, a simple iteration based on the subspace expansion by the preconditioned residual.
 \item Jacobi-Davidson, a preconditioned eigensolver with an effective correction equation.
 \end{itemize}
@@ -291,7 +299,7 @@ Wrapper to \blopex         & \texttt{EPSBLOPEX}   & \texttt{blopex} \\\hline
 \caption{\label{tab:solvers}Eigenvalue solvers available in the \ident{EPS} module.}
 \end{table}
 
-As an alternative, \slepc provides an interface to some LAPACK routines. These routines operate in dense mode with only one processor and therefore are suitable only for moderate size problems. This solver should be used only for debugging purposes.
+As an alternative, \slepc provides an interface to some \lapack routines. These routines operate in dense mode with only one processor and therefore are suitable only for moderate size problems. This solver should be used only for debugging purposes.
 
 The solution method can be specified procedurally or via the command line. The application programmer can set it by means of the command
 	\findex{EPSSetType}
@@ -306,23 +314,25 @@ while the user writes the options database command \Verb!-eps_type! followed by 
 \centering
 \begin{tabular}{ccccc} \hline
 Method   &  Portion of spectrum & Problem type & Complex \\ \hline
-\texttt{power}    &  Largest $|\lambda|$ & all & yes \\ 
-\texttt{subspace} &  Largest $|\lambda|$ & all & yes \\ 
-\texttt{arnoldi}  &  all                 & all & yes \\ 
-\texttt{lanczos}  &  all                 & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & yes \\ 
-\texttt{krylovschur} &  all              & all & yes \\ 
-\texttt{gd}       &  all                 & all & yes \\ 
-\texttt{jd}       &  all                 & all & yes \\ 
+\texttt{power}       & Largest $|\lambda|$ & any & yes \\ 
+\texttt{subspace}    & Largest $|\lambda|$ & any & yes \\ 
+\texttt{arnoldi}     & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
+\texttt{lanczos}     & any\footnotemark    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & yes \addtocounter{footnote}{-1} \\ 
+\texttt{krylovschur} & any                 & any & yes \\ 
+\texttt{gd}          & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
+\texttt{jd}          & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
 \hline
-\texttt{lapack}   &  all                 & all & yes \\ 
-\texttt{arpack}   &  all &  all & yes \\ 
-\texttt{primme}   &  Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & yes \\ 
-\texttt{blzpack}  &  Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & no \\ 
-\texttt{trlan}    &  Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\
-\texttt{blopex}   &  Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\ \hline
+\texttt{lapack}      & any                 & any & yes \\ 
+\texttt{arpack}      & any\footnotemark    & any & yes \\ 
+\texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & yes \\ 
+\texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & no \\ 
+\texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\
+\texttt{blopex}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\ \hline
 \end{tabular}
 \caption{\label{tab:support}Supported problem types for all eigensolvers available in \slepc.}
 \end{table}
+
+\footnotetext{Any of the selection criteria except for \texttt{EPS\_ALL}, which is supported only by Krylov-Schur; see \S\ref{sec:slice}.}
 
 \begin{table}[t!]
 \centering
@@ -365,7 +375,7 @@ Usually, the number of converged solutions, \texttt{nconv}, will be equal to \te
 	\findex{EPSGetEigenpair}
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetEigenpair(EPS eps,PetscInt j,PetscScalar *kr,PetscScalar *ki,
-                        Vec xr, Vec xi);
+                        Vec xr,Vec xi);
 	\end{Verbatim}
 	\label{GetEigenpair}
 returns the $j$-th computed eigenvalue/eigenvector pair. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that eigenvalues are ordered according to the same criterion specified with function \ident{EPSSetWhichEigenpairs} for selecting the portion of the spectrum of interest.
@@ -408,7 +418,7 @@ where $\theta(x,\tilde{x})$ is the angle between the computed and exact eigenvec
 	In the case of non-Hermitian problems, \slepc provides the alternative of retrieving an orthonormal basis of an invariant subspace instead of getting individual eigenvectors. This is done with function
 	\findex{EPSGetInvariantSubspace}
 	\begin{Verbatim}[fontsize=\small]
-	EPSGetInvariantSubspace(EPS eps,Vec *v)
+	EPSGetInvariantSubspace(EPS eps,Vec *v);
 	\end{Verbatim}
 This is sufficient in some applications and is safer from the numerical point of view.
 
@@ -416,7 +426,7 @@ This is sufficient in some applications and is safer from the numerical point of
 The following \slepc function 
 	\findex{EPSComputeResidualNorm}
 	\begin{Verbatim}[fontsize=\small]
-	EPSComputeResidualNorm(EPS eps,PetscInt j,PetscReal *norm)
+	EPSComputeResidualNorm(EPS eps,PetscInt j,PetscReal *norm);
 	\end{Verbatim}
 computes the 2-norm of $r_j$. Normally, the residual norm is not used directly as a bound in absolute terms, as in Eq.\ \ref{eq:reserr}. Rather, the error is expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used instead:
 	\findex{EPSComputeRelativeError}
@@ -579,7 +589,7 @@ where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all 
 	\end{Verbatim}
 The value \texttt{n} indicates how many vectors are passed in argument \texttt{ds}.
 
-	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is passed to the linear solver (see \petsc's function \texttt{KSPSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e. when $A$ and $B$ share a common null-space).
+	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is passed to the linear solver (see \petsc's function \texttt{KSPSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e., when $A$ and $B$ share a common null-space).
 
 \subsection{Orthogonalization}
 \label{sec:orthog}
@@ -589,7 +599,7 @@ The value \texttt{n} indicates how many vectors are passed in argument \texttt{d
 \subsection{Computing a Large Portion of the Spectrum}
 \label{sec:large-nev}
 
-We now consider the case when the user requests a relatively large number of eigenpairs. To fix ideas, suppose that the problem size (the dimension of the matrix, denoted as \texttt{n}), is in the order of 100,000's, and the user wants \texttt{nev} to be approximately 5,000 (recall the notation of \ident{EPSSetDimensions} in \S\ref{sec:defprob}).
+We now consider the case when the user requests a relatively large number of eigenpairs (the related case of computing all eigenvalues in a given interval is addressed in \S\ref{sec:slice}). To fix ideas, suppose that the problem size (the dimension of the matrix, denoted as \texttt{n}), is in the order of 100,000's, and the user wants \texttt{nev} to be approximately 5,000 (recall the notation of \ident{EPSSetDimensions} in \S\ref{sec:defprob}).
 
 The first comment is that for such large values of \texttt{nev}, the rule of thumb suggested in \S\ref{sec:defprob} for selecting the value of \texttt{ncv} ($\mathtt{ncv}\geq2\cdot\mathtt{nev}$) may be inappropriate. For small values of \texttt{nev}, this rule of thumb is intended to provide the solver with a sufficiently large subspace. But for large values of \texttt{nev}, it may be enough setting \texttt{ncv} to be slightly larger than \texttt{nev}.
 
@@ -607,7 +617,7 @@ From \slepc 3.0.0, another parameter \texttt{mpd} has been introduced to allevia
 
 Note that it is not necessary to set both \texttt{ncv} and \texttt{mpd}. For instance, one can do
 \begin{Verbatim}[fontsize=\small]
-	$ program -eps_nev 5000 -eps_mpd 600
+	$ ./program -eps_nev 5000 -eps_mpd 600
 \end{Verbatim}
 
 \subsection{Computing Interior Eigenvalues with Harmonic Extraction}
@@ -617,12 +627,12 @@ The standard Rayleigh-Ritz projection procedure described in \S\ref{sec:eig} is 
 
 Even though in theory eigensolvers could be able to approximate interior eigenvalues with a standard extraction technique, in practice convergence difficulties may arise that prevent success. The problem comes from the property that Ritz values (the approximate eigenvalues provided by the standard projection procedure) converge from the interior to the periphery of the spectrum. That is, the Ritz values that stabilize first are those in the periphery, so convergence of interior ones requires the previous convergence of all eigenvalues between them and the periphery. Furthermore, this convergence behaviour usually implies that restarting is carried out with bad approximations, so the restart is ineffective and global convergence is severely damaged.
 
-Harmonic projection is a variation that uses a target value, $\tau$, around which the user wants to compute eigenvalues (see e.g.~\citep{Morgan:2006:HRA}). The theory establishes that harmonic Ritz values converge in such a way that eigenvalues closest to the target stabilize first, and also that no unconverged value is ever close to the target, so restarting is safe in this case. As a conclusion, eigensolvers with harmonic extraction may be effective in computing interior eigenvalues. Whether it works or not in practical cases depends on the particular distribution of the spectrum.
+Harmonic projection is a variation that uses a target value, $\tau$, around which the user wants to compute eigenvalues (see, e.g., \citep{Morgan:2006:HRA}). The theory establishes that harmonic Ritz values converge in such a way that eigenvalues closest to the target stabilize first, and also that no unconverged value is ever close to the target, so restarting is safe in this case. As a conclusion, eigensolvers with harmonic extraction may be effective in computing interior eigenvalues. Whether it works or not in practical cases depends on the particular distribution of the spectrum.
 
 In order to use harmonic extraction in \slepc, it is necessary to indicate it explicitly, and provide the target value as described in \S\ref{sec:defprob} (default is $\tau=0$). The type of extraction can be set with:
 	\findex{EPSSetExtraction}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetExtraction(EPS eps,EPSExtraction extr),
+	EPSSetExtraction(EPS eps,EPSExtraction extr);
 	\end{Verbatim}
 Available possibilities are \texttt{EPS\_RITZ} for standard projection and \texttt{EPS\_HARMONIC} for harmonic projection (other alternatives such as refined extraction are still experimental).
 

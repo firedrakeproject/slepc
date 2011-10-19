@@ -248,24 +248,24 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 
 	In the simplest case, a generalized problem is to be solved with a zero shift. Suppose you run a program that solves a generalized eigenproblem, with default options:
 \begin{Verbatim}[fontsize=\small]
-	$ program
+	$ ./program
 \end{Verbatim}
 In this case, the \ident{ST} object associated to the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{This is the default since \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
 
 	The following command-line is equivalent to the previous one\footnote{More precisely, the equivalent command would use the \texttt{redundant} \texttt{PC} in order to work in parallel.}:
 \begin{Verbatim}[fontsize=\small]
-	$ program -st_ksp_type preonly -st_pc_type lu
+	$ ./program -st_ksp_type preonly -st_pc_type lu
 \end{Verbatim}
 The two options specify the type of the linear solver and preconditioner to be used. The \Verb!-st_! prefix signifies that the option corresponds to the linear solver within \ident{ST}. The combination \texttt{preonly}$+$\texttt{lu} instructs to use a direct solver (LU factorization, see \petsc's documentation for details), so this is the same as the default. Adding a new option changes the default behaviour, for instance
 \begin{Verbatim}[fontsize=\small]
-	$ program -st_ksp_type preonly -st_pc_type lu
-                  -st_pc_factor_mat_solver_package mumps
+	$ ./program -st_ksp_type preonly -st_pc_type lu
+                    -st_pc_factor_mat_solver_package mumps
 \end{Verbatim}
 In this case, an external linear solver package is used (MUMPS, see \petsc's documentation for other available packages). Note that an external package is required for a truly parallel direct linear solver.
 
 	Instead of a direct linear solver, it is possible to use an iterative solver. This may be necessary in some cases, specially for very large problems. However, the user is warned that using an iterative linear solver makes the overall solution process less robust (see also the discussion of preconditioned eigensolvers below). As an example, the command-line
 \begin{Verbatim}[fontsize=\small]
-	$ program -st_ksp_type gmres -st_pc_type bjacobi -st_ksp_rtol 1e-8
+	$ ./program -st_ksp_type gmres -st_pc_type bjacobi -st_ksp_rtol 1e-8
 \end{Verbatim}
 selects the GMRES solver with block Jacobi preconditioning. In the case of iterative solvers, it is important to use an appropriate tolerance, usually slightly more stringent for the linear solves relative to the desired accuracy of the eigenvalue calculation ($10^{-8}$ in the example, compared to $10^{-7}$ for the eigensolver). 
 
@@ -279,7 +279,7 @@ selects the GMRES solver with block Jacobi preconditioning. In the case of itera
 	
 	The above functionality is also applicable to the other spectral transformations. For instance, for the shift-and-invert technique with $\tau=10$ using BiCGStab+Jacobi:
 \begin{Verbatim}[fontsize=\small]
-	$ program -st_type sinvert -eps_target 10 -st_ksp_type bcgs -st_pc_type jacobi
+	$ ./program -st_type sinvert -eps_target 10 -st_ksp_type bcgs -st_pc_type jacobi
 \end{Verbatim}
 	The shift-and-invert and Cayley transformations deserve special consideration. In these cases, the coefficient matrix is not a simple matrix but an expression that can be explicitly constructed or not, depending on the user's choice. This issue is examined in detail in \S\ref{sec:explicit} below.
 
@@ -321,8 +321,8 @@ If this happens, it is necessary to use a direct method for solving the linear s
 	\end{description}
 	The default behavior is to build the coefficient matrix explicitly in a copy of $A$ (option ``\Verb!copy!''). The user can change this as in the following example
 \begin{Verbatim}[fontsize=\small]
-	$ program -st_type sinvert -st_shift 10 -st_ksp_type cg
-                  -st_pc_type jacobi -st_matmode shell
+	$ ./program -st_type sinvert -st_shift 10 -st_ksp_type cg
+                    -st_pc_type jacobi -st_matmode shell
 \end{Verbatim}
 	As always, the procedural equivalent is also available for specifying this option in the code of the program:
 	\findex{STSetMatMode}

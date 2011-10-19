@@ -159,7 +159,7 @@ The user can specify how many singular values and vectors to compute. The defaul
 	\end{Verbatim}
 allows the specification of the number of singular values to compute, \texttt{nsv}. The second argument can be set to prescribe the number of column vectors to be used by the solution algorithm, \texttt{ncv}, that is, the largest dimension of the working subspace. These two parameters can also be set at run time with the options \Verb!-svd_nsv! and \Verb!-svd_ncv!. For example, the command line
 \begin{Verbatim}[fontsize=\small]
-	$ program -svd_nsv 10 -svd_ncv 24
+	$ ./program -svd_nsv 10 -svd_ncv 24
 \end{Verbatim}
 requests 10 singular values and instructs to use 24 column vectors. Note that \texttt{ncv} must be at least equal to \texttt{nsv}, although in general it is recommended (depending on the method) to work with a larger subspace, for instance $\mathtt{ncv}\geq2\cdot\mathtt{nsv}$ or even more.
 As in the case of the \ident{EPS} object, the last argument, \texttt{mpd}, can be used to limit the maximum dimension of the projected problem, as discussed in \S\ref{sec:large-nev}. Using this parameter is especially important in the case that a large number of singular values are requested.
@@ -230,13 +230,13 @@ The \ident{EPS} object associated to the \texttt{cross} and \texttt{cyclic} SVD 
 	\end{Verbatim}
 A more convenient way of changing \ident{EPS} options is through the command-line. This is achieved simply by prefixing the \ident{EPS} options with \texttt{-svd\_} as in the following example:
 \begin{Verbatim}[fontsize=\small]
-	$ program -svd_type cross -svd_eps_type gd
+	$ ./program -svd_type cross -svd_eps_type gd
 \end{Verbatim}
 
 At this point, one may consider changing also the options of the \ident{ST} object associated to the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). Therefore, computing interior singular values is more likely to be successful if using the \texttt{cyclic} solver with explicit $H(A)$ matrix. To illustrate this, here is a complicated command-line example for computing singular values close to 12.0:
 \begin{Verbatim}[fontsize=\small]
-	$ program -svd_type cyclic -svd_cyclic_explicitmatrix -svd_st_type sinvert
-                  -svd_eps_target 12.0 -svd_st_ksp_type preonly -svd_st_pc_type lu
+	$ ./program -svd_type cyclic -svd_cyclic_explicitmatrix -svd_st_type sinvert
+                    -svd_eps_target 12.0 -svd_st_ksp_type preonly -svd_st_pc_type lu
 \end{Verbatim}
 
 %---------------------------------------------------

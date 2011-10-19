@@ -226,9 +226,9 @@ In the case of explicit creation, matrices $A$ and $B$ are created as real \text
 
 As a complete example of how to solve a quadratic eigenproblem via linearization, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
-	$ program -qep_type linear -qep_hermitian -qep_linear_cform 2
-                  -qep_linear_explicitmatrix -qep_eps_type krylovschur
-                  -qep_st_ksp_type gmres -qep_st_pc_type bjacobi
+	$ ./program -qep_type linear -qep_hermitian -qep_linear_cform 2
+                    -qep_linear_explicitmatrix -qep_eps_type krylovschur
+                    -qep_st_ksp_type gmres -qep_st_pc_type bjacobi
 \end{Verbatim}
 The S2 linearization (Eq.\ \ref{eq:s2}) will be used, with explicit matrix storage and a preconditioned iterative method for solving linear systems with matrix $B$.
 

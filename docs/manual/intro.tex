@@ -158,30 +158,30 @@
 \begin{enumerate}
 	\item Unbundle the distribution file with 
 	\begin{Verbatim}[fontsize=\small]
-        tar xzf slepc-3.2-p0.tar.gz
+	$ tar xzf slepc-3.2-p0.tar.gz
 	\end{Verbatim}
         or an equivalent command. This will create a directory and unpack the software there.
 	\item Set the environment variable \ident{SLEPC\_DIR} to the full path of the \slepc home directory. For example, under the \texttt{bash} shell:
 	\begin{Verbatim}[fontsize=\small]
-	export SLEPC_DIR=/home/username/slepc-3.2
+	$ export SLEPC_DIR=/home/username/slepc-3.2
 	\end{Verbatim}
 	In addition to this variable, \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} must also be set appropriately (see \S\ref{sec:prefix-inst} for a case in which \ident{PETSC\_ARCH} is not required), for example
 	\begin{Verbatim}[fontsize=\small]
-	export PETSC_DIR=/home/username/petsc-3.2
-	export PETSC_ARCH=arch-darwin-c-debug
+	$ export PETSC_DIR=/home/username/petsc-3.2
+	$ export PETSC_ARCH=arch-darwin-c-debug
 	\end{Verbatim}
 	\item\label{step-config} Change to the \slepc directory and run the configuration script:
 	\begin{Verbatim}[fontsize=\small]
-        cd $SLEPC_DIR
-	./configure
+	$ cd $SLEPC_DIR
+	$ ./configure
 	\end{Verbatim}
 	\item If the configuration was successful, build the libraries:
 	\begin{Verbatim}[fontsize=\small]
-	make
+	$ make
 	\end{Verbatim}
 	\item After the compilation, try running some test examples with
 	\begin{Verbatim}[fontsize=\small]
-	make test
+	$ make test
 	\end{Verbatim}
         Examine the output for any obvious errors or problems.
 \end{enumerate}
@@ -197,8 +197,8 @@ In \slepc, configure options have the following purposes:
 \item Specify a directory for prefix-based installation, as explained in \S\ref{sec:prefix-inst}.
 \item Enable external eigensolver packages. For example, to use \arpack, specify the following options (with the appropriate paths):
 	\begin{Verbatim}[fontsize=\small]
-	./configure --with-arpack-dir=/usr/software/ARPACK 
-	            --with-arpack-flags=-lparpack,-larpack
+	$ ./configure --with-arpack-dir=/usr/software/ARPACK 
+	              --with-arpack-flags=-lparpack,-larpack
 	\end{Verbatim}
 Section \ref{sec:wrap} provides more details related to use of external libraries.
 \end{itemize}
@@ -208,7 +208,7 @@ Additionally, \petsc's configuration script provides a very long list of options
 \item Add \Verb!--with-scalar-type=complex! to build complex scalar versions of all libraries. See below a note related to complex scalars.
 \item Build single precision versions with \Verb!--with-precision=single!. In most applications, this can achieve a significant reduction of memory requirements, and a moderate reduction of computing time. Also, quadruple precision (128-bit floating-point representation) is also available on systems using the \texttt{gcc-4.6} compiler, using \Verb!--with-precision=__float128!.
 \item Enable use from Fortran. By default, \petsc's configure looks for an appropriate Fortran compiler. If not required, this can be disabled with \Verb!--without-fortran!. If required but not correctly detected, the compiler to be used can be specified with a configure option. In the case of Fortran 90, additional options are available for building interfaces and datatypes.
-\item If not detected, use \Verb!--with-blas-lapack-lib! to specify the location of \blas and \lapack. If \slepc's configure complains about some missing \lapack subrotines, reconfigure \petsc with option \Verb!--download-f2cblaslapack!.
+\item If not detected, use \Verb!--with-blas-lapack-lib! to specify the location of \blas and \lapack. If \slepc's configure complains about some missing \lapack subroutines, reconfigure \petsc with option \Verb!--download-f2cblaslapack!.
 \item Enable external libraries that provide direct linear solvers or preconditioners, such as MUMPS, hypre, or SuperLU; for example, \Verb!--download-mumps!. These are especially relevant for \slepc in the case that a spectral transformation is used, see chapter \ref{cap:st}.
 \item Enable use from C++, \Verb!--with-clanguage=C++!.
 \item Add \Verb!--with-64-bit-indices=1! to use 4 byte integers (\texttt{long long}) for indexing in vectors and matrices. This is only needed when working with over roughly 2 billion unknowns.
@@ -227,17 +227,17 @@ Often, it is necessary to build two (or more) versions of the libraries that dif
 
 In a standard installation, the different configurations are identified by a unique name that is assigned to the environment variable \ident{PETSC\_ARCH}. Let us illustrate how to set up \petsc with two configurations. First, set a value of \ident{PETSC\_ARCH} and proceed with the installation of the first one:
 	\begin{Verbatim}[fontsize=\small]
-	cd $PETSC_DIR
-	export PETSC_ARCH=arch-linux-gnu-c-debug-real
-	./configure --with-scalar-type=real
-	make all test
+	$ cd $PETSC_DIR
+	$ export PETSC_ARCH=arch-linux-gnu-c-debug-real
+	$ ./configure --with-scalar-type=real
+	$ make all test
 	\end{Verbatim}
 Note that if \ident{PETSC\_ARCH} is not given a value, \petsc suggests one for us. After this, a subdirectory named \texttt{\$PETSC\_ARCH} is created within \texttt{\$PETSC\_DIR}, that stores all information associated to that configuration, including the built libraries, configuration files, automatically generated source files, and log files. For the second configuration, proceed similarly:
 	\begin{Verbatim}[fontsize=\small]
-	cd $PETSC_DIR
-	export PETSC_ARCH=arch-linux-gnu-c-debug-complex
-	./configure --with-scalar-type=complex
-	make all test
+	$ cd $PETSC_DIR
+	$ export PETSC_ARCH=arch-linux-gnu-c-debug-complex
+	$ ./configure --with-scalar-type=complex
+	$ make all test
 	\end{Verbatim}
 The value of \ident{PETSC\_ARCH} in this case must be different than the previous one. It is better to set the value of \ident{PETSC\_ARCH} explicitly, because the name suggested by \texttt{configure} may coincide with an existing value, thus overwriting a previous configuration. After successful installation of the second configuration, two \texttt{\$PETSC\_ARCH} directories exist within \texttt{\$PETSC\_DIR}, and the user can easily choose to build his/her application with either configuration by simply changing the value of \ident{PETSC\_ARCH}.
 
@@ -250,7 +250,7 @@ Both \petsc and \slepc allow for prefix-based installation. This consists in spe
 
 In \petsc, if an installation directory has been specified during configuration (with option \Verb!--prefix! in step \ref{step-config} of \S\ref{sec:std-inst}), then after building the libraries the relevant files are copied to that directory by typing
 	\begin{Verbatim}[fontsize=\small]
-	make install
+	$ make install
 	\end{Verbatim}
 	This is useful for building as a regular user and then copying the libraries and include files to the system directories as root.
 
@@ -258,13 +258,13 @@ To be more precise, suppose that the configuration was done with \texttt{-{}-pre
 
 In order to prepare a prefix-based installation of \slepc that uses a prefix-based installation of \petsc, start by setting the appropriate value of \ident{PETSC\_DIR}. Then, run \slepc's configure with a prefix directory.
 	\begin{Verbatim}[fontsize=\small,numbers=none]
-	export PETSC_DIR=/opt/petsc-3.2-linux-gnu-c-debug
-	unset PETSC_ARCH
-	cd $SLEPC_DIR
-	./configure --prefix=/opt/slepc-3.2-linux-gnu-c-debug
-	make PETSC_ARCH=arch-installed-petsc
-	make PETSC_ARCH=arch-installed-petsc install
-	export SLEPC_DIR=/opt/slepc-3.2-linux-gnu-c-debug
+	$ export PETSC_DIR=/opt/petsc-3.2-linux-gnu-c-debug
+	$ unset PETSC_ARCH
+	$ cd $SLEPC_DIR
+	$ ./configure --prefix=/opt/slepc-3.2-linux-gnu-c-debug
+	$ make PETSC_ARCH=arch-installed-petsc
+	$ make PETSC_ARCH=arch-installed-petsc install
+	$ export SLEPC_DIR=/opt/slepc-3.2-linux-gnu-c-debug
 	\end{Verbatim}
 Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slepc's configure. The special value \texttt{arch-installed-petsc} of the \ident{PETSC\_ARCH} variable is required only during \slepc's build, and should not be used afterwards.
 
@@ -277,7 +277,7 @@ Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slep
 Before using \slepc, the user must first set the environment variable
 \ident{SLEPC\_DIR}, indicating the full path of the directory containing \slepc. For example, under the \texttt{bash} shell, a command of the form
 	\begin{Verbatim}[fontsize=\small]
-	export SLEPC_DIR=/software/slepc-3.2
+	$ export SLEPC_DIR=/software/slepc-3.2
 	\end{Verbatim}
 can be placed in the user's \Verb!.bashrc! file.
 The \ident{SLEPC\_DIR} directory can be either a standard installation \slepc directory, or a prefix-based installation directory, see \S\ref{sec:prefix-inst}.
@@ -289,7 +289,7 @@ for message-passing communication \citep{MPI-Forum:1994:MMI}.  Thus, to execute
 on their selected computer system(s).  For instance, when using the
 \mpich\ implementation of MPI and many others, the \texttt{mpirun} command can be used to initiate a program as in the following example that uses eight processes:
 	\begin{Verbatim}[fontsize=\small]
-	mpirun -np 8 slepc_program [command-line options]
+	$ mpirun -np 8 slepc_program [command-line options]
 	\end{Verbatim}
 In MPI-2 compliant systems, the command \texttt{mpiexec} can be used instead. Note that MPI may be deactivated during configuration of \petsc, if one wants to run only serial programs in a laptop, for example.
 
