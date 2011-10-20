@@ -70,9 +70,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
-  PetscBool      flg;
-  KSP            ksp;
-  PC             pc;
+  PetscBool      flg,issinv;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -85,21 +83,26 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   if (!eps->ishermitian)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
-  if (blz->slice || eps->isgeneralized) {
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&flg);CHKERRQ(ierr);
-    if (!flg)
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
-    ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
-    if (!flg)
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Preonly KSP is needed for generalized problems or spectrum slicing");
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)pc,PCCHOLESKY,&flg);CHKERRQ(ierr);
-    if (!flg)
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cholesky PC is needed for generalized problems or spectrum slicing");
+  if (eps->which==EPS_ALL) {
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Must define a computational interval when using EPS_ALL"); 
+    blz->slice = 1;
   }
-  if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL)
+  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
+  if (blz->slice || eps->isgeneralized) {
+    if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
+  }
+  if (blz->slice) {
+    if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
+      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,1,"The defined computational interval should have at least one of their sides bounded");
+      ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);
+    }
+    else { ierr = STSetDefaultShift(eps->OP,eps->intb);CHKERRQ(ierr); }
+  }
+  if (!eps->which) {
+    if (issinv) eps->which = EPS_TARGET_REAL;
+    else eps->which = EPS_SMALLEST_REAL;
+  }
+  if ((issinv && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_ALL) || (!issinv && eps->which!=EPS_SMALLEST_REAL))
     SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   k1 = PetscMin(eps->n,180);
@@ -162,10 +165,10 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     blz->rstor[1]  = sigma;        /* upper limit of eigenvalue interval */
   } else {
     sigma = 0.0;
-    blz->rstor[0]  = blz->initial; /* lower limit of eigenvalue interval */
-    blz->rstor[1]  = blz->final;   /* upper limit of eigenvalue interval */
+    blz->rstor[0]  = eps->inta;    /* lower limit of eigenvalue interval */
+    blz->rstor[1]  = eps->intb;    /* upper limit of eigenvalue interval */
   }
-  nneig = 0;                     /* no. of eigs less than sigma */
+  nneig = 0;                       /* no. of eigs less than sigma */
 
   blz->istor[0]  = PetscBLASIntCast(eps->nloc); /* number of rows of U, V, X*/
   blz->istor[1]  = PetscBLASIntCast(eps->nloc); /* leading dimension of U, V, X */
@@ -305,7 +308,6 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -324,7 +326,10 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
     SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: block size=%d\n",blz->block_size);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: computational interval [%f,%f]\n",blz->initial,blz->final);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: maximum number of steps per run=%d\n",blz->nsteps);CHKERRQ(ierr);
+  if (blz->slice) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: computational interval [%f,%f]\n",eps->inta,eps->intb);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -335,7 +340,6 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscInt       bs,n;
-  PetscReal      interval[2];
   PetscBool      flg;
   KSP            ksp;
   PC             pc;
@@ -350,23 +354,6 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   n = blz->nsteps;
   ierr = PetscOptionsInt("-eps_blzpack_nsteps","Number of steps","EPSBlzpackSetNSteps",n,&n,&flg);CHKERRQ(ierr);
   if (flg) {ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr);}
-
-  interval[0] = blz->initial;
-  interval[1] = blz->final;
-  n = 2;
-  ierr = PetscOptionsRealArray("-eps_blzpack_interval","Computational interval","EPSBlzpackSetInterval",interval,&n,&flg);CHKERRQ(ierr);
-  if (flg) {
-    if (n==1) interval[1]=interval[0];
-    ierr = EPSBlzpackSetInterval(eps,interval[0],interval[1]);CHKERRQ(ierr);
-  }
-
-  if (blz->slice || eps->isgeneralized) {
-    ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
-    ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
-  }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -403,8 +390,6 @@ EXTERN_C_END
 .  -eps_blzpack_block_size - Sets the value of the block size
 
    Level: advanced
-
-.seealso: EPSBlzpackSetInterval()
 @*/
 PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
 {
@@ -414,63 +399,6 @@ PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,bs,2);
   ierr = PetscTryMethod(eps,"EPSBlzpackSetBlockSize_C",(EPS,PetscInt),(eps,bs));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "EPSBlzpackSetInterval_BLZPACK"
-PetscErrorCode EPSBlzpackSetInterval_BLZPACK(EPS eps,PetscReal initial,PetscReal final)
-{
-  PetscErrorCode ierr;
-  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;;
-
-  PetscFunctionBegin;
-  blz->initial    = initial;
-  blz->final      = final;
-  blz->slice      = 1;
-  ierr = STSetShift(eps->OP,initial);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-EXTERN_C_END
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSBlzpackSetInterval"
-/*@
-   EPSBlzpackSetInterval - Sets the computational interval for the BLZPACK
-   package.
-
-   Collective on EPS
-
-   Input Parameters:
-+  eps     - the eigenproblem solver context
-.  initial - lower bound of the interval
--  final   - upper bound of the interval
-
-   Options Database Key:
-.  -eps_blzpack_interval - Sets the bounds of the interval (two values
-   separated by commas)
-
-   Note:
-   The following possibilities are accepted (see Blzpack user's guide for
-   details).
-     initial>final: start seeking for eigenpairs in the upper bound
-     initial<final: start in the lower bound
-     initial=final: run around a single value (no interval)
-   
-   Level: advanced
-
-.seealso: EPSBlzpackSetBlockSize()
-@*/
-PetscErrorCode EPSBlzpackSetInterval(EPS eps,PetscReal initial,PetscReal final)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveReal(eps,initial,2);
-  PetscValidLogicalCollectiveReal(eps,final,3);
-  ierr = PetscTryMethod(eps,"EPSBlzpackSetInterval_C",(EPS,PetscReal,PetscReal),(eps,initial,final));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -537,13 +465,10 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_Default;
 
   blzpack->block_size = 3;
-  blzpack->initial = 0.0;
-  blzpack->final = 0.0;
   blzpack->slice = 0;
   blzpack->nsteps = 0;
 
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetInterval_C","EPSBlzpackSetInterval_BLZPACK",EPSBlzpackSetInterval_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","EPSBlzpackSetNSteps_BLZPACK",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -26,7 +26,6 @@
 
 typedef struct {
   PetscBLASInt         block_size;      /* block size */
-  PetscReal            initial,final;   /* computational interval */
   PetscBLASInt         slice;           /* use spectrum slicing */
   PetscBLASInt         nsteps;          /* maximum number of steps per run */
   PetscBLASInt         *istor;
