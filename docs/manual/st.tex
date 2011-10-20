@@ -435,16 +435,20 @@ The \slepc interface hides all the complications of the algorithm. However, the 
 \begin{itemize}
 \item This is currently implemented only in Krylov-Schur, for \ident{EPS\_GHEP} problems.
 \item The implementation is based on shift-and-invert, so \ident{STSINVERT} must be selected. Furthermore, direct linear solvers must be used.
-\item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}). In particular, a symmetric factorization must be used (\texttt{cholesky}), which requires a symmetric matrix storage (\texttt{sbaij}).
+\item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}). In particular, a symmetric factorization must be used (\texttt{cholesky}).
 \end{itemize}
 
 An example command-line that sets up all the required options is:
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex13 -eps_interval 0.4,0.8 -mat_type sbaij
-                 -st_ksp_type preonly -st_pc_type cholesky
+	$ ./ex13 -eps_interval 0.4,0.8 -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
 
-Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum slicing in parallel it is required to use an external solver that supports inertia, e.g., MUMPS (see \S\ref{sec:lin} on how to use external linear solvers).
+Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum slicing in parallel it is required to use an external solver that supports inertia, e.g., MUMPS (see \S\ref{sec:lin} on how to use external linear solvers):
+\begin{Verbatim}[fontsize=\small]
+	$ ./ex13 -eps_interval 0.4,0.8 -st_ksp_type preonly -st_pc_type cholesky
+                 -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
+\end{Verbatim}
+The last option is required by MUMPS to compute the inertia.
 
 Apart from the above recommendations, the following must be taken into account:
 \begin{itemize}
