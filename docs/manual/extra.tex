@@ -40,7 +40,7 @@
 
 	Methods implemented in \ident{EPS} merely require vector operations and matrix-vector products. In \petsc, mathematical objects such as vectors and matrices have an interface that is independent of the underlying data structures. \slepc manipulates vectors and matrices via this interface and, therefore, it can be used with any of the matrix representations provided by \petsc, including dense, sparse, and symmetric formats, either sequential or parallel.
 
-	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated to a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see Table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSEQSBAIJ}.
+	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated to a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see Table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSBAIJ}.
 
 \paragraph{Shell Matrices.}
 
@@ -57,7 +57,7 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices that do not require explicit storage of the component values. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector. 
 
-	Shell matrices, also called matrix-free matrices, are created in \petsc{} with the command \ident{MatCreateShell}. Then, the function \ident{MatShellSetOperation} is used to provide any user-defined shell matrix operations (see the \petsc{} documentation for additional details). Several examples are available in \slepc that illustrate how to solve a matrix-free eigenvalue problem.
+	Shell matrices, also called matrix-free matrices, are created in \petsc with the command \ident{MatCreateShell}. Then, the function \ident{MatShellSetOperation} is used to provide any user-defined shell matrix operations (see the \petsc{} documentation for additional details). Several examples are available in \slepc that illustrate how to solve a matrix-free eigenvalue problem.
 
 	In the simplest case, defining matrix-vector product operations (\ident{MATOP\_MULT}) is enough for using \ident{EPS} with shell matrices. However, in the case of generalized problems, if matrix $B$ is also a shell matrix then it may be necessary to define other operations in order to be able to solve the linear system successfully, for example \ident{MATOP\_GET\_DIAGONAL} to use an iterative linear solver with Jacobi preconditioning. On the other hand, if the shift-and-invert \ident{ST} is to be used, then in addition it may also be necessary to define \ident{MATOP\_SHIFT} or \ident{MATOP\_AXPY} (see \S\ref{sec:explicit} for discussion).
 
@@ -67,15 +67,26 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 \section{GPU Computing}
 \label{sec:gpu}
 
+Experimental support for graphics processor unit (GPU) computing is included in \slepc 3.2. This is related to the previous section because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. Currently, GPU support in \slepc has been tested only in the Krylov-Schur \ident{EPS} solver, although it may work in other solvers as well. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
+
+PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda-toolkit-40}}, that provides a C/C++ compiler with CUDA extensions and the Thrust library, together with the Cusp library\footnote{\url{http://code.google.com/p/cusp-library}}, that implements sparse linear algebra and graph computations on CUDA based on Thrust data structures. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
+	\begin{Verbatim}[fontsize=\small]
+	$ ./configure --with-precision=single --with-cuda --with-thrust
+                      --with-cusp --with-cusp-dir=/path/to/cusp-library
+	\end{Verbatim}
+
+\ident{VECCUSP} and \ident{MATAIJCUSP} are currently the mechanism in \petsc to run a computation on the GPU. \ident{VECCUSP} is a special type of \texttt{Vec} whose array is mirrored in the GPU (and similarly for \ident{MATAIJCUSP}). \petsc takes care of keeping memory coherence between the two copies of the array, and performs the computation on the GPU when possible, trying to avoid unnecessary copies between the host and the device. For maximum efficiency, the user has to make sure that all vectors and matrices are of these types. If they are created in the standard way (\texttt{VecCreate} plus \texttt{VecSetFromOptions}) then it is sufficient to run the program with
+	\begin{Verbatim}[fontsize=\small]
+	$ ./program -vec_type cusp -mat_type aijcusp
+	\end{Verbatim}
+
 %---------------------------------------------------
 \section{Extending SLEPc}
 \label{sec:shell}
 
-	Shell matrices are a simple mechanism of extensibility, in the sense that the package is extended with new user-defined matrix objects. Once the new matrix has been defined, it can be used by \slepc in the same way as the rest of the matrices as long as the required operations are provided.
+	Shell matrices, presented in \S\ref{sec:supported}, are a simple mechanism of extensibility, in the sense that the package is extended with new user-defined matrix objects. Once the new matrix has been defined, it can be used by \slepc in the same way as the rest of the matrices as long as the required operations are provided.
 
 	A similar mechanism is available in \slepc also for extending the system incorporating new spectral transformations (\ident{ST}). This is done by using the \ident{STSHELL} spectral transformation type, in a similar way as shell matrices or shell preconditioners. In this case, the user defines how the operator is applied to a vector and optionally how the computed eigenvalues are transformed back to the solution of the original problem (see \S\ref{sec:shell} for details). This tool is intended for simple spectral transformations. For more sophisticated transformations, the user should register a new \ident{ST} type (see below).
-
-	At least, user-defined spectral transformations have to define how the operator is to be applied to a vector. Optionally, they can also specify the way in which computed eigenvalues must be transformed back to the solution of the original eigenproblem. An example program is provided in the \slepc distribution in order to illustrate the use of shell transformations.
 
 	The function
 	\findex{STShellSetApply}
@@ -87,20 +98,20 @@ has to be invoked after the creation of the \ident{ST} object in order to provid
 	\begin{Verbatim}[fontsize=\small]
       STShellSetBackTransform(ST,PetscErrorCode(*)(ST,PetscInt,PetscScalar*,PetscScalar*));
 	\end{Verbatim}
-can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user can make use of any required user-defined information via a context that can be retrieved with \ident{STShellGetContext}.
+can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user can make use of any required user-defined information via a context that can be retrieved with \ident{STShellGetContext}. An example program is provided in the \slepc distribution in order to illustrate the use of shell transformations.
 
 	\slepc further supports extensibility by allowing application programmers to code their own subroutines for unimplemented features such as new eigensolvers or new spectral transformations. It is possible to register these new methods to the system and use them as the rest of standard subroutines. For example, to implement a variant of the Subspace Iteration method, one could copy the \slepc code associated to the \texttt{subspace} solver, modify it and register a new \ident{EPS} type with the following line of code
 	\begin{Verbatim}[fontsize=\small]
 	EPSRegister("newsubspace",0,"EPSCreate_NEWSUB",EPSCreate_NEWSUB);
 	\end{Verbatim}
-After this call, the new solver could be used in the same way as the rest of \slepc solvers. For instance,
+After this call, the new solver could be used in the same way as the rest of \slepc solvers:
 	\begin{Verbatim}[fontsize=\small]
 	$ ./program -eps_type newsubspace
 	\end{Verbatim}
 
 	\ident{EPSRegister} can be used to register new types whose code is linked into the executable. To register types in a dynamic library use \ident{EPSRegisterDynamic}.
 
-	A similar mechanism is available for registering new types of classes \ident{ST} and \ident{SVD}.
+	A similar mechanism is available for registering new types of classes \ident{ST}, \ident{SVD} and \ident{QEP}.
 
 %---------------------------------------------------
 \section{Directory Structure}
@@ -164,7 +175,7 @@ Each \slepc source code component directory has the following subdirectories:
 	\item Use the runtime option \Verb!-eps_type <type>! to select the solver.
 	\end{enumerate}
 
-	Exceptions to the above rule are \lapack and \blopex, which should be enabled during \petsc's configuration.
+	Exceptions to the above rule are \lapack, which should be enabled during \petsc's configuration, and \blopex, that must be installed with \Verb!--download-blopex! in \slepc's configure.
 
 \subsection*{\underline{\lapack}}
 	\begin{description}
@@ -177,7 +188,7 @@ Each \slepc source code component directory has the following subdirectories:
 	\slepc explicitly creates the operator matrix in dense form and then the appropriate \lapack driver routine is invoked. Therefore, this interface should be used only for testing and validation purposes and not in a production code. The operator matrix is created by applying the operator to the columns of the identity matrix.
 
 	\item[Installation.]
-	The \slepc interface to \lapack can be used directly. If \slepc's configure script complains about missing \lapack functions, then configure \petsc with option \texttt{-{}-download-c-blas-lapack}.
+	The \slepc interface to \lapack can be used directly. If \slepc's configure script complains about missing \lapack functions, then configure \petsc with option \texttt{-{}-download-f2cblaslapack}.
 	\end{description}
 
 \subsection*{\underline{\arpack}}
@@ -221,8 +232,6 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\blzpack\ uses a combination of partial and selective re-orthogonalization strategies. It can be run in either sequential or parallel mode, by means of MPI or PVM interfaces, and it uses the reverse communication strategy.
 	\item[Installation.] For the compilation of the \texttt{libblzpack.a} library, first check the appropriate architecture file in the directory \texttt{sys/MACROS} and then type \texttt{creator -mpi}.
 	\item[Specific options.] The \slepc interface to this package allows the user to specify the block size with the function \ident{EPSBlzpackSetBlockSize} or at run time with the option \Verb!-eps_blzpack_! \Verb!block_size <size>!. Also, the function \ident{EPSBlzpackSetNSteps} can be used to set the maximum number of steps per run (also with \Verb!-eps_blzpack_nsteps!).
-
-	For the spectrum slicing feature, \slepc allows the programmer to provide the computational interval with the option \Verb!-eps_blzpack_interval!, or with the function \ident{EPSBlzpackSetInterval} in the program source.
 	\end{description}
 
 \subsection*{\underline{\trlan}}
@@ -242,7 +251,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[References.]\citep{Knyazev:2007:BLO}.
 	\item[Website.] \url{http://code.google.com/p/blopex}.
 	\item[Summary.] \blopex is a package that implements the Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG) method for computing several extreme eigenpairs of symmetric positive generalized eigenproblems. Numerical comparisons suggest that this method is a genuine analog for eigenproblems of the standard preconditioned conjugate gradient method for symmetric linear systems.
-	\item[Installation.] In order to use \blopex from \slepc, it is a prior requirement that \petsc has been configured with \Verb!./configure --download-hypre --download-blopex!.
+	\item[Installation.] In order to use \blopex from \slepc, it necessary to install it during \slepc's configuration: \Verb!./configure --download-blopex!.
 	\item[Specific options.] Since BLOPEX contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
 	\end{description}
 
@@ -258,4 +267,14 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 %---------------------------------------------------
 \section{Matlab Interface}
 \label{sec:matlab}
+
+\slepc 3.2 includes an interface intended to make most of \slepc's functionality available from Matlab. It is experimental and needs further development, so users planning to use it seriously are recommended to contact the authors. Below are some guidelines for using this interface.
+
+First of all, \petsc must have been configured with the Matlab interface enabled. This can be done as follows (check \petsc documentation for details):
+	\begin{Verbatim}[fontsize=\small]
+	$ ./configure --with-matlab --with-matlab-engine --with-shared-libraries
+	\end{Verbatim}
+
+Once the \petsc and \slepc libraries have been built, one has to set Matlab's path to point to the directories containing Matlab classes: \Verb!$SLEPC_DIR/bin/matlab/classes! and \Verb!$PETSC_DIR/bin/matlab/classes!. Below we show a simple Matlab example (included in \slepc's distribution) that does this, and then solves a simple eigenproblem.
+\MyVerbatimInput{exEPS.m}
 

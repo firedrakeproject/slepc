@@ -10,7 +10,7 @@ As in the case of \ident{SVD}, the user interface of \ident{QEP} is very similar
 
 \section{\label{sec:qep}Overview of Quadratic Eigenproblems}
 
-In this section, we review some basic properties of quadratic eigenvalue problems. The main goal is to set up the notation as well as describe the linearization approaches that will be employed for solving via the \ident{EPS} object. For additional background material about the quadratic eigenproblem, the reader is referred to \citep{Tisseur:2001:QEP}. As always, some details of the implemented methods can be found in the \slepc \hyperlink{str}{technical reports}.
+In this section, we review some basic properties of quadratic eigenvalue problems. The main goal is to set up the notation as well as to describe the linearization approaches that will be employed for solving via the \ident{EPS} object. For additional background material about the quadratic eigenproblem, the reader is referred to \citep{Tisseur:2001:QEP}. As always, some details of the implemented methods can be found in the \slepc \hyperlink{str}{technical reports}.
 
 In many applications, e.g., problems arising from second-order differential equations such as the analysis of damped vibrating systems, the eigenproblem to be solved is quadratic,
 \begin{equation}
@@ -20,7 +20,7 @@ where $M,C,K\in\mathbb{C}^{n\times n}$ are the coefficients of a matrix polynomi
 
 It is important to point out some outstanding differences with respect to the linear eigenproblem. In the quadratic eigenproblem, the number of eigenvalues is $2n$, and the corresponding eigenvectors do not form a linearly independent set. If $M$ is singular, some eigenvalues are infinite. Even when the three matrices are symmetric and positive definite, there is no guarantee that the eigenvalues are real, but still methods can exploit symmetry to some extent. Furthermore, numerical difficulties are more likely than in the linear case, so the computed solution can sometimes be untrustworthy.
 
-If Eq.\ \ref{eq:eigquad} is written as $Q(\lambda)x=0$, where $Q$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate different spectral trasformation for computing eigenvalues closest to a given target.
+If Eq.\ \ref{eq:eigquad} is written as $Q(\lambda)x=0$, where $Q$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate different spectral transformations for computing eigenvalues closest to a given target.
 
 \paragraph{Problem Types.}
 
