@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
-  PetscBool      flg,issinv;
+  PetscBool      issinv;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -117,6 +117,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   if (blz->slice) lrstor = eps->nloc*(k2*4+k1*2+k4)+k3;
   else lrstor = eps->nloc*(k2*4+k1)+k3;
+lrstor*=10;
   ierr = PetscFree(blz->rstor);CHKERRQ(ierr);
   ierr = PetscMalloc((4+lrstor)*sizeof(PetscReal),&blz->rstor);CHKERRQ(ierr);
   blz->rstor[3] = lrstor;
@@ -341,8 +342,6 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
   PetscInt       bs,n;
   PetscBool      flg;
-  KSP            ksp;
-  PC             pc;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS BLZPACK Options");CHKERRQ(ierr);
