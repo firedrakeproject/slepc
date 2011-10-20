@@ -4,6 +4,25 @@
 %  with the matrices loaded from file
 %
 
+%  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%  SLEPc - Scalable Library for Eigenvalue Problem Computations
+%  Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain
+%
+%  This file is part of SLEPc.
+%     
+%  SLEPc is free software: you can redistribute it and/or modify it under  the
+%  terms of version 3 of the GNU Lesser General Public License as published by
+%  the Free Software Foundation.
+%
+%  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
+%  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
+%  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+%  more details.
+%
+%  You  should have received a copy of the GNU Lesser General  Public  License
+%  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
+%  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 %%
 %  Set the Matlab path and initialize SLEPc
 %
@@ -21,11 +40,11 @@ SlepcInitialize({'-malloc','-malloc_debug','-malloc_dump'});
 %  Load matrices from file
 %
 SLEPC_DIR = getenv('SLEPC_DIR');
-viewer = PetscViewer([SLEPC_DIR '/src/mat/examples/bfw62a.petsc'],Petsc.FILE_MODE_READ);
+viewer = PetscViewer([SLEPC_DIR '/share/slepc/datafiles/matrices/bfw62a.petsc'],Petsc.FILE_MODE_READ);
 A = PetscMat();
 A.Load(viewer);
 viewer.Destroy;
-viewer = PetscViewer([SLEPC_DIR '/src/mat/examples/bfw62b.petsc'],Petsc.FILE_MODE_READ);
+viewer = PetscViewer([SLEPC_DIR '/share/slepc/datafiles/matrices/bfw62b.petsc'],Petsc.FILE_MODE_READ);
 B = PetscMat();
 B.Load(viewer);
 viewer.Destroy;

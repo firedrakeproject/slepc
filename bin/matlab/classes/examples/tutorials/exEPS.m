@@ -4,6 +4,25 @@
 %  User creates directly a PETSc Mat
 %
 
+%  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%  SLEPc - Scalable Library for Eigenvalue Problem Computations
+%  Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain
+%
+%  This file is part of SLEPc.
+%     
+%  SLEPc is free software: you can redistribute it and/or modify it under  the
+%  terms of version 3 of the GNU Lesser General Public License as published by
+%  the Free Software Foundation.
+%
+%  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
+%  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
+%  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+%  more details.
+%
+%  You  should have received a copy of the GNU Lesser General  Public  License
+%  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
+%  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 %%
 %  Set the Matlab path and initialize SLEPc
 %
@@ -33,7 +52,6 @@ for i=1:n-1
 end
 mat.AssemblyBegin(PetscMat.FINAL_ASSEMBLY);
 mat.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
-%mat.View;
 
 %%
 %  Create the eigensolver, pass the matrix and solve the problem
@@ -56,7 +74,6 @@ for i=1:nconv
     fprintf('  %12f%+12f      %12g\n',real(lambda),imag(lambda),relerr)
   end
 end
-%eps.View();
 
 %%
 %   Free objects and shutdown SLEPc

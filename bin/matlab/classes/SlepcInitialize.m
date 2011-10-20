@@ -1,5 +1,5 @@
 function err = SlepcInitialize(args,argfile,arghelp)
-%
+%  SlepcInitialize: start to use SLEPc classes in MATLAB.
 %  In order to use the SLEPc MATLAB classes, PETSc must have been configured with
 %  specific options. See: help PetscInitialize.
 %
@@ -7,7 +7,25 @@ function err = SlepcInitialize(args,argfile,arghelp)
 %  ${SLEPC_DIR}/bin/matlab/classes
 %
 %  In MATLAB use help Slepc to get started using SLEPc from MATLAB
+
+%  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%  SLEPc - Scalable Library for Eigenvalue Problem Computations
+%  Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain
 %
+%  This file is part of SLEPc.
+%     
+%  SLEPc is free software: you can redistribute it and/or modify it under  the
+%  terms of version 3 of the GNU Lesser General Public License as published by
+%  the Free Software Foundation.
+%
+%  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
+%  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
+%  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+%  more details.
+%
+%  You  should have received a copy of the GNU Lesser General  Public  License
+%  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
+%  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if exist('PetscInitialize')~=2
   error('Must add ${PETSC_DIR}/bin/matlab/classes to your MATLAB path')
