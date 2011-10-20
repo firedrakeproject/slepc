@@ -212,7 +212,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Solve projected problem and compute residual norm estimates */
     ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
     /* Check convergence */
-    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv,PETSC_NULL,nv,Q,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,PETSC_TRUE,eps->nconv,nv,PETSC_NULL,nv,Q,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
     if(allKs ==1){//option for accepting all converging values
       Qreal = (PetscReal*)Q;//
       conv=k=j=0;
@@ -611,7 +611,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   double         t1,t2;
  
   PetscFunctionBegin;
-  eps->trackall = PETSC_TRUE;
   allKs = 0;
   def = 1;
   deg=0;

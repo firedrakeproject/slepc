@@ -75,6 +75,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
    Input Parameters:
      eps   - the eigensolver; some error estimates are updated in eps->errest 
      issym - whether the projected problem is symmetric or not
+     trackall - whether all residuals must be computed
      kini  - initial value of k (the loop variable)
      nits  - number of iterations of the loop
      S     - Schur form of projected matrix (not referenced if issym)
@@ -91,7 +92,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
    Workspace:
      work is workspace to store 5*nv scalars, nv booleans and nv reals (only if !issym)
 */
-PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool trackall,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscInt       k,marker;
@@ -129,7 +130,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscInt kini,PetscI
     ierr = (*eps->conv_func)(eps,re,im,resnorm,&eps->errest[k],eps->conv_ctx);CHKERRQ(ierr);
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
     if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
-    if (marker!=-1 && !eps->trackall) break;
+    if (marker!=-1 && !trackall) break;
   }
   if (marker!=-1) k = marker;
   *kout = k;

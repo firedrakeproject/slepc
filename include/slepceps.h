@@ -347,7 +347,6 @@ extern PetscErrorCode EPSLanczosSetReorthog(EPS,EPSLanczosReorthogType);
 extern PetscErrorCode EPSLanczosGetReorthog(EPS,EPSLanczosReorthogType*);
 
 extern PetscErrorCode EPSBlzpackSetBlockSize(EPS,PetscInt);
-extern PetscErrorCode EPSBlzpackSetInterval(EPS,PetscReal,PetscReal);
 extern PetscErrorCode EPSBlzpackSetNSteps(EPS,PetscInt);
 
 /*E
