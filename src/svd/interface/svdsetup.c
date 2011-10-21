@@ -111,7 +111,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
 
   /* Set default solver type (SVDSetFromOptions was not called) */
   if (!((PetscObject)svd)->type_name) {
