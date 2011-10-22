@@ -199,23 +199,40 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
   EPS_BLOPEX *blopex = (EPS_BLOPEX *)eps->data;
-  int        i,info,its;
+  int        i,j,info,its,nconv;
+  double     *lambdahist=PETSC_NULL,*residhist=PETSC_NULL;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
+  if (eps->numbermonitors>0) {
+    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&lambdahist);CHKERRQ(ierr);
+    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&residhist);CHKERRQ(ierr);
+  }
+
 #if defined(PETSC_USE_COMPLEX)
   info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
         eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-        (komplex*)eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
+        (komplex*)eps->eigr,lambdahist,eps->ncv,eps->errest,residhist,eps->ncv);
 #else
   info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
         eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-        eps->eigr,PETSC_NULL,0,eps->errest,PETSC_NULL,0);
+        eps->eigr,lambdahist,eps->ncv,eps->errest,residhist,eps->ncv);
 #endif
   if (info>0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
+
+  if (eps->numbermonitors>0) {
+    for (i=0;i<its;i++) {
+      nconv = 0;
+      for (j=0;j<eps->ncv;j++) { if (residhist[j+i*eps->ncv]>eps->tol) break; else nconv++; }
+      ierr = EPSMonitor(eps,i,nconv,lambdahist+i*eps->ncv,eps->eigi,residhist+i*eps->ncv,eps->ncv);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(lambdahist);CHKERRQ(ierr); 
+    ierr = PetscFree(residhist);CHKERRQ(ierr); 
+  }
 
   eps->its = its;
   eps->nconv = eps->ncv;
