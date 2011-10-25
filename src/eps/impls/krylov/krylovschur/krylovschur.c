@@ -69,10 +69,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     }
     else { ierr = STSetDefaultShift(eps->OP,eps->intb);CHKERRQ(ierr); }
 
-    if (eps->nev==1) eps->nev = 20;  /* nev not set, use default value */
+    if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
     if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,1,"nev cannot be less than 10 in spectrum slicing runs"); 
-    eps->mpd = 2*eps->nev;
-    eps->ncv = 2*eps->nev;
     eps->ops->backtransform = PETSC_NULL;
   }
 
