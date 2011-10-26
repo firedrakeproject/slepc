@@ -60,7 +60,7 @@ struct _n_SR{
   PetscBool       hasEnd; /* Tells whether the interval has an end */
   PetscInt        inertia0,inertia1;
   Vec             *V;
-  PetscScalar     *eig,*eigi;
+  PetscScalar     *eig,*eigi,*monit;
   PetscReal       *errest;
   PetscInt        *perm;/* Permutation for keeping the eigenvalues in order */
   PetscInt        numEigs; /* Number of eigenvalues in the interval */
@@ -168,7 +168,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   shift          sPres;
   PetscBool      complIterating;/* Shows whether iterations are made for completion */
   PetscBool      sch0,sch1;/* Shows whether values are looked after on each side */
-  PetscInt       iterCompl=0,n0,n1;
+  PetscInt       iterCompl=0,n0,n1,aux,auxc;
   SR             sr;
 
   PetscFunctionBegin;
@@ -185,6 +185,11 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   ierr = PetscMalloc(lt*sizeof(PetscReal),&a);CHKERRQ(ierr);
   ierr = PetscMalloc(lt*sizeof(PetscReal),&b);CHKERRQ(ierr);
   count0=0;count1=0; /* Found on both sides */
+
+   /* filling in values for the monitor */
+  for(i=0;i<sr->indexEig;i++){
+      sr->monit[i]=1.0/(sr->eig[i] - sPres->value);
+    }
   
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -211,9 +216,13 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
         iwork[j++]=i;
       }else iwork[conv+k++]=i;
     }
-    for(i=0;i<nv;i++) a[i]=PetscRealPart(eps->eigr[eps->nconv+i]);
+    for(i=0;i<nv;i++){
+      a[i]=PetscRealPart(eps->eigr[eps->nconv+i]);
+      b[i]=eps->errest[eps->nconv+i];
+    }
     for(i=0;i<nv;i++){
       eps->eigr[eps->nconv+i] = a[iwork[i]];
+      eps->errest[eps->nconv+i] = b[iwork[i]];
     }
     for( i=0;i<nv;i++){
       p=iwork[i];
@@ -283,7 +292,18 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
     }
-    ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv+eps->nconv);CHKERRQ(ierr);
+    aux = auxc = 0;
+    for(i=0;i<nv+eps->nconv;i++){
+      theta = PetscRealPart(eps->eigr[i]);
+      lambda = sPres->value + 1/theta;
+      if( ((sr->dir)*(lambda - sPres->ext[0]) > 0)&& ((sr->dir)*(sPres->ext[1] - lambda) > 0)){ 
+        sr->monit[sr->indexEig+aux]=eps->eigr[i];
+        sr->errest[sr->indexEig+aux]=eps->errest[i];
+        aux++;
+        if(eps->errest[i] < eps->tol)auxc++;
+      }
+    }
+    ierr = EPSMonitor(eps,eps->its,auxc+sr->indexEig,sr->monit,sr->eigi,sr->errest,sr->indexEig+aux);CHKERRQ(ierr);
     eps->nconv = k;
   }
   /* Check for completion */
@@ -568,9 +588,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   /* Memory reservation for eig, V and perm */
   ierr = PetscMalloc((sr->numEigs)*sizeof(PetscScalar),&sr->eig);CHKERRQ(ierr);
   ierr = PetscMalloc((sr->numEigs)*sizeof(PetscScalar),&sr->eigi);CHKERRQ(ierr);
-  ierr = PetscMalloc((sr->numEigs) *sizeof(PetscReal),&sr->errest);CHKERRQ(ierr);
-  ierr = PetscMalloc((sr->numEigs)*sizeof(PetscReal),&errest_left);CHKERRQ(ierr);
-  for(i=0;i<sr->numEigs;i++){sr->eigi[i]=0;errest_left[i]=0;sr->errest[i]=0;sr->eig[i] = 0;}
+  ierr = PetscMalloc((sr->numEigs+eps->ncv) *sizeof(PetscReal),&sr->errest);CHKERRQ(ierr);
+  ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscReal),&errest_left);CHKERRQ(ierr);
+  ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscReal),&sr->monit);CHKERRQ(ierr);
+  for(i=0;i<sr->numEigs;i++){sr->eigi[i]=0;sr->eig[i] = 0;}
+  for(i=0;i<sr->numEigs+eps->ncv;i++){errest_left[i]=0;sr->errest[i]=0;sr->monit[i]=0;}
   ierr = VecCreateMPI(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,&t);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(t,sr->numEigs,&sr->V);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
@@ -626,6 +648,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = PetscFree(sr->VDef);CHKERRQ(ierr);
   ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);
   ierr = PetscFree(sr->pending);CHKERRQ(ierr);
+  ierr = PetscFree(sr->monit);CHKERRQ(ierr);
   /* Reviewing list of shifts to free memory */
   shift s = sr->s0;
   if(s){
