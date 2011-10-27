@@ -36,9 +36,11 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
   const PCType   pctype;
   Mat            P;
   PetscBool      t0,t1;
+  KSP            ksp;
 
   PetscFunctionBegin;
-  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectGetType((PetscObject)pc,&pctype);CHKERRQ(ierr);
   ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
   if (!pctype && st->A) {
@@ -116,11 +118,10 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (!P) {
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
 
-    /* If some matrix has to be set to ksp, set ksp to KSPPREONLY */
+    /* If some matrix has to be set to ksp, a shell matrix is created */
     if (setmat) {
       ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
       destroyP = PETSC_TRUE;
-      ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
     }
   }
 
@@ -388,8 +389,6 @@ PetscErrorCode STCreate_Precond(ST st)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","STPrecondSetKSPHasMat_Precond",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
 
   ierr = STPrecondSetKSPHasMat_Precond(st,PETSC_TRUE);CHKERRQ(ierr);
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

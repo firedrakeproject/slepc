@@ -60,8 +60,6 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_FALSE);CHKERRQ(ierr);
 
   eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_Davidson;
@@ -140,6 +138,12 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Davidson solvers do not support left eigenvectors */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
+
+  /* Set STPrecond as the default ST */
+  if (!((PetscObject)eps->OP)->type_name) {
+    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  }
+  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||

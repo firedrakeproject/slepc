@@ -68,7 +68,8 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   if (!((PetscObject)eps->OP)->type_name) {
-      ierr = STSetType(eps->OP,STSHIFT);CHKERRQ(ierr);
+    ierr = PetscTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,"");CHKERRQ(ierr);
+    ierr = STSetType(eps->OP,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
   }
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   if (!((PetscObject)eps->ip)->type_name) {

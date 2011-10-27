@@ -35,6 +35,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   PetscErrorCode ierr;
   PetscBool      flg,op;
   PetscInt       opi,opi0;
+  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS Generalized Davidson (GD) Options");CHKERRQ(ierr);
@@ -70,6 +71,19 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   if(flg) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  /* Set STPrecond as the default ST */
+  if (!((PetscObject)eps->OP)->type_name) {
+    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  }
+  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_FALSE);CHKERRQ(ierr);
+
+  /* Set the default options of the KSP */
+  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+  }
+ 
   PetscFunctionReturn(0);
 }  
 EXTERN_C_END
@@ -86,9 +100,13 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   /* Setup common for all davidson solvers */
   ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
 
-  /* Check some constraints */ 
-  ierr = STSetUp(eps->OP);CHKERRQ(ierr);
+  /* Set KSPPREONLY as default */ 
   ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+  }
+ 
+  /* Check some constraints */ 
   ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");
   PetscFunctionReturn(0);
