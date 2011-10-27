@@ -66,8 +66,15 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   if(flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
 
   ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_jd_dynamic_stopping","Use a dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_jd_constant_correction_tolerance","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
+
+  ierr = EPSJDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_pwindow","Set the number of converged vectors in the projector","EPSJDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsInt("-eps_jd_qwindow","Set the number of converged vectors in the projected problem","EPSJDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -128,6 +135,8 @@ PetscErrorCode EPSCreate_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","EPSDavidsonGetFix_Davidson",EPSDavidsonGetFix_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C","EPSDavidsonSetConstantCorrectionTolerance_Davidson",EPSDavidsonSetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","EPSDavidsonGetConstantCorrectionTolerance_Davidson",EPSDavidsonGetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetWindowSizes_C","EPSDavidsonSetWindowSizes_Davidson",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetWindowSizes_C","EPSDavidsonGetWindowSizes_Davidson",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -152,6 +161,8 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -484,30 +495,30 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDSetConstantCorrectionTolerance"
 /*@
-   EPSJDSetConstantCorrectionTolerance - Activates or deactivates setting the KSP relative tolerance
+   EPSJDSetConstantCorrectionTolerance - If true, deactivates the dynamic stopping criterion (also called Newton) that sets the KSP relative tolerance
    to 0.5**i, where i is the number of EPS iterations from the last converged value.
 
    Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  dynamic - boolean flag
+-  constant - if false, the KSP relative tolerance is set to 0.5**i.
 
    Options Database Key:
-.  -eps_jd_dynamic_stopping - Activates the dynamic stopping criterion.
+.  -eps_jd_constant_correction_tolerance - Deactivates the dynamic stopping criterion.
    
    Level: advanced
 
 .seealso: EPSJDGetConstantCorrectionTolerance()
 @*/
-PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool dynamic)
+PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool constant)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveBool(eps,dynamic,2);
-  ierr = PetscTryMethod(eps,"EPSJDSetConstantCorrectionTolerance_C",(EPS,PetscBool),(eps,dynamic));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(eps,constant,2);
+  ierr = PetscTryMethod(eps,"EPSJDSetConstantCorrectionTolerance_C",(EPS,PetscBool),(eps,constant));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -515,7 +526,7 @@ PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool dynamic)
 #define __FUNCT__ "EPSJDGetConstantCorrectionTolerance"
 /*@
    EPSJDGetConstantCorrectionTolerance - Returns a flag indicating if the dynamic stopping is being used for
-   solving the correction equation. If it is activated the KSP relative tolerance is set
+   solving the correction equation. If the flag is false the KSP relative tolerance is set
    to 0.5**i, where i is the number of EPS iterations from the last converged value.
 
    Not Collective
@@ -524,19 +535,85 @@ PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool dynamic)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-.  dynamic - boolean flag indicating if the dynamic stopping criterion is being used.
+.  constant - boolean flag indicating if the dynamic stopping criterion is not being used.
 
    Level: advanced
 
 .seealso: EPSJDGetConstantCorrectionTolerance()
 @*/
-PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *dynamic)
+PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *constant)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(dynamic,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetConstantCorrectionTolerance",(EPS,PetscBool*),(eps,dynamic));CHKERRQ(ierr);
+  PetscValidPointer(constant,2);
+  ierr = PetscTryMethod(eps,"EPSJDGetConstantCorrectionTolerance",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSJDGetWindowSizes"
+/*@
+   EPSJDGetWindowSizes - Gets the number of converged vectors in the projected
+   problem (or Rayleigh quotient) and in the projector employed in the correction
+   equation.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
++  pwindow - number of converged vectors in the projector
+-  qwindow - number of converged vectors in the projected problem
+
+   Level: advanced
+
+.seealso: EPSJDSetWindowSizes()
+@*/
+PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(pwindow,2);
+  PetscValidIntPointer(qwindow,3);
+  ierr = PetscTryMethod(eps,"EPSJDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSJDSetWindowSizes"
+/*@
+   EPSJDSetWindowSizes - Sets the number of converged vectors in the projected
+   problem (or Rayleigh quotient) and in the projector employed in the correction
+   equation.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+.  pwindow - number of converged vectors in the projector
+-  qwindow - number of converged vectors in the projected problem
+
+   Options Database Keys:
++  -eps_jd_pwindow - set the number of converged vectors in the projector
+-  -eps_jd_qwindow - set the number of converged vectors in the projected problem  
+   
+   Level: advanced
+
+.seealso: EPSJDGetWindowSizes()
+@*/
+PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,pwindow,2);
+  PetscValidLogicalCollectiveInt(eps,qwindow,3);
+  ierr = PetscTryMethod(eps,"EPSJDSetWindowSizes_C",(EPS,PetscInt,PetscInt),(eps,pwindow,qwindow));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

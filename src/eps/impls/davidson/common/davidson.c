@@ -40,6 +40,8 @@ typedef struct {
   PetscReal  fix;         /* the fix parameter */
   PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
   PetscBool  dynamic;     /* true if dynamic stopping criterion is used */
+  PetscInt   cX_in_proj,  /* converged vectors in the projected problem */
+    cX_in_impr;           /* converged vectors in the projector */
 
   /**** Solver data ****/
   dvdDashboard ddb;
@@ -84,6 +86,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   ierr = EPSDavidsonSetFix_Davidson(eps,0.01);CHKERRQ(ierr);
   ierr = EPSDavidsonSetBOrth_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EPSDavidsonSetConstantCorrectionTolerance_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetWindowSizes_Davidson(eps,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -95,7 +98,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i;
+  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive,dynamic;
@@ -233,6 +236,9 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&t);CHKERRQ(ierr);
   init = (!t)? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
 
+  /* Setup the presence of converged vectors in the projected problem and in the projector */
+  ierr = EPSDavidsonGetWindowSizes_Davidson(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
+
   /* Setup IP */
   if (ipB && dvd->B) {
     ierr = IPSetMatrix(eps->ip,dvd->B);CHKERRQ(ierr);
@@ -257,7 +263,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                                 PetscAbs(eps->nini),
                                 plusk,harm,
                                 ksp,init,eps->trackall,
-                                ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,0,0);
+                                ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr);
   CHKERRQ(ierr);
 
   /* Allocate memory */
@@ -284,7 +290,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                              eps->ip,harm,dvd->withTarget,
                              target,ksp,
                              fix,init,eps->trackall,
-                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,0,0,dynamic);
+                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr,dynamic);
   CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
@@ -546,23 +552,54 @@ PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,PetscBool *borth)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDavidsonSetConstantCorrectionTolerance_Davidson"
-PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool dynamic)
+PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  data->dynamic = dynamic;
+  data->dynamic = !constant?PETSC_TRUE:PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDavidsonGetConstantCorrectionTolerance_Davidson"
-PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *dynamic)
+PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  *dynamic = data->dynamic;
+  *constant = !data->dynamic?PETSC_TRUE:PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDavidsonSetWindowSizes_Davidson"
+PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  if(pwindow == PETSC_DEFAULT || pwindow == PETSC_DECIDE) pwindow = 0;
+  if(pwindow < 0)
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid pwindow value");
+  if(qwindow == PETSC_DEFAULT || qwindow == PETSC_DECIDE) qwindow = 0;
+  if(qwindow < 0)
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid qwindow value");
+  data->cX_in_proj = qwindow;
+  data->cX_in_impr = pwindow;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDavidsonGetWindowSizes_Davidson"
+PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  *pwindow = data->cX_in_impr;
+  *qwindow = data->cX_in_proj;
   PetscFunctionReturn(0);
 }
 

@@ -62,6 +62,13 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = PetscOptionsInt("-eps_gd_initial_size","Set the initial size of the searching subspace","EPSGDSetInitialSize",opi,&opi,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetInitialSize(eps,opi);CHKERRQ(ierr); }
 
+  ierr = EPSGDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_gd_pwindow","Set the number of converged vectors in the projector","EPSGDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsInt("-eps_gd_qwindow","Set the number of converged vectors in the projected problem","EPSGDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }  
@@ -113,6 +120,8 @@ PetscErrorCode EPSCreate_GD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetRestart_C","EPSDavidsonGetRestart_Davidson",EPSDavidsonGetRestart_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetInitialSize_C","EPSDavidsonSetInitialSize_Davidson",EPSDavidsonSetInitialSize_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetInitialSize_C","EPSDavidsonGetInitialSize_Davidson",EPSDavidsonGetInitialSize_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetWindowSizes_C","EPSDavidsonSetWindowSizes_Davidson",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetWindowSizes_C","EPSDavidsonGetWindowSizes_Davidson",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -135,6 +144,8 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetRestart_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -451,5 +462,71 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(borth,2);
   ierr = PetscTryMethod(eps,"EPSGDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGDGetWindowSizes"
+/*@
+   EPSGDGetWindowSizes - Gets the number of converged vectors in the projected
+   problem (or Rayleigh quotient) and in the projector employed in the correction
+   equation.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
++  pwindow - number of converged vectors in the projector
+-  qwindow - number of converged vectors in the projected problem
+
+   Level: advanced
+
+.seealso: EPSGDSetWindowSizes()
+@*/
+PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(pwindow,2);
+  PetscValidIntPointer(qwindow,3);
+  ierr = PetscTryMethod(eps,"EPSGDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGDSetWindowSizes"
+/*@
+   EPSGDSetWindowSizes - Sets the number of converged vectors in the projected
+   problem (or Rayleigh quotient) and in the projector employed in the correction
+   equation.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+.  pwindow - number of converged vectors in the projector
+-  qwindow - number of converged vectors in the projected problem
+
+   Options Database Keys:
++  -eps_gd_pwindow - set the number of converged vectors in the projector
+-  -eps_gd_qwindow - set the number of converged vectors in the projected problem  
+   
+   Level: advanced
+
+.seealso: EPSGDGetWindowSizes()
+@*/
+PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,pwindow,2);
+  PetscValidLogicalCollectiveInt(eps,qwindow,3);
+  ierr = PetscTryMethod(eps,"EPSGDSetWindowSizes_C",(EPS,PetscInt,PetscInt),(eps,pwindow,qwindow));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

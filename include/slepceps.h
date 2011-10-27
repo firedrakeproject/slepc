@@ -388,6 +388,8 @@ extern PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize);
 extern PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize);
 extern PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth);
 extern PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth);
+extern PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
+extern PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 
 extern PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart);
 extern PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart);
@@ -401,6 +403,8 @@ extern PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix);
 extern PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix);
 extern PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool dynamic);
 extern PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *dynamic);
+extern PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
+extern PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 
 PETSC_EXTERN_CXX_END
 #endif
