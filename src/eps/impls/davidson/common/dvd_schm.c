@@ -28,9 +28,10 @@
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_schm_basic_preconf"
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
-  PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
+  PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
-  HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals)
+  HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals,
+  orthoV_type_t orth, PetscInt cX_proj, PetscInt cX_impr)
 {
   PetscErrorCode ierr;
   PetscInt       check_sum0, check_sum1;
@@ -45,7 +46,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     b->own_vecs = b->own_scalars = 0;
 
     /* Setup basic management of V */
-    ierr = dvd_managementV_basic(d, b, bs, max_size_V, mpd, min_size_V, plusk,
+    ierr = dvd_managementV_basic(d, b, bs, mpd, min_size_V, plusk,
                                harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE,
                                allResiduals);
     CHKERRQ(ierr);
@@ -58,14 +59,15 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
   
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-    ierr = dvd_calcpairs_qz(d, b, PETSC_NULL); CHKERRQ(ierr);
+    ierr = dvd_calcpairs_qz(d, b, orth, PETSC_NULL, cX_proj,
+                harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE); CHKERRQ(ierr);
     if (harmMode != DVD_HARM_NONE) {
       ierr = dvd_harm_conf(d, b, harmMode, PETSC_FALSE, 0.0); CHKERRQ(ierr);
     }
   
     /* Setup the method for improving the eigenvectors */
-    ierr = dvd_improvex_jd(d, b, ksp, bs); CHKERRQ(ierr);
-    ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KBXX); CHKERRQ(ierr);
+    ierr = dvd_improvex_jd(d, b, ksp, bs, cX_proj); CHKERRQ(ierr);
+    ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX); CHKERRQ(ierr);
     ierr = dvd_improvex_jd_lit_const(d, b, 0, 0.0, 0.0); CHKERRQ(ierr);
   }
 
@@ -76,10 +78,11 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_schm_basic_conf"
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
-  PetscInt max_size_V, PetscInt mpd, PetscInt min_size_V, PetscInt bs,
+  PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
-  PetscReal fix, InitType_t init, PetscBool allResiduals)
+  PetscReal fix, InitType_t init, PetscBool allResiduals, orthoV_type_t orth,
+  PetscInt cX_proj, PetscInt cX_impr)
 {
   PetscInt        check_sum0, check_sum1, maxits;
   Vec             *fv;
@@ -95,7 +98,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   fv = b->free_vecs; fs = b->free_scalars;
 
   /* Setup basic management of V */
-  ierr = dvd_managementV_basic(d, b, bs, max_size_V, mpd, min_size_V, plusk,
+  ierr = dvd_managementV_basic(d, b, bs, mpd, min_size_V, plusk,
                         harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE,
                         allResiduals);
   CHKERRQ(ierr);
@@ -108,15 +111,15 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   ierr = dvd_testconv_slepc(d, b); CHKERRQ(ierr);
 
   /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-  ierr = dvd_calcpairs_qz(d, b, ip); CHKERRQ(ierr);
+  ierr = dvd_calcpairs_qz(d, b, orth, ip, cX_proj,
+                harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE); CHKERRQ(ierr);
   if (harmMode != DVD_HARM_NONE) {
     ierr = dvd_harm_conf(d, b, harmMode, fixedTarget, t); CHKERRQ(ierr);
   }
 
   /* Setup the method for improving the eigenvectors */
-  ierr = dvd_improvex_jd(d, b, ksp, bs); CHKERRQ(ierr);
-  ierr = dvd_improvex_jd_proj_uv(d, b, DVD_IS(d->sEP, DVD_EP_HERMITIAN)?
-                                              DVD_PROJ_KBXZ:DVD_PROJ_KBXY);
+  ierr = dvd_improvex_jd(d, b, ksp, bs, cX_proj); CHKERRQ(ierr);
+  ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX);
   CHKERRQ(ierr);
   ierr = KSPGetTolerances(ksp, &tol, PETSC_NULL, PETSC_NULL, &maxits);
   CHKERRQ(ierr);

@@ -84,8 +84,6 @@ PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
   for (i=user; i<k; i++) {
     ierr = SlepcVecSetRandom(d->V[i], d->eps->rand); CHKERRQ(ierr);
   }
-  d->size_V = i;
-  d->V_imm_s = 0; d->V_imm_e = 0;
   d->V_tra_s = 0; d->V_tra_e = 0;
   d->V_new_s = 0; d->V_new_e = i;
 
@@ -115,7 +113,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 
   /* Perform k steps of Arnoldi with the operator K^{-1}*(t[1]*A-t[2]*B) */
   ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, 0,
-                   user, d->auxS, d->auxV[0], d->eps->rand); CHKERRQ(ierr);
+                   user, d->auxS, d->eps->rand); CHKERRQ(ierr);
   for (i=user; i<k; i++) {
     /* aux <- theta[1]A*in - theta[0]*B*in */
     if (d->B) {
@@ -130,11 +128,9 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
     }
     ierr = d->improvex_precond(d, 0, d->auxV[0], d->V[i]); CHKERRQ(ierr);
     ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, i,
-                     i+1, d->auxS, d->auxV[0], d->eps->rand); CHKERRQ(ierr);
+                     i+1, d->auxS, d->eps->rand); CHKERRQ(ierr);
   }
 
-  d->size_V = i;
-  d->V_imm_s = 0; d->V_imm_e = 0;
   d->V_tra_s = 0; d->V_tra_e = 0;
   d->V_new_s = 0; d->V_new_e = i;
 

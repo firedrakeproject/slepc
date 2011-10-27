@@ -47,7 +47,7 @@ typedef struct {
     for (__i=0;__i<(m);__i++) { \
       PetscValidHeaderSpecific((V)[__i],VEC_CLASSID,(arg)); \
       __ierr = PetscObjectQuery((PetscObject)((V)[__i]),"contiguous",(PetscObject*)&__container);CHKERRQ(__ierr); \
-      if (!__container) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Contiguous check failed in argument # %d",(arg)); \
+      if (!__container && (m)>1) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Contiguous check failed in argument # %d",(arg)); \
     } \
   } while (0)
 

@@ -35,14 +35,6 @@
 
 PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateV(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateW(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateAV(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateBV(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_VtAV_gen(dvdDashboard *d, DvdReduction *r,
-                                      DvdMult_copy_func *sr);
-PetscErrorCode dvd_calcpairs_VtBV_gen(dvdDashboard *d, DvdReduction *r,
-                                      DvdMult_copy_func *sr);
 PetscErrorCode dvd_calcpairs_projeig_eig(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_projeig_qz_std(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d);
@@ -53,22 +45,29 @@ PetscErrorCode dvd_calcpairs_X(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
 PetscErrorCode dvd_calcpairs_Y(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
                                Vec *Y);
 PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
-                                   Vec *R, PetscScalar *auxS, Vec auxV);
+                                   Vec *R);
 PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
                                       PetscInt r_e, Vec *R);
-PetscErrorCode dvd_calcpairs_updateMatV(Mat A, Vec **AV, PetscInt *size_AV,
-                                        PetscBool doUpdate, PetscBool doNew,
-                                        dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_WtMatV_gen(PetscScalar **H, MatType_t sH,
-  PetscInt ldH, PetscInt *size_H, PetscScalar *MTY, PetscInt ldMTY,
-  PetscScalar *MTX, PetscInt ldMTX, PetscInt rMT, PetscInt cMT, Vec *W,
-  Vec *V, PetscInt size_V, PetscScalar *auxS, DvdReduction *r,
-  DvdMult_copy_func *sr, dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d, DvdReduction *r,
+                                      DvdMult_copy_func **sr);
+PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d, DvdReduction *r,
+                                      DvdMult_copy_func **sr);
+PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_updateAV1(dvdDashboard *d, DvdReduction *r,
+                                       DvdMult_copy_func **sr);
+PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_updateBV1(dvdDashboard *d, DvdReduction *r,
+                                       DvdMult_copy_func **sr);
+PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,Vec *real_BV,PetscInt *size_cX,Vec **BV,PetscInt *size_BV,PetscInt *max_size_BV,PetscBool BV_shift,PetscInt *cX_in_proj,PetscScalar *MTX);
 
 /**** Control routines ********************************************************/
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_calcpairs_qz"
-PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
+PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
+                                orthoV_type_t orth, IP ipI,
+                                PetscInt cX_proj, PetscBool harm)
 {
   PetscErrorCode  ierr;
   PetscInt        i;
@@ -83,22 +82,47 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
 #if !defined(PETSC_USE_COMPLEX)
   /* if the last converged eigenvalue is complex its conjugate pair is also
      converged */
-  b->max_nev = PetscMax(b->max_nev, d->nev+1);
+  b->max_nev = PetscMax(b->max_nev, d->nev+(her_probl && !d->B?0:1));
 #else
   b->max_nev = PetscMax(b->max_nev, d->nev);
 #endif
-  b->own_vecs+= b->size_V*(d->B?2:1) + d->eps->nds*(d->ipV_oneMV?1:0);
-                                               /* AV, BV?, BDS? */
-  b->own_scalars+= b->max_size_V*b->max_size_V*2*(std_probl?1:2);
+  b->max_size_proj = PetscMax(b->max_size_proj, b->max_size_V+cX_proj);
+  d->size_real_V = b->max_size_V+b->max_nev;
+  d->W_shift = d->B?PETSC_TRUE:PETSC_FALSE;
+  d->size_real_W = harm?(b->max_size_V+(d->W_shift?b->max_nev:b->max_size_cP)):0;
+  d->size_real_AV = b->max_size_V+b->max_size_cP;
+  d->size_BDS = 0;
+  if (d->B && her_probl && (orth == DVD_ORTHOV_I || orth == DVD_ORTHOV_BOneMV)) {
+    d->size_real_BV = b->size_V; d->BV_shift = PETSC_TRUE;
+    if (orth == DVD_ORTHOV_BOneMV) d->size_BDS = d->eps->nds;
+  } else if (d->B) { 
+    d->size_real_BV = b->max_size_V + b->max_size_P; d->BV_shift = PETSC_FALSE;
+  } else {
+    d->size_real_BV = 0; d->BV_shift = PETSC_FALSE;
+  }
+  b->own_vecs+= d->size_real_V + d->size_real_W + d->size_real_AV +
+                d->size_real_BV + d->size_BDS;
+  b->own_scalars+= b->max_size_proj*b->max_size_proj*2*(std_probl?1:2) +
                                               /* H, G?, S, T? */
-  b->own_scalars+= b->max_size_V*b->max_size_V*(std_probl?1:2);
+                   b->max_size_proj*b->max_size_proj*(std_probl?1:2) +
                                               /* pX, pY? */
-  b->own_scalars+= b->max_nev*b->max_nev*(her_probl?0:(std_probl?1:2)); /* cS?, cT?? */
+                   b->max_nev*b->max_nev*(her_probl?0:(!d->B?1:2)); 
+                                                /* cS?, cT? */
+  b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X);
+                                                /* updateV0 */
   b->max_size_auxS = PetscMax(PetscMax(
-                              b->max_size_auxS,
-                              b->max_size_V*b->max_size_V*4
-                                                      /* SlepcReduction */ ),
-                              std_probl?0:(b->max_size_V*11+16) /* projeig */);
+    b->max_size_auxS,
+    b->max_size_X*b->max_size_proj*2*(!d->B?1:2) + /* updateAV1,BV1 */
+      b->max_size_X*b->max_nev*(her_probl?0:(!d->B?1:2)) + /* updateV0,W0 */
+                                                     /* SlepcReduction: in */
+      PetscMax(
+        b->max_size_X*b->max_size_proj*2*(!d->B?1:2) + /* updateAV1,BV1 */
+        b->max_size_X*b->max_nev*(her_probl?0:(!d->B?1:2)), /* updateV0,W0 */
+                                                    /* SlepcReduction: out */
+        PetscMax(
+          b->max_size_proj*b->max_size_proj, /* updateAV0,BV0 */
+          b->max_size_proj+b->max_nev))), /* dvd_orth */
+    std_probl?0:(b->max_size_proj*11+16) /* projeig */);
 #if defined(PETSC_USE_COMPLEX)
   b->max_size_auxS = PetscMax(b->max_size_auxS, b->max_size_V);
                                            /* dvd_calcpairs_projeig_eig */
@@ -106,57 +130,65 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b, IP ipI)
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    d->real_AV = d->AV = b->free_vecs; b->free_vecs+= b->size_V;
-    d->max_size_AV = b->size_V;
-    d->max_size_proj = b->max_size_V;
-    d->H = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
-    d->real_H = d->H;
-    d->pX = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
-    d->S = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
+    d->max_cX_in_proj = cX_proj;
+    d->max_size_P = b->max_size_P;
+    d->real_V = b->free_vecs; b->free_vecs+= d->size_real_V;
+    if (harm) {
+      d->real_W = b->free_vecs; b->free_vecs+= d->size_real_W;
+    } else {
+      d->real_W = PETSC_NULL;
+    }
+    d->real_AV = d->AV = b->free_vecs; b->free_vecs+= d->size_real_AV;
+    d->max_size_proj = b->max_size_proj;
+    d->real_H = b->free_scalars; b->free_scalars+= b->max_size_proj*b->max_size_proj;
+    d->ldH = b->max_size_proj;
+    d->pX = b->free_scalars; b->free_scalars+= b->max_size_proj*b->max_size_proj;
+    d->S = b->free_scalars; b->free_scalars+= b->max_size_proj*b->max_size_proj;
     if (!her_probl) {
       d->cS = b->free_scalars; b->free_scalars+= b->max_nev*b->max_nev;
-      d->max_size_cS = b->max_nev;
+      d->max_size_cS = d->ldcS = b->max_nev;
     } else {
       d->cS = PETSC_NULL;
-      d->max_size_cS = 0;
+      d->max_size_cS = d->ldcS = 0;
     }
-    d->ldcS = b->max_nev;
     d->ipV = ipI;
     d->ipW = ipI;
-    if (d->ipV_oneMV) {
+    if (orth == DVD_ORTHOV_BOneMV) {
       d->BDS = b->free_vecs; b->free_vecs+= d->eps->nds;
       for (i=0; i<d->eps->nds; i++) {
         ierr = MatMult(d->B, d->eps->DS[i], d->BDS[i]); CHKERRQ(ierr);
       }
-    }
+    } else
+      d->BDS = PETSC_NULL;
     if (d->B) {
-      d->real_BV = d->BV = b->free_vecs; b->free_vecs+= b->size_V;
+      d->real_BV = b->free_vecs; b->free_vecs+= d->size_real_BV;
     } else {
-      d->real_BV = d->BV = PETSC_NULL;
+      d->size_real_BV = 0;
+      d->real_BV = PETSC_NULL;
+      d->BV_shift = PETSC_FALSE;
     }
     if (!std_probl) {
-      d->G = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
-      d->real_G = d->G;
-      d->T = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
+      d->real_G = b->free_scalars; b->free_scalars+= b->max_size_proj*b->max_size_proj;
+      d->T = b->free_scalars; b->free_scalars+= b->max_size_proj*b->max_size_proj;
+      d->pY = b->free_scalars; b->free_scalars+= b->max_size_proj*b->max_size_proj;
+    } else {
+      d->real_G = PETSC_NULL;
+      d->T = PETSC_NULL;
+      d->pY = PETSC_NULL;
+    }
+    if (d->B && !her_probl) {
       d->cT = b->free_scalars; b->free_scalars+= b->max_nev*b->max_nev;
       d->ldcT = b->max_nev;
-      d->pY = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     } else {
-      d->real_G = d->G = PETSC_NULL;
-      d->T = PETSC_NULL;
       d->cT = PETSC_NULL;
       d->ldcT = 0;
-      d->pY = PETSC_NULL;
     }
 
     d->calcPairs = dvd_calcpairs_proj;
     d->calcpairs_residual = dvd_calcpairs_res_0;
     d->calcpairs_proj_res = dvd_calcpairs_proj_res;
     d->calcpairs_selectPairs = PETSC_NULL;
-    d->calcpairs_X = dvd_calcpairs_X;
-    d->calcpairs_Y = dvd_calcpairs_Y;
     d->ipI = ipI;
-    d->doNotUpdateBV = PETSC_FALSE;
     DVD_FL_ADD(d->startList, dvd_calcpairs_qz_start);
   }
 
@@ -176,32 +208,31 @@ PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
   std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
   her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
 
+  d->size_V = 0;
+  d->V = d->real_V;
+  d->cX = d->real_V;
+  d->size_cX = 0;
+  d->max_size_V = d->size_real_V;
+  d->W = d->real_W;
+  d->max_size_W = d->size_real_W;
+  d->size_W = 0;
   d->size_AV = 0;
   d->AV = d->real_AV;
-  d->max_size_AV = d->max_size_V;
+  d->max_size_AV = d->size_real_AV;
   d->size_H = 0;
   d->H = d->real_H;
-  d->ldH = d->max_size_proj;
-  for (i=0; i<d->max_size_cS*d->max_size_cS; i++) d->cS[i] = 0.0;
-  d->size_cX = d->size_cY = 0;
+  if (d->cS) for (i=0; i<d->max_size_cS*d->max_size_cS; i++) d->cS[i] = 0.0;
   d->size_BV = 0;
-  if (d->B) {
-    d->BV = d->real_BV;
-    d->max_size_BV = d->max_size_V;
-  } else {
-    d->BV = PETSC_NULL;
-    d->max_size_BV = 0;
-  }
+  d->BV = d->real_BV;
+  d->max_size_BV = d->size_real_BV;
   d->size_G = 0;
   d->G = d->real_G;
-  if (!std_probl) {
-    for (i=0; i<d->max_size_cS*d->max_size_cS; i++) d->cT[i] = 0.0;
-    /* If the problem is GHEP without B-orthonormalization, active BcX */
-    if(her_probl) d->BcX = d->AV;
-
-    /* Else, active the left and right converged invariant subspaces */
-    else {d->cY = d->AV; d->BcX = PETSC_NULL; }
-  }
+  if (d->cT) for (i=0; i<d->max_size_cS*d->max_size_cS; i++) d->cT[i] = 0.0;
+  d->cY = d->B && !her_probl ? d->W : PETSC_NULL;
+  d->BcX = d->orthoV_type == DVD_ORTHOV_I && d->B && her_probl ? d->BcX : PETSC_NULL;
+  d->size_cY = 0;
+  d->size_BcX = 0;
+  d->cX_in_V = d->cX_in_H = d->cX_in_G = d->cX_in_W = d->cX_in_AV = d->cX_in_BV = 0;
 
   PetscFunctionReturn(0);
 }
@@ -213,33 +244,68 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   DvdReduction    r;
+  static const PetscInt MAX_OPS = 7;
   DvdReductionChunk
-                  ops[2];
+                  ops[MAX_OPS];
   DvdMult_copy_func
-                  sr[2];
-  PetscInt        size_in = 2*d->size_V*d->size_V;
-  PetscScalar     *in = d->auxS, *out = in+size_in;
+                  sr[MAX_OPS], *sr0 = sr;
+  PetscInt        size_in, i;
+  PetscScalar     *in = d->auxS, *out;
+  PetscBool       stdp;
 
   PetscFunctionBegin;
 
+  stdp = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
+  size_in =
+    (d->size_cX+d->V_tra_s)*d->V_tra_s*(d->cT?2:(d->cS?1:0)) + /* updateV0,W0 */
+    d->size_H*d->V_tra_e*(!stdp?2:1) + /* updateAV1,BV1 */
+    (d->size_H*(d->V_new_e-d->V_new_s)*2+
+      (d->V_new_e-d->V_new_s)*(d->V_new_e-d->V_new_s))*(!stdp?2:1); /* updateAV0,BV0 */
+    
+  out = in+size_in;
+
+   /* Check consistency */
+   if (2*size_in > d->size_auxS) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+
   /* Prepare reductions */
-  ierr = SlepcAllReduceSumBegin(ops, 2, in, out, size_in, &r,
+  ierr = SlepcAllReduceSumBegin(ops, MAX_OPS, in, out, size_in, &r,
                                 ((PetscObject)d->V[0])->comm); CHKERRQ(ierr);
+  /* Allocate size_in */
+  d->auxS+= size_in;
+  d->size_auxS-= size_in;
 
   /* Update AV, BV, W and the projected matrices */
-  ierr = dvd_calcpairs_updateV(d); CHKERRQ(ierr);
-  ierr = dvd_calcpairs_updateAV(d); CHKERRQ(ierr);
-  if (!d->W) {
-    ierr = dvd_calcpairs_VtAV_gen(d, &r, &sr[0]); CHKERRQ(ierr);
-    if (d->BV) { ierr = dvd_calcpairs_updateBV(d); CHKERRQ(ierr); }
-  } else {
-    if (d->BV) { ierr = dvd_calcpairs_updateBV(d); CHKERRQ(ierr); }
-    ierr = dvd_calcpairs_updateW(d); CHKERRQ(ierr);
-    ierr = dvd_calcpairs_VtAV_gen(d, &r, &sr[0]); CHKERRQ(ierr);
+  /* 1. S <- S*MT */
+  ierr = dvd_calcpairs_updateV0(d, &r, &sr0); CHKERRQ(ierr);
+  ierr = dvd_calcpairs_updateW0(d, &r, &sr0); CHKERRQ(ierr);
+  ierr = dvd_calcpairs_updateAV0(d); CHKERRQ(ierr);
+  ierr = dvd_calcpairs_updateBV0(d); CHKERRQ(ierr);
+  /* 2. V <- orth(V, V_new) */ 
+  ierr = dvd_calcpairs_updateV1(d); CHKERRQ(ierr);
+  /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
+  /* Check consistency */
+  if (d->size_AV != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  for (i=d->V_new_s; i<d->V_new_e; i++) {
+    ierr = MatMult(d->A, d->V[i], d->AV[i]); CHKERRQ(ierr);
   }
-  if (DVD_ISNOT(d->sEP, DVD_EP_STD)) {
-    ierr = dvd_calcpairs_VtBV_gen(d, &r, &sr[1]); CHKERRQ(ierr);
+  d->size_AV = d->V_new_e;
+  /* 4. BV <- [BV B * V(V_new_s:V_new_e-1)] */
+  if (d->B && d->orthoV_type != DVD_ORTHOV_BOneMV) {
+    /* Check consistency */
+    if (d->size_BV != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+    for (i=d->V_new_s; i<d->V_new_e; i++) {
+      ierr = MatMult(d->B, d->V[i], d->BV[i]); CHKERRQ(ierr);
+    }
+    d->size_BV = d->V_new_e;
   }
+  /* 5 <- W <- [W f(AV,BV)] */
+  ierr = dvd_calcpairs_updateW1(d); CHKERRQ(ierr);
+  ierr = dvd_calcpairs_updateAV1(d, &r, &sr0); CHKERRQ(ierr);
+  ierr = dvd_calcpairs_updateBV1(d, &r, &sr0); CHKERRQ(ierr);
+
+  /* Deallocate size_in */
+  d->auxS-= size_in;
+  d->size_auxS+= size_in;
 
   /* Do reductions */
   ierr = SlepcAllReduceSumEnd(&r); CHKERRQ(ierr);
@@ -249,32 +315,28 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     ierr = d->calcpairs_proj_trans(d); CHKERRQ(ierr);
   }
 
-  if (d->MT_type != DVD_MT_IDENTITY) {
-    d->MT_type = DVD_MT_IDENTITY;
-//    d->pX_type|= DVD_MAT_IDENTITY;
-    d->V_tra_s = d->V_tra_e = 0;
-  }
-
-  /* Solve the projected problem */
-  d->pX_type = 0;
-//TODO: uncomment this condition 
-//  if(d->V_new_e - d->V_new_s > 0) {
-    if (DVD_IS(d->sEP, DVD_EP_STD)) {
-      if (DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
-        ierr = dvd_calcpairs_projeig_eig(d); CHKERRQ(ierr);
-      } else {
-        ierr = dvd_calcpairs_projeig_qz_std(d); CHKERRQ(ierr);
-      }
-    } else {
-      ierr = dvd_calcpairs_projeig_qz_gen(d); CHKERRQ(ierr);
-    }
-//  }
+  d->V_tra_s = d->V_tra_e = 0;
   d->V_new_s = d->V_new_e;
 
+  /* Solve the projected problem */
+  if (DVD_IS(d->sEP, DVD_EP_STD)) {
+    if (DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
+      ierr = dvd_calcpairs_projeig_eig(d); CHKERRQ(ierr);
+    } else {
+      ierr = dvd_calcpairs_projeig_qz_std(d); CHKERRQ(ierr);
+    }
+  } else {
+    ierr = dvd_calcpairs_projeig_qz_gen(d); CHKERRQ(ierr);
+  }
+
   /* Check consistency */
-  if ((d->size_V != d->V_new_e) || (d->size_V != d->size_H) ||
-      (d->size_V != d->size_AV) || (DVD_ISNOT(d->sEP, DVD_EP_STD) && (
-      (d->size_V != d->size_G) || (d->BV && d->size_V != d->size_BV) ))) {
+  if (d->size_V != d->V_new_e || d->size_V+d->cX_in_H != d->size_H || d->cX_in_V != d->cX_in_H ||
+      d->size_V != d->size_AV || d->cX_in_H != d->cX_in_AV ||
+        (DVD_ISNOT(d->sEP, DVD_EP_STD) && (
+          d->size_V+d->cX_in_G != d->size_G || d->cX_in_H != d->cX_in_G ||
+          d->size_H != d->size_G || (d->BV && (
+            d->size_V != d->size_BV || d->cX_in_H != d->cX_in_BV)))) ||
+      (d->W && d->size_W != d->size_V)) {
     SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
   }
 
@@ -284,136 +346,268 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 /**** Basic routines **********************************************************/
 
 #undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_updateV"
-PetscErrorCode dvd_calcpairs_updateV(dvdDashboard *d)
+#define __FUNCT__ "dvd_calcpairs_updateV0"
+/* auxV: V_tra_s, DvdMult_copy_func: 1 */
+PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d, DvdReduction *r,
+                                      DvdMult_copy_func **sr)
+{
+  PetscErrorCode  ierr;
+  PetscInt        rm;
+
+  PetscFunctionBegin;
+
+  if (d->V_tra_s == 0 && d->V_tra_e == 0) { PetscFunctionReturn(0); }
+
+  /* cX <- [cX V*MT(0:V_tra_s-1)], V <- V*MT(V_tra_s:V_tra_e) */
+  ierr = dvd_calcpairs_updateBV0_gen(d,d->real_V,&d->size_cX,&d->V,&d->size_V,&d->max_size_V,PETSC_TRUE,&d->cX_in_V,d->MTX);CHKERRQ(ierr);
+
+  /* Udpate cS for standard problems */
+  if (d->cS && !d->cT && !d->cY && d->V_tra_s > PetscMin(d->max_cX_in_proj,d->nev-d->size_cS)) {
+    /* Check consistency */
+    if (d->size_cS+d->V_tra_s != d->size_cX) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+
+    /* auxV <- AV * MTX(0:V_tra_e-1) */
+    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->AV-d->cX_in_AV, d->size_AV+d->cX_in_AV, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-d->max_cX_in_proj); CHKERRQ(ierr);
+
+    /* cS(:, size_cS:) <- cX' * auxV */
+    rm = d->size_cX>=d->nev?0:d->max_cX_in_proj;
+    ierr = VecsMultS(&d->cS[d->ldcS*d->size_cS], 0, d->ldcS, d->cX, 0, d->size_cX-rm, d->auxV, 0, d->V_tra_s-rm, r, (*sr)++); CHKERRQ(ierr);
+    d->size_cS+= d->V_tra_s-rm;
+  }
+ 
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_updateV1"
+/* auxS: size_cX+V_new_e+1 */
+PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   Vec             *cX = d->BcX? d->BcX : ( (d->cY && !d->W)? d->cY : d->cX );
 
   PetscFunctionBegin;
 
-  /* V <- gs([cX f.V(0:f.V_new_s-1)], f.V(V_new_s:V_new_e-1)) */
-  if (d->ipV_oneMV) {
+  if (d->V_new_s == d->V_new_e) { PetscFunctionReturn(0); }
+
+  /* Check consistency */
+  if (d->size_V != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+
+  /* V <- gs([cX V(0:V_new_s-1)], V(V_new_s:V_new_e-1)) */
+  if (d->orthoV_type == DVD_ORTHOV_BOneMV) {
     ierr = dvd_BorthV(d->ipV, d->eps->DS, d->BDS, d->eps->nds, d->cX, d->real_BV,
                       d->size_cX, d->V, d->BV, d->V_new_s, d->V_new_e,
-                      d->auxS, d->auxV[0], d->eps->rand); CHKERRQ(ierr);
+                      d->auxS, d->eps->rand); CHKERRQ(ierr);
+    d->size_BV = d->V_new_e;
   } else {
     ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V,
-                   d->V_new_s, d->V_new_e, d->auxS, d->auxV[0], d->eps->rand);
+                   d->V_new_s, d->V_new_e, d->auxS, d->eps->rand);
     CHKERRQ(ierr);
+  }
+  d->size_V = d->V_new_e;
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_updateW0"
+/* auxV: V_tra_s, DvdMult_copy_func: 2 */
+PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d, DvdReduction *r,
+                                      DvdMult_copy_func **sr)
+{
+  PetscErrorCode  ierr;
+  PetscInt        rm;
+
+  PetscFunctionBegin;
+
+  if (!d->W || (d->V_tra_s == 0 && d->V_tra_e == 0)) { PetscFunctionReturn(0); }
+
+  /* cY <- [cY W*MTY(0:V_tra_s-1)], W <- W*MTY(V_tra_s:V_tra_e) */
+  ierr = dvd_calcpairs_updateBV0_gen(d,d->real_W,&d->size_cY,&d->W,&d->size_W,&d->max_size_W,d->W_shift,&d->cX_in_W,d->MTY);CHKERRQ(ierr);
+
+  /* Udpate cS and cT */
+  if (d->cY && d->cT && d->V_tra_s > PetscMin(d->max_cX_in_proj,d->nev-d->size_cS)) {
+    /* Check consistency */
+    if (d->size_cS+d->V_tra_s != d->size_cY) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+
+    /* auxV <- AV * MTX(0:V_tra_e-1) */
+    rm = d->size_cX>=d->nev?0:d->max_cX_in_proj;
+    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV-d->cX_in_H, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-d->max_cX_in_proj); CHKERRQ(ierr);
+
+    /* cS(:, size_cS:) <- cY' * auxV */
+    ierr = VecsMultS(&d->cS[d->ldcS*d->size_cS], 0, d->ldcS, d->cY, 0, d->size_cY-rm, d->auxV, 0, d->V_tra_s-rm, r, (*sr)++); CHKERRQ(ierr);
+
+    /* auxV <- BV * MTX(0:V_tra_e-1) */
+    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV-d->cX_in_H, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-d->max_cX_in_proj); CHKERRQ(ierr);
+
+    /* cT(:, size_cS:) <- cY' * auxV */
+    ierr = VecsMultS(&d->cT[d->ldcS*d->size_cS], 0, d->ldcS, d->cY, 0, d->size_cY-rm, d->auxV, 0, d->V_tra_s-rm, r, (*sr)++); CHKERRQ(ierr);
+    d->size_cS+= d->V_tra_s-rm;
+    d->size_cT+= d->V_tra_s-rm;
   }
 
   PetscFunctionReturn(0);
 }
 
+
 #undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_updateW"
-PetscErrorCode dvd_calcpairs_updateW(dvdDashboard *d)
+#define __FUNCT__ "dvd_calcpairs_updateW1"
+/* auxS: size_cX+V_new_e+1 */
+PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
+
+  if (!d->W || (d->V_new_s == d->V_new_e)) { PetscFunctionReturn(0); }
+
+  /* Check consistency */
+  if (d->size_W != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
 
   /* Update W */
   ierr = d->calcpairs_W(d); CHKERRQ(ierr);
 
-  /* W <- gs([cY f.W(0:f.V_new_s-1)], f.W(V_new_s:V_new_e-1)) */
+  /* W <- gs([cY W(0:V_new_s-1)], W(V_new_s:V_new_e-1)) */
   ierr = dvd_orthV(d->ipW, PETSC_NULL, 0, d->cY, d->size_cY, d->W, d->V_new_s,
-                   d->V_new_e, d->auxS, d->auxV[0], d->eps->rand);
+                   d->V_new_e, d->auxS, d->eps->rand);
   CHKERRQ(ierr);
+  d->size_W = d->V_new_e;
 
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_updateAV"
-PetscErrorCode dvd_calcpairs_updateAV(dvdDashboard *d)
+#define __FUNCT__ "dvd_calcpairs_updateAV0"
+/* auxS: size_H*(V_tra_e-V_tra_s) */
+PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
+  PetscScalar     *MTY = d->W?d->MTY:d->MTX;
+  PetscInt        cMT, tra_s, rm, cp;
 
   PetscFunctionBegin;
 
-  /* f.AV(f.V_tra) = f.AV * f.MT; f.AV(f.V_new) = A*f.V(f.V_new) */
-  ierr = dvd_calcpairs_updateMatV(d->A, &d->AV, &d->size_AV, PETSC_TRUE, PETSC_TRUE, d);
-  CHKERRQ(ierr);
+  if (d->V_tra_s == 0 && d->V_tra_e == 0) { PetscFunctionReturn(0); }
 
-  PetscFunctionReturn(0);
-}
+  /* AV(V_tra_s-cp-1:) = cAV*MTX(V_tra_s:) */
+  ierr = dvd_calcpairs_updateBV0_gen(d,d->real_AV,PETSC_NULL,&d->AV,&d->size_AV,&d->max_size_AV,PETSC_FALSE,&d->cX_in_AV,d->MTX);CHKERRQ(ierr);
+  tra_s = PetscMax(d->V_tra_s-d->max_cX_in_proj, 0);
+  cMT = d->V_tra_e - tra_s;
+  rm = d->V_tra_s - tra_s;
+  cp = PetscMin(d->max_cX_in_proj - rm, d->cX_in_H);
 
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_updateBV"
-PetscErrorCode dvd_calcpairs_updateBV(dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-
-  PetscFunctionBegin;
-
-  /* f.BV(f.V_tra) = f.BV * f.MT; f.BV(f.V_new) = B*f.V(f.V_new) */
-  ierr = dvd_calcpairs_updateMatV(d->B, &d->BV, &d->size_BV, !d->doNotUpdateBV?PETSC_TRUE:PETSC_FALSE, !d->ipV_oneMV?PETSC_TRUE:PETSC_FALSE, d);
-  CHKERRQ(ierr);
-  d->doNotUpdateBV = PETSC_FALSE;
-
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_VtAV_gen"
-PetscErrorCode dvd_calcpairs_VtAV_gen(dvdDashboard *d, DvdReduction *r,
-                                      DvdMult_copy_func *sr)
-{
-  PetscInt        ldMTY = d->MTY?d->ldMTY:d->ldMTX;
-  /* WARNING: auxS uses space assigned to r */
-  PetscScalar     *auxS = r->out,
-                  *MTY = d->MTY?d->MTY:d->MTX;
-  Vec             *W = d->W?d->W:d->V;
-  PetscErrorCode  ierr;
-
-  PetscFunctionBegin;
-
-  /* f.H = [f.H(f.V_imm,f.V_imm)        f.V(f.V_imm)'*f.AV(f.V_new);
-            f.V(f.V_new)'*f.AV(f.V_imm) f.V(f.V_new)'*f.AV(f.V_new) ] */
-  if (DVD_IS(d->sA,DVD_MAT_HERMITIAN))
-    d->sH = DVD_MAT_HERMITIAN | DVD_MAT_IMPLICIT | DVD_MAT_UTRIANG;
-  if ((d->V_imm_e - d->V_imm_s == 0) && (d->V_tra_e - d->V_tra_s == 0))
-    d->size_H = 0;
-  ierr = dvd_calcpairs_WtMatV_gen(&d->H, d->sH, d->ldH, &d->size_H,
-                                  &MTY[ldMTY*d->V_tra_s], ldMTY,
-                                  &d->MTX[d->ldMTX*d->V_tra_s], d->ldMTX,
-                                  d->size_MT, d->V_tra_e-d->V_tra_s,
-                                  W, d->AV, d->size_V,
-                                 auxS, r, sr, d); CHKERRQ(ierr);
+  /* Update H <- MTY(tra_s)' * (H * MTX(tra_s:)) */
+  //TODO: Consider
+  //if (DVD_IS(d->sA,DVD_MAT_HERMITIAN))
+  //  d->sH = DVD_MAT_HERMITIAN | DVD_MAT_IMPLICIT | DVD_MAT_UTRIANG;
+  //if ((d->V_imm_e - d->V_imm_s == 0) && (d->V_tra_e - d->V_tra_s == 0))
+  //  d->size_H = 0;
+  ierr = SlepcDenseMatProdTriang(d->auxS, 0, d->ldH, d->H, d->sH, d->ldH, d->size_H, d->size_H, PETSC_FALSE, &d->MTX[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_FALSE); CHKERRQ(ierr);
+  ierr = SlepcDenseMatProdTriang(d->H, d->sH, d->ldH, &MTY[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_TRUE, d->auxS, 0, d->ldH, d->size_H, cMT, PETSC_FALSE); CHKERRQ(ierr);
+  d->size_H = cMT;
+  d->cX_in_H = cp+rm;
 
   PetscFunctionReturn(0);
 }
 
 
 #undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_VtBV_gen"
-PetscErrorCode dvd_calcpairs_VtBV_gen(dvdDashboard *d, DvdReduction *r,
-                                      DvdMult_copy_func *sr)
+#define __FUNCT__ "dvd_calcpairs_updateAV1"
+/* DvdMult_copy_func: 2 */
+PetscErrorCode dvd_calcpairs_updateAV1(dvdDashboard *d, DvdReduction *r,
+                                       DvdMult_copy_func **sr)
 {
   PetscErrorCode  ierr;
-  PetscInt        ldMTY = d->MTY?d->ldMTY:d->ldMTX;
-  /* WARNING: auxS uses space assigned to r */
-  PetscScalar     *auxS = r->out,
-                  *MTY = d->MTY?d->MTY:d->MTX;
   Vec             *W = d->W?d->W:d->V;
 
   PetscFunctionBegin;
 
-  /* f.G = [f.G(f.V_imm,f.V_imm)        f.V(f.V_imm)'*f.BV(f.V_new);
-            f.V(f.V_new)'*f.BV(f.V_imm) f.V(f.V_new)'*f.BV(f.V_new) ] */
-  if (DVD_IS(d->sB,DVD_MAT_HERMITIAN))
-    d->sG = DVD_MAT_HERMITIAN | DVD_MAT_IMPLICIT | DVD_MAT_UTRIANG;
-  if ((d->V_imm_e - d->V_imm_s == 0) && (d->V_tra_e - d->V_tra_s == 0))
-    d->size_G = 0;
-  ierr = dvd_calcpairs_WtMatV_gen(&d->G, d->sG, d->ldH, &d->size_G,
-                                  &MTY[ldMTY*d->V_tra_s], ldMTY,
-                                  &d->MTX[d->ldMTX*d->V_tra_s], d->ldMTX,
-                                  d->size_MT, d->V_tra_e-d->V_tra_s,
-                                  W, d->BV?d->BV:d->V, d->size_V,
-                                  auxS, r, sr, d); CHKERRQ(ierr);
+  if (d->V_new_s == d->V_new_e) { PetscFunctionReturn(0); }
+
+  /* Check consistency */
+  if (d->size_H != d->V_new_s+d->cX_in_H || d->size_V != d->V_new_e) {
+    SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+  }
+
+  /* H = [H               W(old)'*AV(new);
+          W(new)'*AV(old) W(new)'*AV(new) ],
+     being old=0:V_new_s-1, new=V_new_s:V_new_e-1 */
+  ierr = VecsMultS(d->H,d->sH,d->ldH,W-d->cX_in_H,d->V_new_s+d->cX_in_H, d->V_new_e, d->AV-d->cX_in_H,d->V_new_s+d->cX_in_H,d->V_new_e, r, (*sr)++); CHKERRQ(ierr);
+  d->size_H = d->V_new_e+d->cX_in_H;
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_updateBV0"
+/* auxS: max(BcX*(size_cX+V_new_e+1), size_G*(V_tra_e-V_tra_s)) */
+PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+  PetscScalar     *MTY = d->W?d->MTY:d->MTX;
+  PetscInt        cMT, rm, cp, tra_s, i;
+  PetscBool       lindep;
+  PetscReal       norm;
+
+  PetscFunctionBegin;
+
+  if (d->V_tra_s == 0 && d->V_tra_e == 0) { PetscFunctionReturn(0); }
+
+  /* BV <- BV*MTX */
+  ierr = dvd_calcpairs_updateBV0_gen(d,d->real_BV,PETSC_NULL,&d->BV,&d->size_BV,&d->max_size_BV,d->BV_shift,&d->cX_in_BV,d->MTX);CHKERRQ(ierr);
+
+  /* If BcX, BcX <- orth(BcX) */
+  if (d->BcX) {
+    for (i=0; i<d->V_tra_s; i++) {
+      ierr = IPOrthogonalize(d->ipI, 0, PETSC_NULL, d->size_BcX+i, PETSC_NULL,
+                             d->BcX, d->BcX[d->size_BcX+i], PETSC_NULL,
+                             &norm, &lindep); CHKERRQ(ierr);
+      if(lindep) SETERRQ(((PetscObject)d->ipI)->comm,1, "Error during orth(BcX, B*cX(new))");
+      ierr = VecScale(d->BcX[d->size_BcX+i], 1.0/norm); CHKERRQ(ierr);
+    }
+    d->size_BcX+= d->V_tra_s;
+  }
+
+  /* Update G <- MTY' * (G * MTX) */
+  if (d->G) {
+    tra_s = PetscMax(d->V_tra_s-d->max_cX_in_proj, 0);
+    cMT = d->V_tra_e - tra_s;
+    rm = d->V_tra_s - tra_s;
+    cp = PetscMin(d->max_cX_in_proj - rm, d->cX_in_G);
+    //TODO: Consider
+    //if (DVD_IS(d->sB,DVD_MAT_HERMITIAN))
+    //  d->sG = DVD_MAT_HERMITIAN | DVD_MAT_IMPLICIT | DVD_MAT_UTRIANG;
+    //if ((d->V_imm_e - d->V_imm_s == 0) && (d->V_tra_e - d->V_tra_s == 0))
+    //  d->size_G = 0;
+    ierr = SlepcDenseMatProdTriang(d->auxS, 0, d->ldH, d->G, d->sG, d->ldH, d->size_G, d->size_G, PETSC_FALSE, &d->MTX[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_FALSE); CHKERRQ(ierr);
+    ierr = SlepcDenseMatProdTriang(d->G, d->sG, d->ldH, &MTY[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_TRUE, d->auxS, 0, d->ldH, d->size_G, cMT, PETSC_FALSE); CHKERRQ(ierr);
+    d->size_G = cMT;
+    d->cX_in_G = cp+rm;
+  }
+
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_updateBV1"
+/* DvdMult_copy_func: 2 */
+PetscErrorCode dvd_calcpairs_updateBV1(dvdDashboard *d, DvdReduction *r,
+                                       DvdMult_copy_func **sr)
+{
+  PetscErrorCode  ierr;
+  Vec             *W = d->W?d->W:d->V, *BV = d->BV?d->BV:d->V;
+
+  PetscFunctionBegin;
+
+  if (!d->G || d->V_new_s == d->V_new_e) { PetscFunctionReturn(0); }
+
+  /* G = [G               W(old)'*BV(new);
+          W(new)'*BV(old) W(new)'*BV(new) ],
+     being old=0:V_new_s-1, new=V_new_s:V_new_e-1 */
+  ierr = VecsMultS(d->G,d->sG,d->ldH,W-d->cX_in_G,d->V_new_s+d->cX_in_G,d->V_new_e,BV-d->cX_in_G,d->V_new_s+d->cX_in_G,d->V_new_e,r,(*sr)++); CHKERRQ(ierr);
+  d->size_G = d->V_new_e+d->cX_in_G;
 
   PetscFunctionReturn(0);
 }
@@ -434,21 +628,18 @@ PetscErrorCode dvd_calcpairs_projeig_eig(dvdDashboard *d)
   /* S <- H */
   d->ldS = d->ldpX = d->size_H;
   ierr = SlepcDenseCopyTriang(d->S, DVD_MAT_LTRIANG, d->size_H, d->H, d->sH, d->ldH,
-                              d->size_H, d->size_H);
+                              d->size_H, d->size_H); CHKERRQ(ierr);
 
   /* S = pX' * L * pX */
 #if !defined(PETSC_USE_COMPLEX)
-  w = d->eigr;
+  w = d->eigr-d->cX_in_H;
 #else
   w = (PetscReal*)d->auxS;
-  for (i=0; i<d->size_H; i++) w[i] = PetscRealPart(d->eigr[i]);
 #endif
   ierr = EPSDenseHEP(d->size_H, d->S, d->ldS, w, d->pX); CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  for (i=0; i<d->size_H; i++) d->eigr[i] = w[i];
+  for (i=0; i<d->size_H; i++) d->eigr[i-d->cX_in_H] = w[i];
 #endif
-
-  d->pX_type = (d->pX_type & !DVD_MAT_IDENTITY) | DVD_MAT_UNITARY;
 
   d->calcpairs_selectPairs = dvd_calcpairs_selectPairs_eig;
 
@@ -471,10 +662,8 @@ PetscErrorCode dvd_calcpairs_projeig_qz_std(dvdDashboard *d)
 
   /* S = pX' * H * pX */
   ierr = EPSDenseHessenberg(d->size_H, 0, d->S, d->ldS, d->pX); CHKERRQ(ierr);
-  ierr = EPSDenseSchur(d->size_H, 0, d->S, d->ldS, d->pX, d->eigr, d->eigi);
+  ierr = EPSDenseSchur(d->size_H, 0, d->S, d->ldS, d->pX, d->eigr-d->cX_in_H, d->eigi-d->cX_in_H);
   CHKERRQ(ierr);
-
-  d->pX_type = (d->pX_type & !DVD_MAT_IDENTITY) | DVD_MAT_UNITARY;
 
   d->calcpairs_selectPairs = dvd_calcpairs_selectPairs_qz;
 
@@ -528,12 +717,10 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack GGES %d", info);
 
   /* eigr[i] <- eigr[i] / beta[i] */
-  for (i=0; i<d->size_H; i++)
-    d->eigr[i] /= beta[i],
-    d->eigi[i] /= beta[i];
+  for (i=0; i<d->size_H-d->cX_in_H; i++)
+    d->eigr[i] /= beta[i+d->cX_in_H],
+    d->eigi[i] /= beta[i+d->cX_in_H];
 
-  d->pX_type = (d->pX_type & !DVD_MAT_IDENTITY) | DVD_MAT_UNITARY;
-  d->pY_type = (d->pY_type & !DVD_MAT_IDENTITY) | DVD_MAT_UNITARY;
   d->calcpairs_selectPairs = dvd_calcpairs_selectPairs_qz;
 
   PetscFunctionReturn(0);
@@ -548,7 +735,7 @@ PetscErrorCode dvd_calcpairs_selectPairs_eig(dvdDashboard *d, PetscInt n)
 
   PetscFunctionBegin;
 
-  ierr = EPSSortDenseHEP(d->eps, d->size_H, 0, d->eigr, d->pX, d->ldpX);
+  ierr = EPSSortDenseHEP(d->eps, d->size_H, 0, d->eigr-d->cX_in_H, d->pX, d->ldpX);
   CHKERRQ(ierr);
 
   if (d->calcpairs_eigs_trans) {
@@ -578,12 +765,12 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
   }
 
   if (d->T) {
-    ierr = EPSSortDenseSchurGeneralized(d->eps, d->size_H, 0, n, d->S, d->T,
-                                        d->ldS, d->pY, d->pX, d->eigr,
-                                        d->eigi); CHKERRQ(ierr);
+    ierr = EPSSortDenseSchurGeneralized(d->eps, d->size_H, d->cX_in_H, n, d->S, d->T,
+                                        d->ldS, d->pY, d->pX, d->eigr-d->cX_in_H,
+                                        d->eigi-d->cX_in_H); CHKERRQ(ierr);
   } else {
-    ierr = EPSSortDenseSchur(d->eps, d->size_H, 0, d->S, d->ldS, d->pX,
-                             d->eigr, d->eigi); CHKERRQ(ierr);
+    ierr = EPSSortDenseSchur(d->eps, d->size_H, d->cX_in_H, d->S, d->ldS, d->pX,
+                             d->eigr-d->cX_in_H, d->eigi-d->cX_in_H); CHKERRQ(ierr);
   }
 
   if (d->calcpairs_eigs_trans) {
@@ -607,109 +794,29 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
 
 
 #undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_X"
-PetscErrorCode dvd_calcpairs_X(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
-                               Vec *X)
+#define __FUNCT__ "dvd_calcpairs_res_0"
+/* Compute the residual vectors R(i) <- (AV - BV*eigr(i))*pX(i), and also
+   the norm, where i = r_s..r_e
+*/
+PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
+                             Vec *R)
 {
   PetscInt        i;
   PetscErrorCode  ierr;
+  Vec             *BV = d->BV?d->BV:d->V;
 
   PetscFunctionBegin;
 
-  /* X = V * U(0:n-1) */
-  if (DVD_IS(d->pX_type,DVD_MAT_IDENTITY)) {
-    if (d->V != X) for(i=r_s; i<r_e; i++) {
-      ierr = VecCopy(d->V[i], X[i]); CHKERRQ(ierr);
-    }
-  } else {
-    ierr = SlepcUpdateVectorsZ(X, 0.0, 1.0, d->V, d->size_H, &d->pX[d->ldpX*r_s],
-                               d->ldpX, d->size_H, r_e-r_s); CHKERRQ(ierr);
-  }
+  for (i=r_s; i<r_e; i++) {
+    /* R(i-r_s) <- AV*pX(i) */
+    ierr = SlepcUpdateVectorsZ(&R[i-r_s], 0.0, 1.0,
+      &d->AV[-d->cX_in_H], d->size_AV+d->cX_in_H,
+      &d->pX[d->ldpX*(i+d->cX_in_H)], d->ldpX, d->size_H, 1); CHKERRQ(ierr);
 
-  /* nX[i] <- ||X[i]|| */
-  if (d->correctXnorm) for(i=0; i<r_e-r_s; i++) {
-    ierr = VecNorm(X[i], NORM_2, &d->nX[r_s+i]); CHKERRQ(ierr);
-  } else for(i=0; i<r_e-r_s; i++) {
-    d->nX[r_s+i] = 1.0;
-  }
-
-  PetscFunctionReturn(0);
-}
-
-
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_Y"
-PetscErrorCode dvd_calcpairs_Y(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
-                               Vec *Y)
-{
-  PetscInt        i, ldpX = d->pY?d->ldpY:d->ldpX;
-  PetscErrorCode  ierr;
-  Vec             *V = d->W?d->W:d->V;
-  PetscScalar     *pX = d->pY?d->pY:d->pX;
-
-  PetscFunctionBegin;
-
-  /* Y = V * pX(0:n-1) */
-  if (DVD_IS(d->pX_type,DVD_MAT_IDENTITY)) {
-    if (V != Y) for(i=r_s; i<r_e; i++) {
-      ierr = VecCopy(V[i], Y[i]); CHKERRQ(ierr);
-    }
-  } else {
-    ierr = SlepcUpdateVectorsZ(Y, 0.0, 1.0, V, d->size_H, &pX[ldpX*r_s], ldpX,
-                               d->size_H, r_e-r_s); CHKERRQ(ierr);
-  }
-
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_res_0"
-/* Compute the residual vectors R(i) <- (AV - BV*eigr(i))*pX(i), and also
-   the norm, where
-   i <- r_s..r_e,
-   UL, auxiliar scalar matrix of size size_H*(r_e-r_s),
-   auxV, auxiliar global vector.
-*/
-PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
-                             Vec *R, PetscScalar *UL, Vec auxV)
-{
-  PetscInt        i, j;
-  PetscErrorCode  ierr;
-
-  PetscFunctionBegin;
-
-  /* If the eigenproblem is not reduced to standard */
-  if ((d->B == PETSC_NULL) || DVD_ISNOT(d->sEP, DVD_EP_STD)) {
-    /* UL = f.U(0:n-1) * diag(f.pL(0:n-1)) */
-    for(i=r_s; i<r_e; i++) for(j=0; j<d->size_H; j++)
-      UL[d->size_H*(i-r_s)+j] = d->pX[d->ldpX*i+j]*d->eigr[i];
-
-    if (d->B == PETSC_NULL) {
-      /* R <- V * UL */
-      ierr = SlepcUpdateVectorsZ(R, 0.0, 1.0, d->V, d->size_V, UL, d->size_H,
-                                 d->size_H, r_e-r_s); CHKERRQ(ierr);
-    } else {
-      /* R <- BV * UL */
-      ierr = SlepcUpdateVectorsZ(R, 0.0, 1.0, d->BV, d->size_BV, UL,
-                                 d->size_H, d->size_H, r_e-r_s);
-      CHKERRQ(ierr);
-    }
-    /* R <- AV*U - R */
-    ierr = SlepcUpdateVectorsZ(R, -1.0, 1.0, d->AV, d->size_AV,
-                               &d->pX[d->ldpX*r_s], d->ldpX, d->size_H, r_e-r_s);
-    CHKERRQ(ierr);
-
-  /* If the problem was reduced to standard, R[i] = B*X[i] */
-  } else {
-    /* R[i] <- R[i] * eigr[i] */
-    for(i=r_s; i<r_e; i++) {
-      ierr = VecScale(R[i-r_s], d->eigr[i]); CHKERRQ(ierr); 
-    }
-      
-    /* R <- AV*U - R */
-    ierr = SlepcUpdateVectorsZ(R, -1.0, 1.0, d->AV, d->size_AV,
-                               &d->pX[d->ldpX*r_s], d->ldpX, d->size_H, r_e-r_s);
-    CHKERRQ(ierr);
+    /* R(i-r_s) <- R(i-r_s) - eigr(i)*BV*pX(i) */
+    ierr = SlepcUpdateVectorsZ(&R[i-r_s], 1.0, -d->eigr[i+d->cX_in_H],
+      &BV[-d->cX_in_H], d->size_V+d->cX_in_H,
+      &d->pX[d->ldpX*(i+d->cX_in_H)], d->ldpX, d->size_H, 1); CHKERRQ(ierr);
   }
 
   ierr = d->calcpairs_proj_res(d, r_s, r_e, R); CHKERRQ(ierr);
@@ -760,84 +867,54 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
   PetscFunctionReturn(0);
 }
 
-/**** Patterns implementation *************************************************/
+/**** Pattern routines ********************************************************/
+
+/* BV <- BV*MTX */
 #undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_updateMatV"
-PetscErrorCode dvd_calcpairs_updateMatV(Mat A, Vec **AV, PetscInt *size_AV,
-                                        PetscBool doUpdate, PetscBool doNew,
-                                        dvdDashboard *d)
+#define __FUNCT__ "dvd_calcpairs_updateBV0_gen"
+PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,Vec *real_BV,PetscInt *size_cBV,Vec **BV,PetscInt *size_BV,PetscInt *max_size_BV,PetscBool BV_shift,PetscInt *cX_in_proj,PetscScalar *MTX)
 {
-  PetscInt        i;
   PetscErrorCode  ierr;
+  PetscInt        cMT, rm, cp, tra_s, i;
+  Vec             *nBV;
 
   PetscFunctionBegin;
 
-  /* f.AV((0:f.V_tra.size)+f.imm.s) = f.AV * f.U(f.V_tra) */
-  if (doUpdate) {
-    if (d->MT_type == DVD_MT_pX) {
-      ierr = SlepcUpdateVectorsZ(*AV+d->V_imm_e, 0.0, 1.0, *AV, *size_AV,
-                                 &d->pX[d->ldpX*d->V_tra_s], d->ldpX,
-                                 *size_AV, d->V_tra_e-d->V_tra_s); CHKERRQ(ierr);
-    } else if (d->MT_type == DVD_MT_ORTHO) {
-      ierr = SlepcUpdateVectorsZ(*AV+d->V_imm_e, 0.0, 1.0, *AV, *size_AV,
-                                 &d->MTX[d->ldMTX*d->V_tra_s], d->ldMTX,
-                                 *size_AV, d->V_tra_e-d->V_tra_s); CHKERRQ(ierr);
+  if (!real_BV || !*BV || (d->V_tra_s == 0 && d->V_tra_e == 0)) { PetscFunctionReturn(0); }
+
+  if (d->V_tra_s > d->max_cX_in_proj && !BV_shift) {
+    tra_s = PetscMax(d->V_tra_s-d->max_cX_in_proj, 0);
+    cMT = d->V_tra_e - tra_s;
+    rm = d->V_tra_s - tra_s;
+    cp = PetscMin(d->max_cX_in_proj - rm, *cX_in_proj);
+    nBV = real_BV+d->max_cX_in_proj;
+    /* BV(-cp-rm:-1-rm) <- BV(-cp:-1) */
+    for (i=-cp; i<0; i++) {
+      ierr = VecCopy((*BV)[i], nBV[i-rm]);CHKERRQ(ierr);
     }
-  }
-  *AV = *AV+d->V_imm_s;
-
-  /* f.AV(f.V_new) = A*f.V(f.V_new) */
-  if (d->V_imm_e-d->V_imm_s + d->V_tra_e-d->V_tra_s != d->V_new_s) {
-    SETERRQ(((PetscObject)A)->comm,1, "Incompatible dimensions");
-  }
-
-  if (doNew) for (i=d->V_new_s; i<d->V_new_e; i++) {
-    ierr = MatMult(A, d->V[i], (*AV)[i]); CHKERRQ(ierr);
-  }
-  *size_AV = d->V_new_e;
-
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__ 
-#define __FUNCT__ "dvd_calcpairs_WtMatV_gen"
-/*
-  Compute f.H = [MTY'*H*MTX     W(tra)'*V(new);
-                 W(new)'*V(tra) W(new)'*V(new) ]
-  where
-  tra = 0:cMT-1,
-  new = cMT:size_V-1,
-  ldH, the leading dimension of H,
-  auxS, auxiliary scalar vector of size ldH*max(tra,size_V),
-  */
-PetscErrorCode dvd_calcpairs_WtMatV_gen(PetscScalar **H, MatType_t sH,
-  PetscInt ldH, PetscInt *size_H, PetscScalar *MTY, PetscInt ldMTY,
-  PetscScalar *MTX, PetscInt ldMTX, PetscInt rMT, PetscInt cMT, Vec *W,
-  Vec *V, PetscInt size_V, PetscScalar *auxS, DvdReduction *r,
-  DvdMult_copy_func *sr, dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-
-  PetscFunctionBegin;
-
-  /* H <- MTY^T * (H * MTX) */
-  if (cMT > 0) {
-    ierr = SlepcDenseMatProdTriang(auxS, 0, ldH,
-                                   *H, sH, ldH, *size_H, *size_H, PETSC_FALSE,
-                                   MTX, 0, ldMTX, rMT, cMT, PETSC_FALSE);
+    /* BV(-rm:) <- BV*MTX(tra_s:V_tra_e-1) */
+    ierr = SlepcUpdateVectorsZ(&nBV[-rm], 0.0, 1.0,
+                               *BV, *size_BV, &MTX[d->ldMTX*tra_s],
+                               d->ldMTX, d->size_MT, cMT); CHKERRQ(ierr);
+    *size_BV = cMT;
+    *max_size_BV-= nBV - *BV;
+    *BV = nBV;
+    if (cX_in_proj && d->max_cX_in_proj>0) *cX_in_proj = cp+rm;
+  } else if (d->V_tra_s <= d->max_cX_in_proj || BV_shift) {
+    /* [BcX BV] <- [BcX BV*MTX] */
+    ierr = SlepcUpdateVectorsZ(*BV-*cX_in_proj, 0.0, 1.0, *BV-*cX_in_proj, *size_BV+*cX_in_proj, MTX, d->ldMTX, d->size_MT, d->V_tra_e); CHKERRQ(ierr);
+    *BV+= d->V_tra_s;
+    *max_size_BV-= d->V_tra_s;
+    *size_BV = d->V_tra_e - d->V_tra_s;
+    if (size_cBV) *size_cBV = *BV - real_BV; 
+    if (cX_in_proj && d->max_cX_in_proj>0) *cX_in_proj = *BV - real_BV;
+  } else { /* !BV_shift */
+    /* BV <- BV*MTX(V_tra_s:) */
+    ierr = SlepcUpdateVectorsZ(*BV, 0.0, 1.0, *BV, *size_BV,
+      &MTX[d->V_tra_s*d->ldMTX], d->ldMTX, d->size_MT, d->V_tra_e-d->V_tra_s);
     CHKERRQ(ierr);
-    ierr = SlepcDenseMatProdTriang(*H, sH, ldH,
-                                   MTY, 0, ldMTY, rMT, cMT, PETSC_TRUE,
-                                   auxS, 0, ldH, *size_H, cMT, PETSC_FALSE);
-    CHKERRQ(ierr);
-    *size_H = cMT;
+    *size_BV = d->V_tra_e - d->V_tra_s;
   }
-
-  /* H = [H              W(tra)'*W(new);
-          W(new)'*V(tra) W(new)'*V(new) ] */
-  ierr = VecsMultS(*H, sH, ldH, W, *size_H, size_V, V, *size_H, size_V, r, sr);
-  CHKERRQ(ierr);
-  *size_H = size_V;
 
   PetscFunctionReturn(0);
 }

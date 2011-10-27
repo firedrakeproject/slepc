@@ -310,7 +310,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
 
   PetscFunctionBegin;
   nconv = 0;
-  for (i=0;i<nest;i++) {
+  for (i=0;i<PetscMin(nest,qep->ncv);i++) {
     qep->eigr[i] = eigr[i];
     qep->eigi[i] = eigi[i];
     qep->errest[i] = errest[i];

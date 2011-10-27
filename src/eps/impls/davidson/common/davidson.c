@@ -168,7 +168,6 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
               (ispositive? DVD_MAT_POS_DEF : 0);
   ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_POS_DEF))?PETSC_TRUE:PETSC_FALSE;
   data->ipB = ipB;
-  dvd->ipV_oneMV = ipB;
   dvd->correctXnorm = ipB;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
              (ispositive? DVD_EP_HERMITIAN : 0);
@@ -244,15 +243,17 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Orthonormalize the DS */
   ierr = dvd_orthV(eps->ip,PETSC_NULL,0,PETSC_NULL,0,eps->DS,0,
-                   PetscAbs(eps->nds),PETSC_NULL,0,eps->rand);CHKERRQ(ierr);
+                   PetscAbs(eps->nds),PETSC_NULL,eps->rand);CHKERRQ(ierr);
 
   /* Preconfigure dvd */
   ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
-  ierr = dvd_schm_basic_preconf(dvd,&b,eps->ncv,eps->mpd,min_size_V,bs,
+  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,
                                 initv,
                                 PetscAbs(eps->nini),
                                 plusk,harm,
-                                PETSC_NULL,init,eps->trackall);CHKERRQ(ierr);
+                                ksp,init,eps->trackall,
+                                ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,0,0);
+  CHKERRQ(ierr);
 
   /* Allocate memory */
   nvecs = b.max_size_auxV + b.own_vecs;
@@ -272,18 +273,20 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   for(i=0; i<eps->ncv; i++) eps->perm[i] = i;
 
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd,&b,eps->ncv,eps->mpd,min_size_V,bs,
+  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,
                              initv,
                              PetscAbs(eps->nini),plusk,
                              eps->ip,harm,dvd->withTarget,
                              target,ksp,
-                             fix,init,eps->trackall);CHKERRQ(ierr);
+                             fix,init,eps->trackall,
+                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,0,0);
+  CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
-  eps->eigr = dvd->eigr;
-  eps->eigi = dvd->eigi;
-  eps->errest = dvd->errest;
-  eps->V = dvd->V;
+  eps->eigr = dvd->real_eigr;
+  eps->eigi = dvd->real_eigi;
+  eps->errest = dvd->real_errest;
+  eps->V = dvd->real_V;
 
   
   PetscFunctionReturn(0);
@@ -308,15 +311,15 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
     /* Find the best approximated eigenpairs in V, X */
     ierr = d->calcPairs(d);CHKERRQ(ierr);
 
+    /* Test for convergence */
+    if (eps->nconv >= eps->nev) break;
+
     /* Expand the subspace */
     ierr = d->updateV(d);CHKERRQ(ierr);
 
     /* Monitor progress */
     eps->nconv = d->nconv;
-    ierr = EPSMonitor(eps,eps->its+1,eps->nconv,eps->eigr,eps->eigi,eps->errest,d->size_H+d->nconv);CHKERRQ(ierr);
-
-    /* Test for convergence */
-    if (eps->nconv >= eps->nev) break;
+    ierr = EPSMonitor(eps,eps->its+1,eps->nconv,eps->eigr,eps->eigi,eps->errest,d->size_V+d->size_cX);CHKERRQ(ierr);
   }
 
   /* Call the ending routines */

@@ -314,6 +314,11 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
     SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
   }
 
+  if (sY == 0 && sX == 0) {
+    ierr = SlepcDenseCopy(Y, ldY, X, ldX, rX, cX);CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
+
   if (rX != cX) {
     SETERRQ(PETSC_COMM_SELF,1, "Rectangular matrices not supported");
   }
@@ -594,9 +599,12 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Full M matrix */
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
-    if (workS1)
+    if (workS1) {
       Wr = workS1;
-    else {
+      if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ((eU-sU)*sV+(eV-sV)*eU)) {
+        SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+      }
+    } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*((eU-sU)*sV+(eV-sV)*eU), &Wr);
       CHKERRQ(ierr);
     }
@@ -630,9 +638,12 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Upper triangular M matrix */
   } else if (DVD_IS(sM,DVD_MAT_UTRIANG) &&
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
-    if (workS1)
+    if (workS1) {
       Wr = workS1;
-    else {
+      if (PetscAbs(PetscMin(W-workS1,workS1-W)) < (eV-sV)*eU) {
+        SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+      }
+    } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*(eV-sV)*eU, &Wr);
       CHKERRQ(ierr);
     }
@@ -658,9 +669,12 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Lower triangular M matrix */
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) &&
              DVD_IS(sM,DVD_MAT_LTRIANG)) {
-    if (workS1)
+    if (workS1) {
       Wr = workS1;
-    else {
+      if (PetscMin(W - workS1, workS1 - W) < (eU-sU)*eV) {
+        SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+      }
+    } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*(eU-sU)*eV, &Wr);
       CHKERRQ(ierr);
     }
@@ -1127,9 +1141,10 @@ PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_orthV"
+/* auxS: size_cX+V_new_e */
 PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
                          PetscInt size_cX, Vec *V, PetscInt V_new_s,
-                         PetscInt V_new_e, PetscScalar *auxS, Vec auxV,
+                         PetscInt V_new_e, PetscScalar *auxS,
                          PetscRandom rand)
 {
   PetscErrorCode  ierr;
@@ -1176,10 +1191,11 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_BorthV"
+/* auxS: size_cX+V_new_e+1 */
 PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS, PetscInt size_DS, Vec *cX,
                          Vec *BcX, PetscInt size_cX, Vec *V, Vec *BV,
                          PetscInt V_new_s, PetscInt V_new_e,
-                         PetscScalar *auxS, Vec auxV, PetscRandom rand)
+                         PetscScalar *auxS, PetscRandom rand)
 {
   PetscErrorCode  ierr;
   PetscInt        i, j;

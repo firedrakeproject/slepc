@@ -233,7 +233,7 @@ static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
 
   PetscFunctionBegin;
   nconv = 0;
-  for (i=0,j=0;i<nest;i++) {
+  for (i=0,j=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
     ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
     if (PetscRealPart(er) > 0.0) {
