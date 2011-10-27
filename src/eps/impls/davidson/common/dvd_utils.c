@@ -426,8 +426,8 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d, dvdBlackboard *b,
 
   PetscFunctionBegin;
 
-  /* Set the problem to GNHEP */
-  // TODO: d->G maybe is upper triangular due to biorthogonality of V and W
+  /* Set the problem to GNHEP:
+     d->G maybe is upper triangular due to biorthogonality of V and W */
   d->sEP = d->sA = d->sB = 0;
 
   /* Setup the step */

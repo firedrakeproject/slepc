@@ -186,14 +186,14 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   case EPS_LARGEST_REAL:
   case EPS_LARGEST_MAGNITUDE:
-  case EPS_LARGEST_IMAGINARY: //TODO: think about this case
+  case EPS_LARGEST_IMAGINARY: /* TODO: think about this case */
   default:
     dvd->target[0] = 1.0; dvd->target[1] = target = 0.0;
     break;
  
   case EPS_SMALLEST_MAGNITUDE:
   case EPS_SMALLEST_REAL:
-  case EPS_SMALLEST_IMAGINARY: //TODO: think about this case
+  case EPS_SMALLEST_IMAGINARY: /* TODO: think about this case */
     dvd->target[0] = target = 0.0; dvd->target[1] = 1.0;
     break;
 

@@ -379,7 +379,6 @@ typedef struct {
 #define DVD_STATE_RUN 2
 
 /* Shared types */
-typedef void* dvdPrecondData; // DEPRECATED!!
 typedef PetscErrorCode (*dvdPrecond)(dvdDashboard*, PetscInt i, Vec x, Vec Px);
 typedef PetscErrorCode (*dvdCallback)(dvdDashboard*);
 typedef PetscErrorCode (*e_Vchanged_type)(dvdDashboard*, PetscInt s_imm,

@@ -61,7 +61,6 @@ PetscBool dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
   PetscFunctionBegin;
 
   eig_norm = SlepcAbsEigenvalue(eigvr, eigvi);
-  //errest = (r < eig_norm) ? r/eig_norm : r;
   errest = r/eig_norm;
   conv = (errest <= d->tol) ? PETSC_TRUE : PETSC_FALSE;
   if (err) *err = errest;

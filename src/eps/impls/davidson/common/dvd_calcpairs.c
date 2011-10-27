@@ -498,11 +498,6 @@ PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d)
   cp = PetscMin(d->max_cX_in_proj - rm, d->cX_in_H);
 
   /* Update H <- MTY(tra_s)' * (H * MTX(tra_s:)) */
-  //TODO: Consider
-  //if (DVD_IS(d->sA,DVD_MAT_HERMITIAN))
-  //  d->sH = DVD_MAT_HERMITIAN | DVD_MAT_IMPLICIT | DVD_MAT_UTRIANG;
-  //if ((d->V_imm_e - d->V_imm_s == 0) && (d->V_tra_e - d->V_tra_s == 0))
-  //  d->size_H = 0;
   ierr = SlepcDenseMatProdTriang(d->auxS, 0, d->ldH, d->H, d->sH, d->ldH, d->size_H, d->size_H, PETSC_FALSE, &d->MTX[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_FALSE); CHKERRQ(ierr);
   ierr = SlepcDenseMatProdTriang(d->H, d->sH, d->ldH, &MTY[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_TRUE, d->auxS, 0, d->ldH, d->size_H, cMT, PETSC_FALSE); CHKERRQ(ierr);
   d->size_H = cMT;
@@ -575,11 +570,6 @@ PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
     cMT = d->V_tra_e - tra_s;
     rm = d->V_tra_s - tra_s;
     cp = PetscMin(d->max_cX_in_proj - rm, d->cX_in_G);
-    //TODO: Consider
-    //if (DVD_IS(d->sB,DVD_MAT_HERMITIAN))
-    //  d->sG = DVD_MAT_HERMITIAN | DVD_MAT_IMPLICIT | DVD_MAT_UTRIANG;
-    //if ((d->V_imm_e - d->V_imm_s == 0) && (d->V_tra_e - d->V_tra_s == 0))
-    //  d->size_G = 0;
     ierr = SlepcDenseMatProdTriang(d->auxS, 0, d->ldH, d->G, d->sG, d->ldH, d->size_G, d->size_G, PETSC_FALSE, &d->MTX[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_FALSE); CHKERRQ(ierr);
     ierr = SlepcDenseMatProdTriang(d->G, d->sG, d->ldH, &MTY[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_TRUE, d->auxS, 0, d->ldH, d->size_G, cMT, PETSC_FALSE); CHKERRQ(ierr);
     d->size_G = cMT;
