@@ -399,6 +399,8 @@ extern PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize);
 extern PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize);
 extern PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix);
 extern PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix);
+extern PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool dynamic);
+extern PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *dynamic);
 
 PETSC_EXTERN_CXX_END
 #endif

@@ -430,7 +430,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
 
 /* Routines for improveX step */
 PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
-                         PetscInt max_bs, PetscInt cX_impr);
+                         PetscInt max_bs, PetscInt cX_impr, PetscBool dynamic);
 PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
                                  ProjType_t p);
 PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
@@ -468,7 +468,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init, PetscBool allResiduals, orthoV_type_t orth,
-  PetscInt cX_proj, PetscInt cX_impr);
+  PetscInt cX_proj, PetscInt cX_impr, PetscBool dynamic);
 
 /* BLAS routines */
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
@@ -558,3 +558,5 @@ PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix);
 PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix);
 PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,PetscBool borth);
 PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,PetscBool *borth);
+PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool dynamic);
+PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *dynamic);

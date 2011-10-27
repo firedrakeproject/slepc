@@ -39,6 +39,7 @@ typedef struct {
   PetscInt   method;      /* method for improving the approximate solution */
   PetscReal  fix;         /* the fix parameter */
   PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
+  PetscBool  dynamic;     /* true if dynamic stopping criterion is used */
 
   /**** Solver data ****/
   dvdDashboard ddb;
@@ -82,6 +83,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   ierr = EPSDavidsonSetInitialSize_Davidson(eps,5);CHKERRQ(ierr);
   ierr = EPSDavidsonSetFix_Davidson(eps,0.01);CHKERRQ(ierr);
   ierr = EPSDavidsonSetBOrth_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetConstantCorrectionTolerance_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -96,7 +98,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i;
   Mat            A,B;
   KSP            ksp;
-  PetscBool      t,ipB,ispositive;
+  PetscBool      t,ipB,ispositive,dynamic;
   HarmType_t     harm;
   InitType_t     init;
   PetscReal      fix;
@@ -241,6 +243,9 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   /* Get the fix parameter */
   ierr = EPSDavidsonGetFix_Davidson(eps,&fix);CHKERRQ(ierr);
 
+  /* Get whether the stopping criterion is used */
+  ierr = EPSDavidsonGetConstantCorrectionTolerance_Davidson(eps,&dynamic);CHKERRQ(ierr);
+
   /* Orthonormalize the DS */
   ierr = dvd_orthV(eps->ip,PETSC_NULL,0,PETSC_NULL,0,eps->DS,0,
                    PetscAbs(eps->nds),PETSC_NULL,eps->rand);CHKERRQ(ierr);
@@ -279,7 +284,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                              eps->ip,harm,dvd->withTarget,
                              target,ksp,
                              fix,init,eps->trackall,
-                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,0,0);
+                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,0,0,dynamic);
   CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
@@ -536,6 +541,28 @@ PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,PetscBool *borth)
 
   PetscFunctionBegin;
   *borth = data->ipB;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDavidsonSetConstantCorrectionTolerance_Davidson"
+PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool dynamic)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  data->dynamic = dynamic;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDavidsonGetConstantCorrectionTolerance_Davidson"
+PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *dynamic)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  *dynamic = data->dynamic;
   PetscFunctionReturn(0);
 }
 

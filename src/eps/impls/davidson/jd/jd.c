@@ -65,6 +65,10 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
 
+  ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_jd_dynamic_stopping","Use a dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }  
@@ -122,6 +126,8 @@ PetscErrorCode EPSCreate_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetInitialSize_C","EPSDavidsonGetInitialSize_Davidson",EPSDavidsonGetInitialSize_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetFix_C","EPSDavidsonSetFix_Davidson",EPSDavidsonSetFix_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","EPSDavidsonGetFix_Davidson",EPSDavidsonGetFix_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C","EPSDavidsonSetConstantCorrectionTolerance_Davidson",EPSDavidsonSetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","EPSDavidsonGetConstantCorrectionTolerance_Davidson",EPSDavidsonGetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -144,6 +150,8 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetFix_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetFix_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -470,5 +478,65 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,fix,2);
   ierr = PetscTryMethod(eps,"EPSJDSetFix_C",(EPS,PetscReal),(eps,fix));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSJDSetConstantCorrectionTolerance"
+/*@
+   EPSJDSetConstantCorrectionTolerance - Activates or deactivates setting the KSP relative tolerance
+   to 0.5**i, where i is the number of EPS iterations from the last converged value.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  dynamic - boolean flag
+
+   Options Database Key:
+.  -eps_jd_dynamic_stopping - Activates the dynamic stopping criterion.
+   
+   Level: advanced
+
+.seealso: EPSJDGetConstantCorrectionTolerance()
+@*/
+PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool dynamic)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,dynamic,2);
+  ierr = PetscTryMethod(eps,"EPSJDSetConstantCorrectionTolerance_C",(EPS,PetscBool),(eps,dynamic));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSJDGetConstantCorrectionTolerance"
+/*@
+   EPSJDGetConstantCorrectionTolerance - Returns a flag indicating if the dynamic stopping is being used for
+   solving the correction equation. If it is activated the KSP relative tolerance is set
+   to 0.5**i, where i is the number of EPS iterations from the last converged value.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
+.  dynamic - boolean flag indicating if the dynamic stopping criterion is being used.
+
+   Level: advanced
+
+.seealso: EPSJDGetConstantCorrectionTolerance()
+@*/
+PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *dynamic)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(dynamic,2);
+  ierr = PetscTryMethod(eps,"EPSJDGetConstantCorrectionTolerance",(EPS,PetscBool*),(eps,dynamic));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

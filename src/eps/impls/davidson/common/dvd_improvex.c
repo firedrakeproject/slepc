@@ -77,7 +77,10 @@ typedef struct {
     r_s, r_e,             /* the selected eigenpairs to improve */
     ksp_max_size;         /* the ksp maximum subvectors size */
   PetscReal tol,          /* the maximum solution tolerance */
+    lastTol,              /* last tol for dynamic stopping criterion */
     fix;                  /* tolerance for using the approx. eigenvalue */
+  PetscBool
+    dynamic;              /* if the dynamic stopping criterion is applied */
   dvdDashboard
     *d;                   /* the currect dvdDashboard reference */
   PC old_pc;              /* old pc in ksp */
@@ -106,7 +109,7 @@ typedef struct {
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd"
 PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
-                               PetscInt max_bs, PetscInt cX_impr)
+                               PetscInt max_bs, PetscInt cX_impr, PetscBool dynamic)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -158,6 +161,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdImprovex_jd), &data); CHKERRQ(ierr);
+    data->dynamic = dynamic;
     data->size_real_KZ = size_P;
     data->real_KZ = b->free_vecs; b->free_vecs+= data->size_real_KZ;
     d->max_size_cX_in_impr = cX_impr;
@@ -196,6 +200,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 
   data->KZ = data->real_KZ;
   data->size_KZ = data->size_cX = data->old_size_X = 0;
+  data->lastTol = data->dynamic?0.5:0.0;
 
   /* Setup the ksp */
   if(data->ksp) {
@@ -207,6 +212,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     ierr = KSPGetPC(data->ksp, &data->old_pc); CHKERRQ(ierr);
     ierr = PetscTypeCompare((PetscObject)data->old_pc, PCNONE, &t);
     CHKERRQ(ierr);
+    data->lastTol = 0.5;
     if (t) {
       data->old_pc = 0;
     } else {
@@ -333,6 +339,10 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
     CHKERRQ(ierr);
   }
 
+  /* Restart lastTol if a new pair converged */
+  if (data->dynamic && data->size_cX < d->size_cX)
+    data->lastTol = 0.5;
+
   for(i=0, s=0, auxS0=auxS; i<n; i+=s) {
     /* If the selected eigenvalue is complex, but the arithmetic is real... */
 #if !defined(PETSC_USE_COMPLEX)
@@ -364,7 +374,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
       CHKERRQ(ierr);
       maxits+= maxits0; tol*= tol0;
     }
-    maxits/= s; tol = exp(log(tol)/s);
+    maxits/= s; tol = data->dynamic?data->lastTol:exp(log(tol)/s);
 
     /* Compute u, v and kr */
     ierr = dvd_improvex_jd_proj_cuv(d, r_s+i, r_s+i+s, &u, &v, kr,
@@ -412,6 +422,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
     }
   }
   *size_D = i;
+  if (data->dynamic) data->lastTol = PetscMax(data->lastTol/2.0,PETSC_MACHINE_EPSILON*10.0);
  
   /* Callback old improveX */
   if (data->old_improveX) {
