@@ -258,6 +258,23 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSDefaultSetWhich"
+/*
+  EPSDefaultSetWhich - Sets the default value for which, depending on the ST.
+ */
+PetscErrorCode EPSDefaultSetWhich(EPS eps)
+{
+  PetscBool      target;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscTypeCompareAny((PetscObject)eps->OP,&target,STSINVERT,STCAYLEY,STFOLD,"");CHKERRQ(ierr);
+  if (target) eps->which = EPS_TARGET_MAGNITUDE;
+  else eps->which = EPS_LARGEST_MAGNITUDE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSEigRelativeConverged"
 /*
   EPSDefaultConverged - Checks convergence relative to the eigenvalue.

@@ -65,8 +65,8 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
-  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which!=EPS_TARGET_MAGNITUDE)
     SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);

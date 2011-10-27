@@ -124,6 +124,7 @@ extern PetscErrorCode EPSMonitor(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*
 extern PetscErrorCode EPSReset_Default(EPS);
 extern PetscErrorCode EPSDefaultGetWork(EPS,PetscInt);
 extern PetscErrorCode EPSDefaultFreeWork(EPS);
+extern PetscErrorCode EPSDefaultSetWhich(EPS);
 extern PetscErrorCode EPSAllocateSolution(EPS);
 extern PetscErrorCode EPSFreeSolution(EPS);
 extern PetscErrorCode EPSBackTransform_Default(EPS);

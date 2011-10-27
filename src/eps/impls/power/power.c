@@ -66,13 +66,13 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   else eps->ncv = eps->nev;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
-  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
-  if (eps->which!=EPS_LARGEST_MAGNITUDE)
+  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE)
     SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&flg);CHKERRQ(ierr);
+    ierr = PetscTypeCompareAny((PetscObject)eps->OP,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
     if (!flg) 
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert ST");
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
     ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
     if (mode == ST_MATMODE_INPLACE)
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
