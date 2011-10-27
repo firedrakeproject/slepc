@@ -33,8 +33,8 @@ PETSC_EXTERN_CXX_BEGIN
 extern PetscErrorCode VecRegister_Comp(const char[]);
 extern PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,const VecType,Vec,Vec*);
 extern PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
-extern PetscErrorCode VecCompGetVecs(Vec,const Vec**,PetscInt*);
-extern PetscErrorCode VecCompSetVecs(Vec,Vec*,PetscInt);
+extern PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
+extern PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
 
 /* Vecs with contiguous array storage */
 extern PetscErrorCode SlepcVecSetTemplate(Vec);

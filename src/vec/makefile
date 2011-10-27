@@ -29,7 +29,7 @@ SOURCEH  = veccomp0.h
 OBJSC    = vecutil.o veccomp.o contiguous.o
 LIBBASE  = libslepc
 DIRS     =
-MANSEC   = EPS
+MANSEC   = sys
 LOCDIR   = src/vec/
 
 include ${SLEPC_DIR}/conf/slepc_common

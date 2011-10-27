@@ -193,6 +193,29 @@ PetscErrorCode VecRegister_Comp(const char path[])
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateComp"
+/*@
+   VecCreateComp - Creates a new vector containing several subvectors, each stored separately
+
+   Collective on Vec
+
+   Input Parameter:
++  comm - communicator for the new Vec
+.  Nx   - array of (initial) global sizes of child vectors
+.  n    - number of child vectors
+.  t    - type of the child vectors
+-  Vparent - (optional) template vector
+
+   Output Parameter:
+.  V - new vector
+
+   Notes:
+   This is similar to PETSc's VecNest but customized for SLEPc's needs. In particular,
+   the number of child vectors can be modified dynamically, with VecCompSetSubVecs().
+
+   Level: developer
+
+.seealso: VecCreateCompWithVecs(), VecCompSetSubVecs()
+@*/
 PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,const VecType t,Vec Vparent,Vec *V)
 {
   PetscErrorCode ierr;
@@ -214,6 +237,24 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,const VecType
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateCompWithVecs"
+/*@
+   VecCreateCompWithVecs - Creates a new vector containing several subvectors,
+   each stored separately, from an array of Vecs
+
+   Collective on Vec
+
+   Input Parameter:
++  x - array of Vecs
+.  n - number of child vectors
+-  Vparent - (optional) template vector
+
+   Output Parameter:
+.  V - new vector
+
+   Level: developer
+
+.seealso: VecCreateComp()
+@*/
 PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
 {
   PetscErrorCode ierr;
@@ -250,8 +291,24 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "VecCompGetVecs"
-PetscErrorCode VecCompGetVecs(Vec win,const Vec **x,PetscInt *n)
+#define __FUNCT__ "VecCompGetSubVecs"
+/*@
+   VecCompGetSubVecs - Returns the entire array of vectors defining a compound vector
+
+   Collective on Vec
+
+   Input Parameter:
+.  win - compound vector
+
+   Output Parameter:
++  n - number of child vectors
+-  x - array of child vectors
+
+   Level: developer
+
+.seealso: VecCreateComp()
+@*/
+PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 {
   Vec_Comp *s = (Vec_Comp*)win->data;
 
@@ -263,8 +320,23 @@ PetscErrorCode VecCompGetVecs(Vec win,const Vec **x,PetscInt *n)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "VecCompSetVecs"
-PetscErrorCode VecCompSetVecs(Vec win,Vec *x,PetscInt n)
+#define __FUNCT__ "VecCompSetSubVecs"
+/*@
+   VecCompGetSubVecs - Resets the number of subvectors defining a compound vector,
+   of replaces the subvectors
+
+   Collective on Vec
+
+   Input Parameters:
++  win - compound vector
+.  n - number of child vectors
+-  x - array of child vectors
+
+   Level: developer
+
+.seealso: VecCreateComp()
+@*/
+PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
 {
   Vec_Comp       *s = (Vec_Comp*)win->data;
   PetscErrorCode ierr;

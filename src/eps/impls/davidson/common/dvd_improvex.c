@@ -407,7 +407,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
                                    &kr_comp); CHKERRQ(ierr);
       ierr = VecCreateCompWithVecs(&D[i], data->ksp_max_size, data->friends,
                                    &D_comp); CHKERRQ(ierr);
-      ierr = VecCompSetVecs(data->friends, PETSC_NULL, s); CHKERRQ(ierr);
+      ierr = VecCompSetSubVecs(data->friends,s,PETSC_NULL); CHKERRQ(ierr);
   
       /* Solve the correction equation */
       ierr = KSPSetTolerances(data->ksp, tol, PETSC_DEFAULT, PETSC_DEFAULT,
@@ -447,8 +447,8 @@ PetscErrorCode dvd_matmult_jd(Mat A, Vec in, Vec out)
   PetscFunctionBegin;
 
   ierr = MatShellGetContext(A, (void**)&data); CHKERRQ(ierr);
-  ierr = VecCompGetVecs(in, &inx, PETSC_NULL); CHKERRQ(ierr);
-  ierr = VecCompGetVecs(out, &outx, PETSC_NULL); CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,PETSC_NULL,&inx); CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx); CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
   /* aux <- theta[1]A*in - theta[0]*B*in */
