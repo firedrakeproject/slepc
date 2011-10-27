@@ -155,6 +155,7 @@ PetscErrorCode STDestroy(ST *st)
   if (!*st) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
   if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
+  ierr = STReset(*st);CHKERRQ(ierr);
   ierr = PetscObjectDepublish(*st);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
