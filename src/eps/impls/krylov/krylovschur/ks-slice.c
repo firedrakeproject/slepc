@@ -380,7 +380,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         d_prev = PetscAbsReal( (sPres->value - s->value)/(sPres->inertia - s->inertia));
       }else{/* First shift. Average distance obtained with values in this shift */
         /* first shift might be too far from first wanted eigenvalue (no values found outside the interval)*/
-        if( (sr->dir)*(sr->eig[0]-sPres->value)>0 && PetscAbsReal( (PetscRealPart(sr->eig[sr->indexEig-1]) - PetscRealPart(sr->eig[0]))/PetscRealPart(sr->eig[0])) > PetscSqrtReal(eps->tol) ){
+        if( (sr->dir)*(PetscRealPart(sr->eig[0])-sPres->value)>0 && PetscAbsReal( (PetscRealPart(sr->eig[sr->indexEig-1]) - PetscRealPart(sr->eig[0]))/PetscRealPart(sr->eig[0])) > PetscSqrtReal(eps->tol) ){
           d_prev =  PetscAbsReal( (PetscRealPart(sr->eig[sr->indexEig-1]) - PetscRealPart(sr->eig[0])))/(sPres->neigs+0.3);
         }else{
           d_prev = PetscAbsReal( PetscRealPart(sr->eig[sr->indexEig-1]) - sPres->value)/(sPres->neigs+0.3);          
@@ -395,7 +395,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
     }
     /* End of interval can not be surpassed */
     if((sr->dir)*( sr->int1 - *newS) < 0) *newS = sr->int1;
-  }//of neighb[side]==null
+  }/* of neighb[side]==null */
   PetscFunctionReturn(0);
 }
 
@@ -451,14 +451,18 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
     err = eps->errest[eps->perm[i]];
     if(  (sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0  ){/* Valid value */
       if(count>=sr->numEigs){/* Error found */
-         SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unexpected error in Spectrum Slicing");
+         SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing");
       }   
       sr->eig[count] = lambda;
       sr->errest[count] = err;
       /* Purification */
-      ierr = STApply(eps->OP,eps->V[eps->perm[i]],sr->V[count]);CHKERRQ(ierr);
-      ierr = IPNorm(eps->ip,sr->V[count],&norm);CHKERRQ(ierr); 
-      ierr = VecScale(sr->V[count],1.0/norm);CHKERRQ(ierr);
+      if (eps->isgeneralized){ 
+        ierr = STApply(eps->OP,eps->V[eps->perm[i]],sr->V[count]);CHKERRQ(ierr);
+        ierr = IPNorm(eps->ip,sr->V[count],&norm);CHKERRQ(ierr); 
+        ierr = VecScale(sr->V[count],1.0/norm);CHKERRQ(ierr);
+      }else{
+        ierr = VecCopy(eps->V[eps->perm[i]], sr->V[count]);CHKERRQ(ierr);
+      }
       count++;
     }
   }
@@ -590,7 +594,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = PetscMalloc((sr->numEigs)*sizeof(PetscScalar),&sr->eigi);CHKERRQ(ierr);
   ierr = PetscMalloc((sr->numEigs+eps->ncv) *sizeof(PetscReal),&sr->errest);CHKERRQ(ierr);
   ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscReal),&errest_left);CHKERRQ(ierr);
-  ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscReal),&sr->monit);CHKERRQ(ierr);
+  ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscScalar),&sr->monit);CHKERRQ(ierr);
   for(i=0;i<sr->numEigs;i++){sr->eigi[i]=0;sr->eig[i] = 0;}
   for(i=0;i<sr->numEigs+eps->ncv;i++){errest_left[i]=0;sr->errest[i]=0;sr->monit[i]=0;}
   ierr = VecCreateMPI(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,&t);CHKERRQ(ierr);
