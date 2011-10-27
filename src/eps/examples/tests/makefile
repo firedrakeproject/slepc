@@ -221,6 +221,29 @@ runtest10_1:
 	done > $${test}.tmp;\
 	${TESTCODE}
 
+testtest10: test10.PETSc
+	@ok=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+           echo "Running with batch filesystem; to test run src/eps/examples/tests/test10" ; \
+           echo "with your systems batch system"; \
+        elif [ "${MPIEXEC}" = "/bin/false" ]; then \
+           echo "*mpiexec not found*. Please run src/eps/examples/tests/test10 manually"; \
+	elif [ -f test10 ]; then \
+           ${MPIEXEC} -np 1 ./test10 -eps_nev 4 -m 11 -eps_terse > test10_1.tmp 2>&1; \
+	   if (${DIFF} output/test10_1_ks.out test10_1.tmp > /dev/null 2>&1) then \
+           echo "C/C++ example src/eps/examples/tests/test10 run successfully with 1 MPI process"; \
+	   else echo "Possible error running C/C++ src/eps/examples/tests/test10 with 1 MPI process"; \
+           cat test10_1.tmp; ok=1; fi; \
+	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/mpiexec.uni" ]; then \
+           ${MPIEXEC} -np 2 ./test10 -eps_nev 4 -m 11 -eps_terse > test10_1.tmp 2>&1; \
+	   if (${DIFF} output/test10_1_ks.out test10_1.tmp > /dev/null 2>&1) then \
+           echo "C/C++ example src/eps/examples/tests/test10 run successfully with 2 MPI process"; \
+	   else echo "Possible error running C/C++ src/eps/examples/tests/test10 with 2 MPI process"; \
+           cat test10_1.tmp; ok=1; fi; fi; \
+           ${RM} -f test10_1.tmp; \
+           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test10.rm; \
+	else ok=1; fi; \
+	exit $$ok
+
 runtest11_1:
 	-@test=test11_1; \
 	for eps in ${EPSNS}; do \

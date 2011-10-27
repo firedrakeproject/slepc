@@ -1,0 +1,10 @@
+
+Fiedler vector of a 2-D regular mesh, N=110 (10x11 grid)
+
+ Solution method: krylovschur
+
+ Number of requested eigenvalues: 4
+ Stopping condition: tol=1e-11, maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     0.08101, 0.09789, 0.17890, 0.31749
+
