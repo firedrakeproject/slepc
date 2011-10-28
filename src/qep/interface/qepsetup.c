@@ -98,6 +98,9 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* Call specific solver setup */
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
 
+  /* set tolerance if not yet set */
+  if (qep->tol==PETSC_DEFAULT) qep->tol = SLEPC_DEFAULT_TOL;
+
   if (qep->ncv > 2*qep->n)
     SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv)

@@ -359,7 +359,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->nini            = 0;
   qep->ninil           = 0;
   qep->allocated_ncv   = 0;
-  qep->tol             = 1e-7;
+  qep->tol             = PETSC_DEFAULT;
   qep->sfactor         = 0.0;
   qep->conv_func       = QEPDefaultConverged;
   qep->conv_ctx        = PETSC_NULL;

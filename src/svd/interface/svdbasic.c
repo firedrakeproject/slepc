@@ -314,7 +314,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->nini           = 0;
   svd->its            = 0;
   svd->max_it         = 0;  
-  svd->tol            = 1e-7;    
+  svd->tol            = PETSC_DEFAULT;    
   svd->errest         = PETSC_NULL;
   svd->data           = PETSC_NULL;
   svd->setupcalled    = 0;

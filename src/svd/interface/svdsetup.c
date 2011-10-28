@@ -177,6 +177,9 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
 
+  /* set tolerance if not yet set */
+  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+
   if (svd->ncv > M || svd->ncv > N)
     SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
   if (svd->nsv > svd->ncv)

@@ -139,7 +139,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscValidLogicalCollectiveInt(svd,maxits,3);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
-      tol = 1e-7;
+      tol = PETSC_DEFAULT;
     } else {
       if (tol < 0.0) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       svd->tol = tol;
@@ -419,7 +419,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   r = i = PETSC_IGNORE;
   ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol,&r,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
 
   i = j = k = PETSC_IGNORE;

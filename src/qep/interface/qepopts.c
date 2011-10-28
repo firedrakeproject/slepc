@@ -76,7 +76,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-qep_max_it","Maximum number of iterations","QEPSetTolerances",qep->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = QEPSetTolerances(qep,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsBoolGroupBegin("-qep_convergence_default","Default (relative error) convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetConvergenceTest(qep,QEPDefaultConverged,PETSC_NULL);CHKERRQ(ierr);}
@@ -230,7 +230,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
   PetscValidLogicalCollectiveInt(qep,maxits,3);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
-      qep->tol = 1e-7;
+      qep->tol = PETSC_DEFAULT;
     } else {
       if (tol < 0.0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       qep->tol = tol;
