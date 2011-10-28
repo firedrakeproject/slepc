@@ -285,15 +285,20 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondSetKSPHasMat"
 /*@
-   STPrecondSetKSPHasMat - Sets if during the STSetUp the KSP matrix associated
-   to the linear system is set with the matrix for building the preconditioner.
+   STPrecondSetKSPHasMat - Sets a flag indicating that during STSetUp the coefficient
+   matrix of the KSP linear system (A) must be set to be the same matrix as the 
+   preconditioner (P).
 
    Collective on ST
 
    Input Parameter:
 +  st - the spectral transformation context
--  setmat - if true, the KSP matrix associated to linear system is set with
-   the matrix for building the preconditioner
+-  setmat - the flag
+
+   Notes:
+   In most cases, the preconditioner matrix is used only in the PC object, but
+   in external solvers this matrix must be provided also as the A-matrix in
+   the KSP object.
 
    Level: developer
 
@@ -326,8 +331,9 @@ EXTERN_C_END
 #undef __FUNCT__  
 #define __FUNCT__ "STPrecondGetKSPHasMat"
 /*@
-   STPrecondGetKSPHasMat - Gets if during the STSetUp the KSP matrix associated
-   to the linear system is set with the matrix for building the preconditioner.
+   STPrecondGetKSPHasMat - Returns the flag indicating if the coefficient
+   matrix of the KSP linear system (A) is set to be the same matrix as the 
+   preconditioner (P).
 
    Not Collective
 
@@ -335,8 +341,7 @@ EXTERN_C_END
 .  st - the spectral transformation context
 
    Output Parameter:
-.  setmat - if true, the KSP matrix associated to linear system is set with
-   the matrix for building the preconditioner
+.  setmat - the flag
 
    Level: developer
 
