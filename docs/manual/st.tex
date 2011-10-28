@@ -433,8 +433,8 @@ by Sylvester's law of inertia we know that the number of eigenvalues on the left
 
 The \slepc interface hides all the complications of the algorithm. However, the user must be aware of all the restrictions for this technique to be employed:
 \begin{itemize}
-\item This is currently implemented only in Krylov-Schur, for \ident{EPS\_GHEP} problems.
-\item The implementation is based on shift-and-invert, so \ident{STSINVERT} must be used (it is selected by default). Furthermore, direct linear solvers must be used.
+\item This is currently implemented only in Krylov-Schur.
+\item The method is based on shift-and-invert, so either \ident{STSINVERT} or \ident{STCAYLEY} must be used (\ident{STSINVERT} is selected by default). Furthermore, direct linear solvers are required.
 \item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}). In particular, a symmetric factorization must be used (\texttt{cholesky}).
 \end{itemize}
 
