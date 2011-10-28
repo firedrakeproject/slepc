@@ -111,7 +111,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->matrix = ops;
   primme->commInfo = eps;
   primme->maxMatvecs = eps->max_it; 
-  primme->eps = eps->tol; 
+  primme->eps = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol; 
   primme->numProcs = numProcs; 
   primme->procID = procID;
   primme->printLevel = 0;

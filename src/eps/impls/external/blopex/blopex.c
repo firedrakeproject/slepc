@@ -163,7 +163,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   
-  blopex->tol.absolute = eps->tol;
+  blopex->tol.absolute = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
   blopex->tol.relative = 1e-50;
   
   SLEPCSetupInterpreter(&blopex->ii);

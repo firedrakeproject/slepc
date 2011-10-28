@@ -215,7 +215,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: which == EPS_ALL");
     break;
   }
-  dvd->tol = eps->tol;
+  dvd->tol = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
   dvd->eps = eps;
 
   /* Setup the extraction technique */
