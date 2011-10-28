@@ -193,7 +193,7 @@ PetscErrorCode VecRegister_Comp(const char path[])
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateComp"
-/*@
+/*@C
    VecCreateComp - Creates a new vector containing several subvectors, each stored separately
 
    Collective on Vec
@@ -237,7 +237,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,const VecType
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCreateCompWithVecs"
-/*@
+/*@C
    VecCreateCompWithVecs - Creates a new vector containing several subvectors,
    each stored separately, from an array of Vecs
 
@@ -292,7 +292,7 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCompGetSubVecs"
-/*@
+/*@C
    VecCompGetSubVecs - Returns the entire array of vectors defining a compound vector
 
    Collective on Vec
@@ -321,8 +321,8 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecCompSetSubVecs"
-/*@
-   VecCompGetSubVecs - Resets the number of subvectors defining a compound vector,
+/*@C
+   VecCompSetSubVecs - Resets the number of subvectors defining a compound vector,
    of replaces the subvectors
 
    Collective on Vec
