@@ -104,7 +104,7 @@ typedef struct {
 } dvdImprovex_jd;
 
 #define _Ceil(A,B) ((A)/(B)+((A)%(B)==0?0:1))
-#define FromIntToScalar(S) (_Ceil((S)*sizeof(PetscBLASInt),sizeof(PetscScalar)))
+#define FromIntToScalar(S) ((PetscInt)_Ceil((S)*sizeof(PetscBLASInt),sizeof(PetscScalar)))
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd"
