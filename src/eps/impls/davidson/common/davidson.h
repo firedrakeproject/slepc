@@ -172,10 +172,8 @@ typedef struct _dvdDashboard {
     max_size_AV,    /* max size of AV */
     max_size_BV,    /* max size of BV */
     max_size_proj,  /* max size projected problem */
-    max_size_cX_in_proj,
-                    /* max vectors from cX in the projected problem */
-    max_size_cX_in_impr,
-                    /* max vectros from cX in the projector */
+    max_cX_in_proj, /* max vectors from cX in the projected problem */
+    max_cX_in_impr, /* max vectros from cX in the projector */
     max_size_P,     /* max unconverged vectors in the projector */
     bs;             /* max vectors that expands the subspace every iteration */
   EPS eps;          /* Connection to SLEPc */
@@ -281,8 +279,7 @@ typedef struct _dvdDashboard {
     cX_in_AV,       /* number of converged vectors in AV */
     cX_in_BV,       /* number of converged vectors in BV */
     cX_in_H,        /* number of converged vectors in H */
-    cX_in_G,        /* number of converged vectors in G */
-    max_cX_in_proj; /* max number of converged vectors in the proj. probl. */
+    cX_in_G;        /* number of converged vectors in G */
 
   PetscInt 
     V_tra_s,

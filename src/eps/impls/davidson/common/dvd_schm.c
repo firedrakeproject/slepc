@@ -66,7 +66,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     }
   
     /* Setup the method for improving the eigenvectors */
-    ierr = dvd_improvex_jd(d, b, ksp, bs, cX_proj, PETSC_FALSE); CHKERRQ(ierr);
+    ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, PETSC_FALSE); CHKERRQ(ierr);
     ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX); CHKERRQ(ierr);
     ierr = dvd_improvex_jd_lit_const(d, b, 0, 0.0, 0.0); CHKERRQ(ierr);
   }
@@ -118,7 +118,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   }
 
   /* Setup the method for improving the eigenvectors */
-  ierr = dvd_improvex_jd(d, b, ksp, bs, cX_proj, dynamic); CHKERRQ(ierr);
+  ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, dynamic); CHKERRQ(ierr);
   ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX);
   CHKERRQ(ierr);
   ierr = KSPGetTolerances(ksp, &tol, PETSC_NULL, PETSC_NULL, &maxits);

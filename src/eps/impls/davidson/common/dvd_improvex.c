@@ -164,7 +164,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     data->dynamic = dynamic;
     data->size_real_KZ = size_P;
     data->real_KZ = b->free_vecs; b->free_vecs+= data->size_real_KZ;
-    d->max_size_cX_in_impr = cX_impr;
+    d->max_cX_in_impr = cX_impr;
     data->XKZ = b->free_scalars; b->free_scalars+= size_P*size_P;
     data->ldXKZ = size_P;
     data->size_X = b->max_size_X;
@@ -572,7 +572,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
   auxV, 4*(i_e-i_s) auxiliar global vectors
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
-  auxS: max(8*bs*max_size_cX_in_proj,size_V*size_V)
+  auxS: max(8*bs*max_cX_in_proj,size_V*size_V)
 */
 PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
   PetscInt i_e, Vec **u, Vec **v, Vec *kr, Vec **auxV, PetscScalar **auxS,
@@ -592,18 +592,18 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
   if (V_new > data->old_size_X) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
   data->old_size_X = n;
 
-  /* KZ <- KZ(rm:) */
-  rm = PetscMax(V_new+data->size_KZ-d->max_size_cX_in_impr, 0);
-  if (rm > 0) for (i=rm; i<data->size_KZ+V_new; i++) {
-    ierr = VecCopy(data->KZ[i], data->KZ[i-rm]);CHKERRQ(ierr);
+  /* KZ <- KZ(rm:rm+max_cX-1) */
+  rm = PetscMax(V_new+data->size_KZ-d->max_cX_in_impr, 0);
+  for (i=0; i<d->max_cX_in_impr; i++) {
+    ierr = VecCopy(data->KZ[i+rm], data->KZ[i]);CHKERRQ(ierr);
   }
-  data->size_KZ+= V_new-rm;
   data->size_cX = d->size_cX;
 
-  /* XKZ <- XKZ(rm:,rm:) */
-  if (rm > 0) for (i=rm; i<data->size_KZ+V_new; i++) {
-    ierr = SlepcDenseCopy(&data->XKZ[i*data->ldXKZ+i], data->ldXKZ, &data->XKZ[(i-rm)*data->ldXKZ+i-rm], data->ldXKZ, data->size_KZ, 1);CHKERRQ(ierr);
+  /* XKZ <- XKZ(rm:rm+max_cX-1,rm:rm+max_cX-1) */
+  for (i=0; i<d->max_cX_in_impr; i++) {
+    ierr = SlepcDenseCopy(&data->XKZ[i*data->ldXKZ+i], data->ldXKZ, &data->XKZ[(i+rm)*data->ldXKZ+i+rm], data->ldXKZ, data->size_KZ, 1);CHKERRQ(ierr);
   }
+  data->size_KZ = PetscMin(d->max_cX_in_impr, data->size_KZ+V_new);
 
   /* Compute X, KZ and KR */
   *u = *auxV; *auxV+= n;

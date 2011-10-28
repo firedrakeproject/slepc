@@ -277,7 +277,8 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   npreconv = PetscMax(PetscMin(d->nev - d->nconv, npreconv), 0);
 #endif
 
-  if (npreconv <= d->cX_in_H) { PetscFunctionReturn(0); }
+  if (npreconv == 0) { PetscFunctionReturn(0); }
+  npreconv+= d->cX_in_H;
 
 #if !defined(PETSC_USE_COMPLEX)
   /* Correct the order of the conjugate eigenpairs */
@@ -328,7 +329,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   /* Remove oldU */
   data->size_oldU = 0;
 
-  d->npreconv-= npreconv;
+  d->npreconv-= npreconv-d->cX_in_H;
 
   PetscFunctionReturn(0);
 }
@@ -420,8 +421,8 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   }
 
   /* Notify the changes in V and update the other subspaces */
-  d->V_tra_s = 0;                 d->V_tra_e = cMTX;
-  d->V_new_s = d->V_tra_e;        d->V_new_e = d->V_tra_e;
+  d->V_tra_s = d->cX_in_H;                  d->V_tra_e = cMTX;
+  d->V_new_s = d->V_tra_e-d->cX_in_H; d->V_new_e = d->V_tra_e;
 
   /* Remove oldU */
   data->size_oldU = 0;
@@ -455,15 +456,15 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   }
 
   /* Fill V with D */
-  ierr = d->improveX(d, d->V+d->size_V, d->max_size_V-d->size_V, d->cX_in_H, size_D+d->cX_in_H, &size_D); CHKERRQ(ierr);
+  ierr = d->improveX(d, d->V+d->size_V, d->max_size_V-d->size_V, 0, size_D, &size_D); CHKERRQ(ierr);
 
   /* If D is empty, exit */
   d->size_D = size_D;
   if (size_D == 0) { PetscFunctionReturn(0); }
 
   /* Get the converged pairs */
-  ierr = dvd_updateV_testConv(d, d->cX_in_H, size_D+d->cX_in_H,
-    data->allResiduals?d->size_V:size_D+d->cX_in_H, d->auxV, d->auxS,
+  ierr = dvd_updateV_testConv(d, 0, size_D,
+    data->allResiduals?d->size_V:size_D, d->auxV, d->auxS,
     &d->npreconv); CHKERRQ(ierr);
 
   /* Notify the changes in V */

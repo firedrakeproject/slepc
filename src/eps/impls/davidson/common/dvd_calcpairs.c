@@ -362,7 +362,7 @@ PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d, DvdReduction *r,
   ierr = dvd_calcpairs_updateBV0_gen(d,d->real_V,&d->size_cX,&d->V,&d->size_V,&d->max_size_V,PETSC_TRUE,&d->cX_in_V,d->MTX);CHKERRQ(ierr);
 
   /* Udpate cS for standard problems */
-  if (d->cS && !d->cT && !d->cY && d->V_tra_s > PetscMin(d->max_cX_in_proj,d->nev-d->size_cS)) {
+  if (d->cS && !d->cT && !d->cY && (d->V_tra_s > d->max_cX_in_proj || d->size_cX >= d->nev)) {
     /* Check consistency */
     if (d->size_cS+d->V_tra_s != d->size_cX) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
 
@@ -427,7 +427,7 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d, DvdReduction *r,
   ierr = dvd_calcpairs_updateBV0_gen(d,d->real_W,&d->size_cY,&d->W,&d->size_W,&d->max_size_W,d->W_shift,&d->cX_in_W,d->MTY);CHKERRQ(ierr);
 
   /* Udpate cS and cT */
-  if (d->cY && d->cT && d->V_tra_s > PetscMin(d->max_cX_in_proj,d->nev-d->size_cS)) {
+  if (d->cY && d->cT && (d->V_tra_s > d->max_cX_in_proj || d->size_cX >= d->nev)) {
     /* Check consistency */
     if (d->size_cS+d->V_tra_s != d->size_cY) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
 
@@ -528,7 +528,7 @@ PetscErrorCode dvd_calcpairs_updateAV1(dvdDashboard *d, DvdReduction *r,
   /* H = [H               W(old)'*AV(new);
           W(new)'*AV(old) W(new)'*AV(new) ],
      being old=0:V_new_s-1, new=V_new_s:V_new_e-1 */
-  ierr = VecsMultS(d->H,d->sH,d->ldH,W-d->cX_in_H,d->V_new_s+d->cX_in_H, d->V_new_e, d->AV-d->cX_in_H,d->V_new_s+d->cX_in_H,d->V_new_e, r, (*sr)++); CHKERRQ(ierr);
+  ierr = VecsMultS(d->H,d->sH,d->ldH,W-d->cX_in_H,d->V_new_s+d->cX_in_H, d->V_new_e+d->cX_in_H, d->AV-d->cX_in_H,d->V_new_s+d->cX_in_H,d->V_new_e+d->cX_in_H, r, (*sr)++); CHKERRQ(ierr);
   d->size_H = d->V_new_e+d->cX_in_H;
 
   PetscFunctionReturn(0);
@@ -596,7 +596,7 @@ PetscErrorCode dvd_calcpairs_updateBV1(dvdDashboard *d, DvdReduction *r,
   /* G = [G               W(old)'*BV(new);
           W(new)'*BV(old) W(new)'*BV(new) ],
      being old=0:V_new_s-1, new=V_new_s:V_new_e-1 */
-  ierr = VecsMultS(d->G,d->sG,d->ldH,W-d->cX_in_G,d->V_new_s+d->cX_in_G,d->V_new_e,BV-d->cX_in_G,d->V_new_s+d->cX_in_G,d->V_new_e,r,(*sr)++); CHKERRQ(ierr);
+  ierr = VecsMultS(d->G,d->sG,d->ldH,W-d->cX_in_G,d->V_new_s+d->cX_in_G,d->V_new_e+d->cX_in_G,BV-d->cX_in_G,d->V_new_s+d->cX_in_G,d->V_new_e+d->cX_in_G,r,(*sr)++); CHKERRQ(ierr);
   d->size_G = d->V_new_e+d->cX_in_G;
 
   PetscFunctionReturn(0);
@@ -697,19 +697,19 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
   n = d->size_H;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKgges_(d->pY?"V":"N", "V", "N", PETSC_NULL, &n, d->S, &n, d->T, &n,
-              &a, d->eigr, d->eigi, beta, d->pY, &n, d->pX, &n,
+              &a, d->eigr-d->cX_in_H, d->eigi-d->cX_in_H, beta, d->pY, &n, d->pX, &n,
               auxS, &n_auxS, PETSC_NULL, &info);
 #else
   LAPACKgges_(d->pY?"V":"N", "V", "N", PETSC_NULL, &n, d->S, &n, d->T, &n,
-              &a, d->eigr, beta, d->pY, &n, d->pX, &n,
+              &a, d->eigr-d->cX_in_H, beta, d->pY, &n, d->pX, &n,
               auxS, &n_auxS, auxR, PETSC_NULL, &info);
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack GGES %d", info);
 
   /* eigr[i] <- eigr[i] / beta[i] */
-  for (i=0; i<d->size_H-d->cX_in_H; i++)
-    d->eigr[i] /= beta[i+d->cX_in_H],
-    d->eigi[i] /= beta[i+d->cX_in_H];
+  for (i=0; i<d->size_H; i++)
+    d->eigr[i-d->cX_in_H] /= beta[i],
+    d->eigi[i-d->cX_in_H] /= beta[i];
 
   d->calcpairs_selectPairs = dvd_calcpairs_selectPairs_qz;
 
@@ -755,11 +755,11 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
   }
 
   if (d->T) {
-    ierr = EPSSortDenseSchurGeneralized(d->eps, d->size_H, d->cX_in_H, n, d->S, d->T,
+    ierr = EPSSortDenseSchurGeneralized(d->eps, d->size_H, 0, n, d->S, d->T,
                                         d->ldS, d->pY, d->pX, d->eigr-d->cX_in_H,
                                         d->eigi-d->cX_in_H); CHKERRQ(ierr);
   } else {
-    ierr = EPSSortDenseSchur(d->eps, d->size_H, d->cX_in_H, d->S, d->ldS, d->pX,
+    ierr = EPSSortDenseSchur(d->eps, d->size_H, 0, d->S, d->ldS, d->pX,
                              d->eigr-d->cX_in_H, d->eigi-d->cX_in_H); CHKERRQ(ierr);
   }
 
@@ -798,6 +798,16 @@ PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
   PetscFunctionBegin;
 
   for (i=r_s; i<r_e; i++) {
+    /* nX(i) <- ||X(i)|| */
+    if (d->correctXnorm) {
+      /* R(i) <- V*pX(i) */
+      ierr = SlepcUpdateVectorsZ(&R[i-r_s], 0.0, 1.0,
+        &d->V[-d->cX_in_H], d->size_V+d->cX_in_H,
+        &d->pX[d->ldpX*(i+d->cX_in_H)], d->ldpX, d->size_H, 1); CHKERRQ(ierr);
+      ierr = VecNorm(R[i-r_s], NORM_2, &d->nX[i]);CHKERRQ(ierr);
+    } else
+      d->nX[i] = 1.0;
+
     /* R(i-r_s) <- AV*pX(i) */
     ierr = SlepcUpdateVectorsZ(&R[i-r_s], 0.0, 1.0,
       &d->AV[-d->cX_in_H], d->size_AV+d->cX_in_H,
@@ -883,21 +893,19 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,V
       ierr = VecCopy((*BV)[i], nBV[i-rm]);CHKERRQ(ierr);
     }
     /* BV(-rm:) <- BV*MTX(tra_s:V_tra_e-1) */
-    ierr = SlepcUpdateVectorsZ(&nBV[-rm], 0.0, 1.0,
-                               *BV, *size_BV, &MTX[d->ldMTX*tra_s],
-                               d->ldMTX, d->size_MT, cMT); CHKERRQ(ierr);
-    *size_BV = cMT;
+    ierr = SlepcUpdateVectorsZ(&nBV[-rm], 0.0, 1.0, *BV-*cX_in_proj, *size_BV+*cX_in_proj, &MTX[d->ldMTX*tra_s], d->ldMTX, d->size_MT, cMT); CHKERRQ(ierr);
+    *size_BV = d->V_tra_e  - d->V_tra_s;
     *max_size_BV-= nBV - *BV;
     *BV = nBV;
     if (cX_in_proj && d->max_cX_in_proj>0) *cX_in_proj = cp+rm;
   } else if (d->V_tra_s <= d->max_cX_in_proj || BV_shift) {
     /* [BcX BV] <- [BcX BV*MTX] */
     ierr = SlepcUpdateVectorsZ(*BV-*cX_in_proj, 0.0, 1.0, *BV-*cX_in_proj, *size_BV+*cX_in_proj, MTX, d->ldMTX, d->size_MT, d->V_tra_e); CHKERRQ(ierr);
-    *BV+= d->V_tra_s;
-    *max_size_BV-= d->V_tra_s;
-    *size_BV = d->V_tra_e - d->V_tra_s;
-    if (size_cBV) *size_cBV = *BV - real_BV; 
-    if (cX_in_proj && d->max_cX_in_proj>0) *cX_in_proj = *BV - real_BV;
+    *BV+= d->V_tra_s-*cX_in_proj;
+    *max_size_BV-= d->V_tra_s-*cX_in_proj;
+    *size_BV = d->V_tra_e  - d->V_tra_s;
+    if (size_cBV && BV_shift) *size_cBV = *BV - real_BV; 
+    if (d->max_cX_in_proj>0) *cX_in_proj = PetscMin(*BV - real_BV, d->max_cX_in_proj);
   } else { /* !BV_shift */
     /* BV <- BV*MTX(V_tra_s:) */
     ierr = SlepcUpdateVectorsZ(*BV, 0.0, 1.0, *BV, *size_BV,

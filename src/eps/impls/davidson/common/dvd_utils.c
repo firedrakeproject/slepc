@@ -571,16 +571,16 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
   if (DVD_ISNOT(d->sH,DVD_MAT_LTRIANG))     /* Upper triangular part */
-    for(i=d->V_new_s; i<d->V_new_e; i++)
+    for(i=d->V_new_s+d->cX_in_H; i<d->V_new_e+d->cX_in_H; i++)
       for(j=0; j<=i; j++) {
         PetscScalar h = d->H[d->ldH*i+j], g = d->G[d->ldH*i+j];
         d->H[d->ldH*i+j] = data->Pa*h - data->Pb*g;
         d->G[d->ldH*i+j] = data->Wa*h - data->Wb*g;
       }
   if (DVD_ISNOT(d->sH,DVD_MAT_UTRIANG))     /* Lower triangular part */
-    for(i=0; i<d->V_new_e; i++)
-      for(j=PetscMax(d->V_new_s,i+(DVD_ISNOT(d->sH,DVD_MAT_LTRIANG)?1:0));
-          j<d->V_new_e; j++) {
+    for(i=0; i<d->V_new_e+d->cX_in_H; i++)
+      for(j=PetscMax(d->V_new_s+d->cX_in_H,i+(DVD_ISNOT(d->sH,DVD_MAT_LTRIANG)?1:0));
+          j<d->V_new_e+d->cX_in_H; j++) {
         PetscScalar h = d->H[d->ldH*i+j], g = d->G[d->ldH*i+j];
         d->H[d->ldH*i+j] = data->Pa*h - data->Pb*g;
         d->G[d->ldH*i+j] = data->Wa*h - data->Wb*g;
@@ -659,7 +659,7 @@ PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   PetscFunctionBegin;
 
   for(i=0; i<d->size_H; i++)
-    dvd_harm_backtrans(data, &d->eigr[i], &d->eigi[i]);
+    dvd_harm_backtrans(data, &d->eigr[i-d->cX_in_H], &d->eigi[i-d->cX_in_H]);
 
   PetscFunctionReturn(0);
 }
