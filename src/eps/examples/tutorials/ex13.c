@@ -95,19 +95,26 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
 
-  /* 
-     Use shift-and-invert to avoid solving linear systems with a singular B
-     in case nulldim>0
+  /*
+     Select portion of spectrum
   */
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  /* 
+     Use shift-and-invert to avoid solving linear systems with a singular B
+     in case nulldim>0
+  */
+  ierr = PetscTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,"");CHKERRQ(ierr);
+  if (!flag) {
+    ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+    ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
