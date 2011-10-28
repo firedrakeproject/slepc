@@ -6,7 +6,7 @@
 
 <body class="manpageindex">
 
-<h2>Spectral Transformation - ST</h2>
+<h2>Spectral Transformation - ST: <a href="../../../src/st/examples/tutorials/index.html">Examples</a></h2>
 
 <p>
 The Spectral Transformation (ST) class encapsulates the functionality required for acceleration techniques based on the transformation of the spectrum. As explained in the SLEPc Users Manual, the eigensolvers implemented in EPS work by applying an operator to a set of vectors and this operator can adopt different forms. The ST object handles all the different possibilities in a uniform way, so that the solver can proceed without knowing which transformation has been selected. 

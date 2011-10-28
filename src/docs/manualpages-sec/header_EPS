@@ -6,7 +6,7 @@
 
 <body class="manpageindex">
 
-<h2>Eigenvalue Problem Solvers - EPS</h2>
+<h2>Eigenvalue Problem Solvers - EPS: <a href="../../../src/eps/examples/tutorials/index.html">Examples</a></h2>
 
 <p>
 The Eigenvalue Problem Solver (EPS) is the object provided by SLEPc for specifying an eigenvalue problem, either in standard or generalized form. It provides uniform and efficient access to all of the eigensolvers included in the package. 

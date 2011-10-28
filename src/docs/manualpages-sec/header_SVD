@@ -6,7 +6,7 @@
 
 <body class="manpageindex">
 
-<h2>Singular Value Decomposition Solvers - SVD</h2>
+<h2>Singular Value Decomposition Solvers - SVD: <a href="../../../src/svd/examples/tutorials/index.html">Examples</a></h2>
 
 <p>
 The Singular Value Decomposition Solver (SVD) is very similar to the EPS object, but intended for the computation of the partial SVD of a rectangular matrix. With this type of object, the user can specify an SVD problem and solve it with any of the different solvers encapsulated by the package. Some of these solvers are actually implemented through calls to EPS eigensolvers.
