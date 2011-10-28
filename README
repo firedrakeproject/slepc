@@ -4,6 +4,7 @@
         ===========================================================
 
                       Developers:
+                              Carmen Campos
                               Jose E. Roman
                                Eloy Romero
                               Andres Tomas
@@ -15,7 +16,7 @@
         GRyCAP - Grupo de Redes y Computacion de Altas Prestaciones
                 Universidad Politecnica de Valencia, Spain
 
-        VERSION: 3.1  
+        VERSION: 3.2  
 
 
  Overview
@@ -25,7 +26,7 @@
  package for  the  solution of large sparse  eigenvalue  problems  on  parallel
  computers. It  can be used for the solution of problems formulated  in  either
  standard  or  generalized form, as well as other related problems such as  the
- singular value decomposition.
+ singular value decomposition and the quadratic eigenproblem.
 
  The  emphasis  of the software is on methods and  techniques  appropriate  for
  problems  in  which  the  associated matrices are sparse, for  example,  those
