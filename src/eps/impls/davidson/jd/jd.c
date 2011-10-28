@@ -71,10 +71,10 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   if(flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
 
   ierr = EPSJDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_jd_pwindow","Set the number of converged vectors in the projector","EPSJDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_pwindow","(Experimental!) Set the number of converged vectors in the projector","EPSJDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsInt("-eps_jd_qwindow","Set the number of converged vectors in the projected problem","EPSJDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_jd_qwindow","(Experimental!) Set the number of converged vectors in the projected problem","EPSJDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);

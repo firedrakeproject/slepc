@@ -64,10 +64,10 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   if(flg) { ierr = EPSGDSetInitialSize(eps,opi);CHKERRQ(ierr); }
 
   ierr = EPSGDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_gd_pwindow","Set the number of converged vectors in the projector","EPSGDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_gd_pwindow","(Experimental!) Set the number of converged vectors in the projector","EPSGDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsInt("-eps_gd_qwindow","Set the number of converged vectors in the projected problem","EPSGDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_gd_qwindow","(Experimental!) Set the number of converged vectors in the projected problem","EPSGDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
