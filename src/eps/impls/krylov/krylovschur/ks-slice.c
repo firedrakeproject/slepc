@@ -160,8 +160,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,conv,k,l,lds,lt,nv,m,*iwork,p,j;
   Vec            u=eps->work[0];
-  PetscScalar    *Q,nu;
-  PetscReal      *a,*b,*work,beta,rtmp;
+  PetscScalar    *Q,nu,rtmp;
+  PetscReal      *a,*b,*work,beta;
   PetscBool      breakdown;
   PetscInt       count0,count1;
   PetscReal      theta,lambda;
@@ -255,7 +255,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     count0=count1=0;
     for(i=0;i<k;i++){      
       theta = PetscRealPart(eps->eigr[i]);
-      lambda = sr->back[i];
+      lambda = PetscRealPart(sr->back[i]);
       if( ((sr->dir)*theta < 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0))count0++;
       if( ((sr->dir)*theta > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0))count1++;
     }
@@ -314,7 +314,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       }
       ierr = STBackTransform(eps->OP,nv+eps->nconv,sr->back,eps->eigi);CHKERRQ(ierr);
       for(i=0;i<nv+eps->nconv;i++){
-        lambda = sr->back[i];
+        lambda = PetscRealPart(sr->back[i]);
         if( ((sr->dir)*(lambda - sPres->ext[0]) > 0)&& ((sr->dir)*(sPres->ext[1] - lambda) > 0)){ 
           sr->monit[sr->indexEig+aux]=eps->eigr[i];
           sr->errest[sr->indexEig+aux]=eps->errest[i];
