@@ -187,18 +187,19 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   count0=0;count1=0; /* Found on both sides */
 
    /* filling in values for the monitor */
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
-  if(iscayley){
-    ierr = STCayleyGetAntishift(eps->OP,&nu);CHKERRQ(ierr);    
-    for(i=0;i<sr->indexEig;i++){
-      sr->monit[i]=(nu + sr->eig[i])/(sr->eig[i] - sPres->value);
-    }
-  }else{
-    for(i=0;i<sr->indexEig;i++){
-      sr->monit[i]=1.0/(sr->eig[i] - sPres->value);
+  if(eps->numbermonitors >0){
+    ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
+    if(iscayley){
+      ierr = STCayleyGetAntishift(eps->OP,&nu);CHKERRQ(ierr);    
+      for(i=0;i<sr->indexEig;i++){
+        sr->monit[i]=(nu + sr->eig[i])/(sr->eig[i] - sPres->value);
+      }
+    }else{
+      for(i=0;i<sr->indexEig;i++){
+        sr->monit[i]=1.0/(sr->eig[i] - sPres->value);
+      }
     }
   }
- 
   
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
