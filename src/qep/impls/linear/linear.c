@@ -114,7 +114,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,qep->nev,qep->ncv,qep->mpd);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,qep->tol/10.0,qep->max_it);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,qep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:qep->tol/10.0,qep->max_it);CHKERRQ(ierr);
   /* Transfer the trackall option from qep to eps */
   ierr = QEPGetTrackAll(qep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
