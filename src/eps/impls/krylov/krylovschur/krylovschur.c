@@ -60,8 +60,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (!((PetscObject)(eps->OP))->type_name) { /* default to shift-and-invert */
       ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
     }
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
-    if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for spectrum slicing");
+    ierr = PetscTypeCompareAny((PetscObject)eps->OP,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+    if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
 #if defined(PETSC_USE_REAL_DOUBLE)
     if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
 #endif

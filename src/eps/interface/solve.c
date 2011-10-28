@@ -223,13 +223,13 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
     ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
-    ierr = MatGetVecs(B,&w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
       x = eps->V[i];
       ierr = MatMult(B,x,w);CHKERRQ(ierr);
       ierr = VecDot(w,x,&dot);CHKERRQ(ierr);
-      ierr = VecScale(x,1.0/dot);CHKERRQ(ierr);
+      ierr = VecScale(x,1.0/PetscSqrtScalar(dot));CHKERRQ(ierr);
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
