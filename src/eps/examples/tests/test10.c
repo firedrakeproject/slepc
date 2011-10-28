@@ -35,8 +35,7 @@ int main (int argc,char **argv)
   Mat            A;               /* operator matrix */
   Vec            x;
   const EPSType  type;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
-  PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev,maxit;
+  PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev;
   PetscScalar    w;
   PetscBool      flag;
   PetscErrorCode ierr;
@@ -87,7 +86,6 @@ int main (int argc,char **argv)
   */
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
   
   /*
      Select portion of spectrum
@@ -121,8 +119,6 @@ int main (int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up

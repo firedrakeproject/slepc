@@ -47,9 +47,8 @@
       Mat            A
       EPS            eps
       EPSType        tname
-      PetscReal      tol
       PetscInt       n, i, Istart, Iend
-      PetscInt       nev, maxit
+      PetscInt       nev
       PetscInt       col(3)
       PetscInt       i1,i2,i3
       PetscMPIInt    rank
@@ -146,11 +145,6 @@
         write(*,130) nev
       endif
  130  format (' Number of requested eigenvalues:',I2)
-      call EPSGetTolerances(eps,tol,maxit,ierr)
-      if (rank .eq. 0) then
-        write(*,140) tol, maxit
-      endif
- 140  format (' Stopping condition: tol=',1P,E10.4,', maxit=',I4)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up
