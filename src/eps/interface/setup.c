@@ -135,6 +135,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 
+  /* set tolerance if not yet set */
+  if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
+
   /* Build balancing matrix if required */
   if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {

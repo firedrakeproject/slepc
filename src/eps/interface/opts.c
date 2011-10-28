@@ -106,7 +106,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsBoolGroupBegin("-eps_conv_eig","relative error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) {ierr = EPSSetConvergenceTest(eps,EPS_CONV_EIG);CHKERRQ(ierr);}
@@ -297,7 +297,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscValidLogicalCollectiveInt(eps,maxits,3);
   if (tol != PETSC_IGNORE) {
     if (tol == PETSC_DEFAULT) {
-      eps->tol = 1e-7;
+      eps->tol = PETSC_DEFAULT;
     } else {
       if (tol < 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       eps->tol = tol;

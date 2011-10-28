@@ -62,6 +62,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     }
     ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
     if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for spectrum slicing");
+#if defined(PETSC_USE_REAL_DOUBLE)
+    if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
+#endif
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
       if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,1,"The defined computational interval should have at least one of their sides bounded");
       ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);

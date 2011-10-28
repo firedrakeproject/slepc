@@ -444,7 +444,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nini            = 0;
   eps->ninil           = 0;
   eps->nds             = 0;
-  eps->tol             = 1e-7;
+  eps->tol             = PETSC_DEFAULT;
   eps->conv            = EPS_CONV_EIG;
   eps->conv_func       = EPSEigRelativeConverged;
   eps->conv_ctx        = PETSC_NULL;

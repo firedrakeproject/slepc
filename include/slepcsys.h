@@ -81,6 +81,20 @@ M*/
 */
 #include "private/slepcimpl.h"
 
+/*
+    Default tolerance for the different solvers, depending on the precision
+*/
+#if defined(PETSC_USE_REAL_SINGLE)
+#  define SLEPC_DEFAULT_TOL   1e-6
+#elif defined(PETSC_USE_REAL_DOUBLE)
+#  define SLEPC_DEFAULT_TOL   1e-8
+#elif defined(PETSC_USE_REAL___FLOAT128)
+#  define SLEPC_DEFAULT_TOL   1e-16
+#else
+#  define SLEPC_DEFAULT_TOL   1e-7
+#endif
+
+
 PETSC_EXTERN_CXX_BEGIN
 /*
     Initialization of SLEPc and other system routines
