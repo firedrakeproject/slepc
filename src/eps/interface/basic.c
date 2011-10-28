@@ -772,7 +772,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 
    In the command-line option, two values must be provided. For an open interval,
    one can give an infinite, e.g., -eps_interval 1.0,inf or -eps_interval -inf,1.0.
-   An open interval in the programmatic intervace can be specified with 
+   An open interval in the programmatic interface can be specified with 
    PETSC_MAX_REAL and -PETSC_MAX_REAL.
    
    Level: intermediate
