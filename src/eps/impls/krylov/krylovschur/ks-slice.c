@@ -450,7 +450,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
   PetscErrorCode ierr;
   PetscReal      lambda,err,norm;
   PetscInt       i,count;
-  PetscBool      cond,iscayley;
+  PetscBool      iscayley;
   SR             sr;
   shift          sPres;
 
@@ -465,8 +465,6 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
   /* Sort eigenvalues */
   ierr = sortRealEigenvalues(eps->eigr,eps->perm,eps->nconv,PETSC_FALSE,sr->dir);
   /* Values stored in global array */
-  /* Condition for avoiding comparing with a non-existing end */
-  cond = (!sPres->neighb[1] && !sr->hasEnd)?PETSC_TRUE:PETSC_FALSE; 
   for( i=0; i < eps->nconv ;i++ ){
     lambda = PetscRealPart(eps->eigr[eps->perm[i]]);
     err = eps->errest[eps->perm[i]];

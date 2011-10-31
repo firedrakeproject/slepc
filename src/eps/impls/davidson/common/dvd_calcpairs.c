@@ -200,12 +200,10 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
 #define __FUNCT__ "dvd_calcpairs_qz_start"
 PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
 {
-  PetscBool       std_probl, her_probl;
-  PetscInt        i;
+  PetscBool her_probl;
+  PetscInt  i;
 
   PetscFunctionBegin;
-
-  std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
   her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
 
   d->size_V = 0;
@@ -233,7 +231,6 @@ PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
   d->size_cY = 0;
   d->size_BcX = 0;
   d->cX_in_V = d->cX_in_H = d->cX_in_G = d->cX_in_W = d->cX_in_AV = d->cX_in_BV = 0;
-
   PetscFunctionReturn(0);
 }
 
