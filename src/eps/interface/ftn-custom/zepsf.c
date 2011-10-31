@@ -20,7 +20,7 @@
 */
 
 #include <private/fortranimpl.h>
-#include <private/epsimpl.h>        /*I "slepceps.h" I*/
+#include <private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define epsdestroy_                 EPSDESTROY

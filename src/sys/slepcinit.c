@@ -19,14 +19,14 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepcsys.h>
-#include <private/epsimpl.h>          /*I "slepceps.h" I*/
-#include <private/stimpl.h>           /*I "slepcst.h" I*/
-#include <private/svdimpl.h>          /*I "slepcsvd.h" I*/
-#include <private/qepimpl.h>          /*I "slepcqep.h" I*/
-#include <private/ipimpl.h>           /*I "slepcip.h" I*/
+#include <private/slepcimpl.h>           /*I "slepcsys.h" I*/
+#include <private/epsimpl.h>
+#include <private/stimpl.h>
+#include <private/svdimpl.h>
+#include <private/qepimpl.h>
+#include <private/ipimpl.h>
+#include <private/vecimplslepc.h>
 #include <stdlib.h>
-#include <slepcvec.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcPrintVersion"

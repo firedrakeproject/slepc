@@ -27,7 +27,7 @@
 */
 
 #include <private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <private/ipimpl.h>                 /*I "slepcip.h" I*/
+#include <private/ipimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {

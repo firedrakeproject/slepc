@@ -22,7 +22,6 @@
 */
 
 #include <private/qepimpl.h>     /*I "slepcqep.h" I*/
-#include <private/slepcimpl.h>   /*I "slepcsys.h" I*/
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__  

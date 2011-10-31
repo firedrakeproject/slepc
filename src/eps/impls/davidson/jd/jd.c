@@ -22,9 +22,7 @@
 */
 
 #include <private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <private/stimpl.h>                 /*I "slepcst.h" I*/
 #include <../src/eps/impls/davidson/common/davidson.h>
-#include <slepcblaslapack.h>
 
 PetscErrorCode EPSSetUp_JD(EPS eps);
 PetscErrorCode EPSDestroy_JD(EPS eps);

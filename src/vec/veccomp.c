@@ -19,7 +19,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "private/vecimpl.h"          /*I  "petscvec.h"   I*/
 #include <private/vecimplslepc.h>     /*I "slepcvec.h" I*/
 
 #include "veccomp0.h"
