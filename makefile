@@ -302,7 +302,7 @@ alldoc1: chk_loc deletemanualpages
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 	-${OMAKE} ACTION=slepc_manualpages tree_basic LOC=${LOC}
 	-${PYTHON} ${PETSC_DIR}/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
-	-${OMAKE} ACTION=manexamples tree_basic LOC=${LOC}
+	-${OMAKE} ACTION=slepc_manexamples tree_basic LOC=${LOC}
 
 # Builds .html versions of the source
 alldoc2: chk_loc

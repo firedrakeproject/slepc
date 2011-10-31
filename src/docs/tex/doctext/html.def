@@ -20,7 +20,7 @@ key        %n%p<CODE>%1</CODE>
 synopsis   %n<PRE>%1</PRE>
 definition %n<B>%1</B>%n
 section    %n<H3><FONT COLOR="#883300">%1</FONT></H3>%n
-s_synopsis %n<H3><FONT COLOR="#663300">Synopsis</FONT></H3>%n<PRE>%n
+s_synopsis %n<H3><FONT COLOR="#883300">Synopsis</FONT></H3>%n<PRE>%n
 e_synopsis %n</PRE>%n
 em_dash    
 eop        %n</BODY></HTML>%n
@@ -48,7 +48,7 @@ s_caption  <CENTER><B>
 e_caption  </B></CENTER>
 picture    <A IMG="%1"></A>
 # If the location variable is changed, then maint/exampleindex.tcl MUST be changed accordingly!
-location   <P><B><FONT COLOR="#663300">Location: </FONT></B><A HREF="../../../%1#%rq0">%1</A>
+location   <P><B><FONT COLOR="#883300">Location: </FONT></B><A HREF="../../../%1#%rq0">%1</A>
 # Only do the actual title
 # Without a title, the page will be broken.
 mantitle   <TITLE>%1</TITLE>%n</HEAD>%n<BODY BGCOLOR="FFFFFF">%n<font face="Arial, Helvetica, sans-serif" size="2">%n<H1>%1</H1>%n
