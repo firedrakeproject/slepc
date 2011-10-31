@@ -138,18 +138,14 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   default:
     if (st->sigma != 0.0) {
       ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
-      if (st->B) { 
-        ierr = MatAXPY(st->mat,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
-      }
+      if (st->B) { ierr = MatAXPY(st->mat,-st->sigma,st->B,st->str);CHKERRQ(ierr); }
+      else { ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); }
       ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     } else {
       st->mat = PETSC_NULL;
       ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }
   }
-
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -164,7 +160,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
-  
+
   /* Check if the new KSP matrix has the same zero structure */
   if (st->B && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) {
     flg = DIFFERENT_NONZERO_PATTERN;
@@ -193,20 +189,17 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
     ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);    
+    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
     if (st->mat) {
-      ierr = MatCopy(st->A,st->mat,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatCopy(st->A,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     } else {
       ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
     }
     if (newshift != 0.0) {   
-      if (st->B) {
-        ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr);
-      }
+      if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
+      else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
     }
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,flg);CHKERRQ(ierr);    
   }

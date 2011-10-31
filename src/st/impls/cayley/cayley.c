@@ -169,8 +169,8 @@ PetscErrorCode STPostSolve_Cayley(ST st)
   if (st->shift_matrix == ST_MATMODE_INPLACE) {
     if (st->B) {
       ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
-    } else { 
-      ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr); 
+    } else {
+      ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);
     }
     st->setupcalled = 0;
   }
@@ -259,7 +259,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   case ST_MATMODE_INPLACE:
     /* Undo previous operations */
     if (st->sigma != 0.0) {
-      if (st->B) { 
+      if (st->B) {
         ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
       } else {
         ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);
@@ -267,7 +267,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
     }
     /* Apply new shift */
     if (newshift != 0.0) {
-      if (st->B) { 
+      if (st->B) {
         ierr = MatAXPY(st->A,-newshift,st->B,st->str);CHKERRQ(ierr);
       } else {
         ierr = MatShift(st->A,-newshift);CHKERRQ(ierr);
@@ -276,10 +276,10 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
     ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);    
+    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
-    ierr = MatCopy(st->A,st->mat,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatCopy(st->A,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     if (newshift != 0.0) {   
       if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
