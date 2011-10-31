@@ -119,9 +119,6 @@ PetscErrorCode STGetType(ST st,const STType *type)
 .  st - the spectral transformation context
 
    Level: beginner
-
-.seealso: 
-
 @*/
 PetscErrorCode STSetFromOptions(ST st)
 {

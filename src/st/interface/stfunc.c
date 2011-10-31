@@ -532,7 +532,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
    Collective on ST
 
    Input Parameters:
-+  ST - the ST context
++  st - the ST context
 -  viewer - optional visualization context
 
    Note:

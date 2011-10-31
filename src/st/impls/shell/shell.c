@@ -71,7 +71,7 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
 #undef __FUNCT__  
 #define __FUNCT__ "STShellSetContext"
 /*@
-   STShellSetContext - sets the context for a shell ST
+   STShellSetContext - Sets the context for a shell ST
 
    Logically Collective on ST
 
