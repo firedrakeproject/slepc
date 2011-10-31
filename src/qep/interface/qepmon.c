@@ -88,7 +88,7 @@ $     monitor (QEP qep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
    Level: intermediate
 
-.seealso: QEPMonitorFirst(), QEPMonitorAll(), QEPMonitorLG(), QEPMonitorLGAll(), QEPMonitorCancel()
+.seealso: QEPMonitorFirst(), QEPMonitorAll(), QEPMonitorCancel()
 @*/
 PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {

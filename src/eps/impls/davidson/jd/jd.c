@@ -379,10 +379,10 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 .  initialsize - number of vectors of the initial searching subspace
 
    Notes:
-   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not available, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
@@ -416,10 +416,10 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 .  -eps_jd_initial_size - number of vectors of the initial searching subspace
    
    Notes:
-   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not available, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
@@ -510,7 +510,8 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDSetConstantCorrectionTolerance"
 /*@
-   EPSJDSetConstantCorrectionTolerance - If true, deactivates the dynamic stopping criterion (also called Newton) that sets the KSP relative tolerance
+   EPSJDSetConstantCorrectionTolerance - If true, deactivates the dynamic stopping criterion
+   (also called Newton) that sets the KSP relative tolerance
    to 0.5**i, where i is the number of EPS iterations from the last converged value.
 
    Logically Collective on EPS

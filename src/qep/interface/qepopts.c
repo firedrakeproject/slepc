@@ -307,9 +307,9 @@ PetscErrorCode QEPGetDimensions(QEP qep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    dependent on the solution method.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
-   to set one of them at most. Normal usage is the following:
-   (a) In cases where nev is small, the user sets ncv (a reasonable default is 2*nev).
-   (b) In cases where nev is large, the user sets mpd.
+   to set one of them at most. Normal usage is that
+   (a) in cases where nev is small, the user sets ncv (a reasonable default is 2*nev); and
+   (b) in cases where nev is large, the user sets mpd.
 
    The value of ncv should always be between nev and (nev+mpd), typically
    ncv=nev+mpd. If nev is not too large, mpd=nev is a reasonable choice, otherwise
@@ -468,7 +468,7 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
 
     Level: intermediate
 
-.seealso: QEPGetLeftVectorsWanted(), QEPGetEigenvectorLeft()
+.seealso: QEPGetLeftVectorsWanted()
 @*/
 PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscBool leftvecs)
 {

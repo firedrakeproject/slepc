@@ -88,7 +88,7 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
    Level: intermediate
 
-.seealso: EPSMonitorFirst(), EPSMonitorAll(), EPSMonitorLG(), EPSMonitorLGAll(), EPSMonitorCancel()
+.seealso: EPSMonitorFirst(), EPSMonitorAll(), EPSMonitorCancel()
 @*/
 PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {

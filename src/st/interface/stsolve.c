@@ -314,8 +314,6 @@ PetscErrorCode STPostSolve(ST st)
    eigi - imaginary part of a computed eigenvalue
 
    Level: developer
-
-.seealso: EPSBackTransform()
 @*/
 PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* eigi)
 {

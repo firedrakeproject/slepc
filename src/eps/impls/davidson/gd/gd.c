@@ -365,10 +365,10 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 .  initialsize - number of vectors of the initial searching subspace
 
    Notes:
-   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not available, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
@@ -402,10 +402,10 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
 .  -eps_gd_initial_size - number of vectors of the initial searching subspace
    
    Notes:
-   If EPSGDGetKrylovStart is PETSC_FALSE and the user provides vectors with
-   EPSSetInitialSpace, up to initialsize vectors will be used; and if the
+   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart being PETSC_TRUE, the solver
+   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not available, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
