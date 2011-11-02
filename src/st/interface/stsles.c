@@ -23,6 +23,7 @@
 */
 
 #include <private/stimpl.h>            /*I "slepcst.h" I*/
+#include <slepcsys.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "STAssociatedKSPSolve"
@@ -149,6 +150,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
     ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(st,st->ksp);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   }
   *ksp = st->ksp;
   PetscFunctionReturn(0);
