@@ -696,6 +696,7 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = EPSCreate(((PetscObject)qep)->comm,&ctx->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
+  ierr = STSetOptionsPrefix(ctx->eps->OP,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);  
   ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
