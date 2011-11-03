@@ -70,7 +70,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
                                 PetscInt cX_proj, PetscBool harm)
 {
   PetscErrorCode  ierr;
-  PetscInt        i;
+  PetscInt        i,max_cS;
   PetscBool       std_probl,her_probl;
 
   PetscFunctionBegin;
@@ -110,14 +110,15 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
                                                 /* cS?, cT? */
   b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X);
                                                 /* updateV0 */
+  max_cS = PetscMax(b->max_size_X,cX_proj);
   b->max_size_auxS = PetscMax(PetscMax(
     b->max_size_auxS,
-    b->max_size_X*b->max_size_proj*2*(!d->B?1:2) + /* updateAV1,BV1 */
-      b->max_size_X*b->max_nev*(her_probl?0:(!d->B?1:2)) + /* updateV0,W0 */
+    b->max_size_X*b->max_size_proj*2*(std_probl?1:2) + /* updateAV1,BV1 */
+      max_cS*b->max_nev*(her_probl?0:(!d->B?1:2)) + /* updateV0,W0 */
                                                      /* SlepcReduction: in */
       PetscMax(
-        b->max_size_X*b->max_size_proj*2*(!d->B?1:2) + /* updateAV1,BV1 */
-        b->max_size_X*b->max_nev*(her_probl?0:(!d->B?1:2)), /* updateV0,W0 */
+        b->max_size_X*b->max_size_proj*2*(std_probl?1:2) + /* updateAV1,BV1 */
+          max_cS*b->max_nev*(her_probl?0:(!d->B?1:2)), /* updateV0,W0 */
                                                     /* SlepcReduction: out */
         PetscMax(
           b->max_size_proj*b->max_size_proj, /* updateAV0,BV0 */
@@ -254,10 +255,9 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 
   stdp = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
   size_in =
-    (d->size_cX+d->V_tra_s)*d->V_tra_s*(d->cT?2:(d->cS?1:0)) + /* updateV0,W0 */
-    d->size_H*d->V_tra_e*(!stdp?2:1) + /* updateAV1,BV1 */
+    (d->size_cX+d->V_tra_s-d->cX_in_H)*d->V_tra_s*(d->cT?2:(d->cS?1:0)) + /* updateV0,W0 */
     (d->size_H*(d->V_new_e-d->V_new_s)*2+
-      (d->V_new_e-d->V_new_s)*(d->V_new_e-d->V_new_s))*(!stdp?2:1); /* updateAV0,BV0 */
+      (d->V_new_e-d->V_new_s)*(d->V_new_e-d->V_new_s))*(!stdp?2:1); /* updateAV1,BV1 */
     
   out = in+size_in;
 
@@ -364,10 +364,10 @@ PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d, DvdReduction *r,
     if (d->size_cS+d->V_tra_s != d->size_cX) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
 
     /* auxV <- AV * MTX(0:V_tra_e-1) */
-    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->AV-d->cX_in_AV, d->size_AV+d->cX_in_AV, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-d->max_cX_in_proj); CHKERRQ(ierr);
+    rm = d->size_cX>=d->nev?0:d->max_cX_in_proj;
+    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->AV-d->cX_in_AV, d->size_AV+d->cX_in_AV, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-rm); CHKERRQ(ierr);
 
     /* cS(:, size_cS:) <- cX' * auxV */
-    rm = d->size_cX>=d->nev?0:d->max_cX_in_proj;
     ierr = VecsMultS(&d->cS[d->ldcS*d->size_cS], 0, d->ldcS, d->cX, 0, d->size_cX-rm, d->auxV, 0, d->V_tra_s-rm, r, (*sr)++); CHKERRQ(ierr);
     d->size_cS+= d->V_tra_s-rm;
   }
@@ -430,16 +430,17 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d, DvdReduction *r,
 
     /* auxV <- AV * MTX(0:V_tra_e-1) */
     rm = d->size_cX>=d->nev?0:d->max_cX_in_proj;
-    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV-d->cX_in_H, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-d->max_cX_in_proj); CHKERRQ(ierr);
+    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV-d->cX_in_H, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-rm); CHKERRQ(ierr);
 
     /* cS(:, size_cS:) <- cY' * auxV */
     ierr = VecsMultS(&d->cS[d->ldcS*d->size_cS], 0, d->ldcS, d->cY, 0, d->size_cY-rm, d->auxV, 0, d->V_tra_s-rm, r, (*sr)++); CHKERRQ(ierr);
 
     /* auxV <- BV * MTX(0:V_tra_e-1) */
-    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV-d->cX_in_H, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-d->max_cX_in_proj); CHKERRQ(ierr);
+    ierr = SlepcUpdateVectorsZ(d->auxV, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV-d->cX_in_H, d->MTX, d->ldMTX, d->size_MT, d->V_tra_s-rm); CHKERRQ(ierr);
 
     /* cT(:, size_cS:) <- cY' * auxV */
     ierr = VecsMultS(&d->cT[d->ldcS*d->size_cS], 0, d->ldcS, d->cY, 0, d->size_cY-rm, d->auxV, 0, d->V_tra_s-rm, r, (*sr)++); CHKERRQ(ierr);
+    
     d->size_cS+= d->V_tra_s-rm;
     d->size_cT+= d->V_tra_s-rm;
   }
@@ -481,7 +482,7 @@ PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   PetscScalar     *MTY = d->W?d->MTY:d->MTX;
-  PetscInt        cMT, tra_s, rm, cp;
+  PetscInt        cMT, tra_s;
 
   PetscFunctionBegin;
 
@@ -491,14 +492,12 @@ PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d)
   ierr = dvd_calcpairs_updateBV0_gen(d,d->real_AV,PETSC_NULL,&d->AV,&d->size_AV,&d->max_size_AV,PETSC_FALSE,&d->cX_in_AV,d->MTX);CHKERRQ(ierr);
   tra_s = PetscMax(d->V_tra_s-d->max_cX_in_proj, 0);
   cMT = d->V_tra_e - tra_s;
-  rm = d->V_tra_s - tra_s;
-  cp = PetscMin(d->max_cX_in_proj - rm, d->cX_in_H);
 
   /* Update H <- MTY(tra_s)' * (H * MTX(tra_s:)) */
   ierr = SlepcDenseMatProdTriang(d->auxS, 0, d->ldH, d->H, d->sH, d->ldH, d->size_H, d->size_H, PETSC_FALSE, &d->MTX[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_FALSE); CHKERRQ(ierr);
   ierr = SlepcDenseMatProdTriang(d->H, d->sH, d->ldH, &MTY[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_TRUE, d->auxS, 0, d->ldH, d->size_H, cMT, PETSC_FALSE); CHKERRQ(ierr);
   d->size_H = cMT;
-  d->cX_in_H = cp+rm;
+  d->cX_in_H = d->cX_in_AV;
 
   PetscFunctionReturn(0);
 }
@@ -538,7 +537,7 @@ PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   PetscScalar     *MTY = d->W?d->MTY:d->MTX;
-  PetscInt        cMT, rm, cp, tra_s, i;
+  PetscInt        cMT, tra_s, i;
   PetscBool       lindep;
   PetscReal       norm;
 
@@ -565,12 +564,10 @@ PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
   if (d->G) {
     tra_s = PetscMax(d->V_tra_s-d->max_cX_in_proj, 0);
     cMT = d->V_tra_e - tra_s;
-    rm = d->V_tra_s - tra_s;
-    cp = PetscMin(d->max_cX_in_proj - rm, d->cX_in_G);
     ierr = SlepcDenseMatProdTriang(d->auxS, 0, d->ldH, d->G, d->sG, d->ldH, d->size_G, d->size_G, PETSC_FALSE, &d->MTX[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_FALSE); CHKERRQ(ierr);
     ierr = SlepcDenseMatProdTriang(d->G, d->sG, d->ldH, &MTY[d->ldMTX*tra_s], 0, d->ldMTX, d->size_MT, cMT, PETSC_TRUE, d->auxS, 0, d->ldH, d->size_G, cMT, PETSC_FALSE); CHKERRQ(ierr);
     d->size_G = cMT;
-    d->cX_in_G = cp+rm;
+    d->cX_in_G = d->cX_in_V;
   }
 
   PetscFunctionReturn(0);

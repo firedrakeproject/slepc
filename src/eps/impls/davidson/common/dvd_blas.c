@@ -544,7 +544,7 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
                  [ W(sU:eU-1, 0:sV-1) W(sU:eU-1, sV:eV-1) ]
   where W = U' * V.
   workS0 and workS1 are an auxiliary scalar vector of size
-  (eU-sU)*sV+(eV-sV)*eU. But, if sU == 0, sV == 0 and eU == ldM, only workS0
+  (eU-sU)*sV*(sU!=0)+(eV-sV)*eU. But, if sU == 0, sV == 0 and eU == ldM, only workS0
   is needed, and of size eU*eV.
 */
 PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
@@ -553,7 +553,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
                         PetscScalar *workS0, PetscScalar *workS1)
 {
   PetscErrorCode    ierr;
-  PetscInt          ldU, ldV, i, j, k;
+  PetscInt          ldU, ldV, i, j, k, ms = (eU-sU)*sV*(sU==0?0:1)+(eV-sV)*eU;
   const PetscScalar *pu, *pv;
   PetscScalar       *W, *Wr;
 
@@ -578,7 +578,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if (workS0)
     W = workS0;
   else {
-    ierr = PetscMalloc(sizeof(PetscScalar)*((eU-sU)*sV+(eV-sV)*eU), &W);
+    ierr = PetscMalloc(sizeof(PetscScalar)*ms, &W);
     CHKERRQ(ierr);
   }
 
@@ -601,35 +601,38 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     if (workS1) {
       Wr = workS1;
-      if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ((eU-sU)*sV+(eV-sV)*eU)) {
+      if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ms) {
         SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
       }
     } else {
-      ierr = PetscMalloc(sizeof(PetscScalar)*((eU-sU)*sV+(eV-sV)*eU), &Wr);
+      ierr = PetscMalloc(sizeof(PetscScalar)*ms, &Wr);
       CHKERRQ(ierr);
     }
  
     /* W(0:(eU-sU)*sV-1) <- U(sU:eU-1)' * V(0:sV-1) */
-    ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
-                             pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
-                             pv       , ldV, ldV, sV,    PETSC_FALSE);
-    CHKERRQ(ierr);
+    if (sU > 0) {
+      ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
+                               pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
+                               pv       , ldV, ldV, sV,    PETSC_FALSE);
+      CHKERRQ(ierr);
+    }
   
     /* W((eU-sU)*sV:(eU-sU)*sV+(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
-    ierr = SlepcDenseMatProd(W+(eU-sU)*sV, eU, 0.0, 1.0,
+    ierr = SlepcDenseMatProd(W+(eU-sU)*sV*(sU > 0?1:0), eU, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
                              pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);
     CHKERRQ(ierr);
   
     /* ReduceAll(W, SUM) */
-    ierr = MPI_Allreduce(W, Wr, (eU-sU)*sV+(eV-sV)*eU, MPIU_SCALAR,
+    ierr = MPI_Allreduce(W, Wr, ms, MPIU_SCALAR,
                       MPIU_SUM, ((PetscObject)U[0])->comm); CHKERRQ(ierr);
   
     /* M(...,...) <- W */
-    for (i=0,k=0; i<sV; i++)
+    k = 0;
+    if (sU > 0) for (i=0; i<sV; i++)
       for (j=ldM*i+sU; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
     for (i=sV; i<eV; i++)
-        for (j=ldM*i; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
+      for (j=ldM*i; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
   
     if (!workS1) {
       ierr = PetscFree(Wr); CHKERRQ(ierr);
@@ -901,7 +904,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   ierr = PetscLogEventBegin(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
-  if ((sU == 0) && (sV == 0) && (eU == ldM)) {
+  if ((sU == 0) && (sV == 0)) {
     /* Use the smart memory usage version */
 
     /* Add the reduction to r */
@@ -1249,13 +1252,13 @@ PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS, PetscInt size_DS, Vec *cX,
   ldS, ldT, leading dimension of S and T
   ldpX, ldpY, leading dimension of pX and pY
   auxS, auxiliar scalar of length:
-    double standard 3n+n*n, double generalized 11n+4n*n,
-    complex standard 3n+n*n, complex generalized 3n+2n*n
+    double standard 3n, double generalized 6n,
+    complex standard 3n, complex generalized 3n
   size_auxS, the length of auxS
   doProd, if true pX and pY return the eigenvectors premultiplied by the input vectors stored in pX and pY respectively
 */
 PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
-  PetscInt ldS, PetscScalar *T, PetscInt ldT, PetscScalar *pX,
+  PetscInt ldS_, PetscScalar *T, PetscInt ldT_, PetscScalar *pX,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
   PetscInt size_auxS, PetscBool doProd)
 {
@@ -1263,42 +1266,25 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable.");
 #else
-  PetscErrorCode  ierr;
-  PetscBLASInt    n, ldpX, ldpY, nout, info;
-  PetscScalar     *Sc, *Tc;
+  PetscBLASInt    n, ldpX, ldpY, nout, info, ldS, ldT;
   const char      *side, *howmny;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal       *auxR;
-#else
-  PetscScalar     *pA,*pB;
-  PetscBLASInt    n1, ldpA,ldpB;
-  PetscScalar     *alphar, *alphai, *beta;
 #endif
   
   PetscFunctionBegin;
   n = PetscBLASIntCast(n_);
-  ldpX = PetscBLASIntCast(ldpX_);
-  ldpY = PetscBLASIntCast(ldpY_);
+  ldpX = PetscBLASIntCast(PetscMax(ldpX_,1));
+  ldpY = PetscBLASIntCast(PetscMax(ldpY_,1));
+  ldS = PetscBLASIntCast(PetscMax(ldS_,1));
+  ldT = PetscBLASIntCast(PetscMax(ldT_,1));
 
   if (pX && pY) side = "B";
   else if (pX)  side = "R";
   else if (pY)  side = "L";
   else { PetscFunctionReturn(0); }
 
-  if (!pX) ldpX = 1;
-  if (!pY) ldpY = 1;
-
   howmny = doProd?"B":"A";
-
-  Sc = auxS; auxS+= n*n; size_auxS-= n*n;
-  if (T) Tc = auxS, auxS+= n*n, size_auxS-= n*n;
-  else   Tc = PETSC_NULL;
-   
-  /* Sc <- S, Tc <- T */
-  ierr = SlepcDenseCopy(Sc, n, S, ldS, n, n); CHKERRQ(ierr);
-  if (T) {
-    ierr = SlepcDenseCopy(Tc, n, T, ldT, n, n); CHKERRQ(ierr);
-  }
 
   if (T) {
     /* [eigr, pX] = eig(S, T) */
@@ -1306,43 +1292,12 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     auxR = (PetscReal*)auxS; auxS = (PetscScalar*)(auxR+2*n); size_auxS-= 2*n;
     if (size_auxS < 2*n)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xTGEVC");
-    LAPACKtgevc_(side,howmny,PETSC_NULL,&n,Sc,&n,Tc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
+    LAPACKtgevc_(side,howmny,PETSC_NULL,&n,S,&ldS,T,&ldT,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTGEVC %d",info);
 #else
-    alphar = auxS; auxS+= n; size_auxS-= n;
-    alphai = auxS; auxS+= n; size_auxS-= n;
-    beta = auxS; auxS+= n; size_auxS-= n;
-    if (doProd) {
-      if (pX) pA = auxS, auxS+= n*n, size_auxS-= n*n, ldpA = n;
-      else    pA = PETSC_NULL, ldpA = 0;
-      if (pY) pB = auxS, auxS+= n*n, size_auxS-= n*n, ldpB = n;
-      else    pB = PETSC_NULL, ldpB = 0;
-    } else {
-      pA = pX; pB = pY; ldpA = ldpX; ldpB = ldpY;
-    }
-    /* LAPACKtgevc_ needs the element i,i+1 in the 2-by-2 digonal blocs
-       of T that represent complex conjugate eigenpairs to be zero */
-    n1 = size_auxS;
-    if (size_auxS < 8*n)
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xGGEV");
-    LAPACKggev_(pY?"V":"N",pX?"V":"N",&n,Sc,&n,Tc,&n,alphar,alphai,beta,pB,&ldpB,pA,&ldpA,auxS,&n1,&info);
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGGEV %d",info);
-    if (doProd) {
-      if (pX) {
-        /* pX <- pX * pA */
-        ierr = SlepcDenseCopy(Sc, n, pX, ldpX, n, n); CHKERRQ(ierr);
-        ierr = SlepcDenseMatProd(pX, ldpX, 0.0, 1.0,
-                                 Sc, n, n, n, PETSC_FALSE, 
-                                 pA, n, n, n, PETSC_FALSE); CHKERRQ(ierr);
-      }
-      if (pY) {
-        /* pY <- pY * pB */
-        ierr = SlepcDenseCopy(Sc, n, pY, ldpY, n, n); CHKERRQ(ierr);
-        ierr = SlepcDenseMatProd(pY, ldpY, 0.0, 1.0,
-                                 Sc, n, n, n, PETSC_FALSE, 
-                                 pB, n, n, n, PETSC_FALSE); CHKERRQ(ierr);
-      }
-    }
+    if (size_auxS < 6*n)
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xTGEVC");
+    LAPACKtgevc_(side,howmny,PETSC_NULL,&n,S,&ldS,T,&ldT,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,&info);
 #endif
   } else {
     /* [eigr, pX] = eig(S) */
@@ -1350,9 +1305,11 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
     auxR = (PetscReal*)auxS; auxS = (PetscScalar*)(auxR+n); size_auxS-= n;
     if (size_auxS < 2*n)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xTREVC");
-    LAPACKtrevc_(side,howmny,PETSC_NULL,&n,Sc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
+    LAPACKtrevc_(side,howmny,PETSC_NULL,&n,S,&ldS,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,auxR,&info);
 #else
-    LAPACKtrevc_(side,howmny,PETSC_NULL,&n,Sc,&n,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,&info);
+    if (size_auxS < 3*n)
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Insufficient work space for xTREVC");
+    LAPACKtrevc_(side,howmny,PETSC_NULL,&n,S,&ldS,pY,&ldpY,pX,&ldpX,&n,&nout,auxS,&info);
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   }

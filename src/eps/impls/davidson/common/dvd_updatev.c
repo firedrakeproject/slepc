@@ -58,6 +58,9 @@ typedef struct {
     allResiduals;   /* if computing all the residuals */
 } dvdManagV_basic;
 
+#define _Ceil(A,B) ((A)/(B)+((A)%(B)==0?0:1))
+#define FromRealToScalar(S) ((PetscInt)_Ceil((S)*sizeof(PetscReal),sizeof(PetscScalar)))
+
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic"
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
@@ -112,12 +115,9 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     d->size_real_eigr = b->size_V;
     d->real_eigr = b->free_scalars; b->free_scalars+= b->size_V;
     d->real_eigi = b->free_scalars; b->free_scalars+= b->size_V;
-    d->real_nR = (PetscReal*)b->free_scalars;
-    b->free_scalars = (PetscScalar*)(d->real_nR + b->size_V);
-    d->real_nX = (PetscReal*)b->free_scalars;
-    b->free_scalars = (PetscScalar*)(d->real_nX + b->size_V);
-    d->real_errest = (PetscReal*)b->free_scalars;
-    b->free_scalars = (PetscScalar*)(d->real_errest + b->size_V);
+    d->real_nR = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
+    d->real_nX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
+    d->real_errest = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
     d->MTX = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     if (plusk > 0) {
       data->oldU = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
@@ -422,7 +422,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 
   /* Notify the changes in V and update the other subspaces */
   d->V_tra_s = d->cX_in_H;                  d->V_tra_e = cMTX;
-  d->V_new_s = d->V_tra_e-d->cX_in_H; d->V_new_e = d->V_tra_e;
+  d->V_new_s = d->V_tra_e-d->cX_in_H; d->V_new_e = d->V_new_s;
 
   /* Remove oldU */
   data->size_oldU = 0;

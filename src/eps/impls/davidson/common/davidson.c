@@ -242,6 +242,12 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Setup the presence of converged vectors in the projected problem and in the projector */
   ierr = EPSDavidsonGetWindowSizes_Davidson(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
+  if (min_size_V <= cX_in_proj) {
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"minv has to be greater than qwindow");
+  }
+  if (bs > 1 && cX_in_impr > 0) {
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
+  }
 
   /* Setup IP */
   if (ipB && dvd->B) {
@@ -625,15 +631,17 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
   PetscScalar    *pX,*auxS;
-  PetscInt       size_auxS;
+  PetscInt       size_auxS,i,j;
 
   PetscFunctionBegin;
 
   if (d->cS) {
     /* Compute the eigenvectors associated to (cS, cT) */
     ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv,&pX);CHKERRQ(ierr);
-    size_auxS = 11*d->nconv + 4*d->nconv*d->nconv; 
+    size_auxS = 6*d->nconv; 
     ierr = PetscMalloc(sizeof(PetscScalar)*size_auxS,&auxS);CHKERRQ(ierr);
+    if (d->cT) for (i=0; i<d->nconv; i++)
+      for (j=i+1; j<d->nconv; j++) d->cT[d->ldcS*i+j] = 0.0;
     ierr = dvd_compute_eigenvectors(d->nconv,d->cS,d->ldcS,d->cT,d->ldcT,
                                     pX,d->nconv,PETSC_NULL,0,auxS,
                                     size_auxS,PETSC_FALSE);CHKERRQ(ierr);
