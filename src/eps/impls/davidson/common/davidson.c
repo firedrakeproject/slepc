@@ -640,8 +640,32 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
     ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv,&pX);CHKERRQ(ierr);
     size_auxS = 6*d->nconv; 
     ierr = PetscMalloc(sizeof(PetscScalar)*size_auxS,&auxS);CHKERRQ(ierr);
-    if (d->cT) for (i=0; i<d->nconv; i++)
-      for (j=i+1; j<d->nconv; j++) d->cT[d->ldcS*i+j] = 0.0;
+#if defined(PETSC_USE_COMPLEX)
+    for (i=0; i<d->nconv; i++) {
+      for (j=i+1; j<d->nconv; j++) {
+        d->cS[d->ldcS*i+j] = 0.0;
+        if (d->cT) d->cT[d->ldcS*i+j] = 0.0;
+      }
+    }
+#else
+    for (i=0; i<d->nconv; i++) {
+      if (d->cS[d->ldcS*i+i+1] != 0.0 && d->ceigi[i] != 0.0) {
+        for (j=i+2; j<d->nconv; j++) d->cS[d->ldcS*i+j] = 0.0;
+        for (j=i+2; j<d->nconv; j++) d->cS[d->ldcS*(i+1)+j] = 0.0;
+        if (d->cT) {
+          d->cT[d->ldcS*(i+1)+i] = 0.0;
+          for (j=i+1; j<d->nconv; j++) d->cT[d->ldcS*i+j] = 0.0;
+          for (j=i+2; j<d->nconv; j++) d->cT[d->ldcS*(i+1)+j] = 0.0;
+        }
+        i++;
+      } else {
+        for (j=i+1; j<d->nconv; j++) {
+          d->cS[d->ldcS*i+j] = 0.0;
+          if (d->cT) d->cT[d->ldcS*i+j] = 0.0;
+        }
+      }
+    }
+#endif
     ierr = dvd_compute_eigenvectors(d->nconv,d->cS,d->ldcS,d->cT,d->ldcT,
                                     pX,d->nconv,PETSC_NULL,0,auxS,
                                     size_auxS,PETSC_FALSE);CHKERRQ(ierr);

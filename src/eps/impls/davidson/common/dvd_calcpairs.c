@@ -680,6 +680,13 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
   PetscBLASInt    info,n,a;
 
   PetscFunctionBegin;
+  if (d->pY) { PetscValidScalarPointer(d->pY,0); }
+  PetscValidScalarPointer(d->S,0);
+  PetscValidScalarPointer(d->T,0);
+  PetscValidScalarPointer(d->eigr,0);
+  PetscValidScalarPointer(d->eigi,0);
+  PetscValidScalarPointer(d->auxS,0);
+
   /* S <- H, T <- G */
   d->ldS = d->ldT = d->ldpX = d->ldpY = d->size_H;
   ierr = SlepcDenseCopyTriang(d->S, 0, d->size_H, d->H, d->sH, d->ldH,

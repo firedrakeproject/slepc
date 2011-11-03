@@ -57,6 +57,9 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   PetscFunctionBegin;
 
   if ((rA == 0) || (cB == 0)) { PetscFunctionReturn(0); }
+  PetscValidScalarPointer(C,1);
+  PetscValidScalarPointer(A,5);
+  PetscValidScalarPointer(B,10);
 
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
 
@@ -118,6 +121,9 @@ PetscErrorCode SlepcDenseMatProdTriang(
   PetscFunctionBegin;
 
   if ((rA == 0) || (cB == 0)) { PetscFunctionReturn(0); }
+  PetscValidScalarPointer(C,1);
+  PetscValidScalarPointer(A,4);
+  PetscValidScalarPointer(B,10);
 
   /* Transpose if needed */
   if (At) tmp = rA, rA = cA, cA = tmp;
@@ -192,6 +198,8 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
   PetscBLASInt    rA = _rA, one=1;
 
   PetscFunctionBegin;
+  PetscValidScalarPointer(A,1);
+  PetscValidScalarPointer(eigi,5);
 
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseNorm,0,0,0,0);CHKERRQ(ierr);
 
@@ -239,6 +247,9 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
 
   /* Quick exit */
   if ((_rA == 0) || (cA == 0)) { PetscFunctionReturn(0); }
+  PetscValidScalarPointer(A,1);
+  PetscValidScalarPointer(auxS,5);
+  PetscValidIntPointer(ncA,7);
 
   /* Memory check */
   if (lw < cA) SETERRQ(PETSC_COMM_SELF,1, "Insufficient memory for xGEQRF");
@@ -270,6 +281,8 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
   PetscInt        i;
 
   PetscFunctionBegin;
+  PetscValidScalarPointer(Y,1);
+  PetscValidScalarPointer(X,3);
 
   if ((ldX < rX) || (ldY < rX)) {
     SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
@@ -309,6 +322,8 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
   PetscInt        i,j,c;
 
   PetscFunctionBegin;
+  PetscValidScalarPointer(Y,1);
+  PetscValidScalarPointer(X,4);
 
   if ((ldX < rX) || (ldY < rX)) {
     SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
@@ -419,6 +434,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   PetscFunctionBegin;
   SlepcValidVecsContiguous(Y,cM*dY,1);
   SlepcValidVecsContiguous(X,cX,5);
+  PetscValidScalarPointer(M,8);
 
   /* Compute the real number of columns */
   rcX = cX/dX;
@@ -485,6 +501,8 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
 
   PetscFunctionBegin;
   SlepcValidVecsContiguous(X,cX,1);
+  PetscValidScalarPointer(M,4);
+  PetscValidScalarPointer(work,8);
 
   if (cX != rM) {
     SETERRQ(((PetscObject)*X)->comm,1, "Matrix dimensions do not match");
@@ -565,6 +583,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
+  PetscValidScalarPointer(M,1);
     
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
@@ -575,9 +594,10 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   ierr = VecGetArrayRead(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArrayRead(V[0], &pv);CHKERRQ(ierr);
 
-  if (workS0)
+  if (workS0) {
+    PetscValidScalarPointer(workS0,10);
     W = workS0;
-  else {
+  } else {
     ierr = PetscMalloc(sizeof(PetscScalar)*ms, &W);
     CHKERRQ(ierr);
   }
@@ -600,6 +620,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     if (workS1) {
+      PetscValidScalarPointer(workS1,11);
       Wr = workS1;
       if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ms) {
         SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
@@ -642,6 +663,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   } else if (DVD_IS(sM,DVD_MAT_UTRIANG) &&
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     if (workS1) {
+      PetscValidScalarPointer(workS1,11);
       Wr = workS1;
       if (PetscAbs(PetscMin(W-workS1,workS1-W)) < (eV-sV)*eU) {
         SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
@@ -673,6 +695,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) &&
              DVD_IS(sM,DVD_MAT_LTRIANG)) {
     if (workS1) {
+      PetscValidScalarPointer(workS1,11);
       Wr = workS1;
       if (PetscMin(W - workS1, workS1 - W) < (eU-sU)*eV) {
         SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
@@ -738,6 +761,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
     
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
+  PetscValidScalarPointer(M,1);
 
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
@@ -797,6 +821,7 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Check if quick exit */
   if ((rM == 0) || (cM == 0))
     PetscFunctionReturn(0);
+  PetscValidScalarPointer(M,1);
     
   if (sM != 0) SETERRQ(((PetscObject)V)->comm,1, "Matrix structure not supported");
 
@@ -831,6 +856,8 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Check if quick exit */
   if ((rM == 0) || (cM == 0))
     PetscFunctionReturn(0);
+  PetscValidScalarPointer(M,1);
+  PetscValidScalarPointer(auxS,6);
     
   if (auxS)
     W = auxS;
@@ -892,6 +919,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
     
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
+  PetscValidScalarPointer(M,1);
 
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
@@ -1001,6 +1029,7 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
                   *sr = (DvdMult_copy_func*)ptr;
 
   PetscFunctionBegin;
+  PetscValidScalarPointer(out,1);
 
   for (i=sr->i0,k=0; i<sr->i1; i++)
     for (j=sr->ld*i+sr->s0; j<sr->ld*i+sr->e0; j++,k++) sr->M[j] = out[k];
@@ -1029,12 +1058,16 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
 
   if (!wS0) {
     ierr = PetscMalloc(sizeof(PetscScalar)*n*n, &H); CHKERRQ(ierr);
-  } else
+  } else {
+    PetscValidScalarPointer(wS0,3);
     H = wS0;
+  }
   if (!wS1) {
     ierr = PetscMalloc(sizeof(PetscScalar)*n*n, &T); CHKERRQ(ierr);
-  } else
+  } else {
+    PetscValidScalarPointer(wS1,4);
     T = wS1;
+  }
 
   /* H <- V' * V */
   ierr = VecsMult(H, 0, n, V, 0, n, V, 0, n, T, PETSC_NULL); CHKERRQ(ierr);
@@ -1075,6 +1108,8 @@ PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,
                                       MPI_Comm comm)
 {
   PetscFunctionBegin;
+  PetscValidScalarPointer(in,3);
+  PetscValidScalarPointer(out,4);
 
   r->in = in;
   r->out = out;
@@ -1273,6 +1308,11 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #endif
   
   PetscFunctionBegin;
+  PetscValidScalarPointer(S,2);
+  if (T) { PetscValidScalarPointer(T,4); }
+  if (pX) { PetscValidScalarPointer(pX,6); }
+  if (pY) { PetscValidScalarPointer(pY,8); }
+  PetscValidScalarPointer(auxS,10);
   n = PetscBLASIntCast(n_);
   ldpX = PetscBLASIntCast(PetscMax(ldpX_,1));
   ldpY = PetscBLASIntCast(PetscMax(ldpY_,1));
@@ -1329,6 +1369,8 @@ PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, 
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
+  PetscValidScalarPointer(w,4);
+  PetscValidScalarPointer(V,5);
   n_ = PetscBLASIntCast(n);
 
   /* selection sort */

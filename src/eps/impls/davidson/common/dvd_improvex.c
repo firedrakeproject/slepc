@@ -1069,6 +1069,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
   cV_ = PetscBLASIntCast(cV);
   n = PetscBLASIntCast(data->size_iXKZ);
   ld = PetscBLASIntCast(data->ldiXKZ);
+  PetscValidScalarPointer(data->iXKZ,0);
   LAPACKgetrs_("N", &n, &cV_, data->iXKZ, &ld, data->iXKZPivots, h, &n, &info); 
   if (info) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_LIB, "Error in Lapack XGETRS %d", info);
 
