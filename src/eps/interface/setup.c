@@ -132,6 +132,8 @@ PetscErrorCode EPSSetUp(EPS eps)
     else eps->nrmb = 1.0;
   }
 
+  if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
+
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 
@@ -139,7 +141,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
   /* Build balancing matrix if required */
-  if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
       ierr = VecDuplicate(eps->V[0],&eps->D);CHKERRQ(ierr);
