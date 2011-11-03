@@ -455,10 +455,11 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d, DvdReduction *r,
 PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
+  Vec             *cY = d->cY?d->cY:d->cX;
 
   PetscFunctionBegin;
 
-  if (!d->W || (d->V_new_s == d->V_new_e)) { PetscFunctionReturn(0); }
+  if (!d->W || d->V_new_s == d->V_new_e) { PetscFunctionReturn(0); }
 
   /* Check consistency */
   if (d->size_W != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
@@ -467,9 +468,7 @@ PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d)
   ierr = d->calcpairs_W(d); CHKERRQ(ierr);
 
   /* W <- gs([cY W(0:V_new_s-1)], W(V_new_s:V_new_e-1)) */
-  ierr = dvd_orthV(d->ipW, PETSC_NULL, 0, d->cY, d->size_cY, d->W, d->V_new_s,
-                   d->V_new_e, d->auxS, d->eps->rand);
-  CHKERRQ(ierr);
+  ierr = dvd_orthV(d->ipW, PETSC_NULL, 0, cY, d->size_cX, d->W-d->cX_in_W, d->V_new_s+d->cX_in_W, d->V_new_e+d->cX_in_W, d->auxS, d->eps->rand); CHKERRQ(ierr);
   d->size_W = d->V_new_e;
 
   PetscFunctionReturn(0);
