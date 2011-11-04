@@ -177,7 +177,7 @@ void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datat
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecNormCompEnd"
-PetscErrorCode VecNormCompEnd()
+PetscErrorCode VecNormCompEnd(end)
 {
   PetscErrorCode ierr;
   PetscFunctionBegin;

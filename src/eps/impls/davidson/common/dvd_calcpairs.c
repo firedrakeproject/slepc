@@ -242,7 +242,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   DvdReduction    r;
-  static const PetscInt MAX_OPS = 7;
+#define MAX_OPS 7
   DvdReductionChunk
                   ops[MAX_OPS];
   DvdMult_copy_func
@@ -338,6 +338,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   }
 
   PetscFunctionReturn(0);
+#undef MAX_OPS
 }
 
 /**** Basic routines **********************************************************/
