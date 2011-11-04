@@ -350,7 +350,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
   PetscReal   lambda,d_prev;
   PetscInt    i,idxP;
   SR          sr;
-  shift       sPres;
+  shift       sPres,s;
 
   PetscFunctionBegin;  
   sr = (SR)eps->data;
@@ -392,7 +392,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
     }else{/* Accepted values found */
       sr->nleap = 0;
       /* Average distance of values in previous subinterval */
-      shift s = sPres->neighb[0];
+      s = sPres->neighb[0];
       while(s && PetscAbs(s->inertia - sPres->inertia)==0){
         s = s->neighb[0];/* Looking for previous shifts with eigenvalues within */
       }
