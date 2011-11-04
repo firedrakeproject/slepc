@@ -113,15 +113,14 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
-  PetscBool       t, herm = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
+  PetscBool       useJD, herm = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
   PC              pc;
   PetscInt        size_P;
 
   PetscFunctionBegin;
 
   /* Setting configuration constrains */
-  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &t); CHKERRQ(ierr);
-  if (t) ksp = PETSC_NULL;
+  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &useJD); CHKERRQ(ierr);
 
   /* If the arithmetic is real and the problem is not Hermitian, then
      the block size is incremented in one */
@@ -134,7 +133,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     b->max_size_P = PetscMax(b->max_size_P, 1);
   b->max_size_X = PetscMax(b->max_size_X, max_bs);
   size_P = b->max_size_P+cX_impr;
-  b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X*(ksp?3:2));
+  b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X*(useJD?3:2));
                                                             /* u, kr?, auxV */
   b->own_scalars+= size_P*size_P; /* XKZ */
   b->max_size_auxS = PetscMax(b->max_size_auxS,
@@ -169,7 +168,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     data->old_improveX_data = d->improveX_data;
     d->improveX_data = data;
     data->old_improveX = d->improveX;
-    data->ksp = ksp;
+    data->ksp = useJD?ksp:PETSC_NULL;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
     data->ksp_max_size = max_bs;
