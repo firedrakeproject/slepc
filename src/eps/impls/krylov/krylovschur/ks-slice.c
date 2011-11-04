@@ -40,7 +40,6 @@ extern PetscErrorCode EPSProjectedKSSym(EPS,PetscInt,PetscInt,PetscReal*,PetscRe
 
 
 /* Type of data characterizing a shift (place from where an eps is applied) */
-typedef struct _n_shift *shift;
 struct _n_shift{
   PetscReal	value;
   PetscInt	inertia;
@@ -52,6 +51,7 @@ struct _n_shift{
   PetscInt      nsch[2];  /* Number of missing values for each subinterval */
   PetscInt      nconv[2]; /* Converged on each side (accepted or not)*/
 };
+typedef struct _n_shift *shift;
 
 /* Type of data  for storing the state of spectrum slicing*/
 struct _n_SR{
