@@ -225,7 +225,7 @@ def version():
         if micro > 0:
             v += ".%d" % micro
         if patch > 0:
-            v += ".post%d" % patch
+            v += ".%d" % patch
     else:
         v = "%d.%d.dev%d" % (major, minor+1, 0)
     return v
@@ -234,9 +234,9 @@ def tarball():
     VERSION = version()
     if '.dev' in VERSION:
         return None
-    if '.post' not in VERSION:
-        VERSION = VERSION + '.post0'
-    VERSION = VERSION.replace('.post', '-p')
+    bits = VERSION.split('.')
+    if len(bits) == 2: bits.append('0')
+    VERSION = '.'.join(bits[:-1]) + '-p' + bits[-1]
     return ('http://www.grycap.upv.es/slepc/download/distrib/' +
             'slepc-%s.tar.gz' % VERSION)
 
