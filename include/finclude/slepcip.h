@@ -37,3 +37,6 @@
       parameter (IP_ORTHOG_REFINE_IFNEEDED   =  1)  
       parameter (IP_ORTHOG_REFINE_ALWAYS     =  2)  
 
+!
+!  End of Fortran include file for the IP package in SLEPc
+!

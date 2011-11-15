@@ -58,8 +58,15 @@
       parameter (QEP_LARGEST_IMAGINARY      =  5)
       parameter (QEP_SMALLEST_IMAGINARY     =  6)
        
+!
+!   Possible arguments to QEPMonitorSet()
+!
       external QEPMONITORALL
       external QEPMONITORLG
       external QEPMONITORLGALL
       external QEPMONITORCONVERGED
       external QEPMONITORFIRST
+
+!
+!  End of Fortran include file for the QEP package in SLEPc
+!

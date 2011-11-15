@@ -192,6 +192,7 @@ void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
 void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
                                   void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
 {
+  SlepcConvMonitor ctx;
   CHKFORTRANNULLFUNCTION(monitordestroy);
   PetscObjectAllocateFortranPointers(*eps,3);
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorall_) {
@@ -201,13 +202,17 @@ void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,Pe
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlgall_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorconverged_) {
-    *ierr = EPSMonitorSet(*eps,EPSMonitorConverged,0,0);
+    if (!FORTRANNULLOBJECT(mctx)) { PetscError(((PetscObject)*eps)->comm,__LINE__,"epsmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to EPSMonitorSet"); *ierr = 1; return; }
+    *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
+    if (*ierr) return;
+    ctx->viewer = PETSC_NULL;
+    *ierr = EPSMonitorSet(*eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorfirst_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorFirst,0,0);
   } else {
     ((PetscObject)*eps)->fortran_func_pointers[0] = (PetscVoidFunction)monitor;
     ((PetscObject)*eps)->fortran_func_pointers[1] = (PetscVoidFunction)mctx;
-    if (FORTRANNULLFUNCTION(monitordestroy)) {
+    if (!monitordestroy) {
       *ierr = EPSMonitorSet(*eps,ourmonitor,*eps,0);
     } else {
       ((PetscObject)*eps)->fortran_func_pointers[2] = (PetscVoidFunction)monitordestroy;

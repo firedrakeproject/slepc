@@ -47,3 +47,16 @@
 
       parameter (SVD_LARGEST                =  0)
       parameter (SVD_SMALLEST               =  1)
+
+!
+!   Possible arguments to SVDMonitorSet()
+!
+      external SVDMONITORALL
+      external SVDMONITORLG
+      external SVDMONITORLGALL
+      external SVDMONITORCONVERGED
+      external SVDMONITORFIRST
+
+!
+!  End of Fortran include file for the SVD package in SLEPc
+!

@@ -30,3 +30,6 @@
       parameter (ST_MATMODE_INPLACE       =  1)
       parameter (ST_MATMODE_SHELL         =  2)
 
+!
+!  End of Fortran include file for the ST package in SLEPc
+!

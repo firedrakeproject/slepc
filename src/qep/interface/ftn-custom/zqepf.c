@@ -169,8 +169,9 @@ void PETSC_STDCALL qepcreate_(MPI_Fint *comm,QEP *qep,PetscErrorCode *ierr)
   *ierr = QEPCreate(MPI_Comm_f2c(*(comm)),qep);
 }
 
-void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void **,PetscErrorCode *),PetscErrorCode *ierr)
+void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
 {
+  SlepcConvMonitor ctx;
   CHKFORTRANNULLFUNCTION(monitordestroy);
   PetscObjectAllocateFortranPointers(*qep,3);
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorall_) {
@@ -180,13 +181,17 @@ void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,Pe
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorlgall_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorconverged_) {
-    *ierr = QEPMonitorSet(*qep,QEPMonitorConverged,0,0);
+    if (!FORTRANNULLOBJECT(mctx)) { PetscError(((PetscObject)*qep)->comm,__LINE__,"qepmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to QEPMonitorSet"); *ierr = 1; return; }
+    *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
+    if (*ierr) return;
+    ctx->viewer = PETSC_NULL;
+    *ierr = QEPMonitorSet(*qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorfirst_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorFirst,0,0);
   } else {
     ((PetscObject)*qep)->fortran_func_pointers[0] = (PetscVoidFunction)monitor;
     ((PetscObject)*qep)->fortran_func_pointers[1] = (PetscVoidFunction)mctx;
-    if (FORTRANNULLFUNCTION(monitordestroy)) {
+    if (!monitordestroy) {
       *ierr = QEPMonitorSet(*qep,ourmonitor,*qep,0);
     } else {
       ((PetscObject)*qep)->fortran_func_pointers[2] = (PetscVoidFunction)monitordestroy;

@@ -180,18 +180,18 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  dummy  - unused monitor context 
+-  monctx - monitor context (contains viewer, can be PETSC_NULL)
 
    Level: intermediate
 
 .seealso: EPSMonitorSet(), EPSMonitorFirst(), EPSMonitorConverged()
 @*/
-PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
+PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    er,ei;
-  PetscViewer    viewer = dummy? (PetscViewer)dummy: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
 
   PetscFunctionBegin;
   if (its) {
@@ -230,17 +230,17 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  dummy  - unused monitor context 
+-  monctx - monitor context (contains viewer, can be PETSC_NULL)
 
    Level: intermediate
 
 .seealso: EPSMonitorSet(), EPSMonitorAll(), EPSMonitorConverged()
 @*/
-PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
+PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
   PetscScalar    er,ei;
-  PetscViewer    viewer = dummy? (PetscViewer)dummy: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
@@ -276,36 +276,43 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  dummy  - unused monitor context 
+-  monctx - monitor context
+
+   Note:
+   The monitor context must contain a struct with a PetscViewer and a
+   PetscInt. In Fortran, pass a PETSC_NULL_OBJECT.
 
    Level: intermediate
 
 .seealso: EPSMonitorSet(), EPSMonitorFirst(), EPSMonitorAll()
 @*/
-PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *dummy)
+PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode   ierr;
   PetscInt         i;
   PetscScalar      er,ei;
-  SlepcConvMonitor ctx = (SlepcConvMonitor)dummy;
+  PetscViewer      viewer;
+  SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
 
   PetscFunctionBegin;
+  if (!monctx) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Must provide a context for EPSMonitorConverged");
   if (!its) {
     ctx->oldnconv = 0;
   } else {
+    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIAddTab(ctx->viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(ctx->viewer,"%3D EPS converged value (error) #%D",its,i);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS converged value (error) #%D",its,i);CHKERRQ(ierr);
       er = eigr[i]; ei = eigi[i];
       ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(ctx->viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(ctx->viewer," %G",er);CHKERRQ(ierr);
-      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(ctx->viewer,"%+Gi",ei);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %G",er);CHKERRQ(ierr);
+      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
 #endif
-      ierr = PetscViewerASCIIPrintf(ctx->viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIISubtractTab(ctx->viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
     }
     ctx->oldnconv = nconv;
   }
