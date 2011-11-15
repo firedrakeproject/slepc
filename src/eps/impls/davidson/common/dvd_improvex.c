@@ -113,14 +113,14 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
-  PetscBool       useJD, herm = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
+  PetscBool       useGD, herm = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE, std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
   PC              pc;
-  PetscInt        size_P;
+  PetscInt        size_P,s=1;
 
   PetscFunctionBegin;
 
   /* Setting configuration constrains */
-  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &useJD); CHKERRQ(ierr);
+  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &useGD); CHKERRQ(ierr);
 
   /* If the arithmetic is real and the problem is not Hermitian, then
      the block size is incremented in one */
@@ -128,23 +128,27 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
   if (!herm) {
     max_bs++;
     b->max_size_P = PetscMax(b->max_size_P, 2);
+    s = 2;
   } else
 #endif
     b->max_size_P = PetscMax(b->max_size_P, 1);
   b->max_size_X = PetscMax(b->max_size_X, max_bs);
   size_P = b->max_size_P+cX_impr;
-  b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X*(useJD?3:2));
-                                                            /* u, kr?, auxV */
+  b->max_size_auxV = PetscMax(b->max_size_auxV,
+     b->max_size_X*(useGD?2:3)+ /* u, kr?, auxV */
+     (herm?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
+ 
   b->own_scalars+= size_P*size_P; /* XKZ */
   b->max_size_auxS = PetscMax(b->max_size_auxS,
     (herm?0:1)*2*b->max_size_proj*b->max_size_proj + /* pX, pY */
     b->max_size_X*3 + /* theta, thetai */
     size_P*size_P + /* iXKZ */
     FromIntToScalar(size_P) + /* iXkZPivots */
-    PetscMax(PetscMax(
+    PetscMax(PetscMax(PetscMax(
       3*b->max_size_proj*b->max_size_X, /* dvd_improvex_apply_proj */
       8*cX_impr*b->max_size_X), /* dvd_improvex_jd_proj_cuv_KZX */
-      (herm?0:1)*6*b->max_size_proj)); /* dvd_improvex_get_eigenvectors */
+      (herm?0:1)*6*b->max_size_proj), /* dvd_improvex_get_eigenvectors */
+      herm?0:b->max_nev*b->max_nev+PetscMax(b->max_nev*6,(b->max_nev+b->max_size_proj)*s+b->max_nev*(b->max_size_X+b->max_size_cX_proj)*(std_probl?2:4)+64))); /* preTestConv */
   b->own_vecs+= size_P; /* KZ */
 
   /* Setup the preconditioner */
@@ -168,7 +172,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     data->old_improveX_data = d->improveX_data;
     d->improveX_data = data;
     data->old_improveX = d->improveX;
-    data->ksp = useJD?ksp:PETSC_NULL;
+    data->ksp = useGD?PETSC_NULL:ksp;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
     data->ksp_max_size = max_bs;
@@ -385,8 +389,12 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
 
     /* Check if the first eigenpairs are converged */
     if (i == 0) {
-      ierr = d->preTestConv(d, 0, s, s, PETSC_NULL, PETSC_NULL, &d->npreconv);
-      CHKERRQ(ierr);
+      PetscInt n_auxV = data->auxV-d->auxV+s, n_auxS = auxS - d->auxS;
+      d->auxV+= n_auxV; d->size_auxV-= n_auxV;
+      d->auxS+= n_auxS; d->size_auxS-= n_auxS;
+      ierr = d->preTestConv(d,0,s,s,d->auxV-s,PETSC_NULL,&d->npreconv);CHKERRQ(ierr);
+      d->auxV-= n_auxV; d->size_auxV+= n_auxV;
+      d->auxS-= n_auxS; d->size_auxS+= n_auxS;
       if (d->npreconv > 0) break;
     }
 

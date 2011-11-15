@@ -207,6 +207,8 @@ typedef struct _dvdDashboard {
 
   PetscErrorCode (*calcpairs_residual)(struct _dvdDashboard*, PetscInt s, PetscInt e,
                                  Vec *R);
+  PetscErrorCode (*calcpairs_residual_eig)(struct _dvdDashboard*, PetscInt s, PetscInt e,
+                                 Vec *R);
   PetscErrorCode (*calcpairs_selectPairs)(struct _dvdDashboard*, PetscInt n);
   void *calcpairs_residual_data;
   PetscErrorCode (*improvex_precond)(struct _dvdDashboard*, PetscInt i, Vec x,
@@ -359,6 +361,7 @@ typedef struct {
     max_size_P,         /* number of computed vectors for the projector */
     max_size_cP,        /* number of converged vectors in the projectors */
     max_size_proj,      /* max size projected problem */
+    max_size_cX_proj,   /* max converged vectors in the projected problme */
     own_vecs,           /* number of global vecs */
     own_scalars;        /* number of local scalars */
   Vec *free_vecs;       /* free global vectors */
@@ -534,6 +537,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt size_auxS, PetscBool doProd);
 PETSC_EXTERN_CXX_BEGIN
 PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, PetscScalar *V, PetscInt ldV);
+PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *eigi,PetscScalar *X,PetscInt ldX,PetscBool doProd);
 PETSC_EXTERN_CXX_END
 
 /* SLEPc interface routines */

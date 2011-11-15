@@ -89,10 +89,8 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
 
   b->max_size_V = PetscMax(b->max_size_V, mpd);
   min_size_V = PetscMin(min_size_V, mpd-bs);
-  b->max_size_auxV = PetscMax(b->max_size_auxV, 2 /* testConv */ );
-  b->max_size_auxS = PetscMax(PetscMax(b->max_size_auxS,
-                              b->max_size_V*2 /* SlepcDenseOrth  */ ), 
-                              b->max_size_V /* testConv */ );
+  b->max_size_auxV = PetscMax(b->max_size_auxV, 1); /* dvd_updateV_testConv */
+  b->max_size_auxS = PetscMax(b->max_size_auxS, b->max_size_V*2 /* SlepcDenseOrth  */ );
   b->size_V = PetscMax(b->size_V, b->max_size_V + b->max_size_P + b->max_nev);
   b->own_scalars+= b->size_V*2 /* eigr, eigr */ +
                    b->size_V /* nR */   +
@@ -462,10 +460,8 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   d->size_D = size_D;
   if (size_D == 0) { PetscFunctionReturn(0); }
 
-  /* Get the converged pairs */
-  ierr = dvd_updateV_testConv(d, 0, size_D,
-    data->allResiduals?d->size_V:size_D, d->auxV, d->auxS,
-    &d->npreconv); CHKERRQ(ierr);
+  /* Get the residual of all pairs */
+  ierr = dvd_updateV_testConv(d,size_D,size_D,data->allResiduals?d->size_V:size_D,d->auxV,d->auxS,PETSC_NULL);CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;
@@ -488,12 +484,12 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_testConv"
-/* auxS: max_size_V */
+/* auxV: (by calcpairs_residual_eig) */
 PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
                                     PetscInt e, Vec *auxV, PetscScalar *auxS,
                                     PetscInt *nConv)
 {
-  PetscInt        i;
+  PetscInt        i,b;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        j;
 #endif
@@ -504,25 +500,43 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
 
   PetscFunctionBegin;
   
-  *nConv = s;
+  if (nConv) *nConv = s;
   for(i=s, conv=PETSC_TRUE;
       (conv || data->allResiduals) && (i < e);
-      i++) {
-    if (i >= pre) {
-      ierr = d->calcpairs_residual(d, i, i+1, auxV);
+      i+=b) {
+#if !defined(PETSC_USE_COMPLEX)
+    b = d->eigi[i]!=0.0?2:1; 
+#else
+    b = 1;
+#endif
+    if (i+b-1 >= pre) {
+      ierr = d->calcpairs_residual(d, i, i+b, auxV);
       CHKERRQ(ierr);
     }
-    norm = d->nR[i]/d->nX[i];
-    c = d->testConv(d, d->eigr[i], d->eigi[i], norm, &d->errest[i]);
-    if (conv && c) *nConv = i+1;
+    /* Test the Schur vector */
+    for (j=0,c=PETSC_TRUE; j<b && c; j++) {
+      norm = d->nR[i+j]/d->nX[i+j]; 
+      c = d->testConv(d, d->eigr[i+j], d->eigi[i+j], norm, &d->errest[i+j]);
+    }
+    /* Test the eigenvector */
+    if (conv && c) {
+      ierr = d->calcpairs_residual_eig(d,i,i+b,auxV);CHKERRQ(ierr);
+      for (j=0,c=PETSC_TRUE; j<b && c; j++) {
+        norm = d->nR[i+j]/d->nX[i+j];
+        c = d->testConv(d, d->eigr[i+j], d->eigi[i+j], norm, &d->errest[i+j]);
+      }
+    }
+    if (conv && c) { if (nConv) *nConv = i+b; }
     else conv = PETSC_FALSE;
   }
   pre = PetscMax(pre, i);
 
 #if !defined(PETSC_USE_COMPLEX)
   /* Enforce converged conjugate conjugate complex eigenpairs */
-  for(j=0; j<*nConv; j++) if(d->eigi[j] != 0.0) j++;
-  if(j > *nConv) (*nConv)--;
+  if (nConv) {
+    for(j=0; j<*nConv; j++) if(d->eigi[j] != 0.0) j++;
+    if(j > *nConv) (*nConv)--;
+  }
 #endif
   for(i=pre; i<e; i++) d->errest[i] = d->nR[i] = PETSC_MAX_REAL;
   
