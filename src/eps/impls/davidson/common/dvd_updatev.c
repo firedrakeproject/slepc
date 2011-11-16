@@ -489,10 +489,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
                                     PetscInt e, Vec *auxV, PetscScalar *auxS,
                                     PetscInt *nConv)
 {
-  PetscInt        i,b;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscInt        j;
-#endif
+  PetscInt        i,j,b;
   PetscReal       norm;
   PetscErrorCode  ierr;
   PetscBool       conv, c;
