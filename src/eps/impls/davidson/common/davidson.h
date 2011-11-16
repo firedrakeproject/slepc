@@ -361,7 +361,7 @@ typedef struct {
     max_size_P,         /* number of computed vectors for the projector */
     max_size_cP,        /* number of converged vectors in the projectors */
     max_size_proj,      /* max size projected problem */
-    max_size_cX_proj,   /* max converged vectors in the projected problme */
+    max_size_cX_proj,   /* max converged vectors in the projected problem */
     own_vecs,           /* number of global vecs */
     own_scalars;        /* number of local scalars */
   Vec *free_vecs;       /* free global vectors */

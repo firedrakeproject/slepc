@@ -35,7 +35,7 @@ def Check(conf,vars,cmake,tmpdir):
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
-    l += ['orghr','syevr','sygvd','ormlq']
+    l += ['orghr','syevr','sygvd','ormlq','rot']
     if petscconf.PRECISION == 'single':
       prefix = 's'
     if petscconf.PRECISION == '__float128':
@@ -46,10 +46,13 @@ def Check(conf,vars,cmake,tmpdir):
     l += ['unghr','heevr','hegvd','unmlq','ungtr','hetrd']
     if petscconf.PRECISION == 'single':
       prefix = 'c'
+      l += ['srot']
     if petscconf.PRECISION == '__float128':
       prefix = 'w'
+      l += ['qrot']
     else:
       prefix = 'z'
+      l += ['drot']
 
   # add prefix to LAPACK names  
   functions = []
@@ -58,11 +61,11 @@ def Check(conf,vars,cmake,tmpdir):
 
   # LAPACK functions which are always used in real version 
   if petscconf.PRECISION == 'single':
-    functions += ['sstevr','sbdsdc','ssteqr','sorgtr','ssytrd','slamch','slag2']
+    functions += ['sstevr','sbdsdc','ssteqr','sorgtr','ssytrd','slamch','slag2','slasv2']
   elif petscconf.PRECISION == '__float128':
-    functions += ['qstevr','qbdsdc','qsteqr','qorgtr','qsytrd','qlamch','qlag2']
+    functions += ['qstevr','qbdsdc','qsteqr','qorgtr','qsytrd','qlamch','qlag2','qlasv2']
   else:
-    functions += ['dstevr','dbdsdc','dsteqr','dorgtr','dsytrd','dlamch','dlag2']
+    functions += ['dstevr','dbdsdc','dsteqr','dorgtr','dsytrd','dlamch','dlag2','dlasv2']
    
   # check for all functions at once
   all = [] 

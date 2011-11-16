@@ -1398,7 +1398,7 @@ PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, 
 #define __FUNCT__ "EPSCleanDenseSchur"
 /* Write zeros from the column k to n in the lower triangular part of the
    matrices S and T, and inside 2-by-2 diagonal blocks of T in order to
-   make (S,T) be a valid Schur decompositon.
+   make (S,T) a valid Schur decompositon.
 */
 PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *eigi,PetscScalar *X,PetscInt ldX,PetscBool doProd)
 {

@@ -529,7 +529,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   pre = PetscMax(pre, i);
 
 #if !defined(PETSC_USE_COMPLEX)
-  /* Enforce converged conjugate conjugate complex eigenpairs */
+  /* Enforce converged conjugate complex eigenpairs */
   if (nConv) {
     for(j=0; j<*nConv; j++) if(d->eigi[j] != 0.0) j++;
     if(j > *nConv) (*nConv)--;
