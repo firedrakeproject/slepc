@@ -907,7 +907,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
                          DvdMult_copy_func *sr)
 {
   PetscErrorCode    ierr;
-  PetscInt          ldU, ldV;
+  PetscInt          ldU, ldV, ms = (eU-sU)*sV*(sU==0?0:1)+(eV-sV)*eU;
   const PetscScalar *pu, *pv;
   PetscScalar       *W;
 
@@ -954,8 +954,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     /* Add the reduction to r */
-    ierr = SlepcAllReduceSum(r, (eU-sU)*sV+(eV-sV)*eU, VecsMultS_copy_func,
-                             sr, &W);
+    ierr = SlepcAllReduceSum(r, ms, VecsMultS_copy_func, sr, &W);
     CHKERRQ(ierr);
 
     /* W(0:(eU-sU)*sV-1) <- U(sU:eU-1)' * V(0:sV-1) */
@@ -965,15 +964,15 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
     CHKERRQ(ierr);
   
     /* W((eU-sU)*sV:(eU-sU)*sV+(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
-    ierr = SlepcDenseMatProd(W+(eU-sU)*sV, eU, 0.0, 1.0,
+    ierr = SlepcDenseMatProd(W+(eU-sU)*sV*(sU > 0?1:0), eU, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
                              pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);
     CHKERRQ(ierr);
   
     /* M <- ReduceAll(W, SUM) */
-    sr->M = M;    sr->ld = ldM;
-    sr->i0 = 0;   sr->i1 = sV;    sr->s0 = sU;    sr->e0 = eU;
-                  sr->i2 = eV;    sr->s1 = 0;     sr->e1 = eU;
+    sr->M = M;            sr->ld = ldM;
+    sr->i0 = sU>0?0:sV;   sr->i1 = sV;    sr->s0 = sU;    sr->e0 = eU;
+                          sr->i2 = eV;    sr->s1 = 0;     sr->e1 = eU;
 
   /* Upper triangular M matrix */
   } else if (DVD_IS(sM,DVD_MAT_UTRIANG) &&

@@ -588,10 +588,14 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
   PetscInt ld)
 {
   PetscErrorCode  ierr;
-  PetscInt        n = i_e - i_s, size_KZ, V_new, rm, i;
-  PetscScalar     *wS0, *wS1;
+  PetscInt        n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscBLASInt    s, ldXKZ, info;
+  DvdReduction    r;
+  DvdReductionChunk
+                  ops[2];
+  DvdMult_copy_func
+                  sr[2];
 
   PetscFunctionBegin;
 
@@ -621,9 +625,11 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
 
   /* XKZ <- X'*KZ */
   size_KZ = data->size_KZ+n;
-  wS0 = *auxS; wS1 = wS0+2*n*data->size_KZ+n*n;
-  ierr = VecsMult(data->XKZ, 0, data->ldXKZ, d->V-data->size_KZ, 0, data->size_KZ, data->KZ, data->size_KZ, size_KZ, wS0, wS1);CHKERRQ(ierr);
-  ierr = VecsMult(&data->XKZ[data->size_KZ], 0, data->ldXKZ, *u, 0, n, data->KZ, 0, size_KZ, wS0, wS1);CHKERRQ(ierr);
+  size_in = 2*n*data->size_KZ+n*n;
+  ierr = SlepcAllReduceSumBegin(ops,2,*auxS,*auxS+size_in,size_in,&r,((PetscObject)d->V[0])->comm);CHKERRQ(ierr);
+  ierr = VecsMultS(data->XKZ,0,data->ldXKZ,d->V-data->size_KZ,0,data->size_KZ,data->KZ,data->size_KZ,size_KZ,&r,&sr[0]);CHKERRQ(ierr);
+  ierr = VecsMultS(&data->XKZ[data->size_KZ],0,data->ldXKZ,*u,0,n,data->KZ,0,size_KZ,&r,&sr[1]);CHKERRQ(ierr);
+  ierr = SlepcAllReduceSumEnd(&r); CHKERRQ(ierr);
 
   /* iXKZ <- inv(XKZ) */
   s = PetscBLASIntCast(size_KZ);
