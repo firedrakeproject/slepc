@@ -29,5 +29,6 @@ SOURCEF  =
 SOURCEH  =
 DIRS     =
 LIBBASE  = libslepc
+MANSEC   = sys
 LOCDIR   = src/sys/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common  
