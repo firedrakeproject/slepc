@@ -279,12 +279,12 @@ except:
   sys.exit('ERROR: cannot create temporary directory')
 try:
   makefile = open(os.sep.join([tmpdir,'makefile']),'w')
-  makefile.write('include ${PETSC_DIR}/conf/variables\n')
-  makefile.write('include ${PETSC_DIR}/conf/rules\n')
   makefile.write('checklink: checklink.o chkopts\n')
   makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
   makefile.write('\t@${RM} -f checklink checklink.o\n')
   makefile.write('LOCDIR = ./\n')
+  makefile.write('include ${PETSC_DIR}/conf/variables\n')
+  makefile.write('include ${PETSC_DIR}/conf/rules\n')
   makefile.close()
 except:
   sys.exit('ERROR: cannot create makefile in temporary directory')
