@@ -1417,7 +1417,7 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
 #if defined(PETSC_USE_COMPLEX)
   for (i=k; i<n; i++) {
     for (j=i+1; j<n; j++) {
-      S[ldcS*i+j] = 0.0;
+      S[ldS*i+j] = 0.0;
       if (T) T[ldT*i+j] = 0.0;
     }
   }
