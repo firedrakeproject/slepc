@@ -113,9 +113,9 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
   } else if (eps->mpd) eps->ncv = eps->mpd + eps->nev + bs;
   else if (eps->nev<500)
-    eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15))+bs;
+    eps->ncv = PetscMin(eps->n-bs,PetscMax(2*eps->nev,eps->nev+15))+bs;
   else
-    eps->ncv = PetscMin(eps->n,eps->nev+500)+bs;
+    eps->ncv = PetscMin(eps->n-bs,eps->nev+500)+bs;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->mpd > eps->ncv)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
@@ -220,12 +220,20 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Setup the extraction technique */
   if (!eps->extraction) {
-    if (ipB || ispositive)
-      eps->extraction = EPS_RITZ;
-    else if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_IMAGINARY || eps->which == EPS_LARGEST_REAL)
+    if (ipB || ispositive) eps->extraction = EPS_RITZ;
+    else {
+      switch(eps->which) {
+      case EPS_TARGET_REAL: case EPS_TARGET_MAGNITUDE: case EPS_TARGET_IMAGINARY:
+      case EPS_SMALLEST_MAGNITUDE: case EPS_SMALLEST_REAL: case EPS_SMALLEST_IMAGINARY:
+      eps->extraction = EPS_HARMONIC;
+      break;
+      case EPS_LARGEST_REAL: case EPS_LARGEST_MAGNITUDE: case EPS_LARGEST_IMAGINARY:
       eps->extraction = EPS_HARMONIC_LARGEST;
-    else
+      break;
+      default:
       eps->extraction = EPS_RITZ;
+      }
+    }
   }
   switch(eps->extraction) {
   case EPS_RITZ:              harm = DVD_HARM_NONE; break;
