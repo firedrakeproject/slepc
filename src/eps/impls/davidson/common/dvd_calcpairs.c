@@ -744,10 +744,6 @@ PetscErrorCode dvd_calcpairs_selectPairs_eig(dvdDashboard *d, PetscInt n)
 PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
 {
   PetscErrorCode  ierr;
-#if defined(PETSC_USE_COMPLEX)
-  PetscScalar     s;
-  PetscInt        i, j;
-#endif
   PetscFunctionBegin;
 
   if ((d->ldpX != d->size_H) ||
@@ -770,16 +766,10 @@ PetscErrorCode dvd_calcpairs_selectPairs_qz(dvdDashboard *d, PetscInt n)
     ierr = d->calcpairs_eigs_trans(d); CHKERRQ(ierr);
   }
 
-  /* Some functions need the diagonal elements in T be real */
 #if defined(PETSC_USE_COMPLEX)
-  if (d->T) for(i=0; i<d->size_H; i++)
-    if (PetscImaginaryPart(d->T[d->ldT*i+i]) != 0.0) {
-      s = PetscConj(d->T[d->ldT*i+i])/PetscAbsScalar(d->T[d->ldT*i+i]);
-      for(j=0; j<=i; j++)
-        d->T[d->ldT*i+j] = PetscRealPart(d->T[d->ldT*i+j]*s),
-        d->S[d->ldS*i+j]*= s;
-      for(j=0; j<d->size_H; j++) d->pX[d->ldpX*i+j]*= s;
-    }
+  if (d->T) {
+    ierr = EPSCleanDenseSchur(d->size_H,0,d->S,d->ldS,d->T,d->ldT,d->eigi-d->cX_in_H,d->pX,d->ldpX,PETSC_TRUE);CHKERRQ(ierr);
+  }
 #endif
 
   PetscFunctionReturn(0);
@@ -887,13 +877,17 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
 {
   PetscInt        i,ldpX,size_in;
   PetscErrorCode  ierr;
-  Vec             *Bx, X[4];
-  PetscScalar     *pX,*pX0, b[8];
+  Vec             *Bx;
+  PetscScalar     *pX,*pX0;
   DvdReduction    r;
   DvdReductionChunk
                   ops[2];
   DvdMult_copy_func
                   sr[2];
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar     b[8];
+  Vec             X[4];
+#endif
 
   PetscFunctionBegin;
 

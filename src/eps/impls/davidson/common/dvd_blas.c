@@ -1403,6 +1403,9 @@ PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, 
 PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *eigi,PetscScalar *X,PetscInt ldX,PetscBool doProd)
 {
   PetscInt        i, j;
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar     s;
+#endif
 
   PetscFunctionBegin;
   PetscValidScalarPointer(S,3);
@@ -1415,7 +1418,16 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
 
 #if defined(PETSC_USE_COMPLEX)
   for (i=k; i<n; i++) {
-    for (j=i+1; j<n; j++) {
+    /* Some functions need the diagonal elements in T be real */
+    if (T && PetscImaginaryPart(T[ldT*i+i]) != 0.0) {
+      s = PetscConj(T[ldT*i+i])/PetscAbsScalar(T[ldT*i+i]);
+      for(j=0; j<=i; j++)
+        T[ldT*i+j]*= s,
+        S[ldS*i+j]*= s;
+      T[ldT*i+i] = PetscRealPart(T[ldT*i+i]);
+      if (X) for(j=0; j<n; j++) X[ldX*i+j]*= s;
+    }
+    if ((j=i+1) < n) {
       S[ldS*i+j] = 0.0;
       if (T) T[ldT*i+j] = 0.0;
     }
@@ -1423,8 +1435,7 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
 #else
   for (i=k; i<n; i++) {
     if (S[ldS*i+i+1] != 0.0 && eigi && eigi[i] != 0.0) {
-      for (j=i+2; j<n; j++) S[ldS*i+j] = 0.0;
-      for (j=i+2; j<n; j++) S[ldS*(i+1)+j] = 0.0;
+      if ((j=i+2) < n) S[ldS*(i+1)+j] = 0.0;
       if (T) {
         /* T[ldT*(i+1)+i] = 0.0; */
         {
@@ -1451,12 +1462,12 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
             T[ldT*(i+1)+i] = T[ldT*i+i+1] = 0.0;
           }
         }
-        for (j=i+1; j<n; j++) T[ldT*i+j] = 0.0;
-        for (j=i+2; j<n; j++) T[ldT*(i+1)+j] = 0.0;
+        if ((j=i+1) < n) T[ldT*i+j] = 0.0;
+        if ((j=i+2) < n) T[ldT*(i+1)+j] = 0.0;
       }
       i++;
     } else {
-      for (j=i+1; j<n; j++) {
+      if ((j=i+1) < n) {
         S[ldS*i+j] = 0.0;
         if (T) T[ldT*i+j] = 0.0;
       }
