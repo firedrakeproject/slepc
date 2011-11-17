@@ -516,7 +516,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
       c = d->testConv(d, d->eigr[i+j], d->eigi[i+j], norm, &d->errest[i+j]);
     }
     /* Test the eigenvector */
-    if (conv && c) {
+    if (d->eps->trueres && conv && c) {
       ierr = d->calcpairs_residual_eig(d,i,i+b,auxV);CHKERRQ(ierr);
       for (j=0,c=PETSC_TRUE; j<b && c; j++) {
         norm = d->nR[i+j]/d->nX[i+j];

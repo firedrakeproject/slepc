@@ -136,7 +136,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
   size_P = b->max_size_P+cX_impr;
   b->max_size_auxV = PetscMax(b->max_size_auxV,
      b->max_size_X*(useGD?2:3)+ /* u, kr?, auxV */
-     (herm?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
+     ((herm || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
  
   b->own_scalars+= size_P*size_P; /* XKZ */
   b->max_size_auxS = PetscMax(b->max_size_auxS,
@@ -148,7 +148,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
       3*b->max_size_proj*b->max_size_X, /* dvd_improvex_apply_proj */
       8*cX_impr*b->max_size_X), /* dvd_improvex_jd_proj_cuv_KZX */
       (herm?0:1)*6*b->max_size_proj), /* dvd_improvex_get_eigenvectors */
-      herm?0:b->max_nev*b->max_nev+PetscMax(b->max_nev*6,(b->max_nev+b->max_size_proj)*s+b->max_nev*(b->max_size_X+b->max_size_cX_proj)*(std_probl?2:4)+64))); /* preTestConv */
+      (herm || !d->eps->trueres)?0:b->max_nev*b->max_nev+PetscMax(b->max_nev*6,(b->max_nev+b->max_size_proj)*s+b->max_nev*(b->max_size_X+b->max_size_cX_proj)*(std_probl?2:4)+64))); /* preTestConv */
   b->own_vecs+= size_P; /* KZ */
 
   /* Setup the preconditioner */
