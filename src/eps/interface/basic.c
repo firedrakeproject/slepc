@@ -498,6 +498,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->numbermonitors  = 0;
 
   ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetSeed(eps->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(eps,eps->rand);CHKERRQ(ierr);
   *outeps = eps;
   PetscFunctionReturn(0);

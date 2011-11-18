@@ -324,6 +324,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->trackall       = PETSC_FALSE;
 
   ierr = PetscRandomCreate(comm,&svd->rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetSeed(svd->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(svd,svd->rand);CHKERRQ(ierr);
   *outsvd = svd;
   PetscFunctionReturn(0);

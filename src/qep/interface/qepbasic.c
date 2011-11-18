@@ -392,6 +392,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->rand            = 0;
 
   ierr = PetscRandomCreate(comm,&qep->rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetSeed(qep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(qep,qep->rand);CHKERRQ(ierr);
   *outqep = qep;
   PetscFunctionReturn(0);

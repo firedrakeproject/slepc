@@ -405,6 +405,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
       PetscInfo(ip,"Linearly dependent vector found, generating a new random vector\n");
       if (!rctx) {
         ierr = PetscRandomCreate(((PetscObject)ip)->comm,&rctx);CHKERRQ(ierr);
+        ierr = PetscRandomSetSeed(rctx,0x12345678);CHKERRQ(ierr);
         ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
       }
       ierr = SlepcVecSetRandom(V[k],rctx);CHKERRQ(ierr);
