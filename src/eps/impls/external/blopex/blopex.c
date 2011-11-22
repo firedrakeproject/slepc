@@ -301,7 +301,7 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
-  LOBPCG_InitRandomContext(((PetscObject)eps)->comm);
+  LOBPCG_InitRandomContext(((PetscObject)eps)->comm,eps->rand);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

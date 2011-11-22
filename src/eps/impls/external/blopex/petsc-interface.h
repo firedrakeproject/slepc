@@ -47,7 +47,7 @@ PETSC_Axpy( void *alpha,
                 void   *y );
 
 int
-LOBPCG_InitRandomContext(MPI_Comm);
+LOBPCG_InitRandomContext(MPI_Comm,PetscRandom);
 
 int
 LOBPCG_SetFromOptionsRandomContext(void);
