@@ -86,7 +86,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   /* Set the default options of the KSP */
   ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);
+    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
   }
   
@@ -110,7 +110,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   /* Set the default options of the KSP */
   ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);
+    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
   }
  
