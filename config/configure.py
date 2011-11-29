@@ -49,8 +49,8 @@ import primme
 import blopex
 import slepc4py
 
-if not hasattr(sys, 'version_info') or not sys.version_info[1] >= 2:
-  print '**** You must have Python version 2.2 or higher to run config/configure.py ******'
+if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 4:
+  print '*****  You must have Python2 version 2.4 or higher to run ./configure.py   ******'
   print '*           Python is easy to install for end users or sys-admin.               *'
   print '*                   http://www.python.org/download/                             *'
   print '*                                                                               *'
