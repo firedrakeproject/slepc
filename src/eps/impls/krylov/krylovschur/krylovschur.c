@@ -87,7 +87,10 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (!eps->max_it) {
+    if (eps->which==EPS_ALL) eps->max_it = 100;  /* special case for spectrum slicing */
+    else eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  }
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
