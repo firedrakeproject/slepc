@@ -132,7 +132,7 @@ def FortranLib(tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
     log.write(error)
     log.Println('ERROR: Unable to link with library '+ name)
     log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))
-    log.Println('ERROR: With flags '+''.join([s+' ' for s in libs]))
+    log.Println('ERROR: With flags '+''.join([s+' ' for s in flags]))
     log.Exit('')
     
 
