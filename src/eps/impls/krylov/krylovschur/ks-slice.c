@@ -362,7 +362,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscReal      *a,*b,*work,beta;
   PetscBool      breakdown;
   PetscInt       count0,count1;
-  PetscReal      theta,lambda;
+  PetscReal      lambda;
   shift          sPres;
   PetscBool      complIterating,iscayley;
   PetscBool      sch0,sch1;
@@ -460,10 +460,9 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     ierr = STBackTransform(eps->OP,k,sr->back,eps->eigi);CHKERRQ(ierr);
     count0=count1=0;
     for(i=0;i<k;i++){      
-      theta = PetscRealPart(eps->eigr[i]);
       lambda = PetscRealPart(sr->back[i]);
-      if( ((sr->dir)*theta < 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0))count0++;
-      if( ((sr->dir)*theta > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0))count1++;
+      if( ((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0))count0++;
+      if( ((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0))count1++;
     }
     
     /* Checks completion */
