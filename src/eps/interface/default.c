@@ -161,7 +161,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     }
   }
   
-  /* AV = V * Z */
+  /* V = V * Z */
   ierr = SlepcUpdateVectors(eps->nconv,eps->V,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Purify eigenvectors */
@@ -209,7 +209,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #endif
     if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
 
-    /* AW = W * Z */
+    /* W = W * Z */
     ierr = SlepcUpdateVectors(eps->nconv,eps->W,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
   }
    
