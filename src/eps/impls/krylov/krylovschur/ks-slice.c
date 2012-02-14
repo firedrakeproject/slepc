@@ -788,6 +788,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   PetscReal      *errest_left;
   Vec            t;
   SR             sr;
+  shift          s;
  
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)
@@ -915,7 +916,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = PetscFree(sr->monit);CHKERRQ(ierr);
   ierr = PetscFree(sr->back);CHKERRQ(ierr);
   /* Reviewing list of shifts to free memory */
-  shift s = sr->s0;
+  s = sr->s0;
   if(s){
     while(s->neighb[1]){
       s = s->neighb[1];
