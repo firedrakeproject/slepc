@@ -155,7 +155,7 @@ static PetscErrorCode EPSExtractShift(EPS eps){
       dir*=sr->dir;
       k = 0;
       for(i=0;i<sr->nS;i++){
-        if(dir*sr->S[i] >0){
+        if(dir*PetscRealPart(sr->S[i])>0.0){
           sr->S[k] = sr->S[i];
           sr->S[sr->nS+k] = sr->S[sr->nS+i];
           ierr = VecCopy(eps->V[eps->nconv+i],eps->V[k++]);CHKERRQ(ierr);
