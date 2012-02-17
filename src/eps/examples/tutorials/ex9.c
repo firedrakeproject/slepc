@@ -105,6 +105,7 @@ int main(int argc,char **argv)
   ierr = MatCreate(PETSC_COMM_WORLD,&ctx->T);CHKERRQ(ierr);
   ierr = MatSetSizes(ctx->T,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(ctx->T);CHKERRQ(ierr);
+  ierr = MatSetUp(ctx->T);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(ctx->T,&Istart,&Iend);CHKERRQ(ierr);
   if (Istart==0) FirstBlock=PETSC_TRUE;

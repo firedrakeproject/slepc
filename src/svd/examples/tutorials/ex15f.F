@@ -77,6 +77,7 @@
       call MatCreate(PETSC_COMM_WORLD,A,ierr)
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n,ierr)
       call MatSetFromOptions(A,ierr)
+      call MatSetUp(A,ierr)
 
       call MatGetOwnershipRange(A,Istart,Iend,ierr)
       do i=Istart,Iend-1

@@ -5,7 +5,7 @@ eps type krylovschur
  Solution method: krylovschur
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-11, maxit=100
+ Stopping condition: tol=2.22e-13, maxit=100
  All requested eigenvalues computed up to the required tolerance:
      7.83797, 7.60149, 7.36501, 7.22871
 
@@ -16,7 +16,7 @@ eps type arnoldi
  Solution method: arnoldi
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-11, maxit=100
+ Stopping condition: tol=2.22e-13, maxit=100
  All requested eigenvalues computed up to the required tolerance:
      7.83797, 7.60149, 7.60149, 7.36501
 
@@ -27,7 +27,7 @@ eps type lanczos
  Solution method: lanczos
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-11, maxit=100
+ Stopping condition: tol=2.22e-13, maxit=100
  All requested eigenvalues computed up to the required tolerance:
      7.83797, 7.60149, 7.60149, 7.36501
 
@@ -38,7 +38,7 @@ eps type gd
  Solution method: gd
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-11, maxit=2000
+ Stopping condition: tol=2.22e-13, maxit=2000
  All requested eigenvalues computed up to the required tolerance:
      7.83797, 7.60149, 7.60149, 7.36501
 
@@ -49,7 +49,7 @@ eps type jd
  Solution method: jd
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=1e-11, maxit=2000
+ Stopping condition: tol=2.22e-13, maxit=2000
  All requested eigenvalues computed up to the required tolerance:
      7.83797, 7.60149, 7.60149, 7.36501
 

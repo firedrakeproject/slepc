@@ -90,6 +90,7 @@
       call MatCreate(PETSC_COMM_WORLD,A,ierr)
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
       call MatSetFromOptions(A,ierr)
+      call MatSetUp(A,ierr)
 
       call MatGetOwnershipRange(A,Istart,Iend,ierr)
       if (Istart .eq. 0) then 

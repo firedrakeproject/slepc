@@ -163,6 +163,7 @@ PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A
   ierr = MatCreate(((PetscObject)ctx->M)->comm,&Id);CHKERRQ(ierr);
   ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
+  ierr = MatSetUp(Id);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatShift(Id,1.0);CHKERRQ(ierr);
@@ -185,6 +186,7 @@ PetscErrorCode MatCreateExplicit_Linear_N1B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B
   ierr = MatCreate(((PetscObject)ctx->M)->comm,&Id);CHKERRQ(ierr);
   ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
+  ierr = MatSetUp(Id);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatShift(Id,1.0);CHKERRQ(ierr);

@@ -393,6 +393,7 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
   ierr = MatCreate(((PetscObject)A)->comm,G);CHKERRQ(ierr);
   ierr = MatSetSizes(*G,m1+m2,n1+n2,M1+M2,N1+N2);CHKERRQ(ierr);
   ierr = MatSetFromOptions(*G);CHKERRQ(ierr);
+  ierr = MatSetUp(*G);CHKERRQ(ierr);
 
   ierr = PetscTypeCompare((PetscObject)*G,MATMPIAIJ,&flg1);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)A,MATMPIAIJ,&flg2);CHKERRQ(ierr);

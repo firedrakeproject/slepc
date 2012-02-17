@@ -90,6 +90,7 @@
       call MatCreate(PETSC_COMM_WORLD,K,ierr)
       call MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
       call MatSetFromOptions(K,ierr)
+      call MatSetUp(K,ierr)
       call MatGetOwnershipRange(K,Istart,Iend,ierr)
       do II=Istart,Iend-1
         i = II/nx
@@ -115,6 +116,7 @@
       call MatCreate(PETSC_COMM_WORLD,C,ierr)
       call MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
       call MatSetFromOptions(C,ierr)
+      call MatSetUp(C,ierr)
       call MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY,ierr)
 
@@ -122,6 +124,7 @@
       call MatCreate(PETSC_COMM_WORLD,M,ierr)
       call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
       call MatSetFromOptions(M,ierr)
+      call MatSetUp(M,ierr)
       call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
       call MatShift(M,1.D0,ierr)

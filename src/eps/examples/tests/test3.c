@@ -48,6 +48,7 @@ int main(int argc,char **argv)
   ierr = MatCreate(PETSC_COMM_WORLD,&A1);CHKERRQ(ierr);
   ierr = MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A1);CHKERRQ(ierr);
+  ierr = MatSetUp(A1);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(A1,&Istart,&Iend);CHKERRQ(ierr);
   if (Istart==0) FirstBlock=PETSC_TRUE;

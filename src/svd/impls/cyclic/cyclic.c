@@ -102,11 +102,13 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatCreate(((PetscObject)svd)->comm,&Zm);CHKERRQ(ierr);
       ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
+      ierr = MatSetUp(Zm);CHKERRQ(ierr);
       ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatCreate(((PetscObject)svd)->comm,&Zn);CHKERRQ(ierr);
       ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
+      ierr = MatSetUp(Zn);CHKERRQ(ierr);
       ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);

@@ -1,23 +1,23 @@
 
-Lauchli singular value decomposition, (101 x 100) mu=1e-07
+Lauchli singular value decomposition, (101 x 100) mu=1.49012e-08
 
  Number of iterations of the method: 1
  Solution method: trlanczos
 
  Number of requested singular values: 1
- Stopping condition: tol=1e-07, maxit=100
+ Stopping condition: tol=1e-08, maxit=100
  Number of converged approximate singular triplets: 10
 
           sigma           relative error
   --------------------- ------------------
-        10.000000        1.69199e-15
-        0.000000        6.33716e-10
-        0.000000         1.8735e-09
-        0.000000        4.16334e-10
-        0.000000        1.11022e-09
-        0.000000        5.49907e-09
-        0.000000        1.88738e-08
-        0.000000          6.245e-10
-        0.000000        3.32319e-16
-        0.000000        1.79023e-08
+        10.000000        1.5877e-15
+        0.000000        4.65661e-09
+        0.000000         2.6077e-08
+        0.000000        3.72529e-09
+        0.000000        1.11759e-08
+        0.000000        1.49012e-08
+        0.000000        2.34693e-07
+        0.000000        1.30385e-08
+        0.000000        5.58794e-09
+        0.000000        1.21072e-08
 

@@ -24,10 +24,11 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
+             test8.c test9.c test10.c test11.c
 EXAMPLESF  = test7f.F
 MANSEC     = EPS
-TESTS      = test1 test2 test3 test4 test5 test6 test7f
+TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 test11
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \

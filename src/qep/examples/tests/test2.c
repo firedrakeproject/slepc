@@ -64,6 +64,7 @@ int main( int argc, char **argv )
   ierr = MatCreate(PETSC_COMM_WORLD,&K);CHKERRQ(ierr);
   ierr = MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(K);CHKERRQ(ierr);
+  ierr = MatSetUp(K);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
   for (i=Istart; i<Iend; i++) {
@@ -83,6 +84,7 @@ int main( int argc, char **argv )
   ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
   ierr = MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(C);CHKERRQ(ierr);
+  ierr = MatSetUp(C);CHKERRQ(ierr);
   
   ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
   for (i=Istart; i<Iend; i++) {
@@ -102,6 +104,7 @@ int main( int argc, char **argv )
   ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
   ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
+  ierr = MatSetUp(M);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
   for (i=Istart; i<Iend; i++) {
     ierr = MatSetValue(M,i,i,mu,INSERT_VALUES); CHKERRQ(ierr);
