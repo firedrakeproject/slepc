@@ -57,6 +57,7 @@ BlopexInt PETSC_dsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
                     n, double *a, BlopexInt *lda, double *b, BlopexInt *ldb,
                     double *w, double *work, BlopexInt *lwork, BlopexInt *info)
 {
+#ifndef PETSC_USE_COMPLEX
    PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
 
    itype_ = *itype;
@@ -66,13 +67,11 @@ BlopexInt PETSC_dsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
    lwork_ = *lwork;
    info_ = *info;
 
-#ifdef PETSC_USE_COMPLEX
-#else
    LAPACKsygv_(&itype_, jobz, uplo, &n_, (PetscScalar*)a, &lda_,
       (PetscScalar*)b, &ldb_, (PetscScalar*)w, (PetscScalar*)work, &lwork_, &info_);
-#endif
 
    *info = info_;
+#endif
    return 0;
 
 }
@@ -81,6 +80,7 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
                     n, komplex *a, BlopexInt *lda, komplex *b, BlopexInt *ldb,
                     double *w, komplex *work, BlopexInt *lwork, double *rwork, BlopexInt *info)
 {
+#ifdef PETSC_USE_COMPLEX
    PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
 
    itype_ = *itype;
@@ -90,12 +90,11 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
    lwork_ = *lwork;
    info_ = *info;
 
-#ifdef PETSC_USE_COMPLEX
    LAPACKsygv_(&itype_, jobz, uplo, &n_, (PetscScalar*)a, &lda_,
       (PetscScalar*)b, &ldb_, (PetscReal*)w, (PetscScalar*)work, &lwork_, (PetscReal*)rwork, &info_);
-#endif
 
    *info = info_;
+#endif
    return 0;
 
 }

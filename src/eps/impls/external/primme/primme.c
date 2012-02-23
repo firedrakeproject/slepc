@@ -34,10 +34,11 @@ EXTERN_C_END
 typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
-  Mat A;                          /* problem matrix */
-  EPS eps;                        /* EPS current context */
-  KSP ksp;                        /* preconditioner */
-  Vec x,y;                        /* auxiliar vectors */ 
+  Mat       A;                    /* problem matrix */
+  EPS       eps;                  /* EPS current context */
+  KSP       ksp;                  /* linear solver and preconditioner */
+  Vec       x,y;                  /* auxiliary vectors */ 
+  PetscReal target;               /* a copy of eps's target */
 } EPS_PRIMME;
 
 EPSPRIMMEMethod methodN[] = {
@@ -73,8 +74,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   PetscMPIInt    numProcs,procID;
-  EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
-  primme_params  *primme = &(((EPS_PRIMME *)eps->data)->primme);
+  EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
+  primme_params  *primme = &ops->primme;
   PetscBool      t;
 
   PetscFunctionBegin;
@@ -129,7 +130,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     case EPS_TARGET_REAL:
       primme->target = primme_closest_abs;
       primme->numTargetShifts = 1;
-      primme->targetShifts = &eps->target;
+      ops->target = PetscRealPart(eps->target);
+      primme->targetShifts = &ops->target;
       break;
     default:
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"'which' value does not supported by PRIMME");
