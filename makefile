@@ -65,7 +65,7 @@ all-cmake:
 all-legacy:
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
 
-all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build shared_nomesg slepc4py_noinstall
+all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared slepc4py_noinstall
 #
 # Prints information about the system and version of SLEPc being compiled
 #
