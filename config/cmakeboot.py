@@ -97,7 +97,7 @@ class PETScMaker(script.Script):
    log.write('Invoking: %s\n' % cmd)
    output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir)
    if retcode:
-     self.logPrintBox('CMake process failed with status %d. Proceeding..' % (retcode,))
+     self.logPrintBox('CMake process failed with status %d, falling back to legacy build' % (retcode,))
      return False
    else:
      return True
