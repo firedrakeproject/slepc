@@ -45,7 +45,7 @@
    Workspace:
      S is workspace to store a copy of the full matrix (nxn reals)
 */
-PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,PetscReal *Q,PetscReal *S)
+static PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscReal *e,PetscReal *Q,PetscReal *S)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR) || defined(SLEPC_MISSING_LAPACK_STEQR)
   PetscFunctionBegin;

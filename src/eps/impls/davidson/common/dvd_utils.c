@@ -229,7 +229,7 @@ typedef struct {
   PetscErrorCode (*old_orthV)(struct _dvdDashboard*);
 } DvdProfiler;
 
-PetscLogStage stages[6] = {0,0,0,0,0,0};
+static PetscLogStage stages[6] = {0,0,0,0,0,0};
 
 /*** Other things ****/
 
