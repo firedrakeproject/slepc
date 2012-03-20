@@ -198,14 +198,23 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #define __FUNCT__ "EPSSolve_BLOPEX"
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
-  EPS_BLOPEX *blopex = (EPS_BLOPEX *)eps->data;
-  int        i,j,info,its,nconv;
-  double     *lambdahist=PETSC_NULL,*residhist=PETSC_NULL;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
+  int            i,j,info,its,nconv;
+  double         *residhist=PETSC_NULL;
   PetscErrorCode ierr;
+#if defined(PETSC_USE_COMPLEX)
+  komplex        *lambdahist=PETSC_NULL;
+#else
+  double         *lambdahist=PETSC_NULL;
+#endif
   
   PetscFunctionBegin;
   if (eps->numbermonitors>0) {
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(komplex),&lambdahist);CHKERRQ(ierr);
+#else
     ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&lambdahist);CHKERRQ(ierr);
+#endif
     ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&residhist);CHKERRQ(ierr);
   }
 
@@ -228,7 +237,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
     for (i=0;i<its;i++) {
       nconv = 0;
       for (j=0;j<eps->ncv;j++) { if (residhist[j+i*eps->ncv]>eps->tol) break; else nconv++; }
-      ierr = EPSMonitor(eps,i,nconv,lambdahist+i*eps->ncv,eps->eigi,residhist+i*eps->ncv,eps->ncv);CHKERRQ(ierr);
+      ierr = EPSMonitor(eps,i,nconv,(PetscScalar*)lambdahist+i*eps->ncv,eps->eigi,residhist+i*eps->ncv,eps->ncv);CHKERRQ(ierr);
     }
     ierr = PetscFree(lambdahist);CHKERRQ(ierr); 
     ierr = PetscFree(residhist);CHKERRQ(ierr); 
