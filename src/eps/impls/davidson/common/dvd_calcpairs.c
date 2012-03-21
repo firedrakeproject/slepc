@@ -318,14 +318,16 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   d->V_new_s = d->V_new_e;
 
   /* Solve the projected problem */
-  if (DVD_IS(d->sEP, DVD_EP_STD)) {
-    if (DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
-      ierr = dvd_calcpairs_projeig_eig(d); CHKERRQ(ierr);
+  if (d->size_H>0) {
+    if (DVD_IS(d->sEP, DVD_EP_STD)) {
+      if (DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
+        ierr = dvd_calcpairs_projeig_eig(d); CHKERRQ(ierr);
+      } else {
+        ierr = dvd_calcpairs_projeig_qz_std(d); CHKERRQ(ierr);
+      }
     } else {
-      ierr = dvd_calcpairs_projeig_qz_std(d); CHKERRQ(ierr);
+      ierr = dvd_calcpairs_projeig_qz_gen(d); CHKERRQ(ierr);
     }
-  } else {
-    ierr = dvd_calcpairs_projeig_qz_gen(d); CHKERRQ(ierr);
   }
 
   /* Check consistency */
