@@ -350,6 +350,16 @@ if subversion and hasattr(petscconf,'FC'):
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}")\n')
 cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
 cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
+cmake.write('''
+if (NOT PETSC_LIB) # Interpret missing libpetsc to mean that PETSc was built --with-single-library=0
+  set (PETSC_LIB "")
+  foreach (pkg sys vec mat dm ksp snes ts)
+    string (TOUPPER ${pkg} PKG)
+    find_library(PETSC${PKG}_LIB "petsc${pkg}" HINTS ${PETSc_BINARY_DIR}/lib)
+    list (APPEND PETSC_LIB "${PETSC${PKG}_LIB}")
+  endforeach ()
+endif ()
+''')
 cmake.close()
 cmakeok = False
 if sys.version_info >= (2,5) and not petscconf.ISINSTALL and petscconf.BUILD_USING_CMAKE:
