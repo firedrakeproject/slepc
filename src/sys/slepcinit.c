@@ -19,13 +19,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/slepcimpl.h>           /*I "slepcsys.h" I*/
-#include <private/epsimpl.h>
-#include <private/stimpl.h>
-#include <private/svdimpl.h>
-#include <private/qepimpl.h>
-#include <private/ipimpl.h>
-#include <private/vecimplslepc.h>
+#include <slepc-private/slepcimpl.h>           /*I "slepcsys.h" I*/
+#include <slepc-private/epsimpl.h>
+#include <slepc-private/stimpl.h>
+#include <slepc-private/svdimpl.h>
+#include <slepc-private/qepimpl.h>
+#include <slepc-private/ipimpl.h>
+#include <slepc-private/vecimplslepc.h>
 #include <stdlib.h>
 
 #undef __FUNCT__  

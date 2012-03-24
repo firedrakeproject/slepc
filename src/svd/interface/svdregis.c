@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/svdimpl.h>       /*I "slepcsvd.h" I*/
+#include <slepc-private/svdimpl.h>       /*I "slepcsvd.h" I*/
 
 EXTERN_C_BEGIN
 extern PetscErrorCode SVDCreate_Cross(SVD);

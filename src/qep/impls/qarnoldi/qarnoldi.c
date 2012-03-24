@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/qepimpl.h>         /*I "slepcqep.h" I*/
+#include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
 #include <petscblaslapack.h>
 
 typedef struct {

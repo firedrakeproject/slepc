@@ -31,8 +31,8 @@
    options.
 */
 
-#include <private/epsimpl.h>         /*I "slepceps.h" I*/
-#include <private/stimpl.h>          /*I "slepcst.h" I*/
+#include <slepc-private/epsimpl.h>         /*I "slepceps.h" I*/
+#include <slepc-private/stimpl.h>          /*I "slepcst.h" I*/
 #include <slepcblaslapack.h>
 
 typedef struct _dvdFunctionList {

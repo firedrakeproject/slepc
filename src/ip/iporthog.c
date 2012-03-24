@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/ipimpl.h>      /*I "slepcip.h" I*/
+#include <slepc-private/ipimpl.h>      /*I "slepcip.h" I*/
 #include <slepcblaslapack.h>
 
 /* 

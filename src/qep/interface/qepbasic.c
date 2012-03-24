@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/qepimpl.h>      /*I "slepcqep.h" I*/
+#include <slepc-private/qepimpl.h>      /*I "slepcqep.h" I*/
 
 PetscFList       QEPList = 0;
 PetscBool        QEPRegisterAllCalled = PETSC_FALSE;

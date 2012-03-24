@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/ipimpl.h>      /*I "slepcip.h" I*/
+#include <slepc-private/ipimpl.h>      /*I "slepcip.h" I*/
 
 /* The following definitions are intended to avoid using the "T" versions
    of dot products in the case of real scalars */

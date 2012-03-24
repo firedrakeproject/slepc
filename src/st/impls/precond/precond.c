@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/stimpl.h>          /*I "slepcst.h" I*/
+#include <slepc-private/stimpl.h>          /*I "slepcst.h" I*/
 
 typedef struct {
   PetscBool setmat;

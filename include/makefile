@@ -27,7 +27,7 @@ SOURCEH  = slepc.h slepcsys.h slepceps.h slepcst.h slepcsvd.h slepcip.h slepcver
 OBJSC    =
 OBJSF    =
 LIBBASE  = libslepc
-DIRS     = finclude private
+DIRS     = finclude slepc-private
 LOCDIR   = include/
 MANSEC   = 
 

@@ -40,7 +40,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
 PetscErrorCode EPSSolve_Power(EPS);

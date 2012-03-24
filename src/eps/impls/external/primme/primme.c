@@ -22,8 +22,8 @@
 */
 
 #include <petscsys.h>
-#include <private/epsimpl.h>    /*I "slepceps.h" I*/
-#include <private/stimpl.h>
+#include <slepc-private/epsimpl.h>    /*I "slepceps.h" I*/
+#include <slepc-private/stimpl.h>
 
 PetscErrorCode EPSSolve_PRIMME(EPS);
 

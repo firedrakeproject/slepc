@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/vecimplslepc.h>            /*I "slepcvec.h" I*/
+#include <slepc-private/vecimplslepc.h>            /*I "slepcvec.h" I*/
 #include <petscblaslapack.h>
 
 PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0;

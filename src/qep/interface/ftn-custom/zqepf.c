@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/fortranimpl.h>
-#include <private/qepimpl.h>
+#include <petsc-private/fortranimpl.h>
+#include <slepc-private/qepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define qepdestroy_                 QEPDESTROY

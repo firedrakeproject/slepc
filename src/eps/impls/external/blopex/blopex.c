@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/stimpl.h>       /*I "slepcst.h" I*/
-#include <private/epsimpl.h>      /*I "slepceps.h" I*/
+#include <slepc-private/stimpl.h>       /*I "slepcst.h" I*/
+#include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
 #include "slepc-interface.h"
 #include <blopex_lobpcg.h>
 #include <blopex_interpreter.h>

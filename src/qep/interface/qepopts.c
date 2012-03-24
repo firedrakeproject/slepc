@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/qepimpl.h>       /*I "slepcqep.h" I*/
+#include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSetFromOptions"

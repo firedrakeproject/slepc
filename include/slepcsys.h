@@ -79,7 +79,7 @@ M*/
 /*
     slepcimpl.h contains definitions common to all SLEPc objects
 */
-#include "private/slepcimpl.h"
+#include "slepc-private/slepcimpl.h"
 
 /*
     Default tolerance for the different solvers, depending on the precision

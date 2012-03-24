@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/ipimpl.h>      /*I "slepcip.h" I*/
+#include <slepc-private/ipimpl.h>      /*I "slepcip.h" I*/
 
 PetscFList       IPList = 0;
 PetscBool        IPRegisterAllCalled = PETSC_FALSE;

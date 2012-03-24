@@ -21,7 +21,7 @@
 
 ALL: lib
 
-SOURCEH  = ../../include/private/epsimpl.h ../../include/slepceps.h
+SOURCEH  = ../../include/slepc-private/epsimpl.h ../../include/slepceps.h
 DIRS     = interface impls examples
 LOCDIR   = src/eps/
 MANSEC   = EPS

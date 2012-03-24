@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/fortranimpl.h>
-#include <private/epsimpl.h>
+#include <petsc-private/fortranimpl.h>
+#include <slepc-private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define epsdestroy_                 EPSDESTROY

@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/slepcimpl.h>            /*I "slepcsys.h" I*/
+#include <slepc-private/slepcimpl.h>            /*I "slepcsys.h" I*/
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcMatConvertSeqDense"

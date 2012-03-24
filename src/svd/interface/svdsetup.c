@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/svdimpl.h>      /*I "slepcsvd.h" I*/
-#include <private/ipimpl.h>
+#include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <slepc-private/ipimpl.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDSetOperator"

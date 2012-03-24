@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/vecimplslepc.h>     /*I "slepcvec.h" I*/
+#include <slepc-private/vecimplslepc.h>     /*I "slepcvec.h" I*/
 
 #include "veccomp0.h"
 

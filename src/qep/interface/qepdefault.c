@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/qepimpl.h>     /*I "slepcqep.h" I*/
+#include <slepc-private/qepimpl.h>     /*I "slepcqep.h" I*/
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__  

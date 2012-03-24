@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 PetscFList       SVDList = 0;
 PetscBool        SVDRegisterAllCalled = PETSC_FALSE;

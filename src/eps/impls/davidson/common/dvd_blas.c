@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/vecimplslepc.h>
+#include <slepc-private/vecimplslepc.h>
 #include "davidson.h"
 
 PetscLogEvent SLEPC_SlepcDenseMatProd = 0;

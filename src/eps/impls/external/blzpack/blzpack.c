@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <private/epsimpl.h>    /*I "slepceps.h" I*/
-#include <private/stimpl.h>     /*I "slepcst.h" I*/
+#include <slepc-private/epsimpl.h>    /*I "slepceps.h" I*/
+#include <slepc-private/stimpl.h>     /*I "slepcst.h" I*/
 #include <../src/eps/impls/external/blzpack/blzpackp.h>
 
 PetscErrorCode EPSSolve_BLZPACK(EPS);
