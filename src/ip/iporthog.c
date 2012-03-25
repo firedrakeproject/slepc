@@ -402,7 +402,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0 || lindep) { 
-      PetscInfo(ip,"Linearly dependent vector found, generating a new random vector\n");
+      ierr = PetscInfo(ip,"Linearly dependent vector found, generating a new random vector\n");CHKERRQ(ierr);
       if (!rctx) {
         ierr = PetscRandomCreate(((PetscObject)ip)->comm,&rctx);CHKERRQ(ierr);
         ierr = PetscRandomSetSeed(rctx,0x12345678);CHKERRQ(ierr);

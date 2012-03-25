@@ -252,7 +252,7 @@ PetscErrorCode STSetUp(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!st->A) {SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");}
   if (st->setupcalled) PetscFunctionReturn(0);
-  PetscInfo(st,"Setting up new ST\n");
+  ierr = PetscInfo(st,"Setting up new ST\n");CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!((PetscObject)st)->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);

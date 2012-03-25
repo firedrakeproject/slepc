@@ -448,7 +448,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
                                       d->max_size_V-d->size_V ),
                                       d->size_H );
   if (size_D == 0) {
-    PetscPrintf(PETSC_COMM_WORLD, "MON: D:%D H:%D\n", size_D, d->size_H);
+    ierr = PetscInfo2(d->eps, "MON: D:%D H:%D\n", size_D, d->size_H); CHKERRQ(ierr);
     ierr = d->initV(d); CHKERRQ(ierr);
     ierr = d->calcPairs(d); CHKERRQ(ierr);
   }

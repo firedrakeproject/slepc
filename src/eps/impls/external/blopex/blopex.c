@@ -51,8 +51,8 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   PetscInt       lits;
       
   PetscFunctionBegin;
-  ierr = KSPSolve(blopex->ksp,(Vec)x,(Vec)y); CHKERRABORT(PETSC_COMM_WORLD,ierr);
-  ierr = KSPGetIterationNumber(blopex->ksp,&lits); CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = KSPSolve(blopex->ksp,(Vec)x,(Vec)y); CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = KSPGetIterationNumber(blopex->ksp,&lits); CHKERRABORT(((PetscObject)eps)->comm,ierr);
   eps->OP->lineariterations+= lits;
   PetscFunctionReturnVoid();
 }
@@ -79,12 +79,12 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   Mat            A,B;
  
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRABORT(PETSC_COMM_WORLD,ierr);
-  ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = STGetOperators(eps->OP,&A,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   if (eps->OP->sigma != 0.0) {
-    if (B) { ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(PETSC_COMM_WORLD,ierr); }
-    else { ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(PETSC_COMM_WORLD,ierr); }
-    ierr = VecAXPY((Vec)y,-eps->OP->sigma,blopex->w);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    if (B) { ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
+    else { ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
+    ierr = VecAXPY((Vec)y,-eps->OP->sigma,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   }
   PetscFunctionReturnVoid();
 }
@@ -110,8 +110,8 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   Mat            B;
   
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRABORT(PETSC_COMM_WORLD,ierr);
-  ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+  ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   PetscFunctionReturnVoid();
 }
 

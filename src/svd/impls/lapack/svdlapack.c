@@ -34,7 +34,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
   svd->ncv = N;
-  if (svd->mpd) PetscInfo(svd,"Warning: parameter mpd ignored\n");
+  if (svd->mpd) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {  
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);

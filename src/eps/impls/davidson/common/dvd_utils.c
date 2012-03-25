@@ -520,7 +520,7 @@ PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh, PetscScalar t)
     dvdh->Wa = 0.0; dvdh->Wb = 1.0; dvdh->Pa = 1.0; dvdh->Pb = 0.0; break;
   case DVD_HARM_NONE:
   default:
-    SETERRQ(PETSC_COMM_WORLD,1, "Harmonic type not supported");
+    SETERRQ(PETSC_COMM_SELF,1, "Harmonic type not supported");
   }
 
   /* Check the transformation does not change the sign of the imaginary part */
@@ -565,8 +565,7 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
   PetscFunctionBegin;
 
   if (d->sH != d->sG) {
-    SETERRQ(PETSC_COMM_WORLD,1,"Projected matrices H and G must have the same structure");
-    PetscFunctionReturn(1);
+    SETERRQ(PETSC_COMM_SELF,1,"Projected matrices H and G must have the same structure");
   }
 
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */

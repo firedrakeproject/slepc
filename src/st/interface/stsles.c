@@ -51,7 +51,7 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
   if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
-  PetscInfo1(st,"Linear solve iterations=%D\n",its);
+  ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -81,7 +81,7 @@ PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
   if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
-  PetscInfo1(st,"Linear solve iterations=%D\n",its);
+  ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -235,7 +235,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
     ierr = MatMult(A,V[i],w);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
     if (norm < 1e-8) {
-      PetscInfo2(st,"Vector %D norm=%g\n",i,(double)norm);
+      ierr = PetscInfo2(st,"Vector %D norm=%g\n",i,(double)norm);CHKERRQ(ierr);
       T[c] = V[i];
       c++;
     }

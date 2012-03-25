@@ -171,17 +171,17 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
 @*/
 PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const char help[])
 {
-  PetscErrorCode ierr,info=0;
+  PetscErrorCode ierr;
   PetscBool      flg;
 
   PetscFunctionBegin;
   if (SlepcInitializeCalled) {
     PetscFunctionReturn(0); 
   }
-  info = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(info);
+  ierr = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(ierr);
   ierr = PetscInitialized(&flg);CHKERRQ(ierr);
   if (!flg) {
-    info = PetscInitialize(argc,args,file,help);CHKERRQ(info);
+    ierr = PetscInitialize(argc,args,file,help);CHKERRQ(ierr);
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
@@ -198,8 +198,8 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 #endif
 
   SlepcInitializeCalled = PETSC_TRUE;
-  PetscInfo(0,"SLEPc successfully started\n");
-  PetscFunctionReturn(info);
+  ierr = PetscInfo(0,"SLEPc successfully started\n");CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
@@ -216,15 +216,15 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 @*/
 PetscErrorCode SlepcFinalize(void)
 {
-  PetscErrorCode info=0;
+  PetscErrorCode ierr;
   
   PetscFunctionBegin;
-  PetscInfo(0,"SLEPc successfully ended!\n");
+  ierr = PetscInfo(0,"SlepcFinalize() called\n");CHKERRQ(ierr);
   if (SlepcBeganPetsc) {
-    info = PetscFinalize();CHKERRQ(info);
+    ierr = PetscFinalize();CHKERRQ(ierr);
   }
   SlepcInitializeCalled = PETSC_FALSE;
-  PetscFunctionReturn(info);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  

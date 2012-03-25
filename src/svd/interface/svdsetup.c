@@ -210,7 +210,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       ierr = VecCopy(svd->IS[i],svd->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
       ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,k,PETSC_NULL,svd->V,svd->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
-      if (norm==0.0 || lindep) PetscInfo(svd,"Linearly dependent initial vector found, removing...\n");
+      if (norm==0.0 || lindep) { ierr = PetscInfo(svd,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
       else {
         ierr = VecScale(svd->V[k],1.0/norm);CHKERRQ(ierr);
         k++;

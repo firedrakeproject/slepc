@@ -115,7 +115,7 @@ PetscErrorCode QEPSetUp(QEP qep)
       ierr = VecCopy(qep->IS[i],qep->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&qep->IS[i]);CHKERRQ(ierr);
       ierr = IPOrthogonalize(qep->ip,0,PETSC_NULL,k,PETSC_NULL,qep->V,qep->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
-      if (norm==0.0 || lindep) PetscInfo(qep,"Linearly dependent initial vector found, removing...\n");
+      if (norm==0.0 || lindep) { ierr = PetscInfo(qep,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
       else {
         ierr = VecScale(qep->V[k],1.0/norm);CHKERRQ(ierr);
         k++;
@@ -125,7 +125,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = PetscFree(qep->IS);CHKERRQ(ierr);
   }
   if (qep->ninil<0) {
-    if (!qep->leftvecs) PetscInfo(qep,"Ignoring initial left vectors\n");
+    if (!qep->leftvecs) { ierr = PetscInfo(qep,"Ignoring initial left vectors\n");CHKERRQ(ierr); }
     else {
       qep->ninil = -qep->ninil;
       if (qep->ninil>qep->ncv) SETERRQ(((PetscObject)qep)->comm,1,"The number of initial left vectors is larger than ncv");
@@ -134,7 +134,7 @@ PetscErrorCode QEPSetUp(QEP qep)
         ierr = VecCopy(qep->ISL[i],qep->W[k]);CHKERRQ(ierr);
         ierr = VecDestroy(&qep->ISL[i]);CHKERRQ(ierr);
         ierr = IPOrthogonalize(qep->ip,0,PETSC_NULL,k,PETSC_NULL,qep->W,qep->W[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
-        if (norm==0.0 || lindep) PetscInfo(qep,"Linearly dependent initial left vector found, removing...\n");
+        if (norm==0.0 || lindep) { ierr = PetscInfo(qep,"Linearly dependent initial left vector found, removing...\n");CHKERRQ(ierr); }
         else {
           ierr = VecScale(qep->W[k],1.0/norm);CHKERRQ(ierr);
           k++;

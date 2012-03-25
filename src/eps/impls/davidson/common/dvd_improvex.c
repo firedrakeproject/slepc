@@ -640,7 +640,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
   ierr = SlepcDenseCopy(data->iXKZ,data->ldiXKZ,data->XKZ,data->ldXKZ,size_KZ,size_KZ);CHKERRQ(ierr);
   ldXKZ = PetscBLASIntCast(data->ldiXKZ);
   LAPACKgetrf_(&s, &s, data->iXKZ, &ldXKZ, data->iXKZPivots, &info);
-  if (info) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_LIB, "Error in Lapack XGETRF %d", info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack XGETRF %d", info);
 
   PetscFunctionReturn(0);
 }
@@ -1096,7 +1096,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
   ld = PetscBLASIntCast(data->ldiXKZ);
   PetscValidScalarPointer(data->iXKZ,0);
   LAPACKgetrs_("N", &n, &cV_, data->iXKZ, &ld, data->iXKZPivots, h, &n, &info); 
-  if (info) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_LIB, "Error in Lapack XGETRS %d", info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack XGETRS %d", info);
 
   /* V <- V - KZ*h */
   for (i=0; i<cV; i++) {

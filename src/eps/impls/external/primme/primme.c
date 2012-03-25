@@ -164,8 +164,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   }
 
   /* Prepare auxiliary vectors */ 
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,eps->nloc,eps->n,PETSC_NULL,&ops->x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,eps->nloc,eps->n,PETSC_NULL,&ops->y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,eps->n,PETSC_NULL,&ops->x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,eps->n,PETSC_NULL,&ops->y);CHKERRQ(ierr);
  
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -246,13 +246,13 @@ static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *p
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(((PetscObject)A)->comm,ierr);
+    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(((PetscObject)A)->comm,ierr);
 
-    ierr = MatMult(A,x,y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = MatMult(A,x,y);CHKERRABORT(((PetscObject)A)->comm,ierr);
     
-    ierr = VecResetArray(x);CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecResetArray(y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(x);CHKERRABORT(((PetscObject)A)->comm,ierr);
+    ierr = VecResetArray(y);CHKERRABORT(((PetscObject)A)->comm,ierr);
   }
   PetscFunctionReturnVoid();
 }
@@ -269,15 +269,15 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
+    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
 
-    ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
+    ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
     ops->eps->OP->lineariterations+= lits;
     
-    ierr = VecResetArray(x);CHKERRABORT(PETSC_COMM_WORLD,ierr);
-    ierr = VecResetArray(y);CHKERRABORT(PETSC_COMM_WORLD,ierr);
+    ierr = VecResetArray(x);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
+    ierr = VecResetArray(y);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
   }
   PetscFunctionReturnVoid();
 } 
