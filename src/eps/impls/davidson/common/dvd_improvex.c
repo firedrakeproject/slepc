@@ -587,6 +587,10 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
   PetscScalar *theta, PetscScalar *thetai, PetscScalar *pX, PetscScalar *pY,
   PetscInt ld)
 {
+#if defined(PETSC_MISSING_LAPACK_GETRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable.");
+#else
   PetscErrorCode  ierr;
   PetscInt        n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
@@ -643,6 +647,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack XGETRF %d", info);
 
   PetscFunctionReturn(0);
+#endif
 }
 
 #define DVD_COMPLEX_RAYLEIGH_QUOTIENT(ur,ui,Axr,Axi,Bxr,Bxi,eigr,eigi,b,ierr)\
@@ -828,7 +833,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d, PetscInt i_s,
     ierr = VecCopy(Bx[i], r[i]); CHKERRQ(ierr);
     ierr = d->improvex_precond(d, i_s+i, r[i], kr[i]); CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -924,7 +928,6 @@ PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
 
   PetscFunctionBegin;
-
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     data->maxits = maxits;
@@ -932,7 +935,6 @@ PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
     data->fix = fix;
     d->improvex_jd_lit = dvd_improvex_jd_lit_const_0;
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -967,7 +969,6 @@ PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
 #endif
   *maxits = data->maxits;
   *tol = data->tol;
-
   PetscFunctionReturn(0);
 }
 
@@ -989,7 +990,6 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
   PetscInt        i;
 
   PetscFunctionBegin;
-
   if (max_size_D >= r_e-r_s+1) {
     /* The optimized version needs one vector extra of D */
     /* D(1:r.size) = R(r_s:r_e-1) */
@@ -1018,7 +1018,6 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
   } else {
     SETERRQ(PETSC_COMM_SELF,1, "Problem: r_e-r_s > max_size_D!");
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -1037,7 +1036,6 @@ PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
   PetscErrorCode  ierr;
   
   PetscFunctionBegin;
-
   ierr = SlepcDenseCopy(pY, ld, d->T?d->pY:d->pX, d->ldpX, d->size_H,
                         d->size_H); CHKERRQ(ierr);
   ierr = SlepcDenseCopy(pX, ld, d->pX, d->ldpX, d->size_H, d->size_H);
@@ -1051,7 +1049,6 @@ PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
   /* 2-Normalize the columns of pX an pY */
   ierr = SlepcDenseNorm(pX, ld, d->size_H, d->size_H, d->eigi-d->cX_in_H); CHKERRQ(ierr);
   ierr = SlepcDenseNorm(pY, ld, d->size_H, d->size_H, d->eigi-d->cX_in_H); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -1064,6 +1061,10 @@ PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
 */
 PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, PetscScalar *auxS)
 {
+#if defined(PETSC_MISSING_LAPACK_GETRS) 
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable.");
+#else
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscInt        size_in = data->size_iXKZ*cV, i, ldh;
@@ -1076,8 +1077,6 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
                   sr[4];
   
   PetscFunctionBegin;
-
-  /* Check consistency */
   if (cV > 2) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
 
   /* h <- X'*V */
@@ -1102,6 +1101,6 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
   for (i=0; i<cV; i++) {
     ierr = SlepcUpdateVectorsZ(V+i,1.0,-1.0,data->KZ,data->size_iXKZ,&h[ldh*i],ldh,data->size_iXKZ,1);CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
+#endif
 }
