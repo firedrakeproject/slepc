@@ -58,8 +58,8 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             VecDot_Comp_MPI,
             VecMDot_Comp_MPI,
             VecNorm_Comp_MPI,
-            0,
-            0,
+            VecTDot_Comp_MPI,
+            VecMTDot_Comp_MPI,
             VecScale_Comp,
             VecCopy_Comp, /* 10 */
             VecSet_Comp,

@@ -123,6 +123,100 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
+
+#undef __FUNCT__  
+#define __FUNCT__ __SUF_C__(VecTDot_Comp)
+PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
+{
+  PetscScalar    sum = 0.0,work;
+  PetscInt       i;
+  PetscErrorCode ierr;
+  Vec_Comp       *as = (Vec_Comp*)a->data,*bs = (Vec_Comp*)b->data;
+
+  PetscFunctionBegin;
+  PetscValidVecComp(a);
+  PetscValidVecComp(b);
+  if (as->x[0]->ops->tdot_local) {
+    for (i=0,sum=0.0;i<as->n->n;i++) {
+      ierr = as->x[i]->ops->tdot_local(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
+      sum += work;
+    }
+#ifdef __WITH_MPI__
+    work = sum;
+    ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+#endif
+  } else {
+    for(i=0,sum=0.0; i<as->n->n; i++) {
+      ierr = VecTDot(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
+      sum += work;
+    }
+  }
+  *z = sum;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ __SUF_C__(VecMTDot_Comp)
+PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar *z)
+{
+  PetscScalar    *work,*work0,*r;
+  PetscErrorCode ierr;
+  Vec_Comp       *as = (Vec_Comp*)a->data;
+  Vec            *bx;
+  PetscInt       i,j;
+
+  PetscFunctionBegin;
+  PetscValidVecComp(a);
+  for (i=0;i<n;i++) PetscValidVecComp(b[i]);
+
+  if (as->n->n == 0) {
+    *z = 0;
+    PetscFunctionReturn(0);
+  }
+
+  ierr = PetscMalloc(sizeof(PetscScalar)*n,&work0);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(Vec)*n,&bx);CHKERRQ(ierr);
+
+#ifdef __WITH_MPI__
+  if (as->x[0]->ops->mtdot_local) {
+    r = work0; work = z;
+  } else
+#endif
+  {
+    r = z; work = work0;
+  }
+
+  /* z[i] <- a.x' * b[i].x */
+  for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[0];
+  if (as->x[0]->ops->mtdot_local) {
+    ierr = as->x[0]->ops->mtdot_local(as->x[0],n,bx,r);CHKERRQ(ierr);
+  } else {
+    ierr = VecMTDot(as->x[0],n,bx,r);CHKERRQ(ierr);
+  }
+  for (j=0;j<as->n->n;j++) {
+    for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[j];
+    if (as->x[0]->ops->mtdot_local) {
+      ierr = as->x[j]->ops->mtdot_local(as->x[j],n,bx,work);CHKERRQ(ierr);
+    } else {
+      ierr = VecMTDot(as->x[j],n,bx,work);CHKERRQ(ierr);
+    }
+    for (i=0;i<n;i++) r[i] += work[i];
+  }
+
+  /* If def(__WITH_MPI__) and exists mtdot_local */
+#ifdef __WITH_MPI__
+  if (as->x[0]->ops->mtdot_local) {
+    /* z[i] <- Allreduce(work[i]) */
+    ierr = MPI_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+  }
+#endif
+
+  ierr = PetscFree(work0);CHKERRQ(ierr);
+  ierr = PetscFree(bx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+
 #ifndef __VEC_NORM2_FUNCS_
 #define __VEC_NORM2_FUNCS_
 PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
