@@ -10,8 +10,9 @@
            sparse symmetric generalized eigenproblems", SIAM J. Matrix Analysis
            and App., 15(1), pp. 228–272, 1994.
 
-       [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
-           SIAM J. Matrix Analysis and App., 23(3), pp. 601-614, 2001. 
+       [2] C. Campos and J. E. Roman, "Spectrum slicing strategies based on
+           restarted Lanczos methods", Numer. Algor., 2012.
+           DOI: 10.1007/s11075-012-9564-z
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

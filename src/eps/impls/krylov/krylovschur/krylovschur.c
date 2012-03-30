@@ -44,6 +44,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Harmonic(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
+extern PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_KrylovSchur"
@@ -111,8 +112,13 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->ishermitian) {
-    if (eps->which==EPS_ALL) eps->ops->solve = EPSSolve_KrylovSchur_Slice;
-    else {
+    if (eps->which==EPS_ALL) {
+      if (eps->isgeneralized && !eps->ispositive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
+
+      else eps->ops->solve = EPSSolve_KrylovSchur_Slice;
+    } if (eps->isgeneralized && !eps->ispositive) {
+      eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
+    } else {
       switch (eps->extraction) {
         case EPS_RITZ:     eps->ops->solve = EPSSolve_KrylovSchur_Symm; break;
         case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;

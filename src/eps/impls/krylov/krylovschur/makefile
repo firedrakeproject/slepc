@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = krylovschur.c ks-symm.c ks-harm.c ks-slice.c
+SOURCEC  = krylovschur.c ks-symm.c ks-harm.c ks-slice.c ks-indef.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = krylovschur.o ks-symm.o ks-harm.o ks-slice.o
+OBJSC    = krylovschur.o ks-symm.o ks-harm.o ks-slice.o ks-indef.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
