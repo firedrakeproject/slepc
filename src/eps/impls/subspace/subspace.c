@@ -111,6 +111,7 @@ static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,Petsc
   lwork = n*n;
   ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   hn = LAPACKlanhs_("I",&n,H,&ldh,rwork);
   LAPACKgetrf_(&n,&n,H,&ldh,ipiv,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
@@ -118,6 +119,7 @@ static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,Petsc
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
   hin = LAPACKlange_("I",&n,&n,H,&ldh,rwork);
   *cond = hn * hin;
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(rwork);CHKERRQ(ierr);

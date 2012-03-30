@@ -331,11 +331,13 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
         B[i+i*n1] -= eps->eigr[k];  /* MISSING: complex case */
       }
       /* compute SVD of [H-mu*I] */
-  #if !defined(PETSC_USE_COMPLEX)
+      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
       LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,&info);
-  #else
+#else
       LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,sigma+n,&info);
-  #endif
+#endif
+      ierr = PetscFPTrapPop();CHKERRQ(ierr);
       if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
       /* the smallest singular value is the new error estimate */
       eps->errest[k] = sigma[n-1];

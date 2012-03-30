@@ -108,11 +108,13 @@ PetscErrorCode QEPSortDenseSchur(QEP qep,PetscInt n_,PetscInt k,PetscScalar *T,P
       /* interchange blocks */
       ifst = PetscBLASIntCast(pos + 1);
       ilst = PetscBLASIntCast(i + 1);
+      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
       LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,work,&info);
 #else
       LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,&info);
 #endif
+      ierr = PetscFPTrapPop();CHKERRQ(ierr);
       if (info) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       /* recover original eigenvalues from T matrix */
       for (j=i;j<n;j++) {

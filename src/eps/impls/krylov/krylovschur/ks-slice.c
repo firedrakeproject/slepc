@@ -204,6 +204,7 @@ static PetscErrorCode EPSUpdateShiftRKS(EPS eps,PetscInt n,PetscReal sigma1,Pets
   /* Compute qr */
   n1 = PetscBLASIntCast(n+1);
   n0 = PetscBLASIntCast(n);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKgeqrf_(&n1,&n0,L,&n1,tau,work2,&lwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   /* Copying R from L */
@@ -213,6 +214,7 @@ static PetscErrorCode EPSUpdateShiftRKS(EPS eps,PetscInt n,PetscReal sigma1,Pets
   /* Compute the orthogonal matrix in L */
   LAPACKorgqr_(&n1,&n1,&n0,L,&n1,tau,work2,&lwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   /* Compute the updated matrix of projected problem */
   for(j=0;j<n;j++){
     for(i=0;i<n+1;i++)
@@ -272,6 +274,7 @@ static PetscErrorCode EPSProjectedKS_Slice(EPS eps,PetscInt n_,PetscScalar *Z,Pe
   n1 = PetscBLASIntCast(l+1);    /* size of leading block, including residuals */
   n2 = PetscBLASIntCast(n-l-1);  /* size of trailing block */
   ierr = PetscMemzero(work,n*n*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   if(l>0){
     /* Flip matrix, copying the values saved in Q */
     if(!Z){
@@ -325,6 +328,7 @@ static PetscErrorCode EPSProjectedKS_Slice(EPS eps,PetscInt n_,PetscScalar *Z,Pe
     LAPACKsteqr_("I",&n,d,e,Qreal,&n,work,&info);
   }
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   /* Sort eigendecomposition according to eps->which */
   ierr = EPSSortEigenvaluesReal(eps,n,d,perm);CHKERRQ(ierr);
   for (i=0;i<n;i++)

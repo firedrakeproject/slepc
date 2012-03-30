@@ -66,6 +66,7 @@ static PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscRea
   n1 = PetscBLASIntCast(l+1);    /* size of leading block, including residuals */
   n2 = PetscBLASIntCast(n-l-1);  /* size of trailing block */
   ierr = PetscMemzero(S,n*n*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 
   /* Flip matrix S, copying the values saved in Q */
   for (i=0;i<n;i++) 
@@ -105,6 +106,7 @@ static PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscRea
   LAPACKsteqr_("V",&n,d,e,Q,&n,S,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
 
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif

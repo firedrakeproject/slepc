@@ -203,7 +203,9 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     for (i=0;i<n;i++)
       PT[i*n+i] = Q[i*n+i] = 1.0;
     ierr = PetscLogEventBegin(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     LAPACKbdsdc_("U","I",&n,alpha,beta,Q,&n,PT,&n,PETSC_NULL,PETSC_NULL,work,iwork,&info);
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SVD_Dense,0,0,0,0);CHKERRQ(ierr);
 
     /* compute error estimates */

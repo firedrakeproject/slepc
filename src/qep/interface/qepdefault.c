@@ -113,11 +113,13 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
 #endif
 
   /* right eigenvectors */
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKtrevc_("R","A",PETSC_NULL,&nconv,qep->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
 #else
   LAPACKtrevc_("R","A",PETSC_NULL,&nconv,qep->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
 
   /* normalize eigenvectors */

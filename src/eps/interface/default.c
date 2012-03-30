@@ -133,12 +133,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #endif
 
   /* right eigenvectors */
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
 #else
   LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
   if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
   /* normalize eigenvectors (when not using purification nor balancing)*/
   if (!(eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D))) {
@@ -202,12 +204,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
    
   /* left eigenvectors */
   if (eps->leftvecs) {
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
 #else
     LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
 #endif
     if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
     /* W = W * Z */
     ierr = SlepcUpdateVectors(eps->nconv,eps->W,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);

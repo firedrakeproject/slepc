@@ -76,6 +76,7 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
   /* g = (B-sigma*eye(m))'\b */
   for (i=0;i<m;i++) 
     B[i+i*m] -= tau;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKgetrf_(&m,&m,B,&m,ipiv,&info);
   if (info<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Bad argument to LU factorization");
   if (info>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
@@ -83,6 +84,7 @@ PetscErrorCode EPSTranslateHarmonic(PetscInt m_,PetscScalar *S,PetscInt lds,Pets
   LAPACKgetrs_("C",&m,&one,B,&m,ipiv,g,&m,&info);
   if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"GETRS - Bad solve");
   ierr = PetscLogFlops(2.0*m*m-m);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
   /* S = S + g*b' */
   for (i=0;i<m;i++) 

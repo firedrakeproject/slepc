@@ -700,6 +700,7 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
 
   /* S = Z'*H*Q, T = Z'*G*Q */
   n = d->size_H;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKgges_(d->pY?"V":"N", "V", "N", PETSC_NULL, &n, d->S, &n, d->T, &n,
               &a, d->eigr-d->cX_in_H, d->eigi-d->cX_in_H, beta, d->pY, &n, d->pX, &n,
@@ -709,6 +710,7 @@ PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
               &a, d->eigr-d->cX_in_H, beta, d->pY, &n, d->pX, &n,
               auxS, &n_auxS, auxR, PETSC_NULL, &info);
 #endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack GGES %d", info);
 
   /* eigr[i] <- eigr[i] / beta[i] */

@@ -259,10 +259,12 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
   if (lw < cA) SETERRQ(PETSC_COMM_SELF,1, "Insufficient memory for xGEQRF");
   
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseOrth,0,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKgeqrf_(&rA, &cA, A, &ldA, tau, w, &lw, &info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack xGEQRF %d", info);
   LAPACKorgqr_(&rA, &ltau, &ltau, A, &ldA, tau, w, &lw, &info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack xORGQR %d", info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseOrth,0,0,0,0);CHKERRQ(ierr);
 
   if (ncA) *ncA = ltau;
@@ -1081,7 +1083,9 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   ierr = VecsMult(H, 0, n, V, 0, n, V, 0, n, T, PETSC_NULL); CHKERRQ(ierr);
 
   /* H <- chol(H) */
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKpbtrf_("U", &nn, &nn, H, &nn, &info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(((PetscObject)*V)->comm,PETSC_ERR_LIB, "Error in Lapack PBTRF %d", info);
 
   /* V <- V * inv(H) */
@@ -1312,6 +1316,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #else
   PetscBLASInt    n, ldpX, ldpY, nout, info, ldS, ldT;
   const char      *side, *howmny;
+  PetscErrorCode  ierr;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal       *auxR;
 #endif
@@ -1335,6 +1340,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 
   howmny = doProd?"B":"A";
 
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   if (T) {
     /* [eigr, pX] = eig(S, T) */
 #if defined(PETSC_USE_COMPLEX)
@@ -1362,6 +1368,7 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -1416,6 +1423,7 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LASV2 - Lapack routine is unavailable.");
 #else
+  PetscErrorCode  ierr;
   PetscInt        i, j;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar     s;
@@ -1464,7 +1472,9 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
             i_1 = PetscBLASIntCast(i+1);
             i_ = PetscBLASIntCast(i);
             n_ = PetscBLASIntCast(n);
+            ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
             LAPACKlasv2_(&T[ldT*i+i],&T[ldT*i+i+1],&T[ldT*(i+1)+i+1],&b22,&b11,&sr,&cr,&sl,&cl);
+            ierr = PetscFPTrapPop();CHKERRQ(ierr);
             if (b11 < 0.0) { cr=-cr; sr=-sr; b11=-b11; b22=-b22; }
             BLASrot_(&n_i,&S[ldS*i+i],&ldS_,&S[ldS*i+i+1],&ldS_,&cl,&sl);
             BLASrot_(&i_1,&S[ldS*i],&one,&S[ldS*(i+1)],&one,&cr,&sr);
