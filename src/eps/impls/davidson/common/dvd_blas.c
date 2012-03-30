@@ -157,7 +157,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
       DVD_ISNOT(sB,DVD_MAT_LTRIANG)    ) {
     ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     rC = rA; cC = cB;
-    BLAShemm_("L", DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
+    BLASsymm_("L", DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
               (PetscScalar*)A, &_ldA, (PetscScalar*)B, &_ldB, &zero, C, &_ldC);
     ierr = PetscLogFlops(rA*cB*cA); CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
@@ -170,7 +170,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
       DVD_ISNOT(sA,DVD_MAT_LTRIANG)    ) {
     ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     rC = rA; cC = cB;
-    BLAShemm_("R", DVD_ISNOT(sB,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
+    BLASsymm_("R", DVD_ISNOT(sB,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
               (PetscScalar*)B, &_ldB, (PetscScalar*)A, &_ldA, &zero, C, &_ldC);
     ierr = PetscLogFlops(rA*cB*cA); CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
