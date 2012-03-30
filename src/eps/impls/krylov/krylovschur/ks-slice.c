@@ -176,7 +176,7 @@ static PetscErrorCode EPSExtractShift(EPS eps){
 #define __FUNCT__ "EPSUpdateShiftRKS"
 static PetscErrorCode EPSUpdateShiftRKS(EPS eps,PetscInt n,PetscReal sigma1,PetscReal sigma2,PetscScalar *S)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable.");
 #else

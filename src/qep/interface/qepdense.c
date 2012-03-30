@@ -65,7 +65,7 @@ PetscErrorCode QEPSortDenseSchur(QEP qep,PetscInt n_,PetscInt k,PetscScalar *T,P
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
-  SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscScalar    re,im;

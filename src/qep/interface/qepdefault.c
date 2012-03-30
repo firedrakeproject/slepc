@@ -90,7 +90,7 @@ PetscErrorCode QEPAbsoluteConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,Pe
 PetscErrorCode QEPComputeVectors_Schur(QEP qep)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
-  SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscInt       i;

@@ -144,7 +144,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
 #if defined(SLEPC_MISSING_LAPACK_BDSDC)
   PetscFunctionBegin;
-  SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"BDSDC - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"BDSDC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;

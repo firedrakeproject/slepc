@@ -97,6 +97,10 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 #define __FUNCT__ "EPSSolve_Power"
 PetscErrorCode EPSSolve_Power(EPS eps)
 {
+#if defined(SLEPC_MISSING_LAPACK_LAEV2)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+#else 
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
   PetscInt       i;
@@ -165,9 +169,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
-#if defined(SLEPC_MISSING_LAPACK_LAEV2)
-          SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
-#else 
           /* beta1 is the norm of the residual associated to R(v) */
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
           ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
@@ -184,7 +185,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
           if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) rho = rt1;
           else rho = rt2;
-#endif 
         }
         /* update operator according to new shift */
         PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
@@ -234,12 +234,17 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   }
   ierr = PetscFree(select);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif 
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_TS_Power"
 PetscErrorCode EPSSolve_TS_Power(EPS eps)
 {
+#if defined(SLEPC_MISSING_LAPACK_LAEV2)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+#else 
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
   Vec            v,w,y,z,e;
@@ -309,9 +314,6 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
-#if defined(SLEPC_MISSING_LAPACK_LAEV2)
-          SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
-#else 
           /* beta1 is the norm of the residual associated to R(v,w) */
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
           ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
@@ -328,7 +330,6 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
           LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
           if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) rho = rt1;
           else rho = rt2;
-#endif 
         }
         /* update operator according to new shift */
         PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
@@ -375,6 +376,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
   PetscFunctionReturn(0);
+#endif 
 }
 
 #undef __FUNCT__  

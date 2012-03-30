@@ -238,12 +238,9 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
                               PetscInt _cA, PetscScalar *auxS, PetscInt _lauxS,
                               PetscInt *ncA)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEQRF)
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF - Lapack routine is unavailable.");
-#elif defined(SLEPC_MISSING_LAPACK_ORGQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"ORGQR - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode  ierr;
   PetscBLASInt    ldA = _ldA, rA = _rA, cA = _cA,
@@ -1056,6 +1053,10 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
 PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
                                   PetscScalar *wS1)
 {
+#if defined(PETSC_MISSING_LAPACK_PBTRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"PBTRF - Lapack routine is unavailable.");
+#else
   PetscErrorCode  ierr;
   PetscBLASInt    nn = n, info, ld;
   PetscInt        ldV, i;
@@ -1101,6 +1102,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   }
   
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
@@ -1304,12 +1306,9 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
   PetscInt size_auxS, PetscBool doProd)
 {
-#if defined(SLEPC_MISSING_LAPACK_TGEVC)
+#if defined(SLEPC_MISSING_LAPACK_TGEVC) || defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGEVC - Lapack routine is unavailable.");
-#elif defined(SLEPC_MISSING_LAPACK_TREVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGEVC/TREVC - Lapack routine is unavailable.");
 #else
   PetscBLASInt    n, ldpX, ldpY, nout, info, ldS, ldT;
   const char      *side, *howmny;

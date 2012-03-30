@@ -104,7 +104,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
-  SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscInt       i;

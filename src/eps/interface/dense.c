@@ -225,7 +225,7 @@ PetscErrorCode EPSDenseHEP(PetscInt n_,PetscScalar *A,PetscInt lda_,PetscReal *w
 {
 #if defined(SLEPC_MISSING_LAPACK_SYEVR)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"DSYEVR/ZHEEVR - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEVR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscReal      abstol = 0.0,vl,vu;
@@ -303,7 +303,7 @@ PetscErrorCode EPSDenseGHEP(PetscInt n_,PetscScalar *A,PetscScalar *B,PetscReal 
 {
 #if defined(SLEPC_MISSING_LAPACK_SYGVD)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"DSYGVD/ZHEGVD - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYGVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscScalar    *work;
@@ -390,7 +390,7 @@ PetscErrorCode EPSDenseHessenberg(PetscInt n_,PetscInt k,PetscScalar *A,PetscInt
 {
 #if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD,ORGHR - Lapack routines are unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR - Lapack routines are unavailable.");
 #else
   PetscScalar    *tau,*work;
   PetscErrorCode ierr;
@@ -465,7 +465,7 @@ PetscErrorCode EPSDenseHessenberg(PetscInt n_,PetscInt k,PetscScalar *A,PetscInt
 @*/
 PetscErrorCode EPSDenseSchur(PetscInt n_,PetscInt k,PetscScalar *H,PetscInt ldh_,PetscScalar *Z,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_HSEQR)
+#if defined(PETSC_MISSING_LAPACK_HSEQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable.");
 #else

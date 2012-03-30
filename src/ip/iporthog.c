@@ -428,7 +428,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
 {
 #if defined(SLEPC_MISSING_LAPACK_GELQF) || defined(SLEPC_MISSING_LAPACK_ORMLQ)
   PetscFunctionBegin;
-  SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_SUP,"xGELQF - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GELQF/ORMLQ - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   j,ione=1,lwork,info,n=n_;

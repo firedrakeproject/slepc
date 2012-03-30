@@ -299,7 +299,8 @@ PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,PetscInt lds,PetscScal
 PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e,PetscScalar *Q,PetscInt ldq,PetscScalar *H,PetscInt ldh_)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD) 
-  SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscBool      isrefined;

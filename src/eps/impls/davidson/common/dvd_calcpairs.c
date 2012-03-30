@@ -666,9 +666,9 @@ PetscErrorCode dvd_calcpairs_projeig_qz_std(dvdDashboard *d)
 */
 PetscErrorCode dvd_calcpairs_projeig_qz_gen(dvdDashboard *d)
 {
-#if defined(SLEPC_MISSING_LAPACK_GGES)
+#if defined(PETSC_MISSING_LAPACK_GGES)
   PetscFunctionBegin;
-  SETERRQ(((PetscObject)(d->eps))->comm,PETSC_ERR_SUP,"GGES - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGES - Lapack routine is unavailable.");
 #else
   PetscErrorCode  ierr;
   PetscScalar     *beta = d->auxS;

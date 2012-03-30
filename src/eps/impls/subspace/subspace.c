@@ -98,7 +98,7 @@ static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,Petsc
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF,GETRI - Lapack routines are unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE/LANHS - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   *ipiv,lwork,info,n=n_,ldh=ldh_;

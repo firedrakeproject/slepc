@@ -131,6 +131,10 @@ static void OperatorBMultiVector(void *data,void *x,void *y)
 #define __FUNCT__ "EPSSetUp_BLOPEX"
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
+#if defined(PETSC_MISSING_LAPACK_POTRF) || defined(PETSC_MISSING_LAPACK_SYGV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/SYGV - Lapack routine is unavailable.");
+#else
   PetscErrorCode ierr;
   PetscInt       i;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
@@ -192,6 +196,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLOPEX;
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
