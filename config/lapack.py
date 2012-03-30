@@ -35,7 +35,7 @@ def Check(conf,vars,cmake,tmpdir):
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
-    l += ['orghr','syevr','sygvd','ormlq','orgqr','symm']
+    l += ['orghr','syevr','sygvd','ormlq','orgqr']
     if petscconf.PRECISION == 'single':
       prefix = 's'
     if petscconf.PRECISION == '__float128':
@@ -43,7 +43,7 @@ def Check(conf,vars,cmake,tmpdir):
     else:
       prefix = 'd'
   else:
-    l += ['unghr','heevr','hegvd','unmlq','ungqr','hemm']
+    l += ['unghr','heevr','hegvd','unmlq','ungqr']
     if petscconf.PRECISION == 'single':
       prefix = 'c'
     if petscconf.PRECISION == '__float128':
@@ -57,7 +57,7 @@ def Check(conf,vars,cmake,tmpdir):
     functions.append(prefix + i)
 
   # in this case, the real name represents both versions
-  namesubst = {'unghr':'orghr', 'heevr':'syevr', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'hemm':'symm'}
+  namesubst = {'unghr':'orghr', 'heevr':'syevr', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr'}
 
   # LAPACK functions which are always used in real version 
   if petscconf.PRECISION == 'single':
