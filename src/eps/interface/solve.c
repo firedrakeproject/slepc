@@ -1506,7 +1506,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
   }
 
   /* Force the vector to be in the range of OP for definite generalized problems */
-  if (eps->ispositive) {
+  if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STApply(eps->OP,w,vec);CHKERRQ(ierr);
   } else {
     ierr = VecCopy(w,vec);CHKERRQ(ierr);
