@@ -31,11 +31,11 @@ def Check(conf,vars,cmake,tmpdir):
   log.Println('Checking LAPACK library...')
 
   # LAPACK standard functions
-  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','ggev','geqrf']
+  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','geqrf','pbtrf']
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
-    l += ['orghr','syevr','sygvd','ormlq','rot','orgqr']
+    l += ['orghr','syevr','sygvd','ormlq','orgqr']
     if petscconf.PRECISION == 'single':
       prefix = 's'
     if petscconf.PRECISION == '__float128':
@@ -43,16 +43,13 @@ def Check(conf,vars,cmake,tmpdir):
     else:
       prefix = 'd'
   else:
-    l += ['unghr','heevr','hegvd','unmlq','ungtr','hetrd','ungqr']
+    l += ['unghr','heevr','hegvd','unmlq','ungqr']
     if petscconf.PRECISION == 'single':
       prefix = 'c'
-      l += ['srot']
     if petscconf.PRECISION == '__float128':
       prefix = 'w'
-      l += ['qrot']
     else:
       prefix = 'z'
-      l += ['drot']
 
   # add prefix to LAPACK names  
   functions = []
