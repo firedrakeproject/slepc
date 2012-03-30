@@ -238,6 +238,13 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
                               PetscInt _cA, PetscScalar *auxS, PetscInt _lauxS,
                               PetscInt *ncA)
 {
+#if defined(SLEPC_MISSING_LAPACK_GEQRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF - Lapack routine is unavailable.");
+#elif defined(SLEPC_MISSING_LAPACK_ORGQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"ORGQR - Lapack routine is unavailable.");
+#else
   PetscErrorCode  ierr;
   PetscBLASInt    ldA = _ldA, rA = _rA, cA = _cA,
                   info, ltau = PetscMin(_cA, _rA), lw = _lauxS - ltau;
@@ -264,6 +271,7 @@ PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
   if (ncA) *ncA = ltau;
 
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
@@ -1296,9 +1304,12 @@ PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
   PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
   PetscInt size_auxS, PetscBool doProd)
 {
-#if defined(SLEPC_MISSING_LAPACK_GGEV)
+#if defined(SLEPC_MISSING_LAPACK_TGEVC)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGEVC - Lapack routine is unavailable.");
+#elif defined(SLEPC_MISSING_LAPACK_TREVC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
 #else
   PetscBLASInt    n, ldpX, ldpY, nout, info, ldS, ldT;
   const char      *side, *howmny;
@@ -1402,6 +1413,10 @@ PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, 
 */
 PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *eigi,PetscScalar *X,PetscInt ldX,PetscBool doProd)
 {
+#if defined(SLEPC_MISSING_LAPACK_LASV2)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LASV2 - Lapack routine is unavailable.");
+#else
   PetscInt        i, j;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar     s;
@@ -1476,4 +1491,5 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
 #endif
 
   PetscFunctionReturn(0);
+#endif
 }

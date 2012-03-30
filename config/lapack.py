@@ -35,7 +35,7 @@ def Check(conf,vars,cmake,tmpdir):
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
-    l += ['orghr','syevr','sygvd','ormlq','orgqr']
+    l += ['orghr','syevr','sygvd','ormlq','orgqr','symm']
     if petscconf.PRECISION == 'single':
       prefix = 's'
     if petscconf.PRECISION == '__float128':
@@ -43,7 +43,7 @@ def Check(conf,vars,cmake,tmpdir):
     else:
       prefix = 'd'
   else:
-    l += ['unghr','heevr','hegvd','unmlq','ungqr']
+    l += ['unghr','heevr','hegvd','unmlq','ungqr','hemm']
     if petscconf.PRECISION == 'single':
       prefix = 'c'
     if petscconf.PRECISION == '__float128':
@@ -55,6 +55,9 @@ def Check(conf,vars,cmake,tmpdir):
   functions = []
   for i in l:
     functions.append(prefix + i)
+
+  # in this case, the real name represents both versions
+  namesubst = {'unghr':'orghr', 'heevr':'syevr', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'hemm':'symm'}
 
   # LAPACK functions which are always used in real version 
   if petscconf.PRECISION == 'single':
@@ -94,8 +97,13 @@ def Check(conf,vars,cmake,tmpdir):
     log.write('=== Checking LAPACK '+i+' function...')
     if not check.Link(tmpdir,[f],[],[]):
       missing.append(i)
-      conf.write('#ifndef SLEPC_MISSING_LAPACK_' + i[1:].upper() + '\n#define SLEPC_MISSING_LAPACK_' + i[1:].upper() + ' 1\n#endif\n\n')
-      cmake.write('set (SLEPC_MISSING_LAPACK_' + i[1:].upper() + ' YES)\n')
+      # some complex functions are represented by their real names
+      if i[1:] in namesubst:
+        nf = namesubst[i[1:]]
+      else:
+        nf = i[1:]
+      conf.write('#ifndef SLEPC_MISSING_LAPACK_' + nf.upper() + '\n#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n#endif\n\n')
+      cmake.write('set (SLEPC_MISSING_LAPACK_' + nf.upper() + ' YES)\n')
 
   if missing:
     cmake.write('mark_as_advanced (' + ''.join([s.upper()+' ' for s in missing]) + ')\n')
