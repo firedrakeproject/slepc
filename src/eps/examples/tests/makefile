@@ -39,7 +39,8 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test8.PETSc runtest8_1 test8.rm \
                        test9.PETSc runtest9_1 test9.rm \
                        test10.PETSc runtest10_1 test10.rm \
-                       test11.PETSc runtest11_1 test11.rm 
+                       test11.PETSc runtest11_1 test11.rm \
+                       test12.PETSc runtest12_1 test12.rm 
 TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
 TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
 
@@ -88,6 +89,10 @@ test10: test10.o chkopts
 test11: test11.o chkopts
 	-${CLINKER} -o test11 test11.o ${SLEPC_LIB}
 	${RM} test11.o
+
+test12: test12.o chkopts
+	-${CLINKER} -o test12 test12.o ${SLEPC_LIB}
+	${RM} test12.o
 
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd
@@ -251,7 +256,15 @@ runtest11_1:
 	-@test=test11_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ $$eps = krylovschur -o $$eps = arnoldi ]; then EXTRA="-st_shift 0.5 -st_type sinvert"; else EXTRA=""; fi; \
+	   if [ $$eps = krylovschur -o $$eps = arnoldi ]; then EXTRA="-st_type sinvert"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
+	${TESTCODE}
+
+runtest12_1:
+	-@test=test12_1; \
+	for eps in ${EPSNS}; do \
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test12 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
+	done > $${test}.tmp; \
 	${TESTCODE}

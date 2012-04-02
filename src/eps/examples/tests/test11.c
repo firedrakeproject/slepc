@@ -41,6 +41,7 @@ int main(int argc,char **argv)
   Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
+  ST             st;              /* spectral transformation associated */
   const EPSType  type;
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscScalar    target=0.5;
@@ -86,6 +87,12 @@ int main(int argc,char **argv)
      closest to the target on the right only
   */
   ierr = EPSSetEigenvalueComparison(eps,MyEigenSort,&target);CHKERRQ(ierr);
+
+  /*
+     Set the preconditioner based on A - target * I
+  */
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = STSetShift(st,target);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
