@@ -65,7 +65,7 @@ int main( int argc, char **argv )
   ierr = IPSetFromOptions(ip);CHKERRQ(ierr);
   ierr = IPView(ip,PETSC_NULL);CHKERRQ(ierr);
 
-  /* check orthogonality of QR of random vectors */
+  /* Check indefinite norm */
   ierr = IPNorm(ip,v,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed norm=%G\n",norm);CHKERRQ(ierr); 
 

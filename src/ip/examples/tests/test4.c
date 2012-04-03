@@ -78,11 +78,7 @@ int main( int argc, char **argv )
     omega[i] = norm/PetscAbs(norm);
   }
 
-  /* check orthogonality */
-  ierr = SlepcCheckOrthogonality(V,k,PETSC_NULL,k,PETSC_NULL,&lev);CHKERRQ(ierr);
-
-
-
+  /* Check orthogonality */
   ierr = PetscMalloc(k*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
   lev = 0.0;
   for (i=0;i<k;i++) {
