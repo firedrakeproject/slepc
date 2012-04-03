@@ -246,13 +246,16 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 -  type - a known type
 
    Notes:
-   Two types are available: IPBILINEAR and IPSESQUILINEAR.
+   Three types are available: IPBILINEAR, IPSESQUILINEAR, and IPINDEFINITE.
 
    For complex scalars, the default is a sesquilinear form (x,y)=x^H*M*y and it is
    also possible to choose a bilinear form (x,y)=x^T*M*y (without complex conjugation).
    The latter could be useful e.g. in complex-symmetric eigensolvers.
 
    In the case of real scalars, only the bilinear form (x,y)=x^T*M*y is available.
+
+   The indefinite inner product is reserved for the case of an indefinite
+   matrix M. This is used for instance in symmetric-indefinite eigenproblems.
 
    Level: advanced
 
@@ -693,6 +696,7 @@ extern PetscErrorCode IPCreate_Bilinear(IP);
 #if defined(PETSC_USE_COMPLEX)
 extern PetscErrorCode IPCreate_Sesquilinear(IP);
 #endif
+extern PetscErrorCode IPCreate_Indefinite(IP);
 EXTERN_C_END
 
 #undef __FUNCT__  
@@ -717,6 +721,7 @@ PetscErrorCode IPRegisterAll(const char *path)
 #if defined(PETSC_USE_COMPLEX)
   ierr = IPRegisterDynamic(IPSESQUILINEAR,path,"IPCreate_Sesquilinear",IPCreate_Sesquilinear);CHKERRQ(ierr);
 #endif
+  ierr = IPRegisterDynamic(IPINDEFINITE,path,"IPCreate_Indefinite",IPCreate_Indefinite);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

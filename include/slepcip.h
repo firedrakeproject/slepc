@@ -41,6 +41,8 @@ typedef struct _p_IP* IP;
     it is possible to choose between a sesquilinear form (x,y)=x^H*M*y (the default)
     or a bilinear form (x,y)=x^T*M*y (without complex conjugation). In the case
     of real scalars, only the bilinear form (x,y)=x^T*M*y is available.
+    Apart form these, there is also an indefinite inner product, defined by
+    and indefinite matrix M.
 
     Level: advanced
 
@@ -49,6 +51,7 @@ E*/
 #define IPType         char*
 #define IPBILINEAR     "bilinear"
 #define IPSESQUILINEAR "sesquilinear"
+#define IPINDEFINITE   "indefinite"
 
 /* Logging support */
 extern PetscClassId IP_CLASSID;

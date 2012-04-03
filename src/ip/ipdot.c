@@ -59,6 +59,9 @@
    positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B = 
    sqrt( x^H Bx ).
 
+   In an indefinite inner product, matrix B is indefinite and the norm is
+   defined as s*sqrt(abs(x^H Bx)), where s = sign(x^H Bx).
+
    Level: developer
 
 .seealso: IPInnerProduct()
@@ -91,6 +94,22 @@ PetscErrorCode IPNormBegin_Bilinear(IP ip,Vec x,PetscReal *norm)
 #undef __FUNCT__  
 #define __FUNCT__ "IPNormBegin_Sesquilinear"
 PetscErrorCode IPNormBegin_Sesquilinear(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  if (!ip->matrix) {
+    ierr = VecNormBegin(x,NORM_2,norm);CHKERRQ(ierr);
+  } else {
+    ierr = IPInnerProductBegin(ip,x,x,&p);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormBegin_Indefinite"
+PetscErrorCode IPNormBegin_Indefinite(IP ip,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscScalar    p;
@@ -149,7 +168,7 @@ PetscErrorCode IPNormEnd_Bilinear(IP ip,Vec x,PetscReal *norm)
     ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-     SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+    SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
   *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
   if (p<0.0) SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
@@ -173,8 +192,30 @@ PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
     if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
       ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
     if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) 
-       SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+      SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(PetscRealPart(p));
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPNormEnd_Indefinite"
+PetscErrorCode IPNormEnd_Indefinite(IP ip,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  if (!ip->matrix) {
+    ierr = VecNormEnd(x,NORM_2,norm);CHKERRQ(ierr);
+  } else {
+    ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
+    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+      ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
+    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) 
+      SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+    if (PetscRealPart(p)<0.0) *norm = -PetscSqrtScalar(-PetscRealPart(p));
+    else *norm = PetscSqrtScalar(PetscRealPart(p));
   }
   PetscFunctionReturn(0);
 }
@@ -612,5 +653,26 @@ PetscErrorCode IPCreate_Sesquilinear(IP ip)
   PetscFunctionReturn(0);
 }
 #endif
+
+#undef __FUNCT__  
+#define __FUNCT__ "IPCreate_Indefinite"
+PetscErrorCode IPCreate_Indefinite(IP ip)
+{
+  PetscFunctionBegin;
+  ip->ops->normbegin          = IPNormBegin_Indefinite;
+  ip->ops->normend            = IPNormEnd_Indefinite;
+#if defined(PETSC_USE_COMPLEX)
+  ip->ops->innerproductbegin  = IPInnerProductBegin_Sesquilinear;
+  ip->ops->innerproductend    = IPInnerProductEnd_Sesquilinear;
+  ip->ops->minnerproductbegin = IPMInnerProductBegin_Sesquilinear;
+  ip->ops->minnerproductend   = IPMInnerProductEnd_Sesquilinear;
+#else
+  ip->ops->innerproductbegin  = IPInnerProductBegin_Bilinear;
+  ip->ops->innerproductend    = IPInnerProductEnd_Bilinear;
+  ip->ops->minnerproductbegin = IPMInnerProductBegin_Bilinear;
+  ip->ops->minnerproductend   = IPMInnerProductEnd_Bilinear;
+#endif
+  PetscFunctionReturn(0);
+}
 EXTERN_C_END
 
