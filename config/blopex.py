@@ -117,7 +117,7 @@ Unable to download package %s from: %s
 
   # Write configuration files
   conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
-  vars.write('BLOPEX_LIB = -lBLOPEX\n')
+  vars.write('BLOPEX_LIB = -L' + libDir + ' -lBLOPEX\n')
   cmake.write('set (SLEPC_HAVE_BLOPEX YES)\n')
   cmake.write('find_library (BLOPEX_LIB BLOPEX)\n')
 

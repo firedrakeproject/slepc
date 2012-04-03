@@ -185,7 +185,7 @@ slepc_tree: ${ACTION}
 
 # builds the SLEPc shared library
 slepc_shared:
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} OTHERSHAREDLIBS="${PETSC_LIB}" shared_nomesg
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} OTHERSHAREDLIBS="${PETSC_KSP_LIB} ${SLEPC_EXTERNAL_LIB}" shared_nomesg
 
 # uses the cmake infrastructure to build/rebuild the libraries
 slepc_cmake:
