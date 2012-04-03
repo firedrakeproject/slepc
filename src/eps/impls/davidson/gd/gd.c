@@ -97,15 +97,15 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   KSP            ksp;
 
   PetscFunctionBegin;
-  /* Setup common for all davidson solvers */
-  ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
-
   /* Set KSPPREONLY as default */ 
   ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
- 
+
+  /* Setup common for all davidson solvers */
+  ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
+
   /* Check some constraints */ 
   ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");

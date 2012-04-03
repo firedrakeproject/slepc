@@ -143,7 +143,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
   b->max_size_X = PetscMax(b->max_size_X, max_bs);
   size_P = b->max_size_P+cX_impr;
   b->max_size_auxV = PetscMax(b->max_size_auxV,
-     b->max_size_X*(useGD?2:3)+2+ /* u, kr?, auxV(max_size_X+2) */
+     b->max_size_X*3+(useGD?0:2)+ /* u, kr, auxV(max_size_X+2?) */
      ((herm || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
  
   b->own_scalars+= size_P*size_P; /* XKZ */
@@ -374,14 +374,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
     auxS = auxS0;
     data->theta = auxS; auxS+= 2*s;
     data->thetai = auxS; auxS+= s;
-    /* If GD, kr = D */
-    if (!data->ksp) {
-      kr = &D[i];
-
-    /* If JD, kr = auxV */
-    } else {
-      kr = data->auxV; data->auxV+= s;
-    }
+    kr = data->auxV; data->auxV+= s;
 
     /* Compute theta, maximum iterations and tolerance */
     maxits = 0; tol = 1;
@@ -411,9 +404,6 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
       if (d->npreconv > 0) break;
     }
 
-    /* Compute kr <- kr - v*(u'*kr) */
-    ierr = dvd_improvex_apply_proj(d, kr, s, auxS); CHKERRQ(ierr);
-
     /* If JD */
     if (data->ksp) {
       data->auxS = auxS;
@@ -440,6 +430,13 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
       /* Destroy the composed ks and D */
       ierr = VecDestroy(&kr_comp); CHKERRQ(ierr);
       ierr = VecDestroy(&D_comp); CHKERRQ(ierr);
+
+    /* If GD */
+    } else {
+      for(j=0; j<s; j++) {
+        ierr = d->improvex_precond(d, r_s+i+j, kr[j], D[i+j]); CHKERRQ(ierr);
+      }
+      ierr = dvd_improvex_apply_proj(d, &D[i], s, auxS); CHKERRQ(ierr);
     }
   }
   *size_D = i;
@@ -476,7 +473,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Ve
     if(data->d->eigi[data->r_s+i] != 0.0) {
       if (data->d->B) {
         ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
-        ierr = MatMult(data->d->B,x[i],auxV[1]);CHKERRQ(ierr);
+        ierr = MatMult(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
         Bx = auxV;
       } else {
         Bx = &x[i];
@@ -525,7 +522,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,con
     if(data->d->eigi[data->r_s+i] != 0.0) {
       if (data->d->B) {
         ierr = MatMultTranspose(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
-        ierr = MatMultTranspose(data->d->B,x[i],auxV[1]);CHKERRQ(ierr);
+        ierr = MatMultTranspose(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
         Bx = auxV;
       } else {
         Bx = &x[i];
@@ -570,6 +567,9 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
   ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(w,PETSC_NULL,&wx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
+
+  /* Check auxiliary vectors */
+  if (&data->auxV[n] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
 
   switch(side) {
   case PC_LEFT:
@@ -662,6 +662,9 @@ PetscErrorCode dvd_pcapplytrans(PC pc,Vec in,Vec out)
   ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
+  /* Check auxiliary vectors */
+  if (&data->auxV[n] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
+
   /* auxV <- in */
   for(i=0; i<n; i++) {
     ierr = VecCopy(inx[i],data->auxV[i]);CHKERRQ(ierr);
@@ -696,6 +699,9 @@ PetscErrorCode dvd_matmult_jd(Mat A,Vec in,Vec out)
   ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
+  /* Check auxiliary vectors */
+  if (&data->auxV[2] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
+
   /* out <- theta[1]A*in - theta[0]*B*in */
   ierr = dvd_aux_matmult(data,inx,outx,data->auxV);CHKERRQ(ierr);
 
@@ -724,6 +730,9 @@ PetscErrorCode dvd_matmulttrans_jd(Mat A,Vec in,Vec out)
   ierr = VecCompGetSubVecs(in,PETSC_NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
+
+  /* Check auxiliary vectors */
+  if (&data->auxV[n+2] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
 
   ierr = KSPGetPCSide(data->ksp,&side);CHKERRQ(ierr);
   if (side == PC_RIGHT) {
@@ -1073,12 +1082,9 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d, PetscInt i_s,
     ierr = d->improvex_precond(d, i_s+i, r[i], v[i]); CHKERRQ(ierr);
   }
 
-  /* kr <- K^{-1}*kr = K^{-1}*(Ax - eig_i*Bx) */
-  d->calcpairs_proj_res(d, i_s, i_e, Bx);
-  for(i=0; i<n; i++) {
-    ierr = VecCopy(Bx[i], r[i]); CHKERRQ(ierr);
-    ierr = d->improvex_precond(d, i_s+i, r[i], kr[i]); CHKERRQ(ierr);
-  }
+  /* kr <- P*(Ax - eig_i*Bx) */
+  ierr = d->calcpairs_proj_res(d, i_s, i_e, kr); CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 
@@ -1110,7 +1116,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
   ierr = SlepcUpdateVectorsZ(u, 0.0, 1.0, (d->W?d->W:d->V)-d->cX_in_H, d->size_V+d->cX_in_H, pY, ld, d->size_H, n); CHKERRQ(ierr);
 
   /* Bx <- B*X(i) */
-  Bx = kr;
+  Bx = r;
   if (d->BV) {
     ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
   } else {
@@ -1123,7 +1129,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
   }
 
   /* Ax <- A*X(i) */
-  Ax = r;
+  Ax = kr;
   ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
 
   /* Recompute the eigenvalue */
@@ -1131,10 +1137,10 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
 
   for(i=0; i<n; i++) {
     if (d->eigi[i_s+i] == 0.0) {
-      /* r <- Ax -eig*Bx */
-      ierr = VecAXPBY(r[i], -d->eigr[i_s+i]/d->nX[i_s+i], 1.0/d->nX[i_s+i], Bx[i]); CHKERRQ(ierr);
+      /* kr <- Ax -eig*Bx */
+      ierr = VecAXPBY(kr[i], -d->eigr[i_s+i]/d->nX[i_s+i], 1.0/d->nX[i_s+i], Bx[i]); CHKERRQ(ierr);
     } else {
-      /* [r_i r_i+1 kr_i kr_i+1]*= [   1        0 
+      /* [kr_i kr_i+1 r_i r_i+1]*= [   1        0 
                                        0        1
                                     -eigr_i -eigi_i
                                      eigi_i -eigr_i] */
@@ -1142,7 +1148,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
       b[2] = b[7] = -d->eigr[i_s+i]/d->nX[i_s+i];
       b[6] = -(b[3] = d->eigi[i_s+i]/d->nX[i_s+i]);
       b[1] = b[4] = 0.0;
-      X[0] = r[i]; X[1] = r[i+1]; X[2] = kr[i]; X[3] = kr[i+1];
+      X[0] = kr[i]; X[1] = kr[i+1]; X[2] = r[i]; X[3] = r[i+1];
       ierr = SlepcUpdateVectorsD(X, 4, 1.0, b, 4, 4, 2, Z, size_Z);
       CHKERRQ(ierr);
       i++;
@@ -1150,11 +1156,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
   }
   for (i=0; i<n; i++) d->nX[i_s+i] = 1.0;
 
-  /* kr <- K^{-1}*r */
-  d->calcpairs_proj_res(d, i_s, i_e, r);
-  for(i=0; i<n; i++) {
-    ierr = d->improvex_precond(d, i_s+i, r[i], kr[i]); CHKERRQ(ierr);
-  }
+  /* kr <- P*kr */
+  ierr = d->calcpairs_proj_res(d, i_s, i_e, r);CHKERRQ(ierr);
 
   /* u <- K^{-1} X(i) */
   for(i=0; i<n; i++) {
