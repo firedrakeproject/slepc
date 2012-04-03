@@ -113,6 +113,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
     ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
+    if (!eps->ispositive) { ierr = IPSetType(eps->ip,IPINDEFINITE);CHKERRQ(ierr); }
   } else {
     ierr = IPSetMatrix(eps->ip,PETSC_NULL);CHKERRQ(ierr);
   }
