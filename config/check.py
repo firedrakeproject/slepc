@@ -140,5 +140,5 @@ def FortranLib(tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
   vars.write(name + '_LIB = '+str.join(' ',flags)+'\n')
   cmake.write('set (SLEPC_HAVE_' + name + ' YES)\n')
   libname = ''.join([s.lstrip('-l')+' ' for s in l])
-  cmake.write('find_library (' + name + '_LIB ' + libname + 'HINTS '+ d +')\n')
+  cmake.write('set (' + name + '_LIB "")\nforeach (libname ' + libname + ')\n  string (TOUPPER ${libname} LIBNAME)\n  find_library (${LIBNAME}LIB ${libname} HINTS '+ d +')\n  list (APPEND ' + name + '_LIB "${${LIBNAME}LIB}")\nendforeach()\n')
   return flags
