@@ -19,8 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip ps sys vec
+ALL:
 
-LOCDIR   = src/
+LOCDIR   = src/ps/examples/
+DIRS     = tests
 
 include ${SLEPC_DIR}/conf/slepc_common
+

@@ -19,8 +19,17 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep ip ps sys vec
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = psbasic.c
+SOURCEF  = 
+SOURCEH  = ../../include/slepc-private/psimpl.h ../../include/slepcps.h
+OBJSC    = psbasic.o
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = PS
+LOCDIR   = src/ps/
 
 include ${SLEPC_DIR}/conf/slepc_common
