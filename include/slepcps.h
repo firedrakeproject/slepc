@@ -99,6 +99,7 @@ extern PetscErrorCode PSDestroy(PS*);
 extern PetscErrorCode PSReset(PS);
 
 extern PetscErrorCode PSAllocate(PS,PetscInt);
+extern PetscErrorCode PSGetLeadingDimension(PS,PetscInt*);
 extern PetscErrorCode PSSetState(PS,PSStateType);
 extern PetscErrorCode PSGetState(PS,PSStateType*);
 extern PetscErrorCode PSSetDimensions(PS,PetscInt,PetscInt,PetscInt);

@@ -37,11 +37,17 @@ struct _PSOps {
 
 struct _p_PS {
   PETSCHEADER(struct _PSOps);
+  PetscInt    ld;                 /* leading dimension */
+  PetscInt    l;                  /* number of locked (inactive) leading columns */
+  PetscInt    n;                  /* current dimension */
+  PetscInt    k;                  /* intermediate dimension (e.g. position of arrow) */
   PSStateType state;              /* the current state */
   PetscScalar *mat[PS_NUM_MAT];   /* the matrices */
   PetscReal   *rmat[PS_NUM_MAT];  /* the matrices (real) */
   PetscScalar *work;
   PetscReal   *rwork;
 };
+
+extern PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
 
 #endif

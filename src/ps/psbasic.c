@@ -129,13 +129,17 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   PetscFunctionBegin;
   PetscValidPointer(newps,2);
   ierr = PetscHeaderCreate(ps,_p_PS,struct _PSOps,PS_CLASSID,-1,"PS","Projected System","PS",comm,PSDestroy,PSView);CHKERRQ(ierr);
-  *newps      = ps;
-  ps->state   = PS_STATE_RAW;
+  *newps    = ps;
+  ps->state = PS_STATE_RAW;
+  ps->ld    = 0;
+  ps->l     = 0;
+  ps->n     = 0;
+  ps->k     = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
-    ps->mat[i] = PETSC_NULL;
+    ps->mat[i]  = PETSC_NULL;
     ps->rmat[i] = PETSC_NULL;
   }
-  ps->work = PETSC_NULL;
+  ps->work  = PETSC_NULL;
   ps->rwork = PETSC_NULL;
   PetscFunctionReturn(0);
 }
@@ -322,7 +326,7 @@ PetscErrorCode PSSetFromOptions(PS ps)
   if (!PSRegisterAllCalled) { ierr = PSRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
   /* Set default type (we do not allow changing it with -ps_type) */
   if (!((PetscObject)ps)->type_name) {
-    ierr = PSSetType(ps,PSHEP);CHKERRQ(ierr);
+    ierr = PSSetType(ps,PSNHEP);CHKERRQ(ierr);
   }
   ierr = PetscOptionsBegin(((PetscObject)ps)->comm,((PetscObject)ps)->prefix,"Projecte System (PS) Options","PS");CHKERRQ(ierr);
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ps);CHKERRQ(ierr);
@@ -359,6 +363,7 @@ PetscErrorCode PSSetFromOptions(PS ps)
 PetscErrorCode PSView(PS ps,PetscViewer viewer)
 {
   PetscBool      isascii;
+  const char     *state;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -369,6 +374,15 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ps,viewer,"PS Object");CHKERRQ(ierr);
+     switch (ps->state) {
+       case PS_STATE_RAW:          state = "raw"; break;
+       case PS_STATE_INTERMEDIATE: state = "intermediate"; break;
+       case PS_STATE_CONDENSED:    state = "condensed"; break;
+       case PS_STATE_SORTED:       state = "sorted"; break;
+       default: SETERRQ(((PetscObject)ps)->comm,1,"Wrong value of ps->state");
+     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
   } else {
     SETERRQ1(((PetscObject)ps)->comm,1,"Viewer type %s not supported for PS",((PetscObject)viewer)->type_name);
   }
@@ -376,8 +390,231 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSAllocate"
+/*@
+   PSAllocate - Allocates memory for internal storage or matrices in PS.
+
+   Collective on PS
+
+   Input Parameters:
++  ps - the projected system context
+-  ld - leading dimension (maximum allowed dimension for the matrices)
+
+   Level: advanced
+
+.seealso: PSGetLeadingDimension(), PSSetDimensions()
+@*/
+PetscErrorCode PSAllocate(PS ps,PetscInt ld)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ps,ld,2);
+  if (ld<1) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
+  ierr = PSReset(ps);CHKERRQ(ierr);
+  ps->ld = ld;
+  ps->n  = ld;
+  ierr = (*ps->ops->allocate)(ps,ld);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSAllocateMat_Private"
+PetscErrorCode PSAllocateMat_Private(PS ps,PSMatType m)
+{
+  PetscInt sz;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  sz = ps->ld*ps->ld*sizeof(PetscScalar);
+  ierr = PetscMalloc(sz,&ps->mat[m]);CHKERRQ(ierr); 
+  ierr = PetscMemzero(ps->mat[m],sz);CHKERRQ(ierr); 
+  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSGetLeadingDimension"
+/*@
+   PSGetLeadingDimension - Returns the leading dimension of the allocated
+   matrices.
+
+   Not Collective
+
+   Input Parameter:
+.  ps - the projected system context
+
+   Output Parameter:
+.  ld - leading dimension (maximum allowed dimension for the matrices)
+
+   Level: advanced
+
+.seealso: PSAllocate(), PSSetDimensions()
+@*/
+PetscErrorCode PSGetLeadingDimension(PS ps,PetscInt *ld)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (ld) *ld = ps->ld;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSetState"
+/*@
+   PSSetState - Change the state of the PS object.
+
+   Collective on PS
+
+   Input Parameters:
++  ps    - the projected system context
+-  state - the new state
+
+   Notes:
+   The state indicates that the projected system is in an initial state (raw),
+   in an intermediate state (such as tridiagonal, Hessenberg or 
+   Hessenberg-triangular), in a condensed state (such as diagonal, Schur or
+   generalized Schur), or in a sorted condensed state (according to a given
+   sorting criterion).
+
+   This function is normally used to return to the raw state when the
+   condensed structure is destroyed.
+
+   Level: advanced
+
+.seealso: PSGetState()
+@*/
+PetscErrorCode PSSetState(PS ps,PSStateType state)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ps,state,2);
+  switch (state) {
+    case PS_STATE_RAW:
+    case PS_STATE_INTERMEDIATE:
+    case PS_STATE_CONDENSED:
+    case PS_STATE_SORTED:
+      if (ps->state<state) { ierr = PetscInfo(ps,"PS state has been increased\n");CHKERRQ(ierr); }
+      ps->state = state;
+    default:
+      SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Wrong state");
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSGetState"
+/*@
+   PSGetState - Returns the current state.
+
+   Not Collective
+
+   Input Parameter:
+.  ps - the projected system context
+
+   Output Parameter:
+.  state - current state
+
+   Level: advanced
+
+.seealso: PSSetState()
+@*/
+PetscErrorCode PSGetState(PS ps,PSStateType *state)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (state) *state = ps->state;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSetDimensions"
+/*@
+   PSSetDimensions - Resize the matrices in the PS object.
+
+   Collective on PS
+
+   Input Parameters:
++  ps - the projected system context
+.  n  - the new size
+.  l  - number of locked (inactive) leading columns
+-  k  - intermediate dimension (e.g., position of arrow)
+
+   Note:
+   The internal arrays are not reallocated.
+
+   Level: advanced
+
+.seealso: PSGetDimensions(), PSAllocate()
+@*/
+PetscErrorCode PSSetDimensions(PS ps,PetscInt n,PetscInt l,PetscInt k)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ps,n,2);
+  PetscValidLogicalCollectiveInt(ps,l,3);
+  PetscValidLogicalCollectiveInt(ps,k,4);
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  if (n!=PETSC_IGNORE) {
+    if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
+      ps->n = ps->ld;
+    } else {
+      if (n<1 || n>ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 1 and ld");
+      ps->n = n;
+    }
+  }
+  if (l!=PETSC_IGNORE) {
+    if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+      ps->l = 0;
+    } else {
+      if (l<0 || l>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
+      ps->l = l;
+    }
+  }
+  if (k!=PETSC_IGNORE) {
+    if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
+      ps->k = ps->n/2;
+    } else {
+      if (k<0 || k>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
+      ps->k = k;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSGetDimensions"
+/*@
+   PSGetDimensions - Returns the current dimensions.
+
+   Not Collective
+
+   Input Parameter:
+.  ps - the projected system context
+
+   Output Parameter:
+.  state - current dimensions
+
+   Level: advanced
+
+.seealso: PSSetDimensions()
+@*/
+PetscErrorCode PSGetDimensions(PS ps,PetscInt *n,PetscInt *l,PetscInt *k)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (n) *n = ps->n;
+  if (l) *l = ps->l;
+  if (k) *k = ps->k;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSReset"
-/*@C
+/*@
    PSReset - Resets the PS context to the initial state.
 
    Collective on PS
@@ -396,7 +633,11 @@ PetscErrorCode PSReset(PS ps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ps->state    = PS_STATE_RAW;
+  ps->state = PS_STATE_RAW;
+  ps->ld    = 0;
+  ps->l     = 0;
+  ps->n     = 0;
+  ps->k     = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ierr = PetscFree(ps->mat[i]);CHKERRQ(ierr);
     ierr = PetscFree(ps->rmat[i]);CHKERRQ(ierr);
@@ -473,22 +714,8 @@ PetscErrorCode PSRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-//EXTERN_C_BEGIN
-//extern PetscErrorCode PSCreate_HEP(PS);
-//EXTERN_C_END
-
 EXTERN_C_BEGIN
-#undef __FUNCT__  
-#define __FUNCT__ "PSCreate_HEP"
-PetscErrorCode PSCreate_HEP(PS ps)
-{
-  PetscFunctionBegin;
-//  ps->ops->allocate      = PSAllocate_HEP;
-//  ps->ops->computevector = PSComputeVector_HEP;
-//  ps->ops->solve         = PSSolve_HEP;
-//  ps->ops->sort          = PSSort_HEP;
-  PetscFunctionReturn(0);
-}
+extern PetscErrorCode PSCreate_NHEP(PS);
 EXTERN_C_END
 
 #undef __FUNCT__  
@@ -509,7 +736,7 @@ PetscErrorCode PSRegisterAll(const char *path)
 
   PetscFunctionBegin;
   PSRegisterAllCalled = PETSC_TRUE;
-  ierr = PSRegisterDynamic(PSHEP,path,"PSCreate_HEP",PSCreate_HEP);CHKERRQ(ierr);
+  ierr = PSRegisterDynamic(PSNHEP,path,"PSCreate_NHEP",PSCreate_NHEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

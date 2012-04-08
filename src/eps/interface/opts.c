@@ -226,6 +226,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPSetFromOptions(eps->ip);CHKERRQ(ierr);
+  if (!eps->ps) { ierr = EPSGetPS(eps,&eps->ps);CHKERRQ(ierr); }
+  ierr = PSSetFromOptions(eps->ps);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->OP);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1323,6 +1325,8 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
+  if (!eps->ps) { ierr = EPSGetPS(eps,&eps->ps);CHKERRQ(ierr); }
+  ierr = PSSetOptionsPrefix(eps->ps,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
@@ -1357,6 +1361,8 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   ierr = STAppendOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
+  if (!eps->ps) { ierr = EPSGetPS(eps,&eps->ps);CHKERRQ(ierr); }
+  ierr = PSSetOptionsPrefix(eps->ps,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

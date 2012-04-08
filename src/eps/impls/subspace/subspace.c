@@ -78,6 +78,8 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   ierr = VecDuplicateVecs(eps->t,eps->ncv,&ctx->AV);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
+  ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */

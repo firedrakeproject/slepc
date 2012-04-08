@@ -90,6 +90,7 @@ struct _p_EPS {
               *errest_left;     /* left error estimates */
   ST          OP;               /* spectral transformation object */
   IP          ip;               /* innerproduct object */
+  PS          ps;               /* projected system object */
   void        *data;            /* placeholder for misc stuff associated 
                                    with a particular solver */
   PetscInt    nconv,            /* number of converged eigenvalues */

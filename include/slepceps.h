@@ -26,6 +26,7 @@
 #include "slepcsys.h"
 #include "slepcst.h"
 #include "slepcip.h"
+#include "slepcps.h"
 PETSC_EXTERN_CXX_BEGIN
 
 extern PetscErrorCode EPSInitializePackage(const char[]);
@@ -166,6 +167,8 @@ extern PetscErrorCode EPSSetST(EPS,ST);
 extern PetscErrorCode EPSGetST(EPS,ST*);
 extern PetscErrorCode EPSSetIP(EPS,IP);
 extern PetscErrorCode EPSGetIP(EPS,IP*);
+extern PetscErrorCode EPSSetPS(EPS,PS);
+extern PetscErrorCode EPSGetPS(EPS,PS*);
 extern PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 extern PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
 extern PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);
