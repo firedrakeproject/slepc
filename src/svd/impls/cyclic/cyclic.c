@@ -115,10 +115,10 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
     } else {
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&cyclic->y1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&cyclic->y2);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,PETSC_NULL,&cyclic->y1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,PETSC_NULL,&cyclic->y2);CHKERRQ(ierr);
       ierr = MatCreateShell(((PetscObject)svd)->comm,m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);  
       ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);  
@@ -197,8 +197,8 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = MatGetVecs(cyclic->mat,&x,PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,m,M,PETSC_NULL,&x1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,n,N,PETSC_NULL,&x2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,PETSC_NULL,&x1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,PETSC_NULL,&x2);CHKERRQ(ierr);
   for (i=0,j=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {

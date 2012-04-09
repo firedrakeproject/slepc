@@ -136,10 +136,10 @@ int main(int argc,char **argv)
   ctx->tau1 = delta1 / ((h*L)*(h*L));
   ctx->tau2 = delta2 / ((h*L)*(h*L));
   ctx->sigma = 0.0;
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,n,PETSC_DECIDE,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
 
   /* 
      Create the shell matrix
@@ -277,8 +277,8 @@ PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(comm,n,PETSC_DECIDE,pd,&d1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(comm,n,PETSC_DECIDE,pd+n,&d2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd,&d1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd+n,&d2);CHKERRQ(ierr);
 
   ierr = VecSet(d1,-2.0*ctx->tau1 + ctx->beta - 1.0 + ctx->sigma);CHKERRQ(ierr);
   ierr = VecSet(d2,-2.0*ctx->tau2 - ctx->alpha*ctx->alpha + ctx->sigma);CHKERRQ(ierr);

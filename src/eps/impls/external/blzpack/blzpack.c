@@ -156,8 +156,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PC             pc;                             
   
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
   if (eps->isgeneralized && !blz->slice) { 

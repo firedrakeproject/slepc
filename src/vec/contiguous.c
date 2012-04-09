@@ -69,7 +69,7 @@ static PetscErrorCode VecDuplicateVecs_Contiguous(Vec v,PetscInt m,Vec *V[])
   /* Create vectors */
   ierr = PetscMalloc(m*sizeof(Vec),V);CHKERRQ(ierr);
   for (i=0;i<m;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)v)->comm,nloc,PETSC_DECIDE,pV+i*nloc,*V+i);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)v)->comm,1,nloc,PETSC_DECIDE,pV+i*nloc,*V+i);CHKERRQ(ierr);
     ierr = PetscObjectCompose((PetscObject)*(*V+i),"contiguous",(PetscObject)container);CHKERRQ(ierr);
   }
   ierr = PetscContainerDestroy(&container);CHKERRQ(ierr);

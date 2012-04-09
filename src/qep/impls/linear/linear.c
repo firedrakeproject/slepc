@@ -88,10 +88,10 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     ierr = (*fcreate[i][0])(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = (*fcreate[i][1])(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
   } else {
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
     ierr = MatCreateShell(((PetscObject)qep)->comm,2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);
@@ -158,8 +158,8 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
   ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&wr);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&wi);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&wr);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&wi);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
     qep->eigr[i] *= qep->sfactor;
@@ -238,7 +238,7 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,qep->nloc,qep->n,PETSC_NULL,&w);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&w);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
     qep->eigr[i] *= qep->sfactor;

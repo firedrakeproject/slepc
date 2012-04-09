@@ -103,8 +103,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ncv = PetscBLASIntCast(eps->ncv);
   fcomm = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm));
   n = PetscBLASIntCast(eps->nloc);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,eps->work[1],PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);

@@ -79,8 +79,8 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
   PetscBLASInt   i;
 
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,*n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
   for (i=0;i<*m;i++) {
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
