@@ -109,8 +109,8 @@ extern PetscErrorCode PSRestoreArray(PS,PSMatType,PetscScalar *a[]);
 extern PetscErrorCode PSGetArrayReal(PS,PSMatType,PetscReal *a[]);
 extern PetscErrorCode PSRestoreArrayReal(PS,PSMatType,PetscReal *a[]);
 extern PetscErrorCode PSComputeVector(PS,PetscInt,PSMatType,PetscBool*);
-extern PetscErrorCode PSSolve(PS);
-extern PetscErrorCode PSSort(PS);
+extern PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
+extern PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*);
 
 extern PetscFList PSList;
 extern PetscBool  PSRegisterAllCalled;

@@ -613,6 +613,142 @@ PetscErrorCode PSGetDimensions(PS ps,PetscInt *n,PetscInt *l,PetscInt *k)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSGetArray"
+/*@C
+   PSGetArray - Returns a pointer to one of the internal arrays used to
+   represent matrices. You MUST call PSRestoreArray() when you no longer
+   need to access the array.
+
+   Not Collective
+
+   Input Parameters:
++  ps - the projected system context
+-  m - the requested matrix
+
+   Output Parameter:
+.  a - pointer to the values
+
+   Level: advanced
+
+.seealso: PSRestoreArray(), PSGetArrayReal()
+@*/
+PetscErrorCode PSGetArray(PS ps,PSMatType m,PetscScalar *a[])
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(a,2);
+  if (m<0 || m>=PS_NUM_MAT) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  if (!ps->mat[m]) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this PS");
+  *a = ps->mat[m];
+  CHKMEMQ;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSRestoreArray"
+/*@C
+   PSRestoreArray - Restores the matrix after PSGetArray() was called.
+
+   Not Collective
+
+   Input Parameters:
++  ps - the projected system context
+.  m - the requested matrix
+-  a - pointer to the values
+
+   Level: advanced
+
+.seealso: PSGetArray(), PSGetArrayReal()
+@*/
+PetscErrorCode PSRestoreArray(PS ps,PSMatType m,PetscScalar *a[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(a,2);
+  if (m<0 || m>=PS_NUM_MAT) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  CHKMEMQ;
+  *a = 0;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSolve"
+/*@
+   PSSolve - Solves the problem.
+
+   Not Collective
+
+   Input Parameters:
++  ps   - the projected system context
+.  eigr - array to store the computed eigenvalues (real part)
+-  eigi - array to store the computed eigenvalues (imaginary part)
+
+   Note:
+   This call brings the projected system to condensed form. No ordering
+   is enforced, call PSSort() later if you want the solution sorted.
+
+   Level: advanced
+
+.seealso: PSSort()
+@*/
+PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  if (!ps->ops->solve) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  ierr = PetscLogEventBegin(PS_Solve,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->solve)(ps,eigr,eigi);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Solve,ps,0,0,0);CHKERRQ(ierr);
+  ps->state = PS_STATE_CONDENSED;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSort"
+/*@
+   PSSort - Reorders the condensed form computed by PSSolve() according to
+   a given sorting criterion.
+
+   Not Collective
+
+   Input Parameters:
++  ps - the projected system context
+.  eigr - array to store the sorted eigenvalues (real part)
+-  eigi - array to store the sorted eigenvalues (imaginary part)
+
+   Level: advanced
+
+.seealso: PSSolve()
+@*/
+PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (ps->state!=PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
+  if (!ps->ops->sort) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  ierr = PetscLogEventBegin(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->sort)(ps,eigr,eigi);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
+  ps->state = PS_STATE_SORTED;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSReset"
 /*@
    PSReset - Resets the PS context to the initial state.

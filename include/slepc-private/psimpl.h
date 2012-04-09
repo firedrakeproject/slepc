@@ -31,8 +31,8 @@ typedef struct _PSOps *PSOps;
 struct _PSOps {
   PetscErrorCode (*allocate)(PS,PetscInt);
   PetscErrorCode (*computevector)(PS,PetscInt,PSMatType,PetscBool*);
-  PetscErrorCode (*solve)(PS);
-  PetscErrorCode (*sort)(PS);
+  PetscErrorCode (*solve)(PS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*);
 };
 
 struct _p_PS {
