@@ -501,3 +501,160 @@ PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareLargestMagnitude"
+PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal a,b;
+
+  PetscFunctionBegin;
+  a = SlepcAbsEigenvalue(ar,ai);
+  b = SlepcAbsEigenvalue(br,bi);
+  if (a<b) *result = 1;
+  else if (a>b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareSmallestMagnitude"
+PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal a,b;
+
+  PetscFunctionBegin;
+  a = SlepcAbsEigenvalue(ar,ai);
+  b = SlepcAbsEigenvalue(br,bi);
+  if (a>b) *result = 1;
+  else if (a<b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareLargestReal"
+PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal a,b;
+
+  PetscFunctionBegin;
+  a = PetscRealPart(ar);
+  b = PetscRealPart(br);
+  if (a<b) *result = 1;
+  else if (a>b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareSmallestReal"
+PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal a,b;
+
+  PetscFunctionBegin;
+  a = PetscRealPart(ar);
+  b = PetscRealPart(br);
+  if (a>b) *result = 1;
+  else if (a<b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareLargestImaginary"
+PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal a,b;
+
+  PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  a = PetscImaginaryPart(ar);
+  b = PetscImaginaryPart(br);
+#else
+  a = PetscAbsReal(ai);
+  b = PetscAbsReal(bi);
+#endif
+  if (a<b) *result = 1;
+  else if (a>b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareSmallestImaginary"
+PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal a,b;
+
+  PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  a = PetscImaginaryPart(ar);
+  b = PetscImaginaryPart(br);
+#else
+  a = PetscAbsReal(ai);
+  b = PetscAbsReal(bi);
+#endif
+  if (a>b) *result = 1;
+  else if (a<b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareTargetMagnitude"
+PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal   a,b;
+  PetscScalar *target = (PetscScalar*)ctx;
+
+  PetscFunctionBegin;
+  /* complex target only allowed if scalartype=complex */
+  a = SlepcAbsEigenvalue(ar-(*target),ai);
+  b = SlepcAbsEigenvalue(br-(*target),bi);
+  if (a>b) *result = 1;
+  else if (a<b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareTargetReal"
+PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal   a,b;
+  PetscScalar *target = (PetscScalar*)ctx;
+
+  PetscFunctionBegin;
+  a = PetscAbsReal(PetscRealPart(ar-(*target)));
+  b = PetscAbsReal(PetscRealPart(br-(*target)));
+  if (a>b) *result = 1;
+  else if (a<b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareTargetImaginary"
+PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal   a,b;
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar *target = (PetscScalar*)ctx;
+#endif
+
+  PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  /* complex target only allowed if scalartype=complex */
+  a = PetscAbsReal(ai);
+  b = PetscAbsReal(bi);
+#else
+  a = PetscAbsReal(PetscImaginaryPart(ar-(*target)));
+  b = PetscAbsReal(PetscImaginaryPart(br-(*target)));
+#endif
+  if (a>b) *result = 1;
+  else if (a<b) *result = -1;
+  else *result = 0;
+  PetscFunctionReturn(0);
+}
+

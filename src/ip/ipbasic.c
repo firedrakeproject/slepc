@@ -548,7 +548,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPReset"
-/*@C
+/*@
    IPReset - Resets the IP context to the initial state.
 
    Collective on IP

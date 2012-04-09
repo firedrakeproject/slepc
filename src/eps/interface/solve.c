@@ -24,36 +24,23 @@
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 
 typedef struct {
-  /* old values of eps */
-  EPSWhich old_which;
-  PetscErrorCode (*old_which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar, PetscInt*,void*);
-  void *old_which_ctx;
+  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar, PetscInt*,void*);
+  void *which_ctx;
+  ST st;
 } EPSSortForSTData;
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSortForSTFunc"
-PetscErrorCode EPSSortForSTFunc(EPS eps,PetscScalar ar,PetscScalar ai,
+PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
                                 PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   EPSSortForSTData *data = (EPSSortForSTData*)ctx;
   PetscErrorCode   ierr;
 
   PetscFunctionBegin;
-  /* Back-transform the harmonic values */
-  ierr = STBackTransform(eps->OP,1,&ar,&ai);CHKERRQ(ierr);
-  ierr = STBackTransform(eps->OP,1,&br,&bi);CHKERRQ(ierr);
-
-  /* Compare values using the user options for the eigenpairs selection */
-  if (data->old_which==EPS_ALL) eps->which = EPS_TARGET_MAGNITUDE;
-  else eps->which = data->old_which;
-  eps->which_func = data->old_which_func;
-  eps->which_ctx = data->old_which_ctx;
-  ierr = EPSCompareEigenvalues(eps,ar,ai,br,bi,r);CHKERRQ(ierr);
-
-  /* Restore the eps values */
-  eps->which = EPS_WHICH_USER;
-  eps->which_func = EPSSortForSTFunc;
-  eps->which_ctx = data;
+  ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
+  ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
+  ierr = (*data->which_func)(ar,ai,br,bi,r,data->which_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -130,11 +117,10 @@ PetscErrorCode EPSSolve(EPS eps)
 
   ierr = PetscTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!flg) {
-    /* temporarily change which */
-    data.old_which = eps->which;
-    data.old_which_func = eps->which_func;
-    data.old_which_ctx = eps->which_ctx;
-    eps->which = EPS_WHICH_USER;
+    /* temporarily change eigenvalue comparison function */
+    data.which_func = eps->which_func;
+    data.which_ctx = eps->which_ctx;
+    data.st = eps->OP;
     eps->which_func = EPSSortForSTFunc;
     eps->which_ctx = &data;
   }
@@ -143,10 +129,9 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
 
   if (!flg) {
-    /* restore which */
-    eps->which = data.old_which;
-    eps->which_func = data.old_which_func;
-    eps->which_ctx = data.old_which_ctx;
+    /* restore comparison function */
+    eps->which_func = data.which_func;
+    eps->which_ctx = data.which_ctx;
   }
 
   ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
@@ -157,9 +142,7 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = STPostSolve(eps->OP);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
-  if (!eps->reason) {
-    SETERRQ(((PetscObject)eps)->comm,1,"Internal error, solver returned without setting converged reason");
-  }
+  if (!eps->reason) SETERRQ(((PetscObject)eps)->comm,1,"Internal error, solver returned without setting converged reason");
 
   /* Map eigenvalues back to the original problem, necessary in some 
   * spectral transformations */
@@ -1379,73 +1362,12 @@ PetscErrorCode EPSSortEigenvaluesReal(EPS eps,PetscInt n,PetscReal *eig,PetscInt
 PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
 {
   PetscErrorCode ierr;
-  PetscReal      a,b;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
   PetscValidIntPointer(result,6);
-  switch(eps->which) {
-    case EPS_WHICH_USER:
-      if (!eps->which_func) SETERRQ(((PetscObject)eps)->comm,1,"Undefined eigenvalue comparison function");
-      ierr = (*eps->which_func)(eps,ar,ai,br,bi,result,eps->which_ctx);CHKERRQ(ierr);
-      a = 0.0; b = 0.0;
-      break;
-    case EPS_LARGEST_MAGNITUDE:
-    case EPS_SMALLEST_MAGNITUDE:
-      a = SlepcAbsEigenvalue(ar,ai);
-      b = SlepcAbsEigenvalue(br,bi);
-      break;
-    case EPS_LARGEST_REAL:
-    case EPS_SMALLEST_REAL:
-      a = PetscRealPart(ar);
-      b = PetscRealPart(br);
-      break;
-    case EPS_LARGEST_IMAGINARY:
-    case EPS_SMALLEST_IMAGINARY:
-#if defined(PETSC_USE_COMPLEX)
-      a = PetscImaginaryPart(ar);
-      b = PetscImaginaryPart(br);
-#else
-      a = PetscAbsReal(ai);
-      b = PetscAbsReal(bi);
-#endif
-      break;
-    case EPS_TARGET_MAGNITUDE:
-      /* complex target only allowed if scalartype=complex */
-      a = SlepcAbsEigenvalue(ar-eps->target,ai);
-      b = SlepcAbsEigenvalue(br-eps->target,bi);
-      break;
-    case EPS_TARGET_REAL:
-      a = PetscAbsReal(PetscRealPart(ar-eps->target));
-      b = PetscAbsReal(PetscRealPart(br-eps->target));
-      break;
-    case EPS_TARGET_IMAGINARY:
-#if !defined(PETSC_USE_COMPLEX)
-      /* complex target only allowed if scalartype=complex */
-      a = PetscAbsReal(ai);
-      b = PetscAbsReal(bi);
-#else
-      a = PetscAbsReal(PetscImaginaryPart(ar-eps->target));
-      b = PetscAbsReal(PetscImaginaryPart(br-eps->target));
-#endif
-      break;
-    default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of which");
-  }
-  switch(eps->which) {
-    case EPS_WHICH_USER:
-      break;
-    case EPS_LARGEST_MAGNITUDE:
-    case EPS_LARGEST_REAL:
-    case EPS_LARGEST_IMAGINARY:
-      if (a<b) *result = 1;
-      else if (a>b) *result = -1;
-      else *result = 0;
-      break;
-    default:
-      if (a>b) *result = 1;
-      else if (a<b) *result = -1;
-      else *result = 0;
-  }
+  if (!eps->which_func) SETERRQ(((PetscObject)eps)->comm,1,"Undefined eigenvalue comparison function");
+  ierr = (*eps->which_func)(ar,ai,br,bi,result,eps->which_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

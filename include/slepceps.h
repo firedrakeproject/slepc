@@ -208,7 +208,7 @@ extern PetscErrorCode EPSSetMatrixNorms(EPS,PetscReal,PetscReal,PetscBool);
 extern PetscErrorCode EPSGetMatrixNorms(EPS,PetscReal*,PetscReal*,PetscBool*);
 extern PetscErrorCode EPSSetTrueResidual(EPS,PetscBool);
 extern PetscErrorCode EPSGetTrueResidual(EPS,PetscBool*);
-extern PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+extern PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 extern PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);
 extern PetscErrorCode EPSIsHermitian(EPS,PetscBool*);
 

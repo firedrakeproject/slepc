@@ -31,7 +31,7 @@ static char help[] = "Solves the same problem as in ex5, but with a user-defined
    User-defined routines
 */
 
-PetscErrorCode MyEigenSort(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx);
+PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx);
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 
 #undef __FUNCT__
@@ -205,7 +205,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
     In this example, the preferred value is the one closest to the target,
     but on the right side.
 */
-PetscErrorCode MyEigenSort(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   PetscScalar target = *(PetscScalar*)ctx;
   PetscReal   da,db;

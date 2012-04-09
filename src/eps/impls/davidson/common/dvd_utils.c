@@ -398,7 +398,7 @@ typedef struct {
   EPSWhich
     old_which;
   PetscErrorCode
-    (*old_which_func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,
+    (*old_which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,
                       PetscInt*,void*);
   void
     *old_which_ctx;
@@ -410,7 +410,7 @@ PetscErrorCode dvd_harm_d(dvdDashboard *d);
 PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh, PetscScalar t);
 PetscErrorCode dvd_harm_updateW(dvdDashboard *d);
 PetscErrorCode dvd_harm_proj(dvdDashboard *d);
-PetscErrorCode dvd_harm_sort(EPS eps, PetscScalar ar, PetscScalar ai,
+PetscErrorCode dvd_harm_sort(PetscScalar ar, PetscScalar ai,
                              PetscScalar br, PetscScalar bi, PetscInt *r,
                              void *ctx);
 PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d);
@@ -621,7 +621,7 @@ PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data, PetscScalar *ar,
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_harm_sort"
-PetscErrorCode dvd_harm_sort(EPS eps, PetscScalar ar, PetscScalar ai,
+PetscErrorCode dvd_harm_sort(PetscScalar ar, PetscScalar ai,
                              PetscScalar br, PetscScalar bi, PetscInt *r,
                              void *ctx)
 {
@@ -629,22 +629,12 @@ PetscErrorCode dvd_harm_sort(EPS eps, PetscScalar ar, PetscScalar ai,
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Back-transform the harmonic values */
   dvd_harm_backtrans(data, &ar, &ai);
   dvd_harm_backtrans(data, &br, &bi);
 
   /* Compare values using the user options for the eigenpairs selection */
-  eps->which = data->old_which;
-  eps->which_func = data->old_which_func;
-  eps->which_ctx = data->old_which_ctx;
-  ierr = EPSCompareEigenvalues(eps, ar, ai, br, bi, r); CHKERRQ(ierr);
-
-  /* Restore the eps values */
-  eps->which = EPS_WHICH_USER;
-  eps->which_func = dvd_harm_sort;
-  eps->which_ctx = data;
-
+  ierr = (*data->old_which_func)(ar,ai,br,bi,r,data->old_which_ctx); CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

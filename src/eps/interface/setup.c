@@ -142,6 +142,52 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* set tolerance if not yet set */
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
+  /* set eigenvalue comparison */
+  switch (eps->which) {
+    case EPS_LARGEST_MAGNITUDE:
+      eps->which_func = SlepcCompareLargestMagnitude;
+      eps->which_ctx  = PETSC_NULL;
+      break;
+    case EPS_SMALLEST_MAGNITUDE:
+      eps->which_func = SlepcCompareSmallestMagnitude;
+      eps->which_ctx  = PETSC_NULL;
+      break;
+    case EPS_LARGEST_REAL:
+      eps->which_func = SlepcCompareLargestReal;
+      eps->which_ctx  = PETSC_NULL;
+      break;
+    case EPS_SMALLEST_REAL:
+      eps->which_func = SlepcCompareSmallestReal;
+      eps->which_ctx  = PETSC_NULL;
+      break;
+    case EPS_LARGEST_IMAGINARY:
+      eps->which_func = SlepcCompareLargestImaginary;
+      eps->which_ctx  = PETSC_NULL;
+      break;
+    case EPS_SMALLEST_IMAGINARY:
+      eps->which_func = SlepcCompareSmallestImaginary;
+      eps->which_ctx  = PETSC_NULL;
+      break;
+    case EPS_TARGET_MAGNITUDE:
+      eps->which_func = SlepcCompareTargetMagnitude;
+      eps->which_ctx  = &eps->target;
+      break;
+    case EPS_TARGET_REAL:
+      eps->which_func = SlepcCompareTargetReal;
+      eps->which_ctx  = &eps->target;
+      break;
+    case EPS_TARGET_IMAGINARY:
+      eps->which_func = SlepcCompareTargetImaginary;
+      eps->which_ctx  = &eps->target;
+      break;
+    case EPS_ALL:
+      eps->which_func = SlepcCompareLargestReal;
+      eps->which_ctx  = PETSC_NULL;
+      break;
+    case EPS_WHICH_USER:
+      break;
+  }
+
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {

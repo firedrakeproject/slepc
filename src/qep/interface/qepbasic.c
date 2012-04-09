@@ -521,7 +521,7 @@ PetscErrorCode QEPRegisterDestroy(void)
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPReset"
-/*@C
+/*@
    QEPReset - Resets the QEP context to the setupcalled=0 state and removes any
    allocated objects.
 

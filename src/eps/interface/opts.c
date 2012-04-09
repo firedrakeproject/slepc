@@ -731,10 +731,9 @@ PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBo
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
    Calling Sequence of func:
-$   func(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 
-+   eps    - eigensolver context obtained from EPSCreate()
-.   ar     - real part of the 1st eigenvalue
++   ar     - real part of the 1st eigenvalue
 .   ai     - imaginary part of the 1st eigenvalue
 .   br     - real part of the 2nd eigenvalue
 .   bi     - imaginary part of the 2nd eigenvalue
@@ -751,7 +750,7 @@ $   func(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,Pet
 
 .seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich
 @*/
-PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
