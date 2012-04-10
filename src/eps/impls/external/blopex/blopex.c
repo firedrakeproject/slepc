@@ -141,13 +141,9 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscBool      isPrecond;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
-  }
+  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL) {
-    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
-  }
+  if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||

@@ -78,9 +78,7 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
 
-  if (!qep->reason) {
-    SETERRQ(((PetscObject)qep)->comm,1,"Internal error, solver returned without setting converged reason");
-  }
+  if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,1,"Internal error, solver returned without setting converged reason");
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
@@ -277,12 +275,8 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(qep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(qep,1,Vi,7); }
-  if (!qep->eigr || !qep->eigi || !qep->V) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  }
-  if (i<0 || i>=qep->nconv) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
-  }
+  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
+  if (i<0 || i>=qep->nconv) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
 
   if (!qep->perm) k = i;
   else k = qep->perm[i];
@@ -347,12 +341,8 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!qep->eigr || !qep->eigi) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  }
-  if (i<0 || i>=qep->nconv) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
-  }
+  if (!qep->eigr || !qep->eigi) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
+  if (i<0 || i>=qep->nconv) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   if (qep->perm) i = qep->perm[i];  
   if (errest) *errest = qep->errest[i];
   PetscFunctionReturn(0);

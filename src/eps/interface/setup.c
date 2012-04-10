@@ -99,16 +99,12 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n");CHKERRQ(ierr);
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
-  } else if (B && !eps->isgeneralized) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
-  }
+  } else if (B && !eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
 #if defined(PETSC_USE_COMPLEX)
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
-  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0)
-    SETERRQ(((PetscObject)eps)->comm,1,"Hermitian problems are not compatible with complex shifts");
+  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(((PetscObject)eps)->comm,1,"Hermitian problems are not compatible with complex shifts");
 #endif
-  if (eps->ishermitian && eps->leftvecs)
-    SETERRQ(((PetscObject)eps)->comm,1,"Requesting left eigenvectors not allowed in Hermitian problems");
+  if (eps->ishermitian && eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,1,"Requesting left eigenvectors not allowed in Hermitian problems");
   
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
@@ -203,12 +199,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STSetUp(eps->OP);CHKERRQ(ierr); 
   
   ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
-  if (flg && eps->problem_type == EPS_PGNHEP)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
+  if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
   ierr = PetscTypeCompare((PetscObject)eps->OP,STFOLD,&flg);CHKERRQ(ierr);
-  if (flg && !eps->ishermitian)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Fold spectral transformation requires a Hermitian problem");
+  if (flg && !eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Fold spectral transformation requires a Hermitian problem");
 
   if (eps->nds>0) {
     if (!eps->ds_ortho) {

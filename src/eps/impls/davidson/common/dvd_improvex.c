@@ -858,7 +858,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
 
   /* Check consistency */
   V_new = d->size_cX - data->size_cX;
-  if (V_new > data->old_size_X) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
   data->old_size_X = n;
 
   /* KZ <- KZ(rm:rm+max_cX-1) */
@@ -1264,9 +1264,7 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
       ierr = d->improvex_precond(d, i+r_s, D[i+1], D[i]); CHKERRQ(ierr);
     }
     ierr = d->improvex_precond(d, r_e-1, auxV[0], D[r_e-r_s-1]); CHKERRQ(ierr);
-  } else {
-    SETERRQ(PETSC_COMM_SELF,1, "Problem: r_e-r_s > max_size_D!");
-  }
+  } else SETERRQ(PETSC_COMM_SELF,1, "Problem: r_e-r_s > max_size_D!");
   PetscFunctionReturn(0);
 }
 
@@ -1326,7 +1324,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
                   sr[4];
   
   PetscFunctionBegin;
-  if (cV > 2) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   /* h <- X'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;
@@ -1381,7 +1379,7 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d, Vec *V, PetscInt cV
                   sr[2];
   
   PetscFunctionBegin;
-  if (cV > 2) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   /* h <- KZ'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;

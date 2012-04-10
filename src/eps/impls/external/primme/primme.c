@@ -86,10 +86,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetOperators(eps->OP,&ops->A,PETSC_NULL);
   if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
-  if (!eps->ishermitian)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
-  if (eps->isgeneralized)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
+  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
+  if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
 
   /* Change the default sigma to inf if necessary */
@@ -324,9 +322,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) {
-    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
-  }
+  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
   
   ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%d\n",primme->maxBlockSize);CHKERRQ(ierr);
   ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
@@ -367,9 +363,8 @@ PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->primme.maxBlockSize = 1;
-  else if (bs <= 0) { 
-    SETERRQ(((PetscObject)eps)->comm,1,"PRIMME: wrong block size"); 
-  } else ops->primme.maxBlockSize = bs;
+  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,1,"PRIMME: wrong block size"); 
+  else ops->primme.maxBlockSize = bs;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

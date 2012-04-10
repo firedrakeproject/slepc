@@ -68,9 +68,7 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   if (Bt) tmp = rB, rB = cB, cB = tmp, qB = T;
   
   /* Check size */
-  if (cA != rB) {
-    SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
-  }
+  if (cA != rB) SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
   
   /* Do stub */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
@@ -291,15 +289,11 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
   PetscValidScalarPointer(Y,1);
   PetscValidScalarPointer(X,3);
 
-  if ((ldX < rX) || (ldY < rX)) {
-    SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
-  }
+  if ((ldX < rX) || (ldY < rX)) SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
   
   /* Quick exit */
   if (Y == X) {
-    if (ldX != ldY) {
-      SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
-    }
+    if (ldX != ldY) SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
     PetscFunctionReturn(0);
   }
 
@@ -332,18 +326,14 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
   PetscValidScalarPointer(Y,1);
   PetscValidScalarPointer(X,4);
 
-  if ((ldX < rX) || (ldY < rX)) {
-    SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
-  }
+  if ((ldX < rX) || (ldY < rX)) SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
 
   if (sY == 0 && sX == 0) {
     ierr = SlepcDenseCopy(Y, ldY, X, ldX, rX, cX);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
 
-  if (rX != cX) {
-    SETERRQ(PETSC_COMM_SELF,1, "Rectangular matrices not supported");
-  }
+  if (rX != cX) SETERRQ(PETSC_COMM_SELF,1, "Rectangular matrices not supported");
 
   if (DVD_IS(sX,DVD_MAT_UTRIANG) &&
       DVD_ISNOT(sX,DVD_MAT_LTRIANG)) {        /* UpTr to ... */
@@ -445,9 +435,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
 
   /* Compute the real number of columns */
   rcX = cX/dX;
-  if (rcX != rM) {
-    SETERRQ(((PetscObject)*Y)->comm,1, "Matrix dimensions do not match");
-  }
+  if (rcX != rM) SETERRQ(((PetscObject)*Y)->comm,1, "Matrix dimensions do not match");
 
   if ((rcX == 0) || (rM == 0) || (cM == 0)) {
     PetscFunctionReturn(0);
@@ -458,9 +446,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
     /* Get the dense matrices and dimensions associated to Y and X */
     ierr = VecGetLocalSize(X[0], &rX); CHKERRQ(ierr);
     ierr = VecGetLocalSize(Y[0], &rY); CHKERRQ(ierr);
-    if (rX != rY) {
-      SETERRQ(((PetscObject)*Y)->comm,1, "The multivectors do not have the same dimension");
-    }
+    if (rX != rY) SETERRQ(((PetscObject)*Y)->comm,1, "The multivectors do not have the same dimension");
     ierr = VecGetArrayRead(X[0], &px);CHKERRQ(ierr);
     ierr = VecGetArray(Y[0], &py);CHKERRQ(ierr);
 
@@ -485,10 +471,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
       for (i=0; i<cM; i++) {
         ierr = VecScale(Y[i], alpha); CHKERRQ(ierr);
       }
-  } else {
-    SETERRQ(((PetscObject)*Y)->comm,1, "Unsupported case");
-  }
-
+  } else SETERRQ(((PetscObject)*Y)->comm,1, "Unsupported case");
   PetscFunctionReturn(0);
 }
 
@@ -511,14 +494,10 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   PetscValidScalarPointer(M,4);
   PetscValidScalarPointer(work,8);
 
-  if (cX != rM) {
-    SETERRQ(((PetscObject)*X)->comm,1, "Matrix dimensions do not match");
-  }
+  if (cX != rM) SETERRQ(((PetscObject)*X)->comm,1, "Matrix dimensions do not match");
 
   rY = (lwork/2)/cX;
-  if (rY <= 0) {
-    SETERRQ(((PetscObject)*X)->comm,1, "Insufficient work space given");
-  }
+  if (rY <= 0) SETERRQ(((PetscObject)*X)->comm,1, "Insufficient work space given");
   Y = work; Z = &Y[cX*rY]; ldY = rY;
 
   if ((cX == 0) || (rM == 0) || (cM == 0)) {
@@ -595,9 +574,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
-  if (ldU != ldV) {
-    SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
-  }
+  if (ldU != ldV) SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   ierr = VecGetArrayRead(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArrayRead(V[0], &pv);CHKERRQ(ierr);
 
@@ -629,9 +606,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     if (workS1) {
       PetscValidScalarPointer(workS1,11);
       Wr = workS1;
-      if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ms) {
-        SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
-      }
+      if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ms) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*ms, &Wr);
       CHKERRQ(ierr);
@@ -672,9 +647,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     if (workS1) {
       PetscValidScalarPointer(workS1,11);
       Wr = workS1;
-      if (PetscAbs(PetscMin(W-workS1,workS1-W)) < (eV-sV)*eU) {
-        SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
-      }
+      if (PetscAbs(PetscMin(W-workS1,workS1-W)) < (eV-sV)*eU) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*(eV-sV)*eU, &Wr);
       CHKERRQ(ierr);
@@ -704,12 +677,9 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     if (workS1) {
       PetscValidScalarPointer(workS1,11);
       Wr = workS1;
-      if (PetscMin(W - workS1, workS1 - W) < (eU-sU)*eV) {
-        SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
-      }
+      if (PetscMin(W - workS1, workS1 - W) < (eU-sU)*eV) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
     } else {
-      ierr = PetscMalloc(sizeof(PetscScalar)*(eU-sU)*eV, &Wr);
-      CHKERRQ(ierr);
+      ierr = PetscMalloc(sizeof(PetscScalar)*(eU-sU)*eV, &Wr);CHKERRQ(ierr);
     }
  
     /* W(0:(eU-sU)*eV-1) <- U(sU:eU-1)' * V(0:eV-1) */
@@ -773,9 +743,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
-  if (ldU != ldV) {
-    SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
-  }
+  if (ldU != ldV) SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   ierr = VecGetArray(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
 
@@ -931,9 +899,7 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
-  if (ldU != ldV) {
-    SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
-  }
+  if (ldU != ldV) SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   ierr = VecGetArrayRead(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArrayRead(V[0], &pv);CHKERRQ(ierr);
 
@@ -1143,19 +1109,13 @@ PetscErrorCode SlepcAllReduceSum(DvdReduction *r, PetscInt size_in,
                                  PetscScalar **in)
 {
   PetscFunctionBegin;
-
   *in = r->in + r->size_in;
   r->ops[r->size_ops].out = r->out + r->size_in;
   r->ops[r->size_ops].size_out = size_in;
   r->ops[r->size_ops].f = f;
   r->ops[r->size_ops].ptr = ptr;
-  if (++(r->size_ops) > r->max_size_ops) {
-    SETERRQ(PETSC_COMM_SELF,1, "max_size_ops is not large enough");
-  }
-  if ((r->size_in+= size_in) > r->max_size_in) {
-    SETERRQ(PETSC_COMM_SELF,1, "max_size_in is not large enough");
-  }
-
+  if (++(r->size_ops) > r->max_size_ops) SETERRQ(PETSC_COMM_SELF,1, "max_size_ops is not large enough");
+  if ((r->size_in+= size_in) > r->max_size_in) SETERRQ(PETSC_COMM_SELF,1, "max_size_in is not large enough");
   PetscFunctionReturn(0);
 }
 
@@ -1230,9 +1190,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
       if(!lindep && (norm > PETSC_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
     }
-    if(lindep || (norm < PETSC_MACHINE_EPSILON)) {
-        SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
-    }
+    if(lindep || (norm < PETSC_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
   }
  
@@ -1281,9 +1239,7 @@ PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS, PetscInt size_DS, Vec *cX,
       ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
       CHKERRQ(ierr);
     }
-    if(lindep || (norm < PETSC_MACHINE_EPSILON)) {
-        SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors!");
-    }
+    if(lindep || (norm < PETSC_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors!");
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
     ierr = VecScale(BV[i], 1.0/norm); CHKERRQ(ierr);
   }

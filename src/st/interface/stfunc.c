@@ -601,9 +601,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
     if (st->ops->view) {ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);}
-  } else {
-    SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
-  }
+  } else SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
   ierr = PetscTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD,"");CHKERRQ(ierr);
   if (st->B || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }

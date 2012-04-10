@@ -383,9 +383,7 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
      }
     ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
-  } else {
-    SETERRQ1(((PetscObject)ps)->comm,1,"Viewer type %s not supported for PS",((PetscObject)viewer)->type_name);
-  }
+  } else SETERRQ1(((PetscObject)ps)->comm,1,"Viewer type %s not supported for PS",((PetscObject)viewer)->type_name);
   PetscFunctionReturn(0);
 }
 

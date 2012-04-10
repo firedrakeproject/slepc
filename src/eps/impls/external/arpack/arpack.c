@@ -234,18 +234,15 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
             
       ierr = VecResetArray(x);CHKERRQ(ierr);
       ierr = VecResetArray(y);CHKERRQ(ierr);
-    } else if (ido != 99) {
-      SETERRQ1(((PetscObject)eps)->comm,1,"Internal error in ARPACK reverse comunication interface (ido=%d)\n",ido);
-    }
+    } else if (ido != 99) SETERRQ1(((PetscObject)eps)->comm,1,"Internal error in ARPACK reverse comunication interface (ido=%d)\n",ido);
     
   } while (ido != 99);
 
   eps->nconv = iparam[4];
   eps->its = iparam[2];
   
-  if (info==3) { SETERRQ(((PetscObject)eps)->comm,1,"No shift could be applied in xxAUPD.\n"
-                           "Try increasing the size of NCV relative to NEV."); }
-  else if (info!=0 && info!=1) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);}
+  if (info==3) SETERRQ(((PetscObject)eps)->comm,1,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV.");
+  else if (info!=0 && info!=1) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);
 
   rvec = PETSC_TRUE;
 
@@ -275,7 +272,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
               resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
               ar->workl,&ar->lworkl,ar->rwork,&info,1,1,2);
 #endif
-    if (info!=0) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info); }
+    if (info!=0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info);
   }
 
   ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);

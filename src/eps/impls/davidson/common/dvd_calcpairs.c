@@ -264,7 +264,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   out = in+size_in;
 
   /* Check consistency */
-  if (2*size_in > d->size_auxS) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  if (2*size_in > d->size_auxS) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   /* Prepare reductions */
   ierr = SlepcAllReduceSumBegin(ops, MAX_OPS, in, out, size_in, &r,
@@ -283,7 +283,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   ierr = dvd_calcpairs_updateV1(d); CHKERRQ(ierr);
   /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
   /* Check consistency */
-  if (d->size_AV != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  if (d->size_AV != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
   for (i=d->V_new_s; i<d->V_new_e; i++) {
     ierr = MatMult(d->A, d->V[i], d->AV[i]); CHKERRQ(ierr);
   }
@@ -291,7 +291,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   /* 4. BV <- [BV B * V(V_new_s:V_new_e-1)] */
   if (d->B && d->orthoV_type != DVD_ORTHOV_BOneMV) {
     /* Check consistency */
-    if (d->size_BV != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+    if (d->size_BV != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
     for (i=d->V_new_s; i<d->V_new_e; i++) {
       ierr = MatMult(d->B, d->V[i], d->BV[i]); CHKERRQ(ierr);
     }
@@ -366,7 +366,7 @@ PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d, DvdReduction *r,
   /* Udpate cS for standard problems */
   if (d->cS && !d->cT && !d->cY && (d->V_tra_s > d->max_cX_in_proj || d->size_cX >= d->nev)) {
     /* Check consistency */
-    if (d->size_cS+d->V_tra_s != d->size_cX) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+    if (d->size_cS+d->V_tra_s != d->size_cX) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
     /* auxV <- AV * MTX(0:V_tra_e-1) */
     rm = d->size_cX>=d->nev?0:d->max_cX_in_proj;
@@ -394,7 +394,7 @@ PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
   if (d->V_new_s == d->V_new_e) { PetscFunctionReturn(0); }
 
   /* Check consistency */
-  if (d->size_V != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  if (d->size_V != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   /* V <- gs([cX V(0:V_new_s-1)], V(V_new_s:V_new_e-1)) */
   if (d->orthoV_type == DVD_ORTHOV_BOneMV) {
@@ -431,7 +431,7 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d, DvdReduction *r,
   /* Udpate cS and cT */
   if (d->cT && (d->V_tra_s > d->max_cX_in_proj || d->size_cX >= d->nev)) {
     /* Check consistency */
-    if (d->size_cS+d->V_tra_s != d->size_cX || (d->W && d->size_cY != d->size_cX)) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+    if (d->size_cS+d->V_tra_s != d->size_cX || (d->W && d->size_cY != d->size_cX)) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
     /* auxV <- AV * MTX(0:V_tra_e-1) */
     rm = d->size_cX>=d->nev?0:d->max_cX_in_proj;
@@ -467,7 +467,7 @@ PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d)
   if (!d->W || d->V_new_s == d->V_new_e) { PetscFunctionReturn(0); }
 
   /* Check consistency */
-  if (d->size_W != d->V_new_s) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+  if (d->size_W != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   /* Update W */
   ierr = d->calcpairs_W(d); CHKERRQ(ierr);
@@ -521,9 +521,7 @@ PetscErrorCode dvd_calcpairs_updateAV1(dvdDashboard *d, DvdReduction *r,
   if (d->V_new_s == d->V_new_e) { PetscFunctionReturn(0); }
 
   /* Check consistency */
-  if (d->size_H != d->V_new_s+d->cX_in_H || d->size_V != d->V_new_e) {
-    SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
-  }
+  if (d->size_H != d->V_new_s+d->cX_in_H || d->size_V != d->V_new_e) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   /* H = [H               W(old)'*AV(new);
           W(new)'*AV(old) W(new)'*AV(new) ],
@@ -904,7 +902,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
       (d->size_cX+r_e)*(d->size_cX+r_e) /* pX */ + PetscMax(PetscMax(
         (d->size_cX+r_e)*6 /* dvd_compute_eigenvectors */,
         d->size_H*(r_e-r_s) /* pX0 */),
-        2*size_in /* SlepcAllReduceSum */ )) { SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!"); }
+        2*size_in /* SlepcAllReduceSum */ )) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   /* Prepare reductions */
   ierr = SlepcAllReduceSumBegin(ops,2,d->auxS,d->auxS+size_in,size_in,&r,((PetscObject)d->V[0])->comm);CHKERRQ(ierr);

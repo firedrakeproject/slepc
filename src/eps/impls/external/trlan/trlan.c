@@ -45,15 +45,12 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   
-  if (!eps->ishermitian)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
-  if (eps->isgeneralized)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is not available for generalized problems");
+  if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is not available for generalized problems");
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) 
-    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   tr->restart = 0;
   if (tr->maxlan+1-eps->ncv<=0) { tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10)); }
@@ -143,7 +140,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
   
-  if (stat!=0) { SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);}
+  if (stat!=0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);
   PetscFunctionReturn(0);
 }
 

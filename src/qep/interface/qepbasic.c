@@ -247,9 +247,7 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(qep,1,viewer,2);
-  if (!qep->eigr || !qep->eigi || !qep->V) { 
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  }
+  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 

@@ -74,15 +74,13 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2))
-      SETERRQ(((PetscObject)eps)->comm,0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
+    if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) SETERRQ(((PetscObject)eps)->comm,0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   }
   else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
-  if (!eps->ishermitian)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (eps->which==EPS_ALL) {
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Must define a computational interval when using EPS_ALL"); 
     blz->slice = 1;
@@ -323,9 +321,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) {
-    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
-  }
+  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
   ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: block size=%d\n",blz->block_size);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: maximum number of steps per run=%d\n",blz->nsteps);CHKERRQ(ierr);
   if (blz->slice) {
@@ -367,9 +363,8 @@ PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
-  else if (bs <= 0) { 
-    SETERRQ(((PetscObject)eps)->comm,1,"Incorrect block size"); 
-  } else blz->block_size = PetscBLASIntCast(bs);
+  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,1,"Incorrect block size"); 
+  else blz->block_size = PetscBLASIntCast(bs);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

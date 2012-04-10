@@ -67,19 +67,15 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
-  if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE)
-    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = PetscTypeCompareAny((PetscObject)eps->OP,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-    if (!flg) 
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
+    if (!flg) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
     ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
-    if (mode == ST_MATMODE_INPLACE)
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
+    if (mode == ST_MATMODE_INPLACE) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-  if (eps->balance!=EPS_BALANCE_NONE)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in this solver");
+  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->leftvecs) {
     ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
@@ -544,9 +540,7 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) {
-    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Power",((PetscObject)viewer)->type_name);
-  }  
+  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Power",((PetscObject)viewer)->type_name);
   ierr = PetscViewerASCIIPrintf(viewer,"  Power: %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

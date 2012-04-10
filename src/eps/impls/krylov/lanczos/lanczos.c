@@ -76,13 +76,10 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
       SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
     default: ; /* default case to remove warning */
   }
-  if (!eps->ishermitian)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->extraction!=EPS_RITZ) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type\n");
-  }
+  } else if (eps->extraction!=EPS_RITZ) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type\n");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
@@ -849,9 +846,7 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) {
-    SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Lanczos",((PetscObject)viewer)->type_name);
-  }  
+  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Lanczos",((PetscObject)viewer)->type_name);
   ierr = PetscViewerASCIIPrintf(viewer,"  Lanczos: %s reorthogonalization\n",EPSLanczosReorthogTypes[lanczos->reorthog]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

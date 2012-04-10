@@ -563,10 +563,7 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
   PetscInt        i,j;
 
   PetscFunctionBegin;
-
-  if (d->sH != d->sG) {
-    SETERRQ(PETSC_COMM_SELF,1,"Projected matrices H and G must have the same structure");
-  }
+  if (d->sH != d->sG) SETERRQ(PETSC_COMM_SELF,1,"Projected matrices H and G must have the same structure");
 
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
   if (DVD_ISNOT(d->sH,DVD_MAT_LTRIANG))     /* Upper triangular part */

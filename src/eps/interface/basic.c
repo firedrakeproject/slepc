@@ -335,9 +335,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
-  if (!eps->eigr || !eps->eigi || !eps->V) { 
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
-  }
+  if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 

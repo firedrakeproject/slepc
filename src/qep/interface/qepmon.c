@@ -94,9 +94,7 @@ PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (qep->numbermonitors >= MAXQEPMONITORS) {
-    SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many QEP monitors set");
-  }
+  if (qep->numbermonitors >= MAXQEPMONITORS) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many QEP monitors set");
   qep->monitor[qep->numbermonitors]           = monitor;
   qep->monitorcontext[qep->numbermonitors]    = (void*)mctx;
   qep->monitordestroy[qep->numbermonitors++]  = monitordestroy;

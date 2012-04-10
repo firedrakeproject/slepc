@@ -93,14 +93,12 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     else eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   }
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
-  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
-    SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) {
+  } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
-  }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);

@@ -250,12 +250,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   /* Setup the presence of converged vectors in the projected problem and in the projector */
   ierr = EPSDavidsonGetWindowSizes_Davidson(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
-  if (min_size_V <= cX_in_proj) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"minv has to be greater than qwindow");
-  }
-  if (bs > 1 && cX_in_impr > 0) {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
-  }
+  if (min_size_V <= cX_in_proj) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"minv has to be greater than qwindow");
+  if (bs > 1 && cX_in_impr > 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
   /* Setup IP */
   if (ipB && dvd->B) {
@@ -395,9 +391,7 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   name = ((PetscObject)eps)->type_name;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) {
-    SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
-  }
+  if (!isascii) SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   
   ierr = EPSDavidsonGetBOrth_Davidson(eps,&opb);CHKERRQ(ierr);
   ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);

@@ -191,9 +191,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   if (!ctx->nu_set) { ctx->nu = st->sigma; }
-  if (ctx->nu == 0.0 &&  st->sigma == 0.0) {
-    SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
-  }
+  if (ctx->nu == 0.0 &&  st->sigma == 0.0) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
 
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   switch (st->shift_matrix) {
@@ -241,9 +239,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   if (!ctx->nu_set) { ctx->nu = newshift; }
-  if (ctx->nu == 0.0 &&  newshift == 0.0) {
-    SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
-  }
+  if (ctx->nu == 0.0 &&  newshift == 0.0) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
 
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);

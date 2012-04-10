@@ -215,9 +215,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
-  if (!svd->sigma) { 
-    SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
-  }
+  if (!svd->sigma) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
