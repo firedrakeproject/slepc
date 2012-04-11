@@ -24,7 +24,7 @@
 
 #include <slepcps.h>
 
-extern PetscLogEvent PS_Solve,PS_Sort,PS_Cond;
+extern PetscLogEvent PS_Solve,PS_Sort,PS_Other;
 
 typedef struct _PSOps *PSOps;
 

@@ -26,7 +26,6 @@
 #define __FUNCT__ "PSAllocate_NHEP"
 PetscErrorCode PSAllocate_NHEP(PS ps,PetscInt ld)
 {
-  PetscInt       sz;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
