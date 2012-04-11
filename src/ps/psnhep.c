@@ -22,37 +22,85 @@
 #include <slepc-private/psimpl.h>      /*I "slepcps.h" I*/
 #include <slepcblaslapack.h>
 
-extern PetscErrorCode EPSDenseHessenberg(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*);
-extern PetscErrorCode EPSDenseSchur(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
-
 #undef __FUNCT__  
 #define __FUNCT__ "PSAllocate_NHEP"
 PetscErrorCode PSAllocate_NHEP(PS ps,PetscInt ld)
 {
+  PetscInt       sz;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = PSAllocateMat_Private(ps,PS_MAT_A);CHKERRQ(ierr); 
   ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
+  /* workspace:
+       work[0..ld] - workspace for GEHRD, ORGHR, HSEQR, TREXC
+       work[ld+1..2*ld] - scalar factors of the elementary reflectors (GEHRD)
+   */
+  sz = 2*ld*sizeof(PetscScalar);
+  ierr = PetscMalloc(sz,&ps->work);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSolve_NHEP"
-PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
+#if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(PETSC_MISSING_LAPACK_HSEQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable.");
+#else
+  PetscScalar    *work=ps->work,*tau=ps->work+ps->ld;
   PetscErrorCode ierr;
+  PetscInt       i,j;
+  PetscBLASInt   ilo,lwork,info,n,lda;
+  PetscScalar    *A = ps->mat[PS_MAT_A];
+  PetscScalar    *Q = ps->mat[PS_MAT_Q];
 
   PetscFunctionBegin;
+  n = PetscBLASIntCast(ps->n);
+  lda = PetscBLASIntCast(ps->ld);
+  ilo = PetscBLASIntCast(ps->l+1);
+  lwork = n;
+  /* reduce to upper Hessenberg form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
-    /* reduce to upper Hessenberg form */
-    ierr = EPSDenseHessenberg(ps->n,ps->l,ps->mat[PS_MAT_A],ps->ld,ps->mat[PS_MAT_Q]);CHKERRQ(ierr);
+    LAPACKgehrd_(&n,&ilo,&n,A,&lda,tau,work,&lwork,&info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
+    for (j=0;j<n-1;j++) {
+      for (i=j+2;i<n;i++) {
+        Q[i+j*n] = A[i+j*lda];
+        A[i+j*lda] = 0.0;
+      }
+    }
+    LAPACKorghr_(&n,&ilo,&n,Q,&n,tau,work,&lwork,&info);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
   }
+  /* compute the (real) Schur form */
   if (ps->state<PS_STATE_CONDENSED) {
-    /* compute the (real) Schur form */
-    ierr = EPSDenseSchur(ps->n,ps->l,ps->mat[PS_MAT_A],ps->ld,ps->mat[PS_MAT_Q],eigr,eigi);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&lda,wr,wi,Q,&n,work,&lwork,&info);
+    for (j=0;j<ps->l;j++) {
+      if (j==n-1 || A[j*lda+j+1] == 0.0) { 
+        /* real eigenvalue */
+        wr[j] = A[j*lda+j];
+        wi[j] = 0.0;
+      } else {
+        /* complex eigenvalue */
+        wr[j] = A[j*lda+j];
+        wr[j+1] = A[j*lda+j];
+        wi[j] = PetscSqrtReal(PetscAbsReal(A[j*lda+j+1])) *
+                PetscSqrtReal(PetscAbsReal(A[(j+1)*lda+j]));
+        wi[j+1] = -wi[j];
+        j++;
+      }
+    }
+#else
+    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&lda,wr,Q,&n,work,&lwork,&info);
+#endif
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
   }
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__  
@@ -70,15 +118,12 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
   PetscScalar    *T = ps->mat[PS_MAT_A];
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *work;
+  PetscScalar    *work=ps->work;
 #endif
 
   PetscFunctionBegin;
   n = PetscBLASIntCast(ps->n);
   ldt = PetscBLASIntCast(ps->ld);
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-#endif
   /* selection sort */
   for (i=ps->l;i<n-1;i++) {
     re = wr[i];
@@ -132,10 +177,6 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
     if (wi[i] != 0) i++;
 #endif
   }
-
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(work);CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
 #endif 
 }

@@ -421,7 +421,7 @@ PetscErrorCode PSAllocate(PS ps,PetscInt ld)
 #define __FUNCT__ "PSAllocateMat_Private"
 PetscErrorCode PSAllocateMat_Private(PS ps,PSMatType m)
 {
-  PetscInt sz;
+  PetscInt       sz;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
