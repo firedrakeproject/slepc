@@ -26,7 +26,7 @@
 PetscFList       PSList = 0;
 PetscBool        PSRegisterAllCalled = PETSC_FALSE;
 PetscClassId     PS_CLASSID = 0;
-PetscLogEvent    PS_Solve = 0,PS_Sort = 0;
+PetscLogEvent    PS_Solve = 0,PS_Sort = 0,PS_Cond = 0;
 static PetscBool PSPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
@@ -79,6 +79,7 @@ PetscErrorCode PSInitializePackage(const char *path)
   /* Register Events */
   ierr = PetscLogEventRegister("PSSolve",PS_CLASSID,&PS_Solve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PSSort",PS_CLASSID,&PS_Sort);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("PSCond",PS_CLASSID,&PS_Cond);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
@@ -141,6 +142,7 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   }
   ps->work  = PETSC_NULL;
   ps->rwork = PETSC_NULL;
+  ps->iwork = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
@@ -714,6 +716,39 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSCond"
+/*@C
+   PSCond - Compute the inf-norm condition number of the first matrix
+   as cond(A) = norm(A)*norm(inv(A)).
+
+   Not Collective
+
+   Input Parameters:
++  ps - the projected system context
+-  cond - the computed condition number
+
+   Level: advanced
+
+.seealso: PSSolve()
+@*/
+PetscErrorCode PSCond(PS ps,PetscReal *cond)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (!ps->ops->cond) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  ierr = PetscLogEventBegin(PS_Cond,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->cond)(ps,cond);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Cond,ps,0,0,0);CHKERRQ(ierr);
+  ps->state = PS_STATE_SORTED;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSort"
 /*@C
    PSSort - Reorders the condensed form computed by PSSolve() according to
@@ -780,6 +815,7 @@ PetscErrorCode PSReset(PS ps)
   }
   ierr = PetscFree(ps->work);CHKERRQ(ierr);
   ierr = PetscFree(ps->rwork);CHKERRQ(ierr);
+  ierr = PetscFree(ps->iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

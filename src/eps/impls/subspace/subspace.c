@@ -50,7 +50,7 @@ typedef struct {
 PetscErrorCode EPSSetUp_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
+  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE*)eps->data;
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
@@ -83,48 +83,6 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_Subspace;
   PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSHessCond"
-/*
-   EPSHessCond - Compute the inf-norm condition number of the upper 
-   Hessenberg matrix H: cond(H) = norm(H)*norm(inv(H)).
-   This routine uses Gaussian elimination with partial pivoting to 
-   compute the inverse explicitly. 
-*/
-static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,PetscReal* cond)
-{
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE/LANHS - Lapack routines are unavailable.");
-#else
-  PetscErrorCode ierr;
-  PetscBLASInt   *ipiv,lwork,info,n=n_,ldh=ldh_;
-  PetscScalar    *work;
-  PetscReal      hn,hin,*rwork;
-  
-  PetscFunctionBegin;
-  ierr = PetscLogEventBegin(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscBLASInt)*n,&ipiv);CHKERRQ(ierr);
-  lwork = n*n;
-  ierr = PetscMalloc(sizeof(PetscScalar)*lwork,&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscReal)*n,&rwork);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  hn = LAPACKlanhs_("I",&n,H,&ldh,rwork);
-  LAPACKgetrf_(&n,&n,H,&ldh,ipiv,&info);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
-  LAPACKgetri_(&n,H,&ldh,ipiv,work,&lwork,&info);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
-  hin = LAPACKlange_("I",&n,&n,H,&ldh,rwork);
-  *cond = hn * hin;
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscFree(ipiv);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-#endif
 }
 
 #undef __FUNCT__  
@@ -192,7 +150,8 @@ static PetscErrorCode EPSSubspaceResidualNorms(Vec *V,Vec *AV,PetscScalar *T,Pet
 
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
-    if (i==m-1 || T[i+1+ldt*i]==0.0) k=i+1; else k=i+2;
+    if (i==m-1 || T[i+1+ldt*i]==0.0) k=i+1;
+    else k=i+2;
     ierr = VecCopy(AV[i],w);CHKERRQ(ierr);
     ierr = SlepcVecMAXPBY(w,1.0,-1.0,k,T+ldt*i,V);CHKERRQ(ierr);
     ierr = VecDot(w,w,&t);CHKERRQ(ierr);
@@ -217,10 +176,10 @@ static PetscErrorCode EPSSubspaceResidualNorms(Vec *V,Vec *AV,PetscScalar *T,Pet
 PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
+  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE*)eps->data;
   PetscInt       i,k,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
-  PetscScalar    *T,*U,*Z;
+  PetscScalar    *T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
   PetscBool      breakdown;
   /* Parameters */
@@ -235,7 +194,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   PetscFunctionBegin;
   its = 0;
-  ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&Z);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
@@ -324,10 +282,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     nxtsrr = PetscMin(nxtsrr,its+idsrr);
 
     /* Compute nxtort (iteration of next orthogonalization step) */
-    ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = PetscMemcpy(Z,T,sizeof(PetscScalar)*ncv*ncv);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = EPSHessCond(nv,Z,ncv,&tcond);CHKERRQ(ierr);
+    ierr = PSCond(eps->ps,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(its+idort,nxtsrr);
 
@@ -367,7 +322,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     } while (its<nxtsrr);
   }
 
-  ierr = PetscFree(Z);CHKERRQ(ierr);
   ierr = PetscFree(rsd);CHKERRQ(ierr);
   ierr = PetscFree(itrsd);CHKERRQ(ierr);
   ierr = PetscFree(itrsdold);CHKERRQ(ierr);
@@ -385,7 +339,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 PetscErrorCode EPSReset_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
+  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE*)eps->data;
 
   PetscFunctionBegin;
   ierr = VecDestroyVecs(eps->ncv,&ctx->AV);CHKERRQ(ierr);

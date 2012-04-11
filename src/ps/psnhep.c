@@ -35,9 +35,17 @@ PetscErrorCode PSAllocate_NHEP(PS ps,PetscInt ld)
   /* workspace:
        work[0..ld] - workspace for GEHRD, ORGHR, HSEQR, TREXC
        work[ld+1..2*ld] - scalar factors of the elementary reflectors (GEHRD)
+       rwork[0..ld] - real workspace for PSCond (LANGE, LANHS)
+       iwork[0..ld] - integers for pivots in PSCond (GETRF, GETRI)
    */
   sz = 2*ld*sizeof(PetscScalar);
   ierr = PetscMalloc(sz,&ps->work);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
+  sz = ld*sizeof(PetscReal);
+  ierr = PetscMalloc(sz,&ps->rwork);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
+  sz = ld*sizeof(PetscBLASInt);
+  ierr = PetscMalloc(sz,&ps->iwork);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
@@ -178,6 +186,50 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
 #endif 
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "PSCond_NHEP"
+PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
+{
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE/LANHS - Lapack routines are unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscScalar    *work=ps->work;
+  PetscReal      *rwork=ps->rwork;
+  PetscBLASInt   *ipiv=ps->iwork;
+  PetscBLASInt   lwork,info,n,lda;
+  PetscReal      hn,hin;
+  PetscScalar    *A;
+
+  PetscFunctionBegin;
+  n = PetscBLASIntCast(ps->n);
+  lda = PetscBLASIntCast(ps->ld);
+  lwork = 2*ps->ld;
+
+  /* use workspace matrix W to avoid overwriting A */
+  if (!ps->mat[PS_MAT_W]) {
+    ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); 
+  }
+  A = ps->mat[PS_MAT_W];
+  ierr = PetscMemcpy(A,ps->mat[PS_MAT_A],sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
+
+  /* norm of A */
+  if (ps->state<PS_STATE_INTERMEDIATE) hn = LAPACKlange_("I",&n,&n,A,&lda,rwork);
+  else hn = LAPACKlanhs_("I",&n,A,&lda,rwork);
+
+  /* norm of inv(A) */
+  LAPACKgetrf_(&n,&n,A,&lda,ipiv,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
+  LAPACKgetri_(&n,A,&lda,ipiv,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
+  hin = LAPACKlange_("I",&n,&n,A,&lda,rwork);
+
+  *cond = hn*hin;
+  PetscFunctionReturn(0);
+#endif
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "PSCreate_NHEP"
@@ -188,6 +240,7 @@ PetscErrorCode PSCreate_NHEP(PS ps)
   //ps->ops->computevector = PSComputeVector_NHEP;
   ps->ops->solve         = PSSolve_NHEP;
   ps->ops->sort          = PSSort_NHEP;
+  ps->ops->cond          = PSCond_NHEP;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

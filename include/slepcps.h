@@ -85,6 +85,7 @@ typedef enum { PS_MAT_A,
                PS_MAT_Y,
                PS_MAT_U,
                PS_MAT_VT,
+               PS_MAT_W,
                PS_NUM_MAT } PSMatType;
 
 extern PetscErrorCode PSCreate(MPI_Comm,PS*);
@@ -111,6 +112,7 @@ extern PetscErrorCode PSRestoreArrayReal(PS,PSMatType,PetscReal *a[]);
 extern PetscErrorCode PSComputeVector(PS,PetscInt,PSMatType,PetscBool*);
 extern PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
 extern PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+extern PetscErrorCode PSCond(PS,PetscReal*);
 
 extern PetscFList PSList;
 extern PetscBool  PSRegisterAllCalled;

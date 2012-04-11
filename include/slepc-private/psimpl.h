@@ -24,7 +24,7 @@
 
 #include <slepcps.h>
 
-extern PetscLogEvent PS_Solve,PS_Sort;
+extern PetscLogEvent PS_Solve,PS_Sort,PS_Cond;
 
 typedef struct _PSOps *PSOps;
 
@@ -33,19 +33,21 @@ struct _PSOps {
   PetscErrorCode (*computevector)(PS,PetscInt,PSMatType,PetscBool*);
   PetscErrorCode (*solve)(PS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*,PetscErrorCode(*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+  PetscErrorCode (*cond)(PS,PetscReal*);
 };
 
 struct _p_PS {
   PETSCHEADER(struct _PSOps);
-  PetscInt    ld;                 /* leading dimension */
-  PetscInt    l;                  /* number of locked (inactive) leading columns */
-  PetscInt    n;                  /* current dimension */
-  PetscInt    k;                  /* intermediate dimension (e.g. position of arrow) */
-  PSStateType state;              /* the current state */
-  PetscScalar *mat[PS_NUM_MAT];   /* the matrices */
-  PetscReal   *rmat[PS_NUM_MAT];  /* the matrices (real) */
-  PetscScalar *work;
-  PetscReal   *rwork;
+  PetscInt     ld;                 /* leading dimension */
+  PetscInt     l;                  /* number of locked (inactive) leading columns */
+  PetscInt     n;                  /* current dimension */
+  PetscInt     k;                  /* intermediate dimension (e.g. position of arrow) */
+  PSStateType  state;              /* the current state */
+  PetscScalar  *mat[PS_NUM_MAT];   /* the matrices */
+  PetscReal    *rmat[PS_NUM_MAT];  /* the matrices (real) */
+  PetscScalar  *work;
+  PetscReal    *rwork;
+  PetscBLASInt *iwork;
 };
 
 extern PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
