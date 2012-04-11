@@ -74,14 +74,9 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  if (eps->leftvecs) {
-    ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->Tl);CHKERRQ(ierr);
-    ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr);
-    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
-  } else {
-    ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
-  }
+  ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
+  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -250,35 +245,6 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSProjectedArnoldi"
-/*
-   EPSProjectedArnoldi - Solves the projected eigenproblem.
-
-   On input:
-     S is the projected matrix (leading dimension is lds)
-
-   On output:
-     S has (real) Schur form with diagonal blocks sorted appropriately
-     Q contains the corresponding Schur vectors (order n, leading dimension n)
-*/
-PetscErrorCode EPSProjectedArnoldi(EPS eps,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt n)
-{
-  PetscErrorCode ierr;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  /* Initialize orthogonal matrix */
-  ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<n;i++) 
-    Q[i*(n+1)] = 1.0;
-  /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
-  ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  /* Sort the remaining columns of the Schur form */
-  ierr = EPSSortDenseSchur(eps,n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);    
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSUpdateVectors"
 /*
    EPSUpdateVectors - Computes approximate Schur vectors (or eigenvectors) by
@@ -360,17 +326,15 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
 PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode     ierr;
-  PetscInt           i,k,lwork,nv;
+  PetscInt           i,k,lwork,nv,ld;
   Vec                f=eps->work[0];
-  PetscScalar        *H=eps->T,*U,*g,*work,*Hcopy;
+  PetscScalar        *H,*U,*g,*work,*Hcopy;
   PetscReal          beta,gnorm,corrf=1.0;
   PetscBool          breakdown;
   IPOrthogRefineType orthog_ref;
-  EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI *)eps->data;
+  EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscMemzero(eps->T,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&U);CHKERRQ(ierr);
   lwork = PetscMax((eps->ncv+1)*eps->ncv,7*eps->ncv);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
@@ -379,6 +343,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscMalloc((eps->ncv+1)*eps->ncv*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr);
   }
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
   
   ierr = IPGetOrthogonalization(eps->ip,PETSC_NULL,&orthog_ref,PETSC_NULL);CHKERRQ(ierr);
 
@@ -391,13 +356,17 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,0);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
     if (!arnoldi->delayed) {
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
-      ierr = EPSDelayedArnoldi1(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi1(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
-      ierr = EPSDelayedArnoldi(eps,H,eps->ncv,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
     if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
       ierr = PetscMemcpy(Hcopy,H,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -415,12 +384,17 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     }
 
     /* Solve projected problem */ 
-    ierr = EPSProjectedArnoldi(eps,H,eps->ncv,U,nv);CHKERRQ(ierr);
+    ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = PSSort(eps->ps,eps->eigr,eps->eigi,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,H,eps->ncv,U,nv,eps->V,nv,beta,corrf,&k,work);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,H,ld,U,ld,eps->V,nv,beta,corrf,&k,work);CHKERRQ(ierr);
 
-    ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,nv,Hcopy,eps->ncv);CHKERRQ(ierr);
+    ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,eps->ncv);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
     eps->nconv = k;
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
@@ -436,7 +410,6 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
   
-  ierr = PetscFree(U);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscFree(g);CHKERRQ(ierr);
@@ -444,6 +417,9 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscFree(Hcopy);CHKERRQ(ierr);
   }
+  ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
+  ierr = PetscMemcpy(eps->T,H,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
+  ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -453,7 +429,7 @@ PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
-  EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
+  EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS Arnoldi Options");CHKERRQ(ierr);
@@ -470,7 +446,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSArnoldiSetDelayed_Arnoldi"
 PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
 {
-  EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI *)eps->data;
+  EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   arnoldi->delayed = delayed;
@@ -518,7 +494,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSArnoldiGetDelayed_Arnoldi"
 PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 {
-  EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI *)eps->data;
+  EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   *delayed = arnoldi->delayed;
@@ -587,7 +563,7 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
-  EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI *)eps->data;
+  EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -597,8 +573,6 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   }  
   PetscFunctionReturn(0);
 }
-
-extern PetscErrorCode EPSSolve_TS_Arnoldi(EPS);
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  

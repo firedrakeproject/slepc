@@ -197,6 +197,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
 
   for (i=0;i<ncv;i++) {
     rsd[i] = 0.0;
@@ -218,7 +219,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = PSSetDimensions(eps->ps,nv,eps->nconv,0);CHKERRQ(ierr);
-    ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
     
     /* Find group in previously computed eigenvalues */
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
