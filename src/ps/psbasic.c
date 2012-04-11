@@ -497,6 +497,7 @@ PetscErrorCode PSSetState(PS ps,PSStateType state)
     case PS_STATE_SORTED:
       if (ps->state<state) { ierr = PetscInfo(ps,"PS state has been increased\n");CHKERRQ(ierr); }
       ps->state = state;
+      break;
     default:
       SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Wrong state");
   }
@@ -713,7 +714,7 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSort"
-/*@
+/*@C
    PSSort - Reorders the condensed form computed by PSSolve() according to
    a given sorting criterion.
 
@@ -728,7 +729,7 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
 
 .seealso: PSSolve()
 @*/
-PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
 {
   PetscErrorCode ierr;
 
@@ -738,7 +739,7 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi)
   if (!ps->ops->sort) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
   ierr = PetscLogEventBegin(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ps->ops->sort)(ps,eigr,eigi);CHKERRQ(ierr);
+  ierr = (*ps->ops->sort)(ps,eigr,eigi,comp_func,comp_ctx);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
   ps->state = PS_STATE_SORTED;

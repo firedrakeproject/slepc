@@ -32,7 +32,7 @@ struct _PSOps {
   PetscErrorCode (*allocate)(PS,PetscInt);
   PetscErrorCode (*computevector)(PS,PetscInt,PSMatType,PetscBool*);
   PetscErrorCode (*solve)(PS,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*,PetscErrorCode(*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 };
 
 struct _p_PS {

@@ -128,11 +128,11 @@ static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,Petsc
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSFindGroup"
+#define __FUNCT__ "EPSSubspaceFindGroup"
 /*
-   EPSFindGroup - Find a group of nearly equimodular eigenvalues, provided 
+   EPSSubspaceFindGroup - Find a group of nearly equimodular eigenvalues, provided 
    in arrays wr and wi, according to the tolerance grptol. Also the 2-norms
-   of the residuals must be passed-in (rsd). Arrays are processed from index 
+   of the residuals must be passed in (rsd). Arrays are processed from index 
    l to index m only. The output information is:
 
    ngrp - number of entries of the group
@@ -140,8 +140,7 @@ static PetscErrorCode EPSHessCond(PetscInt n_,PetscScalar* H,PetscInt ldh_,Petsc
    ae   - average of wr(l),...,wr(l+ngrp-1)
    arsd - average of rsd(l),...,rsd(l+ngrp-1)
 */
-static PetscErrorCode EPSFindGroup(PetscInt l,PetscInt m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,
-  PetscReal grptol,PetscInt *ngrp,PetscReal *ctr,PetscReal *ae,PetscReal *arsd)
+static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr,PetscScalar *wi,PetscReal *rsd,PetscReal grptol,PetscInt *ngrp,PetscReal *ctr,PetscReal *ae,PetscReal *arsd)
 {
   PetscInt  i;
   PetscReal rmod,rmod1;
@@ -149,7 +148,6 @@ static PetscErrorCode EPSFindGroup(PetscInt l,PetscInt m,PetscScalar *wr,PetscSc
   PetscFunctionBegin;
   *ngrp = 0;
   *ctr = 0;
-      
   rmod = SlepcAbsEigenvalue(wr[l],wi[l]);
 
   for (i=l;i<m;) {
@@ -167,7 +165,6 @@ static PetscErrorCode EPSFindGroup(PetscInt l,PetscInt m,PetscScalar *wr,PetscSc
 
   *ae = 0;
   *arsd = 0;
-
   if (*ngrp) {
     for (i=l;i<l+*ngrp;i++) {
       (*ae) += PetscRealPart(wr[i]);
@@ -180,14 +177,14 @@ static PetscErrorCode EPSFindGroup(PetscInt l,PetscInt m,PetscScalar *wr,PetscSc
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSSchurResidualNorms"
+#define __FUNCT__ "EPSSubspaceResidualNorms"
 /*
-   EPSSchurResidualNorms - Computes the column norms of residual vectors
+   EPSSubspaceResidualNorms - Computes the column norms of residual vectors
    OP*V(1:n,l:m) - V*T(1:m,l:m), where, on entry, OP*V has been computed and 
    stored in AV. ldt is the leading dimension of T. On exit, rsd(l) to
    rsd(m) contain the computed norms.
 */
-static PetscErrorCode EPSSchurResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,PetscInt l,PetscInt m,PetscInt ldt,PetscReal *rsd)
+static PetscErrorCode EPSSubspaceResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,PetscInt l,PetscInt m,PetscInt ldt,PetscReal *rsd)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
@@ -230,7 +227,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE *)eps->data;
   PetscInt       i,k,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
-  PetscScalar    *T=eps->T,*U;
+  PetscScalar    *T,*U,*Z;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
   PetscBool      breakdown;
   /* Parameters */
@@ -238,14 +235,14 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscReal      stpfac = 1.5,    /* Max num of iter before next SRR step */
                  alpha = 1.0,     /* Used to predict convergence of next residual */
                  beta = 1.1,      /* Used to predict convergence of next residual */
-                 grptol = 1e-8,   /* Tolerance for EPSFindGroup */
+                 grptol = 1e-8,   /* Tolerance for EPSSubspaceFindGroup */
                  cnvtol = 1e-6;   /* Convergence criterion for cnv */
   PetscInt       orttol = 2;      /* Number of decimal digits whose loss
                                      can be tolerated in orthogonalization */
 
   PetscFunctionBegin;
   its = 0;
-  ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&U);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*ncv*ncv,&Z);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
@@ -269,40 +266,38 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   while (eps->its<eps->max_it) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
+    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,0);CHKERRQ(ierr);
     
     /* Find group in previously computed eigenvalues */
-    ierr = EPSFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
+    ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
-    /* Compute a Rayleigh-Ritz projection step 
-       on the active columns (idx) */
-
-    /* 1. AV(:,idx) = OP * V(:,idx) */
+    /* AV(:,idx) = OP * V(:,idx) */
     for (i=eps->nconv;i<nv;i++) {
       ierr = STApply(eps->OP,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
     }
 
-    /* 2. T(:,idx) = V' * AV(:,idx) */
+    /* T(:,idx) = V' * AV(:,idx) */
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
     for (i=eps->nconv;i<nv;i++) {
       ierr = VecMDot(ctx->AV[i],nv,eps->V,T+i*ncv);CHKERRQ(ierr);
     }
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
 
-    /* 3. Reduce projected matrix to Hessenberg form: [U,T] = hess(T) */
-    ierr = EPSDenseHessenberg(nv,eps->nconv,T,ncv,U);CHKERRQ(ierr);
+    /* Solve projected problem */
+    ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = PSSort(eps->ps,eps->eigr,eps->eigi,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
     
-    /* 4. Reduce T to quasi-triangular (Schur) form */
-    ierr = EPSDenseSchur(nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
-
-    /* 5. Sort diagonal elements in T and accumulate rotations on U */
-    ierr = EPSSortDenseSchur(eps,nv,eps->nconv,T,ncv,U,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    
-    /* 6. AV(:,idx) = AV * U(:,idx) */
+    /* Update vectors V(:,idx) = V * U(:,idx) */
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,ctx->AV,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
-    
-    /* 7. V(:,idx) = V * U(:,idx) */
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
     
     /* Convergence check */
-    ierr = EPSSchurResidualNorms(eps,eps->V,ctx->AV,T,eps->nconv,nv,ncv,rsd);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = EPSSubspaceResidualNorms(eps,eps->V,ctx->AV,T,eps->nconv,nv,ncv,rsd);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
 
     for (i=eps->nconv;i<nv;i++) { 
       itrsdold[i] = itrsd[i];
@@ -312,7 +307,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   
     for (;;) {
       /* Find group in currently computed eigenvalues */
-      ierr = EPSFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
+      ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
       if (ngrp!=nogrp) break;
       if (ngrp==0) break;
       if (PetscAbsScalar(ae-oae)>ctr*cnvtol*(itrsd[eps->nconv]-itrsdold[eps->nconv])) break;
@@ -336,8 +331,10 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     nxtsrr = PetscMin(nxtsrr,its+idsrr);
 
     /* Compute nxtort (iteration of next orthogonalization step) */
-    ierr = PetscMemcpy(U,T,sizeof(PetscScalar)*ncv*ncv);CHKERRQ(ierr);
-    ierr = EPSHessCond(nv,U,ncv,&tcond);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = PetscMemcpy(Z,T,sizeof(PetscScalar)*ncv*ncv);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = EPSHessCond(nv,Z,ncv,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(its+idort,nxtsrr);
 
@@ -362,7 +359,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
           ierr = VecNorm(eps->V[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
           ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
         }
-      
         its++;
       }
       /* Orthonormalize vectors */
@@ -378,13 +374,16 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     } while (its<nxtsrr);
   }
 
-  ierr = PetscFree(U);CHKERRQ(ierr);
+  ierr = PetscFree(Z);CHKERRQ(ierr);
   ierr = PetscFree(rsd);CHKERRQ(ierr);
   ierr = PetscFree(itrsd);CHKERRQ(ierr);
   ierr = PetscFree(itrsdold);CHKERRQ(ierr);
 
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
+  ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+  ierr = PetscMemcpy(eps->T,T,sizeof(PetscScalar)*ncv*ncv);CHKERRQ(ierr);
+  ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
