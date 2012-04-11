@@ -184,27 +184,20 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
    stored in AV. ldt is the leading dimension of T. On exit, rsd(l) to
    rsd(m) contain the computed norms.
 */
-static PetscErrorCode EPSSubspaceResidualNorms(EPS eps,Vec *V,Vec *AV,PetscScalar *T,PetscInt l,PetscInt m,PetscInt ldt,PetscReal *rsd)
+static PetscErrorCode EPSSubspaceResidualNorms(Vec *V,Vec *AV,PetscScalar *T,PetscInt l,PetscInt m,PetscInt ldt,Vec w,PetscReal *rsd)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
-#if defined(PETSC_USE_COMPLEX)
   PetscScalar    t;
-#endif
 
   PetscFunctionBegin;
   for (i=l;i<m;i++) {
     if (i==m-1 || T[i+1+ldt*i]==0.0) k=i+1; else k=i+2;
-    ierr = VecCopy(AV[i],eps->work[0]);CHKERRQ(ierr);
-    ierr = SlepcVecMAXPBY(eps->work[0],1.0,-1.0,k,T+ldt*i,V);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-    ierr = VecDot(eps->work[0],eps->work[0],rsd+i);CHKERRQ(ierr);
-#else
-    ierr = VecDot(eps->work[0],eps->work[0],&t);CHKERRQ(ierr);
+    ierr = VecCopy(AV[i],w);CHKERRQ(ierr);
+    ierr = SlepcVecMAXPBY(w,1.0,-1.0,k,T+ldt*i,V);CHKERRQ(ierr);
+    ierr = VecDot(w,w,&t);CHKERRQ(ierr);
     rsd[i] = PetscRealPart(t);
-#endif    
   }
-
   for (i=l;i<m;i++) {
     if (i == m-1) {
       rsd[i] = PetscSqrtReal(rsd[i]);  
@@ -296,7 +289,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     
     /* Convergence check */
     ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = EPSSubspaceResidualNorms(eps,eps->V,ctx->AV,T,eps->nconv,nv,ncv,rsd);CHKERRQ(ierr);
+    ierr = EPSSubspaceResidualNorms(eps->V,ctx->AV,T,eps->nconv,nv,ncv,eps->work[0],rsd);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
 
     for (i=eps->nconv;i<nv;i++) { 

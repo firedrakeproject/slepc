@@ -51,7 +51,6 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable.");
 #else
   PetscScalar    *work=ps->work,*tau=ps->work+ps->ld;
-  PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   ilo,lwork,info,n,lda;
   PetscScalar    *A = ps->mat[PS_MAT_A];
@@ -149,13 +148,11 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
       /* interchange blocks */
       ifst = PetscBLASIntCast(pos + 1);
       ilst = PetscBLASIntCast(i + 1);
-      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
       LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,work,&info);
 #else
       LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,&info);
 #endif
-      ierr = PetscFPTrapPop();CHKERRQ(ierr);
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       /* recover original eigenvalues from T matrix */
       for (j=i;j<n;j++) {

@@ -426,6 +426,7 @@ PetscErrorCode PSAllocateMat_Private(PS ps,PSMatType m)
 
   PetscFunctionBegin;
   sz = ps->ld*ps->ld*sizeof(PetscScalar);
+  ierr = PetscFree(ps->mat[m]);CHKERRQ(ierr); 
   ierr = PetscMalloc(sz,&ps->mat[m]);CHKERRQ(ierr); 
   ierr = PetscMemzero(ps->mat[m],sz);CHKERRQ(ierr); 
   ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
