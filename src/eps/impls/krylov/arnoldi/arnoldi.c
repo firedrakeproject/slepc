@@ -326,7 +326,7 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
 PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode     ierr;
-  PetscInt           i,k,lwork,nv,ld;
+  PetscInt           i,k,nv,ld;
   Vec                f=eps->work[0];
   PetscScalar        *H,*U,*g,*work,*Hcopy;
   PetscReal          beta,gnorm,corrf=1.0;
@@ -335,8 +335,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
-  lwork = PetscMax((eps->ncv+1)*eps->ncv,7*eps->ncv);
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(7*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
   }
@@ -376,7 +375,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-      ierr = EPSTranslateHarmonic(nv,H,eps->ncv,eps->target,(PetscScalar)beta,g,work);CHKERRQ(ierr);
+      ierr = PSTranslateHarmonic(eps->ps,eps->target,(PetscScalar)beta,g);CHKERRQ(ierr);
       gnorm = 0.0;
       for (i=0;i<nv;i++)
         gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));

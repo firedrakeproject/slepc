@@ -34,6 +34,7 @@ struct _PSOps {
   PetscErrorCode (*solve)(PS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*,PetscErrorCode(*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
   PetscErrorCode (*cond)(PS,PetscReal*);
+  PetscErrorCode (*translate)(PS,PetscScalar,PetscScalar,PetscScalar*);
 };
 
 struct _p_PS {

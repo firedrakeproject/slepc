@@ -331,8 +331,6 @@ PetscErrorCode PSCond(PS ps,PetscReal *cond)
   ierr = (*ps->ops->cond)(ps,cond);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
-  ps->state = PS_STATE_SORTED;
-  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -367,6 +365,46 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
   ps->state = PS_STATE_SORTED;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSTranslateHarmonic"
+/*@C
+   PSTranslateHarmonic - Computes a translation of the projected matrix.
+
+   Not Collective
+
+   Input Parameters:
++  ps   - the projected system context
+.  tau  - the translation amount
+-  beta - last component of vector b
+
+   Notes:
+   This function is intended for use in the context of Krylov methods only.
+   It computes a translation of a Krylov decomposition in order to extract
+   eigenpair approximations by harmonic Rayleigh-Ritz.
+   The matrix is updated as A + g*b' where g = (B-tau*eye(n))'\b and
+   vector b is assumed to be beta*e_n^T.
+
+   Level: developer
+
+.seealso: PSRecoverHarmonic()
+@*/
+PetscErrorCode PSTranslateHarmonic(PS ps,PetscScalar tau,PetscScalar beta,PetscScalar *g)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (!ps->ops->translate) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->translate)(ps,tau,beta,g);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ps->state = PS_STATE_RAW;
   ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

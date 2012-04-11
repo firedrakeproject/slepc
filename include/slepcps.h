@@ -113,6 +113,7 @@ extern PetscErrorCode PSComputeVector(PS,PetscInt,PSMatType,PetscBool*);
 extern PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
 extern PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 extern PetscErrorCode PSCond(PS,PetscReal*);
+extern PetscErrorCode PSTranslateHarmonic(PS,PetscScalar,PetscScalar,PetscScalar*);
 
 extern PetscFList PSList;
 extern PetscBool  PSRegisterAllCalled;
