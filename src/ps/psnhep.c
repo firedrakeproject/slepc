@@ -32,21 +32,6 @@ PetscErrorCode PSAllocate_NHEP(PS ps,PetscInt ld)
   PetscFunctionBegin;
   ierr = PSAllocateMat_Private(ps,PS_MAT_A);CHKERRQ(ierr); 
   ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
-  /* workspace:
-       work[0..ld] - workspace for GEHRD, ORGHR, HSEQR, TREXC
-       work[ld+1..2*ld] - scalar factors of the elementary reflectors (GEHRD)
-       rwork[0..ld] - real workspace for PSCond (LANGE, LANHS)
-       iwork[0..ld] - integers for pivots in PSCond (GETRF, GETRI)
-   */
-  sz = 2*ld*sizeof(PetscScalar);
-  ierr = PetscMalloc(sz,&ps->work);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
-  sz = ld*sizeof(PetscReal);
-  ierr = PetscMalloc(sz,&ps->rwork);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
-  sz = ld*sizeof(PetscBLASInt);
-  ierr = PetscMalloc(sz,&ps->iwork);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
@@ -59,7 +44,7 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscScalar    *work=ps->work,*tau=ps->work+ps->ld;
+  PetscScalar    *work,*tau;
   PetscInt       i,j;
   PetscBLASInt   ilo,lwork,info,n,ld;
   PetscScalar    *A = ps->mat[PS_MAT_A];
@@ -69,7 +54,10 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   n   = PetscBLASIntCast(ps->n);
   ld  = PetscBLASIntCast(ps->ld);
   ilo = PetscBLASIntCast(ps->l+1);
-  lwork = n;
+  ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr); 
+  work = ps->work;
+  tau  = ps->work+ps->ld;
+  lwork = ld;
   /* reduce to upper Hessenberg form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
     LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info);
@@ -131,12 +119,16 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
   PetscScalar    *T = ps->mat[PS_MAT_A];
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *work=ps->work;
+  PetscScalar    *work;
 #endif
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PSAllocateWork_Private(ps,ld,0,0);CHKERRQ(ierr); 
+  work = ps->work;
+#endif
   /* selection sort */
   for (i=ps->l;i<n-1;i++) {
     re = wr[i];
@@ -201,9 +193,9 @@ PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE/LANHS - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscScalar    *work=ps->work;
-  PetscReal      *rwork=ps->rwork;
-  PetscBLASInt   *ipiv=ps->iwork;
+  PetscScalar    *work;
+  PetscReal      *rwork;
+  PetscBLASInt   *ipiv;
   PetscBLASInt   lwork,info,n,ld;
   PetscReal      hn,hin;
   PetscScalar    *A;
@@ -211,7 +203,11 @@ PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
-  lwork = 2*ps->ld;
+  lwork = 8*ld;
+  ierr = PSAllocateWork_Private(ps,lwork,ld,ld);CHKERRQ(ierr); 
+  work  = ps->work;
+  rwork = ps->rwork;
+  ipiv  = ps->iwork;
 
   /* use workspace matrix W to avoid overwriting A */
   if (!ps->mat[PS_MAT_W]) {

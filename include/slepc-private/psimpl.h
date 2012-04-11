@@ -48,8 +48,10 @@ struct _p_PS {
   PetscScalar  *work;
   PetscReal    *rwork;
   PetscBLASInt *iwork;
+  PetscInt     lwork,lrwork,liwork;
 };
 
 extern PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
+extern PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
 
 #endif

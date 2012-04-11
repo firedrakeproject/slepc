@@ -140,9 +140,12 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
     ps->mat[i]  = PETSC_NULL;
     ps->rmat[i] = PETSC_NULL;
   }
-  ps->work  = PETSC_NULL;
-  ps->rwork = PETSC_NULL;
-  ps->iwork = PETSC_NULL;
+  ps->work   = PETSC_NULL;
+  ps->rwork  = PETSC_NULL;
+  ps->iwork  = PETSC_NULL;
+  ps->lwork  = 0;
+  ps->lrwork = 0;
+  ps->liwork = 0;
   PetscFunctionReturn(0);
 }
 
@@ -428,10 +431,38 @@ PetscErrorCode PSAllocateMat_Private(PS ps,PSMatType m)
 
   PetscFunctionBegin;
   sz = ps->ld*ps->ld*sizeof(PetscScalar);
-  ierr = PetscFree(ps->mat[m]);CHKERRQ(ierr); 
+  if (ps->mat[m]) { ierr = PetscFree(ps->mat[m]);CHKERRQ(ierr); }
+  else { ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); }
   ierr = PetscMalloc(sz,&ps->mat[m]);CHKERRQ(ierr); 
   ierr = PetscMemzero(ps->mat[m],sz);CHKERRQ(ierr); 
-  ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSAllocateWork_Private"
+PetscErrorCode PSAllocateWork_Private(PS ps,PetscInt s,PetscInt r,PetscInt i)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (s>ps->lwork) {
+    ierr = PetscFree(ps->work);CHKERRQ(ierr);
+    ierr = PetscMalloc(s*sizeof(PetscScalar),&ps->work);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(ps,(s-ps->lwork)*sizeof(PetscScalar));CHKERRQ(ierr); 
+    ps->lwork = s;
+  }
+  if (r>ps->lrwork) {
+    ierr = PetscFree(ps->rwork);CHKERRQ(ierr);
+    ierr = PetscMalloc(r*sizeof(PetscReal),&ps->rwork);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(ps,(r-ps->lrwork)*sizeof(PetscReal));CHKERRQ(ierr); 
+    ps->lrwork = r;
+  }
+  if (i>ps->liwork) {
+    ierr = PetscFree(ps->iwork);CHKERRQ(ierr);
+    ierr = PetscMalloc(i*sizeof(PetscBLASInt),&ps->iwork);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(ps,(i-ps->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr); 
+    ps->liwork = i;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -816,6 +847,9 @@ PetscErrorCode PSReset(PS ps)
   ierr = PetscFree(ps->work);CHKERRQ(ierr);
   ierr = PetscFree(ps->rwork);CHKERRQ(ierr);
   ierr = PetscFree(ps->iwork);CHKERRQ(ierr);
+  ps->lwork  = 0;
+  ps->lrwork = 0;
+  ps->liwork = 0;
   PetscFunctionReturn(0);
 }
 
