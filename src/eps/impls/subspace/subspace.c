@@ -177,7 +177,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE*)eps->data;
-  PetscInt       i,k,ngrp,nogrp,*itrsd,*itrsdold,
+  PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold,
                  nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
@@ -218,6 +218,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = PSSetDimensions(eps->ps,nv,eps->nconv,0);CHKERRQ(ierr);
+    ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
     
     /* Find group in previously computed eigenvalues */
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
@@ -230,7 +231,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     /* T(:,idx) = V' * AV(:,idx) */
     ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
     for (i=eps->nconv;i<nv;i++) {
-      ierr = VecMDot(ctx->AV[i],nv,eps->V,T+i*ncv);CHKERRQ(ierr);
+      ierr = VecMDot(ctx->AV[i],nv,eps->V,T+i*ld);CHKERRQ(ierr);
     }
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
     ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
@@ -241,13 +242,13 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     
     /* Update vectors V(:,idx) = V * U(:,idx) */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(nv,ctx->AV,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,ctx->AV,eps->nconv,nv,U,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
     
     /* Convergence check */
     ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = EPSSubspaceResidualNorms(eps->V,ctx->AV,T,eps->nconv,nv,ncv,eps->work[0],rsd);CHKERRQ(ierr);
+    ierr = EPSSubspaceResidualNorms(eps->V,ctx->AV,T,eps->nconv,nv,ld,eps->work[0],rsd);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
 
     for (i=eps->nconv;i<nv;i++) { 

@@ -58,51 +58,57 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable.");
 #else
+  PetscErrorCode ierr;
   PetscScalar    *work=ps->work,*tau=ps->work+ps->ld;
   PetscInt       i,j;
-  PetscBLASInt   ilo,lwork,info,n,lda;
+  PetscBLASInt   ilo,lwork,info,n,ld;
   PetscScalar    *A = ps->mat[PS_MAT_A];
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
 
   PetscFunctionBegin;
-  n = PetscBLASIntCast(ps->n);
-  lda = PetscBLASIntCast(ps->ld);
+  n   = PetscBLASIntCast(ps->n);
+  ld  = PetscBLASIntCast(ps->ld);
   ilo = PetscBLASIntCast(ps->l+1);
   lwork = n;
   /* reduce to upper Hessenberg form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
-    LAPACKgehrd_(&n,&ilo,&n,A,&lda,tau,work,&lwork,&info);
+    LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
     for (j=0;j<n-1;j++) {
       for (i=j+2;i<n;i++) {
-        Q[i+j*n] = A[i+j*lda];
-        A[i+j*lda] = 0.0;
+        Q[i+j*ld] = A[i+j*ld];
+        A[i+j*ld] = 0.0;
       }
     }
-    LAPACKorghr_(&n,&ilo,&n,Q,&n,tau,work,&lwork,&info);
+    LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
+  } else {
+    /* initialize orthogonal matrix */
+    ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<n;i++) 
+      Q[i+i*ld] = 1.0;
   }
   /* compute the (real) Schur form */
   if (ps->state<PS_STATE_CONDENSED) {
 #if !defined(PETSC_USE_COMPLEX)
-    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&lda,wr,wi,Q,&n,work,&lwork,&info);
+    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,wi,Q,&ld,work,&lwork,&info);
     for (j=0;j<ps->l;j++) {
-      if (j==n-1 || A[j*lda+j+1] == 0.0) { 
+      if (j==n-1 || A[j+1+j*ld] == 0.0) { 
         /* real eigenvalue */
-        wr[j] = A[j*lda+j];
+        wr[j] = A[j+j*ld];
         wi[j] = 0.0;
       } else {
         /* complex eigenvalue */
-        wr[j] = A[j*lda+j];
-        wr[j+1] = A[j*lda+j];
-        wi[j] = PetscSqrtReal(PetscAbsReal(A[j*lda+j+1])) *
-                PetscSqrtReal(PetscAbsReal(A[(j+1)*lda+j]));
+        wr[j] = A[j+j*ld];
+        wr[j+1] = A[j+j*ld];
+        wi[j] = PetscSqrtReal(PetscAbsReal(A[j+1+j*ld])) *
+                PetscSqrtReal(PetscAbsReal(A[j+(j+1)*ld]));
         wi[j+1] = -wi[j];
         j++;
       }
     }
 #else
-    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&lda,wr,Q,&n,work,&lwork,&info);
+    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info);
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
   }
@@ -121,7 +127,7 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
   PetscErrorCode ierr;
   PetscScalar    re,im;
   PetscInt       i,j,pos,result;
-  PetscBLASInt   ifst,ilst,info,n,ldt;
+  PetscBLASInt   ifst,ilst,info,n,ld;
   PetscScalar    *T = ps->mat[PS_MAT_A];
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
 #if !defined(PETSC_USE_COMPLEX)
@@ -129,8 +135,8 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
 #endif
 
   PetscFunctionBegin;
-  n = PetscBLASIntCast(ps->n);
-  ldt = PetscBLASIntCast(ps->ld);
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
   /* selection sort */
   for (i=ps->l;i<n-1;i++) {
     re = wr[i];
@@ -154,22 +160,22 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
     }
     if (pos) {
       /* interchange blocks */
-      ifst = PetscBLASIntCast(pos + 1);
-      ilst = PetscBLASIntCast(i + 1);
+      ifst = PetscBLASIntCast(pos+1);
+      ilst = PetscBLASIntCast(i+1);
 #if !defined(PETSC_USE_COMPLEX)
-      LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,work,&info);
+      LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info);
 #else
-      LAPACKtrexc_("V",&n,T,&ldt,Q,&n,&ifst,&ilst,&info);
+      LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info);
 #endif
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       /* recover original eigenvalues from T matrix */
       for (j=i;j<n;j++) {
-        wr[j] = T[j*ldt+j];
+        wr[j] = T[j+j*ld];
 #if !defined(PETSC_USE_COMPLEX)
-        if (j<n-1 && T[j*ldt+j+1] != 0.0) {
+        if (j<n-1 && T[j+1+j*ld] != 0.0) {
           /* complex conjugate eigenvalue */
-          wi[j] = PetscSqrtReal(PetscAbsReal(T[j*ldt+j+1])) *
-                  PetscSqrtReal(PetscAbsReal(T[(j+1)*ldt+j]));
+          wi[j] = PetscSqrtReal(PetscAbsReal(T[j+1+j*ld])) *
+                  PetscSqrtReal(PetscAbsReal(T[j+(j+1)*ld]));
           wr[j+1] = wr[j];
           wi[j+1] = -wi[j];
           j++;
@@ -198,13 +204,13 @@ PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
   PetscScalar    *work=ps->work;
   PetscReal      *rwork=ps->rwork;
   PetscBLASInt   *ipiv=ps->iwork;
-  PetscBLASInt   lwork,info,n,lda;
+  PetscBLASInt   lwork,info,n,ld;
   PetscReal      hn,hin;
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  n = PetscBLASIntCast(ps->n);
-  lda = PetscBLASIntCast(ps->ld);
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
   lwork = 2*ps->ld;
 
   /* use workspace matrix W to avoid overwriting A */
@@ -215,15 +221,15 @@ PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
   ierr = PetscMemcpy(A,ps->mat[PS_MAT_A],sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
 
   /* norm of A */
-  if (ps->state<PS_STATE_INTERMEDIATE) hn = LAPACKlange_("I",&n,&n,A,&lda,rwork);
-  else hn = LAPACKlanhs_("I",&n,A,&lda,rwork);
+  if (ps->state<PS_STATE_INTERMEDIATE) hn = LAPACKlange_("I",&n,&n,A,&ld,rwork);
+  else hn = LAPACKlanhs_("I",&n,A,&ld,rwork);
 
   /* norm of inv(A) */
-  LAPACKgetrf_(&n,&n,A,&lda,ipiv,&info);
+  LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
-  LAPACKgetri_(&n,A,&lda,ipiv,work,&lwork,&info);
+  LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
-  hin = LAPACKlange_("I",&n,&n,A,&lda,rwork);
+  hin = LAPACKlange_("I",&n,&n,A,&ld,rwork);
 
   *cond = hn*hin;
   PetscFunctionReturn(0);
