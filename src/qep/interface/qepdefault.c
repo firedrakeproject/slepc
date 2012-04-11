@@ -165,7 +165,7 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
    - No correction factor
    - No support for true residual
 */
-PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt nv,PetscReal beta,PetscInt *kout,PetscScalar *work)
+PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt ldq,PetscInt nv,PetscReal beta,PetscInt *kout,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscInt       k,marker;
@@ -183,7 +183,7 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscSca
     iscomplex = PETSC_FALSE;
     if (k<nv-1 && S[k+1+k*lds] != 0.0) iscomplex = PETSC_TRUE;
     /* residual norm */
-    ierr = DenseSelectedEvec(S,lds,Q,Z,k,iscomplex,nv,work2);CHKERRQ(ierr);
+    ierr = DenseSelectedEvec(S,lds,Q,ldq,Z,k,iscomplex,nv,work2);CHKERRQ(ierr);
     if (iscomplex) resnorm = beta*SlepcAbsEigenvalue(Z[nv-1],Z[2*nv-1]);
     else resnorm = beta*PetscAbsScalar(Z[nv-1]);
     /* error estimate */

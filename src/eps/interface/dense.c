@@ -866,7 +866,7 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscRe
 
    Input Parameters:
      S - (quasi-)triangular matrix (dimension nv, leading dimension lds)
-     U - orthogonal transformation matrix (dimension nv, leading dimension nv)
+     U - orthogonal transformation matrix (dimension nv, leading dimension ldu)
      i - which eigenvector to process
      iscomplex - true if a complex conjugate pair (in real scalars)
 
@@ -876,7 +876,7 @@ PetscErrorCode EPSDenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscRe
    Workspace:
      work is workspace to store 3*nv scalars, nv booleans and nv reals
 */
-PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,PetscScalar *Y,PetscInt i,PetscBool iscomplex,PetscInt nv_,PetscScalar *work)
+PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,PetscInt ldu_,PetscScalar *Y,PetscInt i,PetscBool iscomplex,PetscInt nv_,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -884,7 +884,7 @@ PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,Pet
 #else
   PetscErrorCode ierr;
   PetscInt       k;
-  PetscBLASInt   mm,mout,info,lds,nv,inc = 1;
+  PetscBLASInt   mm,mout,info,lds,ldu,nv,inc = 1;
   PetscScalar    tmp,done=1.0,zero=0.0;
   PetscReal      norm;
   PetscBool      *select=(PetscBool*)(work+4*nv_);
@@ -894,7 +894,8 @@ PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,Pet
 
   PetscFunctionBegin;
   lds = PetscBLASIntCast(lds_);
-  nv = PetscBLASIntCast(nv_);
+  ldu = PetscBLASIntCast(ldu_);
+  nv  = PetscBLASIntCast(nv_);
   for (k=0;k<nv;k++) select[k] = PETSC_FALSE;
 
   /* Compute eigenvectors Y of S */
@@ -913,9 +914,9 @@ PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,Pet
   ierr = PetscMemcpy(work,Y,mout*nv*sizeof(PetscScalar));CHKERRQ(ierr);
 
   /* accumulate and normalize eigenvectors */
-  BLASgemv_("N",&nv,&nv,&done,U,&nv,work,&inc,&zero,Y,&inc);
+  BLASgemv_("N",&nv,&nv,&done,U,&ldu,work,&inc,&zero,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
-  if (iscomplex) BLASgemv_("N",&nv,&nv,&done,U,&nv,work+nv,&inc,&zero,Y+nv,&inc);
+  if (iscomplex) BLASgemv_("N",&nv,&nv,&done,U,&ldu,work+nv,&inc,&zero,Y+nv,&inc);
 #endif
   mm = mm*nv;
   norm = BLASnrm2_(&mm,Y,&inc);

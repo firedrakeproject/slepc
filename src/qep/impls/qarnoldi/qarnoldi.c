@@ -257,7 +257,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     ierr = QEPProjectedKSNonsym(qep,l,S,qep->ncv,Q,nv);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = QEPKrylovConvergence(qep,qep->nconv,nv-qep->nconv,S,qep->ncv,Q,nv,beta,&k,work);CHKERRQ(ierr);
+    ierr = QEPKrylovConvergence(qep,qep->nconv,nv-qep->nconv,S,qep->ncv,Q,nv,nv,beta,&k,work);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
     

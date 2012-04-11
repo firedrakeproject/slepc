@@ -434,7 +434,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       ierr = EPSProjectedKS_Slice(eps,nv,PETSC_NULL,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
     }
     /* Residual */
-    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,PETSC_TRUE,eps->nconv,nv,PETSC_NULL,nv,Q,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,PETSC_TRUE,eps->nconv,nv,PETSC_NULL,nv,Q,nv,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
     /* Check convergence */ 
     conv=k=j=0;
     for(i=0;i<nv;i++)if(eps->errest[eps->nconv+i] < eps->tol)conv++;

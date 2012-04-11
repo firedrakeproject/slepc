@@ -81,6 +81,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
      S     - Schur form of projected matrix (not referenced if issym)
      lds   - leading dimension of S
      Q     - Schur vectors of projected matrix (eigenvectors if issym)
+     ldq   - leading dimension of Q
      V     - set of basis vectors (used only if trueresidual is activated)
      nv    - number of vectors to process (dimension of Q, columns of V)
      beta  - norm of f (the residual vector of the Arnoldi/Lanczos factorization)
@@ -92,7 +93,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
    Workspace:
      work is workspace to store 5*nv scalars, nv booleans and nv reals (only if !issym)
 */
-PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool trackall,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool trackall,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt ldq,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscInt       k,marker;
@@ -115,14 +116,14 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool trackall,P
     if (!issym && k<nv-1 && S[k+1+k*lds] != 0.0) iscomplex = PETSC_TRUE;
     /* residual norm */
     if (issym) {
-      resnorm = beta*PetscAbsScalar(Q[(k-kini+1)*nv-1]);
+      resnorm = beta*PetscAbsScalar(Q[nv-1+(k-kini)*ldq]);
     } else {
-      ierr = DenseSelectedEvec(S,lds,Q,Z,k,iscomplex,nv,work2);CHKERRQ(ierr);
+      ierr = DenseSelectedEvec(S,lds,Q,ldq,Z,k,iscomplex,nv,work2);CHKERRQ(ierr);
       if (iscomplex) resnorm = beta*SlepcAbsEigenvalue(Z[nv-1],Z[2*nv-1]);
       else resnorm = beta*PetscAbsScalar(Z[nv-1]);
     }
     if (eps->trueres) {
-      if (issym) Z = Q+(k-kini)*nv;
+      if (issym) Z = Q+(k-kini)*ldq;
       ierr = EPSComputeTrueResidual(eps,re,im,Z,V,nv,&resnorm);CHKERRQ(ierr);
     }
     else resnorm *= corrf;

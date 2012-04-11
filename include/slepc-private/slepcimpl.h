@@ -33,7 +33,7 @@ typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 
 /* Private functions that are shared by several classes */
 
-extern PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscBool,PetscInt,PetscScalar*);
+extern PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscBool,PetscInt,PetscScalar*);
 extern PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx);
 
 extern PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);

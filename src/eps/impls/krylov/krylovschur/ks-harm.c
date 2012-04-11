@@ -198,7 +198,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Harmonic(EPS eps)
     ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,S,eps->ncv,Q,eps->V,nv,beta,PetscSqrtReal(1.0+gnorm),&k,work);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,S,eps->ncv,Q,nv,eps->V,nv,beta,PetscSqrtReal(1.0+gnorm),&k,work);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
