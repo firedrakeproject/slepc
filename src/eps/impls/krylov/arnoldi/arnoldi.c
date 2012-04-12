@@ -268,15 +268,15 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscBool      isrefined;
+  PetscBool      refined;
   PetscInt       i,j,k;
   PetscBLASInt   n1,lwork,idummy=1,info,n=n_,ldh=ldh_;
   PetscScalar    *B,sdummy,*work;
   PetscReal      *sigma;
 
   PetscFunctionBegin;
-  isrefined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  if (isrefined) {
+  refined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
+  if (refined) {
     /* Refined Ritz extraction */
     n1 = n+1;
     ierr = PetscMalloc(n1*n*sizeof(PetscScalar),&B);CHKERRQ(ierr);
@@ -330,16 +330,16 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   Vec                f=eps->work[0];
   PetscScalar        *H,*U,*work,*Hcopy;
   PetscReal          beta,gamma=1.0;
-  PetscBool          breakdown;
+  PetscBool          breakdown,harmonic,refined;
   IPOrthogRefineType orthog_ref;
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(7*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
-    ierr = PetscMalloc((eps->ncv+1)*eps->ncv*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr);
-  }
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = PetscMalloc(7*ld*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
+  refined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
+  if (refined) { ierr = PetscMalloc((ld+1)*ld*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr); }
   
   ierr = IPGetOrthogonalization(eps->ip,PETSC_NULL,&orthog_ref,PETSC_NULL);CHKERRQ(ierr);
 
@@ -364,14 +364,14 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
-    if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
-      ierr = PetscMemcpy(Hcopy,H,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<nv-1;i++) Hcopy[nv+i*eps->ncv] = 0.0; 
-      Hcopy[nv+(nv-1)*eps->ncv] = beta;
+    if (refined) {
+      ierr = PetscMemcpy(Hcopy,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+      for (i=0;i<nv-1;i++) Hcopy[nv+i*ld] = 0.0; 
+      Hcopy[nv+(nv-1)*ld] = beta;
     }
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
-    if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
+    if (harmonic) {
       ierr = PSTranslateHarmonic(eps->ps,eps->target,beta,PETSC_FALSE,PETSC_NULL,&gamma);CHKERRQ(ierr);
     }
 
@@ -384,7 +384,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,H,ld,U,ld,eps->V,nv,beta,gamma,&k,work);CHKERRQ(ierr);
 
-    ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,eps->ncv);CHKERRQ(ierr);
+    ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,ld);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
     eps->nconv = k;
@@ -403,9 +403,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   }
   
   ierr = PetscFree(work);CHKERRQ(ierr);
-  if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
-    ierr = PetscFree(Hcopy);CHKERRQ(ierr);
-  }
+  if (refined) { ierr = PetscFree(Hcopy);CHKERRQ(ierr); }
   ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
   ierr = PetscMemcpy(eps->T,H,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
   ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);

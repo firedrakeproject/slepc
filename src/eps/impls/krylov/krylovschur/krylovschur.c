@@ -6,8 +6,8 @@
 
    Algorithm:
 
-       Single-vector Krylov-Schur method for both symmetric and non-symmetric
-       problems.
+       Single-vector Krylov-Schur method for non-symmetric problems,
+       including harmonic extraction.
 
    References:
 
@@ -16,6 +16,9 @@
 
        [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
            SIAM J. Matrix Analysis and App., 23(3), pp. 601-614, 2001. 
+
+       [3] "Practical Implementation of Harmonic Krylov-Schur", SLEPc Technical
+            Report STR-9, available at http://www.grycap.upv.es/slepc.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -41,7 +44,6 @@
 #include <slepcblaslapack.h>
 
 PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
-extern PetscErrorCode EPSSolve_KrylovSchur_Harmonic(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
@@ -52,7 +54,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      issinv;
-  enum { EPS_KS_DEFAULT, EPS_KS_SYMM, EPS_KS_SLICE, EPS_KS_INDEF, EPS_KS_HARM } variant;
+  enum { EPS_KS_DEFAULT, EPS_KS_SYMM, EPS_KS_SLICE, EPS_KS_INDEF } variant;
 
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
@@ -120,14 +122,14 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     } else {
       switch (eps->extraction) {
         case EPS_RITZ:     variant = EPS_KS_SYMM; break;
-        case EPS_HARMONIC: variant = EPS_KS_HARM; break;
+        case EPS_HARMONIC: variant = EPS_KS_DEFAULT; break;
         default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
       }
     }
   } else {
     switch (eps->extraction) {
       case EPS_RITZ:     variant = EPS_KS_DEFAULT; break;
-      case EPS_HARMONIC: variant = EPS_KS_HARM; break;
+      case EPS_HARMONIC: variant = EPS_KS_DEFAULT; break;
       default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
     }
   }
@@ -148,10 +150,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
       ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
       break;
-    case EPS_KS_HARM:
-      eps->ops->solve = EPSSolve_KrylovSchur_Harmonic;
-      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
-      break;
     default: SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error");
   }
   ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
@@ -163,16 +161,17 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,nv,ld;
+  PetscInt       i,k,l,nv,ld;
   Vec            u=eps->work[0];
-  PetscScalar    *S,*Q,*work;
-  PetscReal      beta;
-  PetscBool      breakdown;
+  PetscScalar    *S,*Q,*g,*work;
+  PetscReal      beta,gamma=1.0;
+  PetscBool      breakdown,harmonic;
 
   PetscFunctionBegin;
-  lwork = 7*eps->ncv;
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = PetscMalloc(7*ld*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
+  if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -195,6 +194,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
     }
 
+    /* Compute translation of Krylov decomposition if harmonic extraction used */ 
+    if (harmonic) {
+      ierr = PSTranslateHarmonic(eps->ps,eps->target,beta,PETSC_FALSE,g,&gamma);CHKERRQ(ierr);
+    }
+
     /* Solve projected problem */ 
     ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = PSSort(eps->ps,eps->eigr,eps->eigi,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
@@ -202,7 +206,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     /* Check convergence */ 
     ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,S,ld,Q,ld,eps->V,nv,beta,1.0,&k,work);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,S,ld,Q,ld,eps->V,nv,beta,gamma,&k,work);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
@@ -233,9 +237,17 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
         }
       } else {
+        /* Undo translation of Krylov decomposition */ 
+        if (harmonic) {
+          ierr = PSSetDimensions(eps->ps,nv,k,l);CHKERRQ(ierr);
+          ierr = PSTranslateHarmonic(eps->ps,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
+          /* gamma u^ = u - U*g~ */
+          ierr = SlepcVecMAXPBY(u,1.0,-1.0,ld,g,eps->V);CHKERRQ(ierr);        
+          ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
+        }
         /* Prepare the Rayleigh quotient for restart */
         for (i=k;i<k+l;i++) {
-          S[k+l+i*ld] = Q[nv-1+i*ld]*beta;
+          S[k+l+i*ld] = Q[nv-1+i*ld]*beta*gamma;
         }
       }
     }
@@ -248,10 +260,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
     }
     eps->nconv = k;
-
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   } 
+
   ierr = PetscFree(work);CHKERRQ(ierr);
+  if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
   ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
   ierr = PetscMemcpy(eps->T,S,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
   ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);

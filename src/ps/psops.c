@@ -401,7 +401,7 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
 
    Level: developer
 @*/
-PetscErrorCode PSTranslateHarmonic(PS ps,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *g,PetscScalar *gamma)
+PetscErrorCode PSTranslateHarmonic(PS ps,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *g,PetscReal *gamma)
 {
   PetscErrorCode ierr;
 
