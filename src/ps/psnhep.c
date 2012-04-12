@@ -233,48 +233,85 @@ PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSTranslateHarmonic_NHEP"
-PetscErrorCode PSTranslateHarmonic_NHEP(PS ps,PetscScalar tau,PetscScalar beta,PetscScalar *g)
+PetscErrorCode PSTranslateHarmonic_NHEP(PS ps,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gamma)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS) 
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRS - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i;
-  PetscBLASInt   *ipiv,info,n,ld,one=1;
-  PetscScalar    *A,*B; 
+  PetscInt       i,j;
+  PetscBLASInt   *ipiv,info,n,ld,one=1,ncol;
+  PetscScalar    *A,*B,*Q,*g=gin,*ghat; 
+  PetscScalar    done=1.0,dmone=-1.0,dzero=0.0;
+  PetscReal      gnorm;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
-  ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
-  ipiv = ps->iwork;
-  /* use workspace matrix W to factor A-tau*eye(n) */
-  if (!ps->mat[PS_MAT_W]) {
-    ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); 
-  }
-  B = ps->mat[PS_MAT_W];
-  A = ps->mat[PS_MAT_A];
-  ierr = PetscMemcpy(B,A,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
+  A  = ps->mat[PS_MAT_A];
 
-  /* Vector g initialy stores b = beta*e_n^T */
-  ierr = PetscMemzero(g,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  g[n-1] = beta;
+  if (!recover) {
+
+    ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
+    ipiv = ps->iwork;
+    if (!g) {
+      ierr = PSAllocateWork_Private(ps,ld,0,0);CHKERRQ(ierr); 
+      g = ps->work;
+    }
+    /* use workspace matrix W to factor A-tau*eye(n) */
+    if (!ps->mat[PS_MAT_W]) {
+      ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); 
+    }
+    B = ps->mat[PS_MAT_W];
+    ierr = PetscMemcpy(B,A,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
+
+    /* Vector g initialy stores b = beta*e_n^T */
+    ierr = PetscMemzero(g,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    g[n-1] = beta;
  
-  /* g = (A-sigma*eye(n))'\b */
-  for (i=0;i<n;i++) 
-    B[i+i*ld] -= tau;
-  LAPACKgetrf_(&n,&n,B,&ld,ipiv,&info);
-  if (info<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Bad argument to LU factorization");
-  if (info>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
-  ierr = PetscLogFlops(2.0*n*n*n/3.0);CHKERRQ(ierr);
-  LAPACKgetrs_("C",&n,&one,B,&ld,ipiv,g,&ld,&info);
-  if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"GETRS - Bad solve");
-  ierr = PetscLogFlops(2.0*n*n-n);CHKERRQ(ierr);
+    /* g = (A-tau*eye(n))'\b */
+    for (i=0;i<n;i++) 
+      B[i+i*ld] -= tau;
+    LAPACKgetrf_(&n,&n,B,&ld,ipiv,&info);
+    if (info<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Bad argument to LU factorization");
+    if (info>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
+    ierr = PetscLogFlops(2.0*n*n*n/3.0);CHKERRQ(ierr);
+    LAPACKgetrs_("C",&n,&one,B,&ld,ipiv,g,&ld,&info);
+    if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"GETRS - Bad solve");
+    ierr = PetscLogFlops(2.0*n*n-n);CHKERRQ(ierr);
 
-  /* A = A + g*b' */
-  for (i=0;i<n;i++) 
-    A[i+(n-1)*ld] = A[i+(n-1)*ld] + g[i]*beta;
+    /* A = A + g*b' */
+    for (i=0;i<n;i++) 
+      A[i+(n-1)*ld] += g[i]*beta;
+
+  } else { /* recover */
+
+    PetscValidPointer(g,6);
+    ierr = PSAllocateWork_Private(ps,ld,0,0);CHKERRQ(ierr); 
+    ghat = ps->work;
+    Q    = ps->mat[PS_MAT_Q];
+
+    /* g^ = -Q(:,idx)'*g */
+    ncol = PetscBLASIntCast(ps->l+ps->k);
+    BLASgemv_("C",&n,&ncol,&dmone,Q,&ld,g,&one,&dzero,ghat,&one);
+
+    /* A = A + g^*b' */
+    for (i=0;i<ps->l+ps->k;i++)
+      for (j=ps->l;j<ps->l+ps->k;j++)
+        A[i+j*ld] += ghat[i]*Q[n-1+j*ld]*beta;
+
+    /* g~ = (I-Q(:,idx)*Q(:,idx)')*g = g+Q(:,idx)*g^ */
+    BLASgemv_("N",&n,&ncol,&done,Q,&ld,ghat,&one,&done,g,&one);
+  }
+
+  /* Compute gamma factor */
+  if (gamma) {
+    gnorm = 0.0;
+    for (i=0;i<n;i++)
+      gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
+    *gamma = PetscSqrtReal(1.0+gnorm);
+  }
   PetscFunctionReturn(0);
 #endif
 }

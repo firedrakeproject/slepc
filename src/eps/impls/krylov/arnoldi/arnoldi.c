@@ -328,17 +328,14 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscErrorCode     ierr;
   PetscInt           i,k,nv,ld;
   Vec                f=eps->work[0];
-  PetscScalar        *H,*U,*g,*work,*Hcopy;
-  PetscReal          beta,gnorm,corrf=1.0;
+  PetscScalar        *H,*U,*work,*Hcopy;
+  PetscReal          beta,gamma=1.0;
   PetscBool          breakdown;
   IPOrthogRefineType orthog_ref;
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscMalloc(7*eps->ncv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&g);CHKERRQ(ierr);
-  }
   if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscMalloc((eps->ncv+1)*eps->ncv*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr);
   }
@@ -375,11 +372,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-      ierr = PSTranslateHarmonic(eps->ps,eps->target,(PetscScalar)beta,g);CHKERRQ(ierr);
-      gnorm = 0.0;
-      for (i=0;i<nv;i++)
-        gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-      corrf = PetscSqrtReal(1.0+gnorm);
+      ierr = PSTranslateHarmonic(eps->ps,eps->target,beta,PETSC_FALSE,PETSC_NULL,&gamma);CHKERRQ(ierr);
     }
 
     /* Solve projected problem */ 
@@ -389,7 +382,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     /* Check convergence */ 
     ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,H,ld,U,ld,eps->V,nv,beta,corrf,&k,work);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,H,ld,U,ld,eps->V,nv,beta,gamma,&k,work);CHKERRQ(ierr);
 
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,eps->ncv);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
@@ -410,9 +403,6 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   }
   
   ierr = PetscFree(work);CHKERRQ(ierr);
-  if (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC) {
-    ierr = PetscFree(g);CHKERRQ(ierr);
-  }
   if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = PetscFree(Hcopy);CHKERRQ(ierr);
   }

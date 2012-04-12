@@ -377,22 +377,31 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
    Not Collective
 
    Input Parameters:
-+  ps   - the projected system context
-.  tau  - the translation amount
--  beta - last component of vector b
++  ps      - the projected system context
+.  tau     - the translation amount
+.  beta    - last component of vector b
+-  recover - boolean flag to indicate whether to recover or not
+
+   Output Parameters:
++  g       - the computed vector (optional)
+-  gamma   - scale factor (optional)
 
    Notes:
    This function is intended for use in the context of Krylov methods only.
    It computes a translation of a Krylov decomposition in order to extract
    eigenpair approximations by harmonic Rayleigh-Ritz.
-   The matrix is updated as A + g*b' where g = (B-tau*eye(n))'\b and
+   The matrix is updated as A + g*b' where g = (A-tau*eye(n))'\b and
    vector b is assumed to be beta*e_n^T.
 
-   Level: developer
+   The gamma factor is defined as sqrt(1+g'*g) and can be interpreted as
+   the factor by which the residual of the Krylov decomposition is scaled.
 
-.seealso: PSRecoverHarmonic()
+   If the recover flag is activated, the computed translation undoes the
+   translation done previously. In that case, parameter tau is ignored.
+
+   Level: developer
 @*/
-PetscErrorCode PSTranslateHarmonic(PS ps,PetscScalar tau,PetscScalar beta,PetscScalar *g)
+PetscErrorCode PSTranslateHarmonic(PS ps,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *g,PetscScalar *gamma)
 {
   PetscErrorCode ierr;
 
@@ -401,7 +410,7 @@ PetscErrorCode PSTranslateHarmonic(PS ps,PetscScalar tau,PetscScalar beta,PetscS
   if (!ps->ops->translate) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
   ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ps->ops->translate)(ps,tau,beta,g);CHKERRQ(ierr);
+  ierr = (*ps->ops->translate)(ps,tau,beta,recover,g,gamma);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
   ps->state = PS_STATE_RAW;

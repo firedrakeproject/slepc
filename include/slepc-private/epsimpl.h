@@ -143,8 +143,6 @@ extern PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,
 extern PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
 extern PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscBool,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*,PetscScalar*);
 extern PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscBool*);
-extern PetscErrorCode EPSTranslateHarmonic(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 extern PetscErrorCode EPSBuildBalance_Krylov(EPS);
-extern PetscErrorCode EPSProjectedKSNonsym(EPS,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
 
 #endif

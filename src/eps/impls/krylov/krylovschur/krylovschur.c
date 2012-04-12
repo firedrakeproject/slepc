@@ -52,6 +52,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      issinv;
+  enum { EPS_KS_DEFAULT, EPS_KS_SYMM, EPS_KS_SLICE, EPS_KS_INDEF, EPS_KS_HARM } variant;
 
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
@@ -113,58 +114,47 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (eps->which==EPS_ALL) {
       if (eps->isgeneralized && !eps->ispositive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
 
-      else eps->ops->solve = EPSSolve_KrylovSchur_Slice;
+      else variant = EPS_KS_SLICE;
     } if (eps->isgeneralized && !eps->ispositive) {
-      eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
+      variant = EPS_KS_INDEF;
     } else {
       switch (eps->extraction) {
-        case EPS_RITZ:     eps->ops->solve = EPSSolve_KrylovSchur_Symm; break;
-        case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;
+        case EPS_RITZ:     variant = EPS_KS_SYMM; break;
+        case EPS_HARMONIC: variant = EPS_KS_HARM; break;
         default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
       }
     }
   } else {
     switch (eps->extraction) {
-      case EPS_RITZ:     eps->ops->solve = EPSSolve_KrylovSchur_Default; break;
-      case EPS_HARMONIC: eps->ops->solve = EPSSolve_KrylovSchur_Harmonic; break;
+      case EPS_RITZ:     variant = EPS_KS_DEFAULT; break;
+      case EPS_HARMONIC: variant = EPS_KS_HARM; break;
       default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
     }
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSProjectedKSNonsym"
-/*
-   EPSProjectedKSNonsym - Solves the projected eigenproblem in the Krylov-Schur
-   method (non-symmetric case).
-
-   On input:
-     l is the number of vectors kept in previous restart (0 means first restart)
-     S is the projected matrix (leading dimension is lds)
-
-   On output:
-     S has (real) Schur form with diagonal blocks sorted appropriately
-     Q contains the corresponding Schur vectors (order n, leading dimension n)
-*/
-PetscErrorCode EPSProjectedKSNonsym(EPS eps,PetscInt l,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt n)
-{
-  PetscErrorCode ierr;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  if (l==0) {
-    ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) 
-      Q[i*(n+1)] = 1.0;
-  } else {
-    /* Reduce S to Hessenberg form, S <- Q S Q' */
-    ierr = EPSDenseHessenberg(n,eps->nconv,S,lds,Q);CHKERRQ(ierr);
+  switch (variant) {
+    case EPS_KS_DEFAULT:
+      eps->ops->solve = EPSSolve_KrylovSchur_Default;
+      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      break;
+    case EPS_KS_SYMM:
+      eps->ops->solve = EPSSolve_KrylovSchur_Symm;
+      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      break;
+    case EPS_KS_SLICE:
+      eps->ops->solve = EPSSolve_KrylovSchur_Slice;
+      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      break;
+    case EPS_KS_INDEF:
+      eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
+      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      break;
+    case EPS_KS_HARM:
+      eps->ops->solve = EPSSolve_KrylovSchur_Harmonic;
+      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      break;
+    default: SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error");
   }
-  /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
-  ierr = EPSDenseSchur(n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  /* Sort the remaining columns of the Schur form */
-  ierr = EPSSortDenseSchur(eps,n,eps->nconv,S,lds,Q,eps->eigr,eps->eigi);CHKERRQ(ierr);    
+  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -173,17 +163,16 @@ PetscErrorCode EPSProjectedKSNonsym(EPS eps,PetscInt l,PetscScalar *S,PetscInt l
 PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lwork,nv;
+  PetscInt       i,k,l,lwork,nv,ld;
   Vec            u=eps->work[0];
-  PetscScalar    *S=eps->T,*Q,*work;
+  PetscScalar    *S,*Q,*work;
   PetscReal      beta;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
-  ierr = PetscMemzero(S,eps->ncv*eps->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
   lwork = 7*eps->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -195,23 +184,39 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,eps->ncv,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,l);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    if (l==0) {
+      ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    } else {
+      ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+    }
 
     /* Solve projected problem */ 
-    ierr = EPSProjectedKSNonsym(eps,l,S,eps->ncv,Q,nv);CHKERRQ(ierr);
+    ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = PSSort(eps->ps,eps->eigr,eps->eigi,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,S,eps->ncv,Q,nv,eps->V,nv,beta,1.0,&k,work);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->trackall,eps->nconv,nv-eps->nconv,S,ld,Q,ld,eps->V,nv,beta,1.0,&k,work);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
+    ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = (nv-k)/2;
 #if !defined(PETSC_USE_COMPLEX)
-      if (S[(k+l-1)*(eps->ncv+1)+1] != 0.0) {
+      if (S[k+l+(k+l-1)*ld] != 0.0) {
         if (k+l<nv-1) l = l+1;
         else l = l-1;
       }
@@ -230,12 +235,14 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         for (i=k;i<k+l;i++) {
-          S[i*eps->ncv+k+l] = Q[(i+1)*nv-1]*beta;
+          S[k+l+i*ld] = Q[nv-1+i*ld]*beta;
         }
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
@@ -244,8 +251,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   } 
-  ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+  ierr = PetscMemcpy(eps->T,S,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
+  ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
