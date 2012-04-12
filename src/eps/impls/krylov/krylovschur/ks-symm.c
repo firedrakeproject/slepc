@@ -172,20 +172,14 @@ PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,Pets
 PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,lds,lt,nv,m,*iwork;
+  PetscInt       i,k,l,ld,nv,m;
   Vec            u=eps->work[0];
   PetscScalar    *Q;
-  PetscReal      *a,*b,*work,beta;
+  PetscReal      *a,*b,beta;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
-  lds = PetscMin(eps->mpd,eps->ncv);
-  ierr = PetscMalloc(lds*lds*sizeof(PetscReal),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(lds*lds*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*lds*sizeof(PetscInt),&iwork);CHKERRQ(ierr);
-  lt = PetscMin(eps->nev+eps->mpd,eps->ncv);
-  ierr = PetscMalloc(lt*sizeof(PetscReal),&a);CHKERRQ(ierr);  
-  ierr = PetscMalloc(lt*sizeof(PetscReal),&b);CHKERRQ(ierr);  
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -197,15 +191,27 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 
     /* Compute an nv-step Lanczos factorization */
     m = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    b = a + ld;
     ierr = EPSFullLanczos(eps,a+l,b+l,eps->V,eps->nconv+l,&m,u,&breakdown);CHKERRQ(ierr);
     nv = m - eps->nconv;
     beta = b[nv-1];
+    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,nv,0,l);CHKERRQ(ierr);
+    if (l==0) {
+      ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    } else {
+      ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+    }
 
-    /* Solve projected problem and compute residual norm estimates */ 
-    ierr = EPSProjectedKSSym(eps,nv,l,a,b,eps->eigr+eps->nconv,Q,work,iwork);CHKERRQ(ierr);
+    /* Solve projected problem */ 
+    ierr = PSSolve(eps->ps,eps->eigr+eps->nconv,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSSort(eps->ps,eps->eigr+eps->nconv,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
     /* Check convergence */
+    ierr = PSGetArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->trackall,eps->nconv,nv,PETSC_NULL,nv,Q,nv,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
@@ -224,14 +230,21 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
         }
       } else {
         /* Prepare the Rayleigh quotient for restart */
+        ierr = PSGetArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
+        ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+        b = a + ld;
         for (i=0;i<l;i++) {
           a[i] = PetscRealPart(eps->eigr[i+k]);
           b[i] = PetscRealPart(Q[nv-1+(i+k-eps->nconv)*nv]*beta);
         }
+        ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+        ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
+    ierr = PSGetArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V+eps->nconv,0,k+l-eps->nconv,Q,nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
@@ -240,11 +253,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv+eps->nconv);CHKERRQ(ierr);
     eps->nconv = k;
   } 
-  ierr = PetscFree(Q);CHKERRQ(ierr);
-  ierr = PetscFree(a);CHKERRQ(ierr);
-  ierr = PetscFree(b);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

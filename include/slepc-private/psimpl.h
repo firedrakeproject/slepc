@@ -53,6 +53,7 @@ struct _p_PS {
 };
 
 extern PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
+extern PetscErrorCode PSAllocateMatReal_Private(PS,PSMatType);
 extern PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
 
 #endif

@@ -73,13 +73,30 @@ typedef enum { PS_STATE_RAW,
 /*E
     PSMatType - to refer to one of the matrices stored internally in PS
 
+    Notes:
+    The matrices preferently refer to:
++   PS_MAT_A  - first matrix of eigenproblem/singular value problem
+.   PS_MAT_B  - second matrix of a generalized eigenproblem
+.   PS_MAT_C  - third matrix of a quadratic eigenproblem
+.   PS_MAT_T  - tridiagonal matrix
+.   PS_MAT_Q  - orthogonal matrix of Schur vectors
+.   PS_MAT_X  - right eigenvectors
+.   PS_MAT_Y  - left eigenvectors
+.   PS_MAT_U  - left singular vectors
+.   PS_MAT_VT - right singular vectors
+-   PS_MAT_W  - workspace matrix
+
+    All matrices can have space to hold ld x ld elements, except for
+    PS_MAT_T that has space for 3 x ld elements (ld = leading dimension).
+
     Level: advanced
 
-.seealso: PSGetArray(), PSGetArrayReal(), PSComputeVector()
+.seealso: PSAllocate(), PSGetArray(), PSGetArrayReal(), PSComputeVector()
 E*/
 typedef enum { PS_MAT_A,
                PS_MAT_B,
                PS_MAT_C,
+               PS_MAT_T,
                PS_MAT_Q,
                PS_MAT_X,
                PS_MAT_Y,

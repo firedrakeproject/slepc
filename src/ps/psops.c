@@ -266,6 +266,69 @@ PetscErrorCode PSRestoreArray(PS ps,PSMatType m,PetscScalar *a[])
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSGetArrayReal"
+/*@C
+   PSGetArrayReal - Returns a pointer to one of the internal arrays used to
+   represent real matrices. You MUST call PSRestoreArray() when you no longer
+   need to access the array.
+
+   Not Collective
+
+   Input Parameters:
++  ps - the projected system context
+-  m - the requested matrix
+
+   Output Parameter:
+.  a - pointer to the values
+
+   Level: advanced
+
+.seealso: PSRestoreArrayReal(), PSGetArray()
+@*/
+PetscErrorCode PSGetArrayReal(PS ps,PSMatType m,PetscReal *a[])
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(a,2);
+  if (m<0 || m>=PS_NUM_MAT) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  if (!ps->rmat[m]) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this PS");
+  *a = ps->rmat[m];
+  CHKMEMQ;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSRestoreArrayReal"
+/*@C
+   PSRestoreArrayReal - Restores the matrix after PSGetArrayReal() was called.
+
+   Not Collective
+
+   Input Parameters:
++  ps - the projected system context
+.  m - the requested matrix
+-  a - pointer to the values
+
+   Level: advanced
+
+.seealso: PSGetArrayReal(), PSGetArray()
+@*/
+PetscErrorCode PSRestoreArrayReal(PS ps,PSMatType m,PetscReal *a[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(a,2);
+  if (m<0 || m>=PS_NUM_MAT) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  CHKMEMQ;
+  *a = 0;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve"
 /*@
    PSSolve - Solves the problem.
@@ -291,6 +354,7 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(eigr,2);
   if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
   if (!ps->ops->solve) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
   ierr = PetscLogEventBegin(PS_Solve,ps,0,0,0);CHKERRQ(ierr);
@@ -325,6 +389,7 @@ PetscErrorCode PSCond(PS ps,PetscReal *cond)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(cond,2);
   if (!ps->ops->cond) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
   ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -357,6 +422,7 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(eigr,2);
   if (ps->state!=PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
   if (!ps->ops->sort) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
   ierr = PetscLogEventBegin(PS_Sort,ps,0,0,0);CHKERRQ(ierr);

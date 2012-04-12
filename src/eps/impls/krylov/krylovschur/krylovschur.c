@@ -140,7 +140,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_SYMM:
       eps->ops->solve = EPSSolve_KrylovSchur_Symm;
-      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      ierr = PSSetType(eps->ps,PSARROWTRIDSYMM);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
@@ -211,19 +211,18 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-    
-    ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
 
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = (nv-k)/2;
 #if !defined(PETSC_USE_COMPLEX)
+      ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
       if (S[k+l+(k+l-1)*ld] != 0.0) {
         if (k+l<nv-1) l = l+1;
         else l = l-1;
       }
+      ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
 #endif
     }
 
@@ -246,14 +245,18 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
+        ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+        ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
         for (i=k;i<k+l;i++) {
           S[k+l+i*ld] = Q[nv-1+i*ld]*beta*gamma;
         }
+        ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+        ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {

@@ -50,6 +50,7 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
 
   PetscFunctionBegin;
+  PetscValidPointer(wi,2);
   n   = PetscBLASIntCast(ps->n);
   ld  = PetscBLASIntCast(ps->ld);
   ilo = PetscBLASIntCast(ps->l+1);
@@ -122,6 +123,7 @@ PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode 
 #endif
 
   PetscFunctionBegin;
+  PetscValidPointer(wi,2);
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
 #if !defined(PETSC_USE_COMPLEX)
@@ -209,9 +211,7 @@ PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
   ipiv  = ps->iwork;
 
   /* use workspace matrix W to avoid overwriting A */
-  if (!ps->mat[PS_MAT_W]) {
-    ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); 
-  }
+  if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
   A = ps->mat[PS_MAT_W];
   ierr = PetscMemcpy(A,ps->mat[PS_MAT_A],sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
 
@@ -260,9 +260,7 @@ PetscErrorCode PSTranslateHarmonic_NHEP(PS ps,PetscScalar tau,PetscReal beta,Pet
       g = ps->work;
     }
     /* use workspace matrix W to factor A-tau*eye(n) */
-    if (!ps->mat[PS_MAT_W]) {
-      ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); 
-    }
+    if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
     B = ps->mat[PS_MAT_W];
     ierr = PetscMemcpy(B,A,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
 

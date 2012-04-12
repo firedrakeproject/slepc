@@ -1379,10 +1379,11 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LASV2 - Lapack routine is unavailable.");
 #else
-  PetscErrorCode  ierr;
   PetscInt        i, j;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar     s;
+#else
+  PetscErrorCode  ierr;
 #endif
 
   PetscFunctionBegin;

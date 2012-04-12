@@ -430,11 +430,29 @@ PetscErrorCode PSAllocateMat_Private(PS ps,PSMatType m)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  sz = ps->ld*ps->ld*sizeof(PetscScalar);
+  if (m==PS_MAT_T) sz = 3*ps->ld*sizeof(PetscScalar);
+  else sz = ps->ld*ps->ld*sizeof(PetscScalar);
   if (ps->mat[m]) { ierr = PetscFree(ps->mat[m]);CHKERRQ(ierr); }
   else { ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); }
   ierr = PetscMalloc(sz,&ps->mat[m]);CHKERRQ(ierr); 
   ierr = PetscMemzero(ps->mat[m],sz);CHKERRQ(ierr); 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSAllocateMatReal_Private"
+PetscErrorCode PSAllocateMatReal_Private(PS ps,PSMatType m)
+{
+  PetscInt       sz;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (m==PS_MAT_T) sz = 3*ps->ld*sizeof(PetscReal);
+  else sz = ps->ld*ps->ld*sizeof(PetscReal);
+  if (ps->rmat[m]) { ierr = PetscFree(ps->rmat[m]);CHKERRQ(ierr); }
+  else { ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); }
+  ierr = PetscMalloc(sz,&ps->rmat[m]);CHKERRQ(ierr); 
+  ierr = PetscMemzero(ps->rmat[m],sz);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
@@ -574,6 +592,7 @@ PetscErrorCode PSRegisterDestroy(void)
 
 EXTERN_C_BEGIN
 extern PetscErrorCode PSCreate_NHEP(PS);
+extern PetscErrorCode PSCreate_ArrowTrid(PS);
 EXTERN_C_END
 
 #undef __FUNCT__  
@@ -595,6 +614,7 @@ PetscErrorCode PSRegisterAll(const char *path)
   PetscFunctionBegin;
   PSRegisterAllCalled = PETSC_TRUE;
   ierr = PSRegisterDynamic(PSNHEP,path,"PSCreate_NHEP",PSCreate_NHEP);CHKERRQ(ierr);
+  ierr = PSRegisterDynamic(PSARROWTRIDSYMM,path,"PSCreate_ArrowTrid",PSCreate_ArrowTrid);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
