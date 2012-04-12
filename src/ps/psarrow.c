@@ -49,7 +49,6 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *S,*Q,*d,*e;
 
   PetscFunctionBegin;
-  PetscValidPointer(wi,2);
   n  = PetscBLASIntCast(ps->n);
   Q  = ps->rmat[PS_MAT_Q];
   /* quick return */
@@ -133,12 +132,11 @@ PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscError
   PetscReal      *Q,*X,*d,rtmp;
 
   PetscFunctionBegin;
-  PetscValidPointer(wi,2);
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
   d  = ps->rmat[PS_MAT_T];
   Q  = ps->rmat[PS_MAT_Q];
-  X  = ps->rmat[PS_MAT_X];
+  X  = ps->mat[PS_MAT_X];
   ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
   perm = ps->iwork;
 
@@ -171,8 +169,8 @@ PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscError
     }
   }
 
-  for (j=n-1;j>=0;j--)
-    for (i=n-1;i>=0;i--) 
+  for (i=0;i<n;i++) 
+    for (j=0;j<n;j++) 
       X[i+j*ld] = Q[i+j*ld];
   PetscFunctionReturn(0);
 }
