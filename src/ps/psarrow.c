@@ -170,8 +170,7 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
 {
   PetscErrorCode ierr;
-  PetscScalar    re;
-  PetscInt       i,j,k,p,result,tmp,*perm;
+  PetscInt       i,j,k,p,*perm;
   PetscBLASInt   n,ld;
   PetscReal      *Q,*X,*d,rtmp;
 
@@ -183,21 +182,7 @@ PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscError
   X  = ps->mat[PS_MAT_X];
   ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
   perm = ps->iwork;
-
-  for (i=0;i<n;i++) perm[i] = i;
-  /* insertion sort */
-  for (i=1;i<n;i++) {
-    re = d[perm[i]];
-    j = i-1;
-    ierr = (*comp_func)(re,0.0,d[perm[j]],0.0,&result,comp_ctx);CHKERRQ(ierr);
-    while (result<=0 && j>=0) {
-      tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
-      if (j>=0) {
-        ierr = (*comp_func)(re,0.0,d[perm[j]],0.0,&result,comp_ctx);CHKERRQ(ierr);
-      }
-    }
-  }
-
+  ierr = PSSortEigenvaluesReal_Private(ps,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
   for (i=0;i<n;i++)
     wr[i] = d[perm[i]];
   for (i=0;i<n;i++) {
@@ -212,7 +197,6 @@ PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscError
       }
     }
   }
-
   for (i=0;i<n;i++) 
     for (j=0;j<n;j++) 
       X[i+j*ld] = Q[i+j*ld];

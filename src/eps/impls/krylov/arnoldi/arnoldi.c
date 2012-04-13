@@ -361,14 +361,13 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     } else {
       ierr = EPSDelayedArnoldi(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     }
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-
     if (refined) {
       ierr = PetscMemcpy(Hcopy,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
       for (i=0;i<nv-1;i++) Hcopy[nv+i*ld] = 0.0; 
       Hcopy[nv+(nv-1)*ld] = beta;
     }
+    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (harmonic) {
