@@ -35,6 +35,18 @@ PetscErrorCode PSAllocate_NHEP(PS ps,PetscInt ld)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSView_NHEP"
+PetscErrorCode PSView_NHEP(PS ps,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PSViewMat_Private(ps,viewer,PS_MAT_A);CHKERRQ(ierr); 
+  ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve_NHEP"
 PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
@@ -321,6 +333,7 @@ PetscErrorCode PSCreate_NHEP(PS ps)
 {
   PetscFunctionBegin;
   ps->ops->allocate      = PSAllocate_NHEP;
+  ps->ops->view          = PSView_NHEP;
   //ps->ops->computevector = PSComputeVector_NHEP;
   ps->ops->solve         = PSSolve_NHEP;
   ps->ops->sort          = PSSort_NHEP;

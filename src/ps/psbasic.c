@@ -28,6 +28,7 @@ PetscBool        PSRegisterAllCalled = PETSC_FALSE;
 PetscClassId     PS_CLASSID = 0;
 PetscLogEvent    PS_Solve = 0,PS_Sort = 0,PS_Other = 0;
 static PetscBool PSPackageInitialized = PETSC_FALSE;
+const char       *PSMatName[PS_NUM_MAT] = {"A","B","C","T","Q","X","Y","U","VT","W"};
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSFinalizePackage"
@@ -367,9 +368,10 @@ PetscErrorCode PSSetFromOptions(PS ps)
 @*/
 PetscErrorCode PSView(PS ps,PetscViewer viewer)
 {
-  PetscBool      isascii;
-  const char     *state;
-  PetscErrorCode ierr;
+  PetscBool         isascii;
+  const char        *state;
+  PetscViewerFormat format;
+  PetscErrorCode    ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
@@ -378,16 +380,24 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
   PetscCheckSameComm(ps,1,viewer,2);
   ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ps,viewer,"PS Object");CHKERRQ(ierr);
-     switch (ps->state) {
-       case PS_STATE_RAW:          state = "raw"; break;
-       case PS_STATE_INTERMEDIATE: state = "intermediate"; break;
-       case PS_STATE_CONDENSED:    state = "condensed"; break;
-       case PS_STATE_SORTED:       state = "sorted"; break;
-       default: SETERRQ(((PetscObject)ps)->comm,1,"Wrong value of ps->state");
-     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
+    if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+      switch (ps->state) {
+        case PS_STATE_RAW:          state = "raw"; break;
+        case PS_STATE_INTERMEDIATE: state = "intermediate"; break;
+        case PS_STATE_CONDENSED:    state = "condensed"; break;
+        case PS_STATE_SORTED:       state = "sorted"; break;
+        default: SETERRQ(((PetscObject)ps)->comm,1,"Wrong value of ps->state");
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
+    }
+    if (ps->ops->view) {
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      ierr = (*ps->ops->view)(ps,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    }
   } else SETERRQ1(((PetscObject)ps)->comm,1,"Viewer type %s not supported for PS",((PetscObject)viewer)->type_name);
   PetscFunctionReturn(0);
 }
@@ -417,7 +427,6 @@ PetscErrorCode PSAllocate(PS ps,PetscInt ld)
   if (ld<1) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   ierr = PSReset(ps);CHKERRQ(ierr);
   ps->ld = ld;
-  ps->n  = ld;
   ierr = (*ps->ops->allocate)(ps,ld);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -481,6 +490,22 @@ PetscErrorCode PSAllocateWork_Private(PS ps,PetscInt s,PetscInt r,PetscInt i)
     ierr = PetscLogObjectMemory(ps,(i-ps->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr); 
     ps->liwork = i;
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSViewMat_Private"
+PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
+{
+  Mat            M;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatCreateSeqDense(((PetscObject)ps)->comm,ps->n,ps->n,ps->mat[m],&M);CHKERRQ(ierr);
+  ierr = MatSeqDenseSetLDA(M,ps->ld);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)M,PSMatName[m]);CHKERRQ(ierr);
+  ierr = MatView(M,viewer);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

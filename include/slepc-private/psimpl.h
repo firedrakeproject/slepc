@@ -25,11 +25,13 @@
 #include <slepcps.h>
 
 extern PetscLogEvent PS_Solve,PS_Sort,PS_Other;
+extern const char *PSMatName[];
 
 typedef struct _PSOps *PSOps;
 
 struct _PSOps {
   PetscErrorCode (*allocate)(PS,PetscInt);
+  PetscErrorCode (*view)(PS,PetscViewer);
   PetscErrorCode (*computevector)(PS,PetscInt,PSMatType,PetscBool*);
   PetscErrorCode (*solve)(PS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*,PetscErrorCode(*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
@@ -55,5 +57,6 @@ struct _p_PS {
 extern PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
 extern PetscErrorCode PSAllocateMatReal_Private(PS,PSMatType);
 extern PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
+extern PetscErrorCode PSViewMat_Private(PS,PetscViewer,PSMatType);
 
 #endif

@@ -36,6 +36,50 @@ PetscErrorCode PSAllocate_ArrowTrid(PS ps,PetscInt ld)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSView_ArrowTrid"
+PetscErrorCode PSView_ArrowTrid(PS ps,PetscViewer viewer)
+{
+  PetscInt          i,j,r,c;
+  PetscReal         value;
+  PetscViewerFormat format;
+  PetscErrorCode    ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  if (format == PETSC_VIEWER_ASCII_MATLAB) {
+    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ps->n,ps->n);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",3*ps->n);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
+    for (i=0;i<ps->n;i++) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,*(ps->rmat[PS_MAT_T]+i));CHKERRQ(ierr);
+    }
+    for (i=0;i<ps->n-1;i++) {
+      r = PetscMax(i+2,ps->k+1);
+      c = i+1;
+      ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,*(ps->rmat[PS_MAT_T]+ps->n+i));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->n+i));CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",PSMatName[PS_MAT_T]);CHKERRQ(ierr);
+  } else {
+    for (i=0;i<ps->n;i++) {
+      for (j=0;j<ps->n;j++) {
+        if (i==j) value = *(ps->rmat[PS_MAT_T]+i);
+        else if ((i<ps->k && j==ps->k) || (i==ps->k && j<ps->k)) value = *(ps->rmat[PS_MAT_T]+ps->n+PetscMin(i,j));
+        else if (i==j+1 && i>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->n+i-1);
+        else if (i+1==j && j>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->n+j-1);
+        else value = 0.0;
+        ierr = PetscViewerASCIIPrintf(viewer," %7.5e ",value);CHKERRQ(ierr);
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    }
+  }
+  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve_ArrowTrid"
 PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
@@ -182,6 +226,7 @@ PetscErrorCode PSCreate_ArrowTrid(PS ps)
 {
   PetscFunctionBegin;
   ps->ops->allocate      = PSAllocate_ArrowTrid;
+  ps->ops->view          = PSView_ArrowTrid;
   //ps->ops->computevector = PSComputeVector_ArrowTrid;
   ps->ops->solve         = PSSolve_ArrowTrid;
   ps->ops->sort          = PSSort_ArrowTrid;
