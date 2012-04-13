@@ -122,8 +122,8 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
       S[(n-1-i)+(n-1-i-1)*ld] = e[i];
 
     /* Reduce (2,2)-block of flipped S to tridiagonal form */
-    lwork = PetscBLASIntCast(ps->n*ps->n-ps->n);
-    LAPACKsytrd_("L",&n1,S+n2*(n+1),&ld,d,e,Q,Q+n,&lwork,&info);
+    lwork = PetscBLASIntCast(ps->ld*ps->ld-ps->ld);
+    LAPACKsytrd_("L",&n1,S+n2+n2*ld,&ld,d,e,Q,Q+ld,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
 
     /* Flip back diag and subdiag, put them in d and e */
@@ -134,7 +134,7 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
     d[0] = S[n-1+(n-1)*ld];
 
     /* Compute the orthogonal matrix used for tridiagonalization */
-    LAPACKorgtr_("L",&n1,S+n2*(n+1),&ld,Q,Q+n,&lwork,&info);
+    LAPACKorgtr_("L",&n1,S+n2+n2*ld,&ld,Q,Q+ld,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
 
     /* Create full-size Q, flipped back to original order */
