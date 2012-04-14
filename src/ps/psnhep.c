@@ -66,10 +66,17 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   n   = PetscBLASIntCast(ps->n);
   ld  = PetscBLASIntCast(ps->ld);
   ilo = PetscBLASIntCast(ps->l+1);
-  ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr); 
-  work = ps->work;
-  tau  = ps->work+ps->ld;
-  lwork = ld;
+  ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
+  tau  = ps->work;
+  work = ps->work+ld;
+  lwork = ld*ld;
+
+  /* initialize orthogonal matrix */
+  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<n;i++) 
+    Q[i+i*ld] = 1.0;
+  if (n==1) PetscFunctionReturn(0);    
+
   /* reduce to upper Hessenberg form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
     LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info);
@@ -82,12 +89,8 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
     }
     LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
-  } else {
-    /* initialize orthogonal matrix */
-    ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) 
-      Q[i+i*ld] = 1.0;
   }
+
   /* compute the (real) Schur form */
   if (ps->state<PS_STATE_CONDENSED) {
 #if !defined(PETSC_USE_COMPLEX)

@@ -88,6 +88,7 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
+  PetscScalar    *work,*tau;
   PetscInt       i,j;
   PetscBLASInt   n1,n2,lwork,info,n,ld;
   PetscReal      *S,*Q,*d,*e;
@@ -95,16 +96,17 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
   Q  = ps->rmat[PS_MAT_Q];
-  /* quick return */
-  if (n == 1) {
-    Q[0] = 1.0;
-    PetscFunctionReturn(0);    
-  }
   ld = PetscBLASIntCast(ps->ld);
   n1 = PetscBLASIntCast(ps->k+1);    /* size of leading block, including residuals */
   n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
+
+  /* initialize orthogonal matrix */
+  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscReal));CHKERRQ(ierr);
+  for (i=0;i<n;i++) 
+    Q[i+i*ld] = 1.0;
+  if (n==1) PetscFunctionReturn(0);    
 
   /* reduce to tridiagonal form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
@@ -112,6 +114,10 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
     if (!ps->rmat[PS_MAT_W]) { ierr = PSAllocateMatReal_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
     S = ps->rmat[PS_MAT_W];
     ierr = PetscMemzero(S,ld*ld*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
+    tau  = ps->work;
+    work = ps->work+ld;
+    lwork = ld*ld;
 
     /* Flip matrix S */
     for (i=0;i<n;i++) 
@@ -122,8 +128,7 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
       S[(n-1-i)+(n-1-i-1)*ld] = e[i];
 
     /* Reduce (2,2)-block of flipped S to tridiagonal form */
-    lwork = PetscBLASIntCast(ps->ld*ps->ld-ps->ld);
-    LAPACKsytrd_("L",&n1,S+n2+n2*ld,&ld,d,e,Q,Q+ld,&lwork,&info);
+    LAPACKsytrd_("L",&n1,S+n2+n2*ld,&ld,d,e,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
 
     /* Flip back diag and subdiag, put them in d and e */
@@ -134,24 +139,14 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
     d[0] = S[n-1+(n-1)*ld];
 
     /* Compute the orthogonal matrix used for tridiagonalization */
-    LAPACKorgtr_("L",&n1,S+n2+n2*ld,&ld,Q,Q+ld,&lwork,&info);
+    LAPACKorgtr_("L",&n1,S+n2+n2*ld,&ld,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
 
     /* Create full-size Q, flipped back to original order */
-    for (i=0;i<n;i++) 
-      for (j=0;j<n;j++) 
-        Q[i+j*ld] = 0.0;
-    for (i=n1;i<n;i++) 
-      Q[i+i*ld] = 1.0;
     for (i=0;i<n1;i++) 
       for (j=0;j<n1;j++) 
         Q[i+j*ld] = S[n-i-1+(n-j-1)*ld];
 
-  } else {
-    /* initialize orthogonal matrix */
-    ierr = PetscMemzero(Q,ld*ld*sizeof(PetscReal));CHKERRQ(ierr);
-    for (i=0;i<n;i++) 
-      Q[i+i*ld] = 1.0;
   }
 
   /* Solve the tridiagonal eigenproblem */
