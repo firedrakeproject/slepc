@@ -497,18 +497,54 @@ PetscErrorCode PSAllocateWork_Private(PS ps,PetscInt s,PetscInt r,PetscInt i)
 #define __FUNCT__ "PSViewMat_Private"
 PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 {
-  Mat               M;
-  PetscViewerFormat format;
   PetscErrorCode    ierr;
+  PetscInt          i,j;
+  PetscScalar       *v;
+  PetscViewerFormat format;
+#if defined(PETSC_USE_COMPLEX)
+  PetscBool         allreal = PETSC_TRUE;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
-  ierr = MatCreateSeqDense(((PetscObject)ps)->comm,ps->n,ps->n,ps->mat[m],&M);CHKERRQ(ierr);
-  ierr = MatSeqDenseSetLDA(M,ps->ld);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)M,PSMatName[m]);CHKERRQ(ierr);
-  ierr = MatView(M,viewer);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  /* determine if matrix has all real values */
+  v = ps->mat[m];
+  for (i=0;i<ps->n;i++)
+    for (j=0;j<ps->n;j++)
+      if (PetscImaginaryPart(v[i+j*ps->ld])) { allreal = PETSC_FALSE; break; }
+#endif
+  if (format == PETSC_VIEWER_ASCII_MATLAB) {
+    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ps->n,ps->n);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",PSMatName[m]);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",PSMatName[m]);CHKERRQ(ierr);
+  }
+
+  for (i=0;i<ps->n;i++) {
+    v = ps->mat[m]+i;
+    for (j=0;j<ps->n;j++) {
+#if defined(PETSC_USE_COMPLEX)
+      if (allreal) {
+        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",PetscRealPart(*v));CHKERRQ(ierr);
+      } else {
+        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e + %18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
+      }
+#else
+      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",*v);CHKERRQ(ierr);
+#endif
+      v += ps->ld;
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+  }
+
+  if (format == PETSC_VIEWER_ASCII_MATLAB) {
+    ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
+  }
+  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

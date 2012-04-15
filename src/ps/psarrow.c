@@ -45,8 +45,9 @@ PetscErrorCode PSView_ArrowTrid(PS ps,PetscViewer viewer)
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
     ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ps->n,ps->n);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",3*ps->n);CHKERRQ(ierr);
@@ -69,12 +70,13 @@ PetscErrorCode PSView_ArrowTrid(PS ps,PetscViewer viewer)
         else if (i==j+1 && i>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->n+i-1);
         else if (i+1==j && j>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->n+j-1);
         else value = 0.0;
-        ierr = PetscViewerASCIIPrintf(viewer," %7.5e ",value);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",value);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
   }
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }

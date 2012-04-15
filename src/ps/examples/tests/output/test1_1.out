@@ -1,0 +1,13 @@
+Solve a Projected System of type NHEP - dimension 7.
+PS Object: 1 MPI processes
+  type: nhep
+  current state: raw
+  dimensions: ld=9, n=7, l=0, k=0
+Computed eigenvalues =
+  0.29821+2.01857i
+  0.29821-2.01857i
+  1.53009+0.92647i
+  1.53009-0.92647i
+  0.92781+1.40168i
+  0.92781-1.40168i
+  1.48778
