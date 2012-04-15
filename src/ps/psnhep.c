@@ -92,29 +92,27 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* compute the (real) Schur form */
-  if (ps->state<PS_STATE_CONDENSED) {
 #if !defined(PETSC_USE_COMPLEX)
-    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,wi,Q,&ld,work,&lwork,&info);
-    for (j=0;j<ps->l;j++) {
-      if (j==n-1 || A[j+1+j*ld] == 0.0) { 
-        /* real eigenvalue */
-        wr[j] = A[j+j*ld];
-        wi[j] = 0.0;
-      } else {
-        /* complex eigenvalue */
-        wr[j] = A[j+j*ld];
-        wr[j+1] = A[j+j*ld];
-        wi[j] = PetscSqrtReal(PetscAbsReal(A[j+1+j*ld])) *
-                PetscSqrtReal(PetscAbsReal(A[j+(j+1)*ld]));
-        wi[j+1] = -wi[j];
-        j++;
-      }
+  LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,wi,Q,&ld,work,&lwork,&info);
+  for (j=0;j<ps->l;j++) {
+    if (j==n-1 || A[j+1+j*ld] == 0.0) { 
+      /* real eigenvalue */
+      wr[j] = A[j+j*ld];
+      wi[j] = 0.0;
+    } else {
+      /* complex eigenvalue */
+      wr[j] = A[j+j*ld];
+      wr[j+1] = A[j+j*ld];
+      wi[j] = PetscSqrtReal(PetscAbsReal(A[j+1+j*ld])) *
+              PetscSqrtReal(PetscAbsReal(A[j+(j+1)*ld]));
+      wi[j+1] = -wi[j];
+      j++;
     }
-#else
-    LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info);
-#endif
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
   }
+#else
+  LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
   PetscFunctionReturn(0);
 #endif
 }

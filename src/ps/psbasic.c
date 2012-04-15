@@ -497,10 +497,13 @@ PetscErrorCode PSAllocateWork_Private(PS ps,PetscInt s,PetscInt r,PetscInt i)
 #define __FUNCT__ "PSViewMat_Private"
 PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 {
-  Mat            M;
-  PetscErrorCode ierr;
+  Mat               M;
+  PetscViewerFormat format;
+  PetscErrorCode    ierr;
 
   PetscFunctionBegin;
+  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = MatCreateSeqDense(((PetscObject)ps)->comm,ps->n,ps->n,ps->mat[m],&M);CHKERRQ(ierr);
   ierr = MatSeqDenseSetLDA(M,ps->ld);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)M,PSMatName[m]);CHKERRQ(ierr);
@@ -641,6 +644,7 @@ PetscErrorCode PSRegisterDestroy(void)
 }
 
 EXTERN_C_BEGIN
+extern PetscErrorCode PSCreate_HEP(PS);
 extern PetscErrorCode PSCreate_NHEP(PS);
 extern PetscErrorCode PSCreate_ArrowTrid(PS);
 EXTERN_C_END
@@ -663,6 +667,7 @@ PetscErrorCode PSRegisterAll(const char *path)
 
   PetscFunctionBegin;
   PSRegisterAllCalled = PETSC_TRUE;
+  ierr = PSRegisterDynamic(PSHEP,path,"PSCreate_HEP",PSCreate_HEP);CHKERRQ(ierr);
   ierr = PSRegisterDynamic(PSNHEP,path,"PSCreate_NHEP",PSCreate_NHEP);CHKERRQ(ierr);
   ierr = PSRegisterDynamic(PSARROWTRIDSYMM,path,"PSCreate_ArrowTrid",PSCreate_ArrowTrid);CHKERRQ(ierr);
   PetscFunctionReturn(0);

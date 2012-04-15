@@ -150,12 +150,10 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* Solve the tridiagonal eigenproblem */
-  if (ps->state<PS_STATE_CONDENSED) {
-    ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
-    LAPACKsteqr_("V",&n,d,e,Q,&ld,ps->rwork,&info);
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
-    for (i=0;i<n;i++) wr[i] = d[i];
-  }
+  ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
+  LAPACKsteqr_("V",&n,d,e,Q,&ld,ps->rwork,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  for (i=0;i<n;i++) wr[i] = d[i];
   PetscFunctionReturn(0);
 #endif
 }

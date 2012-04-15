@@ -357,6 +357,7 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
   PetscValidPointer(eigr,2);
   if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
   if (!ps->ops->solve) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (ps->state>=PS_STATE_CONDENSED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(PS_Solve,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ps->ops->solve)(ps,eigr,eigi);CHKERRQ(ierr);
@@ -425,6 +426,7 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
   PetscValidPointer(eigr,2);
   if (ps->state!=PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
   if (!ps->ops->sort) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (ps->state>=PS_STATE_SORTED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ps->ops->sort)(ps,eigr,eigi,comp_func,comp_ctx);CHKERRQ(ierr);
