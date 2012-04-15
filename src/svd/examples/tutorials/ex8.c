@@ -71,7 +71,7 @@ int main(int argc,char **argv)
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
     if (i==0) {
-      ierr = MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
+      ierr = MatSetValues(A,1,&i,PetscMin(4,N-i),col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
     } else {
       ierr = MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES);CHKERRQ(ierr);
     }

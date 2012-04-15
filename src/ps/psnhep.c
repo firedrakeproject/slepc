@@ -42,7 +42,9 @@ PetscErrorCode PSView_NHEP(PS ps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PSViewMat_Private(ps,viewer,PS_MAT_A);CHKERRQ(ierr); 
-  ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
+  if (ps->state>PS_STATE_INTERMEDIATE) {
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
+  }
   PetscFunctionReturn(0);
 }
 
