@@ -30,7 +30,8 @@ int main( int argc, char **argv )
   PetscErrorCode ierr;
   PS             ps;
   PetscScalar    *A,*wr,*wi;
-  PetscInt       i,j,n=7,ld;
+  PetscReal      re,im;
+  PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
@@ -88,8 +89,15 @@ int main( int argc, char **argv )
   /* Print eigenvalues */
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n",n);CHKERRQ(ierr); 
   for (i=0;i<n;i++) {
-    if (wi[i]==0.0) { ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",wr[i]);CHKERRQ(ierr); }
-    else { ierr = PetscViewerASCIIPrintf(viewer,"  %.5F%+.5Fi\n",wr[i],wi[i]);CHKERRQ(ierr); }
+#if defined(PETSC_USE_COMPLEX)
+    re = PetscRealPart(wr[i]);
+    im = PetscImaginaryPart(wr[i]);
+#else
+    re = wr[i];
+    im = wi[i];
+#endif 
+    if (PetscAbs(im)<1e-10) { ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",re);CHKERRQ(ierr); }
+    else { ierr = PetscViewerASCIIPrintf(viewer,"  %.5F%+.5Fi\n",re,im);CHKERRQ(ierr); }
   }
 
   ierr = PetscFree(wr);CHKERRQ(ierr);
