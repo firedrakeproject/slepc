@@ -37,8 +37,6 @@
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-extern PetscErrorCode EPSProjectedKSSym(EPS,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*);
-
 /* Type of data characterizing a shift (place from where an eps is applied) */
 typedef struct _n_shift *shift;
 struct _n_shift{

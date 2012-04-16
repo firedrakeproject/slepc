@@ -27,8 +27,6 @@
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-extern PetscErrorCode EPSProjectedKSSym(EPS,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*);
-
 #undef __FUNCT__  
 #define __FUNCT__ "ArrowTridFlip"
 /*
@@ -112,6 +110,61 @@ static PetscErrorCode ArrowTridFlip(PetscInt n_,PetscInt l,PetscReal *d,PetscRea
   ierr = PetscLogEventEnd(EPS_Dense,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSProjectedKSSym"
+/*
+   EPSProjectedKSSym - Solves the projected eigenproblem in the Krylov-Schur
+   method (symmetric case).
+
+   On input:
+     n is the matrix dimension
+     l is the number of vectors kept in previous restart
+     a contains diagonal elements (length n)
+     b contains offdiagonal elements (length n-1)
+
+   On output:
+     eig is the sorted list of eigenvalues
+     Q is the eigenvector matrix (order n, leading dimension n)
+
+   Workspace:
+     work is workspace to store a real square matrix of order n
+     perm is workspace to store 2n integers
+*/
+static PetscErrorCode EPSProjectedKSSym(EPS eps,PetscInt n,PetscInt l,PetscReal *a,PetscReal *b,PetscScalar *eig,PetscScalar *Q,PetscReal *work,PetscInt *perm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,k,p;
+  PetscReal      rtmp,*Qreal = (PetscReal*)Q;
+
+  PetscFunctionBegin;
+  /* Compute eigendecomposition of projected matrix */
+  ierr = ArrowTridFlip(n,l,a,b,Qreal,work);CHKERRQ(ierr);
+
+  /* Sort eigendecomposition according to eps->which */
+  ierr = EPSSortEigenvaluesReal(eps,n,a,perm);CHKERRQ(ierr);
+  for (i=0;i<n;i++)
+    eig[i] = a[perm[i]];
+  for (i=0;i<n;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap eigenvectors i and j */
+      for (k=0;k<n;k++) {
+        rtmp = Qreal[k+p*n]; Qreal[k+p*n] = Qreal[k+i*n]; Qreal[k+i*n] = rtmp;
+      }
+    }
+  }
+
+#if defined(PETSC_USE_COMPLEX)
+  for (j=n-1;j>=0;j--)
+    for (i=n-1;i>=0;i--) 
+      Q[i+j*n] = Qreal[i+j*n];
+#endif
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
