@@ -69,9 +69,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     ierr = PSSort(eps->ps,eps->eigr+eps->nconv,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = PSGetArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->trackall,eps->nconv,nv,PETSC_NULL,ld,Q,ld,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
@@ -90,7 +90,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
         }
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = PSGetArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
+        ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
         b = a + ld;
         for (i=0;i<l;i++) {
@@ -98,13 +98,13 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
           b[i] = PetscRealPart(Q[nv-1+(i+k-eps->nconv)*ld]*beta);
         }
         ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
+        ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = PSGetArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V+eps->nconv,0,k+l-eps->nconv,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Q);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);

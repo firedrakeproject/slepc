@@ -31,11 +31,11 @@ def Check(conf,vars,cmake,tmpdir):
   log.Println('Checking LAPACK library...')
 
   # LAPACK standard functions
-  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf']
+  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','steqr']
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
-    l += ['orghr','syevr','sygvd','ormlq','orgqr']
+    l += ['orghr','syevr','sytrd','sygvd','ormlq','orgqr','orgtr']
     if petscconf.PRECISION == 'single':
       prefix = 's'
     if petscconf.PRECISION == '__float128':
@@ -43,7 +43,7 @@ def Check(conf,vars,cmake,tmpdir):
     else:
       prefix = 'd'
   else:
-    l += ['unghr','heevr','hegvd','unmlq','ungqr']
+    l += ['unghr','heevr','hetrd','hegvd','unmlq','ungqr','ungtr']
     if petscconf.PRECISION == 'single':
       prefix = 'c'
     if petscconf.PRECISION == '__float128':
@@ -61,11 +61,11 @@ def Check(conf,vars,cmake,tmpdir):
 
   # LAPACK functions which are always used in real version 
   if petscconf.PRECISION == 'single':
-    functions += ['sstevr','sbdsdc','ssteqr','sorgtr','ssytrd','slamch','slag2','slasv2']
+    functions += ['sstevr','sbdsdc','slamch','slag2','slasv2']
   elif petscconf.PRECISION == '__float128':
-    functions += ['qstevr','qbdsdc','qsteqr','qorgtr','qsytrd','qlamch','qlag2','qlasv2']
+    functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2']
   else:
-    functions += ['dstevr','dbdsdc','dsteqr','dorgtr','dsytrd','dlamch','dlag2','dlasv2']
+    functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2']
    
   # check for all functions at once
   all = [] 

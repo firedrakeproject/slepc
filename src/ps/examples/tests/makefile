@@ -40,7 +40,7 @@ test1: test1.o chkopts
 
 test2: test2.o chkopts
 	-${CLINKER} -o test2 test2.o ${SLEPC_LIB}
-#	${RM} test2.o
+	${RM} test2.o
 
 #------------------------------------------------------------------------------------
 

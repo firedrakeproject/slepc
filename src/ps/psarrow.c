@@ -29,9 +29,8 @@ PetscErrorCode PSAllocate_ArrowTrid(PS ps,PetscInt ld)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PSAllocateMat_Private(ps,PS_MAT_X);CHKERRQ(ierr); 
+  ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
   ierr = PSAllocateMatReal_Private(ps,PS_MAT_T);CHKERRQ(ierr); 
-  ierr = PSAllocateMatReal_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
@@ -78,7 +77,7 @@ PetscErrorCode PSView_ArrowTrid(PS ps,PetscViewer viewer)
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   if (ps->state>PS_STATE_INTERMEDIATE) {
-    ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
   }
   PetscFunctionReturn(0);
 }
@@ -92,17 +91,17 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscScalar    *work,*tau;
   PetscInt       i,j;
   PetscBLASInt   n1,n2,lwork,info,n,ld;
-  PetscReal      *S,*Q,*d,*e;
+  PetscScalar    *S,*Q,*work,*tau;
+  PetscReal      *d,*e;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
-  Q  = ps->rmat[PS_MAT_Q];
   ld = PetscBLASIntCast(ps->ld);
   n1 = PetscBLASIntCast(ps->k+1);    /* size of leading block, including residuals */
   n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
+  Q  = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
 
@@ -115,9 +114,9 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   /* reduce to tridiagonal form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
 
-    if (!ps->rmat[PS_MAT_W]) { ierr = PSAllocateMatReal_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
-    S = ps->rmat[PS_MAT_W];
-    ierr = PetscMemzero(S,ld*ld*sizeof(PetscReal));CHKERRQ(ierr);
+    if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
+    S = ps->mat[PS_MAT_W];
+    ierr = PetscMemzero(S,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
     tau  = ps->work;
     work = ps->work+ld;
@@ -158,6 +157,7 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   LAPACKsteqr_("V",&n,d,e,Q,&ld,ps->rwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
   for (i=0;i<n;i++) wr[i] = d[i];
+  ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -169,15 +169,14 @@ PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscError
   PetscErrorCode ierr;
   PetscInt       i,j,k,p,*perm;
   PetscBLASInt   n,ld;
-  PetscScalar    *X;
-  PetscReal      *Q,*d,rtmp;
+  PetscScalar    *Q;
+  PetscReal      *d,rtmp;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
   d  = ps->rmat[PS_MAT_T];
-  Q  = ps->rmat[PS_MAT_Q];
-  X  = ps->mat[PS_MAT_X];
+  Q  = ps->mat[PS_MAT_Q];
   ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
   perm = ps->iwork;
   ierr = PSSortEigenvaluesReal_Private(ps,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
@@ -195,9 +194,7 @@ PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscError
       }
     }
   }
-  for (i=0;i<n;i++) 
-    for (j=0;j<n;j++) 
-      X[i+j*ld] = Q[i+j*ld];
+  for (i=0;i<n;i++) d[i] = wr[i];
   PetscFunctionReturn(0);
 }
 

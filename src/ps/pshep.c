@@ -30,9 +30,8 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
 
   PetscFunctionBegin;
   ierr = PSAllocateMat_Private(ps,PS_MAT_A);CHKERRQ(ierr); 
-  ierr = PSAllocateMat_Private(ps,PS_MAT_X);CHKERRQ(ierr); 
+  ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
   ierr = PSAllocateMatReal_Private(ps,PS_MAT_T);CHKERRQ(ierr); 
-  ierr = PSAllocateMatReal_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
@@ -45,7 +44,7 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PSViewMat_Private(ps,viewer,PS_MAT_A);CHKERRQ(ierr); 
   if (ps->state>PS_STATE_INTERMEDIATE) {
-    ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
   }
   PetscFunctionReturn(0);
 }
@@ -59,44 +58,35 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscScalar    *work,*tau;
-  PetscInt       i,j;
+  PetscInt       i;
   PetscBLASInt   lwork,info,n,ld;
-  PetscScalar    *A,*S;
-  PetscReal      *Q,*d,*e;
+  PetscScalar    *A,*Q,*work,*tau;
+  PetscReal      *d,*e;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
-  Q  = ps->rmat[PS_MAT_Q];
   ld = PetscBLASIntCast(ps->ld);
+  A  = ps->mat[PS_MAT_A];
+  Q  = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
-  A  = ps->mat[PS_MAT_A];
-
-  /* initialize orthogonal matrix */
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscReal));CHKERRQ(ierr);
-  for (i=0;i<n;i++) 
-    Q[i+i*ld] = 1.0;
-  if (n==1) PetscFunctionReturn(0);    
+  if (n==1) { d[0] = A[0]; Q[0] = 1.0; PetscFunctionReturn(0); }
 
   if (ps->state<PS_STATE_INTERMEDIATE) {
     /* reduce to tridiagonal form */
-    if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
-    S = ps->mat[PS_MAT_W];
-    ierr = PetscMemcpy(S,A,sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
+    ierr = PetscMemcpy(Q,A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
     tau  = ps->work;
-    work = ps->work+ps->ld;
+    work = ps->work+ld;
     lwork = ld*ld;
-    LAPACKsytrd_("L",&n,S,&ld,d,e,tau,work,&lwork,&info);
+    LAPACKsytrd_("L",&n,Q,&ld,d,e,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
-    LAPACKorgtr_("L",&n,S,&ld,tau,work,&lwork,&info);
+    LAPACKorgtr_("L",&n,Q,&ld,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
-    for (i=0;i<n;i++) 
-      for (j=0;j<n;j++) 
-        Q[i+j*ld] = S[i+j*ld];
   } else {
-    /* copy tridiagonal to d,e */
+    /* initialize orthogonal matrix; copy tridiagonal to d,e */
+    ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
     for (i=0;i<n;i++) d[i] = A[i+i*ld];
     for (i=0;i<n-1;i++) e[i] = A[(i+1)+i*ld];
   }
@@ -119,16 +109,15 @@ PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (
   PetscErrorCode ierr;
   PetscInt       i,j,k,p,*perm;
   PetscBLASInt   n,ld;
-  PetscScalar    *A,*X;
-  PetscReal      *Q,*d,rtmp;
+  PetscScalar    *A,*Q;
+  PetscReal      *d,rtmp;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
-  d  = ps->rmat[PS_MAT_T];
-  Q  = ps->rmat[PS_MAT_Q];
-  X  = ps->mat[PS_MAT_X];
   A  = ps->mat[PS_MAT_A];
+  Q  = ps->mat[PS_MAT_Q];
+  d  = ps->rmat[PS_MAT_T];
   ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
   perm = ps->iwork;
   ierr = PSSortEigenvaluesReal_Private(ps,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
@@ -146,9 +135,6 @@ PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (
       }
     }
   }
-  for (i=0;i<n;i++) 
-    for (j=0;j<n;j++) 
-      X[i+j*ld] = Q[i+j*ld];
   for (i=0;i<n;i++) A[i+i*ld] = wr[i];
   PetscFunctionReturn(0);
 }
