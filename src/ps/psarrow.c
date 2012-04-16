@@ -57,17 +57,17 @@ PetscErrorCode PSView_ArrowTrid(PS ps,PetscViewer viewer)
     for (i=0;i<ps->n-1;i++) {
       r = PetscMax(i+2,ps->k+1);
       c = i+1;
-      ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,*(ps->rmat[PS_MAT_T]+ps->n+i));CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->n+i));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",PSMatName[PS_MAT_T]);CHKERRQ(ierr);
   } else {
     for (i=0;i<ps->n;i++) {
       for (j=0;j<ps->n;j++) {
         if (i==j) value = *(ps->rmat[PS_MAT_T]+i);
-        else if ((i<ps->k && j==ps->k) || (i==ps->k && j<ps->k)) value = *(ps->rmat[PS_MAT_T]+ps->n+PetscMin(i,j));
-        else if (i==j+1 && i>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->n+i-1);
-        else if (i+1==j && j>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->n+j-1);
+        else if ((i<ps->k && j==ps->k) || (i==ps->k && j<ps->k)) value = *(ps->rmat[PS_MAT_T]+ps->ld+PetscMin(i,j));
+        else if (i==j+1 && i>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->ld+i-1);
+        else if (i+1==j && j>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->ld+j-1);
         else value = 0.0;
         ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",value);CHKERRQ(ierr);
       }

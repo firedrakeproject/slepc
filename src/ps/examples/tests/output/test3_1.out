@@ -1,0 +1,16 @@
+Solve a Projected System of type PSARROWTRIDSYMM - dimension 10.
+PS Object: 1 MPI processes
+  type: arrowtridsymm
+  current state: raw
+  dimensions: ld=12, n=10, l=2, k=5
+Computed eigenvalues =
+  10.74626
+  9.21574
+  8.10265
+  7.16824
+  5.92424
+  4.66164
+  3.64744
+  2.53379
+  2.00000
+  1.00000
