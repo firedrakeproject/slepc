@@ -77,7 +77,9 @@ PetscErrorCode PSView_ArrowTrid(PS ps,PetscViewer viewer)
   }
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
-  ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+  if (ps->state>PS_STATE_INTERMEDIATE) {
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+  }
   PetscFunctionReturn(0);
 }
 

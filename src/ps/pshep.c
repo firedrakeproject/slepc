@@ -44,7 +44,9 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PSViewMat_Private(ps,viewer,PS_MAT_A);CHKERRQ(ierr); 
-  ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+  if (ps->state>PS_STATE_INTERMEDIATE) {
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+  }
   PetscFunctionReturn(0);
 }
 
@@ -58,7 +60,7 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   PetscScalar    *work,*tau;
-  PetscInt       i;
+  PetscInt       i,j;
   PetscBLASInt   lwork,info,n,ld;
   PetscScalar    *A,*S;
   PetscReal      *Q,*d,*e;
@@ -69,6 +71,7 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   ld = PetscBLASIntCast(ps->ld);
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
+  A  = ps->mat[PS_MAT_A];
 
   /* initialize orthogonal matrix */
   ierr = PetscMemzero(Q,ld*ld*sizeof(PetscReal));CHKERRQ(ierr);
@@ -76,21 +79,26 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
     Q[i+i*ld] = 1.0;
   if (n==1) PetscFunctionReturn(0);    
 
-  /* reduce to tridiagonal form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
-
+    /* reduce to tridiagonal form */
     if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
     S = ps->mat[PS_MAT_W];
-    ierr = PetscMemcpy(S,ps->mat[PS_MAT_A],sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
+    ierr = PetscMemcpy(S,A,sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
     ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
     tau  = ps->work;
     work = ps->work+ps->ld;
     lwork = ld*ld;
-
     LAPACKsytrd_("L",&n,S,&ld,d,e,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
     LAPACKorgtr_("L",&n,S,&ld,tau,work,&lwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
+    for (i=0;i<n;i++) 
+      for (j=0;j<n;j++) 
+        Q[i+j*ld] = S[i+j*ld];
+  } else {
+    /* copy tridiagonal to d,e */
+    for (i=0;i<n;i++) d[i] = A[i+i*ld];
+    for (i=0;i<n-1;i++) e[i] = A[(i+1)+i*ld];
   }
 
   /* Solve the tridiagonal eigenproblem */
@@ -98,7 +106,6 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   LAPACKsteqr_("V",&n,d,e,Q,&ld,ps->rwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
   for (i=0;i<n;i++) wr[i] = d[i];
-  A = ps->mat[PS_MAT_A];
   ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<n;i++) A[i+i*ld] = d[i];
   PetscFunctionReturn(0);
