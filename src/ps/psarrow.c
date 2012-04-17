@@ -168,7 +168,6 @@ PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscError
 {
   PetscErrorCode ierr;
   PetscInt       n,i,*perm;
-  PetscScalar    rtmp;
   PetscReal      *d;
 
   PetscFunctionBegin;

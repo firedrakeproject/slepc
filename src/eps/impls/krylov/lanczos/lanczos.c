@@ -85,6 +85,8 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
     ierr = VecDuplicateVecs(eps->t,eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   }
+  ierr = PSSetType(eps->ps,PSARROWTRIDSYMM);CHKERRQ(ierr);
+  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   } else {
@@ -523,7 +525,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 {
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
-  PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv,r;
+  PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv,r,ld;
   Vec            w=eps->work[1],f=eps->work[0];
   PetscScalar    *Y,stmp;
   PetscReal      *d,*e,*ritz,*bnd,anorm,beta,norm,rtmp,resnorm;
@@ -531,10 +533,8 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   char           *conv,ctmp;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&d);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&e);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
@@ -548,22 +548,30 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
+
     /* Compute an ncv-step Lanczos factorization */
     m = PetscMin(nconv+eps->mpd,ncv);
+    ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
+    e = d + ld;
     ierr = EPSBasicLanczos(eps,d,e,eps->V,nconv,&m,f,&breakdown,anorm);CHKERRQ(ierr);
-
-    /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
     n = m - nconv;
     beta = e[n-1];
-    ierr = EPSDenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
+    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,n,0,0);CHKERRQ(ierr);
+    ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+
+    /* Solve projected problem */ 
+    ierr = PSSolve(eps->ps,ritz,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSSort(eps->ps,ritz,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
     
     /* Estimate ||A|| */
     for (i=0;i<n;i++) 
       if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
-      resnorm = beta*PetscAbsScalar(Y[i*n+n-1]) + PETSC_MACHINE_EPSILON*anorm;
+      resnorm = beta*PetscAbsScalar(Y[n-1+i*ld]) + PETSC_MACHINE_EPSILON*anorm;
       ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],resnorm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
       if (bnd[i]<eps->tol) {
         conv[i] = 'C';
@@ -571,6 +579,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         conv[i] = 'N';
       }
     }
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
 
     /* purge repeated ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL)
@@ -593,7 +602,9 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
             ierr = EPSCompareEigenvalues(eps,ritz[restart],0.0,ritz[i],0.0,&r);CHKERRQ(ierr);
             if (r>0) restart = i;
           }
-        ierr = SlepcVecMAXPBY(f,0.0,1.0,n,Y+restart*n,eps->V+nconv);CHKERRQ(ierr);
+        ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
+        ierr = SlepcVecMAXPBY(f,0.0,1.0,n,Y+restart*ld,eps->V+nconv);CHKERRQ(ierr);
+        ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
       }
     }
 
@@ -608,6 +619,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       }
 
     /* Sort eigenvectors according to permutation */
+    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
     for (i=0;i<k;i++) {
       x = perm[i];
       if (x != i) {
@@ -620,13 +632,14 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         perm[j] = x; perm[i] = i;
         /* swap eigenvectors i and j */
         for (l=0;l<n;l++) {
-          stmp = Y[x*n+l]; Y[x*n+l] = Y[i*n+l]; Y[i*n+l] = stmp;
+          stmp = Y[l+x*ld]; Y[l+x*ld] = Y[l+i*ld]; Y[l+i*ld] = stmp;
         }
       }
     }
     
     /* compute converged eigenvectors */
     ierr = SlepcUpdateVectors(n,eps->V+nconv,0,k,Y,n,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
     
     /* purge spurious ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
@@ -686,10 +699,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   
   eps->nconv = nconv;
 
-  ierr = PetscFree(d);CHKERRQ(ierr);
-  ierr = PetscFree(e);CHKERRQ(ierr);
   ierr = PetscFree(ritz);CHKERRQ(ierr);
-  ierr = PetscFree(Y);CHKERRQ(ierr);
   ierr = PetscFree(bnd);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);
   ierr = PetscFree(conv);CHKERRQ(ierr);

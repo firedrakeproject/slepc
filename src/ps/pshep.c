@@ -108,7 +108,7 @@ PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (
 {
   PetscErrorCode ierr;
   PetscInt       n,i,*perm;
-  PetscScalar    *A,rtmp;
+  PetscScalar    *A;
   PetscReal      *d;
 
   PetscFunctionBegin;

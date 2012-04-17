@@ -574,7 +574,7 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt n,PetscReal *eig,Pet
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSPermuteVectors_Private"
+#define __FUNCT__ "PSPermuteColumns_Private"
 PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt n,PSMatType m,PetscInt *perm)
 {
   PetscInt    i,j,k,p,ld;
