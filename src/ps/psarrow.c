@@ -114,7 +114,7 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   /* reduce to tridiagonal form */
   if (ps->state<PS_STATE_INTERMEDIATE) {
 
-    if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
+    ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
     S = ps->mat[PS_MAT_W];
     ierr = PetscMemzero(S,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
@@ -188,6 +188,7 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_ArrowTrid(PS ps)
 {
   PetscFunctionBegin;
+  ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_ArrowTrid;
   ps->ops->view          = PSView_ArrowTrid;
   //ps->ops->computevector = PSComputeVector_ArrowTrid;

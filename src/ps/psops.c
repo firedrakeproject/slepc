@@ -358,6 +358,7 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
   if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
   if (!ps->ops->solve) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
   if (ps->state>=PS_STATE_CONDENSED) PetscFunctionReturn(0);
+  if (ps->method>=ps->nmeth) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The maximum method index for this PS is %d",ps->nmeth-1);
   ierr = PetscLogEventBegin(PS_Solve,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ps->ops->solve)(ps,eigr,eigi);CHKERRQ(ierr);

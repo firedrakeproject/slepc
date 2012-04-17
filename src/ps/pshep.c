@@ -40,8 +40,14 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
 PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
+  PetscViewerFormat format;
+  const char        *meth[] = { "LAPACK's _steqr" };
 
   PetscFunctionBegin;
+  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+    ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",meth[ps->method]);CHKERRQ(ierr);
+  }
   ierr = PSViewMat_Private(ps,viewer,PS_MAT_A);CHKERRQ(ierr); 
   if (ps->state>PS_STATE_INTERMEDIATE) {
     ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
@@ -150,14 +156,12 @@ PetscErrorCode PSCond_HEP(PS ps,PetscReal *cond)
   ipiv  = ps->iwork;
 
   /* use workspace matrix W to avoid overwriting A */
-  if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
+  ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
   A = ps->mat[PS_MAT_W];
   ierr = PetscMemcpy(A,ps->mat[PS_MAT_A],sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
 
   /* norm of A */
-  //if (ps->state<PS_STATE_INTERMEDIATE)
   hn = LAPACKlange_("I",&n,&n,A,&ld,rwork);
-  //else hn = LAPACKlanhs_("I",&n,A,&ld,rwork);
 
   /* norm of inv(A) */
   LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info);
@@ -177,6 +181,7 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_HEP(PS ps)
 {
   PetscFunctionBegin;
+  ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_HEP;
   ps->ops->view          = PSView_HEP;
   //ps->ops->computevector = PSComputeVector_HEP;

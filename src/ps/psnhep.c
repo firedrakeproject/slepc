@@ -226,7 +226,7 @@ PetscErrorCode PSCond_NHEP(PS ps,PetscReal *cond)
   ipiv  = ps->iwork;
 
   /* use workspace matrix W to avoid overwriting A */
-  if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
+  ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
   A = ps->mat[PS_MAT_W];
   ierr = PetscMemcpy(A,ps->mat[PS_MAT_A],sizeof(PetscScalar)*ps->ld*ps->ld);CHKERRQ(ierr);
 
@@ -275,7 +275,7 @@ PetscErrorCode PSTranslateHarmonic_NHEP(PS ps,PetscScalar tau,PetscReal beta,Pet
       g = ps->work;
     }
     /* use workspace matrix W to factor A-tau*eye(n) */
-    if (!ps->mat[PS_MAT_W]) { ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr); }
+    ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
     B = ps->mat[PS_MAT_W];
     ierr = PetscMemcpy(B,A,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
 
@@ -335,6 +335,7 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_NHEP(PS ps)
 {
   PetscFunctionBegin;
+  ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_NHEP;
   ps->ops->view          = PSView_NHEP;
   //ps->ops->computevector = PSComputeVector_NHEP;

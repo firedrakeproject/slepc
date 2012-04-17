@@ -131,12 +131,14 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   PetscFunctionBegin;
   PetscValidPointer(newps,2);
   ierr = PetscHeaderCreate(ps,_p_PS,struct _PSOps,PS_CLASSID,-1,"PS","Projected System","PS",comm,PSDestroy,PSView);CHKERRQ(ierr);
-  *newps    = ps;
-  ps->state = PS_STATE_RAW;
-  ps->ld    = 0;
-  ps->l     = 0;
-  ps->n     = 0;
-  ps->k     = 0;
+  *newps     = ps;
+  ps->state  = PS_STATE_RAW;
+  ps->method = 0;
+  ps->nmeth  = 1;
+  ps->ld     = 0;
+  ps->l      = 0;
+  ps->n      = 0;
+  ps->k      = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ps->mat[i]  = PETSC_NULL;
     ps->rmat[i] = PETSC_NULL;
@@ -251,13 +253,12 @@ PetscErrorCode PSGetOptionsPrefix(PS ps,const char *prefix[])
    Logically Collective on PS
 
    Input Parameter:
-+  ps   - the projected system context.
++  ps   - the projected system context
 -  type - a known type
 
    Level: advanced
 
 .seealso: PSGetType()
-
 @*/
 PetscErrorCode PSSetType(PS ps,const PSType type)
 {
@@ -297,7 +298,6 @@ PetscErrorCode PSSetType(PS ps,const PSType type)
    Level: advanced
 
 .seealso: PSSetType()
-
 @*/
 PetscErrorCode PSGetType(PS ps,const PSType *type)
 {
@@ -305,6 +305,57 @@ PetscErrorCode PSGetType(PS ps,const PSType *type)
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)ps)->type_name;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSetMethod"
+/*@C
+   PSSetMethod - Selects the method to be used to solve the problem.
+
+   Logically Collective on PS
+
+   Input Parameter:
++  ps   - the projected system context
+-  meth - an index indentifying the method
+
+   Level: advanced
+
+.seealso: PSGetMethod()
+@*/
+PetscErrorCode PSSetMethod(PS ps,PetscInt meth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ps,meth,2);
+  if (meth<0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  ps->method = meth;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSGetMethod"
+/*@C
+   PSGetMethod - Gets the method currently used in the PS.
+
+   Not Collective
+
+   Input Parameter:
+.  ps - the projected system context
+
+   Output Parameter:
+.  meth - identifier of the method
+
+   Level: advanced
+
+.seealso: PSSetMethod()
+@*/
+PetscErrorCode PSGetMethod(PS ps,PetscInt *meth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(meth,2);
+  *meth = ps->method;
   PetscFunctionReturn(0);
 }
 
@@ -326,6 +377,7 @@ PetscErrorCode PSGetType(PS ps,const PSType *type)
 PetscErrorCode PSSetFromOptions(PS ps)
 {
   PetscErrorCode ierr;
+  PetscInt       m;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
@@ -335,6 +387,8 @@ PetscErrorCode PSSetFromOptions(PS ps)
     ierr = PSSetType(ps,PSNHEP);CHKERRQ(ierr);
   }
   ierr = PetscOptionsBegin(((PetscObject)ps)->comm,((PetscObject)ps)->prefix,"Projecte System (PS) Options","PS");CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-ps_method","Method to be used for the projected system","PSSetMethod",ps->method,&m,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSSetMethod(ps,m);CHKERRQ(ierr);
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -619,11 +673,11 @@ PetscErrorCode PSReset(PS ps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ps->state = PS_STATE_RAW;
-  ps->ld    = 0;
-  ps->l     = 0;
-  ps->n     = 0;
-  ps->k     = 0;
+  ps->state  = PS_STATE_RAW;
+  ps->ld     = 0;
+  ps->l      = 0;
+  ps->n      = 0;
+  ps->k      = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ierr = PetscFree(ps->mat[i]);CHKERRQ(ierr);
     ierr = PetscFree(ps->rmat[i]);CHKERRQ(ierr);

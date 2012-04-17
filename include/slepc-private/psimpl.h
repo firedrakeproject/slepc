@@ -41,6 +41,8 @@ struct _PSOps {
 
 struct _p_PS {
   PETSCHEADER(struct _PSOps);
+  PetscInt     method;             /* identifies the variant to be used */
+  PetscInt     nmeth;              /* number of methods available in this ps */
   PetscInt     ld;                 /* leading dimension */
   PetscInt     l;                  /* number of locked (inactive) leading columns */
   PetscInt     n;                  /* current dimension */
