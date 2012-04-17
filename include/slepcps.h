@@ -124,6 +124,8 @@ extern PetscErrorCode PSSetDimensions(PS,PetscInt,PetscInt,PetscInt);
 extern PetscErrorCode PSGetDimensions(PS,PetscInt*,PetscInt*,PetscInt*);
 extern PetscErrorCode PSSetMethod(PS,PetscInt);
 extern PetscErrorCode PSGetMethod(PS,PetscInt*);
+extern PetscErrorCode PSSetCompact(PS,PetscBool);
+extern PetscErrorCode PSGetCompact(PS,PetscBool*);
 extern PetscErrorCode PSGetArray(PS,PSMatType,PetscScalar *a[]);
 extern PetscErrorCode PSRestoreArray(PS,PSMatType,PetscScalar *a[]);
 extern PetscErrorCode PSGetArrayReal(PS,PSMatType,PetscReal *a[]);

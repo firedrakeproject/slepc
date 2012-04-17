@@ -43,6 +43,7 @@ struct _p_PS {
   PETSCHEADER(struct _PSOps);
   PetscInt     method;             /* identifies the variant to be used */
   PetscInt     nmeth;              /* number of methods available in this ps */
+  PetscBool    compact;            /* whether the matrices are stored in compact form */
   PetscInt     ld;                 /* leading dimension */
   PetscInt     l;                  /* number of locked (inactive) leading columns */
   PetscInt     n;                  /* current dimension */

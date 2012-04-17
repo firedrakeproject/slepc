@@ -131,14 +131,15 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   PetscFunctionBegin;
   PetscValidPointer(newps,2);
   ierr = PetscHeaderCreate(ps,_p_PS,struct _PSOps,PS_CLASSID,-1,"PS","Projected System","PS",comm,PSDestroy,PSView);CHKERRQ(ierr);
-  *newps     = ps;
-  ps->state  = PS_STATE_RAW;
-  ps->method = 0;
-  ps->nmeth  = 1;
-  ps->ld     = 0;
-  ps->l      = 0;
-  ps->n      = 0;
-  ps->k      = 0;
+  *newps      = ps;
+  ps->state   = PS_STATE_RAW;
+  ps->method  = 0;
+  ps->nmeth   = 1;
+  ps->compact = PETSC_FALSE;
+  ps->ld      = 0;
+  ps->l       = 0;
+  ps->n       = 0;
+  ps->k       = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ps->mat[i]  = PETSC_NULL;
     ps->rmat[i] = PETSC_NULL;
@@ -310,7 +311,7 @@ PetscErrorCode PSGetType(PS ps,const PSType *type)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSetMethod"
-/*@C
+/*@
    PSSetMethod - Selects the method to be used to solve the problem.
 
    Logically Collective on PS
@@ -335,7 +336,7 @@ PetscErrorCode PSSetMethod(PS ps,PetscInt meth)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSGetMethod"
-/*@C
+/*@
    PSGetMethod - Gets the method currently used in the PS.
 
    Not Collective
@@ -356,6 +357,64 @@ PetscErrorCode PSGetMethod(PS ps,PetscInt *meth)
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   PetscValidPointer(meth,2);
   *meth = ps->method;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSetCompact"
+/*@
+   PSSetCompact - Switch to compact storage of matrices.
+
+   Logically Collective on PS
+
+   Input Parameter:
++  ps   - the projected system context
+-  comp - a boolean flag
+
+   Notes:
+   Compact storage is used in some PS types such as PSHEP when the matrix
+   is tridiagonal. This flag can be used to indicate whether the user
+   provides the matrix entries via the compact form (the tridiagonal PS_MAT_T)
+   or the non-compact one (PS_MAT_A).
+
+   The default is PETSC_FALSE.
+
+   Level: advanced
+
+.seealso: PSGetCompact()
+@*/
+PetscErrorCode PSSetCompact(PS ps,PetscBool comp)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(ps,comp,2);
+  ps->compact = comp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSGetCompact"
+/*@
+   PSGetCompact - Gets the compact storage flag.
+
+   Not Collective
+
+   Input Parameter:
+.  ps - the projected system context
+
+   Output Parameter:
+.  comp - the flag
+
+   Level: advanced
+
+.seealso: PSSetCompact()
+@*/
+PetscErrorCode PSGetCompact(PS ps,PetscBool *comp)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(comp,2);
+  *comp = ps->compact;
   PetscFunctionReturn(0);
 }
 
@@ -673,11 +732,12 @@ PetscErrorCode PSReset(PS ps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ps->state  = PS_STATE_RAW;
-  ps->ld     = 0;
-  ps->l      = 0;
-  ps->n      = 0;
-  ps->k      = 0;
+  ps->state   = PS_STATE_RAW;
+  ps->compact = PETSC_FALSE;
+  ps->ld      = 0;
+  ps->l       = 0;
+  ps->n       = 0;
+  ps->k       = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ierr = PetscFree(ps->mat[i]);CHKERRQ(ierr);
     ierr = PetscFree(ps->rmat[i]);CHKERRQ(ierr);
