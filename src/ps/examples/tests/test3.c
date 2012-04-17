@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test PSARROWTRIDSYMM.\n\n";
+static char help[] = "Test PSHEP with compact storage.\n\n";
 
 #include "slepcps.h"
 
@@ -37,7 +37,7 @@ int main( int argc, char **argv )
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type PSARROWTRIDSYMM - dimension %D.\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type PSHEP with compact storage - dimension %D.\n",n);CHKERRQ(ierr); 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-l",&l,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,1,"Wrong value of dimensions");
@@ -45,7 +45,8 @@ int main( int argc, char **argv )
 
   /* Create PS object */
   ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
-  ierr = PSSetType(ps,PSARROWTRIDSYMM);CHKERRQ(ierr);
+  ierr = PSSetType(ps,PSHEP);CHKERRQ(ierr);
+  ierr = PSSetCompact(ps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = PSAllocate(ps,ld);CHKERRQ(ierr);

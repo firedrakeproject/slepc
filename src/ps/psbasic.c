@@ -539,7 +539,6 @@ PetscErrorCode PSAllocate(PS ps,PetscInt ld)
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ps,ld,2);
   if (ld<1) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
-  ierr = PSReset(ps);CHKERRQ(ierr);
   ps->ld = ld;
   ierr = (*ps->ops->allocate)(ps,ld);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -734,6 +733,7 @@ PetscErrorCode PSReset(PS ps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   ps->state   = PS_STATE_RAW;
+  ps->method  = 0;
   ps->compact = PETSC_FALSE;
   ps->ld      = 0;
   ps->l       = 0;
@@ -822,7 +822,6 @@ PetscErrorCode PSRegisterDestroy(void)
 EXTERN_C_BEGIN
 extern PetscErrorCode PSCreate_HEP(PS);
 extern PetscErrorCode PSCreate_NHEP(PS);
-extern PetscErrorCode PSCreate_ArrowTrid(PS);
 EXTERN_C_END
 
 #undef __FUNCT__  
@@ -845,7 +844,6 @@ PetscErrorCode PSRegisterAll(const char *path)
   PSRegisterAllCalled = PETSC_TRUE;
   ierr = PSRegisterDynamic(PSHEP,path,"PSCreate_HEP",PSCreate_HEP);CHKERRQ(ierr);
   ierr = PSRegisterDynamic(PSNHEP,path,"PSCreate_NHEP",PSCreate_NHEP);CHKERRQ(ierr);
-  ierr = PSRegisterDynamic(PSARROWTRIDSYMM,path,"PSCreate_ArrowTrid",PSCreate_ArrowTrid);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

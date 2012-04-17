@@ -1,8 +1,9 @@
-Solve a Projected System of type PSARROWTRIDSYMM - dimension 10.
+Solve a Projected System of type PSHEP with compact storage - dimension 10.
 PS Object: 1 MPI processes
-  type: arrowtridsymm
+  type: hep
   current state: raw
   dimensions: ld=12, n=10, l=2, k=5
+  solving the problem with: LAPACK's _steqr
 Computed eigenvalues =
   10.74626
   9.21574

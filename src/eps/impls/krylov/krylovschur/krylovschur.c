@@ -140,7 +140,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_SYMM:
       eps->ops->solve = EPSSolve_KrylovSchur_Symm;
-      ierr = PSSetType(eps->ps,PSARROWTRIDSYMM);CHKERRQ(ierr);
+      ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
+      ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;

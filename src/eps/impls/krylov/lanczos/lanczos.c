@@ -85,7 +85,8 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
     ierr = VecDuplicateVecs(eps->t,eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   }
-  ierr = PSSetType(eps->ps,PSARROWTRIDSYMM);CHKERRQ(ierr);
+  ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
+  ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);

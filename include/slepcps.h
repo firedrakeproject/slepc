@@ -50,8 +50,6 @@ E*/
 #define PSNHEP            "nhep"
 #define PSGHEP            "ghep"
 #define PSGNHEP           "gnhep"
-#define PSARROWTRIDSYMM   "arrowtridsymm"
-#define PSARROWTRIDPSEUDO "arrowtridpseudo"
 #define PSSVD             "svd"
 #define PSQEP             "qep"
 

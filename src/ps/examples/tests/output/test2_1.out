@@ -3,6 +3,7 @@ PS Object: 1 MPI processes
   type: hep
   current state: raw
   dimensions: ld=14, n=12, l=0, k=0
+  solving the problem with: LAPACK's _steqr
 Computed eigenvalues =
   5.73571
   4.99390
