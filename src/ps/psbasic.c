@@ -574,6 +574,31 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt n,PetscReal *eig,Pet
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSPermuteVectors_Private"
+PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt n,PSMatType m,PetscInt *perm)
+{
+  PetscInt    i,j,k,p,ld;
+  PetscScalar *Q,rtmp;
+
+  PetscFunctionBegin;
+  ld = ps->ld;
+  Q  = ps->mat[PS_MAT_Q];
+  for (i=0;i<n;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap eigenvectors i and j */
+      for (k=0;k<n;k++) {
+        rtmp = Q[k+p*ld]; Q[k+p*ld] = Q[k+i*ld]; Q[k+i*ld] = rtmp;
+      }
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSReset"
 /*@
    PSReset - Resets the PS context to the initial state.

@@ -106,7 +106,7 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
   e  = ps->rmat[PS_MAT_T]+ld;
 
   /* initialize orthogonal matrix */
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<n;i++) 
     Q[i+i*ld] = 1.0;
   if (n==1) PetscFunctionReturn(0);    
@@ -136,10 +136,10 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
 
     /* Flip back diag and subdiag, put them in d and e */
     for (i=0;i<n-1;i++) {
-      d[n-i-1] = S[i+i*ld];
-      e[n-i-2] = S[i+1+i*ld];
+      d[n-i-1] = PetscRealPart(S[i+i*ld]);
+      e[n-i-2] = PetscRealPart(S[i+1+i*ld]);
     }
-    d[0] = S[n-1+(n-1)*ld];
+    d[0] = PetscRealPart(S[n-1+(n-1)*ld]);
 
     /* Compute the orthogonal matrix used for tridiagonalization */
     LAPACKorgtr_("L",&n1,S+n2+n2*ld,&ld,tau,work,&lwork,&info);
@@ -167,34 +167,19 @@ PetscErrorCode PSSolve_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode PSSort_ArrowTrid(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,p,*perm;
-  PetscBLASInt   n,ld;
-  PetscScalar    *Q;
-  PetscReal      *d,rtmp;
+  PetscInt       n,i,*perm;
+  PetscScalar    rtmp;
+  PetscReal      *d;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
-  d  = ps->rmat[PS_MAT_T];
-  Q  = ps->mat[PS_MAT_Q];
-  ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
+  n = ps->n;
+  d = ps->rmat[PS_MAT_T];
+  ierr = PSAllocateWork_Private(ps,0,0,ps->ld);CHKERRQ(ierr); 
   perm = ps->iwork;
   ierr = PSSortEigenvaluesReal_Private(ps,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
-  for (i=0;i<n;i++)
-    wr[i] = d[perm[i]];
-  for (i=0;i<n;i++) {
-    p = perm[i];
-    if (p != i) {
-      j = i + 1;
-      while (perm[j] != i) j++;
-      perm[j] = p; perm[i] = i;
-      /* swap eigenvectors i and j */
-      for (k=0;k<n;k++) {
-        rtmp = Q[k+p*ld]; Q[k+p*ld] = Q[k+i*ld]; Q[k+i*ld] = rtmp;
-      }
-    }
-  }
-  for (i=0;i<n;i++) d[i] = wr[i];
+  for (i=0;i<n;i++) wr[i] = d[perm[i]];
+  ierr = PSPermuteColumns_Private(ps,n,PS_MAT_Q,perm);CHKERRQ(ierr);
+  for (i=0;i<n;i++) d[i] = PetscRealPart(wr[i]);
   PetscFunctionReturn(0);
 }
 

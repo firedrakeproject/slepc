@@ -70,7 +70,7 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   Q  = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
-  if (n==1) { d[0] = A[0]; Q[0] = 1.0; PetscFunctionReturn(0); }
+  if (n==1) { d[0] = PetscRealPart(A[0]); Q[0] = 1.0; PetscFunctionReturn(0); }
 
   if (ps->state<PS_STATE_INTERMEDIATE) {
     /* reduce to tridiagonal form */
@@ -87,8 +87,8 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
     /* initialize orthogonal matrix; copy tridiagonal to d,e */
     ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
-    for (i=0;i<n;i++) d[i] = A[i+i*ld];
-    for (i=0;i<n-1;i++) e[i] = A[(i+1)+i*ld];
+    for (i=0;i<n;i++) d[i] = PetscRealPart(A[i+i*ld]);
+    for (i=0;i<n-1;i++) e[i] = PetscRealPart(A[(i+1)+i*ld]);
   }
 
   /* Solve the tridiagonal eigenproblem */
@@ -107,35 +107,20 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,p,*perm;
-  PetscBLASInt   n,ld;
-  PetscScalar    *A,*Q;
-  PetscReal      *d,rtmp;
+  PetscInt       n,i,*perm;
+  PetscScalar    *A,rtmp;
+  PetscReal      *d;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
-  A  = ps->mat[PS_MAT_A];
-  Q  = ps->mat[PS_MAT_Q];
-  d  = ps->rmat[PS_MAT_T];
-  ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
+  n = ps->n;
+  d = ps->rmat[PS_MAT_T];
+  ierr = PSAllocateWork_Private(ps,0,0,ps->ld);CHKERRQ(ierr); 
   perm = ps->iwork;
   ierr = PSSortEigenvaluesReal_Private(ps,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
-  for (i=0;i<n;i++)
-    wr[i] = d[perm[i]];
-  for (i=0;i<n;i++) {
-    p = perm[i];
-    if (p != i) {
-      j = i + 1;
-      while (perm[j] != i) j++;
-      perm[j] = p; perm[i] = i;
-      /* swap eigenvectors i and j */
-      for (k=0;k<n;k++) {
-        rtmp = Q[k+p*ld]; Q[k+p*ld] = Q[k+i*ld]; Q[k+i*ld] = rtmp;
-      }
-    }
-  }
-  for (i=0;i<n;i++) A[i+i*ld] = wr[i];
+  for (i=0;i<n;i++) wr[i] = d[perm[i]];
+  ierr = PSPermuteColumns_Private(ps,n,PS_MAT_Q,perm);CHKERRQ(ierr);
+  A  = ps->mat[PS_MAT_A];
+  for (i=0;i<n;i++) A[i+i*ps->ld] = wr[i];
   PetscFunctionReturn(0);
 }
 
