@@ -436,7 +436,7 @@ PetscErrorCode PSGetCompact(PS ps,PetscBool *comp)
 PetscErrorCode PSSetFromOptions(PS ps)
 {
   PetscErrorCode ierr;
-  PetscInt       m;
+  PetscInt       meth;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
@@ -446,8 +446,9 @@ PetscErrorCode PSSetFromOptions(PS ps)
     ierr = PSSetType(ps,PSNHEP);CHKERRQ(ierr);
   }
   ierr = PetscOptionsBegin(((PetscObject)ps)->comm,((PetscObject)ps)->prefix,"Projecte System (PS) Options","PS");CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-ps_method","Method to be used for the projected system","PSSetMethod",ps->method,&m,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSSetMethod(ps,m);CHKERRQ(ierr);
+    meth = 0;
+    ierr = PetscOptionsInt("-ps_method","Method to be used for the projected system","PSSetMethod",ps->method,&meth,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSSetMethod(ps,meth);CHKERRQ(ierr);
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
