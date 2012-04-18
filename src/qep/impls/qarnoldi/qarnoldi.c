@@ -89,7 +89,7 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
   ierr = VecMDot(w,j_1,V,work);CHKERRQ(ierr);
   if (j>0)
     BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione);
-  ierr = VecDot(t,w,&dot);CHKERRQ(ierr);
+  ierr = VecDot(w,t,&dot);CHKERRQ(ierr);
   h[j] += dot;
 
   /* orthogonalize: update v and w */
