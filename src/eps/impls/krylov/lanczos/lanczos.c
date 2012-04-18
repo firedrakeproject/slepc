@@ -528,14 +528,14 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   PetscErrorCode ierr;
   PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv,r,ld;
   Vec            w=eps->work[1],f=eps->work[0];
-  PetscScalar    *Y,stmp;
-  PetscReal      *d,*e,*ritz,*bnd,anorm,beta,norm,rtmp,resnorm;
+  PetscScalar    *Y,*ritz,stmp;
+  PetscReal      *d,*e,*bnd,anorm,beta,norm,rtmp,resnorm;
   PetscBool      breakdown;
   char           *conv,ctmp;
 
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
+  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
@@ -567,7 +567,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     
     /* Estimate ||A|| */
     for (i=0;i<n;i++) 
-      if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
+      anorm = PetscMax(anorm,PetscAbsReal(PetscRealPart(ritz[i])));
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
@@ -600,7 +600,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       } else {
         for (i=restart+1;i<n;i++)
           if (conv[i] == 'N') {
-            ierr = EPSCompareEigenvalues(eps,ritz[restart],0.0,ritz[i],0.0,&r);CHKERRQ(ierr);
+            ierr = (*eps->which_func)(ritz[restart],0.0,ritz[i],0.0,&r,eps->which_ctx);CHKERRQ(ierr);
             if (r>0) restart = i;
           }
         ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
@@ -627,7 +627,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         j = i + 1;
         while (perm[j] != i) j++;
         /* swap eigenvalues i and j */
-        rtmp = ritz[x]; ritz[x] = ritz[i]; ritz[i] = rtmp;
+        stmp = ritz[x]; ritz[x] = ritz[i]; ritz[i] = stmp;
         rtmp = bnd[x]; bnd[x] = bnd[i]; bnd[i] = rtmp;
         ctmp = conv[x]; conv[x] = conv[i]; conv[i] = ctmp;
         perm[j] = x; perm[i] = i;
@@ -659,7 +659,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
           while (j<k && conv[j] != 'C') j++;
           if (j>=k) break;
           /* swap eigenvalues i and j */
-          rtmp = ritz[j]; ritz[j] = ritz[i]; ritz[i] = rtmp;
+          stmp = ritz[j]; ritz[j] = ritz[i]; ritz[i] = stmp;
           rtmp = bnd[j]; bnd[j] = bnd[i]; bnd[i] = rtmp;
           ctmp = conv[j]; conv[j] = conv[i]; conv[i] = ctmp;
           /* swap eigenvectors i and j */
