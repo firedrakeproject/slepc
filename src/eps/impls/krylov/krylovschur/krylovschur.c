@@ -117,7 +117,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       if (eps->isgeneralized && !eps->ispositive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
 
       else variant = EPS_KS_SLICE;
-    } if (eps->isgeneralized && !eps->ispositive) {
+    } else if (eps->isgeneralized && !eps->ispositive) {
       variant = EPS_KS_INDEF;
     } else {
       switch (eps->extraction) {
@@ -145,7 +145,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
-      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
