@@ -478,7 +478,7 @@ Relative to matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} 
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetConvergenceTest(EPS eps,EPSConv conv);
 	\end{Verbatim}
-The default is to use the criterion relative to the eigenvalue. For the criteria that involve matrix norms, they can be provided by means of \ident{EPSSetMatrixNorms}. Finally, a custom convergence criterion may be established by specifying a user function (\ident{EPSSetConvergenceTestFunction}).
+The default is to use the criterion relative to the eigenvalue (note: for computing eigenvalues close to the origin this criterion will likely give very poor accuracy, so the user is advised to use \ident{EPS\_CONV\_ABS} in that case). For the criteria that involve matrix norms, they can be provided by means of \ident{EPSSetMatrixNorms}. Finally, a custom convergence criterion may be established by specifying a user function (\ident{EPSSetConvergenceTestFunction}).
 
 	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeRelativeError}. At the end of the solution process, error estimates are available via
 	\findex{EPSGetErrorEstimate}
@@ -513,6 +513,15 @@ The default is to use the criterion relative to the eigenvalue. For the criteria
 \end{Verbatim}
 Again, only the error estimate of one eigenvalue is drawn. The spikes in the last part of the plot indicate convergence of one eigenvalue and switching to the next.
 
+\begin{figure}
+  \includegraphics[width=.31\textwidth]{figures/monitor}
+  \hfill
+  \includegraphics[width=.31\textwidth]{figures/monitorall}
+  \hfill
+  \includegraphics[width=.31\textwidth]{figures/ploteigs}
+  \caption{\label{fig:plot}Graphical output in \slepc: default convergence monitor (left), simultaneous convergence monitor for all eigenvalues (middle) and eigenvalue plot (right).}
+\end{figure}
+
 	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_draw_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so. 
 
 	A less verbose textual monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes places.
@@ -536,15 +545,6 @@ Again, only the error estimate of one eigenvalue is drawn. The spikes in the las
 Note that several monitors can be used at the same time.
 
 Finally, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot the computed approximations of the eigenvalues at the end of the process. See Figure \ref{fig:plot} (right) for an example.
-
-\begin{figure}
-  \includegraphics[width=.31\textwidth]{figures/monitor}
-  \hfill
-  \includegraphics[width=.31\textwidth]{figures/monitorall}
-  \hfill
-  \includegraphics[width=.31\textwidth]{figures/ploteigs}
-  \caption{\label{fig:plot}Graphical output in \slepc: default convergence monitor (left), simultaneous convergence monitor for all eigenvalues (middle) and eigenvalue plot (right).}
-\end{figure}
 
 %---------------------------------------------------
 \section{Advanced Usage}
