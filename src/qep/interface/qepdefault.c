@@ -58,27 +58,26 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPDefaultConverged"
+#define __FUNCT__ "QEPConvergedDefault"
 /*
-  QEPDefaultConverged - Checks convergence relative to the eigenvalue.
+  QEPConvergedDefault - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode QEPDefaultConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode QEPConvergedDefault(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
 
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
-  *errest = res;
-  if (w > res) *errest = res / w;
+  *errest = res/w;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPAbsoluteConverged"
+#define __FUNCT__ "QEPConvergedAbsolute"
 /*
-  QEPAbsoluteConverged - Checks convergence absolutely.
+  QEPConvergedAbsolute - Checks convergence absolutely.
 */
-PetscErrorCode QEPAbsoluteConverged(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode QEPConvergedAbsolute(QEP qep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscFunctionBegin;
   *errest = res;

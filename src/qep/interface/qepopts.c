@@ -79,9 +79,9 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = QEPSetTolerances(qep,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsBoolGroupBegin("-qep_convergence_default","Default (relative error) convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetConvergenceTest(qep,QEPDefaultConverged,PETSC_NULL);CHKERRQ(ierr);}
+    if (flg) {ierr = QEPSetConvergenceTest(qep,QEPConvergedDefault,PETSC_NULL);CHKERRQ(ierr);}
     ierr = PetscOptionsBoolGroupEnd("-qep_convergence_absolute","Absolute error convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetConvergenceTest(qep,QEPAbsoluteConverged,PETSC_NULL);CHKERRQ(ierr);}
+    if (flg) {ierr = QEPSetConvergenceTest(qep,QEPConvergedAbsolute,PETSC_NULL);CHKERRQ(ierr);}
 
     i = j = k = PETSC_IGNORE;
     ierr = PetscOptionsInt("-qep_nev","Number of eigenvalues to compute","QEPSetDimensions",qep->nev,&i,PETSC_NULL);CHKERRQ(ierr);

@@ -279,27 +279,26 @@ PetscErrorCode EPSDefaultSetWhich(EPS eps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSEigRelativeConverged"
+#define __FUNCT__ "EPSConvergedEigRelative"
 /*
-  EPSDefaultConverged - Checks convergence relative to the eigenvalue.
+  EPSConvergedEigRelative - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode EPSEigRelativeConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode EPSConvergedEigRelative(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
 
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
-  *errest = res;
-  if (w > res) *errest = res / w;
+  *errest = res/w;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSAbsoluteConverged"
+#define __FUNCT__ "EPSConvergedAbsolute"
 /*
-  EPSAbsoluteConverged - Checks convergence absolutely.
+  EPSConvergedAbsolute - Checks convergence absolutely.
 */
-PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode EPSConvergedAbsolute(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscFunctionBegin;
   *errest = res;
@@ -307,12 +306,12 @@ PetscErrorCode EPSAbsoluteConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSNormRelativeConverged"
+#define __FUNCT__ "EPSConvergedNormRelative"
 /*
-  EPSNormRelativeConverged - Checks convergence relative to the eigenvalue and 
+  EPSConvergedNormRelative - Checks convergence relative to the eigenvalue and 
   the matrix norms.
 */
-PetscErrorCode EPSNormRelativeConverged(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode EPSConvergedNormRelative(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
 
