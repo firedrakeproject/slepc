@@ -177,7 +177,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       eps->which_ctx  = &eps->target;
       break;
     case EPS_ALL:
-      eps->which_func = SlepcCompareLargestReal;
+      eps->which_func = SlepcCompareSmallestReal;
       eps->which_ctx  = PETSC_NULL;
       break;
     case EPS_WHICH_USER:

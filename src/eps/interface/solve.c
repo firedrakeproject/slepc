@@ -121,8 +121,8 @@ PetscErrorCode EPSSolve(EPS eps)
     data.which_func = eps->which_func;
     data.which_ctx = eps->which_ctx;
     data.st = eps->OP;
-    eps->which_func = EPSSortForSTFunc;
-    eps->which_ctx = &data;
+    eps->which_func = (eps->which==EPS_ALL)? SlepcCompareLargestMagnitude: EPSSortForSTFunc;
+    eps->which_ctx = (eps->which==EPS_ALL)? PETSC_NULL: &data;
   }
 
   /* call solver */
@@ -218,10 +218,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* sort eigenvalues according to eps->which parameter */
-  flg = (eps->which == EPS_ALL)? PETSC_TRUE: PETSC_FALSE;
-  if (flg) eps->which = EPS_SMALLEST_REAL;
   ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
-  if (flg) eps->which = EPS_ALL;
 
   if (!viewed) {
     ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
