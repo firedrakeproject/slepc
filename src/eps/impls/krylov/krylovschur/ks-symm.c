@@ -70,7 +70,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 
     /* Check convergence */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->trackall,eps->nconv,nv,PETSC_NULL,ld,Q,ld,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,PETSC_FALSE,eps->nconv,nv,PETSC_NULL,ld,Q,ld,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
