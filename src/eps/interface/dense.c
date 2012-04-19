@@ -887,7 +887,7 @@ PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,Pet
   PetscBLASInt   mm,mout,info,lds,ldu,nv,inc = 1;
   PetscScalar    tmp,done=1.0,zero=0.0;
   PetscReal      norm;
-  PetscBool      *select=(PetscBool*)(work+4*nv_);
+  PetscBLASInt   *select=(PetscBLASInt*)(work+4*nv_);
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=(PetscReal*)(work+3*nv_);
 #endif
@@ -896,14 +896,14 @@ PetscErrorCode DenseSelectedEvec(PetscScalar *S,PetscInt lds_,PetscScalar *U,Pet
   lds = PetscBLASIntCast(lds_);
   ldu = PetscBLASIntCast(ldu_);
   nv  = PetscBLASIntCast(nv_);
-  for (k=0;k<nv;k++) select[k] = PETSC_FALSE;
+  for (k=0;k<nv;k++) select[k] = (PetscBLASInt)PETSC_FALSE;
 
   /* Compute eigenvectors Y of S */
   mm = iscomplex? 2: 1;
-  select[i] = PETSC_TRUE;
+  select[i] = (PetscBLASInt)PETSC_TRUE;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  if (iscomplex) select[i+1] = PETSC_TRUE;
+  if (iscomplex) select[i+1] = (PetscBLASInt)PETSC_TRUE;
   LAPACKtrevc_("R","S",select,&nv,S,&lds,PETSC_NULL,&nv,Y,&nv,&mm,&mout,work,&info);
 #else
   LAPACKtrevc_("R","S",select,&nv,S,&lds,PETSC_NULL,&nv,Y,&nv,&mm,&mout,work,rwork,&info);
