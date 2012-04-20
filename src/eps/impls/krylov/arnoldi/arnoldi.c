@@ -525,7 +525,6 @@ PetscErrorCode EPSReset_Arnoldi(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  ierr = PetscFree(eps->Tl);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

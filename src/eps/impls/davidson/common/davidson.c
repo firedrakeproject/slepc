@@ -625,7 +625,7 @@ PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,Pets
   Schur decomposition OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of (S,T): S*Z=T*Z*D
       2) compute eigenvectors of OP: X=V*Z
-  If left eigenvectors are required then also do Z'*Tl=D*Z', Y=W*Z
+  If left eigenvectors are required then also do Z'*T=D*Z', Y=W*Z
  */
 PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
 {

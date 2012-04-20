@@ -99,7 +99,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of T: T*Z=Z*D
       2) compute eigenvectors of OP: X=V*Z
-  If left eigenvectors are required then also do Z'*Tl=D*Z', Y=W*Z
+  If left eigenvectors are required then also do Z'*T=D*Z', Y=W*Z
  */
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
