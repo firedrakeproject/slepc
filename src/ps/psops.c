@@ -438,6 +438,9 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
    to get the residual norm estimate of the associated Ritz pair. In that
    case, the relevant information is returned in rnorm.
 
+   For computing eigenvectors, LAPACK's _trevc is used so the matrix must
+   be in (quasi-)triangular form, or call PSSolve() first.
+
    Level: advanced
 
 .seealso: PSSolve()

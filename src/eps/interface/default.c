@@ -103,73 +103,59 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
  */
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_TREVC)
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
-#else
   PetscErrorCode ierr;
-  PetscInt       i;
-  PetscBLASInt   ncv,nconv,mout,info,one = 1; 
-  PetscScalar    *Z,*work,tmp;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#else 
+  PetscInt       n,i,ld;
+  PetscBLASInt   one = 1; 
+  PetscScalar    *Z,tmp;
+#if !defined(PETSC_USE_COMPLEX)
   PetscReal      normi;
 #endif
   PetscReal      norm;
   Vec            w;
   
   PetscFunctionBegin;
-  ncv = PetscBLASIntCast(eps->ncv);
-  nconv = PetscBLASIntCast(eps->nconv);
   if (eps->ishermitian) {
     ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-
-  ierr = PetscMalloc(nconv*nconv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*nconv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(nconv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-#endif
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
   /* right eigenvectors */
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
-#else
-  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
-#endif
-  if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
   /* normalize eigenvectors (when not using purification nor balancing)*/
   if (!(eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D))) {
-    for (i=0;i<eps->nconv;i++) {
+    ierr = PSGetArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
-        norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
-        normi = BLASnrm2_(&nconv,Z+(i+1)*nconv,&one);
+        norm = BLASnrm2_(&n,Z+i*ld,&one);
+        normi = BLASnrm2_(&n,Z+(i+1)*ld,&one);
         tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-        BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
-        BLASscal_(&nconv,&tmp,Z+(i+1)*nconv,&one);
+        BLASscal_(&n,&tmp,Z+i*ld,&one);
+        BLASscal_(&n,&tmp,Z+(i+1)*ld,&one);
         i++;     
       } else
 #endif
       {
-        norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
+        norm = BLASnrm2_(&n,Z+i*ld,&one);
         tmp = 1.0 / norm;
-        BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
+        BLASscal_(&n,&tmp,Z+i*ld,&one);
       }
     }
+    ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
   }
   
   /* V = V * Z */
-  ierr = SlepcUpdateVectors(eps->nconv,eps->V,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PSGetArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
 
   /* Purify eigenvectors */
   if (eps->ispositive) {
     ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
-    for (i=0;i<eps->nconv;i++) {
+    for (i=0;i<n;i++) {
       ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr); 
       ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
     }
@@ -178,14 +164,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* Fix eigenvectors if balancing was used */
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-    for (i=0;i<eps->nconv;i++) {
+    for (i=0;i<n;i++) {
       ierr = VecPointwiseDivide(eps->V[i],eps->V[i],eps->D);CHKERRQ(ierr);
     }
   }
 
   /* normalize eigenvectors (when using purification or balancing) */
   if (eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
-    for (i=0;i<eps->nconv;i++) {
+    for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
         ierr = VecNorm(eps->V[i],NORM_2,&norm);CHKERRQ(ierr);
@@ -204,27 +190,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
    
   /* left eigenvectors */
   if (eps->leftvecs) {
-    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-    LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
-#else
-    LAPACKtrevc_("R","A",PETSC_NULL,&nconv,eps->Tl,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
-#endif
-    if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
-
+    ierr = PSVectors(eps->ps,PS_MAT_Y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     /* W = W * Z */
-    ierr = SlepcUpdateVectors(eps->nconv,eps->W,0,eps->nconv,Z,eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_Y,&Z);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(n,eps->W,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Y,&Z);CHKERRQ(ierr);
   }
-   
-  ierr = PetscFree(Z);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-#endif
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
-#endif 
 }
 
 #undef __FUNCT__  

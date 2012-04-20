@@ -67,12 +67,8 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
   PetscScalar    *X = ps->mat[PS_MAT_X];
   PetscScalar    *Y;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#endif
 
   PetscFunctionBegin;
-  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
   if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left eigenvectors");
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
@@ -95,23 +91,25 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
-  ierr = PetscMemcpy(ps->work,Y,mout*ld*sizeof(PetscScalar));CHKERRQ(ierr);
 
   /* accumulate and normalize eigenvectors */
-  BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work,&inc,&zero,Y,&inc);
+  if (ps->state>=PS_STATE_CONDENSED) {
+    ierr = PetscMemcpy(ps->work,Y,mout*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work,&inc,&zero,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
-  if (iscomplex) BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work+ld,&inc,&zero,Y+ld,&inc);
+    if (iscomplex) BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work+ld,&inc,&zero,Y+ld,&inc);
 #endif
-  norm = BLASnrm2_(&n,Y,&inc);
+    norm = BLASnrm2_(&n,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
-  tmp  = BLASnrm2_(&n,Y+ld,&inc);
-  norm = SlepcAbsEigenvalue(norm,tmp);
+    tmp  = BLASnrm2_(&n,Y+ld,&inc);
+    norm = SlepcAbsEigenvalue(norm,tmp);
 #endif
-  tmp = 1.0 / norm;
-  BLASscal_(&n,&tmp,Y,&inc);
+    tmp = 1.0 / norm;
+    BLASscal_(&n,&tmp,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
-  BLASscal_(&n,&tmp,Y+ld,&inc);
+    BLASscal_(&n,&tmp,Y+ld,&inc);
 #endif
+  }
 
   /* set output arguments */
   if (iscomplex) (*k)++;
@@ -133,32 +131,32 @@ PetscErrorCode PSVectors_NHEP_Eigen_All(PS ps,PetscBool left)
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,mout,info;
-  PetscScalar    *A = ps->mat[PS_MAT_A];
-  PetscScalar    *Q = ps->mat[PS_MAT_Q];
-  PetscScalar    *X,*Y;
-  const char     *side;
+  PetscScalar    *X,*Y,*A = ps->mat[PS_MAT_A];
+  const char     *side,*back;
 
   PetscFunctionBegin;
-  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
   if (left) {
     X = PETSC_NULL;
     Y = ps->mat[PS_MAT_Y];
     side = "L";
-    ierr = PetscMemcpy(Y,Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   } else {
     X = ps->mat[PS_MAT_X];
     Y = PETSC_NULL;
     side = "R";
-    ierr = PetscMemcpy(X,Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   }
+  if (ps->state>=PS_STATE_CONDENSED) {
+    /* PSSolve() has been called, backtransform with matrix Q */
+    back = "B";
+    ierr = PetscMemcpy(left?Y:X,ps->mat[PS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  } else back = "A";
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PSAllocateWork_Private(ps,3*ld,0,0);CHKERRQ(ierr); 
-  LAPACKtrevc_(side,"B",PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,&info);
+  LAPACKtrevc_(side,back,PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,&info);
 #else
   ierr = PSAllocateWork_Private(ps,2*ld,ld,0);CHKERRQ(ierr); 
-  LAPACKtrevc_(side,"B",PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,ps->rwork,&info);
+  LAPACKtrevc_(side,back,PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,ps->rwork,&info);
 #endif
   if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);

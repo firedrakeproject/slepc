@@ -134,6 +134,10 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->which_ctx = data.which_ctx;
   }
 
+  /* finished iteration, truncate the Schur decomposition */
+  ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+
   ierr = STGetMatMode(eps->OP,&matmode);CHKERRQ(ierr);
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
     /* Purify eigenvectors before reverting operator */
