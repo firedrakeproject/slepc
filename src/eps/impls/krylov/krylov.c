@@ -78,10 +78,6 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
      getall - whether all residuals must be computed
      kini  - initial value of k (the loop variable)
      nits  - number of iterations of the loop
-     S     - Schur form of projected matrix (not referenced if issym)
-     lds   - leading dimension of S
-     Q     - Schur vectors of projected matrix (eigenvectors if issym)
-     ldq   - leading dimension of Q
      V     - set of basis vectors (used only if trueresidual is activated)
      nv    - number of vectors to process (dimension of Q, columns of V)
      beta  - norm of f (the residual vector of the Arnoldi/Lanczos factorization)
@@ -89,20 +85,17 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
 
    Output Parameters:
      kout  - the first index where the convergence test failed
-
-   Workspace:
-     work is workspace to store 5*nv scalars, nv booleans and nv reals (only if !issym)
 */
-PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool getall,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt ldq,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout,PetscScalar *work)
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool getall,PetscInt kini,PetscInt nits,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,marker;
-  PetscScalar    re,im,*Z = work,*work2 = work;
+  PetscInt       k,newk,marker,ld;
+  PetscScalar    re,im,*Z,*X;
   PetscReal      resnorm;
-  PetscBool      iscomplex,isshift;
+  PetscBool      isshift;
 
   PetscFunctionBegin;
-  if (!issym) { Z = work; work2 = work+2*nv; }
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
   ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
   marker = -1;
   getall = getall | eps->trackall;
@@ -113,25 +106,23 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool getall,Pet
     if (eps->trueres || isshift) {
       ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
     }
-    iscomplex = PETSC_FALSE;
-    if (!issym && k<nv-1 && S[k+1+k*lds] != 0.0) iscomplex = PETSC_TRUE;
-    /* residual norm */
-    if (issym) {
-      resnorm = beta*PetscAbsScalar(Q[nv-1+(k-kini)*ldq]);
-    } else {
-      ierr = DenseSelectedEvec(S,lds,Q,ldq,Z,k,iscomplex,nv,work2);CHKERRQ(ierr);
-      if (iscomplex) resnorm = beta*SlepcAbsEigenvalue(Z[nv-1],Z[2*nv-1]);
-      else resnorm = beta*PetscAbsScalar(Z[nv-1]);
-    }
+    newk = k;
+    if (issym) newk -= kini;
+    ierr = PSVectors(eps->ps,PS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    if (issym) newk += kini;
+    resnorm *= beta;
     if (eps->trueres) {
-      if (issym) Z = Q+(k-kini)*ldq;
+      ierr = PSGetArray(eps->ps,PS_MAT_X,&X);CHKERRQ(ierr);
+      if (issym) Z = X+(k-kini)*ld;
+      else Z = X+k*ld;
       ierr = EPSComputeTrueResidual(eps,re,im,Z,V,nv,&resnorm);CHKERRQ(ierr);
+      ierr = PSRestoreArray(eps->ps,PS_MAT_X,&X);CHKERRQ(ierr);
     }
     else resnorm *= corrf;
     /* error estimate */
     ierr = (*eps->conv_func)(eps,re,im,resnorm,&eps->errest[k],eps->conv_ctx);CHKERRQ(ierr);
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
-    if (iscomplex) { eps->errest[k+1] = eps->errest[k]; k++; }
+    if (newk==k+1) { eps->errest[k+1] = eps->errest[k]; k++; }
     if (marker!=-1 && !getall) break;
   }
   if (marker!=-1) k = marker;

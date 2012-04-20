@@ -328,7 +328,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscErrorCode     ierr;
   PetscInt           i,k,nv,ld;
   Vec                f=eps->work[0];
-  PetscScalar        *H,*U,*work,*Hcopy;
+  PetscScalar        *H,*U,*Hcopy;
   PetscReal          beta,gamma=1.0;
   PetscBool          breakdown,harmonic,refined;
   IPOrthogRefineType orthog_ref;
@@ -336,7 +336,6 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(7*ld*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   refined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (refined) { ierr = PetscMalloc((ld+1)*ld*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr); }
@@ -381,7 +380,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     /* Check convergence */ 
     ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,PETSC_FALSE,eps->nconv,nv-eps->nconv,H,ld,U,ld,eps->V,nv,beta,gamma,&k,work);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
 
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,ld);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
@@ -401,7 +400,6 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
   
-  ierr = PetscFree(work);CHKERRQ(ierr);
   if (refined) { ierr = PetscFree(Hcopy);CHKERRQ(ierr); }
   ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
   ierr = PetscMemcpy(eps->T,H,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);

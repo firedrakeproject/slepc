@@ -348,7 +348,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     ierr = PSSort(eps->ps,eps->eigr+eps->nconv,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
     /* Residual */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,PETSC_TRUE,eps->nconv,nv,PETSC_NULL,ld,Q,ld,eps->V+eps->nconv,nv,beta,1.0,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,PETSC_TRUE,eps->nconv,nv,eps->V+eps->nconv,nv,beta,1.0,&k);CHKERRQ(ierr);
     /* Check convergence */ 
     ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;

@@ -165,13 +165,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,k,l,nv,ld;
   Vec            u=eps->work[0];
-  PetscScalar    *S,*Q,*g,*work;
+  PetscScalar    *S,*Q,*g;
   PetscReal      beta,gamma=1.0;
   PetscBool      breakdown,harmonic;
 
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(7*ld*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
 
@@ -208,7 +207,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     /* Check convergence */ 
     ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,PETSC_FALSE,eps->nconv,nv-eps->nconv,S,ld,Q,ld,eps->V,nv,beta,gamma,&k,work);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
@@ -268,7 +267,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   } 
 
-  ierr = PetscFree(work);CHKERRQ(ierr);
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
   ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
   ierr = PetscMemcpy(eps->T,S,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
