@@ -73,8 +73,6 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->ncv,&ctx->AV);CHKERRQ(ierr);
-  ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   if (eps->ishermitian) {
     ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
   } else {
@@ -333,9 +331,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-  ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
-  ierr = PetscMemcpy(eps->T,T,sizeof(PetscScalar)*ncv*ncv);CHKERRQ(ierr);
-  ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -348,7 +343,6 @@ PetscErrorCode EPSReset_Subspace(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecDestroyVecs(eps->ncv,&ctx->AV);CHKERRQ(ierr);
-  ierr = PetscFree(eps->T);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

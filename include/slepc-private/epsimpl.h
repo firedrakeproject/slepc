@@ -84,8 +84,7 @@ struct _p_EPS {
               *W,               /* set of left basis vectors and computed left eigenvectors */
               *IS, *ISL,        /* placeholder for references to user-provided initial space */
               *DS;              /* deflation space */
-  PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
-              *T;               /* projected matrix */
+  PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
   PetscReal   *errest,          /* error estimates */
               *errest_left;     /* left error estimates */
   ST          OP;               /* spectral transformation object */

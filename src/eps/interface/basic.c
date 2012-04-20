@@ -471,7 +471,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->V               = 0;
   eps->W               = 0;
-  eps->T               = 0;
   eps->D               = 0;
   eps->DS              = 0;
   eps->IS              = 0;

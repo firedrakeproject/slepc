@@ -104,10 +104,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  if (!eps->ishermitian || eps->extraction==EPS_HARMONIC) {
-    ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
-  }
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
@@ -268,21 +264,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   } 
 
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
-  ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-  ierr = PetscMemcpy(eps->T,S,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
-  ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSReset_KrylovSchur"
-PetscErrorCode EPSReset_KrylovSchur(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -293,7 +274,7 @@ PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
   PetscFunctionBegin;
   eps->ops->setup          = EPSSetUp_KrylovSchur;
-  eps->ops->reset          = EPSReset_KrylovSchur;
+  eps->ops->reset          = EPSReset_Default;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);

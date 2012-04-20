@@ -72,8 +72,6 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->ncv*eps->ncv*sizeof(PetscScalar),&eps->T);CHKERRQ(ierr);
   ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
   ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
@@ -401,9 +399,6 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   }
   
   if (refined) { ierr = PetscFree(Hcopy);CHKERRQ(ierr); }
-  ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
-  ierr = PetscMemcpy(eps->T,H,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
-  ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -516,18 +511,6 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSReset_Arnoldi"
-PetscErrorCode EPSReset_Arnoldi(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(eps->T);CHKERRQ(ierr);
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSDestroy_Arnoldi"
 PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
 {
@@ -569,7 +552,7 @@ PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   eps->ops->setup                = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
   eps->ops->destroy              = EPSDestroy_Arnoldi;
-  eps->ops->reset                = EPSReset_Arnoldi;
+  eps->ops->reset                = EPSReset_Default;
   eps->ops->view                 = EPSView_Arnoldi;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
