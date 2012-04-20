@@ -36,6 +36,41 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSSwitchFormat_HEP"
+PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
+{
+  PetscReal   *T = ps->rmat[PS_MAT_T];
+  PetscScalar *A = ps->mat[PS_MAT_A];
+  PetscInt    i,n=ps->n,k=ps->k,ld=ps->ld;
+
+  PetscFunctionBegin;
+  if (ps->compact==tocompact) PetscFunctionReturn(0);
+  if (tocompact) { /* switch from dense (arrow) to compact storage */
+    for (i=0;i<k;i++) {
+      T[i] = PetscRealPart(A[i+i*ld]);
+      T[i+ld] = PetscRealPart(A[k+i*ld]);
+    }
+    for (i=k;i<n;i++) {
+      T[i] = PetscRealPart(A[i+i*ld]);
+      T[i+ld] = PetscRealPart(A[i+1+i*ld]);
+    }
+  } else { /* switch from compact (arrow) to dense storage */
+    for (i=0;i<k;i++) {
+      A[i+i*ld] = T[i];
+      A[k+i*ld] = T[i+ld];
+      A[i+k*ld] = T[i+ld];
+    }
+    A[k+k*ld] = T[k];
+    for (i=k+1;i<n;i++) {
+      A[i+i*ld] = T[i];
+      A[i-1+i*ld] = T[i-1+ld];
+      A[i+(i-1)*ld] = T[i-1+ld];
+    } 
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSView_HEP"
 PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
 {
@@ -276,7 +311,6 @@ PetscErrorCode PSCond_HEP(PS ps,PetscReal *cond)
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  if (ps->compact) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for compact storage");
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
   lwork = 8*ld;
@@ -284,6 +318,7 @@ PetscErrorCode PSCond_HEP(PS ps,PetscReal *cond)
   work  = ps->work;
   rwork = ps->rwork;
   ipiv  = ps->iwork;
+  ierr = PSSwitchFormat_HEP(ps,PETSC_FALSE);CHKERRQ(ierr);
 
   /* use workspace matrix W to avoid overwriting A */
   ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
