@@ -46,7 +46,6 @@ int main( int argc, char **argv )
   /* Create PS object */
   ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
   ierr = PSSetType(ps,PSHEP);CHKERRQ(ierr);
-  ierr = PSSetCompact(ps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
@@ -62,6 +61,7 @@ int main( int argc, char **argv )
   }
 
   /* Fill arrow-tridiagonal matrix */
+  ierr = PSSetCompact(ps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PSGetArrayReal(ps,PS_MAT_T,&T);CHKERRQ(ierr);
   for (i=0;i<n;i++) T[i] = (PetscReal)(i+1);
   for (i=l;i<n-1;i++) T[i+ld] = 1.0;

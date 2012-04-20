@@ -146,6 +146,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
+      ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;

@@ -196,6 +196,9 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
     ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n;i++) A[i+i*ld] = d[i];
   }
+
+  /* The result is stored in both places (compact and regular) */
+  ps->compact = PETSC_TRUE;
   PetscFunctionReturn(0);
 #endif
 }

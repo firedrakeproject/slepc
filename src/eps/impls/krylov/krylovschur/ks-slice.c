@@ -241,7 +241,8 @@ static PetscErrorCode EPSUpdateShiftRKS(PS ps,PetscReal sigma1,PetscReal sigma2)
   ierr = PSRestoreArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
   ierr = PSRestoreArray(ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
   ierr = PSRestoreArray(ps,PS_MAT_W,&R);CHKERRQ(ierr);
-  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = PSSetState(ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = PSSetCompact(ps,PETSC_FALSE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -340,11 +341,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       }
       ierr = PSRestoreArray(eps->ps,PS_MAT_A,&A);CHKERRQ(ierr);
       ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-      ierr = PSSetCompact(eps->ps,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PSSolve(eps->ps,eps->eigr+eps->nconv,PETSC_NULL);CHKERRQ(ierr);
-      ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
     }else{/* Restart */
-      ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
       ierr = PSSolve(eps->ps,eps->eigr+eps->nconv,PETSC_NULL);CHKERRQ(ierr);
     }
     ierr = PSSort(eps->ps,eps->eigr+eps->nconv,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
