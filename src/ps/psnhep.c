@@ -49,6 +49,155 @@ PetscErrorCode PSView_NHEP(PS ps,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSVectors_NHEP_Eigen_Some"
+PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,PetscBool left)
+{
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   mm,mout,info,ld,n,inc = 1;
+  PetscScalar    tmp,done=1.0,zero=0.0;
+  PetscReal      norm;
+  PetscBool      iscomplex = PETSC_FALSE;
+  PetscBLASInt   *select;
+  PetscScalar    *A = ps->mat[PS_MAT_A];
+  PetscScalar    *Q = ps->mat[PS_MAT_Q];
+  PetscScalar    *X = ps->mat[PS_MAT_X];
+  PetscScalar    *Y;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+
+  PetscFunctionBegin;
+  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
+  if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left eigenvectors");
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
+  if ((*k)<n-1 && A[(*k)+1+(*k)*ld]!=0.0) iscomplex = PETSC_TRUE;
+  ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
+  select = ps->iwork;
+  for (i=0;i<n;i++) select[i] = (PetscBLASInt)PETSC_FALSE;
+
+  /* Compute k-th eigenvector Y of A */
+  Y = X+(*k)*ld;
+  mm = iscomplex? 2: 1;
+  select[*k] = (PetscBLASInt)PETSC_TRUE;
+#if !defined(PETSC_USE_COMPLEX)
+  if (iscomplex) select[(*k)+1] = (PetscBLASInt)PETSC_TRUE;
+  ierr = PSAllocateWork_Private(ps,3*ld,0,0);CHKERRQ(ierr); 
+  LAPACKtrevc_("R","S",select,&n,A,&ld,PETSC_NULL,&ld,Y,&ld,&mm,&mout,ps->work,&info);
+#else
+  ierr = PSAllocateWork_Private(ps,2*ld,ld,0);CHKERRQ(ierr); 
+  LAPACKtrevc_("R","S",select,&n,A,&ld,PETSC_NULL,&ld,Y,&ld,&mm,&mout,ps->work,ps->rwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
+  if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
+  ierr = PetscMemcpy(ps->work,Y,mout*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+
+  /* accumulate and normalize eigenvectors */
+  BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work,&inc,&zero,Y,&inc);
+#if !defined(PETSC_USE_COMPLEX)
+  if (iscomplex) BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work+ld,&inc,&zero,Y+ld,&inc);
+#endif
+  norm = BLASnrm2_(&n,Y,&inc);
+#if !defined(PETSC_USE_COMPLEX)
+  tmp  = BLASnrm2_(&n,Y+ld,&inc);
+  norm = SlepcAbsEigenvalue(norm,tmp);
+#endif
+  tmp = 1.0 / norm;
+  BLASscal_(&n,&tmp,Y,&inc);
+#if !defined(PETSC_USE_COMPLEX)
+  BLASscal_(&n,&tmp,Y+ld,&inc);
+#endif
+
+  /* set output arguments */
+  if (iscomplex) (*k)++;
+  if (rnorm) {
+    if (iscomplex) *rnorm = SlepcAbsEigenvalue(Y[n-1],Y[n-1+ld]);
+    else *rnorm = PetscAbsScalar(Y[n-1]);
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSVectors_NHEP_Eigen_All"
+PetscErrorCode PSVectors_NHEP_Eigen_All(PS ps,PetscBool left)
+{
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscBLASInt   n,ld,mout,info;
+  PetscScalar    *A = ps->mat[PS_MAT_A];
+  PetscScalar    *Q = ps->mat[PS_MAT_Q];
+  PetscScalar    *X,*Y;
+  const char     *side;
+
+  PetscFunctionBegin;
+  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
+  if (left) {
+    X = PETSC_NULL;
+    Y = ps->mat[PS_MAT_Y];
+    side = "L";
+    ierr = PetscMemcpy(Y,Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  } else {
+    X = ps->mat[PS_MAT_X];
+    Y = PETSC_NULL;
+    side = "R";
+    ierr = PetscMemcpy(X,Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PSAllocateWork_Private(ps,3*ld,0,0);CHKERRQ(ierr); 
+  LAPACKtrevc_(side,"B",PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,&info);
+#else
+  ierr = PSAllocateWork_Private(ps,2*ld,ld,0);CHKERRQ(ierr); 
+  LAPACKtrevc_(side,"B",PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,ps->rwork,&info);
+#endif
+  if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSVectors_NHEP"
+PetscErrorCode PSVectors_NHEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  switch (mat) {
+    case PS_MAT_X:
+      if (k) {
+        ierr = PSVectors_NHEP_Eigen_Some(ps,k,rnorm,PETSC_FALSE);CHKERRQ(ierr);
+      } else {
+        ierr = PSVectors_NHEP_Eigen_All(ps,PETSC_FALSE);CHKERRQ(ierr);
+      }
+      break;
+    case PS_MAT_Y:
+      if (k) {
+        ierr = PSVectors_NHEP_Eigen_Some(ps,k,rnorm,PETSC_TRUE);CHKERRQ(ierr);
+      } else {
+        ierr = PSVectors_NHEP_Eigen_All(ps,PETSC_TRUE);CHKERRQ(ierr);
+      }
+      break;
+    case PS_MAT_U:
+    case PS_MAT_VT:
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      break;
+    default:
+      SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve_NHEP"
 PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
@@ -338,7 +487,7 @@ PetscErrorCode PSCreate_NHEP(PS ps)
   ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_NHEP;
   ps->ops->view          = PSView_NHEP;
-  //ps->ops->computevector = PSComputeVector_NHEP;
+  ps->ops->vectors       = PSVectors_NHEP;
   ps->ops->solve         = PSSolve_NHEP;
   ps->ops->sort          = PSSort_NHEP;
   ps->ops->cond          = PSCond_NHEP;

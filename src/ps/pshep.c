@@ -92,6 +92,36 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSVectors_HEP"
+PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
+{
+  PetscScalar    *Q = ps->mat[PS_MAT_Q];
+  PetscInt       ld = ps->ld;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
+  switch (mat) {
+    case PS_MAT_X:
+    case PS_MAT_Y:
+      if (k) {
+        ierr = PetscMemcpy(ps->mat[mat]+(*k)*ld,Q+(*k)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+      } else {
+        ierr = PetscMemcpy(ps->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+      if (rnorm) *rnorm = PetscAbsScalar(Q[ps->n-1+(*k)*ld]);
+      break;
+    case PS_MAT_U:
+    case PS_MAT_VT:
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      break;
+    default:
+      SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve_HEP"
 PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
@@ -284,7 +314,7 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_HEP;
   ps->ops->view          = PSView_HEP;
-  //ps->ops->computevector = PSComputeVector_HEP;
+  ps->ops->vectors       = PSVectors_HEP;
   ps->ops->solve         = PSSolve_HEP;
   ps->ops->sort          = PSSort_HEP;
   ps->ops->cond          = PSCond_HEP;

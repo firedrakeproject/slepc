@@ -27,7 +27,7 @@ LOCDIR     = src/ps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c
 EXAMPLESF  = 
 MANSEC     = PS
-TESTS      = test1 test2 test2
+TESTS      = test1 test2 test3
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                      = test2.PETSc runtest2_1 test2.rm \

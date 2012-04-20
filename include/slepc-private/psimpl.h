@@ -24,7 +24,7 @@
 
 #include <slepcps.h>
 
-extern PetscLogEvent PS_Solve,PS_Sort,PS_Other;
+extern PetscLogEvent PS_Solve,PS_Sort,PS_Vectors,PS_Other;
 extern const char *PSMatName[];
 
 typedef struct _PSOps *PSOps;
@@ -32,7 +32,7 @@ typedef struct _PSOps *PSOps;
 struct _PSOps {
   PetscErrorCode (*allocate)(PS,PetscInt);
   PetscErrorCode (*view)(PS,PetscViewer);
-  PetscErrorCode (*computevector)(PS,PetscInt,PSMatType,PetscBool*);
+  PetscErrorCode (*vectors)(PS,PSMatType,PetscInt*,PetscReal*);
   PetscErrorCode (*solve)(PS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*,PetscErrorCode(*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
   PetscErrorCode (*cond)(PS,PetscReal*);

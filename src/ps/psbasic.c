@@ -26,7 +26,7 @@
 PetscFList       PSList = 0;
 PetscBool        PSRegisterAllCalled = PETSC_FALSE;
 PetscClassId     PS_CLASSID = 0;
-PetscLogEvent    PS_Solve = 0,PS_Sort = 0,PS_Other = 0;
+PetscLogEvent    PS_Solve = 0,PS_Sort = 0,PS_Vectors = 0,PS_Other = 0;
 static PetscBool PSPackageInitialized = PETSC_FALSE;
 const char       *PSMatName[PS_NUM_MAT] = {"A","B","C","T","Q","X","Y","U","VT","W"};
 
@@ -80,6 +80,7 @@ PetscErrorCode PSInitializePackage(const char *path)
   /* Register Events */
   ierr = PetscLogEventRegister("PSSolve",PS_CLASSID,&PS_Solve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PSSort",PS_CLASSID,&PS_Sort);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("PSVectors",PS_CLASSID,&PS_Vectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PSOther",PS_CLASSID,&PS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
@@ -521,7 +522,7 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
 /*@
    PSAllocate - Allocates memory for internal storage or matrices in PS.
 
-   Collective on PS
+   Logically Collective on PS
 
    Input Parameters:
 +  ps - the projected system context

@@ -54,7 +54,7 @@ PetscErrorCode PSGetLeadingDimension(PS ps,PetscInt *ld)
 /*@
    PSSetState - Change the state of the PS object.
 
-   Collective on PS
+   Logically Collective on PS
 
    Input Parameters:
 +  ps    - the projected system context
@@ -125,7 +125,7 @@ PetscErrorCode PSGetState(PS ps,PSStateType *state)
 /*@
    PSSetDimensions - Resize the matrices in the PS object.
 
-   Collective on PS
+   Logically Collective on PS
 
    Input Parameters:
 +  ps - the projected system context
@@ -333,7 +333,7 @@ PetscErrorCode PSRestoreArrayReal(PS ps,PSMatType m,PetscReal *a[])
 /*@
    PSSolve - Solves the problem.
 
-   Not Collective
+   Logically Collective on PS
 
    Input Parameters:
 +  ps   - the projected system context
@@ -365,6 +365,98 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Solve,ps,0,0,0);CHKERRQ(ierr);
   ps->state = PS_STATE_CONDENSED;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSort"
+/*@C
+   PSSort - Reorders the condensed form computed by PSSolve() according to
+   a given sorting criterion.
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps - the projected system context
+.  eigr - array to store the sorted eigenvalues (real part)
+-  eigi - array to store the sorted eigenvalues (imaginary part)
+
+   Level: advanced
+
+.seealso: PSSolve()
+@*/
+PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(eigr,2);
+  if (ps->state!=PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
+  if (!ps->ops->sort) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (ps->state>=PS_STATE_SORTED) PetscFunctionReturn(0);
+  ierr = PetscLogEventBegin(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->sort)(ps,eigr,eigi,comp_func,comp_ctx);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
+  ps->state = PS_STATE_SORTED;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSVectors"
+/*@
+   PSVectors - Compute vectors associated to the projected system such
+   as eigenvectors.
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps  - the projected system context
+-  mat - the matrix, used to indicate which vectors are required
+
+   Input/Output Parameter:
+-  k   - (optional) index of vector to be computed
+
+   Output Parameter:
+.  rnorm - (optional) computed residual norm
+
+   Notes:
+   Allowed values for mat are PS_MAT_X, PS_MAT_Y, PS_MAT_U and PS_MAT_VT, to
+   compute right or left eigenvectors, or left or right singular vectors,
+   respectively.
+
+   If PETSC_NULL is passed in argument k then all vectors are computed,
+   otherwise k indicates which vector must be computed. In real non-symmetric
+   problems, on exit the index k will be incremented when a complex conjugate
+   pair is found.
+
+   This function can be invoked after the projected problem has been solved,
+   to get the residual norm estimate of the associated Ritz pair. In that
+   case, the relevant information is returned in rnorm.
+
+   Level: advanced
+
+.seealso: PSSolve()
+@*/
+PetscErrorCode PSVectors(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ps,mat,2);
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  if (!ps->ops->vectors) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  ierr = PSAllocateMat_Private(ps,mat);CHKERRQ(ierr); 
+  ierr = PetscLogEventBegin(PS_Vectors,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->vectors)(ps,mat,k,rnorm);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Vectors,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -402,48 +494,11 @@ PetscErrorCode PSCond(PS ps,PetscReal *cond)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSort"
-/*@C
-   PSSort - Reorders the condensed form computed by PSSolve() according to
-   a given sorting criterion.
-
-   Not Collective
-
-   Input Parameters:
-+  ps - the projected system context
-.  eigr - array to store the sorted eigenvalues (real part)
--  eigi - array to store the sorted eigenvalues (imaginary part)
-
-   Level: advanced
-
-.seealso: PSSolve()
-@*/
-PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidPointer(eigr,2);
-  if (ps->state!=PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
-  if (!ps->ops->sort) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
-  if (ps->state>=PS_STATE_SORTED) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ps->ops->sort)(ps,eigr,eigi,comp_func,comp_ctx);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
-  ps->state = PS_STATE_SORTED;
-  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "PSTranslateHarmonic"
 /*@C
    PSTranslateHarmonic - Computes a translation of the projected matrix.
 
-   Not Collective
+   Logically Collective on PS
 
    Input Parameters:
 +  ps      - the projected system context

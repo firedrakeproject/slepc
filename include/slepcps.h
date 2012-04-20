@@ -89,7 +89,7 @@ typedef enum { PS_STATE_RAW,
 
     Level: advanced
 
-.seealso: PSAllocate(), PSGetArray(), PSGetArrayReal(), PSComputeVector()
+.seealso: PSAllocate(), PSGetArray(), PSGetArrayReal(), PSVectors()
 E*/
 typedef enum { PS_MAT_A,
                PS_MAT_B,
@@ -128,7 +128,7 @@ extern PetscErrorCode PSGetArray(PS,PSMatType,PetscScalar *a[]);
 extern PetscErrorCode PSRestoreArray(PS,PSMatType,PetscScalar *a[]);
 extern PetscErrorCode PSGetArrayReal(PS,PSMatType,PetscReal *a[]);
 extern PetscErrorCode PSRestoreArrayReal(PS,PSMatType,PetscReal *a[]);
-extern PetscErrorCode PSComputeVector(PS,PetscInt,PSMatType,PetscBool*);
+extern PetscErrorCode PSVectors(PS,PSMatType,PetscInt*,PetscReal*);
 extern PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
 extern PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 extern PetscErrorCode PSCond(PS,PetscReal*);
