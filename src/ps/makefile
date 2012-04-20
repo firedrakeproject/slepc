@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = psbasic.c psops.c pshep.c psnhep.c
+SOURCEC  = psbasic.c psops.c pshep.c psnhep.c psghiep.c
 SOURCEF  = 
 SOURCEH  = ../../include/slepc-private/psimpl.h ../../include/slepcps.h
-OBJSC    = psbasic.o psops.o pshep.o psnhep.o
+OBJSC    = psbasic.o psops.o pshep.o psnhep.o psghiep.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = PS

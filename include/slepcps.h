@@ -49,6 +49,7 @@ E*/
 #define PSHEP             "hep"
 #define PSNHEP            "nhep"
 #define PSGHEP            "ghep"
+#define PSGHIEP           "ghiep"
 #define PSGNHEP           "gnhep"
 #define PSSVD             "svd"
 #define PSQEP             "qep"
