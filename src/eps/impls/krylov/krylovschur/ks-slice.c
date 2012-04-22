@@ -182,71 +182,6 @@ static PetscErrorCode EPSExtractShift(EPS eps){
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "EPSUpdateShiftRKS"
-static PetscErrorCode EPSUpdateShiftRKS(PS ps,PetscReal sigma1,PetscReal sigma2)
-{
-#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable.");
-#else
-  PetscErrorCode ierr;
-  PetscInt       i,j,l,ld;
-  PetscScalar    *Q,*A,*tau,*R,*work,alpha;
-  PetscBLASInt   n1,n0,ld_,lwork,info;
-
-  PetscFunctionBegin;
-  ierr = PSGetDimensions(ps,PETSC_NULL,PETSC_NULL,&l);
-  ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
-  ierr = PSAllocateWork_Private(ps,ld*ld,0,0);CHKERRQ(ierr);
-  tau = ps->work;
-  work = tau + ld;
-  lwork = PetscBLASIntCast(ld*(ld-1));
-  ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
-  ierr = PSGetArray(ps,PS_MAT_W,&R);CHKERRQ(ierr);
-  ierr = PSGetArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = PSGetArray(ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMemzero(R,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<l;i++){
-    Q[i+i*ld] = 1.0+(sigma1-sigma2)*A[i+i*ld];
-    Q[l+i*ld] = (sigma1-sigma2)*A[l+i*ld];
-  }
-  /* Compute qr */
-  ld_ = PetscBLASIntCast(ld);
-  n1 = PetscBLASIntCast(l+1);
-  n0 = PetscBLASIntCast(l);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  LAPACKgeqrf_(&n1,&n0,Q,&ld_,tau,work,&lwork,&info);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
-  /* Copying R from Q */
-  for (j=0;j<l;j++)
-    for(i=0;i<=j;i++)
-      R[i+j*ld]=Q[i+j*ld];
-  
-  /* Compute the orthogonal matrix in Q */
-  LAPACKorgqr_(&n1,&n1,&n0,Q,&ld_,tau,work,&lwork,&info);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  /* Compute the updated matrix of projected problem */
-  for(j=0;j<l;j++){
-    for(i=0;i<l+1;i++)
-      A[j*ld+i]=Q[i*ld+j];
-  }
-  alpha = -1.0/(sigma1-sigma2);
-  BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld_,A,&ld_);
-  for(i=0;i<l;i++)
-    A[ld*i+i]-=alpha;
-  ierr = PSRestoreArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = PSRestoreArray(ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-  ierr = PSRestoreArray(ps,PS_MAT_W,&R);CHKERRQ(ierr);
-  ierr = PSSetState(ps,PS_STATE_RAW);CHKERRQ(ierr);
-  ierr = PSSetCompact(ps,PETSC_FALSE);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-#endif
-}
-
 /*
    Symmetric KrylovSchur adapted to spectrum slicing:
    Allows searching an specific amount of eigenvalues in the subintervals left and right.
@@ -295,8 +230,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   if(sr->nS > 0 && (sPres->neighb[0] == sr->sPrev || sPres->neighb[1] == sr->sPrev) ){
     /* Rational Krylov */
-    ierr = EPSUpdateShiftRKS(eps->ps,sr->sPrev->value,sPres->value);CHKERRQ(ierr);
-    /* Update vectors */
+    ierr = PSTranslateRKS(eps->ps,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = PSGetDimensions(eps->ps,PETSC_NULL,PETSC_NULL,&l);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(l+1,eps->V,0,l+1,Q,ld,PETSC_FALSE);CHKERRQ(ierr);

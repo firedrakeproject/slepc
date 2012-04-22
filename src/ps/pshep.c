@@ -340,6 +340,61 @@ PetscErrorCode PSCond_HEP(PS ps,PetscReal *cond)
 #endif
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "PSTranslateRKS_HEP"
+PetscErrorCode PSTranslateRKS_HEP(PS ps,PetscScalar alpha)
+{
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routines are unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j,k=ps->k;
+  PetscScalar    *Q,*A,*R,*tau,*work;
+  PetscBLASInt   ld,n1,n0,lwork,info;
+
+  PetscFunctionBegin;
+  ld = PetscBLASIntCast(ps->ld);
+  ierr = PSAllocateWork_Private(ps,ld*ld,0,0);CHKERRQ(ierr);
+  tau = ps->work;
+  work = ps->work+ld;
+  lwork = PetscBLASIntCast(ld*(ld-1));
+  ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
+  A  = ps->mat[PS_MAT_A];
+  Q  = ps->mat[PS_MAT_Q];
+  R  = ps->mat[PS_MAT_W];
+  /* Copy I+alpha*A */
+  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMemzero(R,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<k;i++) {
+    Q[i+i*ld] = 1.0 + alpha*A[i+i*ld];
+    Q[k+i*ld] = alpha*A[k+i*ld];
+  }
+  /* Compute qr */
+  n1 = PetscBLASIntCast(k+1);
+  n0 = PetscBLASIntCast(k);
+  LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  /* Copy R from Q */
+  for (j=0;j<k;j++)
+    for(i=0;i<=j;i++)
+      R[i+j*ld] = Q[i+j*ld];
+  /* Compute orthogonal matrix in Q */
+  LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  /* Compute the updated matrix of projected problem */
+  for(j=0;j<k;j++){
+    for(i=0;i<k+1;i++)
+      A[j*ld+i] = Q[i*ld+j];
+  }
+  alpha = -1.0/alpha;
+  BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld,A,&ld);
+  for(i=0;i<k;i++)
+    A[ld*i+i]-=alpha;
+  PetscFunctionReturn(0);
+#endif
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "PSCreate_HEP"
@@ -353,6 +408,7 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->ops->solve         = PSSolve_HEP;
   ps->ops->sort          = PSSort_HEP;
   ps->ops->cond          = PSCond_HEP;
+  ps->ops->transrks      = PSTranslateRKS_HEP;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -534,13 +534,57 @@ PetscErrorCode PSTranslateHarmonic(PS ps,PetscScalar tau,PetscReal beta,PetscBoo
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  if (!ps->ops->translate) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (!ps->ops->transharm) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
   ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ps->ops->translate)(ps,tau,beta,recover,g,gamma);CHKERRQ(ierr);
+  ierr = (*ps->ops->transharm)(ps,tau,beta,recover,g,gamma);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
   ps->state = PS_STATE_RAW;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSTranslateRKS"
+/*@C
+   PSTranslateRKS - Computes a modification of the projected matrix corresponding
+   to an update of the shift in a rational Krylov method.
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps    - the projected system context
+-  alpha - the translation amount
+
+   Notes:
+   This function is intended for use in the context of Krylov methods only.
+   It takes the leading (k+1,k) submatrix of A, containing the truncated
+   Rayleigh quotient of a Krylov-Schur relation computed from a shift
+   sigma1 and transforms it to obtain a Krylov relation as if computed 
+   from a different shift sigma2. The new matrix is computed as
+   1.0/alpha*(eye(k)-Q*inv(R)), where [Q,R]=qr(eye(k)-alpha*A) and
+   alpha = sigma1-sigma2.
+
+   Matrix Q is placed in PS_MAT_Q so that it can be used to update the
+   Krylov basis.
+
+   Level: developer
+@*/
+PetscErrorCode PSTranslateRKS(PS ps,PetscScalar alpha)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (!ps->ops->transrks) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->transrks)(ps,alpha);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ps->state   = PS_STATE_RAW;
+  ps->compact = PETSC_FALSE;
   ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

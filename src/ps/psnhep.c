@@ -489,7 +489,7 @@ PetscErrorCode PSCreate_NHEP(PS ps)
   ps->ops->solve         = PSSolve_NHEP;
   ps->ops->sort          = PSSort_NHEP;
   ps->ops->cond          = PSCond_NHEP;
-  ps->ops->translate     = PSTranslateHarmonic_NHEP;
+  ps->ops->transharm     = PSTranslateHarmonic_NHEP;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

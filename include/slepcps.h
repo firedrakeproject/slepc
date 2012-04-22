@@ -134,6 +134,7 @@ extern PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
 extern PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 extern PetscErrorCode PSCond(PS,PetscReal*);
 extern PetscErrorCode PSTranslateHarmonic(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
+extern PetscErrorCode PSTranslateRKS(PS,PetscScalar);
 
 extern PetscFList PSList;
 extern PetscBool  PSRegisterAllCalled;
