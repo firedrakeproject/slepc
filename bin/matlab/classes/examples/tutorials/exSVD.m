@@ -44,6 +44,7 @@ mu = 1e-7;
 mat = PetscMat();
 mat.SetType('seqaij');
 mat.SetSizes(n+1,n,n+1,n);
+mat.SetUp();
 for i=1:n
   mat.SetValues(1,i,1.0);
 end

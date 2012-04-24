@@ -43,6 +43,7 @@ n = 30;
 mat = PetscMat();
 mat.SetType('seqaij');
 mat.SetSizes(n,n,n,n);
+mat.SetUp();
 for i=1:n
   mat.SetValues(i,i,2.0);
 end

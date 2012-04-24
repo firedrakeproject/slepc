@@ -44,6 +44,7 @@ N = n*n;
 K = PetscMat();
 K.SetType('seqaij');
 K.SetSizes(N,N,N,N);
+K.SetUp();
 for II=0:N-1
   i = floor(II/n);
   j = II-i*n;  
@@ -59,12 +60,14 @@ K.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 C = PetscMat();
 C.SetType('seqaij');
 C.SetSizes(N,N,N,N);
+C.SetUp();
 C.AssemblyBegin(PetscMat.FINAL_ASSEMBLY);
 C.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 
 M = PetscMat();
 M.SetType('seqaij');
 M.SetSizes(N,N,N,N);
+M.SetUp();
 for II=1:N
   M.SetValues(II,II,1.0);
 end
