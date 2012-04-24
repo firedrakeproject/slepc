@@ -137,6 +137,7 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   ps->method  = 0;
   ps->nmeth   = 1;
   ps->compact = PETSC_FALSE;
+  ps->refined = PETSC_FALSE;
   ps->ld      = 0;
   ps->l       = 0;
   ps->n       = 0;
@@ -416,6 +417,67 @@ PetscErrorCode PSGetCompact(PS ps,PetscBool *comp)
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   PetscValidPointer(comp,2);
   *comp = ps->compact;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSetRefined"
+/*@
+   PSSetRefined - Sets a flag to indicate that refined vectors must be
+   computed.
+
+   Logically Collective on PS
+
+   Input Parameter:
++  ps  - the projected system context
+-  ref - a boolean flag
+
+   Notes:
+   Normally the vectors returned in PS_MAT_X are eigenvectors of the
+   projected matrix. With this flag activated, PSVectors() will return
+   the right singular vector of the smallest singular value of matrix
+   \tilde{A}-theta*I, where \tilde{A} is the extended (n+1)xn matrix
+   and theta is the Ritz value. This is used in the refined Ritz
+   approximation.
+
+   The default is PETSC_FALSE.
+
+   Level: advanced
+
+.seealso: PSVectors(), PSGetRefined()
+@*/
+PetscErrorCode PSSetRefined(PS ps,PetscBool ref)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(ps,ref,2);
+  ps->refined = ref;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSGetRefined"
+/*@
+   PSGetRefined - Gets the refined vectors flag.
+
+   Not Collective
+
+   Input Parameter:
+.  ps - the projected system context
+
+   Output Parameter:
+.  comp - the flag
+
+   Level: advanced
+
+.seealso: PSSetRefined()
+@*/
+PetscErrorCode PSGetRefined(PS ps,PetscBool *ref)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(ref,2);
+  *ref = ps->refined;
   PetscFunctionReturn(0);
 }
 
