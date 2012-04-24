@@ -24,8 +24,8 @@
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-int SlepcInitializeMatlab(int,char **,const char*,const char*);
-int SlepcInitializedMatlab(void);
+int SlepcInitializeNoPointers(int,char **,const char*,const char*);
+int SlepcInitialized(int*);
 typedef int MPI_Comm;
 int SlepcFinalize(void);
 

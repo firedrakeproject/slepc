@@ -81,10 +81,11 @@ arg = ['matlab',args];
 %
 % If the user forgot to SlepcFinalize() we do it for them, before restarting SLEPc
 %
-init = calllib('libslepc', 'SlepcInitializedMatlab');
+init = 0
+err = calllib('libslepc', 'SlepcInitialized',init);
 if (init) 
   err = calllib('libslepc', 'SlepcFinalize');PetscCHKERRQ(err);
 end
-err = calllib('libslepc', 'SlepcInitializeMatlab', length(arg), arg,argfile,arghelp);PetscCHKERRQ(err);
+err = calllib('libslepc', 'SlepcInitializeNoPointers', length(arg), arg,argfile,arghelp);PetscCHKERRQ(err);
 
 

@@ -248,10 +248,10 @@ PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 extern PetscBool PetscBeganMPI;
 
 #undef __FUNCT__  
-#define __FUNCT__ "SlepcInitializeMatlab"
+#define __FUNCT__ "SlepcInitializeNoPointers"
 /*
-   SlepcInitializeMatlab - Calls SlepcInitialize() from MATLAB (analogue to
-   PetscInitializeMatlab).
+   SlepcInitializeNoPointers - Calls SlepcInitialize() from C/C++ without the pointers
+   to argc and args (analogue to PetscInitializeNoPointers).
 
    Collective
   
@@ -259,7 +259,7 @@ extern PetscBool PetscBeganMPI;
 
 .seealso: SlepcInitialize()
 */
-PetscErrorCode SlepcInitializeMatlab(int argc,char **args,const char *filename,const char *help)
+PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filename,const char *help)
 {
   PetscErrorCode ierr;
   int            myargc = argc;
@@ -270,28 +270,6 @@ PetscErrorCode SlepcInitializeMatlab(int argc,char **args,const char *filename,c
   ierr = PetscPopSignalHandler();CHKERRQ(ierr);
   PetscBeganMPI = PETSC_FALSE;
   PetscFunctionReturn(ierr);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "SlepcInitializedMatlab"
-/*
-   SlepcInitializedMatlab - Has SLEPc been initialized already?
-
-   Not Collective
-  
-   Level: advanced
-
-   Notes: this is called only by the SLEPc MATLAB interface.
-
-.seealso: SlepcInitialize()
-*/
-int SlepcInitializedMatlab(void)
-{
-  PetscBool flg;
-
-  SlepcInitialized(&flg);
-  if (flg) return 1;
-  else return 0;
 }
 #endif
 
