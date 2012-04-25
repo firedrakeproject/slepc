@@ -140,7 +140,7 @@ extern PetscErrorCode EPSComputeTrueResidual(EPS,PetscScalar,PetscScalar,PetscSc
 extern PetscErrorCode EPSBasicArnoldi(EPS,PetscBool,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
 extern PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
 extern PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
-extern PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscBool,PetscInt,PetscInt,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*);
+extern PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*);
 extern PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscBool*);
 extern PetscErrorCode EPSBuildBalance_Krylov(EPS);
 

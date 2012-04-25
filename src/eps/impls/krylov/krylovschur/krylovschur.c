@@ -180,11 +180,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,l);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -201,11 +201,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = PSSort(eps->ps,eps->eigr,eps->eigi,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = PSGetArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
 

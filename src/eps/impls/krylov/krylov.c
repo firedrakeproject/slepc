@@ -74,7 +74,6 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
 
    Input Parameters:
      eps   - the eigensolver; some error estimates are updated in eps->errest 
-     issym - whether the projected problem is symmetric or not
      getall - whether all residuals must be computed
      kini  - initial value of k (the loop variable)
      nits  - number of iterations of the loop
@@ -86,7 +85,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
    Output Parameters:
      kout  - the first index where the convergence test failed
 */
-PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool getall,PetscInt kini,PetscInt nits,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout)
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld;
@@ -107,14 +106,11 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool issym,PetscBool getall,Pet
       ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
     }
     newk = k;
-    if (issym) newk -= kini;
     ierr = PSVectors(eps->ps,PS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
-    if (issym) newk += kini;
     resnorm *= beta;
     if (eps->trueres) {
       ierr = PSGetArray(eps->ps,PS_MAT_X,&X);CHKERRQ(ierr);
-      if (issym) Z = X+(k-kini)*ld;
-      else Z = X+k*ld;
+      Z = X+k*ld;
       ierr = EPSComputeTrueResidual(eps,re,im,Z,V,nv,&resnorm);CHKERRQ(ierr);
       ierr = PSRestoreArray(eps->ps,PS_MAT_X,&X);CHKERRQ(ierr);
     }
@@ -170,8 +166,8 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,PETSC_NULL,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
-    alpha[j-k] = PetscRealPart(hwork[j]);
-    beta[j-k] = norm;
+    alpha[j] = PetscRealPart(hwork[j]);
+    beta[j] = norm;
     if (*breakdown) {
       *M = j+1;
       if (m > 100) {
@@ -184,8 +180,8 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,m,PETSC_NULL,V,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
-  alpha[m-1-k] = PetscRealPart(hwork[m-1]); 
-  beta[m-1-k] = norm;
+  alpha[m-1] = PetscRealPart(hwork[m-1]); 
+  beta[m-1] = norm;
   
   if (m > 100) {
     ierr = PetscFree(hwork);CHKERRQ(ierr);

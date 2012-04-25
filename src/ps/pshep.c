@@ -35,6 +35,31 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
+/*   0       l           k                 n
+    -----------------------------------------
+    |*       ·           ·                  |
+    |  *     ·           ·                  |
+    |    *   ·           ·                  |
+    |      * ·           ·                  |
+    |· · · · o           o                  |
+    |          o         o                  |
+    |            o       o                  |
+    |              o     o                  |
+    |                o   o                  |
+    |                  o o                  |
+    |· · · · o o o o o o o x                |
+    |                    x x x              |
+    |                      x x x            |
+    |                        x x x          |
+    |                          x x x        |
+    |                            x x x      |
+    |                              x x x    |
+    |                                x x x  |
+    |                                  x x x|
+    |                                    x x|
+    -----------------------------------------
+*/
+
 #undef __FUNCT__  
 #define __FUNCT__ "PSSwitchFormat_HEP"
 PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
@@ -128,7 +153,7 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSVectors_HEP"
-PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
+PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
   PetscInt       ld = ps->ld;
@@ -139,12 +164,12 @@ PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
   switch (mat) {
     case PS_MAT_X:
     case PS_MAT_Y:
-      if (k) {
-        ierr = PetscMemcpy(ps->mat[mat]+(*k)*ld,Q+(*k)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+      if (j) {
+        ierr = PetscMemcpy(ps->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
       } else {
         ierr = PetscMemcpy(ps->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
       }
-      if (rnorm) *rnorm = PetscAbsScalar(Q[ps->n-1+(*k)*ld]);
+      if (rnorm) *rnorm = PetscAbsScalar(Q[ps->n-1+(*j)*ld]);
       break;
     case PS_MAT_U:
     case PS_MAT_VT:
@@ -166,26 +191,25 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscBLASInt   n1,n2,lwork,info,n,ld;
+  PetscBLASInt   n1,n2,n3,lwork,info,l,n,ld,off;
   PetscScalar    *A,*S,*Q,*work,*tau;
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
+  l  = PetscBLASIntCast(ps->l);
   ld = PetscBLASIntCast(ps->ld);
+  n1 = PetscBLASIntCast(ps->k-l+1);  /* size of leading block, excluding locked */
+  n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
+  n3 = n1+n2;
+  off = l+l*ld;
   Q  = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
+  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
 
   if (ps->compact) {
-
-    n1 = PetscBLASIntCast(ps->k+1);    /* size of leading block, including residuals */
-    n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
-
-    /* initialize orthogonal matrix */
-    ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
-    if (n==1) { wr[0] = d[0]; PetscFunctionReturn(0); }
 
     /* reduce to tridiagonal form */
     if (ps->state<PS_STATE_INTERMEDIATE) {
@@ -199,20 +223,20 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
       lwork = ld*ld;
 
       /* Flip matrix S */
-      for (i=0;i<n;i++) S[(n-1-i)+(n-1-i)*ld] = d[i];
-      for (i=0;i<ps->k;i++) S[(n-1-i)+(n-1-ps->k)*ld] = e[i];
-      for (i=ps->k;i<n-1;i++) S[(n-1-i)+(n-1-i-1)*ld] = e[i];
+      for (i=l;i<n;i++) S[(n3-1-i+l)+(n3-1-i+l)*ld] = d[i];
+      for (i=l;i<ps->k;i++) S[(n3-1-i+l)+(n3-1-ps->k+l)*ld] = e[i];
+      for (i=ps->k;i<n-1;i++) S[(n3-1-i+l)+(n3-1-i-1+l)*ld] = e[i];
 
       /* Reduce (2,2)-block of flipped S to tridiagonal form */
-      LAPACKsytrd_("L",&n1,S+n2+n2*ld,&ld,d,e,tau,work,&lwork,&info);
+      LAPACKsytrd_("L",&n1,S+n2+n2*ld,&ld,d+l,e+l,tau,work,&lwork,&info);
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
 
       /* Flip back diag and subdiag, put them in d and e */
-      for (i=0;i<n-1;i++) {
-        d[n-i-1] = PetscRealPart(S[i+i*ld]);
-        e[n-i-2] = PetscRealPart(S[i+1+i*ld]);
+      for (i=0;i<n1-1;i++) {
+        d[l+n1-i-1] = PetscRealPart(S[n2+i+(n2+i)*ld]);
+        e[l+n1-i-2] = PetscRealPart(S[n2+i+1+(n2+i)*ld]);
       }
-      d[0] = PetscRealPart(S[n-1+(n-1)*ld]);
+      d[l] = PetscRealPart(S[n3-1+(n3-1)*ld]);
 
       /* Compute the orthogonal matrix used for tridiagonalization */
       LAPACKorgtr_("L",&n1,S+n2+n2*ld,&ld,tau,work,&lwork,&info);
@@ -221,38 +245,38 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
       /* Create full-size Q, flipped back to original order */
       for (i=0;i<n1;i++) 
         for (j=0;j<n1;j++) 
-          Q[i+j*ld] = S[n-i-1+(n-j-1)*ld];
+          Q[l+i+(l+j)*ld] = S[n3-i-1+(n3-j-1)*ld];
 
     }
 
   } else {
 
     A  = ps->mat[PS_MAT_A];
-    if (n==1) { d[0] = PetscRealPart(A[0]); wr[0] = d[0]; Q[0] = 1.0; PetscFunctionReturn(0); }
+    for (i=0;i<l;i++) { d[i] = PetscRealPart(A[i+i*ld]); e[i] = 0.0; }
 
     if (ps->state<PS_STATE_INTERMEDIATE) {
       /* reduce to tridiagonal form */
-      ierr = PetscMemcpy(Q,A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+      for (j=0;j<n3;j++) {
+        ierr = PetscMemcpy(Q+off+j*ld,A+off+j*ld,n3*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
       ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
       tau  = ps->work;
       work = ps->work+ld;
       lwork = ld*ld;
-      LAPACKsytrd_("L",&n,Q,&ld,d,e,tau,work,&lwork,&info);
+      LAPACKsytrd_("L",&n3,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info);
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
-      LAPACKorgtr_("L",&n,Q,&ld,tau,work,&lwork,&info);
+      LAPACKorgtr_("L",&n3,Q+off,&ld,tau,work,&lwork,&info);
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
     } else {
-      /* initialize orthogonal matrix; copy tridiagonal to d,e */
-      ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
-      for (i=0;i<n;i++) d[i] = PetscRealPart(A[i+i*ld]);
-      for (i=0;i<n-1;i++) e[i] = PetscRealPart(A[(i+1)+i*ld]);
+      /* copy tridiagonal to d,e */
+      for (i=l;i<n;i++) d[i] = PetscRealPart(A[i+i*ld]);
+      for (i=l;i<n-1;i++) e[i] = PetscRealPart(A[(i+1)+i*ld]);
     }
   }
 
   /* Solve the tridiagonal eigenproblem */
   ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
-  LAPACKsteqr_("V",&n,d,e,Q,&ld,ps->rwork,&info);
+  LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
   for (i=0;i<n;i++) wr[i] = d[i];
   if (ps->compact) {
@@ -261,9 +285,6 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
     ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n;i++) A[i+i*ld] = d[i];
   }
-
-  /* The result is stored in both places (compact and regular) */
-  ps->compact = PETSC_TRUE;
   PetscFunctionReturn(0);
 #endif
 }
@@ -273,23 +294,24 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i,*perm;
+  PetscInt       n,l,i,*perm;
   PetscScalar    *A;
   PetscReal      *d;
 
   PetscFunctionBegin;
   n = ps->n;
+  l = ps->l;
   d = ps->rmat[PS_MAT_T];
   ierr = PSAllocateWork_Private(ps,0,0,ps->ld);CHKERRQ(ierr); 
   perm = ps->iwork;
-  ierr = PSSortEigenvaluesReal_Private(ps,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
-  for (i=0;i<n;i++) wr[i] = d[perm[i]];
-  ierr = PSPermuteColumns_Private(ps,n,PS_MAT_Q,perm);CHKERRQ(ierr);
+  ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
+  for (i=l;i<n;i++) wr[i] = d[perm[i]];
+  ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);
   if (ps->compact) {
-    for (i=0;i<n;i++) d[i] = PetscRealPart(wr[i]);
+    for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   } else {
     A  = ps->mat[PS_MAT_A];
-    for (i=0;i<n;i++) A[i+i*ps->ld] = wr[i];
+    for (i=l;i<n;i++) A[i+i*ps->ld] = wr[i];
   }
   PetscFunctionReturn(0);
 }

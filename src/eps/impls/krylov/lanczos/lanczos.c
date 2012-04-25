@@ -526,7 +526,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 {
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
   PetscErrorCode ierr;
-  PetscInt       nconv,i,j,k,l,x,n,m,*perm,restart,ncv=eps->ncv,r,ld;
+  PetscInt       nconv,i,j,k,l,x,n,*perm,restart,ncv=eps->ncv,r,ld;
   Vec            w=eps->work[1],f=eps->work[0];
   PetscScalar    *Y,*ritz,stmp;
   PetscReal      *d,*e,*bnd,anorm,beta,norm,rtmp,resnorm;
@@ -551,11 +551,10 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     eps->its++;
 
     /* Compute an ncv-step Lanczos factorization */
-    m = PetscMin(nconv+eps->mpd,ncv);
+    n = PetscMin(nconv+eps->mpd,ncv);
     ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
     e = d + ld;
-    ierr = EPSBasicLanczos(eps,d,e,eps->V,nconv,&m,f,&breakdown,anorm);CHKERRQ(ierr);
-    n = m - nconv;
+    ierr = EPSBasicLanczos(eps,d,e,eps->V,nconv,&n,f,&breakdown,anorm);CHKERRQ(ierr);
     beta = e[n-1];
     ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
     ierr = PSSetDimensions(eps->ps,n,0,0);CHKERRQ(ierr);
@@ -566,12 +565,12 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     ierr = PSSort(eps->ps,ritz,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
     
     /* Estimate ||A|| */
-    for (i=0;i<n;i++) 
+    for (i=nconv;i<n;i++) 
       anorm = PetscMax(anorm,PetscAbsReal(PetscRealPart(ritz[i])));
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
+    for (i=nconv;i<n;i++) {
       resnorm = beta*PetscAbsScalar(Y[n-1+i*ld]) + PETSC_MACHINE_EPSILON*anorm;
       ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],resnorm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
       if (bnd[i]<eps->tol) {
@@ -584,7 +583,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* purge repeated ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL)
-      for (i=1;i<n;i++)
+      for (i=nconv+1;i<n;i++)
         if (conv[i] == 'C')
           if (PetscAbsScalar((ritz[i]-ritz[i-1])/ritz[i]) < eps->tol)
             conv[i] = 'R';
@@ -593,7 +592,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     if (breakdown) {
       ierr = PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
     } else {
-      restart = 0;
+      restart = nconv;
       while (restart<n && conv[restart] != 'N') restart++;
       if (restart >= n) {
         breakdown = PETSC_TRUE;
@@ -610,8 +609,8 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     }
 
     /* Count and put converged eigenvalues first */
-    for (i=0;i<n;i++) perm[i] = i;
-    for (k=0;k<n;k++)
+    for (i=nconv;i<n;i++) perm[i] = i;
+    for (k=nconv;k<n;k++)
       if (conv[perm[k]] != 'C') {
         j = k + 1;
         while (j<n && conv[perm[j]] != 'C') j++;
@@ -621,7 +620,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* Sort eigenvectors according to permutation */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
-    for (i=0;i<k;i++) {
+    for (i=nconv;i<k;i++) {
       x = perm[i];
       if (x != i) {
         j = i + 1;
@@ -639,21 +638,21 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     }
     
     /* compute converged eigenvectors */
-    ierr = SlepcUpdateVectors(n,eps->V+nconv,0,k,Y,n,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(n,eps->V,nconv,k,Y,n,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
     
     /* purge spurious ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
-      for (i=0;i<k;i++) {
-        ierr = VecNorm(eps->V[nconv+i],NORM_2,&norm);CHKERRQ(ierr);
-        ierr = VecScale(eps->V[nconv+i],1.0/norm);CHKERRQ(ierr);
-        ierr = STApply(eps->OP,eps->V[nconv+i],w);CHKERRQ(ierr);
-        ierr = VecAXPY(w,-ritz[i],eps->V[nconv+i]);CHKERRQ(ierr);
+      for (i=nconv;i<k;i++) {
+        ierr = VecNorm(eps->V[i],NORM_2,&norm);CHKERRQ(ierr);
+        ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
+        ierr = STApply(eps->OP,eps->V[i],w);CHKERRQ(ierr);
+        ierr = VecAXPY(w,-ritz[i],eps->V[i]);CHKERRQ(ierr);
         ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
         ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],norm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
         if (bnd[i]>=eps->tol) conv[i] = 'S';
       }
-      for (i=0;i<k;i++)
+      for (i=nconv;i<k;i++)
         if (conv[i] != 'C') {
           j = i + 1;
           while (j<k && conv[j] != 'C') j++;
@@ -663,18 +662,18 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
           rtmp = bnd[j]; bnd[j] = bnd[i]; bnd[i] = rtmp;
           ctmp = conv[j]; conv[j] = conv[i]; conv[i] = ctmp;
           /* swap eigenvectors i and j */
-          ierr = VecSwap(eps->V[nconv+i],eps->V[nconv+j]);CHKERRQ(ierr);
+          ierr = VecSwap(eps->V[i],eps->V[j]);CHKERRQ(ierr);
         }
       k = i;
     }
     
     /* store ritz values and estimated errors */
-    for (i=0;i<n;i++) {
-      eps->eigr[nconv+i] = ritz[i];
-      eps->errest[nconv+i] = bnd[i];
+    for (i=nconv;i<n;i++) {
+      eps->eigr[i] = ritz[i];
+      eps->errest[i] = bnd[i];
     }
-    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nconv+n);CHKERRQ(ierr);
-    nconv = nconv+k;
+    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,n);CHKERRQ(ierr);
+    nconv = k;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     

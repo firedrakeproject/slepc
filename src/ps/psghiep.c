@@ -238,23 +238,24 @@ PetscErrorCode PSSolve_GHIEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode PSSort_GHIEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i,*perm;
+  PetscInt       n,l,i,*perm;
   PetscScalar    *A;
   PetscReal      *d;
 
   PetscFunctionBegin;
   n = ps->n;
+  l = ps->l;
   d = ps->rmat[PS_MAT_T];
   ierr = PSAllocateWork_Private(ps,0,0,ps->ld);CHKERRQ(ierr); 
   perm = ps->iwork;
-  ierr = PSSortEigenvaluesReal_Private(ps,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
-  for (i=0;i<n;i++) wr[i] = d[perm[i]];
-  ierr = PSPermuteColumns_Private(ps,n,PS_MAT_Q,perm);CHKERRQ(ierr);
+  ierr = PSSortEigenvaluesReal_Private(ps,n,l,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
+  for (i=l;i<n;i++) wr[i] = d[perm[i]];
+  ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);
   if (ps->compact) {
-    for (i=0;i<n;i++) d[i] = PetscRealPart(wr[i]);
+    for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   } else {
     A  = ps->mat[PS_MAT_A];
-    for (i=0;i<n;i++) A[i+i*ps->ld] = wr[i];
+    for (i=l;i<n;i++) A[i+i*ps->ld] = wr[i];
   }
   PetscFunctionReturn(0);
 }

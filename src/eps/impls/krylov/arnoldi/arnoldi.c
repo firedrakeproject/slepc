@@ -378,7 +378,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     /* Check convergence */ 
     ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
 
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,ld);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);

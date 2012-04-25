@@ -726,7 +726,7 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSortEigenvaluesReal_Private"
-PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt n,PetscReal *eig,PetscInt *perm,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
+PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscReal *eig,PetscInt *perm,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
 {
   PetscErrorCode ierr;
   PetscScalar    re;
@@ -735,11 +735,11 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt n,PetscReal *eig,Pet
   PetscFunctionBegin;
   for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
-  for (i=1;i<n;i++) {
+  for (i=l+1;i<n;i++) {
     re = eig[perm[i]];
     j = i-1;
     ierr = (*comp_func)(re,0.0,eig[perm[j]],0.0,&result,comp_ctx);CHKERRQ(ierr);
-    while (result<=0 && j>=0) {
+    while (result<=0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=0) {
         ierr = (*comp_func)(re,0.0,eig[perm[j]],0.0,&result,comp_ctx);CHKERRQ(ierr);
@@ -751,7 +751,7 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt n,PetscReal *eig,Pet
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSPermuteColumns_Private"
-PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt n,PSMatType m,PetscInt *perm)
+PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt l,PetscInt n,PSMatType m,PetscInt *perm)
 {
   PetscInt    i,j,k,p,ld;
   PetscScalar *Q,rtmp;
@@ -759,7 +759,7 @@ PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt n,PSMatType m,PetscInt *p
   PetscFunctionBegin;
   ld = ps->ld;
   Q  = ps->mat[PS_MAT_Q];
-  for (i=0;i<n;i++) {
+  for (i=l;i<n;i++) {
     p = perm[i];
     if (p != i) {
       j = i + 1;
