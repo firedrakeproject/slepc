@@ -103,7 +103,8 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
   PetscViewerFormat format;
   PetscInt          i,j,r,c;
   PetscReal         value;
-  const char        *meth[] = { "LAPACK's _steqr" };
+  const char        *meth[] = { "LAPACK's _steqr",
+                                "LAPACK's _stevr" };
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
@@ -191,9 +192,9 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscBLASInt   n1,n2,n3,lwork,info,l,n,ld,off;
+  PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*S,*Q,*work,*tau;
-  PetscReal      *d,*e;
+  PetscReal      *d,*e,abstol=0.0,vl,vu;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
@@ -275,9 +276,32 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* Solve the tridiagonal eigenproblem */
-  ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
-  LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  switch (ps->method) {
+    case 0:
+      ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
+      LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+      break;
+    case 1:
+#if defined(PETSC_USE_COMPLEX)
+      ierr = PSAllocateMatReal_Private(ps,PS_MAT_Q);CHKERRQ(ierr);
+#endif
+      ierr = PSAllocateWork_Private(ps,0,lwork,liwork+2*ld);CHKERRQ(ierr); 
+      isuppz = ps->iwork+liwork;
+#if defined(PETSC_USE_COMPLEX)
+      LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,ps->rmat[PS_MAT_Q]+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
+#else
+      LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
+#endif
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
+#if defined(PETSC_USE_COMPLEX)
+    for (i=0;i<n;i++) 
+      for (j=0;j<n;j++)
+        V[i+j*ld] = (ps->rmat[PS_MAT_Q])[i+j*ld];
+#endif
+    default:
+      SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of method: %d",ps->method);
+  }
   for (i=0;i<n;i++) wr[i] = d[i];
   if (ps->compact) {
     ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
@@ -423,7 +447,7 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_HEP(PS ps)
 {
   PetscFunctionBegin;
-  ps->nmeth  = 1;
+  ps->nmeth  = 2;
   ps->ops->allocate      = PSAllocate_HEP;
   ps->ops->view          = PSView_HEP;
   ps->ops->vectors       = PSVectors_HEP;
