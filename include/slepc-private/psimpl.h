@@ -65,5 +65,6 @@ extern PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
 extern PetscErrorCode PSViewMat_Private(PS,PetscViewer,PSMatType);
 extern PetscErrorCode PSSortEigenvaluesReal_Private(PS,PetscInt,PetscInt,PetscReal*,PetscInt*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 extern PetscErrorCode PSPermuteColumns_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
+extern PetscErrorCode PSCopyMatrix_Private(PS,PSMatType,PSMatType);
 
 #endif

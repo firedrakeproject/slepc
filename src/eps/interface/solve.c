@@ -137,6 +137,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* finished iteration, truncate the Schur decomposition */
   if (!eps->which==EPS_ALL) {    /* cannot change dimension in spectrum slicing */
     ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+    /* change the state to raw so that PSVectors() computes eigenvectors from scratch */
     ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
   }
 

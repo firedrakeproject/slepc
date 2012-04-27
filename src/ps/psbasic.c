@@ -750,6 +750,30 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscRe
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSCopyMatrix_Private"
+/*
+  PSCopyMatrix_Private - Copies the trailing block of a matrix (from
+  rows/columns l to n).
+*/
+PetscErrorCode PSCopyMatrix_Private(PS ps,PSMatType dst,PSMatType src)
+{
+  PetscErrorCode ierr;
+  PetscInt    j,m,off,ld;
+  PetscScalar *S,*D;
+
+  PetscFunctionBegin;
+  ld  = ps->ld;
+  m   = ps->n-ps->l;
+  off = ps->l+ps->l*ld;
+  S   = ps->mat[src];
+  D   = ps->mat[dst];
+  for (j=0;j<m;j++) {
+    ierr = PetscMemcpy(D+off+j*ld,S+off+j*ld,m*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSPermuteColumns_Private"
 PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt l,PetscInt n,PSMatType m,PetscInt *perm)
 {

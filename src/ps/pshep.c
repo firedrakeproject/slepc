@@ -35,7 +35,7 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-/*   0       l           k                 n
+/*   0       l           k                 n-1
     -----------------------------------------
     |*       ·           ·                  |
     |  *     ·           ·                  |
@@ -193,8 +193,8 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
-  PetscScalar    *A,*S,*Q,*work,*tau;
-  PetscReal      *d,*e,abstol=0.0,vl,vu;
+  PetscScalar    *A,*S,*Q,*W,*work,*tau,one=1.0,zero=0.0;
+  PetscReal      *d,*e,*ritz,abstol=0.0,vl,vu;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
@@ -204,6 +204,7 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
   n3 = n1+n2;
   off = l+l*ld;
+  A  = ps->mat[PS_MAT_A];
   Q  = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
@@ -252,14 +253,10 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 
   } else {
 
-    A  = ps->mat[PS_MAT_A];
     for (i=0;i<l;i++) { d[i] = PetscRealPart(A[i+i*ld]); e[i] = 0.0; }
 
     if (ps->state<PS_STATE_INTERMEDIATE) {
-      /* reduce to tridiagonal form */
-      for (j=0;j<n3;j++) {
-        ierr = PetscMemcpy(Q+off+j*ld,A+off+j*ld,n3*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
+      ierr = PSCopyMatrix_Private(ps,PS_MAT_Q,PS_MAT_A);CHKERRQ(ierr); 
       ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
       tau  = ps->work;
       work = ps->work+ld;
@@ -276,33 +273,49 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* Solve the tridiagonal eigenproblem */
+  for (i=0;i<l;i++) wr[i] = d[i];
   switch (ps->method) {
     case 0:
       ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
       LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+      for (i=l;i<n;i++) wr[i] = d[i];
       break;
     case 1:
+      if (ps->state<PS_STATE_INTERMEDIATE) {  /* Q contains useful info */
+        ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
+        W = ps->mat[PS_MAT_W];
+        ierr = PSCopyMatrix_Private(ps,PS_MAT_W,PS_MAT_Q);CHKERRQ(ierr); 
+      }
 #if defined(PETSC_USE_COMPLEX)
       ierr = PSAllocateMatReal_Private(ps,PS_MAT_Q);CHKERRQ(ierr);
 #endif
-      ierr = PSAllocateWork_Private(ps,0,lwork,liwork+2*ld);CHKERRQ(ierr); 
+      lwork = 20*ld;
+      liwork = 10*ld;
+      ierr = PSAllocateWork_Private(ps,0,lwork+ld,liwork+2*ld);CHKERRQ(ierr); 
       isuppz = ps->iwork+liwork;
 #if defined(PETSC_USE_COMPLEX)
-      LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,ps->rmat[PS_MAT_Q]+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
+      ritz = ps->rwork+lwork;
+      LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,ps->rmat[PS_MAT_Q]+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
+      for (i=l;i<n;i++) wr[i] = ritz[i];
 #else
       LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
 #endif
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
 #if defined(PETSC_USE_COMPLEX)
-    for (i=0;i<n;i++) 
-      for (j=0;j<n;j++)
-        V[i+j*ld] = (ps->rmat[PS_MAT_Q])[i+j*ld];
+      for (i=l;i<n;i++) 
+        for (j=l;j<n;j++)
+          Q[i+j*ld] = (ps->rmat[PS_MAT_Q])[i+j*ld];
 #endif
+      if (ps->state<PS_STATE_INTERMEDIATE) {  /* accumulate previous Q */
+        BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld);
+        ierr = PSCopyMatrix_Private(ps,PS_MAT_Q,PS_MAT_A);CHKERRQ(ierr); 
+      }
+      for (i=l;i<n;i++) d[i] = wr[i];
+      break;
     default:
       SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of method: %d",ps->method);
   }
-  for (i=0;i<n;i++) wr[i] = d[i];
   if (ps->compact) {
     ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
   } else {

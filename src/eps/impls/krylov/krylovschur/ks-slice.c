@@ -192,9 +192,9 @@ static PetscErrorCode EPSExtractShift(EPS eps){
 static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,conv,k,l,ld,nv,*iwork,p,j;
+  PetscInt       i,conv,k,l,ld,nv,*iwork,j;
   Vec            u=eps->work[0];
-  PetscScalar    *Q,*A,nu,rtmp,alpha;
+  PetscScalar    *Q,*A,nu,alpha;
   PetscReal      *a,*b,beta;
   PetscBool      breakdown;
   PetscInt       count0,count1;
