@@ -156,21 +156,17 @@ PetscErrorCode PSSetDimensions(PS ps,PetscInt n,PetscInt l,PetscInt k)
       ps->n = n;
     }
   }
-  if (l!=PETSC_IGNORE) {
-    if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
-      ps->l = 0;
-    } else {
-      if (l<0 || l>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
-      ps->l = l;
-    }
+  if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+    ps->l = 0;
+  } else {
+    if (l<0 || l>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
+    ps->l = l;
   }
-  if (k!=PETSC_IGNORE) {
-    if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
-      ps->k = ps->n/2;
-    } else {
-      if (k<0 || k>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
-      ps->k = k;
-    }
+  if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
+    ps->k = ps->n/2;
+  } else {
+    if (k<0 || k>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
+    ps->k = k;
   }
   PetscFunctionReturn(0);
 }
