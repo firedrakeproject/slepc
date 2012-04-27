@@ -194,7 +194,10 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscInt       i,j;
   PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*S,*Q,*W,*work,*tau,one=1.0,zero=0.0;
-  PetscReal      *d,*e,*ritz,abstol=0.0,vl,vu;
+  PetscReal      *d,*e,abstol=0.0,vl,vu;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *ritz;
+#endif
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
