@@ -101,7 +101,7 @@ PetscErrorCode SlepcVecSetTemplate(Vec v)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(v,VEC_CLASSID,1);
-  ierr = PetscTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
   if (!flg) SETERRQ(((PetscObject)v)->comm,PETSC_ERR_SUP,"Only available for standard vectors (VECSEQ or VECMPI)");
   v->ops->duplicatevecs = VecDuplicateVecs_Contiguous;
   PetscFunctionReturn(0);
@@ -145,7 +145,7 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
   PetscValidType(mat,1);
   ierr = MatGetVecs(mat,right,left);CHKERRQ(ierr);
   v = right? *right: *left;
-  ierr = PetscTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
   if (!flg) PetscFunctionReturn(0);
   ierr = PetscOptionsHasName(PETSC_NULL,"-slepc_non_contiguous",&flg);CHKERRQ(ierr);
   if (!flg) {

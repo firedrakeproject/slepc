@@ -564,8 +564,8 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2); 
   PetscCheckSameComm(st,1,viewer,2);
 
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)st,viewer,"ST Object");CHKERRQ(ierr);
     if (st->ops->view) {
@@ -602,12 +602,12 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
     if (st->ops->view) {ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);}
   } else SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
-  ierr = PetscTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD,"");CHKERRQ(ierr);
   if (st->B || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     /* Trick for PCView when an unused PC is showed */
     ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)pc,PCNONE,&flg);
+    ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&flg);
     if (flg) {
       ierr = PCSetOperators(pc,PETSC_NULL,PETSC_NULL,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }

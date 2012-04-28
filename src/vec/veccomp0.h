@@ -389,8 +389,8 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
   PetscFunctionBegin;
   /* Compute recursively the local part */
   dp0 = nm0 = 0.0;
-  ierr = PetscTypeCompare((PetscObject)v,VECCOMP,&t0);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)w,VECCOMP,&t1);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)v,VECCOMP,&t0);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)w,VECCOMP,&t1);CHKERRQ(ierr);
   if (t0 == PETSC_TRUE && t1 == PETSC_TRUE) {
     PetscValidVecComp(v);
     PetscValidVecComp(w);

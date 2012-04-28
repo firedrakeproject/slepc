@@ -271,7 +271,7 @@ PetscErrorCode IPSetType(IP ip,const IPType type)
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscTypeCompare((PetscObject)ip,type,&match);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ip,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFListFind(IPList,((PetscObject)ip)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
@@ -507,7 +507,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ip)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ip,1,viewer,2);
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ip,viewer,"IP Object");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);

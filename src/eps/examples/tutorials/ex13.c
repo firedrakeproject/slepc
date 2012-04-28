@@ -107,7 +107,7 @@ int main(int argc,char **argv)
      Use shift-and-invert to avoid solving linear systems with a singular B
      in case nulldim>0
   */
-  ierr = PetscTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,"");CHKERRQ(ierr);
   if (!flag) {
     ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
     ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);

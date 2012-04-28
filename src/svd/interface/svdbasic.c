@@ -140,7 +140,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
 
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)svd,viewer,"SVD Object");CHKERRQ(ierr);
     if (svd->ops->view) {
@@ -216,7 +216,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
   if (!svd->sigma) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
   ierr = PetscOptionsHasName(PETSC_NULL,"-svd_terse",&terse);CHKERRQ(ierr);
@@ -441,7 +441,7 @@ PetscErrorCode SVDSetType(SVD svd,const SVDType type)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscTypeCompare((PetscObject)svd,type,&match);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)svd,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFListFind(SVDList,((PetscObject)svd)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);

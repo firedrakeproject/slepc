@@ -153,7 +153,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
  
   /* Davidson solvers only support STPRECOND */
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
   if (!t) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_SUP,"%s only works with precond spectral transformation",
     ((PetscObject)eps)->type_name);
 
@@ -390,7 +390,7 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   name = ((PetscObject)eps)->type_name;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   
   ierr = EPSDavidsonGetBOrth_Davidson(eps,&opb);CHKERRQ(ierr);

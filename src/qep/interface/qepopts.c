@@ -819,7 +819,7 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)qep,QEPLINEAR,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = QEPLinearGetEPS(qep,&eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);

@@ -62,7 +62,7 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(ctx,2); 
-  ierr = PetscTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
   if (!flg) *ctx = 0; 
   else      *ctx = ((ST_Shell*)(st->data))->ctx;
   PetscFunctionReturn(0);
@@ -94,7 +94,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
   if (flg) {
     shell->ctx = ctx;
   }

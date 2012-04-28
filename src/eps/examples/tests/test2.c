@@ -100,14 +100,14 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetTarget(eps,2.1);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps,EPSLANCZOS,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps,EPSLANCZOS,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
     ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   } else {
-    ierr = PetscTypeCompare((PetscObject)eps,EPSKRYLOVSCHUR,&flg);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)eps,EPSKRYLOVSCHUR,&flg);CHKERRQ(ierr);
     if (!flg) {
-      ierr = PetscTypeCompare((PetscObject)eps,EPSARNOLDI,&flg);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)eps,EPSARNOLDI,&flg);CHKERRQ(ierr);
     }
     if (flg) {
       ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);

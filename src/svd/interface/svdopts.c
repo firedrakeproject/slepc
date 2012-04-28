@@ -581,8 +581,8 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
   if (flg1) {
     ierr = SVDCrossGetEPS(svd,&eps);CHKERRQ(ierr);
   } else if (flg2) {
@@ -626,8 +626,8 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCROSS,&flg1);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg2);CHKERRQ(ierr);
   if (flg1) {
     ierr = SVDCrossGetEPS(svd,&eps);CHKERRQ(ierr);
   } else if (flg2) {

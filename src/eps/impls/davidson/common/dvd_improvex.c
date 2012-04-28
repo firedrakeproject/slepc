@@ -128,7 +128,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
   PetscFunctionBegin;
 
   /* Setting configuration constrains */
-  ierr = PetscTypeCompare((PetscObject)ksp, KSPPREONLY, &useGD); CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ksp, KSPPREONLY, &useGD); CHKERRQ(ierr);
 
   /* If the arithmetic is real and the problem is not Hermitian, then
      the block size is incremented in one */
@@ -219,7 +219,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 
     /* Save the current pc and set a PCNONE */
     ierr = KSPGetPC(data->ksp, &data->old_pc); CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)data->old_pc, PCNONE, &t);
+    ierr = PetscObjectTypeCompare((PetscObject)data->old_pc, PCNONE, &t);
     CHKERRQ(ierr);
     data->lastTol = 0.5;
     if (t) {

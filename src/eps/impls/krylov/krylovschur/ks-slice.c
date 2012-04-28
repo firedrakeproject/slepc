@@ -216,7 +216,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   count0=0;count1=0; /* Found on both sides */
   /* filling in values for the monitor */
   if(eps->numbermonitors >0){
-    ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
     if(iscayley){
       ierr = STCayleyGetAntishift(eps->OP,&nu);CHKERRQ(ierr);    
       for(i=0;i<sr->indexEig;i++){
@@ -551,7 +551,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
   count = sr->indexEig;
   /* Back-transform */
   ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
   /* Sort eigenvalues */
   ierr = sortRealEigenvalues(eps->eigr,eps->perm,eps->nconv,PETSC_FALSE,sr->dir);
   /* Values stored in global array */

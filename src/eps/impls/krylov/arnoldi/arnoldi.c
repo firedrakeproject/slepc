@@ -532,7 +532,7 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Arnoldi",((PetscObject)viewer)->type_name);
   if (arnoldi->delayed) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Arnoldi: using delayed reorthogonalization\n");CHKERRQ(ierr);

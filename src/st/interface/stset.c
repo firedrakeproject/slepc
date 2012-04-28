@@ -64,7 +64,7 @@ PetscErrorCode STSetType(ST st,const STType type)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFListFind(STList,((PetscObject)st)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);

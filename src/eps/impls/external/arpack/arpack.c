@@ -126,8 +126,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         5   [ 4  'G' ]    [ 3  'G' ]
         6   [ 5  'G' ]    [ 4  'G' ]
    */
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
 
@@ -299,7 +299,7 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
   PetscBool      isSinv;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
   if (!isSinv) {
     ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   }

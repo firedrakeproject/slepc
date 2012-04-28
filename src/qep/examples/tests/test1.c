@@ -121,7 +121,7 @@ int main(int argc,char **argv)
   */
   ierr = QEPSetType(qep,qeptype);CHKERRQ(ierr);
   if (flag) {
-    ierr = PetscTypeCompare((PetscObject)qep,QEPLINEAR,&flag);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&flag);CHKERRQ(ierr);
     if (flag) {
       ierr = QEPLinearGetEPS(qep,&eps);CHKERRQ(ierr);
       ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
@@ -129,12 +129,12 @@ int main(int argc,char **argv)
       ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-      ierr = PetscTypeCompare((PetscObject)eps,EPSJD,&flag);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)eps,EPSJD,&flag);CHKERRQ(ierr);
       if (flag) {
         ierr = EPSJDSetInitialSize(eps,1);CHKERRQ(ierr);
         ierr = EPSJDSetFix(eps,PetscSqrtReal(PETSC_SMALL));CHKERRQ(ierr);
       }
-      ierr = PetscTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
       if (flag) {
         ierr = EPSGDSetInitialSize(eps,1);CHKERRQ(ierr);
       }

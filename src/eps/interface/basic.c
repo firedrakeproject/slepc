@@ -149,7 +149,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 #else
 #define HERM "symmetric"
 #endif
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer,"EPS Object");CHKERRQ(ierr);
     if (eps->ops->view) {
@@ -338,7 +338,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
   if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
   ierr = PetscOptionsHasName(PETSC_NULL,"-eps_terse",&terse);CHKERRQ(ierr);
@@ -545,7 +545,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFListFind(EPSList,((PetscObject)eps)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);

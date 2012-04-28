@@ -69,7 +69,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    ierr = PetscTypeCompareAny((PetscObject)eps->OP,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps->OP,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
     ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
     if (mode == ST_MATMODE_INPLACE) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
@@ -539,7 +539,7 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Power",((PetscObject)viewer)->type_name);
   ierr = PetscViewerASCIIPrintf(viewer,"  Power: %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
   PetscFunctionReturn(0);

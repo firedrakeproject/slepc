@@ -272,7 +272,7 @@ PetscErrorCode PSSetType(PS ps,const PSType type)
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscTypeCompare((PetscObject)ps,type,&match);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ps,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFListFind(PSList,((PetscObject)ps)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
@@ -555,7 +555,7 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ps)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ps,1,viewer,2);
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ps,viewer,"PS Object");CHKERRQ(ierr);

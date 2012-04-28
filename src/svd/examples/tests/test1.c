@@ -110,12 +110,12 @@ int main(int argc,char **argv)
   */
   ierr = SVDSetType(svd,svdtype);CHKERRQ(ierr);
   if (flg) {
-    ierr = PetscTypeCompare((PetscObject)svd,SVDCROSS,&flg);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCROSS,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = SVDCrossGetEPS(svd,&eps);CHKERRQ(ierr);
       ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
     }
-    ierr = PetscTypeCompare((PetscObject)svd,SVDCYCLIC,&flg);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = SVDCyclicGetEPS(svd,&eps);CHKERRQ(ierr);
       ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);

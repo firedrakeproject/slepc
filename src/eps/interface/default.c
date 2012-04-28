@@ -245,7 +245,7 @@ PetscErrorCode EPSDefaultSetWhich(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompareAny((PetscObject)eps->OP,&target,STSINVERT,STCAYLEY,STFOLD,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->OP,&target,STSINVERT,STCAYLEY,STFOLD,"");CHKERRQ(ierr);
   if (target) eps->which = EPS_TARGET_MAGNITUDE;
   else eps->which = EPS_LARGEST_MAGNITUDE;
   PetscFunctionReturn(0);

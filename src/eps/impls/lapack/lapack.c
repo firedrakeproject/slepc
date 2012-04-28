@@ -53,7 +53,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   ierr = MatDestroy(&la->A);CHKERRQ(ierr);
   ierr = MatDestroy(&la->B);CHKERRQ(ierr);
 
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   
   if (flg) {
@@ -85,7 +85,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   la->A = PETSC_NULL;
   la->B = PETSC_NULL;
   ierr = STComputeExplicitOperator(eps->OP,&la->OP);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)la->OP,MATSEQDENSE,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)la->OP,MATSEQDENSE,&flg);CHKERRQ(ierr);
   if (!flg) {
     ierr = SlepcMatConvertSeqDense(la->OP,&la->OP);CHKERRQ(ierr);
   }

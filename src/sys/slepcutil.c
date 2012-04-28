@@ -69,7 +69,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     ierr = PetscFree(M);CHKERRQ(ierr);     
   
     /* convert matrix to MatSeqDense */
-    ierr = PetscTypeCompare((PetscObject)*newmat,MATSEQDENSE,&flg);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)*newmat,MATSEQDENSE,&flg);CHKERRQ(ierr);
     if (!flg) {
       ierr = MatConvert(*newmat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
     } 
@@ -395,14 +395,14 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
   ierr = MatSetFromOptions(*G);CHKERRQ(ierr);
   ierr = MatSetUp(*G);CHKERRQ(ierr);
 
-  ierr = PetscTypeCompare((PetscObject)*G,MATMPIAIJ,&flg1);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)A,MATMPIAIJ,&flg2);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)*G,MATMPIAIJ,&flg1);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)A,MATMPIAIJ,&flg2);CHKERRQ(ierr);
   if (flg1 && flg2) {
     ierr = SlepcMatTile_MPIAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
   }
   else {
-    ierr = PetscTypeCompare((PetscObject)*G,MATSEQAIJ,&flg1);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)A,MATSEQAIJ,&flg2);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)*G,MATSEQAIJ,&flg1);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQAIJ,&flg2);CHKERRQ(ierr);
     if (flg1 && flg2) {
       ierr = SlepcMatTile_SeqAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
     }

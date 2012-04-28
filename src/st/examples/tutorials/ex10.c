@@ -112,7 +112,7 @@ int main (int argc,char **argv)
      Initialize shell spectral transformation if selected by user
   */
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)st,STSHELL,&isShell);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell);CHKERRQ(ierr);
   if (isShell) {
     /* (Optional) Create a context for the user-defined spectral tranform;
        this context can be defined to contain any application-specific data. */

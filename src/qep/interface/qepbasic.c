@@ -146,7 +146,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
 #else
 #define HERM "symmetric"
 #endif
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)qep,viewer,"QEP Object");CHKERRQ(ierr);
     if (qep->ops->view) {
@@ -248,7 +248,7 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(qep,1,viewer,2);
   if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
   ierr = PetscOptionsHasName(PETSC_NULL,"-qep_terse",&terse);CHKERRQ(ierr);
@@ -436,7 +436,7 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFListFind(QEPList,((PetscObject)qep)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);

@@ -152,7 +152,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   }
 
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&isPrecond);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&isPrecond);CHKERRQ(ierr);
   if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with STPRECOND");
   ierr = STGetKSP(eps->OP,&blopex->ksp);CHKERRQ(ierr);
 

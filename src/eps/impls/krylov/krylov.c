@@ -95,7 +95,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
 
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
   marker = -1;
   getall = getall | eps->trackall;
   for (k=kini;k<kini+nits;k++) {

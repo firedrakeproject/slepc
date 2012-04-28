@@ -100,7 +100,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = STSetDefaultShift(eps->OP,0.0);CHKERRQ(ierr);
 
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
   if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
@@ -155,7 +155,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ops->eps = eps;
   if (primme->correctionParams.precondition) {
     ierr = STGetKSP(eps->OP,&ops->ksp);CHKERRQ(ierr);
-    ierr = PetscTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&t);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&t);CHKERRQ(ierr);
     if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
     primme->preconditioner = PETSC_NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
@@ -321,7 +321,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscMPIInt     rank;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
   
   ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%d\n",primme->maxBlockSize);CHKERRQ(ierr);

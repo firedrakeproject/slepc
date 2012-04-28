@@ -68,7 +68,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   if (!((PetscObject)eps->OP)->type_name) {
-    ierr = PetscTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,"");CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,"");CHKERRQ(ierr);
     ierr = STSetType(eps->OP,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
   }
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
@@ -198,10 +198,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Setup ST */
   ierr = STSetUp(eps->OP);CHKERRQ(ierr); 
   
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STFOLD,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STFOLD,&flg);CHKERRQ(ierr);
   if (flg && !eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Fold spectral transformation requires a Hermitian problem");
 
   if (eps->nds>0) {

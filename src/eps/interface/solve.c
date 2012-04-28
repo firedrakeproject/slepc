@@ -115,7 +115,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
-  ierr = PetscTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!flg) {
     /* temporarily change eigenvalue comparison function */
     data.which_func = eps->which_func;
@@ -191,7 +191,7 @@ PetscErrorCode EPSSolve(EPS eps)
 #endif
 
   /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STFOLD,&isfold);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STFOLD,&isfold);CHKERRQ(ierr);
   if (isfold) {
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = MatGetVecs(A,&w,PETSC_NULL);CHKERRQ(ierr);
@@ -210,7 +210,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
     ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
     ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);

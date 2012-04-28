@@ -115,7 +115,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   }
  
   /* Check some constraints */ 
-  ierr = PetscTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
   PetscFunctionReturn(0);
 }

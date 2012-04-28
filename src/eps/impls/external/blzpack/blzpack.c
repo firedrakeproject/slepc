@@ -85,7 +85,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Must define a computational interval when using EPS_ALL"); 
     blz->slice = 1;
   }
-  ierr = PetscTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
   if (blz->slice || eps->isgeneralized) {
     if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
   }
@@ -320,7 +320,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
   ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: block size=%d\n",blz->block_size);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: maximum number of steps per run=%d\n",blz->nsteps);CHKERRQ(ierr);
