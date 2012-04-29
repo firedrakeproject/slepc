@@ -135,8 +135,8 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,which,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
-    alpha[j-k] = PetscRealPart(hwork[j]);
-    beta[j-k] = norm;
+    alpha[j] = PetscRealPart(hwork[j]);
+    beta[j] = norm;
     if (*breakdown) {
       *M = j+1;
       if (m > 100) {
@@ -150,8 +150,8 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,m,PETSC_NULL,V,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
-  alpha[m-1-k] = PetscRealPart(hwork[m-1]); 
-  beta[m-1-k] = norm;
+  alpha[m-1] = PetscRealPart(hwork[m-1]); 
+  beta[m-1] = norm;
 
   if (m > 100) {
     ierr = PetscFree(which);CHKERRQ(ierr);
@@ -195,8 +195,8 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
-    alpha[j-k] = PetscRealPart(hwork[j]);
-    beta[j-k] = norm;
+    alpha[j] = PetscRealPart(hwork[j]);
+    beta[j] = norm;
     if (*breakdown) {
       *M = j+1;
       break;
@@ -204,7 +204,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
     n = j-k+1;
-    for (i=0;i<n;i++) { d[i] = alpha[i]; e[i] = beta[i]; }
+    for (i=0;i<n;i++) { d[i] = alpha[i+k]; e[i] = beta[i+k]; }
     ierr = EPSDenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
     
     /* Estimate ||A|| */
@@ -387,25 +387,25 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     if (fro) {
       /* Lanczos step with full reorthogonalization */
       ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,PETSC_NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);      
-      alpha[j-k] = PetscRealPart(hwork[j]);
+      alpha[j] = PetscRealPart(hwork[j]);
     } else {
       /* Lanczos step */
       which[j] = PETSC_TRUE;
       if (j-2>=k) which[j-2] = PETSC_FALSE;
       ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
-      alpha[j-k] = PetscRealPart(hwork[j]);
-      beta[j-k] = norm;
+      alpha[j] = PetscRealPart(hwork[j]);
+      beta[j] = norm;
       
       /* Estimate ||A|| if needed */ 
       if (estimate_anorm) {
-        if (j>k) anorm = PetscMax(anorm,PetscAbsReal(alpha[j-k])+norm+beta[j-k-1]);
-        else anorm = PetscMax(anorm,PetscAbsReal(alpha[j-k])+norm);
+        if (j>k) anorm = PetscMax(anorm,PetscAbsReal(alpha[j])+norm+beta[j-1]);
+        else anorm = PetscMax(anorm,PetscAbsReal(alpha[j])+norm);
       }
 
       /* Check if reorthogonalization is needed */
       reorth = PETSC_FALSE;
       if (j>k) {      
-        update_omega(omega,omega_old,j-k,alpha,beta-1,eps1,anorm);
+        update_omega(omega,omega_old,j,alpha,beta-1,eps1,anorm);
         for (i=0;i<j-k;i++)
           if (PetscAbsScalar(omega[i]) > delta) reorth = PETSC_TRUE;
       }
@@ -441,7 +441,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       ierr = PetscInfo1(eps,"Switching to full reorthogonalization at iteration %D\n",eps->its);CHKERRQ(ierr);
     }
     
-    beta[j-k] = norm;
+    beta[j] = norm;
     if (j<m-1) {
       ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
@@ -509,7 +509,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       } else {
         ierr = EPSDelayedArnoldi(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
       }
-      for (i=k;i<n-1;i++) { alpha[i-k] = PetscRealPart(T[n*i+i]); beta[i-k] = PetscRealPart(T[n*i+i+1]); }
+      for (i=k;i<n-1;i++) { alpha[i] = PetscRealPart(T[n*i+i]); beta[i] = PetscRealPart(T[n*i+i+1]); }
       alpha[n-1] = PetscRealPart(T[n*(n-1)+n-1]);
       beta[n-1] = betam;
       ierr = PetscFree(T);CHKERRQ(ierr);
@@ -557,12 +557,11 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     ierr = EPSBasicLanczos(eps,d,e,eps->V,nconv,&n,f,&breakdown,anorm);CHKERRQ(ierr);
     beta = e[n-1];
     ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
-    ierr = PSSetDimensions(eps->ps,n,0,0);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,n,nconv,0);CHKERRQ(ierr);
     ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
     /* Solve projected problem */ 
     ierr = PSSolve(eps->ps,ritz,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSSort(eps->ps,ritz,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
     
     /* Estimate ||A|| */
     for (i=nconv;i<n;i++) 
@@ -603,7 +602,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
             if (r>0) restart = i;
           }
         ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
-        ierr = SlepcVecMAXPBY(f,0.0,1.0,n,Y+restart*ld,eps->V+nconv);CHKERRQ(ierr);
+        ierr = SlepcVecMAXPBY(f,0.0,1.0,n-nconv,Y+restart*ld+nconv,eps->V+nconv);CHKERRQ(ierr);
         ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
       }
     }
@@ -638,7 +637,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     }
     
     /* compute converged eigenvectors */
-    ierr = SlepcUpdateVectors(n,eps->V,nconv,k,Y,n,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(n,eps->V,nconv,nconv+k,Y,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
     
     /* purge spurious ritz values */
@@ -677,7 +676,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     
-     if (eps->reason == EPS_CONVERGED_ITERATING) { /* copy restart vector */
+    if (eps->reason == EPS_CONVERGED_ITERATING) { /* copy restart vector */
       if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL && !breakdown) {
         /* Reorthonormalize restart vector */
         ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,nconv,PETSC_NULL,eps->V,f,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
