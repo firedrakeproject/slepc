@@ -22,6 +22,18 @@
 #include <slepc-private/psimpl.h>      /*I "slepcps.h" I*/
 #include <slepcblaslapack.h>
 
+PetscErrorCode PSSolve_HEP_QR(PS,PetscScalar*,PetscScalar*);
+PetscErrorCode PSSolve_HEP_MRRR(PS,PetscScalar*,PetscScalar*);
+typedef PetscErrorCode (*solvefun)(PS,PetscScalar*,PetscScalar*);
+static const solvefun solve[] = { 
+                     PSSolve_HEP_QR,
+                     PSSolve_HEP_MRRR
+};
+static const char *methodname[] = {
+                     "Implicit QR method (_steqr)",
+                     "Relatively Robust Representations (_stevr)"
+};
+
 #undef __FUNCT__  
 #define __FUNCT__ "PSAllocate_HEP"
 PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
@@ -103,13 +115,11 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
   PetscViewerFormat format;
   PetscInt          i,j,r,c;
   PetscReal         value;
-  const char        *meth[] = { "LAPACK's _steqr",
-                                "LAPACK's _stevr" };
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",meth[ps->method]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ps->method]);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   if (ps->compact) {
@@ -183,21 +193,21 @@ PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_HEP"
-PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
+#define __FUNCT__ "PSIntermediate_HEP"
+/*
+   Reduce to tridiagonal form
+*/
+static PetscErrorCode PSIntermediate_HEP(PS ps)
 {
-#if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR) || defined(SLEPC_MISSING_LAPACK_STEQR)
+#if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR/STEQR - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
-  PetscScalar    *A,*S,*Q,*W,*work,*tau,one=1.0,zero=0.0;
-  PetscReal      *d,*e,abstol=0.0,vl,vu;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *ritz;
-#endif
+  PetscBLASInt   n1,n2,n3,lwork,info,l,n,ld,off;
+  PetscScalar    *A,*S,*Q,*work,*tau;
+  PetscReal      *d,*e;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
@@ -274,51 +284,128 @@ PetscErrorCode PSSolve_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
       for (i=l;i<n-1;i++) e[i] = PetscRealPart(A[(i+1)+i*ld]);
     }
   }
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSolve_HEP_QR"
+PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
+{
+#if defined(SLEPC_MISSING_LAPACK_STEQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEQR - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   n1,n2,n3,info,l,n,ld,off;
+  PetscScalar    *A,*Q;
+  PetscReal      *d,*e;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *ritz;
+#endif
+
+  PetscFunctionBegin;
+  n  = PetscBLASIntCast(ps->n);
+  l  = PetscBLASIntCast(ps->l);
+  ld = PetscBLASIntCast(ps->ld);
+  n1 = PetscBLASIntCast(ps->k-l+1);  /* size of leading block, excluding locked */
+  n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
+  n3 = n1+n2;
+  off = l+l*ld;
+  A  = ps->mat[PS_MAT_A];
+  Q  = ps->mat[PS_MAT_Q];
+  d  = ps->rmat[PS_MAT_T];
+  e  = ps->rmat[PS_MAT_T]+ld;
+
+  /* Reduce to tridiagonal form */
+  ierr = PSIntermediate_HEP(ps);CHKERRQ(ierr);
 
   /* Solve the tridiagonal eigenproblem */
   for (i=0;i<l;i++) wr[i] = d[i];
-  switch (ps->method) {
-    case 0:
-      ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
-      LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
-      for (i=l;i<n;i++) wr[i] = d[i];
-      break;
-    case 1:
-      if (ps->state<PS_STATE_INTERMEDIATE) {  /* Q contains useful info */
-        ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
-        W = ps->mat[PS_MAT_W];
-        ierr = PSCopyMatrix_Private(ps,PS_MAT_W,PS_MAT_Q);CHKERRQ(ierr); 
-      }
-#if defined(PETSC_USE_COMPLEX)
-      ierr = PSAllocateMatReal_Private(ps,PS_MAT_Q);CHKERRQ(ierr);
-#endif
-      lwork = 20*ld;
-      liwork = 10*ld;
-      ierr = PSAllocateWork_Private(ps,0,lwork+ld,liwork+2*ld);CHKERRQ(ierr); 
-      isuppz = ps->iwork+liwork;
-#if defined(PETSC_USE_COMPLEX)
-      ritz = ps->rwork+lwork;
-      LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,ps->rmat[PS_MAT_Q]+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
-      for (i=l;i<n;i++) wr[i] = ritz[i];
-#else
-      LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
-#endif
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
-#if defined(PETSC_USE_COMPLEX)
-      for (i=l;i<n;i++) 
-        for (j=l;j<n;j++)
-          Q[i+j*ld] = (ps->rmat[PS_MAT_Q])[i+j*ld];
-#endif
-      if (ps->state<PS_STATE_INTERMEDIATE) {  /* accumulate previous Q */
-        BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld);
-        ierr = PSCopyMatrix_Private(ps,PS_MAT_Q,PS_MAT_A);CHKERRQ(ierr); 
-      }
-      for (i=l;i<n;i++) d[i] = wr[i];
-      break;
-    default:
-      SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of method: %d",ps->method);
+
+  ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
+  LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  for (i=l;i<n;i++) wr[i] = d[i];
+
+  if (ps->compact) {
+    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+  } else {
+    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<n;i++) A[i+i*ld] = d[i];
   }
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSolve_HEP_MRRR"
+PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
+{
+#if defined(SLEPC_MISSING_LAPACK_STEVR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEVR - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
+  PetscScalar    *A,*Q,*W,one=1.0,zero=0.0;
+  PetscReal      *d,*e,abstol=0.0,vl,vu;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *ritz;
+#endif
+
+  PetscFunctionBegin;
+  n  = PetscBLASIntCast(ps->n);
+  l  = PetscBLASIntCast(ps->l);
+  ld = PetscBLASIntCast(ps->ld);
+  n1 = PetscBLASIntCast(ps->k-l+1);  /* size of leading block, excluding locked */
+  n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
+  n3 = n1+n2;
+  off = l+l*ld;
+  A  = ps->mat[PS_MAT_A];
+  Q  = ps->mat[PS_MAT_Q];
+  d  = ps->rmat[PS_MAT_T];
+  e  = ps->rmat[PS_MAT_T]+ld;
+
+  /* Reduce to tridiagonal form */
+  ierr = PSIntermediate_HEP(ps);CHKERRQ(ierr);
+
+  /* Solve the tridiagonal eigenproblem */
+  for (i=0;i<l;i++) wr[i] = d[i];
+
+  if (ps->state<PS_STATE_INTERMEDIATE) {  /* Q contains useful info */
+    ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
+    W = ps->mat[PS_MAT_W];
+    ierr = PSCopyMatrix_Private(ps,PS_MAT_W,PS_MAT_Q);CHKERRQ(ierr); 
+  }
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PSAllocateMatReal_Private(ps,PS_MAT_Q);CHKERRQ(ierr);
+#endif
+  lwork = 20*ld;
+  liwork = 10*ld;
+  ierr = PSAllocateWork_Private(ps,0,lwork+ld,liwork+2*ld);CHKERRQ(ierr); 
+  isuppz = ps->iwork+liwork;
+#if defined(PETSC_USE_COMPLEX)
+  ritz = ps->rwork+lwork;
+  LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,ps->rmat[PS_MAT_Q]+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
+  for (i=l;i<n;i++) wr[i] = ritz[i];
+#else
+  LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ps->rwork,&lwork,ps->iwork,&liwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
+#if defined(PETSC_USE_COMPLEX)
+  for (i=l;i<n;i++) 
+    for (j=l;j<n;j++)
+      Q[i+j*ld] = (ps->rmat[PS_MAT_Q])[i+j*ld];
+#endif
+  if (ps->state<PS_STATE_INTERMEDIATE) {  /* accumulate previous Q */
+    BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld);
+    ierr = PSCopyMatrix_Private(ps,PS_MAT_Q,PS_MAT_A);CHKERRQ(ierr); 
+  }
+  for (i=l;i<n;i++) d[i] = wr[i];
+
   if (ps->compact) {
     ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
   } else {
@@ -467,7 +554,7 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->ops->allocate      = PSAllocate_HEP;
   ps->ops->view          = PSView_HEP;
   ps->ops->vectors       = PSVectors_HEP;
-  ps->ops->solve         = PSSolve_HEP;
+  ps->ops->solve         = solve[ps->method];
   ps->ops->sort          = PSSort_HEP;
   ps->ops->cond          = PSCond_HEP;
   ps->ops->transrks      = PSTranslateRKS_HEP;
