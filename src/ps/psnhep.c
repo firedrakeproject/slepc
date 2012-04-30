@@ -165,22 +165,22 @@ PetscErrorCode PSVectors_NHEP_Eigen_All(PS ps,PetscBool left)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSVectors_NHEP"
-PetscErrorCode PSVectors_NHEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
+PetscErrorCode PSVectors_NHEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   switch (mat) {
     case PS_MAT_X:
-      if (k) {
-        ierr = PSVectors_NHEP_Eigen_Some(ps,k,rnorm,PETSC_FALSE);CHKERRQ(ierr);
+      if (j) {
+        ierr = PSVectors_NHEP_Eigen_Some(ps,j,rnorm,PETSC_FALSE);CHKERRQ(ierr);
       } else {
         ierr = PSVectors_NHEP_Eigen_All(ps,PETSC_FALSE);CHKERRQ(ierr);
       }
       break;
     case PS_MAT_Y:
-      if (k) {
-        ierr = PSVectors_NHEP_Eigen_Some(ps,k,rnorm,PETSC_TRUE);CHKERRQ(ierr);
+      if (j) {
+        ierr = PSVectors_NHEP_Eigen_Some(ps,j,rnorm,PETSC_TRUE);CHKERRQ(ierr);
       } else {
         ierr = PSVectors_NHEP_Eigen_All(ps,PETSC_TRUE);CHKERRQ(ierr);
       }

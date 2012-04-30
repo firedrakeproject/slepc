@@ -415,7 +415,7 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
 -  mat - the matrix, used to indicate which vectors are required
 
    Input/Output Parameter:
--  k   - (optional) index of vector to be computed
+-  j   - (optional) index of vector to be computed
 
    Output Parameter:
 .  rnorm - (optional) computed residual norm
@@ -425,9 +425,9 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
    compute right or left eigenvectors, or left or right singular vectors,
    respectively.
 
-   If PETSC_NULL is passed in argument k then all vectors are computed,
-   otherwise k indicates which vector must be computed. In real non-symmetric
-   problems, on exit the index k will be incremented when a complex conjugate
+   If PETSC_NULL is passed in argument j then all vectors are computed,
+   otherwise j indicates which vector must be computed. In real non-symmetric
+   problems, on exit the index j will be incremented when a complex conjugate
    pair is found.
 
    This function can be invoked after the projected problem has been solved,
@@ -441,7 +441,7 @@ PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (
 
 .seealso: PSSolve()
 @*/
-PetscErrorCode PSVectors(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
+PetscErrorCode PSVectors(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscErrorCode ierr;
 
@@ -450,10 +450,11 @@ PetscErrorCode PSVectors(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscValidLogicalCollectiveEnum(ps,mat,2);
   if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
   if (!ps->ops->vectors) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (rnorm && !j) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must give a value of j");
   ierr = PSAllocateMat_Private(ps,mat);CHKERRQ(ierr); 
   ierr = PetscLogEventBegin(PS_Vectors,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ps->ops->vectors)(ps,mat,k,rnorm);CHKERRQ(ierr);
+  ierr = (*ps->ops->vectors)(ps,mat,j,rnorm);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Vectors,ps,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
