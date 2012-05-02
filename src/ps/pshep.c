@@ -285,6 +285,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt *n,PetscReal *d,PetscReal *e,Pet
   PetscFunctionReturn(0);
 }
 
+#if 0
 #undef __FUNCT__  
 #define __FUNCT__ "PSIntermediate_HEP_Flip"
 /*
@@ -381,6 +382,7 @@ static PetscErrorCode PSIntermediate_HEP_Flip(PS ps)
   PetscFunctionReturn(0);
 #endif
 }
+#endif
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSIntermediate_HEP"
@@ -394,9 +396,9 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j;
+  PetscInt       i;
   PetscBLASInt   n1,n2,n3,lwork,info,l,n,ld,off;
-  PetscScalar    *A,*S,*Q,*work,*tau;
+  PetscScalar    *A,*Q,*work,*tau;
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
@@ -502,7 +504,7 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEVR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,j;
   PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*Q,*W,one=1.0,zero=0.0;
   PetscReal      *d,*e,abstol=0.0,vl,vu;
