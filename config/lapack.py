@@ -61,11 +61,11 @@ def Check(conf,vars,cmake,tmpdir):
 
   # LAPACK functions which are always used in real version 
   if petscconf.PRECISION == 'single':
-    functions += ['sstevr','sbdsdc','slamch','slag2','slasv2']
+    functions += ['sstevr','sbdsdc','slamch','slag2','slasv2','slartg']
   elif petscconf.PRECISION == '__float128':
-    functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2']
+    functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2','qlartg']
   else:
-    functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2']
+    functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg']
    
   # check for all functions at once
   all = [] 

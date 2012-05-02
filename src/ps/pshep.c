@@ -193,11 +193,105 @@ PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSIntermediate_HEP"
+#define __FUNCT__ "ArrowTridiag"
 /*
-   Reduce to tridiagonal form
+  ARROWTRIDIAG reduces a symmetric arrowhead matrix of the form
+
+                [ d 0 0 0 e ]
+                [ 0 d 0 0 e ]
+            A = [ 0 0 d 0 e ]
+                [ 0 0 0 d e ]
+                [ e e e e d ]
+
+  to tridiagonal form
+
+                [ d e 0 0 0 ]
+                [ e d e 0 0 ]
+   T = Q'*A*Q = [ 0 e d e 0 ],
+                [ 0 0 e d e ]
+                [ 0 0 0 e d ]
+
+  where Q is an orthogonal matrix. Rutishauser's algorithm is used to
+  perform the reduction, which requires O(n**2) flops. The accumulation
+  of the orthogonal factor Q, however, requires O(n**3) flops.
+
+  Arguments
+  =========
+
+  N       (input) INTEGER
+          The order of the matrix A.  N >= 0.
+
+  D       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, the diagonal entries of the matrix A to be
+          reduced.
+          On exit, the diagonal entries of the reduced matrix T.
+
+  E       (input/output) DOUBLE PRECISION array, dimension (N-1)
+          On entry, the off-diagonal entries of the matrix A to be
+          reduced.
+          On exit, the subdiagonal entries of the reduced matrix T.
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ, N)
+          On exit, the orthogonal matrix Q.
+
+  LDQ     (input) INTEGER
+          The leading dimension of the array Q.
+
+  Note
+  ====
+  Based on Fortran code contributed by Daniel Kressner
 */
-static PetscErrorCode PSIntermediate_HEP(PS ps)
+static PetscErrorCode ArrowTridiag(PetscBLASInt *n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt *ldq)
+{
+  PetscBLASInt i,j,j2,ld=*ldq,one=1;
+  PetscReal    c,s,p,off,temp;
+
+  PetscFunctionBegin;
+  if (*n<=2) PetscFunctionReturn(0);
+
+  for (j=0;j<*n-2;j++) {
+
+    /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
+    temp = e[j+1];
+    LAPACKlartg_(&temp,&e[j],&c,&s,&e[j+1]);
+    s = -s;
+
+    /* Apply rotation to diagonal elements */
+    temp   = d[j+1];
+    e[j]   = c*s*(temp-d[j]);
+    d[j+1] = s*s*d[j] + c*c*temp;
+    d[j]   = c*c*d[j] + s*s*temp;
+
+    /* Apply rotation to Q */
+    j2 = j+2;
+    BLASrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s);
+
+    /* Chase newly introduced off-diagonal entry to the top left corner */
+    for (i=j-1;i>=0;i--) {
+      off  = -s*e[i];
+      e[i] = c*e[i];
+      temp = e[i+1];
+      LAPACKlartg_(&temp,&off,&c,&s,&e[i+1]);
+      s = -s;
+      temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
+      p = s*temp;
+      d[i+1] += p;
+      d[i] -= p;
+      e[i] = -e[i] - c*temp;
+      j2 = j+2;
+      BLASrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSIntermediate_HEP_Flip"
+/*
+   Reduce to tridiagonal form by flipping the matrix and using standard
+   LAPACK tridiagonal reduction
+*/
+static PetscErrorCode PSIntermediate_HEP_Flip(PS ps)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR)
   PetscFunctionBegin;
@@ -263,6 +357,66 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
           Q[l+i+(l+j)*ld] = S[n3-i-1+(n3-j-1)*ld];
 
     }
+
+  } else {
+
+    for (i=0;i<l;i++) { d[i] = PetscRealPart(A[i+i*ld]); e[i] = 0.0; }
+
+    if (ps->state<PS_STATE_INTERMEDIATE) {
+      ierr = PSCopyMatrix_Private(ps,PS_MAT_Q,PS_MAT_A);CHKERRQ(ierr); 
+      ierr = PSAllocateWork_Private(ps,ld+ld*ld,0,0);CHKERRQ(ierr); 
+      tau  = ps->work;
+      work = ps->work+ld;
+      lwork = ld*ld;
+      LAPACKsytrd_("L",&n3,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info);
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
+      LAPACKorgtr_("L",&n3,Q+off,&ld,tau,work,&lwork,&info);
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
+    } else {
+      /* copy tridiagonal to d,e */
+      for (i=l;i<n;i++) d[i] = PetscRealPart(A[i+i*ld]);
+      for (i=l;i<n-1;i++) e[i] = PetscRealPart(A[(i+1)+i*ld]);
+    }
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSIntermediate_HEP"
+/*
+   Reduce to tridiagonal form by means of ArrowTridiag.
+*/
+static PetscErrorCode PSIntermediate_HEP(PS ps)
+{
+#if defined(SLEPC_MISSING_LAPACK_SYTRD) || defined(SLEPC_MISSING_LAPACK_ORGTR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYTRD/ORGTR - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+  PetscBLASInt   n1,n2,n3,lwork,info,l,n,ld,off;
+  PetscScalar    *A,*S,*Q,*work,*tau;
+  PetscReal      *d,*e;
+
+  PetscFunctionBegin;
+  n  = PetscBLASIntCast(ps->n);
+  l  = PetscBLASIntCast(ps->l);
+  ld = PetscBLASIntCast(ps->ld);
+  n1 = PetscBLASIntCast(ps->k-l+1);  /* size of leading block, excluding locked */
+  n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
+  n3 = n1+n2;
+  off = l+l*ld;
+  A  = ps->mat[PS_MAT_A];
+  Q  = ps->mat[PS_MAT_Q];
+  d  = ps->rmat[PS_MAT_T];
+  e  = ps->rmat[PS_MAT_T]+ld;
+  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
+
+  if (ps->compact) {
+
+    if (ps->state<PS_STATE_INTERMEDIATE) ArrowTridiag(&n1,d+l,e+l,Q+off,&ld);
 
   } else {
 
