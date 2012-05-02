@@ -101,13 +101,15 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
 #endif
     norm = BLASnrm2_(&n,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
-    tmp  = BLASnrm2_(&n,Y+ld,&inc);
-    norm = SlepcAbsEigenvalue(norm,tmp);
+    if (iscomplex) {
+      tmp  = BLASnrm2_(&n,Y+ld,&inc);
+      norm = SlepcAbsEigenvalue(norm,tmp);
+    }
 #endif
     tmp = 1.0 / norm;
     BLASscal_(&n,&tmp,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
-    BLASscal_(&n,&tmp,Y+ld,&inc);
+    if (iscomplex) BLASscal_(&n,&tmp,Y+ld,&inc);
 #endif
   }
 

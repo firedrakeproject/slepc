@@ -504,11 +504,12 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEVR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j;
+  PetscInt       i;
   PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*Q,*W,one=1.0,zero=0.0;
   PetscReal      *d,*e,abstol=0.0,vl,vu;
 #if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
   PetscReal      *ritz;
 #endif
 
