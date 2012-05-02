@@ -235,6 +235,10 @@ PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 */
 static PetscErrorCode ArrowTridiag(PetscBLASInt *n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt *ldq)
 {
+#if defined(SLEPC_MISSING_LAPACK_LARTG)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARTG - Lapack routine is unavailable.");
+#else
   PetscBLASInt i,j,j2,ld=*ldq,one=1;
   PetscReal    c,s,p,off,temp;
 
@@ -275,6 +279,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt *n,PetscReal *d,PetscReal *e,Pet
     }
   }
   PetscFunctionReturn(0);
+#endif
 }
 
 #if 0
