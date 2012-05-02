@@ -22,18 +22,6 @@
 #include <slepc-private/psimpl.h>      /*I "slepcps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode PSSolve_HEP_QR(PS,PetscScalar*,PetscScalar*);
-PetscErrorCode PSSolve_HEP_MRRR(PS,PetscScalar*,PetscScalar*);
-typedef PetscErrorCode (*solvefun)(PS,PetscScalar*,PetscScalar*);
-static const solvefun solve[] = { 
-                     PSSolve_HEP_QR,
-                     PSSolve_HEP_MRRR
-};
-static const char *methodname[] = {
-                     "Implicit QR method (_steqr)",
-                     "Relatively Robust Representations (_stevr)"
-};
-
 #undef __FUNCT__  
 #define __FUNCT__ "PSAllocate_HEP"
 PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
@@ -115,6 +103,10 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
   PetscViewerFormat format;
   PetscInt          i,j,r,c;
   PetscReal         value;
+  const char *methodname[] = {
+                     "Implicit QR method (_steqr)",
+                     "Relatively Robust Representations (_stevr)"
+  };
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
@@ -707,11 +699,11 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_HEP(PS ps)
 {
   PetscFunctionBegin;
-  ps->nmeth  = 2;
   ps->ops->allocate      = PSAllocate_HEP;
   ps->ops->view          = PSView_HEP;
   ps->ops->vectors       = PSVectors_HEP;
-  ps->ops->solve         = solve[ps->method];
+  ps->ops->solve[0]      = PSSolve_HEP_QR;
+  ps->ops->solve[1]      = PSSolve_HEP_MRRR;
   ps->ops->sort          = PSSort_HEP;
   ps->ops->cond          = PSCond_HEP;
   ps->ops->transrks      = PSTranslateRKS_HEP;

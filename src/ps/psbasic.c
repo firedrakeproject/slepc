@@ -135,7 +135,6 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   *newps      = ps;
   ps->state   = PS_STATE_RAW;
   ps->method  = 0;
-  ps->nmeth   = 1;
   ps->compact = PETSC_FALSE;
   ps->refined = PETSC_FALSE;
   ps->ld      = 0;
@@ -332,6 +331,7 @@ PetscErrorCode PSSetMethod(PS ps,PetscInt meth)
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ps,meth,2);
   if (meth<0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  if (meth>PS_MAX_SOLVE) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
   ps->method = meth;
   PetscFunctionReturn(0);
 }

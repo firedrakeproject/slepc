@@ -24,6 +24,8 @@
 #include "slepcsys.h"
 PETSC_EXTERN_CXX_BEGIN
 
+#define PS_MAX_SOLVE 6
+
 extern PetscErrorCode PSInitializePackage(const char[]);
 /*S
     PS - Projected system, to represent low-dimensional eigenproblems that

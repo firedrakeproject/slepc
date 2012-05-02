@@ -33,7 +33,7 @@ struct _PSOps {
   PetscErrorCode (*allocate)(PS,PetscInt);
   PetscErrorCode (*view)(PS,PetscViewer);
   PetscErrorCode (*vectors)(PS,PSMatType,PetscInt*,PetscReal*);
-  PetscErrorCode (*solve)(PS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*solve[PS_MAX_SOLVE])(PS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*,PetscErrorCode(*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
   PetscErrorCode (*cond)(PS,PetscReal*);
   PetscErrorCode (*transharm)(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
@@ -43,7 +43,6 @@ struct _PSOps {
 struct _p_PS {
   PETSCHEADER(struct _PSOps);
   PetscInt     method;             /* identifies the variant to be used */
-  PetscInt     nmeth;              /* number of methods available in this ps */
   PetscBool    compact;            /* whether the matrices are stored in compact form */
   PetscBool    refined;            /* get refined vectors instead of regular vectors */
   PetscInt     ld;                 /* leading dimension */

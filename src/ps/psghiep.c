@@ -266,11 +266,10 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_GHIEP(PS ps)
 {
   PetscFunctionBegin;
-  ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_GHIEP;
   ps->ops->view          = PSView_GHIEP;
   ps->ops->vectors       = PSVectors_GHIEP;
-  ps->ops->solve         = PSSolve_GHIEP;
+  ps->ops->solve[0]      = PSSolve_GHIEP;
   ps->ops->sort          = PSSort_GHIEP;
   PetscFunctionReturn(0);
 }

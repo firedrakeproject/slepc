@@ -484,11 +484,10 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_NHEP(PS ps)
 {
   PetscFunctionBegin;
-  ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_NHEP;
   ps->ops->view          = PSView_NHEP;
   ps->ops->vectors       = PSVectors_NHEP;
-  ps->ops->solve         = PSSolve_NHEP;
+  ps->ops->solve[0]      = PSSolve_NHEP;
   ps->ops->sort          = PSSort_NHEP;
   ps->ops->cond          = PSCond_NHEP;
   ps->ops->transharm     = PSTranslateHarmonic_NHEP;
