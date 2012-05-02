@@ -45,6 +45,7 @@ struct _p_PS {
   PetscInt     method;             /* identifies the variant to be used */
   PetscBool    compact;            /* whether the matrices are stored in compact form */
   PetscBool    refined;            /* get refined vectors instead of regular vectors */
+  PetscBool    extrarow;           /* assume the matrix dimension is (n+1) x n */
   PetscInt     ld;                 /* leading dimension */
   PetscInt     l;                  /* number of locked (inactive) leading columns */
   PetscInt     n;                  /* current dimension */

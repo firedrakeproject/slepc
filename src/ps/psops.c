@@ -153,6 +153,7 @@ PetscErrorCode PSSetDimensions(PS ps,PetscInt n,PetscInt l,PetscInt k)
       ps->n = ps->ld;
     } else {
       if (n<1 || n>ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 1 and ld");
+      if (ps->extrarow && n+1>ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
       ps->n = n;
     }
   }

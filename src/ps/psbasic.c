@@ -132,15 +132,16 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   PetscFunctionBegin;
   PetscValidPointer(newps,2);
   ierr = PetscHeaderCreate(ps,_p_PS,struct _PSOps,PS_CLASSID,-1,"PS","Projected System","PS",comm,PSDestroy,PSView);CHKERRQ(ierr);
-  *newps      = ps;
-  ps->state   = PS_STATE_RAW;
-  ps->method  = 0;
-  ps->compact = PETSC_FALSE;
-  ps->refined = PETSC_FALSE;
-  ps->ld      = 0;
-  ps->l       = 0;
-  ps->n       = 0;
-  ps->k       = 0;
+  *newps       = ps;
+  ps->state    = PS_STATE_RAW;
+  ps->method   = 0;
+  ps->compact  = PETSC_FALSE;
+  ps->refined  = PETSC_FALSE;
+  ps->extrarow = PETSC_FALSE;
+  ps->ld       = 0;
+  ps->l        = 0;
+  ps->n        = 0;
+  ps->k        = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ps->mat[i]  = PETSC_NULL;
     ps->rmat[i] = PETSC_NULL;
@@ -421,6 +422,66 @@ PetscErrorCode PSGetCompact(PS ps,PetscBool *comp)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSSetExtraRow"
+/*@
+   PSSetExtraRow - Sets a flag to indicate that the matrix has one extra
+   row.
+
+   Logically Collective on PS
+
+   Input Parameter:
++  ps  - the projected system context
+-  ext - a boolean flag
+
+   Notes:
+   In Krylov methods it is useful that the matrix representing the projected system
+   has one extra row, i.e., has dimension (n+1) x n. If this flag is activated, all
+   transformations applied to the right of the matrix also affect this additional
+   row. In that case, (n+1) must be less or equal than the leading dimension.
+
+   The default is PETSC_FALSE.
+
+   Level: advanced
+
+.seealso: PSSolve(), PSAllocate(), PSGetExtraRow()
+@*/
+PetscErrorCode PSSetExtraRow(PS ps,PetscBool ext)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(ps,ext,2);
+  if (ps->n>0 && ps->n==ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
+  ps->extrarow = ext;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSGetExtraRow"
+/*@
+   PSGetExtraRow - Gets the extra row flag.
+
+   Not Collective
+
+   Input Parameter:
+.  ps - the projected system context
+
+   Output Parameter:
+.  ext - the flag
+
+   Level: advanced
+
+.seealso: PSSetExtraRow()
+@*/
+PetscErrorCode PSGetExtraRow(PS ps,PetscBool *ext)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidPointer(ext,2);
+  *ext = ps->extrarow;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSetRefined"
 /*@
    PSSetRefined - Sets a flag to indicate that refined vectors must be
@@ -466,7 +527,7 @@ PetscErrorCode PSSetRefined(PS ps,PetscBool ref)
 .  ps - the projected system context
 
    Output Parameter:
-.  comp - the flag
+.  ref - the flag
 
    Level: advanced
 
@@ -569,6 +630,7 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  flags: %s %s %s\n",ps->compact?"compact":"",ps->extrarow?"extrarow":"",ps->refined?"refined":"");CHKERRQ(ierr);
     }
     if (ps->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -588,11 +650,12 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
 
    Input Parameters:
 +  ps - the projected system context
--  ld - leading dimension (maximum allowed dimension for the matrices)
+-  ld - leading dimension (maximum allowed dimension for the matrices, including
+        the extra row if present)
 
    Level: advanced
 
-.seealso: PSGetLeadingDimension(), PSSetDimensions()
+.seealso: PSGetLeadingDimension(), PSSetDimensions(), PSSetExtraRow()
 @*/
 PetscErrorCode PSAllocate(PS ps,PetscInt ld)
 {
@@ -674,7 +737,7 @@ PetscErrorCode PSAllocateWork_Private(PS ps,PetscInt s,PetscInt r,PetscInt i)
 PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 {
   PetscErrorCode    ierr;
-  PetscInt          i,j;
+  PetscInt          i,j,rows;
   PetscScalar       *v;
   PetscViewerFormat format;
 #if defined(PETSC_USE_COMPLEX)
@@ -685,21 +748,22 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+  rows = ps->extrarow? ps->n+1: ps->n;
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
   v = ps->mat[m];
-  for (i=0;i<ps->n;i++)
+  for (i=0;i<rows;i++)
     for (j=0;j<ps->n;j++)
       if (PetscImaginaryPart(v[i+j*ps->ld])) { allreal = PETSC_FALSE; break; }
 #endif
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ps->n,ps->n);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,ps->n);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",PSMatName[m]);CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",PSMatName[m]);CHKERRQ(ierr);
   }
 
-  for (i=0;i<ps->n;i++) {
+  for (i=0;i<rows;i++) {
     v = ps->mat[m]+i;
     for (j=0;j<ps->n;j++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -819,13 +883,15 @@ PetscErrorCode PSReset(PS ps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ps->state   = PS_STATE_RAW;
-  ps->method  = 0;
-  ps->compact = PETSC_FALSE;
-  ps->ld      = 0;
-  ps->l       = 0;
-  ps->n       = 0;
-  ps->k       = 0;
+  ps->state    = PS_STATE_RAW;
+  ps->method   = 0;
+  ps->compact  = PETSC_FALSE;
+  ps->refined  = PETSC_FALSE;
+  ps->extrarow = PETSC_FALSE;
+  ps->ld       = 0;
+  ps->l        = 0;
+  ps->n        = 0;
+  ps->k        = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ierr = PetscFree(ps->mat[i]);CHKERRQ(ierr);
     ierr = PetscFree(ps->rmat[i]);CHKERRQ(ierr);
