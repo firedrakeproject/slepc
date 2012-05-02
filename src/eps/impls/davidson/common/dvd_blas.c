@@ -1421,7 +1421,8 @@ PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt 
           /* Check if T(i+1,i) is negligible */
           if (PetscAbs(T[ldT*(i+1)+i])+PetscAbs(T[ldT*i+i+1]) > (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1]))*PETSC_MACHINE_EPSILON) {
             PetscBLASInt    ldS_,ldT_,n_i,n_i_1,one=1,n_,i_1,i_;
-            PetscScalar     b11,b22,sr,cr,sl,cl;
+            PetscReal       cr,cl;
+            PetscScalar     b11,b22,sr,sl;
             ldS_ = PetscBLASIntCast(ldS);
             ldT_ = PetscBLASIntCast(ldT);
             n_i = PetscBLASIntCast(n-i);
