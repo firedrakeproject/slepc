@@ -22,12 +22,6 @@
 #include <slepc-private/psimpl.h>      /*I "slepcps.h" I*/
 #include <slepcblaslapack.h>
 
-
-#define LAPACKhsein_ dhsein_
-void LAPACKhsein_(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
-
-
-
 /*
   compute X = X - Y*s^{-1}*Y^T*B*X where s=Y^T*B*Y
   B diagonal (signature matrix)
@@ -344,9 +338,9 @@ static PetscErrorCode PSComplexEigs_private(PS ps, PetscInt n0, PetscInt n1, Pet
 #define __FUNCT__ "PSSolve_GHIEP_QR_II"
 PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(PETSC_MISSING_LAPACK_HSEQR)
+#if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(PETSC_MISSING_LAPACK_HSEQR) || defined(PETSC_MISSING_LAPACK_HSEIN)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR/HSEIN - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,off;
@@ -439,7 +433,7 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
   /* Compute Eigenvectors with Inverse Iteration */
 #if !defined(PETSC_USE_COMPLEX)  
   for(i=0;i<n1;i++)select[i]=1;
-  LAPACKhsein_("R","N","N",select,&n1,A+off,&ld,wr+ps->l,wi+ps->l,PETSC_NULL,&ld,W+off,&ld,&n1,&mout,work,PETSC_NULL,infoC,&info,1,1,1);
+  LAPACKhsein_("R","N","N",select,&n1,A+off,&ld,wr+ps->l,wi+ps->l,PETSC_NULL,&ld,W+off,&ld,&n1,&mout,work,PETSC_NULL,infoC,&info);
 #else
   SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP," In PSSolve, QR + II method not implemented for complex indefinite problems",info);
 #endif
@@ -465,7 +459,7 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
       for(j=i-1;j>=ps->l;j--){
         /* s-orthogonalization of Qi and Qi+1*/
         if(PetscAbsReal(wr[j]-wr[i])<toldeg && PetscAbsReal(PetscAbsReal(wi[j])-PetscAbsReal(wi[i]))<toldeg){
-          ierr =  PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
+          ierr = PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
           ierr = PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+(i+1)*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
         }
       }

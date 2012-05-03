@@ -161,6 +161,7 @@
 #define LAPACKtrexc_(a,b,c,d,e,f,g,h,i,j) SLEPC_BLASLAPACK(trexc,TREXC) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),1)
 #define LAPACKgesdd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n) SLEPC_BLASLAPACK(gesdd,GESDD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),1)
 #define LAPACKtgevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_BLASLAPACK(tgevc,TGEVC) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,1)
+#define LAPACKhsein_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) SLEPC_BLASLAPACK(hsein,HSEIN) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),1,1,1)
 #else
 /* different name or signature, complex */
 #define BLASsymm_(a,b,c,d,e,f,g,h,i,j,k,l) SLEPC_BLASLAPACK(hemm,HEMM) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),1,1)
@@ -174,6 +175,7 @@
 #define LAPACKtrexc_(a,b,c,d,e,f,g,h,i) SLEPC_BLASLAPACK(trexc,TREXC) ((a),(b),(c),(d),(e),(f),(g),(h),(i),1)
 #define LAPACKgesdd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) SLEPC_BLASLAPACK(gesdd,GESDD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),1)
 #define LAPACKtgevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_BLASLAPACK(tgevc,TGEVC) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,1)
+#define LAPACKhsein_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) SLEPC_BLASLAPACK(hsein,HSEIN) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),1,1,1)
 #endif
 
 #else /* PETSC_BLASLAPACK_STDCALL */
@@ -204,6 +206,7 @@
 #define LAPACKtrexc_(a,b,c,d,e,f,g,h,i,j) SLEPC_BLASLAPACK(trexc,TREXC) ((a),1,(b),(c),(d),(e),(f),(g),(h),(i),(j))
 #define LAPACKgesdd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n) SLEPC_BLASLAPACK(gesdd,GESDD) ((a),1,(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n))
 #define LAPACKtgevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_BLASLAPACK(tgevc,TGEVC) ((a),1,(b),1,(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p))
+#define LAPACKhsein_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) SLEPC_BLASLAPACK(hsein,HSEIN) ((a),1,(b),1,(c),1,(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s))
 #else
 /* different name or signature, complex */
 #define BLASsymm_(a,b,c,d,e,f,g,h,i,j,k,l) SLEPC_BLASLAPACK(hemm,HEMM) ((a),1,(b),1,(c),(d),(e),(f),(g),(h),(i),(j),(k),(l))
@@ -217,6 +220,7 @@
 #define LAPACKtrexc_(a,b,c,d,e,f,g,h,i) SLEPC_BLASLAPACK(trexc,TREXC) ((a),1,(b),(c),(d),(e),(f),(g),(h),(i))
 #define LAPACKgesdd_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) SLEPC_BLASLAPACK(gesdd,GESDD) ((a),1,(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o))
 #define LAPACKtgevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_BLASLAPACK(tgevc,TGEVC) ((a),1,(b),1,(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q))
+#define LAPACKhsein_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) SLEPC_BLASLAPACK(hsein,HSEIN) ((a),1,(b),1,(c),1,(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s))
 #endif
 
 #endif
@@ -270,6 +274,7 @@ extern void      SLEPC_BLASLAPACK(geevx,GEEVX) (const char*,const char*,const ch
 extern void      SLEPC_BLASLAPACK(trexc,TREXC) (const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt);
 extern void      SLEPC_BLASLAPACK(gesdd,GESDD) (const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt);
 extern void      SLEPC_BLASLAPACK(tgevc,TGEVC) (const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+extern void      SLEPC_BLASLAPACK(hsein,HSEIN) (const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
 #else
 extern void      SLEPC_BLASLAPACK(ggevx,GGEVX) (const char*,const char*,const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*, PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*, PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscBLASInt);
 extern void      SLEPC_BLASLAPACK(ggev,GGEV) (const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
@@ -284,6 +289,7 @@ extern void      SLEPC_BLASLAPACK(geevx,GEEVX) (const char*,const char*,const ch
 extern void      SLEPC_BLASLAPACK(trexc,TREXC) (const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt);
 extern void      SLEPC_BLASLAPACK(gesdd,GESDD) (const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt);
 extern void      SLEPC_BLASLAPACK(tgevc,TGEVC) (const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+extern void      SLEPC_BLASLAPACK(hsein,HSEIN) (const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
 #endif
 
 #else /* PETSC_BLASLAPACK_STDCALL */
@@ -332,6 +338,7 @@ extern void PETSC_STDCALL SLEPC_BLASLAPACK(geevx,GEEVX) (const char*,PetscBLASIn
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(trexc,TREXC) (const char*,PetscBLASInt,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(gesdd,GESDD) (const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(tgevc,TGEVC) (const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
+extern void      SLEPC_BLASLAPACK(hsein,HSEIN) (const char*,PetscBLASInt,const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 #else
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(ggevx,GGEVX) (const char*,PetscBLASInt,const char*,PetscBLASInt,const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*, PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*, PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(ggev,GGEV) (const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
@@ -346,6 +353,7 @@ extern void PETSC_STDCALL SLEPC_BLASLAPACK(geevx,GEEVX) (const char*,PetscBLASIn
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(trexc,TREXC) (const char*,PetscBLASInt,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(gesdd,GESDD) (const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*);
 extern void PETSC_STDCALL SLEPC_BLASLAPACK(tgevc,TGEVC) (const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*);
+extern void      SLEPC_BLASLAPACK(hsein,HSEIN) (const char*,PetscBLASInt,const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 #endif
 
 #endif
