@@ -399,6 +399,10 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   }
   
   if (refined) { ierr = PetscFree(Hcopy);CHKERRQ(ierr); }
+  /* truncate Schur decomposition and change the state to raw so that
+     PSVectors() computes eigenvectors from scratch */
+  ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

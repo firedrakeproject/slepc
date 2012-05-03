@@ -331,6 +331,10 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
+  /* truncate Schur decomposition and change the state to raw so that
+     PSVectors() computes eigenvectors from scratch */
+  ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
