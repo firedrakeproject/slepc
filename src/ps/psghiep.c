@@ -51,13 +51,13 @@ static PetscErrorCode PSOrthog_private(PetscScalar *B, PetscScalar *Y, PetscReal
 /* normalization with a indefinite norm */
 #undef __FUNCT__
 #define __FUNCT__ "PSNormIndef_private"
-static PetscErrorCode PSNormIndef_private(PetscScalar *B,PetscScalar *X, PetscScalar *norm,PetscInt n)
+static PetscErrorCode PSNormIndef_private(PetscReal *s,PetscScalar *X, PetscScalar *norm,PetscInt n)
 {
   PetscInt	i;
   PetscReal   	norm_;
   /* s-normalization */
   norm_ = 0.0;
-  for(i=0;i<n;i++){norm_ += X[i]*B[i]*X[i];}
+  for(i=0;i<n;i++){norm_ += X[i]*s[i]*X[i];}
   if(norm_<0){norm_ = -PetscSqrtReal(-norm_);}
   else {norm_ = PetscSqrtReal(norm_);}
   for(i=0;i<n;i++)X[i] /= norm_;

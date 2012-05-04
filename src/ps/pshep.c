@@ -558,7 +558,7 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
     BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld);
     ierr = PSCopyMatrix_Private(ps,PS_MAT_Q,PS_MAT_A);CHKERRQ(ierr); 
   }
-  for (i=l;i<n;i++) d[i] = wr[i];
+  for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
 
   if (ps->compact) {
     ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
