@@ -43,12 +43,12 @@ all:
 	 else \
 	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy; \
 	 fi
-	-@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/conf/make.log > /dev/null; if [ "$$?" = "0" ]; then \
+	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/conf/make.log | tee ${PETSC_ARCH}/conf/error.log > /dev/null
+	@if test -s ${PETSC_ARCH}/conf/error.log; then \
            echo "********************************************************************"; \
            echo "  Error during compile, check ${PETSC_ARCH}/conf/make.log"; \
            echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es";\
            echo "********************************************************************"; \
-           exit 1; \
 	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the library is working do: make test";\
            echo "=========================================";\
@@ -57,6 +57,7 @@ all:
 	   echo "make SLEPC_DIR=${PWD} PETSC_DIR=${PETSC_DIR} PETSC_ARCH=arch-installed-petsc install";\
 	   echo "=========================================";\
 	 fi
+	@if test -s ${PETSC_ARCH}/conf/error.log; then exit 1; fi
 
 all-cmake:
 	@${OMAKE} -j ${MAKE_NP} -C ${PETSC_ARCH} VERBOSE=1 2>&1 | tee ${PETSC_ARCH}/conf/make.log \
