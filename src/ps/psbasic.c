@@ -976,6 +976,7 @@ EXTERN_C_BEGIN
 extern PetscErrorCode PSCreate_HEP(PS);
 extern PetscErrorCode PSCreate_NHEP(PS);
 extern PetscErrorCode PSCreate_GHIEP(PS);
+extern PetscErrorCode PSCreate_GNHEP(PS);
 EXTERN_C_END
 
 #undef __FUNCT__  
@@ -999,6 +1000,7 @@ PetscErrorCode PSRegisterAll(const char *path)
   ierr = PSRegisterDynamic(PSHEP,path,"PSCreate_HEP",PSCreate_HEP);CHKERRQ(ierr);
   ierr = PSRegisterDynamic(PSNHEP,path,"PSCreate_NHEP",PSCreate_NHEP);CHKERRQ(ierr);
   ierr = PSRegisterDynamic(PSGHIEP,path,"PSCreate_GHIEP",PSCreate_GHIEP);CHKERRQ(ierr);
+  ierr = PSRegisterDynamic(PSGNHEP,path,"PSCreate_GNHEP",PSCreate_GNHEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

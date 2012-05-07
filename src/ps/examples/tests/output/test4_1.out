@@ -1,0 +1,16 @@
+Solve a Projected System of type GNHEP - dimension 10.
+PS Object: 1 MPI processes
+  type: gnhep
+  current state: raw
+  dimensions: ld=12, n=10, l=0, k=0
+Computed eigenvalues =
+  0.19797+2.12926i
+  0.19797-2.12926i
+  1.58254+1.01946i
+  1.58254-1.01946i
+  0.56478+1.75988i
+  0.56478-1.75988i
+  1.12811+1.27812i
+  1.12811-1.27812i
+  1.52659+0.40240i
+  1.52659-0.40240i
