@@ -155,10 +155,11 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #endif
   if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
   for (i=0;i<n;i++) {
-    if (beta[i]==0.0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_FP,"Division by zero: Infinite eigenvalues not supported.");
-    wr[i] /= beta[i];
+    if (beta[i]==0.0) wr[i] = PetscSign(wr[i])*PETSC_MAX_REAL;
+    else wr[i] /= beta[i];
 #if !defined(PETSC_USE_COMPLEX)
-    wi[i] /= beta[i];
+    if (beta[i]==0.0) wi[i] = PetscSign(wi[i])*PETSC_MAX_REAL;
+    else wi[i] /= beta[i];
 #endif
   }
   PetscFunctionReturn(0);
@@ -240,15 +241,8 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
         } else
 #endif
         {
-          if (T[j*ld+j] == 0.0) {
-            if (PetscRealPart(S[j*ld+j]) < 0.0) {
-              wr[j] = PETSC_MIN_REAL;
-            } else {
-              wr[j] = PETSC_MAX_REAL;
-            }
-          } else {
-              wr[j] = S[j*ld+j] / T[j*ld+j];
-          }
+          if (T[j*ld+j] == 0.0) wi[j] = PetscSign(S[j*ld+j])*PETSC_MAX_REAL;
+          else wr[j] = S[j*ld+j] / T[j*ld+j];
           wi[j] = 0.0;
         }
       }
