@@ -57,7 +57,7 @@ static PetscErrorCode PSNormIndef_private(PetscReal *s,PetscScalar *X, PetscReal
   PetscReal   	norm_;
   /* s-normalization */
   norm_ = 0.0;
-  for(i=0;i<n;i++){norm_ += X[i]*s[i]*X[i];}
+  for(i=0;i<n;i++){norm_ += PetscRealPart(X[i]*s[i]*X[i]);}
   if(norm_<0){norm_ = -PetscSqrtReal(-norm_);}
   else {norm_ = PetscSqrtReal(norm_);}
   for(i=0;i<n;i++)X[i] /= norm_;
@@ -221,9 +221,9 @@ PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pet
   else mat = PS_MAT_Q;
   k_ = *k;
   if(k_ < ps->n-1){
-   b = (ps->compact)?*(ps->rmat[PS_MAT_T]+ld+k_):*(ps->mat[PS_MAT_A]+(k_+1)+ld*k_);
-  }else b = 0;
-  if(b==0){/* real */
+   b = (ps->compact)?*(ps->rmat[PS_MAT_T]+ld+k_):PetscRealPart(*(ps->mat[PS_MAT_A]+(k_+1)+ld*k_));
+  }else b = 0.0;
+  if(b == 0.0){/* real */
     ierr = PetscMemcpy(ps->mat[mat]+(k_)*ld,Q+(k_)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
   }else{ /* complex block */
     if(ps->compact){
@@ -316,11 +316,13 @@ static PetscErrorCode PSComplexEigs_private(PS ps, PetscInt n0, PetscInt n1, Pet
         wi[j] = 0.0 ;
       } else {
       /* diagonal block */
-        d1 = A[j+j*ld]/B[j+j*ld]; d2 = A[(j+1)+(j+1)*ld]/B[(j+1)+(j+1)*ld];
-        e1 = A[j+(j+1)*ld]/B[j+j*ld]; e2 = A[(j+1)+j*ld]/B[(j+1)+(j+1)*ld];
+        d1 = PetscRealPart(A[j+j*ld])/PetscRealPart(B[j+j*ld]);
+        d2 = PetscRealPart(A[(j+1)+(j+1)*ld])/PetscRealPart(B[(j+1)+(j+1)*ld]);
+        e1 = PetscRealPart(A[j+(j+1)*ld])/PetscRealPart(B[j+j*ld]);
+        e2 = PetscRealPart(A[(j+1)+j*ld])/PetscRealPart(B[(j+1)+(j+1)*ld]);
         wr[j] = (d1+d2)/2;  wr[j+1] = wr[j];
         disc = (d1-d2)*(d1-d2) - (e1-e2)*(e1-e2);
-        if (disc<0){ /* complex eigenvalues */
+        if (disc<0.0){ /* complex eigenvalues */
           wi[j] = PetscSqrtReal(-disc)/2; wi[j+1] = -wi[j];
         }else{ /* real eigenvalues */
           disc = PetscSqrtReal(disc)/2;
@@ -348,6 +350,7 @@ static PetscErrorCode PSComplexEigs_private(PS ps, PetscInt n0, PetscInt n1, Pet
 static PetscErrorCode PSlarth_private(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *c,PetscReal *s,PetscReal *r)
 {
   PetscReal t,n2,xa,xb;
+  PetscInt  type_;
   PetscFunctionBegin;
   if(x2==0) {
     *c = 1.0; *s = 0.0; *r = PetscAbsReal(x1); *type = 1;
@@ -360,13 +363,16 @@ static PetscErrorCode PSlarth_private(PetscReal x1,PetscReal x2,PetscInt *type,P
   }
   
   if(PetscAbsReal(x1)>PetscAbsReal(x2)){
-    xa = x1; xb = x2; *type =1;
-  }else{ xa = x2; xb = x1; *type =2; } 
+    xa = x1; xb = x2; type_ =1;
+  }else{ xa = x2; xb = x1; type_ =2;
+  } 
   t = xb/xa;
   n2 = PetscAbsReal(1 - t*t);
   *r = PetscSqrtReal(n2)*PetscAbsReal(xa);
   *c = x1/(*r);
   *s = x2/(*r);
+  if(type_ == 2) *r *= -1;
+  if(type) *type = type_;
   PetscFunctionReturn(0);
 }
 
@@ -378,7 +384,7 @@ static PetscErrorCode PSlarth_private(PetscReal x1,PetscReal x2,PetscInt *type,P
 */
 #undef __FUNCT__
 #define __FUNCT__ "PSRoth_private"
-static PetscErrorCode PSRoth_private(PetscInt n, PetscScalar *X1, PetscScalar *X2, PetscReal c, PetscReal s, PetscInt type)
+static PetscErrorCode PSRoth_private(PetscInt n, PetscScalar *X1, PetscScalar *X2, PetscReal c, PetscReal s)
 {
 PetscFunctionBegin;
 
@@ -393,47 +399,59 @@ PetscFunctionReturn(0);
 static PetscErrorCode ArrowTridiagDiag(PetscInt k,PetscInt n,PetscReal *d,PetscReal *e,PetscReal *Omega,PetscScalar *Q,PetscInt ldq)
 {
   PetscFunctionBegin;
-  PetscBLASInt i,j,j2,ld=ldq,one=1;
-  PetscReal    	c,s,p,off,temp,e1,e0,d1,d0;
-
+  PetscBLASInt 	  j2,ld=ldq,one=1;
+  PetscInt   	  i,j,type;
+  PetscReal    	  c,s,p,off,e1,e0,d1,d0,temp;
+  PetscErrorCode  ierr;
   PetscFunctionBegin;
   if (n<=2) PetscFunctionReturn(0);
   
   for (j=0;j<n-2;j++) {
-
     /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
+    type = (Omega[j]*Omega[j+1]>0.0)?1:-1;
+    if(PetscAbsReal(e[j+1]) < PetscAbsReal(e[j])) type = 2;
     e0 = e[j]; e1 = e[j+1];
-    d0 = d[j]*Omega[j]; d1 = d[j+1]*Omega[j+1];
-    if( Omega[j+1]*Omega[j]>0.0){ /* unitary rotation */
-      LAPACKlartg_(&e1,&e0,&c,&s,&e[j+1]);
+    d0 = d[j]; d1 = d[j+1];
+    temp = e[j+1];
+    if( type > 0){ /* unitary rotator */
+      LAPACKlartg_(&temp,&e[j],&c,&s,&e[j+1]);
+    }else{/* hyperbolic rotator */
+      ierr = PSlarth_private(temp,e[j],PETSC_NULL,&c,&s,&e[j+1]);CHKERRQ(ierr);
+    }
+    s = -s;
+    /* Apply rotation to diagonal elements */
+    temp   = d[j+1];
+    e[j]   = c*s*(temp-d[j]);
+    d[j+1] = s*s*d[j] + c*c*temp;
+    d[j]   = c*c*d[j] + s*s*temp;
 
-      /* Apply rotation to diagonal elements */
-      e[j]   = Omega[j]*c*s*(d0-d1);
-      d[j+1] = Omega[j+1]*(s*s*d0 + c*c*d1);
-      d[j]   = Omega[j]*(c*c*d0 + s*s*d1);
-
-      /* Apply rotation to Q */
-      j2 = j+2;
-      s = -s;
+    /* Apply rotation to Q */
+    j2 = j+2;
+    if(type == 0) {
       BLASrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s);
     }else{
-
+      ierr = PSRoth_private(j2, Q+j*ld,Q+(j+1)*ld,c,s);CHKERRQ(ierr);
     }
-      /* Chase newly introduced off-diagonal entry to the top left corner */
-      for (i=j-1;i>=0;i--) {
-        off  = -s*e[i];
-        e[i] = c*e[i];
-        temp = e[i+1];
+    /* Chase newly introduced off-diagonal entry to the top left corner */
+    for (i=j-1;i>=0;i--) {
+      off  = -type*s*e[i];
+      e[i] = c*e[i];
+      temp = e[i+1];
+      type = (Omega[i]*Omega[i+1]>0.0)?1:-1;
+      if(type > 0){
         LAPACKlartg_(&temp,&off,&c,&s,&e[i+1]);
-        s = -s;
-        temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
-        p = s*temp;
-        d[i+1] += p;
-        d[i] -= p;
-        e[i] = -e[i] - c*temp;
-        j2 = j+2;
-        BLASrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s);
+      }else{
+        ierr = PSlarth_private(e[i+1],off,PETSC_NULL,&c,&s,&e[i+1]);CHKERRQ(ierr);
       }
+      s = -s;
+      temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
+      p = s*temp;
+      d[i+1] += p;
+      d[i] -= p;
+      e[i] = -e[i] - c*temp;
+      j2 = j+2;
+      BLASrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -558,7 +576,7 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
       }
       ierr = PSNormIndef_private(s+ps->l,Q+i*ld+ps->l,&d1,n1);CHKERRQ(ierr);
       ss[i] = (d1<0.0)?-1:1;
-      d[i] = wr[i]*ss[i]; e[i] = 0.0;
+      d[i] = PetscRealPart(wr[i])*ss[i]; e[i] = 0.0;
     }else{
       for(j=i-1;j>=ps->l;j--){
         /* s-orthogonalization of Qi and Qi+1*/
@@ -572,8 +590,9 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
       ierr = PSOrthog_private(s+ps->l, Q+i*ld+ps->l, ss[i],Q+(i+1)*ld+ps->l, &h,n1);CHKERRQ(ierr);
       ierr = PSNormIndef_private(s+ps->l,Q+(i+1)*ld+ps->l,&d2,n1);CHKERRQ(ierr);
       ss[i+1] = (d2<0)?-1:1;
-      d[i] = (wr[i]-wi[i]*h/d1)*ss[i]; d[i+1] = (wr[i]+wi[i]*h/d1)*ss[i+1];
-      e[i] = wi[i]*d2/d1*ss[i]; e[i+1] = 0.0;
+      d[i] = (PetscRealPart(wr[i])-PetscRealPart(wi[i])*h/d1)*ss[i];
+      d[i+1] = (PetscRealPart(wr[i])+PetscRealPart(wi[i])*h/d1)*ss[i+1];
+      e[i] = PetscRealPart(wi[i])*d2/d1*ss[i]; e[i+1] = 0.0;
       i++;
     }
   }
@@ -710,7 +729,7 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
       }
       ierr = PSNormIndef_private(s+ps->l,Q+i*ld+ps->l,&h,n1);CHKERRQ(ierr);
       ss[i] = (h<0)?-1:1;
-      d[i] = wr[i]*ss[i]; e[i] = 0.0;
+      d[i] = PetscRealPart(wr[i])*ss[i]; e[i] = 0.0;
     }else{
       for(j=i-1;j>=ps->l;j--){
         /* s-orthogonalization of Qi and Qi+1*/
@@ -724,8 +743,9 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
       ierr = PSOrthog_private(s+ps->l, Q+i*ld+ps->l, ss[i],Q+(i+1)*ld+ps->l, &h,n1);CHKERRQ(ierr);
       ierr = PSNormIndef_private(s+ps->l,Q+(i+1)*ld+ps->l,&d2,n1);CHKERRQ(ierr);
       ss[i+1] = (d2<0)?-1:1;
-      d[i] = (wr[i]-wi[i]*h/d1)*ss[i]; d[i+1] = (wr[i]+wi[i]*h/d1)*ss[i+1];
-      e[i] = wi[i]*d2/d1*ss[i]; e[i+1] = 0.0;
+      d[i] = (PetscRealPart(wr[i])-PetscRealPart(wi[i])*h/d1)*ss[i];
+      d[i+1] = (PetscRealPart(wr[i])+PetscRealPart(wi[i])*h/d1)*ss[i+1];
+      e[i] = PetscRealPart(wi[i])*d2/d1*ss[i]; e[i+1] = 0.0;
       i++;
     }
   }
@@ -809,7 +829,7 @@ PetscErrorCode PSSort_GHIEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
   e = d + ps->ld;
   s = d + 2*ps->ld;
   ierr = PSAllocateWork_Private(ps,ps->ld,ps->ld,ps->ld);CHKERRQ(ierr); 
-  perm = ps->iwork;
+  perm = ps->perm;
   ierr = PSSortEigenvalues_Private(ps,wr,wi,perm,comp_func,comp_ctx);CHKERRQ(ierr);
   ierr = PetscMemcpy(ps->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ps->l;i<n;i++) {
