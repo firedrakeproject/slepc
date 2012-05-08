@@ -31,7 +31,7 @@ PetscErrorCode PSAllocate_GNHEP(PS ps,PetscInt ld)
   PetscFunctionBegin;
   ierr = PSAllocateMat_Private(ps,PS_MAT_A);CHKERRQ(ierr); 
   ierr = PSAllocateMat_Private(ps,PS_MAT_B);CHKERRQ(ierr); 
-  ierr = PSAllocateMat_Private(ps,PS_MAT_P);CHKERRQ(ierr); 
+  ierr = PSAllocateMat_Private(ps,PS_MAT_Z);CHKERRQ(ierr); 
   ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
@@ -46,7 +46,7 @@ PetscErrorCode PSView_GNHEP(PS ps,PetscViewer viewer)
   ierr = PSViewMat_Private(ps,viewer,PS_MAT_A);CHKERRQ(ierr); 
   ierr = PSViewMat_Private(ps,viewer,PS_MAT_B);CHKERRQ(ierr); 
   if (ps->state>PS_STATE_INTERMEDIATE) {
-    ierr = PSViewMat_Private(ps,viewer,PS_MAT_P);CHKERRQ(ierr); 
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Z);CHKERRQ(ierr); 
     ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
   }
   PetscFunctionReturn(0);
@@ -62,7 +62,7 @@ PetscErrorCode PSVectors_GNHEP_Eigen_All(PS ps,PetscBool left)
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,mout,info;
-  PetscScalar    *X,*Y,*A = ps->mat[PS_MAT_A], *B = ps->mat[PS_MAT_B];
+  PetscScalar    *X,*Y,*A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B];
   const char     *side,*back;
 
   PetscFunctionBegin;
@@ -80,9 +80,8 @@ PetscErrorCode PSVectors_GNHEP_Eigen_All(PS ps,PetscBool left)
   if (ps->state>=PS_STATE_CONDENSED) {
     /* PSSolve() has been called, backtransform with matrix Q */
     back = "B";
-    ierr = PetscMemcpy(left?Y:X,ps->mat[left?PS_MAT_P:PS_MAT_Q],n*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(left?Y:X,ps->mat[left?PS_MAT_Z:PS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   } else back = "A";
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PSAllocateWork_Private(ps,2*ld,2*ld,0);CHKERRQ(ierr); 
   LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,ps->rwork,&info);
@@ -90,7 +89,6 @@ PetscErrorCode PSVectors_GNHEP_Eigen_All(PS ps,PetscBool left)
   ierr = PSAllocateWork_Private(ps,6*ld,0,0);CHKERRQ(ierr); 
   LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,&info);
 #endif
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);
 #endif
@@ -111,10 +109,6 @@ PetscErrorCode PSVectors_GNHEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
     case PS_MAT_Y:
       ierr = PSVectors_GNHEP_Eigen_All(ps,PETSC_TRUE);CHKERRQ(ierr);
       break;
-    case PS_MAT_U:
-    case PS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
-      break;
     default:
       SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
@@ -133,7 +127,7 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *work,*beta,a;
   PetscInt       i;
   PetscBLASInt   lwork,info,n,ld,iaux;
-  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],*P = ps->mat[PS_MAT_P],*Q = ps->mat[PS_MAT_Q];
+  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],*Z = ps->mat[PS_MAT_Z],*Q = ps->mat[PS_MAT_Q];
 
   PetscFunctionBegin;
   PetscValidPointer(wi,2);
@@ -148,9 +142,7 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   beta = ps->work;
   work = beta+ps->n;
   lwork = PetscBLASIntCast(ps->lwork-ps->n);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,P,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
 #else
   LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
   lwork = a;
@@ -159,19 +151,16 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   work = beta+ps->n;
   lwork = PetscBLASIntCast(ps->lwork-ps->n);
   rwork = ps->rwork;
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&a,wr,beta,P,&ld,Q,&ld,work,&lwork,rwork,PETSC_NULL,&info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&a,wr,beta,Z,&ld,Q,&ld,work,&lwork,rwork,PETSC_NULL,&info);
 #endif
   if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  for (i=0; i<n; i++) {
+  for (i=0;i<n;i++) {
+    if (beta[i]==0.0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_FP,"Division by zero: Infinite eigenvalues not supported.");
     wr[i] /= beta[i];
 #if !defined(PETSC_USE_COMPLEX)
     wi[i] /= beta[i];
 #endif
   }
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -188,7 +177,7 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
   PetscScalar    re,im;
   PetscInt       i,j,pos,result;
   PetscBLASInt   ifst,ilst,info,n,ld,one=1;
-  PetscScalar    *S = ps->mat[PS_MAT_A],*T = ps->mat[PS_MAT_B],*P = ps->mat[PS_MAT_P],*Q = ps->mat[PS_MAT_Q];
+  PetscScalar    *S = ps->mat[PS_MAT_A],*T = ps->mat[PS_MAT_B],*Z = ps->mat[PS_MAT_Z],*Q = ps->mat[PS_MAT_Q];
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lwork;
   PetscScalar    *work,a,safmin,scale1,scale2;
@@ -200,10 +189,8 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
   ld = PetscBLASIntCast(ps->ld);
 #if !defined(PETSC_USE_COMPLEX)
   lwork = -1;
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKtgexc_(&one,&one,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,&one,&one,&a,&lwork,&info);
   safmin = LAPACKlamch_("S");
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   lwork = a;
   ierr = PSAllocateWork_Private(ps,lwork,0,0);CHKERRQ(ierr); 
   work = ps->work;
@@ -233,22 +220,18 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
       /* interchange blocks */
       ifst = PetscBLASIntCast(pos+1);
       ilst = PetscBLASIntCast(i+1);
-      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-      LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,P,&n,Q,&n,&ifst,&ilst,work,&lwork,&info);
+      LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&n,Q,&n,&ifst,&ilst,work,&lwork,&info);
 #else
-      LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,P,&ld,Q,&ld,&ifst,&ilst,&info);
+      LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,&info);
 #endif
-      ierr = PetscFPTrapPop();CHKERRQ(ierr);
       if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xTGEXC %i",info);
       /* recover original eigenvalues from T and S matrices */
       for (j=i;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
         if (j<n-1 && S[j*ld+j+1] != 0.0) {
           /* complex conjugate eigenvalue */
-          ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
           LAPACKlag2_(S+j*ld+j,&ld,T+j*ld+j,&ld,&safmin,&scale1,&scale2,&re,&a,&im);
-          ierr = PetscFPTrapPop();CHKERRQ(ierr);
           wr[j] = re / scale1;
           wi[j] = im / scale1;
           wr[j+1] = a / scale2;
@@ -284,11 +267,10 @@ EXTERN_C_BEGIN
 PetscErrorCode PSCreate_GNHEP(PS ps)
 {
   PetscFunctionBegin;
-  ps->nmeth  = 1;
   ps->ops->allocate      = PSAllocate_GNHEP;
   ps->ops->view          = PSView_GNHEP;
   ps->ops->vectors       = PSVectors_GNHEP;
-  ps->ops->solve         = PSSolve_GNHEP;
+  ps->ops->solve[0]      = PSSolve_GNHEP;
   ps->ops->sort          = PSSort_GNHEP;
   ps->ops->cond          = PETSC_NULL;
   ps->ops->transharm     = PETSC_NULL;

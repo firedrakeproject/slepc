@@ -81,7 +81,7 @@ typedef enum { PS_STATE_RAW,
 .   PS_MAT_C  - third matrix of a quadratic eigenproblem
 .   PS_MAT_T  - tridiagonal matrix
 .   PS_MAT_Q  - orthogonal matrix of (right) Schur vectors
-.   PS_MAT_P  - orthogonal matrix of left Schur vectors
+.   PS_MAT_Z  - orthogonal matrix of left Schur vectors
 .   PS_MAT_X  - right eigenvectors
 .   PS_MAT_Y  - left eigenvectors
 .   PS_MAT_U  - left singular vectors
@@ -100,7 +100,7 @@ typedef enum { PS_MAT_A,
                PS_MAT_C,
                PS_MAT_T,
                PS_MAT_Q,
-               PS_MAT_P,
+               PS_MAT_Z,
                PS_MAT_X,
                PS_MAT_Y,
                PS_MAT_U,
