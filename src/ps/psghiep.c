@@ -84,41 +84,40 @@ PetscErrorCode PSAllocate_GHIEP(PS ps,PetscInt ld)
 #define __FUNCT__ "PSSwitchFormat_GHIEP"
 PetscErrorCode PSSwitchFormat_GHIEP(PS ps,PetscBool tocompact)
 {
-  PetscReal	*T;
-  PetscScalar	*A,*B;
-  PetscInt	i,k,ld;
+  PetscReal   *T;
+  PetscScalar *A,*B;
+  PetscInt    i,n=ps->n,k=ps->k,ld=ps->ld;
 
   PetscFunctionBegin;
   A = ps->mat[PS_MAT_A];
   B = ps->mat[PS_MAT_B];
   T = ps->rmat[PS_MAT_T];
-  k = ps->k;
-  ld = ps->ld;
-  if(tocompact){ /* switch from dense (arrow) to compact */
-    for(i=0; i < k; i++){
-      T[i] = PetscRealPart(A[i*(1+ld)]);
-      T[ld +i] = PetscRealPart(A[k+i*ld]);
-      T[2*ld +i] = PetscRealPart(B[i*(1+ld)]);
+  if (tocompact) { /* switch from dense (arrow) to compact */
+    for (i=0;i<k;i++) {
+      T[i] = PetscRealPart(A[i+i*ld]);
+      T[ld+i] = PetscRealPart(A[k+i*ld]);
+      T[2*ld+i] = PetscRealPart(B[i+i*ld]);
     }
-    for(i=k; i < ps->n; i++){
-      T[i] = PetscRealPart(A[i*(1+ld)]);
-      T[ld +i] = PetscRealPart(A[i*(ld+1)+1]);
-      T[2*ld +i] = PetscRealPart(B[i*(1+ld)]);
+    for (i=k;i<ps->n-1;i++) {
+      T[i] = PetscRealPart(A[i+i*ld]);
+      T[ld+i] = PetscRealPart(A[i+1+i*ld]);
+      T[2*ld+i] = PetscRealPart(B[i+i*ld]);
     }
-  }else{ /* switch from compact (arrow) to dense */
-    for(i=0; i < k; i++){
-      A[i*(1+ld)] = T[i];
+    T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
+  } else { /* switch from compact (arrow) to dense */
+    for(i=0;i<k;i++) {
+      A[i+i*ld] = T[i];
       A[k+i*ld] = T[ld+i];
       A[i+k*ld] = T[ld+i];
-      B[i*(1+ld)] = T[2*ld+i];
+      B[i+i*ld] = T[2*ld+i];
     }
-    A[k*(ld+1)] = T[k];
-    B[k*(ld+1)] = T[2*ld+k];
-    for(i=k+1; i < ps->n; i++){
-      A[i*(1+ld)] = T[i];
-      A[i*ld + i-1] = T[i-1+ld];
-      A[(i-1)*ld + i] = T[i-1+ld];
-      B[i*(1+ld)] = T[2*ld+i];
+    A[k+k*ld] = T[k];
+    B[k+k*ld] = T[2*ld+k];
+    for(i=k+1;i<ps->n;i++) {
+      A[i+i*ld] = T[i];
+      A[i-1+i*ld] = T[i-1+ld];
+      A[i+(i-1)*ld] = T[i-1+ld];
+      B[i+i*ld] = T[2*ld+i];
     } 
   }
   PetscFunctionReturn(0);
@@ -828,7 +827,7 @@ PetscErrorCode PSSort_GHIEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
   d = ps->rmat[PS_MAT_T];
   e = d + ps->ld;
   s = d + 2*ps->ld;
-  ierr = PSAllocateWork_Private(ps,ps->ld,ps->ld,ps->ld);CHKERRQ(ierr); 
+  ierr = PSAllocateWork_Private(ps,ps->ld,ps->ld,0);CHKERRQ(ierr); 
   perm = ps->perm;
   ierr = PSSortEigenvalues_Private(ps,wr,wi,perm,comp_func,comp_ctx);CHKERRQ(ierr);
   ierr = PetscMemcpy(ps->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
