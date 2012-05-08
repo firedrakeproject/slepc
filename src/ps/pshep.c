@@ -65,7 +65,7 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSwitchFormat_HEP"
-PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
+static PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
 {
   PetscReal   *T = ps->rmat[PS_MAT_T];
   PetscScalar *A = ps->mat[PS_MAT_A];
@@ -78,10 +78,12 @@ PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
       T[i] = PetscRealPart(A[i+i*ld]);
       T[i+ld] = PetscRealPart(A[k+i*ld]);
     }
-    for (i=k;i<n;i++) {
+    for (i=k;i<n-1;i++) {
       T[i] = PetscRealPart(A[i+i*ld]);
       T[i+ld] = PetscRealPart(A[i+1+i*ld]);
     }
+    T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
+    if (ps->extrarow) T[n-1+ld] = PetscRealPart(A[n+(n-1)*ld]);
   } else { /* switch from compact (arrow) to dense storage */
     for (i=0;i<k;i++) {
       A[i+i*ld] = T[i];
@@ -94,6 +96,7 @@ PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
       A[i-1+i*ld] = T[i-1+ld];
       A[i+(i-1)*ld] = T[i-1+ld];
     } 
+    if (ps->extrarow) A[n+(n-1)*ld] = T[n-1+ld];
   }
   PetscFunctionReturn(0);
 }
@@ -104,7 +107,7 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
   PetscViewerFormat format;
-  PetscInt          i,j,r,c;
+  PetscInt          i,j,r,c,rows;
   PetscReal         value;
   const char *methodname[] = {
                      "Implicit QR method (_steqr)",
@@ -119,8 +122,9 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
   }
   if (ps->compact) {
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    rows = ps->extrarow? ps->n+1: ps->n;
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ps->n,ps->n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,ps->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",3*ps->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
       for (i=0;i<ps->n;i++) {
@@ -132,9 +136,12 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
       }
+      if (ps->extrarow) {
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ps->n+1,ps->n,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
+      }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",PSMatName[PS_MAT_T]);CHKERRQ(ierr);
     } else {
-      for (i=0;i<ps->n;i++) {
+      for (i=0;i<rows;i++) {
         for (j=0;j<ps->n;j++) {
           if (i==j) value = *(ps->rmat[PS_MAT_T]+i);
           else if ((i<ps->k && j==ps->k) || (i==ps->k && j<ps->k)) value = *(ps->rmat[PS_MAT_T]+ps->ld+PetscMin(i,j));
