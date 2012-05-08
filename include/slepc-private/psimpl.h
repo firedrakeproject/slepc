@@ -53,6 +53,7 @@ struct _p_PS {
   PSStateType  state;              /* the current state */
   PetscScalar  *mat[PS_NUM_MAT];   /* the matrices */
   PetscReal    *rmat[PS_NUM_MAT];  /* the matrices (real) */
+  PetscInt     *perm;              /* permutation */
   PetscScalar  *work;
   PetscReal    *rwork;
   PetscBLASInt *iwork;

@@ -32,6 +32,9 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
   ierr = PSAllocateMat_Private(ps,PS_MAT_A);CHKERRQ(ierr); 
   ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
   ierr = PSAllocateMatReal_Private(ps,PS_MAT_T);CHKERRQ(ierr); 
+  ierr = PetscFree(ps->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(ld*sizeof(PetscInt),&ps->perm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(ps,ld*sizeof(PetscInt));CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
@@ -520,6 +523,7 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   off = l+l*ld;
   A  = ps->mat[PS_MAT_A];
   Q  = ps->mat[PS_MAT_Q];
+  W  = ps->mat[PS_MAT_W];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
 
@@ -531,7 +535,6 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
 
   if (ps->state<PS_STATE_INTERMEDIATE) {  /* Q contains useful info */
     ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
-    W = ps->mat[PS_MAT_W];
     ierr = PSCopyMatrix_Private(ps,PS_MAT_W,PS_MAT_Q);CHKERRQ(ierr); 
   }
 #if defined(PETSC_USE_COMPLEX)
@@ -583,8 +586,7 @@ PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (
   n = ps->n;
   l = ps->l;
   d = ps->rmat[PS_MAT_T];
-  ierr = PSAllocateWork_Private(ps,0,0,ps->ld);CHKERRQ(ierr); 
-  perm = ps->iwork;
+  perm = ps->perm;
   ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
   ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);

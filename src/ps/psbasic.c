@@ -146,6 +146,7 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
     ps->mat[i]  = PETSC_NULL;
     ps->rmat[i] = PETSC_NULL;
   }
+  ps->perm   = PETSC_NULL;
   ps->work   = PETSC_NULL;
   ps->rwork  = PETSC_NULL;
   ps->iwork  = PETSC_NULL;
@@ -896,6 +897,7 @@ PetscErrorCode PSReset(PS ps)
     ierr = PetscFree(ps->mat[i]);CHKERRQ(ierr);
     ierr = PetscFree(ps->rmat[i]);CHKERRQ(ierr);
   }
+  ierr = PetscFree(ps->perm);CHKERRQ(ierr);
   ierr = PetscFree(ps->work);CHKERRQ(ierr);
   ierr = PetscFree(ps->rwork);CHKERRQ(ierr);
   ierr = PetscFree(ps->iwork);CHKERRQ(ierr);
