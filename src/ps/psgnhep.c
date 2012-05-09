@@ -137,7 +137,7 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,&info);
-  lwork = a;
+  lwork = (PetscBLASInt)a;
   ierr = PSAllocateWork_Private(ps,lwork+ld,0,0);CHKERRQ(ierr); 
   beta = ps->work;
   work = beta+ps->n;
@@ -145,20 +145,19 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
 #else
   LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
-  lwork = a;
+  lwork = (PetscBLASInt)PetscRealPart(a);
   ierr = PSAllocateWork_Private(ps,lwork+ld,8*ld,0);CHKERRQ(ierr); 
   beta = ps->work;
   work = beta+ps->n;
   lwork = PetscBLASIntCast(ps->lwork-ps->n);
-  rwork = ps->rwork;
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&a,wr,beta,Z,&ld,Q,&ld,work,&lwork,rwork,PETSC_NULL,&info);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ps->rwork,PETSC_NULL,&info);
 #endif
   if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
   for (i=0;i<n;i++) {
-    if (beta[i]==0.0) wr[i] = PetscSign(wr[i])*PETSC_MAX_REAL;
+    if (beta[i]==0.0) wr[i] = (wr[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wr[i] /= beta[i];
 #if !defined(PETSC_USE_COMPLEX)
-    if (beta[i]==0.0) wi[i] = PetscSign(wi[i])*PETSC_MAX_REAL;
+    if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wi[i] /= beta[i];
 #endif
   }
@@ -241,7 +240,7 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
         } else
 #endif
         {
-          if (T[j*ld+j] == 0.0) wi[j] = PetscSign(S[j*ld+j])*PETSC_MAX_REAL;
+          if (T[j*ld+j] == 0.0) wi[j] = (S[j*ld+j]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
           else wr[j] = S[j*ld+j] / T[j*ld+j];
           wi[j] = 0.0;
         }

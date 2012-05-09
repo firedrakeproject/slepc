@@ -105,7 +105,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,ld;
-  PetscBLASInt   one = 1; 
+  PetscBLASInt   n_,one = 1; 
   PetscScalar    *Z,tmp;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      normi;
@@ -120,6 +120,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   }
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
   ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */
   ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
@@ -130,18 +131,18 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
-        norm = BLASnrm2_(&n,Z+i*ld,&one);
-        normi = BLASnrm2_(&n,Z+(i+1)*ld,&one);
+        norm = BLASnrm2_(&n_,Z+i*ld,&one);
+        normi = BLASnrm2_(&n_,Z+(i+1)*ld,&one);
         tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-        BLASscal_(&n,&tmp,Z+i*ld,&one);
-        BLASscal_(&n,&tmp,Z+(i+1)*ld,&one);
+        BLASscal_(&n_,&tmp,Z+i*ld,&one);
+        BLASscal_(&n_,&tmp,Z+(i+1)*ld,&one);
         i++;     
       } else
 #endif
       {
-        norm = BLASnrm2_(&n,Z+i*ld,&one);
+        norm = BLASnrm2_(&n_,Z+i*ld,&one);
         tmp = 1.0 / norm;
-        BLASscal_(&n,&tmp,Z+i*ld,&one);
+        BLASscal_(&n_,&tmp,Z+i*ld,&one);
       }
     }
     ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);

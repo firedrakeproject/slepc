@@ -464,9 +464,6 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscBLASInt   n1,n2,n3,info,l,n,ld,off;
   PetscScalar    *A,*Q;
   PetscReal      *d,*e;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *ritz;
-#endif
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
