@@ -28,7 +28,7 @@ PetscBool        PSRegisterAllCalled = PETSC_FALSE;
 PetscClassId     PS_CLASSID = 0;
 PetscLogEvent    PS_Solve = 0,PS_Sort = 0,PS_Vectors = 0,PS_Other = 0;
 static PetscBool PSPackageInitialized = PETSC_FALSE;
-const char       *PSMatName[PS_NUM_MAT] = {"A","B","C","T","Q","X","Y","U","VT","W"};
+const char       *PSMatName[PS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W"};
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSFinalizePackage"
@@ -680,6 +680,7 @@ PetscErrorCode PSAllocateMat_Private(PS ps,PSMatType m)
 
   PetscFunctionBegin;
   if (m==PS_MAT_T) sz = 3*ps->ld*sizeof(PetscScalar);
+  else if (m==PS_MAT_D) sz = ps->ld*sizeof(PetscScalar);
   else sz = ps->ld*ps->ld*sizeof(PetscScalar);
   if (ps->mat[m]) { ierr = PetscFree(ps->mat[m]);CHKERRQ(ierr); }
   else { ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); }
@@ -697,6 +698,7 @@ PetscErrorCode PSAllocateMatReal_Private(PS ps,PSMatType m)
 
   PetscFunctionBegin;
   if (m==PS_MAT_T) sz = 3*ps->ld*sizeof(PetscReal);
+  else if (m==PS_MAT_D) sz = ps->ld*sizeof(PetscReal);
   else sz = ps->ld*ps->ld*sizeof(PetscReal);
   if (ps->rmat[m]) { ierr = PetscFree(ps->rmat[m]);CHKERRQ(ierr); }
   else { ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); }

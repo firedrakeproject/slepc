@@ -80,6 +80,7 @@ typedef enum { PS_STATE_RAW,
 .   PS_MAT_B  - second matrix of a generalized eigenproblem
 .   PS_MAT_C  - third matrix of a quadratic eigenproblem
 .   PS_MAT_T  - tridiagonal matrix
+.   PS_MAT_D  - diagonal matrix
 .   PS_MAT_Q  - orthogonal matrix of (right) Schur vectors
 .   PS_MAT_Z  - orthogonal matrix of left Schur vectors
 .   PS_MAT_X  - right eigenvectors
@@ -89,7 +90,8 @@ typedef enum { PS_STATE_RAW,
 -   PS_MAT_W  - workspace matrix
 
     All matrices can have space to hold ld x ld elements, except for
-    PS_MAT_T that has space for 3 x ld elements (ld = leading dimension).
+    PS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
+    and PS_MAT_D that has space for just ld elements.
 
     Level: advanced
 
@@ -99,6 +101,7 @@ typedef enum { PS_MAT_A,
                PS_MAT_B,
                PS_MAT_C,
                PS_MAT_T,
+               PS_MAT_D,
                PS_MAT_Q,
                PS_MAT_Z,
                PS_MAT_X,
