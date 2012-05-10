@@ -154,7 +154,7 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #endif
   if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
   for (i=0;i<n;i++) {
-    if (beta[i]==0.0) wr[i] = (wr[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wr[i] /= beta[i];
 #if !defined(PETSC_USE_COMPLEX)
     if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
@@ -240,7 +240,7 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
         } else
 #endif
         {
-          if (T[j*ld+j] == 0.0) wi[j] = (S[j*ld+j]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+          if (T[j*ld+j] == 0.0) wr[j] = (PetscRealPart(S[j*ld+j])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
           else wr[j] = S[j*ld+j] / T[j*ld+j];
           wi[j] = 0.0;
         }
