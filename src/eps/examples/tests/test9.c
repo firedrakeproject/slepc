@@ -31,7 +31,7 @@ static char help[] = "Eigenvalue problem associated with a Markov model of a ran
    User-defined routines
 */
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
-PetscErrorCode MyEigenSort(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx);
+PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -201,7 +201,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
     one of them as the preferred one according to the criterion.
     In this example, the preferred value is the one furthest to the origin.
 */
-PetscErrorCode MyEigenSort(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   PetscScalar origin = *(PetscScalar*)ctx;
   PetscReal   d;
