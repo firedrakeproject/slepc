@@ -32,19 +32,15 @@ include ${SLEPC_DIR}/conf/slepc_common
 #
 # Basic targets to build SLEPc library
 all:
-	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir
-	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkslepc_dir
+	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir chkslepc_dir | tee ${PETSC_ARCH}/conf/make.log
 	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
-	   echo "=========================================="; \
-           echo "Building SLEPc using CMake with ${MAKE_NP} build threads"; \
-	   echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"; \
-	   echo "=========================================="; \
 	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	     ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
 	   fi; \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake; \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake 2>&1 | tee ${PETSC_ARCH}/conf/make.log \
+	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/slepc[[:lower:]]*.dir/| -o lib/libslepc|CMakeFiles/slepc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'; \
 	 else \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy; \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy 2>&1 | tee ${PETSC_ARCH}/conf/make.log | ${GREP} -v "has no symbols"; \
 	 fi
 	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/conf/make.log | tee ${PETSC_ARCH}/conf/error.log > /dev/null
 	@if test -s ${PETSC_ARCH}/conf/error.log; then \
@@ -62,17 +58,12 @@ all:
 	 fi
 	@if test -s ${PETSC_ARCH}/conf/error.log; then exit 1; fi
 
-all-cmake:
-	@${OMAKE} -j ${MAKE_NP} -C ${PETSC_ARCH} VERBOSE=1 2>&1 | tee ${PETSC_ARCH}/conf/make.log \
-	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/slepc[[:lower:]]*.dir/| -o lib/libslepc|CMakeFiles/slepc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'
-
 cmakegen:
 	-@${PYTHON} config/cmakegen.py
 
-all-legacy:
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all_build 2>&1 | tee ${PETSC_ARCH}/conf/make.log
+all-cmake: info cmakegen slepc_cmake
 
-all_build: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared slepc4py_noinstall
+all-legacy: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared slepc4py_noinstall
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -100,8 +91,7 @@ info:
 	   grep "\#define " ${PETSC_DIR}/include/petscconf.h; \
          fi
 	-@echo "-----------------------------------------"
-	-@echo "Using include paths: ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES}"
-	-@echo "------------------------------------------"
+	-@echo "Using C/C++ include paths: ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES}"
 	-@echo "Using C/C++ compiler: ${PCC} ${PCC_FLAGS} ${COPTFLAGS} ${CFLAGS}"
 	-@if [ "${FC}" != "" ]; then \
 	   echo "Using Fortran include/module paths: ${PETSC_FC_INCLUDES}";\
@@ -115,7 +105,7 @@ info:
 	   echo "Using Fortran flags: ${FC_LINKER_FLAGS}";\
          fi
 	-@echo "-----------------------------------------"
-	-@echo "Using library: ${SLEPC_LIB}"
+	-@echo "Using libraries: ${SLEPC_LIB}"
 	-@echo "------------------------------------------"
 	-@echo "Using mpiexec: ${MPIEXEC}"
 	-@echo "=========================================="

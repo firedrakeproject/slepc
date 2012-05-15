@@ -189,11 +189,10 @@ slepc_shared:
 
 # uses the cmake infrastructure to build/rebuild the libraries
 slepc_cmake:
-	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
-	   cd ${SLEPC_DIR}/${PETSC_ARCH} && ${OMAKE} -j ${MAKE_NP}; \
-	 else \
-           echo "CMake builds are disabled"; \
-	 fi
+	@echo "Building SLEPc using CMake with ${MAKE_NP} build threads"
+	@echo "=========================================="
+	@cd ${SLEPC_DIR}/${PETSC_ARCH} && ${OMAKE} -j ${MAKE_NP} VERBOSE=1
+	@echo "========================================="
 
 include ${PETSC_DIR}/conf/rules
 include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcrules
