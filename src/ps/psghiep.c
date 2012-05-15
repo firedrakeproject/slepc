@@ -525,9 +525,9 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,off;
-  PetscBLASInt   lwork,info,n1,one,ld,*select,*infoC;
+  PetscBLASInt   lwork,info,n1,one,ld;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscBLASInt   mout;
+  PetscBLASInt   mout,*select,*infoC;
 #endif
   PetscScalar    *A,*B,*W,*Q,*work,*tau,zero,oneS,h;
   PetscReal      *d,*e,*s,*ss,toldeg=1e-5,d1,d2;
@@ -549,8 +549,10 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
   tau  = ps->work;
   work = ps->work+ld;
   lwork = ld*ld;
+#if !defined(PETSC_USE_COMPLEX)
   select = ps->iwork;
   infoC = ps->iwork + ld;
+#endif
    /* initialize orthogonal matrix */
   ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i< ps->n;i++) 
