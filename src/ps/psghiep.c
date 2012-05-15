@@ -22,13 +22,14 @@
 #include <slepc-private/psimpl.h>      /*I "slepcps.h" I*/
 #include <slepcblaslapack.h>
 
+/*extern PetscErrorCode ArrowTridiag(PetscBLASInt *n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt *ldq);*/
 /*
   compute X = X - Y*ss^{-1}*Y^T*s*X where ss=Y^T*s*Y
   s diagonal (signature matrix)
 */
 #undef __FUNCT__  
-#define __FUNCT__ "PSOrthog_private"
-static PetscErrorCode PSOrthog_private(PetscReal *s, PetscScalar *Y, PetscReal ss, PetscScalar *X, PetscScalar *h,PetscInt n)
+#define __FUNCT__ "IndefOrthog"
+static PetscErrorCode IndefOrthog(PetscReal *s, PetscScalar *Y, PetscReal ss, PetscScalar *X, PetscScalar *h,PetscInt n)
 {
   PetscInt i;
   PetscScalar h_,r;
@@ -50,8 +51,8 @@ static PetscErrorCode PSOrthog_private(PetscReal *s, PetscScalar *Y, PetscReal s
 }
 /* normalization with a indefinite norm */
 #undef __FUNCT__
-#define __FUNCT__ "PSNormIndef_private"
-static PetscErrorCode PSNormIndef_private(PetscReal *s,PetscScalar *X, PetscReal *norm,PetscInt n)
+#define __FUNCT__ "IndefNorm"
+static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *X, PetscReal *norm,PetscInt n)
 {
   PetscInt	i;
   PetscReal   	norm_;
@@ -77,6 +78,10 @@ PetscErrorCode PSAllocate_GHIEP(PS ps,PetscInt ld)
   ierr = PSAllocateMat_Private(ps,PS_MAT_B);CHKERRQ(ierr); 
   ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
   ierr = PSAllocateMatReal_Private(ps,PS_MAT_T);CHKERRQ(ierr); 
+  ierr = PSAllocateMatReal_Private(ps,PS_MAT_D);CHKERRQ(ierr);
+  ierr = PetscFree(ps->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(ld*sizeof(PetscInt),&ps->perm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(ps,ld*sizeof(PetscInt));CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 }
 
@@ -84,41 +89,39 @@ PetscErrorCode PSAllocate_GHIEP(PS ps,PetscInt ld)
 #define __FUNCT__ "PSSwitchFormat_GHIEP"
 PetscErrorCode PSSwitchFormat_GHIEP(PS ps,PetscBool tocompact)
 {
-  PetscReal   *T;
+  PetscReal   *T,*S;
   PetscScalar *A,*B;
-  PetscInt    i,n=ps->n,k=ps->k,ld=ps->ld;
+  PetscInt    i,n,ld;
 
   PetscFunctionBegin;
   A = ps->mat[PS_MAT_A];
   B = ps->mat[PS_MAT_B];
   T = ps->rmat[PS_MAT_T];
+  S = ps->rmat[PS_MAT_D];
+  n = ps->n;
+  ld = ps->ld; 
   if (tocompact) { /* switch from dense (arrow) to compact */
-    for (i=0;i<k;i++) {
-      T[i] = PetscRealPart(A[i+i*ld]);
-      T[ld+i] = PetscRealPart(A[k+i*ld]);
-      T[2*ld+i] = PetscRealPart(B[i+i*ld]);
-    }
-    for (i=k;i<ps->n-1;i++) {
+    for(i=0;i<n-1;i++){
       T[i] = PetscRealPart(A[i+i*ld]);
       T[ld+i] = PetscRealPart(A[i+1+i*ld]);
-      T[2*ld+i] = PetscRealPart(B[i+i*ld]);
+      S[i] = PetscRealPart(B[i+i*ld]);
     }
     T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
-  } else { /* switch from compact (arrow) to dense */
-    for(i=0;i<k;i++) {
+    S[n-1] = PetscRealPart(B[n-1+(n-1)*ld]);
+    for(i=ps->l;i< ps->k;i++) T[2*ld+i] = PetscRealPart(A[ps->k+i*ld]); 
+  }else { /* switch from compact (arrow) to dense */
+    for(i=0;i<n-1;i++){
       A[i+i*ld] = T[i];
-      A[k+i*ld] = T[ld+i];
-      A[i+k*ld] = T[ld+i];
-      B[i+i*ld] = T[2*ld+i];
+      A[i+1+i*ld] = T[ld+i];
+      A[i+(i+1)*ld] = T[ld+i];
+      B[i+i*ld] = S[i];
     }
-    A[k+k*ld] = T[k];
-    B[k+k*ld] = T[2*ld+k];
-    for(i=k+1;i<ps->n;i++) {
-      A[i+i*ld] = T[i];
-      A[i-1+i*ld] = T[i-1+ld];
-      A[i+(i-1)*ld] = T[i-1+ld];
-      B[i+i*ld] = T[2*ld+i];
-    } 
+    A[n-1+(n-1)*ld] = T[n-1];
+    B[n-1+(n-1)*ld] = S[n-1];
+    for(i=ps->l;i<ps->k;i++){
+      A[ps->k+i*ld] = T[2*ld+i];
+      A[i+ps->k*ld] = T[2*ld+i];
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -130,7 +133,7 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
   PetscViewerFormat format;
-  PetscInt          i,j,r,c;
+  PetscInt          i,j;
   PetscReal         value;
   const char *methodname[] = {
                      "QR method",
@@ -153,10 +156,14 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,*(ps->rmat[PS_MAT_T]+i));CHKERRQ(ierr);
       }
       for (i=0;i<ps->n-1;i++) {
-        r = PetscMax(i+2,ps->k+1);
-        c = i+1;
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
+        if (*(ps->rmat[PS_MAT_T]+ps->ld+i) !=0){
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
+        }
+      }
+      for (i = ps->l;i<ps->k;i++){
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ps->k+1,i+1,*(ps->rmat[PS_MAT_T]+2*ps->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,ps->k+1,*(ps->rmat[PS_MAT_T]+2*ps->ld+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",PSMatName[PS_MAT_T]);CHKERRQ(ierr);
       
@@ -164,7 +171,7 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"omega = zeros(%D,3);\n",3*ps->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"omega = [\n");CHKERRQ(ierr);
       for (i=0;i<ps->n;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,*(ps->rmat[PS_MAT_T]+2*(ps->ld)+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,*(ps->rmat[PS_MAT_D]+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(omega);\n",PSMatName[PS_MAT_B]);CHKERRQ(ierr);
 
@@ -173,9 +180,8 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
       for (i=0;i<ps->n;i++) {
         for (j=0;j<ps->n;j++) {
           if (i==j) value = *(ps->rmat[PS_MAT_T]+i);
-          else if ((i<ps->k && j==ps->k) || (i==ps->k && j<ps->k)) value = *(ps->rmat[PS_MAT_T]+ps->ld+PetscMin(i,j));
-          else if (i==j+1 && i>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->ld+i-1);
-          else if (i+1==j && j>ps->k) value = *(ps->rmat[PS_MAT_T]+ps->ld+j-1);
+          else if (i==j+1 || j==i+1) value = *(ps->rmat[PS_MAT_T]+ps->ld+PetscMin(i,j));
+          else if ((i<ps->k && j==ps->k) || (i==ps->k && j<ps->k)) value = *(ps->rmat[PS_MAT_T]+2*ps->ld+PetscMin(i,j));
           else value = 0.0;
           ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",value);CHKERRQ(ierr);
         }
@@ -184,7 +190,7 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"omega\n");CHKERRQ(ierr);
       for (i=0;i<ps->n;i++) {
         for (j=0;j<ps->n;j++) {
-          if (i==j) value = *(ps->rmat[PS_MAT_T]+2*(ps->ld)+i);
+          if (i==j) value = *(ps->rmat[PS_MAT_D]+i);
           else value = 0.0;
           ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",value);CHKERRQ(ierr);
         }
@@ -205,17 +211,19 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSVectors_GHIEP_Eigen_Some"
-PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,PetscBool left)
+static PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 
   /* to complete  */
+/*
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
   PetscReal	 s1,s2,d1,d2,b;
   PetscInt       ld = ps->ld,k_;
   PetscErrorCode ierr;
   PSMatType	 mat;
-  
+ */ 
   PetscFunctionBegin;
+#if 0
   if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left eigenvectors");
   else mat = PS_MAT_Q;
   k_ = *k;
@@ -238,6 +246,7 @@ PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pet
     }
   }
   if (rnorm) *rnorm = PetscAbsScalar(Q[ps->n-1+(k_)*ld]);
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -285,7 +294,7 @@ static PetscErrorCode PSComplexEigs_private(PS ps, PetscInt n0, PetscInt n1, Pet
   if (ps->compact){
     d = ps->rmat[PS_MAT_T];
     e = d + ld;
-    s = e + ld;
+    s = ps->rmat[PS_MAT_D];
     for (j=n0;j<n1;j++) {
       if (j==n1-1 || e[j] == 0.0) { 
         /* real eigenvalue */
@@ -315,10 +324,10 @@ static PetscErrorCode PSComplexEigs_private(PS ps, PetscInt n0, PetscInt n1, Pet
         wi[j] = 0.0 ;
       } else {
       /* diagonal block */
-        d1 = PetscRealPart(A[j+j*ld])/PetscRealPart(B[j+j*ld]);
-        d2 = PetscRealPart(A[(j+1)+(j+1)*ld])/PetscRealPart(B[(j+1)+(j+1)*ld]);
-        e1 = PetscRealPart(A[j+(j+1)*ld])/PetscRealPart(B[j+j*ld]);
-        e2 = PetscRealPart(A[(j+1)+j*ld])/PetscRealPart(B[(j+1)+(j+1)*ld]);
+        d1 = PetscRealPart(A[j+j*ld]/B[j+j*ld]);
+        d2 = PetscRealPart(A[(j+1)+(j+1)*ld]/B[(j+1)+(j+1)*ld]);
+        e1 = PetscRealPart(A[j+(j+1)*ld]/B[j+j*ld]);
+        e2 = PetscRealPart(A[(j+1)+j*ld]/B[(j+1)+(j+1)*ld]);
         wr[j] = (d1+d2)/2;  wr[j+1] = wr[j];
         disc = (d1-d2)*(d1-d2) - (e1-e2)*(e1-e2);
         if (disc<0.0){ /* complex eigenvalues */
@@ -333,7 +342,7 @@ static PetscErrorCode PSComplexEigs_private(PS ps, PetscInt n0, PetscInt n1, Pet
   }
   PetscFunctionReturn(0);
 }
-
+#if 0
 /*
   Form an hyperbolic rotator
     if x1*x1 - x2*x2 != 0 
@@ -389,21 +398,71 @@ PetscFunctionBegin;
 
 PetscFunctionReturn(0);
 }
+#endif
+#if 0
+#undef __FUNCT__
+#define __FUNCT__ "ArrowOmegaPerm"
+static PetscErrorCode ArrowOmegaPerm(PetscInt n,PetscReal *d,PetscReal *e,PetscReal *r,PetscReal *Omega,PetscScalar *Q,PetscInt ldq,PetscBool id, PetscInt *n1_, PetscInt *n2_)
+{
+  PetscErrorCode  ierr;
+  PetscInt	  i,j,n1,n2,k1,k2,*perm,d=1;
+  PetscReal       *rw;
+  PetscFuntionBegin;
+  ierr = PetscMalloc(n*sizeof(PetscInt),&perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(PetscReal),&rw);CHKERRQ(ierr);
+  n1 = 0; n2 = 0;
+  for(i=0;i<n-1;i++){
+    if(e[i] != 0.0) { 
+      if(Omega[i] > 0.0) n1++; else n2++;
+    }else i++;
+  }
+  if(i < n ){if(Omega[i] > 0.0) n1++; else n2++;}
+  
+  if( n2 > n1){ d = -1; j = n1; n1 = n2; n2 = j;} 
+  k1 = 0; k2 = n1; j = n1 + n2;
+  for(i=0;i<n-1;i++){
+    if(e[i] != 0.0) { 
+      if(d*Omega[i] > 0.0) perm[k1++] = i; else perm[k2++] = i;
+    }else{
+      perm[j++] = i++;
+      perm[j++] = i;
+    }
+  }
+
+  for(i=0;i<n;i++){
+    Q[i + i*ldq] = 0.0; Q[perm[i] + i*ldq] = 1.0;
+  } 
+  ierr = PetscMemCopy(d,rw,n*sizeof(PetscReal));CHKERRQ(ierr);
+  for(i=0;i<n;i++) d[i] = wr[perm[i]];
+  ierr = PetscMemCopy(e,rw,n*sizeof(PetscReal));CHKERRQ(ierr);
+  for(i=0;i<n;i++) e[i] = wr[perm[i]];
+  ierr = PetscMemCopy(r,rw,n*sizeof(PetscReal));CHKERRQ(ierr);
+  for(i=0;i<n;i++) r[i] = wr[perm[i]];
+  ierr = PetscMemCopy(Omega,rw,n*sizeof(PetscReal));CHKERRQ(ierr);
+  for(i=0;i<n;i++) Omega[i] = wr[perm[i]];
+  if(np) *n1_ = n1;
+  if(nn) *n2_ = n2;
+  PetscFunctionReturn(0);
+}
+
 /*
   Reduce an arrowhead symmetric-diagonal pair to tridiagonal-diagonal
   Omega: signature matrix
 */
 #undef __FUNCT__  
 #define __FUNCT__ "ArrowTridiagDiag"
-static PetscErrorCode ArrowTridiagDiag(PetscInt k,PetscInt n,PetscReal *d,PetscReal *e,PetscReal *Omega,PetscScalar *Q,PetscInt ldq)
+//static PetscErrorCode ArrowTridiagDiag(PetscInt k,PetscInt n,PetscReal *d,PetscReal *e,PetscReal *Omega,PetscScalar *Q,PetscInt ldq,PetscBool id)
+static PetscErrorCode ArrowTridiagDiag(PetscInt n,PetscReal *d,PetscReal *e,PetscReal *r,PetscReal *Omega,PetscScalar *Q,PetscInt ldq)
 {
   PetscFunctionBegin;
-  PetscBLASInt 	  j2,ld=ldq,one=1;
-  PetscInt   	  i,j,type;
+  PetscBLASInt 	  j2,ld,one,n_;
+  PetscInt   	  i,j,type,n1,n2,perm;
   PetscReal    	  c,s,p,off,e1,e0,d1,d0,temp;
   PetscErrorCode  ierr;
   PetscFunctionBegin;
   if (n<=2) PetscFunctionReturn(0);
+  ld = PetscBLASIntCast(ldq);
+  one = 1;
   
   for (j=0;j<n-2;j++) {
     /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
@@ -454,7 +513,7 @@ static PetscErrorCode ArrowTridiagDiag(PetscInt k,PetscInt n,PetscReal *d,PetscR
   }
   PetscFunctionReturn(0);
 }
-
+#endif
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSolve_GHIEP_QR_II"
@@ -466,7 +525,10 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,off;
-  PetscBLASInt   lwork,info,n1,one,ld,*select,*infoC,mout;
+  PetscBLASInt   lwork,info,n1,one,ld,*select,*infoC;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscBLASInt   mout;
+#endif
   PetscScalar    *A,*B,*W,*Q,*work,*tau,zero,oneS,h;
   PetscReal      *d,*e,*s,*ss,toldeg=1e-5,d1,d2;
 
@@ -482,7 +544,7 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
   Q = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T] + ld;
-  s  = ps->rmat[PS_MAT_T] + 2*ld;
+  s  = ps->rmat[PS_MAT_D];
   ierr = PSAllocateWork_Private(ps,ld+ld*ld,ld,ld*2);CHKERRQ(ierr); 
   tau  = ps->work;
   work = ps->work+ld;
@@ -506,17 +568,17 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
   /* form standard problem in A */
   if (ps->compact) {
     ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for(i=ps->l; i < ps->k; i++){
+    for(i=ps->l; i < ps->n-1; i++){
       A[i+i*ld] = d[i]/s[i];
-      A[ps->k+i*ld] = e[i]/s[ps->k];
-      A[i + ps->k*ld] = e[i]/s[i];
-    }
-    A[ps->k + ps->k*ld] = d[ps->k]/s[ps->k];
-    for(i=ps->k+1; i < ps->n; i++){
-      A[i+i*ld] = d[i]/s[i];
-      A[(i-1)+i*ld] = e[i-1]/s[i-1];
-      A[i+(i-1)*ld] = e[i-1]/s[i];
+      A[(i+1)+i*ld] = e[i]/s[i+1];
+      A[i+(i+1)*ld] = e[i]/s[i];
     } 
+    A[ps->n-1 + (ps->n-1)*ld] = d[ps->n-1]/s[ps->n-1];
+
+    for(i=ps->l; i < ps->k; i++){
+      A[ps->k+i*ld] = *(ps->rmat[PS_MAT_T]+2*ld+i)/s[ps->k];
+      A[i + ps->k*ld] = *(ps->rmat[PS_MAT_T]+2*ld+i)/s[i];
+    }
   }else{
     for(j=ps->l; j<ps->n; j++){
       for(i=ps->l; i<ps->n; i++){
@@ -570,28 +632,28 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
       for(j=i-1;j>=ps->l;j--){
          /* s-orthogonalization with close eigenvalues */
         if(wi[j]==0.0 && PetscAbsScalar(wr[j]-wr[i])<toldeg){
-          ierr = PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
+          ierr = IndefOrthog(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
         }
       }
-      ierr = PSNormIndef_private(s+ps->l,Q+i*ld+ps->l,&d1,n1);CHKERRQ(ierr);
+      ierr = IndefNorm(s+ps->l,Q+i*ld+ps->l,&d1,n1);CHKERRQ(ierr);
       ss[i] = (d1<0.0)?-1:1;
-      d[i] = PetscRealPart(wr[i])*ss[i]; e[i] = 0.0;
+      d[i] = PetscRealPart(wr[i]*ss[i]); e[i] = 0.0;
     }else{
       for(j=i-1;j>=ps->l;j--){
         /* s-orthogonalization of Qi and Qi+1*/
         if(PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsScalar(PetscAbsScalar(wi[j])-PetscAbsScalar(wi[i]))<toldeg){
-          ierr = PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
-          ierr = PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+(i+1)*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
+          ierr = IndefOrthog(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
+          ierr = IndefOrthog(s+ps->l, Q+j*ld+ps->l, ss[j],Q+(i+1)*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
         }
       }
-      ierr = PSNormIndef_private(s+ps->l,Q+i*ld+ps->l,&d1,n1);CHKERRQ(ierr);
+      ierr = IndefNorm(s+ps->l,Q+i*ld+ps->l,&d1,n1);CHKERRQ(ierr);
       ss[i] = (d1<0)?-1:1;
-      ierr = PSOrthog_private(s+ps->l, Q+i*ld+ps->l, ss[i],Q+(i+1)*ld+ps->l, &h,n1);CHKERRQ(ierr);
-      ierr = PSNormIndef_private(s+ps->l,Q+(i+1)*ld+ps->l,&d2,n1);CHKERRQ(ierr);
+      ierr = IndefOrthog(s+ps->l, Q+i*ld+ps->l, ss[i],Q+(i+1)*ld+ps->l, &h,n1);CHKERRQ(ierr);
+      ierr = IndefNorm(s+ps->l,Q+(i+1)*ld+ps->l,&d2,n1);CHKERRQ(ierr);
       ss[i+1] = (d2<0)?-1:1;
-      d[i] = (PetscRealPart(wr[i])-PetscRealPart(wi[i])*h/d1)*ss[i];
-      d[i+1] = (PetscRealPart(wr[i])+PetscRealPart(wi[i])*h/d1)*ss[i+1];
-      e[i] = PetscRealPart(wi[i])*d2/d1*ss[i]; e[i+1] = 0.0;
+      d[i] = PetscRealPart((wr[i]-wi[i]*h/d1)*ss[i]);
+      d[i+1] = PetscRealPart((wr[i]+wi[i]*h/d1)*ss[i+1]);
+      e[i] = PetscRealPart(wi[i]*d2/d1*ss[i]); e[i+1] = 0.0;
       i++;
     }
   }
@@ -631,8 +693,11 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscInt       i,j,off;
   PetscBLASInt   lwork,info,n1,one,mout,ld;
   PetscScalar    *A,*B,*Q,*work,*tau;
+  PetscReal      *d,*e,*s;
+#if !defined(PETSC_USE_COMPLEX)
   PetscScalar	 h;
-  PetscReal      *d,*e,*s,*ss,toldeg=1e-5,d1,d2;
+  PetscReal      *ss,toldeg=1e-5,d1,d2;
+#endif
 
   PetscFunctionBegin;
   n1  = PetscBLASIntCast(ps->n - ps->l);
@@ -644,7 +709,7 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   Q = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T] + ld;
-  s  = ps->rmat[PS_MAT_T] + 2*ld;
+  s  = ps->rmat[PS_MAT_D];
   ierr = PSAllocateWork_Private(ps,ld+ld*ld,ld,0);CHKERRQ(ierr); 
   tau  = ps->work;
   work = ps->work+ld;
@@ -667,17 +732,17 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   /* form standard problem in A */
   if (ps->compact) {
     ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for(i=ps->l; i < ps->k; i++){
+    for(i=ps->l; i < ps->n-1; i++){
       A[i+i*ld] = d[i]/s[i];
-      A[ps->k+i*ld] = e[i]/s[ps->k];
-      A[i + ps->k*ld] = e[i]/s[i];
-    }
-    A[ps->k + ps->k*ld] = d[ps->k]/s[ps->k];
-    for(i=ps->k+1; i < ps->n; i++){
-      A[i+i*ld] = d[i]/s[i];
-      A[(i-1)+i*ld] = e[i-1]/s[i-1];
-      A[i+(i-1)*ld] = e[i-1]/s[i];
+      A[(i+1)+i*ld] = e[i]/s[i+1];
+      A[i+(i+1)*ld] = e[i]/s[i];
     } 
+    A[ps->n-1 + (ps->n-1)*ld] = d[ps->n-1]/s[ps->n-1];
+
+    for(i=ps->l; i < ps->k; i++){
+      A[ps->k+i*ld] = *(ps->rmat[PS_MAT_T]+2*ld+i)/s[ps->k];
+      A[i + ps->k*ld] = *(ps->rmat[PS_MAT_T]+2*ld+i)/s[i];
+    }
   }else{
     for(j=ps->l; j<ps->n; j++){
       for(i=ps->l; i<ps->n; i++){
@@ -723,28 +788,28 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
       for(j=i-1;j>=ps->l;j--){
          /* s-orthogonalization with close eigenvalues */
         if(wi[j]==0 && PetscAbsScalar(wr[j]-wr[i])<toldeg){
-          ierr = PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
+          ierr = IndefOrthog(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
         }
       }
-      ierr = PSNormIndef_private(s+ps->l,Q+i*ld+ps->l,&h,n1);CHKERRQ(ierr);
+      ierr = IndefNorm(s+ps->l,Q+i*ld+ps->l,&h,n1);CHKERRQ(ierr);
       ss[i] = (h<0)?-1:1;
-      d[i] = PetscRealPart(wr[i])*ss[i]; e[i] = 0.0;
+      d[i] = PetscRealPart(wr[i]*ss[i]); e[i] = 0.0;
     }else{
       for(j=i-1;j>=ps->l;j--){
         /* s-orthogonalization of Qi and Qi+1*/
         if(PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsReal(PetscAbsScalar(wi[j])-PetscAbsScalar(wi[i]))<toldeg){
-          ierr =  PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
-          ierr = PSOrthog_private(s+ps->l, Q+j*ld+ps->l, ss[j],Q+(i+1)*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
+          ierr =  IndefOrthog(s+ps->l, Q+j*ld+ps->l, ss[j],Q+i*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
+          ierr = IndefOrthog(s+ps->l, Q+j*ld+ps->l, ss[j],Q+(i+1)*ld+ps->l, PETSC_NULL,n1);CHKERRQ(ierr);
         }
       }
-      ierr = PSNormIndef_private(s+ps->l,Q+i*ld+ps->l,&d1,n1);CHKERRQ(ierr);
+      ierr = IndefNorm(s+ps->l,Q+i*ld+ps->l,&d1,n1);CHKERRQ(ierr);
       ss[i] = (d1<0)?-1:1;
-      ierr = PSOrthog_private(s+ps->l, Q+i*ld+ps->l, ss[i],Q+(i+1)*ld+ps->l, &h,n1);CHKERRQ(ierr);
-      ierr = PSNormIndef_private(s+ps->l,Q+(i+1)*ld+ps->l,&d2,n1);CHKERRQ(ierr);
+      ierr = IndefOrthog(s+ps->l, Q+i*ld+ps->l, ss[i],Q+(i+1)*ld+ps->l, &h,n1);CHKERRQ(ierr);
+      ierr = IndefNorm(s+ps->l,Q+(i+1)*ld+ps->l,&d2,n1);CHKERRQ(ierr);
       ss[i+1] = (d2<0)?-1:1;
-      d[i] = (PetscRealPart(wr[i])-PetscRealPart(wi[i])*h/d1)*ss[i];
-      d[i+1] = (PetscRealPart(wr[i])+PetscRealPart(wi[i])*h/d1)*ss[i+1];
-      e[i] = PetscRealPart(wi[i])*d2/d1*ss[i]; e[i+1] = 0.0;
+      d[i] = PetscRealPart((wr[i]-wi[i]*h/d1)*ss[i]);
+      d[i+1] = PetscRealPart((wr[i]+wi[i]*h/d1)*ss[i+1]);
+      e[i] = PetscRealPart(wi[i]*d2/d1*ss[i]); e[i+1] = 0.0;
       i++;
     }
   }
