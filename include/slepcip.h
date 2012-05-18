@@ -22,9 +22,8 @@
 #if !defined(__SLEPCIP_H)
 #define __SLEPCIP_H
 #include "slepcsys.h"
-PETSC_EXTERN_CXX_BEGIN
 
-extern PetscErrorCode IPInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode IPInitializePackage(const char[]);
 /*S
     IP - Abstraction of a vector inner product, that can be defined
     in different ways. Using this object is not required for application
@@ -54,7 +53,7 @@ E*/
 #define IPINDEFINITE   "indefinite"
 
 /* Logging support */
-extern PetscClassId IP_CLASSID;
+PETSC_EXTERN PetscClassId IP_CLASSID;
 
 /*E
     IPOrthogType - determines what type of orthogonalization to use
@@ -78,44 +77,44 @@ typedef enum { IP_ORTHOG_REFINE_NEVER,
                IP_ORTHOG_REFINE_IFNEEDED,
                IP_ORTHOG_REFINE_ALWAYS } IPOrthogRefineType;
 
-extern PetscErrorCode IPCreate(MPI_Comm,IP*);
-extern PetscErrorCode IPSetType(IP,const IPType);
-extern PetscErrorCode IPGetType(IP,const IPType*);
-extern PetscErrorCode IPSetOptionsPrefix(IP,const char *);
-extern PetscErrorCode IPAppendOptionsPrefix(IP,const char *);
-extern PetscErrorCode IPGetOptionsPrefix(IP,const char *[]);
-extern PetscErrorCode IPSetFromOptions(IP);
-extern PetscErrorCode IPSetOrthogonalization(IP,IPOrthogType,IPOrthogRefineType,PetscReal);
-extern PetscErrorCode IPGetOrthogonalization(IP,IPOrthogType*,IPOrthogRefineType*,PetscReal*);
-extern PetscErrorCode IPView(IP,PetscViewer);
-extern PetscErrorCode IPDestroy(IP*);
-extern PetscErrorCode IPReset(IP);
+PETSC_EXTERN PetscErrorCode IPCreate(MPI_Comm,IP*);
+PETSC_EXTERN PetscErrorCode IPSetType(IP,const IPType);
+PETSC_EXTERN PetscErrorCode IPGetType(IP,const IPType*);
+PETSC_EXTERN PetscErrorCode IPSetOptionsPrefix(IP,const char *);
+PETSC_EXTERN PetscErrorCode IPAppendOptionsPrefix(IP,const char *);
+PETSC_EXTERN PetscErrorCode IPGetOptionsPrefix(IP,const char *[]);
+PETSC_EXTERN PetscErrorCode IPSetFromOptions(IP);
+PETSC_EXTERN PetscErrorCode IPSetOrthogonalization(IP,IPOrthogType,IPOrthogRefineType,PetscReal);
+PETSC_EXTERN PetscErrorCode IPGetOrthogonalization(IP,IPOrthogType*,IPOrthogRefineType*,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPView(IP,PetscViewer);
+PETSC_EXTERN PetscErrorCode IPDestroy(IP*);
+PETSC_EXTERN PetscErrorCode IPReset(IP);
 
-extern PetscErrorCode IPOrthogonalize(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscBool*);
-extern PetscErrorCode IPBOrthogonalize(IP,PetscInt,Vec*,Vec*,PetscInt,PetscBool*,Vec*,Vec*,Vec,Vec,PetscScalar*,PetscReal*,PetscBool*);
-extern PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
-extern PetscErrorCode IPPseudoOrthogonalize(IP,PetscInt,Vec*,PetscReal*,Vec,PetscScalar*,PetscReal*,PetscBool*);
-extern PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt);
+PETSC_EXTERN PetscErrorCode IPOrthogonalize(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode IPBOrthogonalize(IP,PetscInt,Vec*,Vec*,PetscInt,PetscBool*,Vec*,Vec*,Vec,Vec,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPPseudoOrthogonalize(IP,PetscInt,Vec*,PetscReal*,Vec,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt);
 
-extern PetscErrorCode IPSetMatrix(IP,Mat);
-extern PetscErrorCode IPGetMatrix(IP,Mat*);
-extern PetscErrorCode IPApplyMatrix(IP,Vec,Vec);
+PETSC_EXTERN PetscErrorCode IPSetMatrix(IP,Mat);
+PETSC_EXTERN PetscErrorCode IPGetMatrix(IP,Mat*);
+PETSC_EXTERN PetscErrorCode IPApplyMatrix(IP,Vec,Vec);
 
-extern PetscErrorCode IPInnerProduct(IP ip,Vec,Vec,PetscScalar*);
-extern PetscErrorCode IPInnerProductBegin(IP ip,Vec,Vec,PetscScalar*);
-extern PetscErrorCode IPInnerProductEnd(IP ip,Vec,Vec,PetscScalar*);
-extern PetscErrorCode IPMInnerProduct(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
-extern PetscErrorCode IPMInnerProductBegin(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
-extern PetscErrorCode IPMInnerProductEnd(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
-extern PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
-extern PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
-extern PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPInnerProduct(IP ip,Vec,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPInnerProductBegin(IP ip,Vec,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPInnerProductEnd(IP ip,Vec,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPMInnerProduct(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPMInnerProductBegin(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPMInnerProductEnd(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
 
-extern PetscFList IPList;
-extern PetscBool  IPRegisterAllCalled;
-extern PetscErrorCode IPRegisterAll(const char[]);
-extern PetscErrorCode IPRegister(const char[],const char[],const char[],PetscErrorCode(*)(IP));
-extern PetscErrorCode IPRegisterDestroy(void);
+PETSC_EXTERN PetscFList IPList;
+PETSC_EXTERN PetscBool  IPRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode IPRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode IPRegister(const char[],const char[],const char[],PetscErrorCode(*)(IP));
+PETSC_EXTERN PetscErrorCode IPRegisterDestroy(void);
 
 /*MC
    IPRegisterDynamic - Adds an inner product to the IP package.
@@ -147,8 +146,7 @@ M*/
 #define IPRegisterDynamic(a,b,c,d) IPRegister(a,b,c,d)
 #endif
 
-extern PetscErrorCode IPGetOperationCounters(IP,PetscInt*);
-extern PetscErrorCode IPResetOperationCounters(IP);
+PETSC_EXTERN PetscErrorCode IPGetOperationCounters(IP,PetscInt*);
+PETSC_EXTERN PetscErrorCode IPResetOperationCounters(IP);
 
-PETSC_EXTERN_CXX_END
 #endif

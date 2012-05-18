@@ -26,29 +26,26 @@
 #include "petscmat.h"
 #include "petscvec.h"
 
-PETSC_EXTERN_CXX_BEGIN
-
 /* VecComp: Vec composed of several smaller Vecs */
 #define VECCOMP  "comp"
-extern PetscErrorCode VecRegister_Comp(const char[]);
-extern PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,const VecType,Vec,Vec*);
-extern PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
-extern PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
-extern PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode VecRegister_Comp(const char[]);
+PETSC_EXTERN PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,const VecType,Vec,Vec*);
+PETSC_EXTERN PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
+PETSC_EXTERN PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
+PETSC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
 
 /* Vecs with contiguous array storage */
-extern PetscErrorCode SlepcVecSetTemplate(Vec);
-extern PetscErrorCode SlepcMatGetVecsTemplate(Mat,Vec*,Vec*);
+PETSC_EXTERN PetscErrorCode SlepcVecSetTemplate(Vec);
+PETSC_EXTERN PetscErrorCode SlepcMatGetVecsTemplate(Mat,Vec*,Vec*);
 
 /* Vec-related operations that have two versions, for contiguous and regular Vecs */
-extern PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
-extern PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
-extern PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
+PETSC_EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
+PETSC_EXTERN PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
+PETSC_EXTERN PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
 
 /* Miscellaneous functions related to Vec */
-extern PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
-extern PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
+PETSC_EXTERN PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
+PETSC_EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
 
-PETSC_EXTERN_CXX_END
 #endif
 

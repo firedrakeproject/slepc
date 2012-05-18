@@ -24,8 +24,8 @@
 
 #include <slepcst.h>
 
-extern PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyB,ST_ApplyTranspose;
-extern PetscFList STList;
+PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyB,ST_ApplyTranspose;
+PETSC_EXTERN PetscFList STList;
 
 typedef struct _STOps *STOps;
 
@@ -66,11 +66,11 @@ struct _p_ST {
   PetscInt     applys;
 };
 
-extern PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
-extern PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
-extern PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
-extern PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
-extern PetscErrorCode STMatShellCreate(ST st,Mat *mat);
+PETSC_EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
+PETSC_EXTERN PetscErrorCode STMatShellCreate(ST st,Mat *mat);
 
 #endif
 

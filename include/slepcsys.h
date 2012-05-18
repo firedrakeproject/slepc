@@ -94,15 +94,13 @@ M*/
 #  define SLEPC_DEFAULT_TOL   1e-7
 #endif
 
-
-PETSC_EXTERN_CXX_BEGIN
 /*
     Initialization of SLEPc and other system routines
 */
-extern PetscErrorCode SlepcInitialize(int*,char***,const char[],const char[]);
-extern PetscErrorCode SlepcFinalize(void);
-extern PetscErrorCode SlepcInitializeFortran(void);
-extern PetscErrorCode SlepcInitialized(PetscBool*);
+PETSC_EXTERN PetscErrorCode SlepcInitialize(int*,char***,const char[],const char[]);
+PETSC_EXTERN PetscErrorCode SlepcFinalize(void);
+PETSC_EXTERN PetscErrorCode SlepcInitializeFortran(void);
+PETSC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
 
 #undef __FUNCT__ 
 #define __FUNCT__ "SlepcAbs"
@@ -156,12 +154,11 @@ M*/
 #else
 #define SlepcAbsEigenvalue(x,y) PetscAbsScalar(x)
 #endif
-extern PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
-extern PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
-extern PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscReal*);
+PETSC_EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
+PETSC_EXTERN PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
+PETSC_EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec *,PetscInt,Mat,PetscReal*);
  
-extern PetscBool SlepcInitializeCalled;
+PETSC_EXTERN PetscBool SlepcInitializeCalled;
 
-PETSC_EXTERN_CXX_END
 #endif
 

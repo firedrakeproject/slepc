@@ -22,11 +22,10 @@
 #if !defined(__SLEPCPS_H)
 #define __SLEPCPS_H
 #include "slepcsys.h"
-PETSC_EXTERN_CXX_BEGIN
 
 #define PS_MAX_SOLVE 6
 
-extern PetscErrorCode PSInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode PSInitializePackage(const char[]);
 /*S
     PS - Projected system, to represent low-dimensional eigenproblems that
     must be solved within iterative solvers. This is an auxiliary object
@@ -57,7 +56,7 @@ E*/
 #define PSQEP             "qep"
 
 /* Logging support */
-extern PetscClassId PS_CLASSID;
+PETSC_EXTERN PetscClassId PS_CLASSID;
 
 /*E
     PSStateType - to indicate in which state the projected problem is
@@ -111,47 +110,47 @@ typedef enum { PS_MAT_A,
                PS_MAT_W,
                PS_NUM_MAT } PSMatType;
 
-extern PetscErrorCode PSCreate(MPI_Comm,PS*);
-extern PetscErrorCode PSSetType(PS,const PSType);
-extern PetscErrorCode PSGetType(PS,const PSType*);
-extern PetscErrorCode PSSetOptionsPrefix(PS,const char *);
-extern PetscErrorCode PSAppendOptionsPrefix(PS,const char *);
-extern PetscErrorCode PSGetOptionsPrefix(PS,const char *[]);
-extern PetscErrorCode PSSetFromOptions(PS);
-extern PetscErrorCode PSView(PS,PetscViewer);
-extern PetscErrorCode PSDestroy(PS*);
-extern PetscErrorCode PSReset(PS);
+PETSC_EXTERN PetscErrorCode PSCreate(MPI_Comm,PS*);
+PETSC_EXTERN PetscErrorCode PSSetType(PS,const PSType);
+PETSC_EXTERN PetscErrorCode PSGetType(PS,const PSType*);
+PETSC_EXTERN PetscErrorCode PSSetOptionsPrefix(PS,const char *);
+PETSC_EXTERN PetscErrorCode PSAppendOptionsPrefix(PS,const char *);
+PETSC_EXTERN PetscErrorCode PSGetOptionsPrefix(PS,const char *[]);
+PETSC_EXTERN PetscErrorCode PSSetFromOptions(PS);
+PETSC_EXTERN PetscErrorCode PSView(PS,PetscViewer);
+PETSC_EXTERN PetscErrorCode PSDestroy(PS*);
+PETSC_EXTERN PetscErrorCode PSReset(PS);
 
-extern PetscErrorCode PSAllocate(PS,PetscInt);
-extern PetscErrorCode PSGetLeadingDimension(PS,PetscInt*);
-extern PetscErrorCode PSSetState(PS,PSStateType);
-extern PetscErrorCode PSGetState(PS,PSStateType*);
-extern PetscErrorCode PSSetDimensions(PS,PetscInt,PetscInt,PetscInt);
-extern PetscErrorCode PSGetDimensions(PS,PetscInt*,PetscInt*,PetscInt*);
-extern PetscErrorCode PSSetMethod(PS,PetscInt);
-extern PetscErrorCode PSGetMethod(PS,PetscInt*);
-extern PetscErrorCode PSSetCompact(PS,PetscBool);
-extern PetscErrorCode PSGetCompact(PS,PetscBool*);
-extern PetscErrorCode PSSetExtraRow(PS,PetscBool);
-extern PetscErrorCode PSGetExtraRow(PS,PetscBool*);
-extern PetscErrorCode PSSetRefined(PS,PetscBool);
-extern PetscErrorCode PSGetRefined(PS,PetscBool*);
-extern PetscErrorCode PSGetArray(PS,PSMatType,PetscScalar *a[]);
-extern PetscErrorCode PSRestoreArray(PS,PSMatType,PetscScalar *a[]);
-extern PetscErrorCode PSGetArrayReal(PS,PSMatType,PetscReal *a[]);
-extern PetscErrorCode PSRestoreArrayReal(PS,PSMatType,PetscReal *a[]);
-extern PetscErrorCode PSVectors(PS,PSMatType,PetscInt*,PetscReal*);
-extern PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
-extern PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
-extern PetscErrorCode PSCond(PS,PetscReal*);
-extern PetscErrorCode PSTranslateHarmonic(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
-extern PetscErrorCode PSTranslateRKS(PS,PetscScalar);
+PETSC_EXTERN PetscErrorCode PSAllocate(PS,PetscInt);
+PETSC_EXTERN PetscErrorCode PSGetLeadingDimension(PS,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSSetState(PS,PSStateType);
+PETSC_EXTERN PetscErrorCode PSGetState(PS,PSStateType*);
+PETSC_EXTERN PetscErrorCode PSSetDimensions(PS,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode PSGetDimensions(PS,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSSetMethod(PS,PetscInt);
+PETSC_EXTERN PetscErrorCode PSGetMethod(PS,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSSetCompact(PS,PetscBool);
+PETSC_EXTERN PetscErrorCode PSGetCompact(PS,PetscBool*);
+PETSC_EXTERN PetscErrorCode PSSetExtraRow(PS,PetscBool);
+PETSC_EXTERN PetscErrorCode PSGetExtraRow(PS,PetscBool*);
+PETSC_EXTERN PetscErrorCode PSSetRefined(PS,PetscBool);
+PETSC_EXTERN PetscErrorCode PSGetRefined(PS,PetscBool*);
+PETSC_EXTERN PetscErrorCode PSGetArray(PS,PSMatType,PetscScalar *a[]);
+PETSC_EXTERN PetscErrorCode PSRestoreArray(PS,PSMatType,PetscScalar *a[]);
+PETSC_EXTERN PetscErrorCode PSGetArrayReal(PS,PSMatType,PetscReal *a[]);
+PETSC_EXTERN PetscErrorCode PSRestoreArrayReal(PS,PSMatType,PetscReal *a[]);
+PETSC_EXTERN PetscErrorCode PSVectors(PS,PSMatType,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+PETSC_EXTERN PetscErrorCode PSCond(PS,PetscReal*);
+PETSC_EXTERN PetscErrorCode PSTranslateHarmonic(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
+PETSC_EXTERN PetscErrorCode PSTranslateRKS(PS,PetscScalar);
 
-extern PetscFList PSList;
-extern PetscBool  PSRegisterAllCalled;
-extern PetscErrorCode PSRegisterAll(const char[]);
-extern PetscErrorCode PSRegister(const char[],const char[],const char[],PetscErrorCode(*)(PS));
-extern PetscErrorCode PSRegisterDestroy(void);
+PETSC_EXTERN PetscFList PSList;
+PETSC_EXTERN PetscBool  PSRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode PSRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode PSRegister(const char[],const char[],const char[],PetscErrorCode(*)(PS));
+PETSC_EXTERN PetscErrorCode PSRegisterDestroy(void);
 
 /*MC
    PSRegisterDynamic - Adds a projected system to the PS package.
@@ -184,5 +183,4 @@ M*/
 #define PSRegisterDynamic(a,b,c,d) PSRegister(a,b,c,d)
 #endif
 
-PETSC_EXTERN_CXX_END
 #endif

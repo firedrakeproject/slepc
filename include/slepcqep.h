@@ -25,9 +25,8 @@
 #define __SLEPCQEP_H
 #include "slepcsys.h"
 #include "slepceps.h"
-PETSC_EXTERN_CXX_BEGIN
 
-extern PetscErrorCode QEPInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode QEPInitializePackage(const char[]);
 
 /*S
      QEP - Abstract SLEPc object that manages all the quadratic eigenvalue 
@@ -51,7 +50,7 @@ E*/
 #define QEPQARNOLDI  "qarnoldi"
 
 /* Logging support */
-extern PetscClassId QEP_CLASSID;
+PETSC_EXTERN PetscClassId QEP_CLASSID;
 
 /*E
     QEPProblemType - determines the type of the quadratic eigenproblem
@@ -79,65 +78,65 @@ typedef enum { QEP_LARGEST_MAGNITUDE=1,
                QEP_LARGEST_IMAGINARY,
                QEP_SMALLEST_IMAGINARY } QEPWhich;
 
-extern PetscErrorCode QEPCreate(MPI_Comm,QEP*);
-extern PetscErrorCode QEPDestroy(QEP*);
-extern PetscErrorCode QEPReset(QEP);
-extern PetscErrorCode QEPSetType(QEP,const QEPType);
-extern PetscErrorCode QEPGetType(QEP,const QEPType*);
-extern PetscErrorCode QEPSetProblemType(QEP,QEPProblemType);
-extern PetscErrorCode QEPGetProblemType(QEP,QEPProblemType*);
-extern PetscErrorCode QEPSetOperators(QEP,Mat,Mat,Mat);
-extern PetscErrorCode QEPGetOperators(QEP,Mat*,Mat*,Mat*);
-extern PetscErrorCode QEPSetFromOptions(QEP);
-extern PetscErrorCode QEPSetUp(QEP);
-extern PetscErrorCode QEPSolve(QEP);
-extern PetscErrorCode QEPView(QEP,PetscViewer);
-extern PetscErrorCode QEPPrintSolution(QEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode QEPCreate(MPI_Comm,QEP*);
+PETSC_EXTERN PetscErrorCode QEPDestroy(QEP*);
+PETSC_EXTERN PetscErrorCode QEPReset(QEP);
+PETSC_EXTERN PetscErrorCode QEPSetType(QEP,const QEPType);
+PETSC_EXTERN PetscErrorCode QEPGetType(QEP,const QEPType*);
+PETSC_EXTERN PetscErrorCode QEPSetProblemType(QEP,QEPProblemType);
+PETSC_EXTERN PetscErrorCode QEPGetProblemType(QEP,QEPProblemType*);
+PETSC_EXTERN PetscErrorCode QEPSetOperators(QEP,Mat,Mat,Mat);
+PETSC_EXTERN PetscErrorCode QEPGetOperators(QEP,Mat*,Mat*,Mat*);
+PETSC_EXTERN PetscErrorCode QEPSetFromOptions(QEP);
+PETSC_EXTERN PetscErrorCode QEPSetUp(QEP);
+PETSC_EXTERN PetscErrorCode QEPSolve(QEP);
+PETSC_EXTERN PetscErrorCode QEPView(QEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode QEPPrintSolution(QEP,PetscViewer);
 
-extern PetscErrorCode QEPSetIP(QEP,IP);
-extern PetscErrorCode QEPGetIP(QEP,IP*);
-extern PetscErrorCode QEPSetTolerances(QEP,PetscReal,PetscInt);
-extern PetscErrorCode QEPGetTolerances(QEP,PetscReal*,PetscInt*);
-extern PetscErrorCode QEPSetConvergenceTest(QEP,PetscErrorCode (*)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);
-extern PetscErrorCode QEPConvergedDefault(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-extern PetscErrorCode QEPConvergedAbsolute(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-extern PetscErrorCode QEPSetDimensions(QEP,PetscInt,PetscInt,PetscInt);
-extern PetscErrorCode QEPGetDimensions(QEP,PetscInt*,PetscInt*,PetscInt*);
-extern PetscErrorCode QEPSetScaleFactor(QEP,PetscReal);
-extern PetscErrorCode QEPGetScaleFactor(QEP,PetscReal*);
+PETSC_EXTERN PetscErrorCode QEPSetIP(QEP,IP);
+PETSC_EXTERN PetscErrorCode QEPGetIP(QEP,IP*);
+PETSC_EXTERN PetscErrorCode QEPSetTolerances(QEP,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode QEPGetTolerances(QEP,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPSetConvergenceTest(QEP,PetscErrorCode (*)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);
+PETSC_EXTERN PetscErrorCode QEPConvergedDefault(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode QEPConvergedAbsolute(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode QEPSetDimensions(QEP,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode QEPGetDimensions(QEP,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPSetScaleFactor(QEP,PetscReal);
+PETSC_EXTERN PetscErrorCode QEPGetScaleFactor(QEP,PetscReal*);
 
-extern PetscErrorCode QEPGetConverged(QEP,PetscInt*);
-extern PetscErrorCode QEPGetEigenpair(QEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
-extern PetscErrorCode QEPComputeRelativeError(QEP,PetscInt,PetscReal*);
-extern PetscErrorCode QEPComputeResidualNorm(QEP,PetscInt,PetscReal*);
-extern PetscErrorCode QEPGetErrorEstimate(QEP,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode QEPGetConverged(QEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPGetEigenpair(QEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
+PETSC_EXTERN PetscErrorCode QEPComputeRelativeError(QEP,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode QEPComputeResidualNorm(QEP,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode QEPGetErrorEstimate(QEP,PetscInt,PetscReal*);
 
-extern PetscErrorCode QEPMonitorSet(QEP,PetscErrorCode (*)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
-extern PetscErrorCode QEPMonitorCancel(QEP);
-extern PetscErrorCode QEPGetMonitorContext(QEP,void **);
-extern PetscErrorCode QEPGetIterationNumber(QEP,PetscInt*);
-extern PetscErrorCode QEPGetOperationCounters(QEP,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPMonitorSet(QEP,PetscErrorCode (*)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
+PETSC_EXTERN PetscErrorCode QEPMonitorCancel(QEP);
+PETSC_EXTERN PetscErrorCode QEPGetMonitorContext(QEP,void **);
+PETSC_EXTERN PetscErrorCode QEPGetIterationNumber(QEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPGetOperationCounters(QEP,PetscInt*,PetscInt*,PetscInt*);
 
-extern PetscErrorCode QEPSetInitialSpace(QEP,PetscInt,Vec*);
-extern PetscErrorCode QEPSetInitialSpaceLeft(QEP,PetscInt,Vec*);
-extern PetscErrorCode QEPSetWhichEigenpairs(QEP,QEPWhich);
-extern PetscErrorCode QEPGetWhichEigenpairs(QEP,QEPWhich*);
-extern PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscBool);
-extern PetscErrorCode QEPGetLeftVectorsWanted(QEP,PetscBool*);
-extern PetscErrorCode QEPSetEigenvalueComparison(QEP,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+PETSC_EXTERN PetscErrorCode QEPSetInitialSpace(QEP,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode QEPSetInitialSpaceLeft(QEP,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode QEPSetWhichEigenpairs(QEP,QEPWhich);
+PETSC_EXTERN PetscErrorCode QEPGetWhichEigenpairs(QEP,QEPWhich*);
+PETSC_EXTERN PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscBool);
+PETSC_EXTERN PetscErrorCode QEPGetLeftVectorsWanted(QEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode QEPSetEigenvalueComparison(QEP,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
-extern PetscErrorCode QEPMonitorAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-extern PetscErrorCode QEPMonitorFirst(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-extern PetscErrorCode QEPMonitorConverged(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-extern PetscErrorCode QEPMonitorLG(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-extern PetscErrorCode QEPMonitorLGAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode QEPMonitorAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode QEPMonitorFirst(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode QEPMonitorConverged(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode QEPMonitorLG(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode QEPMonitorLGAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 
-extern PetscErrorCode QEPSetTrackAll(QEP,PetscBool);
-extern PetscErrorCode QEPGetTrackAll(QEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode QEPSetTrackAll(QEP,PetscBool);
+PETSC_EXTERN PetscErrorCode QEPGetTrackAll(QEP,PetscBool*);
 
-extern PetscErrorCode QEPSetOptionsPrefix(QEP,const char*);
-extern PetscErrorCode QEPAppendOptionsPrefix(QEP,const char*);
-extern PetscErrorCode QEPGetOptionsPrefix(QEP,const char*[]);
+PETSC_EXTERN PetscErrorCode QEPSetOptionsPrefix(QEP,const char*);
+PETSC_EXTERN PetscErrorCode QEPAppendOptionsPrefix(QEP,const char*);
+PETSC_EXTERN PetscErrorCode QEPGetOptionsPrefix(QEP,const char*[]);
 
 /*E
     QEPConvergedReason - reason an eigensolver was said to 
@@ -154,18 +153,18 @@ typedef enum {/* converged */
               QEP_DIVERGED_BREAKDOWN           = -4,
               QEP_CONVERGED_ITERATING          =  0} QEPConvergedReason;
 
-extern PetscErrorCode QEPGetConvergedReason(QEP,QEPConvergedReason *);
+PETSC_EXTERN PetscErrorCode QEPGetConvergedReason(QEP,QEPConvergedReason *);
 
-extern PetscErrorCode QEPSortEigenvalues(QEP,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
-extern PetscErrorCode QEPSortEigenvaluesReal(QEP,PetscInt,PetscReal*,PetscInt*);
-extern PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
-extern PetscErrorCode QEPSortDenseSchur(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode QEPSortEigenvalues(QEP,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPSortEigenvaluesReal(QEP,PetscInt,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPSortDenseSchur(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
 
-extern PetscFList QEPList;
-extern PetscBool  QEPRegisterAllCalled;
-extern PetscErrorCode QEPRegisterAll(const char[]);
-extern PetscErrorCode QEPRegisterDestroy(void);
-extern PetscErrorCode QEPRegister(const char[],const char[],const char[],PetscErrorCode(*)(QEP));
+PETSC_EXTERN PetscFList QEPList;
+PETSC_EXTERN PetscBool  QEPRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode QEPRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode QEPRegisterDestroy(void);
+PETSC_EXTERN PetscErrorCode QEPRegister(const char[],const char[],const char[],PetscErrorCode(*)(QEP));
 
 /*MC
    QEPRegisterDynamic - Adds a method to the quadratic eigenproblem solver package.
@@ -210,13 +209,12 @@ M*/
 
 /* --------- options specific to particular eigensolvers -------- */
 
-extern PetscErrorCode QEPLinearSetCompanionForm(QEP,PetscInt);
-extern PetscErrorCode QEPLinearGetCompanionForm(QEP,PetscInt*);
-extern PetscErrorCode QEPLinearSetExplicitMatrix(QEP,PetscBool);
-extern PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscBool*);
-extern PetscErrorCode QEPLinearSetEPS(QEP,EPS);
-extern PetscErrorCode QEPLinearGetEPS(QEP,EPS*);
+PETSC_EXTERN PetscErrorCode QEPLinearSetCompanionForm(QEP,PetscInt);
+PETSC_EXTERN PetscErrorCode QEPLinearGetCompanionForm(QEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode QEPLinearSetExplicitMatrix(QEP,PetscBool);
+PETSC_EXTERN PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode QEPLinearSetEPS(QEP,EPS);
+PETSC_EXTERN PetscErrorCode QEPLinearGetEPS(QEP,EPS*);
 
-PETSC_EXTERN_CXX_END
 #endif
 

@@ -24,8 +24,8 @@
 
 #include <slepcps.h>
 
-extern PetscLogEvent PS_Solve,PS_Sort,PS_Vectors,PS_Other;
-extern const char *PSMatName[];
+PETSC_EXTERN PetscLogEvent PS_Solve,PS_Sort,PS_Vectors,PS_Other;
+PETSC_EXTERN const char *PSMatName[];
 
 typedef struct _PSOps *PSOps;
 
@@ -60,12 +60,12 @@ struct _p_PS {
   PetscInt     lwork,lrwork,liwork;
 };
 
-extern PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
-extern PetscErrorCode PSAllocateMatReal_Private(PS,PSMatType);
-extern PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
-extern PetscErrorCode PSViewMat_Private(PS,PetscViewer,PSMatType);
-extern PetscErrorCode PSSortEigenvaluesReal_Private(PS,PetscInt,PetscInt,PetscReal*,PetscInt*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
-extern PetscErrorCode PSPermuteColumns_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
-extern PetscErrorCode PSCopyMatrix_Private(PS,PSMatType,PSMatType);
+PETSC_EXTERN PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
+PETSC_EXTERN PetscErrorCode PSAllocateMatReal_Private(PS,PSMatType);
+PETSC_EXTERN PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode PSViewMat_Private(PS,PetscViewer,PSMatType);
+PETSC_EXTERN PetscErrorCode PSSortEigenvaluesReal_Private(PS,PetscInt,PetscInt,PetscReal*,PetscInt*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+PETSC_EXTERN PetscErrorCode PSPermuteColumns_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSCopyMatrix_Private(PS,PSMatType,PSMatType);
 
 #endif

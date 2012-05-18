@@ -25,8 +25,8 @@
 #include <slepcsvd.h>
 #include <slepcip.h>
 
-extern PetscFList SVDList;
-extern PetscLogEvent SVD_SetUp, SVD_Solve, SVD_Dense;
+PETSC_EXTERN PetscFList SVDList;
+PETSC_EXTERN PetscLogEvent SVD_SetUp, SVD_Solve, SVD_Dense;
 
 typedef struct _SVDOps *SVDOps;
 
@@ -86,12 +86,12 @@ struct _p_SVD {
   PetscInt        matvecs;
 };
 
-extern PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
+PETSC_EXTERN PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
 
-extern PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
-extern PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
-extern PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
-extern PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
-extern PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
+PETSC_EXTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
+PETSC_EXTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*);
 
 #endif

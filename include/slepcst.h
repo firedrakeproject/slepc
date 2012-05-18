@@ -24,9 +24,8 @@
 #if !defined(__SLEPCST_H)
 #define __SLEPCST_H
 #include "petscksp.h"
-PETSC_EXTERN_CXX_BEGIN
 
-extern PetscErrorCode STInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode STInitializePackage(const char[]);
 
 /*S
     ST - Abstract SLEPc object that manages spectral transformations.
@@ -54,43 +53,43 @@ E*/
 #define STPRECOND   "precond"
 
 /* Logging support */
-extern PetscClassId ST_CLASSID;
+PETSC_EXTERN PetscClassId ST_CLASSID;
 
-extern PetscErrorCode STCreate(MPI_Comm,ST*);
-extern PetscErrorCode STDestroy(ST*);
-extern PetscErrorCode STReset(ST);
-extern PetscErrorCode STSetType(ST,const STType);
-extern PetscErrorCode STGetType(ST,const STType*);
-extern PetscErrorCode STSetOperators(ST,Mat,Mat);
-extern PetscErrorCode STGetOperators(ST,Mat*,Mat*);
-extern PetscErrorCode STSetUp(ST);
-extern PetscErrorCode STSetFromOptions(ST);
-extern PetscErrorCode STView(ST,PetscViewer);
+PETSC_EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);
+PETSC_EXTERN PetscErrorCode STDestroy(ST*);
+PETSC_EXTERN PetscErrorCode STReset(ST);
+PETSC_EXTERN PetscErrorCode STSetType(ST,const STType);
+PETSC_EXTERN PetscErrorCode STGetType(ST,const STType*);
+PETSC_EXTERN PetscErrorCode STSetOperators(ST,Mat,Mat);
+PETSC_EXTERN PetscErrorCode STGetOperators(ST,Mat*,Mat*);
+PETSC_EXTERN PetscErrorCode STSetUp(ST);
+PETSC_EXTERN PetscErrorCode STSetFromOptions(ST);
+PETSC_EXTERN PetscErrorCode STView(ST,PetscViewer);
 
-extern PetscErrorCode STApply(ST,Vec,Vec);
-extern PetscErrorCode STGetBilinearForm(ST,Mat*);
-extern PetscErrorCode STApplyTranspose(ST,Vec,Vec);
-extern PetscErrorCode STComputeExplicitOperator(ST,Mat*);
-extern PetscErrorCode STPostSolve(ST);
+PETSC_EXTERN PetscErrorCode STApply(ST,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STPostSolve(ST);
 
-extern PetscErrorCode STSetKSP(ST,KSP);
-extern PetscErrorCode STGetKSP(ST,KSP*);
-extern PetscErrorCode STSetShift(ST,PetscScalar);
-extern PetscErrorCode STGetShift(ST,PetscScalar*);
-extern PetscErrorCode STSetDefaultShift(ST,PetscScalar);
-extern PetscErrorCode STSetBalanceMatrix(ST,Vec);
-extern PetscErrorCode STGetBalanceMatrix(ST,Vec*);
+PETSC_EXTERN PetscErrorCode STSetKSP(ST,KSP);
+PETSC_EXTERN PetscErrorCode STGetKSP(ST,KSP*);
+PETSC_EXTERN PetscErrorCode STSetShift(ST,PetscScalar);
+PETSC_EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
+PETSC_EXTERN PetscErrorCode STSetDefaultShift(ST,PetscScalar);
+PETSC_EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
+PETSC_EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
 
-extern PetscErrorCode STSetOptionsPrefix(ST,const char*);
-extern PetscErrorCode STAppendOptionsPrefix(ST,const char*);
-extern PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
+PETSC_EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
+PETSC_EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
+PETSC_EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
-extern PetscErrorCode STBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode STBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
 
-extern PetscErrorCode STCheckNullSpace(ST,PetscInt,const Vec[]);
+PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,PetscInt,const Vec[]);
 
-extern PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
-extern PetscErrorCode STResetOperationCounters(ST);
+PETSC_EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 
 /*E
     STMatMode - determines how to handle the coefficient matrix associated
@@ -103,16 +102,16 @@ E*/
 typedef enum { ST_MATMODE_COPY,
                ST_MATMODE_INPLACE, 
                ST_MATMODE_SHELL } STMatMode;
-extern PetscErrorCode STSetMatMode(ST,STMatMode);
-extern PetscErrorCode STGetMatMode(ST,STMatMode*);
-extern PetscErrorCode STSetMatStructure(ST,MatStructure);
-extern PetscErrorCode STGetMatStructure(ST,MatStructure*);
+PETSC_EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
+PETSC_EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
+PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
+PETSC_EXTERN PetscErrorCode STGetMatStructure(ST,MatStructure*);
 
-extern PetscFList STList;
-extern PetscBool  STRegisterAllCalled;
-extern PetscErrorCode STRegisterAll(const char[]);
-extern PetscErrorCode STRegisterDestroy(void);
-extern PetscErrorCode STRegister(const char[],const char[],const char[],PetscErrorCode(*)(ST));
+PETSC_EXTERN PetscFList STList;
+PETSC_EXTERN PetscBool  STRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode STRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode STRegisterDestroy(void);
+PETSC_EXTERN PetscErrorCode STRegister(const char[],const char[],const char[],PetscErrorCode(*)(ST));
 
 /*MC
    STRegisterDynamic - Adds a method to the spectral transformation package.
@@ -158,20 +157,19 @@ M*/
 
 /* --------- options specific to particular spectral transformations-------- */
 
-extern PetscErrorCode STShellGetContext(ST st,void **ctx);
-extern PetscErrorCode STShellSetContext(ST st,void *ctx);
-extern PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec));
-extern PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec));
-extern PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*));
+PETSC_EXTERN PetscErrorCode STShellGetContext(ST st,void **ctx);
+PETSC_EXTERN PetscErrorCode STShellSetContext(ST st,void *ctx);
+PETSC_EXTERN PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec));
+PETSC_EXTERN PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec));
+PETSC_EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*));
 
-extern PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
-extern PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
+PETSC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
+PETSC_EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
-extern PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
-extern PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
-extern PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat);
-extern PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat);
+PETSC_EXTERN PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
+PETSC_EXTERN PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
+PETSC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat);
+PETSC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat);
 
-PETSC_EXTERN_CXX_END
 #endif
 

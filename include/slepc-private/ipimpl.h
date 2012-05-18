@@ -24,7 +24,7 @@
 
 #include <slepcip.h>
 
-extern PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
+PETSC_EXTERN PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 
 typedef struct _IPOps *IPOps;
 
@@ -51,8 +51,8 @@ struct _p_IP {
   Vec                Bx;
 };
 
-extern PetscErrorCode IPSetDefaultType_Private(IP);
-extern PetscErrorCode IPApplyMatrix_Private(IP,Vec);
-extern PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPSetDefaultType_Private(IP);
+PETSC_EXTERN PetscErrorCode IPApplyMatrix_Private(IP,Vec);
+PETSC_EXTERN PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 
 #endif

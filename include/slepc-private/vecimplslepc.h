@@ -24,7 +24,7 @@
 
 #include <slepcvec.h>
 
-extern PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY;
+PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY;
 
 /* context for the storage of contiguous Vecs */
 typedef struct {
