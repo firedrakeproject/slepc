@@ -31,7 +31,7 @@ def Check(conf,vars,cmake,tmpdir):
   log.Println('Checking LAPACK library...')
 
   # LAPACK standard functions
-  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','steqr','hsein']
+  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','steqr','hsein','larfg','larf']
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
