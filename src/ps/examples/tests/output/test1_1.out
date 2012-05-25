@@ -3,6 +3,7 @@ PS Object: 1 MPI processes
   type: nhep
   current state: raw
   dimensions: ld=12, n=10, l=0, k=0
+  flags:
 Computed eigenvalues =
   0.19797+2.12926i
   0.19797-2.12926i

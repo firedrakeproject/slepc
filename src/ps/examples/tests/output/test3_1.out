@@ -3,8 +3,11 @@ PS Object: 1 MPI processes
   type: hep
   current state: raw
   dimensions: ld=12, n=10, l=2, k=5
-  solving the problem with: LAPACK's _steqr
+  flags: compact
+  solving the problem with: Implicit QR method (_steqr)
 Computed eigenvalues =
+  1.00000
+  2.00000
   10.74626
   9.21574
   8.10265
@@ -13,5 +16,3 @@ Computed eigenvalues =
   4.66164
   3.64744
   2.53379
-  2.00000
-  1.00000
