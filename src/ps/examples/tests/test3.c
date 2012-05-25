@@ -33,7 +33,7 @@ int main( int argc, char **argv )
   PetscScalar    *eig;
   PetscInt       i,n=10,l=2,k=5,ld;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,extrarow;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
@@ -42,6 +42,7 @@ int main( int argc, char **argv )
   ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,1,"Wrong value of dimensions");
   ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(PETSC_NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
 
   /* Create PS object */
   ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
@@ -51,6 +52,7 @@ int main( int argc, char **argv )
   ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
   ierr = PSSetDimensions(ps,n,l,k);CHKERRQ(ierr);
   ierr = PSSetCompact(ps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PSSetExtraRow(ps,extrarow);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -65,6 +67,7 @@ int main( int argc, char **argv )
   ierr = PSGetArrayReal(ps,PS_MAT_T,&T);CHKERRQ(ierr);
   for (i=0;i<n;i++) T[i] = (PetscReal)(i+1);
   for (i=l;i<n-1;i++) T[i+ld] = 1.0;
+  if (extrarow) T[n-1+ld] = 1.0;
   ierr = PSRestoreArrayReal(ps,PS_MAT_T,&T);CHKERRQ(ierr);
   if (l==0 && k==0) {
     ierr = PSSetState(ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);

@@ -134,7 +134,9 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
         r = PetscMax(i+2,ps->k+1);
         c = i+1;
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
+        if (r<ps->n) { /* do not print vertical arrow when k=n-1 */
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
+        }
       }
       if (ps->extrarow) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ps->n+1,ps->n,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
@@ -452,6 +454,47 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSSolve_HEP_Update"
+/*
+  Helper function that is called at the end of any PSSolve_HEP_* method. 
+*/
+static PetscErrorCode PSSolve_HEP_Update(PS ps)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   n,ld,incx=1;
+  PetscScalar    *A,*Q,*x,*y,one=1.0,zero=0.0;
+  PetscReal      *d,*e;
+
+  PetscFunctionBegin;
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
+  A  = ps->mat[PS_MAT_A];
+  Q  = ps->mat[PS_MAT_Q];
+  d  = ps->rmat[PS_MAT_T];
+  e  = ps->rmat[PS_MAT_T]+ld;
+
+  if (ps->compact) {
+    if (ps->extrarow) {
+      ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
+      x = ps->work;
+      y = ps->work+ld;
+      ierr = PetscMemzero(x,n*sizeof(PetscScalar));CHKERRQ(ierr);
+      x[n-1] = e[n-1];
+      BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
+      for (i=0;i<n;i++) e[i] = PetscRealPart(y[i]);
+      ps->k = n;
+    } else {
+      ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+    }
+  } else {
+    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<n;i++) A[i+i*ld] = d[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve_HEP_QR"
 PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
@@ -462,7 +505,7 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n1,n2,n3,info,l,n,ld,off;
-  PetscScalar    *A,*Q;
+  PetscScalar    *Q;
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
@@ -473,7 +516,6 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   n2 = PetscBLASIntCast(n-ps->k-1);  /* size of trailing block */
   n3 = n1+n2;
   off = l+l*ld;
-  A  = ps->mat[PS_MAT_A];
   Q  = ps->mat[PS_MAT_Q];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
@@ -489,12 +531,7 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
   for (i=l;i<n;i++) wr[i] = d[i];
 
-  if (ps->compact) {
-    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
-  } else {
-    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) A[i+i*ld] = d[i];
-  }
+  ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -567,12 +604,7 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
 
-  if (ps->compact) {
-    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
-  } else {
-    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) A[i+i*ld] = d[i];
-  }
+  ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

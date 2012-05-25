@@ -751,7 +751,7 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-  rows = ps->extrarow? ps->n+1: ps->n;
+  rows = (m==PS_MAT_A && ps->extrarow)? ps->n+1: ps->n;
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
   v = ps->mat[m];
