@@ -116,58 +116,11 @@ PetscErrorCode PSVectors_GNHEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_GNHEP"
-PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
-{
-#if defined(SLEPC_MISSING_LAPACK_GGES)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGES - Lapack routines are unavailable.");
-#else
-  PetscErrorCode ierr;
-  PetscScalar    *work,*beta,a;
-  PetscInt       i;
-  PetscBLASInt   lwork,info,n,ld,iaux;
-  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],*Z = ps->mat[PS_MAT_Z],*Q = ps->mat[PS_MAT_Q];
-
-  PetscFunctionBegin;
-  PetscValidPointer(wi,2);
-  n   = PetscBLASIntCast(ps->n);
-  ld  = PetscBLASIntCast(ps->ld);
-  if (ps->state==PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for the intermediate state");
-  lwork = -1;
-#if !defined(PETSC_USE_COMPLEX)
-  LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,&info);
-  lwork = (PetscBLASInt)a;
-  ierr = PSAllocateWork_Private(ps,lwork+ld,0,0);CHKERRQ(ierr); 
-  beta = ps->work;
-  work = beta+ps->n;
-  lwork = PetscBLASIntCast(ps->lwork-ps->n);
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
-#else
-  LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
-  lwork = (PetscBLASInt)PetscRealPart(a);
-  ierr = PSAllocateWork_Private(ps,lwork+ld,8*ld,0);CHKERRQ(ierr); 
-  beta = ps->work;
-  work = beta+ps->n;
-  lwork = PetscBLASIntCast(ps->lwork-ps->n);
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ps->rwork,PETSC_NULL,&info);
-#endif
-  if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
-  for (i=0;i<n;i++) {
-    if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
-    else wr[i] /= beta[i];
-#if !defined(PETSC_USE_COMPLEX)
-    if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
-    else wi[i] /= beta[i];
-#endif
-  }
-  PetscFunctionReturn(0);
-#endif
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "PSSort_GNHEP"
-PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
+#define __FUNCT__ "PSSolve_GNHEP_Sort"
+/*
+  Sort the condensed form at the end of any PSSolve_GNHEP_* method. 
+*/
+static PetscErrorCode PSSolve_GNHEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
   PetscFunctionBegin;
@@ -184,7 +137,7 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
 #endif
 
   PetscFunctionBegin;
-  PetscValidPointer(wi,2);
+  if (!ps->comp_fun) PetscFunctionReturn(0);
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
 #if !defined(PETSC_USE_COMPLEX)
@@ -206,7 +159,7 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
 #endif
     /* find minimum eigenvalue */
     for (;j<n;j++) { 
-      ierr = (*comp_func)(re,im,wr[j],wi[j],&result,comp_ctx);CHKERRQ(ierr);
+      ierr = (*ps->comp_fun)(re,im,wr[j],wi[j],&result,ps->comp_ctx);CHKERRQ(ierr);
       if (result > 0) {
         re = wr[j];
         im = wi[j];
@@ -254,6 +207,57 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
 #endif 
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "PSSolve_GNHEP"
+PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
+{
+#if defined(SLEPC_MISSING_LAPACK_GGES)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGES - Lapack routines are unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscScalar    *work,*beta,a;
+  PetscInt       i;
+  PetscBLASInt   lwork,info,n,ld,iaux;
+  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],*Z = ps->mat[PS_MAT_Z],*Q = ps->mat[PS_MAT_Q];
+
+  PetscFunctionBegin;
+  PetscValidPointer(wi,3);
+  n   = PetscBLASIntCast(ps->n);
+  ld  = PetscBLASIntCast(ps->ld);
+  if (ps->state==PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for the intermediate state");
+  lwork = -1;
+#if !defined(PETSC_USE_COMPLEX)
+  LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,&info);
+  lwork = (PetscBLASInt)a;
+  ierr = PSAllocateWork_Private(ps,lwork+ld,0,0);CHKERRQ(ierr); 
+  beta = ps->work;
+  work = beta+ps->n;
+  lwork = PetscBLASIntCast(ps->lwork-ps->n);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
+#else
+  LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
+  lwork = (PetscBLASInt)PetscRealPart(a);
+  ierr = PSAllocateWork_Private(ps,lwork+ld,8*ld,0);CHKERRQ(ierr); 
+  beta = ps->work;
+  work = beta+ps->n;
+  lwork = PetscBLASIntCast(ps->lwork-ps->n);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ps->rwork,PETSC_NULL,&info);
+#endif
+  if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
+  for (i=0;i<n;i++) {
+    if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    else wr[i] /= beta[i];
+#if !defined(PETSC_USE_COMPLEX)
+    if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    else wi[i] /= beta[i];
+#endif
+  }
+  ierr = PSSolve_GNHEP_Sort(ps,wr,wi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "PSCreate_GNHEP"
@@ -264,7 +268,6 @@ PetscErrorCode PSCreate_GNHEP(PS ps)
   ps->ops->view          = PSView_GNHEP;
   ps->ops->vectors       = PSVectors_GNHEP;
   ps->ops->solve[0]      = PSSolve_GNHEP;
-  ps->ops->sort          = PSSort_GNHEP;
   ps->ops->cond          = PETSC_NULL;
   ps->ops->transharm     = PETSC_NULL;
   PetscFunctionReturn(0);

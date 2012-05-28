@@ -454,6 +454,36 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSSolve_HEP_Sort"
+/*
+  Sort the eigendecomposition at the end of any PSSolve_HEP_* method. 
+*/
+static PetscErrorCode PSSolve_HEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,l,i,*perm;
+  PetscScalar    *A;
+  PetscReal      *d;
+
+  PetscFunctionBegin;
+  if (!ps->comp_fun) PetscFunctionReturn(0);
+  n = ps->n;
+  l = ps->l;
+  d = ps->rmat[PS_MAT_T];
+  perm = ps->perm;
+  ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm);CHKERRQ(ierr);
+  for (i=l;i<n;i++) wr[i] = d[perm[i]];
+  ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);
+  if (ps->compact) {
+    for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
+  } else {
+    A  = ps->mat[PS_MAT_A];
+    for (i=l;i<n;i++) A[i+i*ps->ld] = wr[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve_HEP_Update"
 /*
   Helper function that is called at the end of any PSSolve_HEP_* method. 
@@ -531,6 +561,7 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
   for (i=l;i<n;i++) wr[i] = d[i];
 
+  ierr = PSSolve_HEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
@@ -604,35 +635,10 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
 
+  ierr = PSSolve_HEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "PSSort_HEP"
-PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
-{
-  PetscErrorCode ierr;
-  PetscInt       n,l,i,*perm;
-  PetscScalar    *A;
-  PetscReal      *d;
-
-  PetscFunctionBegin;
-  n = ps->n;
-  l = ps->l;
-  d = ps->rmat[PS_MAT_T];
-  perm = ps->perm;
-  ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm,comp_func,comp_ctx);CHKERRQ(ierr);
-  for (i=l;i<n;i++) wr[i] = d[perm[i]];
-  ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);
-  if (ps->compact) {
-    for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
-  } else {
-    A  = ps->mat[PS_MAT_A];
-    for (i=l;i<n;i++) A[i+i*ps->ld] = wr[i];
-  }
-  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
@@ -747,7 +753,6 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->ops->vectors       = PSVectors_HEP;
   ps->ops->solve[0]      = PSSolve_HEP_QR;
   ps->ops->solve[1]      = PSSolve_HEP_MRRR;
-  ps->ops->sort          = PSSort_HEP;
   ps->ops->cond          = PSCond_HEP;
   ps->ops->transrks      = PSTranslateRKS_HEP;
   PetscFunctionReturn(0);

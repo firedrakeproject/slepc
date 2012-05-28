@@ -280,7 +280,6 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     }else{/* Restart */
       ierr = PSSolve(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
     }
-    ierr = PSSort(eps->ps,eps->eigr,PETSC_NULL,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
     /* Check convergence */

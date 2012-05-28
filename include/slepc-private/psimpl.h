@@ -24,7 +24,7 @@
 
 #include <slepcps.h>
 
-PETSC_EXTERN PetscLogEvent PS_Solve,PS_Sort,PS_Vectors,PS_Other;
+PETSC_EXTERN PetscLogEvent PS_Solve,PS_Vectors,PS_Other;
 PETSC_EXTERN const char *PSMatName[];
 
 typedef struct _PSOps *PSOps;
@@ -34,7 +34,6 @@ struct _PSOps {
   PetscErrorCode (*view)(PS,PetscViewer);
   PetscErrorCode (*vectors)(PS,PSMatType,PetscInt*,PetscReal*);
   PetscErrorCode (*solve[PS_MAX_SOLVE])(PS,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*,PetscErrorCode(*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
   PetscErrorCode (*cond)(PS,PetscReal*);
   PetscErrorCode (*transharm)(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
   PetscErrorCode (*transrks)(PS,PetscScalar);
@@ -42,29 +41,31 @@ struct _PSOps {
 
 struct _p_PS {
   PETSCHEADER(struct _PSOps);
-  PetscInt     method;             /* identifies the variant to be used */
-  PetscBool    compact;            /* whether the matrices are stored in compact form */
-  PetscBool    refined;            /* get refined vectors instead of regular vectors */
-  PetscBool    extrarow;           /* assume the matrix dimension is (n+1) x n */
-  PetscInt     ld;                 /* leading dimension */
-  PetscInt     l;                  /* number of locked (inactive) leading columns */
-  PetscInt     n;                  /* current dimension */
-  PetscInt     k;                  /* intermediate dimension (e.g. position of arrow) */
-  PSStateType  state;              /* the current state */
-  PetscScalar  *mat[PS_NUM_MAT];   /* the matrices */
-  PetscReal    *rmat[PS_NUM_MAT];  /* the matrices (real) */
-  PetscInt     *perm;              /* permutation */
-  PetscScalar  *work;
-  PetscReal    *rwork;
-  PetscBLASInt *iwork;
-  PetscInt     lwork,lrwork,liwork;
+  PetscInt       method;             /* identifies the variant to be used */
+  PetscBool      compact;            /* whether the matrices are stored in compact form */
+  PetscBool      refined;            /* get refined vectors instead of regular vectors */
+  PetscBool      extrarow;           /* assume the matrix dimension is (n+1) x n */
+  PetscInt       ld;                 /* leading dimension */
+  PetscInt       l;                  /* number of locked (inactive) leading columns */
+  PetscInt       n;                  /* current dimension */
+  PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
+  PSStateType    state;              /* the current state */
+  PetscScalar    *mat[PS_NUM_MAT];   /* the matrices */
+  PetscReal      *rmat[PS_NUM_MAT];  /* the matrices (real) */
+  PetscInt       *perm;              /* permutation */
+  PetscScalar    *work;
+  PetscReal      *rwork;
+  PetscBLASInt   *iwork;
+  PetscInt       lwork,lrwork,liwork;
+  PetscErrorCode (*comp_fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void           *comp_ctx;
 };
 
 PETSC_EXTERN PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
 PETSC_EXTERN PetscErrorCode PSAllocateMatReal_Private(PS,PSMatType);
 PETSC_EXTERN PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PSViewMat_Private(PS,PetscViewer,PSMatType);
-PETSC_EXTERN PetscErrorCode PSSortEigenvaluesReal_Private(PS,PetscInt,PetscInt,PetscReal*,PetscInt*,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+PETSC_EXTERN PetscErrorCode PSSortEigenvaluesReal_Private(PS,PetscInt,PetscInt,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PSPermuteColumns_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
 PETSC_EXTERN PetscErrorCode PSCopyMatrix_Private(PS,PSMatType,PSMatType);
 

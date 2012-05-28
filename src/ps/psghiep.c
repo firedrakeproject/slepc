@@ -22,6 +22,8 @@
 #include <slepc-private/psimpl.h>      /*I "slepcps.h" I*/
 #include <slepcblaslapack.h>
 
+static PetscErrorCode PSSolve_GHIEP_Sort(PS,PetscScalar*,PetscScalar*);
+
 /*extern PetscErrorCode ArrowTridiag(PetscBLASInt *n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt *ldq);*/
 /*
   compute X = X - Y*ss^{-1}*Y^T*s*X where ss=Y^T*s*Y
@@ -669,8 +671,9 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
   /* Recover eigenvalues from diagonal */
   ierr = PSComplexEigs_private(ps, 0, ps->n, wr, wi);CHKERRQ(ierr);
+  ierr = PSSolve_GHIEP_Sort(ps,wr,wi);CHKERRQ(ierr);
 #endif
-    PetscFunctionReturn(0);
+  PetscFunctionReturn(0);
 }
 
 
@@ -827,13 +830,14 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
   SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP," In PSSolve, QR method not implemented for complex indefinite problems",info);
 #endif
+  ierr = PSSolve_GHIEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "PSSortEigenvalues_Private"
-static PetscErrorCode PSSortEigenvalues_Private(PS ps,PetscScalar *wr,PetscScalar *wi,PetscInt *perm,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
+static PetscErrorCode PSSortEigenvalues_Private(PS ps,PetscScalar *wr,PetscScalar *wi,PetscInt *perm)
 {
   PetscErrorCode ierr;
   PetscScalar    re,im;
@@ -860,7 +864,7 @@ static PetscErrorCode PSSortEigenvalues_Private(PS ps,PetscScalar *wr,PetscScala
     if(PetscImaginaryPart(re)!=0.0) {d = 2; tmp2 = perm[i+1];}else d = 1;
 #endif
     j = i-1;
-    ierr = (*comp_func)(re,im,wr[perm[j]],wi[perm[j]],&result,comp_ctx);CHKERRQ(ierr);
+    ierr = (*ps->comp_fun)(re,im,wr[perm[j]],wi[perm[j]],&result,ps->comp_ctx);CHKERRQ(ierr);
     while (result<0 && j>=ps->l) {
       perm[j+d]=perm[j]; j--;
 #if !defined(PETSC_USE_COMPLEX)
@@ -871,7 +875,7 @@ static PetscErrorCode PSSortEigenvalues_Private(PS ps,PetscScalar *wr,PetscScala
         {perm[j+d]=perm[j]; j--;}
 
      if (j>=ps->l) {
-        ierr = (*comp_func)(re,im,wr[perm[j]],wi[perm[j]],&result,comp_ctx);CHKERRQ(ierr);
+        ierr = (*ps->comp_fun)(re,im,wr[perm[j]],wi[perm[j]],&result,ps->comp_ctx);CHKERRQ(ierr);
       }
     }
     perm[j+1] = tmp1;
@@ -880,10 +884,12 @@ static PetscErrorCode PSSortEigenvalues_Private(PS ps,PetscScalar *wr,PetscScala
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
-#define __FUNCT__ "PSSort_GHIEP"
-PetscErrorCode PSSort_GHIEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
+#define __FUNCT__ "PSSolve_GHIEP_Sort"
+/*
+  Sort the eigendecomposition at the end of any PSSolve_GHIEP_* method. 
+*/
+static PetscErrorCode PSSolve_GHIEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,*perm;
@@ -896,7 +902,7 @@ PetscErrorCode PSSort_GHIEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode
   s = d + 2*ps->ld;
   ierr = PSAllocateWork_Private(ps,ps->ld,ps->ld,0);CHKERRQ(ierr); 
   perm = ps->perm;
-  ierr = PSSortEigenvalues_Private(ps,wr,wi,perm,comp_func,comp_ctx);CHKERRQ(ierr);
+  ierr = PSSortEigenvalues_Private(ps,wr,wi,perm);CHKERRQ(ierr);
   ierr = PetscMemcpy(ps->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ps->l;i<n;i++) {
     wr[i] = *(ps->work + perm[i]);
@@ -933,7 +939,6 @@ PetscErrorCode PSCreate_GHIEP(PS ps)
   ps->ops->vectors       = PSVectors_GHIEP;
   ps->ops->solve[0]      = PSSolve_GHIEP_QR;
   ps->ops->solve[1]      = PSSolve_GHIEP_QR_II;
-  ps->ops->sort          = PSSort_GHIEP;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

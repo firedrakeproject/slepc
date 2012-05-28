@@ -1,5 +1,5 @@
 /*
-   PS operations: PSSolve(), PSSort(), etc
+   PS operations: PSSolve(), PSVectors(), etc
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -339,11 +339,12 @@ PetscErrorCode PSRestoreArrayReal(PS ps,PSMatType m,PetscReal *a[])
 
    Note:
    This call brings the projected system to condensed form. No ordering
-   is enforced, call PSSort() later if you want the solution sorted.
+   of the eigenvalues is enforced unless a comparison function has been
+   provided with PSSetEigenvalueComparison().
 
    Level: advanced
 
-.seealso: PSSort()
+.seealso: PSSetEigenvalueComparison()
 @*/
 PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -361,44 +362,8 @@ PetscErrorCode PSSolve(PS ps,PetscScalar *eigr,PetscScalar *eigi)
   ierr = (*ps->ops->solve[ps->method])(ps,eigr,eigi);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PS_Solve,ps,0,0,0);CHKERRQ(ierr);
-  ps->state = PS_STATE_CONDENSED;
-  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "PSSort"
-/*@C
-   PSSort - Reorders the condensed form computed by PSSolve() according to
-   a given sorting criterion.
-
-   Logically Collective on PS
-
-   Input Parameters:
-+  ps - the projected system context
-.  eigr - array to store the sorted eigenvalues (real part)
--  eigi - array to store the sorted eigenvalues (imaginary part)
-
-   Level: advanced
-
-.seealso: PSSolve()
-@*/
-PetscErrorCode PSSort(PS ps,PetscScalar *eigr,PetscScalar *eigi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidPointer(eigr,2);
-  if (ps->state!=PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
-  if (!ps->ops->sort) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
-  if (ps->state>=PS_STATE_SORTED) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ps->ops->sort)(ps,eigr,eigi,comp_func,comp_ctx);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(PS_Sort,ps,0,0,0);CHKERRQ(ierr);
-  ps->state = PS_STATE_SORTED;
+  if (ps->comp_fun) ps->state = PS_STATE_SORTED;
+  else ps->state = PS_STATE_CONDENSED;
   ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

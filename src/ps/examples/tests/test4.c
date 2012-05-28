@@ -79,16 +79,10 @@ int main( int argc, char **argv )
   /* Solve */
   ierr = PetscMalloc(n*sizeof(PetscScalar),&wr);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&wi);CHKERRQ(ierr);
+  ierr = PSSetEigenvalueComparison(ps,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
   ierr = PSSolve(ps,wr,wi);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = PSView(ps,viewer);CHKERRQ(ierr);
-  }
-
-  /* Sort */
-  ierr = PSSort(ps,wr,wi,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
-  if (verbose) { 
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After sort - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = PSView(ps,viewer);CHKERRQ(ierr);
   }
 

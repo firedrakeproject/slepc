@@ -198,6 +198,90 @@ PetscErrorCode PSVectors_NHEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSSolve_NHEP_Sort"
+/*
+  Sort the condensed form at the end of any PSSolve_NHEP_* method. 
+*/
+static PetscErrorCode PSSolve_NHEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
+{
+#if defined(SLEPC_MISSING_LAPACK_TREXC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscScalar    re,im;
+  PetscInt       i,j,pos,result;
+  PetscBLASInt   ifst,ilst,info,n,ld;
+  PetscScalar    *T = ps->mat[PS_MAT_A];
+  PetscScalar    *Q = ps->mat[PS_MAT_Q];
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    *work;
+#endif
+
+  PetscFunctionBegin;
+  if (!ps->comp_fun) PetscFunctionReturn(0);
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PSAllocateWork_Private(ps,ld,0,0);CHKERRQ(ierr); 
+  work = ps->work;
+#endif
+  /* selection sort */
+  for (i=ps->l;i<n-1;i++) {
+    re = wr[i];
+    im = wi[i];
+    pos = 0;
+    j=i+1; /* j points to the next eigenvalue */
+#if !defined(PETSC_USE_COMPLEX)
+    if (im != 0) j=i+2;
+#endif
+    /* find minimum eigenvalue */
+    for (;j<n;j++) { 
+      ierr = (*ps->comp_fun)(re,im,wr[j],wi[j],&result,ps->comp_ctx);CHKERRQ(ierr);
+      if (result > 0) {
+        re = wr[j];
+        im = wi[j];
+        pos = j;
+      }
+#if !defined(PETSC_USE_COMPLEX)
+      if (wi[j] != 0) j++;
+#endif
+    }
+    if (pos) {
+      /* interchange blocks */
+      ifst = PetscBLASIntCast(pos+1);
+      ilst = PetscBLASIntCast(i+1);
+#if !defined(PETSC_USE_COMPLEX)
+      LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info);
+#else
+      LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info);
+#endif
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+      /* recover original eigenvalues from T matrix */
+      for (j=i;j<n;j++) {
+        wr[j] = T[j+j*ld];
+#if !defined(PETSC_USE_COMPLEX)
+        if (j<n-1 && T[j+1+j*ld] != 0.0) {
+          /* complex conjugate eigenvalue */
+          wi[j] = PetscSqrtReal(PetscAbsReal(T[j+1+j*ld])) *
+                  PetscSqrtReal(PetscAbsReal(T[j+(j+1)*ld]));
+          wr[j+1] = wr[j];
+          wi[j+1] = -wi[j];
+          j++;
+        } else
+#endif
+        wi[j] = 0.0;
+      }
+    }
+#if !defined(PETSC_USE_COMPLEX)
+    if (wi[i] != 0) i++;
+#endif
+  }
+  PetscFunctionReturn(0);
+#endif 
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSolve_NHEP"
 PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
@@ -213,7 +297,7 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
 
   PetscFunctionBegin;
-  PetscValidPointer(wi,2);
+  PetscValidPointer(wi,3);
   n   = PetscBLASIntCast(ps->n);
   ld  = PetscBLASIntCast(ps->ld);
   ilo = PetscBLASIntCast(ps->l+1);
@@ -264,89 +348,9 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
+  ierr = PSSolve_NHEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "PSSort_NHEP"
-PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
-{
-#if defined(SLEPC_MISSING_LAPACK_TREXC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable.");
-#else
-  PetscErrorCode ierr;
-  PetscScalar    re,im;
-  PetscInt       i,j,pos,result;
-  PetscBLASInt   ifst,ilst,info,n,ld;
-  PetscScalar    *T = ps->mat[PS_MAT_A];
-  PetscScalar    *Q = ps->mat[PS_MAT_Q];
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *work;
-#endif
-
-  PetscFunctionBegin;
-  PetscValidPointer(wi,2);
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PSAllocateWork_Private(ps,ld,0,0);CHKERRQ(ierr); 
-  work = ps->work;
-#endif
-  /* selection sort */
-  for (i=ps->l;i<n-1;i++) {
-    re = wr[i];
-    im = wi[i];
-    pos = 0;
-    j=i+1; /* j points to the next eigenvalue */
-#if !defined(PETSC_USE_COMPLEX)
-    if (im != 0) j=i+2;
-#endif
-    /* find minimum eigenvalue */
-    for (;j<n;j++) { 
-      ierr = (*comp_func)(re,im,wr[j],wi[j],&result,comp_ctx);CHKERRQ(ierr);
-      if (result > 0) {
-        re = wr[j];
-        im = wi[j];
-        pos = j;
-      }
-#if !defined(PETSC_USE_COMPLEX)
-      if (wi[j] != 0) j++;
-#endif
-    }
-    if (pos) {
-      /* interchange blocks */
-      ifst = PetscBLASIntCast(pos+1);
-      ilst = PetscBLASIntCast(i+1);
-#if !defined(PETSC_USE_COMPLEX)
-      LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info);
-#else
-      LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info);
-#endif
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
-      /* recover original eigenvalues from T matrix */
-      for (j=i;j<n;j++) {
-        wr[j] = T[j+j*ld];
-#if !defined(PETSC_USE_COMPLEX)
-        if (j<n-1 && T[j+1+j*ld] != 0.0) {
-          /* complex conjugate eigenvalue */
-          wi[j] = PetscSqrtReal(PetscAbsReal(T[j+1+j*ld])) *
-                  PetscSqrtReal(PetscAbsReal(T[j+(j+1)*ld]));
-          wr[j+1] = wr[j];
-          wi[j+1] = -wi[j];
-          j++;
-        } else
-#endif
-        wi[j] = 0.0;
-      }
-    }
-#if !defined(PETSC_USE_COMPLEX)
-    if (wi[i] != 0) i++;
-#endif
-  }
-  PetscFunctionReturn(0);
-#endif 
 }
 
 #undef __FUNCT__  
@@ -488,7 +492,6 @@ PetscErrorCode PSCreate_NHEP(PS ps)
   ps->ops->view          = PSView_NHEP;
   ps->ops->vectors       = PSVectors_NHEP;
   ps->ops->solve[0]      = PSSolve_NHEP;
-  ps->ops->sort          = PSSort_NHEP;
   ps->ops->cond          = PSCond_NHEP;
   ps->ops->transharm     = PSTranslateHarmonic_NHEP;
   PetscFunctionReturn(0);

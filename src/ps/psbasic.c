@@ -26,7 +26,7 @@
 PetscFList       PSList = 0;
 PetscBool        PSRegisterAllCalled = PETSC_FALSE;
 PetscClassId     PS_CLASSID = 0;
-PetscLogEvent    PS_Solve = 0,PS_Sort = 0,PS_Vectors = 0,PS_Other = 0;
+PetscLogEvent    PS_Solve = 0,PS_Vectors = 0,PS_Other = 0;
 static PetscBool PSPackageInitialized = PETSC_FALSE;
 const char       *PSMatName[PS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W"};
 
@@ -79,7 +79,6 @@ PetscErrorCode PSInitializePackage(const char *path)
   ierr = PSRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("PSSolve",PS_CLASSID,&PS_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PSSort",PS_CLASSID,&PS_Sort);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PSVectors",PS_CLASSID,&PS_Vectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PSOther",PS_CLASSID,&PS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
@@ -146,13 +145,15 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
     ps->mat[i]  = PETSC_NULL;
     ps->rmat[i] = PETSC_NULL;
   }
-  ps->perm   = PETSC_NULL;
-  ps->work   = PETSC_NULL;
-  ps->rwork  = PETSC_NULL;
-  ps->iwork  = PETSC_NULL;
-  ps->lwork  = 0;
-  ps->lrwork = 0;
-  ps->liwork = 0;
+  ps->perm     = PETSC_NULL;
+  ps->work     = PETSC_NULL;
+  ps->rwork    = PETSC_NULL;
+  ps->iwork    = PETSC_NULL;
+  ps->lwork    = 0;
+  ps->lrwork   = 0;
+  ps->liwork   = 0;
+  ps->comp_fun = PETSC_NULL;
+  ps->comp_ctx = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
@@ -544,6 +545,48 @@ PetscErrorCode PSGetRefined(PS ps,PetscBool *ref)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSSetEigenvalueComparison"
+/*@C
+   PSSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   to be used for sorting the result of PSSolve().
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps  - the projected system context
+.  fun - a pointer to the comparison function
+-  ctx - a context pointer (the last parameter to the comparison function)
+
+   Calling Sequence of fun:
+$  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by PSSetEigenvalueComparison()
+
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
+
+   Level: advanced
+
+.seealso: PSSolve()
+@*/
+PetscErrorCode PSSetEigenvalueComparison(PS ps,PetscErrorCode (*fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  ps->comp_fun = fun;
+  ps->comp_ctx = ctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSetFromOptions"
 /*@
    PSSetFromOptions - Sets PS options from the options database.
@@ -793,7 +836,7 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSortEigenvaluesReal_Private"
-PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscReal *eig,PetscInt *perm,PetscErrorCode (*comp_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void *comp_ctx)
+PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscReal *eig,PetscInt *perm)
 {
   PetscErrorCode ierr;
   PetscScalar    re;
@@ -805,11 +848,11 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscRe
   for (i=l+1;i<n;i++) {
     re = eig[perm[i]];
     j = i-1;
-    ierr = (*comp_func)(re,0.0,eig[perm[j]],0.0,&result,comp_ctx);CHKERRQ(ierr);
+    ierr = (*ps->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ps->comp_ctx);CHKERRQ(ierr);
     while (result<=0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=0) {
-        ierr = (*comp_func)(re,0.0,eig[perm[j]],0.0,&result,comp_ctx);CHKERRQ(ierr);
+        ierr = (*ps->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ps->comp_ctx);CHKERRQ(ierr);
       }
     }
   }
@@ -903,9 +946,11 @@ PetscErrorCode PSReset(PS ps)
   ierr = PetscFree(ps->work);CHKERRQ(ierr);
   ierr = PetscFree(ps->rwork);CHKERRQ(ierr);
   ierr = PetscFree(ps->iwork);CHKERRQ(ierr);
-  ps->lwork  = 0;
-  ps->lrwork = 0;
-  ps->liwork = 0;
+  ps->lwork    = 0;
+  ps->lrwork   = 0;
+  ps->liwork   = 0;
+  ps->comp_fun = PETSC_NULL;
+  ps->comp_ctx = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
