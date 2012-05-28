@@ -130,16 +130,13 @@ PetscErrorCode PSView_HEP(PS ps,PetscViewer viewer)
       for (i=0;i<ps->n;i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,*(ps->rmat[PS_MAT_T]+i));CHKERRQ(ierr);
       }
-      for (i=0;i<ps->n-1;i++) {
+      for (i=0;i<rows-1;i++) {
         r = PetscMax(i+2,ps->k+1);
         c = i+1;
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
-        if (r<ps->n) { /* do not print vertical arrow when k=n-1 */
+        if (i<ps->n-1 && ps->k<ps->n) { /* do not print vertical arrow when k=n */
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
         }
-      }
-      if (ps->extrarow) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ps->n+1,ps->n,*(ps->rmat[PS_MAT_T]+ps->ld+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",PSMatName[PS_MAT_T]);CHKERRQ(ierr);
     } else {
