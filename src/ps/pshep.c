@@ -455,11 +455,10 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
 /*
   Sort the eigendecomposition at the end of any PSSolve_HEP_* method. 
 */
-static PetscErrorCode PSSolve_HEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode PSSolve_HEP_Sort(PS ps,PetscScalar *wr)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm;
-  PetscScalar    *A;
   PetscReal      *d;
 
   PetscFunctionBegin;
@@ -471,12 +470,7 @@ static PetscErrorCode PSSolve_HEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
   ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
   ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);
-  if (ps->compact) {
-    for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
-  } else {
-    A  = ps->mat[PS_MAT_A];
-    for (i=l;i<n;i++) A[i+i*ps->ld] = wr[i];
-  }
+  for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   PetscFunctionReturn(0);
 }
 
@@ -488,10 +482,10 @@ static PetscErrorCode PSSolve_HEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
 static PetscErrorCode PSSolve_HEP_Update(PS ps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,l=ps->l;
   PetscBLASInt   n,ld,incx=1;
   PetscScalar    *A,*Q,*x,*y,one=1.0,zero=0.0;
-  PetscReal      *d,*e;
+  PetscReal      *d,*e,beta;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
@@ -503,20 +497,26 @@ static PetscErrorCode PSSolve_HEP_Update(PS ps)
 
   if (ps->compact) {
     if (ps->extrarow) {
-      ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
-      x = ps->work;
-      y = ps->work+ld;
-      ierr = PetscMemzero(x,n*sizeof(PetscScalar));CHKERRQ(ierr);
-      x[n-1] = e[n-1];
-      BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
-      for (i=0;i<n;i++) e[i] = PetscRealPart(y[i]);
+      beta = e[n-1];
+      for (i=0;i<n;i++) e[i] = PetscRealPart(beta*Q[n-1+i*ld]);
       ps->k = n;
     } else {
       ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
     }
   } else {
-    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) A[i+i*ld] = d[i];
+    for (i=l;i<n;i++) {
+      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    for (i=l;i<n;i++) A[i+i*ld] = d[i];
+    if (ps->extrarow) {
+      ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
+      x = ps->work;
+      y = ps->work+ld;
+      for (i=0;i<n;i++) x[i] = A[n+i*ld];
+      BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
+      for (i=0;i<n;i++) A[n+i*ld] = y[i];
+      ps->k = n;
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -556,9 +556,8 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   ierr = PSAllocateWork_Private(ps,0,2*ld,0);CHKERRQ(ierr); 
   LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
-  for (i=l;i<n;i++) wr[i] = d[i];
 
-  ierr = PSSolve_HEP_Sort(ps,wr,wi);CHKERRQ(ierr);
+  ierr = PSSolve_HEP_Sort(ps,wr);CHKERRQ(ierr);
   ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
@@ -632,7 +631,7 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
 
-  ierr = PSSolve_HEP_Sort(ps,wr,wi);CHKERRQ(ierr);
+  ierr = PSSolve_HEP_Sort(ps,wr);CHKERRQ(ierr);
   ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
