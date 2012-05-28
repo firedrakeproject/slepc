@@ -67,13 +67,14 @@ PetscErrorCode PSAllocate_HEP(PS ps,PetscInt ld)
 #define __FUNCT__ "PSSwitchFormat_HEP"
 static PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
 {
-  PetscReal   *T = ps->rmat[PS_MAT_T];
-  PetscScalar *A = ps->mat[PS_MAT_A];
-  PetscInt    i,n=ps->n,k=ps->k,ld=ps->ld;
+  PetscErrorCode ierr;
+  PetscReal      *T = ps->rmat[PS_MAT_T];
+  PetscScalar    *A = ps->mat[PS_MAT_A];
+  PetscInt       i,n=ps->n,k=ps->k,ld=ps->ld;
 
   PetscFunctionBegin;
-  if (ps->compact==tocompact) PetscFunctionReturn(0);
   if (tocompact) { /* switch from dense (arrow) to compact storage */
+    ierr = PetscMemzero(T,3*ld*sizeof(PetscReal));CHKERRQ(ierr);
     for (i=0;i<k;i++) {
       T[i] = PetscRealPart(A[i+i*ld]);
       T[i+ld] = PetscRealPart(A[k+i*ld]);
@@ -85,6 +86,7 @@ static PetscErrorCode PSSwitchFormat_HEP(PS ps,PetscBool tocompact)
     T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
     if (ps->extrarow) T[n-1+ld] = PetscRealPart(A[n+(n-1)*ld]);
   } else { /* switch from compact (arrow) to dense storage */
+    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<k;i++) {
       A[i+i*ld] = T[i];
       A[k+i*ld] = T[i+ld];
