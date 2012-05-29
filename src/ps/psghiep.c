@@ -626,8 +626,8 @@ PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal 
 #else
   PetscErrorCode  ierr;
   PetscInt	  i,j,*ii,*jj,tmp,type;
-  PetscReal 	  *ss,cond,cs,sn,t,r;
-  PetscScalar	  *work,tau;
+  PetscReal 	  *ss,cond,cs,sn,r;
+  PetscScalar	  *work,tau,t;
   PetscBLASInt	  n0,n1,ni,inc=1,m,n_,lda_,ldq_;
 
   PetscFunctionBegin;
@@ -941,7 +941,7 @@ PetscErrorCode PSSolve_GHIEP_EA_II(PS ps,PetscScalar *wr,PetscScalar *wi)
 
   /* Compute Eigenvalues (EA)*/
   /* routine dca require normalized form */
-  ierr = PSSwitchFormat_GHIEP(ps,!ps->compact);CHKERRQ(ierr);
+  ierr = PSSwitchFormat_GHIEP(ps,(ps->compact)?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
   ss = ps->rwork;
   dw = ps->rwork+ld;
   ss[ps->l] = s[ps->l];
