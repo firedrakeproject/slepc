@@ -640,6 +640,24 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSTruncate_HEP"
+PetscErrorCode PSTruncate_HEP(PS ps,PetscInt n)
+{
+  PetscInt       i,ld=ps->ld,l=ps->l;
+  PetscScalar    *A;
+
+  PetscFunctionBegin;
+  A  = ps->mat[PS_MAT_A];
+  if (!ps->compact && ps->extrarow && ps->k==ps->n) {
+    for (i=l;i<n;i++) A[n+i*ld] = A[ps->n+i*ld];
+  }
+  if (ps->extrarow) ps->k = n;
+  else ps->k = 0;
+  ps->n = n;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSCond_HEP"
 PetscErrorCode PSCond_HEP(PS ps,PetscReal *cond)
 {
@@ -751,6 +769,7 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->ops->vectors       = PSVectors_HEP;
   ps->ops->solve[0]      = PSSolve_HEP_QR;
   ps->ops->solve[1]      = PSSolve_HEP_MRRR;
+  ps->ops->truncate      = PSTruncate_HEP;
   ps->ops->cond          = PSCond_HEP;
   ps->ops->transrks      = PSTranslateRKS_HEP;
   PetscFunctionReturn(0);

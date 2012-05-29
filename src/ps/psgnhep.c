@@ -268,8 +268,6 @@ PetscErrorCode PSCreate_GNHEP(PS ps)
   ps->ops->view          = PSView_GNHEP;
   ps->ops->vectors       = PSVectors_GNHEP;
   ps->ops->solve[0]      = PSSolve_GNHEP;
-  ps->ops->cond          = PETSC_NULL;
-  ps->ops->transharm     = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

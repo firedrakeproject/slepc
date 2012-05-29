@@ -200,6 +200,45 @@ PetscErrorCode PSGetDimensions(PS ps,PetscInt *n,PetscInt *l,PetscInt *k)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSTruncate"
+/*@
+   PSTruncate - Truncates the system represented in the PS object.
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps - the projected system context
+-  n  - the new size
+
+   Note:
+   The new size is set to n. In cases where the extra row is meaningful,
+   the first n elements are kept as the extra row for the new system.
+
+   Level: developer
+
+.seealso: PSSetDimensions(), PSSetExtraRow()
+@*/
+PetscErrorCode PSTruncate(PS ps,PetscInt n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ps,n,2);
+  if (!ps->ops->truncate) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  if (n<ps->l || n>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between l and n");
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->truncate)(ps,n);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ps->state = PS_STATE_RAW;
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSGetArray"
 /*@C
    PSGetArray - Returns a pointer to one of the internal arrays used to

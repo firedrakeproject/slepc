@@ -127,6 +127,7 @@ PETSC_EXTERN PetscErrorCode PSSetState(PS,PSStateType);
 PETSC_EXTERN PetscErrorCode PSGetState(PS,PSStateType*);
 PETSC_EXTERN PetscErrorCode PSSetDimensions(PS,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PSGetDimensions(PS,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSTruncate(PS,PetscInt);
 PETSC_EXTERN PetscErrorCode PSSetMethod(PS,PetscInt);
 PETSC_EXTERN PetscErrorCode PSGetMethod(PS,PetscInt*);
 PETSC_EXTERN PetscErrorCode PSSetCompact(PS,PetscBool);
