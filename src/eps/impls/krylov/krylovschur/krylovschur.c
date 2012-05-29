@@ -138,6 +138,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       eps->ops->solve = EPSSolve_KrylovSchur_Symm;
       ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
       ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = PSSetExtraRow(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
@@ -150,7 +151,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     default: SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error");
   }
-  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
+  ierr = PSAllocate(eps->ps,eps->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

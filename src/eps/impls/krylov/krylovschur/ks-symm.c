@@ -32,7 +32,7 @@
 PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k,l,ld,nv;
+  PetscInt       k,l,ld,nv;
   Vec            u=eps->work[0];
   PetscScalar    *Q;
   PetscReal      *a,*b,beta;
@@ -86,15 +86,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
         }
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        b = a + ld;
-        for (i=k;i<k+l;i++) {
-          a[i] = PetscRealPart(eps->eigr[i]);
-          b[i] = PetscRealPart(Q[nv-1+i*ld]*beta);
-        }
-        ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = PSTruncate(eps->ps,k+l);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
