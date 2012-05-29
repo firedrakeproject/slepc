@@ -183,7 +183,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     case EPS_WHICH_USER:
       break;
   }
-  PSSetEigenvalueComparison(eps->ps,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
