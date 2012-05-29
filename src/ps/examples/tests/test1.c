@@ -33,12 +33,13 @@ int main( int argc, char **argv )
   PetscReal      re,im;
   PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,extrarow;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type NHEP - dimension %D.\n",n);CHKERRQ(ierr); 
   ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(PETSC_NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
 
   /* Create PS object */
   ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
@@ -47,6 +48,7 @@ int main( int argc, char **argv )
   ld = n+2;  /* test leading dimension larger than n */
   ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
   ierr = PSSetDimensions(ps,n,0,0);CHKERRQ(ierr);
+  ierr = PSSetExtraRow(ps,extrarow);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -63,6 +65,7 @@ int main( int argc, char **argv )
   for (j=0;j<4;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*ld]=1.0;
   }
+  if (extrarow) { A[n+(n-1)*ld]=-1.0; }
   ierr = PSRestoreArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
   ierr = PSSetState(ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
   if (verbose) { 
