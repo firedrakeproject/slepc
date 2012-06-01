@@ -112,6 +112,7 @@
 #define LAPACKlag2_  SLEPC_BLASLAPACKREAL(lag2,LAG2)
 #define LAPACKlasv2_ SLEPC_BLASLAPACKREAL(lasv2,LASV2)
 #define LAPACKlartg_ SLEPC_BLASLAPACKREAL(lartg,LARTG)
+#define LAPACKlaln2_ SLEPC_BLASLAPACKREAL(laln2,LALN2)
 #if !defined(PETSC_USE_COMPLEX)
 #define LAPACKorghr_ SLEPC_BLASLAPACK(orghr,ORGHR)
 #define LAPACKorgqr_ SLEPC_BLASLAPACK(orgqr,ORGQR)
@@ -239,6 +240,7 @@ PETSC_EXTERN_C void      SLEPC_BLASLAPACK(larfg,LARFG) (PetscBLASInt*,PetscScala
 PETSC_EXTERN_C void      SLEPC_BLASLAPACKREAL(lag2,LAG2) (PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 PETSC_EXTERN_C void      SLEPC_BLASLAPACKREAL(lasv2,LASV2) (PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 PETSC_EXTERN_C void      SLEPC_BLASLAPACKREAL(lartg,LARTG) (PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+PETSC_EXTERN_C void      SLEPC_BLASLAPACKREAL(laln2,LALN2) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*);
 PETSC_EXTERN_C void      BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*);
 #if !defined(PETSC_USE_COMPLEX)
 PETSC_EXTERN_C void      SLEPC_BLASLAPACK(tgexc,TGEXC) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
@@ -305,6 +307,7 @@ PETSC_EXTERN_C void PETSC_STDCALL SLEPC_BLASLAPACK(larfg,LARFG) (PetscBLASInt*,P
 PETSC_EXTERN_C void PETSC_STDCALL SLEPC_BLASLAPACKREAL(lag2,LAG2) (PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 PETSC_EXTERN_C void PETSC_STDCALL SLEPC_BLASLAPACKREAL(lasv2,LASV2) (PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 PETSC_EXTERN_C void PETSC_STDCALL SLEPC_BLASLAPACKREAL(lartg,LARTG) (PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+PETSC_EXTERN_C void PETSC_STDCALL SLEPC_BLASLAPACKREAL(laln2,LALN2) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*);
 PETSC_EXTERN_C void PETSC_STDCALL BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*);
 #if !defined(PETSC_USE_COMPLEX)
 PETSC_EXTERN_C void PETSC_STDCALL SLEPC_BLASLAPACK(tgexc,TGEXC) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
