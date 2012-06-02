@@ -98,6 +98,8 @@ M*/
     Initialization of SLEPc and other system routines
 */
 PETSC_EXTERN PetscErrorCode SlepcInitialize(int*,char***,const char[],const char[]);
+PETSC_EXTERN PetscErrorCode SlepcInitializeNoPointers(int,char**,const char[],const char[]);
+PETSC_EXTERN PetscErrorCode SlepcInitializeNoArguments(void);
 PETSC_EXTERN PetscErrorCode SlepcFinalize(void);
 PETSC_EXTERN PetscErrorCode SlepcInitializeFortran(void);
 PETSC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);

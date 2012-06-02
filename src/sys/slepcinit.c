@@ -228,6 +228,29 @@ PetscErrorCode SlepcFinalize(void)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "SlepcInitializeNoArguments"
+/*@C
+   SlepcInitializeNoArguments - Calls SlepcInitialize() from C/C++ without
+   the command line arguments.
+
+   Collective
+  
+   Level: advanced
+
+.seealso: SlepcInitialize(), SlepcInitializeFortran()
+@*/
+PetscErrorCode SlepcInitializeNoArguments(void)
+{
+  PetscErrorCode ierr;
+  int            argc = 0;
+  char           **args = 0;
+
+  PetscFunctionBegin;
+  ierr = SlepcInitialize(&argc,&args,PETSC_NULL,PETSC_NULL);
+  PetscFunctionReturn(ierr);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SlepcInitialized"
 /*@
    SlepcInitialized - Determine whether SLEPc is initialized.
@@ -244,7 +267,6 @@ PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
   PetscFunctionReturn(0);
 }
 
-#if defined(PETSC_HAVE_MATLAB_ENGINE)
 extern PetscBool PetscBeganMPI;
 
 #undef __FUNCT__  
@@ -271,7 +293,6 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filena
   PetscBeganMPI = PETSC_FALSE;
   PetscFunctionReturn(ierr);
 }
-#endif
 
 #ifdef PETSC_USE_DYNAMIC_LIBRARIES
 EXTERN_C_BEGIN
