@@ -80,7 +80,7 @@ extern PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd
                      SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseNorm,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-extern PetscDLLibrary DLLibrariesLoaded;
+extern PetscDLLibrary PetscDLLibrariesLoaded;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcInitialize_DynamicLibraries"
@@ -99,7 +99,7 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   ierr = PetscStrcat(libs,"/libslepc");CHKERRQ(ierr);
   ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,1024,&found);CHKERRQ(ierr);
   if (found) {
-    ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&DLLibrariesLoaded,libs);CHKERRQ(ierr);
+    ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&PetscDLLibrariesLoaded,libs);CHKERRQ(ierr);
   } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\n You cannot move the dynamic libraries!");
   PetscFunctionReturn(0);
 }

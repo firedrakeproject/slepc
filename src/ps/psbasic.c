@@ -130,7 +130,7 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
 
   PetscFunctionBegin;
   PetscValidPointer(newps,2);
-  ierr = PetscHeaderCreate(ps,_p_PS,struct _PSOps,PS_CLASSID,-1,"PS","Projected System","PS",comm,PSDestroy,PSView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(ps,_p_PS,struct _PSOps,PS_CLASSID,-1,"PS","Projected System","PS",comm,PSDestroy,PSView);CHKERRQ(ierr);
   *newps       = ps;
   ps->state    = PS_STATE_RAW;
   ps->method   = 0;
