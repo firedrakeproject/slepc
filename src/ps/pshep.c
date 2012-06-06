@@ -593,7 +593,6 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   off = l+l*ld;
   A  = ps->mat[PS_MAT_A];
   Q  = ps->mat[PS_MAT_Q];
-  W  = ps->mat[PS_MAT_W];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
 
@@ -606,6 +605,7 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   if (ps->state<PS_STATE_INTERMEDIATE) {  /* Q contains useful info */
     ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
     ierr = PSCopyMatrix_Private(ps,PS_MAT_W,PS_MAT_Q);CHKERRQ(ierr); 
+    W = ps->mat[PS_MAT_W];
   }
 #if defined(PETSC_USE_COMPLEX)
   ierr = PSAllocateMatReal_Private(ps,PS_MAT_Q);CHKERRQ(ierr);
