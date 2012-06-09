@@ -47,11 +47,12 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
-  PetscBool      flg;
+  PetscBool      flg,viewed=PETSC_FALSE;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   char           filename[PETSC_MAX_PATH_LEN];
+  char           view[10];
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -64,6 +65,16 @@ PetscErrorCode QEPSolve(QEP qep)
     ierr = MatView(qep->K,PETSC_VIEWER_BINARY_(((PetscObject)qep)->comm));CHKERRQ(ierr);
   }
 
+  ierr = PetscOptionsGetString(((PetscObject)qep)->prefix,"-qep_view",view,10,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscStrcmp(view,"before",&viewed);CHKERRQ(ierr);
+    if (viewed){
+      PetscViewer viewer;
+      ierr = PetscViewerASCIIGetStdout(((PetscObject)qep)->comm,&viewer);CHKERRQ(ierr);
+      ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
+    }
+  }
+
   /* reset the convergence flag from the previous solves */
   qep->reason = QEP_CONVERGED_ITERATING;
 
@@ -73,6 +84,8 @@ PetscErrorCode QEPSolve(QEP qep)
   qep->its = 0;
   for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
   ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);CHKERRQ(ierr);
+
+  ierr = PSSetEigenvalueComparison(qep->ps,qep->which_func,qep->which_ctx);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);
@@ -95,17 +108,15 @@ PetscErrorCode QEPSolve(QEP qep)
 #endif
 
   /* sort eigenvalues according to qep->which parameter */
-  ierr = PetscFree(qep->perm);CHKERRQ(ierr);
-  if (qep->nconv > 0) {
-    ierr = PetscMalloc(sizeof(PetscInt)*qep->nconv,&qep->perm);CHKERRQ(ierr);
-    ierr = QEPSortEigenvalues(qep,qep->nconv,qep->eigr,qep->eigi,qep->perm);CHKERRQ(ierr);
-  }
+  ierr = QEPSortEigenvalues(qep,qep->nconv,qep->eigr,qep->eigi,qep->perm);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetString(((PetscObject)qep)->prefix,"-qep_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,filename,&viewer);CHKERRQ(ierr);
-    ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  if (!viewed) {
+    ierr = PetscOptionsGetString(((PetscObject)qep)->prefix,"-qep_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+    if (flg && !PetscPreLoadingOn) {
+      ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,filename,&viewer);CHKERRQ(ierr);
+      ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
+      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    }
   }
 
   flg = PETSC_FALSE;
@@ -597,7 +608,7 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
 #endif
     while (j<n) {
       ierr = QEPCompareEigenvalues(qep,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-      if (result >= 0) break;
+      if (result < 0) break;
 #if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
       if (im == 0) { 
@@ -667,7 +678,7 @@ PetscErrorCode QEPSortEigenvaluesReal(QEP qep,PetscInt n,PetscReal *eig,PetscInt
     re = eig[perm[i]];
     j = i-1;
     ierr = QEPCompareEigenvalues(qep,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
-    while (result>0 && j>=0) {
+    while (result<=0 && j>=0) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=0) {
         ierr = QEPCompareEigenvalues(qep,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
@@ -709,47 +720,13 @@ PetscErrorCode QEPSortEigenvaluesReal(QEP qep,PetscInt n,PetscReal *eig,PetscInt
 @*/
 PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
 {
-  PetscReal a,b;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
   PetscValidIntPointer(result,6);
-  switch(qep->which) {
-    case QEP_LARGEST_MAGNITUDE:
-    case QEP_SMALLEST_MAGNITUDE:
-      a = SlepcAbsEigenvalue(ar,ai);
-      b = SlepcAbsEigenvalue(br,bi);
-      break;
-    case QEP_LARGEST_REAL:
-    case QEP_SMALLEST_REAL:
-      a = PetscRealPart(ar);
-      b = PetscRealPart(br);
-      break;
-    case QEP_LARGEST_IMAGINARY:
-    case QEP_SMALLEST_IMAGINARY:
-#if defined(PETSC_USE_COMPLEX)
-      a = PetscImaginaryPart(ar);
-      b = PetscImaginaryPart(br);
-#else
-      a = PetscAbsReal(ai);
-      b = PetscAbsReal(bi);
-#endif
-      break;
-    default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of which");
-  }
-  switch(qep->which) {
-    case QEP_LARGEST_MAGNITUDE:
-    case QEP_LARGEST_REAL:
-    case QEP_LARGEST_IMAGINARY:
-      if (a<b) *result = -1;
-      else if (a>b) *result = 1;
-      else *result = 0;
-      break;
-    default:
-      if (a>b) *result = -1;
-      else if (a<b) *result = 1;
-      else *result = 0;
-  }
+  if (!qep->which_func) SETERRQ(((PetscObject)qep)->comm,1,"Undefined eigenvalue comparison function");
+  ierr = (*qep->which_func)(ar,ai,br,bi,result,qep->which_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

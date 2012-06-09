@@ -62,7 +62,7 @@ struct _p_QEP {
   void           *conv_ctx;
   QEPWhich       which;            /* which part of the spectrum to be sought */
   PetscBool      leftvecs;         /* if left eigenvectors are requested */
-  PetscErrorCode (*which_func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
   QEPProblemType problem_type;     /* which kind of problem to be solved */
   PetscBool      trackall;         /* whether all the residuals must be computed */
@@ -72,10 +72,10 @@ struct _p_QEP {
   Vec         *V,               /* set of basis vectors and computed eigenvectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */
               *IS, *ISL;        /* placeholder for references to user-provided initial space */
-  PetscScalar *eigr, *eigi,     /* real and imaginary parts of eigenvalues */
-              *T;               /* matrix for projected eigenproblem */
+  PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
   PetscReal   *errest;          /* error estimates */
   IP          ip;               /* innerproduct object */
+  PS          ps;               /* projected system object */
   void        *data;            /* placeholder for misc stuff associated 
                                    with a particular solver */
   PetscInt    nconv,            /* number of converged eigenvalues */
@@ -108,6 +108,6 @@ PETSC_EXTERN PetscErrorCode QEPFreeSolution(QEP);
 PETSC_EXTERN PetscErrorCode QEPComputeVectors_Schur(QEP);
 PETSC_EXTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_EXTERN PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_EXTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscReal,PetscInt*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
 
 #endif

@@ -483,6 +483,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->errest_left     = 0;
   eps->OP              = 0;
   eps->ip              = 0;
+  eps->ps              = 0;
   eps->rand            = 0;
   eps->data            = 0;
   eps->nconv           = 0;

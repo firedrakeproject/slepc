@@ -88,68 +88,49 @@ PetscErrorCode QEPConvergedAbsolute(QEP qep,PetscScalar eigr,PetscScalar eigi,Pe
 #define __FUNCT__ "QEPComputeVectors_Schur"
 PetscErrorCode QEPComputeVectors_Schur(QEP qep)
 {
-#if defined(SLEPC_MISSING_LAPACK_TREVC)
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable.");
-#else
   PetscErrorCode ierr;
-  PetscInt       i;
-  PetscBLASInt   ncv,nconv,mout,info,one = 1; 
-  PetscScalar    *Z,*work,tmp;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#else 
+  PetscInt       n,i,ld;
+  PetscBLASInt   n_,one = 1; 
+  PetscScalar    *Z,tmp;
+#if !defined(PETSC_USE_COMPLEX)
   PetscReal      normi;
 #endif
   PetscReal      norm;
   
   PetscFunctionBegin;
-  ncv = PetscBLASIntCast(qep->ncv);
-  nconv = PetscBLASIntCast(qep->nconv);
-  ierr = PetscMalloc(nconv*nconv*sizeof(PetscScalar),&Z);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*nconv*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(nconv*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-#endif
+  ierr = PSGetLeadingDimension(qep->ps,&ld);CHKERRQ(ierr);
+  ierr = PSGetDimensions(qep->ps,&n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,qep->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,&info);
-#else
-  LAPACKtrevc_("R","A",PETSC_NULL,&nconv,qep->T,&ncv,PETSC_NULL,&nconv,Z,&nconv,&nconv,&mout,work,rwork,&info);
-#endif
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
+  ierr = PSVectors(qep->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
   /* normalize eigenvectors */
-  for (i=0;i<qep->nconv;i++) {
+  ierr = PSGetArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (qep->eigi[i] != 0.0) {
-      norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
-      normi = BLASnrm2_(&nconv,Z+(i+1)*nconv,&one);
+      norm = BLASnrm2_(&n_,Z+i*ld,&one);
+      normi = BLASnrm2_(&n_,Z+(i+1)*ld,&one);
       tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
-      BLASscal_(&nconv,&tmp,Z+(i+1)*nconv,&one);
+      BLASscal_(&n_,&tmp,Z+i*ld,&one);
+      BLASscal_(&n_,&tmp,Z+(i+1)*ld,&one);
       i++;     
     } else
 #endif
     {
-      norm = BLASnrm2_(&nconv,Z+i*nconv,&one);
+      norm = BLASnrm2_(&n_,Z+i*ld,&one);
       tmp = 1.0 / norm;
-      BLASscal_(&nconv,&tmp,Z+i*nconv,&one);
+      BLASscal_(&n_,&tmp,Z+i*ld,&one);
     }
   }
+  ierr = PSRestoreArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
   
   /* AV = V * Z */
-  ierr = SlepcUpdateVectors(qep->nconv,qep->V,0,qep->nconv,Z,qep->nconv,PETSC_FALSE);CHKERRQ(ierr);
-   
-  ierr = PetscFree(Z);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-#endif
-   PetscFunctionReturn(0);
-#endif 
+  ierr = PSGetArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectors(n,qep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PSRestoreArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
@@ -164,32 +145,29 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
    - No correction factor
    - No support for true residual
 */
-PetscErrorCode QEPKrylovConvergence(QEP qep,PetscInt kini,PetscInt nits,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt ldq,PetscInt nv,PetscReal beta,PetscInt *kout,PetscScalar *work)
+PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,PetscInt nits,PetscInt nv,PetscReal beta,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,marker;
-  PetscScalar    re,im,*Z,*work2;
+  PetscInt       k,newk,marker,ld;
+  PetscScalar    re,im;
   PetscReal      resnorm;
-  PetscBool      iscomplex;
 
   PetscFunctionBegin;
-  Z = work; work2 = work+2*nv;
+  ierr = PSGetLeadingDimension(qep->ps,&ld);CHKERRQ(ierr);
   marker = -1;
+  if (qep->trackall) getall = PETSC_TRUE;
   for (k=kini;k<kini+nits;k++) {
     /* eigenvalue */
     re = qep->eigr[k];
     im = qep->eigi[k];
-    iscomplex = PETSC_FALSE;
-    if (k<nv-1 && S[k+1+k*lds] != 0.0) iscomplex = PETSC_TRUE;
-    /* residual norm */
-    ierr = DenseSelectedEvec(S,lds,Q,ldq,Z,k,iscomplex,nv,work2);CHKERRQ(ierr);
-    if (iscomplex) resnorm = beta*SlepcAbsEigenvalue(Z[nv-1],Z[2*nv-1]);
-    else resnorm = beta*PetscAbsScalar(Z[nv-1]);
+    newk = k;
+    ierr = PSVectors(qep->ps,PS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    resnorm *= beta;
     /* error estimate */
     ierr = (*qep->conv_func)(qep,re,im,resnorm,&qep->errest[k],qep->conv_ctx);CHKERRQ(ierr);
     if (marker==-1 && qep->errest[k] >= qep->tol) marker = k;
-    if (iscomplex) { qep->errest[k+1] = qep->errest[k]; k++; }
-    if (marker!=-1 && !qep->trackall) break;
+    if (newk==k+1) { qep->errest[k+1] = qep->errest[k]; k++; }
+    if (marker!=-1 && !getall) break;
   }
   if (marker!=-1) k = marker;
   *kout = k;

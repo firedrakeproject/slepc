@@ -64,6 +64,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (!((PetscObject)qep->ip)->type_name) {
     ierr = IPSetDefaultType_Private(qep->ip);CHKERRQ(ierr);
   }
+  if (!qep->ps) { ierr = QEPGetPS(qep,&qep->ps);CHKERRQ(ierr); }
   if (!((PetscObject)qep->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
   }
@@ -99,6 +100,34 @@ PetscErrorCode QEPSetUp(QEP qep)
 
   /* set tolerance if not yet set */
   if (qep->tol==PETSC_DEFAULT) qep->tol = SLEPC_DEFAULT_TOL;
+
+  /* set eigenvalue comparison */
+  switch (qep->which) {
+    case QEP_LARGEST_MAGNITUDE:
+      qep->which_func = SlepcCompareLargestMagnitude;
+      qep->which_ctx  = PETSC_NULL;
+      break;
+    case QEP_SMALLEST_MAGNITUDE:
+      qep->which_func = SlepcCompareSmallestMagnitude;
+      qep->which_ctx  = PETSC_NULL;
+      break;
+    case QEP_LARGEST_REAL:
+      qep->which_func = SlepcCompareLargestReal;
+      qep->which_ctx  = PETSC_NULL;
+      break;
+    case QEP_SMALLEST_REAL:
+      qep->which_func = SlepcCompareSmallestReal;
+      qep->which_ctx  = PETSC_NULL;
+      break;
+    case QEP_LARGEST_IMAGINARY:
+      qep->which_func = SlepcCompareLargestImaginary;
+      qep->which_ctx  = PETSC_NULL;
+      break;
+    case QEP_SMALLEST_IMAGINARY:
+      qep->which_func = SlepcCompareSmallestImaginary;
+      qep->which_ctx  = PETSC_NULL;
+      break;
+  }
 
   if (qep->ncv > 2*qep->n) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");

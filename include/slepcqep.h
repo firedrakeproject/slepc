@@ -95,6 +95,8 @@ PETSC_EXTERN PetscErrorCode QEPPrintSolution(QEP,PetscViewer);
 
 PETSC_EXTERN PetscErrorCode QEPSetIP(QEP,IP);
 PETSC_EXTERN PetscErrorCode QEPGetIP(QEP,IP*);
+PETSC_EXTERN PetscErrorCode QEPSetPS(QEP,PS);
+PETSC_EXTERN PetscErrorCode QEPGetPS(QEP,PS*);
 PETSC_EXTERN PetscErrorCode QEPSetTolerances(QEP,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode QEPGetTolerances(QEP,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode QEPSetConvergenceTest(QEP,PetscErrorCode (*)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);

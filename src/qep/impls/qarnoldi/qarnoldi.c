@@ -55,9 +55,10 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
     SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
 
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
-  ierr = PetscFree(qep->T);CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&qep->T);CHKERRQ(ierr);
   ierr = QEPDefaultGetWork(qep,4);CHKERRQ(ierr);
+
+  ierr = PSSetType(qep->ps,PSNHEP);CHKERRQ(ierr);
+  ierr = PSAllocate(qep->ps,qep->ncv+1);CHKERRQ(ierr);
 
   ierr = KSPSetOperators(ctx->ksp,qep->M,qep->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(ctx->ksp);CHKERRQ(ierr);
@@ -179,54 +180,18 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPProjectedKSNonsym"
-/*
-   QEPProjectedKSNonsym - Solves the projected eigenproblem in the Krylov-Schur
-   method (non-symmetric case).
-
-   On input:
-     l is the number of vectors kept in previous restart (0 means first restart)
-     S is the projected matrix (leading dimension is lds)
-
-   On output:
-     S has (real) Schur form with diagonal blocks sorted appropriately
-     Q contains the corresponding Schur vectors (order n, leading dimension n)
-*/
-PetscErrorCode QEPProjectedKSNonsym(QEP qep,PetscInt l,PetscScalar *S,PetscInt lds,PetscScalar *Q,PetscInt n)
-{
-  PetscErrorCode ierr;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  if (l==0) {
-    ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) 
-      Q[i*(n+1)] = 1.0;
-  } else {
-    /* Reduce S to Hessenberg form, S <- Q S Q' */
-    ierr = EPSDenseHessenberg(n,qep->nconv,S,lds,Q);CHKERRQ(ierr);
-  }
-  /* Reduce S to (quasi-)triangular form, S <- Q S Q' */
-  ierr = EPSDenseSchur(n,qep->nconv,S,lds,Q,qep->eigr,qep->eigi);CHKERRQ(ierr);
-  /* Sort the remaining columns of the Schur form */
-  ierr = QEPSortDenseSchur(qep,n,qep->nconv,S,lds,Q,qep->eigr,qep->eigi);CHKERRQ(ierr);    
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "QEPSolve_QArnoldi"
 PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,l,lwork,nv;
+  PetscInt       i,j,k,l,lwork,nv,ld;
   Vec            v=qep->work[0],w=qep->work[1];
-  PetscScalar    *S=qep->T,*Q,*work;
+  PetscScalar    *S,*Q,*work;
   PetscReal      beta,norm,x,y;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
-  ierr = PetscMemzero(S,qep->ncv*qep->ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(qep->ncv*qep->ncv*sizeof(PetscScalar),&Q);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(qep->ps,&ld);CHKERRQ(ierr);
   lwork = 7*qep->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 
@@ -251,13 +216,21 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(qep->nconv+qep->mpd,qep->ncv);
-    ierr = QEPQArnoldi(qep,S,qep->ncv,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
+    ierr = PSGetArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = QEPQArnoldi(qep,S,ld,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
+    ierr = PSRestoreArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = PSSetDimensions(qep->ps,nv,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
+    if (l==0) {
+      ierr = PSSetState(qep->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    } else {
+      ierr = PSSetState(qep->ps,PS_STATE_RAW);CHKERRQ(ierr);
+    }
 
     /* Solve projected problem */ 
-    ierr = QEPProjectedKSNonsym(qep,l,S,qep->ncv,Q,nv);CHKERRQ(ierr);
+    ierr = PSSolve(qep->ps,qep->eigr,qep->eigi);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = QEPKrylovConvergence(qep,qep->nconv,nv-qep->nconv,S,qep->ncv,Q,nv,nv,beta,&k,work);CHKERRQ(ierr);
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
     
@@ -266,10 +239,12 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     else {
       l = (nv-k)/2;
 #if !defined(PETSC_USE_COMPLEX)
-      if (S[(k+l-1)*(qep->ncv+1)+1] != 0.0) {
+      ierr = PSGetArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+      if (S[k+l+(k+l-1)*ld] != 0.0) {
         if (k+l<nv-1) l = l+1;
         else l = l-1;
       }
+      ierr = PSRestoreArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
 #endif
     }
 
@@ -280,13 +255,19 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
+        ierr = PSGetArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+        ierr = PSGetArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
         for (i=k;i<k+l;i++) {
-          S[i*qep->ncv+k+l] = Q[(i+1)*nv-1]*beta;
+          S[k+l+i*ld] = Q[nv-1+i*ld]*beta;
         }
+        ierr = PSRestoreArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+        ierr = PSRestoreArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = SlepcUpdateVectors(nv,qep->V,qep->nconv,k+l,Q,nv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSGetArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,qep->V,qep->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PSRestoreArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
 
     qep->nconv = k;
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
@@ -297,12 +278,15 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     qep->eigi[j] *= qep->sfactor;
   }
 
+  /* truncate Schur decomposition and change the state to raw so that
+     PSVectors() computes eigenvectors from scratch */
+  ierr = PSSetDimensions(qep->ps,qep->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetState(qep->ps,PS_STATE_RAW);CHKERRQ(ierr);
+
   /* Compute eigenvectors */
   if (qep->nconv > 0) {
     ierr = QEPComputeVectors_Schur(qep);
   }
-
-  ierr = PetscFree(Q);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -341,7 +325,6 @@ PetscErrorCode QEPReset_QArnoldi(QEP qep)
   QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(qep->T);CHKERRQ(ierr);
   ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
   ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
   ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
