@@ -60,8 +60,6 @@ struct _n_SlepcConvMonitor {
 typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 
 /* Private functions that are shared by several classes */
-
-PETSC_EXTERN PetscErrorCode DenseSelectedEvec(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscBool,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx);
 
 PETSC_EXTERN PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
