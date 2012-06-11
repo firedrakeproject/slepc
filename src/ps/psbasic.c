@@ -743,9 +743,10 @@ PetscErrorCode PSAllocateMatReal_Private(PS ps,PSMatType m)
   if (m==PS_MAT_T) sz = 3*ps->ld*sizeof(PetscReal);
   else if (m==PS_MAT_D) sz = ps->ld*sizeof(PetscReal);
   else sz = ps->ld*ps->ld*sizeof(PetscReal);
-  if (ps->rmat[m]) { ierr = PetscFree(ps->rmat[m]);CHKERRQ(ierr); }
-  else { ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); }
-  ierr = PetscMalloc(sz,&ps->rmat[m]);CHKERRQ(ierr); 
+  if (!ps->rmat[m]) {
+    ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr);
+    ierr = PetscMalloc(sz,&ps->rmat[m]);CHKERRQ(ierr); 
+  }
   ierr = PetscMemzero(ps->rmat[m],sz);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
