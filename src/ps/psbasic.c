@@ -22,6 +22,7 @@
 */
 
 #include <slepc-private/psimpl.h>      /*I "slepcps.h" I*/
+#include <slepcblaslapack.h>
 
 PetscFList       PSList = 0;
 PetscBool        PSRegisterAllCalled = PETSC_FALSE;
@@ -587,6 +588,50 @@ PetscErrorCode PSSetEigenvalueComparison(PS ps,PetscErrorCode (*fun)(PetscScalar
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSGetEigenvalueComparison"
+/*@C
+   PSGetEigenvalueComparison - Gets the eigenvalue comparison function
+   used for sorting the result of PSSolve().
+
+   Logically Collective on PS
+
+   Input Parameter:
+.  ps  - the projected system context
+
+   Output Parameters:
++  fun - a pointer to the comparison function
+-  ctx - a context pointer (the last parameter to the comparison function)
+
+   Calling Sequence of fun:
+$  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by PSSetEigenvalueComparison()
+
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
+
+   Level: advanced
+
+.seealso: PSSolve(), PSSetEigenvalueComparison()
+@*/
+PetscErrorCode PSGetEigenvalueComparison(PS ps,PetscErrorCode (**fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void** ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (fun) *fun = ps->comp_fun;
+  if (ctx) *ctx = ps->comp_ctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSSetFromOptions"
 /*@
    PSSetFromOptions - Sets PS options from the options database.
@@ -1054,3 +1099,77 @@ PetscErrorCode PSRegisterAll(const char *path)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "PSNormalize"
+/*@
+   PSNormalize - 2-Normalize a column or all the columns of a matrix. It considers
+   the case when the columns represent the real and the imaginary part of a vector.          
+
+   Collective on PS
+
+   Input Parameter:
++  ps - the projected system context
+-  col - the column to 2-normalize or -1 to normalize all of them
+
+   Note: if col and col+1 (or col-1 and col) represent the real and the imaginary
+   part of a vector, both columns are scaled.
+
+   Level: advanced
+@*/
+PetscErrorCode PSNormalize(PS ps,PSMatType mat,PetscInt col)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,i0,i1;
+  PetscBLASInt   ld,n,one = 1;
+  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],norm,norm0,*x;
+
+  PetscFunctionBegin;
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
+  //if(ps->state < PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
+  if(ps->state < PS_STATE_INTERMEDIATE) PetscFunctionReturn(0);
+  ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
+  if (col < 0) {
+    i0 = 0; i1 = ps->n;
+  } else if(col>0 && (A[ps->ld*(col-1)+col] != 0.0 || (B && B[ps->ld*(col-1)+col] != 0.0))) {
+    i0 = col-1; i1 = col+1;
+  } else {
+    i0 = col; i1 = col+1;
+  }
+  for(i=i0; i<i1; i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if(i<n-1 && (A[ps->ld*i+i+1] != 0.0 || (B && B[ps->ld*i+i+1] != 0.0))) {
+      norm = BLASnrm2_(&n,&x[ld*i],&one);
+      norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
+      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
+      BLASscal_(&n,&norm,&x[ld*i],&one);
+      BLASscal_(&n,&norm,&x[ld*(i+1)],&one);
+      i++;
+    } else
+#endif
+    {
+      norm = BLASnrm2_(&n,&x[ld*i],&one);
+      norm = 1.0/norm;
+      BLASscal_(&n,&norm,&x[ld*i],&one);
+     }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSSetIdentity"
+PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *x;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
+  ierr = PetscMemzero(x,ps->ld*ps->n*sizeof(PetscScalar));
+  for (i=0; i<ps->n; i++) {
+    x[ps->ld*i+i] = 1.0;
+  }
+  ierr = PSRestoreArray(ps,mat,&x);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}

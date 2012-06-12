@@ -45,6 +45,12 @@ PetscErrorCode PSView_NHEP(PS ps,PetscViewer viewer)
   if (ps->state>PS_STATE_INTERMEDIATE) {
     ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
   }
+  if (ps->mat[PS_MAT_X]) {
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+  }
+  if (ps->mat[PS_MAT_Y]) {
+    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Y);CHKERRQ(ierr); 
+  }
   PetscFunctionReturn(0);
 }
 
@@ -58,36 +64,34 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   mm,mout,info,ld,n,inc = 1;
-  PetscScalar    tmp,done=1.0,zero=0.0;
-  PetscReal      norm;
+  PetscBLASInt   mm=1,mout,info,ld,n,inc = 1;
+  PetscScalar    done=1.0,zero=0.0;
   PetscBool      iscomplex = PETSC_FALSE;
   PetscBLASInt   *select;
   PetscScalar    *A = ps->mat[PS_MAT_A];
   PetscScalar    *Q = ps->mat[PS_MAT_Q];
-  PetscScalar    *X = ps->mat[PS_MAT_X];
+  PetscScalar    *X = ps->mat[left?PS_MAT_Y:PS_MAT_X];
   PetscScalar    *Y;
 
   PetscFunctionBegin;
-  if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left eigenvectors");
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
-  if ((*k)<n-1 && A[(*k)+1+(*k)*ld]!=0.0) iscomplex = PETSC_TRUE;
   ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
   select = ps->iwork;
   for (i=0;i<n;i++) select[i] = (PetscBLASInt)PETSC_FALSE;
 
   /* Compute k-th eigenvector Y of A */
   Y = X+(*k)*ld;
-  mm = iscomplex? 2: 1;
   select[*k] = (PetscBLASInt)PETSC_TRUE;
 #if !defined(PETSC_USE_COMPLEX)
+  if ((*k)<n-1 && A[(*k)+1+(*k)*ld]!=0.0) iscomplex = PETSC_TRUE;
+  mm = iscomplex? 2: 1;
   if (iscomplex) select[(*k)+1] = (PetscBLASInt)PETSC_TRUE;
   ierr = PSAllocateWork_Private(ps,3*ld,0,0);CHKERRQ(ierr); 
-  LAPACKtrevc_("R","S",select,&n,A,&ld,PETSC_NULL,&ld,Y,&ld,&mm,&mout,ps->work,&info);
+  LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ps->work,&info);
 #else
   ierr = PSAllocateWork_Private(ps,2*ld,ld,0);CHKERRQ(ierr); 
-  LAPACKtrevc_("R","S",select,&n,A,&ld,PETSC_NULL,&ld,Y,&ld,&mm,&mout,ps->work,ps->rwork,&info);
+  LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ps->work,ps->rwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
@@ -98,18 +102,6 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
     BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work,&inc,&zero,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
     if (iscomplex) BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work+ld,&inc,&zero,Y+ld,&inc);
-#endif
-    norm = BLASnrm2_(&n,Y,&inc);
-#if !defined(PETSC_USE_COMPLEX)
-    if (iscomplex) {
-      tmp  = BLASnrm2_(&n,Y+ld,&inc);
-      norm = SlepcAbsEigenvalue(norm,tmp);
-    }
-#endif
-    tmp = 1.0 / norm;
-    BLASscal_(&n,&tmp,Y,&inc);
-#if !defined(PETSC_USE_COMPLEX)
-    if (iscomplex) BLASscal_(&n,&tmp,Y+ld,&inc);
 #endif
   }
 
