@@ -632,30 +632,31 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
-  PetscScalar    *pX,*auxS;
-  PetscInt       size_auxS;
+  PetscScalar    *pX,*cS,*cT;
+  PetscInt       ld;
 
   PetscFunctionBegin;
 
   if (d->cS) {
     /* Compute the eigenvectors associated to (cS, cT) */
-    ierr = PetscMalloc(sizeof(PetscScalar)*d->nconv*d->nconv,&pX);CHKERRQ(ierr);
-    size_auxS = 6*d->nconv; 
-    ierr = PetscMalloc(sizeof(PetscScalar)*size_auxS,&auxS);CHKERRQ(ierr);
-    ierr = EPSCleanDenseSchur(d->nconv,0,d->cS,d->ldcS,d->cT,d->ldcT,d->ceigi,pX,d->nconv,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = dvd_compute_eigenvectors(d->nconv,d->cS,d->ldcS,d->cT,d->ldcT,
-                                    pX,d->nconv,PETSC_NULL,0,auxS,
-                                    size_auxS,PETSC_FALSE);CHKERRQ(ierr);
-  
-    /* pX[i] <- pX[i] / ||pX[i]|| */
-    ierr = SlepcDenseNorm(pX,d->nconv,d->nconv,d->nconv,d->ceigi);CHKERRQ(ierr);
-  
+    ierr = PSSetDimensions(d->conv_ps,d->size_cS,0,0);CHKERRQ(ierr);
+    ierr = PSGetLeadingDimension(d->conv_ps,&ld);CHKERRQ(ierr);
+    ierr = PSGetArray(d->conv_ps,PS_MAT_A,&cS);CHKERRQ(ierr);
+    ierr = SlepcDenseCopyTriang(cS,0,ld,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);
+    ierr = PSRestoreArray(d->conv_ps,PS_MAT_A,&cS);CHKERRQ(ierr);
+    if (d->cT) {
+      ierr = PSGetArray(d->conv_ps,PS_MAT_B,&cT);CHKERRQ(ierr);
+      ierr = SlepcDenseCopyTriang(cT,0,ld,d->cT,0,d->ldcT,d->size_cS,d->size_cS);CHKERRQ(ierr);
+      ierr = PSRestoreArray(d->conv_ps,PS_MAT_B,&cT);CHKERRQ(ierr);
+    }
+    ierr = PSSetState(d->conv_ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = PSVectors(d->conv_ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSNormalize(d->conv_ps,PS_MAT_X,-1);CHKERRQ(ierr);
+
     /* V <- cX * pX */ 
-    ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,
-                               d->nconv,d->nconv,d->nconv);CHKERRQ(ierr);
-  
-    ierr = PetscFree(pX);CHKERRQ(ierr);
-    ierr = PetscFree(auxS);CHKERRQ(ierr);
+    ierr = PSGetArray(d->conv_ps,PS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,ld,d->nconv,d->nconv);CHKERRQ(ierr);
+    ierr = PSRestoreArray(d->conv_ps,PS_MAT_X,&pX);CHKERRQ(ierr);
   }
 
   eps->evecsavailable = PETSC_TRUE;

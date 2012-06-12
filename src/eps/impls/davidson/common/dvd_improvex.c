@@ -55,9 +55,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d, PetscInt i_s,
 PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d, PetscInt i,
   PetscScalar* theta, PetscScalar* thetai,
   PetscInt *maxits, PetscReal *tol);
-PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
-  PetscScalar *pY, PetscInt ld_,
-  PetscScalar *auxS, PetscInt size_auxS);
 PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, PetscScalar *auxS);
 PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d, Vec *V, PetscInt cV, PetscScalar *auxS);
 
@@ -152,10 +149,9 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     b->max_size_X*3 + /* theta, thetai */
     size_P*size_P + /* iXKZ */
     FromIntToScalar(size_P) + /* iXkZPivots */
-    PetscMax(PetscMax(PetscMax(
+    PetscMax(PetscMax(
       3*b->max_size_proj*b->max_size_X, /* dvd_improvex_apply_proj */
       8*cX_impr*b->max_size_X), /* dvd_improvex_jd_proj_cuv_KZX */
-      (herm?0:1)*6*b->max_size_proj), /* dvd_improvex_get_eigenvectors */
       (herm || !d->eps->trueres)?0:b->max_nev*b->max_nev+PetscMax(b->max_nev*6,(b->max_nev+b->max_size_proj)*s+b->max_nev*(b->max_size_X+b->max_size_cX_proj)*(std_probl?2:4)+64))); /* preTestConv */
   b->own_vecs+= size_P; /* KZ */
 
@@ -314,16 +310,14 @@ PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_gen"
-PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
-                             PetscInt max_size_D, PetscInt r_s,
-                             PetscInt r_e, PetscInt *size_D)
+PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i, j, n, maxits, maxits0, lits, s, ldpX;
-  PetscScalar     *pX, *pY, *auxS = d->auxS, *auxS0;
-  PetscReal       tol, tol0;
-  Vec             *u, *v, *kr, kr_comp, D_comp;
+  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,k;
+  PetscScalar     *pX,*pY,*auxS = d->auxS,*auxS0;
+  PetscReal       tol,tol0;
+  Vec             *u,*v,*kr,kr_comp,D_comp;
 
   PetscFunctionBegin;
 
@@ -342,19 +336,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
   if (n == 0) SETERRQ(PETSC_COMM_SELF,1, "n == 0!\n");
   if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s!\n");
 
-  /* Compute the eigenvectors of the selected pairs */
-  if (DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
-    pX = d->pX;
-    pY = d->pY?d->pY:d->pX;
-    ldpX = d->ldpX;
-  } else {
-    pX = auxS; auxS+= d->size_H*d->size_H;
-    pY = auxS; auxS+= d->size_H*d->size_H;
-    ierr = dvd_improvex_get_eigenvectors(d, pX, pY, d->size_H, auxS,
-                                         d->size_auxS-(auxS-d->auxS));
-    CHKERRQ(ierr);
-    ldpX = d->size_H;
-  }
+  ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
 
   /* Restart lastTol if a new pair converged */
   if (data->dynamic && data->size_cX < d->size_cX)
@@ -387,10 +369,17 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d, Vec *D,
     maxits/= s; tol = data->dynamic?data->lastTol:exp(log(tol)/s);
 
     /* Compute u, v and kr */
-    ierr = dvd_improvex_jd_proj_cuv(d, r_s+i, r_s+i+s, &u, &v, kr,
-             &data->auxV, &auxS, data->theta, data->thetai,
-             &pX[d->size_H*(r_s+i+d->cX_in_H)], &pY[d->size_H*(r_s+i+d->cX_in_H)], ldpX);
-    CHKERRQ(ierr);
+    k = r_s+i+d->cX_in_H;
+    ierr = PSVectors(d->ps,PS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSNormalize(d->ps,PS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    k = r_s+i+d->cX_in_H;
+    ierr = PSVectors(d->ps,PS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSNormalize(d->ps,PS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    ierr = PSGetArray(d->ps,PS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = PSGetArray(d->ps,PS_MAT_Y,&pY);CHKERRQ(ierr);
+    ierr = dvd_improvex_jd_proj_cuv(d,r_s+i,r_s+i+s,&u,&v,kr,&data->auxV,&auxS,data->theta,data->thetai,&pX[ld*(r_s+i+d->cX_in_H)],&pY[ld*(r_s+i+d->cX_in_H)],ld);CHKERRQ(ierr);
+    ierr = PSRestoreArray(d->ps,PS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = PSRestoreArray(d->ps,PS_MAT_Y,&pY);CHKERRQ(ierr);
     data->u = u;
 
     /* Check if the first eigenpairs are converged */
@@ -1268,36 +1257,6 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
   PetscFunctionReturn(0);
 }
 
-
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_get_eigenvectors"
-/* Compute the left and right projected eigenvectors where,
-   pX, the returned right eigenvectors
-   pY, the returned left eigenvectors,
-   ld_, the leading dimension of pX and pY,
-   auxS, auxiliar vector of size length 6*d->size_H
-*/
-PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
-  PetscScalar *pY, PetscInt ld, PetscScalar *auxS, PetscInt size_auxS)
-{
-  PetscErrorCode  ierr;
-  
-  PetscFunctionBegin;
-  ierr = SlepcDenseCopy(pY, ld, d->T?d->pY:d->pX, d->ldpX, d->size_H,
-                        d->size_H); CHKERRQ(ierr);
-  ierr = SlepcDenseCopy(pX, ld, d->pX, d->ldpX, d->size_H, d->size_H);
-  CHKERRQ(ierr);
-  
-  /* [qX, qY] <- eig(S, T); pX <- d->pX * qX; pY <- d->pY * qY */
-  ierr = dvd_compute_eigenvectors(d->size_H, d->S, d->ldS, d->T, d->ldT, pX,
-                                  ld, pY, ld, auxS, size_auxS, PETSC_TRUE);
-  CHKERRQ(ierr); 
-
-  /* 2-Normalize the columns of pX an pY */
-  ierr = SlepcDenseNorm(pX, ld, d->size_H, d->size_H, d->eigi-d->cX_in_H); CHKERRQ(ierr);
-  ierr = SlepcDenseNorm(pY, ld, d->size_H, d->size_H, d->eigi-d->cX_in_H); CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_apply_proj"

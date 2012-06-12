@@ -457,10 +457,8 @@ PetscErrorCode dvd_harm_d(dvdDashboard *d)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Free local data */
   ierr = PetscFree(d->calcpairs_W_data); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -470,17 +468,12 @@ PetscErrorCode dvd_harm_d(dvdDashboard *d)
 PetscErrorCode dvd_harm_start(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Overload the eigenpairs selection routine */
-  data->old_which = d->eps->which;
-  data->old_which_func = d->eps->which_func;
-  data->old_which_ctx = d->eps->which_ctx;
-  d->eps->which = EPS_WHICH_USER;
-  d->eps->which_func = dvd_harm_sort;
-  d->eps->which_ctx = data;
-
+  ierr = PSGetEigenvalueComparison(d->ps,&data->old_which_func,&data->old_which_ctx);CHKERRQ(ierr);
+  ierr = PSSetEigenvalueComparison(d->ps,dvd_harm_sort,data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -490,14 +483,11 @@ PetscErrorCode dvd_harm_start(dvdDashboard *d)
 PetscErrorCode dvd_harm_end(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Restore the eigenpairs selection routine */
-  d->eps->which = data->old_which;
-  d->eps->which_func = data->old_which_func;
-  d->eps->which_ctx = data->old_which_ctx;
-
+  ierr = PSSetEigenvalueComparison(d->ps,data->old_which_func,data->old_which_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -541,17 +531,15 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
   PetscInt        i;
 
   PetscFunctionBegin;
-
   /* Update the target if it is necessary */
-  if (!data->withTarget) dvd_harm_transf(data, d->eigr[0]);
-    
-  for(i=d->V_new_s; i<d->V_new_e; i++) {
-    /* W(i) <- Wa*AV(i) - Wb*BV(i) */
-    ierr = VecCopy(d->AV[i], d->W[i]); CHKERRQ(ierr);
-    ierr = VecAXPBY(d->W[i], -data->Wb, data->Wa, (d->BV?d->BV:d->V)[i]);
-    CHKERRQ(ierr);
+  if (!data->withTarget) {
+    ierr = dvd_harm_transf(data,d->eigr[0]);CHKERRQ(ierr);
   }
 
+  for(i=d->V_new_s; i<d->V_new_e; i++) {
+    /* W(i) <- Wa*AV(i) - Wb*BV(i) */
+    ierr = VecAXPBYPCZ(d->W[i],data->Wa,-data->Wb,0.0,d->AV[i],(d->BV?d->BV:d->V)[i]);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -618,20 +606,17 @@ PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data, PetscScalar *ar,
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_harm_sort"
-PetscErrorCode dvd_harm_sort(PetscScalar ar, PetscScalar ai,
-                             PetscScalar br, PetscScalar bi, PetscInt *r,
-                             void *ctx)
+PetscErrorCode dvd_harm_sort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   dvdHarmonic     *data = (dvdHarmonic*)ctx;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   /* Back-transform the harmonic values */
-  dvd_harm_backtrans(data, &ar, &ai);
-  dvd_harm_backtrans(data, &br, &bi);
-
+  ierr = dvd_harm_backtrans(data,&ar,&ai);CHKERRQ(ierr);
+  ierr = dvd_harm_backtrans(data,&br,&bi);CHKERRQ(ierr);
   /* Compare values using the user options for the eigenpairs selection */
-  ierr = (*data->old_which_func)(ar,ai,br,bi,r,data->old_which_ctx); CHKERRQ(ierr);
+  ierr = (*data->old_which_func)(ar,ai,br,bi,r,data->old_which_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -641,13 +626,11 @@ PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
   PetscInt        i;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
-  for(i=0; i<d->size_H; i++)
-    dvd_harm_backtrans(data, &d->eigr[i-d->cX_in_H], &d->eigi[i-d->cX_in_H]);
-
+  for(i=0; i<d->size_H; i++) {
+    ierr = dvd_harm_backtrans(data, &d->eigr[i-d->cX_in_H], &d->eigi[i-d->cX_in_H]);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
-
-

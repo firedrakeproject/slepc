@@ -250,8 +250,6 @@ typedef struct _dvdDashboard {
     *real_H,        /* original H */
     *G,             /* Projected problem matrix B*/
     *real_G,        /* original G */
-    *pX,            /* projected problem right eigenvectors */
-    *pY,            /* projected problem left eigenvectors */
     *MTX,           /* right transformation matrix */
     *MTY,           /* left transformation matrix */
     *S,             /* first Schur matrix, S = pY'*H*pX */
@@ -262,8 +260,6 @@ typedef struct _dvdDashboard {
     sH,             /* H properties */
     sG;             /* G properties */
   PetscInt ldH,     /* leading dimension of H */
-    ldpX,           /* leading dimension of pX */
-    ldpY,           /* leading dimension of pY */
     ldMTX,          /* leading dimension of MTX */
     ldMTY,          /* leading dimension of MTY */
     ldS,            /* leading dimension of S */
@@ -291,6 +287,8 @@ typedef struct _dvdDashboard {
   PetscBool
     BV_shift,       /* if true BV is shifted when vectors converge */
     W_shift;        /* if true W is shifted when vectors converge */
+  PS conv_ps,       /* projected problem with the converged pairs */
+    ps;             /* projected problem with the search subspace */
 
   orthoV_type_t orthoV_type;
 
@@ -531,12 +529,6 @@ PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS, PetscInt size_DS, Vec *cX,
                          Vec *BcX, PetscInt size_cX, Vec *V, Vec *BV,
                          PetscInt V_new_s, PetscInt V_new_e,
                          PetscScalar *auxS, PetscRandom rand);
-PetscErrorCode dvd_compute_eigenvectors(PetscInt n_, PetscScalar *S,
-  PetscInt ldS_, PetscScalar *T, PetscInt ldT_, PetscScalar *pX,
-  PetscInt ldpX_, PetscScalar *pY, PetscInt ldpY_, PetscScalar *auxS,
-  PetscInt size_auxS, PetscBool doProd);
-PetscErrorCode EPSSortDenseHEP(EPS eps, PetscInt n, PetscInt k, PetscScalar *w, PetscScalar *V, PetscInt ldV);
-PetscErrorCode EPSCleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *eigi,PetscScalar *X,PetscInt ldX,PetscBool doProd);
 
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();
