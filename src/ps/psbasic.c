@@ -593,7 +593,7 @@ PetscErrorCode PSSetEigenvalueComparison(PS ps,PetscErrorCode (*fun)(PetscScalar
    PSGetEigenvalueComparison - Gets the eigenvalue comparison function
    used for sorting the result of PSSolve().
 
-   Logically Collective on PS
+   Not Collective
 
    Input Parameter:
 .  ps  - the projected system context
@@ -1102,16 +1102,20 @@ PetscErrorCode PSRegisterAll(const char *path)
 #undef __FUNCT__  
 #define __FUNCT__ "PSNormalize"
 /*@
-   PSNormalize - 2-Normalize a column or all the columns of a matrix. It considers
+   PSNormalize - Normalize a column or all the columns of a matrix. Considers
    the case when the columns represent the real and the imaginary part of a vector.          
 
-   Collective on PS
+   Logically Collective on PS
 
    Input Parameter:
-+  ps - the projected system context
--  col - the column to 2-normalize or -1 to normalize all of them
++  ps  - the projected system context
+.  mat - the matrix to be modified
+-  col - the column to normalize or -1 to normalize all of them
 
-   Note: if col and col+1 (or col-1 and col) represent the real and the imaginary
+   Notes:
+   The columns are normalized with respect to the 2-norm.
+
+   If col and col+1 (or col-1 and col) represent the real and the imaginary
    part of a vector, both columns are scaled.
 
    Level: advanced
