@@ -392,7 +392,9 @@ PetscErrorCode PSTruncate_NHEP(PS ps,PetscInt n)
     else newn = n-1;
   }
   if (ps->extrarow && ps->k==ps->n) {
+    /* copy entries of extra row to the new position, then clean last row */
     for (i=l;i<newn;i++) A[newn+i*ld] = A[ps->n+i*ld];
+    for (i=l;i<ps->n;i++) A[ps->n+i*ld] = 0.0;
   }
   ps->k = 0;
   ps->n = newn;

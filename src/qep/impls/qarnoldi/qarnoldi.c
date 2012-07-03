@@ -58,6 +58,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   ierr = QEPDefaultGetWork(qep,4);CHKERRQ(ierr);
 
   ierr = PSSetType(qep->ps,PSNHEP);CHKERRQ(ierr);
+  ierr = PSSetExtraRow(qep->ps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PSAllocate(qep->ps,qep->ncv+1);CHKERRQ(ierr);
 
   ierr = KSPSetOperators(ctx->ksp,qep->M,qep->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -170,8 +171,8 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
     ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
     ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
     
+    H[j+1+ldh*j] = norm;
     if (j<m-1) {
-      H[j+1+ldh*j] = norm;
       ierr = VecCopy(v,V[j+1]);CHKERRQ(ierr);
     }
   }
@@ -184,7 +185,7 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
 PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,l,lwork,nv,ld;
+  PetscInt       i,j,k,l,lwork,nv,ld,newn;
   Vec            v=qep->work[0],w=qep->work[1];
   PetscScalar    *S,*Q,*work;
   PetscReal      beta,norm,x,y;
@@ -236,17 +237,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     
     /* Update l */
     if (qep->reason != QEP_CONVERGED_ITERATING || breakdown) l = 0;
-    else {
-      l = (nv-k)/2;
-#if !defined(PETSC_USE_COMPLEX)
-      ierr = PSGetArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-      if (S[k+l+(k+l-1)*ld] != 0.0) {
-        if (k+l<nv-1) l = l+1;
-        else l = l-1;
-      }
-      ierr = PSRestoreArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-#endif
-    }
+    else l = (nv-k)/2;
 
     if (qep->reason == QEP_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -255,13 +246,9 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = PSGetArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = PSGetArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-        for (i=k;i<k+l;i++) {
-          S[k+l+i*ld] = Q[nv-1+i*ld]*beta;
-        }
-        ierr = PSRestoreArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = PSRestoreArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = PSTruncate(qep->ps,k+l);CHKERRQ(ierr);
+        ierr = PSGetDimensions(qep->ps,&newn,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        l = newn-k;
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
