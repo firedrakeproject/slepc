@@ -185,7 +185,7 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
 PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,l,lwork,nv,ld,newn;
+  PetscInt       j,k,l,lwork,nv,ld,newn;
   Vec            v=qep->work[0],w=qep->work[1];
   PetscScalar    *S,*Q,*work;
   PetscReal      beta,norm,x,y;

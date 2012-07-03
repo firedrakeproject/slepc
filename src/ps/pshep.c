@@ -244,19 +244,19 @@ PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
   ====
   Based on Fortran code contributed by Daniel Kressner
 */
-static PetscErrorCode ArrowTridiag(PetscBLASInt *n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt *ldq)
+static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt ld)
 {
 #if defined(SLEPC_MISSING_LAPACK_LARTG)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARTG - Lapack routine is unavailable.");
 #else
-  PetscBLASInt i,j,j2,ld=*ldq,one=1;
+  PetscBLASInt i,j,j2,one=1;
   PetscReal    c,s,p,off,temp;
 
   PetscFunctionBegin;
-  if (*n<=2) PetscFunctionReturn(0);
+  if (n<=2) PetscFunctionReturn(0);
 
-  for (j=0;j<*n-2;j++) {
+  for (j=0;j<n-2;j++) {
 
     /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
     temp = e[j+1];
@@ -426,7 +426,7 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
 
   if (ps->compact) {
 
-    if (ps->state<PS_STATE_INTERMEDIATE) ArrowTridiag(&n1,d+l,e+l,Q+off,&ld);
+    if (ps->state<PS_STATE_INTERMEDIATE) ArrowTridiag(n1,d+l,e+l,Q+off,ld);
 
   } else {
 
