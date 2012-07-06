@@ -147,7 +147,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
-      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      ierr = PSSetType(eps->ps,PSGHIEP);CHKERRQ(ierr);
+      ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
       break;
     default: SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error");
   }

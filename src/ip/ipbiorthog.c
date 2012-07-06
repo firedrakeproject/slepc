@@ -196,7 +196,10 @@ PetscErrorCode IPPseudoOrthogonalizeCGS1(IP ip,PetscInt n,Vec *V,PetscReal* omeg
   for (j=0;j<n;j++) H[j] *= omega[j];  /* revert signature */
     
   /* compute |v| */
-  if (onorm) *onorm = PetscSqrtReal(PetscRealPart(alpha));
+  if (onorm) {
+    if (PetscRealPart(alpha)>0.0) *onorm = PetscSqrtReal(PetscRealPart(alpha));
+    else *onorm = -PetscSqrtReal(-PetscRealPart(alpha));
+  }
 
   if (norm) {
     if (!ip->matrix) {
@@ -263,7 +266,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
       ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
       if (PetscAbs(nrm) < ip->orthog_eta * PetscAbs(onrm)) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE;
+      else *lindep = PETSC_FALSE; 
     } else {
       ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,PETSC_NULL,norm);CHKERRQ(ierr);
     }

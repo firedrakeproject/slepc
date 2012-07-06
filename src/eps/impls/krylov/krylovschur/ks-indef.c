@@ -2,7 +2,7 @@
 
    SLEPc eigensolver: "krylovschur"
 
-   Method: Krylov-Schur for symmetric eigenproblems
+   Method: Krylov-Schur for symmetric-indefinite eigenproblems
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -23,9 +23,53 @@
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSFullLanczosIndef"
+static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,m = *M;
+  PetscReal      norm,min=1.0;
+  PetscScalar    *hwork,lhwork[100];
+
+  PetscFunctionBegin;
+  if (m > 100) {
+    ierr = PetscMalloc((eps->nds+m)*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
+  } else {
+    hwork = lhwork;
+  }
+
+  for (j=k;j<m-1;j++) {
+    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    ierr = IPPseudoOrthogonalize(eps->ip,j+1,V,omega,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
+    alpha[j] = PetscRealPart(hwork[j]);
+    beta[j] = PetscAbsReal(norm);
+    min = PetscMin(min,beta[j]);
+    omega[j+1] = (norm<0.0)?-1:1;
+    
+    if (breakdown && *breakdown ) {
+      *M = j+1;
+      if (m > 100) {
+        ierr = PetscFree(hwork);CHKERRQ(ierr);
+      }
+      PetscFunctionReturn(0);
+    } else {
+      ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
+    }
+  }
+  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
+  ierr = IPPseudoOrthogonalize(eps->ip,m,V,omega,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
+  alpha[m-1] = PetscRealPart(hwork[m-1]); 
+  beta[m-1] =PetscAbsReal(norm);
+  omega[m] = (norm<0.0)?-1:1;
+  if (m > 100) {
+    ierr = PetscFree(hwork);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_KrylovSchur_Indefinite"
@@ -35,14 +79,20 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   PetscInt       i,k,l,ld,nv;
   Vec            u=eps->work[0];
   PetscScalar    *Q;
-  PetscReal      *a,*b,beta;
-  PetscBool      breakdown;
+  PetscReal      *a,*b,*r,beta,norm,*omega;
+  PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-
   /* Get the starting Lanczos vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
+  ierr = SlepcVecSetRandom(eps->V[0],eps->rand);CHKERRQ(ierr);
+  ierr = IPNorm(eps->ip,eps->V[0],&norm);
+  if (norm==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
+  ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+  omega[0] = (norm > 0)?1.0:-1.0;
+  beta = PetscAbsReal(norm);
+  ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);
+  ierr = VecScale(eps->V[0],1.0/norm);CHKERRQ(ierr);
   l = 0;
   
   /* Restart loop */
@@ -53,9 +103,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
-    ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&nv,u,&breakdown);CHKERRQ(ierr);
+    ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+    ierr = EPSFullLanczosIndef(eps,a,b,omega,eps->V,eps->nconv+l,&nv,u,PETSC_NULL);CHKERRQ(ierr);
     beta = b[nv-1];
     ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);
     ierr = PSSetDimensions(eps->ps,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
@@ -63,8 +115,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
       ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
     }
 
-    /* Solve projected problem */ 
-    ierr = PSSolve(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+    /* Solve projected problem */
+    ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
@@ -73,42 +125,52 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (nv-k)/2;
-
+    else {
+      l = (nv-k)/2;
+      ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+      if(*(a+ld+k+l-1)!=0){
+        if (k+l<nv-1) l = l+1;
+        else l = l-1;
+      }
+      ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    }
+    
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
-        /* Start a new Lanczos factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
-        ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
-        if (breakdown) {
-          eps->reason = EPS_DIVERGED_BREAKDOWN;
-          ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
-        }
+        SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
       } else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        b = a + ld;
+        ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+        r = a + 2*ld;
         for (i=k;i<k+l;i++) {
-          a[i] = PetscRealPart(eps->eigr[i]);
-          b[i] = PetscRealPart(Q[nv-1+i*ld]*beta);
+          r[i] = PetscRealPart(Q[nv-1+i*ld]*beta);
         }
+        omega[k+l] = omega[nv];
         ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
         ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
+      ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+      ierr = VecAXPBY(eps->V[k+l],1.0/(beta*omega[k+l]),0.0,u);CHKERRQ(ierr);
+      ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
     }
 
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
-  } 
+
+  }
+  ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

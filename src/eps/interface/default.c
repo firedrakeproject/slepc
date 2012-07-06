@@ -89,6 +89,53 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
+#undef __FUNCT__  
+#define __FUNCT__ "EPSComputeVectors_Indefinite"
+/*
+  EPSComputeVectors_Indefinite - similar to the Schur version but
+  for indefinite problems
+ */
+PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,ld,i,purif=0;
+  PetscScalar    *Z,tmp;
+  PetscReal      norm,normi;
+  Vec            v;
+
+  PetscFunctionBegin;
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  /* purification */
+  ierr = VecDuplicate(eps->V[0],&v);CHKERRQ(ierr);
+  for (i=0;i<eps->nconv;i++) {
+    ierr = VecCopy(eps->V[i],v);CHKERRQ(ierr);
+    ierr = STApply(eps->OP,v,eps->V[i]);CHKERRQ(ierr);
+  }
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  /* normalization */
+  for (i=0;i<n;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (eps->eigi[i] != 0.0) {
+      ierr = VecNorm(eps->V[i],NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(eps->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
+      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+      ierr = VecScale(eps->V[i],tmp);CHKERRQ(ierr);
+      ierr = VecScale(eps->V[i+1],tmp);CHKERRQ(ierr);
+      i++;     
+    } else
+#endif
+    {
+      ierr = VecNormalize(eps->V[i],PETSC_NULL);CHKERRQ(ierr);
+    }
+  }
+  eps->evecsavailable = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_Schur"
@@ -115,7 +162,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   
   PetscFunctionBegin;
   if (eps->ishermitian) {
-    ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
+    if(eps->isgeneralized && !eps->ispositive) {
+      ierr =  EPSComputeVectors_Indefinite(eps);CHKERRQ(ierr);
+    } else {
+      ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
+    }
     PetscFunctionReturn(0);
   }
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
