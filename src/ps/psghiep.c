@@ -22,16 +22,18 @@
 #include <slepcblaslapack.h>
 
 PetscInt dbPS=0;
+
+#undef __FUNCT__  
+#define __FUNCT__ "IndefOrthog"
 /*
   compute x = x - y*ss^{-1}*y^T*s*x where ss=y^T*s*y
   s diagonal (signature matrix)
 */
-#undef __FUNCT__  
-#define __FUNCT__ "IndefOrthog"
 static PetscErrorCode IndefOrthog(PetscReal *s, PetscScalar *y, PetscReal ss, PetscScalar *x, PetscScalar *h,PetscInt n)
 {
-  PetscInt i;
+  PetscInt    i;
   PetscScalar h_,r;
+
   PetscFunctionBegin;
   if(y){
     h_ = 0.0; /* h_=(y^Tdiag(s)*y)^{-1}*y^T*diag(s)*x*/
@@ -48,13 +50,17 @@ static PetscErrorCode IndefOrthog(PetscReal *s, PetscScalar *y, PetscReal ss, Pe
   if(h) *h = h_;
   PetscFunctionReturn(0);
 }
-/* normalization with a indefinite norm */
 #undef __FUNCT__
 #define __FUNCT__ "IndefNorm"
+/* 
+   normalization with a indefinite norm
+*/
 static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x, PetscReal *norm,PetscInt n)
 {
-  PetscInt	i;
-  PetscReal   	norm_;
+  PetscInt  i;
+  PetscReal norm_;
+
+  PetscFunctionBegin;
   /* s-normalization */
   norm_ = 0.0;
   for(i=0;i<n;i++){norm_ += PetscRealPart(x[i]*s[i]*x[i]);}
@@ -64,7 +70,6 @@ static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x, PetscReal *norm,Pet
   if(norm) *norm = norm_;
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSAllocate_GHIEP"
@@ -130,7 +135,6 @@ PetscErrorCode PSSwitchFormat_GHIEP(PS ps,PetscBool tocompact)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "PSView_GHIEP"
 PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
@@ -142,7 +146,7 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
   const char *methodname[] = {
                      "HR method",
                      "QR + Inverse Iteration",
-            	     "QR"
+                     "QR"
   };
 
   PetscFunctionBegin;
@@ -218,11 +222,11 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
 #define __FUNCT__ "PSVectors_GHIEP_Eigen_Some"
 static PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *idx,PetscReal *rnorm,PetscBool left)
 {
-  PetscReal	 b[4],M[4],d1,d2,s1,s2,e;
-  PetscReal  	 scal1,scal2,wr1,wr2,wi,ep,norm;
+  PetscReal      b[4],M[4],d1,d2,s1,s2,e;
+  PetscReal      scal1,scal2,wr1,wr2,wi,ep,norm;
   PetscScalar    *Q,*X,Y[4],alpha,zeroS = 0.0;
   PetscInt       k;
-  PetscBLASInt	 two = 2,n_,ld,four=4,one=1; 
+  PetscBLASInt   two = 2,n_,ld,four=4,one=1; 
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
@@ -313,8 +317,8 @@ static PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *idx,PetscReal *
 PetscErrorCode PSVectors_GHIEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
   PetscInt       i;
-  PetscBool	 left;
-  PetscReal	 e;
+  PetscBool      left;
+  PetscReal      e;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -357,13 +361,14 @@ PetscErrorCode PSVectors_GHIEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
   Extract the eigenvalues contained in the block-diagonal of the indefinite problem.
   Only the index range n0..n1 is processed.
 */
-static PetscErrorCode PSGHIEPComplexEigs(PS ps, PetscInt n0, PetscInt n1, PetscScalar *wr, PetscScalar *wi){
-  PetscInt	k,ld;
-  PetscBLASInt  two=2;
-  PetscScalar	*A,*B;
-  PetscReal  	*D,*T;
-  PetscReal	b[4],M[4],d1,d2,s1,s2,e;
-  PetscReal  	scal1,scal2,ep,wr1,wr2,wi1;
+static PetscErrorCode PSGHIEPComplexEigs(PS ps, PetscInt n0, PetscInt n1, PetscScalar *wr, PetscScalar *wi)
+{
+  PetscInt     k,ld;
+  PetscBLASInt two=2;
+  PetscScalar  *A,*B;
+  PetscReal    *D,*T;
+  PetscReal    b[4],M[4],d1,d2,s1,s2,e;
+  PetscReal    scal1,scal2,ep,wr1,wr2,wi1;
 
   PetscFunctionBegin;
   ld = ps->ld;
@@ -515,8 +520,10 @@ static PetscErrorCode PSSolve_GHIEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "HRGen"
 /*
-  Generates an hyperbolic rotation
+  Generates a hyperbolic rotation
     if x1*x1 - x2*x2 != 0 
       r = sqrt( |x1*x1 - x2*x2| )
       c = x1/r  s = x2/r
@@ -526,26 +533,34 @@ static PetscErrorCode PSSolve_GHIEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
       where d = 1 for type==1 and -1 for type==2
   Returns the condition number of the reduction
 */
-#undef __FUNCT__
-#define __FUNCT__ "HRGen"
 static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *c,PetscReal *s,PetscReal *r,PetscReal *cond)
 {
   PetscReal t,n2,xa,xb;
   PetscInt  type_;
+
   PetscFunctionBegin;
   if(x2==0) {
-    *r = PetscAbsReal(x1); *c = (x1>=0)?1.0:-1.0; *s = 0.0; *type = 1;
+    *r = PetscAbsReal(x1);
+    *c = (x1>=0)?1.0:-1.0;
+    *s = 0.0;
+    if(type) *type = 1;
     PetscFunctionReturn(0);
   }
   if(PetscAbsReal(x1) == PetscAbsReal(x2)){
-  /* Doesn't exist hyperbolic rotation */
-    *c = 0; *s = 0; *r = 0; *type = 0; *cond = PETSC_MAX_REAL;
+    /* hyperbolic rotation doesn't exist */
+    *c = 0;
+    *s = 0;
+    *r = 0;
+    if(type) *type = 0;
+    *cond = PETSC_MAX_REAL;
     PetscFunctionReturn(0);
   }
   
   if(PetscAbsReal(x1)>PetscAbsReal(x2)){
-    xa = x1; xb = x2; type_ =1;
-  }else{ xa = x2; xb = x1; type_ =2;} 
+    xa = x1; xb = x2; type_ = 1;
+  } else {
+    xa = x2; xb = x1; type_ = 2;
+  } 
   t = xb/xa;
   n2 = PetscAbsReal(1 - t*t);
   *r = PetscSqrtReal(n2)*PetscAbsReal(xa);
@@ -556,20 +571,20 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
   if(cond) *cond = (PetscAbsReal(*c) + PetscAbsReal(*s))/PetscAbsReal(PetscAbsReal(*c) - PetscAbsReal(*s));
   PetscFunctionReturn(0);
 }
-/*
 
-								|c  s|
-  Applies an hyperbolic rotator	|s  c|
+#undef __FUNCT__
+#define __FUNCT__ "HRApply"
+/*
+                                |c  s|
+  Applies an hyperbolic rotator |s  c|
            |c  s|
     [x1 x2]|s  c| 
 */
-#undef __FUNCT__
-#define __FUNCT__ "HRApply"
 static PetscErrorCode HRApply(PetscInt n, PetscScalar *x1,PetscInt inc1, PetscScalar *x2, PetscInt inc2,PetscReal c, PetscReal s)
 {
-  PetscInt	i;
-  PetscReal	t;
-  PetscScalar  	tmp;
+  PetscInt    i;
+  PetscReal   t;
+  PetscScalar tmp;
   
   PetscFunctionBegin;
   if(PetscAbsReal(c)>PetscAbsReal(s)){ /* Type I */
@@ -589,6 +604,8 @@ static PetscErrorCode HRApply(PetscInt n, PetscScalar *x1,PetscInt inc1, PetscSc
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "TridiagDiag_HHR"
 /*
   Input:
     A symmetric (only lower triangular part is refered)
@@ -598,19 +615,17 @@ static PetscErrorCode HRApply(PetscInt n, PetscScalar *x1,PetscInt inc1, PetscSc
     s
     Q s-orthogonal matrix whith Q^T*A*Q = T (symmetric tridiagonal matrix)
 */
-#undef __FUNCT__
-#define __FUNCT__ "TridiagDiag_HHR"
 static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal *s,PetscScalar* Q,PetscInt ldq,PetscBool flip,PetscReal *d,PetscReal *e,PetscScalar *w,PetscInt lw,PetscInt *perm)
 {
 #if defined(PETSC_MISSING_LAPACK_LARFG) || defined(PETSC_MISSING_LAPACK_LARF)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARFG/LARF - Lapack routines are unavailable.");
 #else
-  PetscErrorCode  ierr;
-  PetscInt	  i,j,*ii,*jj,tmp,type;
-  PetscReal 	  *ss,cond,cs,sn,r,maxCond=1.0;
-  PetscScalar	  *work,tau,t;
-  PetscBLASInt	  n0,n1,ni,inc=1,m,n_,lda_,ldq_;
+  PetscErrorCode ierr;
+  PetscInt       i,j,*ii,*jj,tmp,type;
+  PetscReal      *ss,cond,cs,sn,r,maxCond=1.0;
+  PetscScalar    *work,tau,t;
+  PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_;
 
   PetscFunctionBegin;
   if(n<3){
@@ -619,9 +634,9 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     PetscFunctionReturn(0);
   }
   lda_ = PetscBLASIntCast(lda);
-  n_ = PetscBLASIntCast(n);
+  n_   = PetscBLASIntCast(n);
   ldq_ = PetscBLASIntCast(ldq);
-  if ( !w || lw < n*n ){
+  if (!w || lw < n*n) {
     ierr = PetscMalloc(n*n*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   }else work = w;
 
@@ -735,23 +750,23 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 if(dbPS>=1){
 PetscPrintf(PETSC_COMM_WORLD," maxCond in triadDiag: %g\n",maxCond); }
 /* //////////////////////////////// */
-PetscFunctionReturn(0);
+  PetscFunctionReturn(0);
 #endif
 }
 
-
 #undef __FUNCT__
 #define __FUNCT__ "PSEigenVectorsPseudoOrthog"
-static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScalar *wr, PetscScalar *wi,PetscBool acumulate){
-  PetscErrorCode  ierr;
-  PetscInt 	  i,j,k,off;
-  PetscBLASInt	  ld,n1,one=1;
-  PetscScalar	  PQ[4],xx,yx,xy,yy,*y,h,oneS=1.0,zeroS=0.0,*X,*W;
-  PetscReal	  *ss,*s,*d,*e,d1,d2,toldeg=1e-5;/* ////////////// */
+static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScalar *wr, PetscScalar *wi,PetscBool accum)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,k,off;
+  PetscBLASInt   ld,n1,one=1;
+  PetscScalar    PQ[4],xx,yx,xy,yy,*y,h,oneS=1.0,zeroS=0.0,*X,*W;
+  PetscReal      *ss,*s,*d,*e,d1,d2,toldeg=1e-5;/* ////////////// */
 
   PetscFunctionBegin;
   ld = PetscBLASIntCast(ps->ld);
-  n1  = PetscBLASIntCast(ps->n - ps->l);
+  n1 = PetscBLASIntCast(ps->n - ps->l);
   ierr = PSAllocateWork_Private(ps,ld*ld+2*ld,ld,2*ld);CHKERRQ(ierr);
   s = ps->rmat[PS_MAT_D];
   d = ps->rmat[PS_MAT_T];
@@ -850,7 +865,7 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
   }
   for(i=ps->l;i<ps->n;i++) s[i] = ss[i];
   /* accumulate previous Q */
-  if(acumulate && mat!=PS_MAT_Q){
+  if(accum && mat!=PS_MAT_Q){
     ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
     W = ps->mat[PS_MAT_W];
     ierr = PSCopyMatrix_Private(ps,PS_MAT_W,PS_MAT_Q);CHKERRQ(ierr);
@@ -872,16 +887,19 @@ static PetscErrorCode PSGHIEPPseudoOrthogInverseIteration(PS ps,PetscScalar *wr,
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEIN - Lapack routine is unavailable.");
 #else
-  PetscErrorCode  ierr;
-  PetscInt	  i,off;
-  PetscBLASInt	  *select,*infoC,ld,n1,mout,info;
-  PetscScalar	  *H,*X;
-  PetscReal	  *s,*d,*e;
+  PetscErrorCode ierr;
+  PetscInt       i,off;
+  PetscBLASInt   *select,*infoC,ld,n1,mout,info;
+  PetscScalar    *A,*B,*H,*X;
+  PetscReal      *s,*d,*e;
+
   PetscFunctionBegin;
   ld = PetscBLASIntCast(ps->ld);
-  n1  = PetscBLASIntCast(ps->n - ps->l);
+  n1 = PetscBLASIntCast(ps->n - ps->l);
   ierr = PSAllocateWork_Private(ps,ld*ld+2*ld,ld,2*ld);CHKERRQ(ierr);
   ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
+  A = ps->mat[PS_MAT_A];
+  B = ps->mat[PS_MAT_B];
   H = ps->mat[PS_MAT_W];
   s = ps->rmat[PS_MAT_D];
   d = ps->rmat[PS_MAT_T];
@@ -900,18 +918,18 @@ static PetscErrorCode PSGHIEPPseudoOrthogInverseIteration(PS ps,PetscScalar *wr,
     H[ps->n-1+(ps->n-2)*ld] = e[ps->n-2]*s[ps->n-1];
     H[ps->n-1+(ps->n-1)*ld] = d[ps->n-1]*s[ps->n-1];
   }else{
-    s[ps->l] = PetscRealPart(*(ps->mat[PS_MAT_B]+off));
-    H[off] = *(ps->mat[PS_MAT_A]+off)*s[ps->l];
-    H[off+ld] = *(ps->mat[PS_MAT_A]+off+ld)*s[ps->l];
+    s[ps->l] = PetscRealPart(B[off]);
+    H[off] = A[off]*s[ps->l];
+    H[off+ld] = A[off+ld]*s[ps->l];
     for(i=ps->l+1;i<ps->n-1;i++){
-      s[i] = PetscRealPart(*(ps->mat[PS_MAT_B]+i+i*ld));
-      H[i+(i-1)*ld] =  *(ps->mat[PS_MAT_A]+i+(i-1)*ld)*s[i];
-      H[i+i*ld] =  *(ps->mat[PS_MAT_A]+i+i*ld)*s[i];
-      H[i+(i+1)*ld] =  *(ps->mat[PS_MAT_A]+i+(i+1)*ld)*= s[i];
+      s[i] = PetscRealPart(B[i+i*ld]);
+      H[i+(i-1)*ld] = A[i+(i-1)*ld]*s[i];
+      H[i+i*ld]     = A[i+i*ld]*s[i];
+      H[i+(i+1)*ld] = A[i+(i+1)*ld]*s[i];
     }
-    s[ps->n-1] = PetscRealPart(*(ps->mat[PS_MAT_B]+ps->n-1+(ps->n-1)*ld));
-    H[ps->n-1+(ps->n-2)*ld] = *(ps->mat[PS_MAT_A]+ps->n-1+(ps->n-2)*ld)*s[ps->n-1];
-    H[ps->n-1+(ps->n-1)*ld] = *(ps->mat[PS_MAT_A]+ps->n-1+(ps->n-1)*ld)*s[ps->n-1];
+    s[ps->n-1] = PetscRealPart(B[ps->n-1+(ps->n-1)*ld]);
+    H[ps->n-1+(ps->n-2)*ld] = A[ps->n-1+(ps->n-2)*ld]*s[ps->n-1];
+    H[ps->n-1+(ps->n-1)*ld] = A[ps->n-1+(ps->n-1)*ld]*s[ps->n-1];
   }
   ierr = PSAllocateMat_Private(ps,PS_MAT_X);CHKERRQ(ierr);
   X = ps->mat[PS_MAT_X];
@@ -982,34 +1000,38 @@ static PetscErrorCode PSIntermediate_GHIEP(PS ps)
 */
 PetscErrorCode PSGHIEPRealBlocks(PS ps)
 {
-  PetscErrorCode  ierr;
-  PetscInt 	  i;
-  PetscReal	  e,d1,d2,s1,s2,ss1,ss2,t,dd,ss;
-  PetscReal       max,ep,scal1,scal2,snorm;
-  PetscReal	  b[4],M[4],wr1,wr2,wi;
-  PetscScalar	  Y[4],oneS = 1.0,zeroS = 0.0;
-  PetscBLASInt    m,two=2,ld;
-  PetscBool	  real;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscReal      e,d1,d2,s1,s2,ss1,ss2,t,dd,ss;
+  PetscReal      maxy,ep,scal1,scal2,snorm;
+  PetscReal      *T,*D,b[4],M[4],wr1,wr2,wi;
+  PetscScalar    *A,*B,Y[4],oneS = 1.0,zeroS = 0.0;
+  PetscBLASInt   m,two=2,ld;
+  PetscBool      isreal;
 
   PetscFunctionBegin;
   ld = PetscBLASIntCast(ps->ld);
   m = PetscBLASIntCast(ps->n-ps->l);
+  A = ps->mat[PS_MAT_A];
+  B = ps->mat[PS_MAT_B];
+  T = ps->rmat[PS_MAT_T];
+  D = ps->rmat[PS_MAT_D];
   ierr = PSAllocateWork_Private(ps,2*m,0,0);CHKERRQ(ierr);
   for(i=ps->l;i<ps->n-1;i++){
-    e = (ps->compact)?*(ps->rmat[PS_MAT_T]+ld+i):PetscRealPart(*(ps->mat[PS_MAT_A]+(i+1)+ld*i));
-    if(e != 0.0){/*2x2  block */
+    e = (ps->compact)?T[ld+i]:PetscRealPart(A[(i+1)+ld*i]);
+    if(e != 0.0){ /* 2x2 block */
       if(ps->compact){
-        s1 = *(ps->rmat[PS_MAT_D]+i);
-        d1 = *(ps->rmat[PS_MAT_T]+i);
-        s2 = *(ps->rmat[PS_MAT_D]+i+1);
-        d2 = *(ps->rmat[PS_MAT_T]+i+1);
+        s1 = D[i];
+        d1 = T[i];
+        s2 = D[i+1];
+        d2 = T[i+1];
       }else{
-        s1 = PetscRealPart(*(ps->mat[PS_MAT_B]+i*ld+i));
-        d1 = PetscRealPart(*(ps->mat[PS_MAT_A]+i*ld+i));
-        s2 = PetscRealPart(*(ps->mat[PS_MAT_B]+(i+1)*ld+i+1));
-        d2 = PetscRealPart(*(ps->mat[PS_MAT_A]+(i+1)*ld+i+1));
+        s1 = PetscRealPart(B[i*ld+i]);
+        d1 = PetscRealPart(A[i*ld+i]);
+        s2 = PetscRealPart(B[(i+1)*ld+i+1]);
+        d2 = PetscRealPart(A[(i+1)*ld+i+1]);
       }
-      real = PETSC_FALSE;
+      isreal = PETSC_FALSE;
       if(s1==s2){ /* apply a Jacobi rotation to compute the eigendecomposition */
         dd = d1-d2;
         if(2*PetscAbsReal(e) <= dd){
@@ -1025,7 +1047,7 @@ PetscErrorCode PSGHIEPRealBlocks(PS ps)
         wr1 = d1+t*e;
         wr2 = d2-t*e;
         ss1 = s1; ss2 = s2;
-        real = PETSC_TRUE;
+        isreal = PETSC_TRUE;
       }else{
         ss1 = 1.0; ss2 = 1.0,
         M[0] = d1; M[1] = e; M[2] = e; M[3]= d2;
@@ -1034,41 +1056,41 @@ PetscErrorCode PSGHIEPRealBlocks(PS ps)
         /* Compute eigenvalues of the block */
         LAPACKlag2_(M, &two, b, &two,&ep , &scal1, &scal2, &wr1, &wr2, &wi);
         if(wi==0.0){ /* Real eigenvalues */
-          real = PETSC_TRUE;
+          isreal = PETSC_TRUE;
           if(scal1<ep||scal2<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
           wr1 /= scal1; wr2 /= scal2;
           if( PetscAbsReal(s1*d1-wr1)<PetscAbsReal(s2*d2-wr1)){ Y[0] = wr1-s2*d2; Y[1] =s2*e;}
           else{ Y[0] = s1*e; Y[1] = wr1-s1*d1; }
           /* normalize with a signature*/
-          max = PetscMax(PetscAbsScalar(Y[0]),PetscAbsScalar(Y[1]));
-          scal1 = PetscRealPart(Y[0])/max; scal2 = PetscRealPart(Y[1])/max;
+          maxy = PetscMax(PetscAbsScalar(Y[0]),PetscAbsScalar(Y[1]));
+          scal1 = PetscRealPart(Y[0])/maxy; scal2 = PetscRealPart(Y[1])/maxy;
           snorm = scal1*scal1*s1 + scal2*scal2*s2;
           if(snorm<0){ss1 = -1.0; snorm = -snorm;}
-          snorm = max*PetscSqrtReal(snorm); Y[0] = Y[0]/snorm; Y[1] = Y[1]/snorm;
+          snorm = maxy*PetscSqrtReal(snorm); Y[0] = Y[0]/snorm; Y[1] = Y[1]/snorm;
           if( PetscAbsReal(s1*d1-wr2)<PetscAbsReal(s2*d2-wr2)){ Y[2] = wr2-s2*d2; Y[3] =s2*e;}
           else{ Y[2] = s1*e; Y[3] = wr2-s1*d1; }
-          max = PetscMax(PetscAbsScalar(Y[2]),PetscAbsScalar(Y[3]));
-          scal1 = PetscRealPart(Y[2])/max; scal2 = PetscRealPart(Y[3])/max;
+          maxy = PetscMax(PetscAbsScalar(Y[2]),PetscAbsScalar(Y[3]));
+          scal1 = PetscRealPart(Y[2])/maxy; scal2 = PetscRealPart(Y[3])/maxy;
           snorm = scal1*scal1*s1 + scal2*scal2*s2;
           if(snorm<0){ss2 = -1.0; snorm = -snorm;}
-          snorm = max*PetscSqrtReal(snorm);Y[2] = Y[2]/snorm; Y[3] = Y[3]/snorm;
+          snorm = maxy*PetscSqrtReal(snorm);Y[2] = Y[2]/snorm; Y[3] = Y[3]/snorm;
         }
         wr1 *= ss1; wr2 *= ss2;
       }
-      if(real){
+      if(isreal){
         if(ps->compact) {
-          *(ps->rmat[PS_MAT_D]+i) = ss1;;
-          *(ps->rmat[PS_MAT_T]+i) = wr1;
-          *(ps->rmat[PS_MAT_D]+i+1) = ss2;
-          *(ps->rmat[PS_MAT_T]+i+1) = wr2;
-          *(ps->rmat[PS_MAT_T]+ld+i) = 0.0;
+          D[i] = ss1;;
+          T[i] = wr1;
+          D[i+1] = ss2;
+          T[i+1] = wr2;
+          T[ld+i] = 0.0;
         }else {
-          *(ps->mat[PS_MAT_B]+i*ld+i) = ss1;
-          *(ps->mat[PS_MAT_A]+i) = wr1;
-          *(ps->mat[PS_MAT_B]+(i+1)*ld+i+1) = ss2;
-          *(ps->mat[PS_MAT_A]+i+1) = wr2;
-          *(ps->mat[PS_MAT_A]+(i+1)+ld*i) = 0.0;
-          *(ps->mat[PS_MAT_A]+i+ld*(i+1)) = 0.0;
+          B[i*ld+i] = ss1;
+          A[i] = wr1;
+          B[(i+1)*ld+i+1] = ss2;
+          A[i+1] = wr2;
+          A[(i+1)+ld*i] = 0.0;
+          A[i+ld*(i+1)] = 0.0;
         }
         BLASgemm_("N","N",&m,&two,&two,&oneS,ps->mat[PS_MAT_Q]+ps->l+i*ld,&ld,Y,&two,&zeroS,ps->work,&m);
         ierr = PetscMemcpy(ps->mat[PS_MAT_Q]+ps->l+i*ld,ps->work,m*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -1091,7 +1113,7 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscInt       i,off;
   PetscBLASInt   n1,ld,one,info,lwork;
-  PetscScalar    *H,*A,*B,*Q,zero,oneS,*work;
+  PetscScalar    *H,*A,*B,*Q,*work;
   PetscReal      *d,*e,*s;
 
   PetscFunctionBegin;
@@ -1099,9 +1121,7 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
 ierr = PetscOptionsGetInt(PETSC_NULL,"-dbPS",&dbPS,PETSC_NULL);CHKERRQ(ierr);
 /* ////////////////////// */
   one = 1;
-  n1  = PetscBLASIntCast(ps->n - ps->l);
-  oneS = 1.0;
-  zero = 0.0;
+  n1 = PetscBLASIntCast(ps->n - ps->l);
   ld = PetscBLASIntCast(ps->ld);
   off = ps->l + ps->l*ld;
   A = ps->mat[PS_MAT_A];
@@ -1118,10 +1138,13 @@ ierr = PetscOptionsGetInt(PETSC_NULL,"-dbPS",&dbPS,PETSC_NULL);CHKERRQ(ierr);
   if (n1 == 1) {
     *(Q+off) = 1;
     if(ps->compact){
-      wr[ps->l] = d[ps->l]/s[ps->l]; wi[ps->l] = 0.0;
+      wr[ps->l] = d[ps->l]/s[ps->l];
+      wi[ps->l] = 0.0;
     }else{
-      d[ps->l] = PetscRealPart(A[off]); s[ps->l] = PetscRealPart(B[off]);
-      wr[ps->l] = d[ps->l]/s[ps->l]; wi[ps->l] = 0.0;  
+      d[ps->l] = PetscRealPart(A[off]);
+      s[ps->l] = PetscRealPart(B[off]);
+      wr[ps->l] = d[ps->l]/s[ps->l];
+      wi[ps->l] = 0.0;  
     }
     PetscFunctionReturn(0);
   }
@@ -1146,24 +1169,24 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
     H[off+ld] = e[ps->l]*s[ps->l];
     for(i=ps->l+1;i<ps->n-1;i++){
       H[i+(i-1)*ld] = e[i-1]*s[i];
-      H[i+i*ld] = d[i]*s[i];
+      H[i+i*ld]     = d[i]*s[i];
       H[i+(i+1)*ld] = e[i]*s[i];
     }
     H[ps->n-1+(ps->n-2)*ld] = e[ps->n-2]*s[ps->n-1];
     H[ps->n-1+(ps->n-1)*ld] = d[ps->n-1]*s[ps->n-1];
   }else{
-    s[ps->l] = PetscRealPart(*(ps->mat[PS_MAT_B]+off));
-    H[off] = *(ps->mat[PS_MAT_A]+off)*s[ps->l];
-    H[off+ld] = *(ps->mat[PS_MAT_A]+off+ld)*s[ps->l];
+    s[ps->l] = PetscRealPart(B[off]);
+    H[off] = A[off]*s[ps->l];
+    H[off+ld] = A[off+ld]*s[ps->l];
     for(i=ps->l+1;i<ps->n-1;i++){
-      s[i] = PetscRealPart(*(ps->mat[PS_MAT_B]+i+i*ld));
-      H[i+(i-1)*ld] = *(ps->mat[PS_MAT_A]+i+(i-1)*ld)*s[i];
-      H[i+i*ld] =  *(ps->mat[PS_MAT_A]+i+i*ld)*s[i];
-      H[i+(i+1)*ld] =  *(ps->mat[PS_MAT_A]+i+(i+1)*ld)*= s[i];
+      s[i] = PetscRealPart(B[i+i*ld]);
+      H[i+(i-1)*ld] = A[i+(i-1)*ld]*s[i];
+      H[i+i*ld]     = A[i+i*ld]*s[i];
+      H[i+(i+1)*ld] = A[i+(i+1)*ld]*s[i];
     }
-    s[ps->n-1] = PetscRealPart(*(ps->mat[PS_MAT_B]+ps->n-1+(ps->n-1)*ld));
-    H[ps->n-1+(ps->n-2)*ld] =  *(ps->mat[PS_MAT_A]+ps->n-1+(ps->n-2)*ld)*s[ps->n-1];
-    H[ps->n-1+(ps->n-1)*ld] =  *(ps->mat[PS_MAT_A]+ps->n-1+(ps->n-1)*ld)*s[ps->n-1];
+    s[ps->n-1] = PetscRealPart(B[ps->n-1+(ps->n-1)*ld]);
+    H[ps->n-1+(ps->n-2)*ld] = A[ps->n-1+(ps->n-2)*ld]*s[ps->n-1];
+    H[ps->n-1+(ps->n-1)*ld] = A[ps->n-1+(ps->n-1)*ld]*s[ps->n-1];
   }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -1206,21 +1229,20 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,off;
-  PetscBLASInt   lwork,info,n1,one,mout,ld;
+  PetscBLASInt   lwork,info,n1,one=1,mout,ld;
   PetscScalar    *A,*B,*H,*Q,*work,*tau;
   PetscReal      *d,*e,*s;
 
   PetscFunctionBegin;
-  n1  = PetscBLASIntCast(ps->n - ps->l);
-  one = 1;
+  n1 = PetscBLASIntCast(ps->n - ps->l);
   ld = PetscBLASIntCast(ps->ld);
   off = ps->l + ps->l*ld;
-  A  = ps->mat[PS_MAT_A];
-  B  = ps->mat[PS_MAT_B];
+  A = ps->mat[PS_MAT_A];
+  B = ps->mat[PS_MAT_B];
   Q = ps->mat[PS_MAT_Q];
-  d  = ps->rmat[PS_MAT_T];
-  e  = ps->rmat[PS_MAT_T] + ld;
-  s  = ps->rmat[PS_MAT_D];
+  d = ps->rmat[PS_MAT_T];
+  e = ps->rmat[PS_MAT_T] + ld;
+  s = ps->rmat[PS_MAT_D];
   ierr = PSAllocateMat_Private(ps,PS_MAT_W);CHKERRQ(ierr);
   H = ps->mat[PS_MAT_W];
   ierr = PSAllocateWork_Private(ps,ld+ld*ld,ld,0);CHKERRQ(ierr); 
@@ -1246,10 +1268,13 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
   /* quick return */
   if (n1 == 1) {
     if(ps->compact){
-      wr[ps->l] = d[ps->l]/s[ps->l]; wi[ps->l] = 0.0;
+      wr[ps->l] = d[ps->l]/s[ps->l];
+      wi[ps->l] = 0.0;
     }else{
-      d[ps->l] = PetscRealPart(A[off]); s[ps->l] = PetscRealPart(B[off]);
-      wr[ps->l] = d[ps->l]/s[ps->l]; wi[ps->l] = 0.0;  
+      d[ps->l] = PetscRealPart(A[off]);
+      s[ps->l] = PetscRealPart(B[off]);
+      wr[ps->l] = d[ps->l]/s[ps->l];
+      wi[ps->l] = 0.0;  
     }
     PetscFunctionReturn(0);
   }
@@ -1266,7 +1291,7 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
 
     for(i=ps->l; i < ps->k; i++){
       H[ps->k+i*ld] = *(ps->rmat[PS_MAT_T]+2*ld+i)/s[ps->k];
-      H[i + ps->k*ld] = *(ps->rmat[PS_MAT_T]+2*ld+i)/s[i];
+      H[i+ps->k*ld] = *(ps->rmat[PS_MAT_T]+2*ld+i)/s[i];
     }
   }else{
     for(j=ps->l; j<ps->n; j++){
@@ -1321,10 +1346,12 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "TransSetup"
-/* Sets up a 2-by-2 matrix to eliminate y in the vector [x y]'.
-   Transformation is rotator if sygn = 1 and hyperbolic if sygn = -1.  */
-static PetscErrorCode TransSetup(PetscReal x,PetscReal y,PetscReal sygn,PetscReal *rot,PetscReal *rcond,PetscBool *swap)
+#define __FUNCT__ "UnifiedRotation"
+/*
+   Sets up a 2-by-2 matrix to eliminate y in the vector [x y]'.
+   Transformation is rotator if sygn = 1 and hyperbolic if sygn = -1.
+*/
+static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,PetscReal *rot,PetscReal *rcond,PetscBool *swap)
 {
   PetscReal nrm,c,s;
 
@@ -1370,6 +1397,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
   PetscErrorCode ierr;
   PetscBLASInt   one=1;
   PetscInt       k,jj;
+  PetscBLASInt   n_;
   PetscReal      bulge10,bulge20,bulge30,bulge31,bulge41,bulge42;
   PetscReal      sygn,rcond,worstcond,rot[4],buf[2];
   PetscScalar    rtmp;
@@ -1377,6 +1405,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
   PetscFunctionBegin;
   worstcond = 1.0;
+  n_ = PetscBLASIntCast(n);
 
   /* Build initial bulge that sets step in motion */
   bulge10 = dd[ntop+1]*(aa[ntop]*(aa[ntop] - dd[ntop]*tr) + dt*dd[ntop]*dd[ntop]) + dd[ntop]*bb[ntop]*bb[ntop]; 
@@ -1425,7 +1454,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         }
     
         /* Set up transforming matrix rot. */
-        ierr = TransSetup(bulge20,bulge30,1,rot,&rcond,&swap);CHKERRQ(ierr);
+        ierr = UnifiedRotation(bulge20,bulge30,1,rot,&rcond,&swap);CHKERRQ(ierr);
 
         /* Apply transforming matrix rot to T. */
         bulge20 = rot[0]*bulge20 + rot[2]*bulge30;
@@ -1444,15 +1473,15 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         }
 
         /* Accumulate transforming matrix */
-        BLASrot_(&n,uu+(jj+1)*ld,&one,uu+(jj+2)*ld,&one,&rot[0],&rot[2]);
+        BLASrot_(&n_,uu+(jj+1)*ld,&one,uu+(jj+2)*ld,&one,&rot[0],&rot[2]);
       }
 
       /* Annihilate inner entry bulge20 */
-      if (bulge20 != 0) {
+      if (bulge20 != 0.0) {
 
         /* Begin by setting up transforming matrix rot */
         sygn = dd[jj]*dd[jj+1];
-        ierr = TransSetup(bulge10,bulge20,sygn,rot,&rcond,&swap);CHKERRQ(ierr);
+        ierr = UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap);CHKERRQ(ierr);
         if (rcond<PETSC_MACHINE_EPSILON) {
           SETERRQ1(PETSC_COMM_SELF,0,"Transforming matrix is numerically singular rcond=%g.",rcond);
           *flag = PETSC_TRUE;
@@ -1489,7 +1518,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
         /* Accumulate transforming matrix, uu(jj:jj+1,:) = rot*uu(jj:jj+1,:) */
         if (sygn==1) {
-          BLASrot_(&n,uu+jj*ld,&one,uu+(jj+1)*ld,&one,&rot[0],&rot[2]);
+          BLASrot_(&n_,uu+jj*ld,&one,uu+(jj+1)*ld,&one,&rot[0],&rot[2]);
         } else {
           ierr = HRApply(n,uu+jj*ld,1,uu+(jj+1)*ld,1,rot[0],rot[1]);CHKERRQ(ierr);
         }

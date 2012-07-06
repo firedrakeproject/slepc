@@ -98,7 +98,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       n,ld,i,purif=0;
+  PetscInt       n,ld,i;
   PetscScalar    *Z,tmp;
   PetscReal      norm,normi;
   Vec            v;
