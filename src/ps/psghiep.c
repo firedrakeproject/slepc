@@ -141,7 +141,7 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
   PetscReal         value;
   const char *methodname[] = {
                      "HR method",
-                     "QA + Inverse Iteration",
+                     "QR + Inverse Iteration",
             	     "QR"
   };
 
@@ -778,7 +778,11 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
 #endif
 
   for(i=ps->l;i<ps->n;i++){
-    if(PetscImaginaryPart(wr[i])==0.0 && wi[i]==0.0){/* real */
+#if defined(PETSC_USE_COMPLEX)
+    if(PetscImaginaryPart(wr[i])==0.0) { /* real */
+#else
+    if(wi[i]==0.0) { /* real */
+#endif
       for(j=ps->l;j<i;j++){
          /* s-orthogonalization with close eigenvalues */
         if(wi[j]==0.0){
@@ -793,7 +797,11 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
     }else{
       for(j=ps->l;j<i;j++){
         /* s-orthogonalization of Xi and Xi+1*/
-        if(wi[j]!=0){
+#if defined(PETSC_USE_COMPLEX)
+        if(PetscImaginaryPart(wr[j])!=0.0) {
+#else
+        if(wi[j]!=0.0) {
+#endif
           if(PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsScalar(PetscAbsScalar(wi[j])-PetscAbsScalar(wi[i]))<toldeg){
             for(k=ps->l;k<ps->n;k++) y[k] = s[k]*X[k+i*ld];
             xx = BLASdot_(&n1,X+ps->l+j*ld,&one,y+ps->l,&one);
@@ -1033,37 +1041,39 @@ PetscErrorCode PSGHIEPRealBlocks(PS ps)
           else{ Y[0] = s1*e; Y[1] = wr1-s1*d1; }
           /* normalize with a signature*/
           max = PetscMax(PetscAbsScalar(Y[0]),PetscAbsScalar(Y[1]));
-          scal1 = Y[0]/max; scal2 = Y[1]/max; snorm = scal1*scal1*s1 + scal2*scal2*s2;
+          scal1 = PetscRealPart(Y[0])/max; scal2 = PetscRealPart(Y[1])/max;
+          snorm = scal1*scal1*s1 + scal2*scal2*s2;
           if(snorm<0){ss1 = -1.0; snorm = -snorm;}
           snorm = max*PetscSqrtReal(snorm); Y[0] = Y[0]/snorm; Y[1] = Y[1]/snorm;
           if( PetscAbsReal(s1*d1-wr2)<PetscAbsReal(s2*d2-wr2)){ Y[2] = wr2-s2*d2; Y[3] =s2*e;}
           else{ Y[2] = s1*e; Y[3] = wr2-s1*d1; }
           max = PetscMax(PetscAbsScalar(Y[2]),PetscAbsScalar(Y[3]));
-          scal1 = Y[2]/max; scal2 = Y[3]/max; snorm = scal1*scal1*s1 + scal2*scal2*s2;
+          scal1 = PetscRealPart(Y[2])/max; scal2 = PetscRealPart(Y[3])/max;
+          snorm = scal1*scal1*s1 + scal2*scal2*s2;
           if(snorm<0){ss2 = -1.0; snorm = -snorm;}
           snorm = max*PetscSqrtReal(snorm);Y[2] = Y[2]/snorm; Y[3] = Y[3]/snorm;
-         }
-         wr1 *= ss1; wr2 *= ss2;
-       }
-       if(real){
-         if(ps->compact) {
-           *(ps->rmat[PS_MAT_D]+i) = ss1;;
-           *(ps->rmat[PS_MAT_T]+i) = wr1;
-           *(ps->rmat[PS_MAT_D]+i+1) = ss2;
-           *(ps->rmat[PS_MAT_T]+i+1) = wr2;
-           *(ps->rmat[PS_MAT_T]+ld+i) = 0.0;
-         }else {
-           *(ps->mat[PS_MAT_B]+i*ld+i) = ss1;
-           *(ps->mat[PS_MAT_A]+i) = wr1;
-           *(ps->mat[PS_MAT_B]+(i+1)*ld+i+1) = ss2;
-           *(ps->mat[PS_MAT_A]+i+1) = wr2;
-           *(ps->mat[PS_MAT_A]+(i+1)+ld*i) = 0.0;
-           *(ps->mat[PS_MAT_A]+i+ld*(i+1)) = 0.0;
-         }
-         BLASgemm_("N","N",&m,&two,&two,&oneS,ps->mat[PS_MAT_Q]+ps->l+i*ld,&ld,Y,&two,&zeroS,ps->work,&m);
-         ierr = PetscMemcpy(ps->mat[PS_MAT_Q]+ps->l+i*ld,ps->work,m*sizeof(PetscScalar));CHKERRQ(ierr);
-         ierr = PetscMemcpy(ps->mat[PS_MAT_Q]+ps->l+(i+1)*ld,ps->work+m,m*sizeof(PetscScalar));CHKERRQ(ierr);
-       }
+        }
+        wr1 *= ss1; wr2 *= ss2;
+      }
+      if(real){
+        if(ps->compact) {
+          *(ps->rmat[PS_MAT_D]+i) = ss1;;
+          *(ps->rmat[PS_MAT_T]+i) = wr1;
+          *(ps->rmat[PS_MAT_D]+i+1) = ss2;
+          *(ps->rmat[PS_MAT_T]+i+1) = wr2;
+          *(ps->rmat[PS_MAT_T]+ld+i) = 0.0;
+        }else {
+          *(ps->mat[PS_MAT_B]+i*ld+i) = ss1;
+          *(ps->mat[PS_MAT_A]+i) = wr1;
+          *(ps->mat[PS_MAT_B]+(i+1)*ld+i+1) = ss2;
+          *(ps->mat[PS_MAT_A]+i+1) = wr2;
+          *(ps->mat[PS_MAT_A]+(i+1)+ld*i) = 0.0;
+          *(ps->mat[PS_MAT_A]+i+ld*(i+1)) = 0.0;
+        }
+        BLASgemm_("N","N",&m,&two,&two,&oneS,ps->mat[PS_MAT_Q]+ps->l+i*ld,&ld,Y,&two,&zeroS,ps->work,&m);
+        ierr = PetscMemcpy(ps->mat[PS_MAT_Q]+ps->l+i*ld,ps->work,m*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(ps->mat[PS_MAT_Q]+ps->l+(i+1)*ld,ps->work+m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
       i++;
     }
   }
@@ -1094,12 +1104,12 @@ ierr = PetscOptionsGetInt(PETSC_NULL,"-dbPS",&dbPS,PETSC_NULL);CHKERRQ(ierr);
   zero = 0.0;
   ld = PetscBLASIntCast(ps->ld);
   off = ps->l + ps->l*ld;
-  A  = ps->mat[PS_MAT_A];
-  B  = ps->mat[PS_MAT_B];
+  A = ps->mat[PS_MAT_A];
+  B = ps->mat[PS_MAT_B];
   Q = ps->mat[PS_MAT_Q];
   d = ps->rmat[PS_MAT_T];
   e = ps->rmat[PS_MAT_T] + ld;
-  s  = ps->rmat[PS_MAT_D];
+  s = ps->rmat[PS_MAT_D];
   ierr = PSAllocateWork_Private(ps,ld*ld,2*ld,ld*2);CHKERRQ(ierr); 
   work = ps->work;
   lwork = ld*ld;
@@ -1142,16 +1152,16 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
     H[ps->n-1+(ps->n-2)*ld] = e[ps->n-2]*s[ps->n-1];
     H[ps->n-1+(ps->n-1)*ld] = d[ps->n-1]*s[ps->n-1];
   }else{
-    s[ps->l] = *(ps->mat[PS_MAT_B]+off);
+    s[ps->l] = PetscRealPart(*(ps->mat[PS_MAT_B]+off));
     H[off] = *(ps->mat[PS_MAT_A]+off)*s[ps->l];
     H[off+ld] = *(ps->mat[PS_MAT_A]+off+ld)*s[ps->l];
     for(i=ps->l+1;i<ps->n-1;i++){
-      s[i] = *(ps->mat[PS_MAT_B]+i+i*ld);
+      s[i] = PetscRealPart(*(ps->mat[PS_MAT_B]+i+i*ld));
       H[i+(i-1)*ld] = *(ps->mat[PS_MAT_A]+i+(i-1)*ld)*s[i];
       H[i+i*ld] =  *(ps->mat[PS_MAT_A]+i+i*ld)*s[i];
       H[i+(i+1)*ld] =  *(ps->mat[PS_MAT_A]+i+(i+1)*ld)*= s[i];
     }
-    s[ps->n-1] = *(ps->mat[PS_MAT_B]+ps->n-1+(ps->n-1)*ld);
+    s[ps->n-1] = PetscRealPart(*(ps->mat[PS_MAT_B]+ps->n-1+(ps->n-1)*ld));
     H[ps->n-1+(ps->n-2)*ld] =  *(ps->mat[PS_MAT_A]+ps->n-1+(ps->n-2)*ld)*s[ps->n-1];
     H[ps->n-1+(ps->n-1)*ld] =  *(ps->mat[PS_MAT_A]+ps->n-1+(ps->n-1)*ld)*s[ps->n-1];
   }
