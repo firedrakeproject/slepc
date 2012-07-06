@@ -218,9 +218,9 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
 #define __FUNCT__ "PSVectors_GHIEP_Eigen_Some"
 static PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *idx,PetscReal *rnorm,PetscBool left)
 {
-  PetscReal	 b[4],M[4],*Q,d1,d2,s1,s2,e;
-  PetscReal  	 scal1,scal2,wr1,wr2,wi,ep,zeroS = 0.0,norm;
-  PetscScalar    *X,Y[4];
+  PetscReal	 b[4],M[4],d1,d2,s1,s2,e;
+  PetscReal  	 scal1,scal2,wr1,wr2,wi,ep,norm;
+  PetscScalar    *Q,*X,Y[4],alpha,zeroS = 0.0;
   PetscInt       k;
   PetscBLASInt	 two = 2,n_,ld,four=4,one=1; 
   PetscErrorCode ierr;
@@ -276,7 +276,8 @@ static PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *idx,PetscReal *
       norm = BLASnrm2_(&four,Y,&one);
       norm = 1/norm;
       if(ps->state >= PS_STATE_CONDENSED){
-        BLASgemm_("N","N",&n_,&two,&two,&norm,ps->mat[PS_MAT_Q]+k*ld,&ld,Y,&two,&zeroS,X+k*ld,&ld);
+        alpha = norm;
+        BLASgemm_("N","N",&n_,&two,&two,&alpha,ps->mat[PS_MAT_Q]+k*ld,&ld,Y,&two,&zeroS,X+k*ld,&ld);
         if (rnorm) *rnorm = SlepcAbsEigenvalue(X[ps->n-1+k*ld],X[ps->n-1+(k+1)*ld]);
       }else{
         ierr = PetscMemzero(X+k*ld,2*ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -292,7 +293,8 @@ static PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *idx,PetscReal *
       norm = BLASnrm2_(&two,Y,&one);
       norm = 1/norm;
       if(ps->state >= PS_STATE_CONDENSED){
-        BLASgemv_("N",&n_,&two,&norm,ps->mat[PS_MAT_Q]+k*ld,&ld,Y,&one,&zeroS,X+k*ld,&one);
+        alpha = norm;
+        BLASgemv_("N",&n_,&two,&alpha,ps->mat[PS_MAT_Q]+k*ld,&ld,Y,&one,&zeroS,X+k*ld,&one);
         if (rnorm) *rnorm = PetscAbsScalar(X[ps->n-1+k*ld]);
       }else{
         ierr = PetscMemzero(X+k*ld,2*ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -358,7 +360,8 @@ PetscErrorCode PSVectors_GHIEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
 static PetscErrorCode PSGHIEPComplexEigs(PS ps, PetscInt n0, PetscInt n1, PetscScalar *wr, PetscScalar *wi){
   PetscInt	k,ld;
   PetscBLASInt  two=2;
-  PetscScalar	*A,*B,*D,*T;
+  PetscScalar	*A,*B;
+  PetscReal  	*D,*T;
   PetscReal	b[4],M[4],d1,d2,s1,s2,e;
   PetscReal  	scal1,scal2,ep,wr1,wr2,wi1;
 
@@ -743,8 +746,8 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
   PetscErrorCode  ierr;
   PetscInt 	  i,j,k,off;
   PetscBLASInt	  ld,n1,one=1;
-  PetscScalar	  PQ[4],xx,yx,xy,yy,*y,oneS=1.0,zeroS=0.0,*X,*W;
-  PetscReal	  *ss,*s,*d,*e,h,d1,d2,toldeg=1e-5;/* ////////////// */
+  PetscScalar	  PQ[4],xx,yx,xy,yy,*y,h,oneS=1.0,zeroS=0.0,*X,*W;
+  PetscReal	  *ss,*s,*d,*e,d1,d2,toldeg=1e-5;/* ////////////// */
 
   PetscFunctionBegin;
   ld = PetscBLASIntCast(ps->ld);
@@ -761,11 +764,6 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
   y = ps->work;
   //ierr = PSSwitchFormat_GHIEP(ps,(ps->compact)?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr); /* only when final A is calculated from vectors */
 
-/* //////////////////////////// */
-PetscViewer viewer;
-PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);
-PSViewMat_Private(ps,viewer,mat);
-/* ///////////////////// */
 #if defined(PETSC_USE_COMPLEX)
   /* with complex scalars we need to operate as in real scalar */
   for(i=ps->l;i<ps->n;i++){
@@ -913,7 +911,7 @@ static PetscErrorCode PSGHIEPPseudoOrthogInverseIteration(PS ps,PetscScalar *wr,
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ps->l,wi+ps->l,PETSC_NULL,&ld,X+off,&ld,&n1,&mout,ps->work,PETSC_NULL,infoC,&info);
 #else
-  LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ps->l,PETSC_NULL,&ld,X+off,&ld,&n1,&mout,ps->rwork,PETSC_NULL,infoC,&info);
+  LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ps->l,PETSC_NULL,&ld,X+off,&ld,&n1,&mout,ps->work,ps->rwork,PETSC_NULL,infoC,&info);
 #endif
   if(info<0)SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
   if(info>0)SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
@@ -980,8 +978,8 @@ PetscErrorCode PSGHIEPRealBlocks(PS ps)
   PetscInt 	  i;
   PetscReal	  e,d1,d2,s1,s2,ss1,ss2,t,dd,ss;
   PetscReal       max,ep,scal1,scal2,snorm;
-  PetscReal	  b[4],M[4],Y[4],wr1,wr2,wi;
-  PetscScalar	  oneS = 1.0, zeroS = 0.0;
+  PetscReal	  b[4],M[4],wr1,wr2,wi;
+  PetscScalar	  Y[4],oneS = 1.0,zeroS = 0.0;
   PetscBLASInt    m,two=2,ld;
   PetscBool	  real;
 
@@ -1034,13 +1032,13 @@ PetscErrorCode PSGHIEPRealBlocks(PS ps)
           if( PetscAbsReal(s1*d1-wr1)<PetscAbsReal(s2*d2-wr1)){ Y[0] = wr1-s2*d2; Y[1] =s2*e;}
           else{ Y[0] = s1*e; Y[1] = wr1-s1*d1; }
           /* normalize with a signature*/
-          max = PetscMax(PetscAbsReal(Y[0]),PetscAbsReal(Y[1]));
+          max = PetscMax(PetscAbsScalar(Y[0]),PetscAbsScalar(Y[1]));
           scal1 = Y[0]/max; scal2 = Y[1]/max; snorm = scal1*scal1*s1 + scal2*scal2*s2;
           if(snorm<0){ss1 = -1.0; snorm = -snorm;}
           snorm = max*PetscSqrtReal(snorm); Y[0] = Y[0]/snorm; Y[1] = Y[1]/snorm;
           if( PetscAbsReal(s1*d1-wr2)<PetscAbsReal(s2*d2-wr2)){ Y[2] = wr2-s2*d2; Y[3] =s2*e;}
           else{ Y[2] = s1*e; Y[3] = wr2-s1*d1; }
-          max = PetscMax(PetscAbsReal(Y[2]),PetscAbsReal(Y[3]));
+          max = PetscMax(PetscAbsScalar(Y[2]),PetscAbsScalar(Y[3]));
           scal1 = Y[2]/max; scal2 = Y[3]/max; snorm = scal1*scal1*s1 + scal2*scal2*s2;
           if(snorm<0){ss2 = -1.0; snorm = -snorm;}
           snorm = max*PetscSqrtReal(snorm);Y[2] = Y[2]/snorm; Y[3] = Y[3]/snorm;
@@ -1357,7 +1355,7 @@ static PetscErrorCode TransSetup(PetscReal x,PetscReal y,PetscReal sygn,PetscRea
 
 #undef __FUNCT__  
 #define __FUNCT__ "HZStep"
-static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,PetscReal dt,PetscReal *aa,PetscReal *bb,PetscScalar *dd,PetscScalar *uu,PetscInt n,PetscInt ld,PetscBool *flag)
+static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,PetscReal dt,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscInt n,PetscInt ld,PetscBool *flag)
 {
   PetscErrorCode ierr;
   PetscBLASInt   one=1;
