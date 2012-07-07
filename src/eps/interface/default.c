@@ -99,9 +99,12 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n,ld,i;
-  PetscScalar    *Z,tmp;
-  PetscReal      norm,normi;
+  PetscScalar    *Z;
   Vec            v;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    tmp;
+  PetscReal      norm,normi;
+#endif
 
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);

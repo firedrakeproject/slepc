@@ -222,12 +222,15 @@ PetscErrorCode PSView_GHIEP(PS ps,PetscViewer viewer)
 #define __FUNCT__ "PSVectors_GHIEP_Eigen_Some"
 static PetscErrorCode PSVectors_GHIEP_Eigen_Some(PS ps,PetscInt *idx,PetscReal *rnorm,PetscBool left)
 {
+  PetscErrorCode ierr;
   PetscReal      b[4],M[4],d1,d2,s1,s2,e;
   PetscReal      scal1,scal2,wr1,wr2,wi,ep,norm;
   PetscScalar    *Q,*X,Y[4],alpha,zeroS = 0.0;
   PetscInt       k;
-  PetscBLASInt   two = 2,n_,ld,four=4,one=1; 
-  PetscErrorCode ierr;
+  PetscBLASInt   two = 2,n_,ld,one=1; 
+#if !defined(PETSC_USE_COMPLEX)
+  PetscBLASInt   four=4;
+#endif
   
   PetscFunctionBegin;
   if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left eigenvectors");
