@@ -1123,40 +1123,13 @@ PetscErrorCode PSRegisterAll(const char *path)
 PetscErrorCode PSNormalize(PS ps,PSMatType mat,PetscInt col)
 {
   PetscErrorCode ierr;
-  PetscInt       i,i0,i1;
-  PetscBLASInt   ld,n,one = 1;
-  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],norm,norm0,*x;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
-  //if(ps->state < PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
-  if(ps->state < PS_STATE_INTERMEDIATE) PetscFunctionReturn(0);
-  ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
-  if (col < 0) {
-    i0 = 0; i1 = ps->n;
-  } else if(col>0 && (A[ps->ld*(col-1)+col] != 0.0 || (B && B[ps->ld*(col-1)+col] != 0.0))) {
-    i0 = col-1; i1 = col+1;
-  } else {
-    i0 = col; i1 = col+1;
-  }
-  for(i=i0; i<i1; i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if(i<n-1 && (A[ps->ld*i+i+1] != 0.0 || (B && B[ps->ld*i+i+1] != 0.0))) {
-      norm = BLASnrm2_(&n,&x[ld*i],&one);
-      norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
-      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
-      BLASscal_(&n,&norm,&x[ld*i],&one);
-      BLASscal_(&n,&norm,&x[ld*(i+1)],&one);
-      i++;
-    } else
-#endif
-    {
-      norm = BLASnrm2_(&n,&x[ld*i],&one);
-      norm = 1.0/norm;
-      BLASscal_(&n,&norm,&x[ld*i],&one);
-     }
-  }
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ps,mat,2);
+  PetscValidLogicalCollectiveInt(ps,col,3);
+  if (col<-1) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
+  ierr = (*ps->ops->normalize)(ps,mat,col);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

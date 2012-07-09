@@ -96,7 +96,7 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
 
-  /* accumulate and normalize eigenvectors */
+  /* accumulate eigenvectors */
   if (ps->state>=PS_STATE_CONDENSED) {
     ierr = PetscMemcpy(ps->work,Y,mout*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work,&inc,&zero,Y,&inc);
@@ -185,6 +185,61 @@ PetscErrorCode PSVectors_NHEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
       break;
     default:
       SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSNormalize_NHEP"
+PetscErrorCode PSNormalize_NHEP(PS ps,PSMatType mat,PetscInt col)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,i0,i1;
+  PetscBLASInt   ld,n,one = 1;
+  PetscScalar    *A = ps->mat[PS_MAT_A],norm,norm0,*x;
+
+  PetscFunctionBegin;
+  if(ps->state < PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
+  switch (mat) {
+    case PS_MAT_X:
+    case PS_MAT_Y:
+    case PS_MAT_Q:
+      /* Supported matrices */
+      break;
+    case PS_MAT_U:
+    case PS_MAT_VT:
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      break;
+    default:
+      SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+  }
+
+  n  = PetscBLASIntCast(ps->n);
+  ld = PetscBLASIntCast(ps->ld);
+  ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
+  if (col < 0) {
+    i0 = 0; i1 = ps->n;
+  } else if(col>0 && A[ps->ld*(col-1)+col] != 0.0) {
+    i0 = col-1; i1 = col+1;
+  } else {
+    i0 = col; i1 = col+1;
+  }
+  for(i=i0; i<i1; i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if(i<n-1 && A[ps->ld*i+i+1] != 0.0) {
+      norm = BLASnrm2_(&n,&x[ld*i],&one);
+      norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
+      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
+      BLASscal_(&n,&norm,&x[ld*i],&one);
+      BLASscal_(&n,&norm,&x[ld*(i+1)],&one);
+      i++;
+    } else
+#endif
+    {
+      norm = BLASnrm2_(&n,&x[ld*i],&one);
+      norm = 1.0/norm;
+      BLASscal_(&n,&norm,&x[ld*i],&one);
+     }
   }
   PetscFunctionReturn(0);
 }
@@ -543,6 +598,7 @@ PetscErrorCode PSCreate_NHEP(PS ps)
   ps->ops->truncate      = PSTruncate_NHEP;
   ps->ops->cond          = PSCond_NHEP;
   ps->ops->transharm     = PSTranslateHarmonic_NHEP;
+  ps->ops->normalize     = PSNormalize_NHEP;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

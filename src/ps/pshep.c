@@ -196,6 +196,28 @@ PetscErrorCode PSVectors_HEP(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSNormalize_HEP"
+PetscErrorCode PSNormalize_HEP(PS ps,PSMatType mat,PetscInt col)
+{
+  PetscFunctionBegin;
+  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
+  switch (mat) {
+    case PS_MAT_X:
+    case PS_MAT_Y:
+    case PS_MAT_Q:
+      /* All the matrices resulting from PSVectors and PSSolve are already normalized */
+      break;
+    case PS_MAT_U:
+    case PS_MAT_VT:
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      break;
+    default:
+      SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "ArrowTridiag"
 /*
   ARROWTRIDIAG reduces a symmetric arrowhead matrix of the form
@@ -772,6 +794,7 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->ops->truncate      = PSTruncate_HEP;
   ps->ops->cond          = PSCond_HEP;
   ps->ops->transrks      = PSTranslateRKS_HEP;
+  ps->ops->normalize     = PSNormalize_HEP;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
