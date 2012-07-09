@@ -1257,11 +1257,6 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
 PetscViewer viewer;
 ierr = PetscOptionsGetInt(PETSC_NULL,"-dbPS",&dbPS,PETSC_NULL);CHKERRQ(ierr);
 ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-if(dbPS>1){
-printf("Entrando en PSSolve\n");
-ierr = PSView(ps,viewer);CHKERRQ(ierr);
-PSViewMat_Private(ps,viewer,PS_MAT_Q);
-}
 /* /////////////////////// */
 
    /* initialize orthogonal matrix */
@@ -1299,7 +1294,7 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
   }else{
     for(j=ps->l; j<ps->n; j++){
       for(i=ps->l; i<ps->n; i++){
-        H[i+j*ld] /= B[i+i*ld];
+        H[i+j*ld] = A[i+j*ld]/ B[i+i*ld];
       }
     }
   }
