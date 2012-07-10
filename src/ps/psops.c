@@ -467,6 +467,46 @@ PetscErrorCode PSVectors(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSNormalize"
+/*@
+   PSNormalize - Normalize a column or all the columns of a matrix. Considers
+   the case when the columns represent the real and the imaginary part of a vector.          
+
+   Logically Collective on PS
+
+   Input Parameter:
++  ps  - the projected system context
+.  mat - the matrix to be modified
+-  col - the column to normalize or -1 to normalize all of them
+
+   Notes:
+   The columns are normalized with respect to the 2-norm.
+
+   If col and col+1 (or col-1 and col) represent the real and the imaginary
+   part of a vector, both columns are scaled.
+
+   Level: advanced
+@*/
+PetscErrorCode PSNormalize(PS ps,PSMatType mat,PetscInt col)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ps,mat,2);
+  PetscValidLogicalCollectiveInt(ps,col,3);
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  if (!ps->ops->normalize) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (col<-1) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->normalize)(ps,mat,col);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSCond"
 /*@C
    PSCond - Compute the inf-norm condition number of the first matrix

@@ -214,7 +214,10 @@ PetscErrorCode PSNormalize_GNHEP(PS ps,PSMatType mat,PetscInt col)
   PetscErrorCode ierr;
   PetscInt       i,i0,i1;
   PetscBLASInt   ld,n,one = 1;
-  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],norm,norm0,*x;
+  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],norm,*x;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    norm0;
+#endif
 
   PetscFunctionBegin;
   if(ps->state < PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");

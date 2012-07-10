@@ -104,6 +104,7 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
     if (iscomplex) BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work+ld,&inc,&zero,Y+ld,&inc);
 #endif
   }
+  ierr = PSNormalize_NHEP(ps,left?PS_MAT_Y:PS_MAT_X,k);CHKERRQ(ierr);
 
   /* set output arguments */
   if (iscomplex) (*k)++;
@@ -196,7 +197,10 @@ PetscErrorCode PSNormalize_NHEP(PS ps,PSMatType mat,PetscInt col)
   PetscErrorCode ierr;
   PetscInt       i,i0,i1;
   PetscBLASInt   ld,n,one = 1;
-  PetscScalar    *A = ps->mat[PS_MAT_A],norm,norm0,*x;
+  PetscScalar    *A = ps->mat[PS_MAT_A],norm,*x;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    norm0;
+#endif
 
   PetscFunctionBegin;
   if(ps->state < PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");

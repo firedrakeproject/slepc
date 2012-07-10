@@ -1100,40 +1100,6 @@ PetscErrorCode PSRegisterAll(const char *path)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSNormalize"
-/*@
-   PSNormalize - Normalize a column or all the columns of a matrix. Considers
-   the case when the columns represent the real and the imaginary part of a vector.          
-
-   Logically Collective on PS
-
-   Input Parameter:
-+  ps  - the projected system context
-.  mat - the matrix to be modified
--  col - the column to normalize or -1 to normalize all of them
-
-   Notes:
-   The columns are normalized with respect to the 2-norm.
-
-   If col and col+1 (or col-1 and col) represent the real and the imaginary
-   part of a vector, both columns are scaled.
-
-   Level: advanced
-@*/
-PetscErrorCode PSNormalize(PS ps,PSMatType mat,PetscInt col)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ps,mat,2);
-  PetscValidLogicalCollectiveInt(ps,col,3);
-  if (col<-1) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
-  ierr = (*ps->ops->normalize)(ps,mat,col);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "PSSetIdentity"
 PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
 {
