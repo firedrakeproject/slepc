@@ -775,6 +775,11 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
   d = ps->rmat[PS_MAT_T];
   e = d + ld;
   off = ps->l+ps->l*ld;
+  if(!ps->compact){
+    for(i=ps->l;i<ps->n;i++){
+      s[i] = *(ps->mat[PS_MAT_B]+i+i*ld);
+    }
+  }
 
   /* compute real s-orthonormal base */
   X = ps->mat[mat];
