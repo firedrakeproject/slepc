@@ -385,7 +385,7 @@ static PetscErrorCode PSGHIEPComplexEigs(PS ps, PetscInt n0, PetscInt n1, PetscS
     }else e = 0.0;
     if (e==0.0) { 
       /* real eigenvalue */
-      wr[k] = T[k]/D[k];
+      wr[k] = (ps->compact)?T[k]/D[k]:A[k+k*ld]/B[k+k*ld];
       wi[k] = 0.0 ;
     } else {
       /* diagonal block */
@@ -1089,9 +1089,9 @@ PetscErrorCode PSGHIEPRealBlocks(PS ps)
           T[ld+i] = 0.0;
         }else {
           B[i*ld+i] = ss1;
-          A[i] = wr1;
+          A[i*ld+i] = wr1;
           B[(i+1)*ld+i+1] = ss2;
-          A[i+1] = wr2;
+          A[(i+1)*ld+i+1] = wr2;
           A[(i+1)+ld*i] = 0.0;
           A[i+ld*(i+1)] = 0.0;
         }
@@ -1294,7 +1294,7 @@ ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
   }else{
     for(j=ps->l; j<ps->n; j++){
       for(i=ps->l; i<ps->n; i++){
-        H[i+j*ld] = A[i+j*ld]/ B[i+i*ld];
+        H[i+j*ld] = A[i+j*ld]/B[i+i*ld];
       }
     }
   }
@@ -1657,6 +1657,9 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
 ////////////////////
 
   ierr = HZIteration(ps->n,ps->l,d,e,s,Q,ld);CHKERRQ(ierr);
+  if(!ps->compact){
+    ierr = PSSwitchFormat_GHIEP(ps,PETSC_FALSE);CHKERRQ(ierr);
+  }
 /////////////////////
 if(dbPS>1){
 printf("Tras HZ \n");
