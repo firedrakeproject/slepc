@@ -65,7 +65,8 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   mm=1,mout,info,ld,n,inc = 1;
-  PetscScalar    done=1.0,zero=0.0;
+  PetscScalar    tmp,done=1.0,zero=0.0;
+  PetscReal      norm;
   PetscBool      iscomplex = PETSC_FALSE;
   PetscBLASInt   *select;
   PetscScalar    *A = ps->mat[PS_MAT_A];
@@ -96,15 +97,26 @@ PetscErrorCode PSVectors_NHEP_Eigen_Some(PS ps,PetscInt *k,PetscReal *rnorm,Pets
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
 
-  /* accumulate eigenvectors */
+  /* accumulate and normalize eigenvectors */
   if (ps->state>=PS_STATE_CONDENSED) {
     ierr = PetscMemcpy(ps->work,Y,mout*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work,&inc,&zero,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
     if (iscomplex) BLASgemv_("N",&n,&n,&done,Q,&ld,ps->work+ld,&inc,&zero,Y+ld,&inc);
 #endif
+    norm = BLASnrm2_(&n,Y,&inc);
+#if !defined(PETSC_USE_COMPLEX)
+    if (iscomplex) {
+      tmp = BLASnrm2_(&n,Y+ld,&inc);
+      norm = SlepcAbsEigenvalue(norm,tmp);
+    }
+#endif
+    tmp = 1.0 / norm;
+    BLASscal_(&n,&tmp,Y,&inc);
+#if !defined(PETSC_USE_COMPLEX)
+    if (iscomplex) BLASscal_(&n,&tmp,Y+ld,&inc);
+#endif
   }
-  ierr = PSNormalize_NHEP(ps,left?PS_MAT_Y:PS_MAT_X,k);CHKERRQ(ierr);
 
   /* set output arguments */
   if (iscomplex) (*k)++;
