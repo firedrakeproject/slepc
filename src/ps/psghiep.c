@@ -764,7 +764,7 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
   PetscErrorCode ierr;
   PetscInt       i,j,k,off;
   PetscBLASInt   ld,n1,one=1;
-  PetscScalar    PQ[4],xx,yx,xy,yy,*y,h,oneS=1.0,zeroS=0.0,*X,*W;
+  PetscScalar    PQ[4],xx,yx,xy,yy,*y,h,oneS=1.0,zeroS=0.0,*X,*W,*B;
   PetscReal      *ss,*s,*d,*e,d1,d2,toldeg=1e-5;/* ////////////// */
 
   PetscFunctionBegin;
@@ -776,8 +776,9 @@ static PetscErrorCode PSEigenVectorsPseudoOrthog(PS ps, PSMatType mat, PetscScal
   e = d + ld;
   off = ps->l+ps->l*ld;
   if(!ps->compact){
+    B = ps->mat[PS_MAT_B];
     for(i=ps->l;i<ps->n;i++){
-      s[i] = *(ps->mat[PS_MAT_B]+i+i*ld);
+      s[i] = PetscRealPart(B[i+i*ld]);
     }
   }
 
