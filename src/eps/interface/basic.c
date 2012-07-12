@@ -136,7 +136,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const char     *type,*extr,*bal;
-  PetscBool      isascii;
+  PetscBool      isascii,ispower,isexternal;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -292,11 +292,17 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
   }
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
-  ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
-  if (!eps->ps) { ierr = EPSGetPS(eps,&eps->ps);CHKERRQ(ierr); }
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-  ierr = PSView(eps->ps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
+  if (!isexternal) {
+    ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
+    if (!ispower) {
+      if (!eps->ps) { ierr = EPSGetPS(eps,&eps->ps);CHKERRQ(ierr); }
+      ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+      ierr = PSView(eps->ps,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    }
+  }
   if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
   ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);

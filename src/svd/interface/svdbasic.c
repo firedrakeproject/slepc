@@ -132,7 +132,7 @@ PetscErrorCode SVDInitializePackage(const char *path)
 PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscBool      isascii;
+  PetscBool      isascii,isshell;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -176,8 +176,11 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
     }
   }
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)svd,&isshell,SVDCROSS,SVDCYCLIC,"");CHKERRQ(ierr);
+  if (!isshell) {
+    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
+    ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -133,7 +133,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const char     *type;
-  PetscBool      isascii;
+  PetscBool      isascii,islinear;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -207,12 +207,15 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
       ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
     }
   }
-  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
-  if (!qep->ps) { ierr = QEPGetPS(qep,&qep->ps);CHKERRQ(ierr); }
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-  ierr = PSView(qep->ps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
+  if (!islinear) {
+    if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
+    ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
+    if (!qep->ps) { ierr = QEPGetPS(qep,&qep->ps);CHKERRQ(ierr); }
+    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+    ierr = PSView(qep->ps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
