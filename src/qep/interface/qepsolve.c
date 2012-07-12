@@ -580,7 +580,7 @@ PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
 
    Level: developer
 
-.seealso: QEPSortEigenvaluesReal(), QEPSetWhichEigenpairs()
+.seealso: QEPSetWhichEigenpairs()
 @*/
 PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,PetscInt *perm)
 {
@@ -632,57 +632,6 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
         }
       }
 #endif
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "QEPSortEigenvaluesReal"
-/*@
-   QEPSortEigenvaluesReal - Sorts a list of eigenvalues according to a certain
-   criterion (version for real eigenvalues only).
-
-   Not Collective
-
-   Input Parameters:
-+  qep   - the quadratic eigensolver context
-.  n     - number of eigenvalue in the list
--  eig   - pointer to the array containing the eigenvalues (real)
-
-   Output Parameter:
-.  perm  - resulting permutation
-
-   Note:
-   The result is a list of indices in the original eigenvalue array 
-   corresponding to the first nev eigenvalues sorted in the specified
-   criterion.
-
-   Level: developer
-
-.seealso: QEPSortEigenvalues(), QEPSetWhichEigenpairs(), QEPCompareEigenvalues()
-@*/
-PetscErrorCode QEPSortEigenvaluesReal(QEP qep,PetscInt n,PetscReal *eig,PetscInt *perm)
-{
-  PetscErrorCode ierr;
-  PetscScalar    re;
-  PetscInt       i,j,result,tmp;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
-  PetscValidScalarPointer(eig,3);
-  PetscValidIntPointer(perm,4);
-  for (i=0; i<n; i++) { perm[i] = i; }
-  /* insertion sort */
-  for (i=1; i<n; i++) {
-    re = eig[perm[i]];
-    j = i-1;
-    ierr = QEPCompareEigenvalues(qep,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
-    while (result<=0 && j>=0) {
-      tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
-      if (j>=0) {
-        ierr = QEPCompareEigenvalues(qep,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
-      }
     }
   }
   PetscFunctionReturn(0);
