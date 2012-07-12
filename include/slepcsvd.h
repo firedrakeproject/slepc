@@ -94,6 +94,8 @@ typedef enum {/* converged */
 PETSC_EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 PETSC_EXTERN PetscErrorCode SVDSetIP(SVD,IP);
 PETSC_EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
+PETSC_EXTERN PetscErrorCode SVDSetPS(SVD,PS);
+PETSC_EXTERN PetscErrorCode SVDGetPS(SVD,PS*);
 PETSC_EXTERN PetscErrorCode SVDSetType(SVD,const SVDType);
 PETSC_EXTERN PetscErrorCode SVDGetType(SVD,const SVDType*);
 PETSC_EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);

@@ -75,7 +75,8 @@ struct _p_SVD {
                                    with a particular solver */
   PetscInt         setupcalled;
   SVDConvergedReason reason;
-  IP               ip;
+  IP               ip;          /* innerproduct object */
+  PS               ps;          /* projected system object */
   PetscBool        trackall;
   
   PetscErrorCode  (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);

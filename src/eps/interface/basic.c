@@ -291,9 +291,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
     }
   }
-  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!isexternal) {
+    if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
     ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
     if (!ispower) {
