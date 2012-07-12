@@ -50,6 +50,7 @@ struct _p_PS {
   PetscInt       ld;                 /* leading dimension */
   PetscInt       l;                  /* number of locked (inactive) leading columns */
   PetscInt       n;                  /* current dimension */
+  PetscInt       m;                  /* current column dimension (for SVD only) */
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
   PSStateType    state;              /* the current state */
   PetscScalar    *mat[PS_NUM_MAT];   /* the matrices */

@@ -141,6 +141,7 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
   ps->ld       = 0;
   ps->l        = 0;
   ps->n        = 0;
+  ps->m        = 0;
   ps->k        = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ps->mat[i]  = PETSC_NULL;
@@ -695,7 +696,7 @@ PetscErrorCode PSSetFromOptions(PS ps)
 @*/
 PetscErrorCode PSView(PS ps,PetscViewer viewer)
 {
-  PetscBool         isascii;
+  PetscBool         isascii,issvd;
   const char        *state;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
@@ -718,7 +719,12 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
         default: SETERRQ(((PetscObject)ps)->comm,1,"Wrong value of ps->state");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)ps,PSSVD,&issvd);CHKERRQ(ierr);
+      if (issvd) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->m,ps->l,ps->k);CHKERRQ(ierr);
+      } else {
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
+      }
       ierr = PetscViewerASCIIPrintf(viewer,"  flags: %s %s %s\n",ps->compact?"compact":"",ps->extrarow?"extrarow":"",ps->refined?"refined":"");CHKERRQ(ierr);
     }
     if (ps->ops->view) {
@@ -829,7 +835,7 @@ PetscErrorCode PSAllocateWork_Private(PS ps,PetscInt s,PetscInt r,PetscInt i)
 PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 {
   PetscErrorCode    ierr;
-  PetscInt          i,j,rows;
+  PetscInt          i,j,rows,cols;
   PetscScalar       *v;
   PetscViewerFormat format;
 #if defined(PETSC_USE_COMPLEX)
@@ -841,15 +847,16 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
   rows = (m==PS_MAT_A && ps->extrarow)? ps->n+1: ps->n;
+  cols = (ps->m!=0)? ps->m: ps->n;
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
   v = ps->mat[m];
   for (i=0;i<rows;i++)
-    for (j=0;j<ps->n;j++)
+    for (j=0;j<cols;j++)
       if (PetscImaginaryPart(v[i+j*ps->ld])) { allreal = PETSC_FALSE; break; }
 #endif
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,ps->n);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,cols);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",PSMatName[m]);CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",PSMatName[m]);CHKERRQ(ierr);
@@ -857,7 +864,7 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 
   for (i=0;i<rows;i++) {
     v = ps->mat[m]+i;
-    for (j=0;j<ps->n;j++) {
+    for (j=0;j<cols;j++) {
 #if defined(PETSC_USE_COMPLEX)
       if (allreal) {
         ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",PetscRealPart(*v));CHKERRQ(ierr);
@@ -983,6 +990,7 @@ PetscErrorCode PSReset(PS ps)
   ps->ld       = 0;
   ps->l        = 0;
   ps->n        = 0;
+  ps->m        = 0;
   ps->k        = 0;
   for (i=0;i<PS_NUM_MAT;i++) {
     ierr = PetscFree(ps->mat[i]);CHKERRQ(ierr);
@@ -1072,6 +1080,7 @@ extern PetscErrorCode PSCreate_HEP(PS);
 extern PetscErrorCode PSCreate_NHEP(PS);
 extern PetscErrorCode PSCreate_GHIEP(PS);
 extern PetscErrorCode PSCreate_GNHEP(PS);
+extern PetscErrorCode PSCreate_SVD(PS);
 EXTERN_C_END
 
 #undef __FUNCT__  
@@ -1096,6 +1105,7 @@ PetscErrorCode PSRegisterAll(const char *path)
   ierr = PSRegisterDynamic(PSNHEP,path,"PSCreate_NHEP",PSCreate_NHEP);CHKERRQ(ierr);
   ierr = PSRegisterDynamic(PSGHIEP,path,"PSCreate_GHIEP",PSCreate_GHIEP);CHKERRQ(ierr);
   ierr = PSRegisterDynamic(PSGNHEP,path,"PSCreate_GNHEP",PSCreate_GNHEP);CHKERRQ(ierr);
+  ierr = PSRegisterDynamic(PSSVD,path,"PSCreate_SVD",PSCreate_SVD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1110,7 +1120,7 @@ PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
   PetscFunctionBegin;
   ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
   ierr = PetscMemzero(x,ps->ld*ps->n*sizeof(PetscScalar));
-  for (i=0; i<ps->n; i++) {
+  for (i=0;i<ps->n;i++) {
     x[ps->ld*i+i] = 1.0;
   }
   ierr = PSRestoreArray(ps,mat,&x);CHKERRQ(ierr);
