@@ -1,0 +1,18 @@
+Solve a Projected System of type PSGHIEP with compact storage - dimension 10.
+PS Object: 1 MPI processes
+  type: ghiep
+  current state: raw
+  dimensions: ld=12, n=10, l=2, k=5
+  flags: compact  
+  solving the problem with: HR method
+Computed eigenvalues =
+  1.00000
+  2.00000
+  10.67214
+  8.57139
+  5.25172
+  0.72662+5.02812i
+  0.72662-5.02812i
+  3.33899
+  2.92155
+  -2.20903
