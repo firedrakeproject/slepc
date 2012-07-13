@@ -24,17 +24,18 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/ps/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c
 EXAMPLESF  = 
 MANSEC     = PS
-TESTS      = test1 test2 test3 test4 test5 test6
+TESTS      = test1 test2 test3 test4 test5 test6 test7
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
                        test3.PETSc runtest3_1 test3.rm \
                        test4.PETSc runtest4_1 test4.rm \
                        test5.PETSc runtest5_1 test5.rm \
-                       test6.PETSc runtest6_1 test6.rm
+                       test6.PETSc runtest6_1 test6.rm \
+                       test7.PETSc runtest7_1 test7.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -61,6 +62,10 @@ test5: test5.o chkopts
 test6: test6.o chkopts
 	-${CLINKER} -o test6 test6.o ${SLEPC_LIB}
 	${RM} test6.o
+
+test7: test7.o chkopts
+	-${CLINKER} -o test7 test7.o ${SLEPC_LIB}
+	${RM} test7.o
 
 #------------------------------------------------------------------------------------
 
@@ -99,3 +104,9 @@ runtest6_1:
 	  if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
 	  else echo "Possible problem with test6_1, diffs above"; fi; \
 	  ${RM} -f test6_1.tmp
+
+runtest7_1:
+	-@${MPIEXEC} -np 1 ./test7 > test7_1.tmp 2>&1; \
+	  if (${DIFF} output/test7_1.out test7_1.tmp) then true; \
+	  else echo "Possible problem with test7_1, diffs above"; fi; \
+	  ${RM} -f test7_1.tmp

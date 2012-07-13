@@ -64,7 +64,7 @@ int main( int argc, char **argv )
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { A[i+(i+j)*ld]=1.0; A[(i+j)+i*ld]=1.0; }
   }
-  for (j=1;j<3;j++) { A[0+j*ld]=-1.0*(j+2);  A[j+0*ld]=-1.0*(j+2); }
+  for (j=1;j<3;j++) { A[0+j*ld]=-1.0*(j+2); A[j+0*ld]=-1.0*(j+2); }
   /* Signature matrix */
   for (i=0;i<n;i++) B[i+i*ld]=1.0;
   B[0] = -1.0;
@@ -93,7 +93,7 @@ int main( int argc, char **argv )
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(eigr[i]);
-    im = PetscImaginaryPart(eigi[i]);
+    im = PetscImaginaryPart(eigr[i]);
 #else
     re = eigr[i];
     im = eigi[i];

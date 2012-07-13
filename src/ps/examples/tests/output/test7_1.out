@@ -1,0 +1,17 @@
+Solve a Projected System of type PSSVD - dimension 15x10.
+PS Object: 1 MPI processes
+  type: svd
+  current state: raw
+  dimensions: ld=17, n=15, m=10, l=0, k=0
+  flags:   
+Computed singular values =
+  7.68043
+  6.99017
+  4.89127
+  4.43402
+  3.26865
+  2.37314
+  2.04706
+  1.93789
+  1.06266
+  0.41517

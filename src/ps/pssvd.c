@@ -33,9 +33,9 @@ PetscErrorCode PSAllocate_SVD(PS ps,PetscInt ld)
   ierr = PSAllocateMat_Private(ps,PS_MAT_U);CHKERRQ(ierr); 
   ierr = PSAllocateMat_Private(ps,PS_MAT_VT);CHKERRQ(ierr); 
   ierr = PSAllocateMatReal_Private(ps,PS_MAT_T);CHKERRQ(ierr); 
-/*  ierr = PetscFree(ps->perm);CHKERRQ(ierr);
+  ierr = PetscFree(ps->perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ld*sizeof(PetscInt),&ps->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(ps,ld*sizeof(PetscInt));CHKERRQ(ierr); */
+  ierr = PetscLogObjectMemory(ps,ld*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -58,38 +58,24 @@ PetscErrorCode PSView_SVD(PS ps,PetscViewer viewer)
 #define __FUNCT__ "PSVectors_SVD"
 PetscErrorCode PSVectors_SVD(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
-  PetscScalar    *Q = ps->mat[PS_MAT_Q];
-  PetscInt       ld = ps->ld;
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-/*  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
+  if (ps->state<PS_STATE_CONDENSED) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSSolve() first");
   switch (mat) {
-    case PS_MAT_X:
-    case PS_MAT_Y:
-      if (j) {
-        ierr = PetscMemcpy(ps->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
-      } else {
-        ierr = PetscMemcpy(ps->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      if (rnorm) *rnorm = PetscAbsScalar(Q[ps->n-1+(*j)*ld]);
-      break;
     case PS_MAT_U:
     case PS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
       SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
-  }*/
+  }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSolve_SVD_Sort"
 /*
-  Sort the eigendecomposition at the end of any PSSolve_SVD_* method. 
+  Sort the singular value decomposition at the end of any PSSolve_SVD_* method. 
 */
-/*static PetscErrorCode PSSolve_SVD_Sort(PS ps,PetscScalar *wr)
+static PetscErrorCode PSSolve_SVD_Sort(PS ps,PetscScalar *wr)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm;
@@ -97,61 +83,14 @@ PetscErrorCode PSVectors_SVD(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 
   PetscFunctionBegin;
   if (!ps->comp_fun) PetscFunctionReturn(0);
-  n = ps->n;
   l = ps->l;
+  n = PetscMin(ps->n,ps->m);
   d = ps->rmat[PS_MAT_T];
   perm = ps->perm;
   ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
-  ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);
+  ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_U,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
-  PetscFunctionReturn(0);
-}*/
-
-#undef __FUNCT__  
-#define __FUNCT__ "PSSolve_SVD_Update"
-/*
-  Helper function that is called at the end of any PSSolve_SVD_* method. 
-*/
-static PetscErrorCode PSSolve_SVD_Update(PS ps)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,l=ps->l;
-  PetscBLASInt   n,ld,incx=1;
-  PetscScalar    *A,*Q,*x,*y,one=1.0,zero=0.0;
-  PetscReal      *d,*e,beta;
-
-  PetscFunctionBegin;
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
-  A  = ps->mat[PS_MAT_A];
-  Q  = ps->mat[PS_MAT_Q];
-  d  = ps->rmat[PS_MAT_T];
-  e  = ps->rmat[PS_MAT_T]+ld;
-
-/*  if (ps->compact) {
-    if (ps->extrarow) {
-      beta = e[n-1];
-      for (i=0;i<n;i++) e[i] = PetscRealPart(beta*Q[n-1+i*ld]);
-      ps->k = n;
-    } else {
-      ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
-    }
-  } else {
-    for (i=l;i<n;i++) {
-      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-    for (i=l;i<n;i++) A[i+i*ld] = d[i];
-    if (ps->extrarow) {
-      ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
-      x = ps->work;
-      y = ps->work+ld;
-      for (i=0;i<n;i++) x[i] = A[n+i*ld];
-      BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
-      for (i=0;i<n;i++) A[n+i*ld] = y[i];
-      ps->k = n;
-    }
-  }*/
   PetscFunctionReturn(0);
 }
 
@@ -164,10 +103,13 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESDD/BDSDC - Lapack routines are unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j;
+  PetscInt       i;
   PetscBLASInt   n1,n2,n3,info,l,n,m,nm,ld,off,lwork;
   PetscScalar    *A,*U,*VT,qwork;
   PetscReal      *d,*e,*Ur,*VTr;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
+#endif
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
@@ -219,9 +161,9 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
     lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
     ierr = PSAllocateWork_Private(ps,0,5*nm*nm+7*nm,0);CHKERRQ(ierr); 
-    LAPACKgesdd_("O",&n,&m,A,&ld,d,U,&ld,VT,&ld,&qwork,&lwork,ps->rwork,ps->iwork,&info);
+    LAPACKgesdd_("A",&n,&m,A,&ld,d,U,&ld,VT,&ld,&qwork,&lwork,ps->rwork,ps->iwork,&info);
 #else
-    LAPACKgesdd_("O",&n,&m,A,&ld,d,U,&ld,VT,&ld,&qwork,&lwork,ps->iwork,&info);
+    LAPACKgesdd_("A",&n,&m,A,&ld,d,U,&ld,VT,&ld,&qwork,&lwork,ps->iwork,&info);
 #endif 
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
     lwork = (PetscBLASInt)PetscRealPart(qwork);
@@ -229,16 +171,15 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
 
     /* computation */  
 #if defined(PETSC_USE_COMPLEX)
-    LAPACKgesdd_("O",&m,&n,A,&ld,d,U,&ld,VT,&ld,ps->work,&lwork,ps->rwork,ps->iwork,&info);
+    LAPACKgesdd_("A",&n,&m,A,&ld,d,U,&ld,VT,&ld,ps->work,&lwork,ps->rwork,ps->iwork,&info);
 #else
-    LAPACKgesdd_("O",&m,&n,A,&ld,d,U,&ld,VT,&ld,ps->work,&lwork,ps->iwork,&info);
+    LAPACKgesdd_("A",&n,&m,A,&ld,d,U,&ld,VT,&ld,ps->work,&lwork,ps->iwork,&info);
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
 
   }
 
-  //ierr = PSSolve_SVD_Sort(ps,wr);CHKERRQ(ierr);
-  //ierr = PSSolve_SVD_Update(ps);CHKERRQ(ierr);
+  ierr = PSSolve_SVD_Sort(ps,wr);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

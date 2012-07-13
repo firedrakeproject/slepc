@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test PSGHIEP with compact storage.\n\n";
+static char help[] = "Test PSSVD.\n\n";
 
 #include "slepcps.h"
 
@@ -29,28 +29,26 @@ int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
   PS             ps;
-  PetscReal      *T,*s,re,im;
-  PetscScalar    *eigr,*eigi;
-  PetscInt       i,n=10,l=2,k=5,ld;
+  PetscReal      sigma;
+  PetscScalar    *A,*w;
+  PetscInt       i,j,k,n=15,m=10,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type PSGHIEP with compact storage - dimension %D.\n",n);CHKERRQ(ierr); 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-l",&l,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
-  if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,1,"Wrong value of dimensions");
+  ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,PETSC_NULL);CHKERRQ(ierr);
+  k = PetscMin(n,m);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type PSSVD - dimension %Dx%D.\n",n,m);CHKERRQ(ierr); 
   ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create PS object */
   ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
-  ierr = PSSetType(ps,PSGHIEP);CHKERRQ(ierr);
+  ierr = PSSetType(ps,PSSVD);CHKERRQ(ierr);
   ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
-  ierr = PSSetDimensions(ps,n,PETSC_IGNORE,l,k);CHKERRQ(ierr);
-  ierr = PSSetCompact(ps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PSSetDimensions(ps,n,m,0,0);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -61,55 +59,38 @@ int main( int argc, char **argv )
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
-  /* Fill arrow-tridiagonal matrix */
-  ierr = PSGetArrayReal(ps,PS_MAT_T,&T);CHKERRQ(ierr);
-  ierr = PSGetArrayReal(ps,PS_MAT_D,&s);CHKERRQ(ierr);
-  for (i=0;i<n;i++) T[i] = (PetscReal)(i+1);
-  for (i=k;i<n-1;i++) T[i+ld] = 1.0;
-  for (i=l;i<k;i++) T[i+2*ld] = 1.0;
-  T[2*ld+l+1] = -7; T[ld+k+1] = -7;
-  /* Signature matrix */
-  for (i=0;i<n;i++) s[i] = 1.0;
-  s[l+1] = -1.0;
-  s[k+1] = -1.0;
-  ierr = PSRestoreArrayReal(ps,PS_MAT_T,&T);CHKERRQ(ierr);
-  ierr = PSRestoreArrayReal(ps,PS_MAT_D,&s);CHKERRQ(ierr);
-  if (l==0 && k==0) {
-    ierr = PSSetState(ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-  } else {
-    ierr = PSSetState(ps,PS_STATE_RAW);CHKERRQ(ierr);
+  /* Fill with a rectangular Toeplitz matrix */
+  ierr = PSGetArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
+  for (i=0;i<k;i++) A[i+i*ld]=1.0;
+  for (j=1;j<3;j++) {
+    for (i=0;i<n-j;i++) { if ((i+j)<m) A[i+(i+j)*ld]=(PetscScalar)(j+1); }
   }
+  for (j=1;j<n/2;j++) {
+    for (i=0;i<n-j;i++) { if ((i+j)<n && i<m) A[(i+j)+i*ld]=-1.0; }
+  }
+  ierr = PSRestoreArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = PSSetState(ps,PS_STATE_RAW);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = PSView(ps,viewer);CHKERRQ(ierr);
   }
 
   /* Solve */
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&eigr);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&eigi);CHKERRQ(ierr);
-  ierr = PetscMemzero(eigi,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PSSetEigenvalueComparison(ps,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSSolve(ps,eigr,eigi);CHKERRQ(ierr);
+  ierr = PetscMalloc(k*sizeof(PetscScalar),&w);CHKERRQ(ierr);
+  ierr = PSSetEigenvalueComparison(ps,SlepcCompareLargestReal,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSSolve(ps,w,PETSC_NULL);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = PSView(ps,viewer);CHKERRQ(ierr);
   }
   
-  /* Print eigenvalues */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n",n);CHKERRQ(ierr); 
-  for (i=0;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(eigr[i]);
-    im = PetscImaginaryPart(eigr[i]);
-#else
-    re = eigr[i];
-    im = eigi[i];
-#endif 
-    if (PetscAbs(im)<1e-10) { ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",re);CHKERRQ(ierr); }
-    else { ierr = PetscViewerASCIIPrintf(viewer,"  %.5F%+.5Fi\n",re,im);CHKERRQ(ierr); }
+  /* Print singular values */
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n",n);CHKERRQ(ierr); 
+  for (i=0;i<k;i++) {
+    sigma = PetscRealPart(w[i]);
+    ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",sigma);CHKERRQ(ierr);
   }
-  ierr = PetscFree(eigr);CHKERRQ(ierr);
-  ierr = PetscFree(eigi);CHKERRQ(ierr);
+  ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = PSDestroy(&ps);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
