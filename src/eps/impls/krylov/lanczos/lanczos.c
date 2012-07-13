@@ -557,7 +557,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     ierr = EPSBasicLanczos(eps,d,e,eps->V,nconv,&n,f,&breakdown,anorm);CHKERRQ(ierr);
     beta = e[n-1];
     ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
-    ierr = PSSetDimensions(eps->ps,n,nconv,0);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,n,PETSC_IGNORE,nconv,0);CHKERRQ(ierr);
     ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
     /* Solve projected problem */ 

@@ -186,7 +186,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -232,7 +232,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       } else {
         /* Undo translation of Krylov decomposition */ 
         if (harmonic) {
-          ierr = PSSetDimensions(eps->ps,nv,k,l);CHKERRQ(ierr);
+          ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,k,l);CHKERRQ(ierr);
           ierr = PSTranslateHarmonic(eps->ps,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */
           ierr = SlepcVecMAXPBY(u,1.0,-1.0,ld,g,eps->V);CHKERRQ(ierr);        
@@ -263,7 +263,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetDimensions(eps->ps,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

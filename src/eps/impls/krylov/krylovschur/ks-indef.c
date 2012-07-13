@@ -108,7 +108,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     beta = b[nv-1];
     ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
     ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);
-    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -169,7 +169,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     eps->nconv = k;
 
   }
-  ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetDimensions(eps->ps,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

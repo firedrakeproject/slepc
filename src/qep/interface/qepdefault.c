@@ -99,7 +99,7 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(qep->ps,&ld);CHKERRQ(ierr);
-  ierr = PSGetDimensions(qep->ps,&n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetDimensions(qep->ps,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */

@@ -173,7 +173,7 @@ static PetscErrorCode EPSExtractShift(EPS eps){
       }
       sr->nS = k;
       ierr = PSRestoreArray(eps->ps,PS_MAT_A,&A);CHKERRQ(ierr);
-      ierr = PSSetDimensions(eps->ps,ld,0,k);CHKERRQ(ierr);
+      ierr = PSSetDimensions(eps->ps,PETSC_IGNORE,PETSC_IGNORE,0,k);CHKERRQ(ierr);
       /* Normalize u and append it to V */      
       ierr = VecAXPBY(eps->V[sr->nS],1.0/sr->beta,0.0,eps->work[0]);CHKERRQ(ierr);
     }
@@ -232,7 +232,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Rational Krylov */
     ierr = PSTranslateRKS(eps->ps,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = PSGetDimensions(eps->ps,PETSC_NULL,PETSC_NULL,&l);CHKERRQ(ierr);
+    ierr = PSGetDimensions(eps->ps,PETSC_NULL,PETSC_NULL,PETSC_NULL,&l);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(l+1,eps->V,0,l+1,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
   }else{
@@ -253,7 +253,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     }
     beta = b[nv-1];
     ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {

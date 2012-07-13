@@ -220,7 +220,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   while (eps->its<eps->max_it) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    ierr = PSSetDimensions(eps->ps,nv,eps->nconv,0);CHKERRQ(ierr);
+    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
     
     /* Find group in previously computed eigenvalues */
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
@@ -332,7 +332,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   else eps->reason = EPS_DIVERGED_ITS;
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = PSSetDimensions(eps->ps,eps->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetDimensions(eps->ps,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

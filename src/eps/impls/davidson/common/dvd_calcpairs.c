@@ -611,7 +611,7 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   PetscInt        ld;
 
   PetscFunctionBegin;
-  ierr = PSSetDimensions(d->ps,d->size_H,0,0);CHKERRQ(ierr);
+  ierr = PSSetDimensions(d->ps,d->size_H,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   ierr = PSGetArray(d->ps,PS_MAT_A,&A);CHKERRQ(ierr);
   ierr = SlepcDenseCopyTriang(A,0,ld,d->H,d->sH,d->ldH,d->size_H,d->size_H);CHKERRQ(ierr);
@@ -759,7 +759,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
   if (d->size_auxV < PetscMax(2*(r_e-r_s),d->cX_in_AV+r_e) || d->size_auxS < PetscMax(d->size_H*(r_e-r_s) /* pX0 */, 2*size_in /* SlepcAllReduceSum */ )) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
 
   n = d->size_cX+r_e;
-  ierr = PSSetDimensions(d->conv_ps,n,0,0);CHKERRQ(ierr);
+  ierr = PSSetDimensions(d->conv_ps,n,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(d->conv_ps,&ldc);CHKERRQ(ierr);
   ierr = PSGetArray(d->conv_ps,PS_MAT_A,&cS);CHKERRQ(ierr);
   ierr = SlepcDenseCopyTriang(cS,0,ldc,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);

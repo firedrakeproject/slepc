@@ -639,7 +639,7 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
 
   if (d->cS) {
     /* Compute the eigenvectors associated to (cS, cT) */
-    ierr = PSSetDimensions(d->conv_ps,d->size_cS,0,0);CHKERRQ(ierr);
+    ierr = PSSetDimensions(d->conv_ps,d->size_cS,PETSC_IGNORE,0,0);CHKERRQ(ierr);
     ierr = PSGetLeadingDimension(d->conv_ps,&ld);CHKERRQ(ierr);
     ierr = PSGetArray(d->conv_ps,PS_MAT_A,&cS);CHKERRQ(ierr);
     ierr = SlepcDenseCopyTriang(cS,0,ld,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);

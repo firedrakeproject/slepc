@@ -220,7 +220,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     ierr = PSGetArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
     ierr = QEPQArnoldi(qep,S,ld,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
     ierr = PSRestoreArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = PSSetDimensions(qep->ps,nv,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
+    ierr = PSSetDimensions(qep->ps,nv,PETSC_IGNORE,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = PSSetState(qep->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -247,7 +247,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = PSTruncate(qep->ps,k+l);CHKERRQ(ierr);
-        ierr = PSGetDimensions(qep->ps,&newn,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = PSGetDimensions(qep->ps,&newn,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         l = newn-k;
       }
     }
@@ -267,7 +267,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = PSSetDimensions(qep->ps,qep->nconv,0,0);CHKERRQ(ierr);
+  ierr = PSSetDimensions(qep->ps,qep->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = PSSetState(qep->ps,PS_STATE_RAW);CHKERRQ(ierr);
 
   /* Compute eigenvectors */

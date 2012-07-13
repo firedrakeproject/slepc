@@ -108,7 +108,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 
   PetscFunctionBegin;
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PSGetArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
   ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
@@ -173,7 +173,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     PetscFunctionReturn(0);
   }
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */

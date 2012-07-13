@@ -130,23 +130,29 @@ PetscErrorCode PSGetState(PS ps,PSStateType *state)
    Input Parameters:
 +  ps - the projected system context
 .  n  - the new size
+.  m  - the new column size (only for SVD)
 .  l  - number of locked (inactive) leading columns
 -  k  - intermediate dimension (e.g., position of arrow)
 
-   Note:
+   Notes:
    The internal arrays are not reallocated.
+
+   The value m is not used except in the case of PSSVD, pass PETSC_IGNORE
+   otherwise. PETSC_IGNORE can also be used in any of the other parameters
+   to leave the value unchanged.
 
    Level: advanced
 
 .seealso: PSGetDimensions(), PSAllocate()
 @*/
-PetscErrorCode PSSetDimensions(PS ps,PetscInt n,PetscInt l,PetscInt k)
+PetscErrorCode PSSetDimensions(PS ps,PetscInt n,PetscInt m,PetscInt l,PetscInt k)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ps,n,2);
-  PetscValidLogicalCollectiveInt(ps,l,3);
-  PetscValidLogicalCollectiveInt(ps,k,4);
+  PetscValidLogicalCollectiveInt(ps,m,3);
+  PetscValidLogicalCollectiveInt(ps,l,4);
+  PetscValidLogicalCollectiveInt(ps,k,5);
   if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
   if (n!=PETSC_IGNORE) {
     if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
@@ -157,17 +163,29 @@ PetscErrorCode PSSetDimensions(PS ps,PetscInt n,PetscInt l,PetscInt k)
       ps->n = n;
     }
   }
-  if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
-    ps->l = 0;
-  } else {
-    if (l<0 || l>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
-    ps->l = l;
+  if (m!=PETSC_IGNORE) {
+    if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
+      ps->m = ps->ld;
+    } else {
+      if (m<1 || m>ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
+      ps->m = m;
+    }
   }
-  if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
-    ps->k = ps->n/2;
-  } else {
-    if (k<0 || k>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
-    ps->k = k;
+  if (l!=PETSC_IGNORE) {
+    if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+      ps->l = 0;
+    } else {
+      if (l<0 || l>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
+      ps->l = l;
+    }
+  }
+  if (k!=PETSC_IGNORE) {
+    if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
+      ps->k = ps->n/2;
+    } else {
+      if (k<0 || k>ps->n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
+      ps->k = k;
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -183,17 +201,21 @@ PetscErrorCode PSSetDimensions(PS ps,PetscInt n,PetscInt l,PetscInt k)
 .  ps - the projected system context
 
    Output Parameter:
-.  state - current dimensions
++  n  - the current size
+.  m  - the current column size (only for SVD)
+.  l  - number of locked (inactive) leading columns
+-  k  - intermediate dimension (e.g., position of arrow)
 
    Level: advanced
 
 .seealso: PSSetDimensions()
 @*/
-PetscErrorCode PSGetDimensions(PS ps,PetscInt *n,PetscInt *l,PetscInt *k)
+PetscErrorCode PSGetDimensions(PS ps,PetscInt *n,PetscInt *m,PetscInt *l,PetscInt *k)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   if (n) *n = ps->n;
+  if (m) *m = ps->m;
   if (l) *l = ps->l;
   if (k) *k = ps->k;
   PetscFunctionReturn(0);

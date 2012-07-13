@@ -46,7 +46,7 @@ int main( int argc, char **argv )
   ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
-  ierr = PSSetDimensions(ps,n,0,0);CHKERRQ(ierr);
+  ierr = PSSetDimensions(ps,n,PETSC_IGNORE,0,0);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

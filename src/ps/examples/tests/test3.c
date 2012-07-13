@@ -50,7 +50,7 @@ int main( int argc, char **argv )
   ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
-  ierr = PSSetDimensions(ps,n,l,k);CHKERRQ(ierr);
+  ierr = PSSetDimensions(ps,n,PETSC_IGNORE,l,k);CHKERRQ(ierr);
   ierr = PSSetCompact(ps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PSSetExtraRow(ps,extrarow);CHKERRQ(ierr);
 
