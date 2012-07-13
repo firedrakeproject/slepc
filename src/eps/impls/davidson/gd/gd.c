@@ -123,6 +123,7 @@ PetscErrorCode EPSCreate_GD(EPS eps)
   /* Load the Davidson solver */
   ierr = EPSCreate_Davidson(eps);CHKERRQ(ierr);
   ierr = EPSDavidsonSetFix_Davidson(eps,0.0);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetMethod_Davidson(eps,DVD_METH_GD);CHKERRQ(ierr);
 
   /* Overload the GD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_GD;

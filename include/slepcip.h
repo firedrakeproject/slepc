@@ -91,7 +91,7 @@ PETSC_EXTERN PetscErrorCode IPDestroy(IP*);
 PETSC_EXTERN PetscErrorCode IPReset(IP);
 
 PETSC_EXTERN PetscErrorCode IPOrthogonalize(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscBool*);
-PETSC_EXTERN PetscErrorCode IPBOrthogonalize(IP,PetscInt,Vec*,Vec*,PetscInt,PetscBool*,Vec*,Vec*,Vec,Vec,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode IPBOrthogonalize(IP,PetscInt,Vec*,Vec*,PetscReal*,PetscInt,PetscBool*,Vec*,Vec*,PetscReal*,Vec,Vec,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscScalar*,PetscReal*);
 PETSC_EXTERN PetscErrorCode IPPseudoOrthogonalize(IP,PetscInt,Vec*,PetscReal*,Vec,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt);

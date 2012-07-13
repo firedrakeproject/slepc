@@ -31,7 +31,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals,
-  orthoV_type_t orth, PetscInt cX_proj, PetscInt cX_impr)
+  orthoV_type_t orth, PetscInt cX_proj, PetscInt cX_impr, Method_t method)
 {
   PetscErrorCode ierr;
   PetscInt       check_sum0, check_sum1;
@@ -66,9 +66,14 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     }
   
     /* Setup the method for improving the eigenvectors */
-    ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, PETSC_FALSE); CHKERRQ(ierr);
-    ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX); CHKERRQ(ierr);
-    ierr = dvd_improvex_jd_lit_const(d, b, 0, 0.0, 0.0); CHKERRQ(ierr);
+    switch(method) {
+      case DVD_METH_GD:
+      case DVD_METH_JD:
+      ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, PETSC_FALSE); CHKERRQ(ierr);
+      ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX); CHKERRQ(ierr);
+      ierr = dvd_improvex_jd_lit_const(d, b, 0, 0.0, 0.0); CHKERRQ(ierr);
+      break;
+    }
   }
 
   PetscFunctionReturn(0);
@@ -82,7 +87,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init, PetscBool allResiduals, orthoV_type_t orth,
-  PetscInt cX_proj, PetscInt cX_impr, PetscBool dynamic)
+  PetscInt cX_proj, PetscInt cX_impr, PetscBool dynamic, Method_t method)
 {
   PetscInt        check_sum0, check_sum1, maxits;
   Vec             *fv;
@@ -118,18 +123,23 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   }
 
   /* Setup the method for improving the eigenvectors */
-  ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, dynamic); CHKERRQ(ierr);
-  ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX);
-  CHKERRQ(ierr);
-  ierr = KSPGetTolerances(ksp, &tol, PETSC_NULL, PETSC_NULL, &maxits);
-  CHKERRQ(ierr);
-  ierr = dvd_improvex_jd_lit_const(d, b, maxits, tol, fix); CHKERRQ(ierr);
+  switch(method) {
+    case DVD_METH_GD:
+    case DVD_METH_JD:
+    ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, dynamic); CHKERRQ(ierr);
+    ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX);
+    CHKERRQ(ierr);
+    ierr = KSPGetTolerances(ksp, &tol, PETSC_NULL, PETSC_NULL, &maxits);
+    CHKERRQ(ierr);
+    ierr = dvd_improvex_jd_lit_const(d, b, maxits, tol, fix); CHKERRQ(ierr);
+    break;
+  }
 
   check_sum1 = DVD_CHECKSUM(b);
   if ((check_sum0 != check_sum1) ||
       (b->free_vecs - fv > b->own_vecs) ||
       (b->free_scalars - fs > b->own_scalars))
     SETERRQ(PETSC_COMM_SELF,1, "Something awful happened");
-    
+   
   PetscFunctionReturn(0);
 }

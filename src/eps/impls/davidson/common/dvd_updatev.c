@@ -58,8 +58,6 @@ typedef struct {
     allResiduals;   /* if computing all the residuals */
 } dvdManagV_basic;
 
-#define _Ceil(A,B) ((A)/(B)+((A)%(B)==0?0:1))
-#define FromRealToScalar(S) ((PetscInt)_Ceil((S)*sizeof(PetscReal),sizeof(PetscScalar)))
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic"
@@ -90,14 +88,13 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
   b->max_size_V = PetscMax(b->max_size_V, mpd);
   min_size_V = PetscMin(min_size_V, mpd-bs);
   b->max_size_auxV = PetscMax(b->max_size_auxV, 1); /* dvd_updateV_testConv */
-  b->max_size_auxS = PetscMax(b->max_size_auxS, b->max_size_V*2 /* SlepcDenseOrth  */ );
   b->size_V = PetscMax(b->size_V, b->max_size_V + b->max_size_P + b->max_nev);
   b->own_scalars+= b->size_V*2 /* eigr, eigr */ +
                    b->size_V /* nR */   +
                    b->size_V /* nX */   +
                    b->size_V /* errest */ +
-                   b->max_size_V*b->max_size_V*(harm?2:1)*(plusk>0?2:1)
-                                               /* MTX,MTY?,oldU,oldV? */;
+                   b->max_size_V*b->max_size_V*(harm?2:1)*(plusk>0?1:0)
+                                               /* oldU,oldV? */;
   b->max_size_oldX = plusk;
 
   /* Setup the step */
@@ -116,17 +113,14 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
     d->real_nR = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
     d->real_nX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
     d->real_errest = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
-    d->MTX = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     if (plusk > 0) {
       data->oldU = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     }
     if (harm) {
-      d->MTY = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       if (plusk > 0) {
         data->oldV = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       }
     } else {
-      d->MTY = PETSC_NULL;
       data->oldV = PETSC_NULL;
     }
 
@@ -165,7 +159,6 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   for(i=0; i<d->size_real_V; i++) d->errest[i] = PETSC_MAX_REAL;
   data->ldoldU = 0;
   data->oldV = PETSC_NULL;
-  d->ldMTY = 0;
   data->size_oldU = 0;
   d->nconv = 0;
   d->npreconv = 0;
@@ -277,34 +270,30 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 
   npreconv+= d->cX_in_H;
   ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-  d->ldMTX = d->ldMTY = d->size_H;
   d->size_MT = d->size_H;
   cMT = d->size_H - npreconv;
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
-  if (d->W||!d->cY||d->BcX||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN)) {
-    /* MTX <- ps.Q */
+  if (!(d->W||!d->cY||d->BcX||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
+    /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
     ierr = PSGetArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(d->MTX,d->ldMTX,pQ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
-  } else {
-    /* MTX <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
-    ierr = PSGetArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(d->MTX,d->ldMTX,pQ,ld,d->size_H,npreconv);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
     ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(&d->MTX[d->ldMTX*npreconv],d->ldMTX,&pZ[ld*npreconv],ld,d->size_H,cMT);CHKERRQ(ierr);
+    ierr = SlepcDenseCopy(&pQ[ld*npreconv],ld,&pZ[ld*npreconv],ld,d->size_H,cMT);CHKERRQ(ierr);
+    ierr = PSRestoreArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
     ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = SlepcDenseOrth(d->MTX,d->ldMTX,d->size_H,d->size_H,d->auxS,d->size_auxS,&cMTX);CHKERRQ(ierr);
-    cMT = cMTX - npreconv;
+  }
+  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
+    ierr = PSPseudoOrthogonalize(d->ps,PS_MAT_Q,d->size_H,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
+  } else {
+    ierr = PSOrthogonalize(d->ps,PS_MAT_Q,d->size_H,&cMTX);CHKERRQ(ierr);
+  }
+  cMT = cMTX - npreconv;
+
+  if (d->W) {
+    ierr = PSOrthogonalize(d->ps,PS_MAT_Z,d->size_H,&cMTX);CHKERRQ(ierr);
+    cMT = PetscMin(cMT,cMTX - npreconv);
   }
 
-  if (d->MTY) {
-    /* MTY <- ps.Z */
-    ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(d->MTY,d->ldMTY,pZ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
-  }
   /* Lock the converged pairs */
   d->eigr+= npreconv-d->cX_in_H;
 #if !defined(PETSC_USE_COMPLEX)
@@ -356,7 +345,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        size_plusk,size_X,i,j,ld,cMTX,cMTY;
-  PetscScalar     *pX,*pZ;
+  PetscScalar     *pQ,*pZ;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
@@ -371,42 +360,47 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
                                     data->size_oldU ),
                                     d->max_size_V - size_X ));
 
-  /* Harmonics restarts wiht right eigenvectors, and other with the left ones */
-  ierr = PSGetArray(d->ps,(d->W||!d->cY||d->BcX)?PS_MAT_Q:PS_MAT_Z,&pX);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-
-  /* MTX <- orth([pX(0:size_X-1) [oldU(0:size_plusk-1); 0] ]) */
-  d->ldMTX = d->size_MT = d->size_H;
-  ierr = SlepcDenseCopy(d->MTX,d->ldMTX,pX,ld,d->size_H,size_X);CHKERRQ(ierr);
-  ierr = PSRestoreArray(d->ps,(d->W||!d->cY||d->BcX)?PS_MAT_Q:PS_MAT_Z,&pX);CHKERRQ(ierr);
+  d->size_MT = d->size_H;
+  /* ps.Q <- orth([pX(0:size_X-1) [oldU(0:size_plusk-1); 0] ]) */
+  /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
+     If the problem is standard or hermitian, left and right vectors are the same */
+  ierr = PSGetArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
+  if (!(d->W||!d->cY||d->BcX||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
+    ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = SlepcDenseCopy(pQ,ld,pZ,ld,d->size_H,size_X);CHKERRQ(ierr);
+    ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+  }
+  if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems"); 
   if (size_plusk > 0) {
-    ierr = SlepcDenseCopy(&d->MTX[d->ldMTX*size_X],d->ldMTX,data->oldU,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
+    ierr = SlepcDenseCopy(&pQ[ld*size_X],ld,data->oldU,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
     for(i=size_X; i<size_X+size_plusk; i++) {
       for(j=data->size_oldU; j<d->size_H; j++) {
-        d->MTX[j*d->ldMTX+i] = 0.0;
+        pQ[j*ld+i] = 0.0;
       }
     }
-    ierr = SlepcDenseOrth(d->MTX,d->ldMTX,d->size_V,size_X+size_plusk,d->auxS,d->size_auxS,&cMTX);CHKERRQ(ierr);
+  }
+  ierr = PSRestoreArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
+  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
+    ierr = PSPseudoOrthogonalize(d->ps,PS_MAT_Q,size_X,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
   } else {
-    cMTX = size_X;
+    ierr = PSOrthogonalize(d->ps,PS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
   }
 
-  if (d->MTY) {
-    /* MTY <- orth([pY(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
-    d->ldMTY = d->ldMTX;
-    ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(d->MTY,d->ldMTY,pZ,ld,d->size_H,size_X);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+  if (d->W) {
+    /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
     if (size_plusk > 0) {
-      ierr = SlepcDenseCopy(&d->MTY[d->ldMTY*size_X],d->ldMTY,data->oldV,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
+      ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+      ierr = SlepcDenseCopy(&pZ[ld*size_X],ld,data->oldV,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
       for(i=size_X; i<size_X+size_plusk; i++) {
         for(j=data->size_oldU; j<d->size_H; j++) {
-          d->MTY[j*d->ldMTY+i] = 0.0;
+          pZ[j*ld+i] = 0.0;
         }
       }
-      ierr = SlepcDenseOrth(d->MTY,d->ldMTY,d->size_V,size_X+size_plusk,d->auxS,d->size_auxS,&cMTY);CHKERRQ(ierr);
-      cMTX = PetscMin(cMTX, cMTY);
     }
+    ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = PSOrthogonalize(d->ps,PS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
+    cMTX = PetscMin(cMTX, cMTY);
   }
 
   /* Notify the changes in V and update the other subspaces */

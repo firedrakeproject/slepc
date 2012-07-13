@@ -35,13 +35,14 @@ typedef struct {
     initialsize,          /* initial size of V */
     minv,                 /* size of V after restarting */
     plusk;                /* keep plusk eigenvectors from the last iteration */
-  PetscBool  ipB;         /* true if V'B*V=I */
+  PetscBool  ipB;         /* true if B-ortho is used */
   PetscInt   method;      /* method for improving the approximate solution */
   PetscReal  fix;         /* the fix parameter */
   PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
   PetscBool  dynamic;     /* true if dynamic stopping criterion is used */
   PetscInt   cX_in_proj,  /* converged vectors in the projected problem */
     cX_in_impr;           /* converged vectors in the projector */
+  Method_t   scheme;       /* method employed: GD, JD or GD2 */
 
   /**** Solver data ****/
   dvdDashboard ddb;
@@ -175,11 +176,12 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     dvd->sB = DVD_MAT_IMPLICIT |
               (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
               (ispositive? DVD_MAT_POS_DEF : 0);
-  ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_POS_DEF))?PETSC_TRUE:PETSC_FALSE;
+  ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
   data->ipB = ipB;
   dvd->correctXnorm = ipB;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
-             (ispositive? DVD_EP_HERMITIAN : 0);
+             (ispositive? DVD_EP_HERMITIAN : 0) |
+             ((eps->problem_type == EPS_GHIEP && ipB) ? DVD_EP_INDEFINITE : 0);
   dvd->nev = eps->nev;
   dvd->which = eps->which;
   dvd->withTarget = PETSC_TRUE;
@@ -277,7 +279,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                                 PetscAbs(eps->nini),
                                 plusk,harm,
                                 ksp,init,eps->trackall,
-                                ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr);
+                                ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr,
+                                data->scheme);
   CHKERRQ(ierr);
 
   /* Allocate memory */
@@ -304,7 +307,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                              eps->ip,harm,dvd->withTarget,
                              target,ksp,
                              fix,init,eps->trackall,
-                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr,dynamic);
+                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr,dynamic,
+                             data->scheme);
   CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
@@ -615,6 +619,27 @@ PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,Pets
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDavidsonSetMethod_Davidson"
+PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  data->scheme = method;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDavidsonGetMethod_Davidson"
+PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  *method = data->scheme;
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_Davidson"

@@ -58,6 +58,7 @@ typedef PetscInt MatType_t;
 typedef PetscInt EPType_t;
 #define DVD_EP_STD (1<<1)
 #define DVD_EP_HERMITIAN (1<<2)
+#define DVD_EP_INDEFINITE (1<<3)
 
 #define DVD_IS(T,P) ((T) & (P))
 #define DVD_ISNOT(T,P) (((T) & (P)) ^ (P))
@@ -86,6 +87,11 @@ typedef enum {
     DVD_ORTHOV_BOneMV    /* V is B-orthonormalized using IPBOrthogonalize */
 } orthoV_type_t;
 
+typedef enum {
+  DVD_METH_GD,
+  DVD_METH_JD,
+  DVD_METH_GD2
+} Method_t;
 
 typedef struct _dvdDashboard {
   /**** Function steps ****/
@@ -198,7 +204,12 @@ typedef struct _dvdDashboard {
     *nX,            /* X norm */
     *real_nX,       /* original nX */
     *errest,        /* relative error eigenpairs */
-    *real_errest;   /* original errest */
+    *real_errest,   /* original errest */
+    *nBDS,          /* B-norms of DS */
+    *nBV,           /* B-norms of V */ 
+    *nBcX,          /* B-norms of cX */
+    *nBpX,          /* B-norms of pX */
+    *real_nBV;      /* original nBDS, nBV and nBcX */
 
   /**** Shared function and variables ****/
   PetscErrorCode (*e_Vchanged)(struct _dvdDashboard*, PetscInt s_imm,
@@ -250,8 +261,6 @@ typedef struct _dvdDashboard {
     *real_H,        /* original H */
     *G,             /* Projected problem matrix B*/
     *real_G,        /* original G */
-    *MTX,           /* right transformation matrix */
-    *MTY,           /* left transformation matrix */
     *S,             /* first Schur matrix, S = pY'*H*pX */
     *T,             /* second Schur matrix, T = pY'*G*pX */
     *cS,            /* first Schur matrix of converged pairs */
@@ -260,8 +269,6 @@ typedef struct _dvdDashboard {
     sH,             /* H properties */
     sG;             /* G properties */
   PetscInt ldH,     /* leading dimension of H */
-    ldMTX,          /* leading dimension of MTX */
-    ldMTY,          /* leading dimension of MTY */
     ldS,            /* leading dimension of S */
     ldT,            /* leading dimension of T */
     ldcS,           /* leading dimension of cS */
@@ -434,6 +441,9 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d, dvdBlackboard *b,
 PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d, dvdBlackboard *b,
                                    PetscInt maxits, PetscReal tol,
                                    PetscReal fix);
+PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs);
+PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
+  PetscScalar *pY, PetscInt ld, PetscScalar *auxS, PetscInt size_auxS);
 
 /* Routines for testConv step */
 PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b);
@@ -460,13 +470,13 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals,
-  orthoV_type_t orth, PetscInt cX_proj, PetscInt cX_impr);
+  orthoV_type_t orth, PetscInt cX_proj, PetscInt cX_impr, Method_t method);
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
   PetscReal fix, InitType_t init, PetscBool allResiduals, orthoV_type_t orth,
-  PetscInt cX_proj, PetscInt cX_impr, PetscBool dynamic);
+  PetscInt cX_proj, PetscInt cX_impr, PetscBool dynamic, Method_t method);
 
 /* BLAS routines */
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
@@ -481,9 +491,6 @@ PetscErrorCode SlepcDenseMatProdTriang(
   PetscBool Bt);
 PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
                               PetscInt cA, PetscScalar *eigi);
-PetscErrorCode SlepcDenseOrth(PetscScalar *A, PetscInt _ldA, PetscInt _rA,
-                              PetscInt _cA, PetscScalar *auxS, PetscInt _lauxS,
-                              PetscInt *ncA);
 PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
                               PetscInt ldX, PetscInt rX, PetscInt cX);
 PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
@@ -525,8 +532,8 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
                          PetscInt size_cX, Vec *V, PetscInt V_new_s,
                          PetscInt V_new_e, PetscScalar *auxS,
                          PetscRandom rand);
-PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS, PetscInt size_DS, Vec *cX,
-                         Vec *BcX, PetscInt size_cX, Vec *V, Vec *BV,
+PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS,PetscReal *BDSn, PetscInt size_DS, Vec *cX,
+                         Vec *BcX, PetscReal *BcXn, PetscInt size_cX, Vec *V, Vec *BV,PetscReal *BVn,
                          PetscInt V_new_s, PetscInt V_new_e,
                          PetscScalar *auxS, PetscRandom rand);
 
@@ -553,3 +560,39 @@ PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscB
 PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant);
 PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow);
 PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
+PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method);
+PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method);
+
+/* Common inline function */
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_improvex_compute_X"
+PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,PetscScalar *pX,PetscInt ld)
+{
+  PetscErrorCode  ierr;
+  PetscInt        n = i_e - i_s, i;
+
+  PetscFunctionBegin;
+  ierr = SlepcUpdateVectorsZ(u, 0.0, 1.0, d->V-d->cX_in_H, d->size_V+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
+  /* nX(i) <- ||X(i)|| */
+  if (d->correctXnorm) {
+    for (i=0; i<n; i++) {
+      ierr = VecNormBegin(u[i], NORM_2, &d->nX[i_s+i]);CHKERRQ(ierr);
+    }
+    for (i=0; i<n; i++) {
+      ierr = VecNormEnd(u[i], NORM_2, &d->nX[i_s+i]);CHKERRQ(ierr);
+    }
+#if !defined(PETSC_USE_COMPLEX)
+    for(i=0; i<n; i++)
+      if(d->eigi[i_s+i] != 0.0)
+        d->nX[i_s+i] = d->nX[i_s+i+1] = PetscSqrtScalar(d->nX[i_s+i]*d->nX[i_s+i]+d->nX[i_s+i+1]*d->nX[i_s+i+1]);
+#endif
+  } else {
+    for (i=0; i<n; i++) d->nX[i_s+i] = 1.0;
+  }
+  PetscFunctionReturn(0);
+}
+
+
+#define _Ceil(A,B) ((A)/(B)+((A)%(B)==0?0:1))
+#define FromIntToScalar(S) ((PetscInt)_Ceil((S)*sizeof(PetscBLASInt),sizeof(PetscScalar)))
+#define FromRealToScalar(S) ((PetscInt)_Ceil((S)*sizeof(PetscReal),sizeof(PetscScalar)))

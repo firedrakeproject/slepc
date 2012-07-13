@@ -149,6 +149,8 @@ PETSC_EXTERN PetscErrorCode PSTranslateHarmonic(PS,PetscScalar,PetscReal,PetscBo
 PETSC_EXTERN PetscErrorCode PSTranslateRKS(PS,PetscScalar);
 PETSC_EXTERN PetscErrorCode PSNormalize(PS,PSMatType,PetscInt);
 PETSC_EXTERN PetscErrorCode PSSetIdentity(PS,PSMatType);
+PETSC_EXTERN PetscErrorCode PSOrthogonalize(PS,PSMatType,PetscInt,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSPseudoOrthogonalize(PS,PSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
 PETSC_EXTERN PetscFList PSList;
 PETSC_EXTERN PetscBool  PSRegisterAllCalled;

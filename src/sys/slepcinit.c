@@ -139,7 +139,6 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
   ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("VecMAXPBY",0,&SLEPC_VecMAXPBY);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DenseMatProd",EPS_CLASSID,&SLEPC_SlepcDenseMatProd);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseOrth",EPS_CLASSID,&SLEPC_SlepcDenseOrth);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DenseMatNorm",EPS_CLASSID,&SLEPC_SlepcDenseNorm);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DenseCopy",EPS_CLASSID,&SLEPC_SlepcDenseCopy);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("VecsMult",EPS_CLASSID,&SLEPC_VecsMult);CHKERRQ(ierr);

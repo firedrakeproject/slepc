@@ -31,6 +31,8 @@ PetscLogEvent    PS_Solve = 0,PS_Vectors = 0,PS_Other = 0;
 static PetscBool PSPackageInitialized = PETSC_FALSE;
 const char       *PSMatName[PS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W"};
 
+PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b, PetscScalar a, const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscBool At, const PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscBool Bt);
+
 #undef __FUNCT__  
 #define __FUNCT__ "PSFinalizePackage"
 /*@C
@@ -1111,18 +1113,181 @@ PetscErrorCode PSRegisterAll(const char *path)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSSetIdentity"
+/*@
+   PSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
+   active part of a matrix.
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps  - the projected system context
+-  mat - a matrix
+
+   Level: advanced
+@*/
 PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
 {
   PetscErrorCode ierr;
   PetscScalar    *x;
-  PetscInt       i;
+  PetscInt       i,ld,n,l;
 
   PetscFunctionBegin;
+  ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
   ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
-  ierr = PetscMemzero(x,ps->ld*ps->n*sizeof(PetscScalar));
-  for (i=0;i<ps->n;i++) {
-    x[ps->ld*i+i] = 1.0;
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));
+  for (i=l; i<n; i++) {
+    x[ld*i+i] = 1.0;
   }
   ierr = PSRestoreArray(ps,mat,&x);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSOrthogonalize"
+/*@
+   PSOrthogonalize - Orthogonalize the columns of a matrix with Modified
+   Gram-Schmidt.
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps  - the projected system context
+.  mat - a matrix
+-  cols - number of columns to orthogonalize (starting from the column zero)
+
+   Output Parameter:
+.  lindcols - linear independent columns of the matrix (can be PETSC_NULL) 
+
+   Level: advanced
+@*/
+PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindcols)
+{
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable.");
+#else
+  PetscErrorCode  ierr;
+  PetscInt        n,l,ld;
+  PetscBLASInt    ld_,rA,cA,info,ltau,lw;
+  PetscScalar     *A,*tau,*w,saux;
+
+  PetscFunctionBegin;
+  if (lindcols) {
+    PetscValidIntPointer(lindcols,3);
+  }
+  ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
+  n = n - l;
+  if (cols > n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (n == 0 || cols == 0) { PetscFunctionReturn(0); }
+  ierr = PSGetArray(ps,mat,&A);CHKERRQ(ierr);
+  ltau = PetscBLASIntCast(PetscMin(cols,n));
+  ld_ = PetscBLASIntCast(ld);
+  rA = PetscBLASIntCast(n);
+  cA = PetscBLASIntCast(cols);
+  lw = -1;
+  LAPACKgeqrf_(&rA,&cA,A,&ld_,PETSC_NULL,&saux,&lw,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  lw = (PetscBLASInt)saux;
+  ierr = PSAllocateWork_Private(ps,lw+ltau,0,0);CHKERRQ(ierr);
+  tau = ps->work;
+  w = &tau[ltau];
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  LAPACKorgqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld,tau,w,&lw,&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PSRestoreArray(ps,mat,&A);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  if (lindcols) *lindcols = ltau;
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSPseudoOrthogonalize"
+/*@
+   PSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified
+   Gram-Schmidt in an indefinite inner product space defined by a signature.
+
+   Logically Collective on PS
+
+   Input Parameters:
++  ps  - the projected system context
+.  mat - the matrix
+.  cols - number of columns to orthogonalize (starting from the column zero)
+-  s - the signature that defines the inner product
+
+   Output Parameter:
++  lindcols - linear independent columns of the matrix (can be PETSC_NULL) 
+-  ns - the new norm of the vectors (can be PETSC_NULL)
+
+   Level: advanced
+@*/
+PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)
+{
+  PetscErrorCode  ierr;
+  PetscInt        i,j,k,l,n,ld;
+  PetscBLASInt    one=1,rA_;
+  PetscScalar     *A,*A_,*m,*h,nr0;
+  PetscReal       nr_o,nr,*ns_;
+
+  PetscFunctionBegin;
+  if (lindcols) {
+    PetscValidIntPointer(lindcols,5);
+  }
+  if (ns) {
+    PetscValidScalarPointer(ns,6);
+  }
+  ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
+  n = n - l;
+  if (cols > n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (n == 0 || cols == 0) { PetscFunctionReturn(0); }
+  rA_ = PetscBLASIntCast(n);
+  ierr = PSGetArray(ps,mat,&A_);CHKERRQ(ierr);
+  A = &A_[ld*l+l];
+  ierr = PSAllocateWork_Private(ps,n+cols,ns?0:cols,0);CHKERRQ(ierr);
+  m = ps->work;
+  h = &m[n];
+  ns_ = ns ? ns : ps->rwork;
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  for (i=0; i<cols; i++) {
+    /* m <- diag(s)*A[i] */
+    for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
+    /* nr_o <- mynorm(A[i]'*m), mynorm(x) = sign(x)*sqrt(|x|) */
+    ierr = SlepcDenseMatProd(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+    nr = nr_o = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbs(nr0));
+    for (j=0; j<3 && i>0; j++) {
+      /* h <- A[0:i-1]'*m */
+      ierr = SlepcDenseMatProd(h,i,0.0,1.0,A,ld,n,i,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+      /* h <- diag(ns)*h */
+      for (k=0; k<i; k++) h[k] *= ns_[k];
+      /* A[i] <- A[i] - A[0:i-1]*h */
+      ierr = SlepcDenseMatProd(&A[ld*i],ld,1.0,-1.0,A,ld,n,i,PETSC_FALSE,h,i,i,1,PETSC_FALSE);CHKERRQ(ierr);
+      /* m <- diag(s)*A[i] */
+      for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
+      /* nr_o <- mynorm(A[i]'*m) */
+      ierr = SlepcDenseMatProd(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+      nr = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbs(nr0));
+      if (PetscAbs(nr) < PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1, "Linear dependency detected!");
+      if (PetscAbs(nr) > 0.7*PetscAbs(nr_o)) break;
+      nr_o = nr;
+    }
+    ns_[i] = PetscSign(nr);
+    /* A[i] <- A[i]/|nr| */
+    nr = 1.0/PetscAbs(nr);
+    BLASscal_(&rA_,&nr,&A[i*ld],&one);
+  }
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PSRestoreArray(ps,mat,&A_);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  if (lindcols) *lindcols = cols;
   PetscFunctionReturn(0);
 }

@@ -105,9 +105,6 @@ typedef struct {
     *iXKZPivots;          /* array of pivots */
 } dvdImprovex_jd;
 
-#define _Ceil(A,B) ((A)/(B)+((A)%(B)==0?0:1))
-#define FromIntToScalar(S) ((PetscInt)_Ceil((S)*sizeof(PetscBLASInt),sizeof(PetscScalar)))
-
 PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
 PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
 
@@ -118,7 +115,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
-  PetscBool       useGD, herm = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE, std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
+  PetscBool       useGD, herm = DVD_IS(d->sEP, DVD_EP_HERMITIAN)||DVD_IS(d->sEP, DVD_EP_INDEFINITE)?PETSC_TRUE:PETSC_FALSE, std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
   PC              pc;
   PetscInt        size_P,s=1;
 
@@ -951,33 +948,6 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
     }
 #endif
 
-#undef __FUNCT__  
-#define __FUNCT__ "dvd_improvex_compute_X"
-PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,PetscScalar *pX,PetscInt ld)
-{
-  PetscErrorCode  ierr;
-  PetscInt        n = i_e - i_s, i;
-
-  PetscFunctionBegin;
-  ierr = SlepcUpdateVectorsZ(u, 0.0, 1.0, d->V-d->cX_in_H, d->size_V+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
-  /* nX(i) <- ||X(i)|| */
-  if (d->correctXnorm) {
-    for (i=0; i<n; i++) {
-      ierr = VecNormBegin(u[i], NORM_2, &d->nX[i_s+i]);CHKERRQ(ierr);
-    }
-    for (i=0; i<n; i++) {
-      ierr = VecNormEnd(u[i], NORM_2, &d->nX[i_s+i]);CHKERRQ(ierr);
-    }
-#if !defined(PETSC_USE_COMPLEX)
-    for(i=0; i<n; i++)
-      if(d->eigi[i_s+i] != 0.0)
-        d->nX[i_s+i] = d->nX[i_s+i+1] = PetscSqrtScalar(d->nX[i_s+i]*d->nX[i_s+i]+d->nX[i_s+i+1]*d->nX[i_s+i+1]);
-#endif
-  } else {
-    for (i=0; i<n; i++) d->nX[i_s+i] = 1.0;
-  }
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KZX"

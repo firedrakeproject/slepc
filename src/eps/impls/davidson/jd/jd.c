@@ -130,6 +130,7 @@ PetscErrorCode EPSCreate_JD(EPS eps)
   PetscFunctionBegin;
   /* Load the Davidson solver */
   ierr = EPSCreate_Davidson(eps);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetMethod_Davidson(eps,DVD_METH_JD);CHKERRQ(ierr);
 
   /* Overload the JD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_JD;
