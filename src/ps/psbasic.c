@@ -1148,18 +1148,17 @@ PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
 #undef __FUNCT__  
 #define __FUNCT__ "PSOrthogonalize"
 /*@
-   PSOrthogonalize - Orthogonalize the columns of a matrix with Modified
-   Gram-Schmidt.
+   PSOrthogonalize - Orthogonalize the columns of a matrix.
 
    Logically Collective on PS
 
    Input Parameters:
-+  ps  - the projected system context
-.  mat - a matrix
++  ps   - the projected system context
+.  mat  - a matrix
 -  cols - number of columns to orthogonalize (starting from the column zero)
 
    Output Parameter:
-.  lindcols - linear independent columns of the matrix (can be PETSC_NULL) 
+.  lindcols - number of linearly independent columns of the matrix (can be PETSC_NULL) 
 
    Level: advanced
 @*/
@@ -1175,9 +1174,9 @@ PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindc
   PetscScalar     *A,*tau,*w,saux;
 
   PetscFunctionBegin;
-  if (lindcols) {
-    PetscValidIntPointer(lindcols,3);
-  }
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ps,mat,2);
+  PetscValidLogicalCollectiveInt(ps,cols,3);
   ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
   n = n - l;
@@ -1219,10 +1218,10 @@ PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindc
    Logically Collective on PS
 
    Input Parameters:
-+  ps  - the projected system context
-.  mat - the matrix
++  ps   - the projected system context
+.  mat  - the matrix
 .  cols - number of columns to orthogonalize (starting from the column zero)
--  s - the signature that defines the inner product
+-  s    - the signature that defines the inner product
 
    Output Parameter:
 +  lindcols - linear independent columns of the matrix (can be PETSC_NULL) 
@@ -1235,16 +1234,15 @@ PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal
   PetscErrorCode  ierr;
   PetscInt        i,j,k,l,n,ld;
   PetscBLASInt    one=1,rA_;
-  PetscScalar     *A,*A_,*m,*h,nr0;
+  PetscScalar     alpha,*A,*A_,*m,*h,nr0;
   PetscReal       nr_o,nr,*ns_;
 
   PetscFunctionBegin;
-  if (lindcols) {
-    PetscValidIntPointer(lindcols,5);
-  }
-  if (ns) {
-    PetscValidScalarPointer(ns,6);
-  }
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ps,mat,2);
+  PetscValidLogicalCollectiveInt(ps,cols,3);
+  PetscValidScalarPointer(s,4);
+  if (ns) PetscValidRealPointer(ns,6);
   ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
   n = n - l;
@@ -1263,7 +1261,7 @@ PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal
     for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
     /* nr_o <- mynorm(A[i]'*m), mynorm(x) = sign(x)*sqrt(|x|) */
     ierr = SlepcDenseMatProd(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
-    nr = nr_o = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbs(nr0));
+    nr = nr_o = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
     for (j=0; j<3 && i>0; j++) {
       /* h <- A[0:i-1]'*m */
       ierr = SlepcDenseMatProd(h,i,0.0,1.0,A,ld,n,i,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
@@ -1275,15 +1273,15 @@ PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal
       for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
       /* nr_o <- mynorm(A[i]'*m) */
       ierr = SlepcDenseMatProd(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
-      nr = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbs(nr0));
+      nr = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
       if (PetscAbs(nr) < PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1, "Linear dependency detected!");
       if (PetscAbs(nr) > 0.7*PetscAbs(nr_o)) break;
       nr_o = nr;
     }
     ns_[i] = PetscSign(nr);
     /* A[i] <- A[i]/|nr| */
-    nr = 1.0/PetscAbs(nr);
-    BLASscal_(&rA_,&nr,&A[i*ld],&one);
+    alpha = 1.0/PetscAbs(nr);
+    BLASscal_(&rA_,&alpha,&A[i*ld],&one);
   }
   ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
   ierr = PSRestoreArray(ps,mat,&A_);CHKERRQ(ierr);
