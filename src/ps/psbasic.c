@@ -1242,7 +1242,7 @@ PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal
   PetscValidLogicalCollectiveEnum(ps,mat,2);
   PetscValidLogicalCollectiveInt(ps,cols,3);
   PetscValidScalarPointer(s,4);
-  if (ns) PetscValidRealPointer(ns,6);
+  if (ns) PetscValidPointer(ns,6);
   ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
   n = n - l;
