@@ -29,16 +29,18 @@
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       N;
+  PetscInt       M,N;
 
   PetscFunctionBegin;
-  ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
+  ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   svd->ncv = N;
   if (svd->mpd) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {  
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
+  ierr = PSSetType(svd->ps,PSSVD);CHKERRQ(ierr);
+  ierr = PSAllocate(svd->ps,PetscMax(M,N));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -47,57 +49,55 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,n,i,j,k;
+  PetscInt       M,N,n,i,j,k,ld;
   Mat            mat;
-  PetscScalar    *pU,*pVT,*pmat,*pu,*pv;
-  PetscReal      *sigma;
+  PetscScalar    *pU,*pVT,*pmat,*pu,*pv,*A,*w;
   
   PetscFunctionBegin;
+  ierr = PSGetLeadingDimension(svd->ps,&ld);CHKERRQ(ierr);
   ierr = MatConvert(svd->OP,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
-  ierr = MatGetArray(mat,&pmat);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
-  if (M>=N) {
-     n = N;
-     pU = PETSC_NULL;
-     ierr = PetscMalloc(sizeof(PetscScalar)*N*N,&pVT);CHKERRQ(ierr);
-  } else {
-     n = M;
-     ierr = PetscMalloc(sizeof(PetscScalar)*M*M,&pU);CHKERRQ(ierr);
-     pVT = PETSC_NULL;
-  }
-  ierr = PetscMalloc(sizeof(PetscReal)*n,&sigma);CHKERRQ(ierr);
+  ierr = PSSetDimensions(svd->ps,M,N,0,0);CHKERRQ(ierr);
+  ierr = MatGetArray(mat,&pmat);CHKERRQ(ierr);
+  ierr = PSGetArray(svd->ps,PS_MAT_A,&A);CHKERRQ(ierr);
+  for (i=0;i<M;i++)
+    for (j=0;j<N;j++)
+      A[i+j*ld] = pmat[i+j*M];
+  ierr = PSRestoreArray(svd->ps,PS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = MatRestoreArray(mat,&pmat);CHKERRQ(ierr);
+  ierr = PSSetState(svd->ps,PS_STATE_RAW);CHKERRQ(ierr);
+      
+  n = PetscMin(M,N);
+  ierr = PetscMalloc(sizeof(PetscScalar)*n,&w);CHKERRQ(ierr);
+  ierr = PSSolve(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
   
-  ierr = SVDDense(M,N,pmat,sigma,pU,pVT);CHKERRQ(ierr);
-
   /* copy singular vectors */
+  ierr = PSGetArray(svd->ps,PS_MAT_U,&pU);CHKERRQ(ierr);
+  ierr = PSGetArray(svd->ps,PS_MAT_VT,&pVT);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     if (svd->which == SVD_SMALLEST) k = n - i - 1;
     else k = i;
-    svd->sigma[k] = sigma[i];
+    svd->sigma[k] = PetscRealPart(w[i]);
     ierr = VecGetArray(svd->U[k],&pu);CHKERRQ(ierr);
     ierr = VecGetArray(svd->V[k],&pv);CHKERRQ(ierr);
     if (M>=N) {
-      for (j=0;j<M;j++) pu[j] = pmat[i*M+j];
-      for (j=0;j<N;j++) pv[j] = pVT[j*N+i];
+      for (j=0;j<M;j++) pu[j] = pU[i*ld+j];
+      for (j=0;j<N;j++) pv[j] = pVT[j*ld+i];
     } else {
-      for (j=0;j<N;j++) pu[j] = pmat[j*M+i];
-      for (j=0;j<M;j++) pv[j] = pU[i*M+j];
+      for (j=0;j<N;j++) pu[j] = pVT[j*ld+i];
+      for (j=0;j<M;j++) pv[j] = pU[i*ld+j];
     }
     ierr = VecRestoreArray(svd->U[k],&pu);CHKERRQ(ierr);
     ierr = VecRestoreArray(svd->V[k],&pv);CHKERRQ(ierr);
   }
+  ierr = PSRestoreArray(svd->ps,PS_MAT_U,&pU);CHKERRQ(ierr);
+  ierr = PSRestoreArray(svd->ps,PS_MAT_VT,&pVT);CHKERRQ(ierr);
 
   svd->nconv = n;
   svd->reason = SVD_CONVERGED_TOL;
 
-  ierr = MatRestoreArray(mat,&pmat);CHKERRQ(ierr);
   ierr = MatDestroy(&mat);CHKERRQ(ierr);
-  ierr = PetscFree(sigma);CHKERRQ(ierr);
-  if (M>=N) {
-     ierr = PetscFree(pVT);CHKERRQ(ierr);
-  } else {
-     ierr = PetscFree(pU);CHKERRQ(ierr);
-  }
+  ierr = PetscFree(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

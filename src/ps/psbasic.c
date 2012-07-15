@@ -904,9 +904,9 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscRe
     re = eig[perm[i]];
     j = i-1;
     ierr = (*ps->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ps->comp_ctx);CHKERRQ(ierr);
-    while (result<=0 && j>=l) {
+    while (result<0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
-      if (j>=0) {
+      if (j>=l) {
         ierr = (*ps->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ps->comp_ctx);CHKERRQ(ierr);
       }
     }
@@ -940,23 +940,80 @@ PetscErrorCode PSCopyMatrix_Private(PS ps,PSMatType dst,PSMatType src)
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSPermuteColumns_Private"
-PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt l,PetscInt n,PSMatType m,PetscInt *perm)
+PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat,PetscInt *perm)
 {
   PetscInt    i,j,k,p,ld;
   PetscScalar *Q,rtmp;
 
   PetscFunctionBegin;
   ld = ps->ld;
-  Q  = ps->mat[PS_MAT_Q];
+  Q  = ps->mat[mat];
   for (i=l;i<n;i++) {
     p = perm[i];
     if (p != i) {
       j = i + 1;
       while (perm[j] != i) j++;
       perm[j] = p; perm[i] = i;
-      /* swap eigenvectors i and j */
+      /* swap columns i and j */
       for (k=0;k<n;k++) {
         rtmp = Q[k+p*ld]; Q[k+p*ld] = Q[k+i*ld]; Q[k+i*ld] = rtmp;
+      }
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSPermuteRows_Private"
+PetscErrorCode PSPermuteRows_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat,PetscInt *perm)
+{
+  PetscInt    i,j,m=ps->m,k,p,ld;
+  PetscScalar *Q,rtmp;
+
+  PetscFunctionBegin;
+  if (m==0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  ld = ps->ld;
+  Q  = ps->mat[mat];
+  for (i=l;i<n;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap rows i and j */
+      for (k=0;k<m;k++) {
+        rtmp = Q[p+k*ld]; Q[p+k*ld] = Q[i+k*ld]; Q[i+k*ld] = rtmp;
+      }
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "PSPermuteBoth_Private"
+PetscErrorCode PSPermuteBoth_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat1,PSMatType mat2,PetscInt *perm)
+{
+  PetscInt    i,j,m=ps->m,k,p,ld;
+  PetscScalar *U,*VT,rtmp;
+
+  PetscFunctionBegin;
+  if (m==0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  ld = ps->ld;
+  U  = ps->mat[mat1];
+  VT = ps->mat[mat2];
+  for (i=l;i<n;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap columns i and j of U */
+      for (k=0;k<n;k++) {
+        rtmp = U[k+p*ld]; U[k+p*ld] = U[k+i*ld]; U[k+i*ld] = rtmp;
+      }
+      /* swap rows i and j of VT */
+      for (k=0;k<m;k++) {
+        rtmp = VT[p+k*ld]; VT[p+k*ld] = VT[i+k*ld]; VT[i+k*ld] = rtmp;
       }
     }
   }

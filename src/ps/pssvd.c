@@ -89,7 +89,7 @@ static PetscErrorCode PSSolve_SVD_Sort(PS ps,PetscScalar *wr)
   perm = ps->perm;
   ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
-  ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_U,perm);CHKERRQ(ierr);
+  ierr = PSPermuteBoth_Private(ps,l,n,PS_MAT_U,PS_MAT_VT,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   PetscFunctionReturn(0);
 }
@@ -127,7 +127,6 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
   e  = ps->rmat[PS_MAT_T]+ld;
 
   if (ps->state>PS_STATE_RAW) {
-
     /* Solve bidiagonal SVD problem */
     for (i=0;i<l;i++) wr[i] = d[i];
     ierr = PSSetIdentity(ps,PS_MAT_U);CHKERRQ(ierr); 
@@ -152,9 +151,7 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
       }
     }
 #endif
-
   } else {
-
     /* Solve general rectangular SVD problem */
     nm = PetscMin(n,m);
     ierr = PSAllocateWork_Private(ps,0,0,8*nm);CHKERRQ(ierr); 
@@ -168,15 +165,12 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
     lwork = (PetscBLASInt)PetscRealPart(qwork);
     ierr = PSAllocateWork_Private(ps,lwork,0,0);CHKERRQ(ierr); 
-
-    /* computation */  
 #if defined(PETSC_USE_COMPLEX)
     LAPACKgesdd_("A",&n,&m,A,&ld,d,U,&ld,VT,&ld,ps->work,&lwork,ps->rwork,ps->iwork,&info);
 #else
     LAPACKgesdd_("A",&n,&m,A,&ld,d,U,&ld,VT,&ld,ps->work,&lwork,ps->iwork,&info);
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
-
   }
 
   ierr = PSSolve_SVD_Sort(ps,wr);CHKERRQ(ierr);

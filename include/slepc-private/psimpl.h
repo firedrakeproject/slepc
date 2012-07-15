@@ -70,6 +70,8 @@ PETSC_EXTERN PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt
 PETSC_EXTERN PetscErrorCode PSViewMat_Private(PS,PetscViewer,PSMatType);
 PETSC_EXTERN PetscErrorCode PSSortEigenvaluesReal_Private(PS,PetscInt,PetscInt,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PSPermuteColumns_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSPermuteRows_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
+PETSC_EXTERN PetscErrorCode PSPermuteBoth_Private(PS,PetscInt,PetscInt,PSMatType,PSMatType,PetscInt*);
 PETSC_EXTERN PetscErrorCode PSCopyMatrix_Private(PS,PSMatType,PSMatType);
 
 #endif
