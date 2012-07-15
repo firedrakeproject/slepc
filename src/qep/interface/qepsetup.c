@@ -65,6 +65,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = IPSetDefaultType_Private(qep->ip);CHKERRQ(ierr);
   }
   if (!qep->ps) { ierr = QEPGetPS(qep,&qep->ps);CHKERRQ(ierr); }
+  ierr = PSReset(qep->ps);CHKERRQ(ierr);
   if (!((PetscObject)qep->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
   }
