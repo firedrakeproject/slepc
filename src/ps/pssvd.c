@@ -256,12 +256,14 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
   VT = ps->mat[PS_MAT_VT];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
+  ierr = PetscMemzero(U,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<l;i++) U[i+i*ld] = 1.0;
+  ierr = PetscMemzero(VT,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<l;i++) VT[i+i*ld] = 1.0;
 
   if (ps->state>PS_STATE_RAW) {
     /* Solve bidiagonal SVD problem */
     for (i=0;i<l;i++) wr[i] = d[i];
-    ierr = PSSetIdentity(ps,PS_MAT_U);CHKERRQ(ierr); 
-    ierr = PSSetIdentity(ps,PS_MAT_VT);CHKERRQ(ierr); 
     ierr = PSAllocateWork_Private(ps,0,3*ld*ld+4*ld,8*ld);CHKERRQ(ierr); 
 #if defined(PETSC_USE_COMPLEX)
     ierr = PSAllocateMatReal_Private(ps,PS_MAT_U);CHKERRQ(ierr); 
@@ -272,7 +274,7 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
     Ur  = U;
     VTr = VT;
 #endif
-    LAPACKbdsdc_("U","I",&n3,d,e,Ur+off,&ld,VTr+off,&ld,PETSC_NULL,PETSC_NULL,ps->rwork,ps->iwork,&info);
+    LAPACKbdsdc_("U","I",&n3,d+l,e+l,Ur+off,&ld,VTr+off,&ld,PETSC_NULL,PETSC_NULL,ps->rwork,ps->iwork,&info);
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xBDSDC %d",info);
 #if defined(PETSC_USE_COMPLEX)
     for (i=l;i<n;i++) {
@@ -286,10 +288,6 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
     /* Solve general rectangular SVD problem */
     if (ps->compact) { ierr = PSSwitchFormat_SVD(ps,PETSC_FALSE);CHKERRQ(ierr); }
     for (i=0;i<l;i++) wr[i] = d[i];
-    ierr = PetscMemzero(U,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<l;i++) U[i+i*ld] = 1.0;
-    ierr = PetscMemzero(VT,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<l;i++) VT[i+i*ld] = 1.0;
     nm = PetscMin(n,m);
     ierr = PSAllocateWork_Private(ps,0,0,8*nm);CHKERRQ(ierr); 
     lwork = -1;
