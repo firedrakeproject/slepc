@@ -45,7 +45,8 @@
    explicitly built.
 
    The option SVD_TRANSPOSE_IMPLICIT does not build the transpose, but
-   handles it implicitly via MatMultTranspose() operations. This is 
+   handles it implicitly via MatMultTranspose() (or MatMultHermitianTranspose()
+   in the complex case) operations. This is 
    likely to be more inefficient than SVD_TRANSPOSE_EXPLICIT, both in
    sequential and in parallel, but requires less storage.
 

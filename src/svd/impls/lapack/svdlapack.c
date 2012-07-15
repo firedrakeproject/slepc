@@ -82,9 +82,9 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
     ierr = VecGetArray(svd->V[k],&pv);CHKERRQ(ierr);
     if (M>=N) {
       for (j=0;j<M;j++) pu[j] = pU[i*ld+j];
-      for (j=0;j<N;j++) pv[j] = pVT[j*ld+i];
+      for (j=0;j<N;j++) pv[j] = PetscConj(pVT[j*ld+i]);
     } else {
-      for (j=0;j<N;j++) pu[j] = pVT[j*ld+i];
+      for (j=0;j<N;j++) pu[j] = PetscConj(pVT[j*ld+i]);
       for (j=0;j<M;j++) pv[j] = pU[i*ld+j];
     }
     ierr = VecRestoreArray(svd->U[k],&pu);CHKERRQ(ierr);

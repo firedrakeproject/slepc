@@ -35,13 +35,21 @@ PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
     if (svd->AT) {
       ierr = MatMult(svd->AT,x,y);CHKERRQ(ierr);
     } else {
+#if defined(PETSC_USE_COMPLEX)
+      ierr = MatMultHermitianTranspose(svd->A,x,y);CHKERRQ(ierr);
+#else
       ierr = MatMultTranspose(svd->A,x,y);CHKERRQ(ierr);
+#endif
     }
   } else {
     if (svd->A) {
       ierr = MatMult(svd->A,x,y);CHKERRQ(ierr);
     } else {
+#if defined(PETSC_USE_COMPLEX)
+      ierr = MatMultHermitianTranspose(svd->AT,x,y);CHKERRQ(ierr);
+#else
       ierr = MatMultTranspose(svd->AT,x,y);CHKERRQ(ierr);
+#endif
     }
   }
   PetscFunctionReturn(0);
