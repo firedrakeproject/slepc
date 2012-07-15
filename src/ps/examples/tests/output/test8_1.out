@@ -1,0 +1,17 @@
+Solve a Projected System of type PSSVD with compact storage - dimension 10x10.
+PS Object: 1 MPI processes
+  type: svd
+  current state: raw
+  dimensions: ld=12, n=10, m=10, l=2, k=5
+  flags: compact  
+Computed singular values =
+  1.00000
+  2.00000
+  10.23838
+  9.05119
+  8.03408
+  7.07377
+  6.18432
+  4.84902
+  3.90608
+  2.94118

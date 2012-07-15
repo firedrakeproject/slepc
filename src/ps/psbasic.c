@@ -1193,8 +1193,8 @@ PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
   ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
   ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
-  ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));
-  for (i=l; i<n; i++) {
+  ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=l;i<n;i++) {
     x[ld*i+i] = 1.0;
   }
   ierr = PSRestoreArray(ps,mat,&x);CHKERRQ(ierr);
