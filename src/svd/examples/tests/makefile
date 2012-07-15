@@ -24,18 +24,23 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/svd/examples/tests/
-EXAMPLESC  = test1.c
+EXAMPLESC  = test1.c test2.c
 EXAMPLESF  = 
 MANSEC     = SVD
-TESTS      = test1
+TESTS      = test1 test2
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
+                       test2.PETSc runtest2_1 test2.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
 	${RM} test1.o
+
+test2: test2.o chkopts
+	-${CLINKER} -o test2 test2.o ${SLEPC_LIB}
+	${RM} test2.o
 
 #------------------------------------------------------------------------------------
 SVD = lanczos lapack trlanczos
@@ -55,4 +60,15 @@ runtest1_1:
 	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
 	else echo "Possible problem with test1_1, diffs above"; fi; \
 	${RM} -f test1_1.tmp
+
+runtest2_1:
+	-@test=test2_1; \
+	for svd in ${SVDEPS} ${SVD}; do \
+	   echo "svd type $$svd" >> test2_1.tmp; \
+	   ${MPIEXEC} -np 1 ./test2 -svd_type $$svd -svd_nsv 7 -svd_terse >> test2_1.tmp 2>&1;    \
+	done; \
+	[ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1.out; \
+	if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
+	else echo "Possible problem with test2_1, diffs above"; fi; \
+	${RM} -f test2_1.tmp
 

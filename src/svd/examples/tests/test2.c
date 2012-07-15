@@ -19,39 +19,33 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test EPS with different builds with a matrix loaded from a file.\n"
-  "This test is based on ex4.c in tutorials.\n"
-  "It loads test matrices available in PETSc's distribution.\n"
-  "Add -symm or -herm to select the symmetric/Hermitian matrix.\n\n";
+static char help[] = "Test SVD with different builds with a matrix loaded from a file"
+  " (matrices available in PETSc's distribution).\n\n";
 
-#include <slepceps.h>
+#include <slepcsvd.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
-  EPS            eps;             /* eigenproblem solver context */
+  SVD            svd;             /* singular value problem solver context */
   char           filename[PETSC_MAX_PATH_LEN];
   const char     *prefix,*scalar,*ints,*floats;
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscViewer    viewer;
-  PetscBool      flg,symm;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        Load the operator matrix that defines the eigensystem, Ax=kx
+        Load the matrix for which the SVD must be computed
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PetscOptionsHasName(PETSC_NULL,"-symm",&symm);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(PETSC_NULL,"-herm",&flg);CHKERRQ(ierr);
-  if (flg) symm=PETSC_TRUE;
 #if defined(PETSC_USE_COMPLEX)
-  prefix = symm? "hpd": "nh";
+  prefix = "nh";
   scalar = "complex";
 #else
-  prefix = symm? "spd": "ns";
+  prefix = "ns";
   scalar = "real";
 #endif
 #if defined(PETSC_USE_64BIT_INDICES)
@@ -74,21 +68,19 @@ int main(int argc,char **argv)
   ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                     Create the eigensolver
+                     Create the SVD solver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
-  if (symm) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
-  else      { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
-  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetTolerances(svd,tol,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Solve the eigensystem and display solution 
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  ierr = SVDSolve(svd);CHKERRQ(ierr);
+  ierr = SVDPrintSolution(svd,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
