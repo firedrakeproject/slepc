@@ -658,3 +658,32 @@ PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscSc
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcCompareSmallestPositiveReal"
+/*
+   Used in the SVD for computing smallest singular values
+   from the cyclic matrix.
+*/
+PetscErrorCode SlepcCompareSmallestPositiveReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
+{
+  PetscReal a,b;
+  PetscBool aisright,bisright;
+
+  PetscFunctionBegin;
+  if (PetscRealPart(ar)>0.0) aisright = PETSC_TRUE;
+  else aisright = PETSC_FALSE;
+  if (PetscRealPart(br)>0.0) bisright = PETSC_TRUE;
+  else bisright = PETSC_FALSE;
+  if (aisright == bisright) { /* same sign */
+    a = SlepcAbsEigenvalue(ar,ai);
+    b = SlepcAbsEigenvalue(br,bi);
+    if (a>b) *result = 1;
+    else if (a<b) *result = -1;
+    else *result = 0;
+  } else if (aisright && !bisright)
+    *result = -1; /* 'a' is on the right */
+  else
+    *result = 1;  /* 'b' is on the right */
+  PetscFunctionReturn(0);
+}
+

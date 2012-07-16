@@ -122,6 +122,7 @@ int main(int argc,char **argv)
     }
   }
   ierr = SVDSetDimensions(svd,1,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
+  ierr = SVDSetTolerances(svd,1e-6,1000);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem

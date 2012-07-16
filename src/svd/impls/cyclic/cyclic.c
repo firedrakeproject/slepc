@@ -127,7 +127,11 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 
   ierr = EPSSetOperators(cyclic->eps,cyclic->mat,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(cyclic->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
+  if (svd->which == SVD_LARGEST) {
+    ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+  } else {
+    ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPositiveReal,PETSC_NULL);CHKERRQ(ierr);
+  }
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
   /* Transfer the trackall option from svd to eps */
