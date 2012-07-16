@@ -139,7 +139,8 @@ runtest4_1:
 	${TESTCODE}
 
 runtest5_1:
-	-@test=test5_1; \
+	-@if ! (${GREP} PETSC_USE_REAL___FLOAT128 ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
 	   if [ $$eps = gd ]; then EXTRA="-eps_ncv 7 -eps_gd_minv 2"; \
@@ -155,7 +156,8 @@ runtest5_1:
 	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
 	  else echo "Possible problem with test5_1, diffs above"; fi; \
 	fi; \
-	${RM} -f test5_1.tmp
+	${RM} -f test5_1.tmp; \
+	fi
 
 runtest5_blopex:
 	-@${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex -eps_nev 4 -eps_terse > test5_blopex.tmp 2>&1; \
