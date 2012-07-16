@@ -26,7 +26,7 @@
 PetscFList       SVDList = 0;
 PetscBool        SVDRegisterAllCalled = PETSC_FALSE;
 PetscClassId     SVD_CLASSID = 0;
-PetscLogEvent    SVD_SetUp = 0,SVD_Solve = 0,SVD_Dense = 0;
+PetscLogEvent    SVD_SetUp = 0,SVD_Solve = 0;
 static PetscBool SVDPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
@@ -79,7 +79,6 @@ PetscErrorCode SVDInitializePackage(const char *path)
   /* Register Events */
   ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("SVDDense",SVD_CLASSID,&SVD_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {

@@ -26,7 +26,7 @@
 #include <slepcip.h>
 
 PETSC_EXTERN PetscFList SVDList;
-PETSC_EXTERN PetscLogEvent SVD_SetUp, SVD_Solve, SVD_Dense;
+PETSC_EXTERN PetscLogEvent SVD_SetUp,SVD_Solve;
 
 typedef struct _SVDOps *SVDOps;
 

@@ -139,8 +139,6 @@ PETSC_EXTERN PetscErrorCode SVDMonitorLGAll(SVD,PetscInt,PetscInt,PetscReal*,Pet
 PETSC_EXTERN PetscErrorCode SVDSetTrackAll(SVD,PetscBool);
 PETSC_EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscBool*);
 
-PETSC_EXTERN PetscErrorCode SVDDense(PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
-
 PETSC_EXTERN PetscErrorCode SVDCrossSetEPS(SVD,EPS);
 PETSC_EXTERN PetscErrorCode SVDCrossGetEPS(SVD,EPS*);
 

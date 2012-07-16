@@ -27,6 +27,7 @@
 */
 
 #include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <slepc-private/ipimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -218,7 +219,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
   PetscReal      *alpha,*beta,lastbeta,norm;
   PetscScalar    *Q,*PT,*swork,*w;
-  PetscInt       i,j,k,l,m,n,nv,ld,off;
+  PetscInt       i,k,l,nv,ld,off;
   Vec            v;
   PetscBool      conv;
   IPOrthogType   orthog;
