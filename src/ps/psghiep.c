@@ -2258,18 +2258,18 @@ end
   while (begin!=-1){   ///////////////?????????
     while(n-begin>2 && totalIt<maxIt){
       /* Check for deflation before performing a transformation */
-      test1 = (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-2])) && (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-1]+acShift)) && (PetscAbsReal(L[n-2]*U[n])<tolDef*PetscAbsReal(acShift+U[n-1])) && (PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)<tolDef*PetscAbsReal(acShift+U[n-1]));
+      test1 = ((PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-2])) && (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-1]+acShift)) && (PetscAbsReal(L[n-2]*U[n])<tolDef*PetscAbsReal(acShift+U[n-1])) && (PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)<tolDef*PetscAbsReal(acShift+U[n-1])))? PETSC_TRUE: PETSC_FALSE;
       if(flag==2){  /* Early 2x2 deflation */
         earlyDef=earlyDef+1;
-        test2=1;  
+        test2 = PETSC_TRUE;  
       }else{ 
         if(n-begin>4){
-          test2 = (PetscAbsReal(L[n-3])<tolDef*PetscAbsReal(U[n-3])) && (PetscAbsReal(L[n-3]*(U[n-4]+L[n-4]))< tolDef*PetscAbsReal(U[n-4]*(U[n-3]+L[n-3])+L[n-4]*L[n-3]));
+          test2 = ((PetscAbsReal(L[n-3])<tolDef*PetscAbsReal(U[n-3])) && (PetscAbsReal(L[n-3]*(U[n-4]+L[n-4]))< tolDef*PetscAbsReal(U[n-4]*(U[n-3]+L[n-3])+L[n-4]*L[n-3])))? PETSC_TRUE: PETSC_FALSE;
         }else{ /* n-begin+1=3 */
-          test2=PetscAbsReal(L[begin])<tolDef*PetscAbsReal(U[begin]);
+          test2 = (PetscAbsReal(L[begin])<tolDef*PetscAbsReal(U[begin]))? PETSC_TRUE: PETSC_FALSE;
         }
       }
-      while(test2 | test1){
+      while(test2 || test1){
         /* 2x2 deflation */
         if(test2){
           if(flag==2){ /* Early deflation */
@@ -2311,11 +2311,11 @@ end
         if(n<=begin+2){
           break;
         }else{
-          test1 = (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-2])) && (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-1]+acShift)) && (PetscAbsReal(L[n-2]*U[n-1])<tolDef*PetscAbsReal(acShift+U[n-1])) && (PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)< tolDef*PetscAbsReal(acShift+U[n-1]));
+          test1 = ((PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-2])) && (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-1]+acShift)) && (PetscAbsReal(L[n-2]*U[n-1])<tolDef*PetscAbsReal(acShift+U[n-1])) && (PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)< tolDef*PetscAbsReal(acShift+U[n-1])))? PETSC_TRUE: PETSC_FALSE;
           if(n-begin>4){
-            test2 = (PetscAbsReal(L[n-3])<tolDef*PetscAbsReal(U[n-3])) && (PetscAbsReal(L[n-3]*(U[n-4]+L[n-4]))< tolDef*PetscAbsReal(U[n-4]*(U[n-3]+L[n-3])+L[n-4]*L[n-3]));
+            test2 = ((PetscAbsReal(L[n-3])<tolDef*PetscAbsReal(U[n-3])) && (PetscAbsReal(L[n-3]*(U[n-4]+L[n-4]))< tolDef*PetscAbsReal(U[n-4]*(U[n-3]+L[n-3])+L[n-4]*L[n-3])))? PETSC_TRUE: PETSC_FALSE;
           }else{ /* n-begin+1=3 */
-            test2 = PetscAbsReal(L[begin])<tolDef*PetscAbsReal(U[begin]);
+            test2 = (PetscAbsReal(L[begin])<tolDef*PetscAbsReal(U[begin]))? PETSC_TRUE: PETSC_FALSE;
           }
         }
       } /* end "WHILE deflations" */
