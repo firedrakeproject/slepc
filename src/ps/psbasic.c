@@ -1042,7 +1042,6 @@ PetscErrorCode PSReset(PS ps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ps,PS_CLASSID,1);
   ps->state    = PS_STATE_RAW;
-  ps->method   = 0;
   ps->compact  = PETSC_FALSE;
   ps->refined  = PETSC_FALSE;
   ps->extrarow = PETSC_FALSE;
