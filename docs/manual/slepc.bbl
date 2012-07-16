@@ -37,6 +37,11 @@ Bj{\"o}rck, {\AA}. (1996).
 \newblock {\em Numerical Methods for Least Squares Problems\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia.
 
+\bibitem[{Campos and Roman(2012)}]{Campos:2012:SSS}
+Campos, C. and J.~E. Roman (2012).
+\newblock Strategies for Spectrum Slicing based on Restarted {Lanczos} Methods.
+\newblock {\em Numer. Algorithms}, 60(2):279--295.
+
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}
 Canning, A., L.~W. Wang, A.~Williamson, and A.~Zunger (2000).

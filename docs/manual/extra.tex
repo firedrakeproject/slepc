@@ -61,7 +61,7 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 	In the simplest case, defining matrix-vector product operations (\ident{MATOP\_MULT}) is enough for using \ident{EPS} with shell matrices. However, in the case of generalized problems, if matrix $B$ is also a shell matrix then it may be necessary to define other operations in order to be able to solve the linear system successfully, for example \ident{MATOP\_GET\_DIAGONAL} to use an iterative linear solver with Jacobi preconditioning. On the other hand, if the shift-and-invert \ident{ST} is to be used, then in addition it may also be necessary to define \ident{MATOP\_SHIFT} or \ident{MATOP\_AXPY} (see \S\ref{sec:explicit} for discussion).
 
-	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation (for details see the manual page for \ident{SVDSetTransposeMode}).
+	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation (or \ident{MATOP\_\-MULT\_HERMITIAN\_TRANSPOSE} in the case of complex scalars) in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation (plus \ident{MATOP\_CONJUGATE} if complex scalars are being used). For details, see the manual page for \ident{SVDSetTransposeMode}.
 
 %---------------------------------------------------
 \section{GPU Computing}
