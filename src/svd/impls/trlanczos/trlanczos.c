@@ -27,7 +27,6 @@
 */
 
 #include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/ipimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -100,25 +99,27 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
 #define __FUNCT__ "SVDOneSideTRLanczosCGS"
 static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,PetscScalar* bb,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
 {
-  PetscErrorCode ierr;
-  PetscReal      a,b,sum,onorm;
-  PetscScalar    dot;
-  PetscInt       i,j,k=nconv+l;
+  PetscErrorCode     ierr;
+  PetscReal          a,b,sum,onorm,eta;
+  PetscScalar        dot;
+  PetscInt           i,j,k=nconv+l;
+  IPOrthogRefineType refine;
 
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
   if (l>0) {
     ierr = SlepcVecMAXPBY(U[k],1.0,-1.0,l,bb,U+nconv);CHKERRQ(ierr);
   }
+  ierr = IPGetOrthogonalization(svd->ip,PETSC_NULL,&refine,&eta);CHKERRQ(ierr);
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
     ierr = IPNormBegin(svd->ip,U[i-1],&a);CHKERRQ(ierr);
-    if (svd->ip->orthog_ref == IP_ORTHOG_REFINE_IFNEEDED) {
+    if (refine == IP_ORTHOG_REFINE_IFNEEDED) {
       ierr = IPInnerProductBegin(svd->ip,V[i],V[i],&dot);CHKERRQ(ierr);
     }
     ierr = IPMInnerProductBegin(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
     ierr = IPNormEnd(svd->ip,U[i-1],&a);CHKERRQ(ierr);
-    if (svd->ip->orthog_ref == IP_ORTHOG_REFINE_IFNEEDED) {
+    if (refine == IP_ORTHOG_REFINE_IFNEEDED) {
       ierr = IPInnerProductEnd(svd->ip,V[i],V[i],&dot);CHKERRQ(ierr);
     }
     ierr = IPMInnerProductEnd(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
@@ -127,7 +128,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     for (j=0;j<i;j++) work[j] = work[j] / a;
     ierr = SlepcVecMAXPBY(V[i],1.0/a,-1.0,i,work,V);CHKERRQ(ierr);
 
-    switch (svd->ip->orthog_ref) {
+    switch (refine) {
     case IP_ORTHOG_REFINE_NEVER:
       ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
       break;      
@@ -145,7 +146,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
       else {
         ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
       }
-      if (b < svd->ip->orthog_eta * onorm) {
+      if (b < eta*onorm) {
         ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b);CHKERRQ(ierr);
       }
       break;
@@ -161,12 +162,12 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,U[n-1],v);CHKERRQ(ierr);
   ierr = IPNormBegin(svd->ip,U[n-1],&a);CHKERRQ(ierr);
-  if (svd->ip->orthog_ref == IP_ORTHOG_REFINE_IFNEEDED) {
+  if (refine == IP_ORTHOG_REFINE_IFNEEDED) {
     ierr = IPInnerProductBegin(svd->ip,v,v,&dot);CHKERRQ(ierr);
   }
   ierr = IPMInnerProductBegin(svd->ip,v,n,V,work);CHKERRQ(ierr);
   ierr = IPNormEnd(svd->ip,U[n-1],&a);CHKERRQ(ierr);
-  if (svd->ip->orthog_ref == IP_ORTHOG_REFINE_IFNEEDED) {
+  if (refine == IP_ORTHOG_REFINE_IFNEEDED) {
     ierr = IPInnerProductEnd(svd->ip,v,v,&dot);CHKERRQ(ierr);
   }
   ierr = IPMInnerProductEnd(svd->ip,v,n,V,work);CHKERRQ(ierr);
@@ -175,7 +176,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   for (j=0;j<n;j++) work[j] = work[j] / a;
   ierr = SlepcVecMAXPBY(v,1.0/a,-1.0,n,work,V);CHKERRQ(ierr);
 
-  switch (svd->ip->orthog_ref) {
+  switch (refine) {
   case IP_ORTHOG_REFINE_NEVER:
     ierr = IPNorm(svd->ip,v,&b);CHKERRQ(ierr);
     break;      
@@ -193,7 +194,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     else {
       ierr = IPNorm(svd->ip,v,&b);CHKERRQ(ierr);
     }
-    if (b < svd->ip->orthog_eta * onorm) {
+    if (b < eta*onorm) {
       ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,n,PETSC_NULL,V,v,work,PETSC_NULL,&b);CHKERRQ(ierr);
     }
     break;
@@ -515,7 +516,6 @@ PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   svd->ops->view           = SVDView_TRLanczos;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosSetOneSide_C","SVDTRLanczosSetOneSide_TRLanczos",SVDTRLanczosSetOneSide_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDTRLanczosGetOneSide_C","SVDTRLanczosGetOneSide_TRLanczos",SVDTRLanczosGetOneSide_TRLanczos);CHKERRQ(ierr);
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -27,7 +27,6 @@
 */
 
 #include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/ipimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -408,7 +407,6 @@ PetscErrorCode SVDCreate_Lanczos(SVD svd)
   svd->ops->view           = SVDView_Lanczos;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","SVDLanczosSetOneSide_Lanczos",SVDLanczosSetOneSide_Lanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosGetOneSide_C","SVDLanczosGetOneSide_Lanczos",SVDLanczosGetOneSide_Lanczos);CHKERRQ(ierr);
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
