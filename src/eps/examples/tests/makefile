@@ -34,13 +34,13 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
                        test3.PETSc runtest3_1 test3.rm \
                        test4.PETSc runtest4_1 test4.rm \
-                       test5.PETSc runtest5_1 test5.rm \
                        test6.PETSc runtest6_1 test6.rm \
                        test8.PETSc runtest8_1 test8.rm \
                        test9.PETSc runtest9_1 test9.rm \
                        test10.PETSc runtest10_1 test10.rm \
                        test11.PETSc runtest11_1 test11.rm \
                        test12.PETSc runtest12_1 test12.rm 
+TESTEXAMPLES_C_NOF128= test5.PETSc runtest5_1 test5.rm \
 TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
 TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
 
@@ -139,8 +139,7 @@ runtest4_1:
 	${TESTCODE}
 
 runtest5_1:
-	-@if ! (${GREP} PETSC_USE_REAL___FLOAT128 ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	test=test5_1; \
+	-@test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
 	   if [ $$eps = gd ]; then EXTRA="-eps_ncv 7 -eps_gd_minv 2"; \
@@ -156,8 +155,7 @@ runtest5_1:
 	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
 	  else echo "Possible problem with test5_1, diffs above"; fi; \
 	fi; \
-	${RM} -f test5_1.tmp; \
-	fi
+	${RM} -f test5_1.tmp;
 
 runtest5_blopex:
 	-@${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex -eps_nev 4 -eps_terse > test5_blopex.tmp 2>&1; \

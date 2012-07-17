@@ -22,6 +22,7 @@
 include ${PETSC_DIR}/conf/test
 
 testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
+testexamples_C_NoF128: ${TESTEXAMPLES_C_NOF128}
 
 slepc_alltests: alltests
 	@[ `grep Possible ${PETSC_ARCH}/conf/alltests.log | wc -l` -le 4 ]

@@ -247,6 +247,8 @@ try:
   slepcvars.write('SLEPC_DESTDIR = ' + prefixdir +'\n')
   testruns = set(petscconf.TEST_RUNS.split())
   testruns = testruns.intersection(set(['C','F90','Fortran','C_NoComplex','Fortran_NoComplex']))
+  if petscconf.PRECISION != '__float128':
+    testruns = testruns.union(set(['C_NoF128']))
   slepcvars.write('TEST_RUNS = ' + ' '.join(testruns) +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
