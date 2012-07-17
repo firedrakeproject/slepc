@@ -211,7 +211,7 @@ runtest8_1:
 	-@test=test8_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1; \
+	   ${MPIEXEC} -np 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 24 -eps_terse 2>&1; \
 	done > $${test}.tmp; \
 	${TESTCODE}
 

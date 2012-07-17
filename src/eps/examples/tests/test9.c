@@ -42,7 +42,7 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
-  PetscInt       N,m=15,nev,maxit;
+  PetscInt       N,m=15,nev;
   PetscScalar    origin=0.0;
   PetscErrorCode ierr;
   
@@ -111,8 +111,6 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up

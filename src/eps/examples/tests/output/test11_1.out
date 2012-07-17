@@ -6,7 +6,6 @@ Searching closest eigenvalues to the right of 0.5.
  Solution method: krylovschur
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=2.22e-13, maxit=100
  All requested eigenvalues computed up to the required tolerance:
      0.51928, 0.55740, 0.57028, 0.57143
 
@@ -18,7 +17,6 @@ Searching closest eigenvalues to the right of 0.5.
  Solution method: arnoldi
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=2.22e-13, maxit=100
  All requested eigenvalues computed up to the required tolerance:
      0.51928, 0.55740, 0.57028, 0.57143
 
@@ -30,7 +28,6 @@ Searching closest eigenvalues to the right of 0.5.
  Solution method: gd
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=2.22e-13, maxit=2000
  All requested eigenvalues computed up to the required tolerance:
      0.51928, 0.55740, 0.57028, 0.57143
 
@@ -42,7 +39,6 @@ Searching closest eigenvalues to the right of 0.5.
  Solution method: jd
 
  Number of requested eigenvalues: 4
- Stopping condition: tol=2.22e-13, maxit=2000
  All requested eigenvalues computed up to the required tolerance:
      0.51928, 0.55740, 0.57028, 0.57143
 
