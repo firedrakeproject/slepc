@@ -77,7 +77,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
   std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
   her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
   ind_probl = DVD_IS(d->sEP, DVD_EP_INDEFINITE)?PETSC_TRUE:PETSC_FALSE;
-  her_ind_probl = her_probl || ind_probl;
+  her_ind_probl = (her_probl || ind_probl)? PETSC_TRUE:PETSC_FALSE;
 
   /* Setting configuration constrains */
 #if !defined(PETSC_USE_COMPLEX)
@@ -232,7 +232,7 @@ PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
   PetscFunctionBegin;
   her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
   ind_probl = DVD_IS(d->sEP, DVD_EP_INDEFINITE)?PETSC_TRUE:PETSC_FALSE;
-  her_ind_probl = her_probl || ind_probl;
+  her_ind_probl = (her_probl || ind_probl)? PETSC_TRUE:PETSC_FALSE;
 
   d->size_V = 0;
   d->V = d->real_V;

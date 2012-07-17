@@ -598,7 +598,7 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
-  PetscScalar    *A,*Q,*W,one=1.0,zero=0.0;
+  PetscScalar    *A,*Q,*W=PETSC_NULL,one=1.0,zero=0.0;
   PetscReal      *d,*e,abstol=0.0,vl,vu;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j;

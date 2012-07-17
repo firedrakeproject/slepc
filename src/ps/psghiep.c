@@ -626,7 +626,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,*ii,*jj,tmp,type;
-  PetscReal      *ss,cond,cs,sn,r,maxCond=1.0;
+  PetscReal      *ss,cond=1.0,cs,sn,r,maxCond=1.0;
   PetscScalar    *work,tau,t;
   PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_;
 
@@ -2148,7 +2148,7 @@ static PetscErrorCode PSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscErrorCode ierr;        
   PetscInt       i,k,nwu,nwall,begin,ind,flag,dim,m;
   PetscReal      norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;              
-  PetscReal      acShift,initialShift,shift,sum,det,disc,prod,x1,x2,maxEntry;
+  PetscReal      acShift,initialShift,shift=0.0,sum,det,disc,prod,x1,x2,maxEntry;
   PetscInt       realSteps,complexSteps,earlyDef,lastSplit,splitCount;
   PetscBool      test1,test2;
 
@@ -2437,10 +2437,8 @@ end
         wr[--n] = sum+acShift; wi[n] = PetscSqrtReal(-disc);
         wr[--n] = sum+acShift; wi[n] = -PetscSqrtReal(-disc);
 #else
-        x1 = sum+PETSC_i*PetscSqrtReal(-disc);
-        x2 = sum-PETSC_i*PetscSqrtReal(-disc);
-        wr[--n] = x2+acShift; wi[n] = 0.0;
-        wr[--n] = x1+acShift; wi[n] = 0.0;
+        wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
+        wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
 #endif
       }else  { /* Real case */
         if (sum==0) {
