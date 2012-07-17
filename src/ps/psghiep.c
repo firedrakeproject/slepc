@@ -1710,8 +1710,8 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
 */
 static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,PetscReal *gr,PetscReal *sigma)
 {
-  PetscInt	i;
-  PetscReal	b0,b1,rad;
+  PetscInt  i;
+  PetscReal b0,b1,rad;
 
   PetscFunctionBegin;
   /* For original matrix C, C_bal=T+S; T-symmetric and S=skew-symmetric
@@ -1765,8 +1765,8 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
 
 ////////////////// eliminar parámetro X
   PetscErrorCode ierr;
-  PetscReal	 mu,tol,*a1,*work,*y,*yp,*x,*xp;
-  PetscInt 	 i,k,nwall=0;
+  PetscReal      mu,tol,*a1,*work,*y,*yp,*x,*xp;
+  PetscInt       i,k,nwall=0;
 
   PetscFunctionBegin;
   *m = 0;
@@ -1842,8 +1842,8 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
 #define __FUNCT__ "LUfac"
 static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L,PetscReal *U,PetscInt *fail,PetscReal *w,PetscInt nw){
   PetscErrorCode ierr;
-  PetscInt	 nwall,i;
-  PetscReal	 *work,*a1;
+  PetscInt       nwall,i;
+  PetscReal      *work,*a1;
 
   PetscFunctionBegin;
   nwall = n;
@@ -1884,9 +1884,10 @@ static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift
 
 #undef __FUNCT__
 #define __FUNCT__ "realDQDS"
-static PetscErrorCode realDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L1,PetscReal *U1,PetscInt *fail){
-  PetscReal	d;
-  PetscInt	i;
+static PetscErrorCode realDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L1,PetscReal *U1,PetscInt *fail)
+{
+  PetscReal d;
+  PetscInt  i;
 
   PetscFunctionBegin;
   *fail = 0;
@@ -1995,8 +1996,8 @@ static PetscErrorCode tridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscR
 #define __FUNCT__ "tridqdsZhuang"
 static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscReal *e1,PetscReal *q1,PetscInt *fail){
   PetscErrorCode ierr;
-  PetscInt	 i;
-  PetscReal	 xl,yl,xr,yr,zr,t;
+  PetscInt       i;
+  PetscReal      xl,yl,xr,yr,zr,t;
 
   PetscFunctionBegin;
   for(i=0;i<n-1;i++){
@@ -2134,21 +2135,22 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
 
 #undef __FUNCT__
 #define __FUNCT__ "PSGHIEP_Eigen3DQDS"
-static PetscErrorCode PSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c, PetscScalar *wr, PetscScalar *wi,PetscReal *w,PetscInt nw){
-  PetscInt	 totalIt=0;	/* Total Number of Iterations  */
-  PetscInt	 totalFail=0;	/* Total number of failures */
-  PetscInt	 nFail=0;		/* Number of failures per transformation */
-  PetscReal	 tolZero=1.0/16;	/* Tolerance for zero shifts */
-  PetscInt	 maxIt=10*n;	/* Maximum number of iterations */
-  PetscInt	 maxFail=10*n;	/* Maximum number of failures allowed per each transformation */
-  PetscReal	 tolDef=PETSC_MACHINE_EPSILON;	/* Tolerance for deflation eps, 10*eps, 100*eps */                      
-  PetscReal	 tolGrowth=100000; /*1/PetscSqrtReal(PETSC_MACHINE_EPSILON);*/
+static PetscErrorCode PSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c, PetscScalar *wr, PetscScalar *wi,PetscReal *w,PetscInt nw)
+{
+  PetscInt       totalIt=0;       /* Total Number of Iterations  */
+  PetscInt       totalFail=0;     /* Total number of failures */
+  PetscInt       nFail=0;         /* Number of failures per transformation */
+  PetscReal      tolZero=1.0/16;  /* Tolerance for zero shifts */
+  PetscInt       maxIt=10*n;      /* Maximum number of iterations */
+  PetscInt       maxFail=10*n;    /* Maximum number of failures allowed per each transformation */
+  PetscReal      tolDef=PETSC_MACHINE_EPSILON;      /* Tolerance for deflation eps, 10*eps, 100*eps */                      
+  PetscReal      tolGrowth=100000; /*1/PetscSqrtReal(PETSC_MACHINE_EPSILON);*/
   PetscErrorCode ierr;        
-  PetscInt	 i,k,nwu,nwall,begin,ind,flag,dim,m;
-  PetscReal	 norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;              
-  PetscReal	 acShift,initialShift,shift,sum,det,disc,prod,x1,x2,maxEntry;
-  PetscInt	 realSteps,complexSteps,earlyDef,lastSplit,splitCount;
-  PetscBool	 test1,test2;
+  PetscInt       i,k,nwu,nwall,begin,ind,flag,dim,m;
+  PetscReal      norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;              
+  PetscReal      acShift,initialShift,shift,sum,det,disc,prod,x1,x2,maxEntry;
+  PetscInt       realSteps,complexSteps,earlyDef,lastSplit,splitCount;
+  PetscBool      test1,test2;
 
 //eigValFail=zeros(n,1); %In case of failure
 
@@ -2287,10 +2289,8 @@ end
             wr[--n] = sum+acShift; wi[n] = PetscSqrtReal(-disc);
             wr[--n] = sum+acShift; wi[n] = -PetscSqrtReal(-disc);
 #else
-            x1 = sum+PETSC_i*PetscSqrtReal(-disc);
-            x2 = sum-PETSC_i*PetscSqrtReal(-disc);
-            wr[--n] = x2+acShift; wi[n] = 0.0;
-            wr[--n] = x1+acShift; wi[n] = 0.0;
+            wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
+            wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
 #endif
           }else{  
             if(sum==0){
@@ -2535,7 +2535,7 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
 
   /* Compute Eigenvalues (DQDS)*/
   /* Form pseudosymmetric tridiagonal */
-  a = ps->work;
+  a = ps->rwork;
   b = a+ld;
   c = b+ld;
   nwu = 3*ld;
@@ -2554,7 +2554,7 @@ PSViewMat_Private(ps,viewer,PS_MAT_Q);
     }
     a[ps->n-1] = PetscRealPart(A[ps->n-1+(ps->n-1)*ld]*B[ps->n-1+(ps->n-1)*ld]);
   }
-  ierr = PSGHIEP_Eigen3DQDS(ps->n-ps->l,a+ps->l,b+ps->l,c+ps->l,wr+ps->l,wi+ps->l,ps->work+nwu,nwall-nwu);
+  ierr = PSGHIEP_Eigen3DQDS(ps->n-ps->l,a+ps->l,b+ps->l,c+ps->l,wr+ps->l,wi+ps->l,ps->rwork+nwu,nwall-nwu);
 /* ///////////////// */
 PetscPrintf(PETSC_COMM_WORLD,"vp=[\n");
 for(i=0;i<ps->n;i++)
