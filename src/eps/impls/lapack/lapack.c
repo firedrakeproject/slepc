@@ -25,72 +25,115 @@
 #include <slepc-private/epsimpl.h>     /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-typedef struct {
-  Mat OP,A,B;
-} EPS_LAPACK;
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_LAPACK"
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
-  EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  PetscBool      flg;
-  Mat            A,B;
-  PetscScalar    shift;
+  PetscBool      isshift,isdense;
+  Mat            A,B,Adense,Bdense;
+  PetscScalar    shift,*Ap,*Bp;
+  PetscInt       i,ld;
   KSP            ksp;
   PC             pc;
+  Vec            v;
   
   PetscFunctionBegin;
   eps->ncv = eps->n;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n"); }
-
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
-  if (eps->balance!=EPS_BALANCE_NONE)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in Lapack solvers");
+  if (eps->balance!=EPS_BALANCE_NONE) { ierr = PetscInfo(eps,"Warning: balancing ignored\n");CHKERRQ(ierr); }
+  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
+  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  if (eps->isgeneralized) {
+    if (eps->ishermitian) {
+      if (eps->ispositive) {
+        ierr = PSSetType(eps->ps,PSGHEP);CHKERRQ(ierr);
+      } else {
+        ierr = PSSetType(eps->ps,PSGHIEP);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = PSSetType(eps->ps,PSGNHEP);CHKERRQ(ierr);
+    }
+  } else {
+    if (eps->ishermitian) {
+      ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
+    } else {
+      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+    }
+  }
+  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = PSSetDimensions(eps->ps,eps->ncv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
 
-  ierr = MatDestroy(&la->OP);CHKERRQ(ierr);
-  ierr = MatDestroy(&la->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&la->B);CHKERRQ(ierr);
-
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&flg);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  
-  if (flg) {
-    la->OP = PETSC_NULL;
+  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
+  if (isshift) {
+    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
-    ierra = SlepcMatConvertSeqDense(A,&la->A);CHKERRQ(ierr);
+    ierra = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
     if (eps->isgeneralized) {
-      ierrb = SlepcMatConvertSeqDense(B,&la->B);CHKERRQ(ierr);
+      ierrb = SlepcMatConvertSeqDense(B,&Bdense);CHKERRQ(ierr);
     } else {
       ierrb = 0;
-      la->B = PETSC_NULL;
     }
     PetscPopErrorHandler();
     if (ierra == 0 && ierrb == 0) {
       ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
       if (shift != 0.0) {
-        ierr = MatShift(la->A,shift);CHKERRQ(ierr);
+        ierr = MatShift(Adense,shift);CHKERRQ(ierr);
       }
       /* use dummy pc and ksp to avoid problems when B is not positive definite */
       ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
       ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
-      ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+
+      /* fill PS matrices */
+      ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,PETSC_NULL,&v);CHKERRQ(ierr);
+      ierr = PSGetArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
+      for (i=0;i<ld;i++) {
+        ierr = VecPlaceArray(v,Ap+i*ld);CHKERRQ(ierr);
+        ierr = MatGetColumnVector(Adense,v,i);CHKERRQ(ierr);
+        ierr = VecResetArray(v);CHKERRQ(ierr);
+      }
+      ierr = PSRestoreArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
+      if (eps->isgeneralized) {
+        ierr = PSGetArray(eps->ps,PS_MAT_B,&Bp);CHKERRQ(ierr);
+        for (i=0;i<ld;i++) {
+          ierr = VecPlaceArray(v,Bp+i*ld);CHKERRQ(ierr);
+          ierr = MatGetColumnVector(Bdense,v,i);CHKERRQ(ierr);
+          ierr = VecResetArray(v);CHKERRQ(ierr);
+        }
+        ierr = PSRestoreArray(eps->ps,PS_MAT_B,&Bp);CHKERRQ(ierr);
+      }
+      ierr = VecDestroy(&v);CHKERRQ(ierr);
+      ierr = MatDestroy(&Adense);CHKERRQ(ierr);
+      if (eps->isgeneralized) {
+        ierr = MatDestroy(&Bdense);CHKERRQ(ierr);
+      }
       PetscFunctionReturn(0);
     }
   }
   ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
-  la->A = PETSC_NULL;
-  la->B = PETSC_NULL;
-  ierr = STComputeExplicitOperator(eps->OP,&la->OP);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)la->OP,MATSEQDENSE,&flg);CHKERRQ(ierr);
-  if (!flg) {
-    ierr = SlepcMatConvertSeqDense(la->OP,&la->OP);CHKERRQ(ierr);
+  ierr = STComputeExplicitOperator(eps->OP,&A);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&isdense);CHKERRQ(ierr);
+  if (!isdense) {
+    ierr = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
+  } else Adense = A;
+  ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
+  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = PSSetDimensions(eps->ps,eps->ncv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,PETSC_NULL,&v);CHKERRQ(ierr);
+  ierr = PSGetArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
+  for (i=0;i<ld;i++) {
+    ierr = VecPlaceArray(v,Ap+i*ld);CHKERRQ(ierr);
+    ierr = MatGetColumnVector(Adense,v,i);CHKERRQ(ierr);
+    ierr = VecResetArray(v);CHKERRQ(ierr);
   }
-  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = PSRestoreArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = MatDestroy(&Adense);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -100,90 +143,36 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n=eps->n,i,low,high;
-  PetscMPIInt    size;
-  PetscScalar    *array,*arrayb,*pV,*pW;
-  PetscReal      *w;
-  EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
-  MPI_Comm       comm = ((PetscObject)eps)->comm;
+  PetscScalar    *array,*pX,*pY;
   
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  if (size == 1) {
-    ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-  } else {
-    ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&pV);CHKERRQ(ierr);
-  }
-  if (eps->leftvecs) {
-    if (size == 1) {
-      ierr = VecGetArray(eps->W[0],&pW);CHKERRQ(ierr);
-    } else {
-      ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&pW);CHKERRQ(ierr);
-    }
-  } else pW = PETSC_NULL;
-  
-  if (la->OP) {
-    ierr = MatGetArray(la->OP,&array);CHKERRQ(ierr);
-    ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV,pW);CHKERRQ(ierr);  
-    ierr = MatRestoreArray(la->OP,&array);CHKERRQ(ierr);
-  } else if (eps->ishermitian) {
-#if defined(PETSC_USE_COMPLEX)
-    ierr = PetscMalloc(n*sizeof(PetscReal),&w);CHKERRQ(ierr);
-#else
-    w = eps->eigr;
-#endif
-    ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
-    if (!eps->isgeneralized) {
-      ierr = EPSDenseHEP(n,array,n,w,pV);CHKERRQ(ierr);
-    } else {
-      ierr = MatGetArray(la->B,&arrayb);CHKERRQ(ierr);
-      ierr = EPSDenseGHEP(n,array,arrayb,w,pV);CHKERRQ(ierr);  
-      ierr = MatRestoreArray(la->B,&arrayb);CHKERRQ(ierr);
-    } 
-    ierr = MatRestoreArray(la->A,&array);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    for (i=0;i<n;i++) {
-      eps->eigr[i] = w[i];
-    }
-    ierr = PetscFree(w);CHKERRQ(ierr);
-#endif    
-  } else {
-    ierr = MatGetArray(la->A,&array);CHKERRQ(ierr);
-    if (!eps->isgeneralized) {
-      ierr = EPSDenseNHEP(n,array,eps->eigr,eps->eigi,pV,pW);CHKERRQ(ierr);
-    } else {
-      ierr = MatGetArray(la->B,&arrayb);CHKERRQ(ierr);
-      ierr = EPSDenseGNHEP(n,array,arrayb,eps->eigr,eps->eigi,pV,pW);CHKERRQ(ierr);  
-      ierr = MatRestoreArray(la->B,&arrayb);CHKERRQ(ierr);
-    }
-    ierr = MatRestoreArray(la->A,&array);CHKERRQ(ierr);
-  }
+  ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
-  if (size == 1) {
-    ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
-  } else {
-    for (i=0; i<eps->ncv; i++) {
-      ierr = VecGetOwnershipRange(eps->V[i],&low,&high);CHKERRQ(ierr);
-      ierr = VecGetArray(eps->V[i],&array);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array,pV+i*n+low,(high-low)*sizeof(PetscScalar));
-      ierr = VecRestoreArray(eps->V[i],&array);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(pV);CHKERRQ(ierr);
+  /* right eigenvectors */
+  ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSGetArray(eps->ps,PS_MAT_X,&pX);CHKERRQ(ierr);
+  for (i=0;i<eps->ncv;i++) {
+    ierr = VecGetOwnershipRange(eps->V[i],&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(eps->V[i],&array);CHKERRQ(ierr);
+    ierr = PetscMemcpy(array,pX+i*n+low,(high-low)*sizeof(PetscScalar));
+    ierr = VecRestoreArray(eps->V[i],&array);CHKERRQ(ierr);
   }
-  if (pW) {
-    if (size == 1) {
-      ierr = VecRestoreArray(eps->W[0],&pW);CHKERRQ(ierr);
-    } else {
-      for (i=0; i<eps->ncv; i++) {
-        ierr = VecGetOwnershipRange(eps->W[i],&low,&high);CHKERRQ(ierr);
-        ierr = VecGetArray(eps->W[i],&array);CHKERRQ(ierr);
-        ierr = PetscMemcpy(array,pW+i*n+low,(high-low)*sizeof(PetscScalar));
-        ierr = VecRestoreArray(eps->W[i],&array);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(pW);CHKERRQ(ierr);
+  ierr = PSRestoreArray(eps->ps,PS_MAT_X,&pX);CHKERRQ(ierr);
+
+  /* left eigenvectors */
+  if (eps->leftvecs) {
+    ierr = PSVectors(eps->ps,PS_MAT_Y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSGetArray(eps->ps,PS_MAT_Y,&pY);CHKERRQ(ierr);
+    for (i=0;i<eps->ncv;i++) {
+      ierr = VecGetOwnershipRange(eps->W[i],&low,&high);CHKERRQ(ierr);
+      ierr = VecGetArray(eps->W[i],&array);CHKERRQ(ierr);
+      ierr = PetscMemcpy(array,pY+i*n+low,(high-low)*sizeof(PetscScalar));
+      ierr = VecRestoreArray(eps->W[i],&array);CHKERRQ(ierr);
     }
+    ierr = PSRestoreArray(eps->ps,PS_MAT_Y,&pY);CHKERRQ(ierr);
   }
-  eps->nconv = eps->ncv;
-  eps->its   = 1;  
+  eps->nconv  = eps->ncv;
+  eps->its    = 1;  
   eps->reason = EPS_CONVERGED_TOL;
   PetscFunctionReturn(0);
 }
@@ -193,24 +182,9 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 PetscErrorCode EPSReset_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_LAPACK     *la = (EPS_LAPACK *)eps->data;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&la->OP);CHKERRQ(ierr);
-  ierr = MatDestroy(&la->A);CHKERRQ(ierr); 
-  ierr = MatDestroy(&la->B);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "EPSDestroy_LAPACK"
-PetscErrorCode EPSDestroy_LAPACK(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -219,13 +193,9 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSCreate_LAPACK"
 PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_LAPACK,&eps->data);CHKERRQ(ierr);
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
-  eps->ops->destroy              = EPSDestroy_LAPACK;
   eps->ops->reset                = EPSReset_LAPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;

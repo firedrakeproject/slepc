@@ -34,7 +34,6 @@
 -  B  - the target matrix
 
    Level: developer
-   
 @*/
 PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 {
@@ -65,14 +64,13 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     if (*newmat == mat) {
       ierr = MatDestroy(&mat);CHKERRQ(ierr);
     }
-    *newmat = *M;
-    ierr = PetscFree(M);CHKERRQ(ierr);     
   
     /* convert matrix to MatSeqDense */
-    ierr = PetscObjectTypeCompare((PetscObject)*newmat,MATSEQDENSE,&flg);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)*M,MATSEQDENSE,&flg);CHKERRQ(ierr);
     if (!flg) {
-      ierr = MatConvert(*newmat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
+      ierr = MatConvert(*M,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
     } 
+    ierr = MatDestroyMatrices(1,&M);CHKERRQ(ierr);
   } else {
     /* convert matrix to MatSeqDense */
     ierr = MatConvert(mat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
