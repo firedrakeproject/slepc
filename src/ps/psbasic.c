@@ -1246,7 +1246,7 @@ PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindc
   lw = -1;
   LAPACKgeqrf_(&rA,&cA,A,&ld_,PETSC_NULL,&saux,&lw,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
-  lw = (PetscBLASInt)saux;
+  lw = (PetscBLASInt)PetscRealPart(saux);
   ierr = PSAllocateWork_Private(ps,lw+ltau,0,0);CHKERRQ(ierr);
   tau = ps->work;
   w = &tau[ltau];

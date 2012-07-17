@@ -153,8 +153,8 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
       d->max_size_cS = d->ldcS = 0;
       d->orthoV_type = orth;
       if (ind_probl) {
-        d->real_nBV = b->free_scalars; b->free_scalars+= FromRealToScalar(d->size_real_V);
-        d->nBpX = b->free_scalars; b->free_scalars+= FromRealToScalar(d->max_size_proj);
+        d->real_nBV = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(d->size_real_V);
+        d->nBpX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(d->max_size_proj);
       } else
         d->real_nBV = d->nBDS = d->nBpX = PETSC_NULL;
     }
