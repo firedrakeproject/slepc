@@ -40,7 +40,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test10.PETSc runtest10_1 test10.rm \
                        test11.PETSc runtest11_1 test11.rm \
                        test12.PETSc runtest12_1 test12.rm 
-TESTEXAMPLES_C_NOF128= test5.PETSc runtest5_1 test5.rm \
+TESTEXAMPLES_C_NOF128= test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
 TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
 
