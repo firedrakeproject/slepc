@@ -30,8 +30,8 @@
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
-  PetscBool      isshift,isdense;
-  Mat            A,B,Adense,Bdense;
+  PetscBool      isshift,denseok=PETSC_FALSE;
+  Mat            A,B,OP,Adense,Bdense;
   PetscScalar    shift,*Ap,*Bp;
   PetscInt       i,ld;
   KSP            ksp;
@@ -45,27 +45,8 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (eps->balance!=EPS_BALANCE_NONE) { ierr = PetscInfo(eps,"Warning: balancing ignored\n");CHKERRQ(ierr); }
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  if (eps->isgeneralized) {
-    if (eps->ishermitian) {
-      if (eps->ispositive) {
-        ierr = PSSetType(eps->ps,PSGHEP);CHKERRQ(ierr);
-      } else {
-        ierr = PSSetType(eps->ps,PSGHIEP);CHKERRQ(ierr);
-      }
-    } else {
-      ierr = PSSetType(eps->ps,PSGNHEP);CHKERRQ(ierr);
-    }
-  } else {
-    if (eps->ishermitian) {
-      ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
-    } else {
-      ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
-    }
-  }
-  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PSSetDimensions(eps->ps,eps->ncv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
 
+  /* attempt to get dense representations of A and B separately */
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
   if (isshift) {
     ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
@@ -77,53 +58,53 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       ierrb = 0;
     }
     PetscPopErrorHandler();
-    if (ierra == 0 && ierrb == 0) {
-      ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
-      if (shift != 0.0) {
-        ierr = MatShift(Adense,shift);CHKERRQ(ierr);
-      }
-      /* use dummy pc and ksp to avoid problems when B is not positive definite */
-      ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
-      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
-
-      /* fill PS matrices */
-      ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,PETSC_NULL,&v);CHKERRQ(ierr);
-      ierr = PSGetArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
-      for (i=0;i<ld;i++) {
-        ierr = VecPlaceArray(v,Ap+i*ld);CHKERRQ(ierr);
-        ierr = MatGetColumnVector(Adense,v,i);CHKERRQ(ierr);
-        ierr = VecResetArray(v);CHKERRQ(ierr);
-      }
-      ierr = PSRestoreArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
-      if (eps->isgeneralized) {
-        ierr = PSGetArray(eps->ps,PS_MAT_B,&Bp);CHKERRQ(ierr);
-        for (i=0;i<ld;i++) {
-          ierr = VecPlaceArray(v,Bp+i*ld);CHKERRQ(ierr);
-          ierr = MatGetColumnVector(Bdense,v,i);CHKERRQ(ierr);
-          ierr = VecResetArray(v);CHKERRQ(ierr);
-        }
-        ierr = PSRestoreArray(eps->ps,PS_MAT_B,&Bp);CHKERRQ(ierr);
-      }
-      ierr = VecDestroy(&v);CHKERRQ(ierr);
-      ierr = MatDestroy(&Adense);CHKERRQ(ierr);
-      if (eps->isgeneralized) {
-        ierr = MatDestroy(&Bdense);CHKERRQ(ierr);
-      }
-      PetscFunctionReturn(0);
-    }
+    denseok = (ierra == 0 && ierrb == 0)? PETSC_TRUE: PETSC_FALSE;
   }
-  ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
-  ierr = STComputeExplicitOperator(eps->OP,&A);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&isdense);CHKERRQ(ierr);
-  if (!isdense) {
-    ierr = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
-  } else Adense = A;
-  ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+
+  /* setup PS */
+  if (denseok) {
+    if (eps->isgeneralized) {
+      if (eps->ishermitian) {
+        if (eps->ispositive) {
+          ierr = PSSetType(eps->ps,PSGHEP);CHKERRQ(ierr);
+        } else {
+          ierr = PSSetType(eps->ps,PSGHIEP);CHKERRQ(ierr);
+        }
+      } else {
+        ierr = PSSetType(eps->ps,PSGNHEP);CHKERRQ(ierr);
+      }
+    } else {
+      if (eps->ishermitian) {
+        ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
+      } else {
+        ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+      }
+    }
+  } else {
+    ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+  }
   ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
   ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
   ierr = PSSetDimensions(eps->ps,eps->ncv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+
+  if (denseok) {
+    ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
+    if (shift != 0.0) {
+      ierr = MatShift(Adense,shift);CHKERRQ(ierr);
+    }
+    /* use dummy pc and ksp to avoid problems when B is not positive definite */
+    ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+  } else {
+    ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
+    ierr = STComputeExplicitOperator(eps->OP,&OP);CHKERRQ(ierr);
+    ierr = MatDestroy(&Adense);CHKERRQ(ierr);
+    ierr = SlepcMatConvertSeqDense(OP,&Adense);CHKERRQ(ierr);
+  }
+
+  /* fill PS matrices */
   ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,PETSC_NULL,&v);CHKERRQ(ierr);
   ierr = PSGetArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
   for (i=0;i<ld;i++) {
@@ -132,8 +113,19 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = VecResetArray(v);CHKERRQ(ierr);
   }
   ierr = PSRestoreArray(eps->ps,PS_MAT_A,&Ap);CHKERRQ(ierr);
+  if (denseok && eps->isgeneralized) {
+    ierr = PSGetArray(eps->ps,PS_MAT_B,&Bp);CHKERRQ(ierr);
+    for (i=0;i<ld;i++) {
+      ierr = VecPlaceArray(v,Bp+i*ld);CHKERRQ(ierr);
+      ierr = MatGetColumnVector(Bdense,v,i);CHKERRQ(ierr);
+      ierr = VecResetArray(v);CHKERRQ(ierr);
+    }
+    ierr = PSRestoreArray(eps->ps,PS_MAT_B,&Bp);CHKERRQ(ierr);
+  }
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = MatDestroy(&Adense);CHKERRQ(ierr);
+  if (!denseok) { ierr = MatDestroy(&OP);CHKERRQ(ierr); }
+  if (eps->isgeneralized) { ierr = MatDestroy(&Bdense);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

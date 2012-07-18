@@ -182,7 +182,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
    transformation the result would be matrix (A - s B)^-1 B.
 
    This computation is done by applying the operator to columns of the 
-   identity matrix. Note that the result is a dense matrix.
+   identity matrix. This is analogous to MatComputeExplicitOperator().
 
    Level: advanced
 
@@ -195,21 +195,32 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscInt          i,M,m,*rows,start,end;
   const PetscScalar *array;
   PetscScalar       one = 1.0;
+  PetscMPIInt       size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
+  ierr = MPI_Comm_size(((PetscObject)st)->comm,&size);CHKERRQ(ierr);
 
   ierr = MatGetVecs(st->A,&in,&out);CHKERRQ(ierr);
   ierr = VecGetSize(out,&M);CHKERRQ(ierr);
   ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
+  ierr = VecSetOption(in,VEC_IGNORE_OFF_PROC_ENTRIES,PETSC_TRUE);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(out,&start,&end);CHKERRQ(ierr);
   ierr = PetscMalloc(m*sizeof(PetscInt),&rows);CHKERRQ(ierr);
-  for (i=0; i<m; i++) rows[i] = start + i;
+  for (i=0;i<m;i++) rows[i] = start + i;
 
-  ierr = MatCreateDense(((PetscObject)st)->comm,m,m,M,M,PETSC_NULL,mat);CHKERRQ(ierr);
+  ierr = MatCreate(((PetscObject)st)->comm,mat);CHKERRQ(ierr);
+  ierr = MatSetSizes(*mat,m,m,M,M);CHKERRQ(ierr);
+  if (size == 1) {
+    ierr = MatSetType(*mat,MATSEQDENSE);CHKERRQ(ierr);
+    ierr = MatSeqDenseSetPreallocation(*mat,PETSC_NULL);CHKERRQ(ierr);
+  } else {
+    ierr = MatSetType(*mat,MATMPIAIJ);CHKERRQ(ierr);
+    ierr = MatMPIAIJSetPreallocation(*mat,m,PETSC_NULL,M-m,PETSC_NULL);CHKERRQ(ierr);
+  }
 
-  for (i=0; i<M; i++) {
+  for (i=0;i<M;i++) {
     ierr = VecSet(in,0.0);CHKERRQ(ierr);
     ierr = VecSetValues(in,1,&i,&one,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecAssemblyBegin(in);CHKERRQ(ierr);

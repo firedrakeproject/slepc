@@ -20,6 +20,7 @@
 */
 
 #include <slepc-private/slepcimpl.h>            /*I "slepcsys.h" I*/
+#include <petsc-private/matimpl.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcMatConvertSeqDense"
@@ -43,7 +44,6 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   MPI_Comm       comm;
   Mat            *M;
   IS             isrow,iscol;
-  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
@@ -52,6 +52,8 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
 
   if (size > 1) {
+    if (!mat->ops->getsubmatrices) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
+
     /* assemble full matrix on every processor */
     ierr = MatGetSize(mat,&m,&n);CHKERRQ(ierr);
     ierr = ISCreateStride(PETSC_COMM_SELF,m,0,1,&isrow);CHKERRQ(ierr);
@@ -66,10 +68,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     }
   
     /* convert matrix to MatSeqDense */
-    ierr = PetscObjectTypeCompare((PetscObject)*M,MATSEQDENSE,&flg);CHKERRQ(ierr);
-    if (!flg) {
-      ierr = MatConvert(*M,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
-    } 
+    ierr = MatConvert(*M,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
     ierr = MatDestroyMatrices(1,&M);CHKERRQ(ierr);
   } else {
     /* convert matrix to MatSeqDense */
