@@ -39,7 +39,7 @@
 */
 
 
-static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscBool doProd);
+static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY,PetscBool doProd);
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSAllocate_GNHEP"
@@ -112,7 +112,7 @@ PetscErrorCode PSVectors_GNHEP_Eigen_Some(PS ps,PetscInt *k,PetscBool left)
     ierr = PSSetIdentity(ps,PS_MAT_Q);CHKERRQ(ierr);
     ierr = PSSetIdentity(ps,PS_MAT_Z);CHKERRQ(ierr);
   }
-  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ps->mat[PS_MAT_Q],ld,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ps->mat[PS_MAT_Q],ld,ps->mat[PS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
   if (ps->state < PS_STATE_CONDENSED) {
     ierr = PSSetState(ps,PS_STATE_CONDENSED);CHKERRQ(ierr);
   }
@@ -162,7 +162,7 @@ PetscErrorCode PSVectors_GNHEP_Eigen_All(PS ps,PetscBool left)
     Y = PETSC_NULL;
     side = "R";
   }
-  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ps->mat[PS_MAT_Q],ld,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ps->mat[PS_MAT_Q],ld,ps->mat[PS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
   if (ps->state>=PS_STATE_CONDENSED) {
     /* PSSolve() has been called, backtransform with matrix Q */
     back = "B";
@@ -365,7 +365,7 @@ static PetscErrorCode PSSolve_GNHEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
    matrices S and T, and inside 2-by-2 diagonal blocks of T in order to
    make (S,T) a valid Schur decompositon.
 */
-static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscBool doProd)
+static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY,PetscBool doProd)
 {
 #if defined(SLEPC_MISSING_LAPACK_LASV2)
   PetscFunctionBegin;
@@ -375,7 +375,7 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    s;
 #else
-  PetscBLASInt   ldS_,ldT_,n_i,n_i_1,one=1,n_,i_1,i_;
+  PetscBLASInt   ldS_,ldT_,n_i,n_i_2,one=1,n_,i_2,i_;
   PetscScalar    b11,b22,sr,cr,sl,cl;
 #endif
 
@@ -383,6 +383,10 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
   if (!doProd && X) {
     for (i=0;i<n;i++) for (j=0;j<n;j++) X[ldX*i+j] = 0.0;
     for (i=0;i<n;i++) X[ldX*i+i] = 1.0;
+  }
+  if (!doProd && Y) {
+    for (i=0;i<n;i++) for (j=0;j<n;j++) Y[ldY*i+j] = 0.0;
+    for (i=0;i<n;i++) Y[ldX*i+i] = 1.0;
   }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -407,43 +411,42 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
   ldS_ = PetscBLASIntCast(ldS);
   ldT_ = PetscBLASIntCast(ldT);
   n_   = PetscBLASIntCast(n);
-  for (i=k;i<n;i++) {
+  for (i=k;i<n-1;i++) {
     if (S[ldS*i+i+1] != 0.0) {
-      if (i+2<n) S[ldS*(i+1)+i+2] = 0.0;
-      if (T) {
-        /* T[ldT*(i+1)+i] = 0.0; */
-        if (i+1<n) {
-          /* Check if T(i+1,i) is negligible */
-          if (PetscAbs(T[ldT*(i+1)+i])+PetscAbs(T[ldT*i+i+1]) > (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1]))*PETSC_MACHINE_EPSILON) {
-            n_i = PetscBLASIntCast(n-i);
-            n_i_1 = n_i - 1;
-            i_1 = PetscBLASIntCast(i+1);
-            i_ = PetscBLASIntCast(i);
+      /* Check if T(i+1,i) and T(i,i+1) are zero */
+      if (T[ldT*(i+1)+i] != 0.0 || T[ldT*i+i+1] != 0.0) {
+        /* Check if T(i+1,i) and T(i,i+1) are negligible */
+        if (PetscAbs(T[ldT*(i+1)+i])+PetscAbs(T[ldT*i+i+1]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1]))*PETSC_MACHINE_EPSILON) {
+          T[ldT*i+i+1] = 0.0;
+          T[ldT*(i+1)+i] = 0.0;
+
+        } else {
+          /* If one of T(i+1,i) or T(i,i+1) is negligible, we make zero the other element */
+          if (PetscAbs(T[ldT*i+i+1]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1])+PetscAbs(T[ldT*(i+1)+i]))*PETSC_MACHINE_EPSILON) {
+            LAPACKlasv2_(&T[ldT*i+i],&T[ldT*(i+1)+i],&T[ldT*(i+1)+i+1],&b22,&b11,&sl,&cl,&sr,&cr);
+          } else if (PetscAbs(T[ldT*(i+1)+i]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1])+PetscAbs(T[ldT*i+i+1]))*PETSC_MACHINE_EPSILON) {
             LAPACKlasv2_(&T[ldT*i+i],&T[ldT*i+i+1],&T[ldT*(i+1)+i+1],&b22,&b11,&sr,&cr,&sl,&cl);
-            if (b11 < 0.0) { cr=-cr; sr=-sr; b11=-b11; b22=-b22; }
-            BLASrot_(&n_i,&S[ldS*i+i],&ldS_,&S[ldS*i+i+1],&ldS_,&cl,&sl);
-            BLASrot_(&i_1,&S[ldS*i],&one,&S[ldS*(i+1)],&one,&cr,&sr);
-            if (n_i_1>0) BLASrot_(&n_i_1,&T[ldT*(i+2)+i],&ldT_,&T[ldT*(i+2)+i],&ldT_,&cl,&sl);
-            BLASrot_(&i_,&T[ldT*i],&one,&T[ldT*(i+1)],&one,&cr,&sr);
-            if (X) BLASrot_(&n_,&X[ldX*i],&one,&X[ldX*(i+1)],&one,&cr,&sr);
-            T[ldT*i+i] = b11;
-            T[ldT*i+i+1] = 0.0;
-            T[ldT*(i+1)+i] = 0.0;
-            T[ldT*(i+1)+i+1] = b22;
           } else {
-            T[ldT*(i+1)+i] = 0.0;
-            T[ldT*i+i+1] = 0.0;
+            SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported format. Call PSSolve before this function.");
           }
+          n_i = PetscBLASIntCast(n-i);
+          n_i_2 = n_i - 2;
+          i_2 = PetscBLASIntCast(i+2);
+          i_ = PetscBLASIntCast(i);
+          if (b11 < 0.0) { cr=-cr; sr=-sr; b11=-b11; b22=-b22; }
+          BLASrot_(&n_i,&S[ldS*i+i],&ldS_,&S[ldS*i+i+1],&ldS_,&cl,&sl);
+          BLASrot_(&i_2,&S[ldS*i],&one,&S[ldS*(i+1)],&one,&cr,&sr);
+          BLASrot_(&n_i_2,&T[ldT*(i+2)+i],&ldT_,&T[ldT*(i+2)+i+1],&ldT_,&cl,&sl);
+          BLASrot_(&i_,&T[ldT*i],&one,&T[ldT*(i+1)],&one,&cr,&sr);
+          if (X) BLASrot_(&n_,&X[ldX*i],&one,&X[ldX*(i+1)],&one,&cr,&sr);
+          if (Y) BLASrot_(&n_,&Y[ldY*i],&one,&X[ldY*(i+1)],&one,&cl,&sl);
+          T[ldT*i+i] = b11;
+          T[ldT*i+i+1] = 0.0;
+          T[ldT*(i+1)+i] = 0.0;
+          T[ldT*(i+1)+i+1] = b22;
         }
-        if (i+1<n) T[ldT*i+i+1] = 0.0;
-        if (i+2<n) T[ldT*(i+1)+i+2] = 0.0;
       }
-      i++;
-    } else {
-      if (i+1<n) {
-        S[ldS*i+i+1] = 0.0;
-        if (T) T[ldT*i+i+1] = 0.0;
-      }
+    i++;
     }
   }
 #endif
