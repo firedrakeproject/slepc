@@ -148,14 +148,10 @@ PetscErrorCode SVDSetUp(SVD svd)
       if (M>=N) {
         svd->A = svd->OP;
         ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
         ierr = MatConjugate(svd->AT);CHKERRQ(ierr);
-#endif
       } else {
         ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
         ierr = MatConjugate(svd->A);CHKERRQ(ierr);
-#endif
         svd->AT = svd->OP;
       }
       break;
