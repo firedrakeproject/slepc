@@ -203,7 +203,9 @@ Each \slepc source code component directory has the following subdirectories:
 
 	It can be used for standard and generalized eigenvalue problems, both in real and complex arithmetic. It is implemented in Fortran 77 and it is based on the reverse communication interface. A parallel version, \parpack, is available with support for both MPI and BLACS.
 	\item[Installation.]
-	First of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. Even if \arpack is to be used with just one processor, it is necessary to uncompress also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz}. Make sure you delete any \texttt{mpif.h} files that could exist in the directory tree. After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack. 
+	First of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. If you plan to use the parallel version, extract also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz} (make sure you delete any \texttt{mpif.h} files that could exist in the directory tree). After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack. 
+
+	It is possible to configure \slepc with the serial version of \arpack. For this, you have to configure \petsc with the option \texttt{--with-mpi=0}.
 	\end{description}
 
 \subsection*{\underline{\primme}}

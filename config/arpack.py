@@ -27,21 +27,36 @@ import check
 
 def Check(conf,vars,cmake,tmpdir,directory,libs):
 
-  if petscconf.SCALAR == 'real':
-    if petscconf.PRECISION == 'single':
-      functions = ['psnaupd','psneupd','pssaupd','psseupd']
+  if petscconf.MPIUNI:
+    if petscconf.SCALAR == 'real':
+      if petscconf.PRECISION == 'single':
+        functions = ['snaupd','sneupd','ssaupd','sseupd']
+      else:
+        functions = ['dnaupd','dneupd','dsaupd','dseupd']
     else:
-      functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
+      if petscconf.PRECISION == 'single':
+        functions = ['cnaupd','cneupd']
+      else:
+        functions = ['znaupd','zneupd']
   else:
-    if petscconf.PRECISION == 'single':
-      functions = ['pcnaupd','pcneupd']
+    if petscconf.SCALAR == 'real':
+      if petscconf.PRECISION == 'single':
+        functions = ['psnaupd','psneupd','pssaupd','psseupd']
+      else:
+        functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
     else:
-      functions = ['pznaupd','pzneupd']
+      if petscconf.PRECISION == 'single':
+        functions = ['pcnaupd','pcneupd']
+      else:
+        functions = ['pznaupd','pzneupd']
 
   if libs:
     libs = [libs]
   else:
-    libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
+    if petscconf.MPIUNI:
+      libs = [['-larpack'],['-larpack_LINUX'],['-larpack_SUN4']]
+    else:
+      libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
 
   if directory:
     dirs = [directory]

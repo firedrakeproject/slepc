@@ -25,100 +25,187 @@
 #define __ARPACKP_H
 
 typedef struct {
-  PetscBool   *select;
-  PetscScalar *workev;
-  PetscScalar *workd;
-  PetscScalar *workl;
-  PetscBLASInt
-              lworkl;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal  *rwork;
-#endif
+  PetscBool    *select;
+  PetscScalar  *workev;
+  PetscScalar  *workd;
+  PetscScalar  *workl;
+  PetscBLASInt lworkl;
+  PetscReal    *rwork;
 } EPS_ARPACK;
 
 /*
    Definition of routines from the ARPACK package
 */
 
+#if defined(PETSC_HAVE_MPIUNI)
+
+#if defined(PETSC_USE_COMPLEX)
+
+#if defined(PETSC_USE_REAL_SINGLE)
+
 #if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
-#define SLEPC_ARPACK(lcase,ucase) lcase##_
+#define SLEPC_ARPACK(lcase,ucase) c##lcase##_
 #elif defined(SLEPC_ARPACK_HAVE_CAPS)
-#define SLEPC_ARPACK(lcase,ucase) ucase
+#define SLEPC_ARPACK(lcase,ucase) C##ucase
 #else
-#define SLEPC_ARPACK(lcase,ucase) lcase
+#define SLEPC_ARPACK(lcase,ucase) c##lcase
 #endif
+
+#else
+
+#if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
+#define SLEPC_ARPACK(lcase,ucase) z##lcase##_
+#elif defined(SLEPC_ARPACK_HAVE_CAPS)
+#define SLEPC_ARPACK(lcase,ucase) Z##ucase
+#else
+#define SLEPC_ARPACK(lcase,ucase) z##lcase
+#endif
+
+#endif
+
+#else 
+
+#if defined(PETSC_USE_REAL_SINGLE)
+
+#if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
+#define SLEPC_ARPACK(lcase,ucase) s##lcase##_
+#elif defined(SLEPC_ARPACK_HAVE_CAPS)
+#define SLEPC_ARPACK(lcase,ucase) S##ucase
+#else
+#define SLEPC_ARPACK(lcase,ucase) s##lcase
+#endif
+
+#else
+
+#if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
+#define SLEPC_ARPACK(lcase,ucase) d##lcase##_
+#elif defined(SLEPC_ARPACK_HAVE_CAPS)
+#define SLEPC_ARPACK(lcase,ucase) D##ucase
+#else
+#define SLEPC_ARPACK(lcase,ucase) d##lcase
+#endif
+
+#endif
+
+#endif
+
+#else  /* not MPIUNI */
+
+#if defined(PETSC_USE_COMPLEX)
+
+#if defined(PETSC_USE_REAL_SINGLE)
+
+#if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
+#define SLEPC_ARPACK(lcase,ucase) pc##lcase##_
+#elif defined(SLEPC_ARPACK_HAVE_CAPS)
+#define SLEPC_ARPACK(lcase,ucase) PC##ucase
+#else
+#define SLEPC_ARPACK(lcase,ucase) pc##lcase
+#endif
+
+#else
+
+#if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
+#define SLEPC_ARPACK(lcase,ucase) pz##lcase##_
+#elif defined(SLEPC_ARPACK_HAVE_CAPS)
+#define SLEPC_ARPACK(lcase,ucase) PZ##ucase
+#else
+#define SLEPC_ARPACK(lcase,ucase) pz##lcase
+#endif
+
+#endif
+
+#else
+
+#if defined(PETSC_USE_REAL_SINGLE)
+
+#if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
+#define SLEPC_ARPACK(lcase,ucase) ps##lcase##_
+#elif defined(SLEPC_ARPACK_HAVE_CAPS)
+#define SLEPC_ARPACK(lcase,ucase) PS##ucase
+#else
+#define SLEPC_ARPACK(lcase,ucase) ps##lcase
+#endif
+
+#else
+
+#if defined(SLEPC_ARPACK_HAVE_UNDERSCORE)
+#define SLEPC_ARPACK(lcase,ucase) pd##lcase##_
+#elif defined(SLEPC_ARPACK_HAVE_CAPS)
+#define SLEPC_ARPACK(lcase,ucase) PD##ucase
+#else
+#define SLEPC_ARPACK(lcase,ucase) pd##lcase
+#endif
+
+#endif
+
+#endif
+
+#endif
+
+#if defined(PETSC_HAVE_MPIUNI)
+
+#define COMM_ARG
 
 #if !defined(PETSC_USE_COMPLEX)
 
-/*
-    These are real case 
-*/
-
-#if defined(PETSC_USES_FORTRAN_SINGLE) 
-/*
-   For these machines we must call the single precision Fortran version
-*/
-#define ARnaupd_ SLEPC_ARPACK(psnaupd,PSNAUPD)
-#define ARneupd_ SLEPC_ARPACK(psneupd,PSNEUPD)
-#define ARsaupd_ SLEPC_ARPACK(pssaupd,PSSAUPD)
-#define ARseupd_ SLEPC_ARPACK(psseupd,PSSEUPD)
+#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(naupd,NAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y) SLEPC_ARPACK(neupd,NEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),(y),1,1,2)
+#define ARsaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(saupd,SAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARseupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,s,t,u,v,w) SLEPC_ARPACK(seupd,SEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(o),(p),(q),(r),(s),(t),(u),(v),(w),1,1,2)
 
 #else
 
-#define ARnaupd_ SLEPC_ARPACK(pdnaupd,PDNAUPD)
-#define ARneupd_ SLEPC_ARPACK(pdneupd,PDNEUPD)
-#define ARsaupd_ SLEPC_ARPACK(pdsaupd,PDSAUPD)
-#define ARseupd_ SLEPC_ARPACK(pdseupd,PDSEUPD)
+#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_ARPACK(naupd,NAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,2)
+#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x) SLEPC_ARPACK(neupd,NEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),1,1,2)
 
 #endif
 
+#else /* not MPIUNI */
+
+#define COMM_ARG MPI_Fint*,
+
+#if !defined(PETSC_USE_COMPLEX)
+
+#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(naupd,NAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y) SLEPC_ARPACK(neupd,NEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),(y),1,1,2)
+#define ARsaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(saupd,SAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARseupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,s,t,u,v,w) SLEPC_ARPACK(seupd,SEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(o),(p),(q),(r),(s),(t),(u),(v),(w),1,1,2)
+
 #else
-/*
-   Complex 
-*/
-#if defined(PETSC_USE_SINGLE) 
 
-#define ARnaupd_ SLEPC_ARPACK(pcnaupd,PCNAUPD)
-#define ARneupd_ SLEPC_ARPACK(pcneupd,PCNEUPD)
-
-#else
-
-#define ARnaupd_ SLEPC_ARPACK(pznaupd,PZNAUPD)
-#define ARneupd_ SLEPC_ARPACK(pzneupd,PZNEUPD)
+#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_ARPACK(naupd,NAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,2)
+#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x) SLEPC_ARPACK(neupd,NEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),1,1,2)
 
 #endif
 
 #endif
 
-EXTERN_C_BEGIN
-
-extern void   ARsaupd_(MPI_Fint*,PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
+PETSC_EXTERN_C void   SLEPC_ARPACK(saupd,SAUPD)(COMM_ARG PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscBLASInt*,int,int);
-extern void   ARseupd_(MPI_Fint*,PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
+PETSC_EXTERN_C void   SLEPC_ARPACK(seupd,SEUPD)(COMM_ARG PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
                        char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,
                        PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,
                        PetscBLASInt*,int,int,int);
 
 #if !defined(PETSC_USE_COMPLEX)
-extern void   ARnaupd_(MPI_Fint*,PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
+PETSC_EXTERN_C void   SLEPC_ARPACK(naupd,NAUPD)(COMM_ARG PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscBLASInt*,int,int);
-extern void   ARneupd_(MPI_Fint*,PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
+PETSC_EXTERN_C void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,
                        PetscReal*,PetscReal*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscBLASInt*,int,int,int);
 #else
-extern void   ARnaupd_(MPI_Fint*,PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
+PETSC_EXTERN_C void   SLEPC_ARPACK(naupd,NAUPD)(COMM_ARG PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,
                        PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,
                        PetscBLASInt*,PetscReal*,PetscBLASInt*,int,int);
-extern void   ARneupd_(MPI_Fint*,PetscBool*,char*,PetscBool*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,
+PETSC_EXTERN_C void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscBool*,char*,PetscBool*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,
                        PetscScalar*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,
                        PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,
                        PetscReal*,PetscBLASInt*,int,int,int);
 #endif
-
-EXTERN_C_END
 
 #endif
 

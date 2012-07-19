@@ -89,7 +89,10 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
   char           bmat[1],howmny[] = "A";
   const char     *which;
-  PetscBLASInt   n,iparam[11],ipntr[14],ido,info,nev,ncv,fcomm;
+  PetscBLASInt   n,iparam[11],ipntr[14],ido,info,nev,ncv;
+#if !defined(PETSC_HAVE_MPIUNI)
+  PetscBLASInt   fcomm;
+#endif
   PetscScalar    sigmar,*pV,*resid;
   Vec            x,y,w = eps->work[0];
   Mat            A;
@@ -101,7 +104,9 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscFunctionBegin;
   nev = PetscBLASIntCast(eps->nev);
   ncv = PetscBLASIntCast(eps->ncv);
+#if !defined(PETSC_HAVE_MPIUNI)
   fcomm = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm));
+#endif
   n = PetscBLASIntCast(eps->nloc);
   ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
@@ -183,17 +188,17 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     if (eps->ishermitian) {
       ARsaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-               ar->workl,&ar->lworkl,&info,1,2);
+               ar->workl,&ar->lworkl,&info);
     }
     else {
       ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-               ar->workl,&ar->lworkl,&info,1,2);
+               ar->workl,&ar->lworkl,&info);
     }
 #else
     ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
              resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-             ar->workl,&ar->lworkl,ar->rwork,&info,1,2);
+             ar->workl,&ar->lworkl,ar->rwork,&info);
 #endif
     
     if (ido == -1 || ido == 1 || ido == 2) {
@@ -254,7 +259,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
                 pV,&n,&sigmar,
                 bmat,&n,which,&nev,&eps->tol,
                 resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-                ar->workl,&ar->lworkl,&info,1,1,2);
+                ar->workl,&ar->lworkl,&info);
     }
     else {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
@@ -262,7 +267,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
                 pV,&n,&sigmar,&sigmai,ar->workev,
                 bmat,&n,which,&nev,&eps->tol,
                 resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-                ar->workl,&ar->lworkl,&info,1,1,2);
+                ar->workl,&ar->lworkl,&info);
     }
 #else
     ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
@@ -270,7 +275,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
               pV,&n,&sigmar,ar->workev,
               bmat,&n,which,&nev,&eps->tol,
               resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-              ar->workl,&ar->lworkl,ar->rwork,&info,1,1,2);
+              ar->workl,&ar->lworkl,ar->rwork,&info);
 #endif
     if (info!=0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info);
   }
