@@ -110,11 +110,64 @@ classdef SlepcEPS < PetscObject
       nconv = 0;
       [err,nconv] = calllib('libslepc', 'EPSGetConverged', obj.pobj,nconv);PetscCHKERRQ(err);
     end
-    function [lambda,err] = GetEigenpair(obj,i)
+    function [lambda,err] = GetEigenvalue(obj,i)
       lambda = 0.0;
       img = 0.0;
-      [err,lambda,img] = calllib('libslepc', 'EPSGetEigenpair', obj.pobj,i-1,lambda,img,0,0);PetscCHKERRQ(err);
+      [err,lambda,img] = calllib('libslepc', 'EPSGetEigenvalue', obj.pobj,i-1,lambda,img);PetscCHKERRQ(err);
       if img~=0.0, lambda = lambda+j*img; end
+    end
+    function [v,err] = GetEigenvector(obj,i,xr,xi)
+      if (nargin < 3) 
+        x = 0;
+      else
+        x = xr.pobj;
+      end
+      if (nargin < 4) 
+        y = 0;
+      else
+        y = xi.pobj;
+      end
+      if (nargout > 0 && (x==0 || y==0))
+        [err,pid] = calllib('libslepc', 'EPSGetOperators', obj.pobj,0,0);PetscCHKERRQ(err);
+        A = PetscMat(pid,'pobj');
+        n = A.GetSize();
+      end
+      freexr = 0;
+      freexi = 0;
+      if (nargout > 0 && x==0)
+        xr = PetscVec();
+        freexr = 1;
+        xr.SetType('seq');
+        xr.SetSizes(n,n);
+        x = xr.pobj;
+      end
+      if (nargout > 0 && y==0)
+        xi = PetscVec();
+        freexi = 1;
+        xi.SetType('seq');
+        xi.SetSizes(n,n);
+        y = xi.pobj;
+      end
+      err = calllib('libslepc', 'EPSGetEigenvector', obj.pobj,i-1,x,y);PetscCHKERRQ(err);
+      if (nargout > 0)
+        if (x ~= 0)
+          vr = xr(:);
+        else
+          vr = 0;
+        end
+        if (y ~= 0)
+          vi = xi(:);
+        else
+          vi = 0;
+        end
+        v = vr+j*vi;
+        if (freexr)
+          xr.Destroy();
+        end
+        if (freexi)
+          xi.Destroy();
+        end
+      end
     end
     function [relerr,err] = ComputeRelativeError(obj,i)
       relerr = 0.0;
