@@ -70,6 +70,8 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = PetscOptionsInt("-eps_gd_qwindow","(Experimental!) Set the number of converged vectors in the projected problem","EPSGDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
+  ierr = PetscOptionsBool("-eps_gd_use_gd2","use the doble-expansion variant of GD","EPSGDSetDoubleExpansion",PETSC_FALSE,&op,&flg);CHKERRQ(ierr);
+  if(flg) { ierr = EPSGDSetDoubleExpansion(eps,op);CHKERRQ(ierr); }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   /* Set STPrecond as the default ST */
@@ -548,5 +550,34 @@ PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
   PetscValidLogicalCollectiveInt(eps,pwindow,2);
   PetscValidLogicalCollectiveInt(eps,qwindow,3);
   ierr = PetscTryMethod(eps,"EPSGDSetWindowSizes_C",(EPS,PetscInt,PetscInt),(eps,pwindow,qwindow));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGDSetDoubleExpansion"
+/*@
+   EPSGDSetDoubleExpansion - Set if the search subspace is expanded with K*[A*x B*x] (double
+   expansion) instead of the classic K*r, where K is the preconditioner, x the selected
+   approximate eigenvector and r its associated residual vector.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  use_gd2 - the boolean flag
+
+   Options Database Keys:
+.  -eps_gd_use_gd2 - set the use of the double-expansion variant of GD
+   
+   Level: advanced
+@*/
+PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,use_gd2,2);
+  ierr = EPSDavidsonSetMethod_Davidson(eps,use_gd2?DVD_METH_GD2:DVD_METH_GD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

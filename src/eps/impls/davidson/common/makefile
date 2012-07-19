@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = davidson.c dvd_blas.c dvd_calcpairs.c dvd_improvex.c dvd_initv.c dvd_schm.c dvd_testconv.c dvd_updatev.c dvd_utils.c
+SOURCEC  = davidson.c dvd_blas.c dvd_calcpairs.c dvd_improvex.c dvd_initv.c dvd_schm.c dvd_testconv.c dvd_updatev.c dvd_utils.c dvd_gd2.c
 SOURCEF  = 
 SOURCEH  = davidson.h 
-OBJSC    = davidson.o dvd_blas.o dvd_calcpairs.o dvd_improvex.o dvd_initv.o dvd_schm.o dvd_testconv.o dvd_updatev.o dvd_utils.o
+OBJSC    = davidson.o dvd_blas.o dvd_calcpairs.o dvd_improvex.o dvd_initv.o dvd_schm.o dvd_testconv.o dvd_updatev.o dvd_utils.o dvd_gd2.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

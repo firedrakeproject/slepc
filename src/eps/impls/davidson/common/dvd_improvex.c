@@ -110,59 +110,59 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,con
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_jd"
-PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
-                               PetscInt max_bs, PetscInt cX_impr, PetscBool dynamic)
+PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
-  PetscBool       useGD, herm = DVD_IS(d->sEP, DVD_EP_HERMITIAN)||DVD_IS(d->sEP, DVD_EP_INDEFINITE)?PETSC_TRUE:PETSC_FALSE, std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
+  PetscBool       useGD,her_probl,std_probl;
   PC              pc;
   PetscInt        size_P,s=1;
 
   PetscFunctionBegin;
+  std_probl = DVD_IS(d->sEP,DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
+  her_probl = DVD_IS(d->sEP,DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
 
   /* Setting configuration constrains */
-  ierr = PetscObjectTypeCompare((PetscObject)ksp, KSPPREONLY, &useGD); CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&useGD);CHKERRQ(ierr);
 
   /* If the arithmetic is real and the problem is not Hermitian, then
      the block size is incremented in one */
 #if !defined(PETSC_USE_COMPLEX)
-  if (!herm) {
+  if (!her_probl) {
     max_bs++;
-    b->max_size_P = PetscMax(b->max_size_P, 2);
+    b->max_size_P = PetscMax(b->max_size_P,2);
     s = 2;
   } else
 #endif
-    b->max_size_P = PetscMax(b->max_size_P, 1);
-  b->max_size_X = PetscMax(b->max_size_X, max_bs);
+    b->max_size_P = PetscMax(b->max_size_P,1);
+  b->max_size_X = PetscMax(b->max_size_X,max_bs);
   size_P = b->max_size_P+cX_impr;
   b->max_size_auxV = PetscMax(b->max_size_auxV,
      b->max_size_X*3+(useGD?0:2)+ /* u, kr, auxV(max_size_X+2?) */
-     ((herm || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
+     ((her_probl || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
  
   b->own_scalars+= size_P*size_P; /* XKZ */
   b->max_size_auxS = PetscMax(b->max_size_auxS,
-    (herm?0:1)*2*b->max_size_proj*b->max_size_proj + /* pX, pY */
     b->max_size_X*3 + /* theta, thetai */
     size_P*size_P + /* iXKZ */
     FromIntToScalar(size_P) + /* iXkZPivots */
     PetscMax(PetscMax(
       3*b->max_size_proj*b->max_size_X, /* dvd_improvex_apply_proj */
       8*cX_impr*b->max_size_X), /* dvd_improvex_jd_proj_cuv_KZX */
-      (herm || !d->eps->trueres)?0:b->max_nev*b->max_nev+PetscMax(b->max_nev*6,(b->max_nev+b->max_size_proj)*s+b->max_nev*(b->max_size_X+b->max_size_cX_proj)*(std_probl?2:4)+64))); /* preTestConv */
+      (her_probl || !d->eps->trueres)?0:b->max_nev*b->max_nev+PetscMax(b->max_nev*6,(b->max_nev+b->max_size_proj)*s+b->max_nev*(b->max_size_X+b->max_size_cX_proj)*(std_probl?2:4)+64))); /* preTestConv */
   b->own_vecs+= size_P; /* KZ */
 
   /* Setup the preconditioner */
   if (ksp) {
-    ierr = KSPGetPC(ksp, &pc); CHKERRQ(ierr);
-    ierr = dvd_static_precond_PC(d, b, pc); CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = dvd_static_precond_PC(d,b,pc);CHKERRQ(ierr);
   } else {
-    ierr = dvd_static_precond_PC(d, b, 0); CHKERRQ(ierr);
+    ierr = dvd_static_precond_PC(d,b,0);CHKERRQ(ierr);
   }
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdImprovex_jd), &data); CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(dvdImprovex_jd),&data);CHKERRQ(ierr);
     data->dynamic = dynamic;
     data->size_real_KZ = size_P;
     data->real_KZ = b->free_vecs; b->free_vecs+= data->size_real_KZ;
@@ -178,9 +178,9 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d, dvdBlackboard *b, KSP ksp,
     d->improveX = dvd_improvex_jd_gen;
     data->ksp_max_size = max_bs;
 
-    DVD_FL_ADD(d->startList, dvd_improvex_jd_start);
-    DVD_FL_ADD(d->endList, dvd_improvex_jd_end);
-    DVD_FL_ADD(d->destroyList, dvd_improvex_jd_d);
+    DVD_FL_ADD(d->startList,dvd_improvex_jd_start);
+    DVD_FL_ADD(d->endList,dvd_improvex_jd_end);
+    DVD_FL_ADD(d->destroyList,dvd_improvex_jd_d);
   }
 
   PetscFunctionReturn(0);
@@ -342,7 +342,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   for(i=0, s=0, auxS0=auxS; i<n; i+=s) {
     /* If the selected eigenvalue is complex, but the arithmetic is real... */
 #if !defined(PETSC_USE_COMPLEX)
-    if (PetscAbsScalar(d->eigi[i] != 0.0)) { 
+    if (d->eigi[i] != 0.0) { 
       if (i+2 <= max_size_D) s=2; else break;
     } else
 #endif
