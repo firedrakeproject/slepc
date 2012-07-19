@@ -78,9 +78,60 @@ classdef SlepcSVD < PetscObject
       nconv = 0;
       [err,nconv] = calllib('libslepc', 'SVDGetConverged', obj.pobj,nconv);PetscCHKERRQ(err);
     end
-    function [sigma,err] = GetSingularTriplet(obj,i)
+    function [sigma,u,v,err] = GetSingularTriplet(obj,i,uu,vv)
       sigma = 0.0;
-      [err,sigma] = calllib('libslepc', 'SVDGetSingularTriplet', obj.pobj,i-1,sigma,0,0);PetscCHKERRQ(err);
+      if (nargin < 3) 
+        x = 0;
+      else
+        x = uu.pobj;
+      end
+      if (nargin < 4) 
+        y = 0;
+      else
+        y = vv.pobj;
+      end
+      if (nargout > 1 && (x==0 || y==0))
+        [err,pid] = calllib('libslepc', 'SVDGetOperator', obj.pobj,0);PetscCHKERRQ(err);
+        A = PetscMat(pid,'pobj');
+        [m,n] = A.GetSize();
+      end
+      freexr = 0;
+      freexi = 0;
+      if (nargout > 1 && x==0)
+        uu = PetscVec();
+        freexr = 1;
+        uu.SetType('seq');
+        uu.SetSizes(m,m);
+        x = uu.pobj;
+      end
+      if (nargout > 2 && y==0)
+        vv = PetscVec();
+        freexi = 1;
+        vv.SetType('seq');
+        vv.SetSizes(n,n);
+        y = vv.pobj;
+      end
+      [err,sigma] = calllib('libslepc', 'SVDGetSingularTriplet', obj.pobj,i-1,sigma,x,y);PetscCHKERRQ(err);
+      if (nargout > 1)
+        if (x ~= 0)
+          u = uu(:);
+        else
+          u = 0;
+        end
+      end
+      if (nargout > 2)
+        if (y ~= 0)
+          v = vv(:);
+        else
+          v = 0;
+        end
+      end
+      if (freexr)
+        uu.Destroy();
+      end
+      if (freexi)
+        vv.Destroy();
+      end
     end
     function [relerr,err] = ComputeRelativeError(obj,i)
       relerr = 0.0;

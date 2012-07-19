@@ -169,6 +169,12 @@ classdef SlepcEPS < PetscObject
         end
       end
     end
+    function [lambda,v,err] = GetEigenpair(obj,i,varargin)
+      [lambda,err] = GetEigenvalue(obj,i);
+      if (nargout > 1 || nargin > 2)
+        [v,err] = GetEigenvector(obj,i,varargin{:});
+      end
+    end
     function [relerr,err] = ComputeRelativeError(obj,i)
       relerr = 0.0;
       [err,relerr] = calllib('libslepc', 'EPSComputeRelativeError', obj.pobj,i-1,relerr);PetscCHKERRQ(err);

@@ -69,9 +69,8 @@ if nconv>0
   fprintf('           k          ||Ax-kx||/||kx||\n')
   fprintf('   ----------------- ------------------\n')
   for i=1:nconv
-    lambda = eps.GetEigenvalue(i);
-    v = eps.GetEigenvector(i);
-    figure,plot(v)
+    [lambda,x] = eps.GetEigenpair(i);
+    figure,plot(x)
     relerr = eps.ComputeRelativeError(i);
     if isreal(lambda)
       fprintf('    %12f        %12g\n',lambda,relerr)

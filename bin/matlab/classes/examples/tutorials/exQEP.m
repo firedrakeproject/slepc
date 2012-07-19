@@ -84,15 +84,17 @@ qep.SetProblemType(SlepcQEP.GENERAL);
 qep.SetFromOptions();
 qep.Solve();
 nconv = qep.GetConverged();
-fprintf('           k          ||Ax-kx||/||kx||\n')
-fprintf('   ----------------- ------------------\n')
-for i=1:nconv
-  lambda = qep.GetEigenpair(i);
-  relerr = qep.ComputeRelativeError(i);
-  if isreal(lambda)
-    fprintf('    %14.2f        %12g\n',lambda,relerr)
-  else
-    fprintf('  %9f%+9f      %12g\n',real(lambda),imag(lambda),relerr)
+if nconv>0
+  fprintf('           k          ||Ax-kx||/||kx||\n')
+  fprintf('   ----------------- ------------------\n')
+  for i=1:nconv
+    [lambda,x] = qep.GetEigenpair(i);
+    relerr = qep.ComputeRelativeError(i);
+    if isreal(lambda)
+      fprintf('    %14.2f        %12g\n',lambda,relerr)
+    else
+      fprintf('  %9f%+9f      %12g\n',real(lambda),imag(lambda),relerr)
+    end
   end
 end
 

@@ -63,12 +63,14 @@ svd.SetType('trlanczos');
 svd.SetFromOptions();
 svd.Solve();
 nconv = svd.GetConverged();
-fprintf('         sigma         residual norm\n')
-fprintf('   ----------------- ------------------\n')
-for i=1:nconv
-  sigma = svd.GetSingularTriplet(i);
-  relerr = svd.ComputeRelativeError(i);
-  fprintf('   %12f       %12g\n',sigma,relerr)
+if nconv>0
+  fprintf('         sigma         residual norm\n')
+  fprintf('   ----------------- ------------------\n')
+  for i=1:nconv
+    [sigma,u,v] = svd.GetSingularTriplet(i);
+    relerr = svd.ComputeRelativeError(i);
+    fprintf('   %12f       %12g\n',sigma,relerr)
+  end
 end
 
 %%
