@@ -512,7 +512,7 @@ PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps,Vec *v)
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
    EPSSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
-   Not Collective, but vectors are shared by all processors that share the EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context 
@@ -549,10 +549,11 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
   if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   if (i<0 || i>=eps->nconv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
-  ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr);
+  if (Vr || Vi) { ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -591,6 +592,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
   if (!eps->eigr || !eps->eigi) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   if (i<0 || i>=eps->nconv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   if (!eps->perm) k = i;
@@ -610,7 +612,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 /*@
    EPSGetEigenvector - Gets the i-th right eigenvector as computed by EPSSolve(). 
 
-   Not Collective, but vectors are shared by all processors that share the EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context 
@@ -645,30 +647,32 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Vr,3); }
+  PetscValidLogicalCollectiveInt(eps,i,2);
+  PetscValidHeaderSpecific(Vr,VEC_CLASSID,3);
+  PetscCheckSameComm(eps,1,Vr,3);
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   if (!eps->V) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   if (i<0 || i>=eps->nconv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
-  if (!eps->evecsavailable && (Vr || Vi)) { 
+  if (!eps->evecsavailable) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr); }
+  ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr);
   if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr); }
+    ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr);
     if (Vi) { ierr = VecCopy(eps->V[k+1],Vi);CHKERRQ(ierr); }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(eps->V[k-1],Vr);CHKERRQ(ierr); }
+    ierr = VecCopy(eps->V[k-1],Vr);CHKERRQ(ierr);
     if (Vi) { 
       ierr = VecCopy(eps->V[k],Vi);CHKERRQ(ierr); 
       ierr = VecScale(Vi,-1.0);CHKERRQ(ierr); 
     }
   } else { /* real eigenvalue */
-    if (Vr) { ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr); }
+    ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr);
     if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
   }
 #endif
@@ -681,7 +685,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
    EPSGetEigenvectorLeft - Gets the i-th left eigenvector as computed by EPSSolve() 
    (only available in two-sided eigensolvers). 
 
-   Not Collective, but vectors are shared by all processors that share the EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context 
@@ -712,31 +716,33 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Wr,3); }
+  PetscValidLogicalCollectiveInt(eps,i,2);
+  PetscValidHeaderSpecific(Wr,VEC_CLASSID,3);
+  PetscCheckSameComm(eps,1,Wr,3);
   if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
   if (!eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetLeftVectorsWanted"); 
   if (!eps->W) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
   if (i<0 || i>=eps->nconv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
-  if (!eps->evecsavailable && (Wr || Wi)) { 
+  if (!eps->evecsavailable) { 
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }  
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-  if (Wr) { ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr); }
+  ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr);
   if (Wi) { ierr = VecSet(Wi,0.0);CHKERRQ(ierr); }
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr); }
+    ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr);
     if (Wi) { ierr = VecCopy(eps->W[k+1],Wi);CHKERRQ(ierr); }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    if (Wr) { ierr = VecCopy(eps->W[k-1],Wr);CHKERRQ(ierr); }
+    ierr = VecCopy(eps->W[k-1],Wr);CHKERRQ(ierr);
     if (Wi) { 
       ierr = VecCopy(eps->W[k],Wi);CHKERRQ(ierr); 
       ierr = VecScale(Wi,-1.0);CHKERRQ(ierr); 
     }
   } else { /* real eigenvalue */
-    if (Wr) { ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr); }
+    ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr);
     if (Wi) { ierr = VecSet(Wi,0.0);CHKERRQ(ierr); }
   }
 #endif
