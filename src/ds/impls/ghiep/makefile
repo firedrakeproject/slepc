@@ -19,15 +19,17 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
+
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = zpsf.c
-OBJSC    = zpsf.o
-SOURCEF  =
-SOURCEH  =
-DIRS     =
+SOURCEC  = dsghiep.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = dsghiep.o
 LIBBASE  = libslepc
-LOCDIR   = src/ds/ftn-custom/
-include ${SLEPC_DIR}/conf/slepc_common  
+DIRS     = 
+MANSEC   = DS
+LOCDIR   = src/ds/impls/ghiep/
+
+include ${SLEPC_DIR}/conf/slepc_common

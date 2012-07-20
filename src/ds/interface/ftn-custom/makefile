@@ -19,11 +19,15 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
-
-SOURCEH  = ../../include/slepc-private/dsimpl.h ../../include/slepcds.h
-DIRS     = interface impls examples
-LOCDIR   = src/ds/
-MANSEC   = DS
-
-include ${SLEPC_DIR}/conf/slepc_common
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = zpsf.c
+OBJSC    = zpsf.o
+SOURCEF  =
+SOURCEH  =
+DIRS     =
+LIBBASE  = libslepc
+LOCDIR   = src/ds/interface/ftn-custom/
+include ${SLEPC_DIR}/conf/slepc_common  

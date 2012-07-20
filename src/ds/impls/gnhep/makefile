@@ -21,9 +21,15 @@
 
 ALL: lib
 
-SOURCEH  = ../../include/slepc-private/dsimpl.h ../../include/slepcds.h
-DIRS     = interface impls examples
-LOCDIR   = src/ds/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = dsgnhep.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = dsgnhep.o
+LIBBASE  = libslepc
+DIRS     = 
 MANSEC   = DS
+LOCDIR   = src/ds/impls/gnhep/
 
 include ${SLEPC_DIR}/conf/slepc_common
