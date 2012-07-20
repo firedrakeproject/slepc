@@ -19,32 +19,32 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _PSIMPL
-#define _PSIMPL
+#ifndef _DSIMPL
+#define _DSIMPL
 
 #include <slepcds.h>
 
-PETSC_EXTERN PetscLogEvent PS_Solve,PS_Vectors,PS_Other;
-PETSC_EXTERN const char *PSMatName[];
+PETSC_EXTERN PetscLogEvent DS_Solve,DS_Vectors,DS_Other;
+PETSC_EXTERN const char *DSMatName[];
 
-typedef struct _PSOps *PSOps;
+typedef struct _DSOps *DSOps;
 
-struct _PSOps {
-  PetscErrorCode (*allocate)(PS,PetscInt);
-  PetscErrorCode (*view)(PS,PetscViewer);
-  PetscErrorCode (*vectors)(PS,PSMatType,PetscInt*,PetscReal*);
-  PetscErrorCode (*solve[PS_MAX_SOLVE])(PS,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*sort)(PS,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*truncate)(PS,PetscInt);
-  PetscErrorCode (*update)(PS);
-  PetscErrorCode (*cond)(PS,PetscReal*);
-  PetscErrorCode (*transharm)(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
-  PetscErrorCode (*transrks)(PS,PetscScalar);
-  PetscErrorCode (*normalize)(PS,PSMatType,PetscInt);
+struct _DSOps {
+  PetscErrorCode (*allocate)(DS,PetscInt);
+  PetscErrorCode (*view)(DS,PetscViewer);
+  PetscErrorCode (*vectors)(DS,DSMatType,PetscInt*,PetscReal*);
+  PetscErrorCode (*solve[DS_MAX_SOLVE])(DS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*truncate)(DS,PetscInt);
+  PetscErrorCode (*update)(DS);
+  PetscErrorCode (*cond)(DS,PetscReal*);
+  PetscErrorCode (*transharm)(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
+  PetscErrorCode (*transrks)(DS,PetscScalar);
+  PetscErrorCode (*normalize)(DS,DSMatType,PetscInt);
 };
 
-struct _p_PS {
-  PETSCHEADER(struct _PSOps);
+struct _p_DS {
+  PETSCHEADER(struct _DSOps);
   PetscInt       method;             /* identifies the variant to be used */
   PetscBool      compact;            /* whether the matrices are stored in compact form */
   PetscBool      refined;            /* get refined vectors instead of regular vectors */
@@ -54,9 +54,9 @@ struct _p_PS {
   PetscInt       n;                  /* current dimension */
   PetscInt       m;                  /* current column dimension (for SVD only) */
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
-  PSStateType    state;              /* the current state */
-  PetscScalar    *mat[PS_NUM_MAT];   /* the matrices */
-  PetscReal      *rmat[PS_NUM_MAT];  /* the matrices (real) */
+  DSStateType    state;              /* the current state */
+  PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
+  PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
   PetscInt       *perm;              /* permutation */
   PetscScalar    *work;
   PetscReal      *rwork;
@@ -66,14 +66,14 @@ struct _p_PS {
   void           *comp_ctx;
 };
 
-PETSC_EXTERN PetscErrorCode PSAllocateMat_Private(PS,PSMatType);
-PETSC_EXTERN PetscErrorCode PSAllocateMatReal_Private(PS,PSMatType);
-PETSC_EXTERN PetscErrorCode PSAllocateWork_Private(PS,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode PSViewMat_Private(PS,PetscViewer,PSMatType);
-PETSC_EXTERN PetscErrorCode PSSortEigenvaluesReal_Private(PS,PetscInt,PetscInt,PetscReal*,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSPermuteColumns_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSPermuteRows_Private(PS,PetscInt,PetscInt,PSMatType,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSPermuteBoth_Private(PS,PetscInt,PetscInt,PSMatType,PSMatType,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSCopyMatrix_Private(PS,PSMatType,PSMatType);
+PETSC_EXTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
+PETSC_EXTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);
+PETSC_EXTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode DSViewMat_Private(DS,PetscViewer,DSMatType);
+PETSC_EXTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscInt,PetscInt,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
 
 #endif

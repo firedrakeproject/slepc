@@ -72,8 +72,8 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   }
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
-  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
+  ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
@@ -333,7 +333,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   refined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (refined) { ierr = PetscMalloc((ld+1)*ld*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr); }
@@ -349,8 +349,8 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
-    ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!arnoldi->delayed) {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
@@ -363,26 +363,26 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
       for (i=0;i<nv-1;i++) Hcopy[nv+i*ld] = 0.0; 
       Hcopy[nv+(nv-1)*ld] = beta;
     }
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */ 
     if (harmonic) {
-      ierr = PSTranslateHarmonic(eps->ps,eps->target,beta,PETSC_FALSE,PETSC_NULL,&gamma);CHKERRQ(ierr);
+      ierr = DSTranslateHarmonic(eps->ds,eps->target,beta,PETSC_FALSE,PETSC_NULL,&gamma);CHKERRQ(ierr);
     }
 
     /* Solve projected problem */ 
-    ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = PSSort(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = PSGetArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
 
     ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,ld);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     eps->nconv = k;
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
@@ -401,8 +401,8 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   if (refined) { ierr = PetscFree(Hcopy);CHKERRQ(ierr); }
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = PSSetDimensions(eps->ps,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
-  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

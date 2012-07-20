@@ -83,15 +83,15 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   /* Get the starting Lanczos vector */
   ierr = SlepcVecSetRandom(eps->V[0],eps->rand);CHKERRQ(ierr);
   ierr = IPNorm(eps->ip,eps->V[0],&norm);
   if (norm==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
-  ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+  ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   omega[0] = (norm > 0)?1.0:-1.0;
   beta = PetscAbsReal(norm);
-  ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);
+  ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);
   ierr = VecScale(eps->V[0],1.0/norm);CHKERRQ(ierr);
   l = 0;
   
@@ -101,23 +101,23 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
-    ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     ierr = EPSFullLanczosIndef(eps,a,b,omega,eps->V,eps->nconv+l,&nv,u,PETSC_NULL);CHKERRQ(ierr);
     beta = b[nv-1];
-    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);
-    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);
+    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
-      ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+      ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
-      ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+      ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
 
     /* Solve projected problem */
-    ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = PSSort(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
@@ -128,12 +128,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = (nv-k)/2;
-      ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
       if(*(a+ld+k+l-1)!=0){
         if (k+l<nv-1) l = l+1;
         else l = l-1;
       }
-      ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     }
     
     if (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -141,37 +141,37 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
         SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+        ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+        ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
         r = a + 2*ld;
         for (i=k;i<k+l;i++) {
           r[i] = PetscRealPart(Q[nv-1+i*ld]*beta);
         }
         omega[k+l] = omega[nv];
-        ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+        ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+        ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
 
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      ierr = PSGetArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
       ierr = VecAXPBY(eps->V[k+l],1.0/(beta*omega[k+l]),0.0,u);CHKERRQ(ierr);
-      ierr = PSRestoreArrayReal(eps->ps,PS_MAT_D,&omega);CHKERRQ(ierr);
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     }
 
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
 
   }
-  ierr = PSSetDimensions(eps->ps,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
-  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

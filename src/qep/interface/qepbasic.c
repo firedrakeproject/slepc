@@ -211,9 +211,9 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
   if (!islinear) {
     if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
     ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
-    if (!qep->ps) { ierr = QEPGetPS(qep,&qep->ps);CHKERRQ(ierr); }
+    if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    ierr = PSView(qep->ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(qep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -365,7 +365,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->ninil           = 0;
   qep->allocated_ncv   = 0;
   qep->ip              = 0;
-  qep->ps              = 0;
+  qep->ds              = 0;
   qep->tol             = PETSC_DEFAULT;
   qep->sfactor         = 0.0;
   qep->conv_func       = QEPConvergedDefault;
@@ -548,7 +548,7 @@ PetscErrorCode QEPReset(QEP qep)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (qep->ops->reset) { ierr = (qep->ops->reset)(qep);CHKERRQ(ierr); }
   if (qep->ip) { ierr = IPReset(qep->ip);CHKERRQ(ierr); }
-  if (qep->ps) { ierr = PSReset(qep->ps);CHKERRQ(ierr); }
+  if (qep->ds) { ierr = DSReset(qep->ds);CHKERRQ(ierr); }
   ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->C);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
@@ -586,7 +586,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
   ierr = PetscObjectDepublish(*qep);CHKERRQ(ierr);
   if ((*qep)->ops->destroy) { ierr = (*(*qep)->ops->destroy)(*qep);CHKERRQ(ierr); }
   ierr = IPDestroy(&(*qep)->ip);CHKERRQ(ierr);
-  ierr = PSDestroy(&(*qep)->ps);CHKERRQ(ierr);
+  ierr = DSDestroy(&(*qep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*qep)->rand);CHKERRQ(ierr);
   ierr = QEPMonitorCancel(*qep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(qep);CHKERRQ(ierr);
@@ -661,43 +661,43 @@ PetscErrorCode QEPGetIP(QEP qep,IP *ip)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPSetPS"
+#define __FUNCT__ "QEPSetDS"
 /*@
-   QEPSetPS - Associates a projected system object to the quadratic eigensolver. 
+   QEPSetDS - Associates a direct solver object to the quadratic eigensolver. 
 
    Collective on QEP
 
    Input Parameters:
 +  qep - eigensolver context obtained from QEPCreate()
--  ps  - the projected system object
+-  ds  - the direct solver object
 
    Note:
-   Use QEPGetPS() to retrieve the projected system context (for example,
+   Use QEPGetDS() to retrieve the direct solver context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: QEPGetPS()
+.seealso: QEPGetDS()
 @*/
-PetscErrorCode QEPSetPS(QEP qep,PS ps)
+PetscErrorCode QEPSetDS(QEP qep,DS ds)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  PetscValidHeaderSpecific(ps,PS_CLASSID,2);
-  PetscCheckSameComm(qep,1,ps,2);
-  ierr = PetscObjectReference((PetscObject)ps);CHKERRQ(ierr);
-  ierr = PSDestroy(&qep->ps);CHKERRQ(ierr);
-  qep->ps = ps;
-  ierr = PetscLogObjectParent(qep,qep->ps);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,2);
+  PetscCheckSameComm(qep,1,ds,2);
+  ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
+  ierr = DSDestroy(&qep->ds);CHKERRQ(ierr);
+  qep->ds = ds;
+  ierr = PetscLogObjectParent(qep,qep->ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPGetPS"
+#define __FUNCT__ "QEPGetDS"
 /*@C
-   QEPGetPS - Obtain the projected system object associated to the 
+   QEPGetDS - Obtain the direct solver object associated to the 
    quadratic eigensolver object.
 
    Not Collective
@@ -706,24 +706,24 @@ PetscErrorCode QEPSetPS(QEP qep,PS ps)
 .  qep - eigensolver context obtained from QEPCreate()
 
    Output Parameter:
-.  ps - projected system context
+.  ds - direct solver context
 
    Level: advanced
 
-.seealso: QEPSetPS()
+.seealso: QEPSetDS()
 @*/
-PetscErrorCode QEPGetPS(QEP qep,PS *ps)
+PetscErrorCode QEPGetDS(QEP qep,DS *ds)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  PetscValidPointer(ps,2);
-  if (!qep->ps) {
-    ierr = PSCreate(((PetscObject)qep)->comm,&qep->ps);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,qep->ps);CHKERRQ(ierr);
+  PetscValidPointer(ds,2);
+  if (!qep->ds) {
+    ierr = DSCreate(((PetscObject)qep)->comm,&qep->ds);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,qep->ds);CHKERRQ(ierr);
   }
-  *ps = qep->ps;
+  *ds = qep->ds;
   PetscFunctionReturn(0);
 }
 

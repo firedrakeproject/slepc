@@ -120,7 +120,7 @@ PetscErrorCode SlepcInitialize_Packages(void)
   ierr = SVDInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = QEPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = IPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   /* New special type of Vec, implemented in SLEPc */
   ierr = VecRegister_Comp(PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);

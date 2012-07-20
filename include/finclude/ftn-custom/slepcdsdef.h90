@@ -19,13 +19,13 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
-#if !defined(__SLEPCPSDEF_H90)
-#define __SLEPCPSDEF_H90
+#if !defined(__SLEPCDSDEF_H90)
+#define __SLEPCDSDEF_H90
 
 #if defined(PETSC_USE_FORTRAN_DATATYPES)
-      type PS
+      type DS
         PetscFortranAddr:: v
-      end type PS
+      end type DS
 #endif
 
 #endif

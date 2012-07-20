@@ -294,7 +294,7 @@ typedef struct _dvdDashboard {
   PetscBool
     BV_shift,       /* if true BV is shifted when vectors converge */
     W_shift;        /* if true W is shifted when vectors converge */
-  PS conv_ps,       /* projected problem with the converged pairs */
+  DS conv_ps,       /* projected problem with the converged pairs */
     ps;             /* projected problem with the search subspace */
 
   orthoV_type_t orthoV_type;

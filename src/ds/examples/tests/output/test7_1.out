@@ -1,5 +1,5 @@
-Solve a Projected System of type PSSVD - dimension 15x10.
-PS Object: 1 MPI processes
+Solve a Dense System of type SVD - dimension 15x10.
+DS Object: 1 MPI processes
   type: svd
   current state: raw
   dimensions: ld=17, n=15, m=10, l=0, k=0

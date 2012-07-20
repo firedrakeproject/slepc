@@ -85,7 +85,7 @@ PetscErrorCode QEPSolve(QEP qep)
   for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
   ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);CHKERRQ(ierr);
 
-  ierr = PSSetEigenvalueComparison(qep->ps,qep->which_func,qep->which_ctx);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(qep->ds,qep->which_func,qep->which_ctx);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);

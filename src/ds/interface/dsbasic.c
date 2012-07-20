@@ -1,5 +1,5 @@
 /*
-   Basic PS routines
+   Basic DS routines
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -24,40 +24,40 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-PetscFList       PSList = 0;
-PetscBool        PSRegisterAllCalled = PETSC_FALSE;
-PetscClassId     PS_CLASSID = 0;
-PetscLogEvent    PS_Solve = 0,PS_Vectors = 0,PS_Other = 0;
-static PetscBool PSPackageInitialized = PETSC_FALSE;
-const char       *PSMatName[PS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W"};
+PetscFList       DSList = 0;
+PetscBool        DSRegisterAllCalled = PETSC_FALSE;
+PetscClassId     DS_CLASSID = 0;
+PetscLogEvent    DS_Solve = 0,DS_Vectors = 0,DS_Other = 0;
+static PetscBool DSPackageInitialized = PETSC_FALSE;
+const char       *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W"};
 
 PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b, PetscScalar a, const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscBool At, const PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscBool Bt);
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSFinalizePackage"
+#define __FUNCT__ "DSFinalizePackage"
 /*@C
-   PSFinalizePackage - This function destroys everything in the Slepc interface 
-   to the PS package. It is called from SlepcFinalize().
+   DSFinalizePackage - This function destroys everything in the SLEPc interface 
+   to the DS package. It is called from SlepcFinalize().
 
    Level: developer
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode PSFinalizePackage(void) 
+PetscErrorCode DSFinalizePackage(void) 
 {
   PetscFunctionBegin;
-  PSPackageInitialized = PETSC_FALSE;
-  PSList               = 0;
-  PSRegisterAllCalled  = PETSC_FALSE;
+  DSPackageInitialized = PETSC_FALSE;
+  DSList               = 0;
+  DSRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSInitializePackage"
+#define __FUNCT__ "DSInitializePackage"
 /*@C
-  PSInitializePackage - This function initializes everything in the PS package.
+  DSInitializePackage - This function initializes everything in the DS package.
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
-  on the first call to PSCreate() when using static libraries.
+  on the first call to DSCreate() when using static libraries.
 
   Input Parameter:
   path - The dynamic library path, or PETSC_NULL
@@ -66,7 +66,7 @@ PetscErrorCode PSFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode PSInitializePackage(const char *path) 
+PetscErrorCode DSInitializePackage(const char *path) 
 {
   char             logList[256];
   char             *className;
@@ -74,40 +74,40 @@ PetscErrorCode PSInitializePackage(const char *path)
   PetscErrorCode   ierr;
 
   PetscFunctionBegin;
-  if (PSPackageInitialized) PetscFunctionReturn(0);
-  PSPackageInitialized = PETSC_TRUE;
+  if (DSPackageInitialized) PetscFunctionReturn(0);
+  DSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Projected system",&PS_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Direct solver",&DS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = PSRegisterAll(path);CHKERRQ(ierr);
+  ierr = DSRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
-  ierr = PetscLogEventRegister("PSSolve",PS_CLASSID,&PS_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PSVectors",PS_CLASSID,&PS_Vectors);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PSOther",PS_CLASSID,&PS_Other);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DSSolve",DS_CLASSID,&DS_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DSVectors",DS_CLASSID,&DS_Vectors);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"ps",&className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"ds",&className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscInfoDeactivateClass(PS_CLASSID);CHKERRQ(ierr);
+      ierr = PetscInfoDeactivateClass(DS_CLASSID);CHKERRQ(ierr);
     }
   }
   /* Process summary exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"ps",&className);CHKERRQ(ierr);
+    ierr = PetscStrstr(logList,"ds",&className);CHKERRQ(ierr);
     if (className) {
-      ierr = PetscLogEventDeactivateClass(PS_CLASSID);CHKERRQ(ierr);
+      ierr = PetscLogEventDeactivateClass(DS_CLASSID);CHKERRQ(ierr);
     }
   }
-  ierr = PetscRegisterFinalize(PSFinalizePackage);CHKERRQ(ierr);
+  ierr = PetscRegisterFinalize(DSFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSCreate"
+#define __FUNCT__ "DSCreate"
 /*@C
-   PSCreate - Creates a PS context.
+   DSCreate - Creates a DS context.
 
    Collective on MPI_Comm
 
@@ -115,63 +115,63 @@ PetscErrorCode PSInitializePackage(const char *path)
 .  comm - MPI communicator
 
    Output Parameter:
-.  newps - location to put the PS context
+.  newds - location to put the DS context
 
    Level: beginner
 
    Note: 
-   PS objects are not intended for normal users but only for
+   DS objects are not intended for normal users but only for
    advanced user that for instance implement their own solvers.
 
-.seealso: PSDestroy(), PS
+.seealso: DSDestroy(), DS
 @*/
-PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
+PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
 {
-  PS             ps;
+  DS             ds;
   PetscInt       i;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidPointer(newps,2);
-  ierr = SlepcHeaderCreate(ps,_p_PS,struct _PSOps,PS_CLASSID,-1,"PS","Projected System","PS",comm,PSDestroy,PSView);CHKERRQ(ierr);
-  *newps       = ps;
-  ps->state    = PS_STATE_RAW;
-  ps->method   = 0;
-  ps->compact  = PETSC_FALSE;
-  ps->refined  = PETSC_FALSE;
-  ps->extrarow = PETSC_FALSE;
-  ps->ld       = 0;
-  ps->l        = 0;
-  ps->n        = 0;
-  ps->m        = 0;
-  ps->k        = 0;
-  for (i=0;i<PS_NUM_MAT;i++) {
-    ps->mat[i]  = PETSC_NULL;
-    ps->rmat[i] = PETSC_NULL;
+  PetscValidPointer(newds,2);
+  ierr = SlepcHeaderCreate(ds,_p_DS,struct _DSOps,DS_CLASSID,-1,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
+  *newds       = ds;
+  ds->state    = DS_STATE_RAW;
+  ds->method   = 0;
+  ds->compact  = PETSC_FALSE;
+  ds->refined  = PETSC_FALSE;
+  ds->extrarow = PETSC_FALSE;
+  ds->ld       = 0;
+  ds->l        = 0;
+  ds->n        = 0;
+  ds->m        = 0;
+  ds->k        = 0;
+  for (i=0;i<DS_NUM_MAT;i++) {
+    ds->mat[i]  = PETSC_NULL;
+    ds->rmat[i] = PETSC_NULL;
   }
-  ps->perm     = PETSC_NULL;
-  ps->work     = PETSC_NULL;
-  ps->rwork    = PETSC_NULL;
-  ps->iwork    = PETSC_NULL;
-  ps->lwork    = 0;
-  ps->lrwork   = 0;
-  ps->liwork   = 0;
-  ps->comp_fun = PETSC_NULL;
-  ps->comp_ctx = PETSC_NULL;
+  ds->perm     = PETSC_NULL;
+  ds->work     = PETSC_NULL;
+  ds->rwork    = PETSC_NULL;
+  ds->iwork    = PETSC_NULL;
+  ds->lwork    = 0;
+  ds->lrwork   = 0;
+  ds->liwork   = 0;
+  ds->comp_fun = PETSC_NULL;
+  ds->comp_ctx = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetOptionsPrefix"
+#define __FUNCT__ "DSSetOptionsPrefix"
 /*@C
-   PSSetOptionsPrefix - Sets the prefix used for searching for all 
-   PS options in the database.
+   DSSetOptionsPrefix - Sets the prefix used for searching for all 
+   DS options in the database.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameters:
-+  ps - the projected system context
--  prefix - the prefix string to prepend to all PS option requests
++  ds - the direct solver context
+-  prefix - the prefix string to prepend to all DS option requests
 
    Notes:
    A hyphen (-) must NOT be given at the beginning of the prefix name.
@@ -180,29 +180,29 @@ PetscErrorCode PSCreate(MPI_Comm comm,PS *newps)
 
    Level: advanced
 
-.seealso: PSAppendOptionsPrefix()
+.seealso: DSAppendOptionsPrefix()
 @*/
-PetscErrorCode PSSetOptionsPrefix(PS ps,const char *prefix)
+PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)ps,prefix);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ierr = PetscObjectSetOptionsPrefix((PetscObject)ds,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSAppendOptionsPrefix"
+#define __FUNCT__ "DSAppendOptionsPrefix"
 /*@C
-   PSAppendOptionsPrefix - Appends to the prefix used for searching for all 
-   PS options in the database.
+   DSAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   DS options in the database.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameters:
-+  ps - the projected system context
--  prefix - the prefix string to prepend to all PS option requests
++  ds - the direct solver context
+-  prefix - the prefix string to prepend to all DS option requests
 
    Notes:
    A hyphen (-) must NOT be given at the beginning of the prefix name.
@@ -210,28 +210,28 @@ PetscErrorCode PSSetOptionsPrefix(PS ps,const char *prefix)
 
    Level: advanced
 
-.seealso: PSSetOptionsPrefix()
+.seealso: DSSetOptionsPrefix()
 @*/
-PetscErrorCode PSAppendOptionsPrefix(PS ps,const char *prefix)
+PetscErrorCode DSAppendOptionsPrefix(DS ds,const char *prefix)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)ps,prefix);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ierr = PetscObjectAppendOptionsPrefix((PetscObject)ds,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PSGetOptionsPrefix"
+#define __FUNCT__ "DSGetOptionsPrefix"
 /*@C
-   PSGetOptionsPrefix - Gets the prefix used for searching for all 
-   PS options in the database.
+   DSGetOptionsPrefix - Gets the prefix used for searching for all 
+   DS options in the database.
 
    Not Collective
 
    Input Parameters:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
@@ -241,206 +241,206 @@ PetscErrorCode PSAppendOptionsPrefix(PS ps,const char *prefix)
 
    Level: advanced
 
-.seealso: PSSetOptionsPrefix(), PSAppendOptionsPrefix()
+.seealso: DSSetOptionsPrefix(), DSAppendOptionsPrefix()
 @*/
-PetscErrorCode PSGetOptionsPrefix(PS ps,const char *prefix[])
+PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)ps,prefix);CHKERRQ(ierr);
+  ierr = PetscObjectGetOptionsPrefix((PetscObject)ds,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetType"
+#define __FUNCT__ "DSSetType"
 /*@C
-   PSSetType - Selects the type for the PS object.
+   DSSetType - Selects the type for the DS object.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameter:
-+  ps   - the projected system context
++  ds   - the direct solver context
 -  type - a known type
 
    Level: advanced
 
-.seealso: PSGetType()
+.seealso: DSGetType()
 @*/
-PetscErrorCode PSSetType(PS ps,const PSType type)
+PetscErrorCode DSSetType(DS ds,const DSType type)
 {
-  PetscErrorCode ierr,(*r)(PS);
+  PetscErrorCode ierr,(*r)(DS);
   PetscBool      match;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)ps,type,&match);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ds,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFListFind(PSList,((PetscObject)ps)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested PS type %s",type);
+  ierr =  PetscFListFind(DSList,((PetscObject)ds)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
-  ierr = PetscMemzero(ps->ops,sizeof(struct _PSOps));CHKERRQ(ierr);
+  ierr = PetscMemzero(ds->ops,sizeof(struct _DSOps));CHKERRQ(ierr);
 
-  ierr = PetscObjectChangeTypeName((PetscObject)ps,type);CHKERRQ(ierr);
-  ierr = (*r)(ps);CHKERRQ(ierr);
+  ierr = PetscObjectChangeTypeName((PetscObject)ds,type);CHKERRQ(ierr);
+  ierr = (*r)(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSGetType"
+#define __FUNCT__ "DSGetType"
 /*@C
-   PSGetType - Gets the PS type name (as a string) from the PS context.
+   DSGetType - Gets the DS type name (as a string) from the DS context.
 
    Not Collective
 
    Input Parameter:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Output Parameter:
-.  name - name of the projected system
+.  name - name of the direct solver
 
    Level: advanced
 
-.seealso: PSSetType()
+.seealso: DSSetType()
 @*/
-PetscErrorCode PSGetType(PS ps,const PSType *type)
+PetscErrorCode DSGetType(DS ds,const DSType *type)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(type,2);
-  *type = ((PetscObject)ps)->type_name;
+  *type = ((PetscObject)ds)->type_name;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetMethod"
+#define __FUNCT__ "DSSetMethod"
 /*@
-   PSSetMethod - Selects the method to be used to solve the problem.
+   DSSetMethod - Selects the method to be used to solve the problem.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameter:
-+  ps   - the projected system context
++  ds   - the direct solver context
 -  meth - an index indentifying the method
 
    Level: advanced
 
-.seealso: PSGetMethod()
+.seealso: DSGetMethod()
 @*/
-PetscErrorCode PSSetMethod(PS ps,PetscInt meth)
+PetscErrorCode DSSetMethod(DS ds,PetscInt meth)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ps,meth,2);
-  if (meth<0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
-  if (meth>PS_MAX_SOLVE) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
-  ps->method = meth;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,meth,2);
+  if (meth<0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  if (meth>DS_MAX_SOLVE) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
+  ds->method = meth;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSGetMethod"
+#define __FUNCT__ "DSGetMethod"
 /*@
-   PSGetMethod - Gets the method currently used in the PS.
+   DSGetMethod - Gets the method currently used in the DS.
 
    Not Collective
 
    Input Parameter:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Output Parameter:
 .  meth - identifier of the method
 
    Level: advanced
 
-.seealso: PSSetMethod()
+.seealso: DSSetMethod()
 @*/
-PetscErrorCode PSGetMethod(PS ps,PetscInt *meth)
+PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(meth,2);
-  *meth = ps->method;
+  *meth = ds->method;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetCompact"
+#define __FUNCT__ "DSSetCompact"
 /*@
-   PSSetCompact - Switch to compact storage of matrices.
+   DSSetCompact - Switch to compact storage of matrices.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameter:
-+  ps   - the projected system context
++  ds   - the direct solver context
 -  comp - a boolean flag
 
    Notes:
-   Compact storage is used in some PS types such as PSHEP when the matrix
+   Compact storage is used in some DS types such as DSHEP when the matrix
    is tridiagonal. This flag can be used to indicate whether the user
-   provides the matrix entries via the compact form (the tridiagonal PS_MAT_T)
-   or the non-compact one (PS_MAT_A).
+   provides the matrix entries via the compact form (the tridiagonal DS_MAT_T)
+   or the non-compact one (DS_MAT_A).
 
    The default is PETSC_FALSE.
 
    Level: advanced
 
-.seealso: PSGetCompact()
+.seealso: DSGetCompact()
 @*/
-PetscErrorCode PSSetCompact(PS ps,PetscBool comp)
+PetscErrorCode DSSetCompact(DS ds,PetscBool comp)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveBool(ps,comp,2);
-  ps->compact = comp;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(ds,comp,2);
+  ds->compact = comp;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSGetCompact"
+#define __FUNCT__ "DSGetCompact"
 /*@
-   PSGetCompact - Gets the compact storage flag.
+   DSGetCompact - Gets the compact storage flag.
 
    Not Collective
 
    Input Parameter:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Output Parameter:
 .  comp - the flag
 
    Level: advanced
 
-.seealso: PSSetCompact()
+.seealso: DSSetCompact()
 @*/
-PetscErrorCode PSGetCompact(PS ps,PetscBool *comp)
+PetscErrorCode DSGetCompact(DS ds,PetscBool *comp)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(comp,2);
-  *comp = ps->compact;
+  *comp = ds->compact;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetExtraRow"
+#define __FUNCT__ "DSSetExtraRow"
 /*@
-   PSSetExtraRow - Sets a flag to indicate that the matrix has one extra
+   DSSetExtraRow - Sets a flag to indicate that the matrix has one extra
    row.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameter:
-+  ps  - the projected system context
++  ds  - the direct solver context
 -  ext - a boolean flag
 
    Notes:
-   In Krylov methods it is useful that the matrix representing the projected system
+   In Krylov methods it is useful that the matrix representing the direct solver
    has one extra row, i.e., has dimension (n+1) x n. If this flag is activated, all
    transformations applied to the right of the matrix also affect this additional
    row. In that case, (n+1) must be less or equal than the leading dimension.
@@ -449,59 +449,59 @@ PetscErrorCode PSGetCompact(PS ps,PetscBool *comp)
 
    Level: advanced
 
-.seealso: PSSolve(), PSAllocate(), PSGetExtraRow()
+.seealso: DSSolve(), DSAllocate(), DSGetExtraRow()
 @*/
-PetscErrorCode PSSetExtraRow(PS ps,PetscBool ext)
+PetscErrorCode DSSetExtraRow(DS ds,PetscBool ext)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveBool(ps,ext,2);
-  if (ps->n>0 && ps->n==ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
-  ps->extrarow = ext;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(ds,ext,2);
+  if (ds->n>0 && ds->n==ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
+  ds->extrarow = ext;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSGetExtraRow"
+#define __FUNCT__ "DSGetExtraRow"
 /*@
-   PSGetExtraRow - Gets the extra row flag.
+   DSGetExtraRow - Gets the extra row flag.
 
    Not Collective
 
    Input Parameter:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Output Parameter:
 .  ext - the flag
 
    Level: advanced
 
-.seealso: PSSetExtraRow()
+.seealso: DSSetExtraRow()
 @*/
-PetscErrorCode PSGetExtraRow(PS ps,PetscBool *ext)
+PetscErrorCode DSGetExtraRow(DS ds,PetscBool *ext)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(ext,2);
-  *ext = ps->extrarow;
+  *ext = ds->extrarow;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetRefined"
+#define __FUNCT__ "DSSetRefined"
 /*@
-   PSSetRefined - Sets a flag to indicate that refined vectors must be
+   DSSetRefined - Sets a flag to indicate that refined vectors must be
    computed.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameter:
-+  ps  - the projected system context
++  ds  - the direct solver context
 -  ref - a boolean flag
 
    Notes:
-   Normally the vectors returned in PS_MAT_X are eigenvectors of the
-   projected matrix. With this flag activated, PSVectors() will return
+   Normally the vectors returned in DS_MAT_X are eigenvectors of the
+   projected matrix. With this flag activated, DSVectors() will return
    the right singular vector of the smallest singular value of matrix
    \tilde{A}-theta*I, where \tilde{A} is the extended (n+1)xn matrix
    and theta is the Ritz value. This is used in the refined Ritz
@@ -511,53 +511,53 @@ PetscErrorCode PSGetExtraRow(PS ps,PetscBool *ext)
 
    Level: advanced
 
-.seealso: PSVectors(), PSGetRefined()
+.seealso: DSVectors(), DSGetRefined()
 @*/
-PetscErrorCode PSSetRefined(PS ps,PetscBool ref)
+PetscErrorCode DSSetRefined(DS ds,PetscBool ref)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveBool(ps,ref,2);
-  ps->refined = ref;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(ds,ref,2);
+  ds->refined = ref;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSGetRefined"
+#define __FUNCT__ "DSGetRefined"
 /*@
-   PSGetRefined - Gets the refined vectors flag.
+   DSGetRefined - Gets the refined vectors flag.
 
    Not Collective
 
    Input Parameter:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Output Parameter:
 .  ref - the flag
 
    Level: advanced
 
-.seealso: PSSetRefined()
+.seealso: DSSetRefined()
 @*/
-PetscErrorCode PSGetRefined(PS ps,PetscBool *ref)
+PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(ref,2);
-  *ref = ps->refined;
+  *ref = ds->refined;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetEigenvalueComparison"
+#define __FUNCT__ "DSSetEigenvalueComparison"
 /*@C
-   PSSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   DSSetEigenvalueComparison - Specifies the eigenvalue comparison function
    to be used for sorting.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameters:
-+  ps  - the projected system context
++  ds  - the direct solver context
 .  fun - a pointer to the comparison function
 -  ctx - a context pointer (the last parameter to the comparison function)
 
@@ -569,7 +569,7 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 .   br     - real part of the 2nd eigenvalue
 .   bi     - imaginary part of the 2nd eigenvalue
 .   res    - result of comparison
--   ctx    - optional context, as set by PSSetEigenvalueComparison()
+-   ctx    - optional context, as set by DSSetEigenvalueComparison()
 
    Note:
    The returning parameter 'res' can be:
@@ -579,27 +579,27 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 
    Level: advanced
 
-.seealso: PSSort()
+.seealso: DSSort()
 @*/
-PetscErrorCode PSSetEigenvalueComparison(PS ps,PetscErrorCode (*fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode DSSetEigenvalueComparison(DS ds,PetscErrorCode (*fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ps->comp_fun = fun;
-  ps->comp_ctx = ctx;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ds->comp_fun = fun;
+  ds->comp_ctx = ctx;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSGetEigenvalueComparison"
+#define __FUNCT__ "DSGetEigenvalueComparison"
 /*@C
-   PSGetEigenvalueComparison - Gets the eigenvalue comparison function
+   DSGetEigenvalueComparison - Gets the eigenvalue comparison function
    used for sorting.
 
    Not Collective
 
    Input Parameter:
-.  ps  - the projected system context
+.  ds  - the direct solver context
 
    Output Parameters:
 +  fun - a pointer to the comparison function
@@ -613,7 +613,7 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 .   br     - real part of the 2nd eigenvalue
 .   bi     - imaginary part of the 2nd eigenvalue
 .   res    - result of comparison
--   ctx    - optional context, as set by PSSetEigenvalueComparison()
+-   ctx    - optional context, as set by DSSetEigenvalueComparison()
 
    Note:
    The returning parameter 'res' can be:
@@ -623,62 +623,62 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 
    Level: advanced
 
-.seealso: PSSort(), PSSetEigenvalueComparison()
+.seealso: DSSort(), DSSetEigenvalueComparison()
 @*/
-PetscErrorCode PSGetEigenvalueComparison(PS ps,PetscErrorCode (**fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void** ctx)
+PetscErrorCode DSGetEigenvalueComparison(DS ds,PetscErrorCode (**fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void** ctx)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  if (fun) *fun = ps->comp_fun;
-  if (ctx) *ctx = ps->comp_ctx;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  if (fun) *fun = ds->comp_fun;
+  if (ctx) *ctx = ds->comp_ctx;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetFromOptions"
+#define __FUNCT__ "DSSetFromOptions"
 /*@
-   PSSetFromOptions - Sets PS options from the options database.
+   DSSetFromOptions - Sets DS options from the options database.
 
-   Collective on PS
+   Collective on DS
 
    Input Parameters:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Notes:  
    To see all options, run your program with the -help option.
 
    Level: beginner
 @*/
-PetscErrorCode PSSetFromOptions(PS ps)
+PetscErrorCode DSSetFromOptions(DS ds)
 {
   PetscErrorCode ierr;
   PetscInt       meth;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  if (!PSRegisterAllCalled) { ierr = PSRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
-  /* Set default type (we do not allow changing it with -ps_type) */
-  if (!((PetscObject)ps)->type_name) {
-    ierr = PSSetType(ps,PSNHEP);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  if (!DSRegisterAllCalled) { ierr = DSRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  /* Set default type (we do not allow changing it with -ds_type) */
+  if (!((PetscObject)ds)->type_name) {
+    ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBegin(((PetscObject)ps)->comm,((PetscObject)ps)->prefix,"Projecte System (PS) Options","PS");CHKERRQ(ierr);
+  ierr = PetscOptionsBegin(((PetscObject)ds)->comm,((PetscObject)ds)->prefix,"Direct Solver (DS) Options","DS");CHKERRQ(ierr);
     meth = 0;
-    ierr = PetscOptionsInt("-ps_method","Method to be used for the projected system","PSSetMethod",ps->method,&meth,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSSetMethod(ps,meth);CHKERRQ(ierr);
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)ps);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSetMethod(ds,meth);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers((PetscObject)ds);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSView"
+#define __FUNCT__ "DSView"
 /*@C
-   PSView - Prints the PS data structure.
+   DSView - Prints the DS data structure.
 
-   Collective on PS
+   Collective on DS
 
    Input Parameters:
-+  ps - the projected system context
++  ds - the direct solver context
 -  viewer - optional visualization context
 
    Note:
@@ -696,7 +696,7 @@ PetscErrorCode PSSetFromOptions(PS ps)
 
 .seealso: PetscViewerASCIIOpen()
 @*/
-PetscErrorCode PSView(PS ps,PetscViewer viewer)
+PetscErrorCode DSView(DS ds,PetscViewer viewer)
 {
   PetscBool         isascii,issvd;
   const char        *state;
@@ -704,137 +704,137 @@ PetscErrorCode PSView(PS ps,PetscViewer viewer)
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ps)->comm);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ds)->comm);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(ps,1,viewer,2);
+  PetscCheckSameComm(ds,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ps,viewer,"PS Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer,"DS Object");CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      switch (ps->state) {
-        case PS_STATE_RAW:          state = "raw"; break;
-        case PS_STATE_INTERMEDIATE: state = "intermediate"; break;
-        case PS_STATE_CONDENSED:    state = "condensed"; break;
-        case PS_STATE_SORTED:       state = "sorted"; break;
-        default: SETERRQ(((PetscObject)ps)->comm,1,"Wrong value of ps->state");
+      switch (ds->state) {
+        case DS_STATE_RAW:          state = "raw"; break;
+        case DS_STATE_INTERMEDIATE: state = "intermediate"; break;
+        case DS_STATE_CONDENSED:    state = "condensed"; break;
+        case DS_STATE_SORTED:       state = "sorted"; break;
+        default: SETERRQ(((PetscObject)ds)->comm,1,"Wrong value of ds->state");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)ps,PSSVD,&issvd);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
       if (issvd) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->m,ps->l,ps->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d\n",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ps->ld,ps->n,ps->l,ps->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  flags: %s %s %s\n",ps->compact?"compact":"",ps->extrarow?"extrarow":"",ps->refined?"refined":"");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  flags: %s %s %s\n",ds->compact?"compact":"",ds->extrarow?"extrarow":"",ds->refined?"refined":"");CHKERRQ(ierr);
     }
-    if (ps->ops->view) {
+    if (ds->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*ps->ops->view)(ps,viewer);CHKERRQ(ierr);
+      ierr = (*ds->ops->view)(ds,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-  } else SETERRQ1(((PetscObject)ps)->comm,1,"Viewer type %s not supported for PS",((PetscObject)viewer)->type_name);
+  } else SETERRQ1(((PetscObject)ds)->comm,1,"Viewer type %s not supported for DS",((PetscObject)viewer)->type_name);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSAllocate"
+#define __FUNCT__ "DSAllocate"
 /*@
-   PSAllocate - Allocates memory for internal storage or matrices in PS.
+   DSAllocate - Allocates memory for internal storage or matrices in DS.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameters:
-+  ps - the projected system context
++  ds - the direct solver context
 -  ld - leading dimension (maximum allowed dimension for the matrices, including
         the extra row if present)
 
    Level: advanced
 
-.seealso: PSGetLeadingDimension(), PSSetDimensions(), PSSetExtraRow()
+.seealso: DSGetLeadingDimension(), DSSetDimensions(), DSSetExtraRow()
 @*/
-PetscErrorCode PSAllocate(PS ps,PetscInt ld)
+PetscErrorCode DSAllocate(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ps,ld,2);
-  if (ld<1) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
-  ps->ld = ld;
-  ierr = (*ps->ops->allocate)(ps,ld);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,ld,2);
+  if (ld<1) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
+  ds->ld = ld;
+  ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSAllocateMat_Private"
-PetscErrorCode PSAllocateMat_Private(PS ps,PSMatType m)
-{
-  PetscInt       sz;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (m==PS_MAT_T) sz = 3*ps->ld*sizeof(PetscScalar);
-  else if (m==PS_MAT_D) sz = ps->ld*sizeof(PetscScalar);
-  else sz = ps->ld*ps->ld*sizeof(PetscScalar);
-  if (ps->mat[m]) { ierr = PetscFree(ps->mat[m]);CHKERRQ(ierr); }
-  else { ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr); }
-  ierr = PetscMalloc(sz,&ps->mat[m]);CHKERRQ(ierr); 
-  ierr = PetscMemzero(ps->mat[m],sz);CHKERRQ(ierr); 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "PSAllocateMatReal_Private"
-PetscErrorCode PSAllocateMatReal_Private(PS ps,PSMatType m)
+#define __FUNCT__ "DSAllocateMat_Private"
+PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 {
   PetscInt       sz;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (m==PS_MAT_T) sz = 3*ps->ld*sizeof(PetscReal);
-  else if (m==PS_MAT_D) sz = ps->ld*sizeof(PetscReal);
-  else sz = ps->ld*ps->ld*sizeof(PetscReal);
-  if (!ps->rmat[m]) {
-    ierr = PetscLogObjectMemory(ps,sz);CHKERRQ(ierr);
-    ierr = PetscMalloc(sz,&ps->rmat[m]);CHKERRQ(ierr); 
-  }
-  ierr = PetscMemzero(ps->rmat[m],sz);CHKERRQ(ierr); 
+  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscScalar);
+  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscScalar);
+  else sz = ds->ld*ds->ld*sizeof(PetscScalar);
+  if (ds->mat[m]) { ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr); }
+  else { ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr); }
+  ierr = PetscMalloc(sz,&ds->mat[m]);CHKERRQ(ierr); 
+  ierr = PetscMemzero(ds->mat[m],sz);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSAllocateWork_Private"
-PetscErrorCode PSAllocateWork_Private(PS ps,PetscInt s,PetscInt r,PetscInt i)
+#define __FUNCT__ "DSAllocateMatReal_Private"
+PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m)
+{
+  PetscInt       sz;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscReal);
+  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscReal);
+  else sz = ds->ld*ds->ld*sizeof(PetscReal);
+  if (!ds->rmat[m]) {
+    ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr);
+    ierr = PetscMalloc(sz,&ds->rmat[m]);CHKERRQ(ierr); 
+  }
+  ierr = PetscMemzero(ds->rmat[m],sz);CHKERRQ(ierr); 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "DSAllocateWork_Private"
+PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (s>ps->lwork) {
-    ierr = PetscFree(ps->work);CHKERRQ(ierr);
-    ierr = PetscMalloc(s*sizeof(PetscScalar),&ps->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ps,(s-ps->lwork)*sizeof(PetscScalar));CHKERRQ(ierr); 
-    ps->lwork = s;
+  if (s>ds->lwork) {
+    ierr = PetscFree(ds->work);CHKERRQ(ierr);
+    ierr = PetscMalloc(s*sizeof(PetscScalar),&ds->work);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(ds,(s-ds->lwork)*sizeof(PetscScalar));CHKERRQ(ierr); 
+    ds->lwork = s;
   }
-  if (r>ps->lrwork) {
-    ierr = PetscFree(ps->rwork);CHKERRQ(ierr);
-    ierr = PetscMalloc(r*sizeof(PetscReal),&ps->rwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ps,(r-ps->lrwork)*sizeof(PetscReal));CHKERRQ(ierr); 
-    ps->lrwork = r;
+  if (r>ds->lrwork) {
+    ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
+    ierr = PetscMalloc(r*sizeof(PetscReal),&ds->rwork);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(ds,(r-ds->lrwork)*sizeof(PetscReal));CHKERRQ(ierr); 
+    ds->lrwork = r;
   }
-  if (i>ps->liwork) {
-    ierr = PetscFree(ps->iwork);CHKERRQ(ierr);
-    ierr = PetscMalloc(i*sizeof(PetscBLASInt),&ps->iwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ps,(i-ps->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr); 
-    ps->liwork = i;
+  if (i>ds->liwork) {
+    ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
+    ierr = PetscMalloc(i*sizeof(PetscBLASInt),&ds->iwork);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(ds,(i-ds->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr); 
+    ds->liwork = i;
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSViewMat_Private"
-PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
+#define __FUNCT__ "DSViewMat_Private"
+PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,rows,cols;
@@ -848,24 +848,24 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-  rows = (m==PS_MAT_A && ps->extrarow)? ps->n+1: ps->n;
-  cols = (ps->m!=0)? ps->m: ps->n;
+  rows = (m==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
+  cols = (ds->m!=0)? ds->m: ds->n;
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
-  v = ps->mat[m];
+  v = ds->mat[m];
   for (i=0;i<rows;i++)
     for (j=0;j<cols;j++)
-      if (PetscImaginaryPart(v[i+j*ps->ld])) { allreal = PETSC_FALSE; break; }
+      if (PetscImaginaryPart(v[i+j*ds->ld])) { allreal = PETSC_FALSE; break; }
 #endif
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
     ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,cols);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",PSMatName[m]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",DSMatName[m]);CHKERRQ(ierr);
   } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",PSMatName[m]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[m]);CHKERRQ(ierr);
   }
 
   for (i=0;i<rows;i++) {
-    v = ps->mat[m]+i;
+    v = ds->mat[m]+i;
     for (j=0;j<cols;j++) {
 #if defined(PETSC_USE_COMPLEX)
       if (allreal) {
@@ -876,7 +876,7 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 #else
       ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",*v);CHKERRQ(ierr);
 #endif
-      v += ps->ld;
+      v += ds->ld;
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   }
@@ -890,8 +890,8 @@ PetscErrorCode PSViewMat_Private(PS ps,PetscViewer viewer,PSMatType m)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSortEigenvaluesReal_Private"
-PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscReal *eig,PetscInt *perm)
+#define __FUNCT__ "DSSortEigenvaluesReal_Private"
+PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscInt l,PetscInt n,PetscReal *eig,PetscInt *perm)
 {
   PetscErrorCode ierr;
   PetscScalar    re;
@@ -903,11 +903,11 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscRe
   for (i=l+1;i<n;i++) {
     re = eig[perm[i]];
     j = i-1;
-    ierr = (*ps->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ps->comp_ctx);CHKERRQ(ierr);
+    ierr = (*ds->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ds->comp_ctx);CHKERRQ(ierr);
     while (result<0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=l) {
-        ierr = (*ps->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ps->comp_ctx);CHKERRQ(ierr);
+        ierr = (*ds->comp_fun)(re,0.0,eig[perm[j]],0.0,&result,ds->comp_ctx);CHKERRQ(ierr);
       }
     }
   }
@@ -915,23 +915,23 @@ PetscErrorCode PSSortEigenvaluesReal_Private(PS ps,PetscInt l,PetscInt n,PetscRe
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSCopyMatrix_Private"
+#define __FUNCT__ "DSCopyMatrix_Private"
 /*
-  PSCopyMatrix_Private - Copies the trailing block of a matrix (from
+  DSCopyMatrix_Private - Copies the trailing block of a matrix (from
   rows/columns l to n).
 */
-PetscErrorCode PSCopyMatrix_Private(PS ps,PSMatType dst,PSMatType src)
+PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
 {
   PetscErrorCode ierr;
   PetscInt    j,m,off,ld;
   PetscScalar *S,*D;
 
   PetscFunctionBegin;
-  ld  = ps->ld;
-  m   = ps->n-ps->l;
-  off = ps->l+ps->l*ld;
-  S   = ps->mat[src];
-  D   = ps->mat[dst];
+  ld  = ds->ld;
+  m   = ds->n-ds->l;
+  off = ds->l+ds->l*ld;
+  S   = ds->mat[src];
+  D   = ds->mat[dst];
   for (j=0;j<m;j++) {
     ierr = PetscMemcpy(D+off+j*ld,S+off+j*ld,m*sizeof(PetscScalar));CHKERRQ(ierr);
   }
@@ -939,15 +939,15 @@ PetscErrorCode PSCopyMatrix_Private(PS ps,PSMatType dst,PSMatType src)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSPermuteColumns_Private"
-PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat,PetscInt *perm)
+#define __FUNCT__ "DSPermuteColumns_Private"
+PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,PetscInt *perm)
 {
   PetscInt    i,j,k,p,ld;
   PetscScalar *Q,rtmp;
 
   PetscFunctionBegin;
-  ld = ps->ld;
-  Q  = ps->mat[mat];
+  ld = ds->ld;
+  Q  = ds->mat[mat];
   for (i=l;i<n;i++) {
     p = perm[i];
     if (p != i) {
@@ -964,16 +964,16 @@ PetscErrorCode PSPermuteColumns_Private(PS ps,PetscInt l,PetscInt n,PSMatType ma
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSPermuteRows_Private"
-PetscErrorCode PSPermuteRows_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat,PetscInt *perm)
+#define __FUNCT__ "DSPermuteRows_Private"
+PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,PetscInt *perm)
 {
-  PetscInt    i,j,m=ps->m,k,p,ld;
+  PetscInt    i,j,m=ds->m,k,p,ld;
   PetscScalar *Q,rtmp;
 
   PetscFunctionBegin;
-  if (m==0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
-  ld = ps->ld;
-  Q  = ps->mat[mat];
+  if (m==0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  ld = ds->ld;
+  Q  = ds->mat[mat];
   for (i=l;i<n;i++) {
     p = perm[i];
     if (p != i) {
@@ -990,17 +990,17 @@ PetscErrorCode PSPermuteRows_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat,P
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSPermuteBoth_Private"
-PetscErrorCode PSPermuteBoth_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat1,PSMatType mat2,PetscInt *perm)
+#define __FUNCT__ "DSPermuteBoth_Private"
+PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,DSMatType mat2,PetscInt *perm)
 {
-  PetscInt    i,j,m=ps->m,k,p,ld;
+  PetscInt    i,j,m=ds->m,k,p,ld;
   PetscScalar *U,*VT,rtmp;
 
   PetscFunctionBegin;
-  if (m==0) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
-  ld = ps->ld;
-  U  = ps->mat[mat1];
-  VT = ps->mat[mat2];
+  if (m==0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  ld = ds->ld;
+  U  = ds->mat[mat1];
+  VT = ds->mat[mat2];
   for (i=l;i<n;i++) {
     p = perm[i];
     if (p != i) {
@@ -1021,130 +1021,130 @@ PetscErrorCode PSPermuteBoth_Private(PS ps,PetscInt l,PetscInt n,PSMatType mat1,
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSReset"
+#define __FUNCT__ "DSReset"
 /*@
-   PSReset - Resets the PS context to the initial state.
+   DSReset - Resets the DS context to the initial state.
 
-   Collective on PS
+   Collective on DS
 
    Input Parameter:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Level: advanced
 
-.seealso: PSDestroy()
+.seealso: DSDestroy()
 @*/
-PetscErrorCode PSReset(PS ps)
+PetscErrorCode DSReset(DS ds)
 {
   PetscInt       i;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  ps->state    = PS_STATE_RAW;
-  ps->compact  = PETSC_FALSE;
-  ps->refined  = PETSC_FALSE;
-  ps->extrarow = PETSC_FALSE;
-  ps->ld       = 0;
-  ps->l        = 0;
-  ps->n        = 0;
-  ps->m        = 0;
-  ps->k        = 0;
-  for (i=0;i<PS_NUM_MAT;i++) {
-    ierr = PetscFree(ps->mat[i]);CHKERRQ(ierr);
-    ierr = PetscFree(ps->rmat[i]);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ds->state    = DS_STATE_RAW;
+  ds->compact  = PETSC_FALSE;
+  ds->refined  = PETSC_FALSE;
+  ds->extrarow = PETSC_FALSE;
+  ds->ld       = 0;
+  ds->l        = 0;
+  ds->n        = 0;
+  ds->m        = 0;
+  ds->k        = 0;
+  for (i=0;i<DS_NUM_MAT;i++) {
+    ierr = PetscFree(ds->mat[i]);CHKERRQ(ierr);
+    ierr = PetscFree(ds->rmat[i]);CHKERRQ(ierr);
   }
-  ierr = PetscFree(ps->perm);CHKERRQ(ierr);
-  ierr = PetscFree(ps->work);CHKERRQ(ierr);
-  ierr = PetscFree(ps->rwork);CHKERRQ(ierr);
-  ierr = PetscFree(ps->iwork);CHKERRQ(ierr);
-  ps->lwork    = 0;
-  ps->lrwork   = 0;
-  ps->liwork   = 0;
-  ps->comp_fun = PETSC_NULL;
-  ps->comp_ctx = PETSC_NULL;
+  ierr = PetscFree(ds->perm);CHKERRQ(ierr);
+  ierr = PetscFree(ds->work);CHKERRQ(ierr);
+  ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
+  ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
+  ds->lwork    = 0;
+  ds->lrwork   = 0;
+  ds->liwork   = 0;
+  ds->comp_fun = PETSC_NULL;
+  ds->comp_ctx = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSDestroy"
+#define __FUNCT__ "DSDestroy"
 /*@C
-   PSDestroy - Destroys PS context that was created with PSCreate().
+   DSDestroy - Destroys DS context that was created with DSCreate().
 
-   Collective on PS
+   Collective on DS
 
    Input Parameter:
-.  ps - the projected system context
+.  ds - the direct solver context
 
    Level: beginner
 
-.seealso: PSCreate()
+.seealso: DSCreate()
 @*/
-PetscErrorCode PSDestroy(PS *ps)
+PetscErrorCode DSDestroy(DS *ds)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (!*ps) PetscFunctionReturn(0);
-  PetscValidHeaderSpecific(*ps,PS_CLASSID,1);
-  if (--((PetscObject)(*ps))->refct > 0) { *ps = 0; PetscFunctionReturn(0); }
-  ierr = PSReset(*ps);CHKERRQ(ierr);
-  ierr = PetscHeaderDestroy(ps);CHKERRQ(ierr);
+  if (!*ds) PetscFunctionReturn(0);
+  PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
+  if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
+  ierr = DSReset(*ds);CHKERRQ(ierr);
+  ierr = PetscHeaderDestroy(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSRegister"
+#define __FUNCT__ "DSRegister"
 /*@C
-   PSRegister - See PSRegisterDynamic()
+   DSRegister - See DSRegisterDynamic()
 
    Level: advanced
 @*/
-PetscErrorCode PSRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(PS))
+PetscErrorCode DSRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(DS))
 {
   PetscErrorCode ierr;
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
   ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&PSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFListAdd(&DSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSRegisterDestroy"
+#define __FUNCT__ "DSRegisterDestroy"
 /*@
-   PSRegisterDestroy - Frees the list of PS methods that were
-   registered by PSRegisterDynamic().
+   DSRegisterDestroy - Frees the list of DS methods that were
+   registered by DSRegisterDynamic().
 
    Not Collective
 
    Level: advanced
 
-.seealso: PSRegisterDynamic(), PSRegisterAll()
+.seealso: DSRegisterDynamic(), DSRegisterAll()
 @*/
-PetscErrorCode PSRegisterDestroy(void)
+PetscErrorCode DSRegisterDestroy(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&PSList);CHKERRQ(ierr);
-  PSRegisterAllCalled = PETSC_FALSE;
+  ierr = PetscFListDestroy(&DSList);CHKERRQ(ierr);
+  DSRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
 EXTERN_C_BEGIN
-extern PetscErrorCode PSCreate_HEP(PS);
-extern PetscErrorCode PSCreate_NHEP(PS);
-extern PetscErrorCode PSCreate_GHIEP(PS);
-extern PetscErrorCode PSCreate_GNHEP(PS);
-extern PetscErrorCode PSCreate_SVD(PS);
+extern PetscErrorCode DSCreate_HEP(DS);
+extern PetscErrorCode DSCreate_NHEP(DS);
+extern PetscErrorCode DSCreate_GHIEP(DS);
+extern PetscErrorCode DSCreate_GNHEP(DS);
+extern PetscErrorCode DSCreate_SVD(DS);
 EXTERN_C_END
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSRegisterAll"
+#define __FUNCT__ "DSRegisterAll"
 /*@C
-   PSRegisterAll - Registers all of the projected systems in the PS package.
+   DSRegisterAll - Registers all of the direct solvers in the DS package.
 
    Not Collective
 
@@ -1153,63 +1153,63 @@ EXTERN_C_END
 
    Level: advanced
 @*/
-PetscErrorCode PSRegisterAll(const char *path)
+PetscErrorCode DSRegisterAll(const char *path)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PSRegisterAllCalled = PETSC_TRUE;
-  ierr = PSRegisterDynamic(PSHEP,path,"PSCreate_HEP",PSCreate_HEP);CHKERRQ(ierr);
-  ierr = PSRegisterDynamic(PSNHEP,path,"PSCreate_NHEP",PSCreate_NHEP);CHKERRQ(ierr);
-  ierr = PSRegisterDynamic(PSGHIEP,path,"PSCreate_GHIEP",PSCreate_GHIEP);CHKERRQ(ierr);
-  ierr = PSRegisterDynamic(PSGNHEP,path,"PSCreate_GNHEP",PSCreate_GNHEP);CHKERRQ(ierr);
-  ierr = PSRegisterDynamic(PSSVD,path,"PSCreate_SVD",PSCreate_SVD);CHKERRQ(ierr);
+  DSRegisterAllCalled = PETSC_TRUE;
+  ierr = DSRegisterDynamic(DSHEP,path,"DSCreate_HEP",DSCreate_HEP);CHKERRQ(ierr);
+  ierr = DSRegisterDynamic(DSNHEP,path,"DSCreate_NHEP",DSCreate_NHEP);CHKERRQ(ierr);
+  ierr = DSRegisterDynamic(DSGHIEP,path,"DSCreate_GHIEP",DSCreate_GHIEP);CHKERRQ(ierr);
+  ierr = DSRegisterDynamic(DSGNHEP,path,"DSCreate_GNHEP",DSCreate_GNHEP);CHKERRQ(ierr);
+  ierr = DSRegisterDynamic(DSSVD,path,"DSCreate_SVD",DSCreate_SVD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSetIdentity"
+#define __FUNCT__ "DSSetIdentity"
 /*@
-   PSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
+   DSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
    active part of a matrix.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameters:
-+  ps  - the projected system context
++  ds  - the direct solver context
 -  mat - a matrix
 
    Level: advanced
 @*/
-PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
+PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 {
   PetscErrorCode ierr;
   PetscScalar    *x;
   PetscInt       i,ld,n,l;
 
   PetscFunctionBegin;
-  ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
-  ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=l;i<n;i++) {
     x[ld*i+i] = 1.0;
   }
-  ierr = PSRestoreArray(ps,mat,&x);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = DSRestoreArray(ds,mat,&x);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSOrthogonalize"
+#define __FUNCT__ "DSOrthogonalize"
 /*@
-   PSOrthogonalize - Orthogonalize the columns of a matrix.
+   DSOrthogonalize - Orthogonalize the columns of a matrix.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameters:
-+  ps   - the projected system context
++  ds   - the direct solver context
 .  mat  - a matrix
 -  cols - number of columns to orthogonalize (starting from the column zero)
 
@@ -1218,7 +1218,7 @@ PetscErrorCode PSSetIdentity(PS ps,PSMatType mat)
 
    Level: advanced
 @*/
-PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindcols)
+PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindcols)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
@@ -1230,15 +1230,15 @@ PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindc
   PetscScalar     *A,*tau,*w,saux;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveEnum(ps,mat,2);
-  PetscValidLogicalCollectiveInt(ps,cols,3);
-  ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,mat,2);
+  PetscValidLogicalCollectiveInt(ds,cols,3);
+  ierr = DSGetDimensions(ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
-  if (cols > n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) { PetscFunctionReturn(0); }
-  ierr = PSGetArray(ps,mat,&A);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,mat,&A);CHKERRQ(ierr);
   ltau = PetscBLASIntCast(PetscMin(cols,n));
   ld_ = PetscBLASIntCast(ld);
   rA = PetscBLASIntCast(n);
@@ -1247,34 +1247,34 @@ PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindc
   LAPACKgeqrf_(&rA,&cA,A,&ld_,PETSC_NULL,&saux,&lw,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   lw = (PetscBLASInt)PetscRealPart(saux);
-  ierr = PSAllocateWork_Private(ps,lw+ltau,0,0);CHKERRQ(ierr);
-  tau = ps->work;
+  ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
+  tau = ds->work;
   w = &tau[ltau];
-  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   LAPACKorgqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
-  ierr = PSRestoreArray(ps,mat,&A);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = DSRestoreArray(ds,mat,&A);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
   if (lindcols) *lindcols = ltau;
   PetscFunctionReturn(0);
 #endif
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSPseudoOrthogonalize"
+#define __FUNCT__ "DSPseudoOrthogonalize"
 /*@
-   PSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified
+   DSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified
    Gram-Schmidt in an indefinite inner product space defined by a signature.
 
-   Logically Collective on PS
+   Logically Collective on DS
 
    Input Parameters:
-+  ps   - the projected system context
++  ds   - the direct solver context
 .  mat  - the matrix
 .  cols - number of columns to orthogonalize (starting from the column zero)
 -  s    - the signature that defines the inner product
@@ -1285,7 +1285,7 @@ PetscErrorCode PSOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscInt *lindc
 
    Level: advanced
 @*/
-PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)
+PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)
 {
   PetscErrorCode  ierr;
   PetscInt        i,j,k,l,n,ld;
@@ -1294,24 +1294,24 @@ PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal
   PetscReal       nr_o,nr,*ns_;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
-  PetscValidLogicalCollectiveEnum(ps,mat,2);
-  PetscValidLogicalCollectiveInt(ps,cols,3);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,mat,2);
+  PetscValidLogicalCollectiveInt(ds,cols,3);
   PetscValidScalarPointer(s,4);
   if (ns) PetscValidPointer(ns,6);
-  ierr = PSGetDimensions(ps,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSGetLeadingDimension(ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
-  if (cols > n) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) { PetscFunctionReturn(0); }
   rA_ = PetscBLASIntCast(n);
-  ierr = PSGetArray(ps,mat,&A_);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,mat,&A_);CHKERRQ(ierr);
   A = &A_[ld*l+l];
-  ierr = PSAllocateWork_Private(ps,n+cols,ns?0:cols,0);CHKERRQ(ierr);
-  m = ps->work;
+  ierr = DSAllocateWork_Private(ds,n+cols,ns?0:cols,0);CHKERRQ(ierr);
+  m = ds->work;
   h = &m[n];
-  ns_ = ns ? ns : ps->rwork;
-  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ns_ = ns ? ns : ds->rwork;
+  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   for (i=0; i<cols; i++) {
     /* m <- diag(s)*A[i] */
     for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
@@ -1339,9 +1339,9 @@ PetscErrorCode PSPseudoOrthogonalize(PS ps,PSMatType mat,PetscInt cols,PetscReal
     alpha = 1.0/PetscAbs(nr);
     BLASscal_(&rA_,&alpha,&A[i*ld],&one);
   }
-  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
-  ierr = PSRestoreArray(ps,mat,&A_);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ps);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = DSRestoreArray(ds,mat,&A_);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
   if (lindcols) *lindcols = cols;
   PetscFunctionReturn(0);
 }

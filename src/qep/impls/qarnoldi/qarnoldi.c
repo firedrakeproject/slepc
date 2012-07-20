@@ -56,9 +56,9 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   ierr = QEPDefaultGetWork(qep,4);CHKERRQ(ierr);
 
-  ierr = PSSetType(qep->ps,PSNHEP);CHKERRQ(ierr);
-  ierr = PSSetExtraRow(qep->ps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PSAllocate(qep->ps,qep->ncv+1);CHKERRQ(ierr);
+  ierr = DSSetType(qep->ds,DSNHEP);CHKERRQ(ierr);
+  ierr = DSSetExtraRow(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(qep->ds,qep->ncv+1);CHKERRQ(ierr);
 
   ierr = KSPSetOperators(ctx->ksp,qep->M,qep->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(ctx->ksp);CHKERRQ(ierr);
@@ -191,7 +191,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   PetscBool      breakdown;
 
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(qep->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
   lwork = 7*qep->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 
@@ -216,20 +216,20 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(qep->nconv+qep->mpd,qep->ncv);
-    ierr = PSGetArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = DSGetArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = QEPQArnoldi(qep,S,ld,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
-    ierr = PSRestoreArray(qep->ps,PS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = PSSetDimensions(qep->ps,nv,PETSC_IGNORE,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
+    ierr = DSRestoreArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = DSSetDimensions(qep->ds,nv,PETSC_IGNORE,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
-      ierr = PSSetState(qep->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+      ierr = DSSetState(qep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
-      ierr = PSSetState(qep->ps,PS_STATE_RAW);CHKERRQ(ierr);
+      ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
 
     /* Solve projected problem */ 
-    ierr = PSSolve(qep->ps,qep->eigr,qep->eigi);CHKERRQ(ierr);
-    ierr = PSSort(qep->ps,qep->eigr,qep->eigi);CHKERRQ(ierr);
-    ierr = PSUpdateExtraRow(qep->ps);CHKERRQ(ierr);
+    ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
+    ierr = DSSort(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(qep->ds);CHKERRQ(ierr);
 
     /* Check convergence */ 
     ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
@@ -247,15 +247,15 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = PSTruncate(qep->ps,k+l);CHKERRQ(ierr);
-        ierr = PSGetDimensions(qep->ps,&newn,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = DSTruncate(qep->ds,k+l);CHKERRQ(ierr);
+        ierr = DSGetDimensions(qep->ds,&newn,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         l = newn-k;
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = PSGetArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,qep->V,qep->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(qep->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSRestoreArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
 
     qep->nconv = k;
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
@@ -268,8 +268,8 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = PSSetDimensions(qep->ps,qep->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
-  ierr = PSSetState(qep->ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSetDimensions(qep->ds,qep->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   /* Compute eigenvectors */
   if (qep->nconv > 0) {

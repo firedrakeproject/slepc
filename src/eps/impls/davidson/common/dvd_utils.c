@@ -472,8 +472,8 @@ PetscErrorCode dvd_harm_start(dvdDashboard *d)
 
   PetscFunctionBegin;
   /* Overload the eigenpairs selection routine */
-  ierr = PSGetEigenvalueComparison(d->ps,&data->old_which_func,&data->old_which_ctx);CHKERRQ(ierr);
-  ierr = PSSetEigenvalueComparison(d->ps,dvd_harm_sort,data);CHKERRQ(ierr);
+  ierr = DSGetEigenvalueComparison(d->ps,&data->old_which_func,&data->old_which_ctx);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(d->ps,dvd_harm_sort,data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -487,7 +487,7 @@ PetscErrorCode dvd_harm_end(dvdDashboard *d)
 
   PetscFunctionBegin;
   /* Restore the eigenpairs selection routine */
-  ierr = PSSetEigenvalueComparison(d->ps,data->old_which_func,data->old_which_ctx);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(d->ps,data->old_which_func,data->old_which_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

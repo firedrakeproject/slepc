@@ -269,28 +269,28 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   if (npreconv == 0) { PetscFunctionReturn(0); }
 
   npreconv+= d->cX_in_H;
-  ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   d->size_MT = d->size_H;
   cMT = d->size_H - npreconv;
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||!d->cY||d->BcX||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
-    ierr = PSGetArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
-    ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
+    ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
     ierr = SlepcDenseCopy(&pQ[ld*npreconv],ld,&pZ[ld*npreconv],ld,d->size_H,cMT);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = PSPseudoOrthogonalize(d->ps,PS_MAT_Q,d->size_H,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->ps,DS_MAT_Q,d->size_H,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
   } else {
-    ierr = PSOrthogonalize(d->ps,PS_MAT_Q,d->size_H,&cMTX);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->ps,DS_MAT_Q,d->size_H,&cMTX);CHKERRQ(ierr);
   }
   cMT = cMTX - npreconv;
 
   if (d->W) {
-    ierr = PSOrthogonalize(d->ps,PS_MAT_Z,d->size_H,&cMTX);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->ps,DS_MAT_Z,d->size_H,&cMTX);CHKERRQ(ierr);
     cMT = PetscMin(cMT,cMTX - npreconv);
   }
 
@@ -360,16 +360,16 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
                                     data->size_oldU ),
                                     d->max_size_V - size_X ));
 
-  ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   d->size_MT = d->size_H;
   /* ps.Q <- orth([pX(0:size_X-1) [oldU(0:size_plusk-1); 0] ]) */
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
-  ierr = PSGetArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
+  ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
   if (!(d->W||!d->cY||d->BcX||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
-    ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
     ierr = SlepcDenseCopy(pQ,ld,pZ,ld,d->size_H,size_X);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
   }
   if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems"); 
   if (size_plusk > 0) {
@@ -380,17 +380,17 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
       }
     }
   }
-  ierr = PSRestoreArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
+  ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = PSPseudoOrthogonalize(d->ps,PS_MAT_Q,size_X,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->ps,DS_MAT_Q,size_X,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
   } else {
-    ierr = PSOrthogonalize(d->ps,PS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->ps,DS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
   }
 
   if (d->W) {
     /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
     if (size_plusk > 0) {
-      ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+      ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
       ierr = SlepcDenseCopy(&pZ[ld*size_X],ld,data->oldV,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
       for(i=size_X; i<size_X+size_plusk; i++) {
         for(j=data->size_oldU; j<d->size_H; j++) {
@@ -398,8 +398,8 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
         }
       }
     }
-    ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = PSOrthogonalize(d->ps,PS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->ps,DS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
     cMTX = PetscMin(cMTX, cMTY);
   }
 
@@ -456,14 +456,14 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   /* Save the projected eigenvectors */
   if (data->plusk > 0) {
     data->ldoldU = data->size_oldU = d->size_H;
-    ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-    ierr = PSGetArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
+    ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+    ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
     ierr = SlepcDenseCopy(data->oldU,data->ldoldU,pQ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Q,&pQ);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
     if (d->cY) {
-      ierr = PSGetArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+      ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
       ierr = SlepcDenseCopy(data->oldV,data->ldoldU,pZ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
-      ierr = PSRestoreArray(d->ps,PS_MAT_Z,&pZ);CHKERRQ(ierr);
+      ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
     }
   }
 

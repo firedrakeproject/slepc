@@ -1,5 +1,5 @@
-Solve a Projected System of type GNHEP - dimension 10.
-PS Object: 1 MPI processes
+Solve a Dense System of type GNHEP - dimension 10.
+DS Object: 1 MPI processes
   type: gnhep
   current state: raw
   dimensions: ld=12, n=10, l=0, k=0

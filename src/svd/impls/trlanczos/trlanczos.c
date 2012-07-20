@@ -59,9 +59,9 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   if (svd->ncv!=svd->n) {  
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
-  ierr = PSSetType(svd->ps,PSSVD);CHKERRQ(ierr);
-  ierr = PSSetCompact(svd->ps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PSAllocate(svd->ps,svd->ncv);CHKERRQ(ierr);
+  ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
+  ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(svd->ds,svd->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -226,7 +226,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   
   PetscFunctionBegin;
   /* allocate working space */
-  ierr = PSGetLeadingDimension(svd->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*ld,&w);CHKERRQ(ierr);
     ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
@@ -244,7 +244,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
     /* inner loop */
     nv = PetscMin(svd->nconv+svd->mpd,svd->n);
-    ierr = PSGetArrayReal(svd->ps,PS_MAT_T,&alpha);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     if (lanczos->oneside) {
       if (orthog == IP_ORTHOG_MGS) {
@@ -256,24 +256,24 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
       ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv+l,nv,swork);CHKERRQ(ierr);
     }
     lastbeta = beta[nv-1];
-    ierr = PSRestoreArrayReal(svd->ps,PS_MAT_T,&alpha);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = VecScale(v,1.0/lastbeta);CHKERRQ(ierr);
    
     /* compute SVD of general matrix */
-    ierr = PSSetDimensions(svd->ps,nv,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(svd->ds,nv,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     if (l==0) {
-      ierr = PSSetState(svd->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+      ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
-      ierr = PSSetState(svd->ps,PS_STATE_RAW);CHKERRQ(ierr);
+      ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
-    ierr = PSSolve(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSSort(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSolve(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;
     conv = PETSC_TRUE;
-    ierr = PSGetArray(svd->ps,PS_MAT_U,&Q);CHKERRQ(ierr);
-    ierr = PSGetArrayReal(svd->ps,PS_MAT_T,&alpha);CHKERRQ(ierr);
+    ierr = DSGetArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     for (i=svd->nconv;i<nv;i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
@@ -285,7 +285,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
         else conv = PETSC_FALSE;
       }
     }
-    ierr = PSRestoreArrayReal(svd->ps,PS_MAT_T,&alpha);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     
     /* check convergence and update l */
     if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
@@ -295,11 +295,11 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     
     /* compute converged singular vectors and restart vectors */
     off = svd->nconv+svd->nconv*ld;
-    ierr = PSGetArray(svd->ps,PS_MAT_VT,&PT);CHKERRQ(ierr);
+    ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv-svd->nconv,svd->V+svd->nconv,0,k+l,PT+off,ld,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv-svd->nconv,svd->U+svd->nconv,0,k+l,Q+off,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(svd->ps,PS_MAT_VT,&PT);CHKERRQ(ierr);
-    ierr = PSRestoreArray(svd->ps,PS_MAT_U,&Q);CHKERRQ(ierr);
+    ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
+    ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
     
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {

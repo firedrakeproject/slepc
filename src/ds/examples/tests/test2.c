@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test PSHEP.\n\n";
+static char help[] = "Test DSHEP.\n\n";
 
 #include "slepcds.h"
 
@@ -28,7 +28,7 @@ static char help[] = "Test PSHEP.\n\n";
 int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
-  PS             ps;
+  DS             ds;
   PetscScalar    *A,*eig;
   PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
@@ -36,51 +36,51 @@ int main( int argc, char **argv )
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type HEP - dimension %D.\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type HEP - dimension %D.\n",n);CHKERRQ(ierr); 
   ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(PETSC_NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
 
-  /* Create PS object */
-  ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
-  ierr = PSSetType(ps,PSHEP);CHKERRQ(ierr);
-  ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
+  /* Create DS object */
+  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
+  ierr = DSSetType(ds,DSHEP);CHKERRQ(ierr);
+  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
-  ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
-  ierr = PSSetDimensions(ps,n,PETSC_IGNORE,0,0);CHKERRQ(ierr);
-  ierr = PSSetExtraRow(ps,extrarow);CHKERRQ(ierr);
+  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetExtraRow(ds,extrarow);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = PSView(ps,viewer);CHKERRQ(ierr);
+  ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
   /* Fill with a symmetric Toeplitz matrix */
-  ierr = PSGetArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   for (i=0;i<n;i++) A[i+i*ld]=2.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { A[i+(i+j)*ld]=1.0; A[(i+j)+i*ld]=1.0; }
   }
   if (extrarow) { A[n+(n-2)*ld]=1.0; A[n+(n-1)*ld]=1.0; }
-  ierr = PSRestoreArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = PSSetState(ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = PSView(ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   /* Solve */
   ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
-  ierr = PSSetEigenvalueComparison(ps,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSSolve(ps,eig,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSSort(ps,eig,PETSC_NULL);CHKERRQ(ierr);
-  if (extrarow) { ierr = PSUpdateExtraRow(ps);CHKERRQ(ierr); }
+  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSolve(ds,eig,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSort(ds,eig,PETSC_NULL);CHKERRQ(ierr);
+  if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = PSView(ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   /* Print eigenvalues */
@@ -90,7 +90,7 @@ int main( int argc, char **argv )
   }
 
   ierr = PetscFree(eig);CHKERRQ(ierr);
-  ierr = PSDestroy(&ps);CHKERRQ(ierr);
+  ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

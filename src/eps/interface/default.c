@@ -107,12 +107,12 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSGetArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSVectors(eps->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   /* purification */
   ierr = VecDuplicate(eps->V[0],&v);CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
@@ -172,16 +172,16 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     }
     PetscFunctionReturn(0);
   }
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
-  ierr = PSGetDimensions(eps->ps,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */
-  ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSVectors(eps->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
   /* normalize eigenvectors (when not using purification nor balancing)*/
   if (!(eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D))) {
-    ierr = PSGetArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
@@ -199,13 +199,13 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
         BLASscal_(&n_,&tmp,Z+i*ld,&one);
       }
     }
-    ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   }
   
   /* V = V * Z */
-  ierr = PSGetArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PSRestoreArray(eps->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
 
   /* Purify eigenvectors */
   if (eps->ispositive) {
@@ -245,11 +245,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
    
   /* left eigenvectors */
   if (eps->leftvecs) {
-    ierr = PSVectors(eps->ps,PS_MAT_Y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(eps->ds,DS_MAT_Y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     /* W = W * Z */
-    ierr = PSGetArray(eps->ps,PS_MAT_Y,&Z);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(n,eps->W,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Y,&Z);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);

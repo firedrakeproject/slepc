@@ -160,17 +160,17 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* Compute the eigenvectors of the selected pairs */
   for (i=0; i<n; ) {
     k = r_s+i+d->cX_in_H;
-    ierr = PSVectors(d->ps,PS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSNormalize(d->ps,PS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     k = r_s+i+d->cX_in_H;
-    ierr = PSVectors(d->ps,PS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSNormalize(d->ps,PS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     /* Jump complex conjugate pairs */
     i = k+1;
   }
-  ierr = PSGetArray(d->ps,PS_MAT_X,&pX);CHKERRQ(ierr);
-  ierr = PSGetArray(d->ps,PS_MAT_Y,&pY);CHKERRQ(ierr);
-  ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+  ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
 
   /* Bx <- B*X(i) */
   Bx = D+n;

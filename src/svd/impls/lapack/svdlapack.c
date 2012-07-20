@@ -39,8 +39,8 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->ncv!=svd->n) {  
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
-  ierr = PSSetType(svd->ps,PSSVD);CHKERRQ(ierr);
-  ierr = PSAllocate(svd->ps,PetscMax(M,N));CHKERRQ(ierr);
+  ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
+  ierr = DSAllocate(svd->ds,PetscMax(M,N));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -54,27 +54,27 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscScalar    *pU,*pVT,*pmat,*pu,*pv,*A,*w;
   
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(svd->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = MatConvert(svd->OP,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
-  ierr = PSSetDimensions(svd->ps,M,N,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(svd->ds,M,N,0,0);CHKERRQ(ierr);
   ierr = MatGetArray(mat,&pmat);CHKERRQ(ierr);
-  ierr = PSGetArray(svd->ps,PS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   for (i=0;i<M;i++)
     for (j=0;j<N;j++)
       A[i+j*ld] = pmat[i+j*M];
-  ierr = PSRestoreArray(svd->ps,PS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = MatRestoreArray(mat,&pmat);CHKERRQ(ierr);
-  ierr = PSSetState(svd->ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
       
   n = PetscMin(M,N);
   ierr = PetscMalloc(sizeof(PetscScalar)*n,&w);CHKERRQ(ierr);
-  ierr = PSSolve(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSSort(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSolve(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSort(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
   
   /* copy singular vectors */
-  ierr = PSGetArray(svd->ps,PS_MAT_U,&pU);CHKERRQ(ierr);
-  ierr = PSGetArray(svd->ps,PS_MAT_VT,&pVT);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_VT,&pVT);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     if (svd->which == SVD_SMALLEST) k = n - i - 1;
     else k = i;
@@ -91,8 +91,8 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
     ierr = VecRestoreArray(svd->U[k],&pu);CHKERRQ(ierr);
     ierr = VecRestoreArray(svd->V[k],&pv);CHKERRQ(ierr);
   }
-  ierr = PSRestoreArray(svd->ps,PS_MAT_U,&pU);CHKERRQ(ierr);
-  ierr = PSRestoreArray(svd->ps,PS_MAT_VT,&pVT);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&pVT);CHKERRQ(ierr);
 
   svd->nconv = n;
   svd->reason = SVD_CONVERGED_TOL;

@@ -297,9 +297,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
     if (!ispower) {
-      if (!eps->ps) { ierr = EPSGetPS(eps,&eps->ps);CHKERRQ(ierr); }
+      if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
       ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-      ierr = PSView(eps->ps,viewer);CHKERRQ(ierr);
+      ierr = DSView(eps->ds,viewer);CHKERRQ(ierr);
       ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     }
   }
@@ -489,7 +489,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->errest_left     = 0;
   eps->OP              = 0;
   eps->ip              = 0;
-  eps->ps              = 0;
+  eps->ds              = 0;
   eps->rand            = 0;
   eps->data            = 0;
   eps->nconv           = 0;
@@ -657,7 +657,7 @@ PetscErrorCode EPSReset(EPS eps)
   if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
   if (eps->OP) { ierr = STReset(eps->OP);CHKERRQ(ierr); }
   if (eps->ip) { ierr = IPReset(eps->ip);CHKERRQ(ierr); }
-  if (eps->ps) { ierr = PSReset(eps->ps);CHKERRQ(ierr); }
+  if (eps->ds) { ierr = DSReset(eps->ds);CHKERRQ(ierr); }
   ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
   eps->setupcalled = 0;
@@ -691,7 +691,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
   ierr = STDestroy(&(*eps)->OP);CHKERRQ(ierr);
   ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
-  ierr = PSDestroy(&(*eps)->ps);CHKERRQ(ierr);
+  ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
   ierr = EPSRemoveDeflationSpace(*eps);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
@@ -968,43 +968,43 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSSetPS"
+#define __FUNCT__ "EPSSetDS"
 /*@
-   EPSSetPS - Associates a projected system object to the eigensolver. 
+   EPSSetDS - Associates a direct solver object to the eigensolver. 
 
    Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
--  ps  - the projected system object
+-  ds  - the direct solver object
 
    Note:
-   Use EPSGetPS() to retrieve the projected system context (for example,
+   Use EPSGetDS() to retrieve the direct solver context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: EPSGetPS()
+.seealso: EPSGetDS()
 @*/
-PetscErrorCode EPSSetPS(EPS eps,PS ps)
+PetscErrorCode EPSSetDS(EPS eps,DS ds)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidHeaderSpecific(ps,PS_CLASSID,2);
-  PetscCheckSameComm(eps,1,ps,2);
-  ierr = PetscObjectReference((PetscObject)ps);CHKERRQ(ierr);
-  ierr = PSDestroy(&eps->ps);CHKERRQ(ierr);
-  eps->ps = ps;
-  ierr = PetscLogObjectParent(eps,eps->ps);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,2);
+  PetscCheckSameComm(eps,1,ds,2);
+  ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
+  ierr = DSDestroy(&eps->ds);CHKERRQ(ierr);
+  eps->ds = ds;
+  ierr = PetscLogObjectParent(eps,eps->ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGetPS"
+#define __FUNCT__ "EPSGetDS"
 /*@C
-   EPSGetPS - Obtain the projected system object associated to the eigensolver object.
+   EPSGetDS - Obtain the direct solver object associated to the eigensolver object.
 
    Not Collective
 
@@ -1012,24 +1012,24 @@ PetscErrorCode EPSSetPS(EPS eps,PS ps)
 .  eps - eigensolver context obtained from EPSCreate()
 
    Output Parameter:
-.  ps - projected system context
+.  ds - direct solver context
 
    Level: advanced
 
-.seealso: EPSSetPS()
+.seealso: EPSSetDS()
 @*/
-PetscErrorCode EPSGetPS(EPS eps,PS *ps)
+PetscErrorCode EPSGetDS(EPS eps,DS *ds)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(ps,2);
-  if (!eps->ps) {
-    ierr = PSCreate(((PetscObject)eps)->comm,&eps->ps);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(eps,eps->ps);CHKERRQ(ierr);
+  PetscValidPointer(ds,2);
+  if (!eps->ds) {
+    ierr = DSCreate(((PetscObject)eps)->comm,&eps->ds);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(eps,eps->ds);CHKERRQ(ierr);
   }
-  *ps = eps->ps;
+  *ds = eps->ds;
   PetscFunctionReturn(0);
 }
 

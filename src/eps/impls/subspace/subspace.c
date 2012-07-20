@@ -74,11 +74,11 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->ncv,&ctx->AV);CHKERRQ(ierr);
   if (eps->ishermitian) {
-    ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
+    ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   } else {
-    ierr = PSSetType(eps->ps,PSNHEP);CHKERRQ(ierr);
+    ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   }
-  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
@@ -199,7 +199,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
 
   for (i=0;i<ncv;i++) {
     rsd[i] = 0.0;
@@ -220,7 +220,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   while (eps->its<eps->max_it) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
     
     /* Find group in previously computed eigenvalues */
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
@@ -231,27 +231,27 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     }
 
     /* T(:,idx) = V' * AV(:,idx) */
-    ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
     for (i=eps->nconv;i<nv;i++) {
       ierr = VecMDot(ctx->AV[i],nv,eps->V,T+i*ld);CHKERRQ(ierr);
     }
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
     /* Solve projected problem */
-    ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = PSSort(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     
     /* Update vectors V(:,idx) = V * U(:,idx) */
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,ctx->AV,eps->nconv,nv,U,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     
     /* Convergence check */
-    ierr = PSGetArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
     ierr = EPSSubspaceResidualNorms(eps->V,ctx->AV,T,eps->nconv,nv,ld,eps->work[0],rsd);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
 
     for (i=eps->nconv;i<nv;i++) { 
       itrsdold[i] = itrsd[i];
@@ -285,7 +285,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     nxtsrr = PetscMin(nxtsrr,its+idsrr);
 
     /* Compute nxtort (iteration of next orthogonalization step) */
-    ierr = PSCond(eps->ps,&tcond);CHKERRQ(ierr);
+    ierr = DSCond(eps->ds,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
     nxtort = PetscMin(its+idort,nxtsrr);
 
@@ -333,8 +333,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   else eps->reason = EPS_DIVERGED_ITS;
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = PSSetDimensions(eps->ps,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
-  ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

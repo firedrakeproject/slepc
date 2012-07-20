@@ -124,7 +124,7 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->which_func = (eps->which==EPS_ALL)? SlepcCompareLargestMagnitude: EPSSortForSTFunc;
     eps->which_ctx = (eps->which==EPS_ALL)? PETSC_NULL: &data;
   }
-  ierr = PSSetEigenvalueComparison(eps->ps,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(eps->ds,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
   /* call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);

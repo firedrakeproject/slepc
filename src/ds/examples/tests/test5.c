@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test PSGHIEP.\n\n";
+static char help[] = "Test DSGHIEP.\n\n";
 
 #include "slepcds.h"
 
@@ -28,7 +28,7 @@ static char help[] = "Test PSGHIEP.\n\n";
 int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
-  PS             ps;
+  DS             ds;
   PetscReal      re,im;
   PetscScalar    *A,*B,*eigr,*eigi;
   PetscInt       i,j,n=10,ld;
@@ -37,29 +37,29 @@ int main( int argc, char **argv )
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type PSGHIEP - dimension %D.\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type GHIEP - dimension %D.\n",n);CHKERRQ(ierr); 
   ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
-  /* Create PS object */
-  ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
-  ierr = PSSetType(ps,PSGHIEP);CHKERRQ(ierr);
-  ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
+  /* Create DS object */
+  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
+  ierr = DSSetType(ds,DSGHIEP);CHKERRQ(ierr);
+  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
-  ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
-  ierr = PSSetDimensions(ps,n,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,PETSC_IGNORE,0,0);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = PSView(ps,viewer);CHKERRQ(ierr);
+  ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
   /* Fill with a symmetric Toeplitz matrix */
-  ierr = PSGetArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = PSGetArray(ps,PS_MAT_B,&B);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
   for (i=0;i<n;i++) A[i+i*ld]=2.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { A[i+(i+j)*ld]=1.0; A[(i+j)+i*ld]=1.0; }
@@ -69,24 +69,24 @@ int main( int argc, char **argv )
   for (i=0;i<n;i++) B[i+i*ld]=1.0;
   B[0] = -1.0;
   B[n-1+(n-1)*ld] = -1.0;
-  ierr = PSRestoreArray(ps,PS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = PSRestoreArray(ps,PS_MAT_B,&B);CHKERRQ(ierr);
-  ierr = PSSetState(ps,PS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSRestoreArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
+  ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = PSView(ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   /* Solve */
   ierr = PetscMalloc(n*sizeof(PetscScalar),&eigr);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&eigi);CHKERRQ(ierr);
   ierr = PetscMemzero(eigi,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PSSetEigenvalueComparison(ps,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSSolve(ps,eigr,eigi);CHKERRQ(ierr);
-  ierr = PSSort(ps,eigr,eigi);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSolve(ds,eigr,eigi);CHKERRQ(ierr);
+  ierr = DSSort(ds,eigr,eigi);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = PSView(ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
   
   /* Print eigenvalues */
@@ -104,7 +104,7 @@ int main( int argc, char **argv )
   }
   ierr = PetscFree(eigr);CHKERRQ(ierr);
   ierr = PetscFree(eigi);CHKERRQ(ierr);
-  ierr = PSDestroy(&ps);CHKERRQ(ierr);
+  ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

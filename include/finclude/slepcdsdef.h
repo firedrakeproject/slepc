@@ -1,5 +1,5 @@
 !
-!  Include file for Fortran use of the PS object in SLEPc
+!  Include file for Fortran use of the DS object in SLEPc
 !
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,14 +21,14 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCPS_H)
-#define __SLEPCPS_H
+#if !defined(__SLEPCDS_H)
+#define __SLEPCDS_H
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define PS PetscFortranAddr
+#define DS PetscFortranAddr
 #endif
 
-#define PSStateType PetscEnum
-#define PSMatType   PetscEnum
+#define DSStateType PetscEnum
+#define DSMatType   PetscEnum
 
 #endif

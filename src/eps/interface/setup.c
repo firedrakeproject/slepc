@@ -75,8 +75,8 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!((PetscObject)eps->ip)->type_name) {
     ierr = IPSetDefaultType_Private(eps->ip);CHKERRQ(ierr);
   }
-  if (!eps->ps) { ierr = EPSGetPS(eps,&eps->ps);CHKERRQ(ierr); }
-  ierr = PSReset(eps->ps);CHKERRQ(ierr);
+  if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
+  ierr = DSReset(eps->ds);CHKERRQ(ierr);
   if (!((PetscObject)eps->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   }

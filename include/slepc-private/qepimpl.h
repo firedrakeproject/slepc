@@ -75,7 +75,7 @@ struct _p_QEP {
   PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
   PetscReal   *errest;          /* error estimates */
   IP          ip;               /* innerproduct object */
-  PS          ps;               /* projected system object */
+  DS          ds;               /* direct solver object */
   void        *data;            /* placeholder for misc stuff associated 
                                    with a particular solver */
   PetscInt    nconv,            /* number of converged eigenvalues */

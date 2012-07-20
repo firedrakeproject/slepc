@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test PSSVD with compact storage.\n\n";
+static char help[] = "Test DSSVD with compact storage.\n\n";
 
 #include "slepcds.h"
 
@@ -28,7 +28,7 @@ static char help[] = "Test PSSVD with compact storage.\n\n";
 int main( int argc, char **argv )
 {
   PetscErrorCode ierr;
-  PS             ps;
+  DS             ds;
   PetscReal      *T,sigma;
   PetscScalar    *w;
   PetscInt       i,n=10,m,l=2,k=5,ld;
@@ -38,53 +38,53 @@ int main( int argc, char **argv )
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
   m = n;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type PSSVD with compact storage - dimension %Dx%D.\n",n,m);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type SVD with compact storage - dimension %Dx%D.\n",n,m);CHKERRQ(ierr); 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-l",&l,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,1,"Wrong value of dimensions");
   ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
-  /* Create PS object */
-  ierr = PSCreate(PETSC_COMM_WORLD,&ps);CHKERRQ(ierr);
-  ierr = PSSetType(ps,PSSVD);CHKERRQ(ierr);
-  ierr = PSSetFromOptions(ps);CHKERRQ(ierr);
+  /* Create DS object */
+  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
+  ierr = DSSetType(ds,DSSVD);CHKERRQ(ierr);
+  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
-  ierr = PSAllocate(ps,ld);CHKERRQ(ierr);
-  ierr = PSSetDimensions(ps,n,m,l,k);CHKERRQ(ierr);
-  ierr = PSSetCompact(ps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,m,l,k);CHKERRQ(ierr);
+  ierr = DSSetCompact(ds,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = PSView(ps,viewer);CHKERRQ(ierr);
+  ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
   /* Fill upper arrow-tridiagonal matrix */
-  ierr = PSGetArrayReal(ps,PS_MAT_T,&T);CHKERRQ(ierr);
+  ierr = DSGetArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
   for (i=0;i<n;i++) T[i] = (PetscReal)(i+1);
   for (i=l;i<n-1;i++) T[i+ld] = 1.0;
-  ierr = PSRestoreArrayReal(ps,PS_MAT_T,&T);CHKERRQ(ierr);
+  ierr = DSRestoreArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
   if (l==0 && k==0) {
-    ierr = PSSetState(ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = DSSetState(ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
   } else {
-    ierr = PSSetState(ps,PS_STATE_RAW);CHKERRQ(ierr);
+    ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   }
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = PSView(ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   /* Solve */
   ierr = PetscMalloc(n*sizeof(PetscScalar),&w);CHKERRQ(ierr);
-  ierr = PSSetEigenvalueComparison(ps,SlepcCompareLargestReal,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSSolve(ps,w,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PSSort(ps,w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSolve(ds,w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSort(ds,w,PETSC_NULL);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = PSView(ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
   
   /* Print singular values */
@@ -94,7 +94,7 @@ int main( int argc, char **argv )
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",sigma);CHKERRQ(ierr);
   }
   ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = PSDestroy(&ps);CHKERRQ(ierr);
+  ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

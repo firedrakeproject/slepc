@@ -333,7 +333,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   if (n == 0) SETERRQ(PETSC_COMM_SELF,1, "n == 0!\n");
   if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s!\n");
 
-  ierr = PSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
 
   /* Restart lastTol if a new pair converged */
   if (data->dynamic && data->size_cX < d->size_cX)
@@ -367,16 +367,16 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
 
     /* Compute u, v and kr */
     k = r_s+i+d->cX_in_H;
-    ierr = PSVectors(d->ps,PS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSNormalize(d->ps,PS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     k = r_s+i+d->cX_in_H;
-    ierr = PSVectors(d->ps,PS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSNormalize(d->ps,PS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
-    ierr = PSGetArray(d->ps,PS_MAT_X,&pX);CHKERRQ(ierr);
-    ierr = PSGetArray(d->ps,PS_MAT_Y,&pY);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
     ierr = dvd_improvex_jd_proj_cuv(d,r_s+i,r_s+i+s,&u,&v,kr,&data->auxV,&auxS,data->theta,data->thetai,&pX[ld*(r_s+i+d->cX_in_H)],&pY[ld*(r_s+i+d->cX_in_H)],ld);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_X,&pX);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->ps,PS_MAT_Y,&pY);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
     data->u = u;
 
     /* Check if the first eigenpairs are converged */

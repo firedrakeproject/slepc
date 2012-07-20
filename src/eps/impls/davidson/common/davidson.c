@@ -664,24 +664,24 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
 
   if (d->cS) {
     /* Compute the eigenvectors associated to (cS, cT) */
-    ierr = PSSetDimensions(d->conv_ps,d->size_cS,PETSC_IGNORE,0,0);CHKERRQ(ierr);
-    ierr = PSGetLeadingDimension(d->conv_ps,&ld);CHKERRQ(ierr);
-    ierr = PSGetArray(d->conv_ps,PS_MAT_A,&cS);CHKERRQ(ierr);
+    ierr = DSSetDimensions(d->conv_ps,d->size_cS,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+    ierr = DSGetLeadingDimension(d->conv_ps,&ld);CHKERRQ(ierr);
+    ierr = DSGetArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
     ierr = SlepcDenseCopyTriang(cS,0,ld,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->conv_ps,PS_MAT_A,&cS);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
     if (d->cT) {
-      ierr = PSGetArray(d->conv_ps,PS_MAT_B,&cT);CHKERRQ(ierr);
+      ierr = DSGetArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
       ierr = SlepcDenseCopyTriang(cT,0,ld,d->cT,0,d->ldcT,d->size_cS,d->size_cS);CHKERRQ(ierr);
-      ierr = PSRestoreArray(d->conv_ps,PS_MAT_B,&cT);CHKERRQ(ierr);
+      ierr = DSRestoreArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
     }
-    ierr = PSSetState(d->conv_ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    ierr = PSVectors(d->conv_ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSNormalize(d->conv_ps,PS_MAT_X,-1);CHKERRQ(ierr);
+    ierr = DSSetState(d->conv_ps,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = DSVectors(d->conv_ps,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->conv_ps,DS_MAT_X,-1);CHKERRQ(ierr);
 
     /* V <- cX * pX */ 
-    ierr = PSGetArray(d->conv_ps,PS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = DSGetArray(d->conv_ps,DS_MAT_X,&pX);CHKERRQ(ierr);
     ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,ld,d->nconv,d->nconv);CHKERRQ(ierr);
-    ierr = PSRestoreArray(d->conv_ps,PS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->conv_ps,DS_MAT_X,&pX);CHKERRQ(ierr);
   }
 
   eps->evecsavailable = PETSC_TRUE;

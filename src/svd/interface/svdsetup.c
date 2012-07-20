@@ -120,8 +120,8 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (!((PetscObject)svd->ip)->type_name) {
     ierr = IPSetDefaultType_Private(svd->ip);CHKERRQ(ierr);
   }
-  if (!svd->ps) { ierr = SVDGetPS(svd,&svd->ps);CHKERRQ(ierr); }
-  ierr = PSReset(svd->ps);CHKERRQ(ierr);
+  if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
+  ierr = DSReset(svd->ds);CHKERRQ(ierr);
   if (!((PetscObject)svd->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
   }

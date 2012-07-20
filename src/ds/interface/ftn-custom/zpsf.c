@@ -23,66 +23,66 @@
 #include <slepcds.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define pscreate_                 PSCREATE
-#define psdestroy_                PSDESTROY
-#define pssetoptionsprefix_       PSSETOPTIONSPREFIX
-#define psappendoptionsprefix_    PSAPPENDOPTIONSPREFIX
-#define psgetoptionsprefix_       PSSETOPTIONSPREFIX
-#define psview_                   PSVIEW
+#define dscreate_                 DSCREATE
+#define dsdestroy_                DSDESTROY
+#define dssetoptionsprefix_       DSSETOPTIONSPREFIX
+#define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
+#define dsgetoptionsprefix_       DSSETOPTIONSPREFIX
+#define dsview_                   DSVIEW
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define pscreate_                 pscreate
-#define psdestroy_                psdestroy
-#define pssetoptionsprefix_       pssetoptionsprefix
-#define psappendoptionsprefix_    psappendoptionsprefix
-#define psgetoptionsprefix_       psgetoptionsprefix
-#define psview_                   psview
+#define dscreate_                 dscreate
+#define dsdestroy_                dsdestroy
+#define dssetoptionsprefix_       dssetoptionsprefix
+#define dsappendoptionsprefix_    dsappendoptionsprefix
+#define dsgetoptionsprefix_       dsgetoptionsprefix
+#define dsview_                   dsview
 #endif
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL pscreate_(MPI_Fint *comm,PS *newps,PetscErrorCode *ierr)
+void PETSC_STDCALL dscreate_(MPI_Fint *comm,DS *newds,PetscErrorCode *ierr)
 {
-  *ierr = PSCreate(MPI_Comm_f2c(*(comm)),newps);
+  *ierr = DSCreate(MPI_Comm_f2c(*(comm)),newds);
 }
 
-void PETSC_STDCALL psdestroy_(PS *ps, PetscErrorCode *ierr)
+void PETSC_STDCALL dsdestroy_(DS *ds, PetscErrorCode *ierr)
 {
-  *ierr = PSDestroy(ps);
+  *ierr = DSDestroy(ds);
 }
 
-void PETSC_STDCALL pssetoptionsprefix_(PS *ps,CHAR prefix PETSC_MIXED_LEN(len),
+void PETSC_STDCALL dssetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),
                                        PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = PSSetOptionsPrefix(*ps,t);
+  *ierr = DSSetOptionsPrefix(*ds,t);
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL psappendoptionsprefix_(PS *ps,CHAR prefix PETSC_MIXED_LEN(len),
+void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),
                                           PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = PSAppendOptionsPrefix(*ps,t);
+  *ierr = DSAppendOptionsPrefix(*ds,t);
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL psgetoptionsprefix_(PS *ps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
-  *ierr = PSGetOptionsPrefix(*ps,&tname); if (*ierr) return;
+  *ierr = DSGetOptionsPrefix(*ds,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL psview_(PS *ps,PetscViewer *viewer, PetscErrorCode *ierr)
+void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer, PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = PSView(*ps,v);
+  *ierr = DSView(*ds,v);
 }
 
 EXTERN_C_END

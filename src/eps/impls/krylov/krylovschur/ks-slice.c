@@ -152,7 +152,7 @@ static PetscErrorCode EPSExtractShift(EPS eps){
     sr->sPres->expf = PETSC_FALSE;
     /* For rational Krylov */
     if(sr->nS >0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1]) ){
-      ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+      ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
       dir = (sr->sPres->neighb[0] == sr->sPrev)?1:-1;
       dir*=sr->dir;
       k = 0;
@@ -165,15 +165,15 @@ static PetscErrorCode EPSExtractShift(EPS eps){
         }
       }
       /* Copy to PS */
-      ierr = PSGetArray(eps->ps,PS_MAT_A,&A);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
       ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));
       for(i=0;i<k;i++){
         A[i*(1+ld)] = sr->S[i];
         A[k+i*ld] = sr->S[sr->nS+i];
       }
       sr->nS = k;
-      ierr = PSRestoreArray(eps->ps,PS_MAT_A,&A);CHKERRQ(ierr);
-      ierr = PSSetDimensions(eps->ps,PETSC_IGNORE,PETSC_IGNORE,0,k);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+      ierr = DSSetDimensions(eps->ds,PETSC_IGNORE,PETSC_IGNORE,0,k);CHKERRQ(ierr);
       /* Normalize u and append it to V */      
       ierr = VecAXPBY(eps->V[sr->nS],1.0/sr->beta,0.0,eps->work[0]);CHKERRQ(ierr);
     }
@@ -211,7 +211,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   sPres = sr->sPres;
   complIterating =PETSC_FALSE;
   sch1 = sch0 = PETSC_TRUE;
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ld*sizeof(PetscInt),&iwork);CHKERRQ(ierr);
   count0=0;count1=0; /* Found on both sides */
   /* filling in values for the monitor */
@@ -230,11 +230,11 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   if(sr->nS > 0 && (sPres->neighb[0] == sr->sPrev || sPres->neighb[1] == sr->sPrev) ){
     /* Rational Krylov */
-    ierr = PSTranslateRKS(eps->ps,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = PSGetDimensions(eps->ps,PETSC_NULL,PETSC_NULL,PETSC_NULL,&l);CHKERRQ(ierr);
+    ierr = DSTranslateRKS(eps->ds,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetDimensions(eps->ds,PETSC_NULL,PETSC_NULL,PETSC_NULL,&l);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(l+1,eps->V,0,l+1,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   }else{
     /* Get the starting Lanczos vector */
     ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -245,25 +245,25 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     eps->its++; sr->itsKs++;
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
     ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&nv,u,&breakdown);CHKERRQ(ierr);
     if(breakdown){/* explicit purification*/
       sPres->expf = PETSC_TRUE;     
     }
     beta = b[nv-1];
-    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = PSSetDimensions(eps->ps,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
-      ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+      ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
-      ierr = PSSetState(eps->ps,PS_STATE_RAW);CHKERRQ(ierr);
+      ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
 
     /* Solve projected problem and compute residual norm estimates */
     if(eps->its == 1 && l > 0){/* After rational update */
-      ierr = PSGetArray(eps->ps,PS_MAT_A,&A);CHKERRQ(ierr);
-      ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
       b = a + ld;
       k = eps->nconv+l;
       A[k*ld+k-1] = A[(k-1)*ld+k];
@@ -273,20 +273,20 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
         A[j*ld+j-1] = b[j-1] ;
         A[(j-1)*ld+j] = b[j-1];
       }
-      ierr = PSRestoreArray(eps->ps,PS_MAT_A,&A);CHKERRQ(ierr);
-      ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-      ierr = PSSolve(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = PSSort(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = PSSetCompact(eps->ps,PETSC_TRUE);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+      ierr = DSSetCompact(eps->ds,PETSC_TRUE);
     }else{/* Restart */
-      ierr = PSSolve(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = PSSort(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+      ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
     }
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
     /* Check convergence */
 
-    ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
     conv = 0;
     j = k = eps->nconv;
@@ -310,8 +310,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     }
 
     k=eps->nconv+conv;
-    ierr = PSPermuteColumns_Private(eps->ps,eps->nconv,nv,PS_MAT_Q,iwork);CHKERRQ(ierr);
-    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = DSPermuteColumns_Private(eps->ds,eps->nconv,nv,DS_MAT_Q,iwork);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
 
     /* Checking values obtained for completing */
     for(i=0;i<k;i++){
@@ -360,19 +360,19 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
         }
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+        ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         b = a + ld;
         for (i=k;i<k+l;i++) {
           a[i] = PetscRealPart(eps->eigr[i]);
           b[i] = PetscRealPart(Q[nv-1+i*ld]*beta);
         }
-        ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+        ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
 
     /* Purification */
@@ -383,7 +383,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       }
     }
 
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     /* Normalize u and append it to V */
     if ( eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
@@ -409,14 +409,14 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     eps->nconv = k;
     if(eps->reason != EPS_CONVERGED_ITERATING){
       /* Store approximated values for next shift */
-      ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
       sr->nS = l;
       for (i=0;i<l;i++) {
         sr->S[i] = eps->eigr[i+k];/* Diagonal elements */
         sr->S[i+l] = Q[nv-1+(i+k)*ld]*beta; /* Out of diagonal elements */
       }
       sr->beta = beta;
-      ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     }
   }
   /* Check for completion */

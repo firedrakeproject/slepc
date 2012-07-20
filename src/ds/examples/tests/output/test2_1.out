@@ -1,5 +1,5 @@
-Solve a Projected System of type HEP - dimension 12.
-PS Object: 1 MPI processes
+Solve a Dense System of type HEP - dimension 12.
+DS Object: 1 MPI processes
   type: hep
   current state: raw
   dimensions: ld=14, n=12, l=0, k=0

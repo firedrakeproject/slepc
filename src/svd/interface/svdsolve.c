@@ -59,7 +59,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
 
   which_func = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
-  ierr = PSSetEigenvalueComparison(svd->ps,which_func,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(svd->ds,which_func,PETSC_NULL);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);

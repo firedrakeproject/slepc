@@ -98,15 +98,15 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   PetscReal      norm;
   
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(qep->ps,&ld);CHKERRQ(ierr);
-  ierr = PSGetDimensions(qep->ps,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(qep->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */
-  ierr = PSVectors(qep->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSVectors(qep->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
   /* normalize eigenvectors */
-  ierr = PSGetArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (qep->eigi[i] != 0.0) {
@@ -124,12 +124,12 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
       BLASscal_(&n_,&tmp,Z+i*ld,&one);
     }
   }
-  ierr = PSRestoreArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSRestoreArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   
   /* AV = V * Z */
-  ierr = PSGetArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   ierr = SlepcUpdateVectors(n,qep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PSRestoreArray(qep->ps,PS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSRestoreArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -153,7 +153,7 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,Petsc
   PetscReal      resnorm;
 
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(qep->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
   marker = -1;
   if (qep->trackall) getall = PETSC_TRUE;
   for (k=kini;k<kini+nits;k++) {
@@ -161,7 +161,7 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,Petsc
     re = qep->eigr[k];
     im = qep->eigi[k];
     newk = k;
-    ierr = PSVectors(qep->ps,PS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    ierr = DSVectors(qep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
     resnorm *= beta;
     /* error estimate */
     ierr = (*qep->conv_func)(qep,re,im,resnorm,&qep->errest[k],qep->conv_ctx);CHKERRQ(ierr);

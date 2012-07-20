@@ -24,7 +24,7 @@
 
 /*
   1) Patterns of A and B
-      PS_STATE_RAW:       PS_STATE_INTERM/CONDENSED
+      DS_STATE_RAW:       DS_STATE_INTERM/CONDENSED
        0       n-1              0       n-1
       -------------            -------------
     0 |* * * * * *|          0 |* * * * * *|
@@ -35,51 +35,51 @@
   n-1 |* * * * * *|        n-1 |          *|
       -------------            -------------
 
-  2) Moreover, P and Q are assumed to be the identity in PS_STATE_INTERMEDIATE.
+  2) Moreover, P and Q are assumed to be the identity in DS_STATE_INTERMEDIATE.
 */
 
 
 static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY,PetscBool doProd);
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSAllocate_GNHEP"
-PetscErrorCode PSAllocate_GNHEP(PS ps,PetscInt ld)
+#define __FUNCT__ "DSAllocate_GNHEP"
+PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PSAllocateMat_Private(ps,PS_MAT_A);CHKERRQ(ierr); 
-  ierr = PSAllocateMat_Private(ps,PS_MAT_B);CHKERRQ(ierr); 
-  ierr = PSAllocateMat_Private(ps,PS_MAT_Z);CHKERRQ(ierr); 
-  ierr = PSAllocateMat_Private(ps,PS_MAT_Q);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_Z);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSView_GNHEP"
-PetscErrorCode PSView_GNHEP(PS ps,PetscViewer viewer)
+#define __FUNCT__ "DSView_GNHEP"
+PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PSViewMat_Private(ps,viewer,PS_MAT_A);CHKERRQ(ierr); 
-  ierr = PSViewMat_Private(ps,viewer,PS_MAT_B);CHKERRQ(ierr); 
-  if (ps->state>PS_STATE_INTERMEDIATE) {
-    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Z);CHKERRQ(ierr); 
-    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Q);CHKERRQ(ierr); 
+  ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr); 
+  ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr); 
+  if (ds->state>DS_STATE_INTERMEDIATE) {
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Z);CHKERRQ(ierr); 
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr); 
   }
-  if (ps->mat[PS_MAT_X]) {
-    ierr = PSViewMat_Private(ps,viewer,PS_MAT_X);CHKERRQ(ierr); 
+  if (ds->mat[DS_MAT_X]) {
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_X);CHKERRQ(ierr); 
   }
-  if (ps->mat[PS_MAT_Y]) {
-    ierr = PSViewMat_Private(ps,viewer,PS_MAT_Y);CHKERRQ(ierr); 
+  if (ds->mat[DS_MAT_Y]) {
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Y);CHKERRQ(ierr); 
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSVectors_GNHEP_Eigen_Some"
-PetscErrorCode PSVectors_GNHEP_Eigen_Some(PS ps,PetscInt *k,PetscBool left)
+#define __FUNCT__ "DSVectors_GNHEP_Eigen_Some"
+PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEVC)
   PetscFunctionBegin;
@@ -88,49 +88,49 @@ PetscErrorCode PSVectors_GNHEP_Eigen_Some(PS ps,PetscInt *k,PetscBool left)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n,ld,mout,info,*select,mm;
-  PetscScalar    *X,*Y,*A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],fone=1.0,fzero=0.0;
+  PetscScalar    *X,*Y,*A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B],fone=1.0,fzero=0.0;
   PetscBool      iscomplex = PETSC_FALSE;
   const char     *side;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
+  n  = PetscBLASIntCast(ds->n);
+  ld = PetscBLASIntCast(ds->ld);
   if (left) {
     X = PETSC_NULL;
-    Y = &ps->mat[PS_MAT_Y][ld*(*k)];
+    Y = &ds->mat[DS_MAT_Y][ld*(*k)];
     side = "L";
   } else {
-    X = &ps->mat[PS_MAT_X][ld*(*k)];
+    X = &ds->mat[DS_MAT_X][ld*(*k)];
     Y = PETSC_NULL;
     side = "R";
   }
-  ierr = PSAllocateWork_Private(ps,0,0,ld);CHKERRQ(ierr); 
-  select = ps->iwork;
+  ierr = DSAllocateWork_Private(ds,0,0,ld);CHKERRQ(ierr); 
+  select = ds->iwork;
   for (i=0;i<n;i++) select[i] = 0;
   select[*k] = 1;
-  if (ps->state == PS_STATE_INTERMEDIATE) {
-    ierr = PSSetIdentity(ps,PS_MAT_Q);CHKERRQ(ierr);
-    ierr = PSSetIdentity(ps,PS_MAT_Z);CHKERRQ(ierr);
+  if (ds->state == DS_STATE_INTERMEDIATE) {
+    ierr = DSSetIdentity(ds,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSSetIdentity(ds,DS_MAT_Z);CHKERRQ(ierr);
   }
-  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ps->mat[PS_MAT_Q],ld,ps->mat[PS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
-  if (ps->state < PS_STATE_CONDENSED) {
-    ierr = PSSetState(ps,PS_STATE_CONDENSED);CHKERRQ(ierr);
+  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
+  if (ds->state < DS_STATE_CONDENSED) {
+    ierr = DSSetState(ds,DS_STATE_CONDENSED);CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
   mm = 1;
-  ierr = PSAllocateWork_Private(ps,2*ld,2*ld,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ps->work,ps->rwork,&info);
+  ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr); 
+  LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,ds->rwork,&info);
 #else
   if ((*k)<n-1 && (A[ld*(*k)+(*k)+1] != 0.0 || B[ld*(*k)+(*k)+1] != 0.0)) iscomplex = PETSC_TRUE;
   mm = iscomplex ? 2 : 1;
-  ierr = PSAllocateWork_Private(ps,6*ld,0,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ps->work,&info);
+  ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
+  LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,&info);
 #endif
-  if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
-  if (select[(*k)] == 0 || mout != mm) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_SUP,"Unsupported the computation of the second vector in a complex pair");
+  if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (select[(*k)] == 0 || mout != mm) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_SUP,"Unsupported the computation of the second vector in a complex pair");
   /* Backtransform: (X/Y) <- (Q/Z) * (X/Y) */
-  ierr = PetscMemcpy(ps->work,left?Y:X,mm*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  BLASgemm_("N","N",&n,&mm,&n,&fone,ps->mat[left?PS_MAT_Z:PS_MAT_Q],&ld,ps->work,&ld,&fzero,left?Y:X,&ld);
+  ierr = PetscMemcpy(ds->work,left?Y:X,mm*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  BLASgemm_("N","N",&n,&mm,&n,&fone,ds->mat[left?DS_MAT_Z:DS_MAT_Q],&ld,ds->work,&ld,&fzero,left?Y:X,&ld);
   /* Update k to the last vector index in the conjugate pair */
   if (iscomplex) (*k)++;
   PetscFunctionReturn(0);
@@ -138,8 +138,8 @@ PetscErrorCode PSVectors_GNHEP_Eigen_Some(PS ps,PetscInt *k,PetscBool left)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSVectors_GNHEP_Eigen_All"
-PetscErrorCode PSVectors_GNHEP_Eigen_All(PS ps,PetscBool left)
+#define __FUNCT__ "DSVectors_GNHEP_Eigen_All"
+PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEVC)
   PetscFunctionBegin;
@@ -147,108 +147,108 @@ PetscErrorCode PSVectors_GNHEP_Eigen_All(PS ps,PetscBool left)
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,mout,info;
-  PetscScalar    *X,*Y,*A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B];
+  PetscScalar    *X,*Y,*A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B];
   const char     *side,*back;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
+  n  = PetscBLASIntCast(ds->n);
+  ld = PetscBLASIntCast(ds->ld);
   if (left) {
     X = PETSC_NULL;
-    Y = ps->mat[PS_MAT_Y];
+    Y = ds->mat[DS_MAT_Y];
     side = "L";
   } else {
-    X = ps->mat[PS_MAT_X];
+    X = ds->mat[DS_MAT_X];
     Y = PETSC_NULL;
     side = "R";
   }
-  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ps->mat[PS_MAT_Q],ld,ps->mat[PS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
-  if (ps->state>=PS_STATE_CONDENSED) {
-    /* PSSolve() has been called, backtransform with matrix Q */
+  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
+  if (ds->state>=DS_STATE_CONDENSED) {
+    /* DSSolve() has been called, backtransform with matrix Q */
     back = "B";
-    ierr = PetscMemcpy(left?Y:X,ps->mat[left?PS_MAT_Z:PS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(left?Y:X,ds->mat[left?DS_MAT_Z:DS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   } else {
     back = "A";
-    ierr = PSSetState(ps,PS_STATE_CONDENSED);CHKERRQ(ierr);
+    ierr = DSSetState(ds,DS_STATE_CONDENSED);CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PSAllocateWork_Private(ps,2*ld,2*ld,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,ps->rwork,&info);
+  ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr); 
+  LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info);
 #else
-  ierr = PSAllocateWork_Private(ps,6*ld,0,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ps->work,&info);
+  ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
+  LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info);
 #endif
-  if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);
 #endif
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSVectors_GNHEP"
-PetscErrorCode PSVectors_GNHEP(PS ps,PSMatType mat,PetscInt *k,PetscReal *rnorm)
+#define __FUNCT__ "DSVectors_GNHEP"
+PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (rnorm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
   switch (mat) {
-    case PS_MAT_X:
-    case PS_MAT_Y:
+    case DS_MAT_X:
+    case DS_MAT_Y:
       if (k) {
-        ierr = PSVectors_GNHEP_Eigen_Some(ps,k,mat == PS_MAT_Y?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
+        ierr = DSVectors_GNHEP_Eigen_Some(ds,k,mat == DS_MAT_Y?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
       } else {
-        ierr = PSVectors_GNHEP_Eigen_All(ps,mat == PS_MAT_Y?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
+        ierr = DSVectors_GNHEP_Eigen_All(ds,mat == DS_MAT_Y?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
       }
       break;
     default:
-      SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
   PetscFunctionReturn(0);
 }
 
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSNormalize_GNHEP"
-PetscErrorCode PSNormalize_GNHEP(PS ps,PSMatType mat,PetscInt col)
+#define __FUNCT__ "DSNormalize_GNHEP"
+PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
 {
   PetscErrorCode ierr;
   PetscInt       i,i0,i1;
   PetscBLASInt   ld,n,one = 1;
-  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],norm,*x;
+  PetscScalar    *A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B],norm,*x;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    norm0;
 #endif
 
   PetscFunctionBegin;
-  if(ps->state < PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
+  if(ds->state < DS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
   switch (mat) {
-    case PS_MAT_X:
-    case PS_MAT_Y:
-    case PS_MAT_Q:
-    case PS_MAT_Z:
+    case DS_MAT_X:
+    case DS_MAT_Y:
+    case DS_MAT_Q:
+    case DS_MAT_Z:
       /* Supported matrices */
       break;
-    case PS_MAT_U:
-    case PS_MAT_VT:
+    case DS_MAT_U:
+    case DS_MAT_VT:
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
-      SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
 
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
-  ierr = PSGetArray(ps,mat,&x);CHKERRQ(ierr);
+  n  = PetscBLASIntCast(ds->n);
+  ld = PetscBLASIntCast(ds->ld);
+  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   if (col < 0) {
-    i0 = 0; i1 = ps->n;
-  } else if(col>0 && (A[ps->ld*(col-1)+col] != 0.0 || (B && B[ps->ld*(col-1)+col] != 0.0))) {
+    i0 = 0; i1 = ds->n;
+  } else if(col>0 && (A[ds->ld*(col-1)+col] != 0.0 || (B && B[ds->ld*(col-1)+col] != 0.0))) {
     i0 = col-1; i1 = col+1;
   } else {
     i0 = col; i1 = col+1;
   }
   for(i=i0; i<i1; i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if(i<n-1 && (A[ps->ld*i+i+1] != 0.0 || (B && B[ps->ld*i+i+1] != 0.0))) {
+    if(i<n-1 && (A[ds->ld*i+i+1] != 0.0 || (B && B[ds->ld*i+i+1] != 0.0))) {
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
       norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
@@ -267,8 +267,8 @@ PetscErrorCode PSNormalize_GNHEP(PS ps,PSMatType mat,PetscInt col)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSort_GNHEP"
-PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
+#define __FUNCT__ "DSSort_GNHEP"
+PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
   PetscFunctionBegin;
@@ -278,26 +278,26 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    re,im;
   PetscInt       i,j,pos,result;
   PetscBLASInt   ifst,ilst,info,n,ld,one=1;
-  PetscScalar    *S = ps->mat[PS_MAT_A],*T = ps->mat[PS_MAT_B],*Z = ps->mat[PS_MAT_Z],*Q = ps->mat[PS_MAT_Q];
+  PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Z = ds->mat[DS_MAT_Z],*Q = ds->mat[DS_MAT_Q];
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lwork;
   PetscScalar    *work,a,safmin,scale1,scale2;
 #endif
 
   PetscFunctionBegin;
-  if (!ps->comp_fun) PetscFunctionReturn(0);
-  n  = PetscBLASIntCast(ps->n);
-  ld = PetscBLASIntCast(ps->ld);
+  if (!ds->comp_fun) PetscFunctionReturn(0);
+  n  = PetscBLASIntCast(ds->n);
+  ld = PetscBLASIntCast(ds->ld);
 #if !defined(PETSC_USE_COMPLEX)
   lwork = -1;
   LAPACKtgexc_(&one,&one,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,&one,&one,&a,&lwork,&info);
   safmin = LAPACKlamch_("S");
   lwork = a;
-  ierr = PSAllocateWork_Private(ps,lwork,0,0);CHKERRQ(ierr); 
-  work = ps->work;
+  ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr); 
+  work = ds->work;
 #endif
   /* selection sort */
-  for (i=ps->l;i<n-1;i++) {
+  for (i=ds->l;i<n-1;i++) {
     re = wr[i];
     im = wi[i];
     pos = 0;
@@ -307,7 +307,7 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #endif
     /* find minimum eigenvalue */
     for (;j<n;j++) { 
-      ierr = (*ps->comp_fun)(re,im,wr[j],wi[j],&result,ps->comp_ctx);CHKERRQ(ierr);
+      ierr = (*ds->comp_fun)(re,im,wr[j],wi[j],&result,ds->comp_ctx);CHKERRQ(ierr);
       if (result > 0) {
         re = wr[j];
         im = wi[j];
@@ -326,7 +326,7 @@ PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #else
       LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,&info);
 #endif
-      if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xTGEXC %i",info);
+      if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTGEXC %i",info);
       /* recover original eigenvalues from T and S matrices */
       for (j=i;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -424,7 +424,7 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
           } else if (PetscAbs(T[ldT*(i+1)+i]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1])+PetscAbs(T[ldT*i+i+1]))*PETSC_MACHINE_EPSILON) {
             LAPACKlasv2_(&T[ldT*i+i],&T[ldT*i+i+1],&T[ldT*(i+1)+i+1],&b22,&b11,&sr,&cr,&sl,&cl);
           } else {
-            SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported format. Call PSSolve before this function.");
+            SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported format. Call DSSolve before this function.");
           }
           n_i = PetscBLASIntCast(n-i);
           n_i_2 = n_i - 2;
@@ -452,8 +452,8 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_GNHEP"
-PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
+#define __FUNCT__ "DSSolve_GNHEP"
+PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_GGES)
   PetscFunctionBegin;
@@ -463,32 +463,32 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *work,*beta,a;
   PetscInt       i;
   PetscBLASInt   lwork,info,n,ld,iaux;
-  PetscScalar    *A = ps->mat[PS_MAT_A],*B = ps->mat[PS_MAT_B],*Z = ps->mat[PS_MAT_Z],*Q = ps->mat[PS_MAT_Q];
+  PetscScalar    *A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B],*Z = ds->mat[DS_MAT_Z],*Q = ds->mat[DS_MAT_Q];
 
   PetscFunctionBegin;
   PetscValidPointer(wi,3);
-  n   = PetscBLASIntCast(ps->n);
-  ld  = PetscBLASIntCast(ps->ld);
-  if (ps->state==PS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for the intermediate state");
+  n   = PetscBLASIntCast(ds->n);
+  ld  = PetscBLASIntCast(ds->ld);
+  if (ds->state==DS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for the intermediate state");
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,&info);
   lwork = (PetscBLASInt)a;
-  ierr = PSAllocateWork_Private(ps,lwork+ld,0,0);CHKERRQ(ierr); 
-  beta = ps->work;
-  work = beta+ps->n;
-  lwork = PetscBLASIntCast(ps->lwork-ps->n);
+  ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr); 
+  beta = ds->work;
+  work = beta+ds->n;
+  lwork = PetscBLASIntCast(ds->lwork-ds->n);
   LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
 #else
   LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
   lwork = (PetscBLASInt)PetscRealPart(a);
-  ierr = PSAllocateWork_Private(ps,lwork+ld,8*ld,0);CHKERRQ(ierr); 
-  beta = ps->work;
-  work = beta+ps->n;
-  lwork = PetscBLASIntCast(ps->lwork-ps->n);
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ps->rwork,PETSC_NULL,&info);
+  ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr); 
+  beta = ds->work;
+  work = beta+ds->n;
+  lwork = PetscBLASIntCast(ds->lwork-ds->n);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,PETSC_NULL,&info);
 #endif
-  if (info) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
+  if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
   for (i=0;i<n;i++) {
     if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wr[i] /= beta[i];
@@ -503,16 +503,16 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
-#define __FUNCT__ "PSCreate_GNHEP"
-PetscErrorCode PSCreate_GNHEP(PS ps)
+#define __FUNCT__ "DSCreate_GNHEP"
+PetscErrorCode DSCreate_GNHEP(DS ds)
 {
   PetscFunctionBegin;
-  ps->ops->allocate      = PSAllocate_GNHEP;
-  ps->ops->view          = PSView_GNHEP;
-  ps->ops->vectors       = PSVectors_GNHEP;
-  ps->ops->solve[0]      = PSSolve_GNHEP;
-  ps->ops->sort          = PSSort_GNHEP;
-  ps->ops->normalize     = PSNormalize_GNHEP;
+  ds->ops->allocate      = DSAllocate_GNHEP;
+  ds->ops->view          = DSView_GNHEP;
+  ds->ops->vectors       = DSVectors_GNHEP;
+  ds->ops->solve[0]      = DSSolve_GNHEP;
+  ds->ops->sort          = DSSort_GNHEP;
+  ds->ops->normalize     = DSNormalize_GNHEP;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

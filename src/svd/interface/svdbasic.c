@@ -179,9 +179,9 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   if (!isshell) {
     if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
     ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
-    if (!svd->ps) { ierr = SVDGetPS(svd,&svd->ps);CHKERRQ(ierr); }
+    if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    ierr = PSView(svd->ps,viewer);CHKERRQ(ierr);
+    ierr = DSView(svd->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -299,7 +299,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   svd->OP             = PETSC_NULL;
   svd->ip             = PETSC_NULL;
-  svd->ps             = PETSC_NULL;
+  svd->ds             = PETSC_NULL;
   svd->A              = PETSC_NULL;
   svd->AT             = PETSC_NULL;
   svd->transmode      = (SVDTransposeMode)PETSC_DECIDE;
@@ -359,7 +359,7 @@ PetscErrorCode SVDReset(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->ops->reset) { ierr = (svd->ops->reset)(svd);CHKERRQ(ierr); }
   if (svd->ip) { ierr = IPReset(svd->ip);CHKERRQ(ierr); }
-  if (svd->ps) { ierr = PSReset(svd->ps);CHKERRQ(ierr); }
+  if (svd->ds) { ierr = DSReset(svd->ds);CHKERRQ(ierr); }
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
@@ -404,7 +404,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   ierr = PetscObjectDepublish(*svd);CHKERRQ(ierr);
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
   ierr = IPDestroy(&(*svd)->ip);CHKERRQ(ierr);
-  ierr = PSDestroy(&(*svd)->ps);CHKERRQ(ierr);
+  ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
   ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
@@ -601,43 +601,43 @@ PetscErrorCode SVDGetIP(SVD svd,IP *ip)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDSetPS"
+#define __FUNCT__ "SVDSetDS"
 /*@
-   SVDSetPS - Associates a projected system object to the singular value solver. 
+   SVDSetDS - Associates a direct solver object to the singular value solver. 
 
    Collective on SVD
 
    Input Parameters:
 +  svd - singular value solver context obtained from SVDCreate()
--  ps  - the projected system object
+-  ds  - the direct solver object
 
    Note:
-   Use SVDGetPS() to retrieve the projected system context (for example,
+   Use SVDGetDS() to retrieve the direct solver context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: SVDGetPS()
+.seealso: SVDGetDS()
 @*/
-PetscErrorCode SVDSetPS(SVD svd,PS ps)
+PetscErrorCode SVDSetDS(SVD svd,DS ds)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidHeaderSpecific(ps,PS_CLASSID,2);
-  PetscCheckSameComm(svd,1,ps,2);
-  ierr = PetscObjectReference((PetscObject)ps);CHKERRQ(ierr);
-  ierr = PSDestroy(&svd->ps);CHKERRQ(ierr);
-  svd->ps = ps;
-  ierr = PetscLogObjectParent(svd,svd->ps);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(ds,DS_CLASSID,2);
+  PetscCheckSameComm(svd,1,ds,2);
+  ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
+  ierr = DSDestroy(&svd->ds);CHKERRQ(ierr);
+  svd->ds = ds;
+  ierr = PetscLogObjectParent(svd,svd->ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDGetPS"
+#define __FUNCT__ "SVDGetDS"
 /*@C
-   SVDGetPS - Obtain the projected system object associated to the singular value
+   SVDGetDS - Obtain the direct solver object associated to the singular value
    solver object.
 
    Not Collective
@@ -646,24 +646,24 @@ PetscErrorCode SVDSetPS(SVD svd,PS ps)
 .  svd - singular value solver context obtained from SVDCreate()
 
    Output Parameter:
-.  ps - projected system context
+.  ds - direct solver context
 
    Level: advanced
 
-.seealso: SVDSetPS()
+.seealso: SVDSetDS()
 @*/
-PetscErrorCode SVDGetPS(SVD svd,PS *ps)
+PetscErrorCode SVDGetDS(SVD svd,DS *ds)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(ps,2);
-  if (!svd->ps) {
-    ierr = PSCreate(((PetscObject)svd)->comm,&svd->ps);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(svd,svd->ps);CHKERRQ(ierr);
+  PetscValidPointer(ds,2);
+  if (!svd->ds) {
+    ierr = DSCreate(((PetscObject)svd)->comm,&svd->ds);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(svd,svd->ds);CHKERRQ(ierr);
   }
-  *ps = svd->ps;
+  *ds = svd->ds;
   PetscFunctionReturn(0);
 }
 

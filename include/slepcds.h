@@ -19,176 +19,175 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SLEPCPS_H)
-#define __SLEPCPS_H
+#if !defined(__SLEPCDS_H)
+#define __SLEPCDS_H
 #include "slepcsys.h"
 
-#define PS_MAX_SOLVE 6
+#define DS_MAX_SOLVE 6
 
-PETSC_EXTERN PetscErrorCode PSInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode DSInitializePackage(const char[]);
 /*S
-    PS - Projected system, to represent low-dimensional eigenproblems that
-    must be solved within iterative solvers. This is an auxiliary object
-    and is not normally needed by application programmers.
+    DS - Direct solver (or dense system), to represent low-dimensional
+    eigenproblems that must be solved within iterative solvers. This is an
+    auxiliary object and is not normally needed by application programmers.
 
     Level: advanced
 
-.seealso:  PSCreate()
+.seealso:  DSCreate()
 S*/
-typedef struct _p_PS* PS;
+typedef struct _p_DS* DS;
 
 /*E
-    PSType - String with the name of the type of projected system. Roughly,
-    there are as many types as problem types are available within SLEPc,
-    with some specific types for particular matrix structures.
+    DSType - String with the name of the type of direct solver. Roughly,
+    there are as many types as problem types are available within SLEPc.
 
     Level: advanced
 
-.seealso: PSSetType(), PS
+.seealso: DSSetType(), DS
 E*/
-#define PSType            char*
-#define PSHEP             "hep"
-#define PSNHEP            "nhep"
-#define PSGHEP            "ghep"
-#define PSGHIEP           "ghiep"
-#define PSGNHEP           "gnhep"
-#define PSSVD             "svd"
-#define PSQEP             "qep"
+#define DSType            char*
+#define DSHEP             "hep"
+#define DSNHEP            "nhep"
+#define DSGHEP            "ghep"
+#define DSGHIEP           "ghiep"
+#define DSGNHEP           "gnhep"
+#define DSSVD             "svd"
+#define DSQEP             "qep"
 
 /* Logging support */
-PETSC_EXTERN PetscClassId PS_CLASSID;
+PETSC_EXTERN PetscClassId DS_CLASSID;
 
 /*E
-    PSStateType - to indicate in which state the projected problem is
+    DSStateType - to indicate in which state the direct solver is
 
     Level: advanced
 
-.seealso: PSSetState()
+.seealso: DSSetState()
 E*/
-typedef enum { PS_STATE_RAW,
-               PS_STATE_INTERMEDIATE,
-               PS_STATE_CONDENSED,
-               PS_STATE_SORTED } PSStateType;
+typedef enum { DS_STATE_RAW,
+               DS_STATE_INTERMEDIATE,
+               DS_STATE_CONDENSED,
+               DS_STATE_SORTED } DSStateType;
 
 /*E
-    PSMatType - to refer to one of the matrices stored internally in PS
+    DSMatType - to refer to one of the matrices stored internally in DS
 
     Notes:
     The matrices preferently refer to:
-+   PS_MAT_A  - first matrix of eigenproblem/singular value problem
-.   PS_MAT_B  - second matrix of a generalized eigenproblem
-.   PS_MAT_C  - third matrix of a quadratic eigenproblem
-.   PS_MAT_T  - tridiagonal matrix
-.   PS_MAT_D  - diagonal matrix
-.   PS_MAT_Q  - orthogonal matrix of (right) Schur vectors
-.   PS_MAT_Z  - orthogonal matrix of left Schur vectors
-.   PS_MAT_X  - right eigenvectors
-.   PS_MAT_Y  - left eigenvectors
-.   PS_MAT_U  - left singular vectors
-.   PS_MAT_VT - right singular vectors
--   PS_MAT_W  - workspace matrix
++   DS_MAT_A  - first matrix of eigenproblem/singular value problem
+.   DS_MAT_B  - second matrix of a generalized eigenproblem
+.   DS_MAT_C  - third matrix of a quadratic eigenproblem
+.   DS_MAT_T  - tridiagonal matrix
+.   DS_MAT_D  - diagonal matrix
+.   DS_MAT_Q  - orthogonal matrix of (right) Schur vectors
+.   DS_MAT_Z  - orthogonal matrix of left Schur vectors
+.   DS_MAT_X  - right eigenvectors
+.   DS_MAT_Y  - left eigenvectors
+.   DS_MAT_U  - left singular vectors
+.   DS_MAT_VT - right singular vectors
+-   DS_MAT_W  - workspace matrix
 
     All matrices can have space to hold ld x ld elements, except for
-    PS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
-    and PS_MAT_D that has space for just ld elements.
+    DS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
+    and DS_MAT_D that has space for just ld elements.
 
     Level: advanced
 
-.seealso: PSAllocate(), PSGetArray(), PSGetArrayReal(), PSVectors()
+.seealso: DSAllocate(), DSGetArray(), DSGetArrayReal(), DSVectors()
 E*/
-typedef enum { PS_MAT_A,
-               PS_MAT_B,
-               PS_MAT_C,
-               PS_MAT_T,
-               PS_MAT_D,
-               PS_MAT_Q,
-               PS_MAT_Z,
-               PS_MAT_X,
-               PS_MAT_Y,
-               PS_MAT_U,
-               PS_MAT_VT,
-               PS_MAT_W,
-               PS_NUM_MAT } PSMatType;
+typedef enum { DS_MAT_A,
+               DS_MAT_B,
+               DS_MAT_C,
+               DS_MAT_T,
+               DS_MAT_D,
+               DS_MAT_Q,
+               DS_MAT_Z,
+               DS_MAT_X,
+               DS_MAT_Y,
+               DS_MAT_U,
+               DS_MAT_VT,
+               DS_MAT_W,
+               DS_NUM_MAT } DSMatType;
 
-PETSC_EXTERN PetscErrorCode PSCreate(MPI_Comm,PS*);
-PETSC_EXTERN PetscErrorCode PSSetType(PS,const PSType);
-PETSC_EXTERN PetscErrorCode PSGetType(PS,const PSType*);
-PETSC_EXTERN PetscErrorCode PSSetOptionsPrefix(PS,const char *);
-PETSC_EXTERN PetscErrorCode PSAppendOptionsPrefix(PS,const char *);
-PETSC_EXTERN PetscErrorCode PSGetOptionsPrefix(PS,const char *[]);
-PETSC_EXTERN PetscErrorCode PSSetFromOptions(PS);
-PETSC_EXTERN PetscErrorCode PSView(PS,PetscViewer);
-PETSC_EXTERN PetscErrorCode PSDestroy(PS*);
-PETSC_EXTERN PetscErrorCode PSReset(PS);
+PETSC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
+PETSC_EXTERN PetscErrorCode DSSetType(DS,const DSType);
+PETSC_EXTERN PetscErrorCode DSGetType(DS,const DSType*);
+PETSC_EXTERN PetscErrorCode DSSetOptionsPrefix(DS,const char *);
+PETSC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
+PETSC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);
+PETSC_EXTERN PetscErrorCode DSSetFromOptions(DS);
+PETSC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
+PETSC_EXTERN PetscErrorCode DSDestroy(DS*);
+PETSC_EXTERN PetscErrorCode DSReset(DS);
 
-PETSC_EXTERN PetscErrorCode PSAllocate(PS,PetscInt);
-PETSC_EXTERN PetscErrorCode PSGetLeadingDimension(PS,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSSetState(PS,PSStateType);
-PETSC_EXTERN PetscErrorCode PSGetState(PS,PSStateType*);
-PETSC_EXTERN PetscErrorCode PSSetDimensions(PS,PetscInt,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode PSGetDimensions(PS,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSTruncate(PS,PetscInt);
-PETSC_EXTERN PetscErrorCode PSSetMethod(PS,PetscInt);
-PETSC_EXTERN PetscErrorCode PSGetMethod(PS,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSSetCompact(PS,PetscBool);
-PETSC_EXTERN PetscErrorCode PSGetCompact(PS,PetscBool*);
-PETSC_EXTERN PetscErrorCode PSSetExtraRow(PS,PetscBool);
-PETSC_EXTERN PetscErrorCode PSGetExtraRow(PS,PetscBool*);
-PETSC_EXTERN PetscErrorCode PSSetRefined(PS,PetscBool);
-PETSC_EXTERN PetscErrorCode PSGetRefined(PS,PetscBool*);
-PETSC_EXTERN PetscErrorCode PSGetArray(PS,PSMatType,PetscScalar *a[]);
-PETSC_EXTERN PetscErrorCode PSRestoreArray(PS,PSMatType,PetscScalar *a[]);
-PETSC_EXTERN PetscErrorCode PSGetArrayReal(PS,PSMatType,PetscReal *a[]);
-PETSC_EXTERN PetscErrorCode PSRestoreArrayReal(PS,PSMatType,PetscReal *a[]);
-PETSC_EXTERN PetscErrorCode PSVectors(PS,PSMatType,PetscInt*,PetscReal*);
-PETSC_EXTERN PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
-PETSC_EXTERN PetscErrorCode PSSort(PS,PetscScalar*,PetscScalar*);
-PETSC_EXTERN PetscErrorCode PSSetEigenvalueComparison(PS,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
-PETSC_EXTERN PetscErrorCode PSGetEigenvalueComparison(PS,PetscErrorCode (**)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void**);
-PETSC_EXTERN PetscErrorCode PSUpdateExtraRow(PS);
-PETSC_EXTERN PetscErrorCode PSCond(PS,PetscReal*);
-PETSC_EXTERN PetscErrorCode PSTranslateHarmonic(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
-PETSC_EXTERN PetscErrorCode PSTranslateRKS(PS,PetscScalar);
-PETSC_EXTERN PetscErrorCode PSNormalize(PS,PSMatType,PetscInt);
-PETSC_EXTERN PetscErrorCode PSSetIdentity(PS,PSMatType);
-PETSC_EXTERN PetscErrorCode PSOrthogonalize(PS,PSMatType,PetscInt,PetscInt*);
-PETSC_EXTERN PetscErrorCode PSPseudoOrthogonalize(PS,PSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode DSAllocate(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSGetLeadingDimension(DS,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSSetState(DS,DSStateType);
+PETSC_EXTERN PetscErrorCode DSGetState(DS,DSStateType*);
+PETSC_EXTERN PetscErrorCode DSSetDimensions(DS,PetscInt,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);
+PETSC_EXTERN PetscErrorCode DSGetCompact(DS,PetscBool*);
+PETSC_EXTERN PetscErrorCode DSSetExtraRow(DS,PetscBool);
+PETSC_EXTERN PetscErrorCode DSGetExtraRow(DS,PetscBool*);
+PETSC_EXTERN PetscErrorCode DSSetRefined(DS,PetscBool);
+PETSC_EXTERN PetscErrorCode DSGetRefined(DS,PetscBool*);
+PETSC_EXTERN PetscErrorCode DSGetArray(DS,DSMatType,PetscScalar *a[]);
+PETSC_EXTERN PetscErrorCode DSRestoreArray(DS,DSMatType,PetscScalar *a[]);
+PETSC_EXTERN PetscErrorCode DSGetArrayReal(DS,DSMatType,PetscReal *a[]);
+PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal *a[]);
+PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode DSSetEigenvalueComparison(DS,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+PETSC_EXTERN PetscErrorCode DSGetEigenvalueComparison(DS,PetscErrorCode (**)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void**);
+PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
+PETSC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
+PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
+PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
+PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
+PETSC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
+PETSC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
-PETSC_EXTERN PetscFList PSList;
-PETSC_EXTERN PetscBool  PSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode PSRegisterAll(const char[]);
-PETSC_EXTERN PetscErrorCode PSRegister(const char[],const char[],const char[],PetscErrorCode(*)(PS));
-PETSC_EXTERN PetscErrorCode PSRegisterDestroy(void);
+PETSC_EXTERN PetscFList DSList;
+PETSC_EXTERN PetscBool  DSRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode DSRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode DSRegister(const char[],const char[],const char[],PetscErrorCode(*)(DS));
+PETSC_EXTERN PetscErrorCode DSRegisterDestroy(void);
 
 /*MC
-   PSRegisterDynamic - Adds a projected system to the PS package.
+   DSRegisterDynamic - Adds a direct solver to the DS package.
 
    Synopsis:
-   PetscErrorCode PSRegisterDynamic(const char *name,const char *path,const char *name_create,PetscErrorCode (*routine_create)(PS))
+   PetscErrorCode DSRegisterDynamic(const char *name,const char *path,const char *name_create,PetscErrorCode (*routine_create)(DS))
 
    Not collective
 
    Input Parameters:
-+  name - name of a new user-defined PS
++  name - name of a new user-defined DS
 .  path - path (either absolute or relative) the library containing this solver
 .  name_create - name of routine to create context
 -  routine_create - routine to create context
 
    Notes:
-   PSRegisterDynamic() may be called multiple times to add several user-defined
-   projected systems.
+   DSRegisterDynamic() may be called multiple times to add several user-defined
+   direct solvers.
 
    If dynamic libraries are used, then the fourth input argument (routine_create)
    is ignored.
 
    Level: advanced
 
-.seealso: PSRegisterDestroy(), PSRegisterAll()
+.seealso: DSRegisterDestroy(), DSRegisterAll()
 M*/
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define PSRegisterDynamic(a,b,c,d) PSRegister(a,b,c,0)
+#define DSRegisterDynamic(a,b,c,d) DSRegister(a,b,c,0)
 #else
-#define PSRegisterDynamic(a,b,c,d) PSRegister(a,b,c,d)
+#define DSRegisterDynamic(a,b,c,d) DSRegister(a,b,c,d)
 #endif
 
 #endif

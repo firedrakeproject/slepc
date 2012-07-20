@@ -85,9 +85,9 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
     ierr = VecDuplicateVecs(eps->t,eps->ncv,&lanczos->AV);CHKERRQ(ierr);
   }
-  ierr = PSSetType(eps->ps,PSHEP);CHKERRQ(ierr);
-  ierr = PSSetCompact(eps->ps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PSAllocate(eps->ps,eps->ncv);CHKERRQ(ierr);
+  ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
+  ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
   } else {
@@ -534,7 +534,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   char           *conv,ctmp;
 
   PetscFunctionBegin;
-  ierr = PSGetLeadingDimension(eps->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscScalar),&ritz);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr);
@@ -552,24 +552,24 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* Compute an ncv-step Lanczos factorization */
     n = PetscMin(nconv+eps->mpd,ncv);
-    ierr = PSGetArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&d);CHKERRQ(ierr);
     e = d + ld;
     ierr = EPSBasicLanczos(eps,d,e,eps->V,nconv,&n,f,&breakdown,anorm);CHKERRQ(ierr);
     beta = e[n-1];
-    ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&d);CHKERRQ(ierr);
-    ierr = PSSetDimensions(eps->ps,n,PETSC_IGNORE,nconv,0);CHKERRQ(ierr);
-    ierr = PSSetState(eps->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&d);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,n,PETSC_IGNORE,nconv,0);CHKERRQ(ierr);
+    ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
     /* Solve projected problem */ 
-    ierr = PSSolve(eps->ps,ritz,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSSort(eps->ps,ritz,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSolve(eps->ds,ritz,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,ritz,PETSC_NULL);CHKERRQ(ierr);
     
     /* Estimate ||A|| */
     for (i=nconv;i<n;i++) 
       anorm = PetscMax(anorm,PetscAbsReal(PetscRealPart(ritz[i])));
     
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
     for (i=nconv;i<n;i++) {
       resnorm = beta*PetscAbsScalar(Y[n-1+i*ld]) + PETSC_MACHINE_EPSILON*anorm;
       ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],resnorm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
@@ -579,7 +579,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         conv[i] = 'N';
       }
     }
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
 
     /* purge repeated ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL)
@@ -602,9 +602,9 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
             ierr = (*eps->which_func)(ritz[restart],0.0,ritz[i],0.0,&r,eps->which_ctx);CHKERRQ(ierr);
             if (r>0) restart = i;
           }
-        ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
+        ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
         ierr = SlepcVecMAXPBY(f,0.0,1.0,n-nconv,Y+restart*ld+nconv,eps->V+nconv);CHKERRQ(ierr);
-        ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
+        ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
       }
     }
 
@@ -619,7 +619,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       }
 
     /* Sort eigenvectors according to permutation */
-    ierr = PSGetArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
     for (i=nconv;i<k;i++) {
       x = perm[i];
       if (x != i) {
@@ -639,7 +639,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     
     /* compute converged eigenvectors */
     ierr = SlepcUpdateVectors(n,eps->V,nconv,nconv+k,Y,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PSRestoreArray(eps->ps,PS_MAT_Q,&Y);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
     
     /* purge spurious ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {

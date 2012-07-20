@@ -23,8 +23,8 @@
 #include "finclude/ftn-custom/slepcdsdef.h90"
 #endif
 
-#if defined(PETSC_USE_FORTRAN_DATATYPES) && !defined(PS_HIDE)
-#define PS_HIDE type(PS)
-#elif !defined(PS_HIDE)
-#define PS_HIDE PS
+#if defined(PETSC_USE_FORTRAN_DATATYPES) && !defined(DS_HIDE)
+#define DS_HIDE type(DS)
+#elif !defined(DS_HIDE)
+#define DS_HIDE DS
 #endif

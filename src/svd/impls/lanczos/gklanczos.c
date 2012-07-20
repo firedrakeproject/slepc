@@ -61,9 +61,9 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
     if (svd->n) { ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr); }
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
-  ierr = PSSetType(svd->ps,PSSVD);CHKERRQ(ierr);
-  ierr = PSSetCompact(svd->ps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PSAllocate(svd->ps,svd->ncv);CHKERRQ(ierr);
+  ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
+  ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(svd->ds,svd->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -155,7 +155,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   
   PetscFunctionBegin;
   /* allocate working space */
-  ierr = PSGetLeadingDimension(svd->ps,&ld);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*ld,&w);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
 
@@ -176,7 +176,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
     /* inner loop */
     nv = PetscMin(svd->nconv+svd->mpd,svd->n);
-    ierr = PSGetArrayReal(svd->ps,PS_MAT_T,&alpha);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     if (lanczos->oneside) {
       ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,v,u,u_1,svd->nconv,nv,swork);CHKERRQ(ierr);
@@ -184,18 +184,18 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
       ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,v,svd->U,svd->nconv,nv,swork);CHKERRQ(ierr);
     }
     lastbeta = beta[nv-1];
-    ierr = PSRestoreArrayReal(svd->ps,PS_MAT_T,&alpha);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
     /* compute SVD of bidiagonal matrix */
-    ierr = PSSetDimensions(svd->ps,nv,nv,svd->nconv,0);CHKERRQ(ierr);
-    ierr = PSSetState(svd->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    ierr = PSSolve(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PSSort(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSetDimensions(svd->ds,nv,nv,svd->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = DSSolve(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;
     conv = PETSC_TRUE;
-    ierr = PSGetArray(svd->ps,PS_MAT_U,&Q);CHKERRQ(ierr);
+    ierr = DSGetArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
     for (i=svd->nconv;i<nv;i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
       svd->errest[i] = PetscAbsScalar(Q[nv-1+i*ld])*lastbeta;
@@ -211,7 +211,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     
     /* compute restart vector */
-    ierr = PSGetArray(svd->ps,PS_MAT_VT,&PT);CHKERRQ(ierr);
+    ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PT[k+svd->nconv+j*ld];
       ierr = SlepcVecMAXPBY(v,0.0,1.0,nv-svd->nconv,swork,svd->V+svd->nconv);CHKERRQ(ierr);
@@ -223,8 +223,8 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     if (!lanczos->oneside) {
       ierr = SlepcUpdateVectors(nv-svd->nconv,svd->U+svd->nconv,0,k,Q+off,ld,PETSC_FALSE);CHKERRQ(ierr);
     }
-    ierr = PSRestoreArray(svd->ps,PS_MAT_VT,&PT);CHKERRQ(ierr);
-    ierr = PSRestoreArray(svd->ps,PS_MAT_U,&Q);CHKERRQ(ierr);
+    ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
+    ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
         
     /* copy restart vector from temporary space */
     if (svd->reason == SVD_CONVERGED_ITERATING) {

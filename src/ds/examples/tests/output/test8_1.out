@@ -1,5 +1,5 @@
-Solve a Projected System of type PSSVD with compact storage - dimension 10x10.
-PS Object: 1 MPI processes
+Solve a Dense System of type SVD with compact storage - dimension 10x10.
+DS Object: 1 MPI processes
   type: svd
   current state: raw
   dimensions: ld=12, n=10, m=10, l=2, k=5
