@@ -22,10 +22,10 @@
 !
 !  Additional PS include file for use of SLEPc with Fortran 90/HPF
 !
-#include "finclude/ftn-custom/slepcps.h90"
+#include "finclude/ftn-custom/slepcds.h90"
 #if defined(PETSC_USE_FORTRAN_INTERFACES)
       interface
-#include "finclude/ftn-auto/slepcps.h90"
+#include "finclude/ftn-auto/slepcds.h90"
       end interface
 #endif
 

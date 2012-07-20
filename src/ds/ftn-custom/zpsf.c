@@ -20,7 +20,7 @@
 */
 
 #include <petsc-private/fortranimpl.h>
-#include <slepcps.h>
+#include <slepcds.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define pscreate_                 PSCREATE

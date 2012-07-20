@@ -21,7 +21,7 @@
 
 static char help[] = "Test PSGHIEP with compact storage.\n\n";
 
-#include "slepcps.h"
+#include "slepcds.h"
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

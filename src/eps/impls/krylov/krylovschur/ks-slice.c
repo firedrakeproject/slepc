@@ -36,7 +36,7 @@
 
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
-#include <slepc-private/psimpl.h>
+#include <slepc-private/dsimpl.h>
 
 /* Type of data characterizing a shift (place from where an eps is applied) */
 typedef struct _n_shift *shift;

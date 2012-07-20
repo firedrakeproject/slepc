@@ -26,7 +26,7 @@
 #include "slepcsys.h"
 #include "slepcst.h"
 #include "slepcip.h"
-#include "slepcps.h"
+#include "slepcds.h"
 
 PETSC_EXTERN PetscErrorCode EPSInitializePackage(const char[]);
 

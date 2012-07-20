@@ -21,7 +21,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "finclude/slepcpsdef.h"
+#include "finclude/slepcdsdef.h"
 
       PetscEnum PS_STATE_RAW
       PetscEnum PS_STATE_INTERMEDIATE

@@ -44,21 +44,21 @@
 #include "finclude/slepcip.h90"
         end module
 
-        module slepcpsdef
+        module slepcdsdef
         use petscsys
-#include "finclude/slepcps.h"
-#include "finclude/ftn-custom/slepcpsdef.h90"
+#include "finclude/slepcds.h"
+#include "finclude/ftn-custom/slepcdsdef.h90"
         end module
 
-        module slepcps
-        use slepcpsdef
-#include "finclude/slepcps.h90"
+        module slepcds
+        use slepcdsdef
+#include "finclude/slepcds.h90"
         end module
 
         module slepcepsdef
         use slepcst
         use slepcip
-        use slepcps
+        use slepcds
 #include "finclude/slepceps.h"
 #include "finclude/ftn-custom/slepcepsdef.h90"
         end module

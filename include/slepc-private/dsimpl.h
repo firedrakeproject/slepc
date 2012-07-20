@@ -22,7 +22,7 @@
 #ifndef _PSIMPL
 #define _PSIMPL
 
-#include <slepcps.h>
+#include <slepcds.h>
 
 PETSC_EXTERN PetscLogEvent PS_Solve,PS_Vectors,PS_Other;
 PETSC_EXTERN const char *PSMatName[];
