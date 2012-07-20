@@ -65,6 +65,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 
     /* Solve projected problem */ 
     ierr = PSSolve(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSSort(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
     ierr = PSUpdateExtraRow(eps->ps);CHKERRQ(ierr);
 
     /* Check convergence */

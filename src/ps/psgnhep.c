@@ -267,11 +267,8 @@ PetscErrorCode PSNormalize_GNHEP(PS ps,PSMatType mat,PetscInt col)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_GNHEP_Sort"
-/*
-  Sort the condensed form at the end of any PSSolve_GNHEP_* method. 
-*/
-static PetscErrorCode PSSolve_GNHEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
+#define __FUNCT__ "PSSort_GNHEP"
+PetscErrorCode PSSort_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
   PetscFunctionBegin;
@@ -500,7 +497,6 @@ PetscErrorCode PSSolve_GNHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
     else wi[i] /= beta[i];
 #endif
   }
-  ierr = PSSolve_GNHEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -515,6 +511,7 @@ PetscErrorCode PSCreate_GNHEP(PS ps)
   ps->ops->view          = PSView_GNHEP;
   ps->ops->vectors       = PSVectors_GNHEP;
   ps->ops->solve[0]      = PSSolve_GNHEP;
+  ps->ops->sort          = PSSort_GNHEP;
   ps->ops->normalize     = PSNormalize_GNHEP;
   PetscFunctionReturn(0);
 }

@@ -429,11 +429,8 @@ static PetscErrorCode PSSortEigenvalues_Private(PS ps,PetscScalar *wr,PetscScala
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PSSolve_GHIEP_Sort"
-/*
-  Sort the eigendecomposition at the end of any PSSolve_GHIEP_* method. 
-*/
-static PetscErrorCode PSSolve_GHIEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
+#define __FUNCT__ "PSSort_GHIEP"
+PetscErrorCode PSSort_GHIEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,*perm;
@@ -1224,9 +1221,6 @@ PetscErrorCode PSSolve_GHIEP_QR_II(PS ps,PetscScalar *wr,PetscScalar *wi)
 
   /* Recover eigenvalues from diagonal */
   ierr = PSGHIEPComplexEigs(ps, 0, ps->l, wr, wi);CHKERRQ(ierr);
-
-  /* Sort */
-  ierr = PSSolve_GHIEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -1339,9 +1333,6 @@ PetscErrorCode PSSolve_GHIEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
 
   /* Recover eigenvalues from diagonal */
   ierr = PSGHIEPComplexEigs(ps, 0, ps->l, wr, wi);CHKERRQ(ierr);
-
-  /* Sort */
-  ierr = PSSolve_GHIEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -1651,9 +1642,6 @@ PetscErrorCode PSSolve_GHIEP_HZ(PS ps,PetscScalar *wr,PetscScalar *wi)
 
   /* Recover eigenvalues from diagonal */
   ierr = PSGHIEPComplexEigs(ps, 0, ps->n, wr, wi);CHKERRQ(ierr);
-  
-  /* Sort */
-  ierr = PSSolve_GHIEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -2468,12 +2456,8 @@ PetscErrorCode PSSolve_GHIEP_DQDS_II(PS ps,PetscScalar *wr,PetscScalar *wi)
   
   /* Recover eigenvalues from diagonal */
   ierr = PSGHIEPComplexEigs(ps, 0, ps->l, wr, wi);CHKERRQ(ierr);
-
-  /* Sort */
-  ierr = PSSolve_GHIEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "PSNormalize_GHIEP"
@@ -2546,6 +2530,7 @@ PetscErrorCode PSCreate_GHIEP(PS ps)
   ps->ops->solve[1]      = PSSolve_GHIEP_QR_II;
   ps->ops->solve[2]      = PSSolve_GHIEP_QR;
   ps->ops->solve[3]      = PSSolve_GHIEP_DQDS_II;
+  ps->ops->sort          = PSSort_GHIEP;
   ps->ops->normalize     = PSNormalize_GHIEP;
   PetscFunctionReturn(0);
 }

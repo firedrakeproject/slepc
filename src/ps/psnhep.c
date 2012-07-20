@@ -261,11 +261,8 @@ PetscErrorCode PSNormalize_NHEP(PS ps,PSMatType mat,PetscInt col)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_NHEP_Sort"
-/*
-  Sort the condensed form at the end of any PSSolve_NHEP_* method. 
-*/
-static PetscErrorCode PSSolve_NHEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
+#define __FUNCT__ "PSSort_NHEP"
+PetscErrorCode PSSort_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
@@ -435,7 +432,6 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
   LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
-  ierr = PSSolve_NHEP_Sort(ps,wr,wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -604,6 +600,7 @@ PetscErrorCode PSCreate_NHEP(PS ps)
   ps->ops->view          = PSView_NHEP;
   ps->ops->vectors       = PSVectors_NHEP;
   ps->ops->solve[0]      = PSSolve_NHEP;
+  ps->ops->sort          = PSSort_NHEP;
   ps->ops->truncate      = PSTruncate_NHEP;
   ps->ops->update        = PSUpdateExtraRow_NHEP;
   ps->ops->cond          = PSCond_NHEP;

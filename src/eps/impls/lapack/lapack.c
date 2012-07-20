@@ -139,6 +139,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   
   PetscFunctionBegin;
   ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  ierr = PSSort(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
   /* right eigenvectors */
   ierr = PSVectors(eps->ps,PS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);

@@ -200,6 +200,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Solve projected problem */ 
     ierr = PSSolve(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = PSSort(eps->ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */ 
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);

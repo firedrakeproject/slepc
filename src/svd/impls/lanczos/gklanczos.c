@@ -190,6 +190,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = PSSetDimensions(svd->ps,nv,nv,svd->nconv,0);CHKERRQ(ierr);
     ierr = PSSetState(svd->ps,PS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = PSSolve(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PSSort(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;

@@ -552,7 +552,7 @@ PetscErrorCode PSGetRefined(PS ps,PetscBool *ref)
 #define __FUNCT__ "PSSetEigenvalueComparison"
 /*@C
    PSSetEigenvalueComparison - Specifies the eigenvalue comparison function
-   to be used for sorting the result of PSSolve().
+   to be used for sorting.
 
    Logically Collective on PS
 
@@ -579,7 +579,7 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 
    Level: advanced
 
-.seealso: PSSolve()
+.seealso: PSSort()
 @*/
 PetscErrorCode PSSetEigenvalueComparison(PS ps,PetscErrorCode (*fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
@@ -594,7 +594,7 @@ PetscErrorCode PSSetEigenvalueComparison(PS ps,PetscErrorCode (*fun)(PetscScalar
 #define __FUNCT__ "PSGetEigenvalueComparison"
 /*@C
    PSGetEigenvalueComparison - Gets the eigenvalue comparison function
-   used for sorting the result of PSSolve().
+   used for sorting.
 
    Not Collective
 
@@ -623,7 +623,7 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 
    Level: advanced
 
-.seealso: PSSolve(), PSSetEigenvalueComparison()
+.seealso: PSSort(), PSSetEigenvalueComparison()
 @*/
 PetscErrorCode PSGetEigenvalueComparison(PS ps,PetscErrorCode (**fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void** ctx)
 {

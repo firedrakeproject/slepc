@@ -79,6 +79,7 @@ int main( int argc, char **argv )
   ierr = PetscMalloc(k*sizeof(PetscScalar),&w);CHKERRQ(ierr);
   ierr = PSSetEigenvalueComparison(ps,SlepcCompareLargestReal,PETSC_NULL);CHKERRQ(ierr);
   ierr = PSSolve(ps,w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSSort(ps,w,PETSC_NULL);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = PSView(ps,viewer);CHKERRQ(ierr);

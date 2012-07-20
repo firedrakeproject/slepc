@@ -684,6 +684,7 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   }
   ierr = PSSetState(d->ps,PS_STATE_RAW);CHKERRQ(ierr);
   ierr = PSSolve(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H);CHKERRQ(ierr);
+  ierr = PSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

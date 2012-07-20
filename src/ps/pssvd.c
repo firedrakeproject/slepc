@@ -172,11 +172,8 @@ PetscErrorCode PSVectors_SVD(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_SVD_Sort"
-/*
-  Sort the singular value decomposition at the end of any PSSolve_SVD_* method. 
-*/
-static PetscErrorCode PSSolve_SVD_Sort(PS ps,PetscScalar *wr)
+#define __FUNCT__ "PSSort_SVD"
+PetscErrorCode PSSort_SVD(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ps->ld;
@@ -294,7 +291,6 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
     }
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
   }
-  ierr = PSSolve_SVD_Sort(ps,wr);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -309,6 +305,7 @@ PetscErrorCode PSCreate_SVD(PS ps)
   ps->ops->view          = PSView_SVD;
   ps->ops->vectors       = PSVectors_SVD;
   ps->ops->solve[0]      = PSSolve_SVD_DC;
+  ps->ops->sort          = PSSort_SVD;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

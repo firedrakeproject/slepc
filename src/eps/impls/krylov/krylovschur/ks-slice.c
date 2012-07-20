@@ -276,9 +276,11 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       ierr = PSRestoreArray(eps->ps,PS_MAT_A,&A);CHKERRQ(ierr);
       ierr = PSRestoreArrayReal(eps->ps,PS_MAT_T,&a);CHKERRQ(ierr);
       ierr = PSSolve(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+      ierr = PSSort(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
       ierr = PSSetCompact(eps->ps,PETSC_TRUE);
     }else{/* Restart */
       ierr = PSSolve(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+      ierr = PSSort(eps->ps,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
     }
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);

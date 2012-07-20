@@ -475,11 +475,8 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_HEP_Sort"
-/*
-  Sort the eigendecomposition at the end of any PSSolve_HEP_* method. 
-*/
-static PetscErrorCode PSSolve_HEP_Sort(PS ps,PetscScalar *wr)
+#define __FUNCT__ "PSSort_HEP"
+PetscErrorCode PSSort_HEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ps->ld;
@@ -582,7 +579,6 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
     }
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
   }
-  ierr = PSSolve_HEP_Sort(ps,wr);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -664,7 +660,6 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
     }
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
   }
-  ierr = PSSolve_HEP_Sort(ps,wr);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -799,6 +794,7 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->ops->vectors       = PSVectors_HEP;
   ps->ops->solve[0]      = PSSolve_HEP_QR;
   ps->ops->solve[1]      = PSSolve_HEP_MRRR;
+  ps->ops->sort          = PSSort_HEP;
   ps->ops->truncate      = PSTruncate_HEP;
   ps->ops->update        = PSUpdateExtraRow_HEP;
   ps->ops->cond          = PSCond_HEP;

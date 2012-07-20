@@ -70,6 +70,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   n = PetscMin(M,N);
   ierr = PetscMalloc(sizeof(PetscScalar)*n,&w);CHKERRQ(ierr);
   ierr = PSSolve(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PSSort(svd->ps,w,PETSC_NULL);CHKERRQ(ierr);
   
   /* copy singular vectors */
   ierr = PSGetArray(svd->ps,PS_MAT_U,&pU);CHKERRQ(ierr);

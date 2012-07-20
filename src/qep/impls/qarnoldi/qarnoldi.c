@@ -228,6 +228,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 
     /* Solve projected problem */ 
     ierr = PSSolve(qep->ps,qep->eigr,qep->eigi);CHKERRQ(ierr);
+    ierr = PSSort(qep->ps,qep->eigr,qep->eigi);CHKERRQ(ierr);
     ierr = PSUpdateExtraRow(qep->ps);CHKERRQ(ierr);
 
     /* Check convergence */ 
