@@ -159,7 +159,6 @@ PETSC_EXTERN PetscErrorCode QEPGetConvergedReason(QEP,QEPConvergedReason *);
 
 PETSC_EXTERN PetscErrorCode QEPSortEigenvalues(QEP,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
-PETSC_EXTERN PetscErrorCode QEPSortDenseSchur(QEP,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
 
 PETSC_EXTERN PetscFList QEPList;
 PETSC_EXTERN PetscBool  QEPRegisterAllCalled;
