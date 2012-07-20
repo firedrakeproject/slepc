@@ -1102,7 +1102,7 @@ PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_orthV"
 /* auxS: size_cX+V_new_e */
-PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
+PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
                          PetscInt size_cX, Vec *V, PetscInt V_new_s,
                          PetscInt V_new_e, PetscScalar *auxS,
                          PetscRandom rand)
@@ -1121,11 +1121,11 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
       if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
       if (cX + size_cX == V) {
         /* If cX and V are contiguous, orthogonalize in one step */
-        ierr = IPOrthogonalize(ip, size_DS, DS, size_cX+i, PETSC_NULL, cX,
+        ierr = IPOrthogonalize(ip, size_DS, defl, size_cX+i, PETSC_NULL, cX,
                                V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
-      } else if (DS) {
-        /* Else orthogonalize first against DS, and then against cX and V */
-        ierr = IPOrthogonalize(ip, size_DS, DS, size_cX, PETSC_NULL, cX,
+      } else if (defl) {
+        /* Else orthogonalize first against defl, and then against cX and V */
+        ierr = IPOrthogonalize(ip, size_DS, defl, size_cX, PETSC_NULL, cX,
                                V[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
         if(!lindep) {
           ierr = IPOrthogonalize(ip, 0, PETSC_NULL, i, PETSC_NULL, V,
@@ -1150,7 +1150,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_BorthV"
 /* auxS: size_cX+V_new_e+1 */
-PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS,PetscReal *BDSn, PetscInt size_DS, Vec *cX,
+PetscErrorCode dvd_BorthV(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, PetscInt size_DS, Vec *cX,
                          Vec *BcX, PetscReal *BcXn, PetscInt size_cX, Vec *V, Vec *BV,PetscReal *BVn,
                          PetscInt V_new_s, PetscInt V_new_e,
                          PetscScalar *auxS, PetscRandom rand)
@@ -1169,11 +1169,11 @@ PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS,PetscReal *BDSn, PetscInt siz
       if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
       if (cX + size_cX == V && BcX + size_cX == BV) {
         /* If cX and V are contiguous, orthogonalize in one step */
-        ierr = IPBOrthogonalize(ip, size_DS, DS, BDS, BDSn, size_cX+i, PETSC_NULL, cX, BcX, BcXn,
+        ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX+i, PETSC_NULL, cX, BcX, BcXn,
                                V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
-      } else if (DS) {
-        /* Else orthogonalize first against DS, and then against cX and V */
-        ierr = IPBOrthogonalize(ip, size_DS, DS, BDS, BDSn, size_cX, PETSC_NULL, cX, BcX, BcXn,
+      } else if (defl) {
+        /* Else orthogonalize first against defl, and then against cX and V */
+        ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX, PETSC_NULL, cX, BcX, BcXn,
                                V[i], BV[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
         if(!lindep) {
           ierr = IPBOrthogonalize(ip, 0, PETSC_NULL, PETSC_NULL, PETSC_NULL, i, PETSC_NULL, V, BV, BVn,

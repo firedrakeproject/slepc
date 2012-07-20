@@ -173,8 +173,8 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = VecDuplicate(eps->V[0],&blopex->w);CHKERRQ(ierr);
 
   if (eps->nds > 0) {
-    blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->DS);
-    for (i=0;i<eps->nds;i++) { ierr = PetscObjectReference((PetscObject)eps->DS[i]);CHKERRQ(ierr); }
+    blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->defl);
+    for (i=0;i<eps->nds;i++) { ierr = PetscObjectReference((PetscObject)eps->defl[i]);CHKERRQ(ierr); }
   } else
     blopex->Y = PETSC_NULL;
 

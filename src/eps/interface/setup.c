@@ -207,31 +207,31 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
-      /* allocate memory and copy deflation basis vectors into DS */
+      /* allocate memory and copy deflation basis vectors into defl */
       ierr = VecDuplicateVecs(eps->t,eps->nds,&newDS);CHKERRQ(ierr);
       for (i=0;i<eps->nds;i++) {
-        ierr = VecCopy(eps->DS[i],newDS[i]);CHKERRQ(ierr);
-        ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr);
+        ierr = VecCopy(eps->defl[i],newDS[i]);CHKERRQ(ierr);
+        ierr = VecDestroy(&eps->defl[i]);CHKERRQ(ierr);
       }
-      ierr = PetscFree(eps->DS);CHKERRQ(ierr);
-      eps->DS = newDS;
-      /* orthonormalize vectors in DS */
+      ierr = PetscFree(eps->defl);CHKERRQ(ierr);
+      eps->defl = newDS;
+      /* orthonormalize vectors in defl */
       k = 0;
       for (i=0;i<eps->nds;i++) {
-        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->DS,eps->DS[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->defl,eps->defl[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
         if (norm==0.0 || lindep) {
           ierr = PetscInfo(eps,"Linearly dependent deflation vector found, removing...\n");CHKERRQ(ierr);
         } else {
-          ierr = VecScale(eps->DS[k],1.0/norm);CHKERRQ(ierr);
+          ierr = VecScale(eps->defl[k],1.0/norm);CHKERRQ(ierr);
           k++;
         }
       }
-      for (i=k;i<eps->nds;i++) { ierr = VecDestroy(&eps->DS[i]);CHKERRQ(ierr); }
+      for (i=k;i<eps->nds;i++) { ierr = VecDestroy(&eps->defl[i]);CHKERRQ(ierr); }
       eps->nds = k;
       eps->ds_ortho = PETSC_TRUE;
     }
   }
-  ierr = STCheckNullSpace(eps->OP,eps->nds,eps->DS);CHKERRQ(ierr);
+  ierr = STCheckNullSpace(eps->OP,eps->nds,eps->defl);CHKERRQ(ierr);
 
   /* process initial vectors */
   if (eps->nini<0) {
@@ -241,7 +241,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     for (i=0;i<eps->nini;i++) {
       ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&eps->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) {
         ierr = PetscInfo(eps,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr);
       } else {
@@ -372,7 +372,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
    Input Parameter:
 +  eps   - the eigenproblem solver context
 .  n     - number of vectors
--  ds    - set of basis vectors of the deflation space
+-  v     - set of basis vectors of the deflation space
 
    Notes:
    When a deflation space is given, the eigensolver seeks the eigensolution
@@ -393,7 +393,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 
 .seealso: EPSRemoveDeflationSpace()
 @*/
-PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
+PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -408,10 +408,10 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
 
   /* get references of passed vectors */
   if (n>0) {
-    ierr = PetscMalloc(n*sizeof(Vec),&eps->DS);CHKERRQ(ierr);
+    ierr = PetscMalloc(n*sizeof(Vec),&eps->defl);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
-      ierr = PetscObjectReference((PetscObject)ds[i]);CHKERRQ(ierr);
-      eps->DS[i] = ds[i];
+      ierr = PetscObjectReference((PetscObject)v[i]);CHKERRQ(ierr);
+      eps->defl[i] = v[i];
     }
     eps->setupcalled = 0;
     eps->ds_ortho = PETSC_FALSE;
@@ -441,7 +441,7 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = VecDestroyVecs(eps->nds,&eps->DS);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->nds,&eps->defl);CHKERRQ(ierr);
   eps->nds = 0;
   eps->setupcalled = 0;
   eps->ds_ortho = PETSC_FALSE;

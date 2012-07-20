@@ -83,7 +83,7 @@ struct _p_EPS {
               *V,               /* set of basis vectors and computed eigenvectors */
               *W,               /* set of left basis vectors and computed left eigenvectors */
               *IS, *ISL,        /* placeholder for references to user-provided initial space */
-              *DS;              /* deflation space */
+              *defl;            /* deflation space */
   PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
   PetscReal   *errest,          /* error estimates */
               *errest_left;     /* left error estimates */
@@ -106,7 +106,7 @@ struct _p_EPS {
   PetscInt   nwork;
   Vec        *work;
 
-  PetscBool  ds_ortho;         /* if DS vectors have been stored and orthonormalized */  
+  PetscBool  ds_ortho;         /* if defl vectors have been stored & orthonormalized */  
   PetscInt   setupcalled;
   PetscBool  isgeneralized,
              ispositive,

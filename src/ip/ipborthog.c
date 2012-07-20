@@ -33,15 +33,15 @@
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPBOrthogonalizeCGS1"
-PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
+PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscScalar    alpha;
 
   PetscFunctionBegin;
-  /* h = [DS V]^* Bv ; alpha = (Bv , v) */
-  ierr = VecsMultIa(H,0,nds,DS,0,nds,&Bv,0,1);CHKERRQ(ierr); j = nds;
+  /* h = [defl V]^* Bv ; alpha = (Bv , v) */
+  ierr = VecsMultIa(H,0,nds,defl,0,nds,&Bv,0,1);CHKERRQ(ierr); j = nds;
   if (!which) {
     ierr = VecsMultIa(H+j,0,n,V,0,n,&Bv,0,1);CHKERRQ(ierr); j+= n;
   } else {
@@ -58,7 +58,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,Vec *BDS,PetscRea
   if (onorm || norm) alpha = H[j-1]; 
 
   /* h = J * h */
-  if (BDSnorms && DS) for (i=0; i<nds; i++) H[i]*= BDSnorms[i];
+  if (BDSnorms && defl) for (i=0; i<nds; i++) H[i]*= BDSnorms[i];
   if (BVnorms && V) {
     if (!which) {
       for (i=0; i<n; i++) H[i+nds]*= BVnorms[i];
@@ -70,7 +70,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,Vec *BDS,PetscRea
   }
 
   /* v = v - V h */
-  ierr = SlepcVecMAXPBY(v,1.0,-1.0,nds,H,DS);CHKERRQ(ierr);
+  ierr = SlepcVecMAXPBY(v,1.0,-1.0,nds,H,defl);CHKERRQ(ierr);
   if (which) {
     for (j=0; j<n; j++) 
       if (which[j]) { ierr = VecAXPBY(v,-H[nds+j],1.0,V[j]);CHKERRQ(ierr); }
@@ -103,7 +103,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *DS,Vec *BDS,PetscRea
 */
 #undef __FUNCT__  
 #define __FUNCT__ "IPBOrthogonalizeCGS"
-static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
+static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
   PetscScalar    lh[100],*h,lc[100],*c,alpha;
@@ -132,7 +132,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,Vec *BDS,Pe
   switch (ip->orthog_ref) {
   
   case IP_ORTHOG_REFINE_NEVER:
-    ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     /* compute |v| */
     if (norm) {
       ierr = VecDot(Bv,v,&alpha); CHKERRQ(ierr);
@@ -143,30 +143,30 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,Vec *BDS,Pe
     break;
     
   case IP_ORTHOG_REFINE_ALWAYS:
-    ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     if (lindep) {
-      ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr);
+      ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
       if (PetscAbs(nrm) < ip->orthog_eta * PetscAbs(onrm)) *lindep = PETSC_TRUE;
       else *lindep = PETSC_FALSE;
     } else {
-      ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,PETSC_NULL,norm);CHKERRQ(ierr);
+      ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,PETSC_NULL,norm);CHKERRQ(ierr);
     }
     for (j=0;j<n;j++) 
       if (!which || which[j]) h[nds+j] += c[nds+j];
     break;
   
   case IP_ORTHOG_REFINE_IFNEEDED:
-    ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,&onrm,&nrm);CHKERRQ(ierr); 
+    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,&onrm,&nrm);CHKERRQ(ierr); 
     /* ||q|| < eta ||h|| */
     k = 1;
     while (k<3 && PetscAbs(nrm) < ip->orthog_eta * PetscAbs(onrm)) {
       k++;
       if (!ip->matrix) {
-        ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr); 
+        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr); 
       } else {
         onrm = nrm;
-        ierr = IPBOrthogonalizeCGS1(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,PETSC_NULL,&nrm);CHKERRQ(ierr); 
+        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,PETSC_NULL,&nrm);CHKERRQ(ierr); 
       }
       for (j=0;j<n;j++) 
         if (!which || which[j]) h[nds+j] += c[nds+j];
@@ -203,9 +203,9 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,Vec *BDS,Pe
 
    Input Parameters:
 +  ip     - the inner product (IP) context
-.  nds    - number of columns of DS
-.  DS     - first set of vectors
-.  BDS    - B * DS
+.  nds    - number of columns of defl
+.  defl   - first set of vectors
+.  BDS    - B * defl
 .  BDSnorms - DS_i' * B * DS_i
 .  n      - number of columns of V
 .  which  - logical array indicating columns of V to be used
@@ -227,7 +227,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,Vec *BDS,Pe
 
    Notes:
    This function applies an orthogonal projector to project vector v onto the
-   orthogonal complement of the span of the columns of DS and V.
+   orthogonal complement of the span of the columns of defl and V.
 
    On exit, v0 = [V v]*H, where v0 is the original vector v.
 
@@ -237,7 +237,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *DS,Vec *BDS,Pe
 
 .seealso: IPSetOrthogonalization(), IPBiOrthogonalize()
 @*/
-PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *DS, Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
+PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl, Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
   PetscScalar    alpha;
@@ -262,7 +262,7 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *DS, Vec *BDS,PetscReal *
   } else {
     switch (ip->orthog_type) {
     case IP_ORTHOG_CGS:
-      ierr = IPBOrthogonalizeCGS(ip,nds,DS,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,H,norm,lindep);CHKERRQ(ierr); 
+      ierr = IPBOrthogonalizeCGS(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,H,norm,lindep);CHKERRQ(ierr); 
       break;
     case IP_ORTHOG_MGS:
       SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unsupported orthogonalization type");

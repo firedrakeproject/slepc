@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   const EPSType  type;
   PetscReal      tol;
-  Vec            xr,xi,*is,*ds;
+  Vec            xr,xi,*I,*C;
   PetscInt       nev,maxit,i,its,lits,nconv,nini=0,ncon=0;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
@@ -92,9 +92,9 @@ int main(int argc,char **argv)
     ierr = PetscOptionsGetString(PETSC_NULL,"-fconstr",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must specify the name of the file storing the constraints");
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(xr,ncon,&ds);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(xr,ncon,&C);CHKERRQ(ierr);
     for (i=0;i<ncon;i++) {
-      ierr = VecLoad(ds[i],viewer);CHKERRQ(ierr);
+      ierr = VecLoad(C[i],viewer);CHKERRQ(ierr);
     }
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
@@ -108,9 +108,9 @@ int main(int argc,char **argv)
     ierr = PetscOptionsGetString(PETSC_NULL,"-finitial",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must specify the name of the file containing the initial vectors");
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(xr,nini,&is);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(xr,nini,&I);CHKERRQ(ierr);
     for (i=0;i<nini;i++) {
-      ierr = VecLoad(is[i],viewer);CHKERRQ(ierr);
+      ierr = VecLoad(I[i],viewer);CHKERRQ(ierr);
     }
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
@@ -132,8 +132,8 @@ int main(int argc,char **argv)
   /* 
      If the user provided initial guesses or constraints, pass them here
   */
-  ierr = EPSSetInitialSpace(eps,nini,is);CHKERRQ(ierr);
-  ierr = EPSSetDeflationSpace(eps,ncon,ds);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpace(eps,nini,I);CHKERRQ(ierr);
+  ierr = EPSSetDeflationSpace(eps,ncon,C);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
@@ -189,8 +189,8 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  if (nini>0) { ierr = VecDestroyVecs(nini,&is);CHKERRQ(ierr); }
-  if (ncon>0) { ierr = VecDestroyVecs(ncon,&ds);CHKERRQ(ierr); }
+  if (nini>0) { ierr = VecDestroyVecs(nini,&I);CHKERRQ(ierr); }
+  if (ncon>0) { ierr = VecDestroyVecs(ncon,&C);CHKERRQ(ierr); }
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

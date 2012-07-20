@@ -112,7 +112,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   }
 
   /* Perform k steps of Arnoldi with the operator K^{-1}*(t[1]*A-t[2]*B) */
-  ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, 0,
+  ierr = dvd_orthV(d->ipV, d->eps->defl, d->eps->nds, cX, d->size_cX, d->V, 0,
                    user, d->auxS, d->eps->rand); CHKERRQ(ierr);
   for (i=user; i<k; i++) {
     /* aux <- theta[1]A*in - theta[0]*B*in */
@@ -127,7 +127,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
       CHKERRQ(ierr);
     }
     ierr = d->improvex_precond(d, 0, d->auxV[0], d->V[i]); CHKERRQ(ierr);
-    ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V, i,
+    ierr = dvd_orthV(d->ipV, d->eps->defl, d->eps->nds, cX, d->size_cX, d->V, i,
                      i+1, d->auxS, d->eps->rand); CHKERRQ(ierr);
   }
 

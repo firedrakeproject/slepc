@@ -134,7 +134,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
     ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,which,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,which,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = norm;
     if (*breakdown) {
@@ -149,7 +149,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
     }
   }
   ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,m,PETSC_NULL,V,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,PETSC_NULL,V,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
   alpha[m-1] = PetscRealPart(hwork[m-1]); 
   beta[m-1] = norm;
 
@@ -194,7 +194,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = norm;
     if (*breakdown) {
@@ -386,13 +386,13 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
     if (fro) {
       /* Lanczos step with full reorthogonalization */
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,PETSC_NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);      
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,PETSC_NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);      
       alpha[j] = PetscRealPart(hwork[j]);
     } else {
       /* Lanczos step */
       which[j] = PETSC_TRUE;
       if (j-2>=k) which[j-2] = PETSC_FALSE;
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
       alpha[j] = PetscRealPart(hwork[j]);
       beta[j] = norm;
       
@@ -680,7 +680,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) { /* copy restart vector */
       if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL && !breakdown) {
         /* Reorthonormalize restart vector */
-        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,nconv,PETSC_NULL,eps->V,f,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,nconv,PETSC_NULL,eps->V,f,PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
         ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
       }
       if (breakdown) {

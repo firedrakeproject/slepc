@@ -268,8 +268,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   /* Get whether the stopping criterion is used */
   ierr = EPSDavidsonGetConstantCorrectionTolerance_Davidson(eps,&dynamic);CHKERRQ(ierr);
 
-  /* Orthonormalize the DS */
-  ierr = dvd_orthV(eps->ip,PETSC_NULL,0,PETSC_NULL,0,eps->DS,0,
+  /* Orthonormalize the deflation space */
+  ierr = dvd_orthV(eps->ip,PETSC_NULL,0,PETSC_NULL,0,eps->defl,0,
                    PetscAbs(eps->nds),PETSC_NULL,eps->rand);CHKERRQ(ierr);
 
   /* Preconfigure dvd */

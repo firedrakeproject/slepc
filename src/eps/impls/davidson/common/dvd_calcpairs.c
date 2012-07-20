@@ -163,7 +163,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
     if (orth == DVD_ORTHOV_BOneMV) {
       d->BDS = b->free_vecs; b->free_vecs+= d->eps->nds;
       for (i=0; i<d->eps->nds; i++) {
-        ierr = MatMult(d->B, d->eps->DS[i], d->BDS[i]); CHKERRQ(ierr);
+        ierr = MatMult(d->B, d->eps->defl[i], d->BDS[i]); CHKERRQ(ierr);
       }
     } else
       d->BDS = PETSC_NULL;
@@ -427,12 +427,12 @@ PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
 
   /* V <- gs([cX V(0:V_new_s-1)], V(V_new_s:V_new_e-1)) */
   if (d->orthoV_type == DVD_ORTHOV_BOneMV) {
-    ierr = dvd_BorthV(d->ipV, d->eps->DS, d->BDS, d->nBDS, d->eps->nds, d->cX, d->real_BV, d->nBcX,
+    ierr = dvd_BorthV(d->ipV, d->eps->defl, d->BDS, d->nBDS, d->eps->nds, d->cX, d->real_BV, d->nBcX,
                       d->size_cX, d->V, d->BV, d->nBV, d->V_new_s, d->V_new_e,
                       d->auxS, d->eps->rand); CHKERRQ(ierr);
     d->size_BV = d->V_new_e;
   } else {
-    ierr = dvd_orthV(d->ipV, d->eps->DS, d->eps->nds, cX, d->size_cX, d->V,
+    ierr = dvd_orthV(d->ipV, d->eps->defl, d->eps->nds, cX, d->size_cX, d->V,
                    d->V_new_s, d->V_new_e, d->auxS, d->eps->rand);
     CHKERRQ(ierr);
   }
@@ -771,7 +771,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
       Vec auxV;
       ierr = VecDuplicate(d->auxV[0],&auxV);CHKERRQ(ierr);
       for (i=0; i<r_e-r_s; i++) {
-        ierr = IPBOrthogonalize(d->ipV,d->eps->nds,d->eps->DS,d->BDS,d->nBDS,d->size_cX,PETSC_NULL,d->cX,d->real_BV,d->nBcX,R[i],auxV,PETSC_NULL,&d->nR[r_s+i],&lindep);CHKERRQ(ierr);
+        ierr = IPBOrthogonalize(d->ipV,d->eps->nds,d->eps->defl,d->BDS,d->nBDS,d->size_cX,PETSC_NULL,d->cX,d->real_BV,d->nBcX,R[i],auxV,PETSC_NULL,&d->nR[r_s+i],&lindep);CHKERRQ(ierr);
       }
       ierr = VecDestroy(&auxV);CHKERRQ(ierr);
     } else {

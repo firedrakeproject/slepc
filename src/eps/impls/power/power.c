@@ -206,9 +206,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) select[i] = PETSC_TRUE;
         else select[i] = PETSC_FALSE;
       }
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,eps->nconv,select,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,eps->nconv,select,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
     } else {
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,eps->nconv,PETSC_NULL,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,eps->nconv,PETSC_NULL,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
     }
 
     /* v = y/||y||_B */

@@ -634,7 +634,7 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
   k=0;
   for(i=idx0;i<idx1;i++)sr->idxDef[k++]=sr->perm[i];
   for(i=0;i<k;i++)sr->VDef[i]=sr->V[sr->idxDef[i]];
-  eps->DS = sr->VDef;
+  eps->defl = sr->VDef;
   eps->nds = k;
   PetscFunctionReturn(0); 
 }
@@ -772,7 +772,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   eps->reason = EPS_CONVERGED_TOL;
   eps->its = sr->itsKs;
   eps->nds = 0;
-  eps->DS = PETSC_NULL;
+  eps->defl = PETSC_NULL;
   eps->evecsavailable = PETSC_TRUE; 
   ierr = PetscFree(sr->VDef);CHKERRQ(ierr);
   ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);

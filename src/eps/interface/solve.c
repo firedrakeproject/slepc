@@ -1346,7 +1346,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
   }
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->DS,i,PETSC_NULL,eps->V,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     if (i==0) SETERRQ(((PetscObject)eps)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
