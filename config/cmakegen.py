@@ -143,11 +143,11 @@ def main(slepcdir,petscdir,petscarch):
       pkglist = [('sys'            , ''),
                  ('vec'            , 'sys'),
                  ('ip'             , 'sys'),
-                 ('ps'             , 'sys'),
+                 ('ds'             , 'sys'),
                  ('st'             , 'ip sys'),
-                 ('eps'            , 'ip ps st vec sys'),
-                 ('svd'            , 'eps ip ps sys'),
-                 ('qep'            , 'eps ip ps sys')]
+                 ('eps'            , 'ip ds st vec sys'),
+                 ('svd'            , 'eps ip ds sys'),
+                 ('qep'            , 'eps ip ds sys')]
       for pkg,deps in pkglist:
         writePackage(f,pkg,deps.split())
       f.write ('''

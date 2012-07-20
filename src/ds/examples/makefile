@@ -21,7 +21,7 @@
 
 ALL:
 
-LOCDIR   = src/ps/examples/
+LOCDIR   = src/ds/examples/
 DIRS     = tests
 
 include ${SLEPC_DIR}/conf/slepc_common
