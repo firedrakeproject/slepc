@@ -23,13 +23,13 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = psbasic.c psops.c
+SOURCEC  = dsbasic.c dsops.c
 SOURCEF  = 
 SOURCEH  =
-OBJSC    = psbasic.o psops.o
+OBJSC    = dsbasic.o dsops.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = DS
-LOCDIR   = src/ds/
+LOCDIR   = src/ds/interface/
 
 include ${SLEPC_DIR}/conf/slepc_common
