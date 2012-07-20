@@ -41,18 +41,15 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscErrorCode ierr;
   PetscInt       m,n;
   PetscMPIInt    size;
-  MPI_Comm       comm;
   Mat            *M;
   IS             isrow,iscol;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
   PetscValidPointer(newmat,2);
-  ierr = PetscObjectGetComm((PetscObject)mat,&comm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-
+  ierr = MPI_Comm_size(((PetscObject)mat)->comm,&size);CHKERRQ(ierr);
   if (size > 1) {
-    if (!mat->ops->getsubmatrices) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
+    if (!mat->ops->getsubmatrices) SETERRQ1(((PetscObject)mat)->comm,PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
 
     /* assemble full matrix on every processor */
     ierr = MatGetSize(mat,&m,&n);CHKERRQ(ierr);

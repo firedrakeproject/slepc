@@ -372,8 +372,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = PSGetArray(eps->ps,PS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    /* Purification */
 
+    /* Purification */
     if(!sPres->expf){/* u not saved if breakdown */
       for(i=eps->nconv; i<k;i++){
         alpha = (Q[nv-1+i*ld])/PetscRealPart(eps->eigr[i]);

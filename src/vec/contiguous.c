@@ -372,7 +372,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   m = (e-s)/d;
   if (m==0) PetscFunctionReturn(0);
   PetscValidIntPointer(Q,5);
-  if (m<0 || n<0 || s<0 || m>n) SETERRQ(((PetscObject)*V)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
+  if (m<0 || n<0 || s<0 || m>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&l);CHKERRQ(ierr);
   ls = PetscBLASIntCast(l);

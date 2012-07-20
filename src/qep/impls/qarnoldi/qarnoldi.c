@@ -51,8 +51,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   if (qep->ncv>qep->nev+qep->mpd) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv);
   if (!qep->which) qep->which = QEP_LARGEST_MAGNITUDE;
-  if (qep->problem_type != QEP_GENERAL)
-    SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
+  if (qep->problem_type != QEP_GENERAL) SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
 
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   ierr = QEPDefaultGetWork(qep,4);CHKERRQ(ierr);

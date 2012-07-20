@@ -363,7 +363,7 @@ PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
-  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,1,"Incorrect block size"); 
+  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Block size must be positive"); 
   else blz->block_size = PetscBLASIntCast(bs);
   PetscFunctionReturn(0);
 }

@@ -301,7 +301,7 @@ PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e
       LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,sigma+n,&info);
 #endif
       ierr = PetscFPTrapPop();CHKERRQ(ierr);
-      if (info) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
       /* the smallest singular value is the new error estimate */
       eps->errest[k] = sigma[n-1];
       /* update vector with right singular vector associated to smallest singular value */

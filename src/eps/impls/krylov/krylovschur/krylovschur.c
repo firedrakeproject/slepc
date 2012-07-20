@@ -59,8 +59,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
   if (eps->which==EPS_ALL) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Must define a computational interval when using EPS_ALL"); 
-    if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,1,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL"); 
+    if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
     if (!((PetscObject)(eps->OP))->type_name) { /* default to shift-and-invert */
       ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
     }
@@ -70,13 +70,13 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
 #endif
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
-      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,1,"The defined computational interval should have at least one of their sides bounded");
+      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
       ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);
     }
     else { ierr = STSetDefaultShift(eps->OP,eps->intb);CHKERRQ(ierr); }
 
     if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
-    if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,1,"nev cannot be less than 10 in spectrum slicing runs"); 
+    if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs"); 
     eps->ops->backtransform = PETSC_NULL;
   }
 

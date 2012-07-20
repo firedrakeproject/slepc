@@ -600,7 +600,7 @@ PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
       ierr = IPOrthogonalize(d->ipI, 0, PETSC_NULL, d->size_BcX+i, PETSC_NULL,
                              d->BcX, d->BcX[d->size_BcX+i], PETSC_NULL,
                              &norm, &lindep); CHKERRQ(ierr);
-      if(lindep) SETERRQ(((PetscObject)d->ipI)->comm,1, "Error during orth(BcX, B*cX(new))");
+      if(lindep) SETERRQ(PETSC_COMM_SELF,1, "Error during orth(BcX, B*cX(new))");
       ierr = VecScale(d->BcX[d->size_BcX+i], 1.0/norm); CHKERRQ(ierr);
     }
     d->size_BcX+= d->V_tra_s;

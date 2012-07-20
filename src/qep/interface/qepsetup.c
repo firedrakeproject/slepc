@@ -213,14 +213,14 @@ PetscErrorCode QEPSetOperators(QEP qep,Mat M,Mat C,Mat K)
 
   /* Check for square matrices */
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(((PetscObject)qep)->comm,1,"M is a non-square matrix");
+  if (m!=n) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONG,"M is a non-square matrix");
   m0=m;
   ierr = MatGetSize(C,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(((PetscObject)qep)->comm,1,"C is a non-square matrix");
-  if (m!=m0) SETERRQ(((PetscObject)qep)->comm,1,"Dimensions of M and C do not match");
+  if (m!=n) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONG,"C is a non-square matrix");
+  if (m!=m0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_INCOMP,"Dimensions of M and C do not match");
   ierr = MatGetSize(K,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(((PetscObject)qep)->comm,1,"K is a non-square matrix");
-  if (m!=m0) SETERRQ(((PetscObject)qep)->comm,1,"Dimensions of M and K do not match");
+  if (m!=n) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONG,"K is a non-square matrix");
+  if (m!=m0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_INCOMP,"Dimensions of M and K do not match");
 
   /* Store a copy of the matrices */
   if (qep->setupcalled) { ierr = QEPReset(qep);CHKERRQ(ierr); }

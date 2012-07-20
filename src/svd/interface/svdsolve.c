@@ -182,7 +182,6 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(nconv,2);
-  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
   *nconv = svd->nconv;
   PetscFunctionReturn(0);
 }

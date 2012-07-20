@@ -363,7 +363,7 @@ PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->primme.maxBlockSize = 1;
-  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,1,"PRIMME: wrong block size"); 
+  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive"); 
   else ops->primme.maxBlockSize = bs;
   PetscFunctionReturn(0);
 }

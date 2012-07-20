@@ -103,9 +103,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   } else if (B && !eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
 #if defined(PETSC_USE_COMPLEX)
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
-  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(((PetscObject)eps)->comm,1,"Hermitian problems are not compatible with complex shifts");
+  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
 #endif
-  if (eps->ishermitian && eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,1,"Requesting left eigenvectors not allowed in Hermitian problems");
+  if (eps->ishermitian && eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requesting left eigenvectors not allowed in Hermitian problems");
   
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
@@ -236,7 +236,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* process initial vectors */
   if (eps->nini<0) {
     eps->nini = -eps->nini;
-    if (eps->nini>eps->ncv) SETERRQ(((PetscObject)eps)->comm,1,"The number of initial vectors is larger than ncv");
+    if (eps->nini>eps->ncv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"The number of initial vectors is larger than ncv");
     k = 0;
     for (i=0;i<eps->nini;i++) {
       ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
@@ -257,7 +257,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       ierr = PetscInfo(eps,"Ignoring initial left vectors\n");CHKERRQ(ierr);
     } else {
       eps->ninil = -eps->ninil;
-      if (eps->ninil>eps->ncv) SETERRQ(((PetscObject)eps)->comm,1,"The number of initial left vectors is larger than ncv");
+      if (eps->ninil>eps->ncv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"The number of initial left vectors is larger than ncv");
       k = 0;
       for (i=0;i<eps->ninil;i++) {
         ierr = VecCopy(eps->ISL[i],eps->W[k]);CHKERRQ(ierr);
@@ -316,11 +316,11 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
   /* Check for square matrices */
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(((PetscObject)eps)->comm,1,"A is a non-square matrix");
+  if (m!=n) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
   if (B) { 
     ierr = MatGetSize(B,&m0,&n);CHKERRQ(ierr);
-    if (m0!=n) SETERRQ(((PetscObject)eps)->comm,1,"B is a non-square matrix");
-    if (m!=m0) SETERRQ(((PetscObject)eps)->comm,1,"Dimensions of A and B do not match");
+    if (m0!=n) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
+    if (m!=m0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match");
   }
 
   if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }

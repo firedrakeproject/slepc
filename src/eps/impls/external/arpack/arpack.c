@@ -37,7 +37,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev+2) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev+2"); 
+    if (eps->ncv<eps->nev+2) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2"); 
   } else /* set default value of ncv */
     eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
@@ -162,7 +162,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         case EPS_TARGET_REAL:
         case EPS_LARGEST_REAL:       which = "LA"; break;
         case EPS_SMALLEST_REAL:      which = "SA"; break;
-        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+        default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
       }
     } else {
 #endif
@@ -176,7 +176,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         case EPS_TARGET_IMAGINARY:
         case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
         case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
-        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+        default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
       }
 #if !defined(PETSC_USE_COMPLEX)
     }
@@ -239,14 +239,14 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
             
       ierr = VecResetArray(x);CHKERRQ(ierr);
       ierr = VecResetArray(y);CHKERRQ(ierr);
-    } else if (ido != 99) SETERRQ1(((PetscObject)eps)->comm,1,"Internal error in ARPACK reverse comunication interface (ido=%d)\n",ido);
+    } else if (ido != 99) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Internal error in ARPACK reverse comunication interface (ido=%d)\n",ido);
     
   } while (ido != 99);
 
   eps->nconv = iparam[4];
   eps->its = iparam[2];
   
-  if (info==3) SETERRQ(((PetscObject)eps)->comm,1,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV.");
+  if (info==3) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV.");
   else if (info!=0 && info!=1) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);
 
   rvec = PETSC_TRUE;

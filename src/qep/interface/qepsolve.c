@@ -251,7 +251,7 @@ PetscErrorCode QEPGetConvergedReason(QEP qep,QEPConvergedReason *reason)
    QEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
    QEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
-   Not Collective, but vectors are shared by all processors that share the QEP
+   Logically Collective on EPS
 
    Input Parameters:
 +  qep - quadratic eigensolver context 
@@ -284,6 +284,7 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(qep,i,2);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(qep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(qep,1,Vi,7); }
   if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
@@ -352,8 +353,8 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!qep->eigr || !qep->eigi) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  if (i<0 || i>=qep->nconv) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (!qep->eigr || !qep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
+  if (i<0 || i>=qep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   if (qep->perm) i = qep->perm[i];  
   if (errest) *errest = qep->errest[i];
   PetscFunctionReturn(0);
@@ -674,7 +675,7 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
   PetscValidIntPointer(result,6);
-  if (!qep->which_func) SETERRQ(((PetscObject)qep)->comm,1,"Undefined eigenvalue comparison function");
+  if (!qep->which_func) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
   ierr = (*qep->which_func)(ar,ai,br,bi,result,qep->which_ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
