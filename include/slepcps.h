@@ -144,6 +144,7 @@ PETSC_EXTERN PetscErrorCode PSVectors(PS,PSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PSSolve(PS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode PSSetEigenvalueComparison(PS,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 PETSC_EXTERN PetscErrorCode PSGetEigenvalueComparison(PS,PetscErrorCode (**)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void**);
+PETSC_EXTERN PetscErrorCode PSUpdateExtraRow(PS);
 PETSC_EXTERN PetscErrorCode PSCond(PS,PetscReal*);
 PETSC_EXTERN PetscErrorCode PSTranslateHarmonic(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PSTranslateRKS(PS,PetscScalar);

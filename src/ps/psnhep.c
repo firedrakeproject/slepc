@@ -345,11 +345,8 @@ static PetscErrorCode PSSolve_NHEP_Sort(PS ps,PetscScalar *wr,PetscScalar *wi)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_NHEP_Update"
-/*
-  Helper function that is called at the end of any PSSolve_NHEP_* method. 
-*/
-static PetscErrorCode PSSolve_NHEP_Update(PS ps)
+#define __FUNCT__ "PSUpdateExtraRow_NHEP"
+PetscErrorCode PSUpdateExtraRow_NHEP(PS ps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -361,16 +358,13 @@ static PetscErrorCode PSSolve_NHEP_Update(PS ps)
   ld = PetscBLASIntCast(ps->ld);
   A  = ps->mat[PS_MAT_A];
   Q  = ps->mat[PS_MAT_Q];
-
-  if (ps->extrarow) {
-    ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
-    x = ps->work;
-    y = ps->work+ld;
-    for (i=0;i<n;i++) x[i] = A[n+i*ld];
-    BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
-    for (i=0;i<n;i++) A[n+i*ld] = y[i];
-    ps->k = n;
-  }
+  ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
+  x = ps->work;
+  y = ps->work+ld;
+  for (i=0;i<n;i++) x[i] = A[n+i*ld];
+  BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
+  for (i=0;i<n;i++) A[n+i*ld] = y[i];
+  ps->k = n;
   PetscFunctionReturn(0);
 }
 
@@ -442,7 +436,6 @@ PetscErrorCode PSSolve_NHEP(PS ps,PetscScalar *wr,PetscScalar *wi)
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
   ierr = PSSolve_NHEP_Sort(ps,wr,wi);CHKERRQ(ierr);
-  ierr = PSSolve_NHEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -612,6 +605,7 @@ PetscErrorCode PSCreate_NHEP(PS ps)
   ps->ops->vectors       = PSVectors_NHEP;
   ps->ops->solve[0]      = PSSolve_NHEP;
   ps->ops->truncate      = PSTruncate_NHEP;
+  ps->ops->update        = PSUpdateExtraRow_NHEP;
   ps->ops->cond          = PSCond_NHEP;
   ps->ops->transharm     = PSTranslateHarmonic_NHEP;
   ps->ops->normalize     = PSNormalize_NHEP;

@@ -179,46 +179,23 @@ PetscErrorCode PSVectors_SVD(PS ps,PSMatType mat,PetscInt *j,PetscReal *rnorm)
 static PetscErrorCode PSSolve_SVD_Sort(PS ps,PetscScalar *wr)
 {
   PetscErrorCode ierr;
-  PetscInt       n,l,i,*perm;
+  PetscInt       n,l,i,*perm,ld=ps->ld;
+  PetscScalar    *A;
   PetscReal      *d;
 
   PetscFunctionBegin;
   if (!ps->comp_fun) PetscFunctionReturn(0);
   l = ps->l;
   n = PetscMin(ps->n,ps->m);
+  A  = ps->mat[PS_MAT_A];
   d = ps->rmat[PS_MAT_T];
   perm = ps->perm;
   ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
   ierr = PSPermuteBoth_Private(ps,l,n,PS_MAT_U,PS_MAT_VT,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "PSSolve_SVD_Update"
-/*
-  Helper function that is called at the end of any PSSolve_SVD_* method. 
-*/
-static PetscErrorCode PSSolve_SVD_Update(PS ps)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,l=ps->l;
-  PetscBLASInt   n=ps->n,ld=ps->ld;
-  PetscScalar    *A;
-  PetscReal      *d,*e;
-
-  PetscFunctionBegin;
-  A  = ps->mat[PS_MAT_A];
-  d  = ps->rmat[PS_MAT_T];
-  e  = ps->rmat[PS_MAT_T]+ld;
-  if (ps->compact) {
-    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
-  } else {
-    for (i=l;i<n;i++) {
-      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-    for (i=l;i<n;i++) A[i+i*ld] = d[i];
+  if (!ps->compact) {
+    for (i=l;i<n;i++) A[i+i*ld] = wr[i];
   }
   PetscFunctionReturn(0);
 }
@@ -308,8 +285,16 @@ PetscErrorCode PSSolve_SVD_DC(PS ps,PetscScalar *wr,PetscScalar *wi)
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   }
 
+  /* Create diagonal matrix as a result */
+  if (ps->compact) {
+    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+  } else {
+    for (i=l;i<n;i++) {
+      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    for (i=l;i<n;i++) A[i+i*ld] = d[i];
+  }
   ierr = PSSolve_SVD_Sort(ps,wr);CHKERRQ(ierr);
-  ierr = PSSolve_SVD_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

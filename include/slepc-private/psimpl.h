@@ -35,6 +35,7 @@ struct _PSOps {
   PetscErrorCode (*vectors)(PS,PSMatType,PetscInt*,PetscReal*);
   PetscErrorCode (*solve[PS_MAX_SOLVE])(PS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*truncate)(PS,PetscInt);
+  PetscErrorCode (*update)(PS);
   PetscErrorCode (*cond)(PS,PetscReal*);
   PetscErrorCode (*transharm)(PS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
   PetscErrorCode (*transrks)(PS,PetscScalar);

@@ -525,6 +525,38 @@ PetscErrorCode PSNormalize(PS ps,PSMatType mat,PetscInt col)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "PSUpdateExtraRow"
+/*@C
+   PSUpdateExtraRow - Performs all necessary operations so that the extra
+   row gets up-to-date after a call to PSSolve().
+
+   Not Collective
+
+   Input Parameters:
+.  ps - the projected system context
+
+   Level: advanced
+
+.seealso: PSSolve(), PSSetExtraRow()
+@*/
+PetscErrorCode PSUpdateExtraRow(PS ps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ps,PS_CLASSID,1);
+  if (!ps->ops->update) SETERRQ1(((PetscObject)ps)->comm,PETSC_ERR_SUP,"PS type %s",((PetscObject)ps)->type_name);
+  if (!ps->extrarow) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Should have called PSSetExtraRow");
+  if (!ps->ld) SETERRQ(((PetscObject)ps)->comm,PETSC_ERR_ORDER,"Must call PSAllocate() first");
+  ierr = PetscLogEventBegin(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ps->ops->update)(ps);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PS_Other,ps,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "PSCond"
 /*@C
    PSCond - Compute the inf-norm condition number of the first matrix

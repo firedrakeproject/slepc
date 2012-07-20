@@ -482,65 +482,56 @@ static PetscErrorCode PSIntermediate_HEP(PS ps)
 static PetscErrorCode PSSolve_HEP_Sort(PS ps,PetscScalar *wr)
 {
   PetscErrorCode ierr;
-  PetscInt       n,l,i,*perm;
+  PetscInt       n,l,i,*perm,ld=ps->ld;
+  PetscScalar    *A;
   PetscReal      *d;
 
   PetscFunctionBegin;
   if (!ps->comp_fun) PetscFunctionReturn(0);
   n = ps->n;
   l = ps->l;
+  A  = ps->mat[PS_MAT_A];
   d = ps->rmat[PS_MAT_T];
   perm = ps->perm;
   ierr = PSSortEigenvaluesReal_Private(ps,l,n,d,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
   ierr = PSPermuteColumns_Private(ps,l,n,PS_MAT_Q,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
+  if (!ps->compact) {
+    for (i=l;i<n;i++) A[i+i*ld] = wr[i];
+  }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "PSSolve_HEP_Update"
-/*
-  Helper function that is called at the end of any PSSolve_HEP_* method. 
-*/
-static PetscErrorCode PSSolve_HEP_Update(PS ps)
+#define __FUNCT__ "PSUpdateExtraRow_HEP"
+PetscErrorCode PSUpdateExtraRow_HEP(PS ps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,l=ps->l;
+  PetscInt       i;
   PetscBLASInt   n,ld,incx=1;
   PetscScalar    *A,*Q,*x,*y,one=1.0,zero=0.0;
-  PetscReal      *d,*e,beta;
+  PetscReal      *e,beta;
 
   PetscFunctionBegin;
   n  = PetscBLASIntCast(ps->n);
   ld = PetscBLASIntCast(ps->ld);
   A  = ps->mat[PS_MAT_A];
   Q  = ps->mat[PS_MAT_Q];
-  d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
 
   if (ps->compact) {
-    if (ps->extrarow) {
-      beta = e[n-1];
-      for (i=0;i<n;i++) e[i] = PetscRealPart(beta*Q[n-1+i*ld]);
-      ps->k = n;
-    } else {
-      ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
-    }
+    beta = e[n-1];
+    for (i=0;i<n;i++) e[i] = PetscRealPart(beta*Q[n-1+i*ld]);
+    ps->k = n;
   } else {
-    for (i=l;i<n;i++) {
-      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-    for (i=l;i<n;i++) A[i+i*ld] = d[i];
-    if (ps->extrarow) {
-      ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
-      x = ps->work;
-      y = ps->work+ld;
-      for (i=0;i<n;i++) x[i] = A[n+i*ld];
-      BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
-      for (i=0;i<n;i++) A[n+i*ld] = y[i];
-      ps->k = n;
-    }
+    ierr = PSAllocateWork_Private(ps,2*ld,0,0);CHKERRQ(ierr);
+    x = ps->work;
+    y = ps->work+ld;
+    for (i=0;i<n;i++) x[i] = A[n+i*ld];
+    BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx);
+    for (i=0;i<n;i++) A[n+i*ld] = y[i];
+    ps->k = n;
   }
   PetscFunctionReturn(0);
 }
@@ -556,7 +547,7 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n1,n2,n3,info,l,n,ld,off;
-  PetscScalar    *Q;
+  PetscScalar    *Q,*A;
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
@@ -568,6 +559,7 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   n3 = n1+n2;
   off = l+l*ld;
   Q  = ps->mat[PS_MAT_Q];
+  A  = ps->mat[PS_MAT_A];
   d  = ps->rmat[PS_MAT_T];
   e  = ps->rmat[PS_MAT_T]+ld;
 
@@ -581,8 +573,16 @@ PetscErrorCode PSSolve_HEP_QR(PS ps,PetscScalar *wr,PetscScalar *wi)
   LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ps->rwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
 
+  /* Create diagonal matrix as a result */
+  if (ps->compact) {
+    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+  } else {
+    for (i=l;i<n;i++) {
+      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    for (i=l;i<n;i++) A[i+i*ld] = d[i];
+  }
   ierr = PSSolve_HEP_Sort(ps,wr);CHKERRQ(ierr);
-  ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -655,8 +655,16 @@ PetscErrorCode PSSolve_HEP_MRRR(PS ps,PetscScalar *wr,PetscScalar *wi)
   }
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
 
+  /* Create diagonal matrix as a result */
+  if (ps->compact) {
+    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+  } else {
+    for (i=l;i<n;i++) {
+      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    for (i=l;i<n;i++) A[i+i*ld] = d[i];
+  }
   ierr = PSSolve_HEP_Sort(ps,wr);CHKERRQ(ierr);
-  ierr = PSSolve_HEP_Update(ps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -792,6 +800,7 @@ PetscErrorCode PSCreate_HEP(PS ps)
   ps->ops->solve[0]      = PSSolve_HEP_QR;
   ps->ops->solve[1]      = PSSolve_HEP_MRRR;
   ps->ops->truncate      = PSTruncate_HEP;
+  ps->ops->update        = PSUpdateExtraRow_HEP;
   ps->ops->cond          = PSCond_HEP;
   ps->ops->transrks      = PSTranslateRKS_HEP;
   ps->ops->normalize     = PSNormalize_HEP;
