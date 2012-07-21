@@ -50,7 +50,6 @@ struct _n_shift{
   PetscReal     ext[2];   /* Limits for accepted values */ 
   PetscInt      nsch[2];  /* Number of missing values for each subinterval */
   PetscInt      nconv[2]; /* Converged on each side (accepted or not)*/
-  PetscBool     expf;
 };
 
 /* Type of data  for storing the state of spectrum slicing*/
@@ -149,7 +148,6 @@ static PetscErrorCode EPSExtractShift(EPS eps){
     eps->target = sr->sPres->value;
     eps->reason = EPS_CONVERGED_ITERATING;
     eps->its = 0;
-    sr->sPres->expf = PETSC_FALSE;
     /* For rational Krylov */
     if(sr->nS >0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1]) ){
       ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -248,9 +246,6 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
     ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&nv,u,&breakdown);CHKERRQ(ierr);
-    if(breakdown){/* explicit purification*/
-      sPres->expf = PETSC_TRUE;     
-    }
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
@@ -374,15 +369,6 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-
-    /* Purification */
-    if(!sPres->expf){/* u not saved if breakdown */
-      for(i=eps->nconv; i<k;i++){
-        alpha = (Q[nv-1+i*ld])/PetscRealPart(eps->eigr[i]);
-        ierr = VecAXPY(eps->V[i], alpha, u);CHKERRQ(ierr);
-      }
-    }
-
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     /* Normalize u and append it to V */
     if ( eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
@@ -566,14 +552,10 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
       }
       sr->eig[count] = lambda;
       sr->errest[count] = err;
-      /* Unlikely explicit purification */
-      if (sPres->expf && eps->isgeneralized && !iscayley){
-        ierr = STApply(eps->OP,eps->V[eps->perm[i]],sr->V[count]);CHKERRQ(ierr);
-        ierr = IPNorm(eps->ip,sr->V[count],&norm);CHKERRQ(ierr); 
-        ierr = VecScale(sr->V[count],1.0/norm);CHKERRQ(ierr);
-      }else{
-        ierr = VecCopy(eps->V[eps->perm[i]], sr->V[count]);CHKERRQ(ierr);
-      }
+      /* Explicit purification */
+      ierr = STApply(eps->OP,eps->V[eps->perm[i]],sr->V[count]);CHKERRQ(ierr);
+      ierr = IPNorm(eps->ip,sr->V[count],&norm);CHKERRQ(ierr); 
+      ierr = VecScale(sr->V[count],1.0/norm);CHKERRQ(ierr);
       count++;
     }
   }
