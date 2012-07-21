@@ -192,7 +192,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,conv,k,l,ld,nv,*iwork,j;
   Vec            u=eps->work[0];
-  PetscScalar    *Q,*A,nu,alpha;
+  PetscScalar    *Q,*A,nu;
   PetscReal      *a,*b,beta;
   PetscBool      breakdown;
   PetscInt       count0,count1;
