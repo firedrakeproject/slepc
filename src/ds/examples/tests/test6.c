@@ -90,7 +90,7 @@ int main( int argc, char **argv )
   ierr = PetscMemzero(eigi,n*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,eigr,eigi);CHKERRQ(ierr);
-  ierr = DSSort(ds,eigr,eigi);CHKERRQ(ierr);
+  ierr = DSSort(ds,eigr,eigi,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);

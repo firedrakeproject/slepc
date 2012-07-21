@@ -173,7 +173,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_SVD"
-PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ds->ld;

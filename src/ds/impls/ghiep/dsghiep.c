@@ -430,7 +430,7 @@ static PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScala
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_GHIEP"
-PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,*perm;

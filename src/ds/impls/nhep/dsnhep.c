@@ -262,7 +262,7 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_NHEP"
-PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;

@@ -433,19 +433,23 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
    Input Parameters:
 +  ds   - the direct solver context
 .  eigr - array containing the computed eigenvalues (real part)
--  eigi - array containing the computed eigenvalues (imaginary part)
+.  eigi - array containing the computed eigenvalues (imaginary part)
+.  rr   - (optional) array containing auxiliary values (real part)
+-  ri   - (optional) array containing auxiliary values (imaginary part)
 
-   Note:
+   Notes:
    This routine sorts the arrays provided in eigr and eigi, and also
-   sorts the dense system stored inside ds (assumed to be in 
-   condensed form). The sorting criterion is specified with
-   DSSetEigenvalueComparison().
+   sorts the dense system stored inside ds (assumed to be in condensed form).
+   The sorting criterion is specified with DSSetEigenvalueComparison().
+
+   If arrays rr and ri are provided, then reordering is based on these
+   values rather than on the eigenvalues.
 
    Level: advanced
 
 .seealso: DSSolve(), DSSetEigenvalueComparison()
 @*/
-PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri)
 {
   PetscErrorCode ierr;
 
@@ -458,7 +462,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi)
   if (!ds->comp_fun) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must provide a sorting criterion with DSSetEigenvalueComparison() first");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->sort)(ds,eigr,eigi);CHKERRQ(ierr);
+  ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ds->state = DS_STATE_SORTED;

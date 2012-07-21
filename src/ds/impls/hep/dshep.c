@@ -377,7 +377,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_HEP"
-PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ds->ld;

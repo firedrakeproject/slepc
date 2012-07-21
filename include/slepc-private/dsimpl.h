@@ -34,7 +34,7 @@ struct _DSOps {
   PetscErrorCode (*view)(DS,PetscViewer);
   PetscErrorCode (*vectors)(DS,DSMatType,PetscInt*,PetscReal*);
   PetscErrorCode (*solve[DS_MAX_SOLVE])(DS,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
   PetscErrorCode (*truncate)(DS,PetscInt);
   PetscErrorCode (*update)(DS);
   PetscErrorCode (*cond)(DS,PetscReal*);

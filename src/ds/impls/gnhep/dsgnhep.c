@@ -268,7 +268,7 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_GNHEP"
-PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
   PetscFunctionBegin;

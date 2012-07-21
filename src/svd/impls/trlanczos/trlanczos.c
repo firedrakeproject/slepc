@@ -267,7 +267,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
       ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
     ierr = DSSolve(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
-    ierr = DSSort(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(svd->ds,w,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;

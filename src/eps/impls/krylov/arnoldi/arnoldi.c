@@ -373,7 +373,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSSort(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     /* Check convergence */ 
     ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
