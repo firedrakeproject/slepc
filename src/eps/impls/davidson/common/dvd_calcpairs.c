@@ -35,6 +35,7 @@
 
 PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d, PetscInt n);
 PetscErrorCode dvd_calcpairs_X(dvdDashboard *d, PetscInt r_s, PetscInt r_e,
@@ -70,7 +71,10 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
   PetscErrorCode  ierr;
   PetscInt        i,max_cS;
   PetscBool       std_probl,her_probl,ind_probl,her_ind_probl;
-  const DSType    pstype;
+  const DSType dstype;
+  const char      *prefix;
+  PetscErrorCode  (*f)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void             *ctx;
 
   PetscFunctionBegin;
 
@@ -188,26 +192,19 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
       d->cT = PETSC_NULL;
       d->ldcT = 0;
     }
-    if (harm) {
-      pstype = DSGNHEP;
-    } else {
-      if (ind_probl) {
-        pstype = DSGHIEP;
-      } else if (std_probl) {
-        pstype = her_probl ? DSHEP : DSNHEP;
-      } else {
-        pstype = her_probl ? DSGHEP : DSGNHEP;
-      }
-    }
-    d->ps = d->eps->ds;
-    ierr = DSSetType(d->ps,pstype);CHKERRQ(ierr);
-    ierr = DSAllocate(d->ps,b->max_size_proj);CHKERRQ(ierr);
-    /* Create a DS for dvd_calcpairs_eig_res_0 */
+    /* Create a DS if the method works with Schur decompositions */
     if (d->cS) {
-      ierr = DSCreate(PETSC_COMM_WORLD,&d->conv_ps);CHKERRQ(ierr);
+      ierr = DSCreate(((PetscObject)d->eps->ds)->comm,&d->conv_ps);CHKERRQ(ierr);
       ierr = DSSetType(d->conv_ps,d->cT ? DSGNHEP : DSNHEP);CHKERRQ(ierr);
+      /* Transfer as much as possible options from eps->ds to conv_ps */
+      ierr = DSGetOptionsPrefix(d->eps->ds,&prefix);CHKERRQ(ierr);
+      ierr = DSSetOptionsPrefix(d->conv_ps,prefix);CHKERRQ(ierr);
       ierr = DSSetFromOptions(d->conv_ps);CHKERRQ(ierr);
+      ierr = DSGetEigenvalueComparison(d->eps->ds,&f,&ctx);CHKERRQ(ierr);
+      ierr = DSSetEigenvalueComparison(d->conv_ps,f,ctx);CHKERRQ(ierr);
       ierr = DSAllocate(d->conv_ps,b->max_nev);CHKERRQ(ierr);
+    } else {
+      d->conv_ps = PETSC_NULL;
     }
     d->calcPairs = dvd_calcpairs_proj;
     d->calcpairs_residual = dvd_calcpairs_res_0;
@@ -215,7 +212,24 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
     d->calcpairs_proj_res = dvd_calcpairs_proj_res;
     d->calcpairs_selectPairs = dvd_calcpairs_selectPairs;
     d->ipI = ipI;
+    /* Create and configure a DS for solving the projected problems */
+    if (d->real_W) {    /* If we use harmonics */
+      dstype = DSGNHEP;
+    } else {
+      if (ind_probl) {
+        dstype = DSGHIEP;
+      } else if (std_probl) {
+        dstype = her_probl ? DSHEP : DSNHEP;
+      } else {
+        dstype = her_probl ? DSGHEP : DSGNHEP;
+      }
+    }
+    d->ps = d->eps->ds;
+    ierr = DSSetType(d->ps,dstype);CHKERRQ(ierr);
+    ierr = DSAllocate(d->ps,d->max_size_proj);CHKERRQ(ierr);
+
     DVD_FL_ADD(d->startList, dvd_calcpairs_qz_start);
+    DVD_FL_ADD(d->destroyList, dvd_calcpairs_qz_d);
   }
 
   PetscFunctionReturn(0);
@@ -263,6 +277,16 @@ PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_calcpairs_qz_d"
+PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+
+  PetscFunctionBegin;
+  ierr = DSDestroy(&d->conv_ps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__ 
 #define __FUNCT__ "dvd_calcpairs_proj"
