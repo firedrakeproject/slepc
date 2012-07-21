@@ -131,6 +131,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   } else {
     ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPositiveReal,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
   }
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
