@@ -459,6 +459,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->which           = (EPSWhich)0;
   eps->which_func      = PETSC_NULL;
   eps->which_ctx       = PETSC_NULL;
+  eps->arbit_func      = PETSC_NULL;
+  eps->arbit_ctx       = PETSC_NULL;
   eps->leftvecs        = PETSC_FALSE;
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;

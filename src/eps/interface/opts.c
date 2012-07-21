@@ -761,6 +761,60 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSSetArbitrarySelection"
+/*@C
+   EPSSetArbitrarySelection - Specifies a function intended to look for
+   eigenvalues according to an arbitrary selection criterion. This criterion
+   can be based on a computation involving the current eigenvector approximation.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps  - eigensolver context obtained from EPSCreate()
+.  func - a pointer to the evaluation function
+-  ctx  - a context pointer (the last parameter to the evaluation function)
+
+   Calling Sequence of func:
+$   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx)
+
++   er     - real part of the current eigenvalue approximation
+.   ei     - imaginary part of the current eigenvalue approximation
+.   xr     - real part of the current eigenvector approximation
+.   xi     - imaginary part of the current eigenvector approximation
+.   rr     - result of evaluation (real part)
+.   ri     - result of evaluation (imaginary part)
+-   ctx    - optional context, as set by EPSSetArbitrarySelection()
+
+   Note:
+   This provides a mechanism to select eigenpairs by evaluating a user-defined
+   function. When a function has been provided, the default selection based on
+   sorting the eigenvalues is replaced by the sorting of the results of this
+   function (with the same sorting criterion given in EPSSortEigenvalues()).
+
+   For instance, suppose you want to compute those eigenvectors that maximize
+   a certain computable expression. Then implement the computation using
+   the arguments xr and xi, and return the result in rr. Then set the standard
+   sorting by magnitude so that the eigenpair with largest value of rr is
+   selected.
+
+   The result of func is expressed as a complex number so that it is possible to
+   use the standard eigenvalue sorting functions, but normally only rr is used.
+   Set ri to zero unless it is meaningful in your application.
+
+   Level: advanced
+
+.seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues()
+@*/
+PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  eps->arbit_func = func;
+  eps->arbit_ctx  = ctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSetConvergenceTestFunction"
 /*@C
    EPSSetConvergenceTestFunction - Sets a function to compute the error estimate

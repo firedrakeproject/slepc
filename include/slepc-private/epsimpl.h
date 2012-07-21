@@ -67,6 +67,8 @@ struct _p_EPS {
   PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
+  PetscErrorCode (*arbit_func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
+  void           *arbit_ctx;
   PetscReal      inta, intb;       /* interval [a,b] for spectrum slicing */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */
