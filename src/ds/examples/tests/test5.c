@@ -37,7 +37,7 @@ int main( int argc, char **argv )
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Projected System of type GHIEP - dimension %D.\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GHIEP - dimension %D.\n",n);CHKERRQ(ierr); 
   ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create DS object */
