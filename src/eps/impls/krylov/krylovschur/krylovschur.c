@@ -236,7 +236,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,k,l);CHKERRQ(ierr);
           ierr = DSTranslateHarmonic(eps->ds,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */
-          ierr = SlepcVecMAXPBY(u,1.0,-1.0,ld,g,eps->V);CHKERRQ(ierr);        
+          ierr = SlepcVecMAXPBY(u,1.0,-1.0,nv,g,eps->V);CHKERRQ(ierr);        
           ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
