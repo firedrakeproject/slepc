@@ -175,6 +175,12 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* Bx <- B*X(i) */
   Bx = D+n;
   if (d->BV) {
+    /* Compute the norms of the eigenvectors */
+    if (d->correctXnorm) {
+      ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
+    } else {
+      for (i=0; i<n; i++) d->nX[r_s+i] = 1.0;
+    }
     ierr = SlepcUpdateVectorsZ(Bx,0.0,1.0,d->BV-d->cX_in_H,d->size_BV+d->cX_in_H,pX,ld,d->size_H,n);CHKERRQ(ierr);
   } else if (d->B) {
     for(i=0; i<n; i++) {

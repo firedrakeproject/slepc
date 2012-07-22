@@ -572,19 +572,22 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscI
   PetscInt        n = i_e - i_s, i;
 
   PetscFunctionBegin;
-  ierr = SlepcUpdateVectorsZ(u, 0.0, 1.0, d->V-d->cX_in_H, d->size_V+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(u,0.0,1.0,d->V-d->cX_in_H,d->size_V+d->cX_in_H,pX,ld,d->size_H,n);CHKERRQ(ierr);
   /* nX(i) <- ||X(i)|| */
   if (d->correctXnorm) {
     for (i=0; i<n; i++) {
-      ierr = VecNormBegin(u[i], NORM_2, &d->nX[i_s+i]);CHKERRQ(ierr);
+      ierr = VecNormBegin(u[i],NORM_2,&d->nX[i_s+i]);CHKERRQ(ierr);
     }
     for (i=0; i<n; i++) {
-      ierr = VecNormEnd(u[i], NORM_2, &d->nX[i_s+i]);CHKERRQ(ierr);
+      ierr = VecNormEnd(u[i],NORM_2,&d->nX[i_s+i]);CHKERRQ(ierr);
     }
 #if !defined(PETSC_USE_COMPLEX)
-    for(i=0; i<n; i++)
-      if(d->eigi[i_s+i] != 0.0)
+    for(i=0; i<n; i++) {
+      if(d->eigi[i_s+i] != 0.0) {
         d->nX[i_s+i] = d->nX[i_s+i+1] = PetscSqrtScalar(d->nX[i_s+i]*d->nX[i_s+i]+d->nX[i_s+i+1]*d->nX[i_s+i+1]);
+        i++;
+      }
+    }
 #endif
   } else {
     for (i=0; i<n; i++) d->nX[i_s+i] = 1.0;
