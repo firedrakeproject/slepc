@@ -136,6 +136,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 
+  /* check extraction */
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->OP,&flg,STPRECOND,STSHIFT,"");CHKERRQ(ierr);
+  if (!flg && eps->extraction!=EPS_RITZ) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cannot use a spectral transformation combined with harmonic extraction");
+
   /* set tolerance if not yet set */
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
