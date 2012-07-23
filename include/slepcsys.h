@@ -136,8 +136,9 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
    SlepcAbsEigenvalue - Returns the absolute value of a complex number given
    its real and imaginary parts.
 
-  Synopsis:
+   Synopsis:
    PetscReal SlepcAbsEigenvalue(PetscScalar x,PetscScalar y)
+
    Not Collective
 
    Input parameters:
@@ -149,7 +150,6 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
    overflow. It is based on LAPACK's DLAPY2.
 
    Level: developer
-
 M*/
 #if !defined(PETSC_USE_COMPLEX)
 #define SlepcAbsEigenvalue(x,y) SlepcAbs(x,y)

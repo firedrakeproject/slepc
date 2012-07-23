@@ -100,21 +100,23 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 #define __FUNCT__ "STBackTransform_Fold"
 PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
-  PetscInt j;
+  PetscInt    j;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar r,x,y;
+#endif
 
   PetscFunctionBegin;
   for (j=0;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi[j] == 0) {
+    if (eigi[j] == 0.0) {
 #endif
       eigr[j] = st->sigma + PetscSqrtScalar(eigr[j]);
 #if !defined(PETSC_USE_COMPLEX)
     } else {
-      PetscScalar r,x,y;
-      r = PetscSqrtScalar(eigr[j] * eigr[j] + eigi[j] * eigi[j]);
+      r = SlepcAbsEigenvalue(eigr[j],eigi[j]);
       x = PetscSqrtScalar((r + eigr[j]) / 2);
       y = PetscSqrtScalar((r - eigr[j]) / 2);
-      if (eigi[j] < 0) y = - y;
+      if (eigi[j] < 0.0) y = - y;
       eigr[j] = st->sigma + x;
       eigi[j] = y;
     }
