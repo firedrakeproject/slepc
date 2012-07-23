@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dsghiep.c
+SOURCEC  = dsghiep.c dsghiep_hz.c dsghiep_dqds.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = dsghiep.o
+OBJSC    = dsghiep.o dsghiep_hz.o dsghiep_dqds.o
 LIBBASE  = libslepc
 DIRS     = 
 MANSEC   = DS
