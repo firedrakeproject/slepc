@@ -38,6 +38,7 @@
 */
 
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepcblaslapack.h>
 
 PetscErrorCode EPSSolve_Lanczos(EPS);
 
@@ -161,6 +162,77 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "DenseTridiagonal"
+/*
+   DenseTridiagonal - Solves a real tridiagonal Hermitian Eigenvalue Problem.
+
+   Input Parameters:
++  n   - dimension of the eigenproblem
+.  D   - pointer to the array containing the diagonal elements
+-  E   - pointer to the array containing the off-diagonal elements
+
+   Output Parameters:
++  w  - pointer to the array to store the computed eigenvalues
+-  V  - pointer to the array to store the eigenvectors
+
+   Notes:
+   If V is PETSC_NULL then the eigenvectors are not computed.
+
+   This routine use LAPACK routines xSTEVR.
+
+*/
+static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscReal *w,PetscScalar *V)
+{
+#if defined(SLEPC_MISSING_LAPACK_STEVR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEVR - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscReal      abstol = 0.0,vl,vu,*work;
+  PetscBLASInt   il,iu,m,*isuppz,n,lwork,*iwork,liwork,info;
+  const char     *jobz;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       i,j;
+  PetscReal      *VV;
+#endif
+  
+  PetscFunctionBegin;
+  n = PetscBLASIntCast(n_);
+  lwork = PetscBLASIntCast(20*n_);
+  liwork = PetscBLASIntCast(10*n_);
+  if (V) {
+    jobz = "V";
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc(n*n*sizeof(PetscReal),&VV);CHKERRQ(ierr);
+#endif
+  } else jobz = "N";
+  ierr = PetscMalloc(2*n*sizeof(PetscBLASInt),&isuppz);CHKERRQ(ierr);
+  ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,VV,&n,isuppz,work,&lwork,iwork,&liwork,&info);
+#else
+  LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info);
+#endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
+#if defined(PETSC_USE_COMPLEX)
+  if (V) {
+    for (i=0;i<n;i++) 
+      for (j=0;j<n;j++)
+        V[i*n+j] = VV[i*n+j];
+    ierr = PetscFree(VV);CHKERRQ(ierr);
+  }
+#endif
+  ierr = PetscFree(isuppz);CHKERRQ(ierr);
+  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(iwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSelectiveLanczos"
 /*
    EPSSelectiveLanczos - Selective reorthogonalization.
@@ -205,7 +277,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
     n = j-k+1;
     for (i=0;i<n;i++) { d[i] = alpha[i+k]; e[i] = beta[i+k]; }
-    ierr = EPSDenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
+    ierr = DenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
     
     /* Estimate ||A|| */
     for (i=0;i<n;i++) 

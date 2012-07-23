@@ -26,7 +26,7 @@
 PetscFList       EPSList = 0;
 PetscBool        EPSRegisterAllCalled = PETSC_FALSE;
 PetscClassId     EPS_CLASSID = 0;
-PetscLogEvent    EPS_SetUp = 0,EPS_Solve = 0,EPS_Dense = 0;
+PetscLogEvent    EPS_SetUp = 0,EPS_Solve = 0;
 static PetscBool EPSPackageInitialized = PETSC_FALSE;
 
 const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerShiftType","EPS_POWER_SHIFT_",0};
@@ -82,7 +82,6 @@ PetscErrorCode EPSInitializePackage(const char *path) {
   /* Register Events */
   ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("EPSDense",EPS_CLASSID,&EPS_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {

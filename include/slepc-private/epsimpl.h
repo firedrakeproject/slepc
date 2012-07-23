@@ -25,7 +25,7 @@
 #include <slepceps.h>
 
 PETSC_EXTERN PetscFList EPSList;
-PETSC_EXTERN PetscLogEvent EPS_SetUp, EPS_Solve, EPS_Dense;
+PETSC_EXTERN PetscLogEvent EPS_SetUp, EPS_Solve;
 
 typedef struct _EPSOps *EPSOps;
 

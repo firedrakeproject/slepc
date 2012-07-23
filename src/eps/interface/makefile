@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = monitor.c basic.c default.c itregis.c opts.c setup.c solve.c dense.c mem.c
+SOURCEC  = monitor.c basic.c default.c itregis.c opts.c setup.c solve.c mem.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = monitor.o basic.o default.o itregis.o opts.o setup.o solve.o dense.o mem.o
+OBJSC    = monitor.o basic.o default.o itregis.o opts.o setup.o solve.o mem.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
