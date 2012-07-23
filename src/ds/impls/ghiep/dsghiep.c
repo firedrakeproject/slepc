@@ -171,7 +171,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSVectors_GHIEP_Eigen_Some"
-static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm,PetscBool left)
+static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 {
   PetscErrorCode ierr;
   PetscReal      b[4],M[4],d1,d2,s1,s2,e;
@@ -184,8 +184,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
 #endif
   
   PetscFunctionBegin;
-  if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left eigenvectors");
-  else X = ds->mat[DS_MAT_X];
+  X = ds->mat[DS_MAT_X];
   Q = ds->mat[DS_MAT_Q];
   k = *idx;
   n_ = PetscBLASIntCast(ds->n);
@@ -271,18 +270,14 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
 PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
   PetscInt       i;
-  PetscBool      left;
   PetscReal      e;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   switch (mat) {
-    case DS_MAT_Y:
-      left = PETSC_TRUE;
     case DS_MAT_X:
-      left = PETSC_FALSE;
       if (k){
-        ierr = DSVectors_GHIEP_Eigen_Some(ds,k,rnorm,left);CHKERRQ(ierr);
+        ierr = DSVectors_GHIEP_Eigen_Some(ds,k,rnorm);CHKERRQ(ierr);
       }else{
         for(i=0; i<ds->n; i++){
           e = (ds->compact)?*(ds->rmat[DS_MAT_T]+ds->ld+i):PetscRealPart(*(ds->mat[DS_MAT_A]+(i+1)+ds->ld*i));
@@ -290,15 +285,16 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
             if(ds->state >= DS_STATE_CONDENSED){
               ierr = PetscMemcpy(ds->mat[mat]+i*ds->ld,ds->mat[DS_MAT_Q]+i*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
             }else{
-              ierr = PetscMemzero(ds->mat[mat]+i*ds->ld,ds->ld*sizeof(PetscScalar));
+              ierr = PetscMemzero(ds->mat[mat]+i*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
               *(ds->mat[mat]+i+i*ds->ld) = 1.0;
             }
           }else{
-            ierr = DSVectors_GHIEP_Eigen_Some(ds,&i,rnorm,left);CHKERRQ(ierr);
+            ierr = DSVectors_GHIEP_Eigen_Some(ds,&i,rnorm);CHKERRQ(ierr);
           }
         }
       }
       break;
+    case DS_MAT_Y:
     case DS_MAT_U:
     case DS_MAT_VT:
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
@@ -970,8 +966,6 @@ static PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS ds,PetscScalar *wr,
 #endif
   if(info<0)SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
   if(info>0){
-    for(i=0;i<n1;i++)PetscPrintf(PETSC_COMM_WORLD,"%d ",infoC[i]);
-  PetscPrintf(PETSC_COMM_WORLD,"\n");
     SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
   }
 

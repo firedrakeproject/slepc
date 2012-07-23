@@ -170,18 +170,27 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
 PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
-  PetscInt       ld = ds->ld;
+  PetscInt       ld = ds->ld,i;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Y:
       if (j) {
-        ierr = PetscMemcpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        if(ds->state >= DS_STATE_CONDENSED){
+          ierr = PetscMemcpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        }else{
+          ierr = PetscMemzero(ds->mat[mat]+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+          *(ds->mat[mat]+(*j)+(*j)*ld) = 1.0;
+        }
       } else {
-        ierr = PetscMemcpy(ds->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        if(ds->state >= DS_STATE_CONDENSED){
+          ierr = PetscMemcpy(ds->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        }else{
+          ierr = PetscMemzero(ds->mat[mat],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+          for(i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
+        }
       }
       if (rnorm) *rnorm = PetscAbsScalar(Q[ds->n-1+(*j)*ld]);
       break;

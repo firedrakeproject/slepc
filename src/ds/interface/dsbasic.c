@@ -1136,6 +1136,7 @@ PetscErrorCode DSRegisterDestroy(void)
 EXTERN_C_BEGIN
 extern PetscErrorCode DSCreate_HEP(DS);
 extern PetscErrorCode DSCreate_NHEP(DS);
+extern PetscErrorCode DSCreate_GHEP(DS);
 extern PetscErrorCode DSCreate_GHIEP(DS);
 extern PetscErrorCode DSCreate_GNHEP(DS);
 extern PetscErrorCode DSCreate_SVD(DS);
@@ -1161,6 +1162,7 @@ PetscErrorCode DSRegisterAll(const char *path)
   DSRegisterAllCalled = PETSC_TRUE;
   ierr = DSRegisterDynamic(DSHEP,path,"DSCreate_HEP",DSCreate_HEP);CHKERRQ(ierr);
   ierr = DSRegisterDynamic(DSNHEP,path,"DSCreate_NHEP",DSCreate_NHEP);CHKERRQ(ierr);
+  ierr = DSRegisterDynamic(DSGHEP,path,"DSCreate_GHEP",DSCreate_GHEP);CHKERRQ(ierr);
   ierr = DSRegisterDynamic(DSGHIEP,path,"DSCreate_GHIEP",DSCreate_GHIEP);CHKERRQ(ierr);
   ierr = DSRegisterDynamic(DSGNHEP,path,"DSCreate_GNHEP",DSCreate_GNHEP);CHKERRQ(ierr);
   ierr = DSRegisterDynamic(DSSVD,path,"DSCreate_SVD",DSCreate_SVD);CHKERRQ(ierr);
