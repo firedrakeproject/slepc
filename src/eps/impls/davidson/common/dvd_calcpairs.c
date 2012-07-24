@@ -708,18 +708,93 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   }
   ierr = DSSetState(d->ps,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = DSSolve(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H);CHKERRQ(ierr);
-  ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__ 
+#define __FUNCT__ "dvd_calcpairs_apply_arbitrary_func"
+PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscScalar *rr,PetscScalar *ri)
+{
+  PetscInt        i,k,ld;
+  PetscScalar     *pX;
+  Vec             *X = d->auxV,xr,xi;
+  PetscErrorCode  ierr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscInt        j;
+#endif
+  
+  PetscFunctionBegin;
+  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  for (i=r_s; i<r_e; i++) {
+    k = i;
+    ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->ps,DS_MAT_X,i);CHKERRQ(ierr);
+    ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = dvd_improvex_compute_X(d,i,k+1,X,pX,ld);CHKERRQ(ierr);
+    ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    if (d->nX[i] != 1.0) {
+      for (j=i; j<k+1; j++) {
+        ierr = VecScale(X[j-i],1/d->nX[i]);CHKERRQ(ierr);
+      }
+    }
+    xr = X[0];
+    xi = X[1];
+    if (i == k) {
+      ierr = VecZeroEntries(xi);CHKERRQ(ierr);
+    }
+#else
+    xr = X[0];
+    xi = PETSC_NULL;
+    if (d->nX[i] != 1.0) {
+      ierr = VecScale(xr,1.0/d->nX[i]);CHKERRQ(ierr);
+    }
+#endif
+    ierr = (d->eps->arbit_func)(d->eigr[i],d->eigi[i],xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbit_ctx);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+ 
 
 #undef __FUNCT__ 
 #define __FUNCT__ "dvd_calcpairs_selectPairs"
 PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d, PetscInt n)
 {
+  PetscInt        k;
+  PetscScalar     *rr,*ri;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
+  /* Put the best n pairs at the beginning. Useful for restarting */
+  ierr = DSSetDimensions(d->ps,PETSC_IGNORE,PETSC_IGNORE,d->cX_in_H,PETSC_IGNORE);CHKERRQ(ierr);
+  if (d->eps->arbit_func) {
+    rr = d->auxS;
+    ri = d->auxS + d->size_H;
+    ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->size_H,rr,ri);CHKERRQ(ierr);
+  } else {
+    rr = d->eigr-d->cX_in_H;
+    ri = d->eigi-d->cX_in_H;
+  }
+  k = n;
+  ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,rr,ri,&k);CHKERRQ(ierr);
+  /* Put the best pair at the beginning. Useful to check its residual */
+#if !defined(PETSC_USE_COMPLEX)
+  if (n != 1 && (n != 2 || d->eigi[0] == 0.0))
+#else
+  if (n != 1)
+#endif
+  {
+    if (d->eps->arbit_func) {
+      rr = d->auxS;
+      ri = d->auxS + n;
+      ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->cX_in_H+n,rr,ri);CHKERRQ(ierr);
+    } else {
+      rr = d->eigr-d->cX_in_H;
+      ri = d->eigi-d->cX_in_H;
+    }
+    k = 1;
+    ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,&k);CHKERRQ(ierr);
+  }
   if (d->calcpairs_eigs_trans) {
     ierr = d->calcpairs_eigs_trans(d);CHKERRQ(ierr);
   }
