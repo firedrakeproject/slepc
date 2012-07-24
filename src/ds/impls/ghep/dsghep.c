@@ -121,7 +121,7 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_GHEP"
-PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
+PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ds->ld;
@@ -134,7 +134,11 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   A  = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for(i=l;i<n;i++) wr[i] = A[i+i*ld];
-  ierr = DSSortEigenvaluesReal_Private(ds,l,n,wr,perm);CHKERRQ(ierr);
+  if (rr) {
+    ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
+  } else {
+    ierr = DSSortEigenvalues_Private(ds,wr,PETSC_NULL,perm,PETSC_FALSE);CHKERRQ(ierr);
+  } 
   for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
   ierr = DSPermuteColumns_Private(ds,l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
