@@ -1,4 +1,16 @@
 /*
+   HZ iteration for generalized symmetric-indefinite eigenproblem.
+   Based on Matlab code from David Watkins.
+
+   References:
+
+       [1] D.S. Watkins, The Matrix Eigenvalue Problem: GR and Krylov Subspace
+           Methods, SIAM, 2007.
+
+       [2] M.A. Brebner, J. Grad, "Eigenvalues of Ax = lambda Bx for real
+           symmetric matrices A and B computed by reduction to pseudosymmetric
+           form and the HR process", Linear Alg. Appl. 43, pp. 99-118, 1982.
+
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain

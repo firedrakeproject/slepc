@@ -1,4 +1,15 @@
 /*
+   DQDS-type dense solver for generalized symmetric-indefinite eigenproblem.
+   Based on Matlab code from Carla Ferreira.
+
+   References:
+
+       [1] C. Ferreira, B. Parlett, "Real DQDS for the nonsymmetric tridiagonal
+           eigenvalue problem", preprint, 2012.
+
+       [2] C. Ferreira. The unsymmetric tridiagonal eigenvalue problem. Ph.D
+           Thesis, University of Minho, 2007.
+
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain
