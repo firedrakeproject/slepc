@@ -30,7 +30,7 @@ EXAMPLESF  = test7f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 test11
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
                        test3.PETSc runtest3_1 test3.rm \
                        test4.PETSc runtest4_1 test4.rm \
@@ -111,6 +111,11 @@ runtest1_1:
 	   if [ "$$eps" = "lanczos" ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA -eps_terse 2>&1; \
 	done > $${test}.tmp; \
+	${TESTCODE}
+
+runtest1_2:
+	-@test=test1_2; \
+	${MPIEXEC} -np 1 ./test1  -eps_interval .1,1.1 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky -eps_terse 2>&1 >  $${test}.tmp; \
 	${TESTCODE}
 
 runtest2_1:

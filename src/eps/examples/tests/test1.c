@@ -101,7 +101,7 @@ int main( int argc, char **argv )
       ierr = EPSGetEigenvector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
     }
     ierr = SlepcCheckOrthogonality(X,nconv,PETSC_NULL,nconv,B,&lev);CHKERRQ(ierr);
-    if (lev<tol) {
+    if (lev<10*tol) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr); 
     } else {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %G\n",lev);CHKERRQ(ierr); 
