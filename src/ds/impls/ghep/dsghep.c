@@ -158,7 +158,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscBLASInt   itype = 1,*iwork,info,n1,liwork,ld,lrwork=0,lwork;
   PetscInt       off,i;
 #if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
+  PetscReal      *rwork,*rr;
 #endif 
 
   PetscFunctionBegin;
@@ -167,7 +167,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   liwork = PetscBLASIntCast(5*ds->n+3);
 #if defined(PETSC_USE_COMPLEX)
   lwork  = PetscBLASIntCast(ds->n*ds->n+2*ds->n);
-  lrwork = PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1);
+  lrwork = PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1+n1);
 #else
   lwork  = PetscBLASIntCast(2*ds->n*ds->n+6*ds->n+1);
 #endif
@@ -179,9 +179,12 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   B = ds->mat[DS_MAT_B];
   Q = ds->mat[DS_MAT_Q];
 #if defined(PETSC_USE_COMPLEX)
-  rwork = ds->rwork;
-  LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,wr+ds->l,work,&lwork,rwork,&lrwork,iwork,&liwork,&info);
+  rr = ds->rwork;
+  rwork = ds->rwork + n1;
+  lrwork = ds->lrwork - n1;
+  LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,rr,work,&lwork,rwork,&lrwork,iwork,&liwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack ZHEGVD %d",info);
+  for(i=0;i<n1;i++) wr[ds->l+i] = rr[i];
 #else
   LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,wr+ds->l,work,&lwork,iwork,&liwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSYGVD %d",info);
