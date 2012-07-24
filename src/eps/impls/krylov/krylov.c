@@ -89,7 +89,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld;
-  PetscScalar    re,im,*Z,*X;
+  PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm;
   PetscBool      isshift;
 
@@ -110,8 +110,10 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     resnorm *= beta;
     if (eps->trueres) {
       ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      Z = X+k*ld;
-      ierr = EPSComputeTrueResidual(eps,re,im,Z,V,nv,&resnorm);CHKERRQ(ierr);
+      Zr = X+k*ld;
+      if (newk==k+1) Zi = X+newk*ld;
+      else Zi = PETSC_NULL;
+      ierr = EPSComputeTrueResidual(eps,re,im,Zr,Zi,V,nv,&resnorm);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
     }
     else resnorm *= corrf;

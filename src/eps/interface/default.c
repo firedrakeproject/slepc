@@ -155,7 +155,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,ld;
-  PetscBLASInt   n_,one = 1; 
+  PetscBLASInt   n_,one = 1;
   PetscScalar    *Z,tmp;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      normi;
@@ -364,7 +364,7 @@ PetscErrorCode EPSConvergedNormRelative(EPS eps,PetscScalar eigr,PetscScalar eig
     lambda = eigr+i*eigi
     x = V*Z[0*nv]+i*V*Z[1*nv]  (Z has length 2*nv)
 */
-PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscScalar *Z,Vec *V,PetscInt nv,PetscReal *resnorm)
+PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscScalar *Zr,PetscScalar *Zi,Vec *V,PetscInt nv,PetscReal *resnorm)
 {
   PetscErrorCode ierr;
   Vec            x,y,z=0;
@@ -377,7 +377,7 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr); }
 
   /* compute eigenvector */
-  ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Z,V);CHKERRQ(ierr);
+  ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Zr,V);CHKERRQ(ierr);
 
   /* purify eigenvector in positive generalized problems */
   if (eps->ispositive) {
@@ -397,8 +397,8 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   }
 #if !defined(PETSC_USE_COMPLEX)
   /* compute imaginary part of eigenvector */
-  if (!eps->ishermitian && eigi != 0.0) {
-    ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Z+nv,V);CHKERRQ(ierr);
+  if (Zi) {
+    ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Zi,V);CHKERRQ(ierr);
     if (eps->ispositive) {
       ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
       ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
