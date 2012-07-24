@@ -483,6 +483,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSAllocateWork_Private(ds,0,2*ld,0);CHKERRQ(ierr); 
   LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ds->rwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  for (i=l;i<n;i++) wr[i] = d[i];
 
   /* Create diagonal matrix as a result */
   if (ds->compact) {
