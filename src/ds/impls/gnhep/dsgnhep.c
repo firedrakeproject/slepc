@@ -276,28 +276,28 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
 #else
   PetscErrorCode ierr;
   PetscInt       i,*perm;
-  PetscBLASInt   info,n,ld,m_one=-1,mout,lwork,liwork,*iwork,*selection,zero_=0,true_=1;
-  PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Q = ds->mat[DS_MAT_Q],*Z = ds->mat[DS_MAT_Z],work0,*work,*beta;
+  PetscBLASInt   info,n,ld,mout,lwork,liwork,*iwork,*selection,zero_=0,true_=1;
+  PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Q = ds->mat[DS_MAT_Q],*Z = ds->mat[DS_MAT_Z],*work,*beta;
 
   PetscFunctionBegin;
   if (!ds->comp_fun) PetscFunctionReturn(0);
   n  = PetscBLASIntCast(ds->n);
   ld = PetscBLASIntCast(ds->ld);
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtgsen_(&zero_,&true_,&true_,PETSC_NULL,&n,S,&ld,T,&ld,wr,wi,PETSC_NULL,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,&work0,&m_one,&liwork,&m_one,&info);
+  lwork = 4*n+16;
 #else
-  LAPACKtgsen_(&zero_,&true_,&true_,PETSC_NULL,&n,S,&ld,T,&ld,wr,PETSC_NULL,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,&work0,&m_one,&liwork,&m_one,&info);
+  lwork = 1;
 #endif
-  lwork = (PetscBLASInt)PetscRealPart(work0);
-  ierr = DSAllocateWork_Private(ds,lwork+n,0,liwork+n);CHKERRQ(ierr); 
+  liwork = 1;
+  ierr = DSAllocateWork_Private(ds,lwork+2*n,0,liwork+2*n);CHKERRQ(ierr); 
   beta = ds->work;
   work = ds->work + n;
   lwork = ds->lwork - n;
   selection = ds->iwork;
-  iwork = ds->iwork + n;
-  liwork = ds->liwork - n;
+  perm = ds->iwork + n;
+  iwork = ds->iwork + 2*n;
+  liwork = ds->liwork - 2*n;
   /* Compute the selected eigenvalue to be in the leading position */
-  perm = ds->perm;
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
   for (i=0; i<*k; i++) selection[perm[i]] = 1;

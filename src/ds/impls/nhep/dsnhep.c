@@ -270,8 +270,8 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 #else
   PetscErrorCode ierr;
   PetscInt       i,*perm;
-  PetscBLASInt   info,n,ld,m_one=-1,mout,lwork,*selection;
-  PetscScalar    *T = ds->mat[DS_MAT_A],*Q = ds->mat[DS_MAT_Q],work0,*work;
+  PetscBLASInt   info,n,ld,mout,lwork,*selection;
+  PetscScalar    *T = ds->mat[DS_MAT_A],*Q = ds->mat[DS_MAT_Q],*work;
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   *iwork,liwork;
 #endif
@@ -281,23 +281,23 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
   n  = PetscBLASIntCast(ds->n);
   ld = PetscBLASIntCast(ds->ld);
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtrsen_("N","V",PETSC_NULL,&n,T,&ld,Q,&ld,wr,wi,PETSC_NULL,PETSC_NULL,PETSC_NULL,&work0,&m_one,&liwork,&m_one,&info);
-  lwork = (PetscBLASInt)work0;
-  ierr = DSAllocateWork_Private(ds,lwork,0,liwork+n);CHKERRQ(ierr); 
+  lwork = n;
+  liwork = 1;
+  ierr = DSAllocateWork_Private(ds,lwork,0,liwork+2*n);CHKERRQ(ierr); 
   work = ds->work;
   lwork = ds->lwork;
   selection = ds->iwork;
-  iwork = ds->iwork + n;
-  liwork = ds->liwork - n;
+  perm = ds->iwork + n;
+  iwork = ds->iwork + 2*n;
+  liwork = ds->liwork - 2*n;
 #else
-  LAPACKtrsen_("N","V",PETSC_NULL,&n,T,&ld,Q,&ld,wr,PETSC_NULL,PETSC_NULL,PETSC_NULL,&work0,&m_one,&info);
-  lwork = (PetscBLASInt)PetscRealPart(work0);
-  ierr = DSAllocateWork_Private(ds,lwork,0,n);CHKERRQ(ierr); 
+  lwork = 1;
+  ierr = DSAllocateWork_Private(ds,lwork,0,2*n);CHKERRQ(ierr); 
   work = ds->work;
   selection = ds->iwork;
+  perm = ds->iwork + n;
 #endif
   /* Compute the selected eigenvalue to be in the leading position */
-  perm = ds->perm;
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
   for (i=0; i<*k; i++) selection[perm[i]] = 1;
