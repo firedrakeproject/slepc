@@ -435,34 +435,45 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
 .  eigr - array containing the computed eigenvalues (real part)
 .  eigi - array containing the computed eigenvalues (imaginary part)
 .  rr   - (optional) array containing auxiliary values (real part)
--  ri   - (optional) array containing auxiliary values (imaginary part)
++  ri   - (optional) array containing auxiliary values (imaginary part)
+
+   Input/Output Parameter:
+.  k    - (optional) number of elements in the leading dimension group
 
    Notes:
    This routine sorts the arrays provided in eigr and eigi, and also
    sorts the dense system stored inside ds (assumed to be in condensed form).
    The sorting criterion is specified with DSSetEigenvalueComparison().
 
-   If arrays rr and ri are provided, then reordering is based on these
-   values rather than on the eigenvalues.
+   If arrays rr and ri are provided, then a partial reordering based on these
+   values rather than on the eigenvalues is performed. In this case only is
+   guaranteed that the all the first k elements satisfy the comparison with
+   any of the last n-k elements. The k parameter return the final number of
+   elements in the first set.
 
    Level: advanced
 
 .seealso: DSSolve(), DSSetEigenvalueComparison()
 @*/
-PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri)
+PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(eigr,2);
+  if (rr) {
+    PetscValidPointer(rr,2);
+    PetscValidPointer(ri,4);
+    PetscValidPointer(k,5);
+  }
   if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
   if (ds->state==DS_STATE_SORTED) PetscFunctionReturn(0);
   if (!ds->ops->sort) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (!ds->comp_fun) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must provide a sorting criterion with DSSetEigenvalueComparison() first");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri);CHKERRQ(ierr);
+  ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri,k);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ds->state = DS_STATE_SORTED;

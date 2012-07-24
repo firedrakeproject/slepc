@@ -386,7 +386,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_HEP"
-PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
+PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ds->ld;
@@ -400,7 +400,11 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   A  = ds->mat[DS_MAT_A];
   d = ds->rmat[DS_MAT_T];
   perm = ds->perm;
-  ierr = DSSortEigenvaluesReal_Private(ds,l,n,d,perm);CHKERRQ(ierr);
+  if (!rr) {
+    ierr = DSSortEigenvaluesReal_Private(ds,d,perm);CHKERRQ(ierr);
+  } else {
+    ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
+  }
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
   ierr = DSPermuteColumns_Private(ds,l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);

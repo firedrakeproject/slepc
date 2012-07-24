@@ -34,7 +34,7 @@ struct _DSOps {
   PetscErrorCode (*view)(DS,PetscViewer);
   PetscErrorCode (*vectors)(DS,DSMatType,PetscInt*,PetscReal*);
   PetscErrorCode (*solve[DS_MAX_SOLVE])(DS,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
   PetscErrorCode (*truncate)(DS,PetscInt);
   PetscErrorCode (*update)(DS);
   PetscErrorCode (*cond)(DS,PetscReal*);
@@ -70,7 +70,8 @@ PETSC_EXTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
 PETSC_EXTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);
 PETSC_EXTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode DSViewMat_Private(DS,PetscViewer,DSMatType);
-PETSC_EXTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscInt,PetscInt,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
+PETSC_EXTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);

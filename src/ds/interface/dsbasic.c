@@ -889,15 +889,69 @@ PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "DSSortEigenvalues_Private"
+PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,PetscInt *perm,PetscBool isghiep)
+{
+  PetscErrorCode ierr;
+  PetscScalar    re,im,wi0;
+  PetscInt       i,j,result,tmp1,tmp2=0,d=1;
+
+  PetscFunctionBegin;
+  for (i=0;i<ds->n;i++) perm[i] = i;
+  /* insertion sort */
+  i=ds->l+1;
+#if !defined(PETSC_USE_COMPLEX)
+  if(wi && wi[perm[i-1]]!=0.0) i++; /* initial value is complex */
+#else
+  if(isghiep && PetscImaginaryPart(wr[perm[i-1]])!=0.0) i++;
+#endif
+  for (;i<ds->n;i+=d) {
+    re = wr[perm[i]];
+    if (wi) im = wi[perm[i]];
+    else im = 0.0;
+    tmp1 = perm[i];
+#if !defined(PETSC_USE_COMPLEX)
+    if(im!=0.0) {d = 2; tmp2 = perm[i+1];}else d = 1;
+#else
+    if(isghiep && PetscImaginaryPart(re)!=0.0) {d = 2; tmp2 = perm[i+1];}else d = 1;
+#endif
+    j = i-1;
+    if (wi) wi0 = wi[perm[j]];
+    else wi0 = 0.0;
+    ierr = (*ds->comp_fun)(re,im,wr[perm[j]],wi0,&result,ds->comp_ctx);CHKERRQ(ierr);
+    while (result<0 && j>=ds->l) {
+      perm[j+d]=perm[j]; j--;
+#if !defined(PETSC_USE_COMPLEX)
+      if(wi && wi[perm[j+1]]!=0)
+#else
+      if(isghiep && PetscImaginaryPart(wr[perm[j+1]])!=0)
+#endif
+        {perm[j+d]=perm[j]; j--;}
+
+     if (j>=ds->l) {
+       if (wi) wi0 = wi[perm[j]];
+       else wi0 = 0.0;
+       ierr = (*ds->comp_fun)(re,im,wr[perm[j]],wi0,&result,ds->comp_ctx);CHKERRQ(ierr);
+     }
+    }
+    perm[j+1] = tmp1;
+    if(d==2) perm[j+2] = tmp2;
+  }
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "DSSortEigenvaluesReal_Private"
-PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscInt l,PetscInt n,PetscReal *eig,PetscInt *perm)
+PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm)
 {
   PetscErrorCode ierr;
   PetscScalar    re;
-  PetscInt       i,j,result,tmp;
+  PetscInt       i,j,result,tmp,l,n;
 
   PetscFunctionBegin;
+  n = ds->n;
+  l = ds->l;
   for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
   for (i=l+1;i<n;i++) {

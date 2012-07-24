@@ -79,7 +79,7 @@ int main( int argc, char **argv )
   ierr = PetscMalloc(k*sizeof(PetscScalar),&w);CHKERRQ(ierr);
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,PETSC_NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,w,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSSort(ds,w,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSort(ds,w,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);

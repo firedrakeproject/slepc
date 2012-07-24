@@ -240,7 +240,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     
     /* Update vectors V(:,idx) = V * U(:,idx) */
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);

@@ -378,55 +378,8 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds, PetscInt n0, PetscInt n1, PetscScalar *
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSSortEigenvalues_Private"
-static PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,PetscInt *perm)
-{
-  PetscErrorCode ierr;
-  PetscScalar    re,im;
-  PetscInt       i,j,result,tmp1,tmp2=0,d=1;
-
-  PetscFunctionBegin;
-  for (i=0;i<ds->n;i++) perm[i] = i;
-  /* insertion sort */
-  i=ds->l+1;
-#if !defined(PETSC_USE_COMPLEX)
-  if(wi[perm[i-1]]!=0.0) i++; /* initial value is complex */
-#else
-  if(PetscImaginaryPart(wr[perm[i-1]])!=0.0) i++;
-#endif
-  for (;i<ds->n;i+=d) {
-    re = wr[perm[i]];
-    im = wi[perm[i]];
-    tmp1 = perm[i];
-#if !defined(PETSC_USE_COMPLEX)
-    if(im!=0.0) {d = 2; tmp2 = perm[i+1];}else d = 1;
-#else
-    if(PetscImaginaryPart(re)!=0.0) {d = 2; tmp2 = perm[i+1];}else d = 1;
-#endif
-    j = i-1;
-    ierr = (*ds->comp_fun)(re,im,wr[perm[j]],wi[perm[j]],&result,ds->comp_ctx);CHKERRQ(ierr);
-    while (result<0 && j>=ds->l) {
-      perm[j+d]=perm[j]; j--;
-#if !defined(PETSC_USE_COMPLEX)
-      if(wi[perm[j+1]]!=0)
-#else
-      if(PetscImaginaryPart(wr[perm[j+1]])!=0)
-#endif
-        {perm[j+d]=perm[j]; j--;}
-
-     if (j>=ds->l) {
-       ierr = (*ds->comp_fun)(re,im,wr[perm[j]],wi[perm[j]],&result,ds->comp_ctx);CHKERRQ(ierr);
-     }
-    }
-    perm[j+1] = tmp1;
-    if(d==2) perm[j+2] = tmp2;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSort_GHIEP"
-PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
+PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,*perm;
@@ -439,7 +392,11 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   s = ds->rmat[DS_MAT_D];
   ierr = DSAllocateWork_Private(ds,ds->ld,ds->ld,0);CHKERRQ(ierr); 
   perm = ds->perm;
-  ierr = DSSortEigenvalues_Private(ds,wr,wi,perm);CHKERRQ(ierr);
+  if (rr == PETSC_NULL) {
+    rr = wr;
+    ri = wi;
+  }
+  ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_TRUE);CHKERRQ(ierr);
   if(!ds->compact){ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr);}
   ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {

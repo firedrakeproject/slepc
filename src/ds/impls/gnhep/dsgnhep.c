@@ -267,8 +267,63 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "DSSort_GNHEP"
-PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri)
+#define __FUNCT__ "DSSort_GNHEP_Arbitrary"
+PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+{
+#if defined(SLEPC_MISSING_LAPACK_TGSEN)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGSEN - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,*perm;
+  PetscBLASInt   info,n,ld,m_one=-1,mout,lwork,liwork,*iwork,*selection,zero_=0,true_=1;
+  PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Q = ds->mat[DS_MAT_Q],*Z = ds->mat[DS_MAT_Z],work0,*work,*beta;
+
+  PetscFunctionBegin;
+  if (!ds->comp_fun) PetscFunctionReturn(0);
+  n  = PetscBLASIntCast(ds->n);
+  ld = PetscBLASIntCast(ds->ld);
+#if !defined(PETSC_USE_COMPLEX)
+  LAPACKtgsen_(&zero_,&true_,&true_,PETSC_NULL,&n,S,&ld,T,&ld,wr,wi,PETSC_NULL,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,&work0,&m_one,&liwork,&m_one,&info);
+#else
+  LAPACKtgsen_(&zero_,&true_,&true_,PETSC_NULL,&n,S,&ld,T,&ld,wr,PETSC_NULL,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,&work0,&m_one,&liwork,&m_one,&info);
+#endif
+  lwork = (PetscBLASInt)PetscRealPart(work0);
+  ierr = DSAllocateWork_Private(ds,lwork+n,0,liwork+n);CHKERRQ(ierr); 
+  beta = ds->work;
+  work = ds->work + n;
+  lwork = ds->lwork - n;
+  selection = ds->iwork;
+  iwork = ds->iwork + n;
+  liwork = ds->liwork - n;
+  /* Compute the selected eigenvalue to be in the leading position */
+  perm = ds->perm;
+  ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
+  for (i=0; i<*k; i++) selection[perm[i]] = 1;
+#if !defined(PETSC_USE_COMPLEX)
+  LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,wi,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info);
+#else
+  LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTGSEN %d",info);
+  *k = mout;
+  for (i=0;i<n;i++) {
+    if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    else wr[i] /= beta[i];
+#if !defined(PETSC_USE_COMPLEX)
+    if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    else wi[i] /= beta[i];
+#endif
+  }
+  PetscFunctionReturn(0);
+#endif 
+}
+
+
+#undef __FUNCT__  
+#define __FUNCT__ "DSSort_GNHEP_Total"
+PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
   PetscFunctionBegin;
@@ -354,6 +409,22 @@ PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscFunctionReturn(0);
 #endif 
 }
+
+#undef __FUNCT__  
+#define __FUNCT__ "DSSort_GNHEP"
+PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (rr == PETSC_NULL || wr == rr) {
+    ierr = DSSort_GNHEP_Total(ds,wr,wi);CHKERRQ(ierr);
+  } else {
+    ierr = DSSort_GNHEP_Arbitrary(ds,wr,wi,rr,ri,k);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__
 #define __FUNCT__ "CleanDenseSchur"

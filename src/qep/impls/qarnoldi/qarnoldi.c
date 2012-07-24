@@ -228,7 +228,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 
     /* Solve projected problem */ 
     ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
-    ierr = DSSort(qep->ds,qep->eigr,qep->eigi,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(qep->ds,qep->eigr,qep->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(qep->ds);CHKERRQ(ierr);
 
     /* Check convergence */ 
