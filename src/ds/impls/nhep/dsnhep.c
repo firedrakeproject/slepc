@@ -277,7 +277,6 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 #endif
 
   PetscFunctionBegin;
-  if (!ds->comp_fun) PetscFunctionReturn(0);
   n  = PetscBLASIntCast(ds->n);
   ld = PetscBLASIntCast(ds->ld);
 #if !defined(PETSC_USE_COMPLEX)
@@ -300,7 +299,7 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
   /* Compute the selected eigenvalue to be in the leading position */
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
-  for (i=0; i<*k; i++) selection[perm[i]] = 1;
+  for (i=0;i<*k;i++) selection[perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info);
 #else
@@ -311,7 +310,6 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
   PetscFunctionReturn(0);
 #endif 
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_NHEP_Total"
@@ -332,7 +330,6 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (!ds->comp_fun) PetscFunctionReturn(0);
   n  = PetscBLASIntCast(ds->n);
   ld = PetscBLASIntCast(ds->ld);
 #if !defined(PETSC_USE_COMPLEX)
@@ -401,14 +398,13 @@ PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (rr == PETSC_NULL || wr == rr) {
+  if (!rr || wr == rr) {
     ierr = DSSort_NHEP_Total(ds,wr,wi);CHKERRQ(ierr);
   } else {
     ierr = DSSort_NHEP_Arbitrary(ds,wr,wi,rr,ri,k);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSUpdateExtraRow_NHEP"

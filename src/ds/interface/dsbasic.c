@@ -902,9 +902,9 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
   /* insertion sort */
   i=ds->l+1;
 #if !defined(PETSC_USE_COMPLEX)
-  if(wi && wi[perm[i-1]]!=0.0) i++; /* initial value is complex */
+  if (wi && wi[perm[i-1]]!=0.0) i++; /* initial value is complex */
 #else
-  if(isghiep && PetscImaginaryPart(wr[perm[i-1]])!=0.0) i++;
+  if (isghiep && PetscImaginaryPart(wr[perm[i-1]])!=0.0) i++;
 #endif
   for (;i<ds->n;i+=d) {
     re = wr[perm[i]];
@@ -912,22 +912,25 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
     else im = 0.0;
     tmp1 = perm[i];
 #if !defined(PETSC_USE_COMPLEX)
-    if(im!=0.0) {d = 2; tmp2 = perm[i+1];}else d = 1;
+    if (im!=0.0) { d = 2; tmp2 = perm[i+1]; }
+    else d = 1;
 #else
-    if(isghiep && PetscImaginaryPart(re)!=0.0) {d = 2; tmp2 = perm[i+1];}else d = 1;
+    if (isghiep && PetscImaginaryPart(re)!=0.0) { d = 2; tmp2 = perm[i+1]; }
+    else d = 1;
 #endif
     j = i-1;
     if (wi) wi0 = wi[perm[j]];
     else wi0 = 0.0;
     ierr = (*ds->comp_fun)(re,im,wr[perm[j]],wi0,&result,ds->comp_ctx);CHKERRQ(ierr);
     while (result<0 && j>=ds->l) {
-      perm[j+d]=perm[j]; j--;
+      perm[j+d] = perm[j];
+      j--;
 #if !defined(PETSC_USE_COMPLEX)
-      if(wi && wi[perm[j+1]]!=0)
+      if (wi && wi[perm[j+1]]!=0)
 #else
-      if(isghiep && PetscImaginaryPart(wr[perm[j+1]])!=0)
+      if (isghiep && PetscImaginaryPart(wr[perm[j+1]])!=0)
 #endif
-        {perm[j+d]=perm[j]; j--;}
+        { perm[j+d] = perm[j]; j--; }
 
      if (j>=ds->l) {
        if (wi) wi0 = wi[perm[j]];

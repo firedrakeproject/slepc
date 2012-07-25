@@ -320,7 +320,6 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
 #endif 
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "DSSort_GNHEP_Total"
 PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -356,7 +355,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     re = wr[i];
     im = wi[i];
     pos = 0;
-    j=i+1; /* j points to the next eigenvalue */
+    j = i+1; /* j points to the next eigenvalue */
 #if !defined(PETSC_USE_COMPLEX)
     if (im != 0) j=i+2;
 #endif
@@ -417,14 +416,13 @@ PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (rr == PETSC_NULL || wr == rr) {
+  if (!rr || wr == rr) {
     ierr = DSSort_GNHEP_Total(ds,wr,wi);CHKERRQ(ierr);
   } else {
     ierr = DSSort_GNHEP_Arbitrary(ds,wr,wi,rr,ri,k);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__
 #define __FUNCT__ "CleanDenseSchur"

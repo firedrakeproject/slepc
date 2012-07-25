@@ -392,7 +392,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   s = ds->rmat[DS_MAT_D];
   ierr = DSAllocateWork_Private(ds,ds->ld,ds->ld,0);CHKERRQ(ierr); 
   perm = ds->perm;
-  if (rr == PETSC_NULL) {
+  if (!rr) {
     rr = wr;
     ri = wi;
   }
