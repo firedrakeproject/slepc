@@ -31,6 +31,9 @@ PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
   PetscFunctionBegin;
   ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr); 
   ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr); 
+  ierr = PetscFree(ds->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(ds,ld*sizeof(PetscInt));CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
@@ -269,7 +272,7 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRSEN - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,*perm;
+  PetscInt       i;
   PetscBLASInt   info,n,ld,mout,lwork,*selection;
   PetscScalar    *T = ds->mat[DS_MAT_A],*Q = ds->mat[DS_MAT_Q],*work;
 #if !defined(PETSC_USE_COMPLEX)
@@ -282,24 +285,22 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 #if !defined(PETSC_USE_COMPLEX)
   lwork = n;
   liwork = 1;
-  ierr = DSAllocateWork_Private(ds,lwork,0,liwork+2*n);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,lwork,0,liwork+n);CHKERRQ(ierr); 
   work = ds->work;
   lwork = ds->lwork;
   selection = ds->iwork;
-  perm = ds->iwork + n;
-  iwork = ds->iwork + 2*n;
-  liwork = ds->liwork - 2*n;
+  iwork = ds->iwork + n;
+  liwork = ds->liwork - n;
 #else
   lwork = 1;
-  ierr = DSAllocateWork_Private(ds,lwork,0,2*n);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,lwork,0,n);CHKERRQ(ierr); 
   work = ds->work;
   selection = ds->iwork;
-  perm = ds->iwork + n;
 #endif
   /* Compute the selected eigenvalue to be in the leading position */
-  ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = DSSortEigenvalues_Private(ds,rr,ri,ds->perm,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
-  for (i=0;i<*k;i++) selection[perm[i]] = 1;
+  for (i=0;i<*k;i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info);
 #else

@@ -52,7 +52,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with zero diagonal, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
            Create matrix tridiag([-1 0 -1])

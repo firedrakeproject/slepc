@@ -1,6 +1,6 @@
 eps type gd
 
-Tridiagonal with random diagonal, n=30
+Tridiagonal with zero diagonal, n=30
 
  All requested eigenvalues computed up to the required tolerance:
      -0.10130
@@ -10,7 +10,7 @@ Tridiagonal with random diagonal, n=30
 
 eps type jd
 
-Tridiagonal with random diagonal, n=30
+Tridiagonal with zero diagonal, n=30
 
  All requested eigenvalues computed up to the required tolerance:
      0.10130

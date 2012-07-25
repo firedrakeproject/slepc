@@ -52,6 +52,9 @@ PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
   ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr); 
   ierr = DSAllocateMat_Private(ds,DS_MAT_Z);CHKERRQ(ierr); 
   ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr); 
+  ierr = PetscFree(ds->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(ds,ld*sizeof(PetscInt));CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
 
@@ -275,7 +278,7 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGSEN - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,*perm;
+  PetscInt       i;
   PetscBLASInt   info,n,ld,mout,lwork,liwork,*iwork,*selection,zero_=0,true_=1;
   PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Q = ds->mat[DS_MAT_Q],*Z = ds->mat[DS_MAT_Z],*work,*beta;
 
@@ -289,18 +292,17 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
   lwork = 1;
 #endif
   liwork = 1;
-  ierr = DSAllocateWork_Private(ds,lwork+2*n,0,liwork+2*n);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,lwork+2*n,0,liwork+n);CHKERRQ(ierr); 
   beta = ds->work;
   work = ds->work + n;
   lwork = ds->lwork - n;
   selection = ds->iwork;
-  perm = ds->iwork + n;
-  iwork = ds->iwork + 2*n;
-  liwork = ds->liwork - 2*n;
+  iwork = ds->iwork + n;
+  liwork = ds->liwork - n;
   /* Compute the selected eigenvalue to be in the leading position */
-  ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = DSSortEigenvalues_Private(ds,rr,ri,ds->perm,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
-  for (i=0; i<*k; i++) selection[perm[i]] = 1;
+  for (i=0; i<*k; i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,wi,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info);
 #else
