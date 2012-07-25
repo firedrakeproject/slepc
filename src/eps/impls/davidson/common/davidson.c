@@ -674,7 +674,8 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
       ierr = SlepcDenseCopyTriang(cT,0,ld,d->cT,0,d->ldcT,d->size_cS,d->size_cS);CHKERRQ(ierr);
       ierr = DSRestoreArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
     }
-    ierr = DSSetState(d->conv_ps,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = DSSetState(d->conv_ps,DS_STATE_RAW);CHKERRQ(ierr);
+    ierr = DSSolve(d->conv_ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSVectors(d->conv_ps,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->conv_ps,DS_MAT_X,-1);CHKERRQ(ierr);
 

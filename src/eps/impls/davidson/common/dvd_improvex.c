@@ -374,7 +374,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
     ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
     ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
-    ierr = dvd_improvex_jd_proj_cuv(d,r_s+i,r_s+i+s,&u,&v,kr,&data->auxV,&auxS,data->theta,data->thetai,&pX[ld*(r_s+i+d->cX_in_H)],&pY[ld*(r_s+i+d->cX_in_H)],ld);CHKERRQ(ierr);
+    ierr = dvd_improvex_jd_proj_cuv(d,r_s+i,r_s+i+s,&u,&v,kr,&data->auxV,&auxS,data->theta,data->thetai,pX,pY,ld);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
     data->u = u;
@@ -980,7 +980,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d, PetscInt i_s,
   /* Bx <- B*X(i) */
   Bx = kr;
   if (d->BV) {
-    ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
+    ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n); CHKERRQ(ierr);
   } else {
     for(i=0; i<n; i++) {
       if (d->B) {
@@ -993,10 +993,10 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d, PetscInt i_s,
 
   /* Ax <- A*X(i) */
   Ax = r;
-  ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n); CHKERRQ(ierr);
 
   /* v <- Y(i) */
-  ierr = SlepcUpdateVectorsZ(v, 0.0, 1.0, (d->W?d->W:d->V)-d->cX_in_H, d->size_V+d->cX_in_H, pY, ld, d->size_H, n); CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(v, 0.0, 1.0, (d->W?d->W:d->V)-d->cX_in_H, d->size_V+d->cX_in_H, &pY[ld*i_s], ld, d->size_H, n); CHKERRQ(ierr);
 
   /* Recompute the eigenvalue */
   DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, v, Ax, Bx, b, ierr);
@@ -1072,12 +1072,12 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
 
   /* [v u] <- X(i) Y(i) */
   ierr = dvd_improvex_compute_X(d,i_s,i_e,v,pX,ld);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectorsZ(u, 0.0, 1.0, (d->W?d->W:d->V)-d->cX_in_H, d->size_V+d->cX_in_H, pY, ld, d->size_H, n); CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(u, 0.0, 1.0, (d->W?d->W:d->V)-d->cX_in_H, d->size_V+d->cX_in_H, &pY[ld*i_s], ld, d->size_H, n); CHKERRQ(ierr);
 
   /* Bx <- B*X(i) */
   Bx = r;
   if (d->BV) {
-    ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
+    ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n); CHKERRQ(ierr);
   } else {
     if (d->B) {
       for(i=0; i<n; i++) {
@@ -1089,7 +1089,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
 
   /* Ax <- A*X(i) */
   Ax = kr;
-  ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV+d->cX_in_H, pX, ld, d->size_H, n); CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n); CHKERRQ(ierr);
 
   /* Recompute the eigenvalue */
   DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, u, Ax, Bx, b, ierr);

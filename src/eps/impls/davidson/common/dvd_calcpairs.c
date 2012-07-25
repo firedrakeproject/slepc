@@ -713,10 +713,10 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
 
 #undef __FUNCT__ 
 #define __FUNCT__ "dvd_calcpairs_apply_arbitrary_func"
-PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscScalar *rr,PetscScalar *ri)
+PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscScalar **rr_,PetscScalar **ri_)
 {
   PetscInt        i,k,ld;
-  PetscScalar     *pX;
+  PetscScalar     *pX,*rr,*ri,ar,ai;
   Vec             *X = d->auxV,xr,xi;
   PetscErrorCode  ierr;
 #if !defined(PETSC_USE_COMPLEX)
@@ -724,6 +724,23 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
 #endif
   
   PetscFunctionBegin;
+  /* Quick exit without neither arbitrary selection nor harmonic extraction */
+  if (!d->eps->arbit_func && !d->calcpairs_eig_backtrans) {
+    *rr_ = d->eigr-d->cX_in_H;
+    *ri_ = d->eigi-d->cX_in_H;
+    PetscFunctionReturn(0);
+  }
+
+  *rr_ = rr = d->auxS;
+  *ri_ = ri = d->auxS + r_e - r_s;
+  /* Quick exit without arbitrary selection, but with harmonic extraction */
+  if (!d->eps->arbit_func && d->calcpairs_eig_backtrans) {
+    for (i=r_s; i<r_e; i++) {
+      ierr = d->calcpairs_eig_backtrans(d,d->eigr[i],d->eigi[i],&rr[i-r_s],&ri[i-r_s]);CHKERRQ(ierr);
+    }
+    PetscFunctionReturn(0);
+  }
+
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   for (i=r_s; i<r_e; i++) {
     k = i;
@@ -750,7 +767,20 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
       ierr = VecScale(xr,1.0/d->nX[i]);CHKERRQ(ierr);
     }
 #endif
-    ierr = (d->eps->arbit_func)(d->eigr[i],d->eigi[i],xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbit_ctx);CHKERRQ(ierr);
+    if (d->calcpairs_eig_backtrans) {
+      ierr = d->calcpairs_eig_backtrans(d,d->eigr[i],d->eigi[i],&ar,&ai);CHKERRQ(ierr);
+    } else {
+      ar = d->eigr[i];
+      ai = d->eigi[i];
+    }
+    ierr = (d->eps->arbit_func)(ar,ai,xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbit_ctx);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    if (i != k) {
+      rr[i+1-r_s] = rr[i-r_s];
+      ri[i+1-r_s] = ri[i-r_s];
+      i++;
+    }
+#endif
   }
   PetscFunctionReturn(0);
 }
@@ -765,16 +795,10 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d, PetscInt n)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
+  n = PetscMin(n,d->size_H-d->cX_in_H);
   /* Put the best n pairs at the beginning. Useful for restarting */
   ierr = DSSetDimensions(d->ps,PETSC_IGNORE,PETSC_IGNORE,d->cX_in_H,PETSC_IGNORE);CHKERRQ(ierr);
-  if (d->eps->arbit_func) {
-    rr = d->auxS;
-    ri = d->auxS + d->size_H;
-    ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->size_H,rr,ri);CHKERRQ(ierr);
-  } else {
-    rr = d->eigr-d->cX_in_H;
-    ri = d->eigi-d->cX_in_H;
-  }
+  ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->size_H,&rr,&ri);CHKERRQ(ierr);
   k = n;
   ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,rr,ri,&k);CHKERRQ(ierr);
   /* Put the best pair at the beginning. Useful to check its residual */
@@ -784,14 +808,7 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d, PetscInt n)
   if (n != 1)
 #endif
   {
-    if (d->eps->arbit_func) {
-      rr = d->auxS;
-      ri = d->auxS + n;
-      ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->cX_in_H+n,rr,ri);CHKERRQ(ierr);
-    } else {
-      rr = d->eigr-d->cX_in_H;
-      ri = d->eigi-d->cX_in_H;
-    }
+    ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->cX_in_H+n,&rr,&ri);CHKERRQ(ierr);
     k = 1;
     ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,&k);CHKERRQ(ierr);
   }

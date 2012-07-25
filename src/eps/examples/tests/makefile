@@ -25,10 +25,10 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
-             test8.c test9.c test10.c test11.c
+             test8.c test9.c test10.c test11.c test12.c test13.c
 EXAMPLESF  = test7f.F
 MANSEC     = EPS
-TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 test11
+TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 test11 test12 test13
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
@@ -39,7 +39,8 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
                        test9.PETSc runtest9_1 test9.rm \
                        test10.PETSc runtest10_1 test10.rm \
                        test11.PETSc runtest11_1 test11.rm \
-                       test12.PETSc runtest12_1 test12.rm 
+                       test12.PETSc runtest12_1 test12.rm \
+                       test13.PETSc runtest13_1 test13.rm
 TESTEXAMPLES_C_NOF128= test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
 TESTEXAMPLES_BLOPEX  = test5.PETSc runtest5_blopex test5.rm 
@@ -94,9 +95,14 @@ test12: test12.o chkopts
 	-${CLINKER} -o test12 test12.o ${SLEPC_LIB}
 	${RM} test12.o
 
+test13: test13.o chkopts
+	-${CLINKER} -o test13 test13.o ${SLEPC_LIB}
+	${RM} test13.o
+
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd
 EPSNS  = krylovschur arnoldi gd jd
+EPSAR  = gd jd
 
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
@@ -272,5 +278,21 @@ runtest12_1:
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
 	   ${MPIEXEC} -np 1 ./test12 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
+	done > $${test}.tmp; \
+	${TESTCODE}
+
+runtest13_1:
+	-@test=test13_1; \
+	for eps in ${EPSAR}; do \
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test13 -eps_type $$eps -eps_max_it 5000 -eps_terse 2>&1;    \
+	done > $${test}.tmp; \
+	${TESTCODE}
+
+runtest13_2:
+	-@test=test13_2; \
+	for eps in ${EPSAR}; do \
+	   echo "eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test13 -eps_type $$eps -eps_non_hermitian -eps_max_it 5000 -eps_terse 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}

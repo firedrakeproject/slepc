@@ -239,6 +239,7 @@ typedef struct _dvdDashboard {
   void *calcpairs_W_data;
   PetscErrorCode (*calcpairs_proj_trans)(struct _dvdDashboard*);
   PetscErrorCode (*calcpairs_eigs_trans)(struct _dvdDashboard*);
+  PetscErrorCode (*calcpairs_eig_backtrans)(struct _dvdDashboard*,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
   PetscErrorCode (*calcpairs_proj_res)(struct _dvdDashboard*, PetscInt r_s,
                   PetscInt r_e, Vec *R);
   PetscErrorCode (*preTestConv)(struct _dvdDashboard*, PetscInt s, PetscInt pre,
@@ -572,7 +573,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscI
   PetscInt        n = i_e - i_s, i;
 
   PetscFunctionBegin;
-  ierr = SlepcUpdateVectorsZ(u,0.0,1.0,d->V-d->cX_in_H,d->size_V+d->cX_in_H,pX,ld,d->size_H,n);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(u,0.0,1.0,d->V-d->cX_in_H,d->size_V+d->cX_in_H,&pX[ld*i_s],ld,d->size_H,n);CHKERRQ(ierr);
   /* nX(i) <- ||X(i)|| */
   if (d->correctXnorm) {
     for (i=0; i<n; i++) {
