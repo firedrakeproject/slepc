@@ -56,6 +56,38 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STMatSetHermitian"
+/*
+   STMatSetHermitian - Sets the Hermitian flag to the ST matrix.
+
+   Input Parameters:
+.  st - the spectral transformation context
+.  M  - matrix
+*/
+PetscErrorCode STMatSetHermitian(ST st,Mat M)
+{
+#if defined(PETSC_USE_COMPLEX)
+  PetscErrorCode ierr;
+  PetscBool      set,aherm,bherm,mherm;
+#endif
+
+  PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  ierr = MatIsHermitianKnown(st->A,&set,&aherm);CHKERRQ(ierr);
+  if (!set) aherm = PETSC_FALSE;
+  mherm = aherm;
+  if (st->B) {
+    ierr = MatIsHermitianKnown(st->B,&set,&bherm);CHKERRQ(ierr);
+    if (!set) bherm = PETSC_FALSE;
+    mherm = (mherm && bherm)? PETSC_TRUE: PETSC_FALSE;
+  }
+  mherm = (mherm && PetscImaginaryPart(st->sigma)==0.0)? PETSC_TRUE: PETSC_FALSE;
+  ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
+#endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STAssociatedKSPSolveTranspose"
 /*
    STAssociatedKSPSolveTranspose - Solves the transpose of the linear 

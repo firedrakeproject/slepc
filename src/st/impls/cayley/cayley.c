@@ -204,10 +204,13 @@ PetscErrorCode STSetUp_Cayley(ST st)
         ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
       }
     }
+    /* TODO: should keep the Hermitian flag of st->A and restore at the end */
+    ierr = STMatSetHermitian(st,st->A);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
     ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
+    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
@@ -219,6 +222,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
         ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
       }
     }
+    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   if (st->B) { 
@@ -269,9 +273,11 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
         ierr = MatShift(st->A,-newshift);CHKERRQ(ierr);
       }
     }
+    ierr = STMatSetHermitian(st,st->A);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
+    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
@@ -280,6 +286,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
       if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
     }
+    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,flg);CHKERRQ(ierr);    
   }
   st->sigma = newshift;

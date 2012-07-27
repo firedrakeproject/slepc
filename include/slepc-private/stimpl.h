@@ -70,7 +70,8 @@ PETSC_EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
-PETSC_EXTERN PetscErrorCode STMatShellCreate(ST st,Mat *mat);
+PETSC_EXTERN PetscErrorCode STMatShellCreate(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 
 #endif
 

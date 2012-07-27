@@ -129,10 +129,13 @@ PetscErrorCode STSetUp_Sinvert(ST st)
         ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
       }
     }
+    /* TODO: should keep the Hermitian flag of st->A and restore at the end */
+    ierr = STMatSetHermitian(st,st->A);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
     ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
+    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
@@ -140,6 +143,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
       ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
       if (st->B) { ierr = MatAXPY(st->mat,-st->sigma,st->B,st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); }
+      ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
       ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     } else {
       st->mat = PETSC_NULL;
@@ -186,9 +190,11 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
         ierr = MatShift(st->A,-newshift);CHKERRQ(ierr);
       }
     }
+    ierr = STMatSetHermitian(st,st->A);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
+    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
@@ -201,6 +207,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
     }
+    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,flg);CHKERRQ(ierr);    
   }
   st->sigma = newshift;
