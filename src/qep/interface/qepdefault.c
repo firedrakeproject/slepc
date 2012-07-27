@@ -89,9 +89,8 @@ PetscErrorCode QEPConvergedAbsolute(QEP qep,PetscScalar eigr,PetscScalar eigi,Pe
 PetscErrorCode QEPComputeVectors_Schur(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i,ld;
-  PetscBLASInt   n_,one = 1; 
-  PetscScalar    *Z,tmp;
+  PetscInt       n,ld;
+  PetscScalar    *Z;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      normi;
 #endif
@@ -100,32 +99,10 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(qep->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */
   ierr = DSVectors(qep->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
-  /* normalize eigenvectors */
-  ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (qep->eigi[i] != 0.0) {
-      norm = BLASnrm2_(&n_,Z+i*ld,&one);
-      normi = BLASnrm2_(&n_,Z+(i+1)*ld,&one);
-      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      BLASscal_(&n_,&tmp,Z+i*ld,&one);
-      BLASscal_(&n_,&tmp,Z+(i+1)*ld,&one);
-      i++;     
-    } else
-#endif
-    {
-      norm = BLASnrm2_(&n_,Z+i*ld,&one);
-      tmp = 1.0 / norm;
-      BLASscal_(&n_,&tmp,Z+i*ld,&one);
-    }
-  }
-  ierr = DSRestoreArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  
   /* AV = V * Z */
   ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   ierr = SlepcUpdateVectors(n,qep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);

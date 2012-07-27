@@ -155,7 +155,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,ld;
-  PetscBLASInt   n_,one = 1;
   PetscScalar    *Z,tmp;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      normi;
@@ -174,34 +173,10 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  n_ = PetscBLASIntCast(n);
 
   /* right eigenvectors */
   ierr = DSVectors(eps->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
-  /* normalize eigenvectors (when not using purification nor balancing)*/
-  if (!(eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D))) {
-    ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[i] != 0.0) {
-        norm = BLASnrm2_(&n_,Z+i*ld,&one);
-        normi = BLASnrm2_(&n_,Z+(i+1)*ld,&one);
-        tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-        BLASscal_(&n_,&tmp,Z+i*ld,&one);
-        BLASscal_(&n_,&tmp,Z+(i+1)*ld,&one);
-        i++;     
-      } else
-#endif
-      {
-        norm = BLASnrm2_(&n_,Z+i*ld,&one);
-        tmp = 1.0 / norm;
-        BLASscal_(&n_,&tmp,Z+i*ld,&one);
-      }
-    }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  }
-  
   /* V = V * Z */
   ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
