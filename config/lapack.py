@@ -31,7 +31,7 @@ def Check(conf,vars,cmake,tmpdir):
   log.Println('Checking LAPACK library...')
 
   # LAPACK standard functions
-  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','steqr','hsein','larfg','larf','trsen','tgsen']
+  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','steqr','stedc','hsein','larfg','larf','trsen','tgsen']
 
   # LAPACK functions with different real and complex versions
   if petscconf.SCALAR == 'real':
@@ -57,7 +57,7 @@ def Check(conf,vars,cmake,tmpdir):
     functions.append(prefix + i)
 
   # in this case, the real name represents both versions
-  namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr'}
+  namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'ungtr':'orgtr'}
 
   # LAPACK functions which are always used in real version 
   if petscconf.PRECISION == 'single':
