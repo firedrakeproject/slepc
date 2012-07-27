@@ -113,7 +113,8 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   PetscReal         value;
   const char *methodname[] = {
                      "Implicit QR method (_steqr)",
-                     "Relatively Robust Representations (_stevr)"
+                     "Relatively Robust Representations (_stevr)",
+                     "Divide and Conquer method (_stedc)"
   };
 
   PetscFunctionBegin;
@@ -579,6 +580,65 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "DSSolve_HEP_DC"
+PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
+{
+#if defined(SLEPC_MISSING_LAPACK_STEDC) || defined(SLEPC_MISSING_LAPACK_ORMTR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEDC/ORMTR - Lapack routine is unavailable.");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   n1,info,l,ld,off,lrwork,liwork;
+  PetscScalar    *Q,*A;
+  PetscReal      *d,*e;
+#if defined(PETSC_USE_COMPLEX)
+  PetscBLASInt   lwork;
+#endif
+ 
+  PetscFunctionBegin;
+  ld = PetscBLASIntCast(ds->ld);
+  l = PetscBLASIntCast(ds->l);
+  n1 = PetscBLASIntCast(ds->n-ds->l);
+  off = l+l*ld;
+  Q  = ds->mat[DS_MAT_Q];
+  A  = ds->mat[DS_MAT_A];
+  d  = ds->rmat[DS_MAT_T];
+  e  = ds->rmat[DS_MAT_T]+ld;
+
+  /* Reduce to tridiagonal form */
+  ierr = DSIntermediate_HEP(ds);CHKERRQ(ierr);
+
+  /* Solve the tridiagonal eigenproblem */
+  for (i=0;i<l;i++) wr[i] = d[i];
+ 
+  lrwork = 5*n1*n1+3*n1+1;
+  liwork = 5*n1*n1+6*n1+6;
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = DSAllocateWork_Private(ds,0,lrwork,liwork);CHKERRQ(ierr);
+  LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&lrwork,ds->iwork,&liwork,&info);
+#else
+  lwork = ld*ld;
+  ierr = DSAllocateWork_Private(ds,lwork,lrwork,liwork);CHKERRQ(ierr);
+  LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->work,&lwork,ds->rwork,&lrwork,ds->iwork,&liwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  for (i=l;i<ds->n;i++) wr[i] = d[i];
+
+  /* Create diagonal matrix as a result */
+  if (ds->compact) {
+    ierr = PetscMemzero(e,(ds->n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+  } else {
+    for (i=l;i<ds->n;i++) {
+      ierr = PetscMemzero(A+l+i*ld,(ds->n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    for (i=l;i<ds->n;i++) A[i+i*ld] = d[i];
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "DSTruncate_HEP"
 PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
@@ -709,6 +769,7 @@ PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->vectors       = DSVectors_HEP;
   ds->ops->solve[0]      = DSSolve_HEP_QR;
   ds->ops->solve[1]      = DSSolve_HEP_MRRR;
+  ds->ops->solve[2]      = DSSolve_HEP_DC;
   ds->ops->sort          = DSSort_HEP;
   ds->ops->truncate      = DSTruncate_HEP;
   ds->ops->update        = DSUpdateExtraRow_HEP;
