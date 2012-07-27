@@ -637,9 +637,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   shift          s;
  
   PetscFunctionBegin;
-#if defined(PETSC_USE_COMPLEX)
-  SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing not supported in complex scalars"); 
-#endif
   ierr = PetscMalloc(sizeof(struct _n_SR),&sr);CHKERRQ(ierr);
   eps->data = sr;
   sr->itsKs = 0;
