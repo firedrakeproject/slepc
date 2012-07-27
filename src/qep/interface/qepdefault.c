@@ -91,10 +91,6 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   PetscErrorCode ierr;
   PetscInt       n,ld;
   PetscScalar    *Z;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscReal      normi;
-#endif
-  PetscReal      norm;
   
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
