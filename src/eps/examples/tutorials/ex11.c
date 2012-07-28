@@ -35,8 +35,7 @@ int main (int argc,char **argv)
   Mat            A;               /* operator matrix */
   Vec            x;
   const EPSType  type;
-  PetscReal      tol;
-  PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev,maxit,its;
+  PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev;
   PetscScalar    w;
   PetscBool      flag;
   PetscErrorCode ierr;
@@ -113,8 +112,6 @@ int main (int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
@@ -123,8 +120,6 @@ int main (int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up

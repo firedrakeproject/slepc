@@ -57,9 +57,8 @@
       EPS            solver
 #endif
       EPSType        tname
-      PetscReal      tol
       PetscInt       n, i, Istart, Iend, one, two, three
-      PetscInt       nev, maxit
+      PetscInt       nev
       PetscInt       row(1), col(3)
       PetscMPIInt    rank
       PetscErrorCode ierr
@@ -157,11 +156,6 @@
         write(*,130) nev
       endif
  130  format (' Number of requested eigenvalues:',I4)
-      call EPSGetTolerances(solver,tol,maxit,ierr)
-      if (rank .eq. 0) then
-        write(*,140) tol, maxit
-      endif
- 140  format (' Stopping condition: tol=',1P,E10.4,', maxit=',I4)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up

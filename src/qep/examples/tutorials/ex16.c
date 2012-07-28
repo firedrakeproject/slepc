@@ -33,8 +33,7 @@ int main(int argc,char **argv)
   Mat            M,C,K;           /* problem matrices */
   QEP            qep;             /* quadratic eigenproblem solver context */
   const QEPType  type;
-  PetscReal      tol;
-  PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j;
+  PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j;
   PetscBool      flag;
   PetscErrorCode ierr;
 
@@ -119,8 +118,6 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = QEPGetDimensions(qep,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = QEPGetTolerances(qep,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up

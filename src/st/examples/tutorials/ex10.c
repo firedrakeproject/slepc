@@ -48,9 +48,8 @@ int main (int argc,char **argv)
   ST             st;              /* spectral transformation context */
   SampleShellST  *shell;          /* user-defined spectral transform context */
   const EPSType  type;
-  PetscReal      tol;
   PetscScalar    value[3];
-  PetscInt       n=30,i,col[3],Istart,Iend,FirstBlock=0,LastBlock=0,nev,maxit;
+  PetscInt       n=30,i,col[3],Istart,Iend,FirstBlock=0,LastBlock=0,nev;
   PetscBool      isShell;
   PetscErrorCode ierr;
 
@@ -145,8 +144,6 @@ int main (int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
