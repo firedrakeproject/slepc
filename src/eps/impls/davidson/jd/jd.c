@@ -325,8 +325,6 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(minv,2);
-  PetscValidIntPointer(plusk,3);
   ierr = PetscTryMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -593,8 +591,6 @@ PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(pwindow,2);
-  PetscValidIntPointer(qwindow,3);
   ierr = PetscTryMethod(eps,"EPSJDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

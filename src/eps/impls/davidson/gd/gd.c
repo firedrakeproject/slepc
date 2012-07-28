@@ -70,7 +70,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = PetscOptionsInt("-eps_gd_qwindow","(Experimental!) Set the number of converged vectors in the projected problem","EPSGDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsBool("-eps_gd_use_gd2","use the doble-expansion variant of GD","EPSGDSetDoubleExpansion",PETSC_FALSE,&op,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_gd_double_expansion","use the doble-expansion variant of GD","EPSGDSetDoubleExpansion",PETSC_FALSE,&op,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetDoubleExpansion(eps,op);CHKERRQ(ierr); }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
@@ -144,6 +144,8 @@ PetscErrorCode EPSCreate_GD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetInitialSize_C","EPSDavidsonGetInitialSize_Davidson",EPSDavidsonGetInitialSize_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetWindowSizes_C","EPSDavidsonSetWindowSizes_Davidson",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetWindowSizes_C","EPSDavidsonGetWindowSizes_Davidson",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetDoubleExpansion_C","EPSGDSetDoubleExpansion_GD",EPSGDSetDoubleExpansion_GD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetDoubleExpansion_C","EPSGDGetDoubleExpansion_GD",EPSGDGetDoubleExpansion_GD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -168,6 +170,8 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetInitialSize_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDSetDoubleExpansion_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSGDGetDoubleExpansion_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -316,8 +320,6 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(minv,2);
-  PetscValidIntPointer(plusk,3);
   ierr = PetscTryMethod(eps,"EPSGDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -513,8 +515,6 @@ PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(pwindow,2);
-  PetscValidIntPointer(qwindow,3);
   ierr = PetscTryMethod(eps,"EPSGDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -554,11 +554,66 @@ PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSGDSetDoubleExpansion_GD"
+PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool use_gd2)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = EPSDavidsonSetMethod_Davidson(eps,use_gd2?DVD_METH_GD2:DVD_METH_GD);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGDGetDoubleExpansion_GD"
+PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *flg)
+{
+  Method_t       meth;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = EPSDavidsonGetMethod_Davidson(eps,&meth);CHKERRQ(ierr);
+  if (meth==DVD_METH_GD2) *flg = PETSC_TRUE;
+  else *flg = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSGDGetDoubleExpansion"
+/*@
+   EPSGDGetDoubleExpansion - Gets a flag indicating whether the double 
+   expansion variant has been activated or not.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  flg - the flag
+
+   Level: advanced
+
+.seealso: EPSGDSetDoubleExpansion()
+@*/
+PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *flg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(flg,2);
+  ierr = PetscTryMethod(eps,"EPSGDGetDoubleExpansion_C",(EPS,PetscBool*),(eps,flg));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSGDSetDoubleExpansion"
 /*@
-   EPSGDSetDoubleExpansion - Set if the search subspace is expanded with K*[A*x B*x] (double
-   expansion) instead of the classic K*r, where K is the preconditioner, x the selected
-   approximate eigenvector and r its associated residual vector.
+   EPSGDSetDoubleExpansion - Activate a variant where the search subspace is
+   expanded with K*[A*x B*x] (double expansion) instead of the classic K*r,
+   where K is the preconditioner, x the selected approximate eigenvector and
+   r its associated residual vector.
 
    Logically Collective on EPS
 
@@ -567,7 +622,7 @@ PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
 -  use_gd2 - the boolean flag
 
    Options Database Keys:
-.  -eps_gd_use_gd2 - set the use of the double-expansion variant of GD
+.  -eps_gd_double_expansion - activate the double-expansion variant of GD
    
    Level: advanced
 @*/
@@ -578,6 +633,7 @@ PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,use_gd2,2);
-  ierr = EPSDavidsonSetMethod_Davidson(eps,use_gd2?DVD_METH_GD2:DVD_METH_GD);CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSGDSetDoubleExpansion_C",(EPS,PetscBool),(eps,use_gd2));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

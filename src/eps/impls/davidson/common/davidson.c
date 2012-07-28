@@ -391,22 +391,27 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   PetscBool      isascii,opb;
   PetscInt       opi,opi0;
   const char*    name;
+  Method_t       meth;
 
   PetscFunctionBegin;
   name = ((PetscObject)eps)->type_name;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
   
+  ierr = EPSDavidsonGetMethod_Davidson(eps,&meth);CHKERRQ(ierr);
+  if (meth==DVD_METH_GD2) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: using double expansion variant (GD2)\n");CHKERRQ(ierr);
+  }
   ierr = EPSDavidsonGetBOrth_Davidson(eps,&opb);CHKERRQ(ierr);
-  ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
-  if(!opb) {
+  if (!opb) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is I-orthogonalized\n");CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
   }
+  ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
   ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&opb);CHKERRQ(ierr);
-  if(!opb) {
+  if (!opb) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: Krylov\n");CHKERRQ(ierr);
@@ -489,8 +494,8 @@ PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *p
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  *minv = data->minv;
-  *plusk = data->plusk;
+  if (minv) *minv = data->minv;
+  if (plusk) *plusk = data->plusk;
   PetscFunctionReturn(0);
 }
 
@@ -614,8 +619,8 @@ PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,Pets
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  *pwindow = data->cX_in_impr;
-  *qwindow = data->cX_in_proj;
+  if (pwindow) *pwindow = data->cX_in_impr;
+  if (qwindow) *qwindow = data->cX_in_proj;
   PetscFunctionReturn(0);
 }
 

@@ -563,6 +563,8 @@ PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,Petsc
 PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
 PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method);
 PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method);
+PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS,PetscBool*);
+PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS,PetscBool);
 
 /* Common inline function */
 #undef __FUNCT__  
