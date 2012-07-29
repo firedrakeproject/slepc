@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test EPSArbitrarySelection.\n\n";
+static char help[] = "Test EPSSetArbitrarySelection.\n\n";
 
 #include <slepceps.h>
 

@@ -104,7 +104,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  if (eps->arbit_func) { ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr); }
+  else { ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr); }
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
