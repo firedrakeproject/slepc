@@ -224,6 +224,106 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSSetFromOptions_RQCG"
+PetscErrorCode EPSSetFromOptions_RQCG(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+  PetscInt       nrest;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("EPS RQCG Options");CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_rqcg_reset","RQCG reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr); }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSRQCGSetReset_RQCG"
+PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
+{
+  EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->nrest = nrest;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSRQCGSetReset"
+/*@
+   EPSRQCGSetReset - Sets the reset parameter of the RQCG iteration. Every
+   nrest iterations, the solver performs a Rayleigh-Ritz projection step.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  nrest - the number of iterations between resets
+
+   Options Database Key:
+.  -eps_rqcg_reset - Sets the reset parameter
+   
+   Level: advanced
+
+.seealso: EPSRQCGGetReset()
+@*/
+PetscErrorCode EPSRQCGSetReset(EPS eps,PetscInt nrest)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,nrest,2);
+  ierr = PetscTryMethod(eps,"EPSRQCGSetReset_C",(EPS,PetscInt),(eps,nrest));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSRQCGGetReset_RQCG"
+PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
+{
+  EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
+
+  PetscFunctionBegin;
+  *nrest = ctx->nrest;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSRQCGGetReset"
+/*@C
+   EPSRQCGGetReset - Gets the reset parameter used in the RQCG method. 
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  nrest - the reset parameter
+
+   Level: advanced
+
+.seealso: EPSRQCGSetReset()
+@*/
+PetscErrorCode EPSRQCGGetReset(EPS eps,PetscInt *nrest)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(nrest,2);
+  ierr = PetscTryMethod(eps,"EPSRQCGGetReset_C",(EPS,PetscInt*),(eps,nrest));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSReset_RQCG"
 PetscErrorCode EPSReset_RQCG(EPS eps)
 {
@@ -247,6 +347,23 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGGetReset_C","",PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSView_RQCG"
+PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
+  PetscBool      isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS RQCG",((PetscObject)viewer)->type_name);
+  ierr = PetscViewerASCIIPrintf(viewer,"  RQCG: reset every %d iterations\n",ctx->nrest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -260,12 +377,16 @@ PetscErrorCode EPSCreate_RQCG(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,EPS_RQCG,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_RQCG;
+  eps->ops->setfromoptions       = EPSSetFromOptions_RQCG;
   eps->ops->destroy              = EPSDestroy_RQCG;
   eps->ops->reset                = EPSReset_RQCG;
+  eps->ops->view                 = EPSView_RQCG;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","EPSRQCGSetReset_RQCG",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGGetReset_C","EPSRQCGGetReset_RQCG",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

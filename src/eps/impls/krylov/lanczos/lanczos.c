@@ -874,7 +874,7 @@ EXTERN_C_END
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 .  reorthog - the type of reorthogonalization
 
    Level: advanced
