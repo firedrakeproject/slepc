@@ -81,6 +81,9 @@ PETSC_EXTERN PetscErrorCode STSetDefaultShift(ST,PetscScalar);
 PETSC_EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
 PETSC_EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
 
+PETSC_EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
+
 PETSC_EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
 PETSC_EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
 PETSC_EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);

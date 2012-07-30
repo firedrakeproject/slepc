@@ -27,17 +27,23 @@
 
 #undef __FUNCT__  
 #define __FUNCT__ "STAssociatedKSPSolve"
-/*
+/*@
    STAssociatedKSPSolve - Solves the linear system of equations associated
    to the spectral transformation.
+
+   Collective on ST
 
    Input Parameters:
 .  st - the spectral transformation context
 .  b  - right hand side vector
 
-   Output  Parameter:
+   Output Parameter:
 .  x - computed solution
-*/
+
+   Level: developer
+
+.seealso: STAssociatedKSPSolveTranspose()
+@*/
 PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 {
   PetscErrorCode     ierr;
@@ -47,6 +53,40 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
   PetscFunctionBegin;
   if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
+  ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
+  if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
+  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+  st->lineariterations += its;
+  ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STAssociatedKSPSolveTranspose"
+/*@
+   STAssociatedKSPSolveTranspose - Solves the transpose of the linear 
+   system of equations associated to the spectral transformation.
+
+   Input Parameters:
+.  st - the spectral transformation context
+.  b  - right hand side vector
+
+   Output  Parameter:
+.  x - computed solution
+
+   Level: developer
+
+.seealso: STAssociatedKSPSolve()
+@*/
+PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+  PetscInt       its;
+  KSPConvergedReason reason;
+
+  PetscFunctionBegin;
+  if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
+  ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
@@ -87,35 +127,6 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "STAssociatedKSPSolveTranspose"
-/*
-   STAssociatedKSPSolveTranspose - Solves the transpose of the linear 
-   system of equations associated to the spectral transformation.
-
-   Input Parameters:
-.  st - the spectral transformation context
-.  b  - right hand side vector
-
-   Output  Parameter:
-.  x - computed solution
-*/
-PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       its;
-  KSPConvergedReason reason;
-
-  PetscFunctionBegin;
-  if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
-  ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
-  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
-  st->lineariterations += its;
-  ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetKSP"

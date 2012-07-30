@@ -21,7 +21,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>       /*I "slepcst.h" I*/
 #include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
 #include "slepc-interface.h"
 #include <blopex_lobpcg.h>
@@ -37,7 +36,7 @@ typedef struct {
   mv_MultiVectorPtr          eigenvectors;
   mv_MultiVectorPtr          Y;
   mv_InterfaceInterpreter    ii;
-  KSP                        ksp;
+  ST                         st;
   Vec                        w;
 } EPS_BLOPEX;
 
@@ -48,12 +47,9 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   PetscErrorCode ierr;
   EPS            eps = (EPS)data;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscInt       lits;
       
   PetscFunctionBegin;
-  ierr = KSPSolve(blopex->ksp,(Vec)x,(Vec)y); CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  ierr = KSPGetIterationNumber(blopex->ksp,&lits); CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  eps->OP->lineariterations+= lits;
+  ierr = STAssociatedKSPSolve(blopex->st,(Vec)x,(Vec)y); CHKERRABORT(((PetscObject)eps)->comm,ierr);
   PetscFunctionReturnVoid();
 }
 
@@ -77,14 +73,16 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   EPS            eps = (EPS)data;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   Mat            A,B;
+  PetscScalar    sigma;
  
   PetscFunctionBegin;
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  if (eps->OP->sigma != 0.0) {
+  ierr = STGetShift(eps->OP,&sigma);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  if (sigma != 0.0) {
     if (B) { ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
     else { ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
-    ierr = VecAXPY((Vec)y,-eps->OP->sigma,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+    ierr = VecAXPY((Vec)y,-sigma,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   }
   PetscFunctionReturnVoid();
 }
@@ -154,7 +152,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = STSetUp(eps->OP);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&isPrecond);CHKERRQ(ierr);
   if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with STPRECOND");
-  ierr = STGetKSP(eps->OP,&blopex->ksp);CHKERRQ(ierr);
+  blopex->st = eps->OP;
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
@@ -200,6 +198,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
   EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
+  PetscScalar    sigma;
   int            i,j,info,its,nconv;
   double         *residhist=PETSC_NULL;
   PetscErrorCode ierr;
@@ -246,8 +245,9 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   eps->its = its;
   eps->nconv = eps->ncv;
-  if (eps->OP->sigma != 0.0) {
-    for (i=0;i<eps->nconv;i++) eps->eigr[i]+=eps->OP->sigma;
+  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
+  if (sigma != 0.0) {
+    for (i=0;i<eps->nconv;i++) eps->eigr[i]+=sigma;
   }
   if (info==-1) eps->reason = EPS_DIVERGED_ITS;
   else eps->reason = EPS_CONVERGED_TOL;
