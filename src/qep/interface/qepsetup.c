@@ -396,15 +396,22 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 PetscErrorCode QEPAllocateSolution(QEP qep)
 {
   PetscErrorCode ierr;
+  PetscInt       newc,cnt;
   
   PetscFunctionBegin;
   if (qep->allocated_ncv != qep->ncv) {
+    newc = PetscMax(0,qep->ncv-qep->allocated_ncv);
     ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
+    cnt = 0;
     ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
     ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
+    cnt += 2*newc*sizeof(PetscScalar);
     ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
+    cnt += 2*newc*sizeof(PetscReal);
+    ierr = PetscLogObjectMemory(qep,cnt);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(qep->t,qep->ncv,&qep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(qep,qep->ncv,qep->V);CHKERRQ(ierr);
     qep->allocated_ncv = qep->ncv;
   }
   PetscFunctionReturn(0);

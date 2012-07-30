@@ -89,6 +89,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
+
 #undef __FUNCT__  
 #define __FUNCT__ "EPSComputeVectors_Indefinite"
 /*

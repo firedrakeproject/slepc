@@ -195,7 +195,9 @@ PetscErrorCode SVDSetUp(SVD svd)
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscInt),&svd->perm);CHKERRQ(ierr);
     ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->errest);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(svd,PetscMax(0,svd->ncv-svd->n)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
     ierr = VecDuplicateVecs(svd->tr,svd->ncv,&svd->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(svd,svd->ncv,svd->V);CHKERRQ(ierr);
     svd->n = svd->ncv;
   }
 
