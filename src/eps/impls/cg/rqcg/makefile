@@ -21,10 +21,16 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = rqcg.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = rqcg.o
 LIBBASE  = libslepc
-DIRS     = power subspace krylov davidson cg lapack external
-LOCDIR   = src/eps/impls/
+DIRS     =
 MANSEC   = EPS
+LOCDIR   = src/eps/impls/cg/rqcg/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

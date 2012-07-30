@@ -45,6 +45,7 @@ extern PetscErrorCode EPSCreate_PRIMME(EPS eps);
 #endif
 extern PetscErrorCode EPSCreate_GD(EPS eps);
 extern PetscErrorCode EPSCreate_JD(EPS eps);
+extern PetscErrorCode EPSCreate_RQCG(EPS eps);
 EXTERN_C_END
   
 #undef __FUNCT__  
@@ -71,6 +72,7 @@ PetscErrorCode EPSRegisterAll(const char *path)
   ierr = EPSRegisterDynamic(EPSLANCZOS,path,"EPSCreate_Lanczos",EPSCreate_Lanczos);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSGD,path,"EPSCreate_GD",EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSJD,path,"EPSCreate_JD",EPSCreate_JD);CHKERRQ(ierr);
+  ierr = EPSRegisterDynamic(EPSRQCG,path,"EPSCreate_RQCG",EPSCreate_RQCG);CHKERRQ(ierr);
   ierr = EPSRegisterDynamic(EPSLAPACK,path,"EPSCreate_LAPACK",EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegisterDynamic(EPSARPACK,path,"EPSCreate_ARPACK",EPSCreate_ARPACK);CHKERRQ(ierr);

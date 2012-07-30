@@ -47,21 +47,22 @@ typedef struct _p_EPS* EPS;
 
 .seealso: EPSSetType(), EPS
 E*/
-#define EPSType      char*
-#define EPSPOWER     "power"
-#define EPSSUBSPACE  "subspace"
-#define EPSARNOLDI   "arnoldi"
-#define EPSLANCZOS   "lanczos"
+#define EPSType        char*
+#define EPSPOWER       "power"
+#define EPSSUBSPACE    "subspace"
+#define EPSARNOLDI     "arnoldi"
+#define EPSLANCZOS     "lanczos"
 #define EPSKRYLOVSCHUR "krylovschur"
-#define EPSGD        "gd"
-#define EPSJD        "jd"
-#define EPSLAPACK    "lapack"
+#define EPSGD          "gd"
+#define EPSJD          "jd"
+#define EPSRQCG        "rqcg"
+#define EPSLAPACK      "lapack"
 /* the next ones are interfaces to external libraries */
-#define EPSARPACK    "arpack"
-#define EPSBLZPACK   "blzpack"
-#define EPSTRLAN     "trlan"
-#define EPSBLOPEX    "blopex"
-#define EPSPRIMME    "primme"
+#define EPSARPACK      "arpack"
+#define EPSBLZPACK     "blzpack"
+#define EPSTRLAN       "trlan"
+#define EPSBLOPEX      "blopex"
+#define EPSPRIMME      "primme"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId EPS_CLASSID;

@@ -22,8 +22,8 @@
 ALL: lib
 
 LIBBASE  = libslepc
-DIRS     = power subspace krylov davidson cg lapack external
-LOCDIR   = src/eps/impls/
+DIRS     = rqcg
+LOCDIR   = src/eps/impls/cg/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/conf/slepc_common
