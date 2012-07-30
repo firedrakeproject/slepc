@@ -384,6 +384,7 @@ PETSC_EXTERN PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth);
 PETSC_EXTERN PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
 PETSC_EXTERN PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 PETSC_EXTERN PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2);
+PETSC_EXTERN PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *flg);
 
 PETSC_EXTERN PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart);
 PETSC_EXTERN PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart);
