@@ -60,8 +60,8 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
   /* Bounds on the imaginary part of C (Gersgorin bound for S)*/
   *sigma = 0.0;
   b0 = 0.0;
-  for(i=0;i<n-1;i++){
-    if(b[i]<0.0) b1 = PetscSqrtReal(-b[i]);
+  for (i=0;i<n-1;i++) {
+    if (b[i]<0.0) b1 = PetscSqrtReal(-b[i]);
     else b1 = 0.0;
     *sigma = PetscMax(*sigma,b1+b0);
     b0 = b1;
@@ -72,7 +72,7 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
   *gr = a[0]+rad;
   *gl = a[0]-rad;
   b0 = rad;
-  for(i=1;i<n-1;i++){
+  for (i=1;i<n-1;i++) {
     b1 = (b[i]>0.0)?PetscSqrtReal(b[i]):0.0;
     rad = b0+b1;
     *gr = PetscMax(*gr,a[i]+rad);
@@ -110,11 +110,11 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
   PetscFunctionBegin;
   *m = 0;
   mu = 0.0;
-  for(i=0;i<n;i++) mu += a[i];
+  for (i=0;i<n;i++) mu += a[i];
   mu /= n;
   tol=n*PETSC_MACHINE_EPSILON*(gr-gl);
   nwall = 5*n+4;
-  if(w && nw>=nwall) {
+  if (w && nw>=nwall) {
     work = w;
     nwall = nw;
   }else {
@@ -126,23 +126,23 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
   yp = y+n+1; /* size n+1. yp is the derivative of y (p for "prime") */
   x = yp+n+1; /* size n+1 */
   xp = x+n+1; /* size n+1 */
-  for(i=0;i<n;i++) a1[i] = mu-a[i];
+  for (i=0;i<n;i++) a1[i] = mu-a[i];
   x[0] = 1;
   xp[0] = 0;
   x[1] = a1[0];
   xp[1] = 1;
-  for(i=1;i<n;i++){
+  for (i=1;i<n;i++) {
     x[i+1]=a1[i]*x[i]-b[i-1]*x[i-1];
     xp[i+1]=a1[i]*xp[i]+x[i]-b[i-1]*xp[i-1];
   }
   *shift = mu;
-  if( PetscAbsReal(x[n])<tol){   
+  if ( PetscAbsReal(x[n])<tol) {   
     /* mu is an eigenvalue */
     *m = *m+1;
-    if( PetscAbsReal(xp[n])<tol ){
+    if ( PetscAbsReal(xp[n])<tol ) {
       /* mu is a multiple eigenvalue; Is it the one-point spectrum case? */
       k = 0;
-      while(PetscAbsReal(xp[n])<tol && k<n-1){
+      while (PetscAbsReal(xp[n])<tol && k<n-1) {
            ierr = PetscMemcpy(x,y,(n+1)*sizeof(PetscReal));CHKERRQ(ierr);
            ierr = PetscMemcpy(xp,yp,(n+1)*sizeof(PetscReal));CHKERRQ(ierr);
            x[k] = 0.0;
@@ -151,7 +151,7 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
            xp[k] = 0.0;
            x[k+1] = a1[k] + y[k];
            xp[k+1] = 1+yp[k];
-           for(i=k+1;i<n;i++){
+           for (i=k+1;i<n;i++) {
              x[i+1] = a1[i]*x[i]-b[i-1]*x[i-1]+y[i];
              xp[i+1]=a1[i]*xp[i]+x[i]-b[i-1]*xp[i-1]+yp[i];
            }
@@ -159,7 +159,7 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
       }
     }     
   }
-  if(work != w){
+  if (work != w) {
     ierr = PetscFree(work);CHKERRQ(ierr);
   }
 /*
@@ -176,23 +176,23 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
 
 #undef __FUNCT__
 #define __FUNCT__ "LUfac"
-static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L,PetscReal *U,PetscInt *fail,PetscReal *w,PetscInt nw){
+static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L,PetscReal *U,PetscInt *fail,PetscReal *w,PetscInt nw) {
   PetscErrorCode ierr;
   PetscInt       nwall,i;
   PetscReal      *work,*a1;
 
   PetscFunctionBegin;
   nwall = n;
-  if(w && nw>=nwall){
+  if (w && nw>=nwall) {
     work = w;
     nwall = nw;
-  }else{
+  } else {
     ierr = PetscMalloc(nwall*sizeof(PetscReal),&work);CHKERRQ(ierr);
   }
   a1 = work;
-  for(i=0;i<n;i++) a1[i] = a[i]-shift;
+  for (i=0;i<n;i++) a1[i] = a[i]-shift;
   *fail = 0;
-  for(i=0;i<n-1;i++){
+  for (i=0;i<n-1;i++) {
     U[i] = a1[i];
     L[i] = b[i]/U[i];
     a1[i+1] = a1[i+1]-L[i];
@@ -200,19 +200,19 @@ static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift
   U[n-1] = a1[n-1];
 
   /* Check if there are NaN values */
-  for(i=0;i<n-1 && *fail==0;i++){
-    if(PetscIsInfOrNanReal(L[i])) *fail=1;
-    if(PetscIsInfOrNanReal(U[i])) *fail=1;
+  for (i=0;i<n-1 && *fail==0;i++) {
+    if (PetscIsInfOrNanReal(L[i])) *fail=1;
+    if (PetscIsInfOrNanReal(U[i])) *fail=1;
   }
-  if(*fail==0 && PetscIsInfOrNanReal(U[n-1])) *fail=1;
+  if (*fail==0 && PetscIsInfOrNanReal(U[n-1])) *fail=1;
 
-  for(i=0;i<n-1 && *fail==0;i++){
-    if( PetscAbsReal(L[i])>tol*norm) *fail = 1;  /* This demands IEEE arithmetic */
-    if( PetscAbsReal(U[i])>tol*norm) *fail = 1;
+  for (i=0;i<n-1 && *fail==0;i++) {
+    if ( PetscAbsReal(L[i])>tol*norm) *fail = 1;  /* This demands IEEE arithmetic */
+    if ( PetscAbsReal(U[i])>tol*norm) *fail = 1;
   }
-  if( *fail==0 && PetscAbsReal(U[n-1])>tol*norm) *fail = 1;
+  if ( *fail==0 && PetscAbsReal(U[n-1])>tol*norm) *fail = 1;
   
-  if(work != w){
+  if (work != w) {
     ierr = PetscFree(work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -228,7 +228,7 @@ static PetscErrorCode realDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal sh
   PetscFunctionBegin;
   *fail = 0;
   d = U[0]-shift;
-  for(i=0;i<n-1;i++){
+  for (i=0;i<n-1;i++) {
     U1[i] = d+L[i];
     L1[i] = L[i]*(U[i+1]/U1[i]);
     d = d*(U[i+1]/U1[i])-shift;
@@ -236,16 +236,16 @@ static PetscErrorCode realDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal sh
   U1[n-1]=d;
 
   /* The following demands IEEE arithmetic */
-  for(i=0;i<n-1 && *fail==0;i++){
-    if(PetscIsInfOrNanReal(L1[i])) *fail=1;
-    if(PetscIsInfOrNanReal(U1[i])) *fail=1;
+  for (i=0;i<n-1 && *fail==0;i++) {
+    if (PetscIsInfOrNanReal(L1[i])) *fail=1;
+    if (PetscIsInfOrNanReal(U1[i])) *fail=1;
   }
-  if(*fail==0 && PetscIsInfOrNanReal(U1[n-1])) *fail=1;
-  for(i=0;i<n-1 && *fail==0;i++){
-    if(PetscAbsReal(L1[i])>tol*norm) *fail=1;
-    if(PetscAbsReal(U1[i])>tol*norm) *fail=1;
+  if (*fail==0 && PetscIsInfOrNanReal(U1[n-1])) *fail=1;
+  for (i=0;i<n-1 && *fail==0;i++) {
+    if (PetscAbsReal(L1[i])>tol*norm) *fail=1;
+    if (PetscAbsReal(U1[i])>tol*norm) *fail=1;
   }
-  if(*fail==0 && PetscAbsReal(U1[n-1])>tol*norm) *fail=1;
+  if (*fail==0 && PetscAbsReal(U1[n-1])>tol*norm) *fail=1;
   PetscFunctionReturn(0);
 }
 
@@ -284,7 +284,7 @@ static PetscErrorCode tridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscR
 
   /* STEP n-1 */
 
-  if (PetscAbsReal(e[n-3])>tolDef*PetscAbsReal(xl) || PetscAbsReal(e[n-3])>tolDef*PetscAbsReal(q[n-3])){
+  if (PetscAbsReal(e[n-3])>tolDef*PetscAbsReal(xl) || PetscAbsReal(e[n-3])>tolDef*PetscAbsReal(q[n-3])) {
     /* the efect of Zn-1 */
     xr = xr*q[n-2]+yr;
     /* the inverse of Ln-1 */
@@ -315,34 +315,34 @@ static PetscErrorCode tridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscR
   }
 
   /* The following demands IEEE arithmetic */
-  for(i=0;i<n-1 && *fail==0;i++){
-    if(PetscIsInfOrNanReal(e[i])) *fail=1;
-    if(PetscIsInfOrNanReal(q[i])) *fail=1;
+  for (i=0;i<n-1 && *fail==0;i++) {
+    if (PetscIsInfOrNanReal(e[i])) *fail=1;
+    if (PetscIsInfOrNanReal(q[i])) *fail=1;
   }
-  if(*fail==0 && PetscIsInfOrNanReal(q[n-1])) *fail=1;
-  for(i=0;i<n-1 && *fail==0;i++){
-    if(PetscAbsReal(e[i])>tol*norm) *fail=1;
-    if(PetscAbsReal(q[i])>tol*norm) *fail=1;
+  if (*fail==0 && PetscIsInfOrNanReal(q[n-1])) *fail=1;
+  for (i=0;i<n-1 && *fail==0;i++) {
+    if (PetscAbsReal(e[i])>tol*norm) *fail=1;
+    if (PetscAbsReal(q[i])>tol*norm) *fail=1;
   }
-  if(*fail==0 && PetscAbsReal(q[n-1])>tol*norm) *fail=1;
+  if (*fail==0 && PetscAbsReal(q[n-1])>tol*norm) *fail=1;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "tridqdsZhuang"
-static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscReal *e1,PetscReal *q1,PetscInt *fail){
+static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscReal *e1,PetscReal *q1,PetscInt *fail) {
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      xl,yl,xr,yr,zr,t;
 
   PetscFunctionBegin;
-  for(i=0;i<n-1;i++){
+  for (i=0;i<n-1;i++) {
     e1[i] = e[i];
     q1[i] = q[i];
   }
   q1[n-1] = q[n-1];
   *fail = 0;
-  if(n>3){   /* For n>3 */
+  if (n>3) {   /* For n>3 */
     *fail = 0;
     xr = 1;
     yr = e1[0];
@@ -452,16 +452,16 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
       *fail = 2;
     }
 
-    for(i=0;i<n-1 && *fail==0;i++){
-      if(PetscIsInfOrNanReal(e1[i])) *fail=1;
-      if(PetscIsInfOrNanReal(q1[i])) *fail=1;
+    for (i=0;i<n-1 && *fail==0;i++) {
+      if (PetscIsInfOrNanReal(e1[i])) *fail=1;
+      if (PetscIsInfOrNanReal(q1[i])) *fail=1;
     }
-    if(*fail==0 && PetscIsInfOrNanReal(q1[n-1])) *fail=1;
-    for(i=0;i<n-1 && *fail==0;i++){
-      if(PetscAbsReal(e1[i])>tol*norm) *fail = 1;  /* This demands IEEE arithmetic */
-      if(PetscAbsReal(q1[i])>tol*norm) *fail = 1;
+    if (*fail==0 && PetscIsInfOrNanReal(q1[n-1])) *fail=1;
+    for (i=0;i<n-1 && *fail==0;i++) {
+      if (PetscAbsReal(e1[i])>tol*norm) *fail = 1;  /* This demands IEEE arithmetic */
+      if (PetscAbsReal(q1[i])>tol*norm) *fail = 1;
     }
-    if( *fail==0 && PetscAbsReal(q1[n-1])>tol*norm) *fail = 1;
+    if ( *fail==0 && PetscAbsReal(q1[n-1])>tol*norm) *fail = 1;
   
   } else {  /* The case n=3 */
     ierr = tridqdsZhuang3(n,e1,q1,sum,prod,tol,norm,tolDef,fail);CHKERRQ(ierr);
@@ -491,16 +491,16 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscFunctionBegin;
   dim = n;
   /* Test if the matrix is unreduced */
-  for(i=0;i<n-1;i++){
-    if(PetscAbsReal(b[i])==0 || PetscAbsReal(c[i])==0){
+  for (i=0;i<n-1;i++) {
+    if (PetscAbsReal(b[i])==0 || PetscAbsReal(c[i])==0) {
       SETERRQ(PETSC_COMM_SELF,1,"Initial tridiagonal matrix is not unreduced");
     }
   }
   nwall = 9*n+4;
-  if(w && nw>=nwall){
+  if (w && nw>=nwall) {
     work = w;
     nwall = nw;
-  }else{
+  } else {
     ierr = PetscMalloc(nwall*sizeof(PetscReal),&work);CHKERRQ(ierr);
   }
   U = work;
@@ -510,40 +510,40 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   nwu = 4*n;
   ierr = PetscMemzero(wi,n*sizeof(PetscScalar));
   /* Normalization - the J form of C */
-  for(i=0;i<n-1;i++) b[i] *= c[i]; /* subdiagonal of the J form */
+  for (i=0;i<n-1;i++) b[i] *= c[i]; /* subdiagonal of the J form */
 
   /* Scan matrix J  ---- Finding a box of inclusion for the eigenvalues */
   norm = 0.0;
-  for(i=0;i<n-1;i++){
+  for (i=0;i<n-1;i++) {
     norm = PetscMax(norm,PetscMax(PetscAbsReal(a[i]),PetscAbsReal(b[i])));
   }
   norm = PetscMax(norm,PetscMax(1,PetscAbsReal(a[n-1])));
   ierr = ScanJ(n,a,b,&gl,&gr,&sigma);CHKERRQ(ierr);
   delta = (gr-gl)/n; /* How much to add to the shift, in case of failure (element growth) */
   meanEig = 0.0;
-  for(i=0;i<n;i++) meanEig += a[i];
+  for (i=0;i<n;i++) meanEig += a[i];
   meanEig /= n; /* shift = initial shift = mean of eigenvalues */
   ierr = Prologue(n,a,b,gl,gr,&m,&shift,work+nwu,nwall-nwu);CHKERRQ(ierr);
   if (m==n) { /* Multiple eigenvalue, we have the one-point spectrum case */
-    for(i=0;i<dim;i++) {
+    for (i=0;i<dim;i++) {
       wr[i] = shift;
       wi[i] = 0.0;
     }
     PetscFunctionReturn(0);
   }
   /* Initial LU Factorization */
-  if( delta==0 ) shift=0;/* The case when all eigenvalues are pure imaginary */
+  if ( delta==0 ) shift=0;/* The case when all eigenvalues are pure imaginary */
   ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu,nwall-nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
-  while(flag==1 && nFail<maxFail){
+  while (flag==1 && nFail<maxFail) {
     shift=shift+delta;  
-    if(shift>gr || shift<gl){ /* Successive failures */
+    if (shift>gr || shift<gl) { /* Successive failures */
       shift=meanEig;
       delta=-delta;
     }
     nFail=nFail+1;
     ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu,nwall-nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
   }
-  if(nFail==maxFail){
+  if (nFail==maxFail) {
     SETERRQ(PETSC_COMM_SELF,1,"Maximun number of failures reached in Initial LU factorization");
   }
   /* Successful Initial transformation */
@@ -558,34 +558,34 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   nwu += n;
   split[lastSplit] = begin;
   splitCount = 0;
-  while (begin!=-1){
-    while(n-begin>2 && totalIt<maxIt){
+  while (begin!=-1) {
+    while (n-begin>2 && totalIt<maxIt) {
       /* Check for deflation before performing a transformation */
       test1 = ((PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-2])) && (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-1]+acShift)) && (PetscAbsReal(L[n-2]*U[n])<tolDef*PetscAbsReal(acShift+U[n-1])) && (PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)<tolDef*PetscAbsReal(acShift+U[n-1])))? PETSC_TRUE: PETSC_FALSE;
-      if(flag==2){  /* Early 2x2 deflation */
+      if (flag==2) {  /* Early 2x2 deflation */
         earlyDef=earlyDef+1;
         test2 = PETSC_TRUE;  
-      }else{ 
-        if(n-begin>4){
+      } else { 
+        if (n-begin>4) {
           test2 = ((PetscAbsReal(L[n-3])<tolDef*PetscAbsReal(U[n-3])) && (PetscAbsReal(L[n-3]*(U[n-4]+L[n-4]))< tolDef*PetscAbsReal(U[n-4]*(U[n-3]+L[n-3])+L[n-4]*L[n-3])))? PETSC_TRUE: PETSC_FALSE;
-        }else{ /* n-begin+1=3 */
+        } else { /* n-begin+1=3 */
           test2 = (PetscAbsReal(L[begin])<tolDef*PetscAbsReal(U[begin]))? PETSC_TRUE: PETSC_FALSE;
         }
       }
-      while(test2 || test1){
+      while (test2 || test1) {
         /* 2x2 deflation */
-        if(test2){
-          if(flag==2){ /* Early deflation */
+        if (test2) {
+          if (flag==2) { /* Early deflation */
             sum = L[n-2];
             det = U[n-2];
             disc = U[n-1];
             flag = 0;
-          }else{
+          } else {
             sum = (L[n-2]+(U[n-2]+U[n-1]))/2;  
             disc = (L[n-2]*(L[n-2]+2*(U[n-2]+U[n-1]))+(U[n-2]-U[n-1])*(U[n-2]-U[n-1]))/4;
             det = U[n-2]*U[n-1];
           }
-          if(disc<=0){
+          if (disc<=0) {
 #if !defined(PETSC_USE_COMPLEX)
             wr[--n] = sum+acShift; wi[n] = PetscSqrtReal(-disc);
             wr[--n] = sum+acShift; wi[n] = -PetscSqrtReal(-disc);
@@ -593,43 +593,43 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
             wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
 #endif
-          }else{  
-            if(sum==0){
+          } else {  
+            if (sum==0) {
               x1 = PetscSqrtReal(disc);
               x2 = -x1;
-            }else{ 
+            } else { 
               x1 = ((sum>=0.0)?1.0:-1.0)*(PetscAbsReal(sum)+PetscSqrtReal(disc));
               x2 = det/x1;
             }
             wr[--n] = x1+acShift;
             wr[--n] = x2+acShift;
           }
-        }else{ /* test1 -- 1x1 deflation */
+        } else { /* test1 -- 1x1 deflation */
           x1 = U[n-1]+acShift;
           wr[--n] = x1;
         }
         
-        if(n<=begin+2){
+        if (n<=begin+2) {
           break;
-        }else{
+        } else {
           test1 = ((PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-2])) && (PetscAbsReal(L[n-2])<tolDef*PetscAbsReal(U[n-1]+acShift)) && (PetscAbsReal(L[n-2]*U[n-1])<tolDef*PetscAbsReal(acShift+U[n-1])) && (PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)< tolDef*PetscAbsReal(acShift+U[n-1])))? PETSC_TRUE: PETSC_FALSE;
-          if(n-begin>4){
+          if (n-begin>4) {
             test2 = ((PetscAbsReal(L[n-3])<tolDef*PetscAbsReal(U[n-3])) && (PetscAbsReal(L[n-3]*(U[n-4]+L[n-4]))< tolDef*PetscAbsReal(U[n-4]*(U[n-3]+L[n-3])+L[n-4]*L[n-3])))? PETSC_TRUE: PETSC_FALSE;
-          }else{ /* n-begin+1=3 */
+          } else { /* n-begin+1=3 */
             test2 = (PetscAbsReal(L[begin])<tolDef*PetscAbsReal(U[begin]))? PETSC_TRUE: PETSC_FALSE;
           }
         }
       } /* end "WHILE deflations" */
       /* After deflation */
-      if(n>begin+3){
+      if (n>begin+3) {
         ind = begin;
-        for(k=n-4;k>=begin+1;k--){
-          if( (PetscAbsReal(L[k])<tolDef*PetscAbsReal(U[k]))&&(PetscAbsReal(L[k]*U[k+1]*(U[k+2]+L[k+2])*(U[k-1]+L[k-1]))<tolDef*PetscAbsReal((U[k-1]*(U[k]+L[k])+L[k-1]*L[k])*(U[k+1]*(U[k+2]+L[k+2])+L[k+1]*L[k+2]))) ){
+        for (k=n-4;k>=begin+1;k--) {
+          if ( (PetscAbsReal(L[k])<tolDef*PetscAbsReal(U[k]))&&(PetscAbsReal(L[k]*U[k+1]*(U[k+2]+L[k+2])*(U[k-1]+L[k-1]))<tolDef*PetscAbsReal((U[k-1]*(U[k]+L[k])+L[k-1]*L[k])*(U[k+1]*(U[k+2]+L[k+2])+L[k+1]*L[k+2]))) ) {
              ind=k;
              break;
           }
         }
-        if( ind>begin || PetscAbsReal(L[begin]) <tolDef*PetscAbsReal(U[begin]) ){
+        if ( ind>begin || PetscAbsReal(L[begin]) <tolDef*PetscAbsReal(U[begin]) ) {
           lastSplit = lastSplit+1;
           split[lastSplit] = begin;
           L[ind] = acShift; /* Use of L[ind] to save acShift */
@@ -638,15 +638,15 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         }
       }
     
-      if(n>begin+2){
+      if (n>begin+2) {
         disc = (L[n-2]*(L[n-2]+2*(U[n-2]+U[n-1]))+(U[n-2]-U[n-1])*(U[n-2]-U[n-1]))/4;
-        if( (PetscAbsReal(L[n-2])>tolZero) && (PetscAbsReal(L[n-3])>tolZero)){ /* L's are big */
+        if ( (PetscAbsReal(L[n-2])>tolZero) && (PetscAbsReal(L[n-3])>tolZero)) { /* L's are big */
           shift = 0;
           sum = 0; /* Needed in case of failure */
           prod = 0;
           ierr = realDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
           realSteps++;
-          if(flag){  /* Failure */
+          if (flag) {  /* Failure */
             ierr = tridqdsZhuang(n-begin,L+begin,U+begin,0.0,0.0,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
             shift = 0.0;
             while (flag==1 && nFail<maxFail) {  /* Successive failures */
@@ -659,8 +659,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
               ierr = realDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
             }
           }
-        }else{ /* L's are small */
-          if (disc<0){  /* disc <0   Complex case; Francis shift; 3dqds */
+        } else { /* L's are small */
+          if (disc<0) {  /* disc <0   Complex case; Francis shift; 3dqds */
             sum = U[n-2]+L[n-2]+U[n-1];
             prod = U[n-2]*U[n-1];
             ierr = tridqdsZhuang(n-begin,L+begin,U+begin,sum,prod,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
@@ -673,7 +673,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             }
           } else  { /* disc >0  Real case; real Wilkinson shift; dqds */
             sum = (L[n-2]+U[n-2]+U[n-1])/2;
-            if (sum==0){
+            if (sum==0) {
               x1 = PetscSqrtReal(disc);
               x2 = -x1;
             } else {
@@ -716,7 +716,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         /* Successful Transformation; flag==0 */
         totalIt++;
         acShift = shift+acShift;
-        for(i=begin;i<n-1;i++){
+        for (i=begin;i<n-1;i++) {
           L[i] = L1[i];
           U[i] = U1[i];          
         }
@@ -773,10 +773,10 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         lastSplit--;
     }
   }/* While begin~=-1 */
-  for(i=0;i<dim;i++){
+  for (i=0;i<dim;i++) {
     wr[i] = wr[i]+initialShift;
   }
-  if(work!=w){
+  if (work!=w) {
     ierr = PetscFree(work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -803,10 +803,10 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Quick return if possible */
   if (ds->n-ds->l == 1) {
     *(Q+off) = 1;
-    if(ds->compact){
+    if (ds->compact) {
       wr[ds->l] = d[ds->l]/s[ds->l];
       wi[ds->l] = 0.0;
-    }else{
+    } else {
       d[ds->l] = PetscRealPart(A[off]);
       s[ds->l] = PetscRealPart(B[off]);
       wr[ds->l] = d[ds->l]/s[ds->l];
@@ -825,15 +825,15 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   b = a+ld;
   c = b+ld;
   nwu = 3*ld;
-  if(ds->compact){
-    for(i=ds->l;i<ds->n-1;i++){
+  if (ds->compact) {
+    for (i=ds->l;i<ds->n-1;i++) {
       a[i] = d[i]*s[i];
       b[i] = e[i]*s[i+1];
       c[i] = e[i]*s[i];
     }
     a[ds->n-1] = d[ds->n-1]*s[ds->n-1];
-  }else{
-    for(i=ds->l;i<ds->n-1;i++){
+  } else {
+    for (i=ds->l;i<ds->n-1;i++) {
       a[i] = PetscRealPart(A[i+i*ld]*B[i+i*ld]);
       b[i] = PetscRealPart(A[i+1+i*ld]*s[i+1]);
       c[i] = PetscRealPart(A[i+(i+1)*ld]*s[i]);

@@ -325,7 +325,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Quick return */
   if (n1 == 1) {
     *(Q+off) = 1;
-    if(ds->compact){
+    if (ds->compact) {
       wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;
     }else{
       d[ds->l] = PetscRealPart(A[off]); s[ds->l] = PetscRealPart(B[off]);
@@ -336,7 +336,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Reduce to pseudotriadiagonal form */
   ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
   ierr = HZIteration(ds->n,ds->l,d,e,s,Q,ld);CHKERRQ(ierr);
-  if(!ds->compact){
+  if (!ds->compact) {
     ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);
   }
   /* Undo from diagonal the blocks whith real eigenvalues*/
