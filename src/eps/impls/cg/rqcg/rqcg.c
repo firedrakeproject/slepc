@@ -53,6 +53,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      precond;
+  Mat            B;
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
 
   PetscFunctionBegin;
@@ -85,7 +86,10 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->AV);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->BV);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
+  if (B) {
+    ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->BV);CHKERRQ(ierr);
+  }
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->P);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->G);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
@@ -166,8 +170,12 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     /* Compute gradient and check convergence */
     k = -1;
     for (i=eps->nconv;i<nv;i++) {
-      ierr = MatMult(B,eps->V[i],ctx->BV[i-eps->nconv]);CHKERRQ(ierr);
-      ierr = VecWAXPY(ctx->G[i-eps->nconv],-eps->eigr[i],ctx->BV[i-eps->nconv],ctx->AV[i-eps->nconv]);CHKERRQ(ierr);
+      if (B) {
+        ierr = MatMult(B,eps->V[i],ctx->BV[i-eps->nconv]);CHKERRQ(ierr);
+        ierr = VecWAXPY(ctx->G[i-eps->nconv],-eps->eigr[i],ctx->BV[i-eps->nconv],ctx->AV[i-eps->nconv]);CHKERRQ(ierr);
+      } else {
+        ierr = VecWAXPY(ctx->G[i-eps->nconv],-eps->eigr[i],eps->V[i],ctx->AV[i-eps->nconv]);CHKERRQ(ierr);
+      }
       ierr = VecNorm(ctx->G[i-eps->nconv],NORM_2,&resnorm);CHKERRQ(ierr);
       ierr = (*eps->conv_func)(eps,eps->eigr[i],0.0,resnorm,&eps->errest[i],eps->conv_ctx);CHKERRQ(ierr);
       if (k==-1 && eps->errest[i] >= eps->tol) k = i;
@@ -196,18 +204,24 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       for (i=eps->nconv;i<nv;i++) {
         ierr = VecDot(eps->V[i],ctx->AV[i-eps->nconv],&nu);CHKERRQ(ierr);
         ierr = VecDot(ctx->P[i-eps->nconv],ctx->AV[i-eps->nconv],&pax);CHKERRQ(ierr);
-        ierr = VecDot(ctx->P[i-eps->nconv],ctx->BV[i-eps->nconv],&pbx);CHKERRQ(ierr);
-        ierr = VecDot(eps->V[i],ctx->BV[i-eps->nconv],&mu);CHKERRQ(ierr);
         ierr = MatMult(A,ctx->P[i-eps->nconv],w);CHKERRQ(ierr);
         ierr = VecDot(ctx->P[i-eps->nconv],w,&pap);CHKERRQ(ierr);
-        ierr = MatMult(B,ctx->P[i-eps->nconv],w);CHKERRQ(ierr);
-        ierr = VecDot(ctx->P[i-eps->nconv],w,&pbp);CHKERRQ(ierr);
+        if (B) {
+          ierr = VecDot(eps->V[i],ctx->BV[i-eps->nconv],&mu);CHKERRQ(ierr);
+          ierr = VecDot(ctx->P[i-eps->nconv],ctx->BV[i-eps->nconv],&pbx);CHKERRQ(ierr);
+          ierr = MatMult(B,ctx->P[i-eps->nconv],w);CHKERRQ(ierr);
+          ierr = VecDot(ctx->P[i-eps->nconv],w,&pbp);CHKERRQ(ierr);
+        } else {
+          ierr = VecDot(eps->V[i],eps->V[i],&mu);CHKERRQ(ierr);
+          ierr = VecDot(ctx->P[i-eps->nconv],eps->V[i],&pbx);CHKERRQ(ierr);
+          ierr = VecDot(ctx->P[i-eps->nconv],ctx->P[i-eps->nconv],&pbp);CHKERRQ(ierr);
+        }
         a = PetscRealPart(pap*pbx-pax*pbp);
         b = PetscRealPart(nu*pbp-mu*pap);
         c = PetscRealPart(mu*pax-nu*pbx);
-        disc = b*b-4.0*a*c;
-        if (b>=0.0 && a!=0.0) alpha = (b+PetscSqrtReal(disc))/(2.0*a);
-        else alpha = 2.0*c/(b-PetscSqrtReal(disc));
+        disc = PetscSqrtReal(b*b-4.0*a*c);
+        if (b>=0.0 && a!=0.0) alpha = (b+disc)/(2.0*a);
+        else alpha = 2.0*c/(b-disc);
 
         /* Next iterate */
         ierr = VecAXPY(eps->V[i],alpha,ctx->P[i-eps->nconv]);CHKERRQ(ierr);
@@ -227,7 +241,6 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -321,10 +334,10 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
 
   PetscFunctionBegin;
-  ierr = VecDestroyVecs(eps->ncv,&ctx->AV);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(eps->ncv,&ctx->BV);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(eps->ncv,&ctx->P);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(eps->ncv,&ctx->G);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->mpd,&ctx->AV);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->mpd,&ctx->BV);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->mpd,&ctx->P);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->mpd,&ctx->G);CHKERRQ(ierr);
   ctx->nrest = 0;
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
