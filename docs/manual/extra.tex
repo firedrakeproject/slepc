@@ -10,13 +10,13 @@
 
 \slepc relies on \petsc for all the features that are not directly related to eigenvalue problems. All the functionality associated to vectors and matrices as well as linear systems of equations is provided by \petsc. Also, low level details are inherited directly from \petsc. In particular, the parallelism within \slepc methods is handled completely by \petsc's vector and matrix modules. 
 
-	\slepc only contains high level objects, as depicted in Figure \ref{fig:slepc}. These object classes have been designed and implemented following the philosophy of other high level objects in \petsc. In this way, \slepc benefits from a number of \petsc's good properties such as the following (see \petsc{} users guide for details):
+	\slepc mainly contains high level objects, as depicted in Figure \ref{fig:slepc}. These object classes have been designed and implemented following the philosophy of other high level objects in \petsc. In this way, \slepc benefits from a number of \petsc's good properties such as the following (see \petsc{} users guide for details):
 \begin{itemize}
 \item Portability and scalability in a wide range of platforms. Different architecture builds can coexist in the same installation. Where available, dynamic libraries are used to reduce disk space of executable files.
 \item Support for profiling of programs:
   \begin{itemize}
   \setlength{\itemsep}{0mm}
-  \item Display performance statistics with \Verb!-log_summary!, including also \slepc's objects. The collected data are \emph{flops} and execution times as well as information about parallel performance, for individual subroutines and the possibility of user-defined stages.
+  \item Display performance statistics with \Verb!-log_summary!, including also \slepc's objects. The collected data are \emph{flops}, memory usage and execution times as well as information about parallel performance, for individual subroutines and the possibility of user-defined stages.
   \item Event logging, including user-defined events.
   \item Direct wall-clock timing with \ident{PetscGetTime}.
   \item Display detailed profile information and trace of events.
@@ -55,21 +55,21 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 	Many of these problems can be solved by reformulating them as a reduced-order standard or generalized eigensystem, in which the matrices are equal to certain operations of the blocks. These matrices are not computed explicitly to avoid losing sparsity.
 
-	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices that do not require explicit storage of the component values. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector. 
+	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices that do not require explicit storage of the matrix entries. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector. 
 
 	Shell matrices, also called matrix-free matrices, are created in \petsc with the command \ident{MatCreateShell}. Then, the function \ident{MatShellSetOperation} is used to provide any user-defined shell matrix operations (see the \petsc{} documentation for additional details). Several examples are available in \slepc that illustrate how to solve a matrix-free eigenvalue problem.
 
 	In the simplest case, defining matrix-vector product operations (\ident{MATOP\_MULT}) is enough for using \ident{EPS} with shell matrices. However, in the case of generalized problems, if matrix $B$ is also a shell matrix then it may be necessary to define other operations in order to be able to solve the linear system successfully, for example \ident{MATOP\_GET\_DIAGONAL} to use an iterative linear solver with Jacobi preconditioning. On the other hand, if the shift-and-invert \ident{ST} is to be used, then in addition it may also be necessary to define \ident{MATOP\_SHIFT} or \ident{MATOP\_AXPY} (see \S\ref{sec:explicit} for discussion).
 
-	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation (or \ident{MATOP\_\-MULT\_HERMITIAN\_TRANSPOSE} in the case of complex scalars) in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation (plus \ident{MATOP\_CONJUGATE} if complex scalars are being used). For details, see the manual page for \ident{SVDSetTransposeMode}.
+	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation (or \ident{MATOP\_\-MULT\_HERMITIAN\_TRANSPOSE} in the case of complex scalars) in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation. For details, see the manual page for \ident{SVDSetTransposeMode}.
 
 %---------------------------------------------------
 \section{GPU Computing}
 \label{sec:gpu}
 
-Experimental support for graphics processor unit (GPU) computing is included in \slepc 3.2. This is related to the previous section because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. Currently, GPU support in \slepc has been tested only in the Krylov-Schur \ident{EPS} solver, although it may work in other solvers as well. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
+Experimental support for graphics processor unit (GPU) computing is included since \slepc 3.2. This is related to the previous section because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. Currently, GPU support in \slepc has been tested only in the Krylov-Schur \ident{EPS} solver, although it may work in other solvers as well. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
 
-PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda-toolkit-40}}, that provides a C/C++ compiler with CUDA extensions and the Thrust library, together with the Cusp library\footnote{\url{http://code.google.com/p/cusp-library}}, that implements sparse linear algebra and graph computations on CUDA based on Thrust data structures. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
+PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda}} (and later), that provides a C/C++ compiler with CUDA extensions and the Thrust library, together with the Cusp library\footnote{\url{http://code.google.com/p/cusp-library}}, that implements sparse linear algebra and graph computations on CUDA based on Thrust data structures. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
 	\begin{Verbatim}[fontsize=\small]
 	$ ./configure --with-precision=single --with-cuda --with-thrust
                       --with-cusp --with-cusp-dir=/path/to/cusp-library
@@ -126,7 +126,7 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \begin{description}
 \setlength{\itemsep}{0mm}
 \item[\texttt{finclude}] - include files for Fortran programmers.
-\item[\texttt{private}] - include files containing implementation details, for developer use only.
+\item[\texttt{slepc-private}] - include files containing implementation details, for developer use only.
 \end{description}
 \item[\texttt{shared}] - Datafiles used by some examples.
 \item[\texttt{src}] - The source code for all \slepc components, which currently includes:
@@ -138,6 +138,7 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \item[\texttt{svd}] - singular value decomposition solver.
 \item[\texttt{qep}] - quadratic eigenvalue problem solver.
 \item[\texttt{ip}] - inner product, for developer use only.
+\item[\texttt{ds}] - direct solver (or dense system), for developer use only.
 \item[\texttt{vec}] - custom vector implementation, for developer use only.
 \end{description}
 \item[\texttt{\$PETSC\_ARCH}] - For each value of \ident{PETSC\_ARCH}, a directory exists containing files generated during installation of that particular configuration. The following subdirectories exist:
@@ -160,6 +161,16 @@ Each \slepc source code component directory has the following subdirectories:
 \item[\texttt{tests}] - examples used by testing scripts.
 \end{description}
 \end{description}
+
+%---------------------------------------------------
+\section{Auxiliary Components}
+\label{sec:aux}
+
+The previous section includes a list of subdirectories, each of them representing a \slepc component. Most of these components have been treated in previous chapters. Here we include a brief report about two auxiliary components, \ident{IP} and \ident{DS}, that are not normally required by final users, but provide important operations to high level solvers such \ident{EPS}.
+
+\subsection{IP: Inner Product}
+
+\subsection{DS: Direct Solver (or Dense System)}
 
 %---------------------------------------------------
 \section{Wrappers to External Libraries}
@@ -205,7 +216,7 @@ Each \slepc source code component directory has the following subdirectories:
 	\item[Installation.]
 	First of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. If you plan to use the parallel version, extract also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz} (make sure you delete any \texttt{mpif.h} files that could exist in the directory tree). After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack. 
 
-	It is possible to configure \slepc with the serial version of \arpack. For this, you have to configure \petsc with the option \texttt{--with-mpi=0}.
+	It is possible to configure \slepc with the serial version of \arpack. For this, you have to configure \petsc with the option \texttt{-{}-with-mpi=0}.
 	\end{description}
 
 \subsection*{\underline{\primme}}
