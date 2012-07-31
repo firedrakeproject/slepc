@@ -105,8 +105,8 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   PetscErrorCode ierr;
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
   PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv;
-  PetscScalar    *C,*Y,*gamma,g,a,b,c,pap,pbp,pbx,pax,nu,mu,disc,alpha,beta;
-  PetscReal      resnorm,norm;
+  PetscScalar    *C,*Y,*gamma,g,pap,pbp,pbx,pax,nu,mu,alpha,beta;
+  PetscReal      resnorm,norm,a,b,c,disc;
   PetscBool      reset,breakdown;
   Mat            A,B;
   Vec            w=eps->work[0];
@@ -197,12 +197,12 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         ierr = VecDot(ctx->P[i-eps->nconv],w,&pap);CHKERRQ(ierr);
         ierr = MatMult(B,ctx->P[i-eps->nconv],w);CHKERRQ(ierr);
         ierr = VecDot(ctx->P[i-eps->nconv],w,&pbp);CHKERRQ(ierr);
-        a = pap*pbx-pax*pbp;
-        b = nu*pbp-mu*pap;
-        c = mu*pax-nu*pbx;
+        a = PetscRealPart(pap*pbx-pax*pbp);
+        b = PetscRealPart(nu*pbp-mu*pap);
+        c = PetscRealPart(mu*pax-nu*pbx);
         disc = b*b-4.0*a*c;
-        if (b>=0.0 && a!=0.0) alpha = (b+PetscSqrtScalar(disc))/(2.0*a);
-        else alpha = 2.0*c/(b-PetscSqrtScalar(disc));
+        if (b>=0.0 && a!=0.0) alpha = (b+PetscSqrtReal(disc))/(2.0*a);
+        else alpha = 2.0*c/(b-PetscSqrtReal(disc));
 
         /* Next iterate */
         ierr = VecAXPY(eps->V[i],alpha,ctx->P[i-eps->nconv]);CHKERRQ(ierr);
@@ -223,21 +223,6 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
-#define __FUNCT__ "EPSSetFromOptions_RQCG"
-PetscErrorCode EPSSetFromOptions_RQCG(EPS eps)
-{
-  PetscErrorCode ierr;
-  PetscBool      flg;
-  PetscInt       nrest;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS RQCG Options");CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_rqcg_reset","RQCG reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr); }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
@@ -336,6 +321,22 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   ierr = VecDestroyVecs(eps->ncv,&ctx->P);CHKERRQ(ierr);
   ierr = VecDestroyVecs(eps->ncv,&ctx->G);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetFromOptions_RQCG"
+PetscErrorCode EPSSetFromOptions_RQCG(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+  PetscInt       nrest;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("EPS RQCG Options");CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_rqcg_reset","RQCG reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr); }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
