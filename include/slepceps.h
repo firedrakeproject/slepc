@@ -402,5 +402,8 @@ PETSC_EXTERN PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBoo
 PETSC_EXTERN PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
 PETSC_EXTERN PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 
+PETSC_EXTERN PetscErrorCode EPSRQCGSetReset(EPS,PetscInt);
+PETSC_EXTERN PetscErrorCode EPSRQCGGetReset(EPS,PetscInt*);
+
 #endif
 

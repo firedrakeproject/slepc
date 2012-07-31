@@ -158,7 +158,8 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   PetscInt       n,i,ld;
   PetscScalar    *Z;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscReal      normi;
+  PetscScalar    tmp;
+  PetscReal      norm,normi;
 #endif
   Vec            w;
   

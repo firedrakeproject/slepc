@@ -589,12 +589,13 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEDC/ORMTR - Lapack routine is unavailable.");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j;
+  PetscInt       i;
   PetscBLASInt   n1,info,l,ld,off,lrwork,liwork;
   PetscScalar    *Q,*A;
   PetscReal      *d,*e;
 #if defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lwork;
+  PetscInt       j;
 #endif
  
   PetscFunctionBegin;
@@ -623,8 +624,8 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSAllocateWork_Private(ds,lwork,lrwork,liwork);CHKERRQ(ierr);
   LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->work,&lwork,ds->rwork,&lrwork,ds->iwork,&liwork,&info);
   /* Fixing Lapack bug*/
-  for(j=ds->l;j<ds->n;j++)
-    for(i=0;i<ds->l;i++) Q[i+j*ld] = 0.0;
+  for (j=ds->l;j<ds->n;j++)
+    for (i=0;i<ds->l;i++) Q[i+j*ld] = 0.0;
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
   for (i=l;i<ds->n;i++) wr[i] = d[i];
