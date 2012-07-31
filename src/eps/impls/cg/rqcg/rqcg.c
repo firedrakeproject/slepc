@@ -174,6 +174,11 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     }
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+
+    /* The next lines are necessary to avoid DS zeroing eigr */
+    ierr = DSGetArray(eps->ds,DS_MAT_A,&C);CHKERRQ(ierr);
+    for (i=eps->nconv;i<k;i++) C[i+i*ld] = eps->eigr[i];
+    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&C);CHKERRQ(ierr);
   
     if (eps->reason == EPS_CONVERGED_ITERATING) {
 
@@ -320,6 +325,7 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   ierr = VecDestroyVecs(eps->ncv,&ctx->BV);CHKERRQ(ierr);
   ierr = VecDestroyVecs(eps->ncv,&ctx->P);CHKERRQ(ierr);
   ierr = VecDestroyVecs(eps->ncv,&ctx->G);CHKERRQ(ierr);
+  ctx->nrest = 0;
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -377,13 +383,13 @@ PetscErrorCode EPSCreate_RQCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,EPS_RQCG,&eps->data);CHKERRQ(ierr);
-  eps->ops->setup                = EPSSetUp_RQCG;
-  eps->ops->setfromoptions       = EPSSetFromOptions_RQCG;
-  eps->ops->destroy              = EPSDestroy_RQCG;
-  eps->ops->reset                = EPSReset_RQCG;
-  eps->ops->view                 = EPSView_RQCG;
-  eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
+  eps->ops->setup          = EPSSetUp_RQCG;
+  eps->ops->setfromoptions = EPSSetFromOptions_RQCG;
+  eps->ops->destroy        = EPSDestroy_RQCG;
+  eps->ops->reset          = EPSReset_RQCG;
+  eps->ops->view           = EPSView_RQCG;
+  eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->computevectors = EPSComputeVectors_Default;
   ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","EPSRQCGSetReset_RQCG",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
