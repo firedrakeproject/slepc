@@ -300,7 +300,7 @@ EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRQCGGetReset"
-/*@C
+/*@
    EPSRQCGGetReset - Gets the reset parameter used in the RQCG method. 
 
    Not Collective

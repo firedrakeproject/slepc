@@ -36,6 +36,7 @@
 
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
+#include "krylovschur.h"
 
 /* Type of data characterizing a shift (place from where an eps is applied) */
 typedef struct _n_shift *shift;
@@ -188,19 +189,20 @@ static PetscErrorCode EPSExtractShift(EPS eps) {
 #define __FUNCT__ "EPSKrylovSchur_Slice"
 static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,conv,k,l,ld,nv,*iwork,j,p;
-  Vec            u=eps->work[0];
-  PetscScalar    *Q,*A,nu,rtmp;
-  PetscReal      *a,*b,beta;
-  PetscBool      breakdown;
-  PetscInt       count0,count1;
-  PetscReal      lambda;
-  shift          sPres;
-  PetscBool      complIterating,iscayley;
-  PetscBool      sch0,sch1;
-  PetscInt       iterCompl=0,n0,n1,aux,auxc;
-  SR             sr;
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i,conv,k,l,ld,nv,*iwork,j,p;
+  Vec             u=eps->work[0];
+  PetscScalar     *Q,*A,nu,rtmp;
+  PetscReal       *a,*b,beta;
+  PetscBool       breakdown;
+  PetscInt        count0,count1;
+  PetscReal       lambda;
+  shift           sPres;
+  PetscBool       complIterating,iscayley;
+  PetscBool       sch0,sch1;
+  PetscInt        iterCompl=0,n0,n1,aux,auxc;
+  SR              sr;
 
   PetscFunctionBegin;
   /* Spectrum slicing data */
@@ -350,8 +352,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       }      
     }
     /* Update l */
-    if (eps->reason == EPS_CONVERGED_ITERATING )l = (nv-k)/2;
-    else l=nv-k;
+    if (eps->reason == EPS_CONVERGED_ITERATING) l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+    else l = nv-k;
     if (breakdown)l=0;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {

@@ -42,18 +42,15 @@
 
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
-
-PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
-extern PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
-extern PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
-extern PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
+#include "krylovschur.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_KrylovSchur"
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscBool      issinv;
+  PetscErrorCode  ierr;
+  PetscBool       issinv;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   enum { EPS_KS_DEFAULT, EPS_KS_SYMM, EPS_KS_SLICE, EPS_KS_INDEF } variant;
 
   PetscFunctionBegin;
@@ -102,6 +99,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC)
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
+
+  if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->arbit_func) { ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr); }
@@ -161,12 +160,13 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 #define __FUNCT__ "EPSSolve_KrylovSchur_Default"
 PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,k,l,nv,ld;
-  Vec            u=eps->work[0];
-  PetscScalar    *S,*Q,*g;
-  PetscReal      beta,gamma=1.0;
-  PetscBool      breakdown,harmonic;
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i,k,l,nv,ld;
+  Vec             u=eps->work[0];
+  PetscScalar     *S,*Q,*g;
+  PetscReal       beta,gamma=1.0;
+  PetscBool       breakdown,harmonic;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -211,7 +211,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
-      l = (nv-k)/2;
+      l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
 #if !defined(PETSC_USE_COMPLEX)
       ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
       if (S[k+l+(k+l-1)*ld] != 0.0) {
@@ -272,14 +272,172 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
 EXTERN_C_BEGIN
 #undef __FUNCT__  
+#define __FUNCT__ "EPSKrylovSchurSetRestart_KrylovSchur"
+PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal keep)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
+  else {
+    if (keep<0.1 || keep>0.9) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    ctx->keep = keep;
+  }
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSKrylovSchurSetRestart"
+/*@
+   EPSKrylovSchurSetRestart - Sets the restart parameter for the Krylov-Schur
+   method, in particular the proportion of basis vectors that must be kept
+   after restart.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  keep - the number of vectors to be kept at restart
+
+   Options Database Key:
+.  -eps_krylovschur_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,0.9]. The default is 0.5.
+   
+   Level: advanced
+
+.seealso: EPSKrylovSchurGetRestart()
+@*/
+PetscErrorCode EPSKrylovSchurSetRestart(EPS eps,PetscReal keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveReal(eps,keep,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurSetRestart_C",(EPS,PetscReal),(eps,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
+#define __FUNCT__ "EPSKrylovSchurGetRestart_KrylovSchur"
+PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *keep)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  *keep = ctx->keep;
+  PetscFunctionReturn(0);
+}
+EXTERN_C_END
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSKrylovSchurGetRestart"
+/*@
+   EPSKrylovSchurGetRestart - Gets the restart parameter used in the
+   Krylov-Schur method. 
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  keep - the restart parameter
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetRestart()
+@*/
+PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(keep,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetRestart_C",(EPS,PetscReal*),(eps,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
+PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+  PetscReal      keep;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("EPS Krylov-Schur Options");CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-eps_krylovschur_restart","Proportion of vectors kept after restart","EPSKrylovSchurSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr); }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSView_KrylovSchur"
+PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscBool       isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS Krylov-Schur",((PetscObject)viewer)->type_name);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSReset_KrylovSchur"
+PetscErrorCode EPSReset_KrylovSchur(EPS eps)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->keep = 0.0;
+  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSDestroy_KrylovSchur"
+PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurSetRestart_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurGetRestart_C","",PETSC_NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+EXTERN_C_BEGIN
+#undef __FUNCT__  
 #define __FUNCT__ "EPSCreate_KrylovSchur"
 PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(eps,EPS_KRYLOVSCHUR,&eps->data);CHKERRQ(ierr);
   eps->ops->setup          = EPSSetUp_KrylovSchur;
-  eps->ops->reset          = EPSReset_Default;
+  eps->ops->setfromoptions = EPSSetFromOptions_KrylovSchur;
+  eps->ops->destroy        = EPSDestroy_KrylovSchur;
+  eps->ops->reset          = EPSReset_KrylovSchur;
+  eps->ops->view           = EPSView_KrylovSchur;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurSetRestart_C","EPSKrylovSchurSetRestart_KrylovSchur",EPSKrylovSchurSetRestart_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurGetRestart_C","EPSKrylovSchurGetRestart_KrylovSchur",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

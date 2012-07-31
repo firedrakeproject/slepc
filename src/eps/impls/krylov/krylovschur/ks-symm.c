@@ -26,6 +26,7 @@
 
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
+#include "krylovschur.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGetArbitraryValues"
@@ -55,12 +56,13 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 #define __FUNCT__ "EPSSolve_KrylovSchur_Symm"
 PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       k,l,ld,nv;
-  Vec            u=eps->work[0];
-  PetscScalar    *Q,*rr=PETSC_NULL,*ri=PETSC_NULL;
-  PetscReal      *a,*b,beta;
-  PetscBool      breakdown;
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        k,l,ld,nv;
+  Vec             u=eps->work[0];
+  PetscScalar     *Q,*rr=PETSC_NULL,*ri=PETSC_NULL;
+  PetscReal       *a,*b,beta;
+  PetscBool       breakdown;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -104,7 +106,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (nv-k)/2;
+    else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {

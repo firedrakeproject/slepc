@@ -25,6 +25,7 @@
 */
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
+#include "krylovschur.h"
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSFullLanczosIndef"
@@ -75,12 +76,13 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
 #define __FUNCT__ "EPSSolve_KrylovSchur_Indefinite"
 PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,k,l,ld,nv;
-  Vec            u=eps->work[0];
-  PetscScalar    *Q;
-  PetscReal      *a,*b,*r,beta,norm,*omega;
-  PetscBool      breakdown=PETSC_FALSE;
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i,k,l,ld,nv;
+  Vec             u=eps->work[0];
+  PetscScalar     *Q;
+  PetscReal       *a,*b,*r,beta,norm,*omega;
+  PetscBool       breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -127,7 +129,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
-      l = (nv-k)/2;
+      l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
       if(*(a+ld+k+l-1)!=0){
         if (k+l<nv-1) l = l+1;

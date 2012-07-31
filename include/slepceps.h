@@ -321,6 +321,9 @@ PETSC_EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
 PETSC_EXTERN PetscErrorCode EPSArnoldiSetDelayed(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscBool*);
 
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetRestart(EPS,PetscReal);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetRestart(EPS,PetscReal*);
+
 /*E
     EPSLanczosReorthogType - determines the type of reorthogonalization
     used in the Lanczos method

@@ -22,6 +22,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#if !defined(__LINEARP_H)
+#define __LINEARP_H
+
 typedef struct {
   PetscBool  explicitmatrix;
   PetscInt   cform;           /* companion form */
@@ -81,3 +84,4 @@ extern PetscErrorCode MatGetDiagonal_Linear_H2B(Mat,Vec);
 extern PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm,QEP_LINEAR*,Mat*);
 extern PetscErrorCode MatCreateExplicit_Linear_H2B(MPI_Comm,QEP_LINEAR*,Mat*);
 
+#endif
