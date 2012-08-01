@@ -112,7 +112,8 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
                    b->max_nev*b->max_nev*(her_ind_probl?0:(!d->B?1:2)) +
                                                 /* cS?, cT? */
                    FromRealToScalar(d->size_real_V)*(ind_probl?1:0) + /* nBV */
-                   FromRealToScalar(b->max_size_proj)*(ind_probl?1:0); /* nBpX */
+                   FromRealToScalar(b->max_size_proj)*(ind_probl?1:0) + /* nBpX */
+                   (d->eps->arbit_func? b->size_V*2 : 0); /* rr, ri */
   b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X);
                                                 /* updateV0 */
   max_cS = PetscMax(b->max_size_X,cX_proj);
@@ -191,6 +192,13 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
     } else {
       d->cT = PETSC_NULL;
       d->ldcT = 0;
+    }
+    if (d->eps->arbit_func) {
+      d->eps->rr = b->free_scalars; b->free_scalars+= b->size_V;
+      d->eps->ri = b->free_scalars; b->free_scalars+= b->size_V;
+    } else {
+      d->eps->rr = PETSC_NULL;
+      d->eps->ri = PETSC_NULL;
     }
     /* Create a DS if the method works with Schur decompositions */
     if (d->cS) {
@@ -731,10 +739,10 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
     PetscFunctionReturn(0);
   }
 
-  *rr_ = rr = d->auxS;
-  *ri_ = ri = d->auxS + r_e - r_s;
   /* Quick exit without arbitrary selection, but with harmonic extraction */
   if (!d->eps->arbit_func && d->calcpairs_eig_backtrans) {
+    *rr_ = rr = d->auxS;
+    *ri_ = ri = d->auxS+r_e-r_s;
     for (i=r_s; i<r_e; i++) {
       ierr = d->calcpairs_eig_backtrans(d,d->eigr[i],d->eigi[i],&rr[i-r_s],&ri[i-r_s]);CHKERRQ(ierr);
     }
@@ -742,6 +750,8 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
   }
 
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  *rr_ = rr = d->eps->rr + d->eps->nconv;
+  *ri_ = ri = d->eps->ri + d->eps->nconv;
   for (i=r_s; i<r_e; i++) {
     k = i;
     ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
