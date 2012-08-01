@@ -136,7 +136,7 @@ PETSC_EXTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_EXTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 PETSC_EXTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_EXTERN PetscErrorCode EPSComputeTrueResidual(EPS,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*,Vec*,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,Vec*,PetscInt,Vec,Vec);
 
 /* Private functions of the solver implementations */
 

@@ -92,8 +92,13 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm;
   PetscBool      isshift;
+  Vec            x,y;
 
   PetscFunctionBegin;
+  if (eps->trueres) {
+    ierr = VecDuplicate(eps->t,&x);CHKERRQ(ierr);
+    ierr = VecDuplicate(eps->t,&y);CHKERRQ(ierr);
+  }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
   marker = -1;
@@ -113,8 +118,9 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       Zr = X+k*ld;
       if (newk==k+1) Zi = X+newk*ld;
       else Zi = PETSC_NULL;
-      ierr = EPSComputeTrueResidual(eps,re,im,Zr,Zi,V,nv,&resnorm);CHKERRQ(ierr);
+      ierr = EPSComputeRitzVector(eps,Zr,Zi,V,nv,x,y);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+      ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,&resnorm);
     }
     else resnorm *= corrf;
     /* error estimate */
@@ -125,6 +131,10 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   }
   if (marker!=-1) k = marker;
   *kout = k;
+  if (eps->trueres) {
+    ierr = VecDestroy(&x);CHKERRQ(ierr);
+    ierr = VecDestroy(&y);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

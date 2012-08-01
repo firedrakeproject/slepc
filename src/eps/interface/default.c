@@ -326,32 +326,25 @@ PetscErrorCode EPSConvergedNormRelative(EPS eps,PetscScalar eigr,PetscScalar eig
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSComputeTrueResidual"
+#define __FUNCT__ "EPSComputeRitzVector"
 /*
-  EPSComputeTrueResidual - Computes the true residual norm of a given Ritz pair:
-    ||r|| = ||A*x - lambda*B*x||
-  where lambda is the Ritz value and x is the Ritz vector.
+  EPSComputeRitzVector - Computes the current Ritz vector.
 
-  Real lambda:
-    lambda = eigr
-    x = V*Z  (V is an array of nv vectors, Z has length nv)
+  Simple case (complex scalars or real scalars with Zi=NULL):
+    x = V*Zr  (V is an array of nv vectors, Zr has length nv)
 
-  Complex lambda:
-    lambda = eigr+i*eigi
-    x = V*Z[0*nv]+i*V*Z[1*nv]  (Z has length 2*nv)
+  Split case:
+    x = V*Zr  y = V*Zi  (Zr and Zi have length nv)
 */
-PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscScalar *Zr,PetscScalar *Zi,Vec *V,PetscInt nv,PetscReal *resnorm)
+PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec *V,PetscInt nv,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  Vec            x,y,z=0;
   PetscReal      norm;
+#if !defined(PETSC_USE_COMPLEX)
+  Vec            z;
+#endif
   
   PetscFunctionBegin;
-  /* allocate workspace */
-  ierr = VecDuplicate(V[0],&x);CHKERRQ(ierr);
-  ierr = VecDuplicate(V[0],&y);CHKERRQ(ierr);
-  if (!eps->ishermitian && eps->ispositive) { ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr); }
-
   /* compute eigenvector */
   ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Zr,V);CHKERRQ(ierr);
 
@@ -376,10 +369,12 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
   if (Zi) {
     ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Zi,V);CHKERRQ(ierr);
     if (eps->ispositive) {
+      ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr);
       ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
       ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
       ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
       ierr = VecCopy(z,y);CHKERRQ(ierr);
+      ierr = VecDestroy(&z);CHKERRQ(ierr);
     }
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
       ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
@@ -387,13 +382,6 @@ PetscErrorCode EPSComputeTrueResidual(EPS eps,PetscScalar eigr,PetscScalar eigi,
     }
   }
 #endif
-  /* compute relative error and update convergence flag */
-  ierr = EPSComputeResidualNorm_Private(eps,eigr,eigi,x,y,resnorm);
-
-  /* free workspace */
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
