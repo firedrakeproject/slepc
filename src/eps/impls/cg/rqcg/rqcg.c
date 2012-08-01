@@ -110,7 +110,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
   PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv;
   PetscScalar    *C,*Y,*gamma,g,pap,pbp,pbx,pax,nu,mu,alpha,beta;
-  PetscReal      resnorm,norm,a,b,c,disc;
+  PetscReal      resnorm,norm,a,b,c,disc,t;
   PetscBool      reset,breakdown;
   Mat            A,B;
   Vec            w=eps->work[0];
@@ -136,7 +136,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
     reset = (eps->its>1 && (eps->its-1)%ctx->nrest==0)? PETSC_TRUE: PETSC_FALSE;
-    
+
     if (reset) {
       /* Compute Rayleigh quotient */
       ierr = DSGetArray(eps->ds,DS_MAT_A,&C);CHKERRQ(ierr);
@@ -180,6 +180,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       ierr = (*eps->conv_func)(eps,eps->eigr[i],0.0,resnorm,&eps->errest[i],eps->conv_ctx);CHKERRQ(ierr);
       if (k==-1 && eps->errest[i] >= eps->tol) k = i;
     }
+    if (k==-1) k = nv;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
 
@@ -197,7 +198,8 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
         gamma[i] = g;
         ierr = VecAXPBY(ctx->P[i],1.0,beta,w);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i+eps->nconv,PETSC_NULL,eps->V,ctx->P[i],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i+eps->nconv,PETSC_NULL,eps->V,ctx->P[i],PETSC_NULL,&resnorm,&breakdown);CHKERRQ(ierr);
+        if (breakdown) SETERRQ(((PetscObject)eps)->comm,1,"No search direction in rqcg");
       }
 
       /* Minimization problem */
@@ -219,14 +221,20 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         a = PetscRealPart(pap*pbx-pax*pbp);
         b = PetscRealPart(nu*pbp-mu*pap);
         c = PetscRealPart(mu*pax-nu*pbx);
-        disc = PetscSqrtReal(b*b-4.0*a*c);
+        t = PetscMax(PetscMax(PetscAbsReal(a),PetscAbsReal(b)),PetscAbsReal(c));
+        if (t!=0.0) { a /= t; b /= t; c /= t; }
+        disc = PetscSqrtReal(PetscAbsReal(b*b-4.0*a*c));
         if (b>=0.0 && a!=0.0) alpha = (b+disc)/(2.0*a);
-        else alpha = 2.0*c/(b-disc);
-
+        else if(b!=disc) alpha = 2.0*c/(b-disc);
+        else alpha = 0;
         /* Next iterate */
-        ierr = VecAXPY(eps->V[i],alpha,ctx->P[i-eps->nconv]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
-        ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
+        if (alpha!=0.0){
+          ierr = VecAXPY(eps->V[i],alpha,ctx->P[i-eps->nconv]);CHKERRQ(ierr);
+        }
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        if (!breakdown && norm !=0) {
+          ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
+        }
       }
     }
     
