@@ -555,7 +555,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     if (workS1) {
       PetscValidScalarPointer(workS1,11);
       Wr = workS1;
-      if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ms) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+      if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ms) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*ms, &Wr);
       CHKERRQ(ierr);
@@ -596,7 +596,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     if (workS1) {
       PetscValidScalarPointer(workS1,11);
       Wr = workS1;
-      if (PetscAbs(PetscMin(W-workS1,workS1-W)) < (eV-sV)*eU) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+      if (PetscAbs(PetscMin(W-workS1,workS1-W)) < (eV-sV)*eU) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*(eV-sV)*eU, &Wr);
       CHKERRQ(ierr);
@@ -626,7 +626,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     if (workS1) {
       PetscValidScalarPointer(workS1,11);
       Wr = workS1;
-      if (PetscMin(W - workS1, workS1 - W) < (eU-sU)*eV) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+      if (PetscMin(W - workS1, workS1 - W) < (eU-sU)*eV) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*(eU-sU)*eV, &Wr);CHKERRQ(ierr);
     }
@@ -972,7 +972,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
 {
 #if defined(PETSC_MISSING_LAPACK_PBTRF)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"PBTRF - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"PBTRF - Lapack routine is unavailable");
 #else
   PetscErrorCode  ierr;
   PetscBLASInt    nn = n, info, ld;
@@ -1189,7 +1189,7 @@ PetscErrorCode dvd_BorthV(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, PetscInt s
       CHKERRQ(ierr);
     }
     if(lindep || (PetscAbs(norm) < PETSC_MACHINE_EPSILON)) {
-        SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors!");
+        SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors");
     }
     if (BVn) BVn[i] = norm > 0.0 ? 1.0 : -1.0;
     norm = PetscAbs(norm);

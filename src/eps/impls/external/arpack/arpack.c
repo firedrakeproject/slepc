@@ -239,14 +239,14 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
             
       ierr = VecResetArray(x);CHKERRQ(ierr);
       ierr = VecResetArray(y);CHKERRQ(ierr);
-    } else if (ido != 99) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Internal error in ARPACK reverse comunication interface (ido=%d)\n",ido);
+    } else if (ido != 99) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Internal error in ARPACK reverse comunication interface (ido=%d)",ido);
     
   } while (ido != 99);
 
   eps->nconv = iparam[4];
   eps->its = iparam[2];
   
-  if (info==3) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV.");
+  if (info==3) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
   else if (info!=0 && info!=1) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);
 
   rvec = PETSC_TRUE;

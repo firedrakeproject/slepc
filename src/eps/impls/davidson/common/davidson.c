@@ -127,7 +127,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
     SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Wrong value of eps->which");
   if (!(eps->nev + bs <= eps->ncv))
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize!");
+    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
 
   ierr = EPSDavidsonGetRestart_Davidson(eps,&min_size_V,&plusk);CHKERRQ(ierr);
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);

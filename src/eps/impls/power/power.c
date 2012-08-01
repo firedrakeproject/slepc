@@ -96,7 +96,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 {
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
 #else 
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;
@@ -242,7 +242,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 {
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
 #else 
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER *)eps->data;

@@ -87,6 +87,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (eps->which==EPS_ALL) {
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL"); 
     if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
+    if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
     if (!((PetscObject)(eps->OP))->type_name) { /* default to shift-and-invert */
       ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
     }

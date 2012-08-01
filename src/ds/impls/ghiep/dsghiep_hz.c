@@ -70,7 +70,7 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
         nrm = PetscSqrtReal(-nrm);
         *swap = PETSC_TRUE;
       } else {  /* breakdown */
-        SETERRQ(PETSC_COMM_SELF,1,"Breakdown in construction of hyperbolic transformation.");
+        SETERRQ(PETSC_COMM_SELF,1,"Breakdown in construction of hyperbolic transformation");
         rot[0] = 1.0; rot[1] = 0.0; rot[2] = 0.0; rot[3] = 1.0;
         *rcond = 0.0;
         PetscFunctionReturn(0);
@@ -79,7 +79,7 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
       /* rot = [c -s; -s c]; */
       rot[0] = c; rot[1] = -s; rot[2] = -s; rot[3] = c;
       *rcond = PetscAbs(PetscAbs(s)-PetscAbs(c))/(PetscAbs(s)+PetscAbs(c));
-    } else SETERRQ(PETSC_COMM_SELF,1,"Value of sygn sent to transetup must be 1 or -1.");
+    } else SETERRQ(PETSC_COMM_SELF,1,"Value of sygn sent to transetup must be 1 or -1");
   }
   PetscFunctionReturn(0);
 }
@@ -177,7 +177,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         sygn = dd[jj]*dd[jj+1];
         ierr = UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap);CHKERRQ(ierr);
         if (rcond<PETSC_MACHINE_EPSILON) {
-          SETERRQ1(PETSC_COMM_SELF,0,"Transforming matrix is numerically singular rcond=%g.",rcond);
+          SETERRQ1(PETSC_COMM_SELF,0,"Transforming matrix is numerically singular rcond=%g",rcond);
           *flag = PETSC_TRUE;
           PetscFunctionReturn(0);
         }

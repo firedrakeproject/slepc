@@ -230,7 +230,7 @@ int main(int argc,char **argv)
       re = kr;
       im = ki;
 #endif 
-      if (im!=0.0) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalue should be real!");
+      if (im!=0.0) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalue should be real");
       else {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12G       %12G        %12G\n",re,error,PetscAbsReal(re-exact[i]));CHKERRQ(ierr); 
       }

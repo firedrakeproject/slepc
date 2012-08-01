@@ -560,7 +560,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
 
     if (  (sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0  ) {/* Valid value */
       if (count>=sr->numEigs) {/* Error found */
-         SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!");
+         SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing");
       }
       sr->eig[count] = lambda;
       sr->errest[count] = err;

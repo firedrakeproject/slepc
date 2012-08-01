@@ -330,8 +330,8 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   }
  
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
-  if (n == 0) SETERRQ(PETSC_COMM_SELF,1, "n == 0!\n");
-  if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s!\n");
+  if (n == 0) SETERRQ(PETSC_COMM_SELF,1, "n == 0");
+  if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s");
 
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
 
@@ -555,7 +555,7 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
-  if (&data->auxV[n] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
+  if (&data->auxV[n] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors");
 
   switch(side) {
   case PC_LEFT:
@@ -591,7 +591,7 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
     }
     break;
   default:
-    SETERRQ(PETSC_COMM_SELF,1, "Unsupported KSP side\n");
+    SETERRQ(PETSC_COMM_SELF,1, "Unsupported KSP side");
   }
 
   /* out <- out - v*(u'*out) */
@@ -649,7 +649,7 @@ PetscErrorCode dvd_pcapplytrans(PC pc,Vec in,Vec out)
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
-  if (&data->auxV[n] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
+  if (&data->auxV[n] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors");
 
   /* auxV <- in */
   for(i=0; i<n; i++) {
@@ -686,7 +686,7 @@ PetscErrorCode dvd_matmult_jd(Mat A,Vec in,Vec out)
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
-  if (&data->auxV[2] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
+  if (&data->auxV[2] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors");
 
   /* out <- theta[1]A*in - theta[0]*B*in */
   ierr = dvd_aux_matmult(data,inx,outx,data->auxV);CHKERRQ(ierr);
@@ -718,7 +718,7 @@ PetscErrorCode dvd_matmulttrans_jd(Mat A,Vec in,Vec out)
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
-  if (&data->auxV[n+2] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors!");
+  if (&data->auxV[n+2] > data->d->auxV+data->d->size_auxV) SETERRQ(PETSC_COMM_SELF,1, "Insufficient auxiliary vectors");
 
   ierr = KSPGetPCSide(data->ksp,&side);CHKERRQ(ierr);
   if (side == PC_RIGHT) {
@@ -828,7 +828,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable");
 #else
   PetscErrorCode  ierr;
   PetscInt        n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
@@ -844,7 +844,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
 
   /* Check consistency */
   V_new = d->size_cX - data->size_cX;
-  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
   data->old_size_X = n;
 
   /* KZ <- KZ(rm:rm+max_cX-1) */
@@ -1223,7 +1223,7 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d, void *funcV, Vec *D,
       ierr = d->improvex_precond(d, i+r_s, D[i+1], D[i]); CHKERRQ(ierr);
     }
     ierr = d->improvex_precond(d, r_e-1, auxV[0], D[r_e-r_s-1]); CHKERRQ(ierr);
-  } else SETERRQ(PETSC_COMM_SELF,1, "Problem: r_e-r_s > max_size_D!");
+  } else SETERRQ(PETSC_COMM_SELF,1, "Problem: r_e-r_s > max_size_D");
   PetscFunctionReturn(0);
 }
 
@@ -1239,7 +1239,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS) 
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
 #else
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
@@ -1253,7 +1253,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
                   sr[4];
   
   PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 
   /* h <- X'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;
@@ -1294,7 +1294,7 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d, Vec *V, PetscInt cV
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS) 
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
 #else
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
@@ -1308,7 +1308,7 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d, Vec *V, PetscInt cV
                   sr[2];
   
   PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken!");
+  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 
   /* h <- KZ'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;

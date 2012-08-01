@@ -681,7 +681,7 @@ PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscBool
   if (eps->adaptive != adaptive) {
     eps->adaptive = adaptive;
     eps->setupcalled = 0;
-    if (adaptive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Sorry, adaptive norms are not implemented in this release.");
+    if (adaptive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Sorry, adaptive norms are not implemented in this release");
   }
   PetscFunctionReturn(0);
 }

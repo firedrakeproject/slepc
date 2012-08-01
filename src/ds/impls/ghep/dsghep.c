@@ -151,7 +151,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_SYGVD)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYGVD - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYGVD - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscScalar    *work,*A,*B,*Q;

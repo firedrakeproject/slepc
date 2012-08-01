@@ -131,7 +131,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
 #if defined(PETSC_MISSING_LAPACK_POTRF) || defined(PETSC_MISSING_LAPACK_SYGV)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/SYGV - Lapack routine is unavailable.");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/SYGV - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscInt       i;
