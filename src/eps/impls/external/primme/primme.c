@@ -88,6 +88,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
+  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
 
   /* Change the default sigma to inf if necessary */

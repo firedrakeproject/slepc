@@ -811,6 +811,7 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   eps->arbit_func = func;
   eps->arbit_ctx  = ctx;
+  eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

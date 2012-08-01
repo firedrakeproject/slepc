@@ -81,6 +81,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type\n");
+  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {

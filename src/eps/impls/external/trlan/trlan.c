@@ -51,6 +51,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   tr->restart = 0;
   if (tr->maxlan+1-eps->ncv<=0) { tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10)); }
