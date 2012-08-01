@@ -26,3 +26,10 @@ Diagonal Eigenproblem, n=30
  All requested eigenvalues computed up to the required tolerance:
      30.00000, 29.00000, 28.00000, 27.00000
 
+eps type gd2
+
+Diagonal Eigenproblem, n=30
+
+ All requested eigenvalues computed up to the required tolerance:
+     30.00000, 29.00000, 28.00000, 27.00000
+

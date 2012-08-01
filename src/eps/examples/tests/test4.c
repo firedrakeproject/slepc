@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscScalar    value[3];
   PetscInt       n=30,i,Istart,Iend,col[3],nev;
-  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE,isgd2;
   char           epstype[30] = "krylovschur";
   PetscErrorCode ierr;
 
@@ -95,7 +95,13 @@ int main(int argc,char **argv)
   /*
      Set solver parameters at runtime
   */
-  ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
+  ierr = PetscStrcmp(epstype,"gd2",&isgd2);CHKERRQ(ierr);
+  if (isgd2) {
+    ierr = EPSSetType(eps,EPSGD);CHKERRQ(ierr);
+    ierr = EPSGDSetDoubleExpansion(eps,PETSC_TRUE);CHKERRQ(ierr);
+  } else {
+    ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem

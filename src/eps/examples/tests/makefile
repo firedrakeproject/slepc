@@ -101,9 +101,9 @@ test13: test13.o chkopts
 	${RM} test13.o
 
 #------------------------------------------------------------------------------------
-EPSALL = krylovschur arnoldi lanczos gd jd
-EPSNS  = krylovschur arnoldi gd jd
-EPSAR  = gd jd
+EPSALL = krylovschur arnoldi lanczos gd jd gd2
+EPSNS  = krylovschur arnoldi gd jd gd2
+EPSAR  = gd jd gd2
 
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
@@ -115,7 +115,8 @@ runtest1_1:
 	-@test=test1_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
-	   if [ "$$eps" = "lanczos" ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
+	   if [ "$$eps" = lanczos ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA -eps_terse 2>&1; \
 	done > $${test}.tmp; \
 	${TESTCODE}
@@ -129,7 +130,8 @@ runtest2_1:
 	-@test=test2_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
-	   if [ $$eps = arnoldi -o $$eps = lanczos ]; then EXTRA="-eps_ncv 15"; else EXTRA=""; fi; \
+	   if [ "$$eps" = arnoldi -o "$$eps" = lanczos ]; then EXTRA="-eps_ncv 15"; else EXTRA=""; fi; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}
@@ -138,6 +140,7 @@ runtest3_1:
 	-@test=test3_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test3 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}
@@ -154,8 +157,9 @@ runtest5_1:
 	-@test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
-	   if [ $$eps = gd ]; then EXTRA="-eps_ncv 7 -eps_gd_minv 2"; \
-	   elif [ $$eps = jd ]; then EXTRA="-eps_ncv 7 -eps_jd_minv 2"; else EXTRA=""; fi; \
+	   if [ "$$eps" = gd ]; then EXTRA="-eps_ncv 7 -eps_gd_minv 2"; \
+	   elif [ "$$eps" = jd ]; then EXTRA="-eps_ncv 7 -eps_jd_minv 2"; else EXTRA=""; fi; \
+	   elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA >> test5_1.tmp 2>&1;    \
 	done; \
 	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
@@ -191,6 +195,7 @@ runtest6_1:
 	-@test=test6_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test6 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}
@@ -221,6 +226,7 @@ runtest8_1:
 	-@test=test8_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 24 -eps_terse 2>&1; \
 	done > $${test}.tmp; \
 	${TESTCODE}
@@ -229,7 +235,8 @@ runtest9_1:
 	-@test=test9_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ $$eps = jd ]; then EXTRA="-st_ksp_type gmres"; else EXTRA=""; fi; \
+	   if [ "$$eps" = jd ]; then EXTRA="-st_ksp_type gmres"; else EXTRA=""; fi; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test9 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}
@@ -238,6 +245,7 @@ runtest10_1:
 	-@test=test10_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test10 -eps_type $$eps -eps_nev 4 -m 11 -eps_terse 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}
@@ -269,7 +277,8 @@ runtest11_1:
 	-@test=test11_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ $$eps = krylovschur -o $$eps = arnoldi ]; then EXTRA="-st_type sinvert"; else EXTRA=""; fi; \
+	   if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; else EXTRA=""; fi; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}
@@ -278,6 +287,7 @@ runtest12_1:
 	-@test=test12_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test12 -eps_type $$eps -eps_nev 4 -eps_terse 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}
@@ -286,6 +296,7 @@ runtest13_1:
 	-@test=test13_1; \
 	for eps in ${EPSAR}; do \
 	   echo "eps type $$eps"; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test13 -eps_type $$eps -eps_max_it 5000 -eps_terse 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}
@@ -294,6 +305,7 @@ runtest13_2:
 	-@test=test13_2; \
 	for eps in ${EPSAR}; do \
 	   echo "eps type $$eps"; \
+	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test13 -eps_type $$eps -eps_non_hermitian -eps_max_it 5000 -eps_terse 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}

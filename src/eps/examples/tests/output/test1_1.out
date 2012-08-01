@@ -38,3 +38,11 @@ Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
      29.73524, 29.67536, 29.58873, 29.46785
 
 Level of orthogonality below the tolerance
+eps type gd2
+
+Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
+
+ All requested eigenvalues computed up to the required tolerance:
+     29.73524, 29.67536, 29.58873, 29.46785
+
+Level of orthogonality below the tolerance
