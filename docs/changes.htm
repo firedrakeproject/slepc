@@ -270,12 +270,63 @@
       </font>
     </td>
   </tr>
+  <tr valign="middle" bgcolor="#fff0d0"> 
+    <td width="138" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.3
+      </font>
+    </td>
+    <td width="175" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.3
+      </font>
+    </td>
+    <td width="75" height="21" align="center"> * </td>
+    <td width="146" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      Aug 2012
+      </font>
+    </td>
+  </tr>
 </table>
 
 <p>&nbsp;</p>
 </tr></td>
 
 <tr><td>
+
+<p>
+<font size="3" face="Arial, Helvetica, sans-serif"><b>
+Changes in Version 3.3</font></b>
+</p>
+
+<ul>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    New EPS solver: Rayleigh quotient conjugate gradient (RQCG).
+    This is the first CG-type eigensolver in SLEPc. It can be used for computing
+    smallest eigenvalues of symmetric-definite matrix pairs without inverting
+    any matrix (a preconditioner can be used instead).
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added a customizable parameter to specify how to restart in Krylov-Schur, see
+    EPSKrylovSchurSetRestart.
+    Tunning this parameter may speed up convergence significantly in some cases.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added support for generalized symmetric-indefinite eigenproblems in
+    Krylov-Schur and the Davidson solvers. 
+    To use this, set the problem type to EPS_GHIEP.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added experimental support for arbitrary selection of eigenpairs, where the
+    solver chooses the most wanted ones based on a user-defined function of
+    the eigenvectors rather than simply sorting the eigenvalues.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added a new auxiliary class DS: Direct Solver (or Dense System), which is
+    intended for developers rather than normal users.
+    </font></li>
+</ul>
 
 <p>
 <font size="3" face="Arial, Helvetica, sans-serif"><b>
