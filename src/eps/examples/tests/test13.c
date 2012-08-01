@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   PetscScalar    seigr,seigi,value[3];
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   Vec            sxr,sxi;
-  PetscInt       n=30,i,Istart,Iend,col[3];
+  PetscInt       n=30,i,Istart,Iend,col[3],nconv;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
 
@@ -98,16 +98,21 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&sxr,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&sxi,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSGetEigenpair(eps,0,&seigr,&seigi,sxr,sxi);CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetEigenpair(eps,0,&seigr,&seigi,sxr,sxi);CHKERRQ(ierr);
+    ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                  Solve eigenproblem using an arbitrary selection
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSSetArbitrarySelection(eps,MyArbitrarySelection,&sxr);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    ierr = EPSSetArbitrarySelection(eps,MyArbitrarySelection,&sxr);CHKERRQ(ierr);
+    ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
+    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Problem: no eigenpairs converged.\n");CHKERRQ(ierr);
+  }
   
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = VecDestroy(&sxr);CHKERRQ(ierr);

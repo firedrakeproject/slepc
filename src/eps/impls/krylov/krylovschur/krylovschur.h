@@ -29,6 +29,7 @@ extern PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
 extern PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
+extern PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
 
 typedef struct {
   PetscReal keep;

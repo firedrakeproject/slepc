@@ -280,6 +280,7 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 #endif
 
   PetscFunctionBegin;
+  if (!k) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Must supply argument k");
   n  = PetscBLASIntCast(ds->n);
   ld = PetscBLASIntCast(ds->ld);
 #if !defined(PETSC_USE_COMPLEX)

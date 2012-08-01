@@ -45,6 +45,35 @@
 #include "krylovschur.h"
 
 #undef __FUNCT__  
+#define __FUNCT__ "EPSGetArbitraryValues"
+PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,newi,ld,n,l;
+  Vec            xr=eps->work[1],xi=eps->work[2];
+  PetscScalar    re,im,*Zr,*Zi,*X;
+
+  PetscFunctionBegin;
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  for (i=l;i<n;i++) {
+    re = eps->eigr[i];
+    im = eps->eigi[i];
+    ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+    newi = i;
+    ierr = DSVectors(eps->ds,DS_MAT_X,&newi,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+    Zr = X+i*ld;
+    if (newi==i+1) Zi = X+newi*ld;
+    else Zi = PETSC_NULL;
+    ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,n,xr,xi);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+    ierr = (*eps->arbit_func)(re,im,xr,xi,rr+i,ri+i,eps->arbit_ctx);CHKERRQ(ierr);    
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "EPSSetUp_KrylovSchur"
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
@@ -162,7 +191,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,k,l,nv,ld;
+  PetscInt        i,j,*pj,k,l,nv,ld;
   Vec             u=eps->work[0];
   PetscScalar     *S,*Q,*g;
   PetscReal       beta,gamma=1.0;
@@ -172,6 +201,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
+  if (eps->arbit_func) pj = &j; else pj = PETSC_NULL;
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -201,7 +231,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    if (eps->arbit_func) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); j=1; }
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,eps->rr,eps->ri,pj);CHKERRQ(ierr);
 
     /* Check convergence */ 
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);

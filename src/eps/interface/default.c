@@ -380,8 +380,9 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
       ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
       ierr = VecNormalize(y,&norm);CHKERRQ(ierr);
     }
-  }
+  } else
 #endif
+  { ierr = VecSet(y,0.0);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

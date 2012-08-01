@@ -29,30 +29,6 @@
 #include "krylovschur.h"
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSGetArbitraryValues"
-PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,ld,n,l;
-  Vec            xr=eps->work[1],xi=eps->work[2];
-  PetscScalar    *X;
-
-  PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSVectors(eps->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = VecSet(xi,0.0);CHKERRQ(ierr);
-  for (i=l;i<n;i++) {
-    ierr = VecSet(xr,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(xr,n,X+i*ld,eps->V);CHKERRQ(ierr);    
-    ierr = (*eps->arbit_func)(eps->eigr[i],eps->eigi[i],xr,xi,rr+i,ri+i,eps->arbit_ctx);CHKERRQ(ierr);    
-  }
-  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_KrylovSchur_Symm"
 PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 {
