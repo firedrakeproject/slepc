@@ -27,8 +27,7 @@
 #define __FUNCT__ "EPSAllocateSolution"
 /*
   EPSAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. All vectors in V (and W) share a
-  contiguous chunk of memory.
+  as eigenvalues and eigenvectors.
 */
 PetscErrorCode EPSAllocateSolution(EPS eps)
 {
@@ -57,6 +56,14 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     }
     eps->allocated_ncv = eps->ncv;
   }
+  /* The following cannot go in the above if, to avoid crash when ncv did not change */
+  if (eps->arbit_func) {
+    ierr = PetscFree(eps->rr);CHKERRQ(ierr);
+    ierr = PetscFree(eps->ri);CHKERRQ(ierr);
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->rr);CHKERRQ(ierr);
+    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->ri);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(eps,2*newc*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -77,6 +84,8 @@ PetscErrorCode EPSFreeSolution(EPS eps)
     ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
     ierr = PetscFree(eps->errest_left);CHKERRQ(ierr); 
     ierr = PetscFree(eps->perm);CHKERRQ(ierr); 
+    ierr = PetscFree(eps->rr);CHKERRQ(ierr);
+    ierr = PetscFree(eps->ri);CHKERRQ(ierr);
     ierr = VecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);
     ierr = VecDestroyVecs(eps->allocated_ncv,&eps->W);CHKERRQ(ierr);
     eps->allocated_ncv = 0;

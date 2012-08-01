@@ -60,16 +60,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        k,l,ld,nv;
   Vec             u=eps->work[0];
-  PetscScalar     *Q,*rr=PETSC_NULL,*ri=PETSC_NULL;
+  PetscScalar     *Q;
   PetscReal       *a,*b,beta;
   PetscBool       breakdown;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  if (eps->arbit_func) {
-    ierr = PetscMalloc(ld*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
-    ierr = PetscMalloc(ld*sizeof(PetscScalar),&ri);CHKERRQ(ierr);
-  }
 
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -95,8 +91,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
-    if (eps->arbit_func) { ierr = EPSGetArbitraryValues(eps,rr,ri);CHKERRQ(ierr); }
-    ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL,rr,ri,PETSC_NULL);CHKERRQ(ierr);
+    if (eps->arbit_func) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); }
+    ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL,eps->rr,eps->ri,PETSC_NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -134,10 +130,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
   } 
-  if (eps->arbit_func) {
-    ierr = PetscFree(rr);CHKERRQ(ierr);
-    ierr = PetscFree(ri);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 

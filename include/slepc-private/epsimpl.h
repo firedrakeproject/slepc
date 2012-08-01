@@ -69,6 +69,7 @@ struct _p_EPS {
   void           *which_ctx;
   PetscErrorCode (*arbit_func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
   void           *arbit_ctx;
+  PetscScalar    *rr,*ri;          /* values computed by user's arbitrary selection function */
   PetscReal      inta, intb;       /* interval [a,b] for spectrum slicing */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */
