@@ -64,8 +64,7 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
    The state indicates that the dense system is in an initial state (raw),
    in an intermediate state (such as tridiagonal, Hessenberg or 
    Hessenberg-triangular), in a condensed state (such as diagonal, Schur or
-   generalized Schur), or in a sorted condensed state (according to a given
-   sorting criterion).
+   generalized Schur), or in a truncated state.
 
    This function is normally used to return to the raw state when the
    condensed structure is destroyed.
@@ -85,7 +84,7 @@ PetscErrorCode DSSetState(DS ds,DSStateType state)
     case DS_STATE_RAW:
     case DS_STATE_INTERMEDIATE:
     case DS_STATE_CONDENSED:
-    case DS_STATE_SORTED:
+    case DS_STATE_TRUNCATED:
       if (ds->state<state) { ierr = PetscInfo(ds,"DS state has been increased\n");CHKERRQ(ierr); }
       ds->state = state;
       break;
@@ -243,14 +242,14 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
   if (!ds->ops->truncate) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
   if (n<ds->l || n>ds->n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between l and n");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->truncate)(ds,n);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ds->state = DS_STATE_RAW;
+  ds->state = DS_STATE_TRUNCATED;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -466,7 +465,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscValidPointer(eigr,2);
   if (rr) PetscValidPointer(rr,4);
   if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
-  if (ds->state==DS_STATE_SORTED) PetscFunctionReturn(0);
+  if (ds->state==DS_STATE_TRUNCATED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Cannot sort a truncated DS");
   if (!ds->ops->sort) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (!ds->comp_fun) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must provide a sorting criterion with DSSetEigenvalueComparison() first");
   if (k && !rr) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Argument k can only be used together with rr");
@@ -475,7 +474,6 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri,k);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ds->state = DS_STATE_SORTED;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -568,7 +566,7 @@ PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,col,3);
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
   if (!ds->ops->normalize) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (col<-1) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);

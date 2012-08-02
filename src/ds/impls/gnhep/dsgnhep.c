@@ -209,7 +209,6 @@ PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "DSNormalize_GNHEP"
 PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
@@ -223,7 +222,6 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
 #endif
 
   PetscFunctionBegin;
-  if(ds->state < DS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Y:
@@ -540,7 +538,6 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscValidPointer(wi,3);
   n   = PetscBLASIntCast(ds->n);
   ld  = PetscBLASIntCast(ds->ld);
-  if (ds->state==DS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for the intermediate state");
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,&info);

@@ -54,6 +54,7 @@ struct _p_DS {
   PetscInt       n;                  /* current dimension */
   PetscInt       m;                  /* current column dimension (for SVD only) */
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
+  PetscInt       t;                  /* length of decomposition when it was truncated */
   DSStateType    state;              /* the current state */
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */

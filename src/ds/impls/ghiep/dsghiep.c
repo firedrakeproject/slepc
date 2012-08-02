@@ -191,9 +191,9 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
   ld = PetscBLASIntCast(ds->ld);
   if (k < ds->n-1) {
    e = (ds->compact)?*(ds->rmat[DS_MAT_T]+ld+k):PetscRealPart(*(ds->mat[DS_MAT_A]+(k+1)+ld*k));
-  }else e = 0.0;
+  } else e = 0.0;
   if (e == 0.0) {/* Real */
-     if (ds->state >= DS_STATE_CONDENSED) {
+     if (ds->state>=DS_STATE_CONDENSED) {
        ierr = PetscMemcpy(X+k*ld,Q+k*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
      } else {
        ierr = PetscMemzero(X+k*ds->ld,ds->ld*sizeof(PetscScalar));
@@ -1303,7 +1303,6 @@ PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
 #endif
 
   PetscFunctionBegin;
-  if (ds->state < DS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Y:

@@ -179,18 +179,18 @@ PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_X:
     case DS_MAT_Y:
       if (j) {
-        if(ds->state >= DS_STATE_CONDENSED){
+        if (ds->state>=DS_STATE_CONDENSED) {
           ierr = PetscMemcpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
-        }else{
+        } else {
           ierr = PetscMemzero(ds->mat[mat]+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
           *(ds->mat[mat]+(*j)+(*j)*ld) = 1.0;
         }
       } else {
-        if(ds->state >= DS_STATE_CONDENSED){
+        if (ds->state>=DS_STATE_CONDENSED) {
           ierr = PetscMemcpy(ds->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-        }else{
+        } else {
           ierr = PetscMemzero(ds->mat[mat],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-          for(i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
+          for (i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
         }
       }
       if (rnorm) *rnorm = PetscAbsScalar(Q[ds->n-1+(*j)*ld]);
@@ -210,7 +210,6 @@ PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 PetscErrorCode DSNormalize_HEP(DS ds,DSMatType mat,PetscInt col)
 {
   PetscFunctionBegin;
-  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Y:
@@ -651,7 +650,8 @@ PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  A  = ds->mat[DS_MAT_A];
+  if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
+  A = ds->mat[DS_MAT_A];
   if (!ds->compact && ds->extrarow && ds->k==ds->n) {
     for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
   }

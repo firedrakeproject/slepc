@@ -160,7 +160,6 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
 PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
-  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
   switch (mat) {
     case DS_MAT_U:
     case DS_MAT_VT:

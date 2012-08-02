@@ -145,6 +145,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->n        = 0;
   ds->m        = 0;
   ds->k        = 0;
+  ds->t        = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
     ds->mat[i]  = PETSC_NULL;
     ds->rmat[i] = PETSC_NULL;
@@ -717,15 +718,20 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
         case DS_STATE_RAW:          state = "raw"; break;
         case DS_STATE_INTERMEDIATE: state = "intermediate"; break;
         case DS_STATE_CONDENSED:    state = "condensed"; break;
-        case DS_STATE_SORTED:       state = "sorted"; break;
+        case DS_STATE_TRUNCATED:    state = "truncated"; break;
         default: SETERRQ(((PetscObject)ds)->comm,1,"Wrong value of ds->state");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
       if (issvd) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d\n",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d\n",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
+      }
+      if (ds->state==DS_STATE_TRUNCATED) {
+        ierr = PetscViewerASCIIPrintf(viewer,", t=%d\n",ds->t);CHKERRQ(ierr);
+      } else {
+        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  flags: %s %s %s\n",ds->compact?"compact":"",ds->extrarow?"extrarow":"",ds->refined?"refined":"");CHKERRQ(ierr);
     }
@@ -848,7 +854,8 @@ PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-  rows = (m==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
+  if (ds->state==DS_STATE_TRUNCATED && m>=DS_MAT_Q) rows = ds->t;
+  else rows = (m==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
   cols = (ds->m!=0)? ds->m: ds->n;
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */

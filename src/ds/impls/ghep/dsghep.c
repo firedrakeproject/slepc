@@ -69,18 +69,18 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   switch (mat) {
     case DS_MAT_X:
       if (j) {
-        if(ds->state >= DS_STATE_CONDENSED){
+        if (ds->state>=DS_STATE_CONDENSED) {
           ierr = PetscMemcpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
-        }else{
+        } else {
           ierr = PetscMemzero(ds->mat[mat]+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
           *(ds->mat[mat]+(*j)+(*j)*ld) = 1.0;
         }
       } else {
-        if(ds->state >= DS_STATE_CONDENSED){
+        if (ds->state>=DS_STATE_CONDENSED) {
           ierr = PetscMemcpy(ds->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-        }else{
+        } else {
           ierr = PetscMemzero(ds->mat[mat],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-          for(i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
+          for (i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
         }
       }
       break;
@@ -95,13 +95,11 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "DSNormalize_GHEP"
 PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
 {
- PetscFunctionBegin;
-  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
+  PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Q:
@@ -116,7 +114,6 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
   PetscFunctionReturn(0);
-
 }
 
 #undef __FUNCT__  

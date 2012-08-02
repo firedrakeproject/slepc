@@ -218,7 +218,6 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
 #endif
 
   PetscFunctionBegin;
-  if(ds->state < DS_STATE_INTERMEDIATE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported state");
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Y:
@@ -511,7 +510,8 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  A  = ds->mat[DS_MAT_A];
+  if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
+  A = ds->mat[DS_MAT_A];
   /* be careful not to break a diagonal 2x2 block */
   if (A[n+(n-1)*ld]==0.0) newn = n;
   else {

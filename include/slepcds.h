@@ -67,7 +67,7 @@ E*/
 typedef enum { DS_STATE_RAW,
                DS_STATE_INTERMEDIATE,
                DS_STATE_CONDENSED,
-               DS_STATE_SORTED } DSStateType;
+               DS_STATE_TRUNCATED } DSStateType;
 
 /*E
     DSMatType - to refer to one of the matrices stored internally in DS
