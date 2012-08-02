@@ -107,6 +107,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     eps->ops->backtransform = PETSC_NULL;
   }
 
+  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
+
   /* proceed with the general case */
   if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
