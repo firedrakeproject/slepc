@@ -109,7 +109,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
-  PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv;
+  PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv,kini;
   PetscScalar    *C,*Y,*gamma,g,pap,pbp,pbx,pax,nu,mu,alpha,beta;
   PetscReal      resnorm,norm,a,b,c,disc,t;
   PetscBool      reset,breakdown;
@@ -121,21 +121,20 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->mpd*sizeof(PetscScalar),&gamma);CHKERRQ(ierr);
 
-  /* Complete the initial basis with random vectors and orthonormalize them */
-  k = eps->nini;
-  while (k<ncv) {
-    ierr = SlepcVecSetRandom(eps->V[k],eps->rand);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr); 
-    if (norm>0.0 && !breakdown) {
-      ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
-      k++;
-    }
-  }
-
+  kini = eps->nini;
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
+    /* Generate more initial vectors if necessary */
+    while (kini<nv) {
+      ierr = SlepcVecSetRandom(eps->V[kini],eps->rand);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,kini,PETSC_NULL,eps->V,eps->V[kini],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr); 
+      if (norm>0.0 && !breakdown) {
+        ierr = VecScale(eps->V[kini],1.0/norm);CHKERRQ(ierr);
+        kini++;
+      }
+    }
     reset = (eps->its>1 && (eps->its-1)%ctx->nrest==0)? PETSC_TRUE: PETSC_FALSE;
 
     if (reset) {
@@ -200,7 +199,6 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         gamma[i] = g;
         ierr = VecAXPBY(ctx->P[i],1.0,beta,w);CHKERRQ(ierr);
         ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i+eps->nconv,PETSC_NULL,eps->V,ctx->P[i],PETSC_NULL,&resnorm,&breakdown);CHKERRQ(ierr);
-        if (breakdown) SETERRQ(((PetscObject)eps)->comm,1,"No search direction in rqcg");
       }
 
       /* Minimization problem */
@@ -233,7 +231,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
           ierr = VecAXPY(eps->V[i],alpha,ctx->P[i-eps->nconv]);CHKERRQ(ierr);
         }
         ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
-        if (!breakdown && norm !=0) {
+        if (!breakdown && norm!=0.0) {
           ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
         }
       }
