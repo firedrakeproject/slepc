@@ -58,6 +58,76 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "DSVectors_NHEP_Refined_Some"
+PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
+{
+#if defined(SLEPC_MISSING_LAPACK_GESVD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+  PetscBLASInt   idummy,info,ld,n,n1,lwork;
+  PetscScalar    sdummy;
+  PetscReal      *sigma;
+  PetscBool      iscomplex = PETSC_FALSE;
+  PetscScalar    *A = ds->mat[DS_MAT_A];
+  PetscScalar    *X = ds->mat[left?DS_MAT_Y:DS_MAT_X];
+  PetscScalar    *W;
+
+  PetscFunctionBegin;
+  if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left vectors");
+  n  = PetscBLASIntCast(ds->n);
+  ld = PetscBLASIntCast(ds->ld);
+  n1 = n+1;
+  if ((*k)<n-1 && A[(*k)+1+(*k)*ld]!=0.0) iscomplex = PETSC_TRUE;
+  if (iscomplex) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for complex eigenvalues yet");
+  ierr = DSAllocateWork_Private(ds,5*ld,6*ld,0);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
+  W = ds->mat[DS_MAT_W];
+  lwork = 5*ld;
+  sigma = ds->rwork+5*ld;
+
+  /* build A-w*I in W */
+  for (j=0;j<n;j++)
+    for (i=0;i<=n;i++)
+      W[i+j*ld] = A[i+j*ld];
+  for (i=0;i<n;i++)
+    W[i+i*ld] -= A[(*k)+(*k)*ld];
+
+  /* compute SVD of W */
+#if !defined(PETSC_USE_COMPLEX)
+  LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&idummy,&sdummy,&idummy,ds->work,&lwork,&info);
+#else
+  LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&idummy,&sdummy,&idummy,ds->work,&lwork,ds->rwork,&info);
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+
+  /* the smallest singular value is the new error estimate */
+  if (rnorm) *rnorm = sigma[n-1];
+
+  /* update vector with right singular vector associated to smallest singular value */
+  for (i=0;i<n;i++)
+    X[i+(*k)*ld] = W[n-1+i*ld];
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "DSVectors_NHEP_Refined_All"
+PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  for (i=0;i<ds->n;i++) {
+    ierr = DSVectors_NHEP_Refined_Some(ds,&i,PETSC_NULL,left);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "DSVectors_NHEP_Eigen_Some"
 PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
@@ -182,13 +252,23 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
-      if (j) {
-        ierr = DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_FALSE);CHKERRQ(ierr);
+      if (ds->refined) {
+        if (!ds->extrarow) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Refined vectors require activating the extra row");
+        if (j) {
+          ierr = DSVectors_NHEP_Refined_Some(ds,j,rnorm,PETSC_FALSE);CHKERRQ(ierr);
+        } else {
+          ierr = DSVectors_NHEP_Refined_All(ds,PETSC_FALSE);CHKERRQ(ierr);
+        }
       } else {
-        ierr = DSVectors_NHEP_Eigen_All(ds,PETSC_FALSE);CHKERRQ(ierr);
+        if (j) {
+          ierr = DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_FALSE);CHKERRQ(ierr);
+        } else {
+          ierr = DSVectors_NHEP_Eigen_All(ds,PETSC_FALSE);CHKERRQ(ierr);
+        }
       }
       break;
     case DS_MAT_Y:
+      if (ds->refined) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       if (j) {
         ierr = DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_TRUE);CHKERRQ(ierr);
       } else {

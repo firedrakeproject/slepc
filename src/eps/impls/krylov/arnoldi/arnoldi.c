@@ -74,7 +74,11 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
+  if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
+    ierr = DSSetRefined(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
@@ -244,101 +248,21 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "EPSUpdateVectors"
-/*
-   EPSUpdateVectors - Computes approximate Schur vectors (or eigenvectors) by
-   either Ritz extraction (U=U*Q) or refined Ritz extraction 
-
-   On input:
-     n is the size of U
-     U is the orthogonal basis of the subspace used for projecting
-     s is the index of the first vector computed
-     e+1 is the index of the last vector computed
-     Q contains the corresponding Schur vectors of the projected matrix (size n x n, leading dimension ldq)
-     H is the (extended) projected matrix (size n+1 x n, leading dimension ldh)
-
-   On output:
-     v is the resulting vector
-*/
-PetscErrorCode EPSUpdateVectors(EPS eps,PetscInt n_,Vec *U,PetscInt s,PetscInt e,PetscScalar *Q,PetscInt ldq,PetscScalar *H,PetscInt ldh_)
-{
-#if defined(PETSC_MISSING_LAPACK_GESVD) 
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
-#else
-  PetscErrorCode ierr;
-  PetscBool      refined;
-  PetscInt       i,j,k;
-  PetscBLASInt   n1,lwork,idummy=1,info,n=n_,ldh=ldh_;
-  PetscScalar    *B,sdummy,*work;
-  PetscReal      *sigma;
-
-  PetscFunctionBegin;
-  refined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  if (refined) {
-    /* Refined Ritz extraction */
-    n1 = n+1;
-    ierr = PetscMalloc(n1*n*sizeof(PetscScalar),&B);CHKERRQ(ierr);
-    ierr = PetscMalloc(6*n*sizeof(PetscReal),&sigma);CHKERRQ(ierr);
-    lwork = 10*n;
-    ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-    
-    for (k=s;k<e;k++) {
-      /* copy H to B */
-      for (i=0;i<=n;i++) {
-        for (j=0;j<n;j++) {
-          B[i+j*n1] = H[i+j*ldh];
-        }
-      }
-      /* subtract ritz value from diagonal of B^ */
-      for (i=0;i<n;i++) {
-        B[i+i*n1] -= eps->eigr[k];  /* MISSING: complex case */
-      }
-      /* compute SVD of [H-mu*I] */
-      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-      LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,&info);
-#else
-      LAPACKgesvd_("N","O",&n1,&n,B,&n1,sigma,&sdummy,&idummy,&sdummy,&idummy,work,&lwork,sigma+n,&info);
-#endif
-      ierr = PetscFPTrapPop();CHKERRQ(ierr);
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
-      /* the smallest singular value is the new error estimate */
-      eps->errest[k] = sigma[n-1];
-      /* update vector with right singular vector associated to smallest singular value */
-      for (i=0;i<n;i++)
-        Q[k*ldq+i] = B[n-1+i*n1];
-    }
-    /* free workspace */
-    ierr = PetscFree(B);CHKERRQ(ierr);
-    ierr = PetscFree(sigma);CHKERRQ(ierr);
-    ierr = PetscFree(work);CHKERRQ(ierr);
-  }
-  /* Ritz extraction: v = U*q */
-  ierr = SlepcUpdateVectors(n_,U,s,e,Q,ldq,PETSC_FALSE);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-#endif
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "EPSSolve_Arnoldi"
 PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode     ierr;
-  PetscInt           i,k,nv,ld;
+  PetscInt           k,nv,ld;
   Vec                f=eps->work[0];
-  PetscScalar        *H,*U,*Hcopy;
+  PetscScalar        *H,*U;
   PetscReal          beta,gamma=1.0;
-  PetscBool          breakdown,harmonic,refined;
+  PetscBool          breakdown,harmonic;
   IPOrthogRefineType orthog_ref;
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  refined = (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  if (refined) { ierr = PetscMalloc((ld+1)*ld*sizeof(PetscScalar),&Hcopy);CHKERRQ(ierr); }
-  
   ierr = IPGetOrthogonalization(eps->ip,PETSC_NULL,&orthog_ref,PETSC_NULL);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
@@ -354,15 +278,11 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!arnoldi->delayed) {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+      H[nv+(nv-1)*ld] = beta;
     } else if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
       ierr = EPSDelayedArnoldi1(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
       ierr = EPSDelayedArnoldi(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
-    }
-    if (refined) {
-      ierr = PetscMemcpy(Hcopy,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<nv-1;i++) Hcopy[nv+i*ld] = 0.0; 
-      Hcopy[nv+(nv-1)*ld] = beta;
     }
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
@@ -375,14 +295,13 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
 
     /* Check convergence */ 
-    ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
 
-    ierr = EPSUpdateVectors(eps,nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,Hcopy,ld);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     eps->nconv = k;
 
@@ -399,7 +318,6 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
   
-  if (refined) { ierr = PetscFree(Hcopy);CHKERRQ(ierr); }
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);

@@ -91,7 +91,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscInt       k,newk,marker,ld;
   PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm;
-  PetscBool      isshift;
+  PetscBool      isshift,refined;
   Vec            x,y;
 
   PetscFunctionBegin;
@@ -100,6 +100,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     ierr = VecDuplicate(eps->t,&y);CHKERRQ(ierr);
   }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
   marker = -1;
   if (eps->trackall) getall = PETSC_TRUE;
@@ -112,7 +113,6 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     }
     newk = k;
     ierr = DSVectors(eps->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
-    resnorm *= beta;
     if (eps->trueres) {
       ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       Zr = X+k*ld;
@@ -122,7 +122,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,&resnorm);
     }
-    else resnorm *= corrf;
+    else if (!refined) resnorm *= beta*corrf;
     /* error estimate */
     ierr = (*eps->conv_func)(eps,re,im,resnorm,&eps->errest[k],eps->conv_ctx);CHKERRQ(ierr);
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
