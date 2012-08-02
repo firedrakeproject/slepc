@@ -139,7 +139,7 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
    The value m is not used except in the case of DSSVD, pass PETSC_IGNORE
    otherwise.
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSGetDimensions(), DSAllocate()
 @*/
@@ -200,7 +200,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
 .  l  - number of locked (inactive) leading columns
 -  k  - intermediate dimension (e.g., position of arrow)
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSSetDimensions()
 @*/
@@ -230,7 +230,7 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscIn
    The new size is set to n. In cases where the extra row is meaningful,
    the first n elements are kept as the extra row for the new system.
 
-   Level: developer
+   Level: advanced
 
 .seealso: DSSetDimensions(), DSSetExtraRow()
 @*/
@@ -396,7 +396,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
    This call brings the dense system to condensed form. No ordering
    of the eigenvalues is enforced (for this, call DSSort() afterwards).
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSSort()
 @*/
@@ -452,7 +452,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
    elements. The output value of parameter k is the final number of elements in
    the first set.
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSSolve(), DSSetEigenvalueComparison()
 @*/
@@ -513,7 +513,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
    For computing eigenvectors, LAPACK's _trevc is used so the matrix must
    be in (quasi-)triangular form, or call DSSolve() first.
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSSolve()
 @*/

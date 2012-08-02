@@ -26,7 +26,7 @@ FPPFLAGS   =
 LOCDIR     = src/ds/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c
 EXAMPLESF  = 
-MANSEC     = PS
+MANSEC     = DS
 TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \

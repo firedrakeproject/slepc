@@ -266,7 +266,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
 +  ds   - the direct solver context
 -  type - a known type
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSGetType()
 @*/
@@ -305,7 +305,7 @@ PetscErrorCode DSSetType(DS ds,const DSType type)
    Output Parameter:
 .  name - name of the direct solver
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSSetType()
 @*/
@@ -329,7 +329,7 @@ PetscErrorCode DSGetType(DS ds,const DSType *type)
 +  ds   - the direct solver context
 -  meth - an index indentifying the method
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSGetMethod()
 @*/
@@ -357,7 +357,7 @@ PetscErrorCode DSSetMethod(DS ds,PetscInt meth)
    Output Parameter:
 .  meth - identifier of the method
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSSetMethod()
 @*/
@@ -578,7 +578,7 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 .  zero     - if both eigenvalues are equally preferred
 -  positive - if the 2st eigenvalue is preferred to the 1st one
 
-   Level: advanced
+   Level: developer
 
 .seealso: DSSort()
 @*/
@@ -622,7 +622,7 @@ $  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *re
 .  zero     - if both eigenvalues are equally preferred
 -  positive - if the 2st eigenvalue is preferred to the 1st one
 
-   Level: advanced
+   Level: developer
 
 .seealso: DSSort(), DSSetEigenvalueComparison()
 @*/
@@ -756,7 +756,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 -  ld - leading dimension (maximum allowed dimension for the matrices, including
         the extra row if present)
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: DSGetLeadingDimension(), DSSetDimensions(), DSSetExtraRow()
 @*/
