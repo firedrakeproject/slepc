@@ -110,6 +110,8 @@ PetscErrorCode STSetUp_Precond(ST st)
       } else {
         ierr = MatShift(P,-st->sigma);CHKERRQ(ierr); 
       }
+      /* TODO: in case of ST_MATMODE_INPLACE should keep the Hermitian flag of st->A and restore at the end */
+      ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
     } else 
       builtP = PETSC_FALSE;
   }
@@ -121,6 +123,7 @@ PetscErrorCode STSetUp_Precond(ST st)
     /* If some matrix has to be set to ksp, a shell matrix is created */
     if (setmat) {
       ierr = STMatShellCreate(st,&P);CHKERRQ(ierr);
+      ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
       destroyP = PETSC_TRUE;
     }
   }
