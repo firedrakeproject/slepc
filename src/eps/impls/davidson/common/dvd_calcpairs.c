@@ -820,7 +820,7 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d, PetscInt n)
   {
     ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->cX_in_H+n,&rr,&ri);CHKERRQ(ierr);
     k = 1;
-    ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,&k);CHKERRQ(ierr);
+    ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,rr,ri,&k);CHKERRQ(ierr);
   }
   if (d->calcpairs_eigs_trans) {
     ierr = d->calcpairs_eigs_trans(d);CHKERRQ(ierr);
