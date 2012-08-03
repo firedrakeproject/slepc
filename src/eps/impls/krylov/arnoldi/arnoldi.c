@@ -254,14 +254,15 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscErrorCode     ierr;
   PetscInt           k,nv,ld;
   Vec                f=eps->work[0];
-  PetscScalar        *H,*U;
+  PetscScalar        *H,*U,*X;
   PetscReal          beta,gamma=1.0;
-  PetscBool          breakdown,harmonic;
+  PetscBool          breakdown,harmonic,refined;
   IPOrthogRefineType orthog_ref;
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   ierr = IPGetOrthogonalization(eps->ip,PETSC_NULL,&orthog_ref,PETSC_NULL);CHKERRQ(ierr);
 
@@ -299,10 +300,19 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
     /* Check convergence */ 
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-
-    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+    if (refined) {
+      ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+      ierr = SlepcVecMAXPBY(eps->V[k],0.0,1.0,nv,X+k*ld,eps->V);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+      ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->V,eps->V+k,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    } else {
+      ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+      ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+    }
     eps->nconv = k;
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);

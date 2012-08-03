@@ -67,11 +67,12 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 #else
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscBLASInt   idummy,info,ld,n,n1,lwork;
-  PetscScalar    sdummy;
+  PetscBLASInt   info,ld,n,n1,lwork,inc=1;
+  PetscScalar    sdummy,done=1.0,zero=0.0;
   PetscReal      *sigma;
   PetscBool      iscomplex = PETSC_FALSE;
   PetscScalar    *A = ds->mat[DS_MAT_A];
+  PetscScalar    *Q = ds->mat[DS_MAT_Q];
   PetscScalar    *X = ds->mat[left?DS_MAT_Y:DS_MAT_X];
   PetscScalar    *W;
 
@@ -97,18 +98,18 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 
   /* compute SVD of W */
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&idummy,&sdummy,&idummy,ds->work,&lwork,&info);
+  LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&ld,&sdummy,&ld,ds->work,&lwork,&info);
 #else
-  LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&idummy,&sdummy,&idummy,ds->work,&lwork,ds->rwork,&info);
+  LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&ld,&sdummy,&ld,ds->work,&lwork,ds->rwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
 
   /* the smallest singular value is the new error estimate */
   if (rnorm) *rnorm = sigma[n-1];
 
-  /* update vector with right singular vector associated to smallest singular value */
-  for (i=0;i<n;i++)
-    X[i+(*k)*ld] = W[n-1+i*ld];
+  /* update vector with right singular vector associated to smallest singular value,
+     accumulating the transformation matrix Q */
+  BLASgemv_("N",&n,&n,&done,Q,&ld,W+n-1,&ld,&zero,X+(*k)*ld,&inc);
   PetscFunctionReturn(0);
 #endif
 }
