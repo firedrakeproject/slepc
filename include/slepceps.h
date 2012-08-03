@@ -212,6 +212,7 @@ PETSC_EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func
 PETSC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void*);
 PETSC_EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSIsHermitian(EPS,PetscBool*);
+PETSC_EXTERN PetscErrorCode EPSIsPositive(EPS,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode EPSMonitorFirst(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 PETSC_EXTERN PetscErrorCode EPSMonitorAll(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);

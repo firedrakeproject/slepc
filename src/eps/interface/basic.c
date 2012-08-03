@@ -1050,12 +1050,13 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
 
    Level: intermediate
 
-.seealso: EPSIsHermitian()
+.seealso: EPSIsHermitian(), EPSIsPositive()
 @*/
 PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(is,2);
   *is = eps->isgeneralized;
   PetscFunctionReturn(0);
 }
@@ -1076,12 +1077,40 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 
    Level: intermediate
 
-.seealso: EPSIsGeneralized()
+.seealso: EPSIsGeneralized(), EPSIsPositive()
 @*/
 PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(is,2);
   *is = eps->ishermitian;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSIsPositive"
+/*@
+   EPSIsPositive - Ask if the EPS object corresponds to an eigenvalue
+   problem type that requires a positive (semi-) definite matrix B.
+
+   Not collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  is - the answer
+
+   Level: intermediate
+
+.seealso: EPSIsGeneralized(), EPSIsHermitian()
+@*/
+PetscErrorCode EPSIsPositive(EPS eps,PetscBool* is)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(is,2);
+  *is = eps->ispositive;
   PetscFunctionReturn(0);
 }
