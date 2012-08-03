@@ -406,7 +406,7 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   ierr = EPSDavidsonGetBOrth_Davidson(eps,&borth);CHKERRQ(ierr);
   switch (borth) {
   case EPS_ORTH_I:
-    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is I-orthogonalized\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
     break;
   case EPS_ORTH_B:
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);

@@ -642,7 +642,7 @@ PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDSetBOrth"
 /*@
-   EPSJDSetBOrth - Selects the orthogonalizetion that will be used in the search
+   EPSJDSetBOrth - Selects the orthogonalization that will be used in the search
    subspace in case of generalized Hermitian problems.
 
    Logically Collective on EPS
@@ -659,12 +659,12 @@ PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
 -   EPS_ORTH_BOPT - B-orthogonalization of the search subspace with an alternative method
 
    Options Database Key:
-.  -eps_jd_borth_I - Set the orthogonalization used in the search subspace
+.  -eps_jd_borth - Set the orthogonalization used in the search subspace
 
    Notes:
-   If borth is EPS_ORTH_B, it is used a variant of Gram-Schmidt (selected in
+   If borth is EPS_ORTH_B, the solver uses a variant of Gram-Schmidt (selected in
    IP associated to the EPS) with the inner product defined by the matrix problem B.
-   If borht is EPS_ORTH_BOPT, it is used a variant of Gram-Schmidt that only performs
+   If borth is EPS_ORTH_BOPT, it uses another variant of Gram-Schmidt that only performs
    one matrix-vector product although more than one reorthogonalization would be done.
    
    Level: advanced
@@ -685,7 +685,7 @@ PetscErrorCode EPSJDSetBOrth(EPS eps,EPSOrthType borth)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSJDGetBOrth"
 /*@
-   EPSJDGetBOrth - Returns the orthogonalizetion is used in the search
+   EPSJDGetBOrth - Returns the orthogonalization used in the search
    subspace in case of generalized Hermitian problems.
 
    Not Collective

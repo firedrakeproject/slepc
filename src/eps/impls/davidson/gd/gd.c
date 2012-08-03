@@ -435,7 +435,7 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDSetBOrth"
 /*@
-   EPSGDSetBOrth - Selects the orthogonalizetion that will be used in the search
+   EPSGDSetBOrth - Selects the orthogonalization that will be used in the search
    subspace in case of generalized Hermitian problems.
 
    Logically Collective on EPS
@@ -455,9 +455,9 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
 .  -eps_gd_borth - Set the orthogonalization used in the search subspace
 
    Notes:
-   If borth is EPS_ORTH_B, it is used a variant of Gram-Schmidt (selected in
+   If borth is EPS_ORTH_B, the solver uses a variant of Gram-Schmidt (selected in
    IP associated to the EPS) with the inner product defined by the matrix problem B.
-   If borht is EPS_ORTH_BOPT, it is used a variant of Gram-Schmidt that only performs
+   If borth is EPS_ORTH_BOPT, it uses another variant of Gram-Schmidt that only performs
    one matrix-vector product although more than one reorthogonalization would be done.
    
    Level: advanced
@@ -478,7 +478,7 @@ PetscErrorCode EPSGDSetBOrth(EPS eps,EPSOrthType borth)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDGetBOrth"
 /*@
-   EPSGDGetBOrth - Returns the orthogonalizetion is used in the search
+   EPSGDGetBOrth - Returns the orthogonalization used in the search
    subspace in case of generalized Hermitian problems.
 
    Not Collective
