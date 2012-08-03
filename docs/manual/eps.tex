@@ -157,6 +157,7 @@ it is possible to examine the actual values of the different settings of the \id
 \label{sec:defprob}
 
 	\slepc is able to cope with different kinds of problems. Currently supported problem types are listed in Table \ref{tab:ptype}. An eigenproblem is generalized ($Ax=\lambda Bx$) if the user has specified two matrices (see \ident{EPSSetOperators} above), otherwise it is standard ($Ax=\lambda x$). A standard eigenproblem is Hermitian if matrix $A$ is Hermitian (i.e., $A=A^*$) or, equivalently in the case of real matrices, if matrix $A$ is symmetric (i.e., $A=A^T$). A generalized eigenproblem is Hermitian if matrix $A$ is Hermitian (symmetric) and $B$ is Hermitian (symmetric) and positive (semi-)definite.
+If $B$ is not positive (semi-)definite then the problem cannot be considered Hermitian but symmetry can still be exploited to some extent in some solvers (problem type \texttt{EPS\_GHIEP}).
 A special case of generalized non-Hermitian problem is when $A$ is non-Hermitian but $B$ is Hermitian and positive (semi-)definite, see \S\ref{sec:symm} and \S\ref{sec:purif} for discussion.
 
 \begin{table}[t]
@@ -166,6 +167,7 @@ Problem Type              & \ident{EPSProblemType}    & Command line key\\\hline
 Hermitian                 & \texttt{EPS\_HEP}         & \texttt{-eps\_hermitian}\\
 Non-Hermitian             & \texttt{EPS\_NHEP}        & \texttt{-eps\_non\_hermitian}\\
 Generalized Hermitian     & \texttt{EPS\_GHEP}        & \texttt{-eps\_gen\_hermitian}\\
+Generalized Hermitian indefinite & \texttt{EPS\_GHIEP} & \texttt{-eps\_gen\_indefinite}\\
 Generalized Non-Hermitian & \texttt{EPS\_GNHEP}       & \texttt{-eps\_gen\_non\_hermitian}\\
 GNHEP with positive (semi-)definite $B$ & \texttt{EPS\_PGNHEP} & \texttt{-eps\_pos\_gen\_non\_hermitian}\\\hline
 \end{tabular} }
@@ -185,8 +187,9 @@ For all these reasons, the user is strongly recommended to always specify the pr
 	The type of the problem can be determined with the functions
 	\findex{EPSIsGeneralized} \findex{EPSIsHermitian}
 	\begin{Verbatim}[fontsize=\small]
-	EPSIsGeneralized(EPS eps,PetscTruth *gen);
-	EPSIsHermitian(EPS eps,PetscTruth *her);
+	EPSIsGeneralized(EPS eps,PetscBool *gen);
+	EPSIsHermitian(EPS eps,PetscBool *her);
+	EPSIsPositive(EPS eps,PetscBool *pos);
 	\end{Verbatim}
 
 	The user can specify how many eigenvalues (and eigenvectors) to compute. The default is to compute only one. The function
@@ -203,7 +206,7 @@ requests 10 eigenvalues and instructs to use 24 column vectors. Note that \textt
 	By default, only right eigenvectors are computed. To compute also left eigenvectors, the user should call the next function. Note that support for left eigenvectors is limited and will be extended in future versions of SLEPc.
 	\findex{EPSSetLeftVectorsWanted}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetLeftVectorsWanted(EPS eps,PetscTruth leftvecs);
+	EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs);
 	\end{Verbatim}
 
 \paragraph{Eigenvalues of Interest.}
@@ -236,7 +239,7 @@ The special case of computing all eigenvalues in an interval is discussed in \S\
 	\end{Verbatim}
 which is equivalent to \Verb!-eps_interval <a,b>!.
 
-To conclude this section, we mention the possibility of defining an arbitrary sorting criterion by means of \texttt{EPS\_WHICH\_USER} in combination with \ident{EPSSetEigenvalueComparison}.
+Finally, we mention the possibility of defining an arbitrary sorting criterion by means of \texttt{EPS\_WHICH\_USER} in combination with \ident{EPSSetEigenvalueComparison}.
 
 \begin{table}
 \centering
@@ -261,6 +264,8 @@ To conclude this section, we mention the possibility of defining an arbitrary so
 
 \footnotetext{If \slepc is compiled for real scalars, then the absolute value of the imaginary part, $|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
 
+The selection criteria discussed above are based solely on the eigenvalue. In some special situations, it is necessary to establish a user-defined criterion that also makes use of the eigenvector when deciding which are the most wanted eigenpairs. For these cases, use \ident{EPSSetArbitrarySelection}.
+
 %---------------------------------------------------
 \section{Selecting the Eigensolver}
 
@@ -273,8 +278,8 @@ To conclude this section, we mention the possibility of defining an arbitrary so
 \item Krylov-Schur, a variation of Arnoldi with a very effective restarting technique. In the case of symmetric problems, this is equivalent to the thick-restart Lanczos method.
 \item Generalized Davidson, a simple iteration based on the subspace expansion by the preconditioned residual.
 \item Jacobi-Davidson, a preconditioned eigensolver with an effective correction equation.
+\item RQCG, a basic conjugate gradient iteration for the minimization of the Rayleigh quotient.
 \end{itemize}
-The default solver is Krylov-Schur. A detailed description of the implemented algorithms is provided in the \hyperlink{str}{\slepc Technical Reports}. In addition to these methods, \slepc also provides wrappers to external packages such as \arpack, \blzpack, or \trlan. A complete list of these interfaces can be found in \S\ref{sec:wrap}.
 
 \begin{table}
 \centering
@@ -288,6 +293,7 @@ Lanczos                    & \texttt{EPSLANCZOS}  & \texttt{lanczos} \\
 Krylov-Schur               & \texttt{EPSKRYLOVSCHUR} & \texttt{krylovschur} & $\star$ \\
 Generalized Davidson       & \texttt{EPSGD}       & \texttt{gd} \\
 Jacobi-Davidson            & \texttt{EPSJD}       & \texttt{jd} \\
+Rayleigh quotient CG       & \texttt{EPSRQCG}     & \texttt{rqcg} \\
 \hline
 \lapack solver             & \texttt{EPSLAPACK}   & \texttt{lapack} \\
 Wrapper to \arpack         & \texttt{EPSARPACK}   & \texttt{arpack} \\
@@ -298,6 +304,8 @@ Wrapper to \blopex         & \texttt{EPSBLOPEX}   & \texttt{blopex} \\\hline
 \end{tabular} }
 \caption{\label{tab:solvers}Eigenvalue solvers available in the \ident{EPS} module.}
 \end{table}
+
+The default solver is Krylov-Schur. A detailed description of the implemented algorithms is provided in the \hyperlink{str}{\slepc Technical Reports}. In addition to these methods, \slepc also provides wrappers to external packages such as \arpack, \blzpack, or \trlan. A complete list of these interfaces can be found in \S\ref{sec:wrap}.
 
 As an alternative, \slepc provides an interface to some \lapack routines. These routines operate in dense mode with only one processor and therefore are suitable only for moderate size problems. This solver should be used only for debugging purposes.
 
@@ -321,6 +329,7 @@ Method   &  Portion of spectrum & Problem type & Complex \\ \hline
 \texttt{krylovschur} & any                 & any & yes \\ 
 \texttt{gd}          & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
 \texttt{jd}          & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
+\texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & yes \\ 
 \hline
 \texttt{lapack}      & any                 & any & yes \\ 
 \texttt{arpack}      & any\footnotemark    & any & yes \\ 
@@ -345,6 +354,7 @@ Method   & \texttt{ncv} & \texttt{max\_it} & Storage \\ \hline
 \texttt{krylovschur} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
 \texttt{gd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
 \texttt{jd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
+\texttt{rqcg} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv$ \\ 
 \hline
 \texttt{lapack}   &  $N$ &         -         & $N$  \\ 
 \texttt{arpack}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $4$ \\ 
@@ -457,7 +467,7 @@ The user specifies when a solution should be considered sufficiently accurate by
 The error estimates used for the convergence test are based on the residual norm, as discussed in \S\ref{sec:errbnd}. Most eigensolvers explicitly compute the residual of the relevant eigenpairs during the iteration, but Krylov solvers use a cheap approximation instead. This approximation is usually very accurate, but in some cases (e.g., when a shift-and-invert spectral transformation is used) it may give too optimistic bounds. In such cases, the users can force the computation of the residual with 
 	\findex{EPSSetTrueResidual}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetTrueResidual(EPS eps,PetscTruth trueres);
+	EPSSetTrueResidual(EPS eps,PetscBool trueres);
 	\end{Verbatim}
 or with \Verb!-eps_true_residual!.
 
@@ -585,9 +595,9 @@ where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all 
 	The following function can be used to provide the \ident{EPS} object with some basis vectors corresponding to a subspace that should be deflated during the solution process. 
 	\findex{EPSSetDeflationSpace}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *ds)
+	EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *defl)
 	\end{Verbatim}
-The value \texttt{n} indicates how many vectors are passed in argument \texttt{ds}.
+The value \texttt{n} indicates how many vectors are passed in argument \texttt{defl}.
 
 	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is passed to the linear solver (see \petsc's function \texttt{KSPSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e., when $A$ and $B$ share a common null-space).
 

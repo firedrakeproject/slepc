@@ -218,7 +218,7 @@ The \ident{EPS}-based solvers deserve some additional comments. These SVD solver
 In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly, since sparsity would be lost. Instead, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. In the case of the \texttt{cyclic} solver, the situation is different since $H(A)$ is still a sparse matrix. \slepc gives the possibility to handle it implicitly as a shell matrix (the default), or to create $H(A)$ explicitly, that is, storing its elements in a distinct matrix. The function for setting this option is
 	\findex{SVDCyclicSetExplicitMatrix}
 	\begin{Verbatim}[fontsize=\small]
-	SVDCyclicSetExplicitMatrix(SVD svd,PetscTruth explicit);
+	SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicit);
 	\end{Verbatim}
 
 The \ident{EPS} object associated to the \texttt{cross} and \texttt{cyclic} SVD solvers is created with a set of reasonable default parameters. However, it may sometimes be necessary to change some of the \ident{EPS} options such as the eigensolver. To allow application programmers to set any of the \ident{EPS} options directly within the code, the following routines are provided to extract the \ident{EPS} context from the \ident{SVD} object,

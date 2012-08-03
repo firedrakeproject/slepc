@@ -220,7 +220,7 @@ The expression used in the linearization is specified by two parameters:
 Another option of the \texttt{QEPLINEAR} solver is whether the matrices of the linearized problem are created explicitly or not. This is set with the function
 	\findex{QEPLinearSetExplicitMatrix}
 	\begin{Verbatim}[fontsize=\small]
-	QEPLinearSetExplicitMatrix(QEP qep,PetscTruth exp);
+	QEPLinearSetExplicitMatrix(QEP qep,PetscBool exp);
 	\end{Verbatim}
 In the case of explicit creation, matrices $A$ and $B$ are created as real \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$. The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner.
 

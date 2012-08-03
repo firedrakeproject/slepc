@@ -3,20 +3,14 @@
         SLEPc: Scalable Library for Eigenvalue Problem Computations
         ===========================================================
 
-                      Developers:
                               Carmen Campos
                               Jose E. Roman
                                Eloy Romero
                               Andres Tomas
 
-                      Former collaborators:
-                            Vicente Hernandez
-                              Vicent Vidal
+                 Universitat Politecnica de Valencia, Spain
 
-        GRyCAP - Grupo de Redes y Computacion de Altas Prestaciones
-                Universidad Politecnica de Valencia, Spain
-
-        VERSION: 3.2  
+        VERSION: 3.3
 
 
  Overview

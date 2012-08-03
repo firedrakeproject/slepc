@@ -146,7 +146,8 @@
          2.3.3 &               2.3.3 & $\star$ & Jun 2007     \\ 
          3.0.0 &               3.0.0 & $\star$ & Feb 2009     \\
          3.1   &               3.1   & $\star$ & Aug 2010     \\
-         3.2   &               3.2   & $\star$ & Oct 2011     \\ \hline
+         3.2   &               3.2   & $\star$ & Oct 2011     \\
+         3.3   &               3.3   & $\star$ & Aug 2012     \\ \hline
 \end{tabular}
 \caption{\label{tab:ver} Correspondence between \slepc and \petsc\ releases.}
 \end{table}
@@ -161,16 +162,16 @@
 \begin{enumerate}
 	\item Unbundle the distribution file with 
 	\begin{Verbatim}[fontsize=\small]
-	$ tar xzf slepc-3.2-p0.tar.gz
+	$ tar xzf slepc-3.3-p0.tar.gz
 	\end{Verbatim}
         or an equivalent command. This will create a directory and unpack the software there.
 	\item Set the environment variable \ident{SLEPC\_DIR} to the full path of the \slepc home directory. For example, under the \texttt{bash} shell:
 	\begin{Verbatim}[fontsize=\small]
-	$ export SLEPC_DIR=/home/username/slepc-3.2
+	$ export SLEPC_DIR=/home/username/slepc-3.3
 	\end{Verbatim}
 	In addition to this variable, \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} must also be set appropriately (see \S\ref{sec:prefix-inst} for a case in which \ident{PETSC\_ARCH} is not required), for example
 	\begin{Verbatim}[fontsize=\small]
-	$ export PETSC_DIR=/home/username/petsc-3.2
+	$ export PETSC_DIR=/home/username/petsc-3.3
 	$ export PETSC_ARCH=arch-darwin-c-debug
 	\end{Verbatim}
 	\item\label{step-config} Change to the \slepc directory and run the configuration script:
@@ -257,17 +258,17 @@ In \petsc, if an installation directory has been specified during configuration 
 	\end{Verbatim}
 	This is useful for building as a regular user and then copying the libraries and include files to the system directories as root.
 
-To be more precise, suppose that the configuration was done with \texttt{-{}-prefix=/opt/petsc-3.2-linux-gnu-c-debug}. Then, \texttt{make install} will create directory \texttt{/opt/petsc-3.2-linux-gnu-c-debug} if it does not exist, and create subdirectories \texttt{lib}, \texttt{conf}, and \texttt{include}, that will store the libraries, the configuration files, and the header files, respectively. Note that the source code files are not copied, nor the documentation, so the size of the installed directory will be much smaller than the original one. For that reason, it is no longer necessary to allow for several configurations to share a directory tree. In other words, in a prefix-based installation, variable \ident{PETSC\_ARCH} loses significance and must be unset. To maintain several configurations, one should specify different prefix directories, typically with a name that informs about the configuration options used.
+To be more precise, suppose that the configuration was done with \texttt{-{}-prefix=/opt/petsc-3.3-linux-gnu-c-debug}. Then, \texttt{make install} will create directory \texttt{/opt/petsc-3.3-linux-gnu-c-debug} if it does not exist, and create subdirectories \texttt{lib}, \texttt{conf}, and \texttt{include}, that will store the libraries, the configuration files, and the header files, respectively. Note that the source code files are not copied, nor the documentation, so the size of the installed directory will be much smaller than the original one. For that reason, it is no longer necessary to allow for several configurations to share a directory tree. In other words, in a prefix-based installation, variable \ident{PETSC\_ARCH} loses significance and must be unset. To maintain several configurations, one should specify different prefix directories, typically with a name that informs about the configuration options used.
 
 In order to prepare a prefix-based installation of \slepc that uses a prefix-based installation of \petsc, start by setting the appropriate value of \ident{PETSC\_DIR}. Then, run \slepc's configure with a prefix directory.
 	\begin{Verbatim}[fontsize=\small,numbers=none]
-	$ export PETSC_DIR=/opt/petsc-3.2-linux-gnu-c-debug
+	$ export PETSC_DIR=/opt/petsc-3.3-linux-gnu-c-debug
 	$ unset PETSC_ARCH
 	$ cd $SLEPC_DIR
-	$ ./configure --prefix=/opt/slepc-3.2-linux-gnu-c-debug
+	$ ./configure --prefix=/opt/slepc-3.3-linux-gnu-c-debug
 	$ make PETSC_ARCH=arch-installed-petsc
 	$ make PETSC_ARCH=arch-installed-petsc install
-	$ export SLEPC_DIR=/opt/slepc-3.2-linux-gnu-c-debug
+	$ export SLEPC_DIR=/opt/slepc-3.3-linux-gnu-c-debug
 	\end{Verbatim}
 Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slepc's configure. The special value \texttt{arch-installed-petsc} of the \ident{PETSC\_ARCH} variable is required only during \slepc's build, and should not be used afterwards.
 
@@ -280,7 +281,7 @@ Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slep
 Before using \slepc, the user must first set the environment variable
 \ident{SLEPC\_DIR}, indicating the full path of the directory containing \slepc. For example, under the \texttt{bash} shell, a command of the form
 	\begin{Verbatim}[fontsize=\small]
-	$ export SLEPC_DIR=/software/slepc-3.2
+	$ export SLEPC_DIR=/software/slepc-3.3
 	\end{Verbatim}
 can be placed in the user's \Verb!.bashrc! file.
 The \ident{SLEPC\_DIR} directory can be either a standard installation \slepc directory, or a prefix-based installation directory, see \S\ref{sec:prefix-inst}.
@@ -351,6 +352,7 @@ Usage of matrices and vectors in \slepc is exactly the same as in \petsc. The us
 	MatCreate(MPI_Comm comm,Mat *A);
 	MatSetSizes(Mat A,PetscInt m,PetscInt n,PetscInt M,PetscInt N);
 	MatSetFromOptions(Mat A);
+	MatSetUp(Mat A);
 	\end{Verbatim}
 where the matrix format can be specified at runtime. The example creates a matrix, sets the nonzero values with \rutina{MatSetValues} and then assembles it.
 

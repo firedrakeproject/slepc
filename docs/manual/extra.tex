@@ -163,14 +163,14 @@ Each \slepc source code component directory has the following subdirectories:
 \end{description}
 
 %---------------------------------------------------
-\section{Auxiliary Components}
-\label{sec:aux}
+%\section{Auxiliary Components}
+%\label{sec:aux}
 
-The previous section includes a list of subdirectories, each of them representing a \slepc component. Most of these components have been treated in previous chapters. Here we include a brief report about two auxiliary components, \ident{IP} and \ident{DS}, that are not normally required by final users, but provide important operations to high level solvers such \ident{EPS}.
+%The previous section includes a list of subdirectories, each of them representing a \slepc component. Most of these components have been treated in previous chapters. Here we include a brief report about two auxiliary components, \ident{IP} and \ident{DS}, that are not normally required by final users, but provide important operations to high level solvers such \ident{EPS}.
 
-\subsection{IP: Inner Product}
+%\subsection{IP: Inner Product}
 
-\subsection{DS: Direct Solver (or Dense System)}
+%\subsection{DS: Direct Solver (or Dense System)}
 
 %---------------------------------------------------
 \section{Wrappers to External Libraries}
@@ -282,7 +282,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 \section{Matlab Interface}
 \label{sec:matlab}
 
-\slepc 3.2 includes an interface intended to make most of \slepc's functionality available from Matlab. It is experimental and needs further development, so users planning to use it seriously are recommended to contact the authors. Below are some guidelines for using this interface.
+Since version 3.2, \slepc includes an interface intended to make most of \slepc's functionality available from Matlab. It is experimental and needs further development, so users planning to use it seriously are recommended to contact the authors. Below are some guidelines for using this interface.
 
 First of all, \petsc must have been configured with the Matlab interface enabled. This can be done as follows (check \petsc documentation for details):
 	\begin{Verbatim}[fontsize=\small]
