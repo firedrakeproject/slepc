@@ -149,7 +149,6 @@ PETSC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
 PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
-PETSC_EXTERN PetscErrorCode DSVectorsRange(DS,DSMatType,PetscInt,PetscInt*);
 
 PETSC_EXTERN PetscFList DSList;
 PETSC_EXTERN PetscBool  DSRegisterAllCalled;

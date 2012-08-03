@@ -227,17 +227,15 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   }
 
   /* Compute the eigenvectors of the selected pairs */
-  k = r_s+n+d->cX_in_H;
-  ierr = DSVectorsRange(d->ps,DS_MAT_X,r_s+d->cX_in_H,&k);CHKERRQ(ierr);
-  for (i=r_s; i<r_s+n; i++) {
-    ierr = DSNormalize(d->ps,DS_MAT_X,i+d->cX_in_H);CHKERRQ(ierr);
-    if (d->eigi[i] != 0.0) i++;
-  }
-  k = r_s+n+d->cX_in_H;
-  ierr = DSVectorsRange(d->ps,DS_MAT_Y,r_s+d->cX_in_H,&k);CHKERRQ(ierr);
-  for (i=r_s; i<r_s+n; i++) {
-    ierr = DSNormalize(d->ps,DS_MAT_Y,i+d->cX_in_H);CHKERRQ(ierr);
-    if (d->eigi[i] != 0.0) i++;
+  for (i=0; i<n; ) {
+    k = r_s+i+d->cX_in_H;
+    ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    k = r_s+i+d->cX_in_H;
+    ierr = DSVectors(d->ps,DS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+    /* Jump complex conjugate pairs */
+    i = k+1;
   }
   ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
