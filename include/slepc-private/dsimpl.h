@@ -77,5 +77,8 @@ PETSC_EXTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatT
 PETSC_EXTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
+PETSC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
+PETSC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
 #endif

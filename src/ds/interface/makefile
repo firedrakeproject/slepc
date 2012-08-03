@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dsbasic.c dsops.c
+SOURCEC  = dsbasic.c dsops.c dspriv.c
 SOURCEF  = 
 SOURCEH  =
-OBJSC    = dsbasic.o dsops.o
+OBJSC    = dsbasic.o dsops.o dspriv.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = DS

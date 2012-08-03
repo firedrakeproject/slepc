@@ -307,7 +307,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
       ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
       ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->V,eps->V+k,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     } else {
       ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
       ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
