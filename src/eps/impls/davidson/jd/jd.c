@@ -64,6 +64,13 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
 
+  ierr = PetscOptionsBoolGroupBegin("-eps_jd_borth_I","orthogonalize the search subspace","EPSJDSetBOrth",&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSJDSetBOrth(eps,EPS_ORTH_I);CHKERRQ(ierr);}
+  ierr = PetscOptionsBoolGroup("-eps_jd_borth_B","B-orthogonalize the search subspace","EPSJDSetBOrth",&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSJDSetBOrth(eps,EPS_ORTH_B);CHKERRQ(ierr);}
+  ierr = PetscOptionsBoolGroupEnd("-eps_jd_borth_B_opt","B-orthogonalize the search subspace with a sometimes faster, but more instable method","EPSJDSetBOrth",&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSJDSetBOrth(eps,EPS_ORTH_Bopt);CHKERRQ(ierr);}
+ 
   ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_constant_correction_tolerance","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
@@ -151,6 +158,8 @@ PetscErrorCode EPSCreate_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","EPSDavidsonGetConstantCorrectionTolerance_Davidson",EPSDavidsonGetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetWindowSizes_C","EPSDavidsonSetWindowSizes_Davidson",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetWindowSizes_C","EPSDavidsonGetWindowSizes_Davidson",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetBOrth_C","EPSDavidsonSetBOrth_Davidson",EPSDavidsonSetBOrth_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetBOrth_C","EPSDavidsonGetBOrth_Davidson",EPSDavidsonGetBOrth_Davidson);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -177,6 +186,8 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetWindowSizes_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDSetBOrth_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSJDGetBOrth_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -376,10 +387,10 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 .  initialsize - number of vectors of the initial searching subspace
 
    Notes:
-   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   If EPSJDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
    EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
+   random vectors. In the case of EPSJDGetKrylovStart() being PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not available, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
@@ -413,10 +424,10 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 .  -eps_jd_initial_size - number of vectors of the initial searching subspace
    
    Notes:
-   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   If EPSJDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
    EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
    provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
+   random vectors. In the case of EPSJDGetKrylovStart() being PETSC_TRUE, the solver
    gets the first vector provided by the user or, if not available, a random vector,
    and expands the Krylov basis up to initialsize vectors.
 
@@ -626,5 +637,83 @@ PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
   PetscValidLogicalCollectiveInt(eps,pwindow,2);
   PetscValidLogicalCollectiveInt(eps,qwindow,3);
   ierr = PetscTryMethod(eps,"EPSJDSetWindowSizes_C",(EPS,PetscInt,PetscInt),(eps,pwindow,qwindow));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSJDSetBOrth"
+/*@
+   EPSJDSetBOrth - Selects the orthogonalizetion that will be used in the search
+   subspace in case of generalized Hermitian problems.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps   - the eigenproblem solver context
+-  borth - the kind of orthogonalization
+
+   Possible values:
+   The parameter 'borth' can have one of these values
+
++   EPS_ORTH_I - orthogonalization of the search subspace
+.   EPS_ORTH_B - B-orthogonalization of the search subspace
+-   EPS_ORTH_Bopt - B-orthogonalization of the search subspace with an alternative method
+
+   Options Database Key:
++  -eps_jd_borth_I - Activates the orthogonalization of the search subspace
++  -eps_jd_borth_B - Activates the B-orthogonalization of the search subspace
+-  -eps_jd_borth_B_opt - Activates the B-orthogonalization with a sometimes faster, but
+   more inestable method
+
+   Notes:
+   If borth is EPS_ORTH_B, it is used a variant of Gram-Schmidt (selected in
+   IP associated to the EPS) with the inner product defined by the matrix problem B.
+   If borht is EPS_ORTH_Bopt, it is used a variant of Gram-Schmidt that only performs
+   one matrix-vector product although more than one reorthogonalization would be done.
+   
+   Level: advanced
+
+.seealso: EPSJDGetBOrth()
+@*/
+PetscErrorCode EPSJDSetBOrth(EPS eps,EPSOrthType borth)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,borth,2);
+  ierr = PetscTryMethod(eps,"EPSJDSetBOrth_C",(EPS,EPSOrthType),(eps,borth));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "EPSJDGetBOrth"
+/*@
+   EPSJDGetBOrth - Returns the orthogonalizetion is used in the search
+   subspace in case of generalized Hermitian problems.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
+.  borth - the kind of orthogonalization
+
+   Notes:
+   See EPSJDSetBOrth() for possible values of 'borth'.
+
+   Level: advanced
+
+.seealso: EPSJDSetBOrth(), EPSOrthType
+@*/
+PetscErrorCode EPSJDGetBOrth(EPS eps,EPSOrthType *borth)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(borth,2);
+  ierr = PetscTryMethod(eps,"EPSJDGetBOrth_C",(EPS,EPSOrthType*),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

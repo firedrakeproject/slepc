@@ -82,12 +82,6 @@ typedef enum {
 } ProjType_t;
 
 typedef enum {
-    DVD_ORTHOV_I,        /* V is orthonormalized */     
-    DVD_ORTHOV_B,        /* V is B-orthonormalized */
-    DVD_ORTHOV_BOneMV    /* V is B-orthonormalized using IPBOrthogonalize */
-} orthoV_type_t;
-
-typedef enum {
   DVD_METH_GD,
   DVD_METH_JD,
   DVD_METH_GD2
@@ -298,7 +292,7 @@ typedef struct _dvdDashboard {
   DS conv_ps,       /* projected problem with the converged pairs */
     ps;             /* projected problem with the search subspace */
 
-  orthoV_type_t orthoV_type;
+  EPSOrthType   orthoV_type;
 
   void* prof_data;  /* profiler data */
 } dvdDashboard;
@@ -431,7 +425,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,
 
 /* Routines for calcPairs step */
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
-                                orthoV_type_t orth, IP ipI,
+                                EPSOrthType orth, IP ipI,
                                 PetscInt cX_proj, PetscBool harm);
 
 /* Routines for improveX step */
@@ -471,12 +465,12 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   HarmType_t harmMode, KSP ksp, InitType_t init, PetscBool allResiduals,
-  orthoV_type_t orth, PetscInt cX_proj, PetscInt cX_impr, Method_t method);
+  EPSOrthType orth, PetscInt cX_proj, PetscInt cX_impr, Method_t method);
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt mpd, PetscInt min_size_V, PetscInt bs,
   PetscInt ini_size_V, PetscInt size_initV, PetscInt plusk,
   IP ip, HarmType_t harmMode, PetscBool fixedTarget, PetscScalar t, KSP ksp,
-  PetscReal fix, InitType_t init, PetscBool allResiduals, orthoV_type_t orth,
+  PetscReal fix, InitType_t init, PetscBool allResiduals, EPSOrthType orth,
   PetscInt cX_proj, PetscInt cX_impr, PetscBool dynamic, Method_t method);
 
 /* BLAS routines */
@@ -533,10 +527,11 @@ PetscErrorCode dvd_orthV(IP ip, Vec *DS, PetscInt size_DS, Vec *cX,
                          PetscInt size_cX, Vec *V, PetscInt V_new_s,
                          PetscInt V_new_e, PetscScalar *auxS,
                          PetscRandom rand);
-PetscErrorCode dvd_BorthV(IP ip, Vec *DS, Vec *BDS,PetscReal *BDSn, PetscInt size_DS, Vec *cX,
+PetscErrorCode dvd_BorthV_faster(IP ip, Vec *DS, Vec *BDS,PetscReal *BDSn, PetscInt size_DS, Vec *cX,
                          Vec *BcX, PetscReal *BcXn, PetscInt size_cX, Vec *V, Vec *BV,PetscReal *BVn,
                          PetscInt V_new_s, PetscInt V_new_e,
                          PetscScalar *auxS, PetscRandom rand);
+PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_DS,Vec *cX,PetscReal *BcXn,PetscInt size_cX,Vec *V,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
 
 /* SLEPc interface routines */
 PetscErrorCode SLEPcNotImplemented();
@@ -555,8 +550,8 @@ PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
 PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize);
 PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix);
 PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix);
-PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,PetscBool borth);
-PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,PetscBool *borth);
+PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth);
+PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth);
 PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool constant);
 PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant);
 PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow);

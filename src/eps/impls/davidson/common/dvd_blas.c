@@ -1148,9 +1148,9 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
 
 
 #undef __FUNCT__  
-#define __FUNCT__ "dvd_BorthV"
+#define __FUNCT__ "dvd_BorthV_faster"
 /* auxS: size_cX+V_new_e+1 */
-PetscErrorCode dvd_BorthV(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, PetscInt size_DS, Vec *cX,
+PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, PetscInt size_DS, Vec *cX,
                          Vec *BcX, PetscReal *BcXn, PetscInt size_cX, Vec *V, Vec *BV,PetscReal *BVn,
                          PetscInt V_new_s, PetscInt V_new_e,
                          PetscScalar *auxS, PetscRandom rand)
@@ -1195,6 +1195,53 @@ PetscErrorCode dvd_BorthV(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, PetscInt s
     norm = PetscAbs(norm);
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
     ierr = VecScale(BV[i], 1.0/norm); CHKERRQ(ierr);
+  }
+ 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "dvd_BorthV_stable"
+/* auxS: size_cX+V_new_e+1 */
+PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_DS,Vec *cX,PetscReal *BcXn,PetscInt size_cX,Vec *V,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand)
+{
+  PetscErrorCode  ierr;
+  PetscInt        i, j;
+  PetscBool       lindep;
+  PetscReal       norm;
+  PetscScalar     *auxS0 = auxS;
+ 
+  PetscFunctionBegin;
+ 
+  /* Orthonormalize V with IP */
+  for (i=V_new_s; i<V_new_e; i++) {
+    for(j=0; j<3; j++) {
+      if (j>0) {
+        ierr = SlepcVecSetRandom(V[i],rand);CHKERRQ(ierr); 
+        ierr = PetscInfo1(ip,"Orthonormalization problems adding the vector %d to the searching subspace\n",i);CHKERRQ(ierr);
+      }
+      /* Orthogonalize against the deflation, if needed */
+      if (defl) {
+        ierr = IPPseudoOrthogonalize(ip,size_DS,defl,BDSn,V[i],auxS0,PETSC_NULL,&lindep);CHKERRQ(ierr);
+        if (lindep) continue;
+      }
+      /* If cX and V are contiguous, orthogonalize in one step */
+      if (cX + size_cX == V) {
+        ierr = IPPseudoOrthogonalize(ip,size_cX+i,cX,BcXn,V[i],auxS0,&norm,&lindep);CHKERRQ(ierr);
+      /* Else orthogonalize first against cX and then against V */
+      } else {
+        ierr = IPPseudoOrthogonalize(ip,size_cX,cX,BcXn,V[i],auxS0,PETSC_NULL,&lindep);CHKERRQ(ierr);
+        if (lindep) continue;
+        ierr = IPPseudoOrthogonalize(ip,i,V,BVn,V[i],auxS0,&norm,&lindep);CHKERRQ(ierr);
+      }
+      if(!lindep && (PetscAbs(norm) > PETSC_MACHINE_EPSILON)) break;
+    }
+    if(lindep || (PetscAbs(norm) < PETSC_MACHINE_EPSILON)) {
+        SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors");
+    }
+    if (BVn) BVn[i] = norm > 0.0 ? 1.0 : -1.0;
+    norm = PetscAbs(norm);
+    ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
   }
  
   PetscFunctionReturn(0);

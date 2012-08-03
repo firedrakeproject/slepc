@@ -35,14 +35,14 @@ typedef struct {
     initialsize,          /* initial size of V */
     minv,                 /* size of V after restarting */
     plusk;                /* keep plusk eigenvectors from the last iteration */
-  PetscBool  ipB;         /* true if B-ortho is used */
+  EPSOrthType ipB;        /* true if B-ortho is used */
   PetscInt   method;      /* method for improving the approximate solution */
   PetscReal  fix;         /* the fix parameter */
   PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
   PetscBool  dynamic;     /* true if dynamic stopping criterion is used */
   PetscInt   cX_in_proj,  /* converged vectors in the projected problem */
     cX_in_impr;           /* converged vectors in the projector */
-  Method_t   scheme;       /* method employed: GD, JD or GD2 */
+  Method_t   scheme;      /* method employed: GD, JD or GD2 */
 
   /**** Solver data ****/
   dvdDashboard ddb;
@@ -83,7 +83,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   ierr = EPSDavidsonSetRestart_Davidson(eps,6,0);CHKERRQ(ierr);
   ierr = EPSDavidsonSetInitialSize_Davidson(eps,5);CHKERRQ(ierr);
   ierr = EPSDavidsonSetFix_Davidson(eps,0.01);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetBOrth_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = EPSDavidsonSetBOrth_Davidson(eps,EPS_ORTH_B);CHKERRQ(ierr);
   ierr = EPSDavidsonSetConstantCorrectionTolerance_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EPSDavidsonSetWindowSizes_Davidson(eps,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -176,8 +176,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     dvd->sB = DVD_MAT_IMPLICIT |
               (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
               (ispositive? DVD_MAT_POS_DEF : 0);
-  ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
-  data->ipB = ipB;
+  ipB = (dvd->B && data->ipB != EPS_ORTH_I && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
+  if (data->ipB != EPS_ORTH_I && !ipB) data->ipB = EPS_ORTH_I;
   dvd->correctXnorm = ipB;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
              (ispositive? DVD_EP_HERMITIAN : 0) |
@@ -279,7 +279,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                                 PetscAbs(eps->nini),
                                 plusk,harm,
                                 ksp,init,eps->trackall,
-                                ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr,
+                                data->ipB,cX_in_proj,cX_in_impr,
                                 data->scheme);
   CHKERRQ(ierr);
 
@@ -307,7 +307,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                              eps->ip,harm,dvd->withTarget,
                              target,ksp,
                              fix,init,eps->trackall,
-                             ipB?DVD_ORTHOV_BOneMV:DVD_ORTHOV_I,cX_in_proj,cX_in_impr,dynamic,
+                             data->ipB,cX_in_proj,cX_in_impr,dynamic,
                              data->scheme);
   CHKERRQ(ierr);
 
@@ -392,6 +392,7 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   PetscInt       opi,opi0;
   const char*    name;
   Method_t       meth;
+  EPSOrthType    borth;
 
   PetscFunctionBegin;
   name = ((PetscObject)eps)->type_name;
@@ -402,11 +403,17 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   if (meth==DVD_METH_GD2) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: using double expansion variant (GD2)\n");CHKERRQ(ierr);
   }
-  ierr = EPSDavidsonGetBOrth_Davidson(eps,&opb);CHKERRQ(ierr);
-  if (!opb) {
+  ierr = EPSDavidsonGetBOrth_Davidson(eps,&borth);CHKERRQ(ierr);
+  switch (borth) {
+  case EPS_ORTH_I:
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is I-orthogonalized\n");CHKERRQ(ierr);
-  } else {
+    break;
+  case EPS_ORTH_B:
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
+    break;
+  case EPS_ORTH_Bopt:
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized with an optimized method\n");CHKERRQ(ierr);
+    break;
   }
   ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
@@ -551,7 +558,7 @@ PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDavidsonSetBOrth_Davidson"
-PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,PetscBool borth)
+PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -562,7 +569,7 @@ PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,PetscBool borth)
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDavidsonGetBOrth_Davidson"
-PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,PetscBool *borth)
+PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 

@@ -376,6 +376,17 @@ PETSC_EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method);
 PETSC_EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs);
 PETSC_EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method);
 
+/*E
+    EPSOrthType - determines the orthogonalization used in the search subspace
+
+    Level: advance
+
+.seealso: EPSGDSetBOrth(), EPSJDSetBOrth()
+E*/
+typedef enum { EPS_ORTH_I=1,
+               EPS_ORTH_B,
+               EPS_ORTH_Bopt } EPSOrthType;
+
 PETSC_EXTERN PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart);
 PETSC_EXTERN PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart);
 PETSC_EXTERN PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize);
@@ -384,8 +395,8 @@ PETSC_EXTERN PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk
 PETSC_EXTERN PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk);
 PETSC_EXTERN PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize);
 PETSC_EXTERN PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize);
-PETSC_EXTERN PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth);
-PETSC_EXTERN PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth);
+PETSC_EXTERN PetscErrorCode EPSGDSetBOrth(EPS eps,EPSOrthType borth);
+PETSC_EXTERN PetscErrorCode EPSGDGetBOrth(EPS eps,EPSOrthType *borth);
 PETSC_EXTERN PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
 PETSC_EXTERN PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 PETSC_EXTERN PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2);
@@ -403,6 +414,8 @@ PETSC_EXTERN PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix);
 PETSC_EXTERN PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix);
 PETSC_EXTERN PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool dynamic);
 PETSC_EXTERN PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *dynamic);
+PETSC_EXTERN PetscErrorCode EPSJDSetBOrth(EPS eps,EPSOrthType borth);
+PETSC_EXTERN PetscErrorCode EPSJDGetBOrth(EPS eps,EPSOrthType *borth);
 PETSC_EXTERN PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
 PETSC_EXTERN PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 

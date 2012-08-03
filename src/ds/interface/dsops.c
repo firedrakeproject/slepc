@@ -538,6 +538,67 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "DSVectorsRange"
+/*@
+   DSVectorsRange - Compute vectors associated to the dense system such
+   as eigenvectors.
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds  - the direct solver context
+.  mat - the matrix, used to indicate which vectors are required
+-  c0  - the index of the first column to compute (starting from zero)
+
+   Input/Output Parameter:
+-  c1  - the index of the first column not computed
+
+   Notes:
+   Allowed values for mat are DS_MAT_X, DS_MAT_Y, DS_MAT_U and DS_MAT_VT, to
+   compute right or left eigenvectors, or left or right singular vectors,
+   respectively.
+
+   In real non-symmetric problems, on exit the index c1 will be incremented
+   when a complex conjugate pair is found.
+
+   For computing eigenvectors, LAPACK's _trevc is used so the matrix must
+   be in (quasi-)triangular form, or call DSSolve() first.
+
+   Level: advanced
+
+.seealso: DSSolve(), DSVectors
+@*/
+PetscErrorCode DSVectorsRange(DS ds,DSMatType mat,PetscInt c0,PetscInt *c1)
+{
+  PetscInt       i,j;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,mat,2);
+  PetscValidLogicalCollectiveInt(ds,c0,3);
+  PetscValidPointer(c1,3);
+  PetscValidLogicalCollectiveInt(ds,*c1,4);
+  if (c0 < 0 || !c1 || *c1 < 0 || *c1 < c0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid range");
+  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->ops->vectors) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  ierr = DSAllocateMat_Private(ds,mat);CHKERRQ(ierr); 
+  ierr = PetscLogEventBegin(DS_Vectors,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  for (i=j=c0; i<*c1; ) {
+    j = i;
+    ierr = (*ds->ops->vectors)(ds,mat,&j,PETSC_NULL);CHKERRQ(ierr);
+    i = j+1;
+  }
+  *c1 = j;
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Vectors,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__  
 #define __FUNCT__ "DSNormalize"
 /*@
    DSNormalize - Normalize a column or all the columns of a matrix. Considers

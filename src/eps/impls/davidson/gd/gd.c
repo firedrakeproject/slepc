@@ -44,9 +44,12 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = PetscOptionsBool("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSGDSetKrylovStart(eps,op);CHKERRQ(ierr); }
 
-  ierr = EPSGDGetBOrth(eps,&op);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_gd_borth","B-orthogonalize the searching subspace basis","EPSGDSetBOrth",op,&op,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSGDSetBOrth(eps,op);CHKERRQ(ierr); }
+  ierr = PetscOptionsBoolGroupBegin("-eps_gd_borth_I","orthogonalize the search subspace","EPSGDSetBOrth",&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSGDSetBOrth(eps,EPS_ORTH_I);CHKERRQ(ierr);}
+  ierr = PetscOptionsBoolGroup("-eps_gd_borth_B","B-orthogonalize the search subspace","EPSGDSetBOrth",&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSGDSetBOrth(eps,EPS_ORTH_B);CHKERRQ(ierr);}
+  ierr = PetscOptionsBoolGroupEnd("-eps_gd_borth_B_opt","B-orthogonalize the search subspace with a sometimes faster, but more instable method","EPSGDSetBOrth",&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSGDSetBOrth(eps,EPS_ORTH_Bopt);CHKERRQ(ierr);}
  
   ierr = EPSGDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_blocksize","Number vectors add to the searching subspace","EPSGDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
@@ -433,38 +436,54 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDSetBOrth"
 /*@
-   EPSGDSetBOrth - Activates or deactivates the B-orthogonalizetion of the searching
+   EPSGDSetBOrth - Selects the orthogonalizetion that will be used in the search
    subspace in case of generalized Hermitian problems.
 
    Logically Collective on EPS
 
    Input Parameters:
-+  eps - the eigenproblem solver context
--  borth - boolean flag
++  eps   - the eigenproblem solver context
+-  borth - the kind of orthogonalization
+
+   Possible values:
+   The parameter 'borth' can have one of these values
+
++   EPS_ORTH_I - orthogonalization of the search subspace
+.   EPS_ORTH_B - B-orthogonalization of the search subspace
+-   EPS_ORTH_Bopt - B-orthogonalization of the search subspace with an alternative method
 
    Options Database Key:
-.  -eps_gd_borth - Activates the B-orthogonalization of the searching subspace
++  -eps_gd_borth_I - Activates the orthogonalization of the search subspace
++  -eps_gd_borth_B - Activates the B-orthogonalization of the search subspace
+-  -eps_gd_borth_B_opt - Activates the B-orthogonalization with a sometimes faster, but
+   more inestable method
+
+   Notes:
+   If borth is EPS_ORTH_B, it is used a variant of Gram-Schmidt (selected in
+   IP associated to the EPS) with the inner product defined by the matrix problem B.
+   If borht is EPS_ORTH_Bopt, it is used a variant of Gram-Schmidt that only performs
+   one matrix-vector product although more than one reorthogonalization would be done.
    
    Level: advanced
 
 .seealso: EPSGDGetBOrth()
 @*/
-PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth)
+PetscErrorCode EPSGDSetBOrth(EPS eps,EPSOrthType borth)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,borth,2);
-  ierr = PetscTryMethod(eps,"EPSGDSetBOrth_C",(EPS,PetscBool),(eps,borth));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSGDSetBOrth_C",(EPS,EPSOrthType),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSGDGetBOrth"
 /*@
-   EPSGDGetBOrth - Returns a flag indicating if the search subspace basis is
-   B-orthogonalized.
+   EPSGDGetBOrth - Returns the orthogonalizetion is used in the search
+   subspace in case of generalized Hermitian problems.
 
    Not Collective
 
@@ -472,20 +491,23 @@ PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-.  borth - the boolean flag
+.  borth - the kind of orthogonalization
+
+   Notes:
+   See EPSGDSetBOrth() for possible values of 'borth'.
 
    Level: advanced
 
-.seealso: EPSGDGetKrylovStart()
+.seealso: EPSGDSetBOrth(), EPSOrthType
 @*/
-PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
+PetscErrorCode EPSGDGetBOrth(EPS eps,EPSOrthType *borth)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(borth,2);
-  ierr = PetscTryMethod(eps,"EPSGDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSGDGetBOrth_C",(EPS,EPSOrthType*),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

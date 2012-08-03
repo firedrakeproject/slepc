@@ -74,7 +74,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
     b->max_size_P = PetscMax(b->max_size_P, 1);
   b->max_size_X = PetscMax(b->max_size_X, max_bs);
   b->max_size_auxV = PetscMax(b->max_size_auxV,
-     1 + /*  auxV */
+     s +
      ((her_probl || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
  
   b->max_size_auxS = PetscMax(b->max_size_auxS,
@@ -121,6 +121,75 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
+#define DVD_COMPLEX_RAYLEIGH_QUOTIENT(ur,ui,Axr,Axi,Bxr,Bxi,eigr,eigi,b,ierr)\
+{ \
+  ierr = VecDot((Axr), (ur), &(b)[0]); CHKERRQ(ierr); /* r*A*r */ \
+  ierr = VecDot((Axr), (ui), &(b)[1]); CHKERRQ(ierr); /* i*A*r */ \
+  ierr = VecDot((Axi), (ur), &(b)[2]); CHKERRQ(ierr); /* r*A*i */ \
+  ierr = VecDot((Axi), (ui), &(b)[3]); CHKERRQ(ierr); /* i*A*i */ \
+  ierr = VecDot((Bxr), (ur), &(b)[4]); CHKERRQ(ierr); /* r*B*r */ \
+  ierr = VecDot((Bxr), (ui), &(b)[5]); CHKERRQ(ierr); /* i*B*r */ \
+  ierr = VecDot((Bxi), (ur), &(b)[6]); CHKERRQ(ierr); /* r*B*i */ \
+  ierr = VecDot((Bxi), (ui), &(b)[7]); CHKERRQ(ierr); /* i*B*i */ \
+  (b)[0]  = (b)[0]+(b)[3]; /* rAr+iAi */ \
+  (b)[2] =  (b)[2]-(b)[1]; /* rAi-iAr */ \
+  (b)[4] = (b)[4]+(b)[7]; /* rBr+iBi */ \
+  (b)[6] = (b)[6]-(b)[5]; /* rBi-iBr */ \
+  (b)[7] = (b)[4]*(b)[4] + (b)[6]*(b)[6]; /* k */ \
+  *(eigr) = ((b)[0]*(b)[4] + (b)[2]*(b)[6]) / (b)[7]; /* eig_r */ \
+  *(eigi) = ((b)[2]*(b)[4] - (b)[0]*(b)[6]) / (b)[7]; /* eig_i */ \
+}
+
+#if !defined(PETSC_USE_COMPLEX)
+#define DVD_COMPUTE_N_RR(eps,i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
+  for((i)=0; (i)<(n); (i)++) { \
+    if ((eigi)[(i_s)+(i)] != 0.0) { \
+      /* eig_r = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k \
+         eig_i = [(rAi-iAr)*(rBr+iBi) - (rAr+iAi)*(rBi-iBr)]/k \
+         k     =  (rBr+iBi)*(rBr+iBi) + (rBi-iBr)*(rBi-iBr)    */ \
+      DVD_COMPLEX_RAYLEIGH_QUOTIENT((u)[(i)], (u)[(i)+1], (Ax)[(i)], \
+        (Ax)[(i)+1], (Bx)[(i)], (Bx)[(i)+1], &(b)[8], &(b)[9], (b), (ierr)); \
+      if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[8])/ \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10    || \
+          PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
+            PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10         ) { \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its "\
+                            "Rayleigh quotient value %G+%G\n", \
+                            (eigr)[(i_s)+(i)], \
+                            (eigi)[(i_s)+1], (b)[8], (b)[9]);CHKERRQ(ierr); \
+      } \
+      (i)++; \
+    } else { \
+      (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]); CHKERRQ(ierr); \
+      (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
+      (b)[0] = (b)[0]/(b)[1]; \
+      if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10     ) { \
+        (ierr) = PetscInfo3((eps), "The eigenvalue %G is far from its " \
+               "Rayleigh quotient value %G. (y'*B*x = %G)\n", \
+               (eigr)[(i_s)+(i)], \
+               (b)[0], (b)[1]);CHKERRQ(ierr); \
+      } \
+    } \
+  }
+#else
+#define DVD_COMPUTE_N_RR(eps,i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
+  for((i)=0; (i)<(n); (i)++) { \
+      (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]); CHKERRQ(ierr); \
+      (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
+      (b)[0] = (b)[0]/(b)[1]; \
+      if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10     ) { \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its " \
+               "Rayleigh quotient value %G+%G\n", \
+               PetscRealPart((eigr)[(i_s)+(i)]), \
+               PetscImaginaryPart((eigr)[(i_s)+(i)]), PetscRealPart((b)[0]), \
+               PetscImaginaryPart((b)[0])); \
+      } \
+    }
+#endif
+
+
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_gd2_gen"
@@ -128,8 +197,8 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
 {
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i,n,s,ld,k;
-  PetscScalar     *pX,*pY,b[8],Z[size_Z];
+  PetscInt        i,j,n,s,ld,k;
+  PetscScalar     *pX,*pY,b[10],Z[size_Z];
   Vec             *Ax,*Bx,X[4];
 
   PetscFunctionBegin;
@@ -158,15 +227,17 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   }
 
   /* Compute the eigenvectors of the selected pairs */
-  for (i=0; i<n; ) {
-    k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
-    k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
-    /* Jump complex conjugate pairs */
-    i = k+1;
+  k = r_s+n+d->cX_in_H;
+  ierr = DSVectorsRange(d->ps,DS_MAT_X,r_s+d->cX_in_H,&k);CHKERRQ(ierr);
+  for (i=r_s; i<r_s+n; i++) {
+    ierr = DSNormalize(d->ps,DS_MAT_X,i+d->cX_in_H);CHKERRQ(ierr);
+    if (d->eigi[i] != 0.0) i++;
+  }
+  k = r_s+n+d->cX_in_H;
+  ierr = DSVectorsRange(d->ps,DS_MAT_Y,r_s+d->cX_in_H,&k);CHKERRQ(ierr);
+  for (i=r_s; i<r_s+n; i++) {
+    ierr = DSNormalize(d->ps,DS_MAT_Y,i+d->cX_in_H);CHKERRQ(ierr);
+    if (d->eigi[i] != 0.0) i++;
   }
   ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
@@ -181,7 +252,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
     } else {
       for (i=0; i<n; i++) d->nX[r_s+i] = 1.0;
     }
-    ierr = SlepcUpdateVectorsZ(Bx,0.0,1.0,d->BV-d->cX_in_H,d->size_BV+d->cX_in_H,pX,ld,d->size_H,n);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectorsZ(Bx,0.0,1.0,d->BV-d->cX_in_H,d->size_BV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n);CHKERRQ(ierr);
   } else if (d->B) {
     for(i=0; i<n; i++) {
       /* auxV(0) <- X(i) */
@@ -196,7 +267,21 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
 
   /* Ax <- A*X(i) */
   Ax = D;
-  ierr = SlepcUpdateVectorsZ(Ax,0.0,1.0,d->AV-d->cX_in_H,d->size_AV+d->cX_in_H,pX,ld,d->size_H,n); CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(Ax,0.0,1.0,d->AV-d->cX_in_H,d->size_AV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n); CHKERRQ(ierr);
+
+  /* v <- Y(i) */
+#if !defined(PETSC_USE_COMPLEX)
+  s = d->eigi[r_s] == 0.0 ? 1 : 2;
+#else
+  s = 1;
+#endif
+  ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,(d->W?d->W:d->V)-d->cX_in_H,d->size_V+d->cX_in_H,&pY[ld*r_s],ld,d->size_H,s);CHKERRQ(ierr);
+
+  /* Recompute the eigenvalue */
+  DVD_COMPUTE_N_RR(d->eps,i,r_s,1,d->eigr,d->eigi,d->auxV,Ax,Bx,b,ierr);
+
+  ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+  ierr = DSRestoreArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
 
   for(i=0,s=0; i<n; i+=s) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -225,6 +310,8 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
       ierr = SlepcUpdateVectorsD(X,2,1.0,b,2,2,2,Z,size_Z);CHKERRQ(ierr);
       s = 1;
     }
+    for (j=0; j<s; j++) d->nX[r_s+i+j] = 1.0;
+
     /* Ax = R <- P*(Ax - eig_i*Bx) */
     ierr = d->calcpairs_proj_res(d,r_s+i,r_s+i+s,&Ax[i]);CHKERRQ(ierr);
 
