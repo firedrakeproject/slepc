@@ -37,6 +37,8 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   PetscInt       opi,opi0;
   PetscReal      opf;
   KSP            ksp;
+  EPSOrthType    orth;
+  const char     *orth_list[3] = {"I","B","B_opt"};
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS Jacobi-Davidson (JD) Options");CHKERRQ(ierr);
@@ -64,12 +66,9 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg);CHKERRQ(ierr);
   if(flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsBoolGroupBegin("-eps_jd_borth_I","orthogonalize the search subspace","EPSJDSetBOrth",&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSJDSetBOrth(eps,EPS_ORTH_I);CHKERRQ(ierr);}
-  ierr = PetscOptionsBoolGroup("-eps_jd_borth_B","B-orthogonalize the search subspace","EPSJDSetBOrth",&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSJDSetBOrth(eps,EPS_ORTH_B);CHKERRQ(ierr);}
-  ierr = PetscOptionsBoolGroupEnd("-eps_jd_borth_B_opt","B-orthogonalize the search subspace with a sometimes faster, but more instable method","EPSJDSetBOrth",&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSJDSetBOrth(eps,EPS_ORTH_Bopt);CHKERRQ(ierr);}
+   ierr = EPSJDGetBOrth(eps,&orth);CHKERRQ(ierr);
+  ierr = PetscOptionsEList("-eps_jd_borth","orthogonalization used in the search subspace","EPSJDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSJDSetBOrth(eps,(EPSOrthType)opi+1);CHKERRQ(ierr);}
  
   ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_constant_correction_tolerance","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
@@ -657,18 +656,15 @@ PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
 
 +   EPS_ORTH_I - orthogonalization of the search subspace
 .   EPS_ORTH_B - B-orthogonalization of the search subspace
--   EPS_ORTH_Bopt - B-orthogonalization of the search subspace with an alternative method
+-   EPS_ORTH_BOPT - B-orthogonalization of the search subspace with an alternative method
 
    Options Database Key:
-+  -eps_jd_borth_I - Activates the orthogonalization of the search subspace
-+  -eps_jd_borth_B - Activates the B-orthogonalization of the search subspace
--  -eps_jd_borth_B_opt - Activates the B-orthogonalization with a sometimes faster, but
-   more inestable method
+.  -eps_jd_borth_I - Set the orthogonalization used in the search subspace
 
    Notes:
    If borth is EPS_ORTH_B, it is used a variant of Gram-Schmidt (selected in
    IP associated to the EPS) with the inner product defined by the matrix problem B.
-   If borht is EPS_ORTH_Bopt, it is used a variant of Gram-Schmidt that only performs
+   If borht is EPS_ORTH_BOPT, it is used a variant of Gram-Schmidt that only performs
    one matrix-vector product although more than one reorthogonalization would be done.
    
    Level: advanced
