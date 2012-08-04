@@ -47,7 +47,6 @@ import trlan
 import lapack
 import primme
 import blopex
-import slepc4py
 
 if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 4:
   print '*****  You must have Python2 version 2.4 or higher to run ./configure.py   ******'
@@ -89,7 +88,6 @@ primmelibs = []
 getblopex = 0
 haveblopex = 0
 blopexurl = ''
-getslepc4py = 0
 prefixdir = ''
 
 for i in sys.argv[1:]:
@@ -129,8 +127,6 @@ for i in sys.argv[1:]:
     getblopex = not i.endswith('=0')
     try: blopexurl = i.split('=')[1]
     except IndexError: pass
-  elif i.startswith('--download-slepc4py'):
-    getslepc4py = not i.endswith('=0')
   elif i.startswith('--prefix='):
     prefixdir = i.split('=')[1]
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
@@ -155,8 +151,6 @@ for i in sys.argv[1:]:
     print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
     print 'BLOPEX:'
     print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
-    print 'slepc4py:'
-    print '  --download-slepc4py              : Download and install slepc4py in SLEPc directory'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +'. Use -h for help')
@@ -334,11 +328,6 @@ if getblopex:
 
 # Check for missing LAPACK functions
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
-
-# Download and install slepc4py
-if getslepc4py:
-  slepc4py.Install()
-slepc4py.addMakeRule(slepcrules,prefixdir,prefixinstall,getslepc4py)
 
 # Make Fortran stubs if necessary
 if subversion and hasattr(petscconf,'FC'):

@@ -528,7 +528,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARFG/LARF - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j,k,*ii,*jj,i0,ik,tmp,type,*perm,nwall,nwu;
+  PetscInt       i,j,k,*ii,*jj,i0=0,ik=0,tmp,type,*perm,nwall,nwu;
   PetscReal      *ss,cond=1.0,cs,sn,r;
   PetscScalar    *work,tau,t,*AA;
   PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_;

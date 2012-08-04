@@ -93,7 +93,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
   PetscInt       k,jj;
   PetscBLASInt   n_;
   PetscReal      bulge10,bulge20,bulge30,bulge31,bulge41,bulge42;
-  PetscReal      sygn,rcond,worstcond,rot[4],buf[2];
+  PetscReal      sygn,rcond=1.0,worstcond,rot[4],buf[2];
   PetscScalar    rtmp;
   PetscBool      swap;
 

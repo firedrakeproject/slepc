@@ -68,7 +68,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
 
    ierr = EPSJDGetBOrth(eps,&orth);CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_jd_borth","orthogonalization used in the search subspace","EPSJDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSJDSetBOrth(eps,(EPSOrthType)opi+1);CHKERRQ(ierr);}
+  if (flg) {ierr = EPSJDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr);}
  
   ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_constant_correction_tolerance","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);

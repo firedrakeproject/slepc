@@ -1,15 +1,13 @@
 include makefile
-include config/makefile
-recursive-include config *.py *.c
+recursive-include config *.py
 
 recursive-include bin/matlab *
 recursive-include conf *
 recursive-include include *
 recursive-include src *
-recursive-exclude src/docs *
 
 exclude conf/slepcvariables
+recursive-exclude config/pypi *
+recursive-exclude src *.html 
+recursive-exclude src/docs *
 recursive-exclude src/*/examples/* *.*
-
-recursive-exclude include *.o
-recursive-exclude src *.o

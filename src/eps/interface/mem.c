@@ -58,6 +58,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
   }
   /* The following cannot go in the above if, to avoid crash when ncv did not change */
   if (eps->arbit_func) {
+    newc = PetscMax(0,eps->ncv-eps->allocated_ncv);
     ierr = PetscFree(eps->rr);CHKERRQ(ierr);
     ierr = PetscFree(eps->ri);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->rr);CHKERRQ(ierr);

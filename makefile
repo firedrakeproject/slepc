@@ -63,7 +63,7 @@ cmakegen:
 
 all-cmake: info cmakegen slepc_cmake
 
-all-legacy: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared slepc4py_noinstall
+all-legacy: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -246,19 +246,18 @@ install:
 	    ${MKDIR} ${SLEPC_DESTDIR}/include/finclude/ftn-custom ; \
           fi;\
           cp -f include/finclude/ftn-custom/*.h90 ${SLEPC_DESTDIR}/include/finclude/ftn-custom;\
-          if [ ! -d ${SLEPC_DESTDIR}/include/private ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include/private ; \
+          if [ ! -d ${SLEPC_DESTDIR}/include/slepc-private ]; then \
+	    ${MKDIR} ${SLEPC_DESTDIR}/include/slepc-private ; \
           fi;\
-          cp -f include/private/*.h ${SLEPC_DESTDIR}/include/private;\
+          cp -f include/slepc-private/*.h ${SLEPC_DESTDIR}/include/slepc-private;\
           if [ ! -d ${SLEPC_DESTDIR}/conf ]; then \
 	    ${MKDIR} ${SLEPC_DESTDIR}/conf ; \
           fi;\
-          for dir in bin bin/matlab bin/matlab/classes bin/matlab/classes/examples \
-              bin/matlab/classes/examples/tutorials; \
+          for dir in bin bin/matlab bin/matlab/classes; \
           do \
             if [ ! -d ${SLEPC_DESTDIR}/$$dir ]; then ${MKDIR} ${SLEPC_DESTDIR}/$$dir; fi;\
           done; \
-          for dir in bin/matlab/classes bin/matlab/classes/examples/tutorials; \
+          for dir in bin/matlab/classes; \
           do \
             cp -f $$dir/*.m ${SLEPC_DESTDIR}/$$dir;\
           done; \
@@ -267,17 +266,20 @@ install:
           cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_DESTDIR}/conf;\
           cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_DESTDIR}/conf;\
           if [ ! -d ${SLEPC_DESTDIR}/lib ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/lib ; \
+            ${MKDIR} ${SLEPC_DESTDIR}/lib ; \
           fi;\
           if [ -d ${PETSC_ARCH}/lib ]; then \
-            cp -f ${PETSC_ARCH}/lib/*.${AR_LIB_SUFFIX} ${SLEPC_DESTDIR}/lib;\
-            ${RANLIB} ${SLEPC_DESTDIR}/lib/*.${AR_LIB_SUFFIX} ;\
-            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} OTHERSHAREDLIBS="${PETSC_KSP_LIB} ${SLEPC_EXTERNAL_LIB}" shared; \
-            ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} slepc4py; \
+            if [ -f ${PETSC_ARCH}/lib/libslepc.${AR_LIB_SUFFIX} ]; then \
+              cp -f ${PETSC_ARCH}/lib/*.${AR_LIB_SUFFIX} ${SLEPC_DESTDIR}/lib; \
+              ${RANLIB} ${SLEPC_DESTDIR}/lib/*.${AR_LIB_SUFFIX} ; \
+	      ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} OTHERSHAREDLIBS="${PETSC_KSP_LIB} ${SLEPC_EXTERNAL_LIB}" shared; \
+            elif [ -f ${PETSC_ARCH}/lib/libslepc.${SL_LINKER_SUFFIX} ]; then \
+              cp -f ${PETSC_ARCH}/lib/*.${SL_LINKER_SUFFIX} ${SLEPC_DESTDIR}/lib; \
+            fi; \
           fi;\
           echo "====================================";\
-	  echo "Install complete.";\
-	  echo "It is usable with SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} [and no more PETSC_ARCH].";\
+          echo "Install complete.";\
+          echo "It is usable with SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} [and no more PETSC_ARCH].";\
           echo "Run the following to verify the install (in current directory):";\
           echo "make SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} test";\
           echo "====================================";\
