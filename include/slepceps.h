@@ -379,7 +379,7 @@ PETSC_EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
 /*E
     EPSOrthType - determines the orthogonalization used in the search subspace
 
-    Level: advance
+    Level: advanced
 
 .seealso: EPSGDSetBOrth(), EPSJDSetBOrth()
 E*/
