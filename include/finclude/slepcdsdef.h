@@ -28,7 +28,16 @@
 #define DS PetscFortranAddr
 #endif
 
+#define DSType      character*(80)
 #define DSStateType PetscEnum
 #define DSMatType   PetscEnum
+
+#define DSHEP       'hep'
+#define DSNHEP      'nhep'
+#define DSGHEP      'ghep'
+#define DSGHIEP     'ghiep'
+#define DSGNHEP     'gnhep'
+#define DSSVD       'svd'
+#define DSQEP       'qep'
 
 #endif

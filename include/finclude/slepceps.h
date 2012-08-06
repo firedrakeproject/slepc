@@ -41,12 +41,14 @@
       PetscEnum EPS_NHEP
       PetscEnum EPS_GNHEP
       PetscEnum EPS_PGNHEP
+      PetscEnum EPS_GHIEP
 
       parameter (EPS_HEP                    =  1)
       parameter (EPS_GHEP                   =  2)
       parameter (EPS_NHEP                   =  3)
       parameter (EPS_GNHEP                  =  4)
       parameter (EPS_PGNHEP                 =  5)
+      parameter (EPS_GHIEP                  =  6)
       
       PetscEnum EPS_LARGEST_MAGNITUDE
       PetscEnum EPS_SMALLEST_MAGNITUDE
@@ -90,12 +92,6 @@
       parameter (EPS_POWER_SHIFT_RAYLEIGH   =  1)
       parameter (EPS_POWER_SHIFT_WILKINSON  =  2)
 
-      PetscEnum EPS_ONE_SIDE
-      PetscEnum EPS_TWO_SIDE
-
-      parameter (EPS_ONE_SIDE               =  0)
-      parameter (EPS_TWO_SIDE               =  1)
-      
       PetscEnum EPS_RITZ
       PetscEnum EPS_HARMONIC
       PetscEnum EPS_HARMONIC_RELATIVE
@@ -115,22 +111,26 @@
       PetscEnum EPS_CONV_ABS
       PetscEnum EPS_CONV_EIG
       PetscEnum EPS_CONV_NORM
+      PetscEnum EPS_CONV_USER
 
       parameter (EPS_CONV_ABS               =  1)
       parameter (EPS_CONV_EIG               =  2)
       parameter (EPS_CONV_NORM              =  3)
+      parameter (EPS_CONV_USER              =  4)
 
       PetscEnum EPS_LANCZOS_REORTHOG_LOCAL
       PetscEnum EPS_LANCZOS_REORTHOG_FULL
       PetscEnum EPS_LANCZOS_REORTHOG_SELECTIVE
       PetscEnum EPS_LANCZOS_REORTHOG_PERIODIC
       PetscEnum EPS_LANCZOS_REORTHOG_PARTIAL
+      PetscEnum EPS_LANCZOS_REORTHOG_DELAYED
 
       parameter (EPS_LANCZOS_REORTHOG_LOCAL     =  0)
       parameter (EPS_LANCZOS_REORTHOG_FULL      =  1)
       parameter (EPS_LANCZOS_REORTHOG_SELECTIVE =  2)
       parameter (EPS_LANCZOS_REORTHOG_PERIODIC  =  3)
       parameter (EPS_LANCZOS_REORTHOG_PARTIAL   =  4)
+      parameter (EPS_LANCZOS_REORTHOG_DELAYED   =  5)
 
       PetscEnum EPS_PRIMME_DYNAMIC
       PetscEnum EPS_PRIMME_DEFAULT_MIN_TIME
@@ -164,11 +164,13 @@
       parameter (EPS_PRIMME_LOBPCG_ORTHOBASIS   = 14)
       parameter (EPS_PRIMME_LOBPCG_ORTHOBASISW  = 15)
 
-      PetscEnum EPS_PRIMME_PRECOND_NONE
-      PetscEnum EPS_PRIMME_PRECOND_DIAGONAL
+      PetscEnum EPS_ORTH_I
+      PetscEnum EPS_ORTH_B
+      PetscEnum EPS_ORTH_BOPT
 
-      parameter (EPS_PRIMME_PRECOND_NONE        =  0)
-      parameter (EPS_PRIMME_PRECOND_DIAGONAL    =  1)
+      parameter (EPS_ORTH_I                 =  1)
+      parameter (EPS_ORTH_B                 =  2)
+      parameter (EPS_ORTH_BOPT              =  3)
 
 !
 !   Possible arguments to EPSMonitorSet()

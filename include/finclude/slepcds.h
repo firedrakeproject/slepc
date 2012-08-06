@@ -26,30 +26,40 @@
       PetscEnum DS_STATE_RAW
       PetscEnum DS_STATE_INTERMEDIATE
       PetscEnum DS_STATE_CONDENSED
-      PetscEnum DS_STATE_SORTED
+      PetscEnum DS_STATE_TRUNCATED
       
       parameter (DS_STATE_RAW                =  0)
       parameter (DS_STATE_INTERMEDIATE       =  1)
       parameter (DS_STATE_CONDENSED          =  2)
-      parameter (DS_STATE_SORTED             =  3)
+      parameter (DS_STATE_TRUNCATED          =  3)
 
       PetscEnum DS_MAT_A
       PetscEnum DS_MAT_B
       PetscEnum DS_MAT_C
+      PetscEnum DS_MAT_T
+      PetscEnum DS_MAT_D
       PetscEnum DS_MAT_Q
+      PetscEnum DS_MAT_Z
       PetscEnum DS_MAT_X
       PetscEnum DS_MAT_Y
       PetscEnum DS_MAT_U
       PetscEnum DS_MAT_VT
+      PetscEnum DS_MAT_W
+      PetscEnum DS_NUM_MAT
 
-      parameter (DS_MAT_A                    =  0)  
-      parameter (DS_MAT_B                    =  1)  
-      parameter (DS_MAT_C                    =  2)  
-      parameter (DS_MAT_Q                    =  3)  
-      parameter (DS_MAT_X                    =  4)  
-      parameter (DS_MAT_Y                    =  5)  
-      parameter (DS_MAT_U                    =  6)  
-      parameter (DS_MAT_VT                   =  7)  
+      parameter (DS_MAT_A         =  0)  
+      parameter (DS_MAT_B         =  1)  
+      parameter (DS_MAT_C         =  2)  
+      parameter (DS_MAT_T         =  3)  
+      parameter (DS_MAT_D         =  4)  
+      parameter (DS_MAT_Q         =  5)  
+      parameter (DS_MAT_Z         =  6)  
+      parameter (DS_MAT_X         =  7)  
+      parameter (DS_MAT_Y         =  8)  
+      parameter (DS_MAT_U         =  9)  
+      parameter (DS_MAT_VT        = 10)  
+      parameter (DS_MAT_W         = 11)  
+      parameter (DS_NUM_MAT       = 12)  
 
 !
 !  End of Fortran include file for the DS package in SLEPc

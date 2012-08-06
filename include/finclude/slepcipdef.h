@@ -28,7 +28,12 @@
 #define IP PetscFortranAddr
 #endif
 
+#define IPType             character*(80)
 #define IPOrthogType       PetscEnum
 #define IPOrthogRefineType PetscEnum
+
+#define IPBILINEAR     'bilinear'
+#define IPSESQUILINEAR 'sesquilinear'
+#define IPINDEFINITE   'indefinite'
 
 #endif

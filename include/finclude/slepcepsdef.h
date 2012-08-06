@@ -38,6 +38,7 @@
 #define EPSExtraction          PetscEnum
 #define EPSBalance             PetscEnum
 #define EPSConv                PetscEnum
+#define EPSOrthType            PetscEnum
 #define EPSPowerShiftType      PetscEnum
 #define EPSLanczosReorthogType PetscEnum
 #define EPSPRIMMEMethod        PetscEnum
@@ -49,13 +50,14 @@
 #define EPSARNOLDI     'arnoldi'
 #define EPSLANCZOS     'lanczos'
 #define EPSKRYLOVSCHUR 'krylovschur'
+#define EPSGD          'gd'
+#define EPSJD          'jd'
+#define EPSRQCG        'rqcg'
 #define EPSLAPACK      'lapack'
 #define EPSARPACK      'arpack'
 #define EPSBLZPACK     'blzpack'
 #define EPSTRLAN       'trlan'
 #define EPSBLOPEX      'blopex'
 #define EPSPRIMME      'primme'
-#define EPSGD          'gd'
-#define EPSJD          'jd'
 
 #endif
