@@ -23,15 +23,19 @@ import os
 import sys
 
 import petscconf
+import log
 import check
 
 def Check(conf,vars,cmake,tmpdir,directory,libs):
 
-  if petscconf.SCALAR == 'complex':
-    sys.exit('ERROR: TRLAN does not support complex numbers.') 
+  log.write('='*80)
+  log.Println('Checking TRLAN library...')
 
-  if petscconf.PRECISION == 'single':
-    sys.exit('ERROR: TRLAN does not support single precision.') 
+  if petscconf.SCALAR == 'complex':
+    log.Exit('ERROR: TRLAN is not available for complex scalars.') 
+
+  if petscconf.PRECISION != 'double':
+    log.Exit('ERROR: TRLAN is supported only in double precision.') 
 
   functions = ['trlan77']
   if libs:

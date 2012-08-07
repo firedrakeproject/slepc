@@ -38,7 +38,7 @@ def Check(conf,vars,cmake,tmpdir):
     l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgqr','orgtr']
     if petscconf.PRECISION == 'single':
       prefix = 's'
-    if petscconf.PRECISION == '__float128':
+    elif petscconf.PRECISION == '__float128':
       prefix = 'q'
     else:
       prefix = 'd'
@@ -46,7 +46,7 @@ def Check(conf,vars,cmake,tmpdir):
     l += ['unghr','heevr','heevd','hetrd','hegvd','unmlq','ungqr','ungtr']
     if petscconf.PRECISION == 'single':
       prefix = 'c'
-    if petscconf.PRECISION == '__float128':
+    elif petscconf.PRECISION == '__float128':
       prefix = 'w'
     else:
       prefix = 'z'

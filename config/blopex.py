@@ -34,8 +34,8 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
   log.write('='*80)
   log.Println('Installing BLOPEX...')
 
-  if petscconf.PRECISION == 'single':
-    log.Exit('ERROR: BLOPEX does not support single precision.')
+  if petscconf.PRECISION != 'double':
+    log.Exit('ERROR: BLOPEX is supported only in double precision.')
  
   # Create externalpackages directory
   externdir = 'externalpackages'
