@@ -816,7 +816,7 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d, PetscInt n)
   if (n != 1)
 #endif
   {
-    ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->cX_in_H+n,&rr,&ri);CHKERRQ(ierr);
+    ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->size_H,&rr,&ri);CHKERRQ(ierr);
     k = 1;
     ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,rr,ri,&k);CHKERRQ(ierr);
   }
