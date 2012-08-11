@@ -40,9 +40,10 @@ def Load(petscdir):
   try:
     f = open(PETSCVARIABLES)
     for l in f.readlines():
-      (k,v) = l.split('=',1)
-      k = k.strip()
-      v = v.strip()
+      r = l.split('=',1)
+      if len(r)!=2: continue
+      k = r[0].strip()
+      v = r[1].strip()
       if k == 'PETSC_SCALAR':
 	SCALAR = v
       elif k == 'PETSC_PRECISION':
@@ -73,7 +74,7 @@ def Load(petscdir):
 	BUILD_USING_CMAKE = v
     f.close()
   except:
-    sys.exit('ERROR: PETSc is not configured for architecture ' + ARCH)
+    sys.exit('ERROR: cannot process file ' +  PETSCVARIABLES)
 
   IND64 = 0
   MPIUNI = 0
@@ -87,5 +88,5 @@ def Load(petscdir):
 	MPIUNI = 1
     f.close()
   except:
-    sys.exit('ERROR: cannot open petscconf.h')
+    sys.exit('ERROR: cannot process file ' +  PETSCCONF_H)
 
