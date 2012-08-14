@@ -38,50 +38,6 @@
 #include <slepcblaslapack.h>
 #include "krylovschur.h"
 
-/* Type of data characterizing a shift (place from where an eps is applied) */
-typedef struct _n_shift *shift;
-struct _n_shift{
-  PetscReal	value;
-  PetscInt	inertia;
-  PetscBool	comp[2]; /* Shows completion of subintervals (left and right) */
-  shift  	neighb[2];/* Adjacent shifts */
-  PetscInt	index;/* Index in eig where found values are stored */
-  PetscInt	neigs; /* Number of values found */
-  PetscReal     ext[2];   /* Limits for accepted values */ 
-  PetscInt      nsch[2];  /* Number of missing values for each subinterval */
-  PetscInt      nconv[2]; /* Converged on each side (accepted or not)*/
-};
-
-/* Type of data  for storing the state of spectrum slicing*/
-struct _n_SR{
-  PetscReal       int0,int1; /* Extremes of the interval */
-  PetscInt        dir; /* Determines the order of values in eig (+1 incr, -1 decr) */
-  PetscBool       hasEnd; /* Tells whether the interval has an end */
-  PetscInt        inertia0,inertia1;
-  Vec             *V;
-  PetscScalar     *eig,*eigi,*monit,*back;
-  PetscReal       *errest;
-  PetscInt        *perm;/* Permutation for keeping the eigenvalues in order */
-  PetscInt        numEigs; /* Number of eigenvalues in the interval */
-  PetscInt        indexEig;
-  shift           sPres; /* Present shift */
-  shift           *pending;/* Pending shifts array */
-  PetscInt        nPend;/* Number of pending shifts */
-  PetscInt        maxPend;/* Size of "pending" array */
-  Vec             *VDef; /* Vector for deflation */
-  PetscInt        *idxDef;/* For deflation */
-  PetscInt        nMAXCompl;
-  PetscInt        iterCompl;
-  PetscInt        itsKs; /* Krylovschur restarts */
-  PetscInt        nleap;
-  shift           s0;/* Initial shift */
-  PetscScalar     *S;/* Matrix for projected problem */
-  PetscInt        nS;
-  PetscReal       beta;
-  shift           sPrev;
-};
-typedef struct _n_SR  *SR;
-
 /* 
    Fills the fields of a shift structure
 
@@ -94,9 +50,10 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val, shift neighb0,shift 
   shift            s,*pending2;
   PetscInt         i;
   SR               sr;
+  EPS_KRYLOVSCHUR  *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
-  sr = (SR)(eps->data);
+  sr = ctx->sr;
   ierr = PetscMalloc(sizeof(struct _n_shift),&s);CHKERRQ(ierr);
   s->value = val;
   s->neighb[0] = neighb0;
@@ -132,10 +89,11 @@ static PetscErrorCode EPSExtractShift(EPS eps) {
   Mat              F;
   PC               pc;
   KSP              ksp;
+  EPS_KRYLOVSCHUR  *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   SR               sr;
 
   PetscFunctionBegin;  
-  sr = (SR)(eps->data);
+  sr = ctx->sr;
   if (sr->nPend > 0) {
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
@@ -206,7 +164,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 
   PetscFunctionBegin;
   /* Spectrum slicing data */
-  sr = (SR)eps->data;
+  sr = ctx->sr;
   sPres = sr->sPres;
   complIterating =PETSC_FALSE;
   sch1 = sch0 = PETSC_TRUE;
@@ -436,13 +394,14 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 #define __FUNCT__ "EPSGetNewShiftValue"
 static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
 {
-  PetscReal   lambda,d_prev;
-  PetscInt    i,idxP;
-  SR          sr;
-  shift       sPres,s;
+  PetscReal       lambda,d_prev;
+  PetscInt        i,idxP;
+  SR              sr;
+  shift           sPres,s;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;  
-  sr = (SR)eps->data;
+  sr = ctx->sr;
   sPres = sr->sPres;
   if ( sPres->neighb[side]) {
   /* Completing a previous interval */
@@ -536,15 +495,16 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
 #define __FUNCT__ "EPSStoreEigenpairs"
 PetscErrorCode EPSStoreEigenpairs(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscReal      lambda,err,norm;
-  PetscInt       i,count;
-  PetscBool      iscayley;
-  SR             sr;
-  shift          sPres;
+  PetscErrorCode  ierr;
+  PetscReal       lambda,err,norm;
+  PetscInt        i,count;
+  PetscBool       iscayley;
+  SR              sr;
+  shift           sPres;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin; 
-  sr = (SR)(eps->data);
+  sr = ctx->sr;
   sPres = sr->sPres;
   sPres->index = sr->indexEig;
   count = sr->indexEig;
@@ -587,9 +547,10 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
   shift           sPres;
   PetscInt        ini,fin,k,idx0,idx1;
   SR              sr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin; 
-  sr = (SR)(eps->data);
+  sr = ctx->sr;
   sPres = sr->sPres;
 
   if (sPres->neighb[0]) ini = (sr->dir)*(sPres->neighb[0]->inertia - sr->inertia0);
@@ -637,20 +598,21 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
 #define __FUNCT__ "EPSSolve_KrylovSchur_Slice"
 PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,lds;
-  PetscReal      newS;
-  KSP            ksp;
-  PC             pc;
-  Mat            F;  
-  PetscReal      *errest_left;
-  Vec            t;
-  SR             sr;
-  shift          s;
+  PetscErrorCode  ierr;
+  PetscInt        i,lds;
+  PetscReal       newS;
+  KSP             ksp;
+  PC              pc;
+  Mat             F;  
+  PetscReal       *errest_left;
+  Vec             t;
+  SR              sr;
+  shift           s;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
  
   PetscFunctionBegin;
   ierr = PetscMalloc(sizeof(struct _n_SR),&sr);CHKERRQ(ierr);
-  eps->data = sr;
+  ctx->sr = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
   sr->nMAXCompl = eps->nev/4;
