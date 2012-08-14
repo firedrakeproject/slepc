@@ -98,7 +98,7 @@ int main(int argc,char **argv)
      Set matrices and problem type
   */
   ierr = QEPSetOperators(qep,M,C,K);CHKERRQ(ierr);
-  ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
+  ierr = QEPSetProblemType(qep,QEP_HERMITIAN);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime

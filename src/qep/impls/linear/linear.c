@@ -101,7 +101,11 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   }
 
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
+  if (qep->problem_type==QEP_HERMITIAN) {
+    ierr = EPSSetProblemType(ctx->eps,EPS_GHIEP);CHKERRQ(ierr);
+  } else {
+    ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
+  }
   switch (qep->which) {
       case QEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
       case QEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
