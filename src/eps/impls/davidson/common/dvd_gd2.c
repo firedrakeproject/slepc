@@ -206,17 +206,19 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* Compute the number of pairs to improve */
   n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2),d->max_size_proj-d->size_H)/2;
 #if !defined(PETSC_USE_COMPLEX)
-  /* If the last eigenvalue is a complex conjugate pair, we reserve an extra vector in D */
+  /* If the last eigenvalue is a complex conjugate pair, n is increased by one */
   for (i=0; i<n; i++) {
     if (d->eigi[i] != 0.0) i++;
   }
   if (i > n) {
-    n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D-1),(r_e-r_s)*2),d->max_size_proj-d->size_H)/2;
+    n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(n+1)*2),d->max_size_proj-d->size_H)/2;
+    if (i > n) n--;
   }
 #endif
 
   /* Quick exit */
   if (max_size_D == 0 || r_e-r_s <= 0 || n == 0) {
+   *size_D = 0;
    /* Callback old improveX */
     if (data->old_improveX) {
       d->improveX_data = data->old_improveX_data;
@@ -267,16 +269,21 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   Ax = D;
   ierr = SlepcUpdateVectorsZ(Ax,0.0,1.0,d->AV-d->cX_in_H,d->size_AV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n); CHKERRQ(ierr);
 
-  /* v <- Y(i) */
 #if !defined(PETSC_USE_COMPLEX)
   s = d->eigi[r_s] == 0.0 ? 1 : 2;
+  /* If the available vectors allow the computation of the eigenvalue */
+  if (s <= n) {
 #else
   s = 1;
 #endif
+  /* v <- Y(i) */
   ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,(d->W?d->W:d->V)-d->cX_in_H,d->size_V+d->cX_in_H,&pY[ld*r_s],ld,d->size_H,s);CHKERRQ(ierr);
 
   /* Recompute the eigenvalue */
   DVD_COMPUTE_N_RR(d->eps,i,r_s,1,d->eigr,d->eigi,d->auxV,Ax,Bx,b,ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  }
+#endif
 
   ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSRestoreArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);

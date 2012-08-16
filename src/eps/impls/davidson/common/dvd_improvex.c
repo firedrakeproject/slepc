@@ -320,6 +320,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
 
   /* Quick exit */
   if ((max_size_D == 0) || r_e-r_s <= 0) {
+   *size_D = 0;
    /* Callback old improveX */
     if (data->old_improveX) {
       d->improveX_data = data->old_improveX_data;

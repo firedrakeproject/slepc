@@ -130,7 +130,8 @@ runtest2_1:
 	-@test=test2_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
-	   if [ "$$eps" = arnoldi -o "$$eps" = lanczos ]; then EXTRA="-eps_ncv 15"; else EXTRA=""; fi; \
+	   if [ "$$eps" = arnoldi -o "$$eps" = lanczos ]; then EXTRA="-eps_ncv 15"; \
+	   elif [ "$$eps" = gd2 ]; then EXTRA="-eps_ncv 30"; else EXTRA=""; fi; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1;    \
 	done > $${test}.tmp; \
@@ -277,7 +278,8 @@ runtest11_1:
 	-@test=test11_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; else EXTRA=""; fi; \
+	   if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; \
+	   elif [ "$$eps" = gd2 ]; then EXTRA="-eps_ncv 30 -eps_max_it 5000"; else EXTRA=""; fi; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\

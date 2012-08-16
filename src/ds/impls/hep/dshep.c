@@ -494,6 +494,9 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
   }
+
+  /* Set zero wi */
+  if (wi) for (i=l;i<n;i++) wi[i] = 0.0;
   PetscFunctionReturn(0);
 #endif
 }
@@ -575,6 +578,9 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
   }
+
+  /* Set zero wi */
+  if (wi) for (i=l;i<n;i++) wi[i] = 0.0;
   PetscFunctionReturn(0);
 #endif
 }
@@ -638,6 +644,9 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
     for (i=l;i<ds->n;i++) A[i+i*ld] = d[i];
   }
+
+  /* Set zero wi */
+  if (wi) for (i=l;i<ds->n;i++) wi[i] = 0.0;
   PetscFunctionReturn(0);
 #endif
 }
