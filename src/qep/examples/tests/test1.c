@@ -138,7 +138,6 @@ int main(int argc,char **argv)
       ierr = PetscObjectTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
     }
   }
-  ierr = QEPSetFromOptions(qep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
