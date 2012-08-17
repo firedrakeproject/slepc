@@ -423,7 +423,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-  PetscInt        size_D,ld;
+  PetscInt        size_D,ld,s;
   PetscScalar     *pQ,*pZ;
   PetscErrorCode  ierr;
 
@@ -448,7 +448,12 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   if (size_D == 0) { PetscFunctionReturn(0); }
 
   /* Get the residual of all pairs */
-  ierr = dvd_updateV_testConv(d,size_D,size_D,data->allResiduals?d->size_V:size_D,d->auxV,d->auxS,PETSC_NULL);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  s = d->eigi[0]!=0.0?2:1;
+#else
+  s = 1;
+#endif
+  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?d->size_V:size_D,d->auxV,d->auxS,PETSC_NULL);CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;
