@@ -45,7 +45,7 @@ test2: test2.o chkopts
 #------------------------------------------------------------------------------------
 QEP = qarnoldi
 QEPEPS = linear
-EPS = krylovschur arnoldi gd jd
+EPS = krylovschur arnoldi gd jd gd2
 
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
@@ -78,6 +78,7 @@ runtest2_1:
 	   for eps in ${EPS}; do \
 	      echo "qep type $$qep, eps type $$eps"; \
 	      if [ $$eps = arnoldi -o $$eps = krylovschur ]; then EXTRA="-qep_ncv 30"; else EXTRA=""; fi; \
+	      if [ $$eps = gd2 ]; then eps="gd -qep_eps_gd_double_expansion"; fi; \
 	      ${MPIEXEC} -np 1 ./test2 -qep_type $$qep -qep_eps_type $$eps -qep_nev 4 -qep_terse $$EXTRA 2>&1; \
            done; \
 	done >> $${test}.tmp; \

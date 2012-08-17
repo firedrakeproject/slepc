@@ -1136,10 +1136,10 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
         ierr = IPOrthogonalize(ip, size_cX, cX, i, PETSC_NULL, V,
                                V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
       }
-      if(!lindep && (norm > PETSC_MACHINE_EPSILON)) break;
+      if(!lindep && (norm > PETSC_SQRT_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
     }
-    if(lindep || (norm < PETSC_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
+    if(lindep || (norm < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
   }
  
@@ -1184,11 +1184,11 @@ PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, Pet
         ierr = IPBOrthogonalize(ip, size_cX, cX, BcX, BcXn, i, PETSC_NULL, V, BV, BVn,
                                 V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
       }
-      if(!lindep && (PetscAbs(norm) > PETSC_MACHINE_EPSILON)) break;
+      if(!lindep && (PetscAbs(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
       CHKERRQ(ierr);
     }
-    if(lindep || (PetscAbs(norm) < PETSC_MACHINE_EPSILON)) {
+    if(lindep || (PetscAbs(norm) < PETSC_SQRT_MACHINE_EPSILON)) {
         SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors");
     }
     if (BVn) BVn[i] = norm > 0.0 ? 1.0 : -1.0;

@@ -74,3 +74,16 @@ EPS type: jd
  All requested eigenvalues computed up to the required tolerance:
      0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
 
+qep type linear, eps type gd2
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: linear
+EPS type: gd2
+
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=2000
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+

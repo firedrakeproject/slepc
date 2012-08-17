@@ -335,6 +335,18 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
     }
     ierr = d->improvex_precond(d,r_s,d->auxV[0],D[2*n-1]);CHKERRQ(ierr);
     *size_D = 2*n;
+#if !defined(PETSC_USE_COMPLEX)
+    if (d->eigi[r_s] != 0.0) {
+      s = 4;
+    } else
+#endif
+    s = 2;
+    /* Prevent that short vectors are discarded in the orthogonalization */
+    if (d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
+      for (i=0; i<s && i<*size_D; i++) {
+        ierr = VecScale(D[i],1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
+      }
+    }
   } else {
     *size_D = 0;
   }

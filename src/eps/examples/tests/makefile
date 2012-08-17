@@ -279,7 +279,8 @@ runtest11_1:
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
 	   if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; \
-	   elif [ "$$eps" = gd2 ]; then EXTRA="-eps_ncv 30 -eps_max_it 5000"; else EXTRA=""; fi; \
+	   elif [ "$$eps" = gd ]; then EXTRA="-eps_max_it 5000"; \
+	   elif [ "$$eps" = gd2 ]; then EXTRA="-eps_ncv 60 -eps_gd_minv 10"; else EXTRA=""; fi; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\

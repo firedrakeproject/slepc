@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   QEP            qep;             /* quadratic eigenproblem solver context */
   const QEPType  type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j;
-  PetscBool      flag;
+  PetscBool      flag,isgd2;
   char           qeptype[30] = "linear", epstype[30] = "";
   EPS            eps;
   ST             st;
@@ -124,22 +124,21 @@ int main(int argc,char **argv)
     ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&flag);CHKERRQ(ierr);
     if (flag) {
       ierr = QEPLinearGetEPS(qep,&eps);CHKERRQ(ierr);
-      ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
+      ierr = PetscStrcmp(epstype,"gd2",&isgd2);CHKERRQ(ierr);
+      if (isgd2) {
+        ierr = EPSSetType(eps,EPSGD);CHKERRQ(ierr);
+        ierr = EPSGDSetDoubleExpansion(eps,PETSC_TRUE);CHKERRQ(ierr);
+      } else {
+        ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
+      }
       ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
       ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)eps,EPSJD,&flag);CHKERRQ(ierr);
-      if (flag) {
-        ierr = EPSJDSetInitialSize(eps,1);CHKERRQ(ierr);
-        ierr = EPSJDSetFix(eps,PetscSqrtReal(PETSC_SMALL));CHKERRQ(ierr);
-      }
       ierr = PetscObjectTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
-      if (flag) {
-        ierr = EPSGDSetInitialSize(eps,1);CHKERRQ(ierr);
-      }
     }
   }
+  ierr = QEPSetFromOptions(qep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem

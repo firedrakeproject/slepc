@@ -425,6 +425,12 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
       }
       ierr = dvd_improvex_apply_proj(d, &D[i], s, auxS); CHKERRQ(ierr);
     }
+    /* Prevent that short vectors are discarded in the orthogonalization */
+    if (i == 0 && d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
+      for(j=0; j<s; j++) {
+        ierr = VecScale(D[j],1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
+      }
+    }
   }
   *size_D = i;
   if (data->dynamic) data->lastTol = PetscMax(data->lastTol/2.0,PETSC_MACHINE_EPSILON*10.0);
@@ -927,7 +933,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
         (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its "\
                             "Rayleigh quotient value %G+%G\n", \
                             (eigr)[(i_s)+(i)], \
-                            (eigi)[(i_s)+1], (b)[8], (b)[9]); \
+                            (eigi)[(i_s)+(i)], (b)[8], (b)[9]); \
       } \
       (i)++; \
     } \
