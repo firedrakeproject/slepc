@@ -540,7 +540,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ld  = PetscBLASIntCast(ds->ld);
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,&info);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,&info);
   lwork = (PetscBLASInt)a;
   ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr); 
   beta = ds->work;
@@ -548,7 +548,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   lwork = PetscBLASIntCast(ds->lwork-ds->n);
   LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
 #else
-  LAPACKgges_("V","V","N",PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,&ld,PETSC_NULL,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
+  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
   lwork = (PetscBLASInt)PetscRealPart(a);
   ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr); 
   beta = ds->work;
