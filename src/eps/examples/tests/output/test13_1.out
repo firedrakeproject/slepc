@@ -3,28 +3,28 @@ eps type gd
 Tridiagonal with zero diagonal, n=30
 
  All requested eigenvalues computed up to the required tolerance:
-     0.10130
+     -1.98974
 
  All requested eigenvalues computed up to the required tolerance:
-     0.10130
+     -1.98974
 
 eps type jd
 
 Tridiagonal with zero diagonal, n=30
 
  All requested eigenvalues computed up to the required tolerance:
-     0.10130
+     -1.98974
 
  All requested eigenvalues computed up to the required tolerance:
-     0.10130
+     -1.98974
 
 eps type gd2
 
 Tridiagonal with zero diagonal, n=30
 
  All requested eigenvalues computed up to the required tolerance:
-     0.10130
+     -1.98974
 
  All requested eigenvalues computed up to the required tolerance:
-     0.10130
+     -1.98974
 

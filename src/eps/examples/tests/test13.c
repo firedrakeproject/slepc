@@ -89,7 +89,7 @@ int main(int argc,char **argv)
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
