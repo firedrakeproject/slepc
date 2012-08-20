@@ -58,13 +58,13 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = MatConvert(svd->OP,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
   ierr = DSSetDimensions(svd->ds,M,N,0,0);CHKERRQ(ierr);
-  ierr = MatGetArray(mat,&pmat);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(mat,&pmat);CHKERRQ(ierr);
   ierr = DSGetArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   for (i=0;i<M;i++)
     for (j=0;j<N;j++)
       A[i+j*ld] = pmat[i+j*M];
   ierr = DSRestoreArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = MatRestoreArray(mat,&pmat);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(mat,&pmat);CHKERRQ(ierr);
   ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
       
   n = PetscMin(M,N);
