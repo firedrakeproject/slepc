@@ -410,9 +410,9 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
   if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
   if (!ds->ops->solve) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
+  if (!ds->ops->solve[ds->method]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
   ierr = PetscLogEventBegin(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  if (!ds->ops->solve[ds->method]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
   ierr = (*ds->ops->solve[ds->method])(ds,eigr,eigi);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
