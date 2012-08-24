@@ -30,7 +30,7 @@ int main( int argc, char **argv )
   PetscErrorCode ierr;
   DS             ds;
   PetscReal      re;
-  PetscScalar    *A,*B,*eigr,*eigi;
+  PetscScalar    *A,*B,*eig;
   PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
@@ -76,12 +76,10 @@ int main( int argc, char **argv )
   }
 
   /* Solve */
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&eigr);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&eigi);CHKERRQ(ierr);
-  ierr = PetscMemzero(eigi,n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSSolve(ds,eigr,eigi);CHKERRQ(ierr);
-  ierr = DSSort(ds,eigr,eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSolve(ds,eig,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSort(ds,eig,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
@@ -90,11 +88,10 @@ int main( int argc, char **argv )
   /* Print eigenvalues */
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n",n);CHKERRQ(ierr); 
   for (i=0;i<n;i++) {
-    re = PetscRealPart(eigr[i]);
+    re = PetscRealPart(eig[i]);
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",re);CHKERRQ(ierr); 
   }
-  ierr = PetscFree(eigr);CHKERRQ(ierr);
-  ierr = PetscFree(eigi);CHKERRQ(ierr);
+  ierr = PetscFree(eig);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;

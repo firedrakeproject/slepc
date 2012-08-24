@@ -402,13 +402,13 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscScalar    re,im;
+  PetscScalar    re;
   PetscInt       i,j,pos,result;
   PetscBLASInt   ifst,ilst,info,n,ld;
   PetscScalar    *T = ds->mat[DS_MAT_A];
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *work;
+  PetscScalar    *work,im;
 #endif
 
   PetscFunctionBegin;
@@ -421,7 +421,9 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* selection sort */
   for (i=ds->l;i<n-1;i++) {
     re = wr[i];
+#if !defined(PETSC_USE_COMPLEX)
     im = wi[i];
+#endif
     pos = 0;
     j=i+1; /* j points to the next eigenvalue */
 #if !defined(PETSC_USE_COMPLEX)
@@ -429,10 +431,16 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
     /* find minimum eigenvalue */
     for (;j<n;j++) { 
+#if !defined(PETSC_USE_COMPLEX)
       ierr = (*ds->comp_fun)(re,im,wr[j],wi[j],&result,ds->comp_ctx);CHKERRQ(ierr);
+#else
+      ierr = (*ds->comp_fun)(re,0.0,wr[j],0.0,&result,ds->comp_ctx);CHKERRQ(ierr);
+#endif
       if (result > 0) {
         re = wr[j];
+#if !defined(PETSC_USE_COMPLEX)
         im = wi[j];
+#endif
         pos = j;
       }
 #if !defined(PETSC_USE_COMPLEX)
@@ -460,9 +468,8 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
           wr[j+1] = wr[j];
           wi[j+1] = -wi[j];
           j++;
-        } else
+        }
 #endif
-        wi[j] = 0.0;
       }
     }
 #if !defined(PETSC_USE_COMPLEX)
@@ -528,7 +535,9 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
+#endif
   n   = PetscBLASIntCast(ds->n);
   ld  = PetscBLASIntCast(ds->ld);
   ilo = PetscBLASIntCast(ds->l+1);

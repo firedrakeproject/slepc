@@ -193,7 +193,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscMemzero(B+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMemzero(A+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for(i=ds->l;i<ds->n;i++){
-    wi[i] = 0.0;
+    if (wi) wi[i] = 0.0;
     B[i+i*ld] = 1.0;
     A[i+i*ld] = wr[i];
   }

@@ -730,7 +730,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  flags: %s %s %s\n",ds->compact?"compact":"",ds->extrarow?"extrarow":"",ds->refined?"refined":"");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":"");CHKERRQ(ierr);
     }
     if (ds->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);

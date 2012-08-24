@@ -329,13 +329,13 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGEXC/LAMCH/LAG2 - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscScalar    re,im;
+  PetscScalar    re;
   PetscInt       i,j,pos,result;
   PetscBLASInt   ifst,ilst,info,n,ld,one=1;
   PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Z = ds->mat[DS_MAT_Z],*Q = ds->mat[DS_MAT_Q];
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lwork;
-  PetscScalar    *work,a,safmin,scale1,scale2;
+  PetscScalar    *work,a,safmin,scale1,scale2,im;
 #endif
 
   PetscFunctionBegin;
@@ -353,7 +353,9 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* selection sort */
   for (i=ds->l;i<n-1;i++) {
     re = wr[i];
+#if !defined(PETSC_USE_COMPLEX)
     im = wi[i];
+#endif
     pos = 0;
     j = i+1; /* j points to the next eigenvalue */
 #if !defined(PETSC_USE_COMPLEX)
@@ -361,10 +363,16 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
     /* find minimum eigenvalue */
     for (;j<n;j++) { 
+#if !defined(PETSC_USE_COMPLEX)
       ierr = (*ds->comp_fun)(re,im,wr[j],wi[j],&result,ds->comp_ctx);CHKERRQ(ierr);
+#else
+      ierr = (*ds->comp_fun)(re,0.0,wr[j],0.0,&result,ds->comp_ctx);CHKERRQ(ierr);
+#endif
       if (result > 0) {
         re = wr[j];
+#if !defined(PETSC_USE_COMPLEX)
         im = wi[j];
+#endif
         pos = j;
       }
 #if !defined(PETSC_USE_COMPLEX)
@@ -397,7 +405,6 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
         {
           if (T[j*ld+j] == 0.0) wr[j] = (PetscRealPart(S[j*ld+j])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
           else wr[j] = S[j*ld+j] / T[j*ld+j];
-          wi[j] = 0.0;
         }
       }
     }
@@ -535,7 +542,9 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B],*Z = ds->mat[DS_MAT_Z],*Q = ds->mat[DS_MAT_Q];
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
+#endif
   n   = PetscBLASIntCast(ds->n);
   ld  = PetscBLASIntCast(ds->ld);
   lwork = -1;
