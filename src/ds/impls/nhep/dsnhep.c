@@ -468,6 +468,8 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
           wr[j+1] = wr[j];
           wi[j+1] = -wi[j];
           j++;
+        } else {
+          wi[j] = 0.0;
         }
 #endif
       }

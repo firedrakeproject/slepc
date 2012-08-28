@@ -405,6 +405,9 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
         {
           if (T[j*ld+j] == 0.0) wr[j] = (PetscRealPart(S[j*ld+j])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
           else wr[j] = S[j*ld+j] / T[j*ld+j];
+#if !defined(PETSC_USE_COMPLEX)
+          wi[j] = 0.0;
+#endif
         }
       }
     }
