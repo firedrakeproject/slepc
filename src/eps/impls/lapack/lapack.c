@@ -43,7 +43,8 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n"); }
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
   if (eps->balance!=EPS_BALANCE_NONE) { ierr = PetscInfo(eps,"Warning: balancing ignored\n");CHKERRQ(ierr); }
-  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
+  if (eps->extraction && eps->extraction!=EPS_RITZ) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
+  eps->extraction=EPS_RITZ;
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   /* attempt to get dense representations of A and B separately */
@@ -59,7 +60,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     }
     PetscPopErrorHandler();
     denseok = (ierra == 0 && ierrb == 0)? PETSC_TRUE: PETSC_FALSE;
-  }
+  } else Adense = PETSC_NULL;
 
   /* setup PS */
   if (denseok) {
@@ -125,7 +126,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = MatDestroy(&Adense);CHKERRQ(ierr);
   if (!denseok) { ierr = MatDestroy(&OP);CHKERRQ(ierr); }
-  if (eps->isgeneralized) { ierr = MatDestroy(&Bdense);CHKERRQ(ierr); }
+  if (denseok && eps->isgeneralized) { ierr = MatDestroy(&Bdense);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
