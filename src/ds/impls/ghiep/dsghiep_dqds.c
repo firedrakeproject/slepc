@@ -508,7 +508,9 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   U1 = work+2*n;
   L1 = work+3*n;
   nwu = 4*n;
-  ierr = PetscMemzero(wi,n*sizeof(PetscScalar));
+  if (wi) { 
+    ierr = PetscMemzero(wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
   /* Normalization - the J form of C */
   for (i=0;i<n-1;i++) b[i] *= c[i]; /* subdiagonal of the J form */
 
@@ -527,7 +529,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   if (m==n) { /* Multiple eigenvalue, we have the one-point spectrum case */
     for (i=0;i<dim;i++) {
       wr[i] = shift;
-      wi[i] = 0.0;
+      if (wi) wi[i] = 0.0;
     }
     PetscFunctionReturn(0);
   }
@@ -590,8 +592,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             wr[--n] = sum+acShift; wi[n] = PetscSqrtReal(-disc);
             wr[--n] = sum+acShift; wi[n] = -PetscSqrtReal(-disc);
 #else
-            wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
-            wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
+            wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
+            wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
 #endif
           } else {  
             if (sum==0) {
@@ -738,8 +740,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         wr[--n] = sum+acShift; wi[n] = PetscSqrtReal(-disc);
         wr[--n] = sum+acShift; wi[n] = -PetscSqrtReal(-disc);
 #else
-        wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
-        wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; wi[n] = 0.0;
+        wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
+        wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
 #endif
       }else  { /* Real case */
         if (sum==0) {
@@ -787,10 +789,13 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i,off,ld,nwall,nwu;
-  PetscScalar    *A,*B,*Q;
+  PetscScalar    *A,*B,*Q,*vi;
   PetscReal      *d,*e,*s,*a,*b,*c;
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscValidPointer(wi,3);
+#endif
   ld = ds->ld;
   off = ds->l + ds->l*ld;
   A = ds->mat[DS_MAT_A];
@@ -803,15 +808,12 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Quick return if possible */
   if (ds->n-ds->l == 1) {
     *(Q+off) = 1;
-    if (ds->compact) {
-      wr[ds->l] = d[ds->l]/s[ds->l];
-      wi[ds->l] = 0.0;
-    } else {
+    if (!ds->compact) {
       d[ds->l] = PetscRealPart(A[off]);
       s[ds->l] = PetscRealPart(B[off]);
-      wr[ds->l] = d[ds->l]/s[ds->l];
-      wi[ds->l] = 0.0;  
     }
+    wr[ds->l] = d[ds->l]/s[ds->l];
+    if (wi) wi[ds->l] = 0.0;
     PetscFunctionReturn(0);
   }
   nwall = 12*ld+4;
@@ -840,13 +842,19 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
     a[ds->n-1] = PetscRealPart(A[ds->n-1+(ds->n-1)*ld]*B[ds->n-1+(ds->n-1)*ld]);
   }
-  ierr = DSGHIEP_Eigen3DQDS(ds->n-ds->l,a+ds->l,b+ds->l,c+ds->l,wr+ds->l,wi+ds->l,ds->rwork+nwu,nwall-nwu);
+  vi = (wi)?wi+ds->l:PETSC_NULL;
+  ierr = DSGHIEP_Eigen3DQDS(ds->n-ds->l,a+ds->l,b+ds->l,c+ds->l,wr+ds->l,vi,ds->rwork+nwu,nwall-nwu);
 
   /* Compute Eigenvectors with Inverse Iteration */
   ierr = DSGHIEPPseudoOrthogInverseIteration(ds,wr,wi);CHKERRQ(ierr);
   
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds, 0, ds->l, wr, wi);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  if (wi) {
+    for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
+  }
+#endif
   PetscFunctionReturn(0);
 }
 

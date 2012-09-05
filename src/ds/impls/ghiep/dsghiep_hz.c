@@ -311,8 +311,14 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscBLASInt   n1,ld;
   PetscScalar    *A,*B,*Q;
   PetscReal      *d,*e,*s;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       i;
+#endif
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscValidPointer(wi,3);
+#endif
   n1  = ds->n - ds->l;
   ld = PetscBLASIntCast(ds->ld);
   off = ds->l + ds->l*ld;
@@ -344,6 +350,11 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds, 0, ds->n, wr, wi);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  if (wi) {
+    for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
+  }
+#endif
   PetscFunctionReturn(0);
 }
 

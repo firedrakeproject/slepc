@@ -333,7 +333,9 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds, PetscInt n0, PetscInt n1, PetscScalar *
     if (e==0.0) { 
       /* real eigenvalue */
       wr[k] = (ds->compact)?T[k]/D[k]:A[k+k*ld]/B[k+k*ld];
+#if !defined(PETSC_USE_COMPLEX)
       wi[k] = 0.0 ;
+#endif
     } else {
       /* diagonal block */
       if (ds->compact) {
@@ -357,8 +359,10 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds, PetscInt n0, PetscInt n1, PetscScalar *
       if (wi1==0.0) { /* Real eigenvalues */
         if (scal2<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
         wr[k+1] = wr2/scal2;
+#if !defined(PETSC_USE_COMPLEX)
         wi[k] = 0.0;
         wi[k+1] = 0.0;
+#endif
       } else { /* Complex eigenvalues */
 #if !defined(PETSC_USE_COMPLEX)
         wr[k+1] = wr[k];
@@ -367,13 +371,16 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds, PetscInt n0, PetscInt n1, PetscScalar *
 #else
         wr[k] += PETSC_i*wi1/scal1;
         wr[k+1] = PetscConj(wr[k]);
-        wi[k] = 0.0;
-        wi[k+1] = 0.0;
 #endif
       }
       k++;
     }
   }
+#if defined(PETSC_USE_COMPLEX)
+  if (wi) {
+    for (k=n0;k<n1;k++) wi[k] = 0.0;
+  }
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -386,6 +393,9 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscReal      *d,*e,*s;
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscValidPointer(wi,3);
+#endif
   n = ds->n;
   d = ds->rmat[DS_MAT_T];
   e = d + ds->ld;
@@ -401,11 +411,13 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
     wr[i] = *(ds->work + perm[i]);
-  }
+  } 
+#if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMemcpy(ds->work,wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
     wi[i] = *(ds->work + perm[i]);
   }
+#endif
   ierr = PetscMemcpy(ds->rwork,s,n*sizeof(PetscReal));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
     s[i] = *(ds->rwork+perm[i]);
@@ -748,7 +760,7 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
   PetscInt       i,j,k,off;
   PetscBLASInt   ld,n1,one=1;
   PetscScalar    PQ[4],xx,yx,xy,yy,*y,h,oneS=1.0,zeroS=0.0,*X,*W,*B;
-  PetscReal      *ss,*s,*d,*e,d1,d2,toldeg=PETSC_SQRT_MACHINE_EPSILON*100;
+  PetscReal      *ss,*s,*d,*e,d1,d2,toldeg=PETSC_SQRT_MACHINE_EPSILON*100,vi,vj;
 
   PetscFunctionBegin;
   ld = PetscBLASIntCast(ds->ld);
@@ -785,13 +797,19 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
 
   for (i=ds->l;i<ds->n;i++) {
 #if defined(PETSC_USE_COMPLEX)
-    if (PetscImaginaryPart(wr[i])==0.0) { /* real */
+    vi = PetscImaginaryPart(wr[i]);
 #else
-    if (wi[i]==0.0) { /* real */
+    vi = PetscRealPart(wi[i]);
 #endif
+    if (vi==0.0) { /* real */
       for (j=ds->l;j<i;j++) {
+#if defined(PETSC_USE_COMPLEX)
+        vj = PetscImaginaryPart(wr[j]);
+#else
+        vj = PetscRealPart(wi[j]);
+#endif
          /* s-orthogonalization with close eigenvalues */
-        if (wi[j]==0.0) {
+        if (vj==0.0) {
           if ( PetscAbsScalar(wr[j]-wr[i])<toldeg) {
             ierr = IndefOrthog(s+ds->l, X+j*ld+ds->l, ss[j],X+i*ld+ds->l, PETSC_NULL,n1);CHKERRQ(ierr);
           }
@@ -800,15 +818,17 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
       ierr = IndefNorm(s+ds->l,X+i*ld+ds->l,&d1,n1);CHKERRQ(ierr);
       ss[i] = (d1<0.0)?-1:1;
       d[i] = PetscRealPart(wr[i]*ss[i]); e[i] = 0.0;
-    } else {
+    } else { /* complex value */
       for (j=ds->l;j<i;j++) {
         /* s-orthogonalization of Xi and Xi+1*/
 #if defined(PETSC_USE_COMPLEX)
-        if (PetscImaginaryPart(wr[j])!=0.0) {
+        vj = PetscImaginaryPart(wr[j]);
 #else
-        if (wi[j]!=0.0) {
+        vj = PetscRealPart(wi[j]);
 #endif
-          if (PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsScalar(PetscAbsScalar(wi[j])-PetscAbsScalar(wi[i]))<toldeg) {
+        if (vj!=0.0) {
+          //if (PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsScalar(PetscAbsScalar(wi[j])-PetscAbsScalar(wi[i]))<toldeg) {
+          if (PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsScalar(PetscAbsReal(vj)-PetscAbsReal(vi))<toldeg) {
             for (k=ds->l;k<ds->n;k++) y[k] = s[k]*X[k+i*ld];
             xx = BLASdot_(&n1,X+ds->l+j*ld,&one,y+ds->l,&one);
             yx = BLASdot_(&n1,X+ds->l+(j+1)*ld,&one,y+ds->l,&one);
@@ -841,9 +861,9 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
       ierr = IndefOrthog(s+ds->l, X+i*ld+ds->l, ss[i],X+(i+1)*ld+ds->l, &h,n1);CHKERRQ(ierr);
       ierr = IndefNorm(s+ds->l,X+(i+1)*ld+ds->l,&d2,n1);CHKERRQ(ierr);
       ss[i+1] = (d2<0)?-1:1;
-      d[i] = PetscRealPart((wr[i]-wi[i]*h/d1)*ss[i]);
-      d[i+1] = PetscRealPart((wr[i]+wi[i]*h/d1)*ss[i+1]);
-      e[i] = PetscRealPart(wi[i]*d2/d1*ss[i]); e[i+1] = 0.0;
+      d[i] = (PetscRealPart(wr[i])-vi*h/d1)*ss[i];
+      d[i+1] = (PetscRealPart(wr[i])+vi*h/d1)*ss[i+1];
+      e[i] = vi*d2/d1*ss[i]; e[i+1] = 0.0;
       i++;
     }
   }
@@ -1103,6 +1123,9 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *d,*e,*s;
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscValidPointer(wi,3);
+#endif
   one = 1;
   n1 = PetscBLASIntCast(ds->n - ds->l);
   ld = PetscBLASIntCast(ds->ld);
@@ -1120,15 +1143,12 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Quick return if possible */
   if (n1 == 1) {
     *(Q+off) = 1;
-    if (ds->compact) {
-      wr[ds->l] = d[ds->l]/s[ds->l];
-      wi[ds->l] = 0.0;
-    } else {
+    if (!ds->compact) {
       d[ds->l] = PetscRealPart(A[off]);
       s[ds->l] = PetscRealPart(B[off]);
-      wr[ds->l] = d[ds->l]/s[ds->l];
-      wi[ds->l] = 0.0;  
     }
+    wr[ds->l] = d[ds->l]/s[ds->l];
+    if (wi) wi[ds->l] = 0.0;
     PetscFunctionReturn(0);
   }
   /* Reduce to pseudotriadiagonal form */
@@ -1165,7 +1185,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,PETSC_NULL,&ld,work,&lwork,&info);
 #else
-  LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr,PETSC_NULL,&ld,work,&lwork,&info);
+  LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,PETSC_NULL,&ld,work,&lwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
 
@@ -1174,6 +1194,11 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds, 0, ds->l, wr, wi);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  if (wi) {
+    for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
+  }
+#endif
   PetscFunctionReturn(0);
 #endif
 }
@@ -1193,6 +1218,9 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *d,*e,*s;
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscValidPointer(wi,3);
+#endif
   n1 = PetscBLASIntCast(ds->n - ds->l);
   ld = PetscBLASIntCast(ds->ld);
   off = ds->l + ds->l*ld;
@@ -1215,15 +1243,12 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     Q[i+i*ld] = 1.0;
   /* quick return */
   if (n1 == 1) {
-    if (ds->compact) {
-      wr[ds->l] = d[ds->l]/s[ds->l];
-      wi[ds->l] = 0.0;
-    } else {
+    if (!ds->compact) {
       d[ds->l] = PetscRealPart(A[off]);
       s[ds->l] = PetscRealPart(B[off]);
-      wr[ds->l] = d[ds->l]/s[ds->l];
-      wi[ds->l] = 0.0;  
     }
+    wr[ds->l] = d[ds->l]/s[ds->l];
+    if (wi) wi[ds->l] = 0.0;
     PetscFunctionReturn(0);
   }
 
@@ -1266,7 +1291,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKhseqr_("S","V",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,Q+off,&ld,work,&lwork,&info);
 #else
-  LAPACKhseqr_("S","V",&n1,&one,&n1,H+off,&ld,wr,Q+off,&ld,work,&lwork,&info);
+  LAPACKhseqr_("S","V",&n1,&one,&n1,H+off,&ld,wr+ds->l,Q+off,&ld,work,&lwork,&info);
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
   
@@ -1286,6 +1311,11 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds, 0, ds->l, wr, wi);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  if (wi) {
+    for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
+  }
+#endif
   PetscFunctionReturn(0);
 #endif
 }
