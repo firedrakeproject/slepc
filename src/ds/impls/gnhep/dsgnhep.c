@@ -575,6 +575,8 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
     if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wi[i] /= beta[i];
+#else
+    if (wi) wi[i] = 0.0;
 #endif
   }
   PetscFunctionReturn(0);

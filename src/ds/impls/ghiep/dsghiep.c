@@ -827,7 +827,6 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
         vj = PetscRealPart(wi[j]);
 #endif
         if (vj!=0.0) {
-          //if (PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsScalar(PetscAbsScalar(wi[j])-PetscAbsScalar(wi[i]))<toldeg) {
           if (PetscAbsScalar(wr[j]-wr[i])<toldeg && PetscAbsScalar(PetscAbsReal(vj)-PetscAbsReal(vi))<toldeg) {
             for (k=ds->l;k<ds->n;k++) y[k] = s[k]*X[k+i*ld];
             xx = BLASdot_(&n1,X+ds->l+j*ld,&one,y+ds->l,&one);
