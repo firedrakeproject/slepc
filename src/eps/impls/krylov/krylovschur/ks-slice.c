@@ -120,7 +120,7 @@ static PetscErrorCode EPSExtractShift(EPS eps) {
           if (k>=sr->nS/2)break;
         }
       }
-      /* Copy to PS */
+      /* Copy to DS */
       ierr = DSGetArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
       ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));
       for (i=0;i<k;i++) {

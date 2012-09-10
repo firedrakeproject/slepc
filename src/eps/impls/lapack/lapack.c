@@ -62,14 +62,14 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     denseok = (ierra == 0 && ierrb == 0)? PETSC_TRUE: PETSC_FALSE;
   } else Adense = PETSC_NULL;
 
-  /* setup PS */
+  /* setup DS */
   if (denseok) {
     if (eps->isgeneralized) {
       if (eps->ishermitian) {
         if (eps->ispositive) {
           ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
         } else {
-          ierr = DSSetType(eps->ds,DSGHIEP);CHKERRQ(ierr);
+          ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr); /* TODO: should be DSGHIEP */
         }
       } else {
         ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
@@ -105,7 +105,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = SlepcMatConvertSeqDense(OP,&Adense);CHKERRQ(ierr);
   }
 
-  /* fill PS matrices */
+  /* fill DS matrices */
   ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,PETSC_NULL,&v);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
   for (i=0;i<ld;i++) {

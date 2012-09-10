@@ -266,7 +266,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   }
 
   /* truncate Schur decomposition and change the state to raw so that
-     PSVectors() computes eigenvectors from scratch */
+     DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(qep->ds,qep->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
