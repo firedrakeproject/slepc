@@ -15,9 +15,9 @@ quadratic eigenvalue problems
 
   You can also install `slepc-dev`_ with::
 
-    $ pip install slepc==dev petsc==dev
+    $ pip install petsc==dev slepc==dev
 
-  .. _petsc-dev: http://www.grycap.upv.es/slepc/
+  .. _slepc-dev: http://www.grycap.upv.es/slepc/
                  svn/trunk/#egg=slepc-dev
 """
 
@@ -73,7 +73,7 @@ def bootstrap():
         except KeyError: pass
     # Generate package __init__.py file
     from distutils.dir_util import mkpath
-    pkgdir = os.path.join('config', 'pypi')
+    pkgdir = os.path.join(SLEPC_DIR, 'pypi')
     pkgfile = os.path.join(pkgdir, '__init__.py')
     if not os.path.exists(pkgdir): mkpath(pkgdir)
     fh = open(pkgfile, 'wt')
@@ -197,12 +197,37 @@ class cmd_install(_install):
         finally:
             ctx.exit()
 
+manifest_in = """\
+include makefile
+recursive-include config *.py
+
+recursive-include bin/matlab *
+recursive-include conf *
+recursive-include include *
+recursive-include src *
+
+exclude conf/slepcvariables
+recursive-exclude src *.html 
+recursive-exclude src/docs *
+recursive-exclude src/*/examples/* *.*
+recursive-exclude pypi *
+"""
+
 class cmd_sdist(_sdist):
 
     def initialize_options(self):
         _sdist.initialize_options(self)
         self.force_manifest = 1
-        self.template = os.path.join('config', 'manifest.in')
+        self.template = os.path.join('pypi', 'manifest.in')
+        # Generate manifest.in file
+        SLEPC_DIR = os.environ['SLEPC_DIR']
+        from distutils.dir_util import mkpath
+        pkgdir = os.path.join(SLEPC_DIR, 'pypi')
+        if not os.path.exists(pkgdir): mkpath(pkgdir)
+        template = self.template
+        fh = open(template, 'wt')
+        fh.write(manifest_in)
+        fh.close()
 
 def version():
     import re
@@ -236,13 +261,13 @@ def tarball():
         return None
     bits = VERSION.split('.')
     if len(bits) == 2: bits.append('0')
-    VERSION = '.'.join(bits[:-1]) + '-p' + bits[-1]
-    return ('http://www.grycap.upv.es/slepc/download/distrib/' +
-            'slepc-%s.tar.gz' % VERSION)
+    SLEPC_VERSION = '.'.join(bits[:-1]) + '-p' + bits[-1]
+    return ('http://www.grycap.upv.es/slepc/download/distrib/'
+            'slepc-%s.tar.gz#egg=slepc-%s' % (SLEPC_VERSION, VERSION))
 
 description = __doc__.split('\n')[1:-1]; del description[1:3]
 classifiers = """
-License :: Public Domain
+License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
 Operating System :: POSIX
 Intended Audience :: Developers
 Intended Audience :: Science/Research
@@ -273,7 +298,7 @@ setup(name='slepc',
       maintainer_email='dalcinl@gmail.com',
 
       packages = ['slepc'],
-      package_dir = {'slepc': 'config/pypi'},
+      package_dir = {'slepc': 'pypi'},
       cmdclass={
         'build': cmd_build,
         'install': cmd_install,
