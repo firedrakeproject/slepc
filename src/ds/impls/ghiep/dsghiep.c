@@ -860,8 +860,8 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
       ierr = IndefOrthog(s+ds->l, X+i*ld+ds->l, ss[i],X+(i+1)*ld+ds->l, &h,n1);CHKERRQ(ierr);
       ierr = IndefNorm(s+ds->l,X+(i+1)*ld+ds->l,&d2,n1);CHKERRQ(ierr);
       ss[i+1] = (d2<0)?-1:1;
-      d[i] = (PetscRealPart(wr[i])-vi*h/d1)*ss[i];
-      d[i+1] = (PetscRealPart(wr[i])+vi*h/d1)*ss[i+1];
+      d[i] = (PetscRealPart(wr[i]-vi*h/d1))*ss[i];
+      d[i+1] = (PetscRealPart(wr[i]+vi*h/d1))*ss[i+1];
       e[i] = vi*d2/d1*ss[i]; e[i+1] = 0.0;
       i++;
     }
