@@ -206,12 +206,11 @@ PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
 */
 PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
 {
-  Mat            A,B;
+  Mat            A;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = STGetOperators(st,&A,&B);CHKERRQ(ierr);
-  if (B) { ierr = PetscInfo(B,"This transformation is not intended for generalized problems, ignoring matrix B");CHKERRQ(ierr); }
+  ierr = STGetOperators(st,0,&A);CHKERRQ(ierr);
   ierr = KSPSetOperators(shell->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);

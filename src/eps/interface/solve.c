@@ -66,7 +66,7 @@ PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
 PetscErrorCode EPSSolve(EPS eps) 
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,nmat;
   PetscReal      re,im;
   PetscScalar    dot;
   PetscBool      flg,isfold,iscayley,viewed=PETSC_FALSE;
@@ -83,13 +83,17 @@ PetscErrorCode EPSSolve(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
 
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
-    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = MatView(A,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
-    if (B) ierr = MatView(B,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
+    if (nmat>1) {
+      ierr = MatView(B,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
+    }
   }
 
   ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",view,10,&flg);CHKERRQ(ierr);
@@ -153,7 +157,6 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
-    ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
     ierr = KSPCreate(((PetscObject)eps)->comm,&ksp);CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
@@ -187,7 +190,6 @@ PetscErrorCode EPSSolve(EPS eps)
   /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STFOLD,&isfold);CHKERRQ(ierr);
   if (isfold) {
-    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
     ierr = MatGetVecs(A,&w,PETSC_NULL);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
@@ -206,7 +208,6 @@ PetscErrorCode EPSSolve(EPS eps)
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
-    ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
     ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
@@ -829,6 +830,7 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps,PetscInt i,PetscReal *errest)
 PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
 {
   PetscErrorCode ierr;
+  PetscInt       nmat;
   Vec            u,w;
   Mat            A,B;
 #if !defined(PETSC_USE_COMPLEX)
@@ -837,7 +839,9 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
 #endif
   
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
   ierr = VecDuplicate(eps->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   
@@ -957,6 +961,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps,PetscInt i,PetscReal *norm)
   PetscErrorCode ierr;
   Vec            u,v,w,xr,xi;
   Mat            A,B;
+  PetscInt       nmat;
   PetscScalar    kr,ki;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ni,nr;
@@ -967,7 +972,9 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps,PetscInt i,PetscReal *norm)
   PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidPointer(norm,3);
   if (!eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetLeftVectorsWanted"); 
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
   ierr = VecDuplicate(eps->W[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&v);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->W[0],&w);CHKERRQ(ierr);

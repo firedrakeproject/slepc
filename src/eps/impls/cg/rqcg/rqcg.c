@@ -53,7 +53,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      precond;
-  Mat            B;
+  PetscInt       nmat;
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
 
   PetscFunctionBegin;
@@ -87,8 +87,8 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->AV);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRQ(ierr);
-  if (B) {
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  if (nmat>1) {
     ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->BV);CHKERRQ(ierr);
   }
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->P);CHKERRQ(ierr);
@@ -109,7 +109,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
-  PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv,kini;
+  PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv,kini,nmat;
   PetscScalar    *C,*Y,*gamma,g,pap,pbp,pbx,pax,nu,mu,alpha,beta;
   PetscReal      resnorm,norm,a,b,c,disc,t;
   PetscBool      reset,breakdown;
@@ -118,7 +118,9 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
   ierr = PetscMalloc(eps->mpd*sizeof(PetscScalar),&gamma);CHKERRQ(ierr);
 
   kini = eps->nini;

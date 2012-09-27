@@ -27,7 +27,6 @@
 #define stgettype_                STGETTYPE
 #define stcreate_                 STCREATE
 #define stdestroy_                STDESTROY
-#define stgetoperators_           STGETOPERATORS
 #define stsetoptionsprefix_       STSETOPTIONSPREFIX
 #define stappendoptionsprefix_    STAPPENDOPTIONSPREFIX
 #define stgetoptionsprefix_       STGETOPTIONSPREFIX
@@ -38,7 +37,6 @@
 #define stgettype_                stgettype
 #define stcreate_                 stcreate
 #define stdestroy_                stdestroy
-#define stgetoperators_           stgetoperators
 #define stsetoptionsprefix_       stsetoptionsprefix
 #define stappendoptionsprefix_    stappendoptionsprefix
 #define stgetoptionsprefix_       stgetoptionsprefix
@@ -74,13 +72,6 @@ void PETSC_STDCALL stcreate_(MPI_Fint *comm,ST *newst,PetscErrorCode *ierr)
 void PETSC_STDCALL stdestroy_(ST *st, PetscErrorCode *ierr)
 {
   *ierr = STDestroy(st);
-}
-
-void PETSC_STDCALL stgetoperators_(ST *st,Mat *mat,Mat *pmat,PetscErrorCode *ierr)
-{
-  if (FORTRANNULLOBJECT(mat))   mat = PETSC_NULL;
-  if (FORTRANNULLOBJECT(pmat))  pmat = PETSC_NULL;
-  *ierr = STGetOperators(*st,mat,pmat);
 }
 
 void PETSC_STDCALL stsetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),

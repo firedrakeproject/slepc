@@ -49,7 +49,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
   Mat            A,B; 
-  PetscInt       i,k;
+  PetscInt       i,k,nmat;
   PetscBool      flg,lindep;
   Vec            *newDS;
   PetscReal      norm;
@@ -82,8 +82,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   
   /* Set problem dimensions */
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
-  if (!A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  if (nmat==0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
   ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&eps->nloc,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
@@ -91,16 +92,16 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Set default problem type */
   if (!eps->problem_type) {
-    if (B==PETSC_NULL) {
+    if (nmat==1) {
       ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
     } else {
       ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
     }
-  } else if (!B && eps->isgeneralized) {
+  } else if (nmat==1 && eps->isgeneralized) {
     ierr = PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n");CHKERRQ(ierr);
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
-  } else if (B && !eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
+  } else if (nmat>1 && !eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
 #if defined(PETSC_USE_COMPLEX)
   ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
   if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
@@ -126,6 +127,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     else eps->nrma = 1.0;
   }
   if (eps->nrmb == PETSC_DETERMINE) {
+    if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
     ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
     if (flg) { ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr); }
     else eps->nrmb = 1.0;
@@ -309,7 +311,8 @@ PetscErrorCode EPSSetUp(EPS eps)
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n,m0;
+  PetscInt       m,n,m0,nmat;
+  Mat            mat[2];
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -329,7 +332,12 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
   if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
-  ierr = STSetOperators(eps->OP,A,B);CHKERRQ(ierr);
+  mat[0] = A;
+  if (B) {
+    mat[1] = B;
+    nmat = 2;
+  } else nmat = 1;
+  ierr = STSetOperators(eps->OP,nmat,mat);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -361,7 +369,8 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
   if (A) PetscValidPointer(A,2);
   if (B) PetscValidPointer(B,3);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STGetOperators(st,A,B);CHKERRQ(ierr);
+  if (A) { ierr = STGetOperators(st,0,A);CHKERRQ(ierr); }
+  if (B) { ierr = STGetOperators(st,0,B);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

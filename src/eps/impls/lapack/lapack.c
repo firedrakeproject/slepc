@@ -33,7 +33,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscBool      isshift,denseok=PETSC_FALSE;
   Mat            A,B,OP,Adense,Bdense;
   PetscScalar    shift,*Ap,*Bp;
-  PetscInt       i,ld;
+  PetscInt       i,ld,nmat;
   KSP            ksp;
   PC             pc;
   Vec            v;
@@ -50,7 +50,9 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   /* attempt to get dense representations of A and B separately */
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
   if (isshift) {
-    ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+    ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+    ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+    if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
     PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
     ierra = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
     if (eps->isgeneralized) {

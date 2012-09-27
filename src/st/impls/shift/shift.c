@@ -31,14 +31,14 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->B) {
+  if (st->nmat>1) {
     /* generalized eigenproblem: y = (B^-1 A + sI) x */
-    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A + sI) x */
-    ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
   }
   if (st->sigma != 0.0) {
     ierr = VecAXPY(y,st->sigma,x);CHKERRQ(ierr);
@@ -53,14 +53,14 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->B) {
+  if (st->nmat>1) {
     /* generalized eigenproblem: y = (A^T B^-T + sI) x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[0],st->w,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A^T + sI) x */
-    ierr = MatMultTranspose(st->A,x,y);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
   }
   if (st->sigma != 0.0) {
     ierr = VecAXPY(y,st->sigma,x);CHKERRQ(ierr);
@@ -88,9 +88,9 @@ PetscErrorCode STSetUp_Shift(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->B) {
+  if (st->nmat>1) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A[1],st->A[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   } 
   PetscFunctionReturn(0);

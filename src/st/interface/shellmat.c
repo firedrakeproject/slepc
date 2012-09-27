@@ -35,10 +35,10 @@ static PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
+  ierr = MatMult(ctx->A[0],x,y);CHKERRQ(ierr);
   if (ctx->sigma != 0.0) { 
-    if (ctx->B) {  /* y = (A - sB) x */
-      ierr = MatMult(ctx->B,x,ctx->w);CHKERRQ(ierr);
+    if (ctx->nmat>1) {  /* y = (A - sB) x */
+      ierr = MatMult(ctx->A[1],x,ctx->w);CHKERRQ(ierr);
       ierr = VecAXPY(y,-ctx->sigma,ctx->w);CHKERRQ(ierr); 
     } else {    /* y = (A - sI) x */
       ierr = VecAXPY(y,-ctx->sigma,x);CHKERRQ(ierr);
@@ -56,10 +56,10 @@ static PetscErrorCode STMatShellMultTranspose(Mat A,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatMultTranspose(ctx->A,x,y);CHKERRQ(ierr);
+  ierr = MatMultTranspose(ctx->A[0],x,y);CHKERRQ(ierr);
   if (ctx->sigma != 0.0) { 
-    if (ctx->B) {  /* y = (A - sB) x */
-      ierr = MatMultTranspose(ctx->B,x,ctx->w);CHKERRQ(ierr);
+    if (ctx->nmat>1) {  /* y = (A - sB) x */
+      ierr = MatMultTranspose(ctx->A[1],x,ctx->w);CHKERRQ(ierr);
       ierr = VecAXPY(y,-ctx->sigma,ctx->w);CHKERRQ(ierr); 
     } else {    /* y = (A - sI) x */
       ierr = VecAXPY(y,-ctx->sigma,x);CHKERRQ(ierr);
@@ -78,11 +78,11 @@ static PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->A,diag);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->A[0],diag);CHKERRQ(ierr);
   if (ctx->sigma != 0.0) { 
-    if (ctx->B) {
+    if (ctx->nmat>1) {
       ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
-      ierr = MatGetDiagonal(ctx->B,diagb);CHKERRQ(ierr);
+      ierr = MatGetDiagonal(ctx->A[1],diagb);CHKERRQ(ierr);
       ierr = VecAXPY(diag,-ctx->sigma,diagb);CHKERRQ(ierr);
       ierr = VecDestroy(&diagb);CHKERRQ(ierr);
     } else {
@@ -101,15 +101,16 @@ PetscErrorCode STMatShellCreate(ST st,Mat *mat)
   PetscBool      hasA,hasB;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(st->A,&M,&N);CHKERRQ(ierr);  
-  ierr = MatGetLocalSize(st->A,&m,&n);CHKERRQ(ierr);  
+  if (st->nmat>2) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Not implemented for polynomial problems");
+  ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);  
+  ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);  
   ierr = MatCreateShell(((PetscObject)st)->comm,m,n,M,N,(void*)st,mat);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))STMatShellMult);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))STMatShellMultTranspose);CHKERRQ(ierr);
 
-  ierr = MatHasOperation(st->A,MATOP_GET_DIAGONAL,&hasA);CHKERRQ(ierr);
-  if (st->B) { ierr = MatHasOperation(st->B,MATOP_GET_DIAGONAL,&hasB);CHKERRQ(ierr); }
-  if ((hasA && !st->B) || (hasA && hasB)) {
+  ierr = MatHasOperation(st->A[0],MATOP_GET_DIAGONAL,&hasA);CHKERRQ(ierr);
+  if (st->nmat>1) { ierr = MatHasOperation(st->A[1],MATOP_GET_DIAGONAL,&hasB);CHKERRQ(ierr); }
+  if ((hasA && st->nmat==1) || (hasA && hasB)) {
     ierr = MatShellSetOperation(*mat,MATOP_GET_DIAGONAL,(void(*)(void))STMatShellGetDiagonal);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

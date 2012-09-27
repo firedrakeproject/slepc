@@ -120,8 +120,7 @@ PetscErrorCode STReset(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
-  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(st->nmat,&st->A);CHKERRQ(ierr);
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
@@ -190,7 +189,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   *newst = 0;
   ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,-1,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
   st->A                   = 0;
-  st->B                   = 0;
+  st->nmat                = 0;
   st->sigma               = 0.0;
   st->sigma_set           = PETSC_FALSE;
   st->defsigma            = 0.0;
@@ -215,63 +214,91 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 
    Input Parameters:
 +  st - the spectral transformation context
-.  A  - the matrix associated with the eigensystem
--  B  - the second matrix in the case of generalized eigenproblems
+.  n  - number of matrices in array A
+-  A  - the array of matrices associated with the eigensystem
 
    Notes:
-   To specify a standard eigenproblem, use PETSC_NULL for B.
-
-   It must be called after STSetUp(). If it is called again after STSetUp() then
+   It must be called before STSetUp(). If it is called again after STSetUp() then
    the ST object is reset.
 
    Level: intermediate
 
 .seealso: STGetOperators(), STSetUp(), STReset()
  @*/
-PetscErrorCode STSetOperators(ST st,Mat A,Mat B)
+PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
 {
+  PetscInt       i;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
-  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
-  PetscCheckSameComm(st,1,A,2);
-  if (B) PetscCheckSameComm(st,1,B,3);
+  PetscValidLogicalCollectiveInt(st,n,2);
+  if (n <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",n);
+  PetscValidPointer(A,3);
+  PetscCheckSameComm(st,1,*A,3);
   if (st->setupcalled) { ierr = STReset(st);CHKERRQ(ierr); }
-  ierr = MatDestroy(&st->A);CHKERRQ(ierr);
-  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  st->A = A;
-  ierr = MatDestroy(&st->B);CHKERRQ(ierr);
-  if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
-  st->B = B;
+  ierr = MatDestroyMatrices(st->nmat,&st->A);CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(Mat),&st->A);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
+    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
+    st->A[i] = A[i];
+  }
+  st->nmat = n;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__  
 #define __FUNCT__ "STGetOperators"
-/*@C
-   STGetOperators - Gets the matrices associated with the eigensystem.
+/*@
+   STGetOperators - Gets the matrices associated with the original eigensystem.
 
    Not collective, though parallel Mats are returned if the ST is parallel
 
    Input Parameter:
-.  st - the spectral transformation context
++  st - the spectral transformation context
+-  k  - the index of the requested matrix (starting in 0)
 
    Output Parameters:
-.  A - the matrix associated with the eigensystem
--  B - the second matrix in the case of generalized eigenproblems
+.  A - the requested matrix
 
    Level: intermediate
 
 .seealso: STSetOperators()
 @*/
-PetscErrorCode STGetOperators(ST st,Mat *A,Mat *B)
+PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *mat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (A) *A = st->A;
-  if (B) *B = st->B;
+  PetscValidPointer(mat,3);
+  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  *mat = st->A[k];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STGetNumMatrices"
+/*@
+   STGetNumMatrices - Returns the number of matrices stored in the ST.
+
+   Not collective
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameters:
+.  n - the number of matrices passed in STSetOperators()
+
+   Level: intermediate
+
+.seealso: STSetOperators()
+@*/
+PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(n,2);
+  *n = st->nmat;
   PetscFunctionReturn(0);
 }
 
@@ -578,6 +605,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 #else
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %G+%G i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
 #endif
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of matrices: %D\n",st->nmat);CHKERRQ(ierr);
     switch (st->shift_matrix) {
     case ST_MATMODE_COPY:
       break;
@@ -588,14 +616,14 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
       break;
     }
-    if (st->B && st->shift_matrix != ST_MATMODE_SHELL) { 
+    if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) { 
       switch (st->str) {
         case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
         case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
         default: SETERRQ(((PetscObject)st)->comm,1,"Wrong structure flag");
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  matrices A and B have %s\n",str);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",str);CHKERRQ(ierr);
     }
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
@@ -603,7 +631,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     if (st->ops->view) {ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);}
   } else SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD,"");CHKERRQ(ierr);
-  if (st->B || !flg) {
+  if (st->nmat>1 || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     /* Trick for PCView when an unused PC is showed */
     ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);

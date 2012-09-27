@@ -43,13 +43,13 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectGetType((PetscObject)pc,&pctype);CHKERRQ(ierr);
   ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
-  if (!pctype && st->A) {
+  if (!pctype && st->A[0]) {
     if (P || st->shift_matrix == ST_MATMODE_SHELL) {
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {
-      ierr = MatHasOperation(st->A,MATOP_DUPLICATE,&t0);CHKERRQ(ierr);
-      if (st->B) {
-        ierr = MatHasOperation(st->A,MATOP_AXPY,&t1);CHKERRQ(ierr);
+      ierr = MatHasOperation(st->A[0],MATOP_DUPLICATE,&t0);CHKERRQ(ierr);
+      if (st->nmat>1) {
+        ierr = MatHasOperation(st->A[0],MATOP_AXPY,&t1);CHKERRQ(ierr);
       } else {
         t1 = PETSC_TRUE;
       }
@@ -91,22 +91,22 @@ PetscErrorCode STSetUp_Precond(ST st)
   } else {
     builtP = PETSC_TRUE;
 
-    if (!(PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) && st->B) {
-      P = st->B;
+    if (!(PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) && st->nmat>1) {
+      P = st->A[1];
       destroyP = PETSC_FALSE;
     } else if (st->sigma == 0.0) {
-      P = st->A;
+      P = st->A[0];
       destroyP = PETSC_FALSE;
     } else if (PetscAbsScalar(st->sigma) < PETSC_MAX_REAL && st->shift_matrix != ST_MATMODE_SHELL) {
       if (st->shift_matrix == ST_MATMODE_INPLACE) {
-        P = st->A;
+        P = st->A[0];
         destroyP = PETSC_FALSE;
       } else {
-        ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&P);CHKERRQ(ierr);
+        ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&P);CHKERRQ(ierr);
         destroyP = PETSC_TRUE;
       } 
-      if (st->B) {
-        ierr = MatAXPY(P,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
+      if (st->nmat>1) {
+        ierr = MatAXPY(P,-st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
       } else {
         ierr = MatShift(P,-st->sigma);CHKERRQ(ierr); 
       }
@@ -134,10 +134,10 @@ PetscErrorCode STSetUp_Precond(ST st)
     ierr = MatDestroy(&P);CHKERRQ(ierr);
   } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP) {
     if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) {
-      if (st->B) {
-        ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr); 
+      if (st->nmat>1) {
+        ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
       } else { 
-        ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr); 
+        ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr); 
       }
     }
   }

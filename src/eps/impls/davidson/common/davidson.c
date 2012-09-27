@@ -97,7 +97,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr;
+  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive,dynamic;
@@ -159,7 +159,9 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     ((PetscObject)eps)->type_name);
 
   /* Setup problem specification in dvd */
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
   ierr = EPSReset_Davidson(eps);CHKERRQ(ierr);
   ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
   dvd->A = A; dvd->B = eps->isgeneralized? B : PETSC_NULL;

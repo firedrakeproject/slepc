@@ -47,7 +47,8 @@ struct _STOps {
 struct _p_ST {
   PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
-  Mat          A,B;              /* Matrices which define the eigensystem */
+  Mat          *A;               /* Matrices which define the eigensystem */
+  PetscInt     nmat;             /* Number of matrices */
   PetscScalar  sigma;            /* Value of the shift */
   PetscBool    sigma_set;        /* whether the user provided the shift or not */
   PetscScalar  defsigma;         /* Default value of the shift */

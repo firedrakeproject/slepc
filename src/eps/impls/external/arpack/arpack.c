@@ -134,7 +134,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
   ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
 
   if (isSinv) { 
     /* shift-and-invert mode */

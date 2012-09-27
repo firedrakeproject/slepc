@@ -97,6 +97,7 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(B,2);
+  if (!st->A) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
   ierr = (*st->ops->getbilinearform)(st,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -108,8 +109,9 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  *B = st->B;
-  if (*B) {
+  if (st->nmat==1) *B = PETSC_NULL;
+  else {
+    *B = st->A[1];
     ierr =  PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -200,9 +202,10 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
+  if (!st->A) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
   ierr = MPI_Comm_size(((PetscObject)st)->comm,&size);CHKERRQ(ierr);
 
-  ierr = MatGetVecs(st->A,&in,&out);CHKERRQ(ierr);
+  ierr = MatGetVecs(st->A[0],&in,&out);CHKERRQ(ierr);
   ierr = VecGetSize(out,&M);CHKERRQ(ierr);
   ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
   ierr = VecSetOption(in,VEC_IGNORE_OFF_PROC_ENTRIES,PETSC_TRUE);CHKERRQ(ierr);
@@ -261,7 +264,7 @@ PetscErrorCode STSetUp(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!st->A) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrix must be set first");
+  if (!st->A) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscInfo(st,"Setting up new ST\n");CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
@@ -269,9 +272,9 @@ PetscErrorCode STSetUp(ST st)
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
-  ierr = MatGetVecs(st->A,&st->w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(st->A[0],&st->w,PETSC_NULL);CHKERRQ(ierr);
   if (st->D) {
-    ierr = MatGetLocalSize(st->A,PETSC_NULL,&n);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(st->A[0],PETSC_NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
     if (n != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %D (should be %D)",k,n);
     ierr = VecDestroy(&st->wb);CHKERRQ(ierr);

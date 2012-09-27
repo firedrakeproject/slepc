@@ -36,25 +36,25 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
   ST_FOLD        *ctx = (ST_FOLD*)st->data;
 
   PetscFunctionBegin;
-  if (st->B) {
+  if (st->nmat>1) {
     /* generalized eigenproblem: y = (B^-1 A + sI)^2 x */
-    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,ctx->w2);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(ctx->w2,-st->sigma,x);CHKERRQ(ierr);
     }
-    ierr = MatMult(st->A,ctx->w2,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],ctx->w2,st->w);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(y,-st->sigma,ctx->w2);CHKERRQ(ierr);
     }
   } else {
     /* standard eigenproblem: y = (A + sI)^2 x */
-    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(st->w,-st->sigma,x);CHKERRQ(ierr);
     }
-    ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],st->w,y);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(y,-st->sigma,st->w);CHKERRQ(ierr);
     }
@@ -70,25 +70,25 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
   ST_FOLD        *ctx = (ST_FOLD*)st->data;
 
   PetscFunctionBegin;
-  if (st->B) {
+  if (st->nmat>1) {
     /* generalized eigenproblem: y = (A^T B^-T + sI)^2 x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMult(st->A,st->w,ctx->w2);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],st->w,ctx->w2);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(ctx->w2,-st->sigma,x);CHKERRQ(ierr);
     }
     ierr = STAssociatedKSPSolveTranspose(st,ctx->w2,st->w);CHKERRQ(ierr);
-    ierr = MatMult(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],st->w,y);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(y,-st->sigma,ctx->w2);CHKERRQ(ierr);
     }
   } else {
     /* standard eigenproblem: y = (A^T + sI)^2 x */
-    ierr = MatMultTranspose(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[0],x,st->w);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(st->w,-st->sigma,x);CHKERRQ(ierr);
     }
-    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[0],st->w,y);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
       ierr = VecAXPY(y,-st->sigma,st->w);CHKERRQ(ierr);
     }
@@ -136,12 +136,12 @@ PetscErrorCode STSetUp_Fold(ST st)
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
-  if (st->B) {
+  if (st->nmat>1) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->B,st->B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A[1],st->A[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatGetVecs(st->B,&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = MatGetVecs(st->A[1],&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
   } 
   PetscFunctionReturn(0);
 }

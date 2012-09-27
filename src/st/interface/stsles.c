@@ -109,24 +109,22 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
 #if defined(PETSC_USE_COMPLEX)
   PetscErrorCode ierr;
   PetscBool      set,aherm,bherm,mherm;
+  PetscInt       i; 
 #endif
 
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)
-  ierr = MatIsHermitianKnown(st->A,&set,&aherm);CHKERRQ(ierr);
-  if (!set) aherm = PETSC_FALSE;
-  mherm = aherm;
-  if (st->B) {
-    ierr = MatIsHermitianKnown(st->B,&set,&bherm);CHKERRQ(ierr);
-    if (!set) bherm = PETSC_FALSE;
-    mherm = (mherm && bherm)? PETSC_TRUE: PETSC_FALSE;
+  mherm = PETSC_FALSE;
+  for (i=0;i<st->nmat;i++) {
+    ierr = MatIsHermitianKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
+    if (!set) aherm = PETSC_FALSE;
+    mherm = (mherm && aherm)? PETSC_TRUE: PETSC_FALSE;
   }
   mherm = (mherm && PetscImaginaryPart(st->sigma)==0.0)? PETSC_TRUE: PETSC_FALSE;
   ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetKSP"

@@ -74,13 +74,16 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   Mat            A,B;
   PetscScalar    sigma;
+  PetscInt       nmat;
  
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->OP,&A,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetOperators(eps->OP,0,&A);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   ierr = STGetShift(eps->OP,&sigma);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   if (sigma != 0.0) {
-    if (B) { ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
+    if (nmat>1) { ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
     else { ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
     ierr = VecAXPY((Vec)y,-sigma,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   }
@@ -108,7 +111,7 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   Mat            B;
   
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->OP,PETSC_NULL,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetOperators(eps->OP,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   PetscFunctionReturnVoid();
 }

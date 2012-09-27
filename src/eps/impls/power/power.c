@@ -114,7 +114,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
   /* prepare for selective orthogonalization of converged vectors */
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT && eps->nev>1) {
-    ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+    ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
     ierr = MatHasOperation(A,MATOP_NORM,&hasnorm);CHKERRQ(ierr);
     if (hasnorm) {
       ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
@@ -173,7 +173,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           beta1 = norm;
     
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
-          ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+          ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
           ierr = MatMult(A,v,e);CHKERRQ(ierr);
           ierr = VecDot(v,e,&alpha2);CHKERRQ(ierr);
           alpha2 = alpha2 / (beta1 * beta1);
@@ -320,7 +320,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
           beta1 = norm;
     
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
-          ierr = STGetOperators(eps->OP,&A,PETSC_NULL);CHKERRQ(ierr);
+          ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
           ierr = MatMult(A,v,e);CHKERRQ(ierr);
           ierr = VecDot(v,e,&alpha2);CHKERRQ(ierr);
           alpha2 = alpha2 / (beta1 * beta1);

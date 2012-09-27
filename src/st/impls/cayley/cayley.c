@@ -40,16 +40,16 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
-  if (st->B) {
+  if (st->nmat>1) {
     /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
-    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
-    ierr = MatMult(st->B,x,ctx->w2);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A[1],x,ctx->w2);CHKERRQ(ierr);
     ierr = VecAXPY(st->w,nu,ctx->w2);CHKERRQ(ierr);    
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
   else {
     /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
-    ierr = MatMult(st->A,x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
     ierr = VecAXPY(st->w,nu,x);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   }
@@ -67,17 +67,17 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
-  if (st->B) {
+  if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->B,st->w,ctx->w2);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[0],st->w,y);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[1],st->w,ctx->w2);CHKERRQ(ierr);
     ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A,st->w,y);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[0],st->w,y);CHKERRQ(ierr);
     ierr = VecAXPY(y,nu,st->w);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -99,15 +99,15 @@ PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
   
   if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
-  if (st->B) {
+  if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + tB)x */
-    ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
-    ierr = MatMult(st->B,x,ctx->w2);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
+    ierr = MatMult(st->A[1],x,ctx->w2);CHKERRQ(ierr);
     ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);    
   }
   else {
     /* standard eigenproblem: y = (A + tI)x */
-    ierr = MatMult(st->A,x,y);CHKERRQ(ierr);
+    ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
     ierr = VecAXPY(y,nu,x);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -121,7 +121,7 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
   PetscInt       n,m;
 
   PetscFunctionBegin;
-  ierr = MatGetLocalSize(st->B,&n,&m);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(st->A[1],&n,&m);CHKERRQ(ierr);
   ierr = MatCreateShell(((PetscObject)st)->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,B);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -167,10 +167,10 @@ PetscErrorCode STPostSolve_Cayley(ST st)
 
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) {
-    if (st->B) {
-      ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
+    if (st->nmat>1) {
+      ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
     } else {
-      ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);
+      ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
     st->setupcalled = 0;
   }
@@ -198,15 +198,15 @@ PetscErrorCode STSetUp_Cayley(ST st)
   case ST_MATMODE_INPLACE:
     st->mat = PETSC_NULL;
     if (st->sigma != 0.0) {
-      if (st->B) { 
-        ierr = MatAXPY(st->A,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
+      if (st->nmat>1) { 
+        ierr = MatAXPY(st->A[0],-st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
       } else { 
-        ierr = MatShift(st->A,-st->sigma);CHKERRQ(ierr); 
+        ierr = MatShift(st->A[0],-st->sigma);CHKERRQ(ierr); 
       }
     }
-    /* TODO: should keep the Hermitian flag of st->A and restore at the end */
-    ierr = STMatSetHermitian(st,st->A);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->A,st->A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    /* TODO: should keep the Hermitian flag of st->A[0] and restore at the end */
+    ierr = STMatSetHermitian(st,st->A[0]);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A[0],st->A[0],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
     ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
@@ -214,10 +214,10 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
-    ierr = MatDuplicate(st->A,MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
+    ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
-      if (st->B) { 
-        ierr = MatAXPY(st->mat,-st->sigma,st->B,st->str);CHKERRQ(ierr); 
+      if (st->nmat>1) { 
+        ierr = MatAXPY(st->mat,-st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
       } else { 
         ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
       }
@@ -225,9 +225,9 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   }
-  if (st->B) { 
+  if (st->nmat>1) { 
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatGetVecs(st->B,&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = MatGetVecs(st->A[1],&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
   }
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -249,7 +249,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   if (!st->setupcalled) PetscFunctionReturn(0);
 
   /* Check if the new KSP matrix has the same zero structure */
-  if (st->B && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) {
+  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) {
     flg = DIFFERENT_NONZERO_PATTERN;
   } else {
     flg = SAME_NONZERO_PATTERN;
@@ -259,31 +259,31 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   case ST_MATMODE_INPLACE:
     /* Undo previous operations */
     if (st->sigma != 0.0) {
-      if (st->B) {
-        ierr = MatAXPY(st->A,st->sigma,st->B,st->str);CHKERRQ(ierr);
+      if (st->nmat>1) {
+        ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
       } else {
-        ierr = MatShift(st->A,st->sigma);CHKERRQ(ierr);
+        ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
       }
     }
     /* Apply new shift */
     if (newshift != 0.0) {
-      if (st->B) {
-        ierr = MatAXPY(st->A,-newshift,st->B,st->str);CHKERRQ(ierr);
+      if (st->nmat>1) {
+        ierr = MatAXPY(st->A[0],-newshift,st->A[1],st->str);CHKERRQ(ierr);
       } else {
-        ierr = MatShift(st->A,-newshift);CHKERRQ(ierr);
+        ierr = MatShift(st->A[0],-newshift);CHKERRQ(ierr);
       }
     }
-    ierr = STMatSetHermitian(st,st->A);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->A,st->A,flg);CHKERRQ(ierr);
+    ierr = STMatSetHermitian(st,st->A[0]);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->A[0],st->A[0],flg);CHKERRQ(ierr);
     break;
   case ST_MATMODE_SHELL:
     ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     break;
   default:
-    ierr = MatCopy(st->A,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatCopy(st->A[0],st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     if (newshift != 0.0) {   
-      if (st->B) { ierr = MatAXPY(st->mat,-newshift,st->B,st->str);CHKERRQ(ierr); }
+      if (st->nmat>1) { ierr = MatAXPY(st->mat,-newshift,st->A[1],st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
     }
     ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);

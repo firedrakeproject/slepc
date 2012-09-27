@@ -84,7 +84,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   
   /* Check some constraints and set some default values */ 
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
-  ierr = STGetOperators(eps->OP,&ops->A,PETSC_NULL);
+  ierr = STGetOperators(eps->OP,0,&ops->A);
   if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
