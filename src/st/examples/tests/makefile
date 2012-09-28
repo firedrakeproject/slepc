@@ -61,7 +61,7 @@ runtest1_1:
 	-@test=test1_1; \
 	for eps in ${EPS}; do \
 	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_matmode inplace -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
+	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
 	done > $${test}.tmp; \
 	${TESTCODE}
 

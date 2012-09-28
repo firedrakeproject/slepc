@@ -84,14 +84,13 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
-
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) {
+    ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
     ierr = MatView(A,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
     if (nmat>1) {
+      ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr);
       ierr = MatView(B,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
     }
   }
@@ -157,6 +156,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
+    ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr);
     ierr = KSPCreate(((PetscObject)eps)->comm,&ksp);CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
@@ -190,6 +190,8 @@ PetscErrorCode EPSSolve(EPS eps)
   /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STFOLD,&isfold);CHKERRQ(ierr);
   if (isfold) {
+    ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+    if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
     ierr = MatGetVecs(A,&w,PETSC_NULL);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
@@ -208,6 +210,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
+    ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr);
     ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {

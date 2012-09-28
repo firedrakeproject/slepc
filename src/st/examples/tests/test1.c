@@ -23,10 +23,28 @@ static char help[] = "Test ST with shell matrices as problem matrices.\n\n";
 
 #include <slepceps.h>
 
-static PetscErrorCode MatShift_Shell(Mat S,PetscScalar shift);
 static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag);
 static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y);
 static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y);
+static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M);
+
+#undef __FUNCT__
+#define __FUNCT__ "MyShellMatCreate"
+static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
+{
+  PetscErrorCode ierr;
+  PetscInt       n;
+  
+  PetscFunctionBegin;
+  ierr = MatGetLocalSize(*A,&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatCreateShell(((PetscObject)*A)->comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(*M);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_MULT,(void(*)())MatMult_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)())MatMultTranspose_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_DUPLICATE,(void(*)())MatDuplicate_Shell);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -75,12 +93,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* Create the shell version of A */
-  ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,&A,&S);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(S);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(S,MATOP_MULT,(void(*)())MatMult_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(S,MATOP_MULT_TRANSPOSE,(void(*)())MatMultTranspose_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(S,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(S,MATOP_SHIFT,(void(*)())MatShift_Shell);CHKERRQ(ierr);
+  ierr = MyShellMatCreate(&A,&S);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and set various options
@@ -153,15 +166,15 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatShift_Shell"
-static PetscErrorCode MatShift_Shell(Mat S,PetscScalar shift)
+#define __FUNCT__ "MatDuplicate_Shell"
+static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
 {
-  PetscErrorCode    ierr;
-  Mat               *A;
+  PetscErrorCode ierr;
+  Mat            *A;
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
-  ierr = MatShift(*A,shift);CHKERRQ(ierr);
+  ierr = MyShellMatCreate(A,M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
  
