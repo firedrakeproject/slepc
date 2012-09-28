@@ -116,6 +116,7 @@ int main(int argc,char **argv)
 
   /* cayley, sigma=-0.5, tau=-0.5 (equal to sigma by default) */
   ierr = STSetType(st,STCAYLEY);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
   ierr = STGetType(st,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
