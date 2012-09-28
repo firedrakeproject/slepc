@@ -100,6 +100,7 @@ int main(int argc,char **argv)
   ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
 
   /* sinvert, sigma=0.1 */
+  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = STGetType(st,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
@@ -117,6 +118,7 @@ int main(int argc,char **argv)
   ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
 
   /* cayley, sigma=-0.5, tau=-0.5 (equal to sigma by default) */
+  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
   ierr = STSetType(st,STCAYLEY);CHKERRQ(ierr);
   ierr = STSetUp(st);CHKERRQ(ierr);
   ierr = STGetType(st,&type);CHKERRQ(ierr);
@@ -127,7 +129,7 @@ int main(int argc,char **argv)
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
 
-  /* cayley, sigma=1.1, tau=-0.5 */
+  /* cayley, sigma=1.1, tau=1.1 (still equal to sigma) */
   sigma = 1.1;
   ierr = STSetShift(st,sigma);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
