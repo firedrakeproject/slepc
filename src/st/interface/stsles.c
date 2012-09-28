@@ -119,6 +119,7 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
     ierr = MatIsHermitianKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
     if (!set) aherm = PETSC_FALSE;
     mherm = (mherm && aherm)? PETSC_TRUE: PETSC_FALSE;
+    if (PetscRealPart(st->sigma)==0.0) break;
   }
   mherm = (mherm && PetscImaginaryPart(st->sigma)==0.0)? PETSC_TRUE: PETSC_FALSE;
   ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);

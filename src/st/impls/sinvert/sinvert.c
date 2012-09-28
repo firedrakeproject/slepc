@@ -32,10 +32,9 @@ PetscErrorCode STApply_Sinvert(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A - sB)^-1 B x */
-    ierr = MatMult(st->A[1],x,st->w);CHKERRQ(ierr);
+    ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
-  }
-  else {
+  } else {
     /* standard eigenproblem: y = (A - sI)^-1 x */
     ierr = STAssociatedKSPSolve(st,x,y);CHKERRQ(ierr);
   }
@@ -52,9 +51,8 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
   if (st->nmat>1) {
     /* generalized eigenproblem: y = B^T (A - sB)^-T x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A[1],st->w,y);CHKERRQ(ierr);
-  }
-  else {
+    ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
+  } else {
     /* standard eigenproblem: y = (A - sI)^-T x */
     ierr = STAssociatedKSPSolveTranspose(st,x,y);CHKERRQ(ierr);
   }
@@ -113,43 +111,18 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&st->mat);CHKERRQ(ierr);
-
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
+  /* T[0] = B */
+  if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
+  st->T[0] = st->A[1];
+
+  /* T[1] = A-sigma*B */
+  ierr = STMatAXPY_Private(st,-st->sigma,0.0,1,PETSC_TRUE);CHKERRQ(ierr);
+
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  switch (st->shift_matrix) {
-  case ST_MATMODE_INPLACE:
-    st->mat = PETSC_NULL;
-    if (st->sigma != 0.0) {
-      if (st->nmat>1) { 
-        ierr = MatAXPY(st->A[0],-st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(st->A[0],-st->sigma);CHKERRQ(ierr); 
-      }
-    }
-    /* TODO: should keep the Hermitian flag of st->A and restore at the end */
-    ierr = STMatSetHermitian(st,st->A[0]);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->A[0],st->A[0],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    break;
-  case ST_MATMODE_SHELL:
-    ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
-    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    break;
-  default:
-    if (st->sigma != 0.0) {
-      ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
-      if (st->nmat>1) { ierr = MatAXPY(st->mat,-st->sigma,st->A[1],st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); }
-      ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-      ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    } else {
-      st->mat = PETSC_NULL;
-      ierr = KSPSetOperators(st->ksp,st->A[0],st->A[0],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    }
-  }
+  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -165,52 +138,12 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
 
-  /* Check if the new KSP matrix has the same zero structure */
-  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) {
-    flg = DIFFERENT_NONZERO_PATTERN;
-  } else {
-    flg = SAME_NONZERO_PATTERN;
-  }
+  ierr = STMatAXPY_Private(st,-newshift,-st->sigma,1,PETSC_FALSE);CHKERRQ(ierr);
 
-  switch (st->shift_matrix) {
-  case ST_MATMODE_INPLACE:
-    /* Undo previous operations */
-    if (st->sigma != 0.0) {
-      if (st->nmat>1) {
-        ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
-      }
-    }
-    /* Apply new shift */
-    if (newshift != 0.0) {
-      if (st->nmat>1) {
-        ierr = MatAXPY(st->A[0],-newshift,st->A[1],st->str);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(st->A[0],-newshift);CHKERRQ(ierr);
-      }
-    }
-    ierr = STMatSetHermitian(st,st->A[0]);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->A[0],st->A[0],flg);CHKERRQ(ierr);
-    break;
-  case ST_MATMODE_SHELL:
-    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    break;
-  default:
-    if (st->mat) {
-      ierr = MatCopy(st->A[0],st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    } else {
-      ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
-    }
-    if (newshift != 0.0) {   
-      if (st->nmat>1) { ierr = MatAXPY(st->mat,-newshift,st->A[1],st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
-    }
-    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,flg);CHKERRQ(ierr);    
-  }
-  st->sigma = newshift;
+  /* Check if the new KSP matrix has the same zero structure */
+  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
+  else flg = SAME_NONZERO_PATTERN;
+  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

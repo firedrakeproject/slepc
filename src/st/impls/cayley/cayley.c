@@ -34,25 +34,12 @@ typedef struct {
 PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
-  PetscScalar    nu = ctx->nu;
   
   PetscFunctionBegin;
-  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
-
-  if (st->nmat>1) {
-    /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
-    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
-    ierr = MatMult(st->A[1],x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(st->w,nu,ctx->w2);CHKERRQ(ierr);    
-    ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
-  }
-  else {
-    /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
-    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
-    ierr = VecAXPY(st->w,nu,x);CHKERRQ(ierr);
-    ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
-  }
+  /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
+  /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
+  ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
+  ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -61,25 +48,12 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
-  PetscScalar    nu = ctx->nu;
   
   PetscFunctionBegin;
-  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
-
-  if (st->nmat>1) {
-    /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
-    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A[0],st->w,y);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A[1],st->w,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);    
-  }
-  else {
-    /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
-    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A[0],st->w,y);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,st->w);CHKERRQ(ierr);
-  }
+  /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
+  /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
+  ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+  ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -118,12 +92,11 @@ PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
 PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 {
   PetscErrorCode ierr;
-  PetscInt       n,m;
 
   PetscFunctionBegin;
-  ierr = MatGetLocalSize(st->A[1],&n,&m);CHKERRQ(ierr);
-  ierr = MatCreateShell(((PetscObject)st)->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  *B = st->T[0];
+  ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -182,53 +155,34 @@ PetscErrorCode STPostSolve_Cayley(ST st)
 PetscErrorCode STSetUp_Cayley(ST st)
 {
   PetscErrorCode ierr;
+  PetscInt       n,m;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&st->mat);CHKERRQ(ierr);
-
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   if (!ctx->nu_set) { ctx->nu = st->sigma; }
   if (ctx->nu == 0.0 && st->sigma == 0.0) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
 
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  switch (st->shift_matrix) {
-  case ST_MATMODE_INPLACE:
-    st->mat = PETSC_NULL;
-    if (st->sigma != 0.0) {
-      if (st->nmat>1) { 
-        ierr = MatAXPY(st->A[0],-st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(st->A[0],-st->sigma);CHKERRQ(ierr); 
-      }
-    }
-    /* TODO: should keep the Hermitian flag of st->A[0] and restore at the end */
-    ierr = STMatSetHermitian(st,st->A[0]);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->A[0],st->A[0],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    break;
-  case ST_MATMODE_SHELL:
-    ierr = STMatShellCreate(st,&st->mat);CHKERRQ(ierr);
-    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    break;
-  default:
-    ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->mat);CHKERRQ(ierr);
-    if (st->sigma != 0.0) {
-      if (st->nmat>1) { 
-        ierr = MatAXPY(st->mat,-st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(st->mat,-st->sigma);CHKERRQ(ierr); 
-      }
-    }
-    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  /* T[0] = A+nu*B */
+  if (st->shift_matrix==ST_MATMODE_INPLACE) {
+    ierr = MatGetLocalSize(st->A[0],&n,&m);CHKERRQ(ierr);
+    ierr = MatCreateShell(((PetscObject)st)->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);
+  } else {
+    ierr = STMatAXPY_Private(st,ctx->nu,0.0,0,PETSC_TRUE);CHKERRQ(ierr);
   }
+
+  /* T[1] = A-sigma*B */
+  ierr = STMatAXPY_Private(st,-st->sigma,0.0,1,PETSC_TRUE);CHKERRQ(ierr);
+
   if (st->nmat>1) { 
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
     ierr = MatGetVecs(st->A[1],&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
   }
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -242,54 +196,23 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   MatStructure   flg;
 
   PetscFunctionBegin;
-  if (!ctx->nu_set) { ctx->nu = newshift; }
-  if (ctx->nu == 0.0 && newshift == 0.0) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
+  if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
 
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
 
-  /* Check if the new KSP matrix has the same zero structure */
-  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) {
-    flg = DIFFERENT_NONZERO_PATTERN;
-  } else {
-    flg = SAME_NONZERO_PATTERN;
+  if (!ctx->nu_set) {
+    if (st->shift_matrix!=ST_MATMODE_INPLACE) {
+      ierr = STMatAXPY_Private(st,newshift,ctx->nu,0,PETSC_FALSE);CHKERRQ(ierr);
+    }
+    ctx->nu = newshift;
   }
+  ierr = STMatAXPY_Private(st,-newshift,-st->sigma,1,PETSC_FALSE);CHKERRQ(ierr);
 
-  switch (st->shift_matrix) {
-  case ST_MATMODE_INPLACE:
-    /* Undo previous operations */
-    if (st->sigma != 0.0) {
-      if (st->nmat>1) {
-        ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
-      }
-    }
-    /* Apply new shift */
-    if (newshift != 0.0) {
-      if (st->nmat>1) {
-        ierr = MatAXPY(st->A[0],-newshift,st->A[1],st->str);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(st->A[0],-newshift);CHKERRQ(ierr);
-      }
-    }
-    ierr = STMatSetHermitian(st,st->A[0]);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->A[0],st->A[0],flg);CHKERRQ(ierr);
-    break;
-  case ST_MATMODE_SHELL:
-    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    break;
-  default:
-    ierr = MatCopy(st->A[0],st->mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    if (newshift != 0.0) {   
-      if (st->nmat>1) { ierr = MatAXPY(st->mat,-newshift,st->A[1],st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(st->mat,-newshift);CHKERRQ(ierr); }
-    }
-    ierr = STMatSetHermitian(st,st->mat);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->mat,st->mat,flg);CHKERRQ(ierr);    
-  }
-  st->sigma = newshift;
+  /* Check if the new KSP matrix has the same zero structure */
+  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
+  else flg = SAME_NONZERO_PATTERN;
+  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -337,9 +260,13 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "STCayleySetAntishift_Cayley"
 PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 {
+  PetscErrorCode ierr;
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
+  if (st->setupcalled && st->shift_matrix!=ST_MATMODE_INPLACE) {
+    ierr = STMatAXPY_Private(st,newshift,ctx->nu,0,PETSC_FALSE);CHKERRQ(ierr);
+  }
   ctx->nu     = newshift;
   ctx->nu_set = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -459,6 +386,7 @@ PetscErrorCode STDestroy_Cayley(ST st)
   PetscFunctionBegin;
   ierr = PetscFree(st->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleyGetAntishift_C","",PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -484,6 +412,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->view            = STView_Cayley;
   st->ops->checknullspace  = STCheckNullSpace_Default;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleyGetAntishift_C","STCayleyGetAntishift_Cayley",STCayleyGetAntishift_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

@@ -48,13 +48,13 @@ struct _p_ST {
   PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
   Mat          *A;               /* Matrices which define the eigensystem */
+  Mat          *T;               /* Matrices resulting from transformation */
   PetscInt     nmat;             /* Number of matrices */
   PetscScalar  sigma;            /* Value of the shift */
   PetscBool    sigma_set;        /* whether the user provided the shift or not */
   PetscScalar  defsigma;         /* Default value of the shift */
   STMatMode    shift_matrix;
   MatStructure str;              /* whether matrices have the same pattern or not */
-  Mat          mat;
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
@@ -69,8 +69,10 @@ struct _p_ST {
 
 PETSC_EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
-PETSC_EXTERN PetscErrorCode STMatShellCreate(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,Mat*);
+PETSC_EXTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_EXTERN PetscErrorCode STMatSetHermitian(ST,Mat);
+PETSC_EXTERN PetscErrorCode STMatAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscBool);
 
 #endif
 

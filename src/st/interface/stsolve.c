@@ -112,7 +112,7 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
   if (st->nmat==1) *B = PETSC_NULL;
   else {
     *B = st->A[1];
-    ierr =  PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
+    ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -271,18 +271,76 @@ PetscErrorCode STSetUp(ST st)
   if (!((PetscObject)st)->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
-  ierr = VecDestroy(&st->w);CHKERRQ(ierr);
+  ierr = STReset(st);CHKERRQ(ierr);
+  ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
   ierr = MatGetVecs(st->A[0],&st->w,PETSC_NULL);CHKERRQ(ierr);
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],PETSC_NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
     if (n != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %D (should be %D)",k,n);
-    ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
     ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->setupcalled = 1;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STMatAXPY_Private"
+/*
+   Builds matrix in T[k] as follows:
+   initial = TRUE:  T[k] = A+alpha*B
+   initial = FALSE: T[k] = T[k]+(alpha-beta)*B = A+alpha*B
+*/
+PetscErrorCode STMatAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscInt k,PetscBool initial)
+{
+  PetscErrorCode ierr;
+  PetscScalar    gamma;
+
+  PetscFunctionBegin;
+  if (initial) gamma = alpha;
+  else gamma = alpha-beta;
+  switch (st->shift_matrix) {
+  case ST_MATMODE_INPLACE:
+    if (initial) {
+      ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
+      st->T[k] = st->A[0];
+    }
+    if (gamma != 0.0) {
+      if (st->nmat>1) { 
+        ierr = MatAXPY(st->T[k],gamma,st->A[1],st->str);CHKERRQ(ierr); 
+      } else { 
+        ierr = MatShift(st->T[k],gamma);CHKERRQ(ierr); 
+      }
+    }
+    break;
+  case ST_MATMODE_SHELL:
+    if (initial) {
+      ierr = STMatShellCreate(st,alpha,&st->T[k]);CHKERRQ(ierr);
+    } else {
+      ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    if (alpha == 0.0) {
+      if (!initial) { ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr); }
+      ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
+      st->T[k] = st->A[0];
+    } else {
+      if (initial) {
+        ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
+      } else {
+        if (beta==0.0) {
+          ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
+          ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
+        }
+      }
+      if (st->nmat>1) { ierr = MatAXPY(st->T[k],gamma,st->A[1],st->str);CHKERRQ(ierr); }
+      else { ierr = MatShift(st->T[k],gamma);CHKERRQ(ierr); }
+    }
+  }
+  ierr = STMatSetHermitian(st,st->T[k]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

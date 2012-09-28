@@ -120,13 +120,10 @@ PetscErrorCode STReset(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
-  ierr = MatDestroyMatrices(st->nmat,&st->A);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr); 
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
-  if (st->shift_matrix != ST_MATMODE_INPLACE) { 
-    ierr = MatDestroy(&st->mat);CHKERRQ(ierr); 
-  }
   ierr = STResetOperationCounters(st);CHKERRQ(ierr);
   st->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -155,6 +152,7 @@ PetscErrorCode STDestroy(ST *st)
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
   if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
   ierr = STReset(*st);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(PetscMax(2,(*st)->nmat),&(*st)->A);CHKERRQ(ierr);
   ierr = PetscObjectDepublish(*st);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
@@ -189,6 +187,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   *newst = 0;
   ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,-1,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
   st->A                   = 0;
+  st->T                   = 0;
   st->nmat                = 0;
   st->sigma               = 0.0;
   st->sigma_set           = PETSC_FALSE;
@@ -198,7 +197,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->w                   = 0;
   st->D                   = 0;
   st->wb                  = 0;
-  st->mat                 = 0;
   st->shift_matrix        = ST_MATMODE_COPY;
   st->str                 = DIFFERENT_NONZERO_PATTERN;
   *newst = st;
@@ -237,13 +235,14 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
   if (st->setupcalled) { ierr = STReset(st);CHKERRQ(ierr); }
-  ierr = MatDestroyMatrices(st->nmat,&st->A);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(Mat),&st->A);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
+  ierr = PetscMalloc(PetscMax(2,n)*sizeof(Mat),&st->A);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
     st->A[i] = A[i];
   }
+  if (n==1) st->A[1] = PETSC_NULL;
   st->nmat = n;
   PetscFunctionReturn(0);
 }
@@ -272,6 +271,7 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *mat)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,3);
   if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (st->shift_matrix == ST_MATMODE_INPLACE) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot retrieve original matrices in in-place mode");
   *mat = st->A[k];
   PetscFunctionReturn(0);
 }

@@ -32,16 +32,12 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (st->nmat>1) {
-    /* generalized eigenproblem: y = (B^-1 A + sI) x */
-    ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
+    /* generalized eigenproblem: y = B^-1 (A + sB) x */
+    ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
     ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
-  }
-  else {
+  } else {
     /* standard eigenproblem: y = (A + sI) x */
-    ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
-  }
-  if (st->sigma != 0.0) {
-    ierr = VecAXPY(y,st->sigma,x);CHKERRQ(ierr);
+    ierr = MatMult(st->T[0],x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -54,16 +50,12 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (st->nmat>1) {
-    /* generalized eigenproblem: y = (A^T B^-T + sI) x */
+    /* generalized eigenproblem: y = (A + sB)^T B^-T  x */
     ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A[0],st->w,y);CHKERRQ(ierr);
-  }
-  else {
+    ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
+  } else {
     /* standard eigenproblem: y = (A^T + sI) x */
-    ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
-  }
-  if (st->sigma != 0.0) {
-    ierr = VecAXPY(y,st->sigma,x);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->T[0],x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -82,17 +74,55 @@ PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscSca
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "STPostSolve_Shift"
+PetscErrorCode STPostSolve_Shift(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->shift_matrix == ST_MATMODE_INPLACE) {
+    if (st->nmat>1) {
+      ierr = MatAXPY(st->A[0],-st->sigma,st->A[1],st->str);CHKERRQ(ierr);
+    } else {
+      ierr = MatShift(st->A[0],-st->sigma);CHKERRQ(ierr);
+    }
+    st->setupcalled = 0;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "STSetUp_Shift"
 PetscErrorCode STSetUp_Shift(ST st)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  /* T[0] = A+sigma*B */
+  ierr = STMatAXPY_Private(st,st->sigma,0.0,0,PETSC_TRUE);CHKERRQ(ierr);
+
+  /* T[1] = B */
+  if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
+  st->T[1] = st->A[1];
+
   if (st->nmat>1) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->A[1],st->A[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   } 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STSetShift_Shift"
+PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->setupcalled) {
+    ierr = STMatAXPY_Private(st,newshift,st->sigma,0,PETSC_FALSE);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -133,9 +163,11 @@ PetscErrorCode STCreate_Shift(ST st)
   st->ops->apply           = STApply_Shift;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Shift;
+  st->ops->postsolve       = STPostSolve_Shift;
   st->ops->backtr          = STBackTransform_Shift;
   st->ops->setfromoptions  = STSetFromOptions_Shift;
   st->ops->setup           = STSetUp_Shift;
+  st->ops->setshift        = STSetShift_Shift;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
