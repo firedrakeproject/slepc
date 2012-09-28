@@ -125,6 +125,7 @@ PetscErrorCode STReset(ST st)
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   ierr = STResetOperationCounters(st);CHKERRQ(ierr);
+  st->kspidx = -1;
   st->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -196,6 +197,8 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->defsigma            = 0.0;
   st->data                = 0;
   st->setupcalled         = 0;
+  st->ksp                 = 0;
+  st->kspidx              = -1;
   st->w                   = 0;
   st->D                   = 0;
   st->wb                  = 0;

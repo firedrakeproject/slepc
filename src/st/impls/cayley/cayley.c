@@ -39,7 +39,7 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
   /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
   /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
   ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
-  ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
+  ierr = STMatSolve(st,1,st->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -52,7 +52,7 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
   /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
-  ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+  ierr = STMatSolveTranspose(st,1,x,st->w);CHKERRQ(ierr);
   ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -185,6 +185,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  st->kspidx = 1;
   PetscFunctionReturn(0);
 }
 
@@ -215,6 +216,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   else flg = SAME_NONZERO_PATTERN;
   ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  st->kspidx = 1;
   PetscFunctionReturn(0);
 }
 

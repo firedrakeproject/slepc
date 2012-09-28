@@ -24,7 +24,7 @@
 
 #include <slepcst.h>
 
-PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyB,ST_ApplyTranspose;
+PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose;
 PETSC_EXTERN PetscFList STList;
 
 typedef struct _STOps *STOps;
@@ -59,6 +59,7 @@ struct _p_ST {
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
+  PetscInt     kspidx;           /* which T matrix is associated to ksp */
   Vec          w;
   Vec          D;                /* diagonal matrix for balancing */
   Vec          wb;               /* balancing requires an extra work vector */

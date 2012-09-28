@@ -26,10 +26,78 @@
 #include <slepcsys.h>
 
 #undef __FUNCT__  
-#define __FUNCT__ "STAssociatedKSPSolve"
+#define __FUNCT__ "STMatMult"
 /*@
-   STAssociatedKSPSolve - Solves the linear system of equations associated
-   to the spectral transformation.
+   STMatMult - Computes the matrix-vector product y = T[k] x, where T[k] is
+   the k-th matrix of the spectral transformation.
+
+   Collective on ST
+
+   Input Parameters:
+.  st - the spectral transformation context
+.  x  - the vector to be multiplied
+
+   Output Parameter:
+.  y - the result
+
+   Level: developer
+
+.seealso: STMatMultTranspose()
+@*/
+PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (!st->T[k]) {
+    /* T[k]=PETSC_NULL means identity matrix */
+    ierr = VecCopy(x,y);CHKERRQ(ierr);
+  } else {
+    ierr = MatMult(st->T[k],x,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STMatMultTranspose"
+/*@
+   STMatMultTranspose - Computes the matrix-vector product y = T[k]' x, where T[k] is
+   the k-th matrix of the spectral transformation.
+
+   Collective on ST
+
+   Input Parameters:
+.  st - the spectral transformation context
+.  x  - the vector to be multiplied
+
+   Output Parameter:
+.  y - the result
+
+   Level: developer
+
+.seealso: STMatMult()
+@*/
+PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (!st->T[k]) {
+    /* T[k]=PETSC_NULL means identity matrix */
+    ierr = VecCopy(x,y);CHKERRQ(ierr);
+  } else {
+    ierr = MatMultTranspose(st->T[k],x,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STMatSolve"
+/*@
+   STMatSolve - Solves T[k] x = b, where T[k] is the k-th matrix of
+   the spectral transformation, using a KSP object stored internally.
 
    Collective on ST
 
@@ -42,16 +110,30 @@
 
    Level: developer
 
-.seealso: STAssociatedKSPSolveTranspose()
+.seealso: STMatSolveTranspose()
 @*/
-PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
+PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
 {
   PetscErrorCode     ierr;
   PetscInt           its;
+  PetscBool          flg;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
+  if (!flg && !st->T[k]) {
+    /* T[k]=PETSC_NULL means identity matrix */
+    ierr = VecCopy(b,x);CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
   if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
+  if (!flg && k!=st->kspidx) {
+    /* change of coefficient matrix; should not happen normally */
+    ierr = KSPSetOperators(st->ksp,st->T[k],st->T[k],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+    st->kspidx = k;
+  }
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
@@ -62,30 +144,46 @@ PetscErrorCode STAssociatedKSPSolve(ST st,Vec b,Vec x)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STAssociatedKSPSolveTranspose"
+#define __FUNCT__ "STMatSolveTranspose"
 /*@
-   STAssociatedKSPSolveTranspose - Solves the transpose of the linear 
-   system of equations associated to the spectral transformation.
+   STMatSolveTranspose - Solves T[k]' x = b, where T[k] is the k-th matrix of
+   the spectral transformation, using a KSP object stored internally.
+
+   Collective on ST
 
    Input Parameters:
 .  st - the spectral transformation context
 .  b  - right hand side vector
 
-   Output  Parameter:
+   Output Parameter:
 .  x - computed solution
 
    Level: developer
 
-.seealso: STAssociatedKSPSolve()
+.seealso: STMatSolve()
 @*/
-PetscErrorCode STAssociatedKSPSolveTranspose(ST st,Vec b,Vec x)
+PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
 {
-  PetscErrorCode ierr;
-  PetscInt       its;
+  PetscErrorCode     ierr;
+  PetscInt           its;
+  PetscBool          flg;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
+  if (!flg && !st->T[k]) {
+    /* T[k]=PETSC_NULL means identity matrix */
+    ierr = VecCopy(b,x);CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
   if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
+  if (!flg && k!=st->kspidx) {
+    /* change of coefficient matrix; should not happen normally */
+    ierr = KSPSetOperators(st->ksp,st->T[k],st->T[k],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+    st->kspidx = k;
+  }
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);

@@ -195,7 +195,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 
       /* Search direction */
       for (i=0;i<nv-eps->nconv;i++) {
-        ierr = STAssociatedKSPSolve(eps->OP,ctx->G[i],w);CHKERRQ(ierr);
+        ierr = STMatSolve(eps->OP,0,ctx->G[i],w);CHKERRQ(ierr);
         ierr = VecDot(ctx->G[i],w,&g);CHKERRQ(ierr);
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
         gamma[i] = g;

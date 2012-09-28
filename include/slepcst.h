@@ -69,6 +69,10 @@ PETSC_EXTERN PetscErrorCode STSetFromOptions(ST);
 PETSC_EXTERN PetscErrorCode STView(ST,PetscViewer);
 
 PETSC_EXTERN PetscErrorCode STApply(ST,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STMatMult(ST,PetscInt,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STMatMultTranspose(ST,PetscInt,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STMatSolve(ST,PetscInt,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,PetscInt,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
@@ -81,9 +85,6 @@ PETSC_EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STSetDefaultShift(ST,PetscScalar);
 PETSC_EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
 PETSC_EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
-
-PETSC_EXTERN PetscErrorCode STAssociatedKSPSolve(ST,Vec,Vec);
-PETSC_EXTERN PetscErrorCode STAssociatedKSPSolveTranspose(ST,Vec,Vec);
 
 PETSC_EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
 PETSC_EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);

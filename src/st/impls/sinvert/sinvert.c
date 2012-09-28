@@ -33,10 +33,10 @@ PetscErrorCode STApply_Sinvert(ST st,Vec x,Vec y)
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A - sB)^-1 B x */
     ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
-    ierr = STAssociatedKSPSolve(st,st->w,y);CHKERRQ(ierr);
+    ierr = STMatSolve(st,1,st->w,y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A - sI)^-1 x */
-    ierr = STAssociatedKSPSolve(st,x,y);CHKERRQ(ierr);
+    ierr = STMatSolve(st,1,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -50,11 +50,11 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->nmat>1) {
     /* generalized eigenproblem: y = B^T (A - sB)^-T x */
-    ierr = STAssociatedKSPSolveTranspose(st,x,st->w);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(st,1,x,st->w);CHKERRQ(ierr);
     ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A - sI)^-T x */
-    ierr = STAssociatedKSPSolveTranspose(st,x,y);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(st,1,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -125,6 +125,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  st->kspidx = 1;
   PetscFunctionReturn(0);
 }
 
@@ -146,6 +147,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   else flg = SAME_NONZERO_PATTERN;
   ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  st->kspidx = 1;
   PetscFunctionReturn(0);
 }
 
