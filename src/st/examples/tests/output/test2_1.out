@@ -68,19 +68,19 @@ Vector Object: 1 MPI processes
 -0.742313
 -0.49634
 0.00146413
-With shift=1.1, antishift=-0.5
+With shift=1.1, antishift=1.1
 Vector Object: 1 MPI processes
   type: seq
-0.59566
-0.036094
--0.0631754
-0.407048
-0.929519
-0.929519
-0.407048
--0.0631754
-0.036094
-0.59566
+-0.48258
+-2.53432
+-2.89831
+-1.17416
+0.741569
+0.741569
+-1.17416
+-2.89831
+-2.53432
+-0.48258
 With shift=1.1, antishift=-1
 Vector Object: 1 MPI processes
   type: seq
