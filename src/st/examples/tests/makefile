@@ -24,18 +24,28 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/st/examples/tests/
-EXAMPLESC  = test1.c
+EXAMPLESC  = test1.c test2.c
 EXAMPLESF  = 
 MANSEC     = ST
-TESTS      = test1
+TESTS      = test1 test2 test3
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
+                       test2.PETSc runtest2_1 test2.rm \
+                       test3.PETSc runtest3_1 test3.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
 	${RM} test1.o
+
+test2: test2.o chkopts
+	-${CLINKER} -o test2 test2.o ${SLEPC_LIB}
+	${RM} test2.o
+
+test3: test3.o chkopts
+	-${CLINKER} -o test3 test3.o ${SLEPC_LIB}
+	${RM} test3.o
 
 #------------------------------------------------------------------------------------
 
@@ -61,4 +71,34 @@ runtest1_2:
 	   echo "eps type $$eps"; \
 	   ${MPIEXEC} -np 2 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_matmode inplace -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
 	done > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_1:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_2:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -st_matmode inplace 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_3:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -st_matmode shell 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest3_1:
+	-@test=test3_1; \
+	${MPIEXEC} -np 1 ./test3 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest3_2:
+	-@test=test3_1; \
+	${MPIEXEC} -np 1 ./test3 -st_matmode inplace 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest3_3:
+	-@test=test3_1; \
+	${MPIEXEC} -np 1 ./test3 -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
