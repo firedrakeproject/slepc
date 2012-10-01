@@ -149,7 +149,7 @@ runex5_1:
 	   ${RM} -f ex5_1.tmp
 
 runex6f_1:
-	-@${MPIEXEC} -np 1 ./ex6f -st_shift 1 -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_terse > ex6f_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex6f -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_terse > ex6f_1.tmp 2>&1; \
 	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp) then true; \
 	   else echo "Possible problem with ex6f_1, diffs above"; fi; \
 	   ${RM} -f ex6f_1.tmp

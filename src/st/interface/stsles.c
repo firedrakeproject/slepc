@@ -206,7 +206,7 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
 {
 #if defined(PETSC_USE_COMPLEX)
   PetscErrorCode ierr;
-  PetscBool      set,aherm,bherm,mherm;
+  PetscBool      set,aherm,mherm;
   PetscInt       i; 
 #endif
 
