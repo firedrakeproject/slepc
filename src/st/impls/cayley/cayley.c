@@ -182,10 +182,6 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
     ierr = MatGetVecs(st->A[1],&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
   }
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-  st->kspidx = 1;
   PetscFunctionReturn(0);
 }
 
@@ -211,12 +207,13 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   }
   ierr = STMatAXPY_Private(st,-newshift,-st->sigma,1,PETSC_FALSE);CHKERRQ(ierr);
 
-  /* Check if the new KSP matrix has the same zero structure */
-  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
-  else flg = SAME_NONZERO_PATTERN;
-  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
-  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-  st->kspidx = 1;
+  if (st->kspidx==1) {  /* Update KSP operator */
+    /* Check if the new KSP matrix has the same zero structure */
+    if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
+    else flg = SAME_NONZERO_PATTERN;
+    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
+    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -105,13 +105,6 @@ PetscErrorCode STSetUp_Shift(ST st)
   /* T[1] = B */
   if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
   st->T[1] = st->A[1];
-
-  if (st->nmat>1) {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-    st->kspidx = 1;
-  } 
   PetscFunctionReturn(0);
 }
 
@@ -120,10 +113,20 @@ PetscErrorCode STSetUp_Shift(ST st)
 PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
+  MatStructure   flg;
 
   PetscFunctionBegin;
-  if (st->setupcalled) {
-    ierr = STMatAXPY_Private(st,newshift,st->sigma,0,PETSC_FALSE);CHKERRQ(ierr);
+  /* Nothing to be done if STSetUp has not been called yet */
+  if (!st->setupcalled) PetscFunctionReturn(0);
+
+  ierr = STMatAXPY_Private(st,newshift,st->sigma,0,PETSC_FALSE);CHKERRQ(ierr);
+
+  if (st->kspidx==0) {  /* Update KSP operator */
+    /* Check if the new KSP matrix has the same zero structure */
+    if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
+    else flg = SAME_NONZERO_PATTERN;
+    ierr = KSPSetOperators(st->ksp,st->T[0],st->T[0],flg);CHKERRQ(ierr);    
+    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
