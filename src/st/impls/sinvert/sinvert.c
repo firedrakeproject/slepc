@@ -121,6 +121,11 @@ PetscErrorCode STSetUp_Sinvert(ST st)
 
   /* T[1] = A-sigma*B */
   ierr = STMatAXPY_Private(st,-st->sigma,0.0,1,PETSC_TRUE);CHKERRQ(ierr);
+
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  st->kspidx = 1;
   PetscFunctionReturn(0);
 }
 

@@ -182,6 +182,10 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
     ierr = MatGetVecs(st->A[1],&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
   }
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  st->kspidx = 1;
   PetscFunctionReturn(0);
 }
 
