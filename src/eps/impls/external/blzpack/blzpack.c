@@ -198,7 +198,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         ierr = VecPlaceArray(x,blz->u+i*eps->nloc);CHKERRQ(ierr);
         ierr = VecPlaceArray(y,blz->v+i*eps->nloc);CHKERRQ(ierr);
         if (blz->slice || eps->isgeneralized) { 
-          ierr = STAssociatedKSPSolve(eps->OP,x,y);CHKERRQ(ierr);
+          ierr = STMatSolve(eps->OP,1,x,y);CHKERRQ(ierr);
         } else {
           ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
         }
