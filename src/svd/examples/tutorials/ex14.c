@@ -32,7 +32,7 @@ int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   SVD            svd;             /* singular value problem solver context */
-  const SVDType  type;
+  SVDType        type;
   PetscReal      tol;
   PetscInt       nsv,maxit,its;
   char           filename[PETSC_MAX_PATH_LEN];

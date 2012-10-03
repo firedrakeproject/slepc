@@ -52,7 +52,7 @@ int main(int argc,char **argv)
 {
   Mat            A, S;        /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscScalar    value[3];
   PetscInt       n=30,i,Istart,Iend,col[3],nev;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;

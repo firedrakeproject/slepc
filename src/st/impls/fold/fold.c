@@ -172,8 +172,8 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
-  const PCType   pctype;
-  const KSPType  ksptype;
+  PCType         pctype;
+  KSPType        ksptype;
 
   PetscFunctionBegin;
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }

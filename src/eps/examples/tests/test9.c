@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       N,m=15,nev;
   PetscScalar    origin=0.0;

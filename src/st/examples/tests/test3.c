@@ -27,14 +27,14 @@ static char help[] = "Test ST with two matrices.\n\n";
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat             A,B,M,mat[2];
-  ST              st;
-  Vec             v,w;
-  const STType    type;
-  PetscScalar     value[3],sigma,tau;
-  PetscInt        n=10,i,Istart,Iend,col[3];
-  PetscBool       FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
-  PetscErrorCode  ierr;
+  Mat            A,B,M,mat[2];
+  ST             st;
+  Vec            v,w;
+  STType         type;
+  PetscScalar    value[3],sigma,tau;
+  PetscInt       n=10,i,Istart,Iend,col[3];
+  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);

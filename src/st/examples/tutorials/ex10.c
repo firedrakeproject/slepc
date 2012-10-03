@@ -47,7 +47,7 @@ int main (int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   ST             st;              /* spectral transformation context */
   SampleShellST  *shell;          /* user-defined spectral transform context */
-  const EPSType  type;
+  EPSType        type;
   PetscScalar    value[3];
   PetscInt       n=30,i,col[3],Istart,Iend,FirstBlock=0,LastBlock=0,nev;
   PetscBool      isShell;

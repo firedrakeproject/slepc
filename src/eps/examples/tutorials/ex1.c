@@ -31,7 +31,7 @@ int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscReal      error,tol,re,im;
   PetscScalar    kr,ki,value[3];
   Vec            xr,xi;

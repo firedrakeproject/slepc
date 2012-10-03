@@ -33,7 +33,7 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
-  const PCType   pctype;
+  PCType         pctype;
   Mat            P;
   PetscBool      t0,t1;
   KSP            ksp;

@@ -47,7 +47,7 @@ typedef struct _p_IP* IP;
 
 .seealso: IPSetType(), IP
 E*/
-#define IPType         char*
+typedef const char* IPType;
 #define IPBILINEAR     "bilinear"
 #define IPSESQUILINEAR "sesquilinear"
 #define IPINDEFINITE   "indefinite"
@@ -78,8 +78,8 @@ typedef enum { IP_ORTHOG_REFINE_NEVER,
                IP_ORTHOG_REFINE_ALWAYS } IPOrthogRefineType;
 
 PETSC_EXTERN PetscErrorCode IPCreate(MPI_Comm,IP*);
-PETSC_EXTERN PetscErrorCode IPSetType(IP,const IPType);
-PETSC_EXTERN PetscErrorCode IPGetType(IP,const IPType*);
+PETSC_EXTERN PetscErrorCode IPSetType(IP,IPType);
+PETSC_EXTERN PetscErrorCode IPGetType(IP,IPType*);
 PETSC_EXTERN PetscErrorCode IPSetOptionsPrefix(IP,const char *);
 PETSC_EXTERN PetscErrorCode IPAppendOptionsPrefix(IP,const char *);
 PETSC_EXTERN PetscErrorCode IPGetOptionsPrefix(IP,const char *[]);

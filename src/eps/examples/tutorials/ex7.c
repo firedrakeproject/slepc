@@ -38,7 +38,7 @@ int main(int argc,char **argv)
 {
   Mat            A,B;             /* matrices */
   EPS            eps;             /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscReal      tol;
   Vec            xr,xi,*I,*C;
   PetscInt       nev,maxit,i,its,lits,nconv,nini=0,ncon=0;

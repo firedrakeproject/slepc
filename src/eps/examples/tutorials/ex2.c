@@ -32,7 +32,7 @@ int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j;
   PetscBool      flag;
   PetscErrorCode ierr;

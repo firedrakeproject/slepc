@@ -29,7 +29,7 @@
 /* VecComp: Vec composed of several smaller Vecs */
 #define VECCOMP  "comp"
 PETSC_EXTERN PetscErrorCode VecRegister_Comp(const char[]);
-PETSC_EXTERN PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,const VecType,Vec,Vec*);
+PETSC_EXTERN PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,VecType,Vec,Vec*);
 PETSC_EXTERN PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
 PETSC_EXTERN PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
 PETSC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);

@@ -33,7 +33,7 @@ int main(int argc,char **argv)
 {
   Mat            M,C,K;           /* problem matrices */
   QEP            qep;             /* quadratic eigenproblem solver context */
-  const QEPType  type;
+  QEPType        type;
   PetscReal      tol;
   PetscInt       nev,maxit,its;
   char           filename[PETSC_MAX_PATH_LEN];

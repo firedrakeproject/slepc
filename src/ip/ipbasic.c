@@ -262,7 +262,7 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
 .seealso: IPGetType()
 
 @*/
-PetscErrorCode IPSetType(IP ip,const IPType type)
+PetscErrorCode IPSetType(IP ip,IPType type)
 {
   PetscErrorCode ierr,(*r)(IP);
   PetscBool      match;
@@ -302,7 +302,7 @@ PetscErrorCode IPSetType(IP ip,const IPType type)
 .seealso: IPSetType()
 
 @*/
-PetscErrorCode IPGetType(IP ip,const IPType *type)
+PetscErrorCode IPGetType(IP ip,IPType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);

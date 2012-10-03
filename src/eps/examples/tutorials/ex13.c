@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   Mat            A,B;         /* matrices */
   EPS            eps;         /* eigenproblem solver context */
   ST             st;          /* spectral transformation context */
-  const EPSType  type;
+  EPSType        type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j,nulldim=0;
   PetscBool      flag;
   PetscErrorCode ierr;

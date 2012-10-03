@@ -41,7 +41,7 @@ int main(int argc,char **argv)
   Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscScalar    target=0.5;
   PetscInt       N,m=15,nev;
   PetscErrorCode ierr;

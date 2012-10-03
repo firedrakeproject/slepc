@@ -143,7 +143,7 @@ void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErro
 
 void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  const SVDType tname;
+  SVDType tname;
 
   *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
   *ierr = PetscStrncpy(name,tname,len);

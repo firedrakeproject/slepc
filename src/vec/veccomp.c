@@ -215,7 +215,7 @@ PetscErrorCode VecRegister_Comp(const char path[])
 
 .seealso: VecCreateCompWithVecs(), VecCompSetSubVecs()
 @*/
-PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,const VecType t,Vec Vparent,Vec *V)
+PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec Vparent,Vec *V)
 {
   PetscErrorCode ierr;
   Vec            *x;

@@ -230,8 +230,8 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   PetscBool      flg;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
   PC             pc;
-  const PCType   pctype;
-  const KSPType  ksptype;
+  PCType         pctype;
+  KSPType        ksptype;
 
   PetscFunctionBegin;
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }

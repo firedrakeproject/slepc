@@ -544,7 +544,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
 .seealso: STSetType(), EPSType
 @*/
-PetscErrorCode EPSSetType(EPS eps,const EPSType type)
+PetscErrorCode EPSSetType(EPS eps,EPSType type)
 {
   PetscErrorCode ierr,(*r)(EPS);
   PetscBool      match;
@@ -585,7 +585,7 @@ PetscErrorCode EPSSetType(EPS eps,const EPSType type)
 
 .seealso: EPSSetType()
 @*/
-PetscErrorCode EPSGetType(EPS eps,const EPSType *type)
+PetscErrorCode EPSGetType(EPS eps,EPSType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);

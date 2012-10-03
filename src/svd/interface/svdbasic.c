@@ -442,7 +442,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
 
 .seealso: SVDType
 @*/
-PetscErrorCode SVDSetType(SVD svd,const SVDType type)
+PetscErrorCode SVDSetType(SVD svd,SVDType type)
 {
   PetscErrorCode ierr,(*r)(SVD);
   PetscBool      match;
@@ -483,7 +483,7 @@ PetscErrorCode SVDSetType(SVD svd,const SVDType type)
 
 .seealso: SVDSetType()
 @*/
-PetscErrorCode SVDGetType(SVD svd,const SVDType *type)
+PetscErrorCode SVDGetType(SVD svd,SVDType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);

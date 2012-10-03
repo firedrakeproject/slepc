@@ -42,7 +42,7 @@ int main(int argc,char **argv)
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   ST             st;              /* spectral transformation associated */
-  const EPSType  type;
+  EPSType        type;
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscScalar    target=0.5;
   PetscInt       N,m=15,nev;

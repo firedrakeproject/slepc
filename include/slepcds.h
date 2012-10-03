@@ -45,7 +45,7 @@ typedef struct _p_DS* DS;
 
 .seealso: DSSetType(), DS
 E*/
-#define DSType            char*
+typedef const char* DSType;
 #define DSHEP             "hep"
 #define DSNHEP            "nhep"
 #define DSGHEP            "ghep"
@@ -110,8 +110,8 @@ typedef enum { DS_MAT_A,
                DS_NUM_MAT } DSMatType;
 
 PETSC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
-PETSC_EXTERN PetscErrorCode DSSetType(DS,const DSType);
-PETSC_EXTERN PetscErrorCode DSGetType(DS,const DSType*);
+PETSC_EXTERN PetscErrorCode DSSetType(DS,DSType);
+PETSC_EXTERN PetscErrorCode DSGetType(DS,DSType*);
 PETSC_EXTERN PetscErrorCode DSSetOptionsPrefix(DS,const char *);
 PETSC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
 PETSC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);

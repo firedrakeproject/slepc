@@ -68,13 +68,13 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d, dvdBlackboard *b,
                                 EPSOrthType orth, IP ipI,
                                 PetscInt cX_proj, PetscBool harm)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i,max_cS;
-  PetscBool       std_probl,her_probl,ind_probl,her_ind_probl;
-  const DSType dstype;
-  const char      *prefix;
-  PetscErrorCode  (*f)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void             *ctx;
+  PetscErrorCode ierr;
+  PetscInt       i,max_cS;
+  PetscBool      std_probl,her_probl,ind_probl,her_ind_probl;
+  DSType         dstype;
+  const char     *prefix;
+  PetscErrorCode (*f)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void           *ctx;
 
   PetscFunctionBegin;
 

@@ -98,7 +98,7 @@ int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   DM             da;
   Vec            v0;
   PetscReal      error,tol,re,im,*exact;

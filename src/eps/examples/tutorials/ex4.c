@@ -32,7 +32,7 @@ int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscReal      tol;
   PetscInt       nev,maxit,its;
   char           filename[PETSC_MAX_PATH_LEN];

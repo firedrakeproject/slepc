@@ -139,7 +139,7 @@ void PETSC_STDCALL qepsettype_(QEP *qep,CHAR type PETSC_MIXED_LEN(len),PetscErro
 
 void PETSC_STDCALL qepgettype_(QEP *qep,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  const QEPType tname;
+  QEPType tname;
 
   *ierr = QEPGetType(*qep,&tname);if (*ierr) return;
   *ierr = PetscStrncpy(name,tname,len);

@@ -32,7 +32,7 @@ int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
-  const EPSType  type;
+  EPSType        type;
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscScalar    value[3];
   PetscInt       n=30,i,Istart,Iend,col[3],nev;

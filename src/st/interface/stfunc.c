@@ -587,11 +587,11 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 @*/
 PetscErrorCode STView(ST st,PetscViewer viewer)
 {
-  PetscErrorCode    ierr;
-  const STType      cstr;
-  const char*       str;
-  PetscBool         isascii,isstring,flg;
-  PC                pc;
+  PetscErrorCode ierr;
+  STType         cstr;
+  const char*    str;
+  PetscBool      isascii,isstring,flg;
+  PC             pc;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);

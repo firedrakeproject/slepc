@@ -34,7 +34,7 @@ int main (int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   Mat            A;               /* operator matrix */
   Vec            x;
-  const EPSType  type;
+  EPSType        type;
   PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev;
   PetscScalar    w;
   PetscBool      flag;

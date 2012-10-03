@@ -45,7 +45,7 @@ typedef struct _p_SVD* SVD;
 
 .seealso: SVDSetType(), SVD
 E*/
-#define SVDType        char*
+typedef const char* SVDType;
 #define SVDCROSS       "cross"
 #define SVDCYCLIC      "cyclic"
 #define SVDLAPACK      "lapack"
@@ -96,8 +96,8 @@ PETSC_EXTERN PetscErrorCode SVDSetIP(SVD,IP);
 PETSC_EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
 PETSC_EXTERN PetscErrorCode SVDSetDS(SVD,DS);
 PETSC_EXTERN PetscErrorCode SVDGetDS(SVD,DS*);
-PETSC_EXTERN PetscErrorCode SVDSetType(SVD,const SVDType);
-PETSC_EXTERN PetscErrorCode SVDGetType(SVD,const SVDType*);
+PETSC_EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
+PETSC_EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
 PETSC_EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 PETSC_EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
 PETSC_EXTERN PetscErrorCode SVDSetInitialSpace(SVD,PetscInt,Vec*);

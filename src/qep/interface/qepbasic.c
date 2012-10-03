@@ -435,7 +435,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 
 .seealso: QEPType
 @*/
-PetscErrorCode QEPSetType(QEP qep,const QEPType type)
+PetscErrorCode QEPSetType(QEP qep,QEPType type)
 {
   PetscErrorCode ierr,(*r)(QEP);
   PetscBool      match;
@@ -476,7 +476,7 @@ PetscErrorCode QEPSetType(QEP qep,const QEPType type)
 
 .seealso: QEPSetType()
 @*/
-PetscErrorCode QEPGetType(QEP qep,const QEPType *type)
+PetscErrorCode QEPGetType(QEP qep,QEPType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);

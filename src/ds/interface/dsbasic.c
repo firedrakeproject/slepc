@@ -267,7 +267,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
 
 .seealso: DSGetType()
 @*/
-PetscErrorCode DSSetType(DS ds,const DSType type)
+PetscErrorCode DSSetType(DS ds,DSType type)
 {
   PetscErrorCode ierr,(*r)(DS);
   PetscBool      match;
@@ -306,7 +306,7 @@ PetscErrorCode DSSetType(DS ds,const DSType type)
 
 .seealso: DSSetType()
 @*/
-PetscErrorCode DSGetType(DS ds,const DSType *type)
+PetscErrorCode DSGetType(DS ds,DSType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);

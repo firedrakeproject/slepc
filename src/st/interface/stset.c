@@ -55,7 +55,7 @@ PetscFList STList = 0;
 .seealso: EPSSetType()
 
 @*/
-PetscErrorCode STSetType(ST st,const STType type)
+PetscErrorCode STSetType(ST st,STType type)
 {
   PetscErrorCode ierr,(*r)(ST);
   PetscBool      match;
@@ -97,7 +97,7 @@ PetscErrorCode STSetType(ST st,const STType type)
 .seealso: STSetType()
 
 @*/
-PetscErrorCode STGetType(ST st,const STType *type)
+PetscErrorCode STGetType(ST st,STType *type)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);

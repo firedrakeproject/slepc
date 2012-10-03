@@ -45,7 +45,7 @@ typedef struct _p_QEP* QEP;
 
 .seealso: QEPSetType(), QEP
 E*/
-#define QEPType      char*
+typedef const char* QEPType;
 #define QEPLINEAR    "linear"
 #define QEPQARNOLDI  "qarnoldi"
 
@@ -81,8 +81,8 @@ typedef enum { QEP_LARGEST_MAGNITUDE=1,
 PETSC_EXTERN PetscErrorCode QEPCreate(MPI_Comm,QEP*);
 PETSC_EXTERN PetscErrorCode QEPDestroy(QEP*);
 PETSC_EXTERN PetscErrorCode QEPReset(QEP);
-PETSC_EXTERN PetscErrorCode QEPSetType(QEP,const QEPType);
-PETSC_EXTERN PetscErrorCode QEPGetType(QEP,const QEPType*);
+PETSC_EXTERN PetscErrorCode QEPSetType(QEP,QEPType);
+PETSC_EXTERN PetscErrorCode QEPGetType(QEP,QEPType*);
 PETSC_EXTERN PetscErrorCode QEPSetProblemType(QEP,QEPProblemType);
 PETSC_EXTERN PetscErrorCode QEPGetProblemType(QEP,QEPProblemType*);
 PETSC_EXTERN PetscErrorCode QEPSetOperators(QEP,Mat,Mat,Mat);

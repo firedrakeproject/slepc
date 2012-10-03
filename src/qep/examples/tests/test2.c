@@ -44,7 +44,7 @@ int main( int argc, char **argv )
 {
   Mat         	 M, C, K;         /* problem matrices */
   QEP         	 qep;             /* quadratic eigenproblem solver context */
-  const QEPType  type;
+  QEPType        type;
   PetscErrorCode ierr;
   PetscInt    	 n=30,Istart,Iend,i,maxit,nev;
   PetscScalar 	 mu=1.0,tau=10.0,kappa=5.0;

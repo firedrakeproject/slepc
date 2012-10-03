@@ -45,7 +45,7 @@ typedef struct _p_ST* ST;
 
 .seealso: STSetType(), ST
 E*/
-#define STType      char*
+typedef const char* STType;
 #define STSHELL     "shell"
 #define STSHIFT     "shift"
 #define STSINVERT   "sinvert"
@@ -59,8 +59,8 @@ PETSC_EXTERN PetscClassId ST_CLASSID;
 PETSC_EXTERN PetscErrorCode STCreate(MPI_Comm,ST*);
 PETSC_EXTERN PetscErrorCode STDestroy(ST*);
 PETSC_EXTERN PetscErrorCode STReset(ST);
-PETSC_EXTERN PetscErrorCode STSetType(ST,const STType);
-PETSC_EXTERN PetscErrorCode STGetType(ST,const STType*);
+PETSC_EXTERN PetscErrorCode STSetType(ST,STType);
+PETSC_EXTERN PetscErrorCode STGetType(ST,STType*);
 PETSC_EXTERN PetscErrorCode STSetOperators(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetOperators(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
