@@ -38,13 +38,13 @@ PETSC_EXTERN PetscErrorCode SVDInitializePackage(const char[]);
 S*/
 typedef struct _p_SVD* SVD;
 
-/*E
+/*J
     SVDType - String with the name of a SLEPc singular value solver
 
    Level: beginner
 
 .seealso: SVDSetType(), SVD
-E*/
+J*/
 typedef const char* SVDType;
 #define SVDCROSS       "cross"
 #define SVDCYCLIC      "cyclic"

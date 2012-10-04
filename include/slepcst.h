@@ -38,13 +38,13 @@ PETSC_EXTERN PetscErrorCode STInitializePackage(const char[]);
 S*/
 typedef struct _p_ST* ST;
 
-/*E
+/*J
     STType - String with the name of a SLEPc spectral transformation
 
     Level: beginner
 
 .seealso: STSetType(), ST
-E*/
+J*/
 typedef const char* STType;
 #define STSHELL     "shell"
 #define STSHIFT     "shift"

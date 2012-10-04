@@ -38,13 +38,13 @@ PETSC_EXTERN PetscErrorCode QEPInitializePackage(const char[]);
 S*/
 typedef struct _p_QEP* QEP;
 
-/*E
+/*J
     QEPType - String with the name of a quadratic eigensolver
 
    Level: beginner
 
 .seealso: QEPSetType(), QEP
-E*/
+J*/
 typedef const char* QEPType;
 #define QEPLINEAR    "linear"
 #define QEPQARNOLDI  "qarnoldi"

@@ -35,7 +35,7 @@ PETSC_EXTERN PetscErrorCode IPInitializePackage(const char[]);
 S*/
 typedef struct _p_IP* IP;
 
-/*E
+/*J
     IPType - String with the name of the inner product. For complex scalars,
     it is possible to choose between a sesquilinear form (x,y)=x^H*M*y (the default)
     or a bilinear form (x,y)=x^T*M*y (without complex conjugation). In the case
@@ -46,7 +46,7 @@ typedef struct _p_IP* IP;
     Level: advanced
 
 .seealso: IPSetType(), IP
-E*/
+J*/
 typedef const char* IPType;
 #define IPBILINEAR     "bilinear"
 #define IPSESQUILINEAR "sesquilinear"

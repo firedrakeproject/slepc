@@ -37,14 +37,14 @@ PETSC_EXTERN PetscErrorCode DSInitializePackage(const char[]);
 S*/
 typedef struct _p_DS* DS;
 
-/*E
+/*J
     DSType - String with the name of the type of direct solver. Roughly,
     there are as many types as problem types are available within SLEPc.
 
     Level: advanced
 
 .seealso: DSSetType(), DS
-E*/
+J*/
 typedef const char* DSType;
 #define DSHEP             "hep"
 #define DSNHEP            "nhep"

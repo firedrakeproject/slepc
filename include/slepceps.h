@@ -40,13 +40,13 @@ PETSC_EXTERN PetscErrorCode EPSInitializePackage(const char[]);
 S*/
 typedef struct _p_EPS* EPS;
 
-/*E
+/*J
     EPSType - String with the name of a SLEPc eigensolver
 
     Level: beginner
 
 .seealso: EPSSetType(), EPS
-E*/
+J*/
 typedef const char* EPSType;
 #define EPSPOWER       "power"
 #define EPSSUBSPACE    "subspace"
@@ -57,7 +57,6 @@ typedef const char* EPSType;
 #define EPSJD          "jd"
 #define EPSRQCG        "rqcg"
 #define EPSLAPACK      "lapack"
-/* the next ones are interfaces to external libraries */
 #define EPSARPACK      "arpack"
 #define EPSBLZPACK     "blzpack"
 #define EPSTRLAN       "trlan"
