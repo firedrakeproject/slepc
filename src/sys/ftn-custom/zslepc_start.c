@@ -25,7 +25,6 @@
 
 extern PetscBool SlepcBeganPetsc;
 extern PetscBool SlepcInitializeCalled;
-extern PetscLogEvent SLEPC_UpdateVectors;
 extern PetscErrorCode SlepcInitialize_DynamicLibraries(void);
 extern PetscErrorCode SlepcInitialize_Packages(void);
 extern PetscErrorCode SlepcInitialize_LogEvents(void);
