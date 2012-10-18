@@ -21,10 +21,16 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = qlanczos.c
+SOURCEF  = 
+SOURCEH  = 
+OBJSC    = qlanczos.o
 LIBBASE  = libslepc
-DIRS     = linear qarnoldi qlanczos
-LOCDIR   = src/qep/impls/
+DIRS     =
 MANSEC   = QEP
+LOCDIR   = src/qep/impls/qlanczos/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
