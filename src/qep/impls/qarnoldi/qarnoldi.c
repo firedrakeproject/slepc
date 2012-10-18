@@ -147,7 +147,7 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
       case IP_ORTHOG_REFINE_ALWAYS:
         ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,PETSC_NULL,PETSC_NULL,work);CHKERRQ(ierr);
         ierr = QEPQArnoldiCGS(qep,H,ldh,c,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
-        for (i=0;i<j;i++) H[ldh*j+i] += c[i];
+        for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
@@ -159,7 +159,7 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
           l++;
           onorm = norm;
           ierr = QEPQArnoldiCGS(qep,H,ldh,c,j,V,t,v,w,PETSC_NULL,&norm,work);CHKERRQ(ierr);
-          for (i=0;i<j;i++) H[ldh*j+i] += c[i];
+          for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         }
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
