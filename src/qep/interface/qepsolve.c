@@ -122,8 +122,7 @@ PetscErrorCode QEPSolve(QEP qep)
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) { 
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",
-                             PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
     for(i=0;i<qep->nconv;i++) {
@@ -136,7 +135,7 @@ PetscErrorCode QEPSolve(QEP qep)
 #endif
       ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
     }
-    ierr = PetscDrawSPDraw(drawsp);CHKERRQ(ierr);
+    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

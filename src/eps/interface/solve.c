@@ -237,8 +237,7 @@ PetscErrorCode EPSSolve(EPS eps)
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) { 
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",
-                             PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
@@ -251,7 +250,7 @@ PetscErrorCode EPSSolve(EPS eps)
 #endif
       ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
     }
-    ierr = PetscDrawSPDraw(drawsp);CHKERRQ(ierr);
+    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
