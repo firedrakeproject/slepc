@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  =
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    =
 LIBBASE  = libslepc
 DIRS     = common gd jd
 LOCDIR   = src/eps/impls/davidson/

@@ -28,7 +28,6 @@ FFLAGS   =
 SOURCEC  = arpack.c
 SOURCEF  = 
 SOURCEH  = arpackp.h
-OBJSC    = arpack.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

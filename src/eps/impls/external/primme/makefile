@@ -28,7 +28,6 @@ FFLAGS   =
 SOURCEC  = primme.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = primme.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

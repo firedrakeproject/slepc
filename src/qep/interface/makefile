@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = qepmon.c qepbasic.c qepdefault.c qepregis.c qepopts.c qepsetup.c qepsolve.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = qepmon.o qepbasic.o qepdefault.o qepregis.o qepopts.o qepsetup.o qepsolve.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = QEP

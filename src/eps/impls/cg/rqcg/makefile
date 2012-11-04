@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = rqcg.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = rqcg.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

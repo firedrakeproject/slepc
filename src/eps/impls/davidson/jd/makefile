@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = jd.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = jd.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

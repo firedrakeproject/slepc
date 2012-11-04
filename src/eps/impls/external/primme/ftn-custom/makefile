@@ -24,7 +24,6 @@ ALL: lib
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = zprimmef.c
-OBJSC    = zprimmef.o
 SOURCEF  =
 SOURCEH  =
 DIRS     =

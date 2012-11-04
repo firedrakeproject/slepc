@@ -24,7 +24,6 @@ ALL: lib
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = zqepf.c
-OBJSC    = zqepf.o
 SOURCEF  =
 SOURCEH  =
 DIRS     =

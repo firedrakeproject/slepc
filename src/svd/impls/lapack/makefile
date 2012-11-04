@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = svdlapack.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = svdlapack.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = SVD

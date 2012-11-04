@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = cyclic.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = cyclic.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = SVD

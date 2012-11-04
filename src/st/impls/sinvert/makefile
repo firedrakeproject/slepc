@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = sinvert.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = sinvert.o 
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = ST

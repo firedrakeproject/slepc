@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = arnoldi.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = arnoldi.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

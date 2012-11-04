@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = fold.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = fold.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = ST

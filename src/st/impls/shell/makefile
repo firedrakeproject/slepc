@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = shell.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = shell.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = ST

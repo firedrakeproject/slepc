@@ -29,7 +29,6 @@ FFLAGS   =
 SOURCEC  = blopex.c slepc-interface.c petsc-interface.c
 SOURCEF  = 
 SOURCEH  = slepc-interface.h petsc-interface.h
-OBJSC    = blopex.o slepc-interface.o petsc-interface.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

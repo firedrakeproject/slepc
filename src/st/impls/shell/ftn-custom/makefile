@@ -24,7 +24,6 @@ ALL: lib
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = zshell.c
-OBJSC    = zshell.o
 SOURCEF  =
 SOURCEH  =
 DIRS     =

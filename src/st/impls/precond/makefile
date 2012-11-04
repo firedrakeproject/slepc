@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = precond.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = precond.o 
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = ST

@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = trlanczos.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = trlanczos.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = SVD

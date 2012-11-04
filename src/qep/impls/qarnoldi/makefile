@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = qarnoldi.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = qarnoldi.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = QEP

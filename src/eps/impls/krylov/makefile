@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = krylov.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = krylov.o
 LIBBASE  = libslepc
 DIRS     = arnoldi lanczos krylovschur
 LOCDIR   = src/eps/impls/krylov/

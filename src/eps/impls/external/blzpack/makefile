@@ -29,7 +29,6 @@ FFLAGS   =
 SOURCEC  = blzpack.c
 SOURCEF  = 
 SOURCEH  = blzpackp.h
-OBJSC    = blzpack.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

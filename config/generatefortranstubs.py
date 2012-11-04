@@ -92,7 +92,6 @@ def FixDir(petscdir,dir):
     outbuf +=  'CFLAGS   =\n'
     outbuf +=  'FFLAGS   =\n'
     outbuf +=  'SOURCEC  = ' +' '.join(cnames)+ '\n'
-    outbuf +=  'OBJSC    = ' +' '.join(cnames).replace('.c','.o')+ '\n'    
     outbuf +=  'SOURCEF  =\n'
     outbuf +=  'SOURCEH  = ' +' '.join(hnames)+ '\n'
     outbuf +=  'DIRS     =\n'

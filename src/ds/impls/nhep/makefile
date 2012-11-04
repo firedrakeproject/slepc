@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = dsnhep.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = dsnhep.o
 LIBBASE  = libslepc
 DIRS     = 
 MANSEC   = DS

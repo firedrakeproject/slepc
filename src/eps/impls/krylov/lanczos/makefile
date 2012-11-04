@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = lanczos.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = lanczos.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

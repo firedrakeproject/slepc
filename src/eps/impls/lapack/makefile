@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = lapack.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = lapack.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

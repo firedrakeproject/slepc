@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = vecutil.c veccomp.c contiguous.c
 SOURCEF  = 
 SOURCEH  = veccomp0.h
-OBJSC    = vecutil.o veccomp.o contiguous.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = sys

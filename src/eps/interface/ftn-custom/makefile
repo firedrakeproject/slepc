@@ -24,7 +24,6 @@ ALL: lib
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = zepsf.c
-OBJSC    = zepsf.o
 SOURCEF  =
 SOURCEH  =
 DIRS     =

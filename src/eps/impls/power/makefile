@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = power.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = power.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

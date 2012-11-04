@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = dsbasic.c dsops.c dspriv.c
 SOURCEF  = 
 SOURCEH  =
-OBJSC    = dsbasic.o dsops.o dspriv.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = DS

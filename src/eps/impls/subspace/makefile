@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = subspace.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = subspace.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

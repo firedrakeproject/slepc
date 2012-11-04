@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = qlanczos.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = qlanczos.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = QEP

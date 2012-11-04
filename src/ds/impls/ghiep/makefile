@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = dsghiep.c dsghiep_hz.c dsghiep_dqds.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = dsghiep.o dsghiep_hz.o dsghiep_dqds.o
 LIBBASE  = libslepc
 DIRS     = 
 MANSEC   = DS

@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = cayley.c
 SOURCEF  = 
 SOURCEH  = 
-OBJSC    = cayley.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = ST

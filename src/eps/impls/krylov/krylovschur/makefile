@@ -26,7 +26,6 @@ FFLAGS   =
 SOURCEC  = krylovschur.c ks-symm.c ks-slice.c ks-indef.c
 SOURCEF  = 
 SOURCEH  = krylovschur.h
-OBJSC    = krylovschur.o ks-symm.o ks-slice.o ks-indef.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS

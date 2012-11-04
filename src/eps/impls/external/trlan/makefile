@@ -29,7 +29,6 @@ FFLAGS   =
 SOURCEC  = trlan.c
 SOURCEF  = 
 SOURCEH  = trlanp.h
-OBJSC    = trlan.o
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = EPS
