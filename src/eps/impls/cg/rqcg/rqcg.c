@@ -121,6 +121,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
+  else B = PETSC_NULL;
   ierr = PetscMalloc(eps->mpd*sizeof(PetscScalar),&gamma);CHKERRQ(ierr);
 
   kini = eps->nini;
