@@ -259,7 +259,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 @*/
 PetscErrorCode STSetUp(ST st)
 {
-  PetscInt       n,k;
+  PetscInt       i,n,k;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -273,6 +273,7 @@ PetscErrorCode STSetUp(ST st)
   }
   ierr = STReset(st);CHKERRQ(ierr);
   ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
+  for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = PETSC_NULL;
   ierr = MatGetVecs(st->A[0],&st->w,PETSC_NULL);CHKERRQ(ierr);
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],PETSC_NULL,&n);CHKERRQ(ierr);
