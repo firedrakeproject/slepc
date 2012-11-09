@@ -122,6 +122,7 @@ build:
 	-@echo "========================================="
 
 # Simple test examples for checking a correct installation
+check: test
 test: 
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test_build 2>&1 | tee ./${PETSC_ARCH}/conf/test.log
 test_build: 
