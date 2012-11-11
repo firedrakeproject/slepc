@@ -90,6 +90,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
   if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
+  if (eps->conv_func != EPSConvergedAbsolute) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only supports absolute convergence test"); 
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
@@ -186,7 +187,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   PetscFunctionBegin;
   /* Reset some parameters left from previous runs */
-  ops->primme.aNorm    = 0.0;
+  ops->primme.aNorm    = 1.0;
   ops->primme.initSize = eps->nini;
   ops->primme.iseed[0] = -1;
 
@@ -344,6 +345,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   PetscInt        bs;
   EPSPRIMMEMethod meth;
   PetscBool       flg;
+  KSP             ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS PRIMME Options");CHKERRQ(ierr);
@@ -353,6 +355,18 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   if (flg) { ierr = EPSPRIMMESetMethod(eps,meth);CHKERRQ(ierr); }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
+
+  /* Set STPrecond as the default ST */
+  if (!((PetscObject)eps->OP)->type_name) {
+    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  }
+  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
+
+  /* Set the default options of the KSP */
+  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+  }
 }
 
 EXTERN_C_BEGIN
@@ -553,9 +567,6 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   EPS_PRIMME     *primme;
 
   PetscFunctionBegin;
-  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
-
   ierr = PetscNewLog(eps,EPS_PRIMME,&primme);CHKERRQ(ierr);
   eps->data                      = (void*)primme;
   eps->ops->setup                = EPSSetUp_PRIMME;
