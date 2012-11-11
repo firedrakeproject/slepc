@@ -68,6 +68,7 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   if (rnorm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
   switch (mat) {
     case DS_MAT_X:
+    case DS_MAT_Y:
       if (j) {
         if (ds->state>=DS_STATE_CONDENSED) {
           ierr = PetscMemcpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -84,7 +85,6 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
         }
       }
       break;
-    case DS_MAT_Y:
     case DS_MAT_U:
     case DS_MAT_VT:
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
@@ -99,19 +99,38 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 #define __FUNCT__ "DSNormalize_GHEP"
 PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
 {
+  PetscErrorCode ierr;
+  PetscInt       i,i0,i1;
+  PetscBLASInt   ld,n,one = 1;
+  PetscScalar    norm,*x;
+ 
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
-    case DS_MAT_Q:
-      /* All the matrices resulting from DSVectors and DSSolve are already B-normalized */
-      break;
     case DS_MAT_Y:
+    case DS_MAT_Q:
+      break;
     case DS_MAT_U:
     case DS_MAT_VT:
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
       SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+  }
+  /* All the matrices resulting from DSVectors and DSSolve are B-normalized,
+     but function returns 2-normalized vectors. */
+  n  = PetscBLASIntCast(ds->n);
+  ld = PetscBLASIntCast(ds->ld);
+  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
+  if (col < 0) {
+    i0 = 0; i1 = ds->n;
+  } else {
+    i0 = col; i1 = col+1;
+  }
+  for(i=i0; i<i1; i++) {
+    norm = BLASnrm2_(&n,&x[ld*i],&one);
+    norm = 1.0/norm;
+    BLASscal_(&n,&norm,&x[ld*i],&one);
   }
   PetscFunctionReturn(0);
 }
