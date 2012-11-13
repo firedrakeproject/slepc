@@ -56,8 +56,10 @@ struct _p_QEP {
                  mpd,              /* maximum dimension of projected problem */
                  nini, ninil,      /* number of initial vectors (negative means not copied yet) */
                  allocated_ncv;    /* number of basis vectors allocated */
+  PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PetscReal      sfactor;          /* scaling factor of the quadratic problem */
+  PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   PetscErrorCode (*conv_func)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   void           *conv_ctx;
   QEPWhich       which;            /* which part of the spectrum to be sought */
@@ -76,6 +78,7 @@ struct _p_QEP {
   PetscReal   *errest;          /* error estimates */
   IP          ip;               /* innerproduct object */
   DS          ds;               /* direct solver object */
+  ST          st;               /* spectral transformation object */
   void        *data;            /* placeholder for misc stuff associated 
                                    with a particular solver */
   PetscInt    nconv,            /* number of converged eigenvalues */

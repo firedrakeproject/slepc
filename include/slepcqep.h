@@ -77,7 +77,10 @@ typedef enum { QEP_LARGEST_MAGNITUDE=1,
                QEP_LARGEST_REAL,
                QEP_SMALLEST_REAL,
                QEP_LARGEST_IMAGINARY,
-               QEP_SMALLEST_IMAGINARY } QEPWhich;
+               QEP_SMALLEST_IMAGINARY,
+               QEP_TARGET_MAGNITUDE,
+               QEP_TARGET_REAL,
+               QEP_TARGET_IMAGINARY} QEPWhich;
 
 PETSC_EXTERN PetscErrorCode QEPCreate(MPI_Comm,QEP*);
 PETSC_EXTERN PetscErrorCode QEPDestroy(QEP*);
@@ -88,6 +91,10 @@ PETSC_EXTERN PetscErrorCode QEPSetProblemType(QEP,QEPProblemType);
 PETSC_EXTERN PetscErrorCode QEPGetProblemType(QEP,QEPProblemType*);
 PETSC_EXTERN PetscErrorCode QEPSetOperators(QEP,Mat,Mat,Mat);
 PETSC_EXTERN PetscErrorCode QEPGetOperators(QEP,Mat*,Mat*,Mat*);
+PETSC_EXTERN PetscErrorCode QEPSetTarget(QEP,PetscScalar);
+PETSC_EXTERN PetscErrorCode QEPGetTarget(QEP,PetscScalar*);
+PETSC_EXTERN PetscErrorCode QEPSetST(QEP,ST);
+PETSC_EXTERN PetscErrorCode QEPGetST(QEP,ST*);
 PETSC_EXTERN PetscErrorCode QEPSetFromOptions(QEP);
 PETSC_EXTERN PetscErrorCode QEPSetUp(QEP);
 PETSC_EXTERN PetscErrorCode QEPSolve(QEP);

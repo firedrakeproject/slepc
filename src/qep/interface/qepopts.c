@@ -47,6 +47,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscBool        flg,val;
   PetscReal        r;
+  PetscScalar      s;
   PetscInt         i,j,k;
   PetscViewer      monviewer;
   SlepcConvMonitor ctx;
@@ -88,6 +89,12 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsInt("-qep_ncv","Number of basis vectors","QEPSetDimensions",qep->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-qep_mpd","Maximum dimension of projected problem","QEPSetDimensions",qep->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
     ierr = QEPSetDimensions(qep,i,j,k);CHKERRQ(ierr);
+
+    ierr = PetscOptionsScalar("-qep_target","Value of the target","QEPSetTarget",qep->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {
+      //ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      ierr = QEPSetTarget(qep,s);CHKERRQ(ierr);
+    }
     
     /* -----------------------------------------------------------------------*/
     /*
@@ -141,8 +148,14 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_REAL);CHKERRQ(ierr);}
     ierr = PetscOptionsBoolGroup("-qep_largest_imaginary","compute largest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_IMAGINARY);CHKERRQ(ierr);}
-    ierr = PetscOptionsBoolGroupEnd("-qep_smallest_imaginary","compute smallest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-qep_smallest_imaginary","compute smallest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
+    ierr = PetscOptionsBoolGroup("-qep_target_magnitude","compute nearest eigenvalues to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr);}
+    ierr = PetscOptionsBoolGroup("-qep_target_real","compute eigenvalues with real parts close to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = QEPSetWhichEigenpairs(qep,EPS_TARGET_REAL);CHKERRQ(ierr);}
+    ierr = PetscOptionsBoolGroupEnd("-qep_target_imaginary","compute eigenvalues with imaginary parts close to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_IMAGINARY);CHKERRQ(ierr);}
 
     ierr = PetscOptionsBool("-qep_left_vectors","Compute left eigenvectors also","QEPSetLeftVectorsWanted",qep->leftvecs,&val,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -163,6 +176,8 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   ierr = IPSetFromOptions(qep->ip);CHKERRQ(ierr);
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(qep->ds);CHKERRQ(ierr);
+  if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
+  ierr = STSetFromOptions(qep->st);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -408,6 +423,11 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
       case QEP_SMALLEST_REAL:
       case QEP_LARGEST_IMAGINARY:
       case QEP_SMALLEST_IMAGINARY:
+      case QEP_TARGET_MAGNITUDE:
+      case QEP_TARGET_REAL:
+#if defined(PETSC_USE_COMPLEX)
+      case QEP_TARGET_IMAGINARY:
+#endif
         if (qep->which != which) {
           qep->setupcalled = 0;
           qep->which = which;
@@ -572,12 +592,14 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(qep,alpha,2);
+  qep->sfactor_set = PETSC_FALSE;
   if (alpha != PETSC_IGNORE) {
     if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
       qep->sfactor = 0.0;
     } else {
       if (alpha < 0.0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
       qep->sfactor = alpha;
+      qep->sfactor_set = PETSC_TRUE;
     }
   }
   PetscFunctionReturn(0);

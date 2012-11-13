@@ -585,6 +585,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
   ierr = QEPReset(*qep);CHKERRQ(ierr);
   ierr = PetscObjectDepublish(*qep);CHKERRQ(ierr);
   if ((*qep)->ops->destroy) { ierr = (*(*qep)->ops->destroy)(*qep);CHKERRQ(ierr); }
+  ierr = STDestroy(&(*qep)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*qep)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*qep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*qep)->rand);CHKERRQ(ierr);
@@ -724,6 +725,134 @@ PetscErrorCode QEPGetDS(QEP qep,DS *ds)
     ierr = PetscLogObjectParent(qep,qep->ds);CHKERRQ(ierr);
   }
   *ds = qep->ds;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSetST"
+/*@
+   QEPSetST - Associates a spectral transformation object to the eigensolver. 
+
+   Collective on QEP
+
+   Input Parameters:
++  qep - eigensolver context obtained from QEPCreate()
+-  st   - the spectral transformation object
+
+   Note:
+   Use QEPGetST() to retrieve the spectral transformation context (for example,
+   to free it at the end of the computations).
+
+   Level: developer
+
+.seealso: QEPGetST()
+@*/
+PetscErrorCode QEPSetST(QEP qep,ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,2);
+  PetscCheckSameComm(qep,1,st,2);
+  ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
+  ierr = STDestroy(&qep->st);CHKERRQ(ierr);
+  qep->st = st;
+  ierr = PetscLogObjectParent(qep,qep->st);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPGetST"
+/*@C
+   QEPGetST - Obtain the spectral transformation (ST) object associated
+   to the eigensolver object.
+
+   Not Collective
+
+   Input Parameters:
+.  qep - eigensolver context obtained from QEPCreate()
+
+   Output Parameter:
+.  st - spectral transformation context
+
+   Level: beginner
+
+.seealso: QEPSetST()
+@*/
+PetscErrorCode QEPGetST(QEP qep,ST *st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidPointer(st,2);
+  if (!qep->st) {
+    ierr = STCreate(((PetscObject)qep)->comm,&qep->st);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,qep->st);CHKERRQ(ierr);
+  }
+  *st = qep->st;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSetTarget"
+/*@
+   QEPSetTarget - Sets the value of the target.
+
+   Logically Collective on QEP
+
+   Input Parameters:
++  qep    - eigensolver context
+-  target - the value of the target
+
+   Notes:
+   The target is a scalar value used to determine the portion of the spectrum
+   of interest. It is used in combination with QEPSetWhichEigenpairs().
+   
+   Level: beginner
+
+.seealso: QEPGetTarget(), QEPSetWhichEigenpairs()
+@*/
+PetscErrorCode QEPSetTarget(QEP qep,PetscScalar target)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(qep,target,2);
+  qep->target = target;
+  if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
+  ierr = STSetDefaultShift(qep->st,target);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPGetTarget"
+/*@
+   QEPGetTarget - Gets the value of the target.
+
+   Not Collective
+
+   Input Parameter:
+.  qep - eigensolver context
+
+   Output Parameter:
+.  target - the value of the target
+
+   Level: beginner
+
+   Note:
+   If the target was not set by the user, then zero is returned.
+
+.seealso: QEPSetTarget()
+@*/
+PetscErrorCode QEPGetTarget(QEP qep,PetscScalar* target)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidScalarPointer(target,2);
+  *target = qep->target;
   PetscFunctionReturn(0);
 }
 

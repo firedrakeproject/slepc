@@ -25,18 +25,26 @@
 #include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
 #include <petscblaslapack.h>
 
-typedef struct {
-  KSP ksp;
-} QEP_QARNOLDI;
-
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSetUp_QArnoldi"
 PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
-  QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
+  Mat            K,C,M,mat[3];
   
   PetscFunctionBegin;
+  if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
+  if (!((PetscObject)qep->st)->type_name) {
+    ierr = STSetType(qep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = QEPGetOperators(qep,&M,&C,&K);CHKERRQ(ierr);
+  mat[0] = K;
+  mat[1] = C;
+  mat[2] = M;
+  ierr = STSetOperators(qep->st,3,mat);CHKERRQ(ierr);
+  /* Setup ST */
+  ierr = STSetUp(qep->st);CHKERRQ(ierr);
+
   if (qep->ncv) { /* ncv set */
     if (qep->ncv<qep->nev) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must be at least nev"); 
   }
@@ -58,9 +66,6 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   ierr = DSSetType(qep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(qep->ds,qep->ncv+1);CHKERRQ(ierr);
-
-  ierr = KSPSetOperators(ctx->ksp,qep->M,qep->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = KSPSetUp(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -118,7 +123,6 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
 {
   PetscErrorCode     ierr;
   PetscInt           i,j,l,m = *M;
-  QEP_QARNOLDI       *ctx = (QEP_QARNOLDI*)qep->data;
   Vec                t = qep->work[2],u = qep->work[3];
   IPOrthogRefineType refinement;
   PetscReal          norm,onorm,eta;
@@ -131,10 +135,10 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = VecCopy(w,t);CHKERRQ(ierr);
-    ierr = MatMult(qep->K,v,u);CHKERRQ(ierr);
-    ierr = MatMult(qep->C,t,w);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,0,v,u);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,1,t,w);CHKERRQ(ierr);
     ierr = VecAXPY(u,qep->sfactor,w);CHKERRQ(ierr);
-    ierr = KSPSolve(ctx->ksp,u,w);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,2,u,w);CHKERRQ(ierr);
     ierr = VecScale(w,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
 
@@ -184,10 +188,10 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       j,k,l,lwork,nv,ld,newn;
-  Vec            v=qep->work[0],w=qep->work[1];
+  Vec            v=qep->work[0],w=qep->work[1],v_=qep->work[2],w_=qep->work[3];
   PetscScalar    *S,*Q,*work;
   PetscReal      beta,norm,x,y;
-  PetscBool      breakdown;
+  PetscBool      breakdown,issinv;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
@@ -208,6 +212,21 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
   ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
   
+  /* Compute scaling factor if not set by user */
+  ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&issinv);CHKERRQ(ierr);
+  if (issinv && !qep->sfactor_set) {
+    ierr = STMatMult(qep->st,1,w,w_);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,0,v,v_);CHKERRQ(ierr);
+    ierr = VecAXPY(v_,1.0,w_);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,2,v_,w_);CHKERRQ(ierr);
+    ierr = VecScale(w_,-1.0);CHKERRQ(ierr);
+    ierr = VecCopy(w,v_);CHKERRQ(ierr);
+    ierr = VecDot(v_,v,&y);CHKERRQ(ierr);
+    ierr = VecDot(w_,w,&x);CHKERRQ(ierr);
+    y = PetscAbs(y+x);
+    qep->sfactor = 1.0;
+    while (y > 1.0) {qep->sfactor *=10.0; y /= 10.0;}
+  }
   /* Restart loop */
   l = 0;
   while (qep->reason == QEP_CONVERGED_ITERATING) {
@@ -270,6 +289,10 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   ierr = DSSetDimensions(qep->ds,qep->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
+  ierr = STPostSolve(qep->st);CHKERRQ(ierr);
+  /* Map eigenvalues back to the original problem */
+  ierr = STBackTransform(qep->st,qep->nconv,qep->eigr,qep->eigi);CHKERRQ(ierr);
+
   /* Compute eigenvectors */
   if (qep->nconv > 0) {
     ierr = QEPComputeVectors_Schur(qep);
@@ -279,55 +302,14 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "QEPSetFromOptions_QArnoldi"
-PetscErrorCode QEPSetFromOptions_QArnoldi(QEP qep)
-{
-  PetscErrorCode ierr;
-  QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
- 
-  PetscFunctionBegin;
-  ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "QEPView_QArnoldi"
-PetscErrorCode QEPView_QArnoldi(QEP qep,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
-
-  PetscFunctionBegin;
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "QEPReset_QArnoldi"
 PetscErrorCode QEPReset_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
-  QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
 
   PetscFunctionBegin;
-  ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
   ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
   ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
-#define __FUNCT__ "QEPDestroy_QArnoldi"
-PetscErrorCode QEPDestroy_QArnoldi(QEP qep)
-{
-  PetscErrorCode ierr;
-  QEP_QARNOLDI   *ctx = (QEP_QARNOLDI*)qep->data;
-
-  PetscFunctionBegin;
-  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
-  ierr = PetscFree(qep->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -337,22 +319,11 @@ EXTERN_C_BEGIN
 PetscErrorCode QEPCreate_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
-  QEP_QARNOLDI   *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(qep,QEP_QARNOLDI,&ctx);CHKERRQ(ierr);
-  qep->data                      = ctx;
   qep->ops->solve                = QEPSolve_QArnoldi;
   qep->ops->setup                = QEPSetUp_QArnoldi;
-  qep->ops->setfromoptions       = QEPSetFromOptions_QArnoldi;
-  qep->ops->destroy              = QEPDestroy_QArnoldi;
   qep->ops->reset                = QEPReset_QArnoldi;
-  qep->ops->view                 = QEPView_QArnoldi;
-  ierr = KSPCreate(((PetscObject)qep)->comm,&ctx->ksp);CHKERRQ(ierr);
-  ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)qep)->prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(ctx->ksp,"qep_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)qep,1);CHKERRQ(ierr);  
-  ierr = PetscLogObjectParent(qep,ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

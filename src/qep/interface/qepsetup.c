@@ -128,7 +128,19 @@ PetscErrorCode QEPSetUp(QEP qep)
       qep->which_func = SlepcCompareSmallestImaginary;
       qep->which_ctx  = PETSC_NULL;
       break;
-  }
+    case QEP_TARGET_MAGNITUDE:
+      qep->which_func = SlepcCompareTargetMagnitude;
+      qep->which_ctx  = &qep->target;
+      break;
+    case QEP_TARGET_REAL:
+      qep->which_func = SlepcCompareTargetReal;
+      qep->which_ctx  = &qep->target;
+      break;
+    case QEP_TARGET_IMAGINARY:
+      qep->which_func = SlepcCompareTargetImaginary;
+      qep->which_ctx  = &qep->target;
+      break;
+    }
 
   if (qep->ncv > 2*qep->n) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
