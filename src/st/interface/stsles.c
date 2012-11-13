@@ -50,6 +50,9 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+
+  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!st->T[k]) {
     /* T[k]=PETSC_NULL means identity matrix */
     ierr = VecCopy(x,y);CHKERRQ(ierr);
@@ -84,6 +87,9 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+
+  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!st->T[k]) {
     /* T[k]=PETSC_NULL means identity matrix */
     ierr = VecCopy(x,y);CHKERRQ(ierr);
@@ -121,13 +127,16 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (x == b) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+
+  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (!flg && !st->T[k]) {
     /* T[k]=PETSC_NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   if (!flg && k!=st->kspidx) {
     /* change of coefficient matrix; should not happen normally */
     ierr = KSPSetOperators(st->ksp,st->T[k],st->T[k],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -172,12 +181,15 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
+  if (x == b) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+
+  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!flg && !st->T[k]) {
     /* T[k]=PETSC_NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  if (!st->ksp) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST has no associated KSP");
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   if (!flg && k!=st->kspidx) {
     /* change of coefficient matrix; should not happen normally */
     ierr = KSPSetOperators(st->ksp,st->T[k],st->T[k],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);

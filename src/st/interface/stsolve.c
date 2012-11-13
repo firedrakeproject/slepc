@@ -298,6 +298,7 @@ PetscErrorCode STMatAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscI
 {
   PetscErrorCode ierr;
   PetscScalar    gamma;
+  PetscInt       matIdx[3],nIdx;
 
   PetscFunctionBegin;
   if (initial) gamma = alpha;
@@ -318,7 +319,9 @@ PetscErrorCode STMatAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscI
     break;
   case ST_MATMODE_SHELL:
     if (initial) {
-      ierr = STMatShellCreate(st,alpha,&st->T[k]);CHKERRQ(ierr);
+      matIdx[0] = 0; matIdx[1] = 1;
+      nIdx = st->nmat;
+      ierr = STMatShellCreate(st,alpha,nIdx,matIdx,&st->T[k]);CHKERRQ(ierr);
     } else {
       ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
     }
@@ -339,6 +342,84 @@ PetscErrorCode STMatAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscI
       }
       if (st->nmat>1) { ierr = MatAXPY(st->T[k],gamma,st->A[1],st->str);CHKERRQ(ierr); }
       else { ierr = MatShift(st->T[k],gamma);CHKERRQ(ierr); }
+    }
+  }
+  ierr = STMatSetHermitian(st,st->T[k]);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "STMatPol_Private"
+/*
+   Builds matrix in T[k] as follows:
+   gr=1:  T[k] = A+alpha*B (if st->nmat==2) or B+2*alpha*C (if st->nmat==3)
+   gr=2: T[k] = A+sigma*B+sigma*sigma*C
+*/
+PetscErrorCode STMatPol_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscInt gr,PetscInt k,PetscBool initial)
+{
+  PetscErrorCode ierr;
+  PetscScalar    gamma;
+  PetscInt       matIdx[3],t,i;
+
+  PetscFunctionBegin;
+  if (st->nmat==3 && gr==1) t = 1;
+  else t = 0;
+  switch (st->shift_matrix) {
+  case ST_MATMODE_INPLACE:
+    if (initial) {
+      ierr = PetscObjectReference((PetscObject)st->A[t]);CHKERRQ(ierr);
+      st->T[k] = st->A[t];
+      gamma = alpha;
+    }else gamma = alpha-beta;
+    if (gamma != 0.0) {
+      if (st->nmat>1) {
+        ierr = MatAXPY(st->T[k],gamma,st->A[t+1],st->str);CHKERRQ(ierr);
+        if (st->nmat==3 && gr==2) {
+          ierr = MatAXPY(st->T[k],gamma*gamma,st->A[2],st->str);CHKERRQ(ierr);
+        }
+      } else {
+        ierr = MatShift(st->T[k],gamma);CHKERRQ(ierr);
+      }
+    }
+    break;
+  case ST_MATMODE_SHELL:
+    if (initial) {
+      if (st->nmat>1) {
+        for (i=0;i<=gr;i++) {
+          matIdx[i] = t+i;
+        }
+        ierr = STMatShellCreate(st,alpha,gr+1,matIdx,&st->T[k]);CHKERRQ(ierr);
+      } else {
+        ierr = STMatShellCreate(st,alpha,gr,PETSC_NULL,&st->T[k]);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    if (alpha == 0.0) {
+      if (!initial) { ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr); }
+      ierr = PetscObjectReference((PetscObject)st->A[t]);CHKERRQ(ierr);
+      st->T[k] = st->A[t];
+    } else {
+      if (initial) {
+        ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
+      } else {
+        if (beta==0.0) {
+          ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
+          ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
+        } else {
+          ierr = MatCopy(st->A[t],st->T[k],SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+        }
+      }
+      if (st->nmat>1) {
+        ierr = MatAXPY(st->T[k],alpha,st->A[t+1],st->str);CHKERRQ(ierr);
+        if (st->nmat==3 && gr==2) {
+          ierr = MatAXPY(st->T[k],alpha*alpha,st->A[2],st->str);CHKERRQ(ierr);
+        }
+      } else {
+        ierr = MatShift(st->T[k],alpha);CHKERRQ(ierr);
+      }
     }
   }
   ierr = STMatSetHermitian(st,st->T[k]);CHKERRQ(ierr);

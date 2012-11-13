@@ -122,7 +122,7 @@ PetscErrorCode STSetUp_Precond(ST st)
 
     /* If some matrix has to be set to ksp, a shell matrix is created */
     if (setmat) {
-      ierr = STMatShellCreate(st,-st->sigma,&P);CHKERRQ(ierr);
+      ierr = STMatShellCreate(st,-st->sigma,0,PETSC_NULL,&P);CHKERRQ(ierr);
       ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
       destroyP = PETSC_TRUE;
     }

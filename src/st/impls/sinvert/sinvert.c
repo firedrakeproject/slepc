@@ -91,11 +91,17 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscS
 PetscErrorCode STPostSolve_Sinvert(ST st)
 {
   PetscErrorCode ierr;
+  PetscScalar    s;
 
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
-      ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
+      if (st->nmat==3){
+        ierr = MatAXPY(st->A[0],-st->sigma*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
+        ierr = MatAXPY(st->A[1],-2*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
+        s = -st->sigma;
+      } else s = st->sigma;
+      ierr = MatAXPY(st->A[0],s,st->A[1],st->str);CHKERRQ(ierr);
     } else {
       ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
@@ -110,22 +116,33 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
 PetscErrorCode STSetUp_Sinvert(ST st)
 {
   PetscErrorCode ierr;
+  PetscScalar    gamma;
+  
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
-
-  /* T[0] = B */
-  if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
-  st->T[0] = st->A[1];
-
-  /* T[1] = A-sigma*B */
-  ierr = STMatAXPY_Private(st,-st->sigma,0.0,1,PETSC_TRUE);CHKERRQ(ierr);
-
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-  st->kspidx = 1;
+  if(st->nmat<3){
+    /* T[0] = B */
+    if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
+    st->T[0] = st->A[1];
+    gamma = -st->sigma;
+  } else {
+    /* T[0] = C */
+      ierr = PetscObjectReference((PetscObject)st->A[2]);CHKERRQ(ierr);
+      st->T[0] = st->A[2];
+    /* T[2] = A+sigma*B+sigma*sigma*C */
+    ierr = STMatPol_Private(st,st->sigma,0.0,2,2,PETSC_TRUE);CHKERRQ(ierr);
+    gamma = 2*st->sigma;
+  }
+  /* T[1] = A-sigma*B or B+2*sigma*C  */
+  ierr = STMatPol_Private(st,gamma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
+  if ( st->nmat<3) {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+    st->kspidx = 1;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -135,18 +152,23 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
   MatStructure   flg;
+  PetscScalar    alpha,beta;
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
-
-  ierr = STMatAXPY_Private(st,-newshift,-st->sigma,1,PETSC_FALSE);CHKERRQ(ierr);
-
-  if (st->kspidx==1) {  /* Update KSP operator */
+  if (st->nmat<3) {
+    alpha = -newshift; beta = -st->sigma;
+  } else {
+    ierr = STMatPol_Private(st,newshift,st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
+    alpha = 2*newshift; beta = 2*st->sigma;
+  }
+  ierr = STMatPol_Private(st,alpha,beta,1,1,PETSC_FALSE);CHKERRQ(ierr);
+  if (st->kspidx==1 || (st->nmat==3 && st->kspidx==2)) {  /* Update KSP operator */
     /* Check if the new KSP matrix has the same zero structure */
     if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
     else flg = SAME_NONZERO_PATTERN;
-    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
+    ierr = KSPSetOperators(st->ksp,st->T[st->kspidx],st->T[st->kspidx],flg);CHKERRQ(ierr); 
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

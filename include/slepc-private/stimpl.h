@@ -71,7 +71,7 @@ struct _p_ST {
 
 PETSC_EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
-PETSC_EXTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,Mat*);
+PETSC_EXTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,Mat*);
 PETSC_EXTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_EXTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 PETSC_EXTERN PetscErrorCode STMatAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscBool);
