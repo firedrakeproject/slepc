@@ -74,7 +74,7 @@ PETSC_EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
 PETSC_EXTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,Mat*);
 PETSC_EXTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_EXTERN PetscErrorCode STMatSetHermitian(ST,Mat);
-PETSC_EXTERN PetscErrorCode STMatAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscBool);
+PETSC_EXTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
 
 #endif
 

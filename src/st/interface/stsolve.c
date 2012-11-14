@@ -349,20 +349,25 @@ PetscErrorCode STMatAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscI
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STMatPol_Private"
+#define __FUNCT__ "STMatGAXPY_Private"
 /*
+   Computes a generalized AXPY operation on the A[:] matrices provided by the user,
+   and stores the result in one of the T[:] matrices. The computation is different
+   depending on whether the ST has two or three matrices. Also, in quadratic problems
+   this function is used to compute two matrices, those corresponding to degree 1 and 2.
+
    Builds matrix in T[k] as follows:
-   gr=1:  T[k] = A+alpha*B (if st->nmat==2) or B+2*alpha*C (if st->nmat==3)
-   gr=2: T[k] = A+sigma*B+sigma*sigma*C
+   deg=1: T[k] = A+alpha*B (if st->nmat==2) or B+2*alpha*C (if st->nmat==3)
+   deg=2: T[k] = A+alpha*B+alpha*alpha*C
 */
-PetscErrorCode STMatPol_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscInt gr,PetscInt k,PetscBool initial)
+PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscInt deg,PetscInt k,PetscBool initial)
 {
   PetscErrorCode ierr;
   PetscScalar    gamma;
   PetscInt       matIdx[3],t,i;
 
   PetscFunctionBegin;
-  if (st->nmat==3 && gr==1) t = 1;
+  if (st->nmat==3 && deg==1) t = 1;
   else t = 0;
   switch (st->shift_matrix) {
   case ST_MATMODE_INPLACE:
@@ -370,11 +375,11 @@ PetscErrorCode STMatPol_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscIn
       ierr = PetscObjectReference((PetscObject)st->A[t]);CHKERRQ(ierr);
       st->T[k] = st->A[t];
       gamma = alpha;
-    }else gamma = alpha-beta;
+    } else gamma = alpha-beta;
     if (gamma != 0.0) {
       if (st->nmat>1) {
         ierr = MatAXPY(st->T[k],gamma,st->A[t+1],st->str);CHKERRQ(ierr);
-        if (st->nmat==3 && gr==2) {
+        if (st->nmat==3 && deg==2) {
           ierr = MatAXPY(st->T[k],gamma*gamma,st->A[2],st->str);CHKERRQ(ierr);
         }
       } else {
@@ -385,12 +390,12 @@ PetscErrorCode STMatPol_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscIn
   case ST_MATMODE_SHELL:
     if (initial) {
       if (st->nmat>1) {
-        for (i=0;i<=gr;i++) {
+        for (i=0;i<=deg;i++) {
           matIdx[i] = t+i;
         }
-        ierr = STMatShellCreate(st,alpha,gr+1,matIdx,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,deg+1,matIdx,&st->T[k]);CHKERRQ(ierr);
       } else {
-        ierr = STMatShellCreate(st,alpha,gr,PETSC_NULL,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,deg,PETSC_NULL,&st->T[k]);CHKERRQ(ierr);
       }
     } else {
       ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
@@ -414,7 +419,7 @@ PetscErrorCode STMatPol_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscIn
       }
       if (st->nmat>1) {
         ierr = MatAXPY(st->T[k],alpha,st->A[t+1],st->str);CHKERRQ(ierr);
-        if (st->nmat==3 && gr==2) {
+        if (st->nmat==3 && deg==2) {
           ierr = MatAXPY(st->T[k],alpha*alpha,st->A[2],st->str);CHKERRQ(ierr);
         }
       } else {

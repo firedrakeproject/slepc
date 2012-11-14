@@ -110,15 +110,15 @@ PetscErrorCode STSetUp_Shift(ST st)
     if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
     st->T[1] = st->A[1];
     /* T[0] = A+sigma*B  */
-    ierr = STMatPol_Private(st,st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr); 
+    ierr = STMatGAXPY_Private(st,st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr); 
   } else {
     /* T[2] = C */
     ierr = PetscObjectReference((PetscObject)st->A[2]);CHKERRQ(ierr);
     st->T[2] = st->A[2];
     /* T[0] = A-sigma*B+sigma*sigma*C */
-    ierr = STMatPol_Private(st,-st->sigma,0.0,2,0,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,-st->sigma,0.0,2,0,PETSC_TRUE);CHKERRQ(ierr);
     /* T[1] = B-2*sigma*C  */
-    ierr = STMatPol_Private(st,-2*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);  
+    ierr = STMatGAXPY_Private(st,-2*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);  
   }
   if ( st->nmat==2) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
@@ -141,10 +141,10 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   if (!st->setupcalled) PetscFunctionReturn(0);
 
   if (st->nmat<3) {
-    ierr = STMatPol_Private(st,newshift,st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,newshift,st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    ierr = STMatPol_Private(st,-newshift,-st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = STMatPol_Private(st,-2*newshift,-2*st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,-2*newshift,-2*st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
   }
 
   if (st->kspidx==0 || (st->nmat==3 && st->kspidx==1)) {  /* Update KSP operator */

@@ -318,8 +318,6 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "QEPCreate_QArnoldi"
 PetscErrorCode QEPCreate_QArnoldi(QEP qep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   qep->ops->solve                = QEPSolve_QArnoldi;
   qep->ops->setup                = QEPSetUp_QArnoldi;
