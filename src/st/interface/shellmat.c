@@ -153,7 +153,7 @@ static PetscErrorCode STMatShellDestroy(Mat A)
 PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *matIdx,Mat *mat)
 {
   PetscErrorCode ierr;
-  PetscInt       n,m,N,M,nmat_,i;
+  PetscInt       n,m,N,M,i;
   PetscBool      has=PETSC_FALSE,hasA,hasB;
   ST_SHELLMAT    *ctx;
 
@@ -163,14 +163,13 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   ierr = PetscNew(ST_SHELLMAT,&ctx);CHKERRQ(ierr);
   ctx->st = st;
   ctx->alpha = alpha;
-  nmat_ = (matIdx)?nmat:st->nmat; 
-  ctx->nmat = nmat_;
-  ierr = PetscMalloc(nmat_*sizeof(PetscInt),&ctx->matIdx);CHKERRQ(ierr);
-  if (matIdx){
-    for (i=0;i<nmat_;i++) ctx->matIdx[i] = matIdx[i];
+  ctx->nmat = matIdx?nmat:st->nmat; 
+  ierr = PetscMalloc(ctx->nmat*sizeof(PetscInt),&ctx->matIdx);CHKERRQ(ierr);
+  if (matIdx) {
+    for (i=0;i<ctx->nmat;i++) ctx->matIdx[i] = matIdx[i];
   } else {
     ctx->matIdx[0] = 0;
-    if (nmat_>1) ctx->matIdx[1] = 1;
+    if (ctx->nmat>1) ctx->matIdx[1] = 1;
   }
   ierr = MatGetVecs(st->A[0],&ctx->z,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatCreateShell(((PetscObject)st)->comm,m,n,M,N,(void*)ctx,mat);CHKERRQ(ierr);
@@ -181,9 +180,9 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   ierr = MatHasOperation(st->A[ctx->matIdx[0]],MATOP_GET_DIAGONAL,&hasA);CHKERRQ(ierr);
   if (st->nmat>1) {
     has = hasA;
-    for (i=1;i<nmat;i++){
+    for (i=1;i<ctx->nmat;i++){
       ierr = MatHasOperation(st->A[ctx->matIdx[i]],MATOP_GET_DIAGONAL,&hasB);CHKERRQ(ierr);
-      has = has&&hasB;
+      has = has && hasB;
     }
   }
   if ((hasA && st->nmat==1) || has) {

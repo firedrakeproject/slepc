@@ -105,7 +105,7 @@ PetscErrorCode STSetUp_Shift(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if(st->nmat<3){
+  if (st->nmat<3) {
     /* T[1] = B */
     if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
     st->T[1] = st->A[1];
@@ -120,7 +120,7 @@ PetscErrorCode STSetUp_Shift(ST st)
     /* T[1] = B-2*sigma*C  */
     ierr = STMatGAXPY_Private(st,-2*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);  
   }
-  if ( st->nmat==2) {
+  if (st->nmat==2) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);

@@ -117,7 +117,6 @@ PetscErrorCode STSetUp_Sinvert(ST st)
 {
   PetscErrorCode ierr;
   PetscScalar    gamma;
-  
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
@@ -137,7 +136,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   }
   /* T[1] = A-sigma*B or B+2*sigma*C  */
   ierr = STMatGAXPY_Private(st,gamma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
-  if ( st->nmat<3) {
+  if (st->nmat<3) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);

@@ -592,10 +592,10 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(qep,alpha,2);
-  qep->sfactor_set = PETSC_FALSE;
   if (alpha != PETSC_IGNORE) {
     if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
       qep->sfactor = 0.0;
+      qep->sfactor_set = PETSC_FALSE;
     } else {
       if (alpha < 0.0) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
       qep->sfactor = alpha;
