@@ -189,7 +189,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   PetscErrorCode ierr;
   PetscInt       j,k,l,lwork,nv,ld,newn;
   Vec            v=qep->work[0],w=qep->work[1],v_=qep->work[2],w_=qep->work[3];
-  PetscScalar    *S,*Q,*work;
+  PetscScalar    *S,*Q,*work,r,s;
   PetscReal      beta,norm,x,y;
   PetscBool      breakdown,issinv;
 
@@ -221,11 +221,11 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     ierr = STMatSolve(qep->st,2,v_,w_);CHKERRQ(ierr);
     ierr = VecScale(w_,-1.0);CHKERRQ(ierr);
     ierr = VecCopy(w,v_);CHKERRQ(ierr);
-    ierr = VecDot(v_,v,&y);CHKERRQ(ierr);
-    ierr = VecDot(w_,w,&x);CHKERRQ(ierr);
-    y = PetscAbs(y+x);
+    ierr = VecDot(v_,v,&r);CHKERRQ(ierr);
+    ierr = VecDot(w_,w,&s);CHKERRQ(ierr);
+    r = PetscAbsScalar(r+s);
     qep->sfactor = 1.0;
-    while (y > 1.0) {qep->sfactor *=10.0; y /= 10.0;}
+    while (r > 1.0) {qep->sfactor *=10.0; r /= 10.0;}
   }
   /* Restart loop */
   l = 0;

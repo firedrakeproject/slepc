@@ -182,7 +182,7 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
     has = hasA;
     for (i=1;i<ctx->nmat;i++){
       ierr = MatHasOperation(st->A[ctx->matIdx[i]],MATOP_GET_DIAGONAL,&hasB);CHKERRQ(ierr);
-      has = has && hasB;
+      has = (has && hasB)? PETSC_TRUE: PETSC_FALSE;
     }
   }
   if ((hasA && st->nmat==1) || has) {

@@ -85,7 +85,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
     if (st->nmat>1) {
       if (st->nmat==3){
         ierr = MatAXPY(st->A[0],-st->sigma*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
-        ierr = MatAXPY(st->A[1],2*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
+        ierr = MatAXPY(st->A[1],2.0*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         s = st->sigma;
       } else s = -st->sigma;
       ierr = MatAXPY(st->A[0],s,st->A[1],st->str);CHKERRQ(ierr);
@@ -118,7 +118,7 @@ PetscErrorCode STSetUp_Shift(ST st)
     /* T[0] = A-sigma*B+sigma*sigma*C */
     ierr = STMatGAXPY_Private(st,-st->sigma,0.0,2,0,PETSC_TRUE);CHKERRQ(ierr);
     /* T[1] = B-2*sigma*C  */
-    ierr = STMatGAXPY_Private(st,-2*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);  
+    ierr = STMatGAXPY_Private(st,-2.0*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);  
   }
   if (st->nmat==2) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
@@ -144,7 +144,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
     ierr = STMatGAXPY_Private(st,newshift,st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = STMatGAXPY_Private(st,-2*newshift,-2*st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,-2*newshift,-2.0*st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
   }
 
   if (st->kspidx==0 || (st->nmat==3 && st->kspidx==1)) {  /* Update KSP operator */

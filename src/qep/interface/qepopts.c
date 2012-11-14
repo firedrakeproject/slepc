@@ -153,7 +153,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsBoolGroup("-qep_target_magnitude","compute nearest eigenvalues to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr);}
     ierr = PetscOptionsBoolGroup("-qep_target_real","compute eigenvalues with real parts close to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,EPS_TARGET_REAL);CHKERRQ(ierr);}
+    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_REAL);CHKERRQ(ierr);}
     ierr = PetscOptionsBoolGroupEnd("-qep_target_imaginary","compute eigenvalues with imaginary parts close to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_IMAGINARY);CHKERRQ(ierr);}
 

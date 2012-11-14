@@ -98,7 +98,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
     if (st->nmat>1) {
       if (st->nmat==3){
         ierr = MatAXPY(st->A[0],-st->sigma*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
-        ierr = MatAXPY(st->A[1],-2*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
+        ierr = MatAXPY(st->A[1],-2.0*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         s = -st->sigma;
       } else s = st->sigma;
       ierr = MatAXPY(st->A[0],s,st->A[1],st->str);CHKERRQ(ierr);
@@ -132,7 +132,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
       st->T[0] = st->A[2];
     /* T[2] = A+sigma*B+sigma*sigma*C */
     ierr = STMatGAXPY_Private(st,st->sigma,0.0,2,2,PETSC_TRUE);CHKERRQ(ierr);
-    gamma = 2*st->sigma;
+    gamma = 2.0*st->sigma;
   }
   /* T[1] = A-sigma*B or B+2*sigma*C  */
   ierr = STMatGAXPY_Private(st,gamma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
@@ -160,7 +160,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
     alpha = -newshift; beta = -st->sigma;
   } else {
     ierr = STMatGAXPY_Private(st,newshift,st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
-    alpha = 2*newshift; beta = 2*st->sigma;
+    alpha = 2.0*newshift; beta = 2.0*st->sigma;
   }
   ierr = STMatGAXPY_Private(st,alpha,beta,1,1,PETSC_FALSE);CHKERRQ(ierr);
   if (st->kspidx==1 || (st->nmat==3 && st->kspidx==2)) {  /* Update KSP operator */
