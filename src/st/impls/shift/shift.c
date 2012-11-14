@@ -144,7 +144,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
     ierr = STMatGAXPY_Private(st,newshift,st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = STMatGAXPY_Private(st,-2*newshift,-2.0*st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,-2.0*newshift,-2.0*st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
   }
 
   if (st->kspidx==0 || (st->nmat==3 && st->kspidx==1)) {  /* Update KSP operator */

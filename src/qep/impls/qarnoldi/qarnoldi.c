@@ -190,7 +190,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   PetscInt       j,k,l,lwork,nv,ld,newn;
   Vec            v=qep->work[0],w=qep->work[1],v_=qep->work[2],w_=qep->work[3];
   PetscScalar    *S,*Q,*work,r,s;
-  PetscReal      beta,norm,x,y;
+  PetscReal      beta,norm,x,y,t;
   PetscBool      breakdown,issinv;
 
   PetscFunctionBegin;
@@ -223,9 +223,9 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     ierr = VecCopy(w,v_);CHKERRQ(ierr);
     ierr = VecDot(v_,v,&r);CHKERRQ(ierr);
     ierr = VecDot(w_,w,&s);CHKERRQ(ierr);
-    r = PetscAbsScalar(r+s);
+    t = PetscAbsScalar(r+s);
     qep->sfactor = 1.0;
-    while (r > 1.0) {qep->sfactor *=10.0; r /= 10.0;}
+    while (t > 1.0) {qep->sfactor *=10.0; t /= 10.0;}
   }
   /* Restart loop */
   l = 0;
