@@ -167,6 +167,25 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     if (!qep->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (qep->which) {
+      case QEP_TARGET_MAGNITUDE:
+#if !defined(PETSC_USE_COMPLEX)
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (in magnitude)\n",qep->target);CHKERRQ(ierr);
+#else
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (in magnitude)\n",PetscRealPart(qep->target),PetscImaginaryPart(qep->target));CHKERRQ(ierr);
+#endif
+        break;
+      case QEP_TARGET_REAL:
+#if !defined(PETSC_USE_COMPLEX)
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (along the real axis)\n",qep->target);CHKERRQ(ierr);
+#else
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the real axis)\n",PetscRealPart(qep->target),PetscImaginaryPart(qep->target));CHKERRQ(ierr);
+#endif
+        break;
+#if defined(PETSC_USE_COMPLEX)
+      case QEP_TARGET_IMAGINARY:
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the imaginary axis)\n",PetscRealPart(qep->target),PetscImaginaryPart(qep->target));CHKERRQ(ierr);
+        break;
+#endif
       case QEP_LARGEST_MAGNITUDE:
         ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
         break;
