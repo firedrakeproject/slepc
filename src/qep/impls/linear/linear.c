@@ -35,6 +35,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   PetscInt       i=0;
   EPSWhich       which;
   PetscBool      trackall;
+  PetscScalar    sigma;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
@@ -125,6 +126,11 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   if (ctx->setfromoptionscalled) {
     ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
     ctx->setfromoptionscalled = PETSC_FALSE;
+  }
+  /* temporary change of target */
+  if (qep->sfactor != 1.0){
+    ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
+    ierr = EPSSetTarget(ctx->eps,sigma/qep->sfactor);CHKERRQ(ierr);
   }
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
@@ -287,6 +293,7 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
   PetscBool      flg=PETSC_FALSE;
+  PetscScalar    sigma;
 
   PetscFunctionBegin;
   ierr = EPSSolve(ctx->eps);CHKERRQ(ierr);
@@ -294,6 +301,10 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
   ierr = EPSGetIterationNumber(ctx->eps,&qep->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&qep->reason);CHKERRQ(ierr);
   ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,PETSC_NULL,&qep->linits);CHKERRQ(ierr);
+  /* restore target */
+  ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
+  ierr = EPSSetTarget(ctx->eps,sigma*qep->sfactor);CHKERRQ(ierr);
+  
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
   ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,PETSC_NULL);CHKERRQ(ierr); 
   if (flg) { 
