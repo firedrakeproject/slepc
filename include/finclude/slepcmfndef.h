@@ -1,5 +1,5 @@
 !
-!  Include file for Fortran use of the QEP object in SLEPc
+!  Include file for Fortran use of the MFN object in SLEPc
 !
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,25 +21,21 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCQEP_H)
-#define __SLEPCQEP_H
+#if !defined(__SLEPCMFN_H)
+#define __SLEPCMFN_H
 
-#include "finclude/slepcipdef.h"
-#include "finclude/slepcstdef.h"
 #include "finclude/slepcdsdef.h"
-#include "finclude/slepcepsdef.h"
+#include "finclude/slepcipdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define QEP                PetscFortranAddr
+#define MFN                    PetscFortranAddr
 #endif
 
-#define QEPType            character*(80)
-#define QEPProblemType     PetscEnum
-#define QEPWhich           PetscEnum
-#define QEPConvergedReason PetscEnum
+#define MFNType                character*(80)
+#define MFNConvergedReason     PetscEnum
+#define MFNFunction            PetscEnum
 
-#define QEPLINEAR    'linear'
-#define QEPQARNOLDI  'qarnoldi'
-#define QEPQLANCZOS  'qlanczos'
+
+#define MFNKRYLOV      'krylov'
 
 #endif

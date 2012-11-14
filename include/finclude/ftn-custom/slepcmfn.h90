@@ -1,7 +1,4 @@
 !
-!  Include file for Fortran use of the QEP object in SLEPc
-!
-!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
@@ -21,25 +18,13 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCQEP_H)
-#define __SLEPCQEP_H
 
-#include "finclude/slepcipdef.h"
-#include "finclude/slepcstdef.h"
-#include "finclude/slepcdsdef.h"
-#include "finclude/slepcepsdef.h"
-
-#if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define QEP                PetscFortranAddr
+#if !defined(PETSC_USE_FORTRAN_MODULES) 
+#include "finclude/ftn-custom/slepcmfndef.h90"
 #endif
 
-#define QEPType            character*(80)
-#define QEPProblemType     PetscEnum
-#define QEPWhich           PetscEnum
-#define QEPConvergedReason PetscEnum
-
-#define QEPLINEAR    'linear'
-#define QEPQARNOLDI  'qarnoldi'
-#define QEPQLANCZOS  'qlanczos'
-
+#if defined(PETSC_USE_FORTRAN_DATATYPES) && !defined(MFN_HIDE)
+#define MFN_HIDE type(MFN)
+#elif !defined(MFN_HIDE)
+#define MFN_HIDE MFN
 #endif

@@ -1,5 +1,5 @@
 !
-!  Include file for Fortran use of the QEP object in SLEPc
+!  Include file for Fortran use of the MFN object in SLEPc
 !
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,25 +21,31 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCQEP_H)
-#define __SLEPCQEP_H
+#include "finclude/slepcmfndef.h"
 
-#include "finclude/slepcipdef.h"
-#include "finclude/slepcstdef.h"
-#include "finclude/slepcdsdef.h"
-#include "finclude/slepcepsdef.h"
+!  Convergence flags.
+!  They sould match the flags in $SLEPC_DIR/include/slepcmfn.h
 
-#if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define QEP                PetscFortranAddr
-#endif
+      PetscEnum MFN_CONVERGED_TOL        
+      PetscEnum MFN_DIVERGED_ITS
+      PetscEnum MFN_DIVERGED_BREAKDOWN
+      PetscEnum MFN_CONVERGED_ITERATING
 
-#define QEPType            character*(80)
-#define QEPProblemType     PetscEnum
-#define QEPWhich           PetscEnum
-#define QEPConvergedReason PetscEnum
+      parameter (MFN_CONVERGED_TOL          =  2)
+      parameter (MFN_DIVERGED_ITS           = -3)
+      parameter (MFN_DIVERGED_BREAKDOWN     = -4)
+      parameter (MFN_CONVERGED_ITERATING    =  0)
 
-#define QEPLINEAR    'linear'
-#define QEPQARNOLDI  'qarnoldi'
-#define QEPQLANCZOS  'qlanczos'
+      PetscEnum MFN_EXP
 
-#endif
+      parameter (MFN_EXP                    =  1)
+      
+!
+!   Possible arguments to MFNMonitorSet()
+!
+      external MFNMONITORDEFAULT
+      external MFNMONITORLG
+
+!
+!  End of Fortran include file for the MFN package in SLEPc
+!

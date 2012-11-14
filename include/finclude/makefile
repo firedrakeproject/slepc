@@ -19,11 +19,15 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requiresdefine   'PETSC_USING_F90'
+
 CFLAGS    =
 FFLAGS    =
 SOURCEC   =
 SOURCEF   =
-SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcip.h slepcds.h
+SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcqep.h slepcmfn.h slepcip.h slepcds.h \
+            slepc.h90 slepceps.h90 slepcst.h90 slepcsvd.h90 slepcqep.h90 slepcmfn.h90 slepcip.h90 slepcds.h90 \
+            slepcdef.h slepcepsdef.h slepcstdef.h slepcsvddef.h slepcqepdef.h slepcmfndef.h slepcipdef.h slepcdsdef.h
 LIBBASE   = libslepc
 DIRS      = 
 MANSEC    = 
