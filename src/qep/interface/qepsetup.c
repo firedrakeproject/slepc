@@ -48,8 +48,9 @@ PetscErrorCode QEPSetUp(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
-  PetscBool      khas,mhas,lindep;
+  PetscBool      khas,mhas,lindep,islinear,flg;
   PetscReal      knorm,mnorm,norm;
+  Mat            mat[3];
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -59,6 +60,13 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* Set default solver type (QEPSetFromOptions was not called) */
   if (!((PetscObject)qep)->type_name) {
     ierr = QEPSetType(qep,QEPLINEAR);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
+  if (!islinear) {
+    if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
+    if (!((PetscObject)qep->st)->type_name) {
+      ierr = STSetType(qep->st,STSHIFT);CHKERRQ(ierr);
+    }
   }
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   if (!((PetscObject)qep->ip)->type_name) {
@@ -70,8 +78,14 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = PetscRandomSetFromOptions(qep->rand);CHKERRQ(ierr);
   }
 
-  /* Check matrices */
+  /* Check matrices, transfer them to ST */
   if (!qep->M || !qep->C || !qep->K) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSetOperators must be called first"); 
+  if (!islinear) {
+    mat[0] = qep->K;
+    mat[1] = qep->C;
+    mat[2] = qep->M;
+    ierr = STSetOperators(qep->st,3,mat);CHKERRQ(ierr);
+  }
   
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,PETSC_NULL);CHKERRQ(ierr);
@@ -140,10 +154,17 @@ PetscErrorCode QEPSetUp(QEP qep)
       qep->which_func = SlepcCompareTargetImaginary;
       qep->which_ctx  = &qep->target;
       break;
-    }
+  }
 
   if (qep->ncv > 2*qep->n) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
+
+  /* Setup ST */
+  if (!islinear) {
+    ierr = PetscObjectTypeCompareAny((PetscObject)qep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
+    if (!flg) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in QEP");
+    ierr = STSetUp(qep->st);CHKERRQ(ierr);
+  }
 
   /* process initial vectors */
   if (qep->nini<0) {

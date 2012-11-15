@@ -234,6 +234,8 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
     ierr = DSView(qep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
+    ierr = STView(qep->st,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

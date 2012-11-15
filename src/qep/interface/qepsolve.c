@@ -47,7 +47,7 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
-  PetscBool      flg,viewed=PETSC_FALSE;
+  PetscBool      flg,viewed=PETSC_FALSE,islinear;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
@@ -80,6 +80,7 @@ PetscErrorCode QEPSolve(QEP qep)
 
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   if (!qep->setupcalled){ ierr = QEPSetUp(qep);CHKERRQ(ierr); }
+  ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
   qep->nconv = 0;
   qep->its = 0;
   for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
@@ -89,9 +90,15 @@ PetscErrorCode QEPSolve(QEP qep)
 
   ierr = PetscLogEventBegin(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);
+  if (!islinear) { ierr = STPostSolve(qep->st);CHKERRQ(ierr); }
   ierr = PetscLogEventEnd(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
 
   if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+
+  if (!islinear) {
+    /* Map eigenvalues back to the original problem */
+    ierr = STBackTransform(qep->st,qep->nconv,qep->eigr,qep->eigi);CHKERRQ(ierr);
+  }
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */

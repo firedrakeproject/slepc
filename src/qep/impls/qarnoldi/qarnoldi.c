@@ -30,21 +30,8 @@
 PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
-  Mat            K,C,M,mat[3];
   
   PetscFunctionBegin;
-  if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
-  if (!((PetscObject)qep->st)->type_name) {
-    ierr = STSetType(qep->st,STSHIFT);CHKERRQ(ierr);
-  }
-  ierr = QEPGetOperators(qep,&M,&C,&K);CHKERRQ(ierr);
-  mat[0] = K;
-  mat[1] = C;
-  mat[2] = M;
-  ierr = STSetOperators(qep->st,3,mat);CHKERRQ(ierr);
-  /* Setup ST */
-  ierr = STSetUp(qep->st);CHKERRQ(ierr);
-
   if (qep->ncv) { /* ncv set */
     if (qep->ncv<qep->nev) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must be at least nev"); 
   }
@@ -288,10 +275,6 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(qep->ds,qep->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
   ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-
-  ierr = STPostSolve(qep->st);CHKERRQ(ierr);
-  /* Map eigenvalues back to the original problem */
-  ierr = STBackTransform(qep->st,qep->nconv,qep->eigr,qep->eigi);CHKERRQ(ierr);
 
   /* Compute eigenvectors */
   if (qep->nconv > 0) {
