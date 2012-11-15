@@ -24,6 +24,7 @@
 #include <slepc-private/stimpl.h>
 #include <slepc-private/svdimpl.h>
 #include <slepc-private/qepimpl.h>
+#include <slepc-private/mfnimpl.h>
 #include <slepc-private/ipimpl.h>
 #include <slepc-private/dsimpl.h>
 #include <slepc-private/vecimplslepc.h>
