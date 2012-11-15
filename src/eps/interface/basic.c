@@ -36,8 +36,8 @@ const char *EPSPRIMMEMethods[] = {"DYNAMIC","DEFAULT_MIN_TIME","DEFAULT_MIN_MATV
 #undef __FUNCT__
 #define __FUNCT__ "EPSFinalizePackage"
 /*@C
-  EPSFinalizePackage - This function destroys everything in the Slepc interface to the EPS package. It is
-  called from SlepcFinalize().
+  EPSFinalizePackage - This function destroys everything in the SLEPc interface
+  to the EPS package. It is called from SlepcFinalize().
 
   Level: developer
 
@@ -55,9 +55,9 @@ PetscErrorCode EPSFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "EPSInitializePackage"
 /*@C
-  EPSInitializePackage - This function initializes everything in the EPS package. It is called
-  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to EPSCreate()
-  when using static libraries.
+  EPSInitializePackage - This function initializes everything in the EPS package.
+  It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+  on the first call to EPSCreate() when using static libraries.
 
   Input Parameter:
   path - The dynamic library path, or PETSC_NULL
@@ -66,7 +66,8 @@ PetscErrorCode EPSFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode EPSInitializePackage(const char *path) {
+PetscErrorCode EPSInitializePackage(const char *path)
+{
   char           logList[256];
   char           *className;
   PetscBool      opt;

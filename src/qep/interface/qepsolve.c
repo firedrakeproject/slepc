@@ -91,7 +91,7 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
 
-  if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,1,"Internal error, solver returned without setting converged reason");
+  if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */

@@ -99,7 +99,6 @@ PetscErrorCode EPSSolve(EPS eps)
   if (flg) {
     ierr = PetscStrcmp(view,"before",&viewed);CHKERRQ(ierr);
     if (viewed){
-      PetscViewer viewer;
       ierr = PetscViewerASCIIGetStdout(((PetscObject)eps)->comm,&viewer);CHKERRQ(ierr);
       ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
     }
@@ -146,7 +145,7 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = STPostSolve(eps->OP);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
-  if (!eps->reason) SETERRQ(((PetscObject)eps)->comm,1,"Internal error, solver returned without setting converged reason");
+  if (!eps->reason) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   /* Map eigenvalues back to the original problem, necessary in some 
   * spectral transformations */

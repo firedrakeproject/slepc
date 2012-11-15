@@ -56,6 +56,7 @@ struct _p_MFN {
   MFNFunction    function;         /* which function to compute */
 
   /*------------------------- Working data --------------------------*/
+  Mat         A;                /* the problem matrix */
   Vec         *V;               /* set of basis vectors */
   PetscReal   errest;           /* error estimate */
   IP          ip;               /* innerproduct object */
@@ -82,7 +83,7 @@ struct _p_MFN {
   PetscInt       numbermonitors; 
 };
 
-PETSC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal;
+PETSC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
 
 PETSC_EXTERN PetscErrorCode MFNReset_Default(MFN);
 PETSC_EXTERN PetscErrorCode MFNDefaultGetWork(MFN,PetscInt);
