@@ -172,11 +172,11 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = MatCreateShell(((PetscObject)st)->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);
   } else {
-    ierr = STMatAXPY_Private(st,ctx->nu,0.0,0,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,ctx->nu,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
   }
 
   /* T[1] = A-sigma*B */
-  ierr = STMatAXPY_Private(st,-st->sigma,0.0,1,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STMatGAXPY_Private(st,-st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
 
   if (st->nmat>1) { 
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
@@ -205,11 +205,11 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
   if (!ctx->nu_set) {
     if (st->shift_matrix!=ST_MATMODE_INPLACE) {
-      ierr = STMatAXPY_Private(st,newshift,ctx->nu,0,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = STMatGAXPY_Private(st,newshift,ctx->nu,1,0,PETSC_FALSE);CHKERRQ(ierr);
     }
     ctx->nu = newshift;
   }
-  ierr = STMatAXPY_Private(st,-newshift,-st->sigma,1,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
 
   if (st->kspidx==1) {  /* Update KSP operator */
     /* Check if the new KSP matrix has the same zero structure */
@@ -269,7 +269,7 @@ PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   if (st->setupcalled && st->shift_matrix!=ST_MATMODE_INPLACE) {
-    ierr = STMatAXPY_Private(st,newshift,ctx->nu,0,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,newshift,ctx->nu,1,0,PETSC_FALSE);CHKERRQ(ierr);
   }
   ctx->nu     = newshift;
   ctx->nu_set = PETSC_TRUE;

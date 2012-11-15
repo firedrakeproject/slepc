@@ -288,67 +288,6 @@ PetscErrorCode STSetUp(ST st)
 }
 
 #undef __FUNCT__  
-#define __FUNCT__ "STMatAXPY_Private"
-/*
-   Builds matrix in T[k] as follows:
-   initial = TRUE:  T[k] = A+alpha*B
-   initial = FALSE: T[k] = T[k]+(alpha-beta)*B = A+alpha*B
-*/
-PetscErrorCode STMatAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscInt k,PetscBool initial)
-{
-  PetscErrorCode ierr;
-  PetscScalar    gamma;
-  PetscInt       matIdx[3],nIdx;
-
-  PetscFunctionBegin;
-  if (initial) gamma = alpha;
-  else gamma = alpha-beta;
-  switch (st->shift_matrix) {
-  case ST_MATMODE_INPLACE:
-    if (initial) {
-      ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
-      st->T[k] = st->A[0];
-    }
-    if (gamma != 0.0) {
-      if (st->nmat>1) { 
-        ierr = MatAXPY(st->T[k],gamma,st->A[1],st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(st->T[k],gamma);CHKERRQ(ierr); 
-      }
-    }
-    break;
-  case ST_MATMODE_SHELL:
-    if (initial) {
-      matIdx[0] = 0; matIdx[1] = 1;
-      nIdx = st->nmat;
-      ierr = STMatShellCreate(st,alpha,nIdx,matIdx,&st->T[k]);CHKERRQ(ierr);
-    } else {
-      ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
-    }
-    break;
-  default:
-    if (alpha == 0.0) {
-      if (!initial) { ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr); }
-      ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
-      st->T[k] = st->A[0];
-    } else {
-      if (initial) {
-        ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
-      } else {
-        if (beta==0.0) {
-          ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
-          ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
-        }
-      }
-      if (st->nmat>1) { ierr = MatAXPY(st->T[k],gamma,st->A[1],st->str);CHKERRQ(ierr); }
-      else { ierr = MatShift(st->T[k],gamma);CHKERRQ(ierr); }
-    }
-  }
-  ierr = STMatSetHermitian(st,st->T[k]);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__  
 #define __FUNCT__ "STMatGAXPY_Private"
 /*
    Computes a generalized AXPY operation on the A[:] matrices provided by the user,
