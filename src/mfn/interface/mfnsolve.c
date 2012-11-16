@@ -40,6 +40,7 @@
 
    Options Database:
 +   -mfn_view - print information about the solver used
+.   -mfn_view_before - print info at the beginning of the solve
 -   -mfn_view_binary - save the matrix to the default binary file
 
    Notes:
@@ -54,10 +55,9 @@
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x) 
 {
   PetscErrorCode ierr;
-  PetscBool      flg,viewed=PETSC_FALSE;
+  PetscBool      flg;
   PetscViewer    viewer;
   char           filename[PETSC_MAX_PATH_LEN];
-  char           view[10];
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -68,13 +68,10 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
     ierr = VecView(b,PETSC_VIEWER_BINARY_(((PetscObject)mfn)->comm));CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsGetString(((PetscObject)mfn)->prefix,"-mfn_view",view,10,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(((PetscObject)mfn)->prefix,"-mfn_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
   if (flg) {
-    ierr = PetscStrcmp(view,"before",&viewed);CHKERRQ(ierr);
-    if (viewed) {
-      ierr = PetscViewerASCIIGetStdout(((PetscObject)mfn)->comm,&viewer);CHKERRQ(ierr);
-      ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 
-    }
+    ierr = PetscViewerASCIIGetStdout(((PetscObject)mfn)->comm,&viewer);CHKERRQ(ierr);
+    ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 
   }
 
   /* reset the convergence flag from the previous solves */
@@ -98,13 +95,11 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   if (!mfn->reason) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-  if (!viewed) {
-    ierr = PetscOptionsGetString(((PetscObject)mfn)->prefix,"-mfn_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg && !PetscPreLoadingOn) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)mfn)->comm,filename,&viewer);CHKERRQ(ierr);
-      ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 
-      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-    }
+  ierr = PetscOptionsGetString(((PetscObject)mfn)->prefix,"-mfn_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  if (flg && !PetscPreLoadingOn) {
+    ierr = PetscViewerASCIIOpen(((PetscObject)mfn)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

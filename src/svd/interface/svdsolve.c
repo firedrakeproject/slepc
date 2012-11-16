@@ -34,7 +34,9 @@
 .  svd - singular value solver context obtained from SVDCreate()
 
    Options Database:
-.   -svd_view - print information about the solver used
++   -svd_view - print information about the solver used
+.   -svd_view_before - print info at the beginning of the solve
+-   -svd_view_binary - save the matrices to the default binary file
 
    Level: beginner
 
@@ -51,6 +53,18 @@ PetscErrorCode SVDSolve(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  flg = PETSC_FALSE;
+  ierr = PetscOptionsGetBool(((PetscObject)svd)->prefix,"-svd_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  if (flg) {
+    ierr = MatView(svd->OP,PETSC_VIEWER_BINARY_(((PetscObject)svd)->comm));CHKERRQ(ierr);
+  }
+
+  ierr = PetscOptionsGetBool(((PetscObject)svd)->prefix,"-svd_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerASCIIGetStdout(((PetscObject)svd)->comm,&viewer);CHKERRQ(ierr);
+    ierr = SVDView(svd,viewer);CHKERRQ(ierr); 
+  }
+
   if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
   svd->its = 0;
   svd->nconv = 0;

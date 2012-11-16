@@ -56,6 +56,7 @@ PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
 
    Options Database:
 +   -qep_view - print information about the solver used
+.   -qep_view_before - print info at the beginning of the solve
 .   -qep_view_binary - save the matrices to the default binary file
 -   -qep_plot_eigs - plot computed eigenvalues
 
@@ -68,12 +69,11 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
-  PetscBool      flg,viewed=PETSC_FALSE,islinear;
+  PetscBool      flg,viewed,islinear;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   char           filename[PETSC_MAX_PATH_LEN];
-  char           view[10];
   QEPSortForSTData data;
 
   PetscFunctionBegin;
@@ -87,14 +87,10 @@ PetscErrorCode QEPSolve(QEP qep)
     ierr = MatView(qep->K,PETSC_VIEWER_BINARY_(((PetscObject)qep)->comm));CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsGetString(((PetscObject)qep)->prefix,"-qep_view",view,10,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
   if (flg) {
-    ierr = PetscStrcmp(view,"before",&viewed);CHKERRQ(ierr);
-    if (viewed){
-      PetscViewer viewer;
-      ierr = PetscViewerASCIIGetStdout(((PetscObject)qep)->comm,&viewer);CHKERRQ(ierr);
-      ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
-    }
+    ierr = PetscViewerASCIIGetStdout(((PetscObject)qep)->comm,&viewer);CHKERRQ(ierr);
+    ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
   }
 
   /* reset the convergence flag from the previous solves */
@@ -150,13 +146,11 @@ PetscErrorCode QEPSolve(QEP qep)
   /* sort eigenvalues according to qep->which parameter */
   ierr = QEPSortEigenvalues(qep,qep->nconv,qep->eigr,qep->eigi,qep->perm);CHKERRQ(ierr);
 
-  if (!viewed) {
-    ierr = PetscOptionsGetString(((PetscObject)qep)->prefix,"-qep_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg && !PetscPreLoadingOn) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,filename,&viewer);CHKERRQ(ierr);
-      ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
-      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-    }
+  ierr = PetscOptionsGetString(((PetscObject)qep)->prefix,"-qep_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  if (flg && !PetscPreLoadingOn) {
+    ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   flg = PETSC_FALSE;

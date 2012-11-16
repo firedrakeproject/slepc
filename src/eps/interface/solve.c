@@ -56,6 +56,7 @@ PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
 
    Options Database:
 +   -eps_view - print information about the solver used
+.   -eps_view_before - print info at the beginning of the solve
 .   -eps_view_binary - save the matrices to the default binary file
 -   -eps_plot_eigs - plot computed eigenvalues
 
@@ -69,13 +70,12 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscInt       i,nmat;
   PetscReal      re,im;
   PetscScalar    dot;
-  PetscBool      flg,isfold,iscayley,viewed=PETSC_FALSE;
+  PetscBool      flg,isfold,iscayley;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   STMatMode      matmode;
   char           filename[PETSC_MAX_PATH_LEN];
-  char           view[10];
   EPSSortForSTData data;
   Mat            A,B;
   KSP            ksp;
@@ -95,13 +95,10 @@ PetscErrorCode EPSSolve(EPS eps)
     }
   }
 
-  ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",view,10,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
   if (flg) {
-    ierr = PetscStrcmp(view,"before",&viewed);CHKERRQ(ierr);
-    if (viewed){
-      ierr = PetscViewerASCIIGetStdout(((PetscObject)eps)->comm,&viewer);CHKERRQ(ierr);
-      ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
-    }
+    ierr = PetscViewerASCIIGetStdout(((PetscObject)eps)->comm,&viewer);CHKERRQ(ierr);
+    ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
   }
 
   /* reset the convergence flag from the previous solves */
@@ -224,13 +221,11 @@ PetscErrorCode EPSSolve(EPS eps)
   /* sort eigenvalues according to eps->which parameter */
   ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
 
-  if (!viewed) {
-    ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg && !PetscPreLoadingOn) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,filename,&viewer);CHKERRQ(ierr);
-      ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
-      ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-    }
+  ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  if (flg && !PetscPreLoadingOn) {
+    ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   flg = PETSC_FALSE;
