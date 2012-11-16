@@ -92,7 +92,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 
     ierr = PetscOptionsScalar("-qep_target","Value of the target","QEPSetTarget",qep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
-      //ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
       ierr = QEPSetTarget(qep,s);CHKERRQ(ierr);
     }
     

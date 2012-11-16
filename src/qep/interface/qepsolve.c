@@ -23,6 +23,27 @@
 
 #include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 
+typedef struct {
+  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar, PetscInt*,void*);
+  void *which_ctx;
+  ST st;
+} QEPSortForSTData;
+
+#undef __FUNCT__  
+#define __FUNCT__ "QEPSortForSTFunc"
+PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
+                                PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+{
+  QEPSortForSTData *data = (QEPSortForSTData*)ctx;
+  PetscErrorCode   ierr;
+
+  PetscFunctionBegin;
+  ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
+  ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
+  ierr = (*data->which_func)(ar,ai,br,bi,r,data->which_ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__  
 #define __FUNCT__ "QEPSolve"
 /*@
@@ -53,6 +74,7 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscDrawSP    drawsp;
   char           filename[PETSC_MAX_PATH_LEN];
   char           view[10];
+  QEPSortForSTData data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -86,6 +108,14 @@ PetscErrorCode QEPSolve(QEP qep)
   for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
   ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);CHKERRQ(ierr);
 
+  if (!islinear) {
+    /* temporarily change eigenvalue comparison function */
+    data.which_func = qep->which_func;
+    data.which_ctx = qep->which_ctx;
+    data.st = qep->st;
+    qep->which_func = QEPSortForSTFunc;
+    qep->which_ctx = &data;
+  }
   ierr = DSSetEigenvalueComparison(qep->ds,qep->which_func,qep->which_ctx);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
@@ -96,6 +126,9 @@ PetscErrorCode QEPSolve(QEP qep)
   if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   if (!islinear) {
+    /* restore comparison function */
+    qep->which_func = data.which_func;
+    qep->which_ctx = data.which_ctx;
     /* Map eigenvalues back to the original problem */
     ierr = STBackTransform(qep->st,qep->nconv,qep->eigr,qep->eigi);CHKERRQ(ierr);
   }

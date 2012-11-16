@@ -44,7 +44,6 @@
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
-#define epsgetbalance_              EPSGETBALANCE
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
 #define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
@@ -76,7 +75,6 @@
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
-#define epsgetbalance_              epsgetbalance
 #define epsgetconvergedreason_      epsgetconvergedreason
 #define epspowergetshifttype_       epspowergetshifttype
 #define epslanczosgetreorthog_      epslanczosgetreorthog
