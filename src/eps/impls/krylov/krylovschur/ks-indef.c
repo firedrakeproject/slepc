@@ -44,7 +44,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
   }
 
   for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
     ierr = IPPseudoOrthogonalize(eps->ip,j+1,V,omega,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = PetscAbsReal(norm);
@@ -61,7 +61,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
       ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
     }
   }
-  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
+  ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   ierr = IPPseudoOrthogonalize(eps->ip,m,V,omega,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
   alpha[m-1] = PetscRealPart(hwork[m-1]); 
   beta[m-1] =PetscAbsReal(norm);

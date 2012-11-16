@@ -90,7 +90,7 @@ struct _p_EPS {
   PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
   PetscReal   *errest,          /* error estimates */
               *errest_left;     /* left error estimates */
-  ST          OP;               /* spectral transformation object */
+  ST          st;               /* spectral transformation object */
   IP          ip;               /* innerproduct object */
   DS          ds;               /* direct solver object */
   void        *data;            /* placeholder for misc stuff associated 

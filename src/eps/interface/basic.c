@@ -303,8 +303,8 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     }
   }
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
-  ierr = STView(eps->OP,viewer);CHKERRQ(ierr);
+  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
+  ierr = STView(eps->st,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -489,7 +489,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->eigi            = 0;
   eps->errest          = 0;
   eps->errest_left     = 0;
-  eps->OP              = 0;
+  eps->st              = 0;
   eps->ip              = 0;
   eps->ds              = 0;
   eps->rand            = 0;
@@ -657,7 +657,7 @@ PetscErrorCode EPSReset(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
-  if (eps->OP) { ierr = STReset(eps->OP);CHKERRQ(ierr); }
+  if (eps->st) { ierr = STReset(eps->st);CHKERRQ(ierr); }
   if (eps->ip) { ierr = IPReset(eps->ip);CHKERRQ(ierr); }
   if (eps->ds) { ierr = DSReset(eps->ds);CHKERRQ(ierr); }
   ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
@@ -691,7 +691,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   ierr = EPSReset(*eps);CHKERRQ(ierr);
   ierr = PetscObjectDepublish(*eps);CHKERRQ(ierr);
   if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
-  ierr = STDestroy(&(*eps)->OP);CHKERRQ(ierr);
+  ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
@@ -728,8 +728,8 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveScalar(eps,target,2);
   eps->target = target;
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
-  ierr = STSetDefaultShift(eps->OP,target);CHKERRQ(ierr);
+  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
+  ierr = STSetDefaultShift(eps->st,target);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -864,9 +864,9 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,2);
   PetscCheckSameComm(eps,1,st,2);
   ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
-  ierr = STDestroy(&eps->OP);CHKERRQ(ierr);
-  eps->OP = st;
-  ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
+  ierr = STDestroy(&eps->st);CHKERRQ(ierr);
+  eps->st = st;
+  ierr = PetscLogObjectParent(eps,eps->st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -895,11 +895,11 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(st,2);
-  if (!eps->OP) {
-    ierr = STCreate(((PetscObject)eps)->comm,&eps->OP);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(eps,eps->OP);CHKERRQ(ierr);
+  if (!eps->st) {
+    ierr = STCreate(((PetscObject)eps)->comm,&eps->st);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(eps,eps->st);CHKERRQ(ierr);
   }
-  *st = eps->OP;
+  *st = eps->st;
   PetscFunctionReturn(0);
 }
 

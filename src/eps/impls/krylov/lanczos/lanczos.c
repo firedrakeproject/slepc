@@ -133,7 +133,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
     which[i] = PETSC_TRUE;
 
   for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->OP,V[j],V[j+1]);CHKERRQ(ierr);
+    ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,which,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
@@ -150,7 +150,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
     }
   }
-  ierr = STApply(eps->OP,V[m-1],f);CHKERRQ(ierr);
+  ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,PETSC_NULL,V,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
   alpha[m-1] = PetscRealPart(hwork[m-1]); 
   beta[m-1] = norm;
@@ -264,7 +264,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
 
   for (j=k;j<m;j++) {
     /* Lanczos step */
-    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
@@ -456,7 +456,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     which[i] = PETSC_TRUE;  
   
   for (j=k;j<m;j++) {
-    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
     if (fro) {
       /* Lanczos step with full reorthogonalization */
       ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,PETSC_NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);      
@@ -719,7 +719,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       for (i=nconv;i<k;i++) {
         ierr = VecNorm(eps->V[i],NORM_2,&norm);CHKERRQ(ierr);
         ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
-        ierr = STApply(eps->OP,eps->V[i],w);CHKERRQ(ierr);
+        ierr = STApply(eps->st,eps->V[i],w);CHKERRQ(ierr);
         ierr = VecAXPY(w,-ritz[i],eps->V[i]);CHKERRQ(ierr);
         ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
         ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],norm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);

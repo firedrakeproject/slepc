@@ -84,13 +84,13 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->OP)->type_name) {
-    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   }
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
@@ -114,7 +114,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
 
   /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);

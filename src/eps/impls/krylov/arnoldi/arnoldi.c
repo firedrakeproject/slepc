@@ -110,7 +110,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
 
   for (j=k;j<m;j++) {
-    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->defl,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
@@ -210,7 +210,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
 
   PetscFunctionBegin;
   for (j=k;j<m;j++) {
-    ierr = STApply(eps->OP,V[j],f);CHKERRQ(ierr);
+    ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
     ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->defl,f,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);

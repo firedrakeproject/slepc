@@ -77,17 +77,17 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->OP)->type_name) {
-    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   }
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&precond);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
   if (!precond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"RQCG only works with precond ST");
 
   if (!ctx->nrest) ctx->nrest = 20;
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->AV);CHKERRQ(ierr);
-  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (nmat>1) {
     ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->BV);CHKERRQ(ierr);
   }
@@ -118,9 +118,9 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   else B = PETSC_NULL;
   ierr = PetscMalloc(eps->mpd*sizeof(PetscScalar),&gamma);CHKERRQ(ierr);
 
@@ -196,7 +196,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 
       /* Search direction */
       for (i=0;i<nv-eps->nconv;i++) {
-        ierr = STMatSolve(eps->OP,0,ctx->G[i],w);CHKERRQ(ierr);
+        ierr = STMatSolve(eps->st,0,ctx->G[i],w);CHKERRQ(ierr);
         ierr = VecDot(ctx->G[i],w,&g);CHKERRQ(ierr);
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
         gamma[i] = g;
@@ -413,8 +413,8 @@ PetscErrorCode EPSCreate_RQCG(EPS eps)
   eps->ops->view           = EPSView_RQCG;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Default;
-  ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","EPSRQCGSetReset_RQCG",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGGetReset_C","EPSRQCGGetReset_RQCG",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -240,7 +240,7 @@ static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
   nconv = 0;
   for (i=0,j=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
-    ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
     if (PetscRealPart(er) > 0.0) {
       svd->sigma[j] = PetscRealPart(er);
       svd->errest[j] = errest[i];

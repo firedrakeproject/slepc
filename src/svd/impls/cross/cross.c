@@ -184,7 +184,7 @@ static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
   PetscFunctionBegin;
   for (i=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
-    ierr = STBackTransform(eps->OP,1,&er,&ei);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
     svd->sigma[i] = PetscSqrtReal(PetscRealPart(er));
     svd->errest[i] = errest[i];
   }

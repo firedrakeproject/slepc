@@ -59,7 +59,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
   for (i=l;i<n;i++) {
     re = eps->eigr[i];
     im = eps->eigi[i];
-    ierr = STBackTransform(eps->OP,1,&re,&im);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->st,1,&re,&im);CHKERRQ(ierr);
     newi = i;
     ierr = DSVectors(eps->ds,DS_MAT_X,&newi,PETSC_NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -88,19 +88,19 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL"); 
     if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
     if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
-    if (!((PetscObject)(eps->OP))->type_name) { /* default to shift-and-invert */
-      ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
+    if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
+      ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
     }
-    ierr = PetscObjectTypeCompareAny((PetscObject)eps->OP,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
     if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
 #if defined(PETSC_USE_REAL_DOUBLE)
     if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
 #endif
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
       if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-      ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);
+      ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
     }
-    else { ierr = STSetDefaultShift(eps->OP,eps->intb);CHKERRQ(ierr); }
+    else { ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr); }
 
     if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
     if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs"); 

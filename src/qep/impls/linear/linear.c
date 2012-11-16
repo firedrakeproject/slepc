@@ -331,7 +331,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
     qep->errest[i] = errest[i];
     if (0.0 < errest[i] && errest[i] < qep->tol) nconv++;
   }
-  ierr = STBackTransform(eps->OP,nest,qep->eigr,qep->eigi);CHKERRQ(ierr);
+  ierr = STBackTransform(eps->st,nest,qep->eigr,qep->eigi);CHKERRQ(ierr);
   ierr = QEPMonitor(qep,its,nconv,qep->eigr,qep->eigi,qep->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -711,7 +711,7 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = EPSCreate(((PetscObject)qep)->comm,&ctx->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
-  ierr = STSetOptionsPrefix(ctx->eps->OP,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
+  ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);  
   ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }

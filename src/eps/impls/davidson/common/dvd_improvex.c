@@ -412,7 +412,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
                               maxits); CHKERRQ(ierr);
       ierr = KSPSolve(data->ksp, kr_comp, D_comp); CHKERRQ(ierr);
       ierr = KSPGetIterationNumber(data->ksp, &lits); CHKERRQ(ierr);
-      d->eps->OP->lineariterations+= lits;
+      d->eps->st->lineariterations+= lits;
   
       /* Destroy the composed ks and D */
       ierr = VecDestroy(&kr_comp); CHKERRQ(ierr);

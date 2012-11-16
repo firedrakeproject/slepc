@@ -84,7 +84,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   
   /* Check some constraints and set some default values */ 
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
-  ierr = STGetOperators(eps->OP,0,&ops->A);
+  ierr = STGetOperators(eps->st,0,&ops->A);
   if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
@@ -95,14 +95,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP,3e300);CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
   }
 
   /* Avoid setting the automatic shift when a target is set */
-  ierr = STSetDefaultShift(eps->OP,0.0);CHKERRQ(ierr);
+  ierr = STSetDefaultShift(eps->st,0.0);CHKERRQ(ierr);
 
-  ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&t);CHKERRQ(ierr);
   if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
@@ -156,7 +156,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Setup the preconditioner */
   ops->eps = eps;
   if (primme->correctionParams.precondition) {
-    ierr = STGetKSP(eps->OP,&ops->ksp);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&t);CHKERRQ(ierr);
     if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
     primme->preconditioner = PETSC_NULL;
@@ -229,7 +229,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   eps->nconv = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
   eps->reason = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL : EPS_DIVERGED_ITS;
   eps->its = ops->primme.stats.numOuterIterations;
-  eps->OP->applys = ops->primme.stats.numMatvecs;
+  eps->st->applys = ops->primme.stats.numMatvecs;
   PetscFunctionReturn(0);
 }
 
@@ -274,7 +274,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 
     ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
     ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
-    ops->eps->OP->lineariterations+= lits;
+    ops->eps->st->lineariterations+= lits;
     
     ierr = VecResetArray(x);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
     ierr = VecResetArray(y);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
@@ -357,13 +357,13 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   PetscFunctionReturn(0);
 
   /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->OP)->type_name) {
-    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   }
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }

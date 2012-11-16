@@ -131,10 +131,10 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         5   [ 4  'G' ]    [ 3  'G' ]
         6   [ 5  'G' ]    [ 4  'G' ]
    */
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isShift);CHKERRQ(ierr);
-  ierr = STGetShift(eps->OP,&sigmar);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isShift);CHKERRQ(ierr);
+  ierr = STGetShift(eps->st,&sigmar);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
 
   if (isSinv) { 
     /* shift-and-invert mode */
@@ -213,14 +213,14 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       if (ido == -1) { 
         /* Y = OP * X for for the initialization phase to 
            force the starting vector into the range of OP */
-        ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
+        ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
       } else if (ido == 2) {
         /* Y = B * X */
         ierr = IPApplyMatrix(eps->ip,x,y);CHKERRQ(ierr);
       } else { /* ido == 1 */
         if (iparam[6] == 3 && bmat[0] == 'G') {
           /* Y = OP * X for shift-and-invert with B semi-positive definite */
-          ierr = STMatSolve(eps->OP,1,x,y);CHKERRQ(ierr);
+          ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
         } else if (iparam[6] == 2) {
           /* X=A*X Y=B^-1*X for shift with B positive definite */
           ierr = MatMult(A,x,y);CHKERRQ(ierr);
@@ -229,10 +229,10 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
             ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
           }
           ierr = VecCopy(y,x);CHKERRQ(ierr);
-          ierr = STMatSolve(eps->OP,1,x,y);CHKERRQ(ierr);
+          ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
         } else  {
           /* Y = OP * X */
-          ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);        
+          ierr = STApply(eps->st,x,y);CHKERRQ(ierr);        
         }
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->defl,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       }
@@ -304,7 +304,7 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
   PetscBool      isSinv;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSINVERT,&isSinv);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv);CHKERRQ(ierr);
   if (!isSinv) {
     ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   }

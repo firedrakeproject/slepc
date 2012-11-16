@@ -228,7 +228,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
     /* AV(:,idx) = OP * V(:,idx) */
     for (i=eps->nconv;i<nv;i++) {
-      ierr = STApply(eps->OP,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
+      ierr = STApply(eps->st,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
     }
 
     /* T(:,idx) = V' * AV(:,idx) */
@@ -302,7 +302,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       
         /* AV(:,idx) = OP * V(:,idx) */
         for (i=eps->nconv;i<nv;i++) {
-          ierr = STApply(eps->OP,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
+          ierr = STApply(eps->st,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
         }
         
         /* V(:,idx) = AV(:,idx) with normalization */

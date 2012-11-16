@@ -43,7 +43,7 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = STBackTransform(eps->OP,eps->nconv,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  ierr = STBackTransform(eps->st,eps->nconv,eps->eigr,eps->eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -80,7 +80,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
     ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr);
-      ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
+      ierr = STApply(eps->st,w,eps->V[i]);CHKERRQ(ierr);
       ierr = IPNorm(eps->ip,eps->V[i],&norm);CHKERRQ(ierr);
       ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
     }
@@ -118,7 +118,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   ierr = VecDuplicate(eps->V[0],&v);CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
     ierr = VecCopy(eps->V[i],v);CHKERRQ(ierr);
-    ierr = STApply(eps->OP,v,eps->V[i]);CHKERRQ(ierr);
+    ierr = STApply(eps->st,v,eps->V[i]);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   /* normalization */
@@ -188,7 +188,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr); 
-      ierr = STApply(eps->OP,w,eps->V[i]);CHKERRQ(ierr);
+      ierr = STApply(eps->st,w,eps->V[i]);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
@@ -276,7 +276,7 @@ PetscErrorCode EPSDefaultSetWhich(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps->OP,&target,STSINVERT,STCAYLEY,STFOLD,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&target,STSINVERT,STCAYLEY,STFOLD,"");CHKERRQ(ierr);
   if (target) eps->which = EPS_TARGET_MAGNITUDE;
   else eps->which = EPS_LARGEST_MAGNITUDE;
   PetscFunctionReturn(0);
@@ -350,7 +350,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
 
   /* purify eigenvector in positive generalized problems */
   if (eps->ispositive) {
-    ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
+    ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
     if (eps->ishermitian) {
       ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
     } else {
@@ -370,7 +370,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
     ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Zi,V);CHKERRQ(ierr);
     if (eps->ispositive) {
       ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr);
-      ierr = STApply(eps->OP,y,z);CHKERRQ(ierr);
+      ierr = STApply(eps->st,y,z);CHKERRQ(ierr);
       ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
       ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
       ierr = VecCopy(z,y);CHKERRQ(ierr);
@@ -420,7 +420,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
 
     /* Compute p=DA(D\z) */
     ierr = VecPointwiseDivide(r,z,eps->D);CHKERRQ(ierr);
-    ierr = STApply(eps->OP,r,p);CHKERRQ(ierr);
+    ierr = STApply(eps->st,r,p);CHKERRQ(ierr);
     ierr = VecPointwiseMult(p,p,eps->D);CHKERRQ(ierr);
     if (j==0) {
       /* Estimate the matrix inf-norm */
@@ -430,7 +430,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     if (eps->balance == EPS_BALANCE_TWOSIDE) {
       /* Compute r=D\(A'Dz) */
       ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
-      ierr = STApplyTranspose(eps->OP,z,r);CHKERRQ(ierr);
+      ierr = STApplyTranspose(eps->st,z,r);CHKERRQ(ierr);
       ierr = VecPointwiseDivide(r,r,eps->D);CHKERRQ(ierr);
     }
     

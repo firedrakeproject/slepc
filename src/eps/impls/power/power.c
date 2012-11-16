@@ -69,9 +69,9 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    ierr = PetscObjectTypeCompareAny((PetscObject)eps->OP,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
-    ierr = STGetMatMode(eps->OP,&mode);CHKERRQ(ierr); 
+    ierr = STGetMatMode(eps->st,&mode);CHKERRQ(ierr); 
     if (mode == ST_MATMODE_INPLACE) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -114,7 +114,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
   /* prepare for selective orthogonalization of converged vectors */
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT && eps->nev>1) {
-    ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
     ierr = MatHasOperation(A,MATOP_NORM,&hasnorm);CHKERRQ(ierr);
     if (hasnorm) {
       ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
@@ -123,14 +123,14 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   }
 
   ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
-  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its = eps->its + 1;
 
     /* y = OP v */
-    ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
+    ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
 
     /* theta = (v,y)_B */
     ierr = IPInnerProduct(eps->ip,v,y,&theta);CHKERRQ(ierr);
@@ -162,7 +162,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       /* compute new shift */
       if (relerr<eps->tol) {
         rho = sigma; /* if converged, restore original shift */ 
-        ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+        ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
@@ -173,7 +173,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           beta1 = norm;
     
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
-          ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+          ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
           ierr = MatMult(A,v,e);CHKERRQ(ierr);
           ierr = VecDot(v,e,&alpha2);CHKERRQ(ierr);
           alpha2 = alpha2 / (beta1 * beta1);
@@ -187,13 +187,13 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         }
         /* update operator according to new shift */
         PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
-        ierr = STSetShift(eps->OP,rho);
+        ierr = STSetShift(eps->st,rho);
         PetscPopErrorHandler();
         if (ierr) {
           eps->eigr[eps->nconv] = rho;
           relerr = PETSC_MACHINE_EPSILON;
           rho = sigma;
-          ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+          ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
         }
       }
     }
@@ -260,15 +260,15 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 
   ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
   ierr = EPSGetStartVectorLeft(eps,0,w,PETSC_NULL);CHKERRQ(ierr);
-  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);    /* original shift */
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
   while (eps->its<eps->max_it) {
     eps->its++;
     
     /* y = OP v, z = OP' w */
-    ierr = STApply(eps->OP,v,y);CHKERRQ(ierr);
-    ierr = STApplyTranspose(eps->OP,w,z);CHKERRQ(ierr);
+    ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
+    ierr = STApplyTranspose(eps->st,w,z);CHKERRQ(ierr);
 
     /* theta = (v,z)_B */
     ierr = IPInnerProduct(eps->ip,v,z,&theta);CHKERRQ(ierr);
@@ -309,7 +309,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
       /* compute new shift */
       if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol) {
         rho = sigma; /* if converged, restore original shift */ 
-        ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+        ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
@@ -320,7 +320,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
           beta1 = norm;
     
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
-          ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+          ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
           ierr = MatMult(A,v,e);CHKERRQ(ierr);
           ierr = VecDot(v,e,&alpha2);CHKERRQ(ierr);
           alpha2 = alpha2 / (beta1 * beta1);
@@ -334,14 +334,14 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
         }
         /* update operator according to new shift */
         PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
-        ierr = STSetShift(eps->OP,rho);
+        ierr = STSetShift(eps->st,rho);
         PetscPopErrorHandler();
         if (ierr) {
           eps->eigr[eps->nconv] = rho;
           eps->errest[eps->nconv] = PETSC_MACHINE_EPSILON;
           eps->errest_left[eps->nconv] = PETSC_MACHINE_EPSILON;
           rho = sigma;
-          ierr = STSetShift(eps->OP,rho);CHKERRQ(ierr);
+          ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
         }
       }
     }
@@ -408,7 +408,7 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps)
   ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr); }
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    ierr = STSetType(eps->OP,STSINVERT);CHKERRQ(ierr);
+    ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -85,16 +85,16 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Must define a computational interval when using EPS_ALL"); 
     blz->slice = 1;
   }
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSINVERT,&issinv);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinv);CHKERRQ(ierr);
   if (blz->slice || eps->isgeneralized) {
     if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
   }
   if (blz->slice) {
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
       if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,1,"The defined computational interval should have at least one of their sides bounded");
-      ierr = STSetDefaultShift(eps->OP,eps->inta);CHKERRQ(ierr);
+      ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
     }
-    else { ierr = STSetDefaultShift(eps->OP,eps->intb);CHKERRQ(ierr); }
+    else { ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr); }
   }
   if (!eps->which) {
     if (issinv) eps->which = EPS_TARGET_REAL;
@@ -159,7 +159,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
   if (eps->isgeneralized && !blz->slice) { 
-    ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr); /* shift of origin */
+    ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr); /* shift of origin */
     blz->rstor[0]  = sigma;        /* lower limit of eigenvalue interval */
     blz->rstor[1]  = sigma;        /* upper limit of eigenvalue interval */
   } else {
@@ -198,9 +198,9 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         ierr = VecPlaceArray(x,blz->u+i*eps->nloc);CHKERRQ(ierr);
         ierr = VecPlaceArray(y,blz->v+i*eps->nloc);CHKERRQ(ierr);
         if (blz->slice || eps->isgeneralized) { 
-          ierr = STMatSolve(eps->OP,1,x,y);CHKERRQ(ierr);
+          ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
         } else {
-          ierr = STApply(eps->OP,x,y);CHKERRQ(ierr);
+          ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
         }
         ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->defl,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
@@ -229,8 +229,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     case 3:  
       /* update shift */
       ierr = PetscInfo1(eps,"Factorization update (sigma=%g)\n",sigma);CHKERRQ(ierr);
-      ierr = STSetShift(eps->OP,sigma);CHKERRQ(ierr);
-      ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+      ierr = STSetShift(eps->st,sigma);CHKERRQ(ierr);
+      ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCFactorGetMatrix(pc,&A);CHKERRQ(ierr);
       ierr = MatGetInertia(A,&nn,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);

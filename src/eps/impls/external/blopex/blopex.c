@@ -78,11 +78,11 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   PetscInt       nmat;
  
   PetscFunctionBegin;
-  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  ierr = STGetOperators(eps->OP,0,&A);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
   ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  ierr = STGetShift(eps->OP,&sigma);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetShift(eps->st,&sigma);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   if (sigma != 0.0) {
     if (nmat>1) { ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
     else { ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
@@ -112,7 +112,7 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   Mat            B;
   
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->OP,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   PetscFunctionReturnVoid();
 }
@@ -150,13 +150,13 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP,3e300);CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
   }
 
-  ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&isPrecond);CHKERRQ(ierr);
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&isPrecond);CHKERRQ(ierr);
   if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with STPRECOND");
-  blopex->st = eps->OP;
+  blopex->st = eps->st;
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
@@ -257,7 +257,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   eps->its = its;
   eps->nconv = eps->ncv;
-  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
   if (sigma != 0.0) {
     for (i=0;i<eps->nconv;i++) eps->eigr[i]+=sigma;
   }
@@ -307,13 +307,13 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
   PetscFunctionReturn(0);
 
   /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->OP)->type_name) {
-    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   }
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }

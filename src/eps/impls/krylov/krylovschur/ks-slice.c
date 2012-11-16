@@ -97,8 +97,8 @@ static PetscErrorCode EPSExtractShift(EPS eps) {
   if (sr->nPend > 0) {
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
-    ierr = STSetShift(eps->OP, sr->sPres->value);CHKERRQ(ierr);
-    ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
+    ierr = STSetShift(eps->st, sr->sPres->value);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st, &ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp, &pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,&iner,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
@@ -173,9 +173,9 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   count0=0;count1=0; /* Found on both sides */
   /* filling in values for the monitor */
   if (eps->numbermonitors >0) {
-    ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
     if (iscayley) {
-      ierr = STCayleyGetAntishift(eps->OP,&nu);CHKERRQ(ierr);    
+      ierr = STCayleyGetAntishift(eps->st,&nu);CHKERRQ(ierr);    
       for (i=0;i<sr->indexEig;i++) {
         sr->monit[i]=(nu + sr->eig[i])/(sr->eig[i] - sPres->value);
       }
@@ -282,7 +282,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     for (i=0;i<k;i++) {
       sr->back[i]=eps->eigr[i];
     }
-    ierr = STBackTransform(eps->OP,k,sr->back,eps->eigi);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->st,k,sr->back,eps->eigi);CHKERRQ(ierr);
     count0=count1=0;
     for (i=0;i<k;i++) {
       lambda = PetscRealPart(sr->back[i]);
@@ -350,7 +350,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       for (i=0;i<nv;i++) {
         sr->back[i]=eps->eigr[i];
       }
-      ierr = STBackTransform(eps->OP,nv,sr->back,eps->eigi);CHKERRQ(ierr);
+      ierr = STBackTransform(eps->st,nv,sr->back,eps->eigi);CHKERRQ(ierr);
       for (i=0;i<nv;i++) {
         lambda = PetscRealPart(sr->back[i]);
         if ( ((sr->dir)*(lambda - sPres->ext[0]) > 0)&& ((sr->dir)*(sPres->ext[1] - lambda) > 0)) { 
@@ -510,7 +510,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
   count = sr->indexEig;
   /* Back-transform */
   ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&iscayley);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   /* Sort eigenvalues */
   ierr = sortRealEigenvalues(eps->eigr,eps->perm,eps->nconv,PETSC_FALSE,sr->dir);
   /* Values stored in global array */
@@ -525,7 +525,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
       sr->eig[count] = lambda;
       sr->errest[count] = err;
       /* Explicit purification */
-      ierr = STApply(eps->OP,eps->V[eps->perm[i]],sr->V[count]);CHKERRQ(ierr);
+      ierr = STApply(eps->st,eps->V[eps->perm[i]],sr->V[count]);CHKERRQ(ierr);
       ierr = IPNorm(eps->ip,sr->V[count],&norm);CHKERRQ(ierr); 
       ierr = VecScale(sr->V[count],1.0/norm);CHKERRQ(ierr);
       count++;
@@ -640,7 +640,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   sr->maxPend = 100;/* Initial size */
   ierr = PetscMalloc((sr->maxPend)*sizeof(shift),&sr->pending);CHKERRQ(ierr);
   if (sr->hasEnd) {
-    ierr = STGetKSP(eps->OP, &ksp);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st, &ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp, &pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     /* Not looking for values in b (just inertia).*/

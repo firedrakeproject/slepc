@@ -228,7 +228,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   ierr = IPSetFromOptions(eps->ip);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
-  ierr = STSetFromOptions(eps->OP);CHKERRQ(ierr);
+  ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1375,8 +1375,8 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
-  ierr = STSetOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
+  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
+  ierr = STSetOptionsPrefix(eps->st,prefix);CHKERRQ(ierr);
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
@@ -1411,8 +1411,8 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
-  ierr = STAppendOptionsPrefix(eps->OP,prefix);CHKERRQ(ierr);
+  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
+  ierr = STAppendOptionsPrefix(eps->st,prefix);CHKERRQ(ierr);
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }

@@ -47,11 +47,11 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   /* attempt to get dense representations of A and B separately */
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STSHIFT,&isshift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
   if (isshift) {
-    ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
-    ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
-    if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
+    ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
+    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+    if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
     PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
     ierra = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
     if (eps->isgeneralized) {
@@ -90,18 +90,18 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   ierr = DSSetDimensions(eps->ds,eps->ncv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
 
   if (denseok) {
-    ierr = STGetShift(eps->OP,&shift);CHKERRQ(ierr);
+    ierr = STGetShift(eps->st,&shift);CHKERRQ(ierr);
     if (shift != 0.0) {
       ierr = MatShift(Adense,shift);CHKERRQ(ierr);
     }
     /* use dummy pc and ksp to avoid problems when B is not positive definite */
-    ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
   } else {
     ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
-    ierr = STComputeExplicitOperator(eps->OP,&OP);CHKERRQ(ierr);
+    ierr = STComputeExplicitOperator(eps->st,&OP);CHKERRQ(ierr);
     ierr = MatDestroy(&Adense);CHKERRQ(ierr);
     ierr = SlepcMatConvertSeqDense(OP,&Adense);CHKERRQ(ierr);
   }

@@ -62,7 +62,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
 
   PetscFunctionBegin;
 
-  eps->OP->ops->getbilinearform  = STGetBilinearForm_Default;
+  eps->st->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_Davidson;
   eps->ops->setup                = EPSSetUp_Davidson;
   eps->ops->reset                = EPSReset_Davidson;
@@ -141,27 +141,27 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
 
   /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->OP)->type_name) {
-    ierr = STSetType(eps->OP,STPRECOND);CHKERRQ(ierr);
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   }
-  ierr = STPrecondSetKSPHasMat(eps->OP,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
       eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->OP,PETSC_MAX_REAL);CHKERRQ(ierr);
+    ierr = STSetDefaultShift(eps->st,PETSC_MAX_REAL);CHKERRQ(ierr);
   }
  
   /* Davidson solvers only support STPRECOND */
-  ierr = STSetUp(eps->OP);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STPRECOND,&t);CHKERRQ(ierr);
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&t);CHKERRQ(ierr);
   if (!t) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_SUP,"%s only works with precond spectral transformation",
     ((PetscObject)eps)->type_name);
 
   /* Setup problem specification in dvd */
-  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   ierr = EPSReset_Davidson(eps);CHKERRQ(ierr);
   ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
   dvd->A = A; dvd->B = eps->isgeneralized? B : PETSC_NULL;
@@ -211,7 +211,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     break;
 
   case EPS_WHICH_USER:
-    ierr = STGetShift(eps->OP,&target);CHKERRQ(ierr);
+    ierr = STGetShift(eps->st,&target);CHKERRQ(ierr);
     dvd->target[0] = target; dvd->target[1] = 1.0;
     break;
 
@@ -275,7 +275,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                    PetscAbs(eps->nds),PETSC_NULL,eps->rand);CHKERRQ(ierr);
 
   /* Preconfigure dvd */
-  ierr = STGetKSP(eps->OP,&ksp);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,
                                 initv,
                                 PetscAbs(eps->nini),

@@ -66,10 +66,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!((PetscObject)eps)->type_name) {
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
-  if (!((PetscObject)eps->OP)->type_name) {
+  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
+  if (!((PetscObject)eps->st)->type_name) {
     ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,EPSRQCG,"");CHKERRQ(ierr);
-    ierr = STSetType(eps->OP,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
+    ierr = STSetType(eps->st,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
   }
   if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
   if (!((PetscObject)eps->ip)->type_name) {
@@ -82,9 +82,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   
   /* Set problem dimensions */
-  ierr = STGetNumMatrices(eps->OP,&nmat);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (nmat==0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
-  ierr = STGetOperators(eps->OP,0,&A);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&eps->nloc,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
@@ -103,13 +103,13 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
   } else if (nmat>1 && !eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
 #if defined(PETSC_USE_COMPLEX)
-  ierr = STGetShift(eps->OP,&sigma);CHKERRQ(ierr);
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
   if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
 #endif
   if (eps->ishermitian && eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requesting left eigenvectors not allowed in Hermitian problems");
   
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
-    ierr = STGetBilinearForm(eps->OP,&B);CHKERRQ(ierr);
+    ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
     ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
     if (!eps->ispositive) { ierr = IPSetType(eps->ip,IPINDEFINITE);CHKERRQ(ierr); }
@@ -127,7 +127,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     else eps->nrma = 1.0;
   }
   if (eps->nrmb == PETSC_DETERMINE) {
-    if (nmat>1) { ierr = STGetOperators(eps->OP,1,&B);CHKERRQ(ierr); }
+    if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
     ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
     if (flg) { ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr); }
     else eps->nrmb = 1.0;
@@ -139,7 +139,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 
   /* check extraction */
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps->OP,&flg,STPRECOND,STSHIFT,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STPRECOND,STSHIFT,"");CHKERRQ(ierr);
   if (!flg && eps->extraction && eps->extraction!=EPS_RITZ) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cannot use a spectral transformation combined with harmonic extraction");
 
   /* set tolerance if not yet set */
@@ -199,16 +199,16 @@ PetscErrorCode EPSSetUp(EPS eps)
       ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
     }
     ierr = EPSBuildBalance_Krylov(eps);CHKERRQ(ierr);
-    ierr = STSetBalanceMatrix(eps->OP,eps->D);CHKERRQ(ierr);
+    ierr = STSetBalanceMatrix(eps->st,eps->D);CHKERRQ(ierr);
   }
 
   /* Setup ST */
-  ierr = STSetUp(eps->OP);CHKERRQ(ierr); 
+  ierr = STSetUp(eps->st);CHKERRQ(ierr); 
   
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STCAYLEY,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
-  ierr = PetscObjectTypeCompare((PetscObject)eps->OP,STFOLD,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFOLD,&flg);CHKERRQ(ierr);
   if (flg && !eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Fold spectral transformation requires a Hermitian problem");
 
   if (eps->nds>0) {
@@ -237,7 +237,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       eps->ds_ortho = PETSC_TRUE;
     }
   }
-  ierr = STCheckNullSpace(eps->OP,eps->nds,eps->defl);CHKERRQ(ierr);
+  ierr = STCheckNullSpace(eps->st,eps->nds,eps->defl);CHKERRQ(ierr);
 
   /* process initial vectors */
   if (eps->nini<0) {
@@ -331,13 +331,13 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   }
 
   if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
-  if (!eps->OP) { ierr = EPSGetST(eps,&eps->OP);CHKERRQ(ierr); }
+  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   mat[0] = A;
   if (B) {
     mat[1] = B;
     nmat = 2;
   } else nmat = 1;
-  ierr = STSetOperators(eps->OP,nmat,mat);CHKERRQ(ierr);
+  ierr = STSetOperators(eps->st,nmat,mat);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
