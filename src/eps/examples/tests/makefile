@@ -25,10 +25,12 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
-             test8.c test9.c test10.c test11.c test12.c test13.c
-EXAMPLESF  = test7f.F
+             test8.c test9.c test10.c test11.c test12.c test13.c \
+             test14.c
+EXAMPLESF  = test7f.F test14f.F
 MANSEC     = EPS
-TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 test11 test12 test13
+TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
+             test11 test12 test13 test14 test14f
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
@@ -40,10 +42,12 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
-                           test13.PETSc runtest13_1 test13.rm
+                           test13.PETSc runtest13_1 test13.rm \
+                           test14.PETSc runtest14_1 test14.rm
 TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm \
 TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
-TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm
+TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
+                           test14f.PETSc runtest14f_1 test14f.rm
 TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
@@ -99,6 +103,14 @@ test12: test12.o chkopts
 test13: test13.o chkopts
 	-${CLINKER} -o test13 test13.o ${SLEPC_LIB}
 	${RM} test13.o
+
+test14: test14.o chkopts
+	-${CLINKER} -o test14 test14.o ${SLEPC_LIB}
+	${RM} test14.o
+
+test14f: test14f.o chkopts
+	-${FLINKER} -o test14f test14f.o ${SLEPC_LIB}
+	${RM} test14f.o
 
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd gd2
@@ -312,3 +324,14 @@ runtest13_2:
 	   ${MPIEXEC} -np 1 ./test13 -eps_type $$eps -eps_non_hermitian -eps_max_it 5000 -eps_terse 2>&1;    \
 	done > $${test}.tmp; \
 	${TESTCODE}
+
+runtest14_1:
+	-@test=test14_1; \
+	${MPIEXEC} -np 1 ./test14 -eps_terse 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest14f_1:
+	-@test=test14f_1; \
+	${MPIEXEC} -np 1 ./test14f -eps_terse 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+

@@ -31,6 +31,7 @@
 #define epscreate_                  EPSCREATE
 #define epssettype_                 EPSSETTYPE           
 #define epsgettype_                 EPSGETTYPE
+#define epsgetoperators_            EPSGETOPERATORS
 #define epsmonitorall_              EPSMONITORALL
 #define epsmonitorlg_               EPSMONITORLG
 #define epsmonitorlgall_            EPSMONITORLGALL
@@ -39,6 +40,7 @@
 #define epsmonitorfirst_            EPSMONITORFIRST
 #define epsgetst_                   EPSGETST
 #define epsgetip_                   EPSGETIP
+#define epsgetds_                   EPSGETDS
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
@@ -61,6 +63,7 @@
 #define epscreate_                  epscreate
 #define epssettype_                 epssettype           
 #define epsgettype_                 epsgettype
+#define epsgetoperators_            epsgetoperators
 #define epsmonitorall_              epsmonitorall
 #define epsmonitorlg_               epsmonitorlg
 #define epsmonitorlgall_            epsmonitorlgall
@@ -69,6 +72,7 @@
 #define epsmonitorfirst_            epsmonitorfirst
 #define epsgetst_                   epsgetst
 #define epsgetip_                   epsgetip
+#define epsgetds_                   epsgetds
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
@@ -168,6 +172,13 @@ void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(len),PetscErro
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
+void PETSC_STDCALL epsgetoperators_(EPS *eps,Mat *A,Mat *B,PetscErrorCode *ierr )
+{
+  CHKFORTRANNULLOBJECT(A);
+  CHKFORTRANNULLOBJECT(B);
+  *ierr = EPSGetOperators(*eps,A,B);
+}
+
 void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
@@ -239,6 +250,11 @@ void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)
 void PETSC_STDCALL epsgetip_(EPS *eps,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = EPSGetIP(*eps,ip);
+}
+
+void PETSC_STDCALL epsgetds_(EPS *eps,DS *ds,PetscErrorCode *ierr)
+{
+  *ierr = EPSGetDS(*eps,ds);
 }
 
 void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,PetscErrorCode *ierr)
