@@ -366,11 +366,9 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (A) PetscValidPointer(A,2);
-  if (B) PetscValidPointer(B,3);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   if (A) { ierr = STGetOperators(st,0,A);CHKERRQ(ierr); }
-  if (B) { ierr = STGetOperators(st,0,B);CHKERRQ(ierr); }
+  if (B) { ierr = STGetOperators(st,1,B);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
