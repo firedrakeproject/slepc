@@ -30,6 +30,7 @@
 PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
+  PetscBool      sinv;
   
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
@@ -45,7 +46,11 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   if (!qep->mpd) qep->mpd = qep->ncv;
   if (qep->ncv>qep->nev+qep->mpd) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
   if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv);
-  if (!qep->which) qep->which = QEP_LARGEST_MAGNITUDE;
+  if (!qep->which) {
+    ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+    if (sinv) qep->which = QEP_TARGET_MAGNITUDE;
+    else qep->which = QEP_LARGEST_MAGNITUDE;
+  }
 
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   ierr = QEPDefaultGetWork(qep,4);CHKERRQ(ierr);
