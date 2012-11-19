@@ -248,7 +248,7 @@ runtest9_1:
 	-@test=test9_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ "$$eps" = jd ]; then EXTRA="-st_ksp_type gmres"; else EXTRA=""; fi; \
+	   if [ "$$eps" = jd ]; then EXTRA="-st_ksp_type cg"; else EXTRA=""; fi; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test9 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
