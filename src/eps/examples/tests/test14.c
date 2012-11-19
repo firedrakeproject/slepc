@@ -93,7 +93,7 @@ int main(int argc,char **argv)
   ierr = EPSGetBalance(eps,&bal,&its,&cut);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %d, its=%d, cutoff=%g\n",bal,its,(double)cut);CHKERRQ(ierr);
 
-  ierr = EPSSetTarget(eps,4.5);CHKERRQ(ierr);
+  ierr = EPSSetTarget(eps,4.8);CHKERRQ(ierr);
   ierr = EPSGetTarget(eps,&target);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSGetWhichEigenpairs(eps,&which);CHKERRQ(ierr);

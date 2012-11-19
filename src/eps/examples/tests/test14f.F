@@ -139,7 +139,7 @@
       endif
  160  format (' Balance: ',I2,', its=',I2,', cutoff=',F8.6)
 
-      tget = 4.5
+      tget = 4.8
       call EPSSetTarget(eps,tget,ierr)
       call EPSGetTarget(eps,tget,ierr)
       call EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE,ierr)
@@ -169,6 +169,7 @@
 
       call EPSSetConvergenceTest(eps,EPS_CONV_ABS,ierr)
 !      call EPSGetConvergenceTest(eps,conv,ierr)
+      conv = 0
       if (rank .eq. 0) then
         write(*,200) conv
       endif
