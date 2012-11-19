@@ -69,7 +69,7 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      re,im;
-  PetscBool      flg,viewed,islinear;
+  PetscBool      flg,islinear;
   PetscViewer    viewer;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
