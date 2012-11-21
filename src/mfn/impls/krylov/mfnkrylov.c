@@ -48,8 +48,9 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   PetscFunctionBegin;
   if (!mfn->ncv) mfn->ncv = PetscMin(30,mfn->n);
   if (!mfn->max_it) mfn->max_it = PetscMax(100,2*mfn->n/mfn->ncv);
-  //ierr = MFNAllocateSolution(mfn);CHKERRQ(ierr);
-  //ierr = MFNDefaultGetWork(mfn,1);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(mfn->t,mfn->ncv,&mfn->V);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(mfn,mfn->ncv,mfn->V);CHKERRQ(ierr);
+  mfn->allocated_ncv = mfn->ncv;
   ierr = DSAllocate(mfn->ds,mfn->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -62,6 +63,20 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "MFNReset_Krylov"
+PetscErrorCode MFNReset_Krylov(MFN mfn)
+{
+  PetscErrorCode  ierr;
+
+  PetscFunctionBegin;
+  if (mfn->allocated_ncv > 0) {
+    ierr = VecDestroyVecs(mfn->allocated_ncv,&mfn->V);CHKERRQ(ierr);
+    mfn->allocated_ncv = 0;
+  }
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "MFNCreate_Krylov"
@@ -70,7 +85,7 @@ PetscErrorCode MFNCreate_Krylov(MFN mfn)
   PetscFunctionBegin;
   mfn->ops->solve          = MFNSolve_Krylov;
   mfn->ops->setup          = MFNSetUp_Krylov;
-  //mfn->ops->reset          = MFNReset_Default;
+  mfn->ops->reset          = MFNReset_Krylov;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
