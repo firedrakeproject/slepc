@@ -90,7 +90,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
-  ierr = (*mfn->ops->solve)(mfn);CHKERRQ(ierr);
+  ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   if (!mfn->reason) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");

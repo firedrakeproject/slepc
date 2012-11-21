@@ -30,7 +30,7 @@ PETSC_EXTERN PetscLogEvent MFN_SetUp, MFN_Solve;
 typedef struct _MFNOps *MFNOps;
 
 struct _MFNOps {
-  PetscErrorCode  (*solve)(MFN);
+  PetscErrorCode  (*solve)(MFN,Vec,Vec);
   PetscErrorCode  (*setup)(MFN);
   PetscErrorCode  (*setfromoptions)(MFN);
   PetscErrorCode  (*publishoptions)(MFN);

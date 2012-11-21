@@ -56,7 +56,7 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 
 #undef __FUNCT__  
 #define __FUNCT__ "MFNSolve_Krylov"
-PetscErrorCode MFNSolve_Krylov(MFN mfn)
+PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
   PetscFunctionBegin;
   PetscFunctionReturn(0);
