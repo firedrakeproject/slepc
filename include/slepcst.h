@@ -98,7 +98,7 @@ PETSC_EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 
 /*E
-    STMatMode - determines how to handle the coefficient matrix associated
+    STMatMode - Determines how to handle the coefficient matrix associated
     to the spectral transformation
 
     Level: intermediate

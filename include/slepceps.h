@@ -67,7 +67,7 @@ typedef const char* EPSType;
 PETSC_EXTERN PetscClassId EPS_CLASSID;
 
 /*E
-    EPSProblemType - determines the type of eigenvalue problem
+    EPSProblemType - Determines the type of eigenvalue problem
 
     Level: beginner
 
@@ -81,7 +81,7 @@ typedef enum { EPS_HEP=1,
                EPS_GHIEP } EPSProblemType;
 
 /*E
-    EPSExtraction - determines the type of extraction technique employed
+    EPSExtraction - Determines the type of extraction technique employed
     by the eigensolver
 
     Level: beginner
@@ -97,7 +97,7 @@ typedef enum { EPS_RITZ=1,
                EPS_REFINED_HARMONIC } EPSExtraction;
 
 /*E
-    EPSWhich - determines which part of the spectrum is requested
+    EPSWhich - Determines which part of the spectrum is requested
 
     Level: intermediate
 
@@ -116,7 +116,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE=1,
                EPS_WHICH_USER } EPSWhich;
 
 /*E
-    EPSBalance - the type of balancing used for non-Hermitian problems
+    EPSBalance - The type of balancing used for non-Hermitian problems
 
     Level: intermediate
 
@@ -128,7 +128,7 @@ typedef enum { EPS_BALANCE_NONE=1,
                EPS_BALANCE_USER } EPSBalance;
 
 /*E
-    EPSConv - determines the convergence test
+    EPSConv - Determines the convergence test
 
     Level: intermediate
 
@@ -232,7 +232,7 @@ PETSC_EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);
 PETSC_EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
 
 /*E
-    EPSConvergedReason - reason an eigensolver was said to 
+    EPSConvergedReason - Reason an eigensolver was said to 
          have converged or diverged
 
     Level: beginner

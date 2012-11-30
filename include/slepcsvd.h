@@ -56,7 +56,7 @@ typedef const char* SVDType;
 PETSC_EXTERN PetscClassId SVD_CLASSID;
 
 /*E
-    SVDTransposeMode - determines how to handle the transpose of the matrix
+    SVDTransposeMode - Determines how to handle the transpose of the matrix
 
     Level: advanced
 
@@ -66,7 +66,7 @@ typedef enum { SVD_TRANSPOSE_EXPLICIT,
                SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode;
 
 /*E
-    SVDWhich - determines whether largest or smallest singular triplets
+    SVDWhich - Determines whether largest or smallest singular triplets
     are to be computed
 
     Level: intermediate
@@ -77,7 +77,7 @@ typedef enum { SVD_LARGEST,
                SVD_SMALLEST } SVDWhich;
 
 /*E
-    SVDConvergedReason - reason a singular value solver was said to 
+    SVDConvergedReason - Reason a singular value solver was said to 
          have converged or diverged
 
    Level: beginner

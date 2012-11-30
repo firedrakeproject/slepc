@@ -31,7 +31,7 @@ PETSC_EXTERN PetscErrorCode DSInitializePackage(const char[]);
     eigenproblems that must be solved within iterative solvers. This is an
     auxiliary object and is not normally needed by application programmers.
 
-    Level: advanced
+    Level: beginner
 
 .seealso:  DSCreate()
 S*/
@@ -58,7 +58,7 @@ typedef const char* DSType;
 PETSC_EXTERN PetscClassId DS_CLASSID;
 
 /*E
-    DSStateType - to indicate in which state the direct solver is
+    DSStateType - Indicates in which state the direct solver is
 
     Level: advanced
 
@@ -70,10 +70,10 @@ typedef enum { DS_STATE_RAW,
                DS_STATE_TRUNCATED } DSStateType;
 
 /*E
-    DSMatType - to refer to one of the matrices stored internally in DS
+    DSMatType - Used to refer to one of the matrices stored internally in DS
 
     Notes:
-    The matrices preferently refer to:
+    The matrices preferently refer to
 +   DS_MAT_A  - first matrix of eigenproblem/singular value problem
 .   DS_MAT_B  - second matrix of a generalized eigenproblem
 .   DS_MAT_C  - third matrix of a quadratic eigenproblem

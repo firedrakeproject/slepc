@@ -54,7 +54,7 @@ typedef const char* QEPType;
 PETSC_EXTERN PetscClassId QEP_CLASSID;
 
 /*E
-    QEPProblemType - determines the type of the quadratic eigenproblem
+    QEPProblemType - Determines the type of the quadratic eigenproblem
 
     Level: intermediate
 
@@ -66,7 +66,7 @@ typedef enum { QEP_GENERAL=1,
              } QEPProblemType;
 
 /*E
-    QEPWhich - determines which part of the spectrum is requested
+    QEPWhich - Determines which part of the spectrum is requested
 
     Level: intermediate
 
@@ -149,7 +149,7 @@ PETSC_EXTERN PetscErrorCode QEPAppendOptionsPrefix(QEP,const char*);
 PETSC_EXTERN PetscErrorCode QEPGetOptionsPrefix(QEP,const char*[]);
 
 /*E
-    QEPConvergedReason - reason an eigensolver was said to 
+    QEPConvergedReason - Reason an eigensolver was said to 
          have converged or diverged
 
     Level: beginner

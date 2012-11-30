@@ -129,7 +129,7 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
    Input Parameters:
 +  ds - the direct solver context
 .  n  - the new size
-.  m  - the new column size (only for SVD)
+.  m  - the new column size (only for DSSVD)
 .  l  - number of locked (inactive) leading columns
 -  k  - intermediate dimension (e.g., position of arrow)
 
@@ -196,7 +196,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
 
    Output Parameter:
 +  n  - the current size
-.  m  - the current column size (only for SVD)
+.  m  - the current column size (only for DSSVD)
 .  l  - number of locked (inactive) leading columns
 -  k  - intermediate dimension (e.g., position of arrow)
 
@@ -232,7 +232,7 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscIn
 
    Level: advanced
 
-.seealso: DSSetDimensions(), DSSetExtraRow()
+.seealso: DSSetDimensions(), DSSetExtraRow(), DSStateType
 @*/
 PetscErrorCode DSTruncate(DS ds,PetscInt n)
 {
@@ -398,7 +398,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
 
    Level: intermediate
 
-.seealso: DSSort()
+.seealso: DSSort(), DSStateType
 @*/
 PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -537,7 +537,6 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "DSNormalize"
 /*@
@@ -558,6 +557,8 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
    part of a vector, both columns are scaled.
 
    Level: advanced
+
+.seealso: DSMatType
 @*/
 PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
 {

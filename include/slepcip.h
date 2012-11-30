@@ -56,7 +56,7 @@ typedef const char* IPType;
 PETSC_EXTERN PetscClassId IP_CLASSID;
 
 /*E
-    IPOrthogType - determines what type of orthogonalization to use
+    IPOrthogType - Determines what type of orthogonalization to use
 
     Level: advanced
 
@@ -66,7 +66,7 @@ typedef enum { IP_ORTHOG_MGS,
                IP_ORTHOG_CGS } IPOrthogType;
 
 /*E
-    IPOrthogRefineType - determines what type of refinement
+    IPOrthogRefineType - Determines what type of refinement
     to use during orthogonalization
 
     Level: advanced

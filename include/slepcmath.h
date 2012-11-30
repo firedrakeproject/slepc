@@ -39,7 +39,7 @@
 #endif
 
 /*E
-    SlepcFunction - to specify a mathematical function
+    SlepcFunction - Used to specify a mathematical function
 
     Level: beginner
 E*/
