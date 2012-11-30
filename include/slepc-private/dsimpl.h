@@ -24,7 +24,7 @@
 
 #include <slepcds.h>
 
-PETSC_EXTERN PetscLogEvent DS_Solve,DS_Vectors,DS_Other;
+PETSC_EXTERN PetscLogEvent DS_Solve,DS_Function,DS_Vectors,DS_Other;
 PETSC_EXTERN const char *DSMatName[];
 
 typedef struct _DSOps *DSOps;
@@ -34,6 +34,7 @@ struct _DSOps {
   PetscErrorCode (*view)(DS,PetscViewer);
   PetscErrorCode (*vectors)(DS,DSMatType,PetscInt*,PetscReal*);
   PetscErrorCode (*solve[DS_MAX_SOLVE])(DS,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*computefun[SLEPC_FUNCTION_LAST][DS_MAX_FUN])(DS);
   PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
   PetscErrorCode (*truncate)(DS,PetscInt);
   PetscErrorCode (*update)(DS);
@@ -46,6 +47,7 @@ struct _DSOps {
 struct _p_DS {
   PETSCHEADER(struct _DSOps);
   PetscInt       method;             /* identifies the variant to be used */
+  PetscInt       funmethod;          /* to choose among methods for function evaluation */
   PetscBool      compact;            /* whether the matrices are stored in compact form */
   PetscBool      refined;            /* get refined vectors instead of regular vectors */
   PetscBool      extrarow;           /* assume the matrix dimension is (n+1) x n */

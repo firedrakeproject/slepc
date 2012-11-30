@@ -776,6 +776,15 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 #endif
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "DSFunction_EXP_HEP_DIAG"
+PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
+{
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,1,"Not implemented yet");
+  PetscFunctionReturn(0);
+}
+
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "DSCreate_HEP"
@@ -794,6 +803,8 @@ PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->cond          = DSCond_HEP;
   ds->ops->transrks      = DSTranslateRKS_HEP;
   ds->ops->normalize     = DSNormalize_HEP;
+
+  ds->ops->computefun[SLEPC_FUNCTION_EXP][0] = DSFunction_EXP_HEP_DIAG;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

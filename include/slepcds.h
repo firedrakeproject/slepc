@@ -24,6 +24,7 @@
 #include "slepcsys.h"
 
 #define DS_MAX_SOLVE 6
+#define DS_MAX_FUN   6
 
 PETSC_EXTERN PetscErrorCode DSInitializePackage(const char[]);
 /*S
@@ -79,6 +80,7 @@ typedef enum { DS_STATE_RAW,
 .   DS_MAT_C  - third matrix of a quadratic eigenproblem
 .   DS_MAT_T  - tridiagonal matrix
 .   DS_MAT_D  - diagonal matrix
+.   DS_MAT_F  - result of matrix function
 .   DS_MAT_Q  - orthogonal matrix of (right) Schur vectors
 .   DS_MAT_Z  - orthogonal matrix of left Schur vectors
 .   DS_MAT_X  - right eigenvectors
@@ -100,6 +102,7 @@ typedef enum { DS_MAT_A,
                DS_MAT_C,
                DS_MAT_T,
                DS_MAT_D,
+               DS_MAT_F,
                DS_MAT_Q,
                DS_MAT_Z,
                DS_MAT_X,
@@ -129,6 +132,8 @@ PETSC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,Pet
 PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSSetFunctionMethod(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSGetFunctionMethod(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);
 PETSC_EXTERN PetscErrorCode DSGetCompact(DS,PetscBool*);
 PETSC_EXTERN PetscErrorCode DSSetExtraRow(DS,PetscBool);
@@ -142,6 +147,7 @@ PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal *a[]);
 PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSComputeFunction(DS,SlepcFunction);
 PETSC_EXTERN PetscErrorCode DSSetEigenvalueComparison(DS,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 PETSC_EXTERN PetscErrorCode DSGetEigenvalueComparison(DS,PetscErrorCode (**)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void**);
 PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);

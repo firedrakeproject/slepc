@@ -41,10 +41,15 @@
 /*E
     SlepcFunction - Used to specify a mathematical function
 
+    Note:
+    Currently available functions:
+.   SLEPC_FUNCTION_EXP - exponential
+
     Level: beginner
 E*/
-typedef enum { SLEPC_FUNCTION_EXP=1   /* exponential */
-             } SlepcFunction;
+typedef enum { SLEPC_FUNCTION_NONE=0,
+               SLEPC_FUNCTION_EXP,
+               SLEPC_FUNCTION_LAST } SlepcFunction;
 
 #undef __FUNCT__ 
 #define __FUNCT__ "SlepcAbs"

@@ -26,9 +26,9 @@
 PetscFList       DSList = 0;
 PetscBool        DSRegisterAllCalled = PETSC_FALSE;
 PetscClassId     DS_CLASSID = 0;
-PetscLogEvent    DS_Solve = 0,DS_Vectors = 0,DS_Other = 0;
+PetscLogEvent    DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
 static PetscBool DSPackageInitialized = PETSC_FALSE;
-const char       *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W"};
+const char       *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W"};
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSFinalizePackage"
@@ -79,6 +79,7 @@ PetscErrorCode DSInitializePackage(const char *path)
   ierr = DSRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("DSSolve",DS_CLASSID,&DS_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DSFunction",DS_CLASSID,&DS_Function);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSVectors",DS_CLASSID,&DS_Vectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
@@ -131,18 +132,19 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscFunctionBegin;
   PetscValidPointer(newds,2);
   ierr = SlepcHeaderCreate(ds,_p_DS,struct _DSOps,DS_CLASSID,-1,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
-  *newds       = ds;
-  ds->state    = DS_STATE_RAW;
-  ds->method   = 0;
-  ds->compact  = PETSC_FALSE;
-  ds->refined  = PETSC_FALSE;
-  ds->extrarow = PETSC_FALSE;
-  ds->ld       = 0;
-  ds->l        = 0;
-  ds->n        = 0;
-  ds->m        = 0;
-  ds->k        = 0;
-  ds->t        = 0;
+  *newds        = ds;
+  ds->state     = DS_STATE_RAW;
+  ds->method    = 0;
+  ds->funmethod = 0;
+  ds->compact   = PETSC_FALSE;
+  ds->refined   = PETSC_FALSE;
+  ds->extrarow  = PETSC_FALSE;
+  ds->ld        = 0;
+  ds->l         = 0;
+  ds->n         = 0;
+  ds->m         = 0;
+  ds->k         = 0;
+  ds->t         = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
     ds->mat[i]  = PETSC_NULL;
     ds->rmat[i] = PETSC_NULL;
@@ -364,6 +366,58 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(meth,2);
   *meth = ds->method;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "DSSetFunctionMethod"
+/*@
+   DSSetFunctionMethod - Selects the method to be used to compute a matrix function.
+
+   Logically Collective on DS
+
+   Input Parameter:
++  ds   - the direct solver context
+-  meth - an index indentifying the function method
+
+   Level: intermediate
+
+.seealso: DSGetFunctionMethod()
+@*/
+PetscErrorCode DSSetFunctionMethod(DS ds,PetscInt meth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,meth,2);
+  if (meth<0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  if (meth>DS_MAX_FUN) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
+  ds->funmethod = meth;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "DSGetFunctionMethod"
+/*@
+   DSGetFunctionMethod - Gets the method currently used to compute a matrix function.
+
+   Not Collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameter:
+.  meth - identifier of the function method
+
+   Level: intermediate
+
+.seealso: DSSetFunctionMethod()
+@*/
+PetscErrorCode DSGetFunctionMethod(DS ds,PetscInt *meth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(meth,2);
+  *meth = ds->funmethod;
   PetscFunctionReturn(0);
 }
 
@@ -663,6 +717,8 @@ PetscErrorCode DSSetFromOptions(DS ds)
   ierr = PetscOptionsBegin(((PetscObject)ds)->comm,((PetscObject)ds)->prefix,"Direct Solver (DS) Options","DS");CHKERRQ(ierr);
     ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
+    ierr = PetscOptionsInt("-ds_function_method","Method to be used to compute a matrix function","DSSetFunctionMethod",ds->funmethod,&meth,&flag);CHKERRQ(ierr);
+    if (flag) { ierr = DSSetFunctionMethod(ds,meth);CHKERRQ(ierr); }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ds);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);

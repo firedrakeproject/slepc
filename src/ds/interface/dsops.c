@@ -408,7 +408,6 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(eigr,2);
   if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
-  if (!ds->ops->solve) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
   if (!ds->ops->solve[ds->method]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
   ierr = PetscLogEventBegin(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
@@ -417,6 +416,43 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
   ds->state = DS_STATE_CONDENSED;
+  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "DSComputeFunction"
+/*@
+   DSComputeFunction - Computes a matrix function.
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds - the direct solver context
+-  f  - the function to evaluate
+
+   Note:
+   This function evaluates F = f(A), where the input and the result matrices
+   are stored in DS_MAT_A and DS_MAT_F, respectively.
+
+   Level: intermediate
+
+.seealso: DSSetFunctionMethod(), DSMatType, SlepcFunction
+@*/
+PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,f,2);
+  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->ops->computefun[f][ds->funmethod]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The specified function method number does not exist for this DS");
+  ierr = PetscLogEventBegin(DS_Function,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ds->ops->computefun[f][ds->funmethod])(ds);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Function,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

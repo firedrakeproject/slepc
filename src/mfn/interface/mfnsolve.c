@@ -81,13 +81,6 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   if (!mfn->setupcalled) { ierr = MFNSetUp(mfn);CHKERRQ(ierr); }
   mfn->its = 0;
 
-  switch (mfn->function) {
-    case SLEPC_FUNCTION_EXP:
-      //ierr = DSSetType(mfn->ds,mfn->function);CHKERRQ(ierr);
-      break;
-    default: SETERRQ(((PetscObject)mfn)->comm,1,"Selected function not implemented");
-  }
-
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
