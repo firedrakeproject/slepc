@@ -111,16 +111,21 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   PetscViewerFormat format;
   PetscInt          i,j,r,c,rows;
   PetscReal         value;
-  const char *methodname[] = {
+  const char        *methodname[] = {
                      "Implicit QR method (_steqr)",
                      "Relatively Robust Representations (_stevr)",
                      "Divide and Conquer method (_stedc)"
   };
+  const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
+    if (ds->method>=nmeth) {
+      ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: INVALID METHOD\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
+    }
     PetscFunctionReturn(0);
   }
   if (ds->compact) {

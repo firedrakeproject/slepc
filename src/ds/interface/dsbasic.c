@@ -651,6 +651,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 {
   PetscErrorCode ierr;
   PetscInt       meth;
+  PetscBool      flag;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -660,9 +661,8 @@ PetscErrorCode DSSetFromOptions(DS ds)
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
   }
   ierr = PetscOptionsBegin(((PetscObject)ds)->comm,((PetscObject)ds)->prefix,"Direct Solver (DS) Options","DS");CHKERRQ(ierr);
-    meth = 0;
-    ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,PETSC_NULL);CHKERRQ(ierr);
-    ierr = DSSetMethod(ds,meth);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
+    if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ds);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
