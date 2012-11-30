@@ -23,7 +23,9 @@ CFLAGS   =
 FFLAGS   =
 SOURCEC  =
 SOURCEF  =
-SOURCEH  = slepc.h slepcsys.h slepceps.h slepcst.h slepcsvd.h slepcmfn.h slepcip.h slepcds.h slepcversion.h slepcblaslapack.h
+SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
+           slepceps.h slepcqep.h slepcmfn.h slepcsvd.h \
+           slepcst.h slepcip.h slepcds.h slepcvec.h
 LIBBASE  = libslepc
 DIRS     = finclude slepc-private
 LOCDIR   = include/
