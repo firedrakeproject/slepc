@@ -33,7 +33,6 @@
 
 #define MFNType                character*(80)
 #define MFNConvergedReason     PetscEnum
-#define MFNFunction            PetscEnum
 
 
 #define MFNKRYLOV      'krylov'

@@ -51,22 +51,13 @@ typedef const char* MFNType;
 /* Logging support */
 PETSC_EXTERN PetscClassId MFN_CLASSID;
 
-/*E
-    MFNFunction - determines the function to compute
-
-    Level: beginner
-
-.seealso: MFNSetFunction(), MFNGetFunction()
-E*/
-typedef enum { MFN_EXP=1 } MFNFunction;
-
 PETSC_EXTERN PetscErrorCode MFNCreate(MPI_Comm,MFN *);
 PETSC_EXTERN PetscErrorCode MFNDestroy(MFN*);
 PETSC_EXTERN PetscErrorCode MFNReset(MFN);
 PETSC_EXTERN PetscErrorCode MFNSetType(MFN,MFNType);
 PETSC_EXTERN PetscErrorCode MFNGetType(MFN,MFNType*);
-PETSC_EXTERN PetscErrorCode MFNSetFunction(MFN,MFNFunction);
-PETSC_EXTERN PetscErrorCode MFNGetFunction(MFN,MFNFunction*);
+PETSC_EXTERN PetscErrorCode MFNSetFunction(MFN,SlepcFunction);
+PETSC_EXTERN PetscErrorCode MFNGetFunction(MFN,SlepcFunction*);
 PETSC_EXTERN PetscErrorCode MFNSetOperator(MFN,Mat);
 PETSC_EXTERN PetscErrorCode MFNGetOperator(MFN,Mat*);
 PETSC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);

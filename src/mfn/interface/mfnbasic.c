@@ -150,7 +150,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
     }
     if (mfn->function) {
       switch (mfn->function) {
-        case MFN_EXP: fun = "exponential"; break;
+        case SLEPC_FUNCTION_EXP: fun = "exponential"; break;
         default: SETERRQ(((PetscObject)mfn)->comm,1,"Wrong value of mfn->function");
       }
     } else fun = "not yet set";
@@ -207,7 +207,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   mfn->ncv             = 0;
   mfn->allocated_ncv   = 0;
   mfn->tol             = PETSC_DEFAULT;
-  mfn->function        = (MFNFunction)0;
+  mfn->function        = (SlepcFunction)0;
 
   mfn->A               = 0;
   mfn->V               = 0;

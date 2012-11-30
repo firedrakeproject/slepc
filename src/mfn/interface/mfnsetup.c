@@ -77,7 +77,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 
   /* Set default function */
   if (!mfn->function) {
-    ierr = MFNSetFunction(mfn,MFN_EXP);CHKERRQ(ierr);
+    ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
   }
   
   if (mfn->ncv > mfn->n) mfn->ncv = mfn->n;

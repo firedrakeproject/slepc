@@ -38,6 +38,14 @@
 #  define SLEPC_DEFAULT_TOL   1e-7
 #endif
 
+/*E
+    SlepcFunction - to specify a mathematical function
+
+    Level: beginner
+E*/
+typedef enum { SLEPC_FUNCTION_EXP=1   /* exponential */
+             } SlepcFunction;
+
 #undef __FUNCT__ 
 #define __FUNCT__ "SlepcAbs"
 /*@C

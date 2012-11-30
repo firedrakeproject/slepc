@@ -50,10 +50,10 @@ struct _MFNOps {
 struct _p_MFN {
   PETSCHEADER(struct _MFNOps);
   /*------------------------- User parameters --------------------------*/
-  PetscInt       max_it;           /* maximum number of iterations */
-  PetscInt       ncv;              /* number of basis vectors */
-  PetscReal      tol;              /* tolerance */
-  MFNFunction    function;         /* which function to compute */
+  PetscInt       max_it;        /* maximum number of iterations */
+  PetscInt       ncv;           /* number of basis vectors */
+  PetscReal      tol;           /* tolerance */
+  SlepcFunction  function;      /* which function to compute */
 
   /*------------------------- Working data --------------------------*/
   Mat         A;                /* the problem matrix */

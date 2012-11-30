@@ -66,7 +66,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     }
 
     ierr = PetscOptionsBoolGroupBegin("-mfn_exp","matrix exponential","MFNSetFunction",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = MFNSetFunction(mfn,MFN_EXP);CHKERRQ(ierr);}
+    if (flg) { ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr); }
 
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
@@ -283,15 +283,15 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
     
    Level: beginner
 
-.seealso: MFNSetOperator(), MFNSetType(), MFNGetFunction(), MFNFunction
+.seealso: MFNSetOperator(), MFNSetType(), MFNGetFunction(), SlepcFunction
 @*/
-PetscErrorCode MFNSetFunction(MFN mfn,MFNFunction fun)
+PetscErrorCode MFNSetFunction(MFN mfn,SlepcFunction fun)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveEnum(mfn,fun,2);
   switch (fun) {
-    case MFN_EXP:
+    case SLEPC_FUNCTION_EXP:
       break;      
     default:
       SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_ARG_WRONG,"Unknown function");
@@ -315,9 +315,9 @@ PetscErrorCode MFNSetFunction(MFN mfn,MFNFunction fun)
 
    Level: intermediate
 
-.seealso: MFNSetFunction(), MFNFunction
+.seealso: MFNSetFunction(), SlepcFunction
 @*/
-PetscErrorCode MFNGetFunction(MFN mfn,MFNFunction *fun)
+PetscErrorCode MFNGetFunction(MFN mfn,SlepcFunction *fun)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
