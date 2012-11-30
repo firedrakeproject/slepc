@@ -65,6 +65,7 @@ class PETScMaker(script.Script):
    self.setupModules()
 
  def cmakeboot(self, args, log):
+   import shlex
    self.setup()
    if not hasattr(self.cmake,'cmake'): return
    options = deque()
@@ -83,25 +84,31 @@ class PETScMaker(script.Script):
      if compiler.split()[0].endswith('win32fe'): # Hack to support win32fe without changing the rest of configure
        win32fe = compiler.split()[0] + '.exe'
        compiler = ' '.join(compiler.split()[1:])
-     options.append('-DCMAKE_'+cmakelanguage+'_FLAGS=' + ''.join(flags))
-     options.append('-DCMAKE_'+cmakelanguage+'_COMPILER=' + compiler)
+     options.append('-DCMAKE_'+cmakelanguage+'_COMPILER:FILEPATH=' + compiler)
+     options.append('-DCMAKE_'+cmakelanguage+'_FLAGS:STRING=' + ''.join(flags))
      self.setCompilers.popLanguage()
+   options.append('-DCMAKE_AR='+self.setCompilers.AR)
+   ranlib = shlex.split(self.setCompilers.RANLIB)[0]
+   options.append('-DCMAKE_RANLIB='+ranlib)
    if win32fe:
      options.append('-DPETSC_WIN32FE:FILEPATH=%s'%win32fe)
      # Default on Windows is to generate Visual Studio project files, but
      # 1. the build process for those is different, need to give different build instructions
      # 2. the current WIN32FE workaround does not work with VS project files
      options.append('-GUnix Makefiles')
-   cmd = [self.cmake.cmake, self.slepcdir] + map(lambda x:x.strip(), options) + args
+   cmd = [self.cmake.cmake, '--trace', '--debug-output', self.slepcdir] + map(lambda x:x.strip(), options) + args
    archdir = os.path.join(self.slepcdir, self.arch.arch)
+   try: # Try to remove the old cache because some versions of CMake lose CMAKE_C_FLAGS when reconfiguring this way
+     os.remove(os.path.join(archdir, 'CMakeCache.txt'))
+   except OSError:
+     pass
    log.write('Invoking: %s\n' % cmd)
-   output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir)
+   output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir, timeout=10)
    if retcode:
      self.logPrintBox('CMake process failed with status %d, falling back to legacy build' % (retcode,))
      return False
    else:
-     return True
-   return
+     return True # Configure successful
 
 def main(slepcdir, petscdir, petscarch, argDB=None, framework=None, log=StdoutLogger(), args=[]):
   # This can be called as a stand-alone program, or by importing it from

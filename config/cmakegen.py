@@ -31,7 +31,7 @@ def cmakeconditional(key,val):
     if val == 'CONLY':
       return 'PETSC_CLANGUAGE_C'
     raise RuntimeError('Unexpected language: %r'%val)
-  raise RuntimeException('Unhandled case: %r=%r'%(key,val))
+  raise RuntimeError('Unhandled case: %r=%r'%(key,val))
 
 def pkgsources(pkg):
   '''
@@ -101,8 +101,14 @@ include (${SLEPc_BINARY_DIR}/conf/SLEPcConfig.cmake)
 if (PETSC_HAVE_FORTRAN)
   enable_language (Fortran)
 endif ()
-if (PETSC_CLANGUAGE_Cxx)
+if (PETSC_CLANGUAGE_Cxx OR PETSC_HAVE_CXX)
   enable_language (CXX)
+endif ()
+
+if (APPLE)
+  SET(CMAKE_C_ARCHIVE_FINISH "<CMAKE_RANLIB> -c <TARGET> ")
+  SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -c <TARGET> ")
+  SET(CMAKE_Fortran_ARCHIVE_FINISH "<CMAKE_RANLIB> -c <TARGET> ")
 endif ()
 
 include_directories ("${PETSc_SOURCE_DIR}/include" "${PETSc_BINARY_DIR}/include")
