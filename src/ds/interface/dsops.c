@@ -448,6 +448,7 @@ PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
   PetscValidLogicalCollectiveEnum(ds,f,2);
   if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
   if (!ds->ops->computefun[f][ds->funmethod]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The specified function method number does not exist for this DS");
+  if (!ds->mat[DS_MAT_F]) { ierr = DSAllocateMat_Private(ds,DS_MAT_F);CHKERRQ(ierr); }
   ierr = PetscLogEventBegin(DS_Function,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->computefun[f][ds->funmethod])(ds);CHKERRQ(ierr);

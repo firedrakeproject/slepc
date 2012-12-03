@@ -780,8 +780,31 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 #define __FUNCT__ "DSFunction_EXP_HEP_DIAG"
 PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
 {
+  PetscErrorCode ierr;
+  PetscScalar    *eig,one=1.0,zero=0.0;
+  PetscInt       i,j;
+  PetscBLASInt   n,ld;
+  PetscScalar    *F,*Q,*W;
+
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,1,"Not implemented yet");
+  ld = PetscBLASIntCast(ds->ld);
+  n  = PetscBLASIntCast(ds->n);
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
+  ierr = DSSolve(ds,eig,PETSC_NULL);CHKERRQ(ierr);
+  if (!ds->mat[DS_MAT_W]) { ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr); }
+  W  = ds->mat[DS_MAT_W];
+  Q  = ds->mat[DS_MAT_Q];
+  F  = ds->mat[DS_MAT_F];
+
+  /* W = exp(Lambda)*Q' */
+  for (i=0;i<n;i++) {
+    for (j=0;j<n;j++) {
+      W[i+j*ld] = Q[j+i*ld]*PetscExpScalar(eig[i]);
+    }
+  }
+  /* F = Q*W */
+  BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,F,&ld);
+  ierr = PetscFree(eig);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
