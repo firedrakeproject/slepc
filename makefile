@@ -31,7 +31,7 @@ include ${SLEPC_DIR}/conf/slepc_common
 
 #
 # Basic targets to build SLEPc library
-all:
+all: chk_makej
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir chkslepc_dir | tee ${PETSC_ARCH}/conf/make.log
 	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
 	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
@@ -61,13 +61,13 @@ all:
 cmakegen:
 	-@${PYTHON} config/cmakegen.py
 
-all-cmake: info cmakegen slepc_cmake
+all-cmake: chk_makej info cmakegen slepc_cmake
 
-all-legacy: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared
+all-legacy: chk_makej chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared
 #
 # Prints information about the system and version of SLEPc being compiled
 #
-info:
+info: chk_makej
 	-@echo "=========================================="
 	-@echo On `date` on `hostname`
 	-@echo Machine characteristics: `uname -a`
@@ -113,7 +113,7 @@ info:
 #
 # Builds the SLEPc library
 #
-build:
+build: chk_makej
 	-@echo "BEGINNING TO COMPILE LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast slepc_tree 
@@ -182,9 +182,9 @@ ranlib:
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 
 # Deletes SLEPc library
-deletelibs:
+deletelibs: chk_makej
 	-${RM} -r ${SLEPC_LIB_DIR}/libslepc*.*
-deletemods:
+deletemods: chk_makej
 	-${RM} -f ${SLEPC_DIR}/${PETSC_ARCH}/include/slepc*.mod
 
 # Cleans up build

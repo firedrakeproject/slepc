@@ -184,11 +184,11 @@ slepc_tree: ${ACTION}
 	  done
 
 # builds the SLEPc shared library
-slepc_shared:
+slepc_shared: chk_makej
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} OTHERSHAREDLIBS="${PETSC_KSP_LIB} ${SLEPC_EXTERNAL_LIB}" shared_nomesg
 
 # uses the cmake infrastructure to build/rebuild the libraries
-slepc_cmake:
+slepc_cmake: chk_makej
 	@echo "Building SLEPc using CMake with ${MAKE_NP} build threads"
 	@echo "=========================================="
 	@cd ${SLEPC_DIR}/${PETSC_ARCH} && ${OMAKE} -j ${MAKE_NP} VERBOSE=1
