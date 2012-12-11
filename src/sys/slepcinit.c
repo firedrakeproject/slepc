@@ -31,6 +31,35 @@
 #include <stdlib.h>
 
 #undef __FUNCT__  
+#define __FUNCT__ "SlepcGetVersion"
+/*@C
+    SlepcGetVersion - Gets the SLEPc version information in a string.
+
+    Input Parameter:
+.   len - length of the string
+
+    Output Parameter:
+.   version - version string
+
+    Fortran Note:
+    This routine is not supported in Fortran.
+
+    Level: developer
+@*/
+PetscErrorCode SlepcGetVersion(char version[],size_t len)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+#if (SLEPC_VERSION_RELEASE == 1)
+  ierr = PetscSNPrintf(version,len,"SLEPc Release Version %d.%d, Patch %d, %s",SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_PATCH,SLEPC_VERSION_PATCH_DATE);CHKERRQ(ierr);
+#else
+  ierr = PetscSNPrintf(version,len,"SLEPc Development SVN revision: %d  SVN Date: %s",SLEPC_VERSION_SVN,SLEPC_VERSION_DATE_SVN);CHKERRQ(ierr);
+#endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "SlepcPrintVersion"
 /*
    SlepcPrintVersion - Prints SLEPc version info.
