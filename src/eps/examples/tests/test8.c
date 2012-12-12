@@ -155,7 +155,7 @@ PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
   PetscScalar       *py,dmone=-1.0;
   PetscErrorCode    ierr;
   
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   nx = *(int*)ctx;
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
@@ -186,7 +186,7 @@ PetscErrorCode MatLaplacian2D_GetDiagonal(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = VecSet(diag,4.0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

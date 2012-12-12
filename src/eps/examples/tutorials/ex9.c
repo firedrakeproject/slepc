@@ -214,7 +214,7 @@ PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
   CTX_BRUSSEL       *ctx;
   PetscErrorCode    ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
@@ -250,7 +250,7 @@ PetscErrorCode MatBrussel_Shift(PetscScalar* a,Mat Y)
   CTX_BRUSSEL    *ctx;
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(Y,(void**)&ctx);CHKERRQ(ierr);
   ctx->sigma += *a;
   PetscFunctionReturn(0);
@@ -267,7 +267,7 @@ PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
   CTX_BRUSSEL    *ctx;
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);

@@ -161,7 +161,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscInt        Istart,Iend,i,j,jmax,ix=0;
   PetscErrorCode  ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for (i=1;i<=m;i++) {
     jmax = m-i+1;
@@ -215,7 +215,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   PetscReal   da,db;
   PetscBool   aisright,bisright;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   if (PetscRealPart(target) < PetscRealPart(ar)) aisright = PETSC_TRUE;
   else aisright = PETSC_FALSE;
   if (PetscRealPart(target) < PetscRealPart(br)) bisright = PETSC_TRUE;

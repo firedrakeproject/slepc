@@ -177,7 +177,7 @@ PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
   SampleShellST  *newctx;
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr   = PetscNew(SampleShellST,&newctx);CHKERRQ(ierr);
   ierr   = KSPCreate(PETSC_COMM_WORLD,&newctx->ksp);CHKERRQ(ierr);
   ierr   = KSPAppendOptionsPrefix(newctx->ksp,"st_");CHKERRQ(ierr);
@@ -209,7 +209,7 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
   Mat            A;
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = STGetOperators(st,0,&A);CHKERRQ(ierr);
   ierr = KSPSetOperators(shell->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
@@ -239,7 +239,7 @@ PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
   SampleShellST  *shell;
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = STShellGetContext(st,(void**)&shell);
   ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -269,7 +269,7 @@ PetscErrorCode SampleShellSTBackTransform(ST st,PetscInt n,PetscScalar *eigr,Pet
 {
   PetscInt j;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   for (j=0;j<n;j++) {
     eigr[j] = 1.0 / eigr[j];
   }
@@ -289,7 +289,7 @@ PetscErrorCode SampleShellSTDestroy(SampleShellST *shell)
 {
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = KSPDestroy(&shell->ksp);CHKERRQ(ierr);
   ierr = PetscFree(shell);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -29,7 +29,8 @@ PetscErrorCode MyArbitrarySelection(PetscScalar eigr,PetscScalar eigi,Vec xr,Vec
 {
   PetscErrorCode  ierr;
   Vec             xref = *(Vec*)ctx;
-  PetscFunctionBegin;
+
+  PetscFunctionBeginUser;
   ierr = VecDot(xr,xref,rr);CHKERRQ(ierr);
   *rr = PetscAbsScalar(*rr);
   if (ri) *ri = 0.0;

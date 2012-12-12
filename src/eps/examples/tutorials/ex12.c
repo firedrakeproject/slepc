@@ -212,7 +212,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscInt        i,j,jmax,ix=0,Istart,Iend;
   PetscErrorCode  ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for (i=1;i<=m;i++) {
     jmax = m-i+1;

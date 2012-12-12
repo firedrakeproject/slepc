@@ -34,7 +34,7 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
   PetscReal      *evals,ax,ay,az,sx,sy,sz;
   PetscErrorCode ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ax = PETSC_PI/2/(M+1);
   ay = PETSC_PI/2/(N+1);
   az = PETSC_PI/2/(P+1);
@@ -66,7 +66,7 @@ PetscErrorCode FillMatrix(DM da,Mat A)
   PetscScalar    v[7];
   MatStencil     row,col[7];
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = DMDAGetInfo(da,0,&mx,&my,&mz,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
   ierr = DMDAGetCorners(da,&xs,&ys,&zs,&xm,&ym,&zm);CHKERRQ(ierr);
 

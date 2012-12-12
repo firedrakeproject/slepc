@@ -152,7 +152,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscInt        Istart,Iend,i,j,jmax,ix=0;
   PetscErrorCode  ierr;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for (i=1;i<=m;i++) {
     jmax = m-i+1;
@@ -204,7 +204,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   PetscScalar origin = *(PetscScalar*)ctx;
   PetscReal   d;
 
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   d = (SlepcAbsEigenvalue(br-origin,bi) - SlepcAbsEigenvalue(ar-origin,ai))/PetscMax(SlepcAbsEigenvalue(ar-origin,ai),SlepcAbsEigenvalue(br-origin,bi));
   *r = d > PETSC_SQRT_MACHINE_EPSILON ? 1 : (d < -PETSC_SQRT_MACHINE_EPSILON ? -1 : PetscSign(PetscRealPart(br)));
   PetscFunctionReturn(0);

@@ -35,7 +35,7 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
   PetscErrorCode ierr;
   PetscInt       n;
   
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatGetSize(*A,&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatCreateShell(((PetscObject)*A)->comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M);CHKERRQ(ierr);
   ierr = MatSetFromOptions(*M);CHKERRQ(ierr);
@@ -133,7 +133,7 @@ static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y)
   PetscErrorCode    ierr;
   Mat               *A;
   
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
   ierr = MatMult(*A,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -146,7 +146,7 @@ static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y)
   PetscErrorCode    ierr;
   Mat               *A;
   
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
   ierr = MatMultTranspose(*A,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -159,7 +159,7 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
   PetscErrorCode    ierr;
   Mat               *A;
   
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
   ierr = MatGetDiagonal(*A,diag);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -172,7 +172,7 @@ static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
   PetscErrorCode ierr;
   Mat            *A;
   
-  PetscFunctionBegin;
+  PetscFunctionBeginUser;
   ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
   ierr = MyShellMatCreate(A,M);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Diagonal eigenproblem.\n\n"
+static char help[] = "Diagonal eigenproblem. Illustrates use of shell preconditioner.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n"
   "  -seed <s>, where <s> = seed for random number generation.\n\n";
@@ -31,7 +31,8 @@ static char help[] = "Diagonal eigenproblem.\n\n"
 PetscErrorCode MyPCApply(PC pc,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  PetscFunctionBegin;
+
+  PetscFunctionBeginUser;
   ierr = VecCopy(x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
