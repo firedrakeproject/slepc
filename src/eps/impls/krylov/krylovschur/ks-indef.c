@@ -33,7 +33,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
-  PetscReal      norm,min=1.0;
+  PetscReal      norm;
   PetscScalar    *hwork,lhwork[100];
 
   PetscFunctionBegin;
@@ -48,8 +48,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
     ierr = IPPseudoOrthogonalize(eps->ip,j+1,V,omega,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = PetscAbsReal(norm);
-    min = PetscMin(min,beta[j]);
-    omega[j+1] = (norm<0.0)?-1:1;
+    omega[j+1] = (norm<0.0)?-1.0:1.0;
     
     if (breakdown && *breakdown ) {
       *M = j+1;
