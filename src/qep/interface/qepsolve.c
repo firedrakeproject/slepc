@@ -54,11 +54,12 @@ PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
    Input Parameter:
 .  qep - eigensolver context obtained from QEPCreate()
 
-   Options Database:
-+   -qep_view - print information about the solver used
-.   -qep_view_before - print info at the beginning of the solve
-.   -qep_view_binary - save the matrices to the default binary file
--   -qep_plot_eigs - plot computed eigenvalues
+   Options Database Keys:
++  -qep_view - print information about the solver used
+.  -qep_view_mat0 binary - save the first matrix (M) to the default binary viewer
+.  -qep_view_mat1 binary - save the second matrix (C) to the default binary viewer
+.  -qep_view_mat2 binary - save the third matrix (K) to the default binary viewer
+-  -qep_plot_eigs - plot computed eigenvalues
 
    Level: beginner
 
@@ -66,44 +67,32 @@ PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
 @*/
 PetscErrorCode QEPSolve(QEP qep) 
 {
-  PetscErrorCode ierr;
-  PetscInt       i;
-  PetscReal      re,im;
-  PetscBool      flg,islinear;
-  PetscViewer    viewer;
-  PetscDraw      draw;
-  PetscDrawSP    drawsp;
-  char           filename[PETSC_MAX_PATH_LEN];
-  QEPSortForSTData data;
+  PetscErrorCode    ierr;
+  PetscInt          i;
+  PetscReal         re,im;
+  PetscBool         flg,islinear;
+  PetscViewer       viewer;
+  PetscViewerFormat format;
+  PetscDraw         draw;
+  PetscDrawSP       drawsp;
+  QEPSortForSTData  data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  ierr = PetscLogEventBegin(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
 
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
-  if (flg) {
-    ierr = MatView(qep->M,PETSC_VIEWER_BINARY_(((PetscObject)qep)->comm));CHKERRQ(ierr);
-    ierr = MatView(qep->C,PETSC_VIEWER_BINARY_(((PetscObject)qep)->comm));CHKERRQ(ierr);
-    ierr = MatView(qep->K,PETSC_VIEWER_BINARY_(((PetscObject)qep)->comm));CHKERRQ(ierr);
-  }
-
-  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerASCIIGetStdout(((PetscObject)qep)->comm,&viewer);CHKERRQ(ierr);
-    ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
-  }
-
-  /* reset the convergence flag from the previous solves */
-  qep->reason = QEP_CONVERGED_ITERATING;
-
-  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  if (!qep->setupcalled){ ierr = QEPSetUp(qep);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
+  /* call setup */
+  ierr = QEPSetUp(qep);CHKERRQ(ierr);
   qep->nconv = 0;
   qep->its = 0;
-  for (i=0;i<qep->ncv;i++) qep->eigr[i]=qep->eigi[i]=qep->errest[i]=0.0;
+  for (i=0;i<qep->ncv;i++) {
+    qep->eigr[i]   = 0.0;
+    qep->eigi[i]   = 0.0;
+    qep->errest[i] = 0.0;
+  }
   ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,qep->ncv);CHKERRQ(ierr);
 
+  ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
     /* temporarily change eigenvalue comparison function */
     data.which_func = qep->which_func;
@@ -114,10 +103,8 @@ PetscErrorCode QEPSolve(QEP qep)
   }
   ierr = DSSetEigenvalueComparison(qep->ds,qep->which_func,qep->which_ctx);CHKERRQ(ierr);
 
-  ierr = PetscLogEventBegin(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);
   if (!islinear) { ierr = STPostSolve(qep->st);CHKERRQ(ierr); }
-  ierr = PetscLogEventEnd(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
 
   if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
@@ -146,10 +133,18 @@ PetscErrorCode QEPSolve(QEP qep)
   /* sort eigenvalues according to qep->which parameter */
   ierr = QEPSortEigenvalues(qep,qep->nconv,qep->eigr,qep->eigi,qep->perm);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetString(((PetscObject)qep)->prefix,"-qep_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
+
+  /* various viewers */
+  ierr = MatViewFromOptions(qep->M,"-qep_view_mat0");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(qep->C,"-qep_view_mat1");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(qep->K,"-qep_view_mat2");CHKERRQ(ierr);
+
+  ierr = PetscOptionsGetViewer(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"-qep_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerASCIIOpen(((PetscObject)qep)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 

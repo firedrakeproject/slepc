@@ -251,7 +251,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
 +  qep - the eigensolver context
 -  viewer - optional visualization context
 
-   Options Database:
+   Options Database Key:
 .  -qep_terse - print only minimal information
 
    Note:

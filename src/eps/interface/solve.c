@@ -54,11 +54,11 @@ PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
 
-   Options Database:
-+   -eps_view - print information about the solver used
-.   -eps_view_before - print info at the beginning of the solve
-.   -eps_view_binary - save the matrices to the default binary file
--   -eps_plot_eigs - plot computed eigenvalues
+   Options Database Keys:
++  -eps_view - print information about the solver used
+.  -eps_view_mat0 binary - save the first matrix (A) to the default binary viewer
+.  -eps_view_mat1 binary - save the second matrix (B) to the default binary viewer
+-  -eps_plot_eigs - plot computed eigenvalues
 
    Level: beginner
 
@@ -66,53 +66,39 @@ PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
 @*/
 PetscErrorCode EPSSolve(EPS eps) 
 {
-  PetscErrorCode ierr;
-  PetscInt       i,nmat;
-  PetscReal      re,im;
-  PetscScalar    dot;
-  PetscBool      flg,isfold,iscayley;
-  PetscViewer    viewer;
-  PetscDraw      draw;
-  PetscDrawSP    drawsp;
-  STMatMode      matmode;
-  char           filename[PETSC_MAX_PATH_LEN];
-  EPSSortForSTData data;
-  Mat            A,B;
-  KSP            ksp;
-  Vec            w,x;
+  PetscErrorCode    ierr;
+  PetscInt          i,nmat;
+  PetscReal         re,im;
+  PetscScalar       dot;
+  PetscBool         flg,isfold,iscayley;
+  PetscViewer       viewer;
+  PetscViewerFormat format;
+  PetscDraw         draw;
+  PetscDrawSP       drawsp;
+  STMatMode         matmode;
+  EPSSortForSTData  data;
+  Mat               A,B;
+  KSP               ksp;
+  Vec               w,x;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
-  if (flg) {
-    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatView(A,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
-    if (nmat>1) {
-      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatView(B,PETSC_VIEWER_BINARY_(((PetscObject)eps)->comm));CHKERRQ(ierr);
-    }
-  }
-
-  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerASCIIGetStdout(((PetscObject)eps)->comm,&viewer);CHKERRQ(ierr);
-    ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
-  }
-
-  /* reset the convergence flag from the previous solves */
-  eps->reason = EPS_CONVERGED_ITERATING;
+  ierr = PetscLogEventBegin(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* call setup */
-  if (!eps->setupcalled) { ierr = EPSSetUp(eps);CHKERRQ(ierr); }
+  ierr = EPSSetUp(eps);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   eps->evecsavailable = PETSC_FALSE;
   eps->nconv = 0;
   eps->its = 0;
-  for (i=0;i<eps->ncv;i++) eps->eigr[i]=eps->eigi[i]=eps->errest[i]=0.0;
+  for (i=0;i<eps->ncv;i++) {
+    eps->eigr[i]   = 0.0;
+    eps->eigi[i]   = 0.0;
+    eps->errest[i] = 0.0;
+  }
   ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
-
-  ierr = PetscLogEventBegin(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!flg) {
@@ -140,7 +126,6 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);    
   }
   ierr = STPostSolve(eps->st);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(EPS_Solve,eps,eps->V[0],eps->V[0],0);CHKERRQ(ierr);
 
   if (!eps->reason) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
@@ -152,7 +137,6 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
-    ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
     ierr = KSPCreate(((PetscObject)eps)->comm,&ksp);CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
@@ -186,8 +170,6 @@ PetscErrorCode EPSSolve(EPS eps)
   /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFOLD,&isfold);CHKERRQ(ierr);
   if (isfold) {
-    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
     ierr = MatGetVecs(A,&w,PETSC_NULL);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
@@ -206,7 +188,6 @@ PetscErrorCode EPSSolve(EPS eps)
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
-    ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
     ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
@@ -221,10 +202,17 @@ PetscErrorCode EPSSolve(EPS eps)
   /* sort eigenvalues according to eps->which parameter */
   ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetString(((PetscObject)eps)->prefix,"-eps_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
+
+  /* various viewers */
+  ierr = MatViewFromOptions(A,"-eps_view_mat0");CHKERRQ(ierr);
+  if (nmat>1) { ierr = MatViewFromOptions(B,"-eps_view_mat1");CHKERRQ(ierr); }
+
+  ierr = PetscOptionsGetViewer(((PetscObject)eps)->comm,((PetscObject)eps)->prefix,"-eps_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = EPSView(eps,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 

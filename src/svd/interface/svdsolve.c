@@ -33,10 +33,9 @@
    Input Parameter:
 .  svd - singular value solver context obtained from SVDCreate()
 
-   Options Database:
-+   -svd_view - print information about the solver used
-.   -svd_view_before - print info at the beginning of the solve
--   -svd_view_binary - save the matrices to the default binary file
+   Options Database Keys:
++  -svd_view - print information about the solver used
+-  -svd_view_mat binary - save the matrix to the default binary viewer
 
    Level: beginner
 
@@ -44,40 +43,31 @@
 @*/
 PetscErrorCode SVDSolve(SVD svd) 
 {
-  PetscErrorCode ierr;
-  PetscBool      flg;
-  PetscInt       i,*workperm;
-  char           filename[PETSC_MAX_PATH_LEN];
-  PetscViewer    viewer;
-  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  PetscErrorCode    ierr;
+  PetscBool         flg;
+  PetscInt          i,*workperm;
+  PetscViewer       viewer;
+  PetscViewerFormat format;
+  PetscErrorCode    (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)svd)->prefix,"-svd_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
-  if (flg) {
-    ierr = MatView(svd->OP,PETSC_VIEWER_BINARY_(((PetscObject)svd)->comm));CHKERRQ(ierr);
-  }
+  ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetBool(((PetscObject)svd)->prefix,"-svd_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerASCIIGetStdout(((PetscObject)svd)->comm,&viewer);CHKERRQ(ierr);
-    ierr = SVDView(svd,viewer);CHKERRQ(ierr); 
-  }
-
-  if (!svd->setupcalled) { ierr = SVDSetUp(svd);CHKERRQ(ierr); }
+  /* call setup */
+  ierr = SVDSetUp(svd);CHKERRQ(ierr);
   svd->its = 0;
   svd->nconv = 0;
-  svd->reason = SVD_CONVERGED_ITERATING;
-  for (i=0;i<svd->ncv;i++) svd->sigma[i]=svd->errest[i]=0.0;
+  for (i=0;i<svd->ncv;i++) {
+    svd->sigma[i]  = 0.0;
+    svd->errest[i] = 0.0;
+  }
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
 
   which_func = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
   ierr = DSSetEigenvalueComparison(svd->ds,which_func,PETSC_NULL);CHKERRQ(ierr);
 
-  ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* sort singular triplets */
   if (svd->which == SVD_SMALLEST) {
@@ -91,10 +81,16 @@ PetscErrorCode SVDSolve(SVD svd)
     ierr = PetscFree(workperm);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsGetString(((PetscObject)svd)->prefix,"-svd_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
+
+  /* various viewers */
+  ierr = MatViewFromOptions(svd->OP,"-svd_view_mat");CHKERRQ(ierr);
+
+  ierr = PetscOptionsGetViewer(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"-svd_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerASCIIOpen(((PetscObject)svd)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = SVDView(svd,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 

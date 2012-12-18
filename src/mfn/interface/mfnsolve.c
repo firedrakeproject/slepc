@@ -38,10 +38,11 @@
    Output Parameter:
 .  x   - the solution
 
-   Options Database:
-+   -mfn_view - print information about the solver used
-.   -mfn_view_before - print info at the beginning of the solve
--   -mfn_view_binary - save the matrix to the default binary file
+   Options Database Keys:
++  -mfn_view - print information about the solver used
+.  -mfn_view_mat binary - save the matrix to the default binary viewer
+.  -mfn_view_rhs binary - save right hand side vector to the default binary viewer
+-  -mfn_view_solution binary - save computed solution vector to the default binary viewer
 
    Notes:
    The matrix A is specified with MFMSetOperator().
@@ -54,44 +55,36 @@
 @*/
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x) 
 {
-  PetscErrorCode ierr;
-  PetscBool      flg;
-  PetscViewer    viewer;
-  char           filename[PETSC_MAX_PATH_LEN];
+  PetscErrorCode    ierr;
+  PetscBool         flg;
+  PetscViewer       viewer;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)mfn)->prefix,"-mfn_view_binary",&flg,PETSC_NULL);CHKERRQ(ierr); 
-  if (flg) {
-    ierr = MatView(mfn->A,PETSC_VIEWER_BINARY_(((PetscObject)mfn)->comm));CHKERRQ(ierr);
-    ierr = VecView(b,PETSC_VIEWER_BINARY_(((PetscObject)mfn)->comm));CHKERRQ(ierr);
-  }
-
-  ierr = PetscOptionsGetBool(((PetscObject)mfn)->prefix,"-mfn_view_before",&flg,PETSC_NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerASCIIGetStdout(((PetscObject)mfn)->comm,&viewer);CHKERRQ(ierr);
-    ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 
-  }
-
-  /* reset the convergence flag from the previous solves */
-  mfn->reason = MFN_CONVERGED_ITERATING;
+  ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   /* call setup */
-  if (!mfn->setupcalled) { ierr = MFNSetUp(mfn);CHKERRQ(ierr); }
+  ierr = MFNSetUp(mfn);CHKERRQ(ierr);
   mfn->its = 0;
 
   /* call solver */
-  ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   if (!mfn->reason) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-  ierr = PetscOptionsGetString(((PetscObject)mfn)->prefix,"-mfn_view",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+
+  /* various viewers */
+  ierr = MatViewFromOptions(mfn->A,"-mfn_view_mat");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(b,"-mfn_view_rhs");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(x,"-mfn_view_solution");CHKERRQ(ierr);
+
+  ierr = PetscOptionsGetViewer(((PetscObject)mfn)->comm,((PetscObject)mfn)->prefix,"-mfn_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerASCIIOpen(((PetscObject)mfn)->comm,filename,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

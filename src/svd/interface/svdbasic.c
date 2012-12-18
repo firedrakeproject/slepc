@@ -198,7 +198,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 +  svd - the singular value solver context
 -  viewer - optional visualization context
 
-   Options Database:
+   Options Database Key:
 .  -svd_terse - print only minimal information
 
    Note:

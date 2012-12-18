@@ -319,7 +319,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 +  eps - the eigensolver context
 -  viewer - optional visualization context
 
-   Options Database:
+   Options Database Key:
 .  -eps_terse - print only minimal information
 
    Note:

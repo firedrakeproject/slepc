@@ -163,7 +163,6 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     }
 
     ierr = PetscOptionsName("-qep_view","Print detailed information on solver used","QEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-qep_view_binary","Save the matrices associated to the eigenproblem","QEPSetFromOptions",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-qep_plot_eigs","Make a plot of the computed eigenvalues","QEPSolve",0);CHKERRQ(ierr);
    
     if (qep->ops->setfromoptions) {

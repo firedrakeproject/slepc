@@ -62,6 +62,9 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
 
+  /* reset the convergence flag from the previous solves */
+  eps->reason = EPS_CONVERGED_ITERATING;
+
   /* Set default solver type (EPSSetFromOptions was not called) */
   if (!((PetscObject)eps)->type_name) {
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);

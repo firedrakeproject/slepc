@@ -57,6 +57,9 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (qep->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);
 
+  /* reset the convergence flag from the previous solves */
+  qep->reason = QEP_CONVERGED_ITERATING;
+
   /* Set default solver type (QEPSetFromOptions was not called) */
   if (!((PetscObject)qep)->type_name) {
     ierr = QEPSetType(qep,QEPLINEAR);CHKERRQ(ierr);

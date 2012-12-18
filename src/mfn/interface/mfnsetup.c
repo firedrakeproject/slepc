@@ -53,6 +53,9 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (mfn->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(MFN_SetUp,mfn,0,0,0);CHKERRQ(ierr);
 
+  /* reset the convergence flag from the previous solves */
+  mfn->reason = MFN_CONVERGED_ITERATING;
+
   /* Set default solver type (MFNSetFromOptions was not called) */
   if (!((PetscObject)mfn)->type_name) {
     ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);

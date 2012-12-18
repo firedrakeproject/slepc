@@ -102,7 +102,6 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   /* -----------------------------------------------------------------------*/
 
     ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-mfn_view_binary","Save the matrix associated to the problem","MFNSetFromOptions",0);CHKERRQ(ierr);
    
     if (mfn->ops->setfromoptions) {
       ierr = (*mfn->ops->setfromoptions)(mfn);CHKERRQ(ierr);

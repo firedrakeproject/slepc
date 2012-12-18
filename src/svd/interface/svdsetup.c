@@ -112,6 +112,9 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->setupcalled) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
 
+  /* reset the convergence flag from the previous solves */
+  svd->reason = SVD_CONVERGED_ITERATING;
+
   /* Set default solver type (SVDSetFromOptions was not called) */
   if (!((PetscObject)svd)->type_name) {
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
