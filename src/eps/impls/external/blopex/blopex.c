@@ -179,9 +179,8 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   SLEPCSetupInterpreter(&blopex->ii);
   blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
   for (i=0;i<eps->ncv;i++) { ierr = PetscObjectReference((PetscObject)eps->V[i]);CHKERRQ(ierr); }
-  mv_MultiVectorSetRandom(blopex->eigenvectors,1234);
-  ierr = VecDuplicate(eps->V[0],&blopex->w);CHKERRQ(ierr);
 
+  ierr = VecDuplicate(eps->V[0],&blopex->w);CHKERRQ(ierr);
   if (eps->nds > 0) {
     blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->defl);
     for (i=0;i<eps->nds;i++) { ierr = PetscObjectReference((PetscObject)eps->defl[i]);CHKERRQ(ierr); }
@@ -221,6 +220,11 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 #endif
   
   PetscFunctionBegin;
+  /* Complete the initial basis with random vectors and orthonormalize them */
+  for (i=eps->nini;i<eps->ncv;i++) {
+    ierr = SlepcVecSetRandom(eps->V[i],eps->rand);CHKERRQ(ierr);
+  }
+
   if (eps->numbermonitors>0) {
 #if defined(PETSC_USE_COMPLEX)
     ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(komplex),&lambdahist);CHKERRQ(ierr);
