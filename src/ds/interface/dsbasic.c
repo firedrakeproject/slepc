@@ -714,7 +714,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
   if (!((PetscObject)ds)->type_name) {
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBegin(((PetscObject)ds)->comm,((PetscObject)ds)->prefix,"Direct Solver (DS) Options","DS");CHKERRQ(ierr);
+  ierr = PetscObjectOptionsBegin((PetscObject)ds);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
     ierr = PetscOptionsInt("-ds_function_method","Method to be used to compute a matrix function","DSSetFunctionMethod",ds->funmethod,&meth,&flag);CHKERRQ(ierr);

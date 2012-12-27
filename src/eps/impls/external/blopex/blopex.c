@@ -220,7 +220,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 #endif
   
   PetscFunctionBegin;
-  /* Complete the initial basis with random vectors and orthonormalize them */
+  /* Complete the initial basis with random vectors */
   for (i=eps->nini;i<eps->ncv;i++) {
     ierr = SlepcVecSetRandom(eps->V[i],eps->rand);CHKERRQ(ierr);
   }
@@ -308,7 +308,6 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
   ierr = PetscOptionsHead("EPS BLOPEX Options");CHKERRQ(ierr);
   LOBPCG_SetFromOptionsRandomContext();
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-  PetscFunctionReturn(0);
 
   /* Set STPrecond as the default ST */
   if (!((PetscObject)eps->st)->type_name) {
@@ -321,6 +320,7 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
 }
 
 EXTERN_C_BEGIN

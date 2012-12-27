@@ -361,7 +361,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
   if (!((PetscObject)ip)->type_name) {
     ierr = IPSetDefaultType_Private(ip);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBegin(((PetscObject)ip)->comm,((PetscObject)ip)->prefix,"Inner Product (IP) Options","IP");CHKERRQ(ierr);
+  ierr = PetscObjectOptionsBegin((PetscObject)ip);CHKERRQ(ierr);
     i = ip->orthog_type;
     ierr = PetscOptionsEList("-ip_orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
     j = ip->orthog_ref;

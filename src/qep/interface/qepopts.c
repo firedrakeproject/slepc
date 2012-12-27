@@ -56,7 +56,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (!QEPRegisterAllCalled) { ierr = QEPRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  ierr = PetscOptionsBegin(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"Quadratic Eigenvalue Problem (QEP) Solver Options","QEP");CHKERRQ(ierr);
+  ierr = PetscObjectOptionsBegin((PetscObject)qep);CHKERRQ(ierr);
     ierr = PetscOptionsList("-qep_type","Quadratic Eigenvalue Problem method","QEPSetType",QEPList,(char*)(((PetscObject)qep)->type_name?((PetscObject)qep)->type_name:QEPLINEAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPSetType(qep,type);CHKERRQ(ierr);

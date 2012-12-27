@@ -354,7 +354,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   ierr = PetscOptionsEnum("-eps_primme_method","Method for solving the eigenproblem","EPSPRIMMESetMethod",EPSPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSPRIMMESetMethod(eps,meth);CHKERRQ(ierr); }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-  PetscFunctionReturn(0);
 
   /* Set STPrecond as the default ST */
   if (!((PetscObject)eps->st)->type_name) {
@@ -367,6 +366,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
 }
 
 EXTERN_C_BEGIN

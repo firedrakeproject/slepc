@@ -53,7 +53,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (!MFNRegisterAllCalled) { ierr = MFNRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
-  ierr = PetscOptionsBegin(((PetscObject)mfn)->comm,((PetscObject)mfn)->prefix,"Matrix Function (MFN) Options","MFN");CHKERRQ(ierr);
+  ierr = PetscObjectOptionsBegin((PetscObject)mfn);CHKERRQ(ierr);
     ierr = PetscOptionsList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = MFNSetType(mfn,type);CHKERRQ(ierr);

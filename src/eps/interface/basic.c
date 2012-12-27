@@ -77,7 +77,7 @@ PetscErrorCode EPSInitializePackage(const char *path)
   if (EPSPackageInitialized) PetscFunctionReturn(0);
   EPSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Eigenproblem Solver",&EPS_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Eigenvalue Problem Solver",&EPS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = EPSRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */
