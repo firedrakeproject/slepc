@@ -456,7 +456,7 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
 #define __FUNCT__ "DSSolve_HEP_QR"
 PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_STEQR)
+#if defined(PETSC_MISSING_LAPACK_STEQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEQR - Lapack routine is unavailable");
 #else

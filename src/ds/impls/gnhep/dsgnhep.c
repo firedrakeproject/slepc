@@ -534,7 +534,7 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
 #define __FUNCT__ "DSSolve_GNHEP"
 PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_GGES)
+#if defined(PETSC_MISSING_LAPACK_GGES)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGES - Lapack routines are unavailable");
 #else
