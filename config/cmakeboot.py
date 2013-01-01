@@ -98,12 +98,17 @@ class PETScMaker(script.Script):
      options.append('-GUnix Makefiles')
    cmd = [self.cmake.cmake, '--trace', '--debug-output', self.slepcdir] + map(lambda x:x.strip(), options) + args
    archdir = os.path.join(self.slepcdir, self.arch.arch)
-   try: # Try to remove the old cache because some versions of CMake lose CMAKE_C_FLAGS when reconfiguring this way
+   try:
+     # Try to remove the old cache because some versions of CMake lose CMAKE_C_FLAGS when reconfiguring this way
      os.remove(os.path.join(archdir, 'CMakeCache.txt'))
+     # Try to remove all the old CMake files to avoid infinite loop (CMake-2.8.10.2, maybe other versions)
+     # http://www.mail-archive.com/cmake@cmake.org/msg44765.html
+     import shutil
+     shutil.rmtree(os.path.join(archdir, 'CMakeFiles'))
    except OSError:
      pass
    log.write('Invoking: %s\n' % cmd)
-   output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir, timeout=10)
+   output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir, timeout=30)
    if retcode:
      self.logPrintBox('CMake process failed with status %d, falling back to legacy build' % (retcode,))
      return False
