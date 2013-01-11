@@ -122,7 +122,6 @@ PetscErrorCode STReset(ST st)
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr); 
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
-  ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   ierr = STResetOperationCounters(st);CHKERRQ(ierr);
   st->kspidx = -1;
@@ -157,6 +156,7 @@ PetscErrorCode STDestroy(ST *st)
   ierr = PetscFree((*st)->Astate);CHKERRQ(ierr);
   ierr = PetscObjectDepublish(*st);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
+  ierr = VecDestroy(&(*st)->D);CHKERRQ(ierr);
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
