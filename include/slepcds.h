@@ -156,8 +156,8 @@ PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBo
 PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
 PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
 
-PETSC_EXTERN PetscFList DSList;
-PETSC_EXTERN PetscBool  DSRegisterAllCalled;
+PETSC_EXTERN PetscFunctionList DSList;
+PETSC_EXTERN PetscBool         DSRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode DSRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],const char[],const char[],PetscErrorCode(*)(DS));
 PETSC_EXTERN PetscErrorCode DSRegisterDestroy(void);

@@ -23,8 +23,8 @@
 
 #include <slepc-private/stimpl.h>      /*I "slepcst.h" I*/
 
-PetscBool  STRegisterAllCalled = PETSC_FALSE;
-PetscFList STList = 0;
+PetscBool         STRegisterAllCalled = PETSC_FALSE;
+PetscFunctionList STList = 0;
 
 #undef __FUNCT__  
 #define __FUNCT__ "STSetType"
@@ -67,7 +67,7 @@ PetscErrorCode STSetType(ST st,STType type)
   ierr = PetscObjectTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFListFind(STList,((PetscObject)st)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr =  PetscFunctionListFind(((PetscObject)st)->comm,STList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }

@@ -23,11 +23,11 @@
 
 #include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
-PetscFList       SVDList = 0;
-PetscBool        SVDRegisterAllCalled = PETSC_FALSE;
-PetscClassId     SVD_CLASSID = 0;
-PetscLogEvent    SVD_SetUp = 0,SVD_Solve = 0;
-static PetscBool SVDPackageInitialized = PETSC_FALSE;
+PetscFunctionList SVDList = 0;
+PetscBool         SVDRegisterAllCalled = PETSC_FALSE;
+PetscClassId      SVD_CLASSID = 0;
+PetscLogEvent     SVD_SetUp = 0,SVD_Solve = 0;
+static PetscBool  SVDPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDFinalizePackage"
@@ -454,7 +454,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   ierr = PetscObjectTypeCompare((PetscObject)svd,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFListFind(SVDList,((PetscObject)svd)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(((PetscObject)svd)->comm,SVDList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)svd)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
 
   if (svd->ops->destroy) { ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr); }
@@ -505,8 +505,8 @@ PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,P
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&SVDList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&SVDList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -527,7 +527,7 @@ PetscErrorCode SVDRegisterDestroy(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&SVDList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&SVDList);CHKERRQ(ierr);
   SVDRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

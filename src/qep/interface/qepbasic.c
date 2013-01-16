@@ -23,11 +23,11 @@
 
 #include <slepc-private/qepimpl.h>      /*I "slepcqep.h" I*/
 
-PetscFList       QEPList = 0;
-PetscBool        QEPRegisterAllCalled = PETSC_FALSE;
-PetscClassId     QEP_CLASSID = 0;
-PetscLogEvent    QEP_SetUp = 0,QEP_Solve = 0,QEP_Dense = 0;
-static PetscBool QEPPackageInitialized = PETSC_FALSE;
+PetscFunctionList QEPList = 0;
+PetscBool         QEPRegisterAllCalled = PETSC_FALSE;
+PetscClassId      QEP_CLASSID = 0;
+PetscLogEvent     QEP_SetUp = 0,QEP_Solve = 0,QEP_Dense = 0;
+static PetscBool  QEPPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPFinalizePackage"
@@ -469,7 +469,7 @@ PetscErrorCode QEPSetType(QEP qep,QEPType type)
   ierr = PetscObjectTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFListFind(QEPList,((PetscObject)qep)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(((PetscObject)qep)->comm,QEPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown QEP type given: %s",type);
 
   if (qep->ops->destroy) { ierr = (*qep->ops->destroy)(qep);CHKERRQ(ierr); }
@@ -520,8 +520,8 @@ PetscErrorCode QEPRegister(const char *sname,const char *path,const char *name,P
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&QEPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&QEPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -542,7 +542,7 @@ PetscErrorCode QEPRegisterDestroy(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&QEPList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&QEPList);CHKERRQ(ierr);
   QEPRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

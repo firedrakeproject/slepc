@@ -103,8 +103,8 @@ typedef enum {/* converged */
 
 PETSC_EXTERN PetscErrorCode MFNGetConvergedReason(MFN,MFNConvergedReason *);
 
-PETSC_EXTERN PetscFList MFNList;
-PETSC_EXTERN PetscBool  MFNRegisterAllCalled;
+PETSC_EXTERN PetscFunctionList MFNList;
+PETSC_EXTERN PetscBool         MFNRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode MFNRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode MFNRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode MFNRegister(const char[],const char[],const char[],PetscErrorCode(*)(MFN));

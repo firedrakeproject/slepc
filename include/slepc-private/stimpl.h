@@ -24,8 +24,8 @@
 
 #include <slepcst.h>
 
-PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose;
-PETSC_EXTERN PetscFList STList;
+PETSC_EXTERN PetscFunctionList STList;
+PETSC_EXTERN PetscLogEvent     ST_SetUp,ST_Apply,ST_ApplyTranspose;
 
 typedef struct _STOps *STOps;
 

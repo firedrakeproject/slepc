@@ -24,8 +24,8 @@
 
 #include <slepcmfn.h>
 
-PETSC_EXTERN PetscFList MFNList;
-PETSC_EXTERN PetscLogEvent MFN_SetUp, MFN_Solve;
+PETSC_EXTERN PetscFunctionList MFNList;
+PETSC_EXTERN PetscLogEvent     MFN_SetUp, MFN_Solve;
 
 typedef struct _MFNOps *MFNOps;
 

@@ -23,11 +23,11 @@
 
 #include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
 
-PetscFList       EPSList = 0;
-PetscBool        EPSRegisterAllCalled = PETSC_FALSE;
-PetscClassId     EPS_CLASSID = 0;
-PetscLogEvent    EPS_SetUp = 0,EPS_Solve = 0;
-static PetscBool EPSPackageInitialized = PETSC_FALSE;
+PetscFunctionList EPSList = 0;
+PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
+PetscClassId      EPS_CLASSID = 0;
+PetscLogEvent     EPS_SetUp = 0,EPS_Solve = 0;
+static PetscBool  EPSPackageInitialized = PETSC_FALSE;
 
 const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerShiftType","EPS_POWER_SHIFT_",0};
 const char *EPSLanczosReorthogTypes[] = {"LOCAL","FULL","SELECTIVE","PERIODIC","PARTIAL","DELAYED","EPSLanczosReorthogType","EPS_LANCZOS_REORTHOG_",0};
@@ -557,7 +557,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   ierr = PetscObjectTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFListFind(EPSList,((PetscObject)eps)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(((PetscObject)eps)->comm,EPSList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
   if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
@@ -608,8 +608,8 @@ PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,P
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&EPSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&EPSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -630,7 +630,7 @@ PetscErrorCode EPSRegisterDestroy(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&EPSList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&EPSList);CHKERRQ(ierr);
   EPSRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

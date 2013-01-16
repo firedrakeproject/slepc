@@ -23,11 +23,11 @@
 
 #include <slepc-private/ipimpl.h>      /*I "slepcip.h" I*/
 
-PetscFList       IPList = 0;
-PetscBool        IPRegisterAllCalled = PETSC_FALSE;
-PetscClassId     IP_CLASSID = 0;
-PetscLogEvent    IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
-static PetscBool IPPackageInitialized = PETSC_FALSE;
+PetscFunctionList IPList = 0;
+PetscBool         IPRegisterAllCalled = PETSC_FALSE;
+PetscClassId      IP_CLASSID = 0;
+PetscLogEvent     IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
+static PetscBool  IPPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__  
 #define __FUNCT__ "IPFinalizePackage"
@@ -274,7 +274,7 @@ PetscErrorCode IPSetType(IP ip,IPType type)
   ierr = PetscObjectTypeCompare((PetscObject)ip,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFListFind(IPList,((PetscObject)ip)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr =  PetscFunctionListFind(((PetscObject)ip)->comm,IPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested IP type %s",type);
 
   ierr = PetscMemzero(ip->ops,sizeof(struct _IPOps));CHKERRQ(ierr);
@@ -662,8 +662,8 @@ PetscErrorCode IPRegister(const char *sname,const char *path,const char *name,Pe
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&IPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&IPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -684,7 +684,7 @@ PetscErrorCode IPRegisterDestroy(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&IPList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&IPList);CHKERRQ(ierr);
   IPRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

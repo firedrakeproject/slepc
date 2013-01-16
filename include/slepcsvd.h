@@ -153,8 +153,8 @@ PETSC_EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 PETSC_EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
 PETSC_EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
-PETSC_EXTERN PetscFList SVDList;
-PETSC_EXTERN PetscBool  SVDRegisterAllCalled;
+PETSC_EXTERN PetscFunctionList SVDList;
+PETSC_EXTERN PetscBool         SVDRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode SVDRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode SVDRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode SVDRegister(const char[],const char[],const char[],PetscErrorCode(*)(SVD));

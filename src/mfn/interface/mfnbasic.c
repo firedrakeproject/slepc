@@ -23,11 +23,11 @@
 
 #include <slepc-private/mfnimpl.h>      /*I "slepcmfn.h" I*/
 
-PetscFList       MFNList = 0;
-PetscBool        MFNRegisterAllCalled = PETSC_FALSE;
-PetscClassId     MFN_CLASSID = 0;
-PetscLogEvent    MFN_SetUp = 0,MFN_Solve = 0;
-static PetscBool MFNPackageInitialized = PETSC_FALSE;
+PetscFunctionList MFNList = 0;
+PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
+PetscClassId      MFN_CLASSID = 0;
+PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
+static PetscBool  MFNPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNFinalizePackage"
@@ -275,7 +275,7 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
   ierr = PetscObjectTypeCompare((PetscObject)mfn,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFListFind(MFNList,((PetscObject)mfn)->comm,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(((PetscObject)mfn)->comm,MFNList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)mfn)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown MFN type given: %s",type);
 
   if (mfn->ops->destroy) { ierr = (*mfn->ops->destroy)(mfn);CHKERRQ(ierr); }
@@ -326,8 +326,8 @@ PetscErrorCode MFNRegister(const char *sname,const char *path,const char *name,P
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&MFNList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&MFNList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -348,7 +348,7 @@ PetscErrorCode MFNRegisterDestroy(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&MFNList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&MFNList);CHKERRQ(ierr);
   MFNRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

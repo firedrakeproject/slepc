@@ -168,8 +168,8 @@ PETSC_EXTERN PetscErrorCode QEPGetConvergedReason(QEP,QEPConvergedReason *);
 PETSC_EXTERN PetscErrorCode QEPSortEigenvalues(QEP,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
 
-PETSC_EXTERN PetscFList QEPList;
-PETSC_EXTERN PetscBool  QEPRegisterAllCalled;
+PETSC_EXTERN PetscFunctionList QEPList;
+PETSC_EXTERN PetscBool         QEPRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode QEPRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode QEPRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode QEPRegister(const char[],const char[],const char[],PetscErrorCode(*)(QEP));

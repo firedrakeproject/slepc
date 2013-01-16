@@ -667,8 +667,8 @@ PetscErrorCode STRegister(const char *sname,const char *path,const char *name,Pe
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&STList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&STList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -689,7 +689,7 @@ PetscErrorCode STRegisterDestroy(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&STList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&STList);CHKERRQ(ierr);
   STRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

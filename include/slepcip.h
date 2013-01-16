@@ -110,8 +110,8 @@ PETSC_EXTERN PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
 PETSC_EXTERN PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
 PETSC_EXTERN PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
 
-PETSC_EXTERN PetscFList IPList;
-PETSC_EXTERN PetscBool  IPRegisterAllCalled;
+PETSC_EXTERN PetscFunctionList IPList;
+PETSC_EXTERN PetscBool         IPRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode IPRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode IPRegister(const char[],const char[],const char[],PetscErrorCode(*)(IP));
 PETSC_EXTERN PetscErrorCode IPRegisterDestroy(void);

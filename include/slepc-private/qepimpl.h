@@ -24,8 +24,8 @@
 
 #include <slepcqep.h>
 
-PETSC_EXTERN PetscFList QEPList;
-PETSC_EXTERN PetscLogEvent QEP_SetUp, QEP_Solve, QEP_Dense;
+PETSC_EXTERN PetscFunctionList QEPList;
+PETSC_EXTERN PetscLogEvent     QEP_SetUp, QEP_Solve, QEP_Dense;
 
 typedef struct _QEPOps *QEPOps;
 

@@ -113,8 +113,8 @@ PETSC_EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
 PETSC_EXTERN PetscErrorCode STGetMatStructure(ST,MatStructure*);
 
-PETSC_EXTERN PetscFList STList;
-PETSC_EXTERN PetscBool  STRegisterAllCalled;
+PETSC_EXTERN PetscFunctionList STList;
+PETSC_EXTERN PetscBool         STRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode STRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode STRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode STRegister(const char[],const char[],const char[],PetscErrorCode(*)(ST));

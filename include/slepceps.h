@@ -254,8 +254,8 @@ PETSC_EXTERN PetscErrorCode EPSCompareEigenvalues(EPS,PetscScalar,PetscScalar,Pe
 PETSC_EXTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,Vec,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec,PetscBool*);
 
-PETSC_EXTERN PetscFList EPSList;
-PETSC_EXTERN PetscBool  EPSRegisterAllCalled;
+PETSC_EXTERN PetscFunctionList EPSList;
+PETSC_EXTERN PetscBool         EPSRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode EPSRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode EPSRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode EPSRegister(const char[],const char[],const char[],PetscErrorCode(*)(EPS));

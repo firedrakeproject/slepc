@@ -23,11 +23,11 @@
 
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 
-PetscFList       DSList = 0;
-PetscBool        DSRegisterAllCalled = PETSC_FALSE;
-PetscClassId     DS_CLASSID = 0;
-PetscLogEvent    DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
-static PetscBool DSPackageInitialized = PETSC_FALSE;
+PetscFunctionList DSList = 0;
+PetscBool         DSRegisterAllCalled = PETSC_FALSE;
+PetscClassId      DS_CLASSID = 0;
+PetscLogEvent     DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
+static PetscBool  DSPackageInitialized = PETSC_FALSE;
 const char       *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W"};
 
 #undef __FUNCT__  
@@ -281,7 +281,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   ierr = PetscObjectTypeCompare((PetscObject)ds,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFListFind(DSList,((PetscObject)ds)->comm,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr =  PetscFunctionListFind(((PetscObject)ds)->comm,DSList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
   ierr = PetscMemzero(ds->ops,sizeof(struct _DSOps));CHKERRQ(ierr);
@@ -912,8 +912,8 @@ PetscErrorCode DSRegister(const char *sname,const char *path,const char *name,Pe
   char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFListAdd(&DSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&DSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -934,7 +934,7 @@ PetscErrorCode DSRegisterDestroy(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscFListDestroy(&DSList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&DSList);CHKERRQ(ierr);
   DSRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
