@@ -324,7 +324,7 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filena
   PetscFunctionReturn(ierr);
 }
 
-#ifdef PETSC_USE_DYNAMIC_LIBRARIES
+#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
 EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "PetscDLLibraryRegister_slepc"

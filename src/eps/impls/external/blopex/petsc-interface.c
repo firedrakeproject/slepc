@@ -12,13 +12,6 @@
 #include "blopex_interpreter.h"
 #include "blopex_temp_multivector.h"
 
-#ifdef PETSC_USE_COMPLEX
-#ifdef PETSC_CLANGUAGE_CXX
-#include <complex>
-using namespace std;
-#endif
-#endif
-
 static PetscRandom LOBPCG_RandomContext = PETSC_NULL;
 
 typedef struct {double real, imag;} komplex;
@@ -57,7 +50,7 @@ BlopexInt PETSC_dsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
                     n, double *a, BlopexInt *lda, double *b, BlopexInt *ldb,
                     double *w, double *work, BlopexInt *lwork, BlopexInt *info)
 {
-#ifndef PETSC_USE_COMPLEX
+#if !defined(PETSC_USE_COMPLEX)
    PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
 
    itype_ = *itype;
@@ -80,7 +73,7 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
                     n, komplex *a, BlopexInt *lda, komplex *b, BlopexInt *ldb,
                     double *w, komplex *work, BlopexInt *lwork, double *rwork, BlopexInt *info)
 {
-#ifdef PETSC_USE_COMPLEX
+#if defined(PETSC_USE_COMPLEX)
    PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
 
    itype_ = *itype;
@@ -211,12 +204,8 @@ LOBPCG_SetFromOptionsRandomContext(void)
   PetscErrorCode ierr;
   ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr);
 
-#ifdef PETSC_USE_COMPLEX
-#ifdef PETSC_CLANGUAGE_CXX
-  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar) complex<double>(-1,-1),(PetscScalar)complex<double>(1,1));
-#else
-  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0-1.0*I,(PetscScalar)1.0+1.0*I);
-#endif
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0-1.0*PETSC_i,(PetscScalar)1.0+1.0*PETSC_i);
 #else
   ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0);
 #endif
@@ -263,7 +252,7 @@ PETSCSetupInterpreter( mv_InterfaceInterpreter *i )
   i->SetRandomVectors = mv_TempMultiVectorSetRandom;
   i->Eval = mv_TempMultiVectorEval;
 
-  #ifdef PETSC_USE_COMPLEX
+  #if defined(PETSC_USE_COMPLEX)
     i->MultiInnerProd = mv_TempMultiVectorByMultiVector_complex;
     i->MultiInnerProdDiag = mv_TempMultiVectorByMultiVectorDiag_complex;
     i->MultiVecMat = mv_TempMultiVectorByMatrix_complex;
