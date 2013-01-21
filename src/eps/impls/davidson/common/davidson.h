@@ -238,7 +238,7 @@ typedef struct _dvdDashboard {
                   PetscInt r_e, Vec *R);
   PetscErrorCode (*preTestConv)(struct _dvdDashboard*, PetscInt s, PetscInt pre,
                                 PetscInt e, Vec *auxV, PetscScalar *auxS,
-	                              PetscInt *nConv);
+                                PetscInt *nConv);
 
   PetscErrorCode (*e_newIteration)(struct _dvdDashboard*);
   void *e_newIteration_data;

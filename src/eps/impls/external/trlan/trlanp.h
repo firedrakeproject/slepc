@@ -46,9 +46,7 @@ typedef struct {
 
 EXTERN_C_BEGIN
 
-extern void  TRLan_ (PetscBLASInt(*op)(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*),
-                     PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,
-		     PetscBLASInt*);
+extern void TRLan_(PetscBLASInt(*op)(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*),PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
 
 EXTERN_C_END
 

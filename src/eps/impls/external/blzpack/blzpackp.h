@@ -66,8 +66,7 @@ typedef struct {
 
 EXTERN_C_BEGIN
 
-extern void	 BLZpack_(PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,
-        		  PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*);
+extern void BLZpack_(PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*);
 
 extern PetscBLASInt BLZistorr_(PetscBLASInt*,const char*,int);
 extern PetscReal BLZrstorr_(PetscReal*,char*,int);

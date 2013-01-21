@@ -34,12 +34,12 @@ extern PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
 /* Structure characterizing a shift in spectrum slicing */
 typedef struct _n_shift *shift;
 struct _n_shift {
-  PetscReal	value;
-  PetscInt	inertia;
-  PetscBool	comp[2];    /* Shows completion of subintervals (left and right) */
-  shift  	neighb[2];  /* Adjacent shifts */
-  PetscInt	index;      /* Index in eig where found values are stored */
-  PetscInt	neigs;      /* Number of values found */
+  PetscReal     value;
+  PetscInt      inertia;
+  PetscBool     comp[2];    /* Shows completion of subintervals (left and right) */
+  shift         neighb[2];  /* Adjacent shifts */
+  PetscInt      index;      /* Index in eig where found values are stored */
+  PetscInt      neigs;      /* Number of values found */
   PetscReal     ext[2];     /* Limits for accepted values */ 
   PetscInt      nsch[2];    /* Number of missing values for each subinterval */
   PetscInt      nconv[2];   /* Converged on each side (accepted or not) */

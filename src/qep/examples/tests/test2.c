@@ -42,12 +42,12 @@ static char help[] = "Test the solution of a QEP from a finite element model of 
 #define __FUNCT__ "main"
 int main( int argc, char **argv )
 {
-  Mat         	 M, C, K;         /* problem matrices */
-  QEP         	 qep;             /* quadratic eigenproblem solver context */
+  Mat            M, C, K;         /* problem matrices */
+  QEP            qep;             /* quadratic eigenproblem solver context */
   QEPType        type;
   PetscErrorCode ierr;
-  PetscInt    	 n=30,Istart,Iend,i,maxit,nev;
-  PetscScalar 	 mu=1.0,tau=10.0,kappa=5.0;
+  PetscInt       n=30,Istart,Iend,i,maxit,nev;
+  PetscScalar    mu=1.0,tau=10.0,kappa=5.0;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
