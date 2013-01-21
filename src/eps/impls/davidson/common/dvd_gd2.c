@@ -149,7 +149,7 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[8])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10    || \
           PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
-            PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10         ) { \
+            PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10) { \
         (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its "\
                             "Rayleigh quotient value %G+%G\n", \
                             (eigr)[(i_s)+(i)], \
@@ -161,7 +161,7 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
       (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
-            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10     ) { \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
         (ierr) = PetscInfo3((eps), "The eigenvalue %G is far from its " \
                "Rayleigh quotient value %G. (y'*B*x = %G)\n", \
                (eigr)[(i_s)+(i)], \
@@ -176,7 +176,7 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
       (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
-            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10     ) { \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
         (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its " \
                "Rayleigh quotient value %G+%G\n", \
                PetscRealPart((eigr)[(i_s)+(i)]), \
@@ -223,7 +223,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   }
 
   /* Compute the eigenvectors of the selected pairs */
-  for (i=0; i<n; ) {
+  for (i=0;i<n;) {
     k = r_s+i+d->cX_in_H;
     ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);

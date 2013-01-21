@@ -26,7 +26,7 @@ static char help[] = "Test IPQRDecomposition.\n\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc, char **argv)
 {
   PetscErrorCode ierr;
   IP             ip;

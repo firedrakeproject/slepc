@@ -93,18 +93,18 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
 }
 
 void *
-PETSC_MimicVector( void *vvector )
+PETSC_MimicVector(void *vvector)
 {
     PetscErrorCode  ierr;
     Vec temp;
 
-    ierr=VecDuplicate((Vec) vvector, &temp );
+    ierr=VecDuplicate((Vec) vvector, &temp);
         assert (ierr==0);
     return ((void *)temp);
 }
 
 BlopexInt
-PETSC_DestroyVector( void *vvector )
+PETSC_DestroyVector(void *vvector)
 {
    PetscErrorCode ierr;
    Vec v=(Vec)vvector;
@@ -114,26 +114,26 @@ PETSC_DestroyVector( void *vvector )
 }
 
 BlopexInt
-PETSC_InnerProd( void *x, void *y, void *result )
+PETSC_InnerProd(void *x, void *y, void *result)
 {
     PetscErrorCode     ierr;
 
-    ierr=VecDot( (Vec)x, (Vec)y, (PetscScalar *) result);
+    ierr=VecDot((Vec)x, (Vec)y, (PetscScalar *) result);
         assert(ierr==0);
     return (0);
 }
 
 BlopexInt
-PETSC_CopyVector( void *x, void *y )
+PETSC_CopyVector(void *x, void *y)
 {
     PetscErrorCode  ierr;
 
-    ierr = VecCopy( (Vec)x, (Vec)y ); CHKERRQ(ierr);
+    ierr = VecCopy((Vec)x, (Vec)y); CHKERRQ(ierr);
     return(0);
 }
 
 BlopexInt
-PETSC_ClearVector( void *x )
+PETSC_ClearVector(void *x)
 {
     PetscErrorCode  ierr;
 
@@ -142,7 +142,7 @@ PETSC_ClearVector( void *x )
 }
 
 BlopexInt
-PETSC_SetRandomValues( void* v, BlopexInt seed )
+PETSC_SetRandomValues(void* v, BlopexInt seed)
 {
     PetscErrorCode ierr;
 
@@ -155,7 +155,7 @@ PETSC_SetRandomValues( void* v, BlopexInt seed )
 }
 
 BlopexInt
-PETSC_ScaleVector( double alpha, void *x)
+PETSC_ScaleVector(double alpha, void *x)
 {
     PetscErrorCode ierr;
 
@@ -164,20 +164,20 @@ PETSC_ScaleVector( double alpha, void *x)
 }
 
 BlopexInt
-PETSC_Axpy( void *alpha,
+PETSC_Axpy(void *alpha,
                 void   *x,
-                void   *y )
+                void   *y)
 {
     PetscErrorCode ierr;
 
-    ierr = VecAXPY( (Vec)y, *(PetscScalar *)alpha, (Vec)x ); CHKERRQ(ierr);
+    ierr = VecAXPY((Vec)y, *(PetscScalar *)alpha, (Vec)x); CHKERRQ(ierr);
     return(0);
 }
 BlopexInt
-PETSC_VectorSize( void *x )
+PETSC_VectorSize(void *x)
 {
   PetscInt  N;
-  VecGetSize( (Vec)x, &N );
+  VecGetSize((Vec)x, &N);
   return(N);
 }
 
@@ -225,7 +225,7 @@ LOBPCG_DestroyRandomContext(void)
 }
 
 int
-PETSCSetupInterpreter( mv_InterfaceInterpreter *i )
+PETSCSetupInterpreter(mv_InterfaceInterpreter *i)
 {
 
   i->CreateVector = PETSC_MimicVector;

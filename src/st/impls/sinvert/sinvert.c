@@ -96,7 +96,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
-      if (st->nmat==3){
+      if (st->nmat==3) {
         ierr = MatAXPY(st->A[0],-st->sigma*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         ierr = MatAXPY(st->A[1],-2.0*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         s = -st->sigma;
@@ -121,7 +121,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
-  if(st->nmat<3){
+  if(st->nmat<3) {
     /* T[0] = B */
     if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
     st->T[0] = st->A[1];

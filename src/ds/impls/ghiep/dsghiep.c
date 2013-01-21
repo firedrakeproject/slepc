@@ -230,7 +230,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
       if (scal1<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       wr1 /= scal1; wi /= scal1;
 #if !defined(PETSC_USE_COMPLEX)
-      if ( SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) { 
+      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) { 
         Y[0] = wr1-s2*d2; Y[1] = s2*e; Y[2] = wi; Y[3] = 0.0;
       } else { 
         Y[0] = s1*e; Y[1] = wr1-s1*d1; Y[2] = 0.0; Y[3] = wi;
@@ -247,7 +247,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
         X[(k+1)*ld+k] = Y[2]*norm; X[(k+1)*ld+k+1] = Y[3]*norm;
       }
 #else
-      if ( SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) { 
+      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) { 
         Y[0] = wr1-s2*d2+PETSC_i*wi; Y[1] = s2*e;
       } else { 
         Y[0] = s1*e; Y[1] = wr1-s1*d1+PETSC_i*wi;
@@ -446,7 +446,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 /*
   Generates a hyperbolic rotation
     if x1*x1 - x2*x2 != 0 
-      r = sqrt( |x1*x1 - x2*x2| )
+      r = sqrt(|x1*x1 - x2*x2|)
       c = x1/r  s = x2/r
      
       | c -s||x1|   |d*r|
@@ -617,11 +617,11 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     for (j=0;j<n-2;j++) {
       m = PetscBLASIntCast(n-j-1);
       /* Forming and applying reflectors */
-      if ( n0 > 1 ) {
+      if (n0 > 1) {
         LAPACKlarfg_(&n0, A+ni-n0+j*lda, A+ni-n0+j*lda+1,&inc,&tau);
         /* Apply reflector */
-        if ( PetscAbsScalar(tau) != 0.0 ) {
-          t=*( A+ni-n0+j*lda);  *(A+ni-n0+j*lda)=1.0;
+        if (PetscAbsScalar(tau) != 0.0) {
+          t=*(A+ni-n0+j*lda);  *(A+ni-n0+j*lda)=1.0;
           LAPACKlarf_("R",&m,&n0,A+ni-n0+j*lda,&inc,&tau,A+j+1+(j+1)*lda,&lda_,work+nwu);
           LAPACKlarf_("L",&n0,&m,A+ni-n0+j*lda,&inc,&tau,A+j+1+(j+1)*lda,&lda_,work+nwu);
           /* Update Q */
@@ -633,11 +633,11 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
           *(A+j+(ni-n0)*lda) = *(A+ni-n0+j*lda);
         }
       }
-      if ( n1 > 1 ) {
+      if (n1 > 1) {
         LAPACKlarfg_(&n1, A+n-n1+j*lda, A+n-n1+j*lda+1,&inc,&tau);
         /* Apply reflector */
-        if ( PetscAbsScalar(tau) != 0.0 ) {
-          t=*( A+n-n1+j*lda);  *(A+n-n1+j*lda)=1.0;
+        if (PetscAbsScalar(tau) != 0.0) {
+          t=*(A+n-n1+j*lda);  *(A+n-n1+j*lda)=1.0;
           LAPACKlarf_("R",&m,&n1,A+n-n1+j*lda,&inc,&tau,A+j+1+(n-n1)*lda,&lda_,work+nwu);
           LAPACKlarf_("L",&n1,&m,A+n-n1+j*lda,&inc,&tau,A+n-n1+(j+1)*lda,&lda_,work+nwu);
           /* Update Q */
@@ -650,7 +650,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         }
       }
       /* Hyperbolic rotation */
-      if ( n0 > 0 && n1 > 0) {
+      if (n0 > 0 && n1 > 0) {
         ierr = HRGen(PetscRealPart(A[ni-n0+j*lda]),PetscRealPart(A[n-n1+j*lda]),&type,&cs,&sn,&r,&cond);CHKERRQ(ierr);
         /* Check condition number */
         if (cond > 1.0/(10*PETSC_SQRT_MACHINE_EPSILON)) {
@@ -815,7 +815,7 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
 #endif
          /* s-orthogonalization with close eigenvalues */
         if (vj==0.0) {
-          if ( PetscAbsScalar(wr[j]-wr[i])<toldeg) {
+          if (PetscAbsScalar(wr[j]-wr[i])<toldeg) {
             ierr = IndefOrthog(s+ds->l, X+j*ld+ds->l, ss[j],X+i*ld+ds->l, PETSC_NULL,n1);CHKERRQ(ierr);
           }
         }else j++;
@@ -1069,7 +1069,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
           isreal = PETSC_TRUE;
           if (scal1<ep||scal2<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
           wr1 /= scal1; wr2 /= scal2;
-          if ( PetscAbsReal(s1*d1-wr1)<PetscAbsReal(s2*d2-wr1)) { Y[0] = wr1-s2*d2; Y[1] =s2*e;}
+          if (PetscAbsReal(s1*d1-wr1)<PetscAbsReal(s2*d2-wr1)) { Y[0] = wr1-s2*d2; Y[1] =s2*e;}
           else{ Y[0] = s1*e; Y[1] = wr1-s1*d1; }
           /* normalize with a signature*/
           maxy = PetscMax(PetscAbsScalar(Y[0]),PetscAbsScalar(Y[1]));
@@ -1077,7 +1077,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
           snorm = scal1*scal1*s1 + scal2*scal2*s2;
           if (snorm<0) {ss1 = -1.0; snorm = -snorm;}
           snorm = maxy*PetscSqrtReal(snorm); Y[0] = Y[0]/snorm; Y[1] = Y[1]/snorm;
-          if ( PetscAbsReal(s1*d1-wr2)<PetscAbsReal(s2*d2-wr2)) { Y[2] = wr2-s2*d2; Y[3] =s2*e;}
+          if (PetscAbsReal(s1*d1-wr2)<PetscAbsReal(s2*d2-wr2)) { Y[2] = wr2-s2*d2; Y[3] =s2*e;}
           else{ Y[2] = s1*e; Y[3] = wr2-s1*d1; }
           maxy = PetscMax(PetscAbsScalar(Y[2]),PetscAbsScalar(Y[3]));
           scal1 = PetscRealPart(Y[2])/maxy; scal2 = PetscRealPart(Y[3])/maxy;
@@ -1156,7 +1156,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscFunctionReturn(0);
   }
   /* Reduce to pseudotriadiagonal form */
-  ierr = DSIntermediate_GHIEP( ds);CHKERRQ(ierr);
+  ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
 
   /* Compute Eigenvalues (QR)*/
   ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);

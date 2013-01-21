@@ -204,12 +204,12 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSYGVD %d",info);
 #endif 
   ierr = PetscMemzero(Q+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for(i=ds->l;i<ds->n;i++){
+  for(i=ds->l;i<ds->n;i++) {
     ierr = PetscMemcpy(Q+ds->l+i*ld,A+ds->l+i*ld,n1*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   ierr = PetscMemzero(B+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMemzero(A+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for(i=ds->l;i<ds->n;i++){
+  for(i=ds->l;i<ds->n;i++) {
     if (wi) wi[i] = 0.0;
     B[i+i*ld] = 1.0;
     A[i+i*ld] = wr[i];

@@ -83,7 +83,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
-      if (st->nmat==3){
+      if (st->nmat==3) {
         ierr = MatAXPY(st->A[0],-st->sigma*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         ierr = MatAXPY(st->A[1],2.0*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         s = st->sigma;

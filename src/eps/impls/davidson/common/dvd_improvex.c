@@ -893,7 +893,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[8])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10    || \
           PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
-            PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10         ) { \
+            PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10) { \
         (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its "\
                             "Rayleigh quotient value %G+%G\n", \
                             (eigr)[(i_s)+(i)], \
@@ -909,7 +909,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
       (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
-            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10     ) { \
+            PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
         (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its " \
                "Rayleigh quotient value %G+%G\n", \
                PetscRealPart((eigr)[(i_s)+(i)]), \

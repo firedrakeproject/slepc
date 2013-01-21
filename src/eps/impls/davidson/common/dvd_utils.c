@@ -128,7 +128,7 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d, dvdBlackboard *b)
   }
 
   /* Setting configuration constrains */
-  b->own_vecs+= t?( (d->B == 0)?1:2 ) : 0;
+  b->own_vecs += t?((d->B == 0)?1:2) : 0;
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {

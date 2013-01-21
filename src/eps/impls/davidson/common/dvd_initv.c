@@ -96,7 +96,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   dvdInitV        *data = (dvdInitV*)d->initV_data;
   PetscInt        i, user = PetscMin(data->user, d->max_size_V),
                   k = PetscMin(data->k, d->max_size_V);
-  Vec             *cX = d->BcX? d->BcX : ( (d->cY && !d->W)? d->cY : d->cX );
+  Vec             *cX = d->BcX? d->BcX : ((d->cY && !d->W)? d->cY : d->cX);
 
   PetscFunctionBegin;
   /* If needed, generate a random vector for starting the arnoldi method */

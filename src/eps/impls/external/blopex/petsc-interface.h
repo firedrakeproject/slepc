@@ -21,30 +21,30 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, Blope
                     double *w, komplex *work, BlopexInt *lwork, double *rwork, BlopexInt *info);
 
 void *
-PETSC_MimicVector( void *vvector );
+PETSC_MimicVector(void *vvector);
 
 BlopexInt
-PETSC_DestroyVector( void *vvector );
+PETSC_DestroyVector(void *vvector);
 
 BlopexInt
-PETSC_InnerProd( void *x, void *y, void *result );
+PETSC_InnerProd(void *x, void *y, void *result);
 
 BlopexInt
-PETSC_CopyVector( void *x, void *y );
+PETSC_CopyVector(void *x, void *y);
 
 BlopexInt
-PETSC_ClearVector( void *x );
+PETSC_ClearVector(void *x);
 
 BlopexInt
-PETSC_SetRandomValues( void* v, BlopexInt seed );
+PETSC_SetRandomValues(void* v, BlopexInt seed);
 
 BlopexInt
-PETSC_ScaleVector( void *alpha, void   *x);
+PETSC_ScaleVector(void *alpha, void   *x);
 
 BlopexInt
-PETSC_Axpy( void *alpha,
+PETSC_Axpy(void *alpha,
                 void   *x,
-                void   *y );
+                void   *y);
 
 int
 LOBPCG_InitRandomContext(MPI_Comm,PetscRandom);
@@ -56,6 +56,6 @@ int
 LOBPCG_DestroyRandomContext(void);
 
 int
-PETSCSetupInterpreter( mv_InterfaceInterpreter *ii );
+PETSCSetupInterpreter(mv_InterfaceInterpreter *ii);
 
 #endif /* PETSC_INTERFACE_HEADER */

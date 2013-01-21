@@ -148,7 +148,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
   /* Optimized versions: A hermitian && (B not triang) */
   if (DVD_IS(sA,DVD_MAT_HERMITIAN) &&
       DVD_ISNOT(sB,DVD_MAT_UTRIANG) &&
-      DVD_ISNOT(sB,DVD_MAT_LTRIANG)    ) {
+      DVD_ISNOT(sB,DVD_MAT_LTRIANG)) {
     ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     rC = rA; cC = cB;
     BLASsymm_("L", DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
@@ -161,7 +161,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
   /* Optimized versions: B hermitian && (A not triang) */
   if (DVD_IS(sB,DVD_MAT_HERMITIAN) &&
       DVD_ISNOT(sA,DVD_MAT_UTRIANG) &&
-      DVD_ISNOT(sA,DVD_MAT_LTRIANG)    ) {
+      DVD_ISNOT(sA,DVD_MAT_LTRIANG)) {
     ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     rC = rA; cC = cB;
     BLASsymm_("R", DVD_ISNOT(sB,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
@@ -733,8 +733,8 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultIb"
-/* Computes N <- Allreduce( [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ] )
-                          ( [ W(sU:eU-1, 0:sV-1) W(sU:eU-1, sV:eV-1) ] )
+/* Computes N <- Allreduce([ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ])
+                          ([ W(sU:eU-1, 0:sV-1) W(sU:eU-1, sV:eV-1) ])
   where W = U' * V.
   workS0 and workS1 are an auxiliary scalar vector of size
   (eU-sU)*sV+(eV-sV)*eU. But, if sU == 0, sV == 0 and eU == ldM, only workS0

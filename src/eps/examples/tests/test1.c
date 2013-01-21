@@ -25,7 +25,7 @@ static char help[] = "Tests B-orthonormality of eigenvectors in a GHEP problem.\
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            A,B;        /* matrices */
   EPS            eps;        /* eigenproblem solver context */
@@ -57,7 +57,7 @@ int main( int argc, char **argv )
   ierr = MatSetUp(B);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for( II=Istart; II<Iend; II++ ) { 
+  for (II=Istart;II<Iend;II++) { 
     i = II/n; j = II-i*n;  
     if(i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if(i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
@@ -97,7 +97,7 @@ int main( int argc, char **argv )
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   if (nconv>0) {
     ierr = VecDuplicateVecs(v,nconv,&X);CHKERRQ(ierr);
-    for( i=0; i<nconv; i++ ) {
+    for (i=0;i<nconv;i++) {
       ierr = EPSGetEigenvector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
     }
     ierr = SlepcCheckOrthogonality(X,nconv,PETSC_NULL,nconv,B,&lev);CHKERRQ(ierr);

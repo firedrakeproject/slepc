@@ -30,10 +30,10 @@
 #include "petsc-interface.h"
 
 extern int
-SLEPCSetupInterpreter( mv_InterfaceInterpreter *ii );
+SLEPCSetupInterpreter(mv_InterfaceInterpreter *ii);
 
 extern void
-SLEPCSetupInterpreterForDignifiedDeath( mv_InterfaceInterpreter *i );
+SLEPCSetupInterpreterForDignifiedDeath(mv_InterfaceInterpreter *i);
 
 #endif
 

@@ -25,7 +25,7 @@ static char help[] = "Test DSGHIEP with compact storage.\n\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;

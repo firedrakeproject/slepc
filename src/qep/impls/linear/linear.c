@@ -128,7 +128,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     ctx->setfromoptionscalled = PETSC_FALSE;
   }
   /* temporary change of target */
-  if (qep->sfactor != 1.0){
+  if (qep->sfactor!=1.0) {
     ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
     ierr = EPSSetTarget(ctx->eps,sigma/qep->sfactor);CHKERRQ(ierr);
   }

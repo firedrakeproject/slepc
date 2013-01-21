@@ -230,7 +230,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         else if(b!=disc) alpha = 2.0*c/(b-disc);
         else alpha = 0;
         /* Next iterate */
-        if (alpha!=0.0){
+        if (alpha!=0.0) {
           ierr = VecAXPY(eps->V[i],alpha,ctx->P[i-eps->nconv]);CHKERRQ(ierr);
         }
         ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);

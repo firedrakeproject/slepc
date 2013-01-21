@@ -22,8 +22,8 @@
 #include "davidson.h"
 
 #define DVD_CHECKSUM(b) \
-  ( (b)->max_size_V + (b)->max_size_auxV + (b)->max_size_auxS + \
-    (b)->own_vecs + (b)->own_scalars + (b)->max_size_oldX )
+  ((b)->max_size_V + (b)->max_size_auxV + (b)->max_size_auxS + \
+   (b)->own_vecs + (b)->own_scalars + (b)->max_size_oldX)
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_schm_basic_preconf"

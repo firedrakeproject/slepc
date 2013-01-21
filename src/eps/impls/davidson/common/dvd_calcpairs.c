@@ -440,7 +440,7 @@ PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d, DvdReduction *r,
 PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
-  Vec             *cX = d->BcX? d->BcX : ( (d->cY && !d->W)? d->cY : d->cX );
+  Vec             *cX = d->BcX? d->BcX : ((d->cY && !d->W)? d->cY : d->cX);
 
   PetscFunctionBegin;
   if (d->V_new_s == d->V_new_e) PetscFunctionReturn(0);
@@ -924,7 +924,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
 
   size_in = (d->size_cX+r_e)*(d->cX_in_AV+r_e)*(d->cT?2:1);
   /* Check consistency */
-  if (d->size_auxV < PetscMax(2*(r_e-r_s),d->cX_in_AV+r_e) || d->size_auxS < PetscMax(d->size_H*(r_e-r_s) /* pX0 */, 2*size_in /* SlepcAllReduceSum */ )) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  if (d->size_auxV < PetscMax(2*(r_e-r_s),d->cX_in_AV+r_e) || d->size_auxS < PetscMax(d->size_H*(r_e-r_s) /* pX0 */, 2*size_in /* SlepcAllReduceSum */)) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 
   n = d->size_cX+r_e;
   ierr = DSSetDimensions(d->conv_ps,n,PETSC_IGNORE,0,0);CHKERRQ(ierr);

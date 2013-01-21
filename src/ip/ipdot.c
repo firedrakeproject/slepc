@@ -57,7 +57,7 @@
    this behaviour may be different if using a non-standard inner product changed 
    via IPSetMatrix(). For example, if using the B-inner product for 
    positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B = 
-   sqrt( x^H Bx ).
+   sqrt(x^H Bx).
 
    In an indefinite inner product, matrix B is indefinite and the norm is
    defined as s*sqrt(abs(x^H Bx)), where s = sign(x^H Bx).

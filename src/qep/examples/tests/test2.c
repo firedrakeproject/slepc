@@ -40,7 +40,7 @@ static char help[] = "Test the solution of a QEP from a finite element model of 
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main( int argc, char **argv )
+int main(int argc,char **argv)
 {
   Mat            M, C, K;         /* problem matrices */
   QEP            qep;             /* quadratic eigenproblem solver context */

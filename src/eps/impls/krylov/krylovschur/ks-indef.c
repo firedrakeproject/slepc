@@ -50,7 +50,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
     beta[j] = PetscAbsReal(norm);
     omega[j+1] = (norm<0.0)?-1.0:1.0;
     
-    if (breakdown && *breakdown ) {
+    if (breakdown && *breakdown) {
       *M = j+1;
       if (m > 100) {
         ierr = PetscFree(hwork);CHKERRQ(ierr);
@@ -130,7 +130,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-      if(*(a+ld+k+l-1)!=0){
+      if (*(a+ld+k+l-1)!=0) {
         if (k+l<nv-1) l = l+1;
         else l = l-1;
       }

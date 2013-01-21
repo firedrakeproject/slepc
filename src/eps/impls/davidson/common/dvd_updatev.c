@@ -340,13 +340,13 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   PetscFunctionBegin;
   /* Select size_X desired pairs from V */
   size_X = PetscMin(PetscMin(data->min_size_V,
-                             d->size_V ),
-                             d->max_size_V );
+                             d->size_V),
+                             d->max_size_V);
 
   /* Add plusk eigenvectors from the previous iteration */
   size_plusk = PetscMax(0, PetscMin(PetscMin(data->plusk,
-                                    data->size_oldU ),
-                                    d->max_size_V - size_X ));
+                                    data->size_oldU),
+                                    d->max_size_V - size_X));
 
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   d->size_MT = d->size_H;
@@ -415,9 +415,9 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   PetscFunctionBegin;
   /* Select the desired pairs */
   size_D = PetscMin(PetscMin(PetscMin(d->bs,
-                                      d->size_V ),
-                                      d->max_size_V-d->size_V ),
-                                      d->size_H );
+                                      d->size_V),
+                                      d->max_size_V-d->size_V),
+                                      d->size_H);
   if (size_D == 0) {
     ierr = PetscInfo2(d->eps, "MON: D:%D H:%D\n", size_D, d->size_H); CHKERRQ(ierr);
     ierr = d->initV(d); CHKERRQ(ierr);

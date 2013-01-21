@@ -61,7 +61,7 @@ static PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
   if (ctx->alpha != 0.0) { 
     ierr = MatMult(st->A[ctx->matIdx[ctx->nmat-1]],x,y);CHKERRQ(ierr);
     if (ctx->nmat>1) {  /*  */
-      for (i=ctx->nmat-2;i>=0;i--){
+      for (i=ctx->nmat-2;i>=0;i--) {
         ierr = MatMult(st->A[ctx->matIdx[i]],x,ctx->z);CHKERRQ(ierr);
         ierr = VecAYPX(y,ctx->alpha,ctx->z);CHKERRQ(ierr);
       }
@@ -89,7 +89,7 @@ static PetscErrorCode STMatShellMultTranspose(Mat A,Vec x,Vec y)
   if (ctx->alpha != 0.0) { 
     ierr = MatMultTranspose(st->A[ctx->matIdx[ctx->nmat-1]],x,y);CHKERRQ(ierr);
     if (st->nmat>1) {  /* y = (A + alpha*B) x */
-      for (i=ctx->nmat-2;i>=0;i--){
+      for (i=ctx->nmat-2;i>=0;i--) {
         ierr = MatMultTranspose(st->A[ctx->matIdx[i]],x,y);CHKERRQ(ierr);
         ierr = VecAYPX(y,ctx->alpha,ctx->z);CHKERRQ(ierr); 
       }
@@ -119,7 +119,7 @@ static PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
     ierr = MatGetDiagonal(st->A[ctx->matIdx[ctx->nmat-1]],diag);CHKERRQ(ierr);
     if (st->nmat>1) {
       ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
-      for (i=ctx->nmat-2;i>=0;i--){
+      for (i=ctx->nmat-2;i>=0;i--) {
         ierr = MatGetDiagonal(st->A[ctx->matIdx[i]],diagb);CHKERRQ(ierr);
         ierr = VecAYPX(diag,ctx->alpha,diagb);CHKERRQ(ierr);
       }
@@ -180,7 +180,7 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   ierr = MatHasOperation(st->A[ctx->matIdx[0]],MATOP_GET_DIAGONAL,&hasA);CHKERRQ(ierr);
   if (st->nmat>1) {
     has = hasA;
-    for (i=1;i<ctx->nmat;i++){
+    for (i=1;i<ctx->nmat;i++) {
       ierr = MatHasOperation(st->A[ctx->matIdx[i]],MATOP_GET_DIAGONAL,&hasB);CHKERRQ(ierr);
       has = (has && hasB)? PETSC_TRUE: PETSC_FALSE;
     }
